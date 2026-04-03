@@ -2,10 +2,10 @@ import { statSync } from "node:fs";
 import path from "node:path";
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
-import { getSurface } from "@public-surfaces/config";
-import { getDocCanonicalUrl } from "@public-surfaces/content/docs";
-import { listSignals } from "@public-surfaces/content/signals";
-import { getDocsSitemapEntries } from "@public-surfaces/content/sitemap";
+import { getSurface } from "@witnessops/config";
+import { getDocCanonicalUrl } from "@witnessops/content/docs";
+import { listSignals } from "@witnessops/content/signals";
+import { getDocsSitemapEntries } from "@witnessops/content/sitemap";
 import { loadHomeContent, loadSupportIndex } from "@/lib/content";
 
 const surface = getSurface("witnessops");

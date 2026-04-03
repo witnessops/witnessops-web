@@ -8,7 +8,7 @@ import {
   type ContentTrustBoundaryVariant,
   parseOffsecHome,
   type OffsecHome,
-} from "@public-surfaces/content";
+} from "@witnessops/content";
 
 const CONTENT_ROOT = path.resolve(process.cwd(), "../../content/witnessops");
 const FRONTMATTER_PATTERN = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;

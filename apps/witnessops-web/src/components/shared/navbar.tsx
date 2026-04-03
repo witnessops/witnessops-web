@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getDocsUrl, getSurfaceUrl } from "@public-surfaces/config";
+import { getDocsUrl, getSurfaceUrl } from "@witnessops/config";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { OffsecMark } from "./witnessops-mark";
 

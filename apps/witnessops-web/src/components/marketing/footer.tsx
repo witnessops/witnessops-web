@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getSurfaceUrl } from "@public-surfaces/config";
+import { getSurfaceUrl } from "@witnessops/config";
 
 interface FooterProps {
   brand_line: string;

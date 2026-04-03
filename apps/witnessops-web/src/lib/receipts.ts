@@ -1,7 +1,7 @@
 import {
   listPublishedTier1FreezeV2_1Chain,
   type PublishedTier1ChainEntry,
-} from "@public-surfaces/proof/receipt";
+} from "@witnessops/proof/receipt";
 
 /**
  * UI-only projection of the published Tier 1 chain.

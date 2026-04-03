@@ -6,4 +6,4 @@ export type {
   ProofHeroPreview as HeroPreview,
   ProofHeroScene as HeroScene,
   ProofHeroTimelineStep as HeroTimelineStep,
-} from "@public-surfaces/ui";
+} from "@witnessops/ui";

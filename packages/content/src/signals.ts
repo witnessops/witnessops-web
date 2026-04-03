@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import yaml from "js-yaml";
 import { z } from "zod";
-import { getCanonicalSurfaceUrl } from "@public-surfaces/config";
+import { getCanonicalSurfaceUrl } from "@witnessops/config";
 
 const FRONTMATTER_PATTERN = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 const NonEmptyString = z.string().trim().min(1);

@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getSurface } from "@public-surfaces/config";
+import { getSurface } from "@witnessops/config";
 
 import {
   isLocalAdminRequest,

@@ -1,5 +1,5 @@
 {
-  "name": "@public-surfaces/content",
+  "name": "@witnessops/content",
   "version": "0.0.1",
   "private": true,
   "main": "./src/index.ts",
@@ -17,7 +17,7 @@
     "./kb/components/*": "./kb/components/*.tsx"
   },
   "dependencies": {
-    "@public-surfaces/config": "workspace:*",
+    "@witnessops/config": "workspace:*",
     "js-yaml": "^4.1.0",
     "zod": "^3.24.0"
   },

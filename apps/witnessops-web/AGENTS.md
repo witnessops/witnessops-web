@@ -32,6 +32,6 @@ pnpm build
 
 If changes touch receipt or proof-shaped data, also run:
 ```bash
-pnpm --filter @public-surfaces/proof test
+pnpm --filter @witnessops/proof test
 pnpm protocol:run-corpus
 ```

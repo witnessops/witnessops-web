@@ -23,8 +23,8 @@ Local bootstrap repo for the WitnessOps web surface.
 - `pnpm lint`
 - `pnpm typecheck`
 - `pnpm test`
-- `pnpm --filter @public-surfaces/proof test`
+- `pnpm --filter @witnessops/proof test`
 - `pnpm docs:validate`
 - `pnpm signals:validate`
 
-Namespace cleanup is deferred in this slice. The copied workspace packages keep their current names until a later explicit cut.
+Namespace cleanup is complete for the live successor surface in this slice. Retained-behind proof/corpus lanes stay in `public-surfaces`.

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getSurfaceUrl } from "@public-surfaces/config";
-import { getDocCanonicalUrl, listDocPages } from "@public-surfaces/content/docs";
-import { getDocsSidebar } from "@public-surfaces/content/sidebar";
+import { getSurfaceUrl } from "@witnessops/config";
+import { getDocCanonicalUrl, listDocPages } from "@witnessops/content/docs";
+import { getDocsSidebar } from "@witnessops/content/sidebar";
 
 export const metadata: Metadata = {
   title: "Docs — WitnessOps",

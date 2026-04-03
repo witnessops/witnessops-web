@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
-@import "@public-surfaces/ui/tokens/witnessops.css";
+@import "@witnessops/ui/tokens/witnessops.css";
 
 @theme {
   --color-brand-primary: var(--color-brand-primary);

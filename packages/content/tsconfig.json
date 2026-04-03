@@ -1,5 +1,5 @@
 {
-  "extends": "@public-surfaces/tsconfig/base.json",
+  "extends": "@witnessops/tsconfig/base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
     "outDir": "dist"

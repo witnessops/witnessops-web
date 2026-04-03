@@ -1,5 +1,5 @@
 import { DocsSidebar } from "@/components/docs/docs-sidebar";
-import { getDocsSidebar } from "@public-surfaces/content/sidebar";
+import { getDocsSidebar } from "@witnessops/content/sidebar";
 
 export default async function DocsLayout({
   children,

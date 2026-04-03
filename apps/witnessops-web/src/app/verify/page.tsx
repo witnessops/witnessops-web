@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getCanonicalAlternates } from "@public-surfaces/config";
+import { getCanonicalAlternates } from "@witnessops/config";
 import { VerifyConsole } from "@/components/verify/verify-console";
 import { CodeFrame } from "@/components/shared/code-frame";
 import { SectionShell } from "@/components/shared/section-shell";

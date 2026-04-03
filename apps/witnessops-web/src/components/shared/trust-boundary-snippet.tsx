@@ -1,4 +1,4 @@
-import type { ContentTrustBoundaryVariant } from "@public-surfaces/content";
+import type { ContentTrustBoundaryVariant } from "@witnessops/content";
 
 type TrustBoundaryVariant = ContentTrustBoundaryVariant;
 

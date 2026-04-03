@@ -1,7 +1,7 @@
 import type {
   ProofStage,
   VerificationVerdict_,
-} from "@public-surfaces/proof/receipt";
+} from "@witnessops/proof/receipt";
 
 export type VerifyFailureClass =
   | "FAILURE_INPUT_MALFORMED"

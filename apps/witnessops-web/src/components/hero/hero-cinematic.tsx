@@ -1,6 +1,6 @@
 "use client";
 
-import { ProofHeroInstrument } from "@public-surfaces/ui";
+import { ProofHeroInstrument } from "@witnessops/ui";
 import { witnessopsScene } from "@/lib/hero/witnessops-scene";
 
 export default function HeroCinematic() {

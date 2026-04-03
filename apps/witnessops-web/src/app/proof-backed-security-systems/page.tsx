@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getCanonicalAlternates } from "@public-surfaces/config";
+import { getCanonicalAlternates } from "@witnessops/config";
 import { CodeFrame } from "@/components/shared/code-frame";
 import { SectionShell } from "@/components/shared/section-shell";
 

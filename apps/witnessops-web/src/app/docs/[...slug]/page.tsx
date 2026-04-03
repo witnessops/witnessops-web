@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { getDocsUrl, getSurfaceUrl } from "@public-surfaces/config";
+import { getDocsUrl, getSurfaceUrl } from "@witnessops/config";
 import {
   getCanonicalDocSlug,
   getDocCanonicalUrl,
@@ -10,9 +10,9 @@ import {
   getDocSectionTitle,
   getLegacyDocRedirectSlug,
   listDocPages,
-} from "@public-surfaces/content/docs";
-import { getDocsLayerForSlug } from "@public-surfaces/content/sidebar";
-import { MarkdownContent } from "@public-surfaces/ui/mdx";
+} from "@witnessops/content/docs";
+import { getDocsLayerForSlug } from "@witnessops/content/sidebar";
+import { MarkdownContent } from "@witnessops/ui/mdx";
 import { QuickActionFrame } from "@/components/docs/quick-action-frame";
 import { EvidenceMappingGuardrails } from "@/components/docs/evidence-mapping-guardrails";
 import { PageAnswer } from "@/components/docs/page-answer";

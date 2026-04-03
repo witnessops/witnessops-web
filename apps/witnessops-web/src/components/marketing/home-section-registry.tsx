@@ -1,4 +1,4 @@
-import type { OffsecHomeSection } from "@public-surfaces/content";
+import type { OffsecHomeSection } from "@witnessops/content";
 import { ProofStrip } from "@/components/marketing/proof-strip";
 import { ProblemSection } from "@/components/marketing/problem-section";
 import { CategorySection } from "@/components/marketing/category-section";

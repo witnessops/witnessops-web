@@ -3,7 +3,7 @@ import {
   verifyReceiptVerdict,
   type ProofStage,
   type VerificationCheck,
-} from "@public-surfaces/proof/receipt";
+} from "@witnessops/proof/receipt";
 import type {
   VerifyBreachView,
   VerifyCheckStatus,

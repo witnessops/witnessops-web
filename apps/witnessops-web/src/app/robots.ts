@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
-import { getSurface } from "@public-surfaces/config";
+import { getSurface } from "@witnessops/config";
 
 const surface = getSurface("witnessops");
 const siteUrl =

@@ -1,5 +1,5 @@
 {
-  "name": "@public-surfaces/proof",
+  "name": "@witnessops/proof",
   "version": "0.0.1",
   "private": true,
   "main": "./src/index.ts",
@@ -9,7 +9,7 @@
     "./receipt": "./src/receipt/index.ts"
   },
   "dependencies": {
-    "@public-surfaces/config": "workspace:*"
+    "@witnessops/config": "workspace:*"
   },
   "peerDependencies": {
     "next": ">=15.0.0"

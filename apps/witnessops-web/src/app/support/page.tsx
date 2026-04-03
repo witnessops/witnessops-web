@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCanonicalAlternates } from "@public-surfaces/config";
-import { MarkdownContent } from "@public-surfaces/ui/mdx";
+import { getCanonicalAlternates } from "@witnessops/config";
+import { MarkdownContent } from "@witnessops/ui/mdx";
 import { loadSupportIndex, loadSupportPage } from "@/lib/content";
 import { SupportIntake } from "@/components/support/support-intake";
 import { getMailboxConfig } from "@/lib/mailboxes";

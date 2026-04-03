@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getSurface } from "@public-surfaces/config";
+import { getSurface } from "@witnessops/config";
 import { Footer } from "@/components/marketing/footer";
 import { Navbar } from "@/components/shared/navbar";
 import { loadHomeContent } from "@/lib/content";

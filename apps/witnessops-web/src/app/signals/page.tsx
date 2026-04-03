@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getSignalsCanonicalUrl, listSignals, type SignalType } from "@public-surfaces/content/signals";
+import { getSignalsCanonicalUrl, listSignals, type SignalType } from "@witnessops/content/signals";
 
 const signalTypeLabels: Record<SignalType, string> = {
   availability: "Availability",

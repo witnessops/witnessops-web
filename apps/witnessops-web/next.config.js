@@ -8,10 +8,10 @@ const nextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname, "../.."),
   transpilePackages: [
-    "@public-surfaces/ui",
-    "@public-surfaces/config",
-    "@public-surfaces/content",
-    "@public-surfaces/proof",
+    "@witnessops/ui",
+    "@witnessops/config",
+    "@witnessops/content",
+    "@witnessops/proof",
   ],
   serverExternalPackages: ["blake3"],
   webpack: (config) => {

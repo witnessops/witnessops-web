@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDocsUrl, getSurfaceUrl } from "@public-surfaces/config";
+import { getDocsUrl, getSurfaceUrl } from "@witnessops/config";
 import { DocsSearch } from "./docs-search";
 import { OffsecMark } from "@/components/shared/witnessops-mark";
 

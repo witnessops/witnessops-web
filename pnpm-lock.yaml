@@ -27,293 +27,18 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
-  apps/attest-web:
-    dependencies:
-      '@public-surfaces/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@public-surfaces/content':
-        specifier: workspace:*
-        version: link:../../packages/content
-      '@public-surfaces/proof':
-        specifier: workspace:*
-        version: link:../../packages/proof
-      '@public-surfaces/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      framer-motion:
-        specifier: ^12.36.0
-        version: 12.36.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      js-yaml:
-        specifier: ^4.1.0
-        version: 4.1.1
-      next:
-        specifier: ^15.1.0
-        version: 15.5.12(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react:
-        specifier: ^19.0.0
-        version: 19.2.4
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.2.4(react@19.2.4)
-      zod:
-        specifier: ^3.24.0
-        version: 3.25.76
-    devDependencies:
-      '@tailwindcss/postcss':
-        specifier: ^4.0.0
-        version: 4.2.1
-      '@types/js-yaml':
-        specifier: ^4.0.9
-        version: 4.0.9
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.19.15
-      '@types/react':
-        specifier: ^19.0.0
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.0.0
-        version: 19.2.3(@types/react@19.2.14)
-      postcss:
-        specifier: ^8.4.0
-        version: 8.5.8
-      tailwindcss:
-        specifier: ^4.0.0
-        version: 4.2.1
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
-
-  apps/hub-web:
-    dependencies:
-      '@public-surfaces/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@public-surfaces/content':
-        specifier: workspace:*
-        version: link:../../packages/content
-      '@public-surfaces/proof':
-        specifier: workspace:*
-        version: link:../../packages/proof
-      '@public-surfaces/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      framer-motion:
-        specifier: ^12.36.0
-        version: 12.36.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      js-yaml:
-        specifier: ^4.1.0
-        version: 4.1.1
-      next:
-        specifier: ^15.1.0
-        version: 15.5.12(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react:
-        specifier: ^19.0.0
-        version: 19.2.4
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.2.4(react@19.2.4)
-      zod:
-        specifier: ^3.24.0
-        version: 3.25.76
-    devDependencies:
-      '@tailwindcss/postcss':
-        specifier: ^4.0.0
-        version: 4.2.1
-      '@types/js-yaml':
-        specifier: ^4.0.9
-        version: 4.0.9
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.19.15
-      '@types/react':
-        specifier: ^19.0.0
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.0.0
-        version: 19.2.3(@types/react@19.2.14)
-      postcss:
-        specifier: ^8.4.0
-        version: 8.5.8
-      tailwindcss:
-        specifier: ^4.0.0
-        version: 4.2.1
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
-
-  apps/status-web:
-    dependencies:
-      '@public-surfaces/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@public-surfaces/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      next:
-        specifier: ^15.1.0
-        version: 15.5.12(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react:
-        specifier: ^19.0.0
-        version: 19.2.4
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.2.4(react@19.2.4)
-    devDependencies:
-      '@public-surfaces/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
-      '@tailwindcss/postcss':
-        specifier: ^4.0.0
-        version: 4.2.1
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.19.15
-      '@types/react':
-        specifier: ^19.0.0
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.0.0
-        version: 19.2.3(@types/react@19.2.14)
-      postcss:
-        specifier: ^8.4.0
-        version: 8.5.8
-      tailwindcss:
-        specifier: ^4.0.0
-        version: 4.2.1
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
-
-  apps/vaultmesh-web:
-    dependencies:
-      '@public-surfaces/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@public-surfaces/content':
-        specifier: workspace:*
-        version: link:../../packages/content
-      '@public-surfaces/proof':
-        specifier: workspace:*
-        version: link:../../packages/proof
-      '@public-surfaces/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      framer-motion:
-        specifier: ^12.36.0
-        version: 12.36.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      js-yaml:
-        specifier: ^4.1.0
-        version: 4.1.1
-      next:
-        specifier: ^15.1.0
-        version: 15.5.12(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react:
-        specifier: ^19.0.0
-        version: 19.2.4
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.2.4(react@19.2.4)
-      zod:
-        specifier: ^3.24.0
-        version: 3.25.76
-    devDependencies:
-      '@tailwindcss/postcss':
-        specifier: ^4.0.0
-        version: 4.2.1
-      '@types/js-yaml':
-        specifier: ^4.0.9
-        version: 4.0.9
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.19.15
-      '@types/react':
-        specifier: ^19.0.0
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.0.0
-        version: 19.2.3(@types/react@19.2.14)
-      postcss:
-        specifier: ^8.4.0
-        version: 8.5.8
-      tailwindcss:
-        specifier: ^4.0.0
-        version: 4.2.1
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
-
-  apps/verify-web:
-    dependencies:
-      '@public-surfaces/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@public-surfaces/content':
-        specifier: workspace:*
-        version: link:../../packages/content
-      '@public-surfaces/proof':
-        specifier: workspace:*
-        version: link:../../packages/proof
-      '@public-surfaces/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      framer-motion:
-        specifier: ^12.36.0
-        version: 12.36.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      js-yaml:
-        specifier: ^4.1.0
-        version: 4.1.1
-      next:
-        specifier: ^15.1.0
-        version: 15.5.12(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react:
-        specifier: ^19.0.0
-        version: 19.2.4
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.2.4(react@19.2.4)
-      zod:
-        specifier: ^3.24.0
-        version: 3.25.76
-    devDependencies:
-      '@tailwindcss/postcss':
-        specifier: ^4.0.0
-        version: 4.2.1
-      '@types/js-yaml':
-        specifier: ^4.0.9
-        version: 4.0.9
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.19.15
-      '@types/react':
-        specifier: ^19.0.0
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.0.0
-        version: 19.2.3(@types/react@19.2.14)
-      postcss:
-        specifier: ^8.4.0
-        version: 8.5.8
-      tailwindcss:
-        specifier: ^4.0.0
-        version: 4.2.1
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
-
   apps/witnessops-web:
     dependencies:
-      '@public-surfaces/config':
+      '@witnessops/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@public-surfaces/content':
+      '@witnessops/content':
         specifier: workspace:*
         version: link:../../packages/content
-      '@public-surfaces/proof':
+      '@witnessops/proof':
         specifier: workspace:*
         version: link:../../packages/proof
-      '@public-surfaces/ui':
+      '@witnessops/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       framer-motion:
@@ -377,7 +102,7 @@ importers:
 
   packages/content:
     dependencies:
-      '@public-surfaces/config':
+      '@witnessops/config':
         specifier: workspace:*
         version: link:../config
       js-yaml:
@@ -402,7 +127,7 @@ importers:
 
   packages/proof:
     dependencies:
-      '@public-surfaces/config':
+      '@witnessops/config':
         specifier: workspace:*
         version: link:../config
       next:

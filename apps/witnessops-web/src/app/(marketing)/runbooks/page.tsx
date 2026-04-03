@@ -1,4 +1,4 @@
-import { getSurfaceUrl } from "@public-surfaces/config";
+import { getSurfaceUrl } from "@witnessops/config";
 import { permanentRedirect } from "next/navigation";
 
 export default function RunbooksRedirectPage() {

@@ -1,4 +1,4 @@
-import { getSurfaceUrl } from "@public-surfaces/config";
+import { getSurfaceUrl } from "@witnessops/config";
 import {
   getDocHref,
   getDocSectionDescriptor,

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getCanonicalAlternates } from "@public-surfaces/config";
+import { getCanonicalAlternates } from "@witnessops/config";
 import { ContactForm } from "./contact-form";
 import { getMailboxConfig } from "@/lib/mailboxes";
 

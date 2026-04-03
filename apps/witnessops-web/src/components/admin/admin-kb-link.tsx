@@ -1,6 +1,6 @@
 "use client";
 
-import { getSurfaceUrl } from "@public-surfaces/config";
+import { getSurfaceUrl } from "@witnessops/config";
 import styles from "./admin.module.css";
 
 export function AdminKbLink() {
