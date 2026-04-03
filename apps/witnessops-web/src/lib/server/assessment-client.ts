@@ -28,6 +28,10 @@ export interface AssessmentStatusResult {
   signed_with?: string;
   completed_at?: string;
   error?: string;
+  vpb_ready?: boolean;
+  export_status?: "ready" | "generating" | "failed" | null;
+  export_id?: string;
+  bundle_format?: string;
 }
 
 function readConfig(): { serverUrl: string; assessmentKey: string } | null {
@@ -120,5 +124,9 @@ export async function getAssessmentStatus(
     signed_with: body.signed_with,
     completed_at: body.completed_at,
     error: body.error,
+    vpb_ready: body.vpb_ready,
+    export_status: body.export_status,
+    export_id: body.export_id,
+    bundle_format: body.bundle_format,
   };
 }

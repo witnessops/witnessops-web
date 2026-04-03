@@ -163,6 +163,34 @@ export function AssessmentPoller({ issuanceId, email, initialStatus, initialRun 
             No findings in this assessment run.
           </div>
         )}
+
+        {/* Export readiness — WW-006 §6 */}
+        <div className="rounded border border-zinc-800 bg-zinc-950 px-4 py-3">
+          <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Export</div>
+          {run.vpb_ready ? (
+            <div className="text-sm text-emerald-300">
+              Verification bundle export is ready.
+              {run.export_id && (
+                <span className="ml-2 font-mono text-xs text-zinc-400">{run.export_id}</span>
+              )}
+              {run.bundle_format && (
+                <span className="ml-2 font-mono text-xs text-zinc-500">{run.bundle_format}</span>
+              )}
+            </div>
+          ) : run.export_status === "generating" ? (
+            <div className="text-sm text-zinc-300">
+              Verification bundle export is being prepared.
+            </div>
+          ) : run.export_status === "failed" ? (
+            <div className="text-sm text-zinc-400">
+              Verification bundle export failed for this assessment run.
+            </div>
+          ) : (
+            <div className="text-sm text-zinc-400">
+              Verification bundle export is not yet available for this assessment run.
+            </div>
+          )}
+        </div>
       </div>
     );
   }
