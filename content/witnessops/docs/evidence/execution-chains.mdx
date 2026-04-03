@@ -1,0 +1,148 @@
+---
+title: "Execution Chains"
+description: "How chained receipts become continuity, Merkle commitments, portable bundles, and a verifiable order of operations."
+section: "docs"
+order: 3
+nav_label: "Execution Chains"
+draft: false
+page_answer:
+  question: "How do chained receipts become a continuity story, and what should I verify before treating a bundle as a complete operational record?"
+  links:
+    - href: "/docs/evidence/receipts"
+      label: "Receipts"
+    - href: "/docs/evidence/receipt-spec"
+      label: "Receipt Spec"
+    - href: "/docs/how-it-works/verification"
+      label: "Verification"
+---
+
+# Execution Chains
+
+Execution chains are how WitnessOps turns a set of individual receipts into a continuity story. A receipt proves one governed event. A chain proves how those events connect.
+
+This page leads from chained receipts to Merkle commitment, bundle packaging, and verification order.
+
+## Why Chains Matter
+
+Without a chain, you can inspect isolated events.
+
+With a chain, you can test continuity:
+
+- did approval happen before execution?
+- did a denial happen before an override?
+- is a critical step missing?
+- was the final proof package assembled from the same receipt stream it claims to represent?
+
+That continuity is what turns proof artifacts into an operational narrative instead of a loose pile of records.
+
+## Chain Basics
+
+Each receipt contributes two continuity anchors:
+
+- its own `entry_hash`
+- the `prev_hash` pointing to the prior receipt in the same stream
+
+Together with sequence order, those fields create an append-only structure.
+
+```text
+R1  entry_hash = aaa...   prev_hash = 000...
+R2  entry_hash = bbb...   prev_hash = aaa...
+R3  entry_hash = ccc...   prev_hash = bbb...
+R4  entry_hash = ddd...   prev_hash = ccc...
+```
+
+If any receipt is removed, reordered, or modified, continuity breaks visibly.
+
+## What a Chain Lets a Reviewer Check
+
+An intact chain lets a reviewer answer practical questions about governed execution:
+
+- whether a gated approval actually preceded the intrusive step
+- whether expected runbook stages are missing
+- whether the proof package is presenting a complete sequence or a selective subset
+- whether later receipts genuinely descend from earlier ones
+
+This matters more than aesthetics. Trust depends on order, not just existence.
+
+## From Chained Receipts to Merkle Root
+
+Chains provide sequence-level continuity. Merkle commitment provides package-level commitment.
+
+When WitnessOps packages receipts into a portable bundle, the committed receipt set can also be summarized by a Merkle root. That adds three useful properties:
+
+- one root can cover many receipts
+- a verifier can check inclusion without replaying every artifact
+- bundle integrity can be discussed at the package level as well as the single-receipt level
+
+The clean mental model is:
+
+- receipt = atomic governed statement
+- chain = ordered continuity between statements
+- Merkle root = batch commitment over the packaged set
+- bundle = transport surface carrying the proof material
+
+## Bundle Packaging
+
+When a chain leaves the runtime, it should travel with the material required to verify it offline. In the current public model that means a bundle including, at minimum:
+
+- manifest and bundle identity data
+- the receipt set or chain material
+- signature-bearing artifacts
+- timestamp or checkpoint artifacts when present
+- public trust material required by the verifier
+
+The chain alone says, "these statements connect." The bundle says, "here is everything you need to test that claim without calling us back."
+
+## Verification Order
+
+The safest way to verify a packaged chain is to move from outer package integrity to inner continuity.
+
+1. verify bundle structure and required manifest fields
+2. verify artifact presence and declared hashes
+3. verify signature and digest relationships on the receipt-bearing artifacts
+4. walk receipt order, `entry_hash`, and `prev_hash` continuity
+5. verify Merkle commitment or inclusion material when provided
+6. evaluate witness policy or trust-registry requirements if declared
+
+That order matters because a broken package should fail before a verifier tries to infer continuity from incomplete or altered bytes.
+
+## What Breaks a Chain
+
+Chains break for concrete reasons:
+
+- a receipt was modified after issuance
+- a receipt was removed from the presented sequence
+- receipts were reordered
+- the package contains only a subset but presents it as a whole
+- the Merkle commitment does not match the packaged receipt set
+
+When that happens, the right response is not to smooth the UI over it. The right response is to downgrade trust and explain which layer failed.
+
+## Partial and Multi-Phase Work
+
+Real engagements often contain more than one stream. Recon, validation, escalation, and remediation may produce different receipt runs or chain segments.
+
+That is acceptable as long as the boundaries are explicit. A package can contain multiple chains, but each chain still needs:
+
+- a clear stream identity
+- intact internal order
+- an honest explanation of what is and is not included
+
+The proof story should be explicit about gaps rather than implying false totality.
+
+## Chains and Public Verification Results
+
+The current verifier returns `valid`, `invalid`, or `indeterminate` for the bundle that carries the chain.
+
+- `valid` means the declared package, digests, and trust conditions passed
+- `invalid` means a proof-bearing check failed
+- `indeterminate` means the package may be internally coherent, but a declared trust dependency could not be satisfied locally
+
+That distinction matters for continuity reviews. Missing trust context is not the same as a proven break, and a proven break is not the same as an incomplete archive.
+
+## Read Next
+
+- [Receipts](/docs/evidence/receipts) for the atomic proof object
+- [Receipt Specification](/docs/evidence/receipt-spec) for the receipt contract
+- [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the transport package
+- [Verification](/docs/how-it-works/verification) for the operator workflow

@@ -1,0 +1,8 @@
+{
+  "extends": "@public-surfaces/tsconfig/base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "outDir": "dist"
+  },
+  "include": ["src", "kb"]
+}

@@ -1,0 +1,59 @@
+---
+title: "Security"
+description: "WitnessOps security practices and policies."
+section: "legal"
+order: 1
+nav_label: "Security"
+draft: false
+trust_boundary_variant: "security"
+---
+
+# Security
+
+Last updated: March 2026
+
+## Security posture
+
+WitnessOps is designed around:
+
+- explicit trust boundaries
+- signed receipts
+- tamper-evident evidence bindings
+- governed execution paths
+
+These controls improve auditability and integrity, but do not eliminate external trust assumptions.
+
+## Vulnerability reporting
+
+Report vulnerabilities to [security@witnessops.com](mailto:security@witnessops.com) through responsible disclosure.
+
+This mailbox is the canonical security contact.
+Aliases (e.g. security+witnessops@) may be used for controlled intake but do not replace it.
+
+We aim to:
+
+- acknowledge reports within 72 hours
+- coordinate remediation prior to disclosure
+
+## Testing rules
+
+Do not perform:
+
+- destructive testing
+- denial-of-service activity
+- data exfiltration
+- access outside authorized scope
+
+If scope is unclear, stop and report.
+
+## Verification continuity
+
+Previously issued proof artifacts remain verifiable independently of service availability, provided required public verification material is accessible.
+
+WitnessOps web is a presentation layer only.
+Verification authority resides in:
+
+- signed receipts
+- timestamps
+- inclusion proofs
+- external verification tooling

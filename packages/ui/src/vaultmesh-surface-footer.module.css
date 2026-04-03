@@ -1,0 +1,247 @@
+.footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: var(--u5, 40px);
+  padding: 48px 0 32px;
+  background: transparent;
+}
+
+.inner {
+  max-width: var(--max, 1200px);
+  margin: 0 auto;
+  padding: 0 var(--u3, 24px);
+}
+
+.top {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr 1fr 0.9fr;
+  gap: 40px;
+  margin-bottom: 32px;
+}
+
+.brandBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.phi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 10, 10, 0.9);
+  color: rgba(125, 245, 255, 0.92);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13px;
+  text-shadow: 0 0 5px rgba(103, 232, 249, 0.12);
+}
+
+.wordmark {
+  color: var(--fg, #eef6fb);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.partner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin-top: 6px;
+  color: rgba(226, 241, 245, 0.32);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transition: color 0.14s ease;
+}
+
+.partner:hover {
+  color: rgba(226, 241, 245, 0.6);
+}
+
+.partnerDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 107, 53, 0.6);
+  box-shadow: 0 0 4px rgba(255, 107, 53, 0.2);
+}
+
+.tagline {
+  max-width: 280px;
+  color: rgba(226, 241, 245, 0.58);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.column {
+  min-width: 0;
+}
+
+.heading {
+  margin: 0 0 16px;
+  color: rgba(194, 214, 220, 0.4);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.linkList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.linkList a {
+  color: rgba(226, 241, 245, 0.6);
+  font-size: 13.5px;
+  text-decoration: none;
+  transition: color 0.14s ease;
+}
+
+.linkList a:hover,
+.linkList a[data-current="true"] {
+  color: var(--fg, #eef6fb);
+}
+
+.separator {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 20px 0;
+}
+
+.protocol {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(194, 214, 220, 0.48);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.protocolDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 212, 126, 0.7);
+  box-shadow: 0 0 6px rgba(0, 212, 126, 0.3);
+}
+
+.domain,
+.copyright {
+  color: rgba(194, 214, 220, 0.28);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.strip {
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.stripHeading {
+  margin: 0 0 12px;
+  color: rgba(194, 214, 220, 0.24);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.stripList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stripLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(226, 241, 245, 0.38);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  text-decoration: none;
+  transition: color 0.14s ease;
+}
+
+.stripLink:hover,
+.stripLink[data-current="true"] {
+  color: #7df5ff;
+}
+
+.stripDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(125, 245, 255, 0.48);
+  box-shadow: 0 0 5px rgba(125, 245, 255, 0.14);
+}
+
+@media (max-width: 1200px) {
+  .top {
+    grid-template-columns: 1.3fr 1fr 1fr;
+  }
+
+  .brandBlock {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
+  .top {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer {
+    padding: 40px 0 28px;
+  }
+
+  .top {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .statusRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .stripList {
+    gap: 10px 16px;
+  }
+}

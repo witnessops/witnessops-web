@@ -1,0 +1,84 @@
+---
+title: "DORA Evidence Mapping"
+description: "Evidence-mapping template for showing how WitnessOps evidence and independent verification records support DORA obligations."
+section: "docs"
+order: 3
+nav_label: "DORA"
+draft: false
+---
+
+# DORA Evidence Mapping
+
+## Applicability
+
+Use this template when a financial entity, ICT control owner, or auditor wants to understand how WitnessOps evidence and independent verification records may support evidence for:
+
+- ICT risk management
+- controlled security testing
+- governance and accountability
+- traceability of operational actions
+- evidentiary support during review or audit
+
+This template is a control-support worksheet, not a legal interpretation.
+
+## How to use this template
+
+For each DORA article or requirement area:
+
+1. name the article or obligation being mapped
+2. describe the operational or governance outcome required
+3. identify WitnessOps-generated evidence
+4. identify independent verification records
+5. note what remains manual, legal, organizational, or external
+6. list the exact auditor-facing artifacts
+
+## Evidence mapping table
+
+| Control / article / function | What this framework requires | Evidence WitnessOps can emit | What independent verification can confirm | Gaps / trust assumptions | Artifacts an auditor should inspect | Operator checklist |
+| --- | --- | --- | --- | --- | --- | --- |
+| ICT Risk Management Framework | Financial entities maintain a sound, comprehensive, and documented ICT risk management framework. | Governed runbooks, authorization records, execution constraints, evidence trails, receipt history, documented workflows. | An independent verifier can confirm that recorded executions align with declared workflows, approvals, and evidence continuity. | Enterprise-wide framework ownership, board oversight, and policy maintenance are external organizational responsibilities. | Governance records, runbook inventory, receipts, policy-linked workflows, approval history. | Confirm the activity maps to an approved process and that evidence is preserved end to end. |
+| ICT Systems, Protocols, and Tools Governance | ICT operations should be controlled, documented, and proportionate to risk. | Tool catalog entries, adapter definitions, execution logs, approval checkpoints, denial records, controlled workflow paths. | An independent verifier can confirm that only declared tools and workflows were used and that sensitive actions are attributable. | Baseline infrastructure controls and enterprise tooling governance may be outside platform scope. | Catalog entry, adapter metadata, execution logs, approval chain, exception records. | Verify the selected tool path is approved and documented before use. |
+| Incident Management and Classification Support | Significant ICT-related incidents must be managed, classified, and documented. | Recorded observations, preserved artifacts, timestamps, state transitions, evidence bundles, escalation records. | An independent verifier can confirm that evidence bundles are intact, attributable, and linked to the relevant investigation or action. | Formal legal reporting, competent authority notifications, and regulatory classifications remain manual and entity-owned. | Incident record, evidence bundle, escalation note, verification results, final receipt. | Preserve artifacts first, then record classification rationale and escalation triggers. |
+| Testing of Digital Operational Resilience | Entities must perform appropriate testing of ICT tools, systems, and processes. | Test runbooks, scope definitions, authorization records, execution receipts, target metadata, and recorded observations with artifact hashes tied to the execution receipt. | An independent verifier can confirm that recorded actions and artifacts correspond to the declared targets and execution steps. | Test program design, frequency, sampling, and regulatory interpretation remain external. | Scope approval, runbook, test evidence, receipts, recorded observations, verification output. | Confirm the test objective, scope, and approval status before starting. |
+| Third-Party / External Dependency Evidence Support | Oversight of ICT third-party risk requires traceable operational records. | Execution records tied to external systems, dependency references, evidence bundles, approval history for third-party interactions. | An independent verifier can confirm that interactions with external targets match declared scope and preserved evidence. | Contracting, concentration-risk analysis, and vendor governance remain outside product scope. | Third-party scope record, approval note, evidence set, receipts, exception records. | Confirm third-party boundaries are explicit and approved. |
+| Governance and Accountability Traceability | Decision-making and action ownership should be demonstrable. | Identity-linked action history, approval records, role-linked execution metadata, closeout records. | An independent verifier can confirm actor attribution, event sequence integrity, and linkage between approval and execution. | Board obligations and governance committee processes are external. | Approval logs, identity-linked receipts, role mapping records, verification reports. | Ensure every material action has a clear owner and approver where required. |
+| Evidence Preservation for Audit and Review | Relevant operational evidence should be reviewable after the fact. | Receipts, manifests, preserved artifacts, execution logs, state transitions, closeout records. | An independent verifier can confirm integrity, continuity, and correspondence between claims and stored evidence. | Retention policy, legal hold, and long-term archive controls may be external. | Receipt chain, manifest, evidence bundle, retention references, verification outputs. | Check that closure is not performed before evidence is complete and attributable. |
+
+## Gaps / trust assumptions
+
+Typical gaps to record here:
+
+- statutory interpretation of DORA articles is legal counsel territory
+- regulatory reporting obligations remain manual
+- entity-wide ICT risk governance is broader than WitnessOps evidence capture and independent verification
+- third-party contractual oversight is external
+- long-term retention and archive policy may depend on separate systems
+
+## Auditor inspection guide
+
+An auditor should inspect:
+
+- approved scope and workflow records
+- execution receipts and evidence bundles
+- role- and identity-linked approvals
+- preserved investigation artifacts
+- exception and denial events
+- independent verification records
+- documentation of what is manual or outside scope
+
+## Operator checklist
+
+- Identify the exact DORA obligation or article being mapped.
+- Write the control objective in entity-specific language.
+- Attach emitted WitnessOps evidence, not just summaries.
+- Attach the exact verification records that corroborate those artifacts.
+- Record any legal, organizational, or platform-boundary limitations.
+- Do not imply that operational evidence alone satisfies the full article.
+- Ensure the mapping can stand up to audit review without narrative reconstruction.
+
+## Related pages
+
+- [Governance](/docs/governance)
+- [Evidence](/docs/evidence)
+- [Operations](/docs/operations)
+- [What Evidence Is Required?](/docs/decisions/evidence-required)

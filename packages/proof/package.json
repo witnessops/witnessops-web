@@ -1,0 +1,20 @@
+{
+  "name": "@public-surfaces/proof",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./receipt": "./src/receipt/index.ts"
+  },
+  "dependencies": {
+    "@public-surfaces/config": "workspace:*"
+  },
+  "peerDependencies": {
+    "next": ">=15.0.0"
+  },
+  "scripts": {
+    "test": "node --import tsx --test ./src/receipt/merkle.test.ts ./src/receipt/verify-receipt.test.ts ./src/receipt/tier1-freeze_v2_1/emit-v0.test.ts ./src/receipt/tier1-freeze_v2_1/verify.test.ts"
+  }
+}

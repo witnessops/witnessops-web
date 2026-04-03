@@ -1,0 +1,154 @@
+---
+title: "Investigating a Phishing Report"
+description: "A practical workflow for validating suspicious messages, determining user impact, preserving evidence, and escalating when needed."
+section: "docs"
+order: 1
+nav_label: "Phishing Investigation"
+draft: false
+---
+
+# Investigating a Phishing Report
+
+Use this workflow when a user reports a suspicious email, message, or login prompt.
+
+## Goal
+
+Determine whether the report is:
+
+- benign
+- suspicious but unconfirmed
+- phishing
+- confirmed compromise requiring incident response
+
+## Assumptions
+
+- the report came from an employee, user, or monitored mailbox
+- you have access to the message or a preserved copy
+- you can review headers, links, and surrounding context
+
+## Scope limits
+
+This workflow is for validation and triage. Do not expand into broad mailbox or tenant-wide response unless escalation is justified.
+
+## Step 1: Preserve the artifact
+
+Capture:
+
+- the original message if available
+- screenshots only as supporting evidence, not as the primary source
+- full sender details
+- subject line
+- timestamp
+- links, attachments, and recipient list if relevant
+
+Do not delete or alter the original until evidence is preserved.
+
+## Step 2: Review the visible signs
+
+Check for:
+
+- urgency or fear language
+- requests for credentials or MFA codes
+- fake login pages
+- mismatched sender identity
+- suspicious attachments
+- brand impersonation
+- security alert language designed to provoke action
+
+These signals help triage, but they are not enough on their own.
+
+## Step 3: Validate the technical indicators
+
+Review:
+
+- sender domain
+- reply-to mismatch
+- link destinations
+- attachment type
+- mail authentication results if available
+- whether the message was actually sent from the claimed service
+
+Check whether displayed links match actual destinations.
+
+## Step 4: Determine user interaction
+
+Ask:
+
+- did the user click anything
+- did they enter credentials
+- did they approve MFA
+- did they open an attachment
+- did they download or execute anything
+
+This determines whether the issue is only phishing content or a possible compromise.
+
+## Step 5: Classify the event
+
+### Benign
+
+The message is legitimate or low-risk and no harmful indicators are present.
+
+### Suspicious
+
+Some indicators are present, but malicious intent is not yet confirmed.
+
+### Phishing
+
+The message clearly attempts deception, credential theft, or unsafe interaction.
+
+### Escalate immediately
+
+Escalate if:
+
+- the user clicked and entered credentials
+- MFA may have been approved
+- an attachment was opened and executed
+- multiple users received the same lure
+- privileged or sensitive accounts are involved
+
+## Step 6: Take minimum necessary action
+
+Depending on the result:
+
+- warn the reporter
+- quarantine or remove the message where appropriate
+- block or monitor indicators
+- trigger credential reset and session review if interaction occurred
+- open an incident if compromise is plausible
+
+## Evidence to collect
+
+- preserved message or message identifier
+- sender and recipient details
+- headers if available
+- link destinations
+- attachment metadata
+- screenshots of the lure if useful
+- notes on user interaction
+- your classification and rationale
+
+## What good looks like
+
+At the end of this workflow, another responder should be able to tell:
+
+- what the message claimed
+- what it actually did
+- whether a user interacted
+- whether compromise is likely
+- what action was taken
+
+## Quick action frame
+
+| Check | Use this rule |
+| --- | --- |
+| **When to stop** | Stop when the next step would move from message validation into broader account, mailbox, or tenant response without approval. |
+| **Escalation trigger** | Escalate immediately if credentials were entered, MFA may have been approved, code was executed, or privileged accounts are involved. |
+| **Evidence required** | Preserve the message or identifier, sender and recipient details, indicators, user interaction status, and your classification rationale. |
+| **Next path** | Continue to [Do I Need to Escalate?](/docs/decisions/escalation) for incident handoff or [What Evidence Is Required?](/docs/decisions/evidence-required) to confirm the record is complete. |
+
+## Related pages
+
+- [Do I Need to Escalate?](/docs/decisions/escalation)
+- [What Evidence Is Required?](/docs/decisions/evidence-required)
+- [Is This In Scope?](/docs/decisions/scope-check)
+- [Defender](/docs/audiences/defender)

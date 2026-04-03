@@ -1,0 +1,43 @@
+---
+title: "Policy Gates"
+description: "How WitnessOps enforces approvals and preconditions before execution."
+section: "docs"
+order: 3
+nav_label: "Policy Gates"
+draft: false
+---
+
+# Policy Gates
+
+A policy gate is a checkpoint that must pass before a runbook step executes. Gates are declarative. You define them in the runbook. WitnessOps evaluates them at runtime.
+
+## Gate Types
+
+**Scope check.** Verifies that the target of the current step falls within the authorized scope. If a runbook targets `10.0.0.0/24` and a step tries to reach `192.168.1.1`, the scope gate fails and the step does not execute. Scope is enforced per-step, not just at runbook start.
+
+**Approval requirement.** Requires an authorized principal to explicitly approve the step before it runs. The operator sees what the step will do, reviews the parameters, and either approves or rejects. Approval identity and timestamp are recorded in the receipt.
+
+**Target authorization.** Confirms that the target domain, IP range, or asset identifier has been pre-authorized for this engagement. This is distinct from scope — target authorization checks against an external authorization record, not just the runbook's declared scope.
+
+**Freemail rejection.** Blocks operations initiated by operators using freemail addresses (gmail.com, yahoo.com, etc.) as their principal identity. Governed operations require identifiable principals. Anonymous or disposable identities do not satisfy the gate.
+
+**Tool allowlist.** Confirms that the tool referenced by the step is on the permitted tool list for this runbook's classification level. A reconnaissance runbook should not invoke exploitation tools.
+
+## What Happens When a Gate Fails
+
+Gate failure stops execution at that step. The behavior is deterministic:
+
+1. The step does not execute. No partial execution. No fallback.
+2. WitnessOps records the gate failure in the execution state, including which gate failed and why.
+3. The operation pauses. It can be resumed after the gate condition is resolved — for example, after scope is expanded or approval is granted.
+4. If the gate failure is terminal (unsupported tool, invalid principal), the operation ends and a receipt is emitted recording the failure.
+
+Gate failures are not errors. They are the system working correctly. A scope gate that blocks an out-of-scope target is doing its job.
+
+## Gate Composition
+
+Steps can require multiple gates. A step that performs active exploitation might require scope check, target authorization, tool allowlist, and approval — all four must pass. Gates evaluate in order. The first failure stops evaluation.
+
+## Gates in the Receipt
+
+Every receipt records which gates were evaluated and their results. An approved step shows the approving principal and timestamp. A scope-checked step shows the scope boundary that was enforced. This makes the gate evaluation auditable after the fact.

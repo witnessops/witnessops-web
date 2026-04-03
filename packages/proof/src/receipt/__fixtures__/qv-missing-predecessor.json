@@ -1,0 +1,71 @@
+{
+  "schema_version": "2.0.0",
+  "proof_stage": "QV",
+  "receipt_id": "rcpt_qv_no_predecessor_001",
+  "run_id": "run_005",
+  "created_at": "2026-03-16T13:30:00Z",
+  "subject": {
+    "kind": "spawn-run",
+    "tool": "spawn",
+    "tool_version": "0.9.0",
+    "workflow": "web-recon",
+    "agent": "web-recon",
+    "mode": "lab",
+    "target": { "input": "127.0.0.1", "normalized": "127.0.0.1", "classification": "ipv4" },
+    "environment": { "host_os": "Linux", "host_arch": "x86_64", "runtime": "bun", "runtime_version": "1.2.0" }
+  },
+  "materialization": {
+    "status": "completed",
+    "started_at": "2026-03-16T13:25:00Z",
+    "completed_at": "2026-03-16T13:30:00Z",
+    "artifacts": [],
+    "artifact_count": 0
+  },
+  "integrity": {
+    "canonicalization": { "receipt_c14n": "JCS-8785", "manifest_c14n": "merkle-manifest-v2" },
+    "digest_algorithms": ["sha256", "blake3"],
+    "primary_digest_algorithm": "blake3",
+    "record_digests": [
+      { "algorithm": "sha256", "value": "aaaa111111111111111111111111111111111111111111111111111111111111" },
+      { "algorithm": "blake3", "value": "bbbb111111111111111111111111111111111111111111111111111111111111" }
+    ],
+    "record_digest": {
+      "algorithm": "blake3",
+      "value": "bbbb111111111111111111111111111111111111111111111111111111111111"
+    },
+    "manifest": {
+      "format": "merkle-tree-v1",
+      "leaf_canonicalization": "artifact-record-v1",
+      "leaf_digest_algorithm": "blake3",
+      "root": { "algorithm": "blake3", "value": "cccc111111111111111111111111111111111111111111111111111111111111" },
+      "artifacts": []
+    }
+  },
+  "attestation": {
+    "type": "local-signature",
+    "signature_algorithm": "ed25519",
+    "signing_key": { "key_id": "local-ed25519-fixture-01", "public_key": "MCowBQYDK2VwAyEAFixturePublicKeyBase64ForTestingOnly=" },
+    "signed_subject": { "type": "record_digest", "algorithm": "blake3", "value": "bbbb111111111111111111111111111111111111111111111111111111111111" },
+    "signature": "sig-valid-ed25519-fixture-qv-no-pred-001"
+  },
+  "anchoring": {
+    "rfc3161": {
+      "status": "present",
+      "tsa": { "name": "FreeTSA", "url": "https://freetsa.org/tsr" },
+      "message_imprint": {
+        "algorithm": "blake3",
+        "value": "bbbb111111111111111111111111111111111111111111111111111111111111"
+      },
+      "timestamp_token_path": "timestamp.tsr",
+      "token_format": "RFC-3161",
+      "gen_time": "2026-03-16T13:30:02Z",
+      "verification": {
+        "cryptographic_validity": "valid",
+        "message_imprint_match": true,
+        "cert_chain_status": "unchecked"
+      }
+    }
+  },
+  "witnesses": [],
+  "_fixture_note": "FAIL: QV requires predecessor field pointing to the promoted PV receipt — field is missing entirely"
+}

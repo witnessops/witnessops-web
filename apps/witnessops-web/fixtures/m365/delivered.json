@@ -1,0 +1,9 @@
+{
+  "messageId": "<rsp_abc123def456@witnessops.m365>",
+  "deliveryAttemptId": "rsp_abc123def456",
+  "status": "delivered",
+  "observedAt": "2026-03-29T12:05:00Z",
+  "eventId": "m365-evt-delivered-001",
+  "rawEventType": "MessageTrace.Delivered",
+  "detail": "Delivered to recipient mailbox"
+}

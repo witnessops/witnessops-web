@@ -1,0 +1,107 @@
+---
+title: "Authorization Model"
+description: "The approval and authorization boundaries that govern WitnessOps execution."
+section: "docs"
+order: 2
+nav_label: "Authorization Model"
+draft: false
+---
+
+# Authorization Model
+
+Authorization is the contract that separates an operator request from an allowed execution path.
+
+It defines the identities, approvals, and mutation controls that must be present before execution proceeds.
+
+## Principals
+
+WitnessOps records three principal types:
+
+| Principal | Role | What WitnessOps assumes |
+| --- | --- | --- |
+| `operator` | Initiates and runs the workflow | The calling system supplied a real identity. WitnessOps records it, but does not authenticate it on its own. |
+| `approver` | Authorizes a gated step or broader action | The approver is authorized for the environment, technique class, and risk level in question. |
+| `system` | Automation identity used by wrappers or orchestration | The identity is scoped to the minimum privileges required by the workflow. |
+
+If the caller lies about identity, WitnessOps records the lie faithfully. Identity provenance is a trust assumption, not an WitnessOps guarantee.
+
+## Approval modes
+
+WitnessOps supports these approval patterns at the documentation level:
+
+| Mode | Current state | Risk |
+| --- | --- | --- |
+| Self-approval | Allowed by default unless external policy forbids it | Fast, but weak separation of duties |
+| Designated approver | A named principal must approve the step | Stronger accountability for intrusive work |
+| Multi-party approval | Target state, not default behavior today | Best fit for high-risk or production-impact actions |
+
+Use the weakest mode only for the lowest-risk work. If the step can affect production, collect sensitive data, or validate exploitation, require a distinct approver.
+
+## What authorization must answer
+
+Before execution proceeds, the authorization record should make five things clear:
+
+1. **Objective** — what the operator is trying to prove, validate, or contain
+2. **Target boundary** — which hosts, domains, users, mailboxes, or environments are in scope
+3. **Technique class** — recon, enumeration, exploitation, collection, or containment
+4. **Risk level** — whether the step is reversible, intrusive, or potentially user-impacting
+5. **Time and context** — when the work is allowed and for which engagement or incident
+
+If one of these is unclear, the work is not well authorized yet.
+
+## Mutation controls
+
+Authorization is not only about people. It is also about what may change between approval and execution.
+
+- **Runbook version is pinned.** Receipts record the exact runbook version that executed.
+- **Gate results are recorded.** Scope checks, approval decisions, and denials remain visible after the fact.
+- **Scope configuration is mutable.** `in-scope.txt` is enforced, but it is still a configuration file, not an access control list.
+- **Lab mode is a special case.** Scope bypass or lab-only execution requires explicit handling and should not be mixed with normal governed production runs.
+
+See [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass) for that exception path.
+
+## Denial states
+
+Authorization fails when any of these conditions is true:
+
+- the principal identity is invalid, missing, or rejected by policy
+- the target is outside the approved boundary
+- the requested technique is broader than the approved objective
+- a required approver has not acted
+- the runbook or tool is not allowed for that classification
+- the record is too incomplete to justify safe execution
+
+When authorization fails, the step does not run. The denial is part of the governed record.
+
+## Evidence emitted
+
+A well-formed authorization path produces:
+
+- operator identity
+- approver identity when required
+- approval or denial timestamp
+- runbook ID and version
+- gate evaluation results
+- policy version or policy context
+- target and engagement linkage
+
+This evidence proves that a decision path existed. It does not prove that the decision was wise.
+
+## What authorization does not guarantee
+
+Authorization in WitnessOps does **not** guarantee:
+
+- that the caller’s identity source is truthful
+- that `in-scope.txt` is correct
+- that self-approval was independent
+- that colluding principals will be stopped
+- that external legal or business approval existed unless it was recorded
+
+Authorization is therefore both a control and a record. Its main defensive value is that unsafe decisions, rubber-stamping, and scope drift become reviewable later.
+
+## Related pages
+
+- [Policy Gates](/docs/security-systems/policy-gates)
+- [Threat Model](/docs/security-systems/threat-model)
+- [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass)
+- [Runbooks](/docs/operations/runbooks)

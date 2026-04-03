@@ -1,0 +1,136 @@
+---
+title: "How to Verify a Receipt"
+description: "Verify a WitnessOps receipt or proof bundle offline without trusting WitnessOps."
+section: "docs"
+order: 4
+nav_label: "Verify a Receipt"
+draft: false
+trust_boundary_variant: "verification"
+page_answer:
+  question: "How do I check a receipt or bundle offline, and how should I interpret valid, invalid, and indeterminate verification results?"
+  links:
+    - href: "/docs/evidence/receipt-spec"
+      label: "Receipt Spec"
+    - href: "/docs/evidence/execution-chains"
+      label: "Execution Chains"
+    - href: "/docs/security-systems/threat-model"
+      label: "Threat Model"
+---
+
+# How to Verify a Receipt
+
+Use this page when you need to confirm that a WitnessOps receipt or proof bundle is authentic without depending on the WitnessOps runtime.
+
+Verification is an independent act. The verifier checks signatures, timestamps, hashes, and inclusion proofs locally, then reports exactly what was confirmed and what remains external trust.
+
+## What you'll do
+
+- Confirm you have the receipt or bundle and the artifacts needed to verify it
+- Verify the signature, execution binding, timestamp, and inclusion proof in order
+- Distinguish cryptographic proof from the trust assumptions that remain outside the bundle
+
+## Canonical artifact
+
+Start with the signed receipt and, when available, the full proof bundle that surrounds it.
+
+At minimum, a verifier should have:
+
+- The receipt JSON or exported bundle
+- The signing public key or trusted key distribution source
+- Any included RFC 3161 timestamp token and certificate chain
+- Any included log checkpoint and inclusion proof
+
+The more complete the artifact set, the more of the evidence chain you can verify offline.
+
+## Procedure
+
+### 1. Confirm the artifact set
+
+Check whether you are verifying a standalone receipt or a fuller proof bundle.
+
+If you only have the receipt, you can still verify the signature, structure, and any embedded proof references. If you have the bundle, you can also verify manifest integrity and surrounding evidence files.
+
+### 2. Verify bundle integrity
+
+If a `MANIFEST.json` is present, verify every listed file against its SHA-256 digest before you inspect the receipt itself.
+
+If any file is missing or its digest does not match, the bundle is tampered and the rest of the chain should be treated as suspect.
+
+### 3. Verify the signature
+
+Verify the signed receipt or signed envelope against the expected public key.
+
+The goal here is not just “does a signature exist,” but “does this exact payload verify against the trusted key material for the claimed issuer.”
+
+If the signature does not verify, the receipt cannot be treated as authentic.
+
+### 4. Check the receipt structure and execution binding
+
+Confirm the receipt follows the expected schema and that its digest references match the included artifacts.
+
+This step answers two questions:
+
+- Is the receipt well-formed?
+- Does it bind to the execution material it claims to describe?
+
+If the structure is malformed or referenced digests do not match, the receipt is not internally consistent.
+
+### 5. Verify the timestamp
+
+If an RFC 3161 token is present, compute the digest of the signed bytes and verify the timestamp token against the TSA certificate chain.
+
+Timestamp verification is local. You need the token and the certificate chain, not a live connection to WitnessOps.
+
+If the timestamp does not verify, you may still have a valid signature, but you do not have trusted time for that signed object.
+
+### 6. Verify log inclusion
+
+If an inclusion proof and checkpoint are present, verify the proof against the checkpoint and verify the checkpoint signature against the log public key.
+
+This proves the receipt digest was committed to the append-only log at that checkpoint size.
+
+If the inclusion proof fails, the receipt may still be signed, but ledger commitment is not established.
+
+### 7. Verify continuity when available
+
+If the bundle includes a prior receipt, prior checkpoint, or continuity link, verify that the current artifact extends the prior state without breaks.
+
+This strengthens the claim from a single valid receipt to a replayable history segment.
+
+## Expected results
+
+A careful verifier should report each step separately rather than collapse everything into a single pass/fail result.
+
+| Check | Possible outcomes |
+| --- | --- |
+| Bundle integrity | pass / tampered |
+| Signature | valid / invalid / missing key |
+| Receipt structure and binding | well-formed / malformed / digest mismatch |
+| Timestamp | valid / invalid / not present |
+| Log inclusion | valid / invalid / not present |
+| Continuity | proven / not present |
+
+A receipt can be signed and structurally valid even when timestamping or log inclusion are absent. The point is to report what is proven, not to pretend all assurances are identical.
+
+## Trust boundaries and failure modes
+
+Even a fully verified receipt still depends on some external trust:
+
+- **The signing key must be trusted.** The verifier needs to know that the public key in the bundle belongs to the claimed issuer. Trust root distribution is out-of-band.
+- **The TSA must be trusted.** The timestamp is only as strong as the TSA's certificate chain and time source.
+- **The log operator is a single party.** Without a witness cosigning checkpoints, a single log operator can theoretically present different views to different verifiers. Witness support narrows this.
+
+Common failure modes are straightforward:
+
+- Missing or mismatched files mean the bundle was altered or exported incompletely.
+- Invalid signatures mean the claimed issuer did not sign the artifact you received.
+- Invalid timestamps mean trusted time was not established.
+- Missing inclusion proofs mean append-only publication was not demonstrated.
+
+WitnessOps should be explicit about these boundaries instead of hiding them behind a green check.
+
+## Related pages
+
+- [Getting Started](/docs/getting-started) — first-run path for new operators
+- [Receipt Specification](/docs/evidence/receipt-spec) — field-level schema reference
+- [Proof Model](/docs/how-it-works/proof-model) — explanation of the artifact model behind verification

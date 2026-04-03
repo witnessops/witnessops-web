@@ -1,0 +1,25 @@
+{
+  "name": "witnessops-web-workspace",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "pnpm --filter witnessops-web dev",
+    "build": "pnpm --filter witnessops-web build",
+    "lint": "pnpm --filter witnessops-web lint",
+    "typecheck": "pnpm --filter witnessops-web typecheck",
+    "test": "pnpm --filter witnessops-web test && pnpm --filter @public-surfaces/proof test && pnpm route-parity && pnpm receipt-smoke",
+    "proof:test": "pnpm --filter @public-surfaces/proof test",
+    "route-parity": "node --import tsx --test tests/route-parity/route-parity.test.ts",
+    "receipt-smoke": "node --import tsx --test tests/receipt-smoke/receipt-smoke.test.ts",
+    "docs:validate": "node --import tsx ./scripts/validate-docs.ts",
+    "signals:validate": "node --import tsx ./scripts/validate-signals.ts"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "eslint": "^9.22.0",
+    "eslint-config-next": "15.5.12",
+    "tsx": "^4.21.0",
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0"
+  }
+}

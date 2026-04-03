@@ -1,0 +1,85 @@
+---
+title: "Why MFA Stops Most Attacks"
+description: "An MFA lesson framed as scenario, attack chain, observable evidence, operator response, and WitnessOps controls."
+section: "docs"
+order: 3
+nav_label: "MFA"
+draft: false
+---
+
+# Why MFA Stops Most Attacks
+
+A stolen password without MFA gives instant access. A stolen password with MFA often gives nothing.
+
+## Scenario
+
+An attacker gets a valid password from phishing, password reuse, or a public breach. They try it against email, cloud, or finance systems.
+
+## Attack Chain
+
+### Without MFA
+
+```
+Password stolen
+  ↓
+Attacker signs in
+  ↓
+Account compromised
+```
+
+### With MFA
+
+```
+Password stolen
+  ↓
+Attacker tries to sign in
+  ↓
+MFA prompt or challenge appears
+  ↓
+User denies or does not possess the factor
+  ↓
+Access blocked
+```
+
+## Observable Evidence
+
+Look for:
+
+- repeated sign-in attempts that fail on the MFA step
+- MFA prompts the user did not initiate
+- weak MFA methods such as SMS on sensitive accounts
+- privileged accounts with no MFA at all
+- successful logins from exposed accounts that should have been challenged
+
+## Operator Response
+
+1. Enable MFA first on email, cloud admin, and finance systems.
+2. Prefer phishing-resistant methods for privileged or high-value accounts.
+3. Treat unsolicited MFA prompts as evidence of attempted compromise.
+4. Reset the password and revoke sessions if a prompt was accidentally approved.
+
+## WitnessOps Controls
+
+The governed path should include:
+
+- [Authorization Model](/docs/governance/authorization-model) for who may change authentication settings
+- [Policy Gates](/docs/security-systems/policy-gates) for approval on privileged account changes
+- [What Evidence Is Required?](/docs/decisions/evidence-required) to capture the account, method, and observed risk
+- [Receipts](/docs/evidence/receipts) to sign exposure checks and corrective actions
+
+## Which MFA to use
+
+| Method | Strength | Notes |
+|--------|----------|-------|
+| **Hardware key** | Strongest | Phishing-resistant. Best for privileged access. |
+| **Authenticator app** | Strong | Good default for most users. |
+| **Push notification** | Good | Watch for fatigue and accidental approval. |
+| **SMS code** | Better than nothing | Weakest option. Use only if nothing better is available. |
+
+Priority order:
+
+1. **Email** — your email is the master key to every other account
+2. **Cloud services** — Microsoft 365, Google Workspace, AWS
+3. **Financial accounts** — banking, payroll
+4. **Social media** — used for impersonation and resets
+5. **Everything else**

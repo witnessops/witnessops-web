@@ -1,0 +1,110 @@
+---
+title: "Defender"
+description: "A starting point for defenders, analysts, and responders handling suspicious activity, phishing, and account-risk investigations."
+section: "docs"
+order: 3
+nav_label: "Defender"
+draft: false
+---
+
+# Defender
+
+This page is for security engineers, defenders, incident responders, and analysts who use the docs to investigate suspicious activity, validate reports, and support safe triage.
+
+## What this role uses the docs for
+
+Use these docs to:
+
+- investigate reported phishing and suspicious activity
+- validate alerts without overreacting
+- collect evidence for escalation
+- understand when a security event becomes an incident
+- coordinate with operators and approvers
+
+## Start here
+
+Read these in order:
+
+1. [Security Education](/docs/security-education)
+2. [Evidence](/docs/evidence)
+3. [Operations](/docs/operations)
+4. [Governance](/docs/governance)
+5. [FAQ](/docs/faq)
+
+## What defenders should optimize for
+
+- fast triage
+- low false confidence
+- clear escalation triggers
+- good evidence hygiene
+- user safety and business continuity
+
+## Trust boundaries you should know
+
+Before investigating, understand these limits:
+
+- **Scope enforcement** depends on `in-scope.txt` — a configuration file, not an access control list. If the file is wrong, enforcement is wrong.
+- **Self-approval** is possible by default. Separation of duties depends on configuration.
+- **Host compromise** defeats all governance controls. WitnessOps assumes a trustworthy host.
+- **Receipts** prove execution occurred. They do not prove findings are correct or that the investigation was complete.
+
+See [Threat Model](/docs/security-systems/threat-model) for the full trust boundary map.
+
+## Typical defender workflow
+
+### 1. Triage the report
+
+Determine what was reported, by whom, and when.
+
+### 2. Establish the facts
+
+Check the sender, links, attachments, authentication signals, affected accounts, and related activity.
+
+### 3. Assess impact
+
+Decide whether the event is informational, suspicious, or confirmed malicious.
+
+### 4. Contain where needed
+
+Take the minimum action needed to protect users and systems.
+
+### 5. Preserve evidence
+
+Keep the message, logs, indicators, and decision trail.
+
+### 6. Escalate when necessary
+
+Escalate if there is evidence of compromise, user interaction, spread, or privileged exposure.
+
+## Common investigations
+
+- phishing reports
+- suspicious login alerts
+- malicious attachment claims
+- credential reuse concerns
+- mailbox rule abuse
+- account takeover indicators
+
+## Common mistakes
+
+- deleting the artifact before preserving it
+- trusting appearance over headers and actual links
+- escalating too late after confirmed user interaction
+- failing to document what was verified
+- treating "no immediate signs" as "no risk"
+
+## What success looks like
+
+You can show:
+
+- what was reported
+- what you validated
+- what evidence supported the conclusion
+- what containment occurred
+- whether more response work is required
+
+## Read next
+
+- [Investigating a Phishing Report](/docs/scenarios/phishing-investigation)
+- [Do I Need to Escalate?](/docs/decisions/escalation)
+- [What Evidence Is Required?](/docs/decisions/evidence-required)

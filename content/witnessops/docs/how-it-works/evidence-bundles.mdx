@@ -1,0 +1,74 @@
+---
+title: "Evidence Bundles"
+description: "What is in a WitnessOps proof bundle and how to verify it offline."
+section: "docs"
+order: 3
+nav_label: "Evidence Bundles"
+draft: false
+---
+
+# Evidence Bundles
+
+A WitnessOps proof bundle is a portable, self-contained evidence package. It includes everything a third party needs to verify a governed operation offline, without calling WitnessOps.
+
+## Bundle Layout
+
+```
+bundle/
+  MANIFEST.json              File inventory with SHA-256 digests
+  CLAIM.json                 Signed assertion (issuer, subject, scope)
+  CLAIM.dsse.json            Signed envelope (standard format)
+  CLAIM.dsse.sha256          Digest of the signed envelope (timestamp target)
+  CLAIM.intoto.json          Structured statement (standard attestation format)
+  ROOT.txt                   Merkle root and receipt chain metadata
+  receipts/
+    receipts.ndjson          Hash-chained receipt ledger
+  artifacts/                 Optional evidence files
+  trust/
+    org-signing-pubkey.pem   Receipt signing public key
+    tsa-cert-chain.pem       Timestamp authority certificate chain
+    log-pubkey.pem           Transparency log public key
+```
+
+When a timestamp is attached, the bundle also includes:
+
+```
+  TIMESTAMP.tsr              RFC 3161 timestamp token (DER format)
+  TIMESTAMP.meta.json        Timestamp metadata (TSA URL, digest, role)
+```
+
+## What Each File Does
+
+**MANIFEST.json** lists every file in the bundle with its SHA-256 digest and size. This is the integrity anchor — if any file changes after packaging, the manifest will not match.
+
+**CLAIM.json** is the signed assertion. It names the issuer, the subject (what this bundle is about), and the assertions being made. The signature proves the claim was issued by the stated key.
+
+**CLAIM.dsse.json** wraps the claim in a standard signing envelope. The envelope makes the exact payload bytes and type unambiguous. This is what timestamp authorities and verifiers operate on.
+
+**CLAIM.intoto.json** presents the same claim as a standard attestation statement. This makes the bundle readable by existing attestation tooling without requiring WitnessOps-specific parsers.
+
+**ROOT.txt** records the Merkle root computed over the receipt chain, the maximum sequence number, and the receipts file digest. This file is shell-parseable for scripting.
+
+**receipts/receipts.ndjson** is the hash-chained receipt ledger. Each receipt links to the previous one via a chain hash. The chain is append-only by construction — inserting, removing, or reordering receipts breaks the hash chain.
+
+**trust/** contains the public keys and certificate chains needed for offline verification. A verifier does not need to fetch keys from WitnessOps — they are in the bundle.
+
+## The Bundle Is the Deliverable
+
+When a client asks "prove this deployment happened under policy," the answer is a proof bundle. It is both the evidence and the verification tool.
+
+When an auditor asks "show me the governance chain," the answer is a proof bundle. The receipts, the policy references, the timestamps, and the signatures are all in one package.
+
+The bundle does not require WitnessOps to be running. It does not require network access. It does not expire when a subscription ends.
+
+## What the Bundle Does NOT Include
+
+The bundle does not include:
+
+- **The signing private key.** Only the public key is included. The private key never leaves the issuer.
+- **Live system state.** The bundle is a snapshot, not a real-time view.
+- **Guarantees about future behavior.** The bundle proves what happened up to the checkpoint. It does not predict what will happen next.
+
+## Offline Verification
+
+See [Verification](/docs/how-it-works/verification) for the complete verification procedure. The short version: check the manifest, verify the signature, verify the timestamp, verify the inclusion proof, verify the checkpoint. All local. No network required.

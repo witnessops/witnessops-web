@@ -1,0 +1,88 @@
+---
+title: "Runbooks"
+description: "Repeatable operator workflows for controlled execution and incident handling."
+section: "docs"
+order: 2
+nav_label: "Runbooks"
+draft: false
+---
+
+# Runbooks
+
+A runbook is a YAML definition of an operational workflow. It declares what tools run, in what order, against which targets, and under what policy constraints. Runbooks are how you convert manual security procedures into governed, repeatable operations.
+
+## What a Runbook Contains
+
+Every runbook has four sections:
+
+- **Metadata** — runbook ID, version, classification, author
+- **Scope** — authorized targets (domains, IP ranges, asset identifiers)
+- **Steps** — ordered list of actions, each referencing a tool and declaring policy gates
+- **Evidence** — what artifacts this runbook is expected to produce
+
+## Example Structure
+
+```yaml
+runbook:
+  id: rb_external_recon_v2
+  version: 2
+  classification: reconnaissance
+  author: ops-team-alpha
+
+scope:
+  targets:
+    - "example.com"
+    - "10.0.1.0/24"
+  exclusions:
+    - "10.0.1.250"
+
+steps:
+  - id: step_dns_enum
+    tool: dns-enumeration
+    inputs:
+      domain: "example.com"
+    gates:
+      - type: scope_check
+
+  - id: step_port_scan
+    tool: nmap
+    inputs:
+      targets: "10.0.1.0/24"
+      flags: "-sV -sC"
+    gates:
+      - type: scope_check
+      - type: tool_allowlist
+
+  - id: step_vuln_scan
+    tool: nuclei
+    inputs:
+      targets_from: step_port_scan.outputs
+      templates: "cves,misconfigurations"
+    gates:
+      - type: scope_check
+      - type: approval
+        required_principal: "lead-operator"
+
+evidence:
+  outputs:
+    - dns_records
+    - port_scan_results
+    - vulnerability_findings
+  receipt_chain: true
+```
+
+This is a simplified representation. The actual schema includes additional fields for timeout handling, retry policy, and evidence hashing configuration.
+
+## Steps and Tool References
+
+Each step declares a tool by identifier. WitnessOps resolves the tool at runtime. The tool executes inside the governance boundary — its inputs are validated against the scope, and its outputs are captured for the receipt.
+
+Steps can reference outputs from previous steps. The `targets_from` field above feeds port scan results into the vulnerability scan. This creates a data dependency chain that WitnessOps enforces at execution time.
+
+## Approval Gates in Steps
+
+When a step includes an approval gate, execution pauses. The operator or a designated principal reviews the step parameters and approves or rejects. The approval decision, approver identity, and timestamp are all captured in the step's receipt.
+
+## Runbook Versioning
+
+Runbooks are versioned. When you change a runbook, you increment the version. Receipts reference the specific runbook version that was executed. This means you can always trace a receipt back to the exact workflow definition that produced it.

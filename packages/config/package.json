@@ -1,0 +1,24 @@
+{
+  "name": "@public-surfaces/config",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./surfaces": "./src/surfaces.ts",
+    "./surface-ui-contract": "./src/surface-ui-contract.ts",
+    "./rate-limit": "./src/rate-limit.ts",
+    "./next/security-headers": "./next/security-headers.js",
+    "./tailwind/preset": "./tailwind/preset.js",
+    "./eslint/base": "./eslint/base.js",
+    "./api/contact": "./src/api/contact-handler.ts",
+    "./api/intake": "./src/api/intake-handler.ts"
+  },
+  "dependencies": {
+    "zod": "^3.24.0"
+  },
+  "peerDependencies": {
+    "next": ">=15.0.0"
+  }
+}

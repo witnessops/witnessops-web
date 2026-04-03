@@ -1,0 +1,66 @@
+---
+title: "7 Phishing Tricks Attackers Use"
+description: "A phishing-pattern lesson framed as scenario, attack chain, observable evidence, operator response, and WitnessOps controls."
+section: "docs"
+order: 8
+nav_label: "7 Phishing Tricks"
+draft: false
+---
+
+# 7 Phishing Tricks Attackers Use
+
+Attackers reuse the same patterns because they work at scale.
+
+## Scenario
+
+An attacker sends a lure that looks routine enough to bypass your first instinct to slow down.
+
+## Attack Chain
+
+```
+Urgency or trust signal
+  ↓
+User clicks before validating
+  ↓
+Credential capture or malicious file access
+  ↓
+Account compromise or device infection
+```
+
+## Observable Evidence
+
+Look for:
+
+- sender-display-name mismatch
+- lookalike or unrelated destination domains
+- urgency, fear, secrecy, or payment pressure
+- files with macros, archives, or double extensions
+- login pages that do not use the provider's real domain
+
+## Operator Response
+
+1. Pause before interacting with the message.
+2. Check the sender, hover the link, and verify through another channel.
+3. Preserve the message if it looks suspicious.
+4. If someone already interacted, move to a governed phishing investigation immediately.
+
+## WitnessOps Controls
+
+The response should tie into:
+
+- [Phishing Investigation](/docs/scenarios/phishing-investigation)
+- [What Evidence Is Required?](/docs/decisions/evidence-required)
+- [Policy Gates](/docs/security-systems/policy-gates)
+- [Receipts](/docs/evidence/receipts)
+
+## The seven patterns
+
+1. **Urgency and fear** — warnings that demand immediate action
+2. **Fake login pages** — pages that copy a trusted brand but use the wrong domain
+3. **Attachment-based malware** — files that execute scripts or macros
+4. **Impersonation of trusted people** — executives, vendors, or IT support
+5. **Link misdirection** — displayed text and actual destination do not match
+6. **Fake deliveries or invoices** — normal business process used as bait
+7. **Security alerts** — defensive language used to trigger a fast click
+
+The rule stays the same: pause, validate, then act.

@@ -1,0 +1,62 @@
+---
+title: "Why Software Updates Matter"
+description: "A patching lesson framed as scenario, attack chain, observable evidence, operator response, and WitnessOps controls."
+section: "docs"
+order: 6
+nav_label: "Software Updates"
+draft: false
+---
+
+# Why Software Updates Matter
+
+Every piece of software has bugs. Some bugs let attackers in. Updates close that path.
+
+## Scenario
+
+A patch is released for software you already run. Some systems update immediately. Others remain exposed for days or weeks.
+
+## Attack Chain
+
+```
+Vendor releases a patch
+  ↓
+Some systems remain on the old version
+  ↓
+Attackers study the fix or advisory
+  ↓
+Exploit traffic targets unpatched systems
+  ↓
+Exposed service or device is compromised
+```
+
+The window between patch release and exploitation keeps shrinking.
+
+## Observable Evidence
+
+Look for:
+
+- asset inventories showing outdated versions
+- vendor advisories with published exploitation details
+- exposure scans that still identify vulnerable builds
+- security alerts tied to recently disclosed CVEs
+- repeated delays between patch availability and patch application
+
+## Operator Response
+
+1. Confirm which systems are affected and whether they are in scope.
+2. Prioritize internet-facing, identity, remote-access, and privileged systems.
+3. Apply the patch or isolate the exposed service if patching must wait.
+4. Record the version, exposure window, and remediation status.
+
+## WitnessOps Controls
+
+The governed path should include:
+
+- [Runbooks](/docs/operations/runbooks) for version checks and remediation workflows
+- [Is This In Scope?](/docs/decisions/scope-check) before scanning or validating live systems
+- [What Evidence Is Required?](/docs/decisions/evidence-required) for version, asset, CVE, and remediation proof
+- [Receipts](/docs/evidence/receipts) to sign the exposure and fix timeline
+
+## One action
+
+Enable automatic updates on every device you own.

@@ -1,0 +1,113 @@
+---
+title: "WitnessOps Architecture"
+description: "Clean system overview for how WitnessOps connects governed execution, proof production, and portable verification."
+section: "docs"
+order: 1
+nav_label: "WitnessOps Architecture"
+draft: false
+---
+
+# WitnessOps Architecture
+
+WitnessOps is a governed execution system for security operations. It does not replace the underlying tools. It wraps them in policy, continuity, and proof so the resulting work can be inspected later without depending on the live platform.
+
+This page is the orientation map, not the full deep dive. For the structural breakdown, go straight to [Three-Layer Stack](/docs/security-systems/three-layer-stack).
+
+## System Overview
+
+```text
+Objective
+  -> Approval and policy decision
+    -> Governed execution
+      -> Evidence artifacts
+        -> Signed receipts and continuity
+          -> Portable bundle
+            -> Offline verification
+```
+
+That is the core WitnessOps story. The architecture exists to keep those stages explicit instead of collapsing them into one opaque application.
+
+## What the Architecture Is Trying to Preserve
+
+WitnessOps is optimized for three outcomes:
+
+- governed execution instead of ad hoc operator action
+- reconstructable evidence instead of scattered logs and screenshots
+- portable verification instead of platform-dependent trust
+
+Those three goals explain why WitnessOps separates execution concerns from proof concerns.
+
+## The Four Pages That Matter Most
+
+This page should point you to the right depth, not repeat every subsystem description.
+
+### Structural model
+
+Start with [Three-Layer Stack](/docs/security-systems/three-layer-stack) for the clearest explanation of how operator contracts, execution runtime, and proof infrastructure are separated.
+
+### Runtime control path
+
+Go to [Governed Execution](/docs/security-systems/governed-execution) for the runtime path: runbooks, gates, approvals, resumable state, and receipt emission.
+
+### Trust boundaries
+
+Go to [Threat Model](/docs/security-systems/threat-model) for what WitnessOps controls, what it does not, and where proof cannot compensate for host, tool, or identity failures.
+
+### Proof validation
+
+Go to [Verification](/docs/how-it-works/verification) for how the proof package is checked outside the live system.
+
+## High-Level Layer Ownership
+
+At the highest level, the architecture separates four responsibilities:
+
+| Responsibility | What it owns | Primary page |
+| --- | --- | --- |
+| Operator intent | what should happen | [Three-Layer Stack](/docs/security-systems/three-layer-stack) |
+| Runtime control | how governed work runs | [Governed Execution](/docs/security-systems/governed-execution) |
+| Proof production | how receipts, chains, and bundles are formed | [Receipts](/docs/evidence/receipts) |
+| Independent checking | how a third party verifies the result | [Verification](/docs/how-it-works/verification) |
+
+This is the architectural boundary that matters most to a buyer or auditor: execution and proof are related, but they are not the same surface.
+
+## What WitnessOps Owns
+
+WitnessOps owns:
+
+- governed execution paths
+- policy and approval enforcement at runtime
+- evidence capture and receipt issuance
+- continuity between governed events
+- bundle-ready proof material for offline verification
+
+## What WitnessOps Does Not Own
+
+WitnessOps does not magically guarantee:
+
+- scanner correctness
+- host integrity
+- scope configuration correctness outside the enforced inputs it receives
+- enterprise identity truthfulness beyond the identity claims provided to it
+- legal interpretation of the evidence it produces
+
+Those are system boundaries, not product defects hidden in fine print.
+
+## How to Read the Architecture
+
+Use this page when you need orientation.
+
+Use the linked pages when you need actual depth:
+
+- [Three-Layer Stack](/docs/security-systems/three-layer-stack) for structure
+- [Governed Execution](/docs/security-systems/governed-execution) for runtime mechanics
+- [Threat Model](/docs/security-systems/threat-model) for trust boundaries
+- [Receipts](/docs/evidence/receipts) for proof objects
+- [Execution Chains](/docs/evidence/execution-chains) for continuity
+- [Verification](/docs/how-it-works/verification) for the external check path
+
+## Read Next
+
+- [Three-Layer Stack](/docs/security-systems/three-layer-stack)
+- [Governed Execution](/docs/security-systems/governed-execution)
+- [Threat Model](/docs/security-systems/threat-model)
+- [Verification](/docs/how-it-works/verification)

@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0.0",
+  "proof_stage": "PV",
+  "receipt_id": "rcpt_pv_001",
+  "run_id": "run_001",
+  "created_at": "2026-03-16T12:34:56Z",
+  "subject": {
+    "kind": "spawn-run",
+    "tool": "spawn",
+    "tool_version": "0.9.0",
+    "workflow": "web-recon",
+    "agent": "web-recon",
+    "mode": "lab",
+    "target": {
+      "input": "127.0.0.1",
+      "normalized": "127.0.0.1",
+      "classification": "ipv4"
+    },
+    "environment": {
+      "host_os": "Linux",
+      "host_arch": "x86_64",
+      "runtime": "bun",
+      "runtime_version": "1.2.0"
+    }
+  },
+  "materialization": {
+    "status": "completed",
+    "started_at": "2026-03-16T12:30:00Z",
+    "completed_at": "2026-03-16T12:34:56Z",
+    "artifacts": [
+      {
+        "path": "state.json",
+        "media_type": "application/json",
+        "size_bytes": 7034,
+        "mtime_epoch": 1773657229
+      },
+      {
+        "path": "manifest.json",
+        "media_type": "application/json",
+        "size_bytes": 1024,
+        "mtime_epoch": 1773657230
+      },
+      {
+        "path": "runbook-summary.md",
+        "media_type": "text/markdown",
+        "size_bytes": 420,
+        "mtime_epoch": 1773657230
+      }
+    ],
+    "artifact_count": 3
+  },
+  "integrity": {
+    "canonicalization": {
+      "receipt_c14n": "JCS-8785",
+      "manifest_c14n": "line-v1"
+    },
+    "digest_algorithms": ["sha256"],
+    "primary_digest_algorithm": "sha256",
+    "record_digest": {
+      "algorithm": "sha256",
+      "value": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+    },
+    "manifest": {
+      "format": "flat-hash-list-v1",
+      "artifact_hashes": [
+        {
+          "path": "state.json",
+          "algorithm": "sha256",
+          "digest": "50ef13218f362aac6550744f4f9d44aba79dd5bd1410f4ff434dfb8dce45a98b"
+        },
+        {
+          "path": "manifest.json",
+          "algorithm": "sha256",
+          "digest": "d667708b1306a0905b7632eaa4978ec4369b9bbad43864457bc58798708a1244"
+        },
+        {
+          "path": "runbook-summary.md",
+          "algorithm": "sha256",
+          "digest": "9f60861ec8ebfe65221ad24f302c143d182728a965a7f319e3b3f388f59d3cc8"
+        }
+      ]
+    }
+  },
+  "attestation": {
+    "type": "local-signature",
+    "signature_algorithm": "ed25519",
+    "signing_key": {
+      "key_id": "local-ed25519-fixture-01",
+      "public_key": "MCowBQYDK2VwAyEAFixturePublicKeyBase64ForTestingOnly="
+    },
+    "signed_subject": {
+      "type": "record_digest",
+      "algorithm": "sha256",
+      "value": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+    },
+    "signature": "sig-valid-ed25519-fixture-pv-001"
+  },
+  "anchoring": {
+    "rfc3161": {
+      "status": "not_present"
+    }
+  },
+  "witnesses": []
+}

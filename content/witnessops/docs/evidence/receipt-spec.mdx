@@ -1,0 +1,262 @@
+---
+title: "Receipt Specification"
+description: "Authoritative technical diligence page for WitnessOps Receipt v2, proof references, and the current verification model."
+section: "docs"
+order: 4
+nav_label: "Receipt Spec"
+draft: false
+page_answer:
+  question: "What exactly is the receipt object, which proof references define it, and what can the current verifier assert about it?"
+  links:
+    - href: "/docs/how-it-works/verification"
+      label: "Verification"
+    - href: "/docs/evidence/receipts"
+      label: "Receipts"
+    - href: "/docs/evidence/execution-chains"
+      label: "Execution Chains"
+---
+
+# Receipt Specification
+
+This is the technical diligence page for WitnessOps Receipt v2. It defines what a receipt is expected to carry, which proof references matter, how continuity is expressed, and how the current verifier interprets the surrounding proof package.
+
+If you need the conceptual overview first, start with [Receipts](/docs/evidence/receipts). If you need the operator workflow, go to [Verification](/docs/how-it-works/verification).
+
+## What This Page Covers
+
+Use this page to answer diligence questions such as:
+
+- What exactly is a WitnessOps Receipt v2?
+- What is signed, what is timestamped, and what is only referenced?
+- Which fields establish continuity between receipts?
+- How does the current verification path classify success, failure, or incomplete trust?
+
+This page describes the public receipt contract. It does not replace the verifier implementation or the bundle contract. It explains how they fit together.
+
+## Receipt v2 at a Glance
+
+Receipt v2 is the canonical statement WitnessOps issues for a governed event. It is designed to be:
+
+- portable enough to move outside the runtime
+- structured enough for offline verification
+- narrow enough to stay atomic
+
+Receipt v2 is not the entire evidence bundle. It is the atomic proof statement inside the wider trust package.
+
+At minimum, a Receipt v2 needs to express five things:
+
+1. identity of the receipt itself
+2. continuity position within a receipt stream
+3. claimed event details
+4. proof references to signed and timestamped material
+5. enough linkage to let a verifier connect the receipt to the bundle and chain around it
+
+## Canonical Shape
+
+The public shape below is intentionally simplified, but it reflects the current model: a governed statement plus structured references to the cryptographic artifacts that bind it.
+
+```json
+{
+  "schema": "witnessops.receipt.v2",
+  "receipt_id": "rct_01H...",
+  "ledger": {
+    "stream": "engagement/execution",
+    "seq": 1842,
+    "prev_hash": "sha256:...",
+    "entry_hash": "sha256:..."
+  },
+  "time": {
+    "claimed_utc": "2026-03-28T12:34:56Z"
+  },
+  "actor": {
+    "principal": "operator://...",
+    "origin": "bridge://cli"
+  },
+  "intent": {
+    "type": "scan.recon",
+    "request_id": "req_01H..."
+  },
+  "result": {
+    "status": "ok",
+    "summary": "Governed recon completed"
+  },
+  "proof": {
+    "dsse": {
+      "payload_type": "application/vnd.witnessops.execution-receipt.v2+json",
+      "envelope_digest": "sha256:...",
+      "keyid": "sha256:..."
+    },
+    "rfc3161": {
+      "present": true,
+      "hashed_message": "sha256:...",
+      "tsa": "tsa://...",
+      "token_ref": "bundle/TIMESTAMP.tsr"
+    },
+    "log": {
+      "included": true,
+      "checkpoint_ref": "bundle/checkpoint.json",
+      "inclusion_ref": "bundle/inclusion-proof.json"
+    }
+  }
+}
+```
+
+The exact packaging may vary by bundle or delivery format. The trust model does not: the receipt is the claim, and the bundle carries the surrounding material required to verify that claim.
+
+## Field Groups
+
+### Receipt identity
+
+These fields identify the artifact being inspected.
+
+| Field | Purpose |
+| --- | --- |
+| `schema` | Declares the receipt contract version |
+| `receipt_id` | Stable identifier for this receipt |
+| `intent.type` | Names the governed event category |
+| `result.status` | Records the terminal outcome claimed by the issuer |
+
+These fields tell the verifier what kind of statement they are looking at. They do not establish continuity or proof strength by themselves.
+
+### Continuity fields
+
+These fields place the receipt into an append-only stream.
+
+| Field | Purpose |
+| --- | --- |
+| `ledger.stream` | Names the stream or lane this receipt belongs to |
+| `ledger.seq` | Sequence number inside that stream |
+| `ledger.prev_hash` | Hash of the previous receipt in the stream |
+| `ledger.entry_hash` | Hash of this receipt's canonical form |
+
+Continuity is broken if `entry_hash` recomputes differently, `prev_hash` does not match the prior receipt, or expected sequence order is missing.
+
+### Claimed event fields
+
+These fields describe the governed event itself.
+
+| Field | Purpose |
+| --- | --- |
+| `time.claimed_utc` | Claimed event time from the issuer |
+| `actor.principal` | Who acted or approved |
+| `actor.origin` | Which invocation path produced the request |
+| `intent` | What was requested under policy |
+| `result` | What WitnessOps says happened |
+
+These are critical for audit reconstruction, but they remain issuer claims until the surrounding proof material verifies.
+
+### Proof reference fields
+
+Receipt v2 carries references to cryptographic artifacts rather than pretending the receipt alone is the whole proof story.
+
+| Field | Purpose |
+| --- | --- |
+| `proof.dsse.payload_type` | Declares the signed payload type |
+| `proof.dsse.envelope_digest` | Digest of the DSSE envelope bytes |
+| `proof.dsse.keyid` | Identifier for the signing key used to issue the statement |
+| `proof.rfc3161.hashed_message` | Digest bound into the RFC 3161 timestamp token |
+| `proof.rfc3161.tsa` | Timestamp authority that issued the token |
+| `proof.log.checkpoint_ref` | Reference to the log checkpoint that covers the receipt |
+| `proof.log.inclusion_ref` | Reference to the inclusion proof or equivalent log material |
+
+These references matter because the receipt does not become portable proof until a verifier can locate and validate the signed, timestamped, and committed material around it.
+
+## DSSE Reference Model
+
+The signing layer is a DSSE envelope over the receipt statement. For diligence purposes, the important points are:
+
+- the payload type is explicit
+- the envelope bytes are the object being signed
+- the envelope digest is the object later bound to trusted time
+
+That ordering matters. The timestamp should bind to the signed envelope, not to an unsigned precursor and not to a human-readable rendering.
+
+## RFC 3161 Reference Model
+
+WitnessOps uses RFC 3161 as the trusted-time reference for the signed object. In the public model:
+
+- the timestamp token covers the DSSE envelope digest
+- the timestamp token is an adjacent proof artifact, not a replacement for the receipt
+- the receipt records where that timestamp proof lives and what digest it is expected to cover
+
+When the timestamp token is absent, the receipt may still be valid as a signed statement, but it proves less about time.
+
+## Canonicalization and Derived Hashes
+
+Receipt verification depends on deterministic hashing. Two rules matter:
+
+1. the canonical representation must be stable
+2. derived fields must not participate in computing themselves
+
+Current typed proof paths in the implementation follow this rule explicitly. Artifact-hash computation and execution-hash computation are treated as separate canonicalization paths so the same receipt body is not allowed to self-justify derived digests.
+
+For a technical buyer, the important consequence is simple: if canonicalization rules are ambiguous, trust drops immediately. WitnessOps treats canonicalization as part of the proof contract, not as a UI detail.
+
+## Current Verification Model
+
+The current public verification model is bundle-oriented. A receipt is evaluated in the context of the canonical proof bundle around it, not as an isolated text file.
+
+At a high level, the verifier does this:
+
+1. normalize and parse the manifest
+2. validate required fields and protocol compatibility
+3. check artifact presence and hash integrity
+4. validate signature and digest relationships
+5. evaluate witness or trust-registry requirements when declared
+6. return `valid`, `invalid`, or `indeterminate`
+
+Those statuses mean:
+
+| Status | Meaning |
+| --- | --- |
+| `valid` | Required bundle structure and proof checks passed |
+| `invalid` | A proof-bearing check failed |
+| `indeterminate` | The bundle may be well-formed, but a required external trust condition was unavailable |
+
+That last case matters. WitnessOps treats incomplete trust state differently from a hard cryptographic failure.
+
+## Current Failure Vocabulary
+
+The current verifier distinguishes between malformed input, failed proof, and missing trust context. Common public-facing failure classes include:
+
+- `FAILURE_REQUIRED_FIELD_MISSING`
+- `FAILURE_BUNDLE_MALFORMED`
+- `FAILURE_HASH_MISMATCH`
+- `FAILURE_SIGNATURE_INVALID`
+- `FAILURE_DIGEST_MISMATCH`
+- `FAILURE_SCHEMA_VERSION_UNSUPPORTED`
+- `FAILURE_WITNESS_INVALID`
+- `FAILURE_WITNESS_LINEAGE_MISMATCH`
+- `FAILURE_WITNESS_QUORUM_UNSATISFIED`
+
+For diligence review, that separation is important. A receipt that fails because bytes changed is different from a receipt that is well-formed but cannot satisfy a required witness policy.
+
+## What Receipt v2 Proves
+
+Receipt v2 proves that WitnessOps issued a specific governed statement and bound that statement into a continuity structure with explicit proof references.
+
+When the surrounding bundle also verifies, the verifier can additionally conclude that:
+
+- the signed statement is intact
+- the required artifacts match declared digests
+- the receipt sits inside the declared trust package
+- any declared witness policy or trust-registry requirement was satisfied, unless the verifier returns `indeterminate`
+
+## What Receipt v2 Does Not Prove
+
+Receipt v2 does not, by itself, prove:
+
+- that the underlying tool output was correct
+- that the target choice was appropriate
+- that the host running the operation was uncompromised
+- that key custody outside the proof system was perfect
+- that an isolated receipt tells the whole operational story without its chain and bundle context
+
+Those boundaries belong in the threat model, not hidden in marketing copy.
+
+## Read Next
+
+- [Receipts](/docs/evidence/receipts) for the conceptual bridge page
+- [Execution Chains](/docs/evidence/execution-chains) for continuity and Merkle packaging
+- [Proof Model](/docs/how-it-works/proof-model) for the signature and timestamp layers
+- [Verification](/docs/how-it-works/verification) for the operator workflow

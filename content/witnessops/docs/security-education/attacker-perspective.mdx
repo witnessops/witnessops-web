@@ -1,0 +1,74 @@
+---
+title: "How Attackers Think"
+description: "An attacker-economics lesson framed as scenario, attack chain, observable evidence, operator response, and WitnessOps controls."
+section: "docs"
+order: 5
+nav_label: "Attacker Perspective"
+draft: false
+---
+
+# How Attackers Think
+
+You are not being targeted. You are being automated.
+
+## Scenario
+
+An attacker scans thousands of targets for the cheapest path to revenue: exposed identities, weak controls, unpatched systems, or easy-to-open lures.
+
+## Attack Chain
+
+```
+Reconnaissance
+  ↓
+Initial access
+  ↓
+Persistence
+  ↓
+Lateral movement or quiet data access
+  ↓
+Fraud, theft, or ransomware
+```
+
+There is usually no genius improvisation here. There is repetition at scale.
+
+## Observable Evidence
+
+Look for:
+
+- broad scanning or password-spray activity across exposed services
+- phishing against common business workflows such as invoices or login alerts
+- repeated attempts against accounts without MFA
+- post-login actions that favor persistence, forwarding, or quiet data access
+- concentration on easy paths instead of technically complex ones
+
+## Operator Response
+
+1. Close the cheapest attacker paths first: MFA, unique passwords, patching, controlled file handling.
+2. Treat repeated low-skill activity as real risk, not background noise.
+3. Preserve evidence before broad cleanup so the path can be reconstructed.
+4. Move quickly when you see identity compromise, exposed admin surfaces, or persistent mailbox changes.
+
+## WitnessOps Controls
+
+The system view should include:
+
+- [Threat Model](/docs/security-systems/threat-model) for the documented abuse paths
+- [Policy Gates](/docs/security-systems/policy-gates) to make intrusive actions approval-bound
+- [WitnessOps Architecture](/docs/security-systems/witnessops-architecture) for the evidence-first operating model
+- [Receipts](/docs/evidence/receipts) so response actions are as reviewable as the initial finding
+
+## The economics
+
+| Item | Cost |
+|------|------|
+| Phishing kit | $50–200 |
+| Email list | $100–500 |
+| Hosting for fake login pages | $10/month |
+| Credential marketplace access | $20–100 |
+| Credential stuffing tool | Often free |
+
+Total investment: **under $500**.
+
+Expected return from one compromised business email: **$50,000–500,000**.
+
+That is why phishing, credential reuse, and patch lag keep recurring. The economics work unless you raise the cost.

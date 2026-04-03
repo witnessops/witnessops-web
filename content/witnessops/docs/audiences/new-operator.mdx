@@ -1,0 +1,131 @@
+---
+title: "New Operator"
+description: "Start here if you are doing hands-on security work and need to understand scope, workflows, evidence, and escalation."
+section: "docs"
+order: 1
+nav_label: "New Operator"
+draft: false
+---
+
+# New Operator
+
+Welcome to WitnessOps Docs. This page is for operators doing hands-on security work who need to work safely, consistently, and with usable evidence.
+
+## What this role uses the docs for
+
+Use these docs to:
+
+- understand what kinds of work are allowed
+- choose the right workflow for an assessment or investigation
+- collect evidence correctly
+- know when to stop and escalate
+- turn technical activity into defensible records
+
+## Start here
+
+Read these in order:
+
+1. [Getting Started](/docs/getting-started)
+2. [Authorization Model](/docs/governance/authorization-model)
+3. [Operations](/docs/operations)
+4. [Evidence](/docs/evidence)
+5. [Runbooks](/docs/operations/runbooks)
+6. [FAQ](/docs/faq)
+
+## What you are allowed to do
+
+You may:
+
+- investigate activity that is in scope
+- follow approved workflows and runbooks
+- collect evidence needed to support findings
+- escalate when scope, safety, or impact is unclear
+
+You may not:
+
+- test outside approved scope
+- improvise intrusive actions without approval
+- collect unnecessary sensitive data
+- continue once you hit an approval boundary without clearance
+
+## Trust boundaries you should know
+
+Before starting any work, understand these limits:
+
+- **Scope enforcement** depends on `in-scope.txt` — a configuration file, not an access control list. If the file is wrong, enforcement is wrong.
+- **Self-approval** is possible by default. Separation of duties depends on configuration.
+- **Host compromise** defeats all governance controls. WitnessOps assumes a trustworthy host.
+- **Tool output** is captured verbatim but not validated for correctness. A tool that returns garbage produces a valid receipt containing garbage.
+- **Receipts** prove execution occurred. They do not prove findings are correct.
+
+See [Threat Model](/docs/security-systems/threat-model) for the full trust boundary map.
+
+## How to work well here
+
+A good operator:
+
+- starts with scope and objective
+- documents what they are doing while they do it
+- prefers the least disruptive validation path
+- captures evidence that another person can verify
+- knows when to stop and ask
+
+## Common mistakes
+
+- starting technical work before confirming scope
+- jumping to exploitation before basic enumeration
+- capturing screenshots without context
+- failing to record timestamps, targets, or commands
+- treating "probably safe" as equivalent to approved
+
+## Typical workflow
+
+### 1. Confirm the task
+
+Identify the target, objective, and approval status.
+
+### 2. Choose the right path
+
+Use an existing runbook or scenario page before inventing a new process.
+
+### 3. Gather baseline evidence
+
+Collect enough information to understand the system before taking action.
+
+### 4. Validate carefully
+
+Use the least disruptive method that can confirm or reject the hypothesis.
+
+### 5. Capture evidence
+
+Record what you observed, how you observed it, and why it matters.
+
+### 6. Escalate or close
+
+Escalate if impact or uncertainty increases. Close only when evidence is complete.
+
+## When things go wrong
+
+- **Scope gate blocks you:** The step does not run. The denial is recorded. Resume after expanding scope or correcting the target.
+- **Approval stalls:** Execution pauses indefinitely. No timeout kills the run. Wait for a principal to act or cancel.
+- **Tool crashes:** The step is marked failed. The failure is recorded in the receipt with exit code and stderr.
+- **Evidence hash mismatch:** The receipt for that step is not generated. The chain breaks.
+
+These are not errors — they are the system working correctly.
+
+## What success looks like
+
+You can explain:
+
+- what you were asked to do
+- what systems or artifacts were in scope
+- what steps you performed
+- what evidence supports your conclusion
+- whether the issue needs escalation or remediation
+
+## Read next
+
+- [Investigating a Phishing Report](/docs/scenarios/phishing-investigation)
+- [What Evidence Is Required?](/docs/decisions/evidence-required)
+- [Do I Need to Escalate?](/docs/decisions/escalation)
+- [Is This In Scope?](/docs/decisions/scope-check)

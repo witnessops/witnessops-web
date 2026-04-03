@@ -1,0 +1,60 @@
+---
+title: "FAQ"
+description: "Common questions about WitnessOps governed execution and evidence."
+section: "docs"
+order: 3
+nav_label: "FAQ"
+draft: false
+---
+
+# FAQ
+
+## About WitnessOps
+
+### What is WitnessOps?
+
+WitnessOps is a governance layer for security operations. It wraps existing tools in policy-enforced runbooks that emit signed evidence. It governs your stack; it does not replace it.
+
+### How is WitnessOps different from a vulnerability scanner?
+
+A scanner finds vulnerabilities. WitnessOps governs the tools that do the finding. Run Nmap through WitnessOps and you get scope enforcement, policy gates, and a signed receipt. Run it directly and you do not.
+
+### How do receipts become independently verifiable?
+
+WitnessOps executes governed operations and emits receipts. Those receipts can be packaged into proof bundles that third parties verify independently. WitnessOps produces evidence; the separate verification surface packages and checks it.
+
+### Who is WitnessOps built for?
+
+Security operators. Penetration testers who need to prove what they tested. Red teams that need scope enforcement and approval controls. SOC analysts who need auditable incident response workflows. Compliance teams that need verifiable records of security testing.
+
+## How It Works
+
+### What is a runbook?
+
+A YAML workflow that defines an operation step by step. Each step references a tool, declares inputs, and specifies policy gates. Runbooks are versioned and reusable. See the [Runbooks](/docs/operations/runbooks) page for structure details.
+
+### What happens when a policy gate fails?
+
+The step does not execute. No partial execution, no fallback. WitnessOps records the failure, and the operation pauses. You can resolve the issue — expand scope, get approval, fix the principal identity — and resume from where it stopped.
+
+### What does a receipt contain?
+
+A receipt contains the runbook reference, policy gate context, operator identity, timestamp, execution hash, cryptographic signature, and a link to the previous receipt. The surrounding manifests, state files, and logs carry the richer execution detail. See [Receipts](/docs/evidence/receipts) for the current field list and example.
+
+### Can I pause and resume an operation?
+
+Yes. Governed execution preserves state. When a step requires approval, execution pauses and waits. You can return later, approve the gate, and resume without re-running previous steps.
+
+## Security and Trust
+
+### What happens to my data?
+
+Tool outputs are hashed. Receipts contain the hashes, not the raw findings. This means you can share a receipt as signed evidence that an operation happened without exposing what it found. The actual output files stay under your control.
+
+### Can I verify a receipt independently?
+
+Yes. Receipts are signed with Ed25519. Anyone with the public key can verify the signature and confirm the receipt has not been modified. For full independent verification, receipts can be packaged into proof bundles that third parties evaluate without trusting the operator.
+
+### What prevents an operator from skipping a policy gate?
+
+The governance layer enforces gates at runtime. Tools execute inside the governance boundary, not outside it. There is no way to invoke a tool through WitnessOps without passing its declared gates. If you bypass WitnessOps and run the tool directly, no receipt is produced — which is itself detectable evidence of ungoverned execution.

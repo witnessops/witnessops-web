@@ -1,0 +1,126 @@
+---
+title: "Manager / Approver"
+description: "Guidance for approvers who define boundaries, review evidence, and authorize proportional security work."
+section: "docs"
+order: 2
+nav_label: "Manager / Approver"
+draft: false
+---
+
+# Manager / Approver
+
+This page is for people who approve work, define boundaries, and make sure operational security work stays aligned with business risk, policy, and evidence requirements.
+
+## What this role uses the docs for
+
+Use these docs to:
+
+- decide whether work should proceed
+- confirm whether a request is in scope
+- understand approval boundaries
+- review evidence quality
+- ensure actions are proportionate to the objective
+
+## Your responsibility
+
+Your job is not to perform the technical work. Your job is to make sure:
+
+- the work is authorized
+- the objective is clear
+- the risk is understood
+- the least disruptive path is being used
+- evidence is sufficient for later review
+
+## Start here
+
+Read these in order:
+
+1. [Governance](/docs/governance)
+2. [Authorization Model](/docs/governance/authorization-model)
+3. [Evidence](/docs/evidence)
+4. [Operations](/docs/operations)
+5. [Receipt Spec](/docs/evidence/receipt-spec)
+6. [FAQ](/docs/faq)
+
+## Questions to ask before approving
+
+- What is the exact objective?
+- What system, user group, or environment is in scope?
+- What actions are planned?
+- What could go wrong if the work is performed?
+- Does the operator need elevated approval for any step?
+- What evidence will be produced?
+- What is the rollback or stop condition?
+
+## Approve when
+
+Approve when:
+
+- the objective is legitimate and clear
+- the target is confirmed in scope
+- the planned activity matches the objective
+- safety controls are in place
+- escalation conditions are defined
+- evidence expectations are clear
+
+## Do not approve when
+
+Do not approve when:
+
+- scope is ambiguous
+- the action is broader than the stated need
+- the operator cannot explain the workflow
+- the evidence plan is weak or missing
+- the action introduces business risk without justification
+- there is a safer alternative that has not been considered
+
+## What good evidence looks like
+
+Good evidence is:
+
+- attributable to a specific target or event
+- time-bounded
+- understandable by someone not present during execution
+- sufficient to support a decision later
+- minimal but complete
+
+Bad evidence is:
+
+- a screenshot with no source context
+- a claim without output or traceability
+- a conclusion without a method
+- raw data with no explanation
+
+## Approval trust boundaries
+
+Be aware of these limits when approving:
+
+- **Self-approval** is possible by default. The current system does not enforce separation of duties unless configured.
+- **Approval is recorded**, not prevented from being rubber-stamped. The receipt shows who approved and when.
+- **Scope** is enforced from `in-scope.txt`. If the file is wrong, the approved scope is wrong.
+
+See [Security Practices](/docs/security-systems/security-practices) for the current-state vs target-state table.
+
+## Common approval mistakes
+
+- approving based on urgency alone
+- assuming a known operator means a known scope
+- accepting vague phrases like "basic testing"
+- failing to define escalation boundaries
+- approving collection of more data than necessary
+
+## What success looks like
+
+A good approver can later answer:
+
+- why the work was authorized
+- what boundaries were set
+- what evidence was expected
+- whether those expectations were met
+- whether the result justified the action taken
+
+## Read next
+
+- [Is This In Scope?](/docs/decisions/scope-check)
+- [Do I Need to Escalate?](/docs/decisions/escalation)
+- [What Evidence Is Required?](/docs/decisions/evidence-required)

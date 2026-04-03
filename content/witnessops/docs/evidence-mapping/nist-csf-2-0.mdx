@@ -1,0 +1,85 @@
+---
+title: "NIST CSF 2.0 Evidence Mapping"
+description: "Evidence-mapping template for showing how WitnessOps evidence and independent verification records support NIST CSF 2.0 functions and categories."
+section: "docs"
+order: 2
+nav_label: "NIST CSF 2.0"
+draft: false
+---
+
+# NIST CSF 2.0 Evidence Mapping
+
+## Applicability
+
+Use this template when a security, risk, or audit team wants to understand:
+
+- what governance and operational evidence exists
+- what WitnessOps can emit during governed execution
+- what independent verification can confirm
+- what remains manual, inherited, or outside product scope
+
+Use it as a working record during control design, audit preparation, or evidence review.
+
+## How to use this template
+
+For each selected NIST CSF 2.0 function or category:
+
+1. identify the control objective
+2. record what WitnessOps emits directly
+3. record what independent verification confirms
+4. record manual dependencies and trust assumptions
+5. identify the exact artifacts an auditor should inspect
+
+## Evidence mapping table
+
+| Function / Category | What this framework requires | Evidence WitnessOps can emit | What independent verification can confirm | Gaps / trust assumptions | Artifacts an auditor should inspect | Operator checklist |
+| --- | --- | --- | --- | --- | --- | --- |
+| GV.OV — Organizational Context | Organization understands mission, stakeholders, legal and regulatory context, and risk environment. | Scope definitions, authorization records, engagement metadata, runbook purpose statements, documented target boundaries. | An independent verifier can confirm that declared scope, target identifiers, and execution metadata match the stored evidence chain and approval context. | Business context and enterprise risk appetite usually remain manual and organization-owned. | Scope record, approval record, engagement manifest, runbook metadata, execution receipt. | Confirm scope is explicit, objective is documented, and target boundaries are recorded. |
+| GV.RR — Roles, Responsibilities, and Authorities | Cybersecurity roles and decision rights are defined and assigned. | Operator identity, approval checkpoints, role-linked actions, audit trail of who initiated, approved, and executed work. | An independent verifier can confirm actor identity linkage, approval sequence, and action-to-role traceability across the evidence chain. | HR, job-description, and broader governance assignments remain outside product scope. | Approval logs, receipts, role mapping records, identity-linked event history. | Confirm each sensitive action has an attributable actor and approver where required. |
+| GV.PO — Policy | Policies for cybersecurity risk management are established and followed. | Runbook constraints, governed execution paths, documented approval gates, prohibited-action handling, execution records. | An independent verifier can confirm that execution followed documented paths and that blocked or denied actions appear in the governed record. | Corporate policy text and exceptions process are usually maintained outside WitnessOps and independent verification. | Policy-linked runbook, denial events, execution receipts, change history. | Check that the selected workflow matches approved policy and that exceptions are documented. |
+| ID.AM — Asset Management | Relevant assets, systems, data, and services are identified and tied to operations. | Target identifiers, environment labels, system references, engagement-local manifests, evidence-linked target metadata. | An independent verifier can confirm that artifacts and execution events point to declared targets and not undeclared assets. | Enterprise CMDB completeness and asset ownership are external dependencies. | Asset reference list, manifest, target map, receipts, evidence objects. | Verify the target is uniquely identified before execution starts. |
+| PR.PS — Platform Security | Platforms are configured and managed to protect confidentiality, integrity, and availability. | Execution-boundary records, tool constraints, adapter metadata, controlled invocation paths, approval-linked sensitive actions. | An independent verifier can confirm that execution stayed within governed boundaries and that privileged actions are attributable. | Baseline hardening and infrastructure configuration are usually outside the product boundary. | Tool catalog entry, runbook definition, adapter logs, approval records, receipts. | Confirm the action used an approved path and did not bypass governed controls. |
+| DE.CM — Continuous Monitoring | Relevant systems and activities are monitored to detect anomalies and events. | Execution logs, evidence events, state transitions, approval events, exception records, receipts. | An independent verifier can confirm continuity across execution evidence, verification outputs, and recorded event sequence. | SIEM correlation, enterprise detection engineering, and sensor coverage may be external. | Event timeline, verification logs, receipt chain, exception records. | Ensure key execution and decision events are preserved and reviewable. |
+| RS.AN — Incident Analysis | Incidents are analyzed to support response and decision-making. | Recorded observations, preserved artifacts, receipt-linked notes, and execution chronology. | An independent verifier can confirm that preserved artifacts are attributable and linked to the stated case, without proving analytical correctness. | Human analysis quality and incident command decisions remain manual. | Evidence bundle, analyst notes, decision log, receipts, preserved source artifacts. | Record rationale, timestamps, affected targets, and the source artifacts behind each conclusion. |
+| RC.RP — Recovery Plan Execution | Recovery activities are coordinated and tracked. | Action history, rollback notes if captured, closeout records, final receipt, evidence of post-action review. | An independent verifier can confirm that closure records align with earlier approvals, evidence, and execution history. | Broader recovery operations, business continuity, and service restoration are usually external. | Final receipt, closeout note, approval chain, post-incident review record. | Confirm closure is supported by evidence and any unresolved risks are documented. |
+
+## Gaps / trust assumptions
+
+Use this section to record what this template does not prove on its own.
+
+Typical examples:
+
+- enterprise policy ownership is maintained outside WitnessOps evidence capture and independent verification
+- asset inventory completeness depends on external systems
+- HR role assignments and segregation-of-duty design are external
+- broader infrastructure hardening evidence may live in separate platforms
+- human judgment in incident analysis is not automatically verifiable
+
+## Auditor inspection guide
+
+An auditor should inspect:
+
+- approval and authorization records
+- runbook metadata and change history
+- execution receipts and timelines
+- evidence bundles tied to specific targets
+- denial or exception events
+- independent verification outputs and mismatch records
+- documentation showing which controls remain manual
+
+## Operator checklist
+
+- Confirm the selected NIST CSF 2.0 function or category is relevant.
+- Record the specific control objective in plain language.
+- Attach the exact WitnessOps artifacts that support the activity.
+- Attach the exact verification records that corroborate those artifacts.
+- Note what remains manual, inherited, or out of scope.
+- Avoid claiming that artifact presence alone proves control effectiveness.
+- Ensure an auditor could reproduce the mapping without oral explanation.
+
+## Related pages
+
+- [Governance](/docs/governance)
+- [Authorization Model](/docs/governance/authorization-model)
+- [Evidence](/docs/evidence)
+- [Receipt Spec](/docs/evidence/receipt-spec)

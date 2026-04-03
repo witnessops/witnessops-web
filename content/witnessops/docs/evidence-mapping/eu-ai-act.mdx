@@ -1,0 +1,86 @@
+---
+title: "EU AI Act Evidence Mapping"
+description: "Evidence-mapping template for showing how WitnessOps evidence and independent verification records may support selected EU AI Act obligations."
+section: "docs"
+order: 4
+nav_label: "EU AI Act"
+draft: false
+---
+
+# EU AI Act Evidence Mapping
+
+## Applicability
+
+Use this template when an organization wants to assess whether WitnessOps evidence and independent verification records may support documentation for:
+
+- governance around AI-enabled workflows
+- human oversight and accountability
+- traceability of system use
+- logging and evidentiary review
+- operational controls around higher-risk activities
+
+This page is a control-support template. It is not legal advice and should not replace AI Act classification analysis.
+
+## How to use this template
+
+For each selected article, obligation, or control area:
+
+1. identify the relevant AI use case
+2. determine the role of the organization
+3. describe the obligation being mapped
+4. identify WitnessOps-emitted evidence
+5. identify independent verification records
+6. record gaps, external dependencies, and trust assumptions
+7. list the exact artifacts an auditor or assessor should review
+
+## Evidence mapping table
+
+| Control / article / function | What this framework requires | Evidence WitnessOps can emit | What independent verification can confirm | Gaps / trust assumptions | Artifacts an auditor should inspect | Operator checklist |
+| --- | --- | --- | --- | --- | --- | --- |
+| Applicability / Role Determination | Organization must understand whether a workflow, system, or model use falls within relevant AI Act obligations and under which role. | Workflow descriptions, runbook purpose statements, tool and adapter metadata, execution context, approval metadata. | An independent verifier can confirm that declared workflows and actual execution records align with the stated use case. | Legal role classification and high-risk determination are external and often manual. | Workflow inventory, tool metadata, execution receipts, architecture notes, role determination memo. | Confirm the use case, system role, and intended purpose are documented before mapping evidence. |
+| Human Oversight | Relevant AI-enabled activity should have meaningful human oversight where required. | Approval checkpoints, operator intervention records, pause/resume events, manual review notes, escalation records. | An independent verifier can confirm that human decision points occurred where the workflow claims they did. | Adequacy of human oversight is partly procedural and cannot be inferred from logs alone. | Approval history, intervention logs, escalation record, receipt timeline. | Record where humans reviewed, approved, overrode, or halted the workflow. |
+| Logging / Traceability | Systems should maintain records sufficient for review, monitoring, or accountability where required. | Execution logs, state transitions, evidence bundles, manifests, receipts, operator notes, target metadata. | An independent verifier can confirm evidence continuity, actor attribution, and consistency between logs and preserved artifacts. | Retention duration, regulatory sufficiency, and system-level logging outside WitnessOps may be external. | Log exports, receipts, manifests, verification outputs, artifact index. | Check that key decisions and actions are timestamped and attributable. |
+| Risk Management Support | Relevant AI use should be governed with identified controls, review points, and documented handling. | Governed runbooks, approval gates, constrained workflows, documented denial paths, exception records. | An independent verifier can confirm that execution stayed within the declared constrained workflow and that exceptions were recorded. | Formal AI risk management program design may depend on external governance. | Runbook, policy linkage, denial events, exception records, receipts. | Confirm the workflow used a documented control path and not an ad hoc bypass. |
+| Accuracy / Reviewability Support | Outputs and operational conclusions should be reviewable and not accepted blindly. | Recorded observations, preserved source artifacts, classification notes, operator rationale, and closeout records. | An independent verifier can confirm that conclusions are linked to underlying evidence and that source artifacts exist, without proving analytical correctness. | Scientific accuracy, model evaluation, and performance benchmarking are external unless separately documented. | Evidence bundle, analyst note, source artifact, verification report, closeout record. | Record the basis for conclusions and attach the supporting artifact, not just the summary. |
+| Accountability and Governance Support | Responsible parties and decision points should be identifiable. | Identity-linked actions, role-linked approvals, workflow ownership metadata, change history, closeout records. | An independent verifier can confirm actor attribution and sequence integrity. | Corporate governance, legal accountability, and product-owner assignment may be external. | Approval chain, identity-linked event history, ownership record, change log. | Ensure each material action has an attributable owner or approver. |
+| Documentation Pack for Review | Auditors or internal reviewers need enough material to inspect controls and operation. | Artifact bundles, receipts, manifests, approvals, change records, and receipt-linked observations. | An independent verifier can confirm that the pack is complete, attributable, and internally consistent. | Formal conformity assessment requirements may require additional external documentation. | Evidence package, receipt chain, manifest, verification output, role mapping notes. | Build a review pack that can be inspected without oral reconstruction. |
+
+## Gaps / trust assumptions
+
+Typical gaps to record here:
+
+- legal classification under the AI Act is external
+- whether a system is high-risk may require separate analysis
+- provider, deployer, importer, or distributor obligations may differ materially
+- model evaluation, data governance, and technical documentation may live elsewhere
+- product-level obligations can exceed what operational execution evidence alone can prove
+- host integrity, tool integrity, and signing key control remain external trust assumptions
+
+## Auditor inspection guide
+
+An auditor or assessor should inspect:
+
+- documented AI-related use case and role determination
+- runbook and workflow metadata
+- approvals and human intervention records
+- execution logs, manifests, and receipts
+- preserved artifacts supporting conclusions
+- Independent verification outputs
+- records of manual controls and external dependencies
+
+## Operator checklist
+
+- Record the AI-related use case and why this page is relevant.
+- Identify the organization's likely role for the specific workflow.
+- Attach the exact WitnessOps evidence that demonstrates governance, oversight, or traceability.
+- Attach the exact verification records that corroborate the artifact chain.
+- Document what legal, product, or classification work remains external.
+- Avoid claims that logging or approvals alone prove AI Act conformity.
+- Ensure the evidence pack is inspectable by someone who was not present during execution.
+
+## Related pages
+
+- [Governance](/docs/governance)
+- [Authorization Model](/docs/governance/authorization-model)
+- [Evidence](/docs/evidence)
+- [What Evidence Is Required?](/docs/decisions/evidence-required)

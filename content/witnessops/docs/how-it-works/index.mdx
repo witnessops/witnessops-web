@@ -1,0 +1,40 @@
+---
+title: "How It Works"
+description: "How WitnessOps produces signed, timestamped, offline-verifiable proof for every governed operation."
+section: "docs"
+order: 1
+nav_label: "How It Works"
+draft: false
+---
+
+# How It Works
+
+WitnessOps produces portable proof objects for governed operations. This section explains the proof model: what gets signed, what gets timestamped, what goes into a proof bundle, and how a third party verifies it without trusting WitnessOps.
+
+## The Proof Chain
+
+Every governed operation follows this sequence:
+
+1. **Statement** — a structured claim about what happened, who authorized it, and what policy applied
+2. **Signature** — the statement is signed using a standards-based envelope so the exact payload is unambiguous
+3. **Timestamp** — the signed object is timestamped by a separate authority so trusted time is external, not self-asserted
+4. **Publication** — the signed, timestamped receipt is committed to an append-only ledger
+5. **Bundle** — all proof material is packaged into a portable evidence bundle with trust roots included
+
+The result is a proof object that can be verified offline, by anyone, without calling WitnessOps.
+
+## What Makes This Different
+
+Most security platforms produce logs. Some produce reports. WitnessOps produces **receipts** — signed, timestamped records that prove what ran, who approved it, what policy applied, and whether execution stayed in scope.
+
+The difference matters when someone asks: *"Prove it."*
+
+A log says something happened. A receipt proves it, with cryptographic evidence a third party can check independently.
+
+## Sections
+
+- [Proof Model](/docs/how-it-works/proof-model) — what gets signed, timestamped, and verified
+- [Receipt Anatomy](/docs/evidence/receipts) — the structure of a WitnessOps receipt
+- [Evidence Bundles](/docs/how-it-works/evidence-bundles) — what is in a proof bundle and how to verify it offline
+- [Verification](/docs/how-it-works/verification) — how to verify a receipt without trusting WitnessOps
+- [Standards Alignment](/docs/how-it-works/standards) — which open standards WitnessOps uses and why

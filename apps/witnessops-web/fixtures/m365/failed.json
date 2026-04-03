@@ -1,0 +1,9 @@
+{
+  "messageId": "<rsp_fail456@witnessops.m365>",
+  "deliveryAttemptId": "rsp_fail456",
+  "status": "failed",
+  "observedAt": "2026-03-29T12:07:00Z",
+  "eventId": "m365-evt-failed-001",
+  "rawEventType": "MessageTrace.Failed",
+  "detail": "Connection timed out after 300s"
+}

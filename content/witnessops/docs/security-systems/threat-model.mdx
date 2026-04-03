@@ -1,0 +1,178 @@
+---
+title: "Threat Model and Trust Boundaries"
+description: "What WitnessOps can prove, what it assumes, and how verification and disputes should be handled when proof claims are challenged."
+section: "docs"
+order: 3
+nav_label: "Threat Model"
+draft: false
+trust_boundary_variant: "default"
+page_answer:
+  question: "What can I trust, what remains assumed, and what should I do when a proof claim is challenged?"
+  links:
+    - href: "/docs/how-it-works/verification"
+      label: "Verification"
+    - href: "/docs/evidence/receipts"
+      label: "Receipts"
+    - href: "/docs/security-systems/security-practices"
+      label: "Security Practices"
+---
+
+# Threat Model and Trust Boundaries
+
+WitnessOps is designed to make governed security work inspectable. It is not designed to eliminate every trust assumption.
+
+This page states four things clearly:
+
+- what WitnessOps can prove
+- what WitnessOps cannot prove
+- which trust assumptions remain external to the proof system
+- how to handle verification failures or disputed proof claims
+
+## Three Authority Domains
+
+The clearest way to read WitnessOps is to separate three authority domains:
+
+| Authority domain | What it decides |
+| --- | --- |
+| Execution authority | whether the runtime allows a governed step to run |
+| Issuance authority | what receipt-bearing statement and bundle material are emitted |
+| Verification authority | what an external verifier can confirm from the artifacts and trust material provided |
+
+These domains are related but not interchangeable. Execution does not make a claim true merely because it ran. Issuance does not make a claim trustworthy merely because it was signed. Verification does not make the underlying operational judgment correct merely because the proof package is intact.
+
+## What WitnessOps Can Prove
+
+When the runtime and surrounding proof material behave as designed, WitnessOps can prove narrower things than a marketing page might imply, but stronger things than a normal dashboard can support.
+
+WitnessOps can prove:
+
+- a governed action, denial, or terminal result was recorded by the system
+- the recorded statement was bound to a signed receipt or receipt-bearing artifact
+- the receipt occupies a specific place in a continuity structure
+- declared artifact hashes, signatures, and digest relationships verify when the verifier returns `valid`
+- declared witness or trust-policy conditions passed when they are present and the verifier does not return `indeterminate`
+
+That is a strong proof claim. It is not the same thing as proving that the underlying tool was correct or that the operator made the right judgment.
+
+## What WitnessOps Cannot Prove
+
+WitnessOps cannot, by itself, prove:
+
+- that the workstation or host was uncompromised
+- that the wrapped tools behaved correctly
+- that the selected target or scope was appropriate
+- that the caller-supplied operator identity was truthful in an absolute sense
+- that a partial bundle represents the entire operational story
+- that a valid receipt implies a valid security conclusion
+
+The key distinction is simple: WitnessOps proves governed issuance, continuity, and proof integrity. It does not prove omniscience.
+
+## Explicit Trust Assumptions
+
+The current trust model depends on several assumptions that sit outside the receipt itself.
+
+| Boundary | Current assumption |
+| --- | --- |
+| Operator identity | WitnessOps records the principal presented to it. If the calling system lies, WitnessOps preserves the lie faithfully. |
+| Scope source | Runtime gates enforce the configured scope source they are given. If that source is wrong or was changed improperly, enforcement reflects that wrong input. |
+| Host integrity | The machine running WitnessOps is assumed not to be compromised before evidence is captured and signed. |
+| Tool integrity | Wrapped tools are assumed to be authentic and behaving as expected. WitnessOps captures their output; it does not certify their correctness. |
+| Signing keys | Receipt authenticity depends on uncompromised private keys and trustworthy public-key distribution. If signing keys are compromised, the system can produce receipts that verify cryptographically but should no longer be trusted as genuine issuer claims. |
+| External trust material | When a proof package declares witness policy or trust-registry requirements, the verifier must be able to satisfy those requirements locally. |
+
+If any of these assumptions fail, proof may still exist, but the meaning of that proof changes.
+
+## Runtime Failures vs Proof Failures
+
+The most useful way to read the system is to separate runtime control failures from proof-layer failures.
+
+### Runtime control failures
+
+These happen during governed execution:
+
+- **Policy denial**: the requested target or action is out of scope or disallowed
+- **Approval pending**: an intrusive step is paused until an approver acts
+- **Tool failure**: the wrapped tool exits unsuccessfully or returns unusable output
+- **Evidence capture failure**: the runtime cannot produce the artifact set it expected to bind
+
+These are operational failures. They do not mean the proof system is lying. They mean the governed operation did not complete cleanly.
+
+### Proof failures
+
+These happen during verification of the resulting bundle or receipt-bearing artifacts. The current public failure vocabulary includes:
+
+- `FAILURE_REQUIRED_FIELD_MISSING`
+- `FAILURE_BUNDLE_MALFORMED`
+- `FAILURE_HASH_MISMATCH`
+- `FAILURE_SIGNATURE_INVALID`
+- `FAILURE_DIGEST_MISMATCH`
+- `FAILURE_SCHEMA_VERSION_UNSUPPORTED`
+- `FAILURE_WITNESS_INVALID`
+- `FAILURE_WITNESS_LINEAGE_MISMATCH`
+- `FAILURE_WITNESS_QUORUM_UNSATISFIED`
+
+These are proof failures. They indicate malformed inputs, broken digest relationships, invalid signatures, or unsatisfied trust conditions.
+
+### Indeterminate trust outcomes
+
+Not every incomplete verification result is a hard failure. The current verifier can return `indeterminate` when a package is structurally coherent but a declared external trust dependency cannot be satisfied locally.
+
+That distinction matters. Missing trust context is different from proven tampering.
+
+## What a Bypass Looks Like
+
+Suppose an operator wants to run a step against a target that is currently out of scope.
+
+The runtime gate blocks it. The operator then changes the configured scope source before rerunning the step. The gate now passes.
+
+WitnessOps did not make the scope source immutable. It was not designed to. What WitnessOps can still do is record:
+
+- which governed action was run
+- under which scope context it was evaluated
+- when it happened
+- how that action fits into the receipt chain
+
+The control here is auditability and continuity, not magical prevention.
+
+## Partial Bundle Risk
+
+A partial bundle can still produce a `valid` verification result for the artifacts it actually contains.
+
+That does not mean it proves completeness of the operational record. A verifier may be able to confirm that a presented subset is internally intact while still being unable to conclude that the subset represents the whole engagement, chain, or decision path.
+
+This is why continuity inspection and packaging honesty matter alongside cryptographic validity.
+
+## What Verification Should Mean
+
+Verification should be read precisely.
+
+- `valid` means the declared package and proof checks passed
+- `invalid` means a proof-bearing check failed
+- `indeterminate` means the package may be coherent, but a declared external trust condition could not be completed locally
+
+Those statuses are more useful than a generic green or red badge because they tell the reviewer what kind of dispute they are actually dealing with.
+
+## Verification and Dispute Handling
+
+If a receipt, chain, or bundle is disputed, the right move is not to debate screenshots. Preserve the artifacts and work from the proof surface outward.
+
+1. Preserve the original receipt or bundle bytes exactly as received.
+2. Re-run [Verification](/docs/how-it-works/verification) locally and record the exact status and failure class.
+3. If the issue is continuity-related, inspect [Execution Chains](/docs/evidence/execution-chains) and manifest integrity before making broader claims.
+4. If the issue suggests issuer compromise, receipt forgery, or tamper without an obvious packaging explanation, escalate through [Security Practices](/docs/security-systems/security-practices) and the public [Support Policy](https://witnessops.com/support/support-policy).
+
+The important point is to distinguish three dispute types:
+
+- an operational disagreement about what should have been done
+- a proof disagreement about what can be verified
+- a security incident involving possible forgery, compromise, or manipulated trust material
+
+Those are not the same class of problem and should not be handled as if they were.
+
+## Read Next
+
+- [Governed Execution](/docs/security-systems/governed-execution) for the runtime control path
+- [Receipts](/docs/evidence/receipts) for what the atomic proof object means
+- [Receipt Specification](/docs/evidence/receipt-spec) for the technical contract
+- [Verification](/docs/how-it-works/verification) for the check procedure
+- [Security Practices](/docs/security-systems/security-practices) for disclosure and operational security posture

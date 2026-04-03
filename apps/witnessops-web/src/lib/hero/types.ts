@@ -1,0 +1,9 @@
+export type {
+  ProofHeroDetail as HeroDetail,
+  ProofHeroLedgerBlock as HeroLedgerBlock,
+  ProofHeroNode as HeroNode,
+  ProofHeroNodeId as HeroNodeId,
+  ProofHeroPreview as HeroPreview,
+  ProofHeroScene as HeroScene,
+  ProofHeroTimelineStep as HeroTimelineStep,
+} from "@public-surfaces/ui";

@@ -1,0 +1,22 @@
+node_modules/
+.next/
+.next-dev/
+dist/
+.turbo/
+.env
+.env.local
+.env.*.local
+*.tsbuildinfo
+.vercel
+.DS_Store
+.claude/*
+!.claude/commands/
+!.claude/commands/**
+.playwright-mcp/
+tmp/
+out/
+output/
+
+# Screenshot / audit artifacts
+audit-*.png
+*-cards.png

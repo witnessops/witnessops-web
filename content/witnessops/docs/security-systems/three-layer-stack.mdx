@@ -1,0 +1,105 @@
+---
+title: "Three-Layer Stack"
+description: "How WitnessOps separates operator contracts, execution runtime, and proof infrastructure."
+section: "docs"
+order: 4
+nav_label: "Three-Layer Stack"
+draft: false
+---
+
+# Three-Layer Stack
+
+WitnessOps separates three concerns that most platforms collapse into one: what the operator intends, how execution happens, and how proof is produced. Each layer has a single job and a clear ownership boundary.
+
+## The Layers
+
+```
+L2: Operator Contracts
+    Skills, routing, frozen reporting, worker semantics, dashboard
+    OWNS: what to do
+
+L1: Execution Runtime
+    Runbooks, wrappers, policy gates, scope checks, approvals, evidence capture
+    OWNS: how to do it
+
+L0: Proof Infrastructure
+    Signing, hash chains, Merkle proofs, receipts, bundles, verification
+    OWNS: proving it happened
+```
+
+## Why Three Layers
+
+Most security platforms mix intent, execution, and proof into one system. When they do, three things go wrong:
+
+1. **The operator cannot change what to test without touching execution code.** Skill routing and runbook execution are different concerns with different change frequencies.
+
+2. **Execution evidence is only as trustworthy as the executor.** If the same system runs the tool and produces the proof, a compromised executor can produce convincing but false evidence.
+
+3. **Reporting becomes coupled to execution internals.** When the reporting shape depends on execution internals, every runtime change risks breaking the reporting contract.
+
+Separating the layers means each one can evolve independently and each one can be verified independently.
+
+## What Each Layer Owns
+
+### L2: Operator Contracts
+
+This layer answers: **what should be done?**
+
+- Skill selection and routing (which skill matches the operator's intent)
+- Launch manifests (structured request for execution)
+- Worker semantics (plan, summary, evidence handoff)
+- Frozen reporting contracts (output shapes that do not change when execution evolves)
+- Dashboard and review tooling
+
+L2 never executes tools. It selects, routes, and reports.
+
+### L1: Execution Runtime
+
+This layer answers: **how is it done?**
+
+- Runbook engine (YAML workflows with typed steps)
+- Scanner and tool wrappers (Nmap, Nuclei, Ffuf, etc.)
+- Policy gates and scope enforcement
+- Approval boundaries for intrusive actions
+- Engagement-local state and raw evidence capture
+- Campaign orchestration for multi-phase operations
+
+L1 never produces final proof artifacts. It executes governed operations and captures raw evidence.
+
+### L0: Proof Infrastructure
+
+This layer answers: **can you prove it happened?**
+
+- Receipt signing (Ed25519, DSSE envelopes)
+- Hash-chained receipt ledgers (append-only NDJSON)
+- Merkle tree construction and verification
+- Proof bundle packaging (portable, offline-verifiable)
+- Timestamp binding (RFC 3161)
+- Governance modules (proof-mesh, constitutional substrate)
+- Bridge dispatch with policy enforcement and preview-confirm safety
+
+L0 never executes security tools. It verifies, signs, and governs.
+
+## How the Layers Connect
+
+```
+L2 emits a launch manifest
+  ↓
+L1 executes the governed operation and captures raw evidence
+  ↓
+L0 signs the evidence, chains it, timestamps it, and packages it into a proof bundle
+  ↓
+L2 consumes the verified evidence into frozen reporting contracts
+```
+
+The key property: **L2 never talks to L1 directly for proof.** All proof flows through L0. This means the proof layer can be audited independently of both the operator contracts and the execution runtime.
+
+## What This Means for Trust
+
+A client who receives a WitnessOps proof bundle is trusting L0 — the proof infrastructure — not L1 or L2. The signing keys, the timestamp authority, and the transparency log are all L0 concerns.
+
+If L1 (the execution runtime) is compromised, the evidence it captured may be wrong — but the proof that it was captured is still cryptographically valid. The proof chain records what happened faithfully, even when what happened is a failure.
+
+If L2 (the operator contracts) change, the reporting shape may evolve — but the underlying proof artifacts remain stable. A proof bundle from last year still verifies with today's tools.
+
+That is the point of separation: each layer can fail independently, and each layer can be verified independently.

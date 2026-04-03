@@ -1,0 +1,69 @@
+---
+title: "The Cost of One Click"
+description: "A business-impact lesson framed as scenario, attack chain, observable evidence, operator response, and WitnessOps controls."
+section: "docs"
+order: 4
+nav_label: "Cost of a Click"
+draft: false
+---
+
+# The Cost of One Click
+
+Clicking a link feels harmless. The consequences are not.
+
+## Scenario
+
+A phishing email lands in one inbox. One person clicks. Nothing looks obviously broken yet.
+
+## Attack Chain
+
+```
+User clicks a phishing link
+  ↓
+Credentials or session token are exposed
+  ↓
+Attacker signs in to the mailbox
+  ↓
+Attacker learns payment and approval patterns
+  ↓
+Fraud, data exposure, or ransomware entry follows
+```
+
+This is often business email compromise, not cinematic "hacking."
+
+## Observable Evidence
+
+Look for:
+
+- a preserved phishing message or lookalike login page
+- successful sign-in from a new IP or device
+- mailbox rules, forwarding, or password resets created after the click
+- unusual finance or payment requests from the compromised mailbox
+- outbound communication that does not match normal sender behavior
+
+## Operator Response
+
+1. Preserve the email, link, and user interaction timeline.
+2. Revoke sessions and contain the affected account.
+3. Review mailbox rules, sent mail, and downstream payment or vendor workflows.
+4. Escalate quickly if finance, privileged, or multi-user exposure is possible.
+
+## WitnessOps Controls
+
+The governed path should include:
+
+- [Phishing Investigation](/docs/scenarios/phishing-investigation) for the initial workflow
+- [Do I Need to Escalate?](/docs/decisions/escalation) for account-takeover and fraud risk
+- [What Evidence Is Required?](/docs/decisions/evidence-required) for insurer, auditor, or legal review
+- [Receipts](/docs/evidence/receipts) to sign the investigation, containment, and remediation chain
+
+The cost is financial, but the response still starts with evidence quality and governed execution.
+
+## Typical business impact
+
+| Consequence | Typical cost |
+|------------|-------------|
+| **Wire fraud** | $50,000 – $500,000 per incident |
+| **Ransomware** | $200,000 – $5,000,000 |
+| **Data breach notification** | $150 per record |
+| **Business disruption** | Days to weeks of reduced operations |

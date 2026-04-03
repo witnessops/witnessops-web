@@ -1,0 +1,33 @@
+:root {
+  /* VaultMesh brand tokens */
+  --color-brand-primary: #0a0f1c;
+  --color-brand-primary-hover: #141b2e;
+  --color-brand-secondary: #1a2744;
+  --color-brand-accent: #00d47e;
+  --color-brand-muted: #4a5568;
+
+  --color-surface-bg: #000000;
+  --color-surface-bg-alt: #000000;
+  --color-surface-card: #0a0a0a;
+  --color-surface-border: #1a1a1a;
+
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #7a8ba4;
+  --color-text-inverse: #0a0f1c;
+
+  --color-signal-green: #00d47e;
+  --color-signal-amber: #f59e0b;
+  --color-signal-red: #ef4444;
+
+  --radius: 6px;
+  --radius-sm: 4px;
+  --radius-lg: 12px;
+  --max-width-content: 1200px;
+  --max-width-narrow: 720px;
+  --spacing-section: 120px;
+  --spacing-section-sm: 80px;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+}

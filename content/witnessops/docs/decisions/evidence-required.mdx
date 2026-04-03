@@ -1,0 +1,136 @@
+---
+title: "What Evidence Is Required?"
+description: "A practical standard for collecting enough evidence to support a decision, close a task, or justify escalation."
+section: "docs"
+order: 3
+nav_label: "Evidence Required"
+draft: false
+---
+
+# What Evidence Is Required?
+
+Use this page to determine what to collect before closing a task, making a decision, or escalating an issue.
+
+## Purpose
+
+Evidence should allow another person to understand:
+
+- what happened
+- what you checked
+- what you found
+- why you concluded what you concluded
+
+Evidence records what you observed and what method you used. It does not prove the conclusion is correct — it proves the work was performed and recorded.
+
+## Minimum evidence standard
+
+At minimum, capture:
+
+- what the target or artifact was
+- when you reviewed it
+- what method you used
+- what you observed
+- what conclusion you reached
+
+If one of those is missing, the record is probably incomplete.
+
+## Evidence by task type
+
+### For phishing triage
+
+Capture:
+
+- the message or message identifier
+- sender details
+- subject line
+- link or attachment details
+- relevant screenshots
+- user interaction status
+- your classification and rationale
+
+### For suspicious login review
+
+Capture:
+
+- account involved
+- time of alert or activity
+- source details if available
+- whether access was successful
+- whether the activity matches known user behavior
+- what containment or follow-up occurred
+
+### For operational testing
+
+Capture:
+
+- the target
+- the objective
+- the steps performed
+- command or action context where appropriate
+- outputs or observations
+- whether the result was successful, failed, or inconclusive
+
+### For escalation
+
+Capture:
+
+- the trigger for escalation
+- the facts known so far
+- the risk introduced by further action
+- what decision is needed next
+
+## Good evidence characteristics
+
+Good evidence is:
+
+- specific
+- relevant
+- traceable
+- understandable
+- limited to what is necessary
+
+## Weak evidence examples
+
+Weak evidence includes:
+
+- screenshots with no source context
+- copied output with no explanation
+- conclusions without observations
+- "looks suspicious" with no supporting details
+- missing timestamps or target identifiers
+
+## Evidence checklist before closing
+
+Before you close the task, confirm:
+
+- I identified the correct target or artifact
+- I recorded enough detail for another person to review my work
+- My conclusion is supported by what I captured
+- I documented any uncertainty
+- I recorded any action taken or recommended
+
+## When evidence is not enough
+
+Do not close the task if:
+
+- the core artifact was not preserved
+- the target is not clearly identified
+- the conclusion depends on memory
+- the rationale is not written down
+- the next reviewer would need to repeat your work from scratch
+
+## Quick action frame
+
+| Check | Use this rule |
+| --- | --- |
+| **When to stop** | Stop before closing when the artifact, method, rationale, or timeline cannot be reconstructed from the record. |
+| **Escalation trigger** | Escalate when the available evidence suggests broader impact but does not yet support a safe conclusion. |
+| **Evidence required** | Capture the target, time, method, observation, conclusion, and any uncertainty or follow-up action. |
+| **Next path** | Continue to [Do I Need to Escalate?](/docs/decisions/escalation) if more risk is emerging, or return to the scenario workflow to collect missing facts. |
+
+## Related pages
+
+- [Investigating a Phishing Report](/docs/scenarios/phishing-investigation)
+- [Do I Need to Escalate?](/docs/decisions/escalation)
+- [Is This In Scope?](/docs/decisions/scope-check)
+- [Evidence](/docs/evidence)

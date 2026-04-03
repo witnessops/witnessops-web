@@ -1,0 +1,93 @@
+---
+title: "A Real Phishing Email"
+description: "A line-by-line phishing example framed as scenario, attack chain, observable evidence, operator response, and WitnessOps controls."
+section: "docs"
+order: 9
+nav_label: "Real Phishing Example"
+draft: false
+---
+
+# A Real Phishing Email
+
+This example is synthetic, but the structure matches real phishing lures.
+
+## Scenario
+
+A user receives a security alert that looks urgent and branded correctly enough to earn a fast click.
+
+## Attack Chain
+
+```
+Phishing email arrives
+  ↓
+User trusts display name and urgency
+  ↓
+User clicks the fake verification link
+  ↓
+Fake login page captures credentials
+  ↓
+Attacker signs in to the real account
+```
+
+## Observable Evidence
+
+Look for:
+
+- a sender domain that does not match the claimed brand
+- a link that resolves to a lookalike or newly registered domain
+- user confirmation that credentials were entered
+- a second-stage login to the real provider from an unfamiliar source
+- later mailbox activity such as new rules, sessions, or outbound mail
+
+## Operator Response
+
+1. Preserve the original email and the resolved destination link.
+2. Confirm whether the user clicked, entered credentials, or approved MFA.
+3. Revoke sessions, reset credentials, and review mailbox changes if interaction occurred.
+4. Record the timeline so later responders can reconstruct the case.
+
+## WitnessOps Controls
+
+The governed path should use:
+
+- [Phishing Investigation](/docs/scenarios/phishing-investigation)
+- [What Evidence Is Required?](/docs/decisions/evidence-required)
+- [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling)
+- [Receipts](/docs/evidence/receipts)
+
+## Example lure
+
+```
+From: Microsoft Account Team <security@microsft-account.com>
+To: you@yourcompany.com
+Subject: Unusual sign-in activity on your account
+
+We detected a sign-in to your Microsoft account from
+an unrecognized device.
+
+Location: Moscow, Russia
+Time: March 14, 2026 03:41 AM
+Device: Unknown
+
+If this wasn't you, verify your account immediately
+to prevent unauthorized access.
+
+[Verify My Account]
+```
+
+## What gives it away
+
+- `microsft-account.com` is not `microsoft.com`
+- the location and time are meant to create urgency, not clarity
+- the button leads to a domain the attacker controls
+- the page may redirect to the real provider after capture to reduce suspicion
+
+## Example evidence trail
+
+| Artifact | What it contains |
+|----------|-----------------|
+| `phishing-email.eml` | Full email with headers and routing |
+| `fake-login-page.html` | Preserved phishing page or screenshot |
+| `domain-registration.txt` | Registration details for the lure domain |
+| `credential-capture-timing.log` | When the user entered credentials |
+| `mailbox-login-audit.log` | Follow-on sign-in from a different IP |

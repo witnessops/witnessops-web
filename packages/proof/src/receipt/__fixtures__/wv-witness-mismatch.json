@@ -1,0 +1,99 @@
+{
+  "schema_version": "2.1.0",
+  "proof_stage": "WV",
+  "receipt_id": "rcpt_wv_mismatch_001",
+  "run_id": "run_004",
+  "created_at": "2026-03-16T13:20:00Z",
+  "predecessor": {
+    "receipt_id": "rcpt_qv_004",
+    "proof_stage": "QV"
+  },
+  "subject": {
+    "kind": "spawn-run",
+    "tool": "spawn",
+    "tool_version": "0.9.0",
+    "workflow": "web-recon",
+    "agent": "web-recon",
+    "mode": "lab",
+    "target": { "input": "127.0.0.1", "normalized": "127.0.0.1", "classification": "ipv4" },
+    "environment": { "host_os": "Linux", "host_arch": "x86_64", "runtime": "bun", "runtime_version": "1.2.0" }
+  },
+  "materialization": {
+    "status": "completed",
+    "started_at": "2026-03-16T13:15:00Z",
+    "completed_at": "2026-03-16T13:20:00Z",
+    "artifacts": [],
+    "artifact_count": 0
+  },
+  "integrity": {
+    "canonicalization": { "receipt_c14n": "JCS-8785", "manifest_c14n": "merkle-manifest-v2" },
+    "digest_algorithms": ["sha256", "blake3"],
+    "primary_digest_algorithm": "blake3",
+    "record_digests": [
+      { "algorithm": "sha256", "value": "dddd000000000000000000000000000000000000000000000000000000000000" },
+      { "algorithm": "blake3", "value": "eeee000000000000000000000000000000000000000000000000000000000000" }
+    ],
+    "record_digest": {
+      "algorithm": "blake3",
+      "value": "eeee000000000000000000000000000000000000000000000000000000000000"
+    },
+    "manifest": {
+      "format": "merkle-tree-v1",
+      "leaf_canonicalization": "artifact-record-v1",
+      "leaf_digest_algorithm": "blake3",
+      "root": { "algorithm": "blake3", "value": "ffff000000000000000000000000000000000000000000000000000000000000" },
+      "artifacts": []
+    }
+  },
+  "attestation": {
+    "type": "local-signature",
+    "signature_algorithm": "ed25519",
+    "signing_key": { "key_id": "local-ed25519-fixture-01", "public_key": "MCowBQYDK2VwAyEAFixturePublicKeyBase64ForTestingOnly=" },
+    "signed_subject": { "type": "record_digest", "algorithm": "blake3", "value": "eeee000000000000000000000000000000000000000000000000000000000000" },
+    "signature": "sig-valid-ed25519-fixture-wv-mismatch-001"
+  },
+  "anchoring": {
+    "rfc3161": {
+      "status": "present",
+      "tsa": { "name": "FreeTSA", "url": "https://freetsa.org/tsr" },
+      "message_imprint": {
+        "algorithm": "blake3",
+        "value": "eeee000000000000000000000000000000000000000000000000000000000000"
+      },
+      "timestamp_token_path": "timestamp.tsr",
+      "token_format": "RFC-3161",
+      "gen_time": "2026-03-16T13:20:02Z",
+      "verification": {
+        "cryptographic_validity": "valid",
+        "message_imprint_match": true,
+        "cert_chain_status": "unchecked"
+      }
+    }
+  },
+  "witnesses": [
+    {
+      "type": "qin",
+      "witness_id": "qin-west-europe-01",
+      "receipt_id": "qinrcpt_mismatch_001",
+      "observed_at": "2026-03-16T13:20:10Z",
+      "subject": {
+        "type": "record_digest",
+        "algorithm": "blake3",
+        "value": "0000111122223333000011112222333300001111222233330000111122223333"
+      },
+      "environment": { "cloud": "azure", "region": "westeurope" },
+      "signature": {
+        "algorithm": "ed25519",
+        "key_id": "qin-ed25519-fixture-01",
+        "public_key": "MCowBQYDK2VwAyEAQINFixturePublicKeyBase64ForTest=",
+        "value": "sig-valid-qin-ed25519-fixture-mismatch-001"
+      },
+      "verification": {
+        "signature_valid": true,
+        "subject_match": false,
+        "witness_trust_status": "trusted"
+      }
+    }
+  ],
+  "_fixture_note": "FAIL: witness subject digest (0000...) does not match receipt record_digest (eeee...) — witness signed a different proof subject"
+}

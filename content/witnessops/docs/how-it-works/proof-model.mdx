@@ -1,0 +1,70 @@
+---
+title: "Proof Model"
+description: "What gets signed, timestamped, and verified in the WitnessOps proof chain."
+section: "docs"
+order: 2
+nav_label: "Proof Model"
+draft: false
+---
+
+# Proof Model
+
+WitnessOps receipts are not just signed JSON. They are structured proof objects with three independent layers of assurance, each provided by a different authority.
+
+## Three Authorities, Three Signatures
+
+| Authority | What it signs | What it proves |
+| --- | --- | --- |
+| **WitnessOps** (receipt issuer) | The execution statement | "This specific operation was governed and recorded by us" |
+| **Timestamp authority** | The digest of the signed statement | "This signed object existed before this time" |
+| **Transparency log** | The checkpoint over all committed entries | "This receipt was committed to an append-only history" |
+
+Each authority uses a different key. No single compromise can silently forge all three.
+
+## What Gets Signed
+
+The receipt issuer signs a structured statement containing:
+
+- **Subject** — what the receipt is about (an artifact digest, a deployment, a promotion)
+- **Actor** — who performed the operation
+- **Intent** — what was requested and under what policy
+- **Result** — what happened (success, failure, denial)
+- **Ledger reference** — sequence number and chain hash linking this receipt to the previous one
+
+The statement is wrapped in a standard signing envelope that makes the exact payload bytes unambiguous. This prevents confusion attacks where the same bytes could be interpreted as different payload types.
+
+## What Gets Timestamped
+
+The timestamp authority signs the digest of the complete signed envelope — not the raw event, not the unsigned statement. This binds trusted time to the exact signed object that a verifier will later check.
+
+Timestamping the signed envelope (rather than the raw payload) means the verifier can confirm: this specific signed statement existed before this specific time.
+
+## What Gets Logged
+
+The receipt digest is committed to an append-only transparency log. The log publishes signed checkpoints that cover all committed entries up to that point.
+
+An inclusion proof shows that a specific receipt is covered by a specific checkpoint. A consistency proof shows that a later checkpoint extends an earlier one without removing entries.
+
+## Receipt Strength Hierarchy
+
+Not all receipts carry all three layers. The strength depends on what proof material is attached:
+
+| Level | What it includes | What it proves |
+| --- | --- | --- |
+| Signed receipt | Statement + signature | "We issued this claim" |
+| Timestamped receipt | + timestamp token | "This claim existed before this time" |
+| Published receipt | + inclusion proof + checkpoint | "This claim was committed to an append-only history" |
+| Witnessed receipt | + witness cosignature | "An independent party confirmed the log's append-only evolution" |
+
+Each level is additive. A signed receipt is still valid — it just proves less than a published receipt.
+
+## What This Means in Practice
+
+When a client receives a WitnessOps proof bundle, they hold:
+
+- A signed statement proving who issued the claim
+- A timestamp token proving when the signed claim existed
+- An inclusion proof proving the claim was logged
+- Trust roots to verify all of the above without calling WitnessOps
+
+That is the difference between "we say it happened" and "here is cryptographic evidence that it happened, and you can check it yourself."

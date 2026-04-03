@@ -1,0 +1,275 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/:path*",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https://api.vaultmesh.org https://registry.offsec.foundation; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        }
+      ],
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    }
+  ],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/assessment/[issuanceId]",
+      "regex": "^/api/assessment/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPissuanceId": "nxtPissuanceId"
+      },
+      "namedRegex": "^/api/assessment/(?<nxtPissuanceId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/assessment/[issuanceId]",
+      "regex": "^/assessment/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPissuanceId": "nxtPissuanceId"
+      },
+      "namedRegex": "^/assessment/(?<nxtPissuanceId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/docs/[...slug]",
+      "regex": "^/docs/(.+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/docs/(?<nxtPslug>.+?)(?:/)?$"
+    },
+    {
+      "page": "/execution/[receiptId]",
+      "regex": "^/execution/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPreceiptId": "nxtPreceiptId"
+      },
+      "namedRegex": "^/execution/(?<nxtPreceiptId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/support/[slug]",
+      "regex": "^/support/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/support/(?<nxtPslug>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin",
+      "regex": "^/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin(?:/)?$"
+    },
+    {
+      "page": "/admin/login",
+      "regex": "^/admin/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/login(?:/)?$"
+    },
+    {
+      "page": "/contact",
+      "regex": "^/contact(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/contact(?:/)?$"
+    },
+    {
+      "page": "/docs",
+      "regex": "^/docs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/docs(?:/)?$"
+    },
+    {
+      "page": "/docs/man/witnessops",
+      "regex": "^/docs/man/witnessops(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/docs/man/witnessops(?:/)?$"
+    },
+    {
+      "page": "/execution",
+      "regex": "^/execution(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/execution(?:/)?$"
+    },
+    {
+      "page": "/governed-execution",
+      "regex": "^/governed\\-execution(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/governed\\-execution(?:/)?$"
+    },
+    {
+      "page": "/icon.svg",
+      "regex": "^/icon\\.svg(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/icon\\.svg(?:/)?$"
+    },
+    {
+      "page": "/og/home",
+      "regex": "^/og/home(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/og/home(?:/)?$"
+    },
+    {
+      "page": "/operators",
+      "regex": "^/operators(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/operators(?:/)?$"
+    },
+    {
+      "page": "/pricing",
+      "regex": "^/pricing(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pricing(?:/)?$"
+    },
+    {
+      "page": "/privacy",
+      "regex": "^/privacy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/privacy(?:/)?$"
+    },
+    {
+      "page": "/proof-backed-security-systems",
+      "regex": "^/proof\\-backed\\-security\\-systems(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/proof\\-backed\\-security\\-systems(?:/)?$"
+    },
+    {
+      "page": "/receipts",
+      "regex": "^/receipts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/receipts(?:/)?$"
+    },
+    {
+      "page": "/robots.txt",
+      "regex": "^/robots\\.txt(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/robots\\.txt(?:/)?$"
+    },
+    {
+      "page": "/runbooks",
+      "regex": "^/runbooks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/runbooks(?:/)?$"
+    },
+    {
+      "page": "/runner-loop",
+      "regex": "^/runner\\-loop(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/runner\\-loop(?:/)?$"
+    },
+    {
+      "page": "/security",
+      "regex": "^/security(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/security(?:/)?$"
+    },
+    {
+      "page": "/signals",
+      "regex": "^/signals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/signals(?:/)?$"
+    },
+    {
+      "page": "/sitemap.xml",
+      "regex": "^/sitemap\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\.xml(?:/)?$"
+    },
+    {
+      "page": "/status",
+      "regex": "^/status(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/status(?:/)?$"
+    },
+    {
+      "page": "/support",
+      "regex": "^/support(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/support(?:/)?$"
+    },
+    {
+      "page": "/terms",
+      "regex": "^/terms(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/terms(?:/)?$"
+    },
+    {
+      "page": "/verify",
+      "regex": "^/verify(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/verify(?:/)?$"
+    },
+    {
+      "page": "/why-witnessops",
+      "regex": "^/why\\-witnessops(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/why\\-witnessops(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments"
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

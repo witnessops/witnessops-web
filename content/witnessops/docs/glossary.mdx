@@ -1,0 +1,104 @@
+---
+title: "Glossary"
+description: "Core WitnessOps terms for governed execution, approval gates, and receipts."
+section: "docs"
+order: 4
+nav_label: "Glossary"
+draft: false
+---
+
+# Glossary
+
+Core terms used across WitnessOps documentation.
+
+### Approval Gate
+
+A policy gate requiring explicit approval before a governed step executes. In the Tier 1 chain, the gate decision is published as `P1`.
+
+### Canonical Mailbox
+
+The shared Microsoft 365 mailbox `security@witnessops.com`. This is the canonical Tier 1 mailbox identity. `security+witnessops@witnessops.com` may be used as an optional receive-only alias when plus addressing is enabled, but it does not replace the canonical mailbox.
+
+### Campaign
+
+A set of related execution chains within a single engagement.
+
+### Deterministic Replay
+
+The ability to recompute the published Tier 1 evidence path from serialized artifacts and verify its integrity without live mailbox, network, or UI state. `V0` is the Tier 1 replay-verification result.
+
+### Evidence Manifest
+
+A declared list of evidence artifacts and their content hashes for a governed operation.
+
+### Execution Chain
+
+The ordered Tier 1 evidence sequence `M0 -> E0 -> P1 -> E2 -> R0 -> V0`. `MX0` may exist internally before `E0`, but it is not part of the published chain.
+
+### Governed Execution
+
+Operational activity that runs within enforced policy constraints. Every tool invocation passes through scope checks, approval gates, and policy enforcement before executing.
+
+### M0
+
+Mailbox readiness proof for the canonical shared mailbox.
+
+### MX0
+
+Internal-only mailbox transport and export evidence. `MX0` may feed `E0`, but it is not a published proof artifact.
+
+### Operator
+
+The human or system identity that initiates and runs a governed operation. Operator identity may appear in the published chain, but verification authority does not depend on trusting the UI's display of that value.
+
+### Policy Gate
+
+A runbook checkpoint that must pass before execution proceeds.
+
+### R0
+
+The published receipt wrapper in the Tier 1 chain. `R0` carries:
+
+- `artifactHash`, the hash of the frozen `R0` body projection
+- `tier1.executionHash`, the hash of the typed Tier 1 execution payload
+- a PV receipt projection whose `record_digest` must bind to the already-computed `executionHash`
+
+### Principal
+
+An authenticated identity authorized to perform actions within WitnessOps. Principals can be operators, approvers, or system identities. Freemail addresses are rejected as principal identities.
+
+### Proof Bundle
+
+A sealed package of evidence — including receipts, manifests, and integrity material — that can be independently verified. Proof bundles are portable artifacts produced from WitnessOps receipts.
+
+### Receipt
+
+In the current WitnessOps public model, "receipt" usually refers to `R0`, the Tier 1 receipt wrapper. It is part of the published chain `M0 -> E0 -> P1 -> E2 -> R0 -> V0`, not a standalone legacy `prevReceipt` object.
+
+### Receipt Chain
+
+See [Execution Chain](#execution-chain).
+
+### Runbook
+
+A YAML workflow definition describing the steps, tools, policy gates, and expected evidence for an operation.
+
+### Scope
+
+The set of authorized targets for a governed operation. Scope is enforced per-step from the active scope configuration and related policy inputs. Targets outside that declared scope are blocked.
+
+### Scope Enforcement
+
+The runtime mechanism that checks every tool invocation against the declared scope before allowing execution. Scope enforcement is per-step, not just per-runbook.
+
+### Target Domain
+
+A domain, IP range, or asset identifier authorized for a governed operation.
+
+### V0
+
+The local verification result for the published Tier 1 chain. `V0` is produced by the shared proof receipt boundary and remains local-only: no live mailbox, Graph, Defender, or UI session state is required to replay it.
+
+### Witness
+
+An independent observer that records execution events and signs attestations confirming they occurred. Witnesses belong to the separate verification surface, not the WitnessOps execution runtime.

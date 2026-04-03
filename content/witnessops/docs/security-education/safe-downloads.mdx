@@ -1,0 +1,73 @@
+---
+title: "Safe Downloads & Attachments"
+description: "A file-handling lesson framed as scenario, attack chain, observable evidence, operator response, and WitnessOps controls."
+section: "docs"
+order: 7
+nav_label: "Safe Downloads"
+draft: false
+---
+
+# Safe Downloads & Attachments
+
+Malware does not install itself. Someone opens, runs, or trusts the wrong file.
+
+## Scenario
+
+You receive an unexpected attachment or download a tool from an unofficial source. The file looks ordinary enough to open.
+
+## Attack Chain
+
+```
+Unexpected file or installer arrives
+  ↓
+User opens or runs it
+  ↓
+Script, macro, or binary executes
+  ↓
+Malware installs or a follow-on payload is fetched
+  ↓
+Device or account is exposed
+```
+
+## Observable Evidence
+
+Look for:
+
+- unexpected attachments or archive files in email
+- double extensions such as `invoice.pdf.exe`
+- documents asking to enable macros or content
+- downloaded installers from unofficial or lookalike domains
+- endpoint alerts showing script execution or unsigned binaries
+
+## Operator Response
+
+1. Do not open, preview, or run the file on a normal workstation.
+2. Preserve the file and message source before deleting or moving it.
+3. If the file was opened, isolate the device and start a contained review.
+4. Use a governed workflow for analysis rather than ad hoc desktop inspection.
+
+## WitnessOps Controls
+
+The governed path should include:
+
+- [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling) for suspicious files and extracted data
+- [Policy Gates](/docs/security-systems/policy-gates) before detonation, credential capture, or other intrusive analysis
+- [Runbooks](/docs/operations/runbooks) to define the allowed analysis path
+- [Receipts](/docs/evidence/receipts) to sign the analysis and resulting evidence chain
+
+## Dangerous file types
+
+| File type | Risk | Why |
+|-----------|------|-----|
+| `.exe`, `.msi` | High | Runs code directly on Windows |
+| `.docm`, `.xlsm` | High | Office files with macros |
+| `.js`, `.vbs`, `.ps1` | High | Script files execute on open |
+| `.zip`, `.rar` with password | High | Can bypass mail scanning |
+| `.pdf` | Medium | Can contain malicious links |
+| `.iso`, `.img` | High | Disk images can hide executable content |
+
+## Three rules
+
+1. Only open files you expected to receive.
+2. Never enable macros or "content" on an unexpected document.
+3. Download software from official sources only.

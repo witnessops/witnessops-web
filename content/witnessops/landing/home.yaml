@@ -1,0 +1,311 @@
+version: "1"
+kind: "marketing.home"
+site: "witnessops"
+slug: "/"
+
+status:
+  draft: false
+  canonical: true
+  last_reviewed: "2026-03-13"
+
+seo:
+  title: "Proof-Backed Security Operations | WitnessOps"
+  description: "WitnessOps runs governed security operations and produces signed, timestamped receipts that can be verified independently."
+  canonical_url: "https://witnessops.com/"
+  robots: "index,follow"
+  og_image: "/og/home"
+  og_title: "WitnessOps"
+  og_description: "Governed security operations with signed, independently verifiable receipts."
+  twitter_card: "summary_large_image"
+
+theme:
+  brand: "witnessops"
+  tone: "operator"
+  proof_mark: "φ"
+
+navbar:
+  announcement:
+    enabled: false
+    text: ""
+    href: ""
+  links:
+    - label: "How It Works"
+      href: "/why-witnessops"
+    - label: "Docs"
+      href: "/docs"
+    - label: "Support"
+      href: "/support"
+  cta:
+    label: "Engage"
+    href: "/contact"
+    variant: "primary"
+
+hero:
+  eyebrow: "Proof-Backed Security Operations"
+  title: "Every operation witnessed. Every result verifiable."
+  body: "WitnessOps runs governed security operations and produces signed, timestamped receipts for what was executed, what was approved, and what stayed in scope."
+  supporting_points:
+    - "Not just reports."
+    - "Not just logs."
+    - "Portable evidence you can verify independently."
+    - "Built for teams that need proof, not post-hoc storytelling."
+  primary_cta:
+    label: "Start Governed Recon"
+    href: "/#governed-recon"
+    variant: "primary"
+  secondary_cta:
+    label: "Engage"
+    href: "/contact"
+    variant: "secondary"
+  proof_badges:
+    - "Verification"
+    - "Attestation"
+    - "Status"
+    - "Operator Hub"
+  media:
+    type: "terminal"
+    terminal:
+      language: "bash"
+      lines:
+        - "$ cat receipt.json"
+        - ""
+        - "RECEIPT:   rx-20260312-a7f3"
+        - "POLICY:    policy:external-recon:v1"
+        - "CHAIN:     prev=rx-20260312-e2b1"
+        - "EXECUTION: sha256:9d5e42..."
+        - "verified:  continuity+integrity"
+        - ""
+        - "SIGNATURE: ed25519:k7x9..."
+
+trust_bar:
+  enabled: true
+  label: "Governed security operations with signed, independently verifiable receipts"
+  items:
+    - "Verification"
+    - "Attestation"
+    - "Status"
+    - "Operator Entry"
+    - "Public Narrative"
+
+sections:
+  - type: "proof_strip"
+    id: "proof-strip"
+    enabled: false
+    title: "Receipts that survive the operation"
+    body: "Signed execution receipts remain verifiable after the run is complete."
+    terminal:
+      language: "bash"
+      lines:
+        - "$ cat receipt.json"
+        - ""
+        - "RECEIPT:   rx-20260312-a7f3"
+        - "POLICY:    policy:external-recon:v1"
+        - "CHAIN:     prev=rx-20260312-e2b1"
+        - "EXECUTION: sha256:9d5e42..."
+        - ""
+        - "SIGNATURE: ed25519:k7x9..."
+
+  - type: "problem"
+    id: "problem"
+    enabled: true
+    title: "After a pentest, what proof do you have?"
+    body: "Your team ran scans, tested exploits, documented findings. But when someone asks exactly what ran, who approved it, and whether it stayed in scope — the answer is scattered across logs, tickets, and memory."
+    bullets:
+      - "Scans ran, but there's no signed record of what was tested"
+      - "Approvals happened, but the policy decision is hard to reconstruct"
+      - "Findings exist, but the evidence chain is fragmented"
+      - "The report says 'tested' — but can anyone verify that independently?"
+    closing: "WitnessOps produces signed receipts for every governed operation. Not just reports about work — signed records of what ran."
+
+  - type: "category_comparison"
+    id: "category"
+    enabled: true
+    title: "Tools run. WitnessOps governs."
+    rows:
+      - left: "Nmap"
+        right: "scans ports — but who approved the target?"
+      - left: "Nuclei"
+        right: "finds vulnerabilities — but was the scope enforced?"
+      - left: "Burp Suite"
+        right: "tests web apps — but can the governed path be reconstructed?"
+      - left: "WitnessOps"
+        right: "wraps all of them in governed, evidence-producing runbooks"
+    closing: "WitnessOps is not a replacement for your tools. It's the governance layer that makes them auditable."
+
+  - type: "why_now"
+    id: "why-now"
+    enabled: true
+    title: "Why governed execution matters now"
+    items:
+      - title: "Regulators want proof, not reports"
+        body: "Compliance frameworks increasingly require evidence of what was tested, not just what was found."
+      - title: "AI systems need auditable security"
+        body: "AI governance requires verifiable records of security testing — not self-reported summaries."
+      - title: "Clients ask 'show me the evidence'"
+        body: "Enterprises and insurers want to verify that security operations actually happened as described."
+    closing: "The era of trust-based security reporting is ending. Evidence-based verification is replacing it."
+
+  - type: "pipeline"
+    id: "pipeline"
+    enabled: true
+    title: "From runbook to published evidence in four steps."
+    steps:
+      - label: "Define the runbook"
+        value: "YAML workflow"
+      - label: "Mailbox + policy gate"
+        value: "M0 + E0 + P1"
+      - label: "Tools execute"
+        value: "E2 governed operation"
+      - label: "Tier 1 chain is published"
+        value: "R0 + V0"
+
+  - type: "artifact_anatomy"
+    id: "artifact"
+    enabled: true
+    title: "One chain. One replay path."
+    body: "An WitnessOps Tier 1 chain contains the published evidence needed to inspect a governed operational action without turning the UI into a verifier."
+    tree:
+      root: "published-chain.json"
+      entries:
+        - "M0"
+        - "E0"
+        - "P1"
+        - "E2"
+        - "R0"
+        - "V0"
+    bullets:
+      - "mailbox readiness"
+      - "email control proof"
+      - "policy decision"
+      - "execution event"
+      - "receipt binding"
+      - "local verification result"
+    closing: "The published chain makes the governed record replayable after the fact."
+
+  - type: "proof_object"
+    id: "proof-object"
+    enabled: true
+    title: "A governed operation becomes a Tier 1 receipt binding"
+    body: "Richer evidence stays in adjacent manifests, state, logs, and notes. The published receipt surface exposes the frozen Tier 1 binding shape."
+    code:
+      language: "json"
+      lines:
+        - "{"
+        - "  \"type\": \"R0\","
+        - "  \"schemaVersion\": \"tier1-freeze-v2.1\","
+        - "  \"artifactHash\": \"sha256:...\","
+        - "  \"tier1\": {"
+        - "    \"executionHash\": \"sha256:...\""
+        - "  },"
+        - "  \"pvReceipt\": {"
+        - "    \"record_digest\": { \"algorithm\": \"sha256\", \"value\": \"...\" }"
+        - "  }"
+        - "}"
+
+  - type: "platform_surfaces"
+    id: "surfaces"
+    enabled: true
+    title: "A governed execution platform, not a loose toolchain"
+    cards:
+      - title: "Governed Execution"
+        body: "Run security and infrastructure actions under explicit control paths."
+      - title: "Policy Gates"
+        body: "Enforce approvals and preconditions before execution."
+      - title: "Signed Receipts"
+        body: "Emit signed receipt records for each governed run."
+      - title: "Execution Chains"
+        body: "Link runs into reconstructable continuity."
+      - title: "Operator Surfaces"
+        body: "Give operators deterministic execution interfaces."
+      - title: "Receipt Query Layer"
+        body: "Search, retrieve, and inspect receipt history."
+
+  - type: "audiences"
+    id: "audiences"
+    enabled: true
+    title: "Built for teams that run security operations"
+    cards:
+      - title: "Penetration testers"
+        body: "Turn every engagement into a chain of signed receipts that records what governed action ran, who was recorded for it, and which execution material and policy context it was bound to."
+      - title: "Red teams"
+        body: "Govern offensive workflows with scope enforcement and approval gates. Produce evidence, not just reports."
+      - title: "Security operations"
+        body: "Incident response, containment, and remediation — all governed, all receipted, all reviewable."
+      - title: "Compliance teams"
+        body: "Show regulators governed records of what ran, when, by whom, and which execution material and scope context were bound to that run."
+
+  - type: "positioning"
+    id: "positioning"
+    enabled: true
+    title: "Not a scanner. Not a tool. A governance layer."
+    body: "WitnessOps wraps your existing tools in governed runbooks that produce signed receipts and linked execution material."
+    points:
+      - "Your tools keep running. WitnessOps adds the governance."
+      - "Every operation produces a receipt. Not a log — a receipt."
+      - "Receipts chain together. One engagement, one evidence trail."
+      - "Receipt signatures can be checked with the right public key."
+
+  - type: "offer"
+    id: "offer"
+    enabled: true
+    title: "Start with one runbook."
+    price_label: "FIRST STEP"
+    delivery_label: "ONE ENGAGEMENT"
+    includes:
+      - "one governed runbook"
+      - "scope enforcement"
+      - "policy gates"
+      - "signed receipt output"
+    body: "Pick your most critical workflow. Run it through WitnessOps. See the receipt."
+    cta:
+      label: "Contact"
+      href: "/contact"
+      variant: "primary"
+
+  - type: "expansion_path"
+    id: "expansion"
+    enabled: true
+    title: "One runbook becomes a campaign. One campaign becomes an evidence trail."
+    body: "Start with a single governed operation. Chain receipts across scans, tests, and responses. Build a governed security history that auditors and regulators can inspect without oral reconstruction."
+    ctas:
+      - label: "How It Works"
+        href: "/why-witnessops"
+        variant: "secondary"
+      - label: "The Artifact Model"
+        href: "/proof-backed-security-systems"
+        variant: "ghost"
+
+final_cta:
+  enabled: true
+  title: "Your next security operation should produce proof."
+  body: "Not screenshots. Not notes. Signed evidence of what ran, who approved it, and whether it stayed in scope. Start with a governed recon. Inspect the receipt. Verify the result."
+  primary_cta:
+    label: "Start Governed Recon"
+    href: "/#governed-recon"
+    variant: "primary"
+  secondary_cta:
+    label: "Engage"
+    href: "/contact"
+    variant: "secondary"
+
+footer:
+  brand_line: "WitnessOps — Public Surface"
+  subline: "Proof-backed security systems."
+  links:
+    - label: "How It Works"
+      href: "/why-witnessops"
+    - label: "Verify"
+      href: "/verify"
+    - label: "Docs"
+      href: "/docs"
+    - label: "Support"
+      href: "/support"
+  legal_links:
+    - label: "Privacy"
+      href: "/privacy"
+    - label: "Terms"
+      href: "/terms"
+    - label: "Security"
+      href: "/security"
+  build_label: "Build: STATIC"
+  copyright: "© WitnessOps"

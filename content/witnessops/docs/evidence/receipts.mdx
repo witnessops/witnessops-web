@@ -1,0 +1,155 @@
+---
+title: "Receipts"
+description: "Conceptual bridge page for what a WitnessOps receipt is, what it proves, and how it relates to bundles, signatures, timestamps, and chain continuity."
+section: "docs"
+order: 2
+nav_label: "Receipts"
+draft: false
+---
+
+# Receipts
+
+A receipt is the atomic proof object in WitnessOps. It is the smallest portable statement the system can make about a governed event.
+
+That statement is intentionally narrow: WitnessOps is saying that a specific governed action, decision, or result was recorded by the system and bound into a tamper-evident continuity story.
+
+## Why Receipts Exist
+
+Security operations usually leave behind screenshots, notes, exports, and log fragments. Those can be useful, but they are hard to verify independently.
+
+Receipts exist to solve a narrower problem:
+
+- make a governed event portable
+- make the event inspectable without a live dashboard
+- make later tampering detectable
+
+That is why a receipt is not just a log line and not yet the whole bundle. It is the proof-bearing middle layer between raw execution and portable verification.
+
+## What a Receipt Is
+
+A WitnessOps receipt combines four ideas into one artifact:
+
+1. a statement about a governed event
+2. issuer-bound cryptographic proof for that statement
+3. continuity linkage to the surrounding receipt stream
+4. references to the bundle material a verifier needs next
+
+In practical terms, a receipt tells you:
+
+- what was requested or decided
+- who acted or approved
+- what result was recorded
+- where the receipt sits in the chain
+- where to find the proof material that strengthens the claim
+
+## What a Receipt Proves
+
+When a receipt and its surrounding proof material verify, the verifier can treat it as evidence that:
+
+- WitnessOps issued this statement
+- the statement has not been modified since issuance
+- the statement occupies a specific place in an append-only continuity structure
+- the bundle around it satisfied the declared verification checks
+
+That is already a meaningful claim. It is stronger than "we logged something" and weaker than "the world was definitely safe."
+
+## What a Receipt Does Not Prove
+
+A receipt does not prove:
+
+- that the scanner or tool was correct
+- that the operator picked the right target
+- that the host running the operation was uncompromised
+- that all relevant evidence is present if the surrounding chain or bundle is incomplete
+- that a security conclusion is true merely because an execution artifact exists
+
+The clean distinction is this: a receipt proves governed issuance and continuity, not omniscience.
+
+## How Receipts Relate to Signatures
+
+The receipt statement is signed so the issuer claim can be checked later. In the current public model, the important signing concept is the DSSE envelope:
+
+- the receipt statement becomes an unambiguous signed payload
+- the payload type is explicit
+- the exact signed bytes are stable enough for later verification and timestamp binding
+
+This is why a receipt is stronger than a rendered report. The proof attaches to the canonical signed object, not to the pretty surface shown to a human.
+
+## How Receipts Relate to Timestamps
+
+Trusted time is an additional layer, not a substitute for the issuer signature.
+
+In Receipt v2, the receipt points to RFC 3161 timestamp material that binds time to the signed envelope digest. This matters because a verifier can distinguish between:
+
+- a signed claim with no trusted time proof
+- a signed claim that can also be shown to have existed before a specific time
+
+Both can be useful. The second proves more.
+
+## How Receipts Relate to Bundles
+
+A receipt is the atomic proof object. A bundle is the transport package that carries:
+
+- the receipt or receipt set
+- manifest and digest declarations
+- timestamp material
+- inclusion or checkpoint material
+- public keys and other trust roots
+
+If a client wants something they can archive and verify offline, the deliverable is the bundle. If they want to understand the individual governed event inside that package, the starting point is the receipt.
+
+## How Receipts Relate to Chain Continuity
+
+Receipts are not standalone islands. Each one sits in a receipt stream with sequence and backward linkage.
+
+That continuity is what lets a reviewer tell whether:
+
+- an approval happened before an intrusive action
+- an expected step is missing
+- a later receipt was inserted out of order
+- the story being presented is complete or selectively edited
+
+Without that continuity, a receipt is still useful. With that continuity, it becomes part of an auditable operational narrative.
+
+## Receipt Strength Ladder
+
+Not every receipt carries the same assurance level.
+
+| Level | What it means |
+| --- | --- |
+| Signed receipt | The issuer claim can be checked |
+| Timestamped receipt | The signed object is bound to trusted time |
+| Bundled receipt | The receipt is packaged with the surrounding trust material |
+| Witnessed receipt | The declared witness or trust policy also verifies |
+
+Each step is additive. A receipt does not become worthless when a higher layer is missing. It simply proves less.
+
+## How Verification Reads a Receipt
+
+The current public verifier does not ask, "Does this look plausible?" It asks narrower questions:
+
+- Are the required fields present?
+- Do declared hashes recompute?
+- Is the signature valid?
+- Do digest relationships line up?
+- If witness policy is declared, was it actually satisfied?
+
+That is why verification returns `valid`, `invalid`, or `indeterminate` rather than a vague quality score.
+
+## When a Receipt Fails
+
+Receipt failures are informative. They usually tell you which trust layer broke.
+
+- A hash mismatch means bytes changed.
+- A signature failure means issuer authenticity did not hold.
+- A digest mismatch means the proof references do not line up.
+- An indeterminate result often means the bundle declared a trust dependency the verifier could not satisfy locally.
+
+That precision is part of the product value. The proof system should fail clearly, not cosmetically.
+
+## Read Next
+
+- [Receipt Specification](/docs/evidence/receipt-spec) for the technical contract
+- [Execution Chains](/docs/evidence/execution-chains) for continuity and ordering
+- [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the portable package
+- [Verification](/docs/how-it-works/verification) for the operator procedure

@@ -1,0 +1,154 @@
+---
+title: "Commands"
+description: "Reference commands and operational entry points used in WitnessOps workflows."
+section: "docs"
+order: 2
+nav_label: "Commands"
+draft: false
+---
+
+# Commands
+
+The WitnessOps operator command surface is intentionally small. Five commands cover the full engagement lifecycle: create a workspace, execute a runbook, inspect state, approve gated actions, and resume paused runs. Every command produces auditable artifacts.
+
+## new-engagement
+
+Create a new engagement workspace with the required directory structure.
+
+```bash
+bash automation/helpers/new-engagement.sh <engagement-name>
+```
+
+**What it does:** Creates the engagement directory tree under `ops/engagements/<engagement-name>/` with subdirectories for scope, recon, scans, loot, notes, and report output.
+
+**What it produces:**
+
+```text
+ops/engagements/<engagement-name>/
+├── scope/
+├── recon/
+├── scans/
+├── loot/
+├── notes/
+└── report/
+```
+
+After creation, populate `scope/in-scope.txt` with target entries before running workflows. Scope enforcement depends on this file.
+
+If the engagement is expected to produce credentials, tokens, mailbox artifacts, or other high-sensitivity outputs, define the storage and retention plan before operators start using `loot/`. See [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling).
+
+## runbook-exec
+
+Execute a runbook against a scoped target within an engagement.
+
+```bash
+bash automation/helpers/runbook-exec.sh <runbook-id> \
+  --target <target> \
+  --engagement <engagement-name>
+```
+
+**What it does:** Validates the runbook definition, creates a timestamped run directory, executes step wrappers in sequence, captures evidence, and generates a receipt when the run reaches a terminal state.
+
+**What it produces:** A run directory under `ops/engagements/<engagement>/report/drafts/` containing `state.json`, `manifest.json`, `receipt.json`, `hash-manifest.txt`, `runbook-summary.md`, and step output logs.
+
+**Options:**
+
+| Flag | Purpose |
+| --- | --- |
+| `--target` | Primary target for the runbook. Required. |
+| `--engagement` | Engagement workspace name. Required. |
+| `--no-scope` | Bypass scope enforcement. Lab use only. |
+| `--lab` | Mark the run as a lab execution. |
+
+Scope enforcement runs before any tool wrapper executes. If the target is not in `scope/in-scope.txt` and `--no-scope` is not set, execution is denied.
+
+If you are considering `--lab` or `--no-scope`, stop and read [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass) first. Those flags change the trust posture of the run.
+
+## runbook-state
+
+Inspect the current state of a run.
+
+```bash
+bash automation/helpers/runbook-state.sh <engagement-name> <run-id>
+```
+
+**What it does:** Reads the run's `state.json` and displays the current status, completed steps, pending steps, and any approval gates.
+
+**What it produces:** Human-readable status output to stdout. With `--json`, outputs the raw `state.json` content.
+
+**Options:**
+
+| Flag | Purpose |
+| --- | --- |
+| `--json` | Output raw state JSON instead of formatted summary. |
+
+**Typical output:**
+
+```text
+Run status:        awaiting_approval
+Completed steps:   nmap, subfinder, http-probe
+Pending step:      web-exploitation
+```
+
+## runbook-approve
+
+Approve a gated step in a paused run.
+
+```bash
+bash automation/helpers/runbook-approve.sh <engagement-name> <run-id> --approve
+```
+
+**What it does:** Records an approval event for the pending gated step. The approval is written into the run's state and will be included in the final receipt. The run remains paused until `runbook-resume` is called.
+
+**What it produces:** An approval record containing the step name, approver identity, and timestamp. This record is persisted in `state.json` and later embedded in `receipt.json`.
+
+**Options:**
+
+| Flag | Purpose |
+| --- | --- |
+| `--approve` | Confirm the approval action. Required. |
+| `--by <operator>` | Record a specific approver identity. Defaults to the current operator. |
+
+Approval gates exist on intrusive or destructive steps. A run cannot proceed past a gated step without an explicit approval record.
+
+## runbook-resume
+
+Resume a paused or interrupted run.
+
+```bash
+bash automation/helpers/runbook-resume.sh <engagement-name> <run-id>
+```
+
+**What it does:** Reads the existing `state.json` and resumes execution from the next incomplete step. If a step was interrupted mid-execution (status `running`), it restarts that step from the beginning. Completed steps are not re-executed.
+
+**What it produces:** Continues populating the run directory with step outputs, and generates the final receipt when the run reaches a terminal state.
+
+Resume is safe to call multiple times. The engine is idempotent with respect to completed steps.
+
+## Command lifecycle
+
+A typical engagement follows this sequence:
+
+```bash
+# 1. Create workspace
+bash automation/helpers/new-engagement.sh acme-external
+
+# 2. Set scope
+printf 'app.example.com\n' > ops/engagements/acme-external/scope/in-scope.txt
+
+# 3. Execute runbook
+bash automation/helpers/runbook-exec.sh initial-external-recon \
+  --target app.example.com \
+  --engagement acme-external
+
+# 4. Check state
+bash automation/helpers/runbook-state.sh acme-external <run-id>
+
+# 5. Approve if gated
+bash automation/helpers/runbook-approve.sh acme-external <run-id> --approve
+
+# 6. Resume after approval
+bash automation/helpers/runbook-resume.sh acme-external <run-id>
+```
+
+Every command in this sequence either reads or writes artifacts that feed into the final receipt. The command surface is small by design -- fewer entry points means fewer places where governance can be bypassed.

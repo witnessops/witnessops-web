@@ -1,0 +1,192 @@
+{
+  "schema_version": "2.1.0",
+  "proof_stage": "WV",
+  "receipt_id": "rcpt_wv_001",
+  "run_id": "run_001",
+  "created_at": "2026-03-16T12:35:20Z",
+  "predecessor": {
+    "receipt_id": "rcpt_qv_001",
+    "proof_stage": "QV",
+    "record_digest": {
+      "algorithm": "blake3",
+      "value": "b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1"
+    }
+  },
+  "subject": {
+    "kind": "spawn-run",
+    "tool": "spawn",
+    "tool_version": "0.9.0",
+    "workflow": "web-recon",
+    "agent": "web-recon",
+    "mode": "lab",
+    "target": {
+      "input": "127.0.0.1",
+      "normalized": "127.0.0.1",
+      "classification": "ipv4"
+    },
+    "environment": {
+      "host_os": "Linux",
+      "host_arch": "x86_64",
+      "runtime": "bun",
+      "runtime_version": "1.2.0"
+    }
+  },
+  "materialization": {
+    "status": "completed",
+    "started_at": "2026-03-16T12:30:00Z",
+    "completed_at": "2026-03-16T12:34:56Z",
+    "artifacts": [
+      {
+        "path": "state.json",
+        "media_type": "application/json",
+        "size_bytes": 7034,
+        "mtime_epoch": 1773657229
+      },
+      {
+        "path": "manifest.json",
+        "media_type": "application/json",
+        "size_bytes": 1024,
+        "mtime_epoch": 1773657230
+      },
+      {
+        "path": "runbook-summary.md",
+        "media_type": "text/markdown",
+        "size_bytes": 420,
+        "mtime_epoch": 1773657230
+      }
+    ],
+    "artifact_count": 3
+  },
+  "integrity": {
+    "canonicalization": {
+      "receipt_c14n": "JCS-8785",
+      "manifest_c14n": "merkle-manifest-v2"
+    },
+    "digest_algorithms": ["sha256", "blake3"],
+    "primary_digest_algorithm": "blake3",
+    "record_digests": [
+      {
+        "algorithm": "sha256",
+        "value": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+      },
+      {
+        "algorithm": "blake3",
+        "value": "b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1"
+      }
+    ],
+    "record_digest": {
+      "algorithm": "blake3",
+      "value": "b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1"
+    },
+    "manifest": {
+      "format": "merkle-tree-v1",
+      "leaf_canonicalization": "artifact-record-v1",
+      "leaf_digest_algorithm": "blake3",
+      "root": {
+        "algorithm": "blake3",
+        "value": "e7f8a9b0c1d2e3f4e7f8a9b0c1d2e3f4e7f8a9b0c1d2e3f4e7f8a9b0c1d2e3f4"
+      },
+      "artifacts": [
+        {
+          "path": "state.json",
+          "digests": [
+            { "algorithm": "sha256", "value": "50ef13218f362aac6550744f4f9d44aba79dd5bd1410f4ff434dfb8dce45a98b" },
+            { "algorithm": "blake3", "value": "aa11bb22cc33dd44aa11bb22cc33dd44aa11bb22cc33dd44aa11bb22cc33dd44" }
+          ],
+          "leaf_digest": {
+            "algorithm": "blake3",
+            "value": "dd44ee55ff66aa77dd44ee55ff66aa77dd44ee55ff66aa77dd44ee55ff66aa77"
+          }
+        },
+        {
+          "path": "manifest.json",
+          "digests": [
+            { "algorithm": "sha256", "value": "d667708b1306a0905b7632eaa4978ec4369b9bbad43864457bc58798708a1244" },
+            { "algorithm": "blake3", "value": "bb22cc33dd44ee55bb22cc33dd44ee55bb22cc33dd44ee55bb22cc33dd44ee55" }
+          ],
+          "leaf_digest": {
+            "algorithm": "blake3",
+            "value": "ee55ff66aa77bb88ee55ff66aa77bb88ee55ff66aa77bb88ee55ff66aa77bb88"
+          }
+        },
+        {
+          "path": "runbook-summary.md",
+          "digests": [
+            { "algorithm": "sha256", "value": "9f60861ec8ebfe65221ad24f302c143d182728a965a7f319e3b3f388f59d3cc8" },
+            { "algorithm": "blake3", "value": "cc33dd44ee55ff66cc33dd44ee55ff66cc33dd44ee55ff66cc33dd44ee55ff66" }
+          ],
+          "leaf_digest": {
+            "algorithm": "blake3",
+            "value": "ff66aa77bb88cc99ff66aa77bb88cc99ff66aa77bb88cc99ff66aa77bb88cc99"
+          }
+        }
+      ]
+    }
+  },
+  "attestation": {
+    "type": "local-signature",
+    "signature_algorithm": "ed25519",
+    "signing_key": {
+      "key_id": "local-ed25519-fixture-01",
+      "public_key": "MCowBQYDK2VwAyEAFixturePublicKeyBase64ForTestingOnly="
+    },
+    "signed_subject": {
+      "type": "record_digest",
+      "algorithm": "blake3",
+      "value": "b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1"
+    },
+    "signature": "sig-valid-ed25519-fixture-wv-001"
+  },
+  "anchoring": {
+    "rfc3161": {
+      "status": "present",
+      "tsa": {
+        "name": "FreeTSA",
+        "url": "https://freetsa.org/tsr"
+      },
+      "message_imprint": {
+        "algorithm": "blake3",
+        "value": "b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1"
+      },
+      "timestamp_token_path": "timestamp.tsr",
+      "token_format": "RFC-3161",
+      "gen_time": "2026-03-16T12:35:02Z",
+      "verification": {
+        "cryptographic_validity": "valid",
+        "message_imprint_match": true,
+        "cert_chain_status": "unchecked"
+      }
+    }
+  },
+  "witnesses": [
+    {
+      "type": "qin",
+      "witness_id": "qin-west-europe-01",
+      "receipt_id": "qinrcpt_001",
+      "observed_at": "2026-03-16T12:35:20Z",
+      "subject": {
+        "type": "record_digest",
+        "algorithm": "blake3",
+        "value": "b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1a2c4d5e6b3f1"
+      },
+      "environment": {
+        "cloud": "azure",
+        "region": "westeurope"
+      },
+      "signature": {
+        "algorithm": "ed25519",
+        "key_id": "qin-ed25519-fixture-01",
+        "public_key": "MCowBQYDK2VwAyEAQINFixturePublicKeyBase64ForTest=",
+        "value": "sig-valid-qin-ed25519-fixture-wv-001"
+      },
+      "reference": {
+        "anchor_url": "https://qin.example/receipts/qinrcpt_001"
+      },
+      "verification": {
+        "signature_valid": true,
+        "subject_match": true,
+        "witness_trust_status": "trusted"
+      }
+    }
+  ]
+}

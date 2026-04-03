@@ -1,0 +1,70 @@
+---
+title: "What To Do If You Clicked"
+description: "A recovery lesson framed as scenario, attack chain, observable evidence, operator response, and WitnessOps controls."
+section: "docs"
+order: 10
+nav_label: "If You Clicked"
+draft: false
+---
+
+# What To Do If You Clicked
+
+You clicked a link. You entered your password. You realized it was phishing. Now what?
+
+Do not panic. Act fast.
+
+## Scenario
+
+A user clicked a phishing link and may have entered credentials or approved access. Time now matters more than perfect diagnosis.
+
+## Attack Chain
+
+```
+User clicks lure
+  ↓
+Credentials or session token are exposed
+  ↓
+Attacker attempts real sign-in
+  ↓
+Mailbox, cloud, or downstream systems become reachable
+```
+
+## Observable Evidence
+
+Look for:
+
+- the original phishing message or link
+- confirmation that credentials, MFA approval, or a file interaction occurred
+- new sessions from unknown locations or devices
+- forwarding rules, sent mail, or password resets after the click
+- endpoint alerts if a file was opened or executed
+
+## Operator Response
+
+### In the next 5 minutes
+
+1. Change the affected password immediately.
+2. Enable MFA if it is not already enabled.
+3. Revoke active sessions you do not recognize.
+
+### In the next 30 minutes
+
+4. Report the event with the email, link, account, and click time.
+5. Check for mailbox forwarding rules and unexpected sent mail.
+6. Notify recipients if the attacker already sent messages from the account.
+
+### In the next 24 hours
+
+7. Monitor for password resets, login alerts, and financial abuse.
+8. Run a malware scan if a file was opened or downloaded.
+
+## WitnessOps Controls
+
+The governed response should use:
+
+- [Phishing Investigation](/docs/scenarios/phishing-investigation)
+- [Do I Need to Escalate?](/docs/decisions/escalation)
+- [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling)
+- [Receipts](/docs/evidence/receipts)
+
+Speed matters more than perfection. The attacker is automated. Every minute counts.

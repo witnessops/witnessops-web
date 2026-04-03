@@ -1,0 +1,123 @@
+---
+title: "Integration Author"
+description: "Guidance for developers and integrators building tooling, adapters, and documentation-linked workflows for WitnessOps."
+section: "docs"
+order: 4
+nav_label: "Integration Author"
+draft: false
+---
+
+# Integration Author
+
+This page is for developers and integrators who extend the platform with new tooling, adapters, or documentation-linked workflows.
+
+## What this role uses the docs for
+
+Use these docs to:
+
+- understand integration boundaries
+- implement consistent inputs and outputs
+- make tools auditable
+- support evidence collection
+- avoid creating undocumented behavior
+
+## Start here
+
+Read these in order:
+
+1. [Integrations](/docs/integrations)
+2. [WitnessOps Catalog](/docs/integrations/witnessops-catalog)
+3. [Runbooks](/docs/operations/runbooks)
+4. [Receipt Spec](/docs/evidence/receipt-spec)
+5. [Governance](/docs/governance)
+6. [FAQ](/docs/faq)
+
+## Design principles
+
+An integration should be:
+
+- predictable
+- minimally privileged
+- easy to audit
+- explicit about inputs and outputs
+- governed by default inside the runbook path
+- easy to explain in documentation
+
+Host, keys, and tool integrity remain trust assumptions. Do not design integrations that assume these are guaranteed.
+
+## WitnessOps / verification boundary
+
+WitnessOps signs receipts. Independent proof verification belongs to the separate verification surface. Do not build integrations that assume WitnessOps verifies proof bundles or operates a public verification surface.
+
+## What every integration must define
+
+- what problem it solves
+- what input it accepts
+- what output it returns
+- what evidence it produces
+- what errors it can emit
+- what permissions or approvals it needs
+- what actions are non-destructive vs intrusive
+
+## Required documentation sections
+
+Every integration page should include:
+
+- purpose
+- supported use cases
+- prerequisites
+- input schema or expected arguments
+- output examples
+- evidence behavior
+- failure modes
+- safety notes
+- troubleshooting
+- version compatibility
+
+## Integration author checklist
+
+Before publishing:
+
+- confirm the integration has a narrow purpose
+- define clear success and failure conditions
+- provide at least one real example
+- document evidence output
+- document approval boundaries
+- document known limitations
+- provide troubleshooting guidance
+
+## When things go wrong
+
+Know these governed execution failure modes:
+
+- **Scope gate blocks the step:** The step does not run. No partial execution. The denial is recorded.
+- **Approval stalls:** Execution pauses. The operation sits in a paused state until a principal acts.
+- **Tool crashes:** The step is marked failed. Exit code and stderr are recorded in the receipt.
+- **Evidence hash mismatch:** The receipt for that step is not generated. The chain breaks.
+
+Your integration should document which of these failure modes apply and how the user should respond.
+
+## Common mistakes
+
+- wrapping a tool without documenting assumptions
+- returning output that cannot be interpreted later
+- skipping evidence guidance
+- hiding dangerous behavior behind convenience
+- failing to distinguish validation from exploitation
+
+## What success looks like
+
+A good integration lets a user answer:
+
+- when should I use this
+- what will it do
+- what evidence will I get
+- what can go wrong
+- when should I stop and escalate
+
+## Read next
+
+- [Runbooks](/docs/operations/runbooks)
+- [Integrations](/docs/integrations)
+- [WitnessOps Catalog](/docs/integrations/witnessops-catalog)
+- [What Evidence Is Required?](/docs/decisions/evidence-required)

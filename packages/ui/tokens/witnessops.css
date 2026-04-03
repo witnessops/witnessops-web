@@ -1,0 +1,37 @@
+:root {
+  /* WitnessOps brand tokens */
+  --color-brand-primary: #0c0e14;
+  --color-brand-primary-hover: #161a24;
+  --color-brand-secondary: #1c2030;
+  --color-brand-accent: #ff6b35;
+  --color-brand-accent-subtle: rgba(255, 107, 53, 0.08);
+  --color-brand-muted: #52556a;
+
+  --color-surface-bg: #000000;
+  --color-surface-bg-alt: #080a10;
+  --color-surface-card: #10131c;
+  --color-surface-card-hover: #141825;
+  --color-surface-border: #232738;
+  --color-surface-border-hover: #2e3450;
+
+  --color-text-primary: #f0f2f8;
+  --color-text-secondary: #b0b8cc;
+  --color-text-muted: #8088a4;
+  --color-text-inverse: #0c0e14;
+
+  --color-signal-green: #00d47e;
+  --color-signal-amber: #f59e0b;
+  --color-signal-red: #ef4444;
+
+  --radius: 6px;
+  --radius-sm: 4px;
+  --radius-lg: 12px;
+  --max-width-content: 1200px;
+  --max-width-narrow: 720px;
+  --spacing-section: 120px;
+  --spacing-section-sm: 80px;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Barlow Condensed", "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+}

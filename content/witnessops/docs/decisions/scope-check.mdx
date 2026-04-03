@@ -1,0 +1,148 @@
+---
+title: "Is This In Scope?"
+description: "A decision page for determining whether a target, workflow, or action is authorized before work begins."
+section: "docs"
+order: 1
+nav_label: "Is This In Scope?"
+draft: false
+---
+
+# Is This In Scope?
+
+Use this decision page before performing security work on any system, account, message, asset, or workflow.
+
+## Purpose
+
+Prevent unauthorized work, reduce unnecessary risk, and make sure actions match the approved objective.
+
+## Start here
+
+Ask these questions in order.
+
+## 1. Do I know exactly what the target is?
+
+Examples:
+
+- a specific mailbox
+- a specific application
+- a known host
+- a named environment
+- a defined user report
+
+If no, stop. Clarify the target first.
+
+## 2. Do I know why work is being requested?
+
+You should be able to state the objective in one sentence.
+
+Examples:
+
+- validate a reported phishing email
+- review a login alert
+- test a specific application path
+- collect evidence for a suspected compromise
+
+If the purpose is vague, stop and clarify.
+
+## 3. Is there explicit authorization for this kind of work?
+
+Check whether the activity is:
+
+- already covered by approved process
+- allowed for your role
+- allowed for this environment
+- allowed for the actions you plan to take
+
+If you do not know, treat it as not yet approved.
+
+## 4. Is the planned action proportionate?
+
+Ask:
+
+- do I need this action to answer the question
+- is there a less disruptive way to validate first
+- does this move from observation to interference
+
+If the action is broader than necessary, redesign it.
+
+## 5. Could this affect users, systems, or evidence?
+
+Examples:
+
+- password resets
+- blocking or deleting messages
+- changing configurations
+- executing code
+- interacting with production services
+
+If yes, verify that the impact is expected and approved.
+
+## 6. Does this cross an escalation boundary?
+
+Common escalation boundaries:
+
+- privileged accounts
+- sensitive data
+- production systems
+- broad tenant-wide actions
+- intrusive validation
+- destructive or hard-to-reverse changes
+
+If yes, escalate before proceeding.
+
+## Scope decision
+
+### In scope
+
+Proceed only when:
+
+- the target is clearly identified
+- the objective is clear
+- authorization exists
+- the action is necessary
+- the risk is proportionate
+- escalation boundaries are not crossed without approval
+
+### Not clearly in scope
+
+Stop and ask for clarification when:
+
+- the target is ambiguous
+- the environment is unclear
+- the objective is vague
+- the action seems broader than the task
+- the user or manager assumes approval without stating it
+
+### Out of scope
+
+Do not proceed when:
+
+- the target is not authorized
+- the action exceeds the stated purpose
+- the work affects unrelated assets
+- the activity would create avoidable risk
+
+## Record your decision
+
+Before acting, record:
+
+- what target you believe is in scope
+- what objective you are addressing
+- what action you plan to take
+- why you believe it is authorized
+
+## Quick action frame
+
+| Check | Use this rule |
+| --- | --- |
+| **When to stop** | Stop when the target, environment, or objective is ambiguous. |
+| **Escalation trigger** | Escalate when the next step affects privileged accounts, production systems, sensitive data, or broad tenant scope. |
+| **Evidence required** | Record the target, objective, planned action, and why you believe it is authorized. |
+| **Next path** | Continue to [Do I Need to Escalate?](/docs/decisions/escalation) or [What Evidence Is Required?](/docs/decisions/evidence-required) before acting. |
+
+## Related pages
+
+- [Do I Need to Escalate?](/docs/decisions/escalation)
+- [What Evidence Is Required?](/docs/decisions/evidence-required)
+- [Manager / Approver](/docs/audiences/manager-approver)
+- [New Operator](/docs/audiences/new-operator)

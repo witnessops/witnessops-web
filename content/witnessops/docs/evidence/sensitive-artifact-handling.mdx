@@ -1,0 +1,108 @@
+---
+title: "Sensitive Artifact Handling"
+description: "How to collect, store, share, and retire sensitive WitnessOps artifacts such as loot, tokens, credentials, and preserved user data."
+section: "docs"
+order: 5
+nav_label: "Sensitive Artifact Handling"
+draft: false
+---
+
+# Sensitive Artifact Handling
+
+Some WitnessOps workflows produce more than logs and receipts. They can also produce credentials, tokens, message content, attachments, screenshots, or other user-linked artifacts.
+
+Those artifacts are often necessary. They are also a risk.
+
+## What counts as sensitive
+
+Treat these as sensitive by default:
+
+- credentials, password captures, and reset material
+- session cookies, bearer tokens, API keys, and OAuth grants
+- preserved phishing messages and attachments
+- mailbox exports, chat content, or user documents
+- screenshots containing secrets, personal data, or internal system details
+- raw loot collected during exploitation or containment work
+
+If you are unsure, handle the artifact as sensitive until proven otherwise.
+
+## Default handling rules
+
+Use these rules for every sensitive artifact:
+
+1. **Collect the minimum necessary.** Do not capture extra data because it might be interesting later.
+2. **Separate raw artifacts from summaries.** Raw loot belongs in controlled storage. Notes and receipts should reference it, not duplicate it.
+3. **Keep access narrow.** Only the operators and approvers who need the artifact should be able to read it.
+4. **Use host controls outside WitnessOps.** WitnessOps records hashes and receipts; it does not provide secret-at-rest protection for you.
+5. **Redact before sharing.** If an artifact leaves the working group, remove secrets and irrelevant personal data first.
+6. **Define retention and destruction up front.** Sensitive artifacts should not live forever by accident.
+
+## The `loot/` directory
+
+The default engagement layout includes a `loot/` directory for high-sensitivity outputs.
+
+That does **not** mean everything sensitive should be dumped there casually.
+
+Use `loot/` only when:
+
+- the artifact is necessary to support the objective
+- the collection was authorized
+- the artifact cannot be reduced to a safer summary or hash reference
+- the storage and access plan is clear to the team
+
+Do not copy the same sensitive artifact into `notes/`, screenshots, chat messages, and report drafts.
+
+## Evidence versus raw data
+
+Receipts and manifests are the portable evidence layer. Raw sensitive artifacts are not.
+
+Prefer this pattern:
+
+- keep the raw sensitive artifact in controlled storage
+- hash it and bind the hash into the governed evidence record
+- describe the observation in notes without repeating the secret
+- share the receipt or proof material first, and the raw artifact only when necessary
+
+This keeps the verification story intact without spreading the sensitive payload.
+
+## Handling by artifact type
+
+| Artifact type | Minimum handling standard |
+| --- | --- |
+| Credentials or password captures | Do not place in general notes. Store only where explicitly authorized. Rotate or invalidate as part of response where appropriate. |
+| Session cookies or tokens | Treat as active access, not just evidence. Revoke if compromise is plausible and avoid copying into screenshots or tickets. |
+| Phishing messages and attachments | Preserve the original where possible. Share identifiers or hashes before forwarding raw content broadly. |
+| Screenshots | Use only when needed for context. Crop or redact secrets, personal data, and unrelated tabs or windows. |
+| Raw loot from host or app testing | Keep only what supports the objective. If the artifact exceeds the authorized need, stop and escalate. |
+
+## Retention and destruction
+
+The docs do not impose a universal retention period. That decision belongs to the engagement, legal, and organizational policy context.
+
+What the docs do require is clarity:
+
+- who owns the artifact
+- why it is being retained
+- when it should be deleted or archived
+- what must happen before destruction, such as hash verification or closeout review
+
+If nobody can answer those four questions, retention is already out of control.
+
+## Failure states
+
+Treat these as handling failures:
+
+- raw secrets copied into notes, tickets, or screenshots without need
+- sensitive artifacts retained after the objective is complete
+- artifacts shared outside the approved group without redaction
+- collection performed before authorization was clear
+- no explanation of why the artifact had to be preserved
+
+A valid receipt does not excuse bad artifact handling.
+
+## Related pages
+
+- [What Evidence Is Required?](/docs/decisions/evidence-required)
+- [Receipts](/docs/evidence/receipts)
+- [Receipt Spec](/docs/evidence/receipt-spec)
+- [Investigating a Phishing Report](/docs/scenarios/phishing-investigation)
