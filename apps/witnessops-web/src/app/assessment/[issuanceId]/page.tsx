@@ -37,6 +37,7 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
   // Fetch live status for completed runs (so the initial render is rich)
   let initialStatus = record.assessmentStatus ?? "unavailable";
   let liveRun = null;
+  let statusIsStale = false;
   if (record.assessmentRunId) {
     try {
       const live = await getAssessmentStatus(record.assessmentRunId);
@@ -45,7 +46,8 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
         initialStatus = live.status;
       }
     } catch {
-      // Use stored status
+      // Live fetch failed — use stored status but mark as stale
+      statusIsStale = true;
     }
   }
 
@@ -123,12 +125,27 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
             Governed Recon Results
           </div>
           {approvalStatus === "approved" && record.assessmentRunId ? (
-            <AssessmentPoller
-              issuanceId={issuanceId}
-              email={email}
-              initialStatus={initialStatus}
-              initialRun={liveRun}
-            />
+            <>
+              {statusIsStale ? (
+                <div className="mb-3 rounded border border-yellow-900/60 bg-yellow-950/20 px-3 py-2 text-xs text-yellow-300/80">
+                  Live status could not be fetched. Showing last known state.
+                </div>
+              ) : null}
+              <AssessmentPoller
+                issuanceId={issuanceId}
+                email={email}
+                initialStatus={initialStatus}
+                initialRun={liveRun}
+              />
+            </>
+          ) : approvalStatus === "approved" && record.assessmentStatus === "unavailable" ? (
+            <div className="rounded border border-red-900/40 bg-zinc-900 p-4 text-sm text-zinc-400">
+              Scope approval is recorded, but the assessment server was not
+              reachable when recon was triggered.
+              {record.assessmentError ? (
+                <div className="mt-2 text-xs text-zinc-500 font-mono">{record.assessmentError}</div>
+              ) : null}
+            </div>
           ) : approvalStatus === "approved" ? (
             <div className="rounded border border-zinc-700 bg-zinc-900 p-4 text-sm text-zinc-400">
               Scope approval is recorded, but recon infrastructure is not yet

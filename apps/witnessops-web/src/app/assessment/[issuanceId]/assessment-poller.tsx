@@ -65,33 +65,61 @@ function FindingRow({ finding }: { finding: FindingSummary }) {
   );
 }
 
+const MAX_CONSECUTIVE_FAILURES = 5;
+
 export function AssessmentPoller({ issuanceId, email, initialStatus, initialRun = null }: AssessmentPollerProps) {
   const [status, setStatus] = useState(initialStatus);
   const [run, setRun] = useState<AssessmentStatusResult | null>(initialRun);
   const [error, setError] = useState<string | null>(null);
+  const [pollFailed, setPollFailed] = useState(false);
 
-  const isTerminal = status === "completed" || status === "failed" || status === "unavailable";
+  const isTerminal = status === "completed" || status === "failed" || status === "unavailable" || pollFailed;
 
   useEffect(() => {
     if (isTerminal) return;
 
     let cancelled = false;
+    let consecutiveFailures = 0;
 
     async function poll() {
       try {
         const url = `/api/assessment/${encodeURIComponent(issuanceId)}?email=${encodeURIComponent(email)}`;
         const res = await fetch(url);
         if (!res.ok) {
-          setError("Could not fetch assessment status.");
+          consecutiveFailures += 1;
+          if (!cancelled && consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+            setError("Unable to reach assessment server.");
+            setPollFailed(true);
+          } else if (!cancelled) {
+            setError("Could not fetch assessment status. Retrying…");
+          }
           return;
         }
         const data = (await res.json()) as PollResponse;
-        if (!cancelled) {
-          setStatus(data.assessmentStatus);
-          if (data.run) setRun(data.run);
+        if (cancelled) return;
+
+        if (!data.assessmentStatus || typeof data.assessmentStatus !== "string") {
+          consecutiveFailures += 1;
+          if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+            setError("Assessment server returned an unrecognized response.");
+            setPollFailed(true);
+          }
+          return;
         }
+
+        consecutiveFailures = 0;
+        setError(null);
+        setStatus(data.assessmentStatus);
+        if (data.run) setRun(data.run);
       } catch {
-        if (!cancelled) setError("Network error checking assessment status.");
+        if (cancelled) return;
+        consecutiveFailures += 1;
+        if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+          setError("Lost connection to assessment server.");
+          setPollFailed(true);
+        } else {
+          setError("Network error checking assessment status. Retrying…");
+        }
       }
     }
 
@@ -102,6 +130,17 @@ export function AssessmentPoller({ issuanceId, email, initialStatus, initialRun 
       clearInterval(interval);
     };
   }, [issuanceId, email, isTerminal]);
+
+  if (pollFailed) {
+    return (
+      <div className="rounded border border-red-900/60 bg-zinc-900 p-4 text-sm text-red-300">
+        <div>{error ?? "Unable to reach assessment server."}</div>
+        <div className="mt-2 text-xs text-zinc-500">
+          Polling stopped after repeated failures. Refresh the page to retry.
+        </div>
+      </div>
+    );
+  }
 
   if (status === "unavailable") {
     return (
@@ -115,7 +154,9 @@ export function AssessmentPoller({ issuanceId, email, initialStatus, initialRun 
   if (status === "failed") {
     return (
       <div className="rounded border border-red-900 bg-zinc-900 p-4 text-sm text-red-400">
-        Assessment encountered an error.{run?.error ? ` ${run.error}` : ""}
+        {run?.error
+          ? `Assessment failed: ${run.error}`
+          : "Assessment encountered an error. No further details are available from the assessment server."}
       </div>
     );
   }
