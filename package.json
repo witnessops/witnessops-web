@@ -8,6 +8,8 @@
     "lint": "pnpm --filter witnessops-web lint",
     "typecheck": "pnpm --filter witnessops-web typecheck",
     "test": "pnpm --filter witnessops-web test && pnpm --filter @witnessops/proof test && pnpm route-parity && pnpm receipt-smoke",
+    "health": "pnpm --filter witnessops-web build && pnpm --filter witnessops-web lint && pnpm --filter witnessops-web typecheck && pnpm test && pnpm docs:validate && pnpm signals:validate",
+    "release": "pnpm --filter witnessops-web build",
     "proof:test": "pnpm --filter @witnessops/proof test",
     "route-parity": "node --import tsx --test tests/route-parity/route-parity.test.ts",
     "receipt-smoke": "node --import tsx --test tests/receipt-smoke/receipt-smoke.test.ts",

@@ -16,7 +16,7 @@ const nextConfig = {
   serverExternalPackages: ["blake3"],
   webpack: (config) => {
     // blake3 is an optional native binding used by packages/proof verify paths.
-    // offsec-web never calls it at runtime — externalize to suppress the warning.
+    // witnessops-web never calls it at runtime — externalize to suppress the warning.
     config.resolve.alias["blake3"] = false;
     return config;
   },

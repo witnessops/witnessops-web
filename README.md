@@ -1,34 +1,28 @@
 # witnessops-web
 
-Live repository for the WitnessOps web surface.
+Live authoritative repo for the WitnessOps web surface.
 
-## Remote
+## Authority
 
-Published remote: `https://github.com/witnessops/witnessops-web`
+- Canonical remote: `https://github.com/witnessops/witnessops-web`
+- Default branch: `main`
+- Release authority: internal/manual for now
 
-## Scope
+## Owned surfaces
 
 - `apps/witnessops-web` is the live app surface.
 - `content/witnessops` is the live content root.
 - `packages/config`, `packages/content`, `packages/proof`, `packages/ui`, and `packages/tsconfig` are the shared support packages required by the app.
-- `packages/proof/src/receipt` is the only proof lane moved in this cut.
+- `packages/proof/src/receipt` is the only proof lane in this repo.
+- `/verify` and `/api/verify` are first-class owned surfaces.
 
-## Retained Behind
+## Operator entrypoints
 
-- canonical bundle verification and the corpus that exercises it
-- `tests/protocol-conformance`
-- `content/vaultmesh`
-- `proofs/**`
-- `public-surfaces` retained-behind/reference lanes for canonical bundle and archive material
+- Health: `pnpm health`
+- Release: `pnpm release`
+
+See [`commands.md`](./commands.md) for the frozen command contract.
 
 ## Validation
 
-- `pnpm build`
-- `pnpm lint`
-- `pnpm typecheck`
-- `pnpm test`
-- `pnpm --filter @witnessops/proof test`
-- `pnpm docs:validate`
-- `pnpm signals:validate`
-
-Namespace cleanup is complete for the live successor surface in this slice. Retained-behind proof/corpus lanes stay in `public-surfaces`.
+The health command covers build, lint, typecheck, tests, docs validation, signals validation, route parity, receipt smoke, and `@witnessops/proof` tests.
