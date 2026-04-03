@@ -105,17 +105,6 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
               Passive-only recon authorized for{" "}
               <span className="font-mono text-emerald-400">{domain}</span>
             </div>
-            <div className="mt-1 text-xs text-zinc-500">
-              Approved{" "}
-              <span className="font-mono">
-                {record.approvalAt?.replace("T", " ").replace("Z", " UTC") ?? "at unknown time"}
-              </span>
-              {record.approverEmail ? (
-                <>
-                  {" "}by <span className="font-mono">{record.approverEmail}</span>
-                </>
-              ) : null}
-            </div>
           </div>
         ) : null}
 
