@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation";
 
 type ApprovalStatus = "pending" | "approved" | "approval_denied" | null;
 
+/** V1 passive-only methods from the governed-recon contract. */
+const PASSIVE_METHODS = [
+  "DNS resolution",
+  "Certificate observation",
+  "Subdomain discovery",
+  "HTTP fingerprint",
+  "Email posture",
+  "Service banner observation",
+] as const;
+
 interface ScopeApprovalFormProps {
   issuanceId: string;
   email: string;
@@ -59,8 +69,23 @@ export function ScopeApprovalForm(props: ScopeApprovalFormProps) {
   if (isApproved) {
     return (
       <div className="rounded border border-emerald-900 bg-emerald-950/20 p-4 text-sm text-emerald-100">
-        <div className="text-xs uppercase tracking-[0.18em] text-emerald-300">
-          Scope approved
+        <div className="flex items-center gap-2">
+          <div className="text-xs uppercase tracking-[0.18em] text-emerald-300">
+            Scope approved
+          </div>
+          <span className="rounded bg-emerald-900/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-200">
+            Passive-only
+          </span>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {PASSIVE_METHODS.map((method) => (
+            <span
+              key={method}
+              className="rounded border border-emerald-900/60 bg-black/20 px-2 py-0.5 text-[10px] text-emerald-200/80"
+            >
+              {method}
+            </span>
+          ))}
         </div>
         <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-emerald-50">
           {scopeText}
@@ -94,15 +119,30 @@ export function ScopeApprovalForm(props: ScopeApprovalFormProps) {
 
   return (
     <div className="rounded border border-zinc-800 bg-zinc-950/80 p-4 text-sm text-zinc-300">
-      <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">
-        Scope approval required
+      <div className="flex items-center gap-2">
+        <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">
+          Scope approval required
+        </div>
+        <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+          Passive-only
+        </span>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {PASSIVE_METHODS.map((method) => (
+          <span
+            key={method}
+            className="rounded border border-zinc-800 bg-black/20 px-2 py-0.5 text-[10px] text-zinc-400"
+          >
+            {method}
+          </span>
+        ))}
       </div>
       <div className="mt-3 whitespace-pre-wrap rounded border border-zinc-800 bg-black/20 p-3 text-sm leading-7 text-zinc-100">
         {scopeText}
       </div>
       <div className="mt-3 text-xs leading-6 text-zinc-500">
-        This approval captures the passive-only recon authorization event. It
-        does not widen scope or enable active scanning.
+        This approval authorizes passive-only reconnaissance methods listed
+        above. It does not widen scope or enable active scanning.
       </div>
       <textarea
         className="mt-3 w-full rounded border border-zinc-800 bg-black/40 px-3 py-2 font-mono text-xs leading-6 text-zinc-100 outline-none transition-colors focus:border-emerald-500"
