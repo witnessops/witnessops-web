@@ -1,97 +1,10 @@
-/* ═══ Admin Shell ═══ */
-/* Fixed viewport shell. The panel body is the single vertical scroll owner.
-  Keep min-height: 0 through the flex chain or tall admin content will clip. */
-.shell {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: #000;
-  font-family: 'IBM Plex Mono', monospace;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  padding: 24px 16px;
-  color: #8088a4;
-}
-
-.shell::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* ═══ Admin Panel ═══ */
-.panel {
-  width: min(680px, 100%);
-  max-height: 100%;
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.panelHeader {
-  padding: 14px 20px;
-  border: 1px solid #232738;
-  border-bottom: none;
-  background: #080a10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.panelTitle {
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #ff6b35;
-}
-
-.panelUser {
-  font-size: 9px;
-  color: #52556a;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
+/* ═══ Shared Primitives ═══ */
 .dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
   background: #00d47e;
   box-shadow: 0 0 6px #00d47e;
-}
-
-.panelBody {
-  border: 1px solid #232738;
-  background: #080a10;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-}
-
-.panelFooter {
-  padding: 12px 20px;
-  border: 1px solid #232738;
-  border-top: none;
-  font-size: 9px;
-  color: #232738;
-  letter-spacing: 0.06em;
-  text-align: center;
-}
-
-@media (max-width: 720px) {
-  .shell {
-    padding: 12px;
-  }
 }
 
 /* ═══ Rows ═══ */
@@ -570,4 +483,585 @@
 
 .kbLink:hover {
   color: #ff6b35;
+}
+
+/* ═══ Console Shell (sidebar + main) ═══ */
+.consoleShell {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  font-family: 'IBM Plex Mono', monospace;
+  display: flex;
+  overflow: hidden;
+  color: #8088a4;
+}
+
+.consoleShell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ═══ Sidebar ═══ */
+.sidebar {
+  position: relative;
+  z-index: 2;
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #080a10;
+  border-right: 1px solid #232738;
+}
+
+.sidebarHeader {
+  padding: 14px 16px;
+  border-bottom: 1px solid #232738;
+}
+
+.sidebarTitle {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ff6b35;
+}
+
+.sidebarGlyph {
+  color: #ff6b35;
+}
+
+.sidebarNav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 11px;
+  color: #8088a4;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: all 0.12s;
+}
+
+.navLink:hover {
+  color: #b0b8cc;
+  background: rgba(255,255,255,0.015);
+}
+
+.navLinkActive {
+  color: #ff6b35;
+  border-left-color: #ff6b35;
+  background: rgba(255,107,53,0.04);
+}
+
+.sidebarFooter {
+  padding: 12px 16px;
+  border-top: 1px solid #232738;
+}
+
+.sidebarExternalLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: #52556a;
+  text-decoration: none;
+  transition: color 0.12s;
+}
+
+.sidebarExternalLink:hover {
+  color: #ff6b35;
+}
+
+/* ═══ Console Main ═══ */
+.consoleMain {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.consoleContent {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  background: #080a10;
+  border: 1px solid #232738;
+  border-left: none;
+  margin: 24px 24px 24px 0;
+}
+
+/* ═══ Mobile Sidebar ═══ */
+@media (max-width: 720px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.2s;
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .consoleContent {
+    margin: 12px;
+    border-left: 1px solid #232738;
+  }
+}
+
+/* ═══ Overview Stat Cards ═══ */
+.overviewStatGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(35,39,56,0.5);
+}
+
+.statCard {
+  border: 1px solid #232738;
+  background: rgba(255,255,255,0.01);
+  padding: 12px 14px;
+  transition: background 0.12s;
+}
+
+.statCardLinked {
+  cursor: pointer;
+}
+
+.statCardLinked:hover {
+  background: rgba(255,107,53,0.04);
+  border-color: rgba(255,107,53,0.25);
+}
+
+.statCardLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.statLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #52556a;
+}
+
+.statValue {
+  margin-top: 6px;
+  font-size: 20px;
+  color: #f0f2f8;
+}
+
+.statValueGreen {
+  composes: statValue;
+  color: #00d47e;
+}
+
+.statValueRed {
+  composes: statValue;
+  color: #ef4444;
+}
+
+.statValueAccent {
+  composes: statValue;
+  color: #ff6b35;
+}
+
+.statSub {
+  margin-top: 4px;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: #8088a4;
+}
+
+/* ═══ Alert Strip ═══ */
+.alertStrip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-bottom: 1px solid rgba(35,39,56,0.5);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #ef4444;
+  background: rgba(239,68,68,0.04);
+}
+
+/* ═══ Sparkline Row ═══ */
+.sparklineRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(35,39,56,0.5);
+}
+
+.sparklineItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sparklineLabel {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #52556a;
+  min-width: 60px;
+}
+
+/* ═══ Overview Error State ═══ */
+.overviewError {
+  padding: 24px 20px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #ef4444;
+  text-align: center;
+}
+
+/* ═══ Policy Class Badge ═══ */
+.policyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.policyBadgeView {
+  color: #8088a4;
+  border: 1px solid #232738;
+}
+
+.policyBadgeDraft {
+  color: #ff6b35;
+  border: 1px solid rgba(255,107,53,0.35);
+}
+
+.policyBadgeApproval {
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.35);
+}
+
+.policyBadgeOperator {
+  color: #00d47e;
+  border: 1px solid rgba(0,212,126,0.35);
+}
+
+.policyBadgeDisabled {
+  color: #52556a;
+  border: 1px dashed #232738;
+}
+
+/* ═══ Action Row with Policy Badge ═══ */
+.actionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(35,39,56,0.5);
+  transition: background 0.1s;
+}
+
+.actionRow:hover {
+  background: rgba(255,255,255,0.015);
+}
+
+.actionRow:last-child {
+  border-bottom: none;
+}
+
+.actionRowLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.actionRowRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.actionReason {
+  font-size: 10px;
+  color: #52556a;
+  max-width: 300px;
+}
+
+.rowActionDisabled {
+  composes: rowAction;
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ═══ Skeletons ═══ */
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+
+.skeletonBlock {
+  height: 10px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #131620 25%, #1a1e2e 50%, #131620 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.8s infinite linear;
+}
+
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(35,39,56,0.3);
+}
+
+.skeletonCard {
+  border: 1px solid #232738;
+  background: rgba(255,255,255,0.01);
+  padding: 14px;
+}
+
+.skeletonFilterBar {
+  display: flex;
+  gap: 6px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(35,39,56,0.5);
+}
+
+.skeletonPill {
+  width: 70px;
+  height: 22px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #131620 25%, #1a1e2e 50%, #131620 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.8s infinite linear;
+}
+
+.skeletonQueueItem {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(35,39,56,0.3);
+}
+
+/* ═══ Empty State (enhanced) ═══ */
+.emptyStateError {
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(35,39,56,0.5);
+  font-size: 11px;
+  line-height: 1.6;
+  color: #ef4444;
+}
+
+.emptyStateDetail {
+  font-size: 10px;
+  color: #52556a;
+}
+
+/* ═══ Console Header ═══ */
+.consoleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid #232738;
+  background: #080a10;
+  flex-shrink: 0;
+}
+
+.consoleHeaderStatus {
+  font-size: 9px;
+  color: #52556a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ═══ Alert Bell ═══ */
+.alertBellContainer {
+  position: relative;
+}
+
+.alertBellButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid #232738;
+  color: #8088a4;
+  cursor: pointer;
+  transition: all 0.12s;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.alertBellButton:hover {
+  border-color: #ff6b35;
+  color: #ff6b35;
+}
+
+.alertBellBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: #ef4444;
+  color: #f0f2f8;
+  font-size: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  line-height: 14px;
+  text-align: center;
+}
+
+/* ═══ Alert Panel ═══ */
+.alertPanel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 360px;
+  max-height: 420px;
+  display: flex;
+  flex-direction: column;
+  background: #080a10;
+  border: 1px solid #232738;
+  z-index: 50;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.alertPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #232738;
+}
+
+.alertPanelTitle {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #52556a;
+}
+
+.alertPanelAction {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: #52556a;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  transition: color 0.12s;
+}
+
+.alertPanelAction:hover {
+  color: #ff6b35;
+}
+
+.alertPanelTabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(35,39,56,0.5);
+}
+
+.alertPanelBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.alertPanelEmpty {
+  padding: 20px 14px;
+  font-size: 10px;
+  color: #52556a;
+  text-align: center;
+}
+
+.alertItem {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(35,39,56,0.3);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.alertItem:hover {
+  background: rgba(255,255,255,0.015);
+}
+
+.alertItem:last-child {
+  border-bottom: none;
+}
+
+.alertItemRead {
+  opacity: 0.5;
+}
+
+.alertItemMessage {
+  font-size: 10px;
+  line-height: 1.5;
+  color: #b0b8cc;
+}
+
+.alertItemLink {
+  color: #b0b8cc;
+  text-decoration: none;
+  transition: color 0.12s;
+}
+
+.alertItemLink:hover {
+  color: #ff6b35;
+}
+
+.alertItemMeta {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  color: #52556a;
+}
+
+.alertItemCategory {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 720px) {
+  .alertPanel {
+    width: calc(100vw - 24px);
+    right: -12px;
+  }
 }

@@ -1,29 +1,71 @@
 "use client";
 
+import {
+  getActionClass,
+  getActionReason,
+  isActionEnabled,
+  type AdminAction,
+} from "@/lib/admin/policy";
+import { PolicyClassBadge } from "./policy-class-badge";
 import styles from "./admin.module.css";
 
-const actions = [
-  { label: "Rebuild site", buttonText: "Trigger", message: "Build triggered" },
-  { label: "Regenerate audio", buttonText: "Trigger", message: "Audio regen triggered" },
-  { label: "Trust drift scan", buttonText: "Trigger", message: "Drift scan triggered" },
-  { label: "Clear .next cache", buttonText: "Clear", message: "Cache cleared" },
-] as const;
+const actions: {
+  action: AdminAction;
+  label: string;
+  buttonText: string;
+}[] = [
+  { action: "rebuild-site", label: "Rebuild site", buttonText: "Trigger" },
+  { action: "regen-audio", label: "Regenerate audio", buttonText: "Trigger" },
+  { action: "trust-drift-scan", label: "Trust drift scan", buttonText: "Trigger" },
+  { action: "clear-cache", label: "Clear .next cache", buttonText: "Clear" },
+];
 
 export function AdminActions() {
   return (
     <>
       <div className={styles.sectionHeader}>Actions</div>
-      {actions.map((action) => (
-        <div key={action.label} className={styles.row}>
-          <span className={styles.rowLabel}>{action.label}</span>
-          <button
-            className={styles.rowAction}
-            onClick={() => alert(action.message)}
-          >
-            {action.buttonText}
-          </button>
-        </div>
-      ))}
+      {actions.map((item) => {
+        const actionClass = getActionClass(item.action);
+        const reason = getActionReason(item.action);
+        const enabled = isActionEnabled(actionClass);
+
+        return (
+          <div key={item.action} className={styles.actionRow}>
+            <div className={styles.actionRowLeft}>
+              <span className={styles.rowLabel}>{item.label}</span>
+              <PolicyClassBadge actionClass={actionClass} />
+            </div>
+            <div className={styles.actionRowRight}>
+              {reason ? (
+                <span className={styles.actionReason}>{reason}</span>
+              ) : null}
+              {enabled ? (
+                <button
+                  type="button"
+                  className={styles.rowAction}
+                  onClick={() => {
+                    // TODO: wire to real API endpoints
+                    // For now, actions that are enabled but not wired show
+                    // an explicit "not wired" message instead of faking success.
+                    alert(`${item.label}: not wired to backend yet.`);
+                  }}
+                >
+                  {item.buttonText}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.rowActionDisabled}
+                  disabled
+                  aria-disabled="true"
+                >
+                  {item.buttonText}
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </>
   );
 }

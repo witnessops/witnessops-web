@@ -18,6 +18,7 @@
     "@witnessops/ui": "workspace:*",
     "framer-motion": "^12.36.0",
     "js-yaml": "^4.1.0",
+    "lucide-react": "^1.7.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -1,5 +1,4 @@
 import {
-  adminAdmissionStateOrder,
   buildAdmissionQueueView,
   formatAdmissionStateLabel,
   type AdmissionQueueRow,
@@ -9,9 +8,10 @@ import { isManualReconciliationBlocked } from "@/lib/server/evidence-resolution"
 import { buildReconciliationNoteTemplate } from "@/lib/server/reconciliation-note-policy";
 import { formatReconciliationSubcaseLabel } from "@/lib/server/reconciliation-subcases";
 import { buildReconciliationReportFromView } from "@/lib/server/reconciliation-report";
+import { QUEUE_FILTER_KEYS } from "@/lib/admin/queue-filter-keys";
 
-import { AdminCopyReport } from "./admin-copy-report";
-import { AdminQueueFilter, type FilterGroup } from "./admin-queue-filter";
+import type { FilterGroup } from "@/lib/admin/queue-filter-types";
+import { AdminQueueFilteredList } from "./admin-queue-filtered-list";
 import { AdminReconcileIntakeForm } from "./admin-reconcile-intake-form";
 import { AdminRespondIntakeForm } from "./admin-respond-intake-form";
 import styles from "./admin.module.css";
@@ -20,13 +20,6 @@ function formatTimestamp(value: string): string {
   return value.replace("T", " ").replace("Z", " UTC");
 }
 
-function formatDate(value: string): string {
-  return `${value} UTC`;
-}
-
-function formatAgeHours(value: number): string {
-  return value <= 0 ? "<1h" : `${value}h`;
-}
 
 function buildDefaultReconciliationNote(row: AdmissionQueueRow): string {
   return buildReconciliationNoteTemplate({
@@ -596,62 +589,76 @@ function renderRow(row: AdmissionQueueRow) {
   );
 }
 
-export async function AdminAdmissionQueue() {
+interface AdminAdmissionQueueProps {
+  initialFilter?: string | null;
+}
+
+export async function AdminAdmissionQueue({ initialFilter }: AdminAdmissionQueueProps = {}) {
   try {
     const view = await buildAdmissionQueueView();
     const report = buildReconciliationReportFromView(view);
     const reconciliationRows = view.rows.filter(
       (row) => row.reconciliationPending,
     );
-    const staleAcceptedCount = view.rows.filter(
-      (row) => deriveStalePendingFlags(row).staleAccepted,
-    ).length;
-
     const filterGroups: FilterGroup[] = [
       {
-        key: "pending",
+        key: QUEUE_FILTER_KEYS.ready,
+        label: "Ready",
+        intakeIds: view.rows
+          .filter((r) => r.queueEligible)
+          .map((r) => r.intakeId),
+      },
+      {
+        key: QUEUE_FILTER_KEYS.pending,
         label: "Pending",
         intakeIds: view.rows
           .filter((r) => r.reconciliationPending)
           .map((r) => r.intakeId),
       },
       {
-        key: "stale_accepted",
+        key: QUEUE_FILTER_KEYS.divergent,
+        label: "Divergent",
+        intakeIds: view.rows
+          .filter((r) => r.hasDivergence)
+          .map((r) => r.intakeId),
+      },
+      {
+        key: QUEUE_FILTER_KEYS.staleAccepted,
         label: "Stale Accepted",
         intakeIds: view.rows
           .filter((r) => deriveStalePendingFlags(r).staleAccepted)
           .map((r) => r.intakeId),
       },
       {
-        key: "awaiting_response",
+        key: QUEUE_FILTER_KEYS.awaitingResponse,
         label: "Awaiting Response",
         intakeIds: view.rows
           .filter((r) => deriveStalePendingFlags(r).awaitingResponse)
           .map((r) => r.intakeId),
       },
       {
-        key: "evidence_conflict",
+        key: QUEUE_FILTER_KEYS.evidenceConflict,
         label: "Evidence Conflict",
         intakeIds: view.rows
           .filter((r) => deriveStalePendingFlags(r).evidenceConflict)
           .map((r) => r.intakeId),
       },
       {
-        key: "resolved_provider",
+        key: QUEUE_FILTER_KEYS.resolvedProvider,
         label: "Closed: Provider",
         intakeIds: view.rows
           .filter((r) => r.ambiguityResolutionKind === "provider_outcome")
           .map((r) => r.intakeId),
       },
       {
-        key: "resolved_mailbox",
+        key: QUEUE_FILTER_KEYS.resolvedMailbox,
         label: "Closed: Mailbox",
         intakeIds: view.rows
           .filter((r) => r.ambiguityResolutionKind === "mailbox_receipt")
           .map((r) => r.intakeId),
       },
       {
-        key: "resolved_manual",
+        key: QUEUE_FILTER_KEYS.resolvedManual,
         label: "Reconciled",
         intakeIds: view.rows
           .filter((r) => r.ambiguityResolutionKind === "manual_reconciliation")
@@ -668,249 +675,6 @@ export async function AdminAdmissionQueue() {
 
     return (
       <>
-        <div className={styles.sectionHeader}>Admission Queue</div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Projection mode</span>
-          <span className={styles.rowValueAccent}>LEDGER FIRST</span>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Ledger events</span>
-          <span className={styles.rowValue}>{view.eventCount}</span>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Projected rows</span>
-          <span className={styles.rowValue}>{view.summary.total}</span>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Ready for response</span>
-          <span className={styles.rowValueGreen}>{view.summary.ready}</span>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Divergence</span>
-          <span
-            className={
-              view.summary.divergent > 0
-                ? styles.rowValueAlert
-                : styles.rowValueGreen
-            }
-          >
-            {view.summary.divergent}
-          </span>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Reconciliation pending</span>
-          <span
-            className={
-              view.summary.reconciliationPending > 0
-                ? styles.rowValueAlert
-                : styles.rowValueGreen
-            }
-          >
-            {view.summary.reconciliationPending}
-          </span>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Resolved ambiguity</span>
-          <span className={styles.rowValue}>{view.summary.reconciliationResolved}</span>
-        </div>
-
-        <div className={styles.summaryGrid}>
-          {adminAdmissionStateOrder.map((state) => (
-            <div key={state} className={styles.summaryCard}>
-              <div className={styles.summaryLabel}>
-                {formatAdmissionStateLabel(state)}
-              </div>
-              <div className={styles.summaryValue}>{view.summary.byState[state]}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className={styles.summaryNote}>
-          Derived from events.ndjson. Snapshot mismatches are surfaced, not healed.
-        </div>
-
-        <div className={styles.sectionHeader}>Reconciliation Report</div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Export</span>
-          <span style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            <a
-              href="/api/admin/intake/reconciliation-report"
-              className={styles.inlineLink}
-              download="reconciliation-report.json"
-            >
-              Download JSON
-            </a>
-            <AdminCopyReport reportUrl="/api/admin/intake/reconciliation-report" />
-          </span>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Pending ambiguity</span>
-          <span
-            className={
-              report.pendingTotal > 0
-                ? styles.rowValueAlert
-                : styles.rowValueGreen
-            }
-          >
-            {report.pendingTotal}
-          </span>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Resolved ambiguity</span>
-          <span className={styles.rowValue}>{report.resolvedTotal}</span>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Oldest unresolved evidence</span>
-          <span className={styles.rowValue}>
-            {report.oldestPendingAt
-              ? formatTimestamp(report.oldestPendingAt)
-              : "none"}
-          </span>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Latest resolution</span>
-          <span className={styles.rowValue}>
-            {report.latestResolvedAt
-              ? formatTimestamp(report.latestResolvedAt)
-              : "none"}
-          </span>
-        </div>
-
-        <div className={styles.summaryGrid}>
-          {report.byChannel.map((channel) => (
-            <div key={channel.channel} className={styles.summaryCard}>
-              <div className={styles.summaryLabel}>{channel.channel}</div>
-              <div className={styles.summaryValue}>
-                {channel.pending} / {channel.resolved}
-              </div>
-              <div className={styles.summarySubvalue}>pending / resolved</div>
-            </div>
-          ))}
-        </div>
-
-        <div className={styles.summaryGrid}>
-          {report.bySubcase.map((entry) => (
-            <div key={entry.subcase} className={styles.summaryCard}>
-              <div className={styles.caseSummaryLabel}>
-                {formatReconciliationSubcaseLabel(entry.subcase)}
-              </div>
-              <div className={styles.summaryValue}>{entry.total}</div>
-              <div className={styles.summarySubvalue}>
-                {entry.pending} pending / {entry.resolved} resolved
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className={styles.summaryGrid}>
-          {report.byProviderOutcome.map((entry) => (
-            <div key={entry.outcome} className={styles.summaryCard}>
-              <div className={styles.caseSummaryLabel}>
-                {formatProviderOutcomeStatusLabel(entry.outcome)}
-              </div>
-              <div className={styles.summaryValue}>{entry.total}</div>
-              <div className={styles.summarySubvalue}>
-                {entry.pending} pending / {entry.resolved} resolved
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className={styles.sectionHeader}>Evidence Health</div>
-        {report.byClosureSource.map((entry) => (
-          <div key={entry.source} className={styles.row}>
-            <span className={styles.rowLabel}>
-              {formatClosureSourceLabel(entry.source)}
-            </span>
-            <span className={styles.rowValue}>{entry.total}</span>
-          </div>
-        ))}
-        <div className={styles.row}>
-          <span className={styles.rowLabel}>Stale accepted</span>
-          <span
-            className={
-              staleAcceptedCount > 0
-                ? styles.rowValueAlert
-                : styles.rowValueGreen
-            }
-          >
-            {staleAcceptedCount}
-          </span>
-        </div>
-
-        {report.byProvider.length > 0 ? (
-          <div className={styles.summaryGrid}>
-            {report.byProvider.map((entry) => (
-              <div key={entry.provider} className={styles.summaryCard}>
-                <div className={styles.summaryLabel}>{entry.provider}</div>
-                <div className={styles.summaryValue}>{entry.total}</div>
-                <div className={styles.summarySubvalue}>
-                  {entry.pending} pending / {entry.resolved} resolved
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        {report.timeline.length > 0 ? (
-          <div className={styles.reportTimeline}>
-            <div className={styles.reportTimelineHeader}>
-              <span>Date</span>
-              <span>Started</span>
-              <span>Resolved</span>
-              <span>Open</span>
-            </div>
-            {report.timeline.map((entry) => (
-              <div key={entry.date} className={styles.reportTimelineRow}>
-                <span>{formatDate(entry.date)}</span>
-                <span className={styles.rowValue}>{entry.ambiguityStarted}</span>
-                <span className={styles.rowValueGreen}>{entry.ambiguityResolved}</span>
-                <span
-                  className={
-                    entry.openAtClose > 0
-                      ? styles.rowValueAlert
-                      : styles.rowValueGreen
-                  }
-                >
-                  {entry.openAtClose}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className={styles.emptyState}>
-            No reconciliation history yet.
-          </div>
-        )}
-
-        {report.pendingRows.length > 0 ? (
-          <div className={styles.reportHighlightList}>
-            {report.pendingRows.slice(0, 3).map((row) => (
-              <div key={row.intakeId} className={styles.reportHighlightItem}>
-                <div className={styles.reconciliationHeadline}>
-                  {row.email ?? row.intakeId}
-                </div>
-                <div className={styles.caseLabel}>
-                  {formatReconciliationSubcaseLabel(row.subcase)}
-                </div>
-                <div className={styles.reconciliationMeta}>
-                  <span>{row.intakeId}</span>
-                  <span>{row.channel}</span>
-                  <span>{row.deliveryAttemptId ?? "attempt missing"}</span>
-                  <span>
-                    {row.providerOutcomeStatus
-                      ? formatProviderOutcomeStatusLabel(row.providerOutcomeStatus)
-                      : "no downstream outcome"}
-                  </span>
-                  <span>{formatAgeHours(row.ageHours)} open</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        <div className={styles.summaryNote}>{report.disclaimer}</div>
-
         {reconciliationRows.length > 0 ? (
           <>
             <div className={styles.sectionHeader}>Reconciliation</div>
@@ -970,10 +734,12 @@ export async function AdminAdmissionQueue() {
         {view.rows.length === 0 ? (
           <div className={styles.emptyState}>No admission history yet.</div>
         ) : (
-          <>
-            <AdminQueueFilter groups={filterGroups} />
-            <div className={styles.queueList}>{view.rows.map(renderRow)}</div>
-          </>
+          <AdminQueueFilteredList
+            groups={filterGroups}
+            initialFilter={initialFilter ?? null}
+          >
+            {view.rows.map(renderRow)}
+          </AdminQueueFilteredList>
         )}
       </>
     );
