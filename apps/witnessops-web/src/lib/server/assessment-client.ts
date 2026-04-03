@@ -11,15 +11,27 @@ export interface AssessmentTriggerResult {
   status: "pending" | "running" | "completed" | "failed";
 }
 
+/**
+ * Finding shape aligned to governed-recon canonical contract.
+ * Source of truth: witnessops-governed-recon/schemas/objects/ExposureSummary.schema.json
+ *
+ * Kept flat for display (canonical groups under assets — that mapping
+ * happens at the MCP adapter, not here).
+ */
 export interface FindingSummary {
-  severity: string;
   title: string;
-  category: string;
+  severity: "critical" | "high" | "medium" | "low" | "info";
+  confidence?: "high" | "medium" | "low" | "inconclusive";
+  source_type?:
+    | "dns_resolution"
+    | "certificate_observation"
+    | "subdomain_discovery"
+    | "http_fingerprint"
+    | "email_posture"
+    | "service_banner_observation";
   asset?: string;
   asset_type?: "hostname" | "domain" | "ip_address" | "url" | "service";
-  source_type?: string;
   evidence_ref?: string;
-  confidence?: "high" | "medium" | "low";
 }
 
 export interface AssessmentStatusResult {

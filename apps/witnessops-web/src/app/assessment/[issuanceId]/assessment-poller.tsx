@@ -47,7 +47,6 @@ function FindingRow({ finding }: { finding: FindingSummary }) {
       <div className="min-w-0">
         <div className="text-sm text-zinc-200 truncate">{finding.title}</div>
         <div className="flex items-center gap-2 text-xs text-zinc-500">
-          <span>{finding.category}</span>
           {finding.asset && (
             <span className="font-mono text-zinc-400">{finding.asset}</span>
           )}
