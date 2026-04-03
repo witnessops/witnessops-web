@@ -15,6 +15,11 @@ export interface FindingSummary {
   severity: string;
   title: string;
   category: string;
+  asset?: string;
+  asset_type?: "hostname" | "domain" | "ip_address" | "url" | "service";
+  source_type?: string;
+  evidence_ref?: string;
+  confidence?: "high" | "medium" | "low";
 }
 
 export interface AssessmentStatusResult {
