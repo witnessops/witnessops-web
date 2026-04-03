@@ -1,6 +1,10 @@
 # witnessops-web
 
-Local bootstrap repo for the WitnessOps web surface.
+Live repository for the WitnessOps web surface.
+
+## Remote
+
+Published remote: `https://github.com/witnessops/witnessops-web`
 
 ## Scope
 
@@ -15,7 +19,7 @@ Local bootstrap repo for the WitnessOps web surface.
 - `tests/protocol-conformance`
 - `content/vaultmesh`
 - `proofs/**`
-- remote bootstrap under `github.com/witnessops/witnessops-web`
+- `public-surfaces` retained-behind/reference lanes for canonical bundle and archive material
 
 ## Validation
 

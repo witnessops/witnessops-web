@@ -2,7 +2,8 @@
 
 ## Scope
 
-This repo is the local bootstrap repo for the WitnessOps web surface.
+This repo is the live authoritative repo for the WitnessOps web surface.
+Published remote: `https://github.com/witnessops/witnessops-web`
 
 ## Rules
 
@@ -10,7 +11,8 @@ This repo is the local bootstrap repo for the WitnessOps web surface.
 - Keep `packages/proof` limited to the receipt-only lane in this slice.
 - Do not widen into canonical bundle verification or corpus work.
 - Keep live successor package names on the `@witnessops/*` surface and do not revert them to the legacy authority boundary.
-- Treat `content/vaultmesh`, `proofs/**`, `tests/protocol-conformance/**`, and remote bootstrap as out of scope.
+- Treat `content/vaultmesh`, `proofs/**`, and `tests/protocol-conformance/**` as retained-behind lanes.
+- Do not refer to this repo as a local bootstrap repo; the published remote is authoritative.
 - Prefer route-parity evidence over interpretation.
 
 ## Validation
