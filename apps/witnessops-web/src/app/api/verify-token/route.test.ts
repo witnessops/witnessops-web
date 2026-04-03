@@ -153,23 +153,14 @@ test("verify-token route allows repeat verification for the same issuance and to
   assert.equal(secondPayload.assessmentStatus, "unavailable");
 });
 
-test("verify-token route triggers the assessment once and reuses the stored run id", async () => {
+test("verify-token route does not start assessment before explicit approval", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
   applyTestEnv(baseDir);
-  process.env.GES_SERVER_URL = "http://ges.internal";
-  process.env.GES_ASSESSMENT_KEY = "ges-key";
-
   const fetchCalls: Array<{ input: string; init?: RequestInit }> = [];
   global.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = input instanceof Request ? input.url : input.toString();
     fetchCalls.push({ input: url, init });
-    return new Response(
-      JSON.stringify({ run_id: "run_demo123", status: "pending" }),
-      {
-        status: 202,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return new Response("", { status: 500 });
   }) as typeof fetch;
 
   const issued = await issueToken(baseDir);
@@ -190,16 +181,14 @@ test("verify-token route triggers the assessment once and reuses the stored run 
     assessmentStatus: string;
     admissionState: string;
     threadId: string | null;
-    run_id?: string;
   };
   assert.equal(firstPayload.channel, "engage");
   assert.ok(firstPayload.intakeId.startsWith("intk_"));
   assert.equal(firstPayload.admissionState, "admitted");
   assert.ok(firstPayload.threadId?.startsWith("thr_"));
-  assert.equal(firstPayload.assessmentRunId, "run_demo123");
-  assert.equal(firstPayload.assessmentStatus, "pending");
-  assert.equal(firstPayload.run_id, "run_demo123");
-  assert.equal(fetchCalls.length, 1);
+  assert.equal(firstPayload.assessmentRunId, null);
+  assert.equal(firstPayload.assessmentStatus, "unavailable");
+  assert.equal(fetchCalls.length, 0);
 
   const second = await POST(
     new Request("https://witnessops.com/api/verify-token", {
@@ -213,12 +202,10 @@ test("verify-token route triggers the assessment once and reuses the stored run 
   const secondPayload = (await second.json()) as {
     assessmentRunId: string | null;
     assessmentStatus: string;
-    run_id?: string;
   };
-  assert.equal(secondPayload.assessmentRunId, "run_demo123");
-  assert.equal(secondPayload.assessmentStatus, "pending");
-  assert.equal(secondPayload.run_id, "run_demo123");
-  assert.equal(fetchCalls.length, 1);
+  assert.equal(secondPayload.assessmentRunId, null);
+  assert.equal(secondPayload.assessmentStatus, "unavailable");
+  assert.equal(fetchCalls.length, 0);
 });
 
 test("verify-token route enforces expiry", async () => {

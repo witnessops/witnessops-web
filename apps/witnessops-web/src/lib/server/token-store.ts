@@ -140,6 +140,11 @@ export interface TokenIssuanceRecord {
   verifiedAt?: string;
   consumedAt?: string;
   threadId?: string | null;
+  approvalStatus?: "pending" | "approved" | "approval_denied";
+  approvalAt?: string;
+  approverEmail?: string;
+  approverName?: string | null;
+  approvalNote?: string | null;
   assessmentRunId?: string;
   assessmentStatus?: AssessmentStatus;
   assessmentError?: string | null;

@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getIssuanceById } from "@/lib/server/token-store";
+import { getIntakeById, getIssuanceById } from "@/lib/server/token-store";
 import { getAssessmentStatus } from "@/lib/server/assessment-client";
 import { AssessmentPoller } from "./assessment-poller";
+import { ScopeApprovalForm } from "./scope-approval-form";
 
 export const metadata: Metadata = {
-  title: "Assessment Results",
+  title: "Governed Recon",
   robots: { index: false, follow: false },
 };
 
@@ -26,6 +27,9 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
   if (!record || record.email !== email) {
     notFound();
   }
+
+  const intake = record.intakeId ? await getIntakeById(record.intakeId) : null;
+  const approvalStatus = record.approvalStatus ?? "pending";
 
   // Extract domain for display
   const domain = record.email.split("@")[1] ?? "";
@@ -51,10 +55,10 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
         {/* Header */}
         <div>
           <div className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">
-            WitnessOps — Governed Exposure
+            WitnessOps — Governed Recon
           </div>
           <h1 className="text-2xl font-semibold text-zinc-100">
-            Assessment: <span className="text-emerald-400 font-mono">{domain}</span>
+            Governed Recon: <span className="text-emerald-400 font-mono">{domain}</span>
           </h1>
           <div className="mt-1 text-sm text-zinc-500 font-mono">
             Issuance: {issuanceId}
@@ -73,17 +77,44 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
           </div>
         </div>
 
+        <div>
+          <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mb-3">
+            Scope Approval
+          </div>
+          <ScopeApprovalForm
+            issuanceId={issuanceId}
+            email={email}
+            scopeDraft={intake?.submission.scope ?? null}
+            approvalStatus={approvalStatus}
+            approvedAt={record.approvalAt ?? null}
+            approverEmail={record.approverEmail ?? null}
+            approverName={record.approverName ?? null}
+            approvalNote={record.approvalNote ?? null}
+          />
+        </div>
+
         {/* Assessment block — client-side polling */}
         <div>
           <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mb-3">
             Governed Recon Results
           </div>
-          <AssessmentPoller
-            issuanceId={issuanceId}
-            email={email}
-            initialStatus={initialStatus}
-            initialRun={liveRun}
-          />
+          {approvalStatus === "approved" && record.assessmentRunId ? (
+            <AssessmentPoller
+              issuanceId={issuanceId}
+              email={email}
+              initialStatus={initialStatus}
+              initialRun={liveRun}
+            />
+          ) : approvalStatus === "approved" ? (
+            <div className="rounded border border-zinc-700 bg-zinc-900 p-4 text-sm text-zinc-400">
+              Scope approval is recorded, but recon infrastructure is not yet
+              attached for this issuance.
+            </div>
+          ) : (
+            <div className="rounded border border-zinc-700 bg-zinc-900 p-4 text-sm text-zinc-400">
+              Explicit scope approval is required before governed recon starts.
+            </div>
+          )}
         </div>
 
         {/* Footer note */}

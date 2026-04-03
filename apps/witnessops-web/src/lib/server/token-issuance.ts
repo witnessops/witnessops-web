@@ -8,6 +8,7 @@ import {
 import type {
   EngageResponse,
   SupportResponse,
+  ScopeApprovalResponse,
   VerifyTokenRequest,
   VerifyTokenResponse,
 } from "@/lib/token-contract";
@@ -348,6 +349,7 @@ export async function createVerificationIssuance(
     expiresAt,
     status: "issued",
     threadId: null,
+    approvalStatus: "pending",
     delivery: {
       mailbox: getChannelMailbox(input.channel),
       alias: null,
@@ -483,6 +485,130 @@ async function ensureAssessmentAttached(
   }
 }
 
+interface ScopeApprovalInput {
+  issuanceId: string;
+  email: string;
+  approverName?: string | null;
+  approvalNote?: string | null;
+  source: string;
+}
+
+interface ScopeApprovalResult extends ScopeApprovalResponse {
+  status: "approved" | "already_approved";
+}
+
+export async function approveScopeAndStartRecon(
+  input: ScopeApprovalInput,
+): Promise<ScopeApprovalResult> {
+  const record = await getIssuanceById(input.issuanceId);
+  if (!record) {
+    throw new Error("Unknown issuance");
+  }
+
+  const { intake: originalIntake, issuance: originalIssuance } =
+    await ensureIssuanceContext(record);
+
+  if (originalIssuance.email !== input.email) {
+    throw new Error("Issuance email mismatch");
+  }
+
+  const policy = getChannelPolicy(originalIntake.channel ?? "engage");
+  if (!policy.autoAssessment) {
+    throw new Error("Scope approval is only available for governed recon issuances.");
+  }
+
+  if (originalIssuance.status !== "verified") {
+    throw new Error("Issuance must be verified before scope approval.");
+  }
+
+  const approvedAt = nowIso();
+  const approvalNote = normalizeText(input.approvalNote);
+  const approverName = normalizeText(input.approverName);
+  let latestIssuance = originalIssuance;
+
+  if (originalIssuance.approvalStatus !== "approved") {
+    latestIssuance = await updateIssuance(
+      originalIssuance.issuanceId,
+      (existing) => ({
+        ...existing,
+        approvalStatus: "approved",
+        approvalAt: approvedAt,
+        approverEmail: originalIssuance.email,
+        approverName,
+        approvalNote,
+        assessmentStatus: "pending",
+        assessmentError: null,
+      }),
+    );
+
+    await updateIntake(originalIntake.intakeId, (current) => ({
+      ...current,
+      latestIssuanceId: originalIssuance.issuanceId,
+      updatedAt: approvedAt,
+    }));
+
+    await appendIntakeEvent({
+      event_type: "INTAKE_SCOPE_APPROVED",
+      occurred_at: approvedAt,
+      channel: originalIntake.channel,
+      intake_id: originalIntake.intakeId,
+      issuance_id: originalIssuance.issuanceId,
+      thread_id: originalIntake.threadId,
+      previous_state: originalIntake.state,
+      next_state: originalIntake.state,
+      source: input.source,
+      payload: {
+        approverEmail: originalIssuance.email,
+        approverName: approverName ?? undefined,
+        approvalNote: approvalNote ?? undefined,
+        scope: originalIntake.submission.scope ?? null,
+      },
+    });
+  } else if (
+    originalIssuance.approvalStatus === "approved" &&
+    originalIssuance.assessmentRunId === null &&
+    originalIssuance.assessmentStatus === "pending"
+  ) {
+    return {
+      status: "already_approved",
+      channel: originalIntake.channel,
+      intakeId: originalIntake.intakeId,
+      issuanceId: originalIssuance.issuanceId,
+      email: originalIssuance.email,
+      approvedAt: originalIssuance.approvalAt ?? approvedAt,
+      approvalStatus: "approved",
+      approverEmail: originalIssuance.approverEmail ?? originalIssuance.email,
+      approverName: originalIssuance.approverName ?? null,
+      approvalNote: originalIssuance.approvalNote ?? null,
+      assessmentRunId: null,
+      assessmentStatus: "pending",
+    };
+  }
+
+  const assessment = await ensureAssessmentAttached(latestIssuance);
+  const refreshed = (await getIssuanceById(originalIssuance.issuanceId)) ??
+    latestIssuance;
+
+  return {
+    status:
+      originalIssuance.approvalStatus === "approved"
+        ? "already_approved"
+        : "approved",
+    channel: originalIntake.channel,
+    intakeId: originalIntake.intakeId,
+    issuanceId: originalIssuance.issuanceId,
+    email: originalIssuance.email,
+    approvedAt: refreshed.approvalAt ?? approvedAt,
+    approvalStatus: "approved",
+    approverEmail: refreshed.approverEmail ?? originalIssuance.email,
+    approverName: refreshed.approverName ?? null,
+    approvalNote: refreshed.approvalNote ?? null,
+    assessmentRunId: assessment.assessmentRunId,
+    assessmentStatus: assessment.assessmentStatus,
+    run_id: assessment.assessmentRunId ?? undefined,
+  };
+}
+
 export async function verifyIssuedToken(
   request: VerifyTokenRequest,
 ): Promise<VerifyTokenResponse> {
@@ -590,13 +716,11 @@ export async function verifyIssuedToken(
     occurredAt: verifiedAt,
   });
 
-  const assessment = await ensureAssessmentAttached(admitted.issuance);
-
   return toVerificationResponse({
     intake: admitted.intake,
     issuance: admitted.issuance,
     verifiedAt,
-    assessmentRunId: assessment.assessmentRunId,
-    assessmentStatus: assessment.assessmentStatus,
+    assessmentRunId: admitted.issuance.assessmentRunId ?? null,
+    assessmentStatus: admitted.issuance.assessmentStatus ?? "unavailable",
   });
 }

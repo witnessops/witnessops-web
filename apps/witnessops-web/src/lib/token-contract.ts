@@ -128,6 +128,33 @@ export const verifyTokenResponseSchema = z.object({
   run_id: z.string().optional(),
 });
 
+export const scopeApprovalRequestSchema = z.object({
+  email: normalizedEmailSchema,
+  approverName: shortTextSchema,
+  approvalNote: z.string().trim().max(1_000).optional(),
+});
+
+export const scopeApprovalResponseSchema = z.object({
+  status: z.enum(["approved", "already_approved"]),
+  channel: intakeChannelSchema,
+  intakeId: z.string().min(1),
+  issuanceId: z.string().min(1),
+  email: normalizedEmailSchema,
+  approvedAt: rfc3339Schema,
+  approvalStatus: z.literal("approved"),
+  approverEmail: normalizedEmailSchema,
+  approverName: z.string().trim().max(240).nullable(),
+  approvalNote: z.string().trim().max(1_000).nullable(),
+  assessmentRunId: z.string().nullable(),
+  assessmentStatus: assessmentStatusSchema,
+  run_id: z.string().optional(),
+});
+
+export type ScopeApprovalRequest = z.infer<typeof scopeApprovalRequestSchema>;
+export type ScopeApprovalResponse = z.infer<
+  typeof scopeApprovalResponseSchema
+>;
+
 export const adminIntakeRespondRequestSchema = z.object({
   intakeId: z.string().trim().min(1),
   subject: z.string().trim().min(1).max(240),
