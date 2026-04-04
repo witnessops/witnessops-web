@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { getDocsUrl, getSurfaceUrl } from "@witnessops/config";
+import { getDocsUrl, getSurface, getSurfaceUrl } from "@witnessops/config";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { OffsecMark } from "./witnessops-mark";
 
 const WITNESSOPS_HOME_URL = getSurfaceUrl("witnessops").replace(/\/$/, "");
 const WITNESSOPS_DOCS_URL = getDocsUrl("witnessops");
+const WITNESSOPS_DOCS_HOST =
+  getSurface("witnessops")?.docsHost ?? "docs.witnessops.com";
 
 interface NavbarProps {
   links: { label: string; href: string }[];
@@ -17,31 +20,56 @@ interface NavbarProps {
 
 export function Navbar({ links, cta, announcement }: NavbarProps) {
   const pathname = usePathname();
+  const [isDocsHost, setIsDocsHost] = useState(false);
+
+  useEffect(() => {
+    setIsDocsHost(window.location.hostname === WITNESSOPS_DOCS_HOST);
+  }, []);
+
   const isDocsRoute = pathname?.startsWith("/docs") ?? false;
-  const logoHref = isDocsRoute ? WITNESSOPS_HOME_URL : "/";
-  const resolvedLinks = isDocsRoute
+  const isDocsContext = isDocsRoute || isDocsHost;
+
+  function resolveDocsContextHref(href: string) {
+    if (!href.startsWith("/")) {
+      return href;
+    }
+
+    if (href === "/docs") {
+      return WITNESSOPS_DOCS_URL;
+    }
+
+    if (href.startsWith("/docs/")) {
+      return `${WITNESSOPS_DOCS_URL.replace(/\/$/, "")}${href.slice("/docs".length)}`;
+    }
+
+    return `${WITNESSOPS_HOME_URL}${href}`;
+  }
+
+  const logoHref = isDocsContext ? WITNESSOPS_HOME_URL : "/";
+  const resolvedLinks = isDocsContext
     ? links.map((link) => ({
         ...link,
-        href:
-          link.href === "/docs"
-            ? WITNESSOPS_DOCS_URL
-            : `${WITNESSOPS_HOME_URL}${link.href}`,
+        href: resolveDocsContextHref(link.href),
       }))
     : links;
-  const resolvedCta = isDocsRoute
-    ? { ...cta, href: `${WITNESSOPS_HOME_URL}${cta.href}` }
+  const resolvedCta = isDocsContext
+    ? { ...cta, href: resolveDocsContextHref(cta.href) }
     : cta;
+  const resolvedAnnouncement =
+    isDocsContext && announcement.href
+      ? { ...announcement, href: resolveDocsContextHref(announcement.href) }
+      : announcement;
 
   return (
     <>
-      {announcement.enabled && (
+      {resolvedAnnouncement.enabled && (
         <div className="bg-brand-accent/10 border-b border-brand-accent/20">
           <div className="mx-auto max-w-content px-6">
             <a
-              href={announcement.href}
+              href={resolvedAnnouncement.href}
               className="flex items-center justify-center gap-2 py-2 text-xs text-brand-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
             >
-              <span className="font-medium">{announcement.text}</span>
+              <span className="font-medium">{resolvedAnnouncement.text}</span>
               <span aria-hidden="true">&rarr;</span>
             </a>
           </div>
