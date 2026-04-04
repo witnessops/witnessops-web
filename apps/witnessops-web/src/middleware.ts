@@ -27,6 +27,10 @@ function stripDocsPrefix(pathname: string) {
   return null;
 }
 
+function isWitnessOpsSupportPath(pathname: string) {
+  return pathname === "/support" || pathname.startsWith("/support/");
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -67,6 +71,13 @@ export async function middleware(request: NextRequest) {
   }
 
   if (host === docsHost) {
+    if (isWitnessOpsSupportPath(pathname)) {
+      return NextResponse.redirect(
+        `https://${primaryHost}${pathname}${search}`,
+        308,
+      );
+    }
+
     if (pathname === "/docs" || pathname.startsWith("/docs/")) {
       const canonicalPath = stripDocsPrefix(pathname) ?? "/";
       return NextResponse.redirect(
