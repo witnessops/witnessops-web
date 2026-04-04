@@ -42,6 +42,24 @@ At minimum, a verifier should have:
 
 The more complete the artifact set, the more of the evidence chain you can verify offline.
 
+Use this compact view to tell at a glance what you can verify from the files you have:
+
+| Artifact set | What you can verify | What remains external trust |
+| --- | --- | --- |
+| Receipt only | Signature, structure, and any embedded proof references | Key distribution, timestamp trust, log trust |
+| Receipt + timestamp | Signature plus trusted time for the signed object | Key distribution, log trust |
+| Receipt + timestamp + inclusion proof | Signature, trusted time, and log commitment | Key distribution unless the bundle includes trusted roots |
+| Full proof bundle | Manifest integrity plus the full declared proof chain | Out-of-band trust roots and policy prerequisites |
+
+Use the table below to separate what is required from what is only needed when the bundle claims a stronger proof layer.
+
+| Artifact | Status | Why it matters |
+| --- | --- | --- |
+| Receipt JSON or exported bundle | required | This is the statement and its surrounding proof material |
+| Signing public key or trusted key distribution source | required | The signature cannot be checked without trusted key material |
+| RFC 3161 timestamp token and certificate chain | conditional | Needed only when the bundle claims trusted time |
+| Log checkpoint and inclusion proof | conditional | Needed only when the bundle claims log inclusion |
+
 ## Procedure
 
 ### 1. Confirm the artifact set
@@ -111,6 +129,22 @@ A careful verifier should report each step separately rather than collapse every
 | Continuity | proven / not present |
 
 A receipt can be signed and structurally valid even when timestamping or log inclusion are absent. The point is to report what is proven, not to pretend all assurances are identical.
+
+Treat `not present` as acceptable only for optional or conditionally claimed artifacts. If a claimed proof layer is required by policy but the verifier cannot satisfy it locally, the result should be `indeterminate`, not `valid`.
+
+`indeterminate` means the artifact may still be authentic, but the verifier could not establish a required external trust condition with the material available locally. That is different from `invalid`, which means a proof-bearing check failed.
+
+### Worked interpretation
+
+- A signed receipt with no timestamp token and no inclusion proof can still verify as `valid` if no policy requires those layers.
+- A receipt whose signature verifies but whose trust root cannot be established locally should be `indeterminate`.
+- A receipt whose signature, digest, or inclusion checks fail should be `invalid`.
+
+### Worked examples
+
+- `valid`: a receipt JSON, trusted signing key, and matching manifest all verify; the bundle lacks a timestamp token, but no policy requires trusted time.
+- `invalid`: the receipt signature checks out, but the manifest digest for the signed envelope does not match the bytes in the bundle.
+- `indeterminate`: the receipt is well formed and the signature is plausible, but the verifier cannot establish the required TSA or log trust root from the local bundle.
 
 ## Trust boundaries and failure modes
 

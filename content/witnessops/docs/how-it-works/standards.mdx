@@ -9,7 +9,7 @@ draft: false
 
 # Standards Alignment
 
-WitnessOps is built on open standards, not proprietary formats. Every proof artifact uses a published specification with independent implementations.
+WitnessOps uses open standards for the cryptographic envelope, trusted time, and attestation layers. Some internal packaging and ledger formats remain custom, documented, and intentionally non-standard.
 
 ## The Principle
 
@@ -41,7 +41,7 @@ This is the frozen priority order. Each standard solves one problem cleanly, and
 
 - Wraps every signed receipt and claim
 - Prevents payload-type confusion attacks
-- Payload type: `application/vnd.witnessops.execution-receipt.v1+json`
+- Payload type: `application/vnd.witnessops.execution-receipt.v2+json`
 - Specification: [DSSE v1.0.2](https://github.com/secure-systems-lab/dsse/blob/master/protocol.md)
 
 ### RFC 3161 (Time-Stamp Protocol)

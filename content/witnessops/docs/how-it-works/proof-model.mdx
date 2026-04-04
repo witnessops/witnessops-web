@@ -9,7 +9,9 @@ draft: false
 
 # Proof Model
 
-WitnessOps receipts are not just signed JSON. They are structured proof objects with three independent layers of assurance, each provided by a different authority.
+WitnessOps receipts are not just signed JSON. They are structured proof objects with three independent layers of assurance that can be present in different combinations.
+
+Each layer strengthens the claim, but not every receipt or bundle carries every layer. The verifier should report what is actually available, not assume the strongest case by default.
 
 ## Three Authorities, Three Signatures
 
@@ -58,13 +60,25 @@ Not all receipts carry all three layers. The strength depends on what proof mate
 
 Each level is additive. A signed receipt is still valid — it just proves less than a published receipt.
 
+If a timestamp token or inclusion proof is absent, the receipt may still be valid as a signed statement. What changes is the strength of the result, not the existence of the receipt itself.
+
+If a required external trust condition cannot be established locally, the verifier should return `indeterminate`, not `valid`.
+
 ## What This Means in Practice
 
-When a client receives a WitnessOps proof bundle, they hold:
+When a client receives a WitnessOps proof bundle, they may hold:
 
 - A signed statement proving who issued the claim
 - A timestamp token proving when the signed claim existed
 - An inclusion proof proving the claim was logged
 - Trust roots to verify all of the above without calling WitnessOps
 
+The exact contents depend on which proof layers the bundle claims and which trust roots are packaged with it.
+
 That is the difference between "we say it happened" and "here is cryptographic evidence that it happened, and you can check it yourself."
+
+## Read Next
+
+- [Receipts](/docs/evidence/receipts) for the bridge from proof model to atomic receipt
+- [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the portable package and required artifacts
+- [Verification](/docs/how-it-works/verification) for the operator procedure and outcome handling

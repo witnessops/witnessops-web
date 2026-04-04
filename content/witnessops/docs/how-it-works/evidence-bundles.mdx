@@ -37,6 +37,28 @@ When a timestamp is attached, the bundle also includes:
   TIMESTAMP.meta.json        Timestamp metadata (TSA URL, digest, role)
 ```
 
+## What You Need To Verify a Bundle
+
+Use this table to separate the minimum bundle from the optional layers that strengthen it.
+
+| Artifact | Status | Why it matters |
+| --- | --- | --- |
+| `MANIFEST.json` | required | Anchors file inventory and digest integrity for the bundle |
+| `CLAIM.json` | required | Carries the governed assertion the bundle is meant to prove |
+| `CLAIM.dsse.json` | required | Provides the signed envelope with stable payload bytes |
+| `receipts/receipts.ndjson` | required | Supplies the receipt chain that makes the bundle auditable over time |
+| `trust/org-signing-pubkey.pem` | required | Lets a verifier check the issuer signature offline |
+| `CLAIM.dsse.sha256` | conditional | Needed when the bundle claims timestamp binding for the signed envelope |
+| `ROOT.txt` | conditional | Needed when the bundle claims Merkle-root or chain continuity material |
+| `TIMESTAMP.tsr` | conditional | Needed when the bundle claims trusted time |
+| `TIMESTAMP.meta.json` | conditional | Explains the timestamp target and authority metadata |
+| `tsa-cert-chain.pem` | conditional | Needed to verify the TSA chain for a claimed timestamp |
+| `log-pubkey.pem` | conditional | Needed to verify log inclusion or checkpoint material |
+| `CLAIM.intoto.json` | optional | Compatibility surface for attestation tooling |
+| `artifacts/` | optional | Extra evidence files that support the claim but are not required for the core proof |
+
+The minimum valid bundle is the set of required artifacts with matching digests and a verifiable signed claim. Optional artifacts can strengthen the proof, but their absence does not make the bundle invalid unless the bundle explicitly claims that layer.
+
 ## What Each File Does
 
 **MANIFEST.json** lists every file in the bundle with its SHA-256 digest and size. This is the integrity anchor — if any file changes after packaging, the manifest will not match.
@@ -53,6 +75,18 @@ When a timestamp is attached, the bundle also includes:
 
 **trust/** contains the public keys and certificate chains needed for offline verification. A verifier does not need to fetch keys from WitnessOps — they are in the bundle.
 
+## What Changes When Timestamp Is Absent
+
+When `TIMESTAMP.tsr` is absent, the bundle can still be valid if signature, manifest, and any required chain material verify and no policy requires trusted time.
+
+What changes is the strength of the result:
+
+- the verifier can still confirm the claim and the bundle structure
+- the verifier cannot say the signed object existed before a specific time
+- any claim that depends on trusted time should be treated as unproven, not silently assumed
+
+If the bundle says trusted time is required but the timestamp material is missing, the right outcome is `indeterminate`, not `valid`.
+
 ## The Bundle Is the Deliverable
 
 When a client asks "prove this deployment happened under policy," the answer is a proof bundle. It is both the evidence and the verification tool.
@@ -60,6 +94,31 @@ When a client asks "prove this deployment happened under policy," the answer is 
 When an auditor asks "show me the governance chain," the answer is a proof bundle. The receipts, the policy references, the timestamps, and the signatures are all in one package.
 
 The bundle does not require WitnessOps to be running. It does not require network access. It does not expire when a subscription ends.
+
+## Worked Bundle Example
+
+```text
+bundle/
+  MANIFEST.json
+  CLAIM.json
+  CLAIM.dsse.json
+  CLAIM.dsse.sha256
+  ROOT.txt
+  receipts/
+    receipts.ndjson
+  trust/
+    org-signing-pubkey.pem
+    tsa-cert-chain.pem
+    log-pubkey.pem
+  TIMESTAMP.tsr
+  TIMESTAMP.meta.json
+```
+
+This is a fully populated bundle. A verifier can check the manifest, signature, trusted time, log inclusion, and chain continuity offline.
+
+If `TIMESTAMP.tsr` were removed from that bundle, the bundle could still be valid when policy does not require trusted time, but the verifier would lose the ability to prove when the signed object first existed.
+
+If `log-pubkey.pem` or `tsa-cert-chain.pem` were missing while the bundle still claimed those proof layers, the right result would be `indeterminate` until the required trust roots are supplied.
 
 ## What the Bundle Does NOT Include
 
@@ -69,6 +128,14 @@ The bundle does not include:
 - **Live system state.** The bundle is a snapshot, not a real-time view.
 - **Guarantees about future behavior.** The bundle proves what happened up to the checkpoint. It does not predict what will happen next.
 
+## Common Failure Modes
+
+- A missing or mismatched `MANIFEST.json` means the bundle was altered or exported incompletely.
+- A missing signing key means the signature cannot be checked offline.
+- A missing timestamp token means trusted time is unavailable, even if the signature still verifies.
+- A missing inclusion proof or checkpoint means append-only publication was not established.
+- A claimed proof layer with missing trust roots should produce `indeterminate`, not a false `valid` result.
+
 ## Offline Verification
 
-See [Verification](/docs/how-it-works/verification) for the complete verification procedure. The short version: check the manifest, verify the signature, verify the timestamp, verify the inclusion proof, verify the checkpoint. All local. No network required.
+See [Verification](/docs/how-it-works/verification) for the complete verification procedure. Start here to understand what should be in the bundle, then use Verification to check the files step by step. The short version: check the manifest, verify the signature, verify the timestamp when present, verify the inclusion proof when present, verify the checkpoint when present. All local. No network required.

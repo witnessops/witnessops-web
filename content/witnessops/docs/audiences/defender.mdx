@@ -44,7 +44,7 @@ Read these in order:
 Before investigating, understand these limits:
 
 - **Scope enforcement** depends on `in-scope.txt` — a configuration file, not an access control list. If the file is wrong, enforcement is wrong.
-- **Self-approval** is possible by default. Separation of duties depends on configuration.
+- **Self-approval** is only possible when the workflow and external policy explicitly allow it. Separation of duties still depends on configuration.
 - **Host compromise** defeats all governance controls. WitnessOps assumes a trustworthy host.
 - **Receipts** prove execution occurred. They do not prove findings are correct or that the investigation was complete.
 

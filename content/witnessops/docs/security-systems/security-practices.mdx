@@ -62,7 +62,7 @@ If you find a way to forge a receipt, bypass a gate without detection, or tamper
 
 **Network interception.** Tool output traveling over the network — Nmap results, DNS responses, HTTP traffic — can be intercepted or modified. WitnessOps captures what the tool returns. If the tool received tampered data, WitnessOps records tampered data.
 
-**Operator collusion.** Two operators who trust each other can approve each other's scope expansions and intrusive steps. The approval gate records who approved, but it does not enforce separation of duties unless configured to do so. Default configuration allows self-approval.
+**Operator collusion.** Two operators who trust each other can approve each other's scope expansions and intrusive steps. The approval gate records who approved, but it does not enforce separation of duties unless configured to do so. Self-approval is only permitted when the workflow and external policy explicitly allow it.
 
 ## Current State vs Target State
 
@@ -74,7 +74,7 @@ We believe in stating where we are, not where we wish we were.
 | Key storage | Local filesystem | HSM or secure enclave |
 | Key rotation | Manual, operator-initiated | Automated, policy-driven |
 | Key revocation | Not supported | Revocation list with timestamp |
-| Approval model | Single-operator self-approval | Multi-party approval with separation of duties |
+| Approval model | Policy-bound self-approval where allowed | Multi-party approval with separation of duties |
 | Tool integrity | Not verified | Wrapper hash verification before invocation |
 | Audit log | Local state files | Centralized append-only log with independent witness |
 

@@ -98,6 +98,10 @@ A receipt is the atomic proof object. A bundle is the transport package that car
 
 If a client wants something they can archive and verify offline, the deliverable is the bundle. If they want to understand the individual governed event inside that package, the starting point is the receipt.
 
+Put another way: the receipt proves the governed statement itself, while the bundle proves the surrounding integrity, trusted time, inclusion, and policy layers.
+
+If you only have the receipt, you can check the issuer claim and the continuity story. If you also have the bundle, you can check the full proof chain around it.
+
 ## How Receipts Relate to Chain Continuity
 
 Receipts are not standalone islands. Each one sits in a receipt stream with sequence and backward linkage.
@@ -123,6 +127,15 @@ Not every receipt carries the same assurance level.
 | Witnessed receipt | The declared witness or trust policy also verifies |
 
 Each step is additive. A receipt does not become worthless when a higher layer is missing. It simply proves less.
+
+This ladder matches the current verifier language:
+
+- signed means the issuer claim can be checked locally
+- timestamped means the signed object is bound to trusted time when timestamp material is present
+- bundled means the receipt is packaged with the manifest and trust roots needed to verify the surrounding proof chain
+- witnessed means the declared witness or trust policy also verifies
+
+If a required external trust condition cannot be established locally, the outcome is `indeterminate`, not `invalid`.
 
 ## How Verification Reads a Receipt
 
@@ -150,6 +163,6 @@ That precision is part of the product value. The proof system should fail clearl
 ## Read Next
 
 - [Receipt Specification](/docs/evidence/receipt-spec) for the technical contract
-- [Execution Chains](/docs/evidence/execution-chains) for continuity and ordering
 - [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the portable package
 - [Verification](/docs/how-it-works/verification) for the operator procedure
+- [Execution Chains](/docs/evidence/execution-chains) for continuity and ordering
