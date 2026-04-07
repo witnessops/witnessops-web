@@ -118,20 +118,33 @@ export function CustomerProofPackage({
               </dd>
             </div>
             <div>
-              <dt className="inline text-zinc-500">By: </dt>
+              <dt className="inline text-zinc-500">
+                {view.disposition.disposition === "accepted"
+                  ? "Accepted by: "
+                  : "Rejected by: "}
+              </dt>
               <dd className="inline font-mono">
                 {view.disposition.acceptedBy}
               </dd>
             </div>
             <div>
-              <dt className="inline text-zinc-500">At: </dt>
+              <dt className="inline text-zinc-500">
+                {view.disposition.disposition === "accepted"
+                  ? "Accepted at: "
+                  : "Rejected at: "}
+              </dt>
               <dd className="inline font-mono">
                 {fmtTs(view.disposition.acceptedAt)}
               </dd>
             </div>
             {view.disposition.comment ? (
-              <div className="mt-2 rounded border border-zinc-800 bg-black/30 p-2 text-xs text-zinc-200">
-                {view.disposition.comment}
+              <div className="mt-2 rounded border border-zinc-800 bg-black/30 p-2 text-xs">
+                {view.disposition.disposition === "rejected" ? (
+                  <div className="text-zinc-500 uppercase tracking-wider font-mono text-[10px] mb-1">
+                    Rejection reason
+                  </div>
+                ) : null}
+                <div className="text-zinc-200">{view.disposition.comment}</div>
               </div>
             ) : null}
             {view.disposition.receipt ? (
@@ -140,7 +153,10 @@ export function CustomerProofPackage({
                 className="mt-3 rounded border border-zinc-800 bg-black/30 p-2"
               >
                 <div className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono mb-1">
-                  Acceptance receipt (v{view.disposition.receipt.schemaVersion})
+                  {view.disposition.disposition === "accepted"
+                    ? "Acceptance receipt"
+                    : "Rejection receipt"}{" "}
+                  (v{view.disposition.receipt.schemaVersion})
                 </div>
                 <div className="text-xs text-zinc-200 font-mono break-all">
                   {view.disposition.receipt.receiptHash}
@@ -157,15 +173,26 @@ export function CustomerProofPackage({
           </div>
         )}
       </div>
-      {(view.stage === "accepted" || view.stage === "rejected") ? (
+      {view.stage === "accepted" ? (
         <div
           data-testid="package-closed"
-          data-disposition={view.stage}
+          data-disposition="accepted"
           className="rounded border border-zinc-800 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-400"
         >
           This package has been{" "}
-          <span className="text-zinc-200">{view.stage}</span>. No further
-          action is required. The record is append-only and cannot be modified.
+          <span className="text-zinc-200">accepted</span>. No further action
+          is required. The record is append-only and cannot be modified.
+        </div>
+      ) : view.stage === "rejected" ? (
+        <div
+          data-testid="package-closed"
+          data-disposition="rejected"
+          className="rounded border border-zinc-800 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-400"
+        >
+          Your rejection has been{" "}
+          <span className="text-zinc-200">recorded</span>. The operator has
+          visibility into this outcome. The record is append-only and cannot
+          be modified.
         </div>
       ) : null}
     </section>
