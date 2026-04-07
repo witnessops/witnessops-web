@@ -73,6 +73,29 @@ export interface OperatorActionResult {
   operatorAction: OperatorActionRecord;
   approvalStatus: TokenIssuanceRecord["approvalStatus"];
   blocksApproval: boolean;
+  /**
+   * WEB-012: signal that a claimant terminal action (retract or
+   * disagree) is still in force after this operator action.
+   *
+   * Present only when:
+   *   - the operator action succeeded
+   *   - the issuance carries a claimantAction whose kind is retract
+   *     or disagree
+   *
+   * Absent otherwise. The field is optional so existing API consumers
+   * see additive-only behavior; clients that ignore it continue to
+   * work as before.
+   *
+   * Today this is populated only by `rescindOperatorRejection`, where
+   * the asymmetry matters: a successful rescind clears the operator-
+   * side block but the approve gate may still refuse from the
+   * claimant side. WEB-010 surfaced this in the UI; this field is the
+   * API-consumer parallel for CLIs / scripts / future programmatic
+   * callers that do not look at the rendered queue.
+   */
+  coexistingClaimantBlock?: {
+    kind: "retract" | "disagree";
+  };
 }
 
 function nowIso(): string {
@@ -411,8 +434,14 @@ export async function rescindOperatorRejection(
   });
 
   // Revert the latest issuance's approvalStatus from approval_denied
-  // back to pending so the approve gate stops refusing.
+  // back to pending so the approve gate stops refusing. While we have
+  // the issuance loaded, also capture any co-existing claimant
+  // terminal action so the result can carry it back to the API caller
+  // (WEB-012). The issuance is loaded exactly once for both purposes.
   let restoredApprovalStatus: TokenIssuanceRecord["approvalStatus"] = undefined;
+  let coexistingClaimantBlock:
+    | { kind: "retract" | "disagree" }
+    | undefined;
   if (updatedIntake.latestIssuanceId) {
     const issuance = await getIssuanceById(updatedIntake.latestIssuanceId);
     if (issuance && issuance.approvalStatus === "approval_denied") {
@@ -427,12 +456,21 @@ export async function rescindOperatorRejection(
     } else if (issuance) {
       restoredApprovalStatus = issuance.approvalStatus;
     }
+    // WEB-012: surface a co-existing claimant terminal action so the
+    // API caller does not interpret a successful rescind as
+    // "approval is now unblocked". Only retract and disagree are
+    // surfaced — amend is non-terminal and does not block approval.
+    const claimantKind = issuance?.claimantAction?.kind;
+    if (claimantKind === "retract" || claimantKind === "disagree") {
+      coexistingClaimantBlock = { kind: claimantKind };
+    }
   }
 
   // Synthesize a result. The operatorAction field is a sentinel
   // describing what was just cleared, mirroring the WEB-005 claimant
   // reopen pattern. UI / tests should rely on `blocksApproval` and on
-  // a subsequent `getIntakeById` call for authoritative state.
+  // a subsequent `getIntakeById` call for authoritative state. WEB-012
+  // adds the optional `coexistingClaimantBlock` field for API consumers.
   return {
     intakeId: updatedIntake.intakeId,
     state: updatedIntake.state,
@@ -444,5 +482,6 @@ export async function rescindOperatorRejection(
     },
     approvalStatus: restoredApprovalStatus,
     blocksApproval: false,
+    ...(coexistingClaimantBlock ? { coexistingClaimantBlock } : {}),
   };
 }
