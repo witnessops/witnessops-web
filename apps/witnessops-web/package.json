@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "node --import tsx --test 'src/**/*.test.ts'",
+    "test": "TSX_TSCONFIG_PATH=tsconfig.test.json node --import tsx --test 'src/**/*.test.ts' 'src/**/*.test.tsx'",
     "test:evidence": "tsx --tsconfig ./tsconfig.json --test 'src/lib/server/*.test.ts' 'src/app/api/provider-events/**/*.test.ts'"
   },
   "dependencies": {
