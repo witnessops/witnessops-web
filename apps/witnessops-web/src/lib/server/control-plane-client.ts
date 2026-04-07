@@ -108,6 +108,8 @@ export type ControlPlaneRunState =
   | "delivered"
   | "acknowledged"
   | "completed"
+  | "accepted"
+  | "rejected"
   | "revoked"
   | "failed";
 
@@ -185,5 +187,33 @@ export async function getCompletionView(
 ): Promise<ControlPlaneCompletionView | "not_configured" | "not_found"> {
   return controlPlaneGet<ControlPlaneCompletionView>(
     `/v1/runs/${runId}/completion`,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Customer acceptance read (WEB-013)
+//
+// Read-only view of the customer's package disposition. Web must not write
+// disposition — that is CP-003 control-plane authority.
+// ---------------------------------------------------------------------------
+
+export interface ControlPlaneCustomerAcceptanceRecord {
+  schema: "customer_acceptance_record";
+  run_id: string;
+  disposition: "accepted" | "rejected";
+  accepted_by: string;
+  accepted_at: string;
+  bundle_id: string;
+  artifact_hash: string;
+  comment: string | null;
+}
+
+export async function getCustomerAcceptance(
+  runId: string,
+): Promise<
+  ControlPlaneCustomerAcceptanceRecord | "not_configured" | "not_found"
+> {
+  return controlPlaneGet<ControlPlaneCustomerAcceptanceRecord>(
+    `/v1/runs/${runId}/customer-acceptance`,
   );
 }
