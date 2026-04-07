@@ -18,6 +18,7 @@
  * never writes delivered, acknowledged, or completed truth — those are
  * control-plane authority (CP-001 / CP-002).
  */
+import { appendIntakeEvent } from "./intake-event-ledger";
 import {
   type ClaimantActionRecord,
   getIntakeById,
@@ -228,6 +229,97 @@ export async function disagreeWithClaimantScope(
     approvalStatus: next.approvalStatus ?? "pending",
     claimantAction: action,
     blocksApproval: true,
+  };
+}
+
+/**
+ * Claimant clears their own terminal exit (WEB-005).
+ *
+ * Reverses a prior retract or disagree by clearing `claimantAction`.
+ * Refused if the issuance is not in one of those terminal states.
+ * Refused if the issuance has already been approved (no need to reopen)
+ * or if the email does not match (same auth model as the other claimant
+ * actions). The original retract/disagree event remains in the intake
+ * event ledger; this function only appends a complementary
+ * `intake.reopen.claimant_action_cleared` event for the audit trail.
+ */
+export async function reopenClaimantExit(
+  input: ClaimantActionInput,
+): Promise<ClaimantActionResult> {
+  const { issuance, intakeId } = await loadAndAuthorise(input);
+  const reason = requireReason(input.reason);
+
+  const current = issuance.claimantAction ?? null;
+  if (!current) {
+    throw new ClaimantActionError(
+      "Nothing to reopen: there is no claimant action on this issuance.",
+      409,
+    );
+  }
+  if (current.kind === "amend") {
+    // Amend is non-terminal — there is nothing to clear. This is
+    // surfaced explicitly so a UI that incorrectly calls reopen on an
+    // amended run gets a precise error instead of a generic 409.
+    throw new ClaimantActionError(
+      "Nothing to reopen: amend is non-terminal and does not block approval. Submit approve directly.",
+      409,
+    );
+  }
+  if (current.kind !== "retract" && current.kind !== "disagree") {
+    throw new ClaimantActionError(
+      "Nothing to reopen: claimant action is not a terminal exit.",
+      409,
+    );
+  }
+
+  const clearedKind = current.kind;
+  const clearedReason = current.reason;
+
+  const next = await updateIssuance(issuance.issuanceId, (existing) => ({
+    ...existing,
+    claimantAction: null,
+  }));
+
+  // Append a reopen event to the existing intake event ledger so the
+  // audit story is complete: original retract/disagree event remains,
+  // and this complementary event records the clearance.
+  const intake = await getIntakeById(intakeId);
+  if (intake) {
+    await appendIntakeEvent({
+      event_type: "intake.reopen.claimant_action_cleared",
+      occurred_at: nowIso(),
+      channel: intake.channel,
+      intake_id: intake.intakeId,
+      issuance_id: issuance.issuanceId,
+      thread_id: intake.threadId,
+      previous_state: intake.state,
+      next_state: intake.state,
+      source: "web/claimant-actions/reopen",
+      payload: {
+        cleared_kind: clearedKind,
+        cleared_reason: clearedReason,
+        requested_by_email: next.email,
+        reopen_reason: reason,
+      },
+    });
+  }
+
+  // Synthesize a result that reflects the reopened state. The
+  // `claimantAction` field is intentionally a non-null sentinel here
+  // so the existing ClaimantActionResult shape stays consistent for
+  // callers; UI / tests should rely on `blocksApproval` and on a
+  // subsequent `getIssuanceById` call for authoritative state.
+  return {
+    issuanceId: next.issuanceId,
+    intakeId,
+    email: next.email,
+    approvalStatus: next.approvalStatus ?? "pending",
+    claimantAction: {
+      kind: clearedKind,
+      recordedAt: current.recordedAt,
+      reason: clearedReason,
+    },
+    blocksApproval: false,
   };
 }
 

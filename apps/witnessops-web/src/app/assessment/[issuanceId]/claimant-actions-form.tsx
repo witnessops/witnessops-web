@@ -14,6 +14,117 @@ interface Props {
 
 type Mode = "amend" | "retract" | "disagree" | null;
 
+/**
+ * WEB-005: claimant-side reopen affordance shown beneath the
+ * retract and disagree terminal banners. Posts to
+ * `/api/assessment/{issuanceId}/reopen` with the same email-verified
+ * auth model as the other claimant actions.
+ *
+ * The affordance is collapsed by default (button only) so the terminal
+ * banner stays the visual primary; clicking expands a small reason
+ * textarea + submit button.
+ */
+function ClaimantReopenAffordance({
+  issuanceId,
+  email,
+}: {
+  issuanceId: string;
+  email: string;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState("");
+  const [isPending, startTransition] = useTransition();
+
+  async function submit() {
+    setError("");
+    if (!reason.trim()) {
+      setError("A short reason is required to reopen.");
+      return;
+    }
+    const response = await fetch(
+      `/api/assessment/${encodeURIComponent(issuanceId)}/reopen`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, reason: reason.trim() }),
+      },
+    );
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      setError(payload?.error ?? "Reopen failed.");
+      return;
+    }
+    setOpen(false);
+    setReason("");
+    startTransition(() => router.refresh());
+  }
+
+  if (!open) {
+    return (
+      <div className="mt-3" data-testid="claimant-reopen-affordance">
+        <button
+          type="button"
+          onClick={() => {
+            setError("");
+            setOpen(true);
+          }}
+          className="rounded border border-zinc-700 bg-zinc-900 px-3 py-1 text-xs font-mono text-zinc-200"
+        >
+          Reopen engagement
+        </button>
+        <div className="mt-1 text-[10px] text-zinc-500">
+          Reopening clears your prior exit so scope approval is possible
+          again. The original action remains in the audit ledger.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="mt-3 space-y-2 rounded border border-zinc-800 bg-black/30 p-2 text-xs"
+      data-testid="claimant-reopen-form"
+    >
+      <div className="font-mono uppercase tracking-wider text-zinc-400">
+        reopen
+      </div>
+      <textarea
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        rows={2}
+        maxLength={1000}
+        placeholder="Reason for reopening"
+        className="w-full rounded border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-zinc-100"
+      />
+      {error ? <div className="text-red-300">{error}</div> : null}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => void submit()}
+          disabled={isPending}
+          className="rounded border border-zinc-700 bg-zinc-900 px-3 py-1 text-zinc-200"
+        >
+          Submit reopen
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            setError("");
+          }}
+          className="rounded border border-zinc-800 px-3 py-1 text-zinc-500"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function ClaimantActionsForm(props: Props) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(null);
@@ -47,6 +158,10 @@ export function ClaimantActionsForm(props: Props) {
             {action.reason}
           </div>
         ) : null}
+        <ClaimantReopenAffordance
+          issuanceId={props.issuanceId}
+          email={props.email}
+        />
       </div>
     );
   }
@@ -73,6 +188,10 @@ export function ClaimantActionsForm(props: Props) {
             {action.reason}
           </div>
         ) : null}
+        <ClaimantReopenAffordance
+          issuanceId={props.issuanceId}
+          email={props.email}
+        />
       </div>
     );
   }

@@ -29,6 +29,7 @@ import {
   operatorRejectionBlocksApproval,
   rejectIntakeAsOperator,
   requestClarificationAsOperator,
+  rescindOperatorRejection,
 } from "./operator-actions";
 import { readIntakeEvents } from "./intake-event-ledger";
 
@@ -321,6 +322,168 @@ test("approve route is NOT blocked by a clarification request alone", async () =
     actor: "operator@example.com",
     reason: "Need more detail",
     clarificationQuestion: "Confirm subdomains",
+  });
+
+  process.env.CONTROL_PLANE_URL = "http://control-plane.internal";
+  process.env.CONTROL_PLANE_API_KEY = "cp-key";
+  const originalFetch = global.fetch;
+  global.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        issuanceId: issued.issuanceId,
+        accepted: true,
+        runId: "run_demo123",
+        persistedState: "pending_authorization",
+        timestamp: new Date().toISOString(),
+        error: null,
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    )) as typeof fetch;
+
+  try {
+    const a = await approve(
+      new Request("https://witnessops.com/api/assessment/x/approve", {
+        method: "POST",
+        body: JSON.stringify({
+          email: issued.email,
+          approverName: "Verified Operator",
+          approvalNote: "Approved",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
+    );
+    assert.equal(a.status, 200);
+  } finally {
+    global.fetch = originalFetch;
+    delete process.env.CONTROL_PLANE_URL;
+    delete process.env.CONTROL_PLANE_API_KEY;
+  }
+});
+
+// ---------------------------------------------------------------------------
+// WEB-005: operator rescind of own reject
+// ---------------------------------------------------------------------------
+
+test("WEB-005: operator rescinds reject -> intake state reverts to ledger previous_state", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-op-rescind-revert-"));
+  const issued = await issueVerifiedToken(baseDir);
+
+  // Capture the pre-reject intake state so we can verify the revert.
+  const before = await getIntakeById(issued.intakeId);
+  const stateBeforeReject = before!.state;
+
+  await rejectIntakeAsOperator({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+
+  const result = await rescindOperatorRejection({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Reviewed; original rejection was wrong",
+  });
+  assert.equal(result.blocksApproval, false);
+
+  const intake = await getIntakeById(issued.intakeId);
+  assert.equal(intake?.state, stateBeforeReject);
+  assert.equal(intake?.operatorAction, null);
+  assert.equal(intake?.rejectedAt, undefined);
+
+  const issuance = await getIssuanceById(issued.issuanceId);
+  assert.equal(issuance?.approvalStatus, "pending");
+
+  const events = await readIntakeEvents();
+  assert.ok(
+    events.some((e) => e.event_type === "intake.reopen.operator_rejection_rescinded"),
+    "rescind ledger event must exist",
+  );
+  assert.ok(
+    events.some((e) => e.event_type === "intake.rejected_by_operator"),
+    "original rejection event must remain in the ledger",
+  );
+});
+
+test("WEB-005: operator rescind on a non-rejected intake -> 409", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-op-rescind-not-rejected-"));
+  const issued = await issueVerifiedToken(baseDir);
+
+  await assert.rejects(
+    () =>
+      rescindOperatorRejection({
+        intakeId: issued.intakeId,
+        actor: "operator@example.com",
+        reason: "Try anyway",
+      }),
+    (err) => err instanceof OperatorActionError && err.status === 409,
+  );
+});
+
+test("WEB-005: operator rescind on a clarification-only intake -> 409", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-op-rescind-clarify-"));
+  const issued = await issueVerifiedToken(baseDir);
+
+  await requestClarificationAsOperator({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Need detail",
+    clarificationQuestion: "Confirm subdomains",
+  });
+
+  await assert.rejects(
+    () =>
+      rescindOperatorRejection({
+        intakeId: issued.intakeId,
+        actor: "operator@example.com",
+        reason: "Try anyway",
+      }),
+    (err) => err instanceof OperatorActionError && err.status === 409,
+  );
+});
+
+test("WEB-005: operator rescind requires reason and actor", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-op-rescind-empty-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await rejectIntakeAsOperator({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Out",
+  });
+
+  await assert.rejects(
+    () =>
+      rescindOperatorRejection({
+        intakeId: issued.intakeId,
+        actor: "operator@example.com",
+        reason: "",
+      }),
+    (err) => err instanceof OperatorActionError && err.status === 400,
+  );
+  await assert.rejects(
+    () =>
+      rescindOperatorRejection({
+        intakeId: issued.intakeId,
+        actor: "",
+        reason: "ok",
+      }),
+    (err) => err instanceof OperatorActionError && err.status === 400,
+  );
+});
+
+test("WEB-005: end-to-end reject -> rescind -> approve succeeds", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-e2e-reject-rescind-"));
+  const issued = await issueVerifiedToken(baseDir);
+
+  await rejectIntakeAsOperator({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+  await rescindOperatorRejection({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Reviewed; original rejection was wrong",
   });
 
   process.env.CONTROL_PLANE_URL = "http://control-plane.internal";

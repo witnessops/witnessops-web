@@ -18,6 +18,111 @@ interface Props {
 
 type Mode = "reject" | "request_clarification" | null;
 
+/**
+ * WEB-005: operator-side rescind affordance shown beneath the
+ * "intake has been rejected" warning. POSTs to
+ * `/api/admin/intake/rescind-rejection` under the existing admin session.
+ *
+ * Collapsed by default. The rescind reads the original
+ * intake.rejected_by_operator ledger event server-side and fails closed
+ * if the event or its previous_state is missing — operators are not
+ * shielded from that failure here, the server returns 500 and the
+ * affordance surfaces the message.
+ */
+function OperatorRescindAffordance({ intakeId }: { intakeId: string }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState("");
+  const [isPending, startTransition] = useTransition();
+
+  async function submit() {
+    setError("");
+    if (!reason.trim()) {
+      setError("A reason is required to rescind.");
+      return;
+    }
+    const response = await fetch("/api/admin/intake/rescind-rejection", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intakeId, reason: reason.trim() }),
+    });
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      setError(payload?.error ?? "Rescind failed.");
+      return;
+    }
+    setOpen(false);
+    setReason("");
+    startTransition(() => router.refresh());
+  }
+
+  if (!open) {
+    return (
+      <div className="mt-2" data-testid="operator-rescind-affordance">
+        <button
+          type="button"
+          onClick={() => {
+            setError("");
+            setOpen(true);
+          }}
+          className="rounded border border-zinc-700 bg-zinc-900 px-3 py-1 text-xs font-mono text-zinc-200"
+        >
+          Rescind rejection
+        </button>
+        <div className="mt-1 text-[10px] text-zinc-500">
+          Reverts intake.state to its prior value (read from the original
+          ledger event), clears operatorAction, and restores
+          approvalStatus to pending. The original rejection event remains
+          in the audit ledger.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="mt-2 space-y-2 rounded border border-zinc-800 bg-black/30 p-2 text-xs"
+      data-testid="operator-rescind-form"
+    >
+      <div className="font-mono uppercase tracking-wider text-zinc-400">
+        rescind
+      </div>
+      <textarea
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        rows={2}
+        maxLength={1000}
+        placeholder="Reason for rescinding"
+        className="w-full rounded border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-zinc-100"
+      />
+      {error ? <div className="text-red-300">{error}</div> : null}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => void submit()}
+          disabled={isPending}
+          className="rounded border border-zinc-700 bg-zinc-900 px-3 py-1 text-zinc-200"
+        >
+          Submit rescind
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            setError("");
+          }}
+          className="rounded border border-zinc-800 px-3 py-1 text-zinc-500"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function AdminOperatorActionsForm(props: Props) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(null);
@@ -34,6 +139,7 @@ export function AdminOperatorActionsForm(props: Props) {
         className={styles.queueWarning}
       >
         Intake has been rejected by an operator. Approval is blocked.
+        <OperatorRescindAffordance intakeId={props.intakeId} />
       </div>
     );
   }

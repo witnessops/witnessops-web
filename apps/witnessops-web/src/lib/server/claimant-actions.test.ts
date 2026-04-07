@@ -32,6 +32,7 @@ import {
   ClaimantActionError,
   claimantActionBlocksApproval,
   disagreeWithClaimantScope,
+  reopenClaimantExit,
   retractClaimantEngagement,
 } from "./claimant-actions";
 
@@ -414,4 +415,219 @@ test("claimant actions cannot be taken after approval", async () => {
     delete process.env.CONTROL_PLANE_URL;
     delete process.env.CONTROL_PLANE_API_KEY;
   }
+});
+
+// ---------------------------------------------------------------------------
+// WEB-005: claimant reopen of own terminal exit
+// ---------------------------------------------------------------------------
+
+import { POST as reopen } from "../../app/api/assessment/[issuanceId]/reopen/route";
+import { readIntakeEvents } from "./intake-event-ledger";
+
+test("WEB-005: claimant reopens retract -> claimantAction cleared, ledger event appended", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-claimant-reopen-retract-"));
+  const issued = await issueVerifiedToken(baseDir);
+
+  await retractClaimantEngagement({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Initial exit",
+  });
+
+  const result = await reopenClaimantExit({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Changed mind",
+  });
+  assert.equal(result.blocksApproval, false);
+
+  const issuance = await getIssuanceById(issued.issuanceId);
+  assert.equal(issuance?.claimantAction, null);
+
+  const events = await readIntakeEvents();
+  const reopenEvent = events.find(
+    (e) => e.event_type === "intake.reopen.claimant_action_cleared",
+  );
+  assert.ok(reopenEvent, "reopen ledger event must exist");
+  assert.equal(
+    (reopenEvent?.payload as { cleared_kind?: string })?.cleared_kind,
+    "retract",
+  );
+});
+
+test("WEB-005: claimant reopens disagree -> claimantAction cleared", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-claimant-reopen-disagree-"));
+  const issued = await issueVerifiedToken(baseDir);
+
+  await disagreeWithClaimantScope({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Wrong methods",
+  });
+
+  const result = await reopenClaimantExit({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Resolved offline",
+  });
+  assert.equal(result.blocksApproval, false);
+
+  const issuance = await getIssuanceById(issued.issuanceId);
+  assert.equal(issuance?.claimantAction, null);
+});
+
+test("WEB-005: claimant reopen on amend is refused with explicit message", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-claimant-reopen-amend-"));
+  const issued = await issueVerifiedToken(baseDir);
+
+  await amendClaimantScope({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Tightening",
+    amendedScope: "Passive-only",
+  });
+
+  await assert.rejects(
+    () =>
+      reopenClaimantExit({
+        issuanceId: issued.issuanceId,
+        email: issued.email,
+        reason: "Try anyway",
+      }),
+    (err) =>
+      err instanceof ClaimantActionError &&
+      err.status === 409 &&
+      /amend is non-terminal/i.test(err.message),
+  );
+});
+
+test("WEB-005: claimant reopen on a clean run is refused", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-claimant-reopen-clean-"));
+  const issued = await issueVerifiedToken(baseDir);
+
+  await assert.rejects(
+    () =>
+      reopenClaimantExit({
+        issuanceId: issued.issuanceId,
+        email: issued.email,
+        reason: "Try anyway",
+      }),
+    (err) => err instanceof ClaimantActionError && err.status === 409,
+  );
+});
+
+test("WEB-005: claimant reopen rejects email mismatch", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-claimant-reopen-auth-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await retractClaimantEngagement({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Out",
+  });
+  await assert.rejects(
+    () =>
+      reopenClaimantExit({
+        issuanceId: issued.issuanceId,
+        email: "intruder@example.com",
+        reason: "Reopen",
+      }),
+    (err) => err instanceof ClaimantActionError && err.status === 403,
+  );
+});
+
+test("WEB-005: claimant reopen does NOT clear an operator reject (cross-actor refused)", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-claimant-reopen-cross-"));
+  const issued = await issueVerifiedToken(baseDir);
+  const { rejectIntakeAsOperator } = await import("./operator-actions");
+  const issuance = await getIssuanceById(issued.issuanceId);
+  await rejectIntakeAsOperator({
+    intakeId: issuance!.intakeId!,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+
+  await assert.rejects(
+    () =>
+      reopenClaimantExit({
+        issuanceId: issued.issuanceId,
+        email: issued.email,
+        reason: "Try anyway",
+      }),
+    (err) =>
+      err instanceof ClaimantActionError &&
+      err.status === 409 &&
+      /no claimant action/i.test(err.message),
+  );
+});
+
+test("WEB-005: end-to-end retract -> reopen -> approve succeeds", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-e2e-retract-reopen-"));
+  const issued = await issueVerifiedToken(baseDir);
+
+  await retractClaimantEngagement({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Initial exit",
+  });
+  await reopenClaimantExit({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Changed mind",
+  });
+
+  process.env.CONTROL_PLANE_URL = "http://control-plane.internal";
+  process.env.CONTROL_PLANE_API_KEY = "cp-key";
+  const originalFetch = global.fetch;
+  global.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        issuanceId: issued.issuanceId,
+        accepted: true,
+        runId: "run_demo123",
+        persistedState: "pending_authorization",
+        timestamp: new Date().toISOString(),
+        error: null,
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    )) as typeof fetch;
+
+  try {
+    const a = await approve(
+      new Request("https://witnessops.com/api/assessment/x/approve", {
+        method: "POST",
+        body: JSON.stringify({
+          email: issued.email,
+          approverName: "Verified Operator",
+          approvalNote: "Approved",
+        }),
+        headers: { "Content-Type": "application/json" },
+      }),
+      { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
+    );
+    assert.equal(a.status, 200);
+  } finally {
+    global.fetch = originalFetch;
+    delete process.env.CONTROL_PLANE_URL;
+    delete process.env.CONTROL_PLANE_API_KEY;
+  }
+});
+
+test("WEB-005: reopen route returns 200 on retract clearance", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-claimant-reopen-route-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await retractClaimantEngagement({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Initial",
+  });
+
+  const r = await reopen(
+    new Request("https://witnessops.com/api/assessment/x/reopen", {
+      method: "POST",
+      body: JSON.stringify({ email: issued.email, reason: "Changed mind" }),
+      headers: { "Content-Type": "application/json" },
+    }),
+    { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
+  );
+  assert.equal(r.status, 200);
 });

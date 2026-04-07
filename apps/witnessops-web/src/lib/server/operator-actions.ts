@@ -22,9 +22,11 @@
  * Boundary: this module never writes delivered, acknowledged, or
  * completed truth — those remain control-plane authority (CP-001/CP-002).
  */
-import { appendIntakeEvent } from "./intake-event-ledger";
+import { appendIntakeEvent, readIntakeEvents } from "./intake-event-ledger";
+import type { AdmissionState } from "@/lib/token-contract";
 import {
   getIntakeById,
+  getIssuanceById,
   type IntakeRecord,
   type OperatorActionRecord,
   type TokenIssuanceRecord,
@@ -253,4 +255,159 @@ export function operatorRejectionBlocksApproval(
   record: TokenIssuanceRecord | null | undefined,
 ): boolean {
   return record?.approvalStatus === "approval_denied";
+}
+
+export interface RescindRejectionInput {
+  intakeId: string;
+  actor: string;
+  reason: string;
+}
+
+/**
+ * Operator rescinds a prior reject (WEB-005).
+ *
+ * Reverses the three mutations the original `rejectIntakeAsOperator`
+ * call performed:
+ *
+ *   1. `intake.state` reverts to its **previous_state** as recorded in
+ *      the original `intake.rejected_by_operator` ledger event. This is
+ *      precise — it does not guess `verified` or any fallback. If the
+ *      ledger event is missing, or its `previous_state` is null, the
+ *      rescind fails closed (500) rather than producing an incoherent
+ *      state. Operators must investigate before retrying.
+ *   2. `intake.rejectedAt` is cleared.
+ *   3. `intake.operatorAction` is cleared.
+ *   4. `issuance.approvalStatus` reverts to `"pending"`.
+ *
+ * The original rejection event remains in the intake event ledger; this
+ * function only **appends** a complementary
+ * `intake.reopen.operator_rejection_rescinded` event for the audit trail.
+ */
+export async function rescindOperatorRejection(
+  input: RescindRejectionInput,
+): Promise<OperatorActionResult> {
+  const intake = await loadIntake(input.intakeId);
+  const reason = requireReason(input.reason);
+  const actor = (input.actor ?? "").trim();
+  if (!actor) {
+    throw new OperatorActionError("actor is required.", 400);
+  }
+
+  if (intake.state !== "rejected") {
+    throw new OperatorActionError(
+      "Nothing to rescind: intake is not in the rejected state.",
+      409,
+    );
+  }
+  if (intake.operatorAction?.kind !== "reject") {
+    throw new OperatorActionError(
+      "Nothing to rescind: intake is rejected by a path other than operator reject.",
+      409,
+    );
+  }
+
+  // Fail-closed: read the original rejection event from the existing
+  // append-only ledger and recover its previous_state. We deliberately
+  // do not guess a fallback (e.g. "verified"). If the ledger does not
+  // carry the original event, or carries it with no previous_state,
+  // operators must investigate before we mutate state.
+  const events = await readIntakeEvents();
+  const rejectionEvents = events.filter(
+    (e) =>
+      e.intake_id === intake.intakeId &&
+      e.event_type === "intake.rejected_by_operator",
+  );
+  if (rejectionEvents.length === 0) {
+    throw new OperatorActionError(
+      "Cannot rescind: no intake.rejected_by_operator event found in the ledger for this intake. Investigate before retrying.",
+      500,
+    );
+  }
+  const latestRejection = rejectionEvents[rejectionEvents.length - 1]!;
+  const targetState: AdmissionState | null = latestRejection.previous_state ?? null;
+  if (!targetState) {
+    throw new OperatorActionError(
+      "Cannot rescind: latest intake.rejected_by_operator ledger event has no previous_state. Investigate before retrying.",
+      500,
+    );
+  }
+
+  const occurredAt = nowIso();
+  const originalRejectionReason =
+    typeof intake.operatorAction?.reason === "string"
+      ? intake.operatorAction.reason
+      : "";
+  const originalActor =
+    typeof intake.operatorAction?.actor === "string"
+      ? intake.operatorAction.actor
+      : "";
+
+  const updatedIntake = await updateIntake(intake.intakeId, (current) => {
+    const next: IntakeRecord = {
+      ...current,
+      state: targetState,
+      updatedAt: occurredAt,
+      operatorAction: null,
+    };
+    // Clear the per-state timestamp set by the original rejection so
+    // the snapshot does not falsely advertise that the intake was
+    // rejected at any point in its current lifecycle position.
+    delete (next as { rejectedAt?: string }).rejectedAt;
+    return next;
+  });
+
+  await appendIntakeEvent({
+    event_type: "intake.reopen.operator_rejection_rescinded",
+    occurred_at: occurredAt,
+    channel: updatedIntake.channel,
+    intake_id: updatedIntake.intakeId,
+    issuance_id: updatedIntake.latestIssuanceId,
+    thread_id: updatedIntake.threadId,
+    previous_state: "rejected",
+    next_state: targetState,
+    source: "web/operator-actions/rescind-rejection",
+    payload: {
+      actor,
+      reopen_reason: reason,
+      original_rejection_reason: originalRejectionReason,
+      original_actor: originalActor,
+      restored_to_state: targetState,
+    },
+  });
+
+  // Revert the latest issuance's approvalStatus from approval_denied
+  // back to pending so the approve gate stops refusing.
+  let restoredApprovalStatus: TokenIssuanceRecord["approvalStatus"] = undefined;
+  if (updatedIntake.latestIssuanceId) {
+    const issuance = await getIssuanceById(updatedIntake.latestIssuanceId);
+    if (issuance && issuance.approvalStatus === "approval_denied") {
+      const updatedIssuance = await updateIssuance(
+        updatedIntake.latestIssuanceId,
+        (current) => ({
+          ...current,
+          approvalStatus: "pending",
+        }),
+      );
+      restoredApprovalStatus = updatedIssuance.approvalStatus;
+    } else if (issuance) {
+      restoredApprovalStatus = issuance.approvalStatus;
+    }
+  }
+
+  // Synthesize a result. The operatorAction field is a sentinel
+  // describing what was just cleared, mirroring the WEB-005 claimant
+  // reopen pattern. UI / tests should rely on `blocksApproval` and on
+  // a subsequent `getIntakeById` call for authoritative state.
+  return {
+    intakeId: updatedIntake.intakeId,
+    state: updatedIntake.state,
+    operatorAction: {
+      kind: "reject",
+      recordedAt: latestRejection.occurred_at,
+      actor: originalActor,
+      reason: originalRejectionReason,
+    },
+    approvalStatus: restoredApprovalStatus,
+    blocksApproval: false,
+  };
 }
