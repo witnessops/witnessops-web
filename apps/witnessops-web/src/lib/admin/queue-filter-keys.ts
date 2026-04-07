@@ -14,6 +14,8 @@ export const QUEUE_FILTER_KEYS = {
   resolvedManual: "resolved_manual",
   ready: "ready",
   divergent: "divergent",
+  customerAccepted: "customer_accepted",
+  customerRejected: "customer_rejected",
 } as const;
 
 export type QueueFilterKey = (typeof QUEUE_FILTER_KEYS)[keyof typeof QUEUE_FILTER_KEYS];
