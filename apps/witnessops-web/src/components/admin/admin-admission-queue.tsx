@@ -316,6 +316,8 @@ const POST_APPROVAL_STAGE_LABEL: Record<string, string> = {
   delivered: "delivered",
   acknowledged: "acknowledged",
   completed: "completed",
+  accepted: "accepted",
+  rejected: "rejected",
   retry_pending: "retry pending",
   failed: "failed",
 };
@@ -806,6 +808,28 @@ export async function AdminAdmissionQueue({ initialFilter }: AdminAdmissionQueue
         label: "Reconciled",
         intakeIds: view.rows
           .filter((r) => r.ambiguityResolutionKind === "manual_reconciliation")
+          .map((r) => r.intakeId),
+      },
+      {
+        key: QUEUE_FILTER_KEYS.customerAccepted,
+        label: "Customer: Accepted",
+        intakeIds: view.rows
+          .filter(
+            (r) =>
+              r.controlPlaneRunId &&
+              lifecycleByRunId.get(r.controlPlaneRunId)?.stage === "accepted",
+          )
+          .map((r) => r.intakeId),
+      },
+      {
+        key: QUEUE_FILTER_KEYS.customerRejected,
+        label: "Customer: Rejected",
+        intakeIds: view.rows
+          .filter(
+            (r) =>
+              r.controlPlaneRunId &&
+              lifecycleByRunId.get(r.controlPlaneRunId)?.stage === "rejected",
+          )
           .map((r) => r.intakeId),
       },
       ...report.byProvider.map((p) => ({
