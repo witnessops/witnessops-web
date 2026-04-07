@@ -5,6 +5,7 @@ import {
 } from "@/lib/server/admission-queue";
 import { buildPostApprovalLifecycle, type PostApprovalLifecycleView } from "@/lib/server/post-approval-lifecycle";
 import type { TokenIssuanceRecord } from "@/lib/server/token-store";
+import { PostApprovalLifecycle } from "../post-approval-lifecycle";
 import { formatProviderOutcomeStatusLabel } from "@/lib/provider-outcomes";
 import { isManualReconciliationBlocked } from "@/lib/server/evidence-resolution";
 import { buildReconciliationNoteTemplate } from "@/lib/server/reconciliation-note-policy";
@@ -314,6 +315,7 @@ const POST_APPROVAL_STAGE_LABEL: Record<string, string> = {
   delivered: "delivered",
   acknowledged: "acknowledged",
   completed: "completed",
+  retry_pending: "retry pending",
   failed: "failed",
 };
 
@@ -591,6 +593,17 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
           defaultSubject={defaultResponseSubject(row)}
           defaultBody={defaultResponseBody(row)}
         />
+      ) : null}
+
+      {lifecycle && (lifecycle.stage === "failed" || lifecycle.stage === "retry_pending") ? (
+        <details data-testid="post-approval-retry-panel" className="mt-2">
+          <summary className="cursor-pointer text-xs font-mono text-amber-300">
+            Delivery {lifecycle.stage === "retry_pending" ? "retry pending" : "failed"} — open retry surface
+          </summary>
+          <div className="mt-2">
+            <PostApprovalLifecycle view={lifecycle} retryActionEnabled />
+          </div>
+        </details>
       ) : null}
 
       {row.reconciliationPending && !row.reconciliationResolved ? (

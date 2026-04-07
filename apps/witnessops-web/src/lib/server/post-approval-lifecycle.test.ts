@@ -1,12 +1,8 @@
 /**
- * WEB-001 contract tests for the post-approval lifecycle aggregator.
+ * Contract tests for the post-approval lifecycle aggregator.
  *
- * Proves the four acceptance criteria:
- *  1. Assessment page can render lifecycle past `scope_approved`.
- *  2. Admin surface uses the same lifecycle source coherently.
- *  3. Displayed delivery/completion states come from control-plane.
- *  4. Users can distinguish pending, delivered, acknowledged, completed,
- *     and failed without manual interpretation.
+ * Covers WEB-001 (read/render baseline) and WEB-002 (delivery failure
+ * and retry UX) acceptance criteria.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -14,12 +10,14 @@ import assert from "node:assert/strict";
 import {
   buildPostApprovalLifecycle,
   stageFromControlPlane,
+  type BuildLifecycleDeps,
 } from "./post-approval-lifecycle";
 import type {
   ControlPlaneCompletionView,
   ControlPlaneRunState,
 } from "./control-plane-client";
 import type { TokenIssuanceRecord } from "./token-store";
+import type { DeliveryRetryRequestRecord } from "./delivery-retry-ledger";
 
 function record(
   overrides: Partial<TokenIssuanceRecord> = {},
@@ -49,6 +47,30 @@ function upstream(
     completion_status: "not_yet_complete",
     delivery: null,
     completion: null,
+    ...overrides,
+  };
+}
+
+/** Hermetic deps: never touches the real disk or network. */
+function deps(
+  fetchUpstream: BuildLifecycleDeps["fetchUpstream"],
+  latestRetry: DeliveryRetryRequestRecord | null = null,
+): BuildLifecycleDeps {
+  return {
+    fetchUpstream,
+    fetchLatestRetry: async () => latestRetry,
+  };
+}
+
+function retry(
+  overrides: Partial<DeliveryRetryRequestRecord> = {},
+): DeliveryRetryRequestRecord {
+  return {
+    event_id: "evt_test",
+    run_id: "run_demo123",
+    requested_at: "2026-04-07T09:55:00Z",
+    requested_by: "operator@example.com",
+    reason: "delivery bounced",
     ...overrides,
   };
 }
@@ -111,13 +133,13 @@ test("stageFromControlPlane: revoked/failed -> failed", () => {
 });
 
 // ---------------------------------------------------------------------------
-// buildPostApprovalLifecycle — discriminated states
+// buildPostApprovalLifecycle — discriminated states (WEB-001)
 // ---------------------------------------------------------------------------
 
 test("buildPostApprovalLifecycle: not approved -> awaiting_approval", async () => {
   const view = await buildPostApprovalLifecycle(
     record({ approvalStatus: "pending" }),
-    async () => upstream(),
+    deps(async () => upstream()),
   );
   assert.equal(view.stage, "awaiting_approval");
   assert.equal(view.authoritative, null);
@@ -125,7 +147,7 @@ test("buildPostApprovalLifecycle: not approved -> awaiting_approval", async () =
 });
 
 test("buildPostApprovalLifecycle: approved without controlPlaneRunId -> handoff_pending", async () => {
-  const view = await buildPostApprovalLifecycle(record(), async () => upstream());
+  const view = await buildPostApprovalLifecycle(record(), deps(async () => upstream()));
   assert.equal(view.stage, "handoff_pending");
   assert.equal(view.authoritative, null);
 });
@@ -133,7 +155,7 @@ test("buildPostApprovalLifecycle: approved without controlPlaneRunId -> handoff_
 test("buildPostApprovalLifecycle: handoff_accepted reads from control plane", async () => {
   const view = await buildPostApprovalLifecycle(
     record({ controlPlaneRunId: "run_demo123" }),
-    async () => upstream({ state: "collecting" }),
+    deps(async () => upstream({ state: "collecting" })),
   );
   assert.equal(view.stage, "handoff_accepted");
   assert.ok(view.authoritative);
@@ -144,7 +166,7 @@ test("buildPostApprovalLifecycle: handoff_accepted reads from control plane", as
 test("buildPostApprovalLifecycle: delivered surfaces delivery record", async () => {
   const view = await buildPostApprovalLifecycle(
     record({ controlPlaneRunId: "run_demo123" }),
-    async () =>
+    deps(async () =>
       upstream({
         state: "delivered",
         delivered: true,
@@ -158,6 +180,7 @@ test("buildPostApprovalLifecycle: delivered surfaces delivery record", async () 
           delivered_at: "2026-04-07T10:00:00Z",
         },
       }),
+    ),
   );
   assert.equal(view.stage, "delivered");
   assert.equal(view.authoritative?.delivery?.recipient, "claimant@example.com");
@@ -168,7 +191,7 @@ test("buildPostApprovalLifecycle: delivered surfaces delivery record", async () 
 test("buildPostApprovalLifecycle: acknowledged retains delivery + ack fields", async () => {
   const view = await buildPostApprovalLifecycle(
     record({ controlPlaneRunId: "run_demo123" }),
-    async () =>
+    deps(async () =>
       upstream({
         state: "acknowledged",
         delivered: true,
@@ -186,6 +209,7 @@ test("buildPostApprovalLifecycle: acknowledged retains delivery + ack fields", a
           acknowledgment_method: "email_reply",
         },
       }),
+    ),
   );
   assert.equal(view.stage, "acknowledged");
   assert.equal(view.authoritative?.acknowledged, true);
@@ -195,7 +219,7 @@ test("buildPostApprovalLifecycle: acknowledged retains delivery + ack fields", a
 test("buildPostApprovalLifecycle: completed surfaces completion record", async () => {
   const view = await buildPostApprovalLifecycle(
     record({ controlPlaneRunId: "run_demo123" }),
-    async () =>
+    deps(async () =>
       upstream({
         state: "completed",
         delivered: true,
@@ -210,21 +234,22 @@ test("buildPostApprovalLifecycle: completed surfaces completion record", async (
           completion_basis: "ack_received",
         },
       }),
+    ),
   );
   assert.equal(view.stage, "completed");
   assert.equal(view.authoritative?.completion?.completion_basis, "ack_received");
 });
 
 // ---------------------------------------------------------------------------
-// Failure paths
+// Failure paths (WEB-001)
 // ---------------------------------------------------------------------------
 
 test("buildPostApprovalLifecycle: control plane unreachable -> failed", async () => {
   const view = await buildPostApprovalLifecycle(
     record({ controlPlaneRunId: "run_demo123" }),
-    async () => {
+    deps(async () => {
       throw new Error("ECONNREFUSED");
-    },
+    }),
   );
   assert.equal(view.stage, "failed");
   assert.equal(view.authoritative, null);
@@ -234,7 +259,7 @@ test("buildPostApprovalLifecycle: control plane unreachable -> failed", async ()
 test("buildPostApprovalLifecycle: control plane not configured -> failed", async () => {
   const view = await buildPostApprovalLifecycle(
     record({ controlPlaneRunId: "run_demo123" }),
-    async () => "not_configured",
+    deps(async () => "not_configured"),
   );
   assert.equal(view.stage, "failed");
   assert.match(view.failureReason ?? "", /not configured/i);
@@ -243,7 +268,7 @@ test("buildPostApprovalLifecycle: control plane not configured -> failed", async
 test("buildPostApprovalLifecycle: run not found -> failed", async () => {
   const view = await buildPostApprovalLifecycle(
     record({ controlPlaneRunId: "run_demo123" }),
-    async () => "not_found",
+    deps(async () => "not_found"),
   );
   assert.equal(view.stage, "failed");
   assert.match(view.failureReason ?? "", /no run/i);
@@ -252,14 +277,14 @@ test("buildPostApprovalLifecycle: run not found -> failed", async () => {
 test("buildPostApprovalLifecycle: terminal revoked state -> failed with reason", async () => {
   const view = await buildPostApprovalLifecycle(
     record({ controlPlaneRunId: "run_demo123" }),
-    async () => upstream({ state: "revoked" }),
+    deps(async () => upstream({ state: "revoked" })),
   );
   assert.equal(view.stage, "failed");
   assert.match(view.failureReason ?? "", /revoked/);
 });
 
 // ---------------------------------------------------------------------------
-// Local vs authoritative separation
+// Local vs authoritative separation (WEB-001)
 // ---------------------------------------------------------------------------
 
 test("buildPostApprovalLifecycle: local handoff metadata is preserved separately", async () => {
@@ -268,11 +293,132 @@ test("buildPostApprovalLifecycle: local handoff metadata is preserved separately
       controlPlaneRunId: "run_demo123",
       approvalAt: "2026-04-04T00:01:00Z",
     }),
-    async () => upstream({ state: "delivered", delivered: true }),
+    deps(async () => upstream({ state: "delivered", delivered: true })),
   );
   assert.equal(view.local.approved, true);
   assert.equal(view.local.approvedAt, "2026-04-04T00:01:00Z");
   assert.equal(view.local.controlPlaneRunId, "run_demo123");
   // Authoritative is on the same view but in its own field
   assert.equal(view.authoritative?.source, "control_plane");
+});
+
+// ---------------------------------------------------------------------------
+// WEB-002: retry / failure UX
+// ---------------------------------------------------------------------------
+
+test("WEB-002: retry against revoked upstream -> retry_pending (request never implies success)", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(async () => upstream({ state: "revoked" }), retry()),
+  );
+  assert.equal(view.stage, "retry_pending");
+  assert.ok(view.retryRequest);
+  assert.equal(view.retryRequest?.recovered, false);
+  assert.equal(view.retryRequest?.requestedBy, "operator@example.com");
+  assert.match(view.failureReason ?? "", /revoked/);
+});
+
+test("WEB-002: retry against unreachable control plane -> retry_pending", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(async () => {
+      throw new Error("ECONNREFUSED");
+    }, retry()),
+  );
+  assert.equal(view.stage, "retry_pending");
+  assert.equal(view.authoritative, null);
+  assert.match(view.failureReason ?? "", /unreachable/i);
+});
+
+test("WEB-002: retry against not_found -> retry_pending", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(async () => "not_found", retry()),
+  );
+  assert.equal(view.stage, "retry_pending");
+  assert.equal(view.authoritative, null);
+});
+
+test("WEB-002: retry against not_configured -> retry_pending", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(async () => "not_configured", retry()),
+  );
+  assert.equal(view.stage, "retry_pending");
+});
+
+test("WEB-002: failure with no retry stays in failed (no auto-retry)", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(async () => upstream({ state: "revoked" }), null),
+  );
+  assert.equal(view.stage, "failed");
+  assert.equal(view.retryRequest, null);
+});
+
+test("WEB-002: successful recovery after retry -> delivered with recovered=true", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(
+      async () =>
+        upstream({
+          state: "delivered",
+          delivered: true,
+          delivery: {
+            schema: "delivery_record",
+            run_id: "run_demo123",
+            bundle_id: "bundle:abc",
+            artifact_hash: "sha256:abc",
+            recipient: "claimant@example.com",
+            channel: "email",
+            delivered_at: "2026-04-07T10:00:00Z",
+          },
+        }),
+      retry({ requested_at: "2026-04-07T09:55:00Z" }),
+    ),
+  );
+  assert.equal(view.stage, "delivered");
+  assert.ok(view.retryRequest);
+  assert.equal(view.retryRequest?.recovered, true);
+});
+
+test("WEB-002: retry requested AFTER delivery is not flagged as recovered", async () => {
+  // Operator requested a redundant retry after delivery had already landed.
+  // The view must not retroactively claim recovery.
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(
+      async () =>
+        upstream({
+          state: "delivered",
+          delivered: true,
+          delivery: {
+            schema: "delivery_record",
+            run_id: "run_demo123",
+            bundle_id: "bundle:abc",
+            artifact_hash: "sha256:abc",
+            recipient: "claimant@example.com",
+            channel: "email",
+            delivered_at: "2026-04-07T10:00:00Z",
+          },
+        }),
+      retry({ requested_at: "2026-04-07T11:00:00Z" }),
+    ),
+  );
+  assert.equal(view.stage, "delivered");
+  assert.equal(view.retryRequest?.recovered, false);
+});
+
+test("WEB-002: retry request never implies delivery success on its own", async () => {
+  // The acceptance criterion: a retry action does not itself imply
+  // delivery success. With upstream still bundled (delivery_pending) and
+  // a retry recorded, the stage stays delivery_pending (forward stage),
+  // not delivered.
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(async () => upstream({ state: "bundled" }), retry()),
+  );
+  assert.equal(view.stage, "delivery_pending");
+  assert.equal(view.authoritative?.delivered, false);
+  assert.equal(view.retryRequest?.recovered, false);
 });
