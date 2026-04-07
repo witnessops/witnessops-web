@@ -218,6 +218,41 @@ export async function getCustomerAcceptance(
   );
 }
 
+// ---------------------------------------------------------------------------
+// Customer acceptance receipt artifact (WEB-015 / CP-004)
+// ---------------------------------------------------------------------------
+
+export interface ControlPlaneCustomerAcceptanceReceiptBody {
+  schema: "customer_acceptance_receipt";
+  schema_version: number;
+  run_id: string;
+  disposition: "accepted" | "rejected";
+  accepted_by: string;
+  accepted_at: string;
+  bundle_id: string;
+  artifact_hash: string;
+  comment: string | null;
+}
+
+export interface ControlPlaneCustomerAcceptanceReceiptEnvelope {
+  schema: "customer_acceptance_receipt";
+  schema_version: number;
+  receipt_hash: string;
+  receipt: ControlPlaneCustomerAcceptanceReceiptBody;
+}
+
+export async function getCustomerAcceptanceReceipt(
+  runId: string,
+): Promise<
+  | ControlPlaneCustomerAcceptanceReceiptEnvelope
+  | "not_configured"
+  | "not_found"
+> {
+  return controlPlaneGet<ControlPlaneCustomerAcceptanceReceiptEnvelope>(
+    `/v1/runs/${runId}/customer-acceptance-receipt`,
+  );
+}
+
 export interface CustomerAcceptanceSubmission {
   disposition: "accepted" | "rejected";
   accepted_by: string;
