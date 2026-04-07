@@ -125,6 +125,21 @@ export interface IntakeRecord {
   responseProviderOutcome?: IntakeResponseProviderOutcomeRecord;
   responseMailboxReceipt?: IntakeMailboxReceiptRecord;
   reconciliation?: IntakeReconciliationRecord;
+  /**
+   * Operator-side action recorded against this intake (WEB-004).
+   * Surfaces explicit reject and clarification-request outcomes that
+   * were previously approximated through reply/reconcile flows.
+   */
+  operatorAction?: OperatorActionRecord | null;
+}
+
+export interface OperatorActionRecord {
+  kind: "reject" | "request_clarification";
+  recordedAt: string;
+  actor: string;
+  reason: string;
+  /** Only present when kind === "request_clarification". */
+  clarificationQuestion?: string | null;
 }
 
 export interface TokenIssuanceRecord {

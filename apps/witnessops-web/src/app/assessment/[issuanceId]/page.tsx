@@ -93,6 +93,58 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
           <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mb-3">
             Scope Approval
           </div>
+          {intake?.operatorAction?.kind === "reject" || record.approvalStatus === "approval_denied" ? (
+            <div
+              data-testid="operator-action-state"
+              data-kind="reject"
+              className="mb-3 rounded border border-red-900/60 bg-red-950/30 p-4 text-sm text-red-100"
+            >
+              <div className="text-xs font-mono uppercase tracking-wider text-red-300">
+                Intake rejected by operator
+              </div>
+              <div className="mt-2">
+                An operator has rejected this engagement. Scope approval is
+                blocked.
+              </div>
+              {intake?.operatorAction?.kind === "reject" ? (
+                <>
+                  <div className="mt-2 text-xs text-red-200/80">
+                    Recorded at <span className="font-mono">{intake.operatorAction.recordedAt}</span>
+                  </div>
+                  {intake.operatorAction.reason ? (
+                    <div className="mt-2 rounded border border-red-900/80 bg-black/30 p-2 text-xs text-red-100/90">
+                      {intake.operatorAction.reason}
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+            </div>
+          ) : intake?.operatorAction?.kind === "request_clarification" ? (
+            <div
+              data-testid="operator-action-state"
+              data-kind="request_clarification"
+              className="mb-3 rounded border border-amber-900/60 bg-amber-950/20 p-4 text-sm text-amber-100"
+            >
+              <div className="text-xs font-mono uppercase tracking-wider text-amber-300">
+                Operator requested clarification
+              </div>
+              <div className="mt-2">
+                Please review the operator&apos;s question below and update your
+                submission via &ldquo;Amend scope&rdquo; before approving.
+              </div>
+              {intake.operatorAction.clarificationQuestion ? (
+                <div className="mt-2 rounded border border-amber-900/80 bg-black/30 p-2 font-mono text-xs text-amber-50">
+                  {intake.operatorAction.clarificationQuestion}
+                </div>
+              ) : null}
+              {intake.operatorAction.reason ? (
+                <div className="mt-2 text-xs text-amber-200/80">
+                  Reason: {intake.operatorAction.reason}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <ScopeApprovalForm
             issuanceId={issuanceId}
             email={email}
