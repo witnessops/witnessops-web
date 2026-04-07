@@ -67,26 +67,33 @@ async function issueVerifiedToken(baseDir: string) {
 
 afterEach(async () => {
   global.fetch = originalFetch;
-  delete process.env.GES_SERVER_URL;
-  delete process.env.GES_ASSESSMENT_KEY;
+  delete process.env.CONTROL_PLANE_URL;
+  delete process.env.CONTROL_PLANE_API_KEY;
   await clearTokenStore();
 });
 
-test("approval route captures explicit approval and starts governed recon once", async () => {
+test("approval route captures explicit approval and hands off to control plane once", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-approval-"));
   const issued = await issueVerifiedToken(baseDir);
   applyTestEnv(baseDir);
-  process.env.GES_SERVER_URL = "http://ges.internal";
-  process.env.GES_ASSESSMENT_KEY = "ges-key";
+  process.env.CONTROL_PLANE_URL = "http://control-plane.internal";
+  process.env.CONTROL_PLANE_API_KEY = "cp-key";
 
   const fetchCalls: Array<{ input: string; init?: RequestInit }> = [];
   global.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = input instanceof Request ? input.url : input.toString();
     fetchCalls.push({ input: url, init });
     return new Response(
-      JSON.stringify({ run_id: "run_demo123", status: "pending" }),
+      JSON.stringify({
+        issuanceId: issued.issuanceId,
+        accepted: true,
+        runId: "run_demo123",
+        persistedState: "pending_authorization",
+        timestamp: new Date().toISOString(),
+        error: null,
+      }),
       {
-        status: 202,
+        status: 200,
         headers: { "Content-Type": "application/json" },
       },
     );
@@ -130,6 +137,16 @@ test("approval route captures explicit approval and starts governed recon once",
   assert.equal(payload.approverName, "Verified Operator");
   assert.equal(payload.approvalNote, "Approved for passive-only recon.");
   assert.equal(fetchCalls.length, 1);
+  assert.match(fetchCalls[0]!.input, /\/v1\/intake\/scope-approved$/);
+  const sentBody = JSON.parse(fetchCalls[0]!.init?.body as string) as {
+    issuanceId: string;
+    domain: string;
+    contactEmail: string;
+    scopeApproval: { approvedBy: string; scope: string | null };
+  };
+  assert.equal(sentBody.issuanceId, issued.issuanceId);
+  assert.equal(sentBody.contactEmail, issued.email);
+  assert.equal(sentBody.domain, issued.email.split("@")[1]);
 
   const second = await POST(
     new Request(

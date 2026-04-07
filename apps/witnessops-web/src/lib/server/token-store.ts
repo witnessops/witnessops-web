@@ -148,6 +148,7 @@ export interface TokenIssuanceRecord {
   assessmentRunId?: string;
   assessmentStatus?: AssessmentStatus;
   assessmentError?: string | null;
+  controlPlaneRunId?: string;
 }
 
 export function getAdmissionStoreDir(): string {
