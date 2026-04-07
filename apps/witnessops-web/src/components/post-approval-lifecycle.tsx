@@ -26,6 +26,8 @@ const STAGE_LABELS: Record<PostApprovalStage, string> = {
   delivery_pending: "Delivery pending",
   delivered: "Delivered",
   acknowledged: "Acknowledged",
+  accepted: "Customer accepted",
+  rejected: "Customer rejected",
   completed: "Completed",
   retry_pending: "Retry pending",
   failed: "Failed",
@@ -44,6 +46,10 @@ const STAGE_DESCRIPTIONS: Record<PostApprovalStage, string> = {
     "Proof bundle has been delivered and the delivery fact is durably recorded.",
   acknowledged:
     "Receipt of the delivered proof bundle has been durably acknowledged.",
+  accepted:
+    "The customer has accepted the delivered proof package. This is a terminal state.",
+  rejected:
+    "The customer has rejected the delivered proof package. This is a terminal state.",
   completed:
     "Engagement is complete. The closeout fact is durably recorded.",
   retry_pending:
@@ -59,6 +65,8 @@ const STAGE_TONE: Record<PostApprovalStage, string> = {
   delivery_pending: "border-blue-900/60 bg-blue-950/20 text-blue-200",
   delivered: "border-emerald-900 bg-emerald-950/30 text-emerald-200",
   acknowledged: "border-emerald-900 bg-emerald-950/30 text-emerald-200",
+  accepted: "border-emerald-700 bg-emerald-900/40 text-emerald-100",
+  rejected: "border-orange-900/60 bg-orange-950/30 text-orange-200",
   completed: "border-emerald-700 bg-emerald-900/40 text-emerald-100",
   retry_pending: "border-amber-900/60 bg-amber-950/30 text-amber-200",
   failed: "border-red-900/60 bg-red-950/30 text-red-200",
@@ -71,6 +79,8 @@ const STAGE_ORDER: PostApprovalStage[] = [
   "delivery_pending",
   "delivered",
   "acknowledged",
+  "accepted",
+  "rejected",
   "completed",
 ];
 
@@ -265,6 +275,29 @@ export function PostApprovalLifecycle({ view, retryActionEnabled = false }: Prop
                 <dd className="font-mono">{authoritative.completion.completed_at}</dd>
                 <dt className="text-zinc-500">Completion basis</dt>
                 <dd className="font-mono">{authoritative.completion.completion_basis}</dd>
+              </>
+            ) : null}
+            {authoritative.customerAcceptanceDisposition ? (
+              <>
+                <dt
+                  data-testid="customer-acceptance-disposition-label"
+                  className="text-zinc-500"
+                >
+                  Customer disposition
+                </dt>
+                <dd
+                  data-testid="customer-acceptance-disposition"
+                  data-disposition={authoritative.customerAcceptanceDisposition}
+                  className="font-mono"
+                >
+                  {authoritative.customerAcceptanceDisposition}
+                </dd>
+                {authoritative.customerAcceptanceAt ? (
+                  <>
+                    <dt className="text-zinc-500">Disposition at</dt>
+                    <dd className="font-mono">{authoritative.customerAcceptanceAt}</dd>
+                  </>
+                ) : null}
               </>
             ) : null}
           </dl>
