@@ -715,7 +715,7 @@ interface AdminAdmissionQueueProps {
   initialFilter?: string | null;
 }
 
-async function buildLifecycleByRunId(
+export async function buildLifecycleByRunId(
   rows: AdmissionQueueRow[],
 ): Promise<Map<string, PostApprovalLifecycleView>> {
   const result = new Map<string, PostApprovalLifecycleView>();

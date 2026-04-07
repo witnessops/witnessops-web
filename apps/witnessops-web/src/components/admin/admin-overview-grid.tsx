@@ -70,9 +70,11 @@ function countEvidenceConflict(rows: AdmissionQueueRow[]): number {
 interface AdminOverviewGridProps {
   view: AdmissionQueueView;
   report: ReconciliationReport;
+  customerAccepted: number;
+  customerRejected: number;
 }
 
-export function AdminOverviewGrid({ view, report }: AdminOverviewGridProps) {
+export function AdminOverviewGrid({ view, report, customerAccepted, customerRejected }: AdminOverviewGridProps) {
   const staleAccepted = countStaleAccepted(view.rows);
   const awaitingResponse = countAwaitingResponse(view.rows);
   const evidenceConflict = countEvidenceConflict(view.rows);
@@ -156,6 +158,20 @@ export function AdminOverviewGrid({ view, report }: AdminOverviewGridProps) {
           icon={XCircle}
           signal={staleAccepted > 0 ? "red" : "muted"}
           href={`/admin/queue?filter=${QUEUE_FILTER_KEYS.staleAccepted}`}
+        />
+        <StatCard
+          label="Cust. Accepted"
+          value={customerAccepted}
+          icon={CheckCircle}
+          signal={customerAccepted > 0 ? "green" : "muted"}
+          href={`/admin/queue?filter=${QUEUE_FILTER_KEYS.customerAccepted}`}
+        />
+        <StatCard
+          label="Cust. Rejected"
+          value={customerRejected}
+          icon={XCircle}
+          signal={customerRejected > 0 ? "accent" : "muted"}
+          href={`/admin/queue?filter=${QUEUE_FILTER_KEYS.customerRejected}`}
         />
       </div>
 
