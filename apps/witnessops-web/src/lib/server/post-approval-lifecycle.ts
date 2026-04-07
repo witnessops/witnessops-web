@@ -17,6 +17,10 @@ import {
   type ControlPlaneRunState,
   getCompletionView,
 } from "./control-plane-client";
+import {
+  type DeliveryRetryRequestRecord,
+  getLatestDeliveryRetryRequest,
+} from "./delivery-retry-ledger";
 import type { TokenIssuanceRecord } from "./token-store";
 
 /**
@@ -32,6 +36,7 @@ export type PostApprovalStage =
   | "delivered"
   | "acknowledged"
   | "completed"
+  | "retry_pending"
   | "failed";
 
 export interface PostApprovalLocalHandoff {
@@ -58,17 +63,39 @@ export interface PostApprovalAuthoritative {
   completion: ControlPlaneCompletionView["completion"];
 }
 
+/**
+ * Local-only retry request snapshot (WEB-002).
+ *
+ * The presence of this field never implies delivery success. It only
+ * records that an operator asked control-plane to be retried. Successful
+ * recovery is observed independently from the next control-plane read.
+ */
+export interface PostApprovalRetryRequest {
+  requestedAt: string;
+  requestedBy: string;
+  reason: string;
+  /**
+   * True when this request has been outpaced by a successful delivery
+   * recorded by control-plane after the request was made. The view's
+   * stage will reflect the upstream truth (delivered/acknowledged/...);
+   * the request itself is surfaced as historical evidence of recovery.
+   */
+  recovered: boolean;
+}
+
 export type PostApprovalLifecycleView =
   | {
       stage: "awaiting_approval";
       local: PostApprovalLocalHandoff;
       authoritative: null;
+      retryRequest: null;
       failureReason: null;
     }
   | {
       stage: "handoff_pending";
       local: PostApprovalLocalHandoff;
       authoritative: null;
+      retryRequest: null;
       failureReason: null;
     }
   | {
@@ -80,12 +107,21 @@ export type PostApprovalLifecycleView =
         | "completed";
       local: PostApprovalLocalHandoff;
       authoritative: PostApprovalAuthoritative;
+      retryRequest: PostApprovalRetryRequest | null;
       failureReason: null;
+    }
+  | {
+      stage: "retry_pending";
+      local: PostApprovalLocalHandoff;
+      authoritative: PostApprovalAuthoritative | null;
+      retryRequest: PostApprovalRetryRequest;
+      failureReason: string | null;
     }
   | {
       stage: "failed";
       local: PostApprovalLocalHandoff;
       authoritative: PostApprovalAuthoritative | null;
+      retryRequest: PostApprovalRetryRequest | null;
       /** Human-readable reason; rendered verbatim. */
       failureReason: string;
     };
@@ -113,7 +149,7 @@ function buildLocal(record: TokenIssuanceRecord): PostApprovalLocalHandoff {
  */
 export function stageFromControlPlane(
   view: ControlPlaneCompletionView,
-): Exclude<PostApprovalStage, "awaiting_approval" | "handoff_pending"> {
+): Exclude<PostApprovalStage, "awaiting_approval" | "handoff_pending" | "retry_pending"> {
   if (view.state === "revoked" || view.state === "failed") {
     return "failed";
   }
@@ -124,18 +160,26 @@ export function stageFromControlPlane(
   return "handoff_accepted";
 }
 
+export interface BuildLifecycleDeps {
+  fetchUpstream?: (
+    runId: string,
+  ) => Promise<ControlPlaneCompletionView | "not_configured" | "not_found">;
+  fetchLatestRetry?: (runId: string) => Promise<DeliveryRetryRequestRecord | null>;
+}
+
 /**
  * Build the post-approval lifecycle view for a single issuance.
  *
- * Pure function over (record, fetcher) so it can be unit-tested without
- * a real control-plane.
+ * Pure function over (record, deps) so it can be unit-tested without
+ * a real control-plane or filesystem.
  */
 export async function buildPostApprovalLifecycle(
   record: TokenIssuanceRecord,
-  fetcher: (
-    runId: string,
-  ) => Promise<ControlPlaneCompletionView | "not_configured" | "not_found"> = getCompletionView,
+  deps: BuildLifecycleDeps = {},
 ): Promise<PostApprovalLifecycleView> {
+  const fetchUpstream = deps.fetchUpstream ?? getCompletionView;
+  const fetchLatestRetry = deps.fetchLatestRetry ?? getLatestDeliveryRetryRequest;
+
   const local = buildLocal(record);
 
   if (!local.approved) {
@@ -143,6 +187,7 @@ export async function buildPostApprovalLifecycle(
       stage: "awaiting_approval",
       local,
       authoritative: null,
+      retryRequest: null,
       failureReason: null,
     };
   }
@@ -152,41 +197,95 @@ export async function buildPostApprovalLifecycle(
       stage: "handoff_pending",
       local,
       authoritative: null,
+      retryRequest: null,
       failureReason: null,
     };
   }
 
-  let upstream: ControlPlaneCompletionView | "not_configured" | "not_found";
-  try {
-    upstream = await fetcher(local.controlPlaneRunId);
-  } catch (error) {
+  // Read the local retry ledger in parallel with the upstream lifecycle
+  // so a slow control-plane does not delay surfacing retry intent.
+  const [upstreamSettled, retrySettled] = await Promise.allSettled([
+    fetchUpstream(local.controlPlaneRunId),
+    fetchLatestRetry(local.controlPlaneRunId),
+  ]);
+
+  const latestRetry =
+    retrySettled.status === "fulfilled" ? retrySettled.value : null;
+
+  const buildRetry = (recovered: boolean): PostApprovalRetryRequest | null =>
+    latestRetry
+      ? {
+          requestedAt: latestRetry.requested_at,
+          requestedBy: latestRetry.requested_by,
+          reason: latestRetry.reason,
+          recovered,
+        }
+      : null;
+
+  if (upstreamSettled.status === "rejected") {
+    const error = upstreamSettled.reason;
+    const reason =
+      error instanceof Error
+        ? `Control plane unreachable: ${error.message}`
+        : "Control plane unreachable";
+    if (latestRetry) {
+      return {
+        stage: "retry_pending",
+        local,
+        authoritative: null,
+        retryRequest: buildRetry(false)!,
+        failureReason: reason,
+      };
+    }
     return {
       stage: "failed",
       local,
       authoritative: null,
-      failureReason:
-        error instanceof Error
-          ? `Control plane unreachable: ${error.message}`
-          : "Control plane unreachable",
+      retryRequest: null,
+      failureReason: reason,
     };
   }
 
+  const upstream = upstreamSettled.value;
+
   if (upstream === "not_configured") {
+    const reason =
+      "Control plane is not configured for this deployment. Local handoff was recorded but downstream lifecycle cannot be displayed.";
+    if (latestRetry) {
+      return {
+        stage: "retry_pending",
+        local,
+        authoritative: null,
+        retryRequest: buildRetry(false)!,
+        failureReason: reason,
+      };
+    }
     return {
       stage: "failed",
       local,
       authoritative: null,
-      failureReason:
-        "Control plane is not configured for this deployment. Local handoff was recorded but downstream lifecycle cannot be displayed.",
+      retryRequest: null,
+      failureReason: reason,
     };
   }
 
   if (upstream === "not_found") {
+    const reason = `Control plane has no run ${local.controlPlaneRunId}. The handoff may not have persisted.`;
+    if (latestRetry) {
+      return {
+        stage: "retry_pending",
+        local,
+        authoritative: null,
+        retryRequest: buildRetry(false)!,
+        failureReason: reason,
+      };
+    }
     return {
       stage: "failed",
       local,
       authoritative: null,
-      failureReason: `Control plane has no run ${local.controlPlaneRunId}. The handoff may not have persisted.`,
+      retryRequest: null,
+      failureReason: reason,
     };
   }
 
@@ -200,20 +299,43 @@ export async function buildPostApprovalLifecycle(
     completion: upstream.completion,
   };
 
-  const stage = stageFromControlPlane(upstream);
-  if (stage === "failed") {
+  const baseStage = stageFromControlPlane(upstream);
+
+  // Recovery detection: a delivery whose delivered_at is later than the
+  // latest retry request means upstream advanced after the request.
+  const deliveredAt = upstream.delivery?.delivered_at ?? null;
+  const recovered = Boolean(
+    latestRetry &&
+      deliveredAt &&
+      Date.parse(deliveredAt) > Date.parse(latestRetry.requested_at),
+  );
+
+  if (baseStage === "failed") {
+    if (latestRetry && !recovered) {
+      return {
+        stage: "retry_pending",
+        local,
+        authoritative,
+        retryRequest: buildRetry(false)!,
+        failureReason: `Run is in terminal non-success state: ${upstream.state}`,
+      };
+    }
     return {
       stage: "failed",
       local,
       authoritative,
+      retryRequest: buildRetry(recovered),
       failureReason: `Run is in terminal non-success state: ${upstream.state}`,
     };
   }
 
+  // Forward stages — surface a previously-requested retry as historical
+  // recovery evidence when the run has progressed past delivery.
   return {
-    stage,
+    stage: baseStage,
     local,
     authoritative,
+    retryRequest: buildRetry(recovered),
     failureReason: null,
   };
 }

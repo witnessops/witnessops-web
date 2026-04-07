@@ -11,6 +11,12 @@ import type { PostApprovalLifecycleView, PostApprovalStage } from "@/lib/server/
 
 interface Props {
   view: PostApprovalLifecycleView;
+  /**
+   * When set, render a bounded retry-request affordance that POSTs to
+   * `/api/admin/lifecycle/{controlPlaneRunId}/retry-request`. Only the
+   * admin queue passes this in — the assessment page renders read-only.
+   */
+  retryActionEnabled?: boolean;
 }
 
 const STAGE_LABELS: Record<PostApprovalStage, string> = {
@@ -21,6 +27,7 @@ const STAGE_LABELS: Record<PostApprovalStage, string> = {
   delivered: "Delivered",
   acknowledged: "Acknowledged",
   completed: "Completed",
+  retry_pending: "Retry pending",
   failed: "Failed",
 };
 
@@ -39,6 +46,8 @@ const STAGE_DESCRIPTIONS: Record<PostApprovalStage, string> = {
     "Receipt of the delivered proof bundle has been durably acknowledged.",
   completed:
     "Engagement is complete. The closeout fact is durably recorded.",
+  retry_pending:
+    "An operator has requested a retry. This is a local intent — it does not by itself mean delivery has succeeded. Recovery will be observed from control plane.",
   failed:
     "Lifecycle is in a non-success state. See details below.",
 };
@@ -51,6 +60,7 @@ const STAGE_TONE: Record<PostApprovalStage, string> = {
   delivered: "border-emerald-900 bg-emerald-950/30 text-emerald-200",
   acknowledged: "border-emerald-900 bg-emerald-950/30 text-emerald-200",
   completed: "border-emerald-700 bg-emerald-900/40 text-emerald-100",
+  retry_pending: "border-amber-900/60 bg-amber-950/30 text-amber-200",
   failed: "border-red-900/60 bg-red-950/30 text-red-200",
 };
 
@@ -65,12 +75,16 @@ const STAGE_ORDER: PostApprovalStage[] = [
 ];
 
 function StagePill({ stage, current }: { stage: PostApprovalStage; current: PostApprovalStage }) {
-  if (current === "failed") {
-    const isFailed = stage === "failed";
+  if (current === "failed" || current === "retry_pending") {
+    const isCurrent = stage === current;
+    const tone =
+      current === "retry_pending"
+        ? "bg-amber-900/40 text-amber-200"
+        : "bg-red-900/40 text-red-200";
     return (
       <span
         className={`inline-block rounded px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider ${
-          isFailed ? "bg-red-900/40 text-red-200" : "bg-zinc-900 text-zinc-600"
+          isCurrent ? tone : "bg-zinc-900 text-zinc-600"
         }`}
       >
         {STAGE_LABELS[stage]}
@@ -95,8 +109,13 @@ function StagePill({ stage, current }: { stage: PostApprovalStage; current: Post
   );
 }
 
-export function PostApprovalLifecycle({ view }: Props) {
+export function PostApprovalLifecycle({ view, retryActionEnabled = false }: Props) {
   const { stage, local, authoritative, failureReason } = view;
+  const retryRequest = "retryRequest" in view ? view.retryRequest : null;
+  const showRetryAction =
+    retryActionEnabled &&
+    Boolean(local.controlPlaneRunId) &&
+    (stage === "failed" || stage === "retry_pending");
 
   return (
     <section
@@ -109,6 +128,9 @@ export function PostApprovalLifecycle({ view }: Props) {
         {STAGE_ORDER.filter((s) => s !== "awaiting_approval").map((s) => (
           <StagePill key={s} stage={s} current={stage} />
         ))}
+        {stage === "retry_pending" ? (
+          <StagePill stage="retry_pending" current={stage} />
+        ) : null}
         {stage === "failed" ? <StagePill stage="failed" current={stage} /> : null}
       </div>
 
@@ -137,6 +159,68 @@ export function PostApprovalLifecycle({ view }: Props) {
           <dd className="font-mono">{local.controlPlaneRunId ?? "—"}</dd>
         </dl>
       </div>
+
+      {/* Retry request — local intent, never authoritative */}
+      {retryRequest ? (
+        <div
+          data-testid="post-approval-retry-request"
+          className={`rounded border p-4 ${
+            retryRequest.recovered
+              ? "border-emerald-900/60 bg-emerald-950/20"
+              : "border-amber-900/60 bg-amber-950/20"
+          }`}
+        >
+          <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
+            Operator retry request · web only
+          </div>
+          <div className="mt-1 text-sm">
+            {retryRequest.recovered
+              ? "A retry was previously requested. Control plane has since recorded a delivery — recovery is observed authoritatively."
+              : "A retry has been requested. This intent is local and does NOT mark delivery as successful. Recovery will be observed when control plane records a new delivered_at."}
+          </div>
+          <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-zinc-300">
+            <dt className="text-zinc-500">Requested at</dt>
+            <dd className="font-mono">{retryRequest.requestedAt}</dd>
+            <dt className="text-zinc-500">Requested by</dt>
+            <dd className="font-mono break-all">{retryRequest.requestedBy}</dd>
+            <dt className="text-zinc-500">Reason</dt>
+            <dd className="font-mono">{retryRequest.reason}</dd>
+            <dt className="text-zinc-500">Recovered</dt>
+            <dd>{retryRequest.recovered ? "yes" : "no — still pending"}</dd>
+          </dl>
+        </div>
+      ) : null}
+
+      {/* Operator retry action — bounded; only on admin surface in failed/retry_pending */}
+      {showRetryAction ? (
+        <form
+          method="POST"
+          action={`/api/admin/lifecycle/${local.controlPlaneRunId}/retry-request`}
+          className="rounded border border-amber-900/60 bg-amber-950/10 p-4 space-y-2"
+          data-testid="post-approval-retry-form"
+        >
+          <div className="text-[10px] font-mono uppercase tracking-wider text-amber-300">
+            Request retry · operator only · bounded to one outstanding
+          </div>
+          <textarea
+            name="reason"
+            required
+            maxLength={500}
+            placeholder="Why is a retry being requested?"
+            className="w-full rounded border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-zinc-200"
+            rows={2}
+          />
+          <button
+            type="submit"
+            className="rounded border border-amber-700 bg-amber-900/40 px-3 py-1 text-xs font-mono text-amber-100"
+          >
+            Request retry
+          </button>
+          <div className="text-[10px] text-zinc-500">
+            Requesting a retry records intent only. It does not mark this run as delivered. Successful recovery will appear when control plane records a new delivered_at.
+          </div>
+        </form>
+      ) : null}
 
       {/* Authoritative downstream lifecycle — clearly labeled as control plane */}
       {authoritative ? (
