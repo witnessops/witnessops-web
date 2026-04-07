@@ -11,6 +11,7 @@ import {
   buildPostApprovalLifecycle,
   stageFromControlPlane,
   type BuildLifecycleDeps,
+  type PostApprovalLifecycleView,
 } from "./post-approval-lifecycle";
 import type {
   ControlPlaneCompletionView,
@@ -421,4 +422,130 @@ test("WEB-002: retry request never implies delivery success on its own", async (
   assert.equal(view.stage, "delivery_pending");
   assert.equal(view.authoritative?.delivered, false);
   assert.equal(view.retryRequest?.recovered, false);
+});
+
+// ---------------------------------------------------------------------------
+// WEB-009: admin queue retry-recovered badge predicate
+// ---------------------------------------------------------------------------
+//
+// The admin queue's per-row meta block renders a "Retry recovered" badge
+// when a forward-stage row carries a previously-requested retry that
+// control plane has since outpaced with a successful delivery. The badge
+// consumes the `recovered` flag the aggregator already computes; these
+// tests pin the predicate at the same data level the aggregator runs at,
+// without spinning up a DOM.
+//
+// The predicate must be true for: forward stages where retryRequest is
+// present and recovered === true.
+// The predicate must be false for: any non-forward stage, any forward
+// stage with recovered === false, and any stage with no retryRequest.
+
+function shouldRenderRecoveredBadge(view: PostApprovalLifecycleView): boolean {
+  // Mirror the queue's render condition exactly. If the queue ever
+  // changes shape, this predicate must change in lockstep.
+  if (
+    view.stage === "awaiting_approval" ||
+    view.stage === "handoff_pending" ||
+    view.stage === "retry_pending" ||
+    view.stage === "failed"
+  ) {
+    return false;
+  }
+  return view.retryRequest?.recovered === true;
+}
+
+test("WEB-009: badge predicate matches recovered retry on a delivered run", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(
+      async () =>
+        upstream({
+          state: "delivered",
+          delivered: true,
+          delivery: {
+            schema: "delivery_record",
+            run_id: "run_demo123",
+            bundle_id: "bundle:abc",
+            artifact_hash: "sha256:abc",
+            recipient: "claimant@example.com",
+            channel: "email",
+            delivered_at: "2026-04-07T10:00:00Z",
+          },
+        }),
+      retry({ requested_at: "2026-04-07T09:55:00Z" }),
+    ),
+  );
+  assert.equal(view.stage, "delivered");
+  assert.equal(view.retryRequest?.recovered, true);
+  assert.equal(shouldRenderRecoveredBadge(view), true);
+});
+
+test("WEB-009: badge predicate is false for a non-recovered retry on a delivered run", async () => {
+  // Operator requested a retry AFTER delivery had already landed.
+  // The aggregator does not flag this as recovered because the
+  // delivered_at predates the request_at.
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(
+      async () =>
+        upstream({
+          state: "delivered",
+          delivered: true,
+          delivery: {
+            schema: "delivery_record",
+            run_id: "run_demo123",
+            bundle_id: "bundle:abc",
+            artifact_hash: "sha256:abc",
+            recipient: "claimant@example.com",
+            channel: "email",
+            delivered_at: "2026-04-07T10:00:00Z",
+          },
+        }),
+      retry({ requested_at: "2026-04-07T11:00:00Z" }),
+    ),
+  );
+  assert.equal(view.stage, "delivered");
+  assert.equal(view.retryRequest?.recovered, false);
+  assert.equal(shouldRenderRecoveredBadge(view), false);
+});
+
+test("WEB-009: badge predicate is false on retry_pending even with retryRequest present", async () => {
+  // The retry_pending stage carries an outstanding retry by definition.
+  // It is handled by the existing failure-side <details> surface, not
+  // by the forward-stage badge.
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(async () => upstream({ state: "revoked" }), retry()),
+  );
+  assert.equal(view.stage, "retry_pending");
+  assert.ok(view.retryRequest);
+  assert.equal(shouldRenderRecoveredBadge(view), false);
+});
+
+test("WEB-009: badge predicate is false on a delivered run with no retry history", async () => {
+  // Defensive: a delivered row that never had a retry request must
+  // not render the badge.
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(
+      async () =>
+        upstream({
+          state: "delivered",
+          delivered: true,
+          delivery: {
+            schema: "delivery_record",
+            run_id: "run_demo123",
+            bundle_id: "bundle:abc",
+            artifact_hash: "sha256:abc",
+            recipient: "claimant@example.com",
+            channel: "email",
+            delivered_at: "2026-04-07T10:00:00Z",
+          },
+        }),
+      null,
+    ),
+  );
+  assert.equal(view.stage, "delivered");
+  assert.equal(view.retryRequest, null);
+  assert.equal(shouldRenderRecoveredBadge(view), false);
 });

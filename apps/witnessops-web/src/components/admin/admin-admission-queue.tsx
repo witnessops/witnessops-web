@@ -440,6 +440,39 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
               : ""}
           </span>
         ) : null}
+        {/*
+          WEB-009: surface a forward-stage row whose previously-requested
+          retry has since been outpaced by a successful delivery in
+          control plane. The aggregator computes `recovered` by comparing
+          `requested_at` to upstream `delivered_at`; this badge consumes
+          that derived flag without re-deriving it.
+
+          Render condition:
+            - lifecycle is present
+            - the row is in a forward stage that carries an optional
+              retryRequest (handoff_accepted / delivery_pending /
+              delivered / acknowledged / completed)
+            - retryRequest exists
+            - retryRequest.recovered === true
+
+          The retry_pending and failed stages handle their own UX via
+          the existing collapsible <details> block below; this badge
+          is forward-stage only.
+        */}
+        {lifecycle &&
+        lifecycle.stage !== "awaiting_approval" &&
+        lifecycle.stage !== "handoff_pending" &&
+        lifecycle.stage !== "retry_pending" &&
+        lifecycle.stage !== "failed" &&
+        lifecycle.retryRequest?.recovered === true ? (
+          <span
+            data-testid="post-approval-retry-recovered"
+            title={`Retry requested ${lifecycle.retryRequest.requestedAt} by ${lifecycle.retryRequest.requestedBy}; control plane recorded a later delivery`}
+          >
+            <span className={styles.queueMetaLabel}>Retry</span>
+            recovered
+          </span>
+        ) : null}
         {row.responseActor ? (
           <span>
             <span className={styles.queueMetaLabel}>Actor</span>
