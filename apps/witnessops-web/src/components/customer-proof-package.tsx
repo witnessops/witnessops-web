@@ -1,9 +1,9 @@
 /**
- * Customer-facing proof package surface (WEB-013).
+ * Customer-facing proof package surface (WEB-013 / WEB-016).
  *
  * Read-only render of a delivered proof package: identity, delivery facts,
- * and current acceptance disposition (if any). No accept/reject controls —
- * those land in WEB-014.
+ * acceptance disposition (if any), and a finality notice for terminal stages.
+ * No accept/reject controls — those land in WEB-014.
  */
 import type { CustomerProofPackageView } from "@/lib/server/customer-proof-package";
 
@@ -145,6 +145,9 @@ export function CustomerProofPackage({
                 <div className="text-xs text-zinc-200 font-mono break-all">
                   {view.disposition.receipt.receiptHash}
                 </div>
+                <div className="mt-1 text-[10px] text-zinc-600">
+                  This hash seals the disposition fields above.
+                </div>
               </div>
             ) : null}
           </dl>
@@ -154,6 +157,17 @@ export function CustomerProofPackage({
           </div>
         )}
       </div>
+      {(view.stage === "accepted" || view.stage === "rejected") ? (
+        <div
+          data-testid="package-closed"
+          data-disposition={view.stage}
+          className="rounded border border-zinc-800 bg-zinc-950/60 px-4 py-3 text-sm text-zinc-400"
+        >
+          This package has been{" "}
+          <span className="text-zinc-200">{view.stage}</span>. No further
+          action is required. The record is append-only and cannot be modified.
+        </div>
+      ) : null}
     </section>
   );
 }
