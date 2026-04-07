@@ -631,3 +631,151 @@ test("WEB-005: reopen route returns 200 on retract clearance", async () => {
   );
   assert.equal(r.status, 200);
 });
+
+// ---------------------------------------------------------------------------
+// WEB-010: co-existing claimant + operator action visibility predicates
+// ---------------------------------------------------------------------------
+//
+// The new co-existing-action footers in the assessment page and the
+// admin queue render based on simple boolean predicates over the
+// issuance + intake state. These tests pin those predicates at the
+// data layer, mirroring the WEB-009 co-located-predicate pattern, so
+// the rendering logic and the test contract cannot drift apart.
+
+import {
+  getIntakeById as _getIntakeById,
+  getIssuanceById as _getIssuanceById,
+} from "./token-store";
+
+/**
+ * Mirrors the assessment page (page.tsx) operator-reject banner's
+ * `record.claimantAction?.kind` cross-banner check exactly. Returns
+ * true when a co-existing claimant retract or disagree should be
+ * surfaced inside the red operator-reject banner.
+ */
+function shouldShowCoexistingClaimantOnOperatorBanner(
+  issuance: TokenIssuanceRecord | null,
+): boolean {
+  const k = issuance?.claimantAction?.kind;
+  return k === "retract" || k === "disagree";
+}
+
+/**
+ * Mirrors the claimant-actions-form (claimant-actions-form.tsx)
+ * `props.operatorRejectInForce` evaluation in the page. Returns true
+ * when the operator-side reject is in force and the claimant terminal
+ * banner should carry the co-existing-action footer.
+ */
+function shouldShowCoexistingOperatorOnClaimantBanner(
+  intakeOperatorActionKind: "reject" | "request_clarification" | undefined,
+  approvalStatus: TokenIssuanceRecord["approvalStatus"],
+): boolean {
+  return (
+    intakeOperatorActionKind === "reject" || approvalStatus === "approval_denied"
+  );
+}
+
+test("WEB-010: assessment-page predicate flags claimant retract under operator reject", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web010-retract-"));
+  const issued = await issueVerifiedToken(baseDir);
+  // Stage: claimant retracts, then operator rejects (chronology
+  // does not matter; the page reads current state).
+  await retractClaimantEngagement({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Out",
+  });
+  const { rejectIntakeAsOperator } = await import("./operator-actions");
+  await rejectIntakeAsOperator({
+    intakeId: (await _getIssuanceById(issued.issuanceId))!.intakeId!,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+
+  const issuance = await _getIssuanceById(issued.issuanceId);
+  assert.equal(shouldShowCoexistingClaimantOnOperatorBanner(issuance), true);
+});
+
+test("WEB-010: assessment-page predicate flags claimant disagree under operator reject", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web010-disagree-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await disagreeWithClaimantScope({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Wrong methods",
+  });
+  const { rejectIntakeAsOperator } = await import("./operator-actions");
+  await rejectIntakeAsOperator({
+    intakeId: (await _getIssuanceById(issued.issuanceId))!.intakeId!,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+
+  const issuance = await _getIssuanceById(issued.issuanceId);
+  assert.equal(shouldShowCoexistingClaimantOnOperatorBanner(issuance), true);
+});
+
+test("WEB-010: assessment-page predicate is false when only operator-reject (no claimant action)", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web010-reject-only-"));
+  const issued = await issueVerifiedToken(baseDir);
+  const { rejectIntakeAsOperator } = await import("./operator-actions");
+  await rejectIntakeAsOperator({
+    intakeId: (await _getIssuanceById(issued.issuanceId))!.intakeId!,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+
+  const issuance = await _getIssuanceById(issued.issuanceId);
+  assert.equal(shouldShowCoexistingClaimantOnOperatorBanner(issuance), false);
+});
+
+test("WEB-010: assessment-page predicate is false on claimant amend (non-terminal)", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web010-amend-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await amendClaimantScope({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Tightening",
+    amendedScope: "Passive-only",
+  });
+  const issuance = await _getIssuanceById(issued.issuanceId);
+  assert.equal(shouldShowCoexistingClaimantOnOperatorBanner(issuance), false);
+});
+
+test("WEB-010: claimant-banner predicate flags operator-reject in force", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web010-claimant-side-"));
+  const issued = await issueVerifiedToken(baseDir);
+  const { rejectIntakeAsOperator } = await import("./operator-actions");
+  await rejectIntakeAsOperator({
+    intakeId: (await _getIssuanceById(issued.issuanceId))!.intakeId!,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+  const intake = await _getIntakeById(
+    (await _getIssuanceById(issued.issuanceId))!.intakeId!,
+  );
+  const issuance = await _getIssuanceById(issued.issuanceId);
+  assert.equal(
+    shouldShowCoexistingOperatorOnClaimantBanner(
+      intake?.operatorAction?.kind,
+      issuance?.approvalStatus,
+    ),
+    true,
+  );
+});
+
+test("WEB-010: claimant-banner predicate is false on a clean run", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web010-clean-"));
+  const issued = await issueVerifiedToken(baseDir);
+  const intake = await _getIntakeById(
+    (await _getIssuanceById(issued.issuanceId))!.intakeId!,
+  );
+  const issuance = await _getIssuanceById(issued.issuanceId);
+  assert.equal(
+    shouldShowCoexistingOperatorOnClaimantBanner(
+      intake?.operatorAction?.kind,
+      issuance?.approvalStatus,
+    ),
+    false,
+  );
+});

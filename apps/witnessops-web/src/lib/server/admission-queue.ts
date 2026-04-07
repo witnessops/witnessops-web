@@ -105,6 +105,15 @@ export interface AdmissionQueueRow {
   operatorActionKind:
     | import("./token-store").OperatorActionRecord["kind"]
     | null;
+  /**
+   * Claimant-side action kind recorded against the issuance (WEB-003 / WEB-005).
+   * Surfaces retract / disagree / amend so the admin queue can show
+   * a co-existing claimant block alongside any operator-side state.
+   * Set to null when no claimant action is on the issuance.
+   */
+  claimantActionKind:
+    | import("./token-store").ClaimantActionRecord["kind"]
+    | null;
   snapshotState: AdmissionState | null;
   submission: IntakeSubmissionRecord;
   firstResponseSubject: string | null;
@@ -583,6 +592,7 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       assessmentRunId: issuance?.assessmentRunId ?? null,
       controlPlaneRunId: issuance?.controlPlaneRunId ?? null,
       operatorActionKind: snapshot?.operatorAction?.kind ?? null,
+      claimantActionKind: issuance?.claimantAction?.kind ?? null,
       snapshotState: snapshot?.state ?? null,
       submission: snapshot?.submission ?? {},
       firstResponseSubject: firstResponse?.subject ?? null,
@@ -703,6 +713,7 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       assessmentRunId: issuance?.assessmentRunId ?? null,
       controlPlaneRunId: issuance?.controlPlaneRunId ?? null,
       operatorActionKind: snapshot?.operatorAction?.kind ?? null,
+      claimantActionKind: issuance?.claimantAction?.kind ?? null,
       snapshotState: snapshot.state,
       submission: snapshot.submission,
       firstResponseSubject: firstResponse?.subject ?? null,

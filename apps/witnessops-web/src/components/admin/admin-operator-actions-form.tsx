@@ -30,6 +30,15 @@ interface Props {
    * cannot stack multiple pending requests; reject remains available.
    */
   pendingClarification: boolean;
+  /**
+   * WEB-010: true when a claimant terminal action (retract or
+   * disagree) is also blocking approval on this intake. The operator
+   * affordances remain available — operators can still take their
+   * own actions — but a footer line is rendered so the operator sees
+   * the co-existing block before clicking rescind, and does not
+   * incorrectly believe rescinding alone will unblock approval.
+   */
+  claimantActionBlocking?: boolean;
 }
 
 type Mode = "reject" | "request_clarification" | null;
@@ -155,6 +164,16 @@ export function AdminOperatorActionsForm(props: Props) {
         className={styles.queueWarning}
       >
         Intake has been rejected by an operator. Approval is blocked.
+        {props.claimantActionBlocking ? (
+          <div
+            className="mt-1 text-[10px] text-amber-300"
+            data-testid="coexisting-claimant-action-note"
+          >
+            A claimant action is also blocking approval. Rescinding the
+            rejection will not unblock by itself — the claimant must
+            also reopen their action.
+          </div>
+        ) : null}
         <OperatorRescindAffordance intakeId={props.intakeId} />
       </div>
     );
@@ -213,6 +232,17 @@ export function AdminOperatorActionsForm(props: Props) {
 
   return (
     <div className={styles.queueActionPanel} data-testid="operator-actions-form">
+      {props.claimantActionBlocking ? (
+        <div
+          className="mb-2 rounded border border-amber-900/60 bg-amber-950/20 p-2 text-[11px] text-amber-200"
+          data-testid="coexisting-claimant-action-note"
+        >
+          A claimant terminal action (retract or disagree) is currently
+          blocking approval. Operator actions remain available, but
+          rejecting or rescinding alone will not change the
+          claimant-side block — only the claimant can clear it.
+        </div>
+      ) : null}
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
