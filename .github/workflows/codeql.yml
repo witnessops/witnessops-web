@@ -1,0 +1,51 @@
+# CodeQL code scanning for witnessops-web.
+#
+# This workflow exists in version control so the repo's CI is
+# reviewable in PRs and reproducible from source. Before this file
+# landed, the same CodeQL behavior was running through GitHub's
+# default code scanning, configured only via the project UI
+# (workflow path: dynamic/github-code-scanning/codeql). When a
+# committed CodeQL workflow exists, GitHub's default scanning
+# auto-disables for the repo and this file becomes the source of
+# truth.
+#
+# This workflow is intentionally a 1:1 capture of the previous
+# effective behavior. It does NOT introduce any new gate (no
+# `pnpm test`, no `pnpm typecheck`, no `pnpm lint`, no build job).
+# Adding test runners is tracked separately as a follow-on lane.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly Monday 06:00 UTC, matching GitHub default scanning cadence.
+    - cron: "0 6 * * 1"
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
