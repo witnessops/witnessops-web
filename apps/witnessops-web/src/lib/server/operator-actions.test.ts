@@ -671,3 +671,144 @@ test("WEB-006: existing reject from verified state still works (regression guard
   });
   assert.equal(result.state, "rejected");
 });
+
+// ---------------------------------------------------------------------------
+// WEB-012: API parallel for co-existing claimant block on rescind
+// ---------------------------------------------------------------------------
+//
+// rescindOperatorRejection now returns an optional
+// `coexistingClaimantBlock` field when a claimant terminal action
+// (retract or disagree) remains in force after the rescind. This is
+// the API-consumer parallel to the WEB-010 UI visibility surface.
+// CLIs / scripts / programmatic callers can read this field to know
+// that approval is still blocked from the claimant side even though
+// the operator-side state has just been cleared.
+
+import {
+  amendClaimantScope,
+  disagreeWithClaimantScope,
+  retractClaimantEngagement,
+} from "./claimant-actions";
+
+test("WEB-012: rescind on a clean run returns no coexistingClaimantBlock", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web012-clean-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await rejectIntakeAsOperator({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+  const result = await rescindOperatorRejection({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Reviewed; original was wrong",
+  });
+  assert.equal(result.blocksApproval, false);
+  assert.equal(result.coexistingClaimantBlock, undefined);
+});
+
+test("WEB-012: rescind with co-existing claimant retract returns kind retract", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web012-retract-"));
+  const issued = await issueVerifiedToken(baseDir);
+  // Stage: claimant retracts first, then operator rejects.
+  await retractClaimantEngagement({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Claimant out",
+  });
+  await rejectIntakeAsOperator({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+  // Now rescind the operator action. Claimant retract is still in force.
+  const result = await rescindOperatorRejection({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Reviewed; original was wrong",
+  });
+  assert.equal(result.blocksApproval, false);
+  assert.deepEqual(result.coexistingClaimantBlock, { kind: "retract" });
+});
+
+test("WEB-012: rescind with co-existing claimant disagree returns kind disagree", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web012-disagree-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await disagreeWithClaimantScope({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Wrong methods",
+  });
+  await rejectIntakeAsOperator({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+  const result = await rescindOperatorRejection({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Reviewed; original was wrong",
+  });
+  assert.equal(result.blocksApproval, false);
+  assert.deepEqual(result.coexistingClaimantBlock, { kind: "disagree" });
+});
+
+test("WEB-012: rescind with claimant amend (non-terminal) returns no coexistingClaimantBlock", async () => {
+  // Defensive: amend is non-terminal and does NOT block approval, so
+  // it must NOT be reported as a co-existing block on the rescind
+  // result. Otherwise an API consumer would treat amend as if it
+  // were as blocking as retract or disagree.
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web012-amend-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await amendClaimantScope({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Tightening",
+    amendedScope: "Passive-only on www.example.com",
+  });
+  await rejectIntakeAsOperator({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+  const result = await rescindOperatorRejection({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Reviewed; original was wrong",
+  });
+  assert.equal(result.blocksApproval, false);
+  assert.equal(result.coexistingClaimantBlock, undefined);
+});
+
+test("WEB-012: rescind result is JSON-serialisable into the route envelope shape", async () => {
+  // The rescind route serialises the result via
+  // `NextResponse.json({ ok: true, ...result })`. This test pins the
+  // exact shape that spread produces — the same shape an API consumer
+  // sees on the wire — without invoking the route handler itself
+  // (which requires admin-session plumbing that the existing route
+  // tests in this suite already cover for the auth side via NextRequest).
+  //
+  // The assertion proves: (1) coexistingClaimantBlock survives the
+  // spread, (2) `ok: true` is the envelope key, (3) the field name
+  // and value match what API consumers parse downstream.
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web012-envelope-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await disagreeWithClaimantScope({
+    issuanceId: issued.issuanceId,
+    email: issued.email,
+    reason: "Wrong methods",
+  });
+  await rejectIntakeAsOperator({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+  const result = await rescindOperatorRejection({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Reviewed",
+  });
+  const wouldSerialise = { ok: true, ...result };
+  assert.equal(wouldSerialise.ok, true);
+  assert.deepEqual(wouldSerialise.coexistingClaimantBlock, { kind: "disagree" });
+});
