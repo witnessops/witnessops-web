@@ -37,6 +37,7 @@ import { renderVerificationEmail } from "./token-email-template";
 import { sendVerificationEmail } from "./send-verification-email";
 import { triggerAssessment } from "./assessment-client";
 import { notifyScopeApproved } from "./control-plane-client";
+import { claimantActionBlocksApproval } from "./claimant-actions";
 import { appendIntakeEvent } from "./intake-event-ledger";
 
 type VerificationChannel = Exclude<ChannelName, "noreply">;
@@ -520,6 +521,15 @@ export async function approveScopeAndStartRecon(
 
   if (originalIssuance.status !== "verified") {
     throw new Error("Issuance must be verified before scope approval.");
+  }
+
+  // WEB-003: a prior claimant retract / disagree blocks approval until
+  // the engagement is re-opened. Amend does not block.
+  const blocking = claimantActionBlocksApproval(originalIssuance);
+  if (blocking.blocked) {
+    throw new Error(
+      `Scope approval is blocked because the claimant has ${blocking.kind === "retract" ? "retracted the engagement" : "disagreed with the proposed scope"}.`,
+    );
   }
 
   const approvedAt = nowIso();

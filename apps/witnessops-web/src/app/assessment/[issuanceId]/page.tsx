@@ -6,6 +6,7 @@ import { buildPostApprovalLifecycle } from "@/lib/server/post-approval-lifecycle
 import { PostApprovalLifecycle } from "@/components/post-approval-lifecycle";
 import { AssessmentPoller } from "./assessment-poller";
 import { ScopeApprovalForm } from "./scope-approval-form";
+import { ClaimantActionsForm } from "./claimant-actions-form";
 
 export const metadata: Metadata = {
   title: "Governed Recon",
@@ -102,6 +103,16 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
             approverName={record.approverName ?? null}
             approvalNote={record.approvalNote ?? null}
           />
+          {approvalStatus !== "approved" ? (
+            <div className="mt-4">
+              <ClaimantActionsForm
+                issuanceId={issuanceId}
+                email={email}
+                scopeDraft={intake?.submission.scope ?? null}
+                claimantAction={record.claimantAction ?? null}
+              />
+            </div>
+          ) : null}
         </div>
 
         {/* Authorization summary — bridges scope approval to results */}
