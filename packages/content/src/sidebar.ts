@@ -117,6 +117,11 @@ const OFFSEC_DOCS_LAYERS: Array<{
     items: [
       { kind: "doc", href: "/docs/reference" },
       { kind: "doc", href: "/docs/reference/commands" },
+      {
+        kind: "doc",
+        href: "/docs/reference/proof-artifact-classes",
+        title: "Proof Artifact Classes",
+      },
       { kind: "doc", href: "/docs/integrations" },
       { kind: "doc", href: "/docs/integrations/witnessops-catalog" },
       { kind: "doc", href: "/docs/evidence/receipt-spec" },

@@ -1,0 +1,55 @@
+---
+title: "Proof Artifact Classes"
+description: "Current WitnessOps artifact names, authorities, and status across live docs, app surfaces, and retained-reference material."
+section: "docs"
+order: 2
+nav_label: "Proof Artifact Classes"
+draft: false
+---
+
+# Proof Artifact Classes
+
+This page normalizes current artifact names used across WitnessOps public docs, app surfaces, and retained-reference verifier/corpus material.
+
+It is a vocabulary map, not a future-state ontology. It names only classes evidenced in current local repos. Planned or disputed classes stay out until a local lane freezes them.
+
+## Purpose
+
+- keep live/public terms separate from retained-reference/corpus terms
+- show which repo or lane currently owns each class
+- reduce semantic drift when delivery, evidence, and verification docs refer to the same artifacts
+
+## Current artifact classes
+
+| Class | Current owner / authority | What it is | Status | Notes |
+| --- | --- | --- | --- | --- |
+| `receipt` | WitnessOps receipt lane and public docs | Atomic proof statement about a governed event | live / public | Current public starting point for governed evidence. |
+| `proof bundle` | WitnessOps public docs plus proof-bundle verification lanes | Portable package carrying receipt material and surrounding trust artifacts | live / public term | The delivered object named in current delivery planning remains the existing proof bundle. |
+| `manifest` | Proof-bundle verification lanes and retained-reference corpus | File inventory and digest declaration for a proof bundle | current verifier / bundle term | Used in bundle verification and retained-reference corpus cases. |
+| `verification result` | Current verifier surfaces | Output object or status returned by current verification flows | live output term | Current result vocabulary centers on `valid`, `invalid`, and `indeterminate`. |
+| `witness record` | Retained-reference verifier / corpus | Witness artifact declared in some retained-reference bundles | retained-reference / corpus class | Evidence of current corpus vocabulary, not a blanket live-web contract promise. |
+| `runtime trace` | Retained-reference verifier / corpus | Supplemental runtime artifact referenced by some retained-reference bundles | retained-reference / corpus class | Present in retained-reference bundles; not frozen here as a first-class live public artifact. |
+| `proof-object` | Retained-reference verifier / corpus | Specific artifact type used in retained-reference bundle fixtures | retained-reference / corpus class | Do not equate this corpus artifact type with the generic prose phrase "proof object" unless a local lane freezes that equivalence. |
+
+## Status by class
+
+- `live / public`: `receipt`, `proof bundle`, `verification result`
+- `current verifier / bundle term`: `manifest`
+- `retained-reference / corpus class`: `witness record`, `runtime trace`, `proof-object`
+- `planned, not live`: `delivery record`, `acknowledgment`
+
+Status here reflects current local repo evidence. It does not imply that retained-reference classes are promised by every live WitnessOps surface.
+
+## Planned but not live
+
+| Class | Proposed owner / authority | What it would mean | Current status | Notes |
+| --- | --- | --- | --- | --- |
+| `delivery record` | `witnessops-control-plane` | Durable control-plane fact binding `run_id`, `bundle_id`, `artifact_hash`, recipient, channel, and timestamp | planned in `ENG-014` | Not live until the delivery lane is implemented. |
+| `acknowledgment` | `witnessops-control-plane` | Recorded post-delivery status over the same delivery fact | planned in `ENG-014` | Lane 1 treats acknowledgment as delivery state, not as a separate frozen artifact class. |
+
+## Non-Goals
+
+- This page does not freeze a full proof-object ontology.
+- It does not define dispute capsule, appeal docket, authority snapshot, warrant, or other future classes.
+- It does not modify canonical verification, legacy JSON structural verification, or tier-1 receipt verification semantics.
+- It does not override repo-specific contracts or implementation lanes.
