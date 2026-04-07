@@ -15,6 +15,7 @@ import {
 } from "./post-approval-lifecycle";
 import type {
   ControlPlaneCompletionView,
+  ControlPlaneCustomerAcceptanceRecord,
   ControlPlaneRunState,
 } from "./control-plane-client";
 import type { TokenIssuanceRecord } from "./token-store";
@@ -56,10 +57,31 @@ function upstream(
 function deps(
   fetchUpstream: BuildLifecycleDeps["fetchUpstream"],
   latestRetry: DeliveryRetryRequestRecord | null = null,
+  acceptance:
+    | ControlPlaneCustomerAcceptanceRecord
+    | "not_found"
+    | "not_configured" = "not_found",
 ): BuildLifecycleDeps {
   return {
     fetchUpstream,
     fetchLatestRetry: async () => latestRetry,
+    fetchAcceptance: async () => acceptance,
+  };
+}
+
+function acceptanceRecord(
+  overrides: Partial<ControlPlaneCustomerAcceptanceRecord> = {},
+): ControlPlaneCustomerAcceptanceRecord {
+  return {
+    schema: "customer_acceptance_record",
+    run_id: "run_demo123",
+    disposition: "accepted",
+    accepted_by: "customer@example.com",
+    accepted_at: "2026-04-07T10:30:00Z",
+    bundle_id: "bundle_abc",
+    artifact_hash: "sha256:deadbeef",
+    comment: null,
+    ...overrides,
   };
 }
 
@@ -548,4 +570,134 @@ test("WEB-009: badge predicate is false on a delivered run with no retry history
   assert.equal(view.stage, "delivered");
   assert.equal(view.retryRequest, null);
   assert.equal(shouldRenderRecoveredBadge(view), false);
+});
+
+// ---------------------------------------------------------------------------
+// WEB-017: customer acceptance observability
+// ---------------------------------------------------------------------------
+
+test("WEB-017: stageFromControlPlane: accepted CP state -> accepted stage", () => {
+  assert.equal(
+    stageFromControlPlane(
+      upstream({ state: "accepted", delivered: true, acknowledged: true }),
+    ),
+    "accepted",
+  );
+});
+
+test("WEB-017: stageFromControlPlane: rejected CP state -> rejected stage", () => {
+  assert.equal(
+    stageFromControlPlane(
+      upstream({ state: "rejected", delivered: true, acknowledged: true }),
+    ),
+    "rejected",
+  );
+});
+
+test("WEB-017: accepted CP state takes precedence over acknowledged=true", () => {
+  // acknowledged=true would previously cause stageFromControlPlane to return
+  // "acknowledged" before WEB-017 fixed the ordering.
+  const stage = stageFromControlPlane(
+    upstream({ state: "accepted", delivered: true, acknowledged: true }),
+  );
+  assert.equal(stage, "accepted");
+  assert.notEqual(stage, "acknowledged");
+});
+
+test("WEB-017: buildPostApprovalLifecycle returns accepted stage with acceptance facts", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(
+      async () =>
+        upstream({ state: "accepted", delivered: true, acknowledged: true }),
+      null,
+      acceptanceRecord(),
+    ),
+  );
+  assert.equal(view.stage, "accepted");
+  assert.ok(view.authoritative);
+  assert.equal(view.authoritative.customerAcceptanceDisposition, "accepted");
+  assert.equal(view.authoritative.customerAcceptanceAt, "2026-04-07T10:30:00Z");
+});
+
+test("WEB-017: buildPostApprovalLifecycle returns rejected stage with acceptance facts", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(
+      async () =>
+        upstream({ state: "rejected", delivered: true, acknowledged: true }),
+      null,
+      acceptanceRecord({ disposition: "rejected" }),
+    ),
+  );
+  assert.equal(view.stage, "rejected");
+  assert.ok(view.authoritative);
+  assert.equal(view.authoritative.customerAcceptanceDisposition, "rejected");
+});
+
+test("WEB-017: acceptance not_found yields null disposition fields without error", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(
+      async () =>
+        upstream({ state: "accepted", delivered: true, acknowledged: true }),
+      null,
+      "not_found",
+    ),
+  );
+  assert.equal(view.stage, "accepted");
+  assert.ok(view.authoritative);
+  assert.equal(view.authoritative.customerAcceptanceDisposition, null);
+  assert.equal(view.authoritative.customerAcceptanceAt, null);
+});
+
+test("WEB-017: acceptance not_configured yields null disposition fields without error", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(
+      async () =>
+        upstream({ state: "accepted", delivered: true, acknowledged: true }),
+      null,
+      "not_configured",
+    ),
+  );
+  assert.equal(view.stage, "accepted");
+  assert.ok(view.authoritative);
+  assert.equal(view.authoritative.customerAcceptanceDisposition, null);
+});
+
+test("WEB-017: accepted CP state with acceptance fetch rejection yields null gracefully", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    {
+      fetchUpstream: async () =>
+        upstream({ state: "accepted", delivered: true, acknowledged: true }),
+      fetchLatestRetry: async () => null,
+      fetchAcceptance: async () => {
+        throw new Error("network timeout");
+      },
+    },
+  );
+  assert.equal(view.stage, "accepted");
+  assert.ok(view.authoritative);
+  assert.equal(view.authoritative.customerAcceptanceDisposition, null);
+});
+
+test("WEB-017: forward stage (acknowledged) with acceptance record surfaces disposition", async () => {
+  // When CP state is still acknowledged (not yet accepted at CP level),
+  // but an acceptance record exists, the stage is acknowledged but
+  // the disposition facts are still surfaced in authoritative.
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(
+      async () =>
+        upstream({ state: "acknowledged", delivered: true, acknowledged: true }),
+      null,
+      acceptanceRecord(),
+    ),
+  );
+  assert.equal(view.stage, "acknowledged");
+  assert.ok(view.authoritative);
+  assert.equal(view.authoritative.customerAcceptanceDisposition, "accepted");
+  assert.equal(view.authoritative.customerAcceptanceAt, "2026-04-07T10:30:00Z");
 });

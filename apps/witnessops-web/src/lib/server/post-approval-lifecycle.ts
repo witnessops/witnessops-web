@@ -1,5 +1,5 @@
 /**
- * Post-approval lifecycle aggregator (WEB-001).
+ * Post-approval lifecycle aggregator (WEB-001 / WEB-017).
  *
  * Builds a discriminated view of the downstream lifecycle for a single
  * issuance by combining LOCAL handoff metadata (from token-store) with
@@ -8,14 +8,16 @@
  * renderers can show users which facts came from where.
  *
  * Web is read-only here. Nothing in this module mutates control-plane
- * state — delivered / acknowledged / completed remain control-plane
- * authority (CP-001 / CP-002).
+ * state — delivered / acknowledged / completed / accepted / rejected
+ * remain control-plane authority (CP-001 / CP-002 / CP-003).
  */
 
 import {
   type ControlPlaneCompletionView,
+  type ControlPlaneCustomerAcceptanceRecord,
   type ControlPlaneRunState,
   getCompletionView,
+  getCustomerAcceptance,
 } from "./control-plane-client";
 import {
   type DeliveryRetryRequestRecord,
@@ -26,7 +28,8 @@ import type { TokenIssuanceRecord } from "./token-store";
 /**
  * The user-facing lifecycle stages, in order. These are the only stages
  * the assessment and admin surfaces are required to distinguish under
- * WEB-001's acceptance criteria.
+ * WEB-001's acceptance criteria. WEB-017 adds `accepted` and `rejected`
+ * to reflect customer acceptance disposition from CP-003.
  */
 export type PostApprovalStage =
   | "awaiting_approval"
@@ -35,6 +38,8 @@ export type PostApprovalStage =
   | "delivery_pending"
   | "delivered"
   | "acknowledged"
+  | "accepted"
+  | "rejected"
   | "completed"
   | "retry_pending"
   | "failed";
@@ -61,6 +66,13 @@ export interface PostApprovalAuthoritative {
   completed: boolean;
   delivery: ControlPlaneCompletionView["delivery"];
   completion: ControlPlaneCompletionView["completion"];
+  /**
+   * Customer acceptance disposition from CP-003 (WEB-017).
+   * Null when no acceptance record exists or the fetch was skipped/failed.
+   */
+  customerAcceptanceDisposition: "accepted" | "rejected" | null;
+  /** ISO timestamp of the customer acceptance event, if disposition is set. */
+  customerAcceptanceAt: string | null;
 }
 
 /**
@@ -104,6 +116,8 @@ export type PostApprovalLifecycleView =
         | "delivery_pending"
         | "delivered"
         | "acknowledged"
+        | "accepted"
+        | "rejected"
         | "completed";
       local: PostApprovalLocalHandoff;
       authoritative: PostApprovalAuthoritative;
@@ -153,6 +167,10 @@ export function stageFromControlPlane(
   if (view.state === "revoked" || view.state === "failed") {
     return "failed";
   }
+  // Customer acceptance takes precedence over acknowledged — these are
+  // terminal states from CP-003 that follow acknowledged.
+  if (view.state === "accepted") return "accepted";
+  if (view.state === "rejected") return "rejected";
   if (view.completed) return "completed";
   if (view.acknowledged) return "acknowledged";
   if (view.delivered) return "delivered";
@@ -165,6 +183,16 @@ export interface BuildLifecycleDeps {
     runId: string,
   ) => Promise<ControlPlaneCompletionView | "not_configured" | "not_found">;
   fetchLatestRetry?: (runId: string) => Promise<DeliveryRetryRequestRecord | null>;
+  /**
+   * Optional override for fetching customer acceptance (WEB-017).
+   * Defaults to `getCustomerAcceptance`. Absence or failure is silent —
+   * the fields land as null rather than propagating errors.
+   */
+  fetchAcceptance?: (
+    runId: string,
+  ) => Promise<
+    ControlPlaneCustomerAcceptanceRecord | "not_configured" | "not_found"
+  >;
 }
 
 /**
@@ -179,6 +207,7 @@ export async function buildPostApprovalLifecycle(
 ): Promise<PostApprovalLifecycleView> {
   const fetchUpstream = deps.fetchUpstream ?? getCompletionView;
   const fetchLatestRetry = deps.fetchLatestRetry ?? getLatestDeliveryRetryRequest;
+  const fetchAcceptance = deps.fetchAcceptance ?? getCustomerAcceptance;
 
   const local = buildLocal(record);
 
@@ -202,15 +231,26 @@ export async function buildPostApprovalLifecycle(
     };
   }
 
-  // Read the local retry ledger in parallel with the upstream lifecycle
-  // so a slow control-plane does not delay surfacing retry intent.
-  const [upstreamSettled, retrySettled] = await Promise.allSettled([
-    fetchUpstream(local.controlPlaneRunId),
-    fetchLatestRetry(local.controlPlaneRunId),
-  ]);
+  // Read the local retry ledger, the upstream lifecycle, and the
+  // customer acceptance record in parallel.
+  const [upstreamSettled, retrySettled, acceptanceSettled] =
+    await Promise.allSettled([
+      fetchUpstream(local.controlPlaneRunId),
+      fetchLatestRetry(local.controlPlaneRunId),
+      fetchAcceptance(local.controlPlaneRunId),
+    ]);
 
   const latestRetry =
     retrySettled.status === "fulfilled" ? retrySettled.value : null;
+
+  // Acceptance is read gracefully — not_found, not_configured, or a
+  // fetch failure all result in null. Never blocks the lifecycle view.
+  const acceptanceRecord =
+    acceptanceSettled.status === "fulfilled" &&
+    acceptanceSettled.value !== "not_found" &&
+    acceptanceSettled.value !== "not_configured"
+      ? acceptanceSettled.value
+      : null;
 
   const buildRetry = (recovered: boolean): PostApprovalRetryRequest | null =>
     latestRetry
@@ -297,6 +337,8 @@ export async function buildPostApprovalLifecycle(
     completed: upstream.completed,
     delivery: upstream.delivery,
     completion: upstream.completion,
+    customerAcceptanceDisposition: acceptanceRecord?.disposition ?? null,
+    customerAcceptanceAt: acceptanceRecord?.accepted_at ?? null,
   };
 
   const baseStage = stageFromControlPlane(upstream);
