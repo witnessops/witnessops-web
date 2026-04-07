@@ -190,11 +190,31 @@ export function getAdmissionStoreDir(): string {
   );
 }
 
+/**
+ * Whitelist for record identifiers used to build filesystem paths.
+ *
+ * Restricting to `[A-Za-z0-9_-]+` blocks every path-traversal vector
+ * (no `/`, `\`, `..`, or NUL) without changing the IDs the rest of the
+ * system actually generates (`intk_<hex>`, `iss_<hex>`). Any caller
+ * passing a malformed identifier — including HTTP request bodies that
+ * reach `getIntakeById` / `getIssuanceById` — is rejected before the
+ * path is constructed.
+ */
+const SAFE_RECORD_ID_RE = /^[A-Za-z0-9_-]+$/;
+
+function assertSafeRecordId(id: string, kind: "intake" | "issuance"): void {
+  if (typeof id !== "string" || !SAFE_RECORD_ID_RE.test(id)) {
+    throw new Error(`Invalid ${kind} id`);
+  }
+}
+
 function intakePath(intakeId: string): string {
+  assertSafeRecordId(intakeId, "intake");
   return path.join(getAdmissionStoreDir(), "intakes", `${intakeId}.json`);
 }
 
 function issuancePath(issuanceId: string): string {
+  assertSafeRecordId(issuanceId, "issuance");
   return path.join(getAdmissionStoreDir(), "issuances", `${issuanceId}.json`);
 }
 
