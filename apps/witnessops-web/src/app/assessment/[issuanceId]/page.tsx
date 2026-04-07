@@ -118,6 +118,24 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
                   ) : null}
                 </>
               ) : null}
+              {/*
+                WEB-010: when an operator reject AND a terminal claimant
+                action are both in force, surface the co-existing claimant
+                block on this banner so the operator's rescind path does
+                not appear to be the only thing blocking approval.
+              */}
+              {record.claimantAction?.kind === "retract" ||
+              record.claimantAction?.kind === "disagree" ? (
+                <div
+                  data-testid="coexisting-claimant-action-note"
+                  className="mt-3 rounded border border-red-900/60 bg-black/30 p-2 text-xs text-red-100/90"
+                >
+                  A claimant action ({record.claimantAction.kind}) is also
+                  recorded on this engagement. Rescinding the operator
+                  rejection alone will not unblock approval — the claimant
+                  must also reopen their action.
+                </div>
+              ) : null}
             </div>
           ) : intake?.operatorAction?.kind === "request_clarification" ? (
             <div
@@ -162,6 +180,10 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
                 email={email}
                 scopeDraft={intake?.submission.scope ?? null}
                 claimantAction={record.claimantAction ?? null}
+                operatorRejectInForce={
+                  intake?.operatorAction?.kind === "reject" ||
+                  record.approvalStatus === "approval_denied"
+                }
               />
             </div>
           ) : null}

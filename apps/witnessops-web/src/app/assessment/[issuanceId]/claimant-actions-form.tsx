@@ -10,6 +10,15 @@ interface Props {
   email: string;
   scopeDraft: string | null;
   claimantAction: ClaimantActionRecord | null;
+  /**
+   * WEB-010: true when an operator-side reject is also in force
+   * (intake.operatorAction.kind === "reject" OR
+   * issuance.approvalStatus === "approval_denied"). Used to surface a
+   * co-existing-action footer inside the claimant terminal banners so
+   * the claimant does not click "Reopen engagement" expecting it to
+   * unblock approval on its own.
+   */
+  operatorRejectInForce?: boolean;
 }
 
 type Mode = "amend" | "retract" | "disagree" | null;
@@ -158,6 +167,22 @@ export function ClaimantActionsForm(props: Props) {
             {action.reason}
           </div>
         ) : null}
+        {/*
+          WEB-010: when an operator reject is also in force, the claimant
+          must see that reopening their own retract alone will not unblock
+          approval. The reopen affordance still renders — they can clear
+          their own action — but the footer makes the second blocker visible.
+        */}
+        {props.operatorRejectInForce ? (
+          <div
+            data-testid="coexisting-operator-action-note"
+            className="mt-3 rounded border border-red-900/60 bg-black/30 p-2 text-xs text-red-100/90"
+          >
+            An operator rejection is also recorded on this engagement.
+            Reopening this retract alone will not unblock approval — the
+            operator must also rescind their rejection.
+          </div>
+        ) : null}
         <ClaimantReopenAffordance
           issuanceId={props.issuanceId}
           email={props.email}
@@ -186,6 +211,17 @@ export function ClaimantActionsForm(props: Props) {
         {action.reason ? (
           <div className="mt-2 rounded border border-red-900/80 bg-black/30 p-2 text-xs text-red-100/90">
             {action.reason}
+          </div>
+        ) : null}
+        {/* WEB-010: same cross-action footer for the disagree banner. */}
+        {props.operatorRejectInForce ? (
+          <div
+            data-testid="coexisting-operator-action-note"
+            className="mt-3 rounded border border-red-900/60 bg-black/30 p-2 text-xs text-red-100/90"
+          >
+            An operator rejection is also recorded on this engagement.
+            Reopening this disagreement alone will not unblock approval —
+            the operator must also rescind their rejection.
           </div>
         ) : null}
         <ClaimantReopenAffordance

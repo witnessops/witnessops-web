@@ -650,11 +650,38 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
           row.state === "admitted"
         }
         pendingClarification={row.operatorActionKind === "request_clarification"}
+        claimantActionBlocking={
+          row.claimantActionKind === "retract" ||
+          row.claimantActionKind === "disagree"
+        }
       />
 
       {row.operatorActionKind === "request_clarification" && row.state !== "rejected" ? (
         <div className={styles.queueWarning} data-testid="operator-action-state" data-kind="request_clarification">
           Operator clarification request recorded. <strong>No operator action required</strong> — waiting on the claimant to amend, proceed, retract, or disagree.
+        </div>
+      ) : null}
+
+      {/*
+        WEB-010: surface a co-existing claimant terminal action so the
+        operator does not have to dig into the assessment page to see
+        that approval is still blocked from the claimant side. The
+        banner is symmetric in shape to the request_clarification one
+        above and uses the same queueWarning class for visual parity.
+        Cross-actor reopen is explicitly out of scope — the operator
+        cannot clear a claimant action; this is visibility only.
+      */}
+      {row.claimantActionKind === "retract" ||
+      row.claimantActionKind === "disagree" ? (
+        <div
+          className={styles.queueWarning}
+          data-testid="claimant-action-state"
+          data-kind={row.claimantActionKind}
+        >
+          Claimant action recorded: <strong>{row.claimantActionKind}</strong>.
+          Approval is blocked until the claimant reopens it. This is
+          independent of any operator action; rescinding an operator
+          rejection alone will not unblock approval.
         </div>
       ) : null}
 
