@@ -149,6 +149,22 @@ export interface TokenIssuanceRecord {
   assessmentStatus?: AssessmentStatus;
   assessmentError?: string | null;
   controlPlaneRunId?: string;
+  /**
+   * Claimant-side back-out or amendment action recorded before approval (WEB-003).
+   * Null when no claimant action has been taken.
+   *  - amend     : claimant revised the submission; approval still allowed.
+   *  - retract   : claimant exited the engagement; approval blocked.
+   *  - disagree  : claimant disputed the proposed scope; approval blocked.
+   */
+  claimantAction?: ClaimantActionRecord | null;
+}
+
+export interface ClaimantActionRecord {
+  kind: "amend" | "retract" | "disagree";
+  recordedAt: string;
+  reason: string;
+  /** Only present for kind = "amend". The submitted replacement scope text. */
+  amendedScope?: string | null;
 }
 
 export function getAdmissionStoreDir(): string {
