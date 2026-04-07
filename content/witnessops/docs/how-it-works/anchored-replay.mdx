@@ -1,0 +1,229 @@
+---
+title: "Anchored Replay"
+description: "How a reviewer moves from package-internal replay to issuer continuity using a trust anchor obtained outside the package."
+section: "docs"
+order: 5
+nav_label: "Anchored Replay"
+draft: false
+page_answer:
+  question: "How do I verify a review package against a signer I trust without letting the package authenticate itself?"
+  links:
+    - href: "/docs/how-it-works/verification"
+      label: "Verification"
+    - href: "/docs/security-systems/security-practices"
+      label: "Security Practices"
+    - href: "/docs/security-systems/threat-model"
+      label: "Threat Model"
+---
+
+# Anchored Replay
+
+Use this page when you need more than package-internal consistency from a WitnessOps review package or proof bundle.
+
+Anchored replay separates two questions:
+
+1. Does the package replay cleanly?
+2. Was it signed by a key you trust for that issuer?
+
+Hosted `/verify` is not this flow. `/verify` v1 is receipt-only and fail-closed on bundles. Anchored replay is an offline reviewer workflow that depends on a trust anchor you obtained outside the package.
+
+## What this page is for
+
+Use this page if you are:
+
+- reviewing a WitnessOps package from another party
+- checking a governed action attestation or proof bundle outside the original runtime
+- deciding whether issuer continuity is established under your own trust policy
+
+## Structural replay vs anchored replay
+
+| Mode | What it answers | What it does not establish by itself |
+| --- | --- | --- |
+| Structural replay | Does the package verify against its own declared structure, bindings, and signatures? | That the signer is trusted for the claimed issuer |
+| Anchored replay | Does the package verify, and did it verify against a reviewer-supplied trusted key for the issuer? | That the delivery channel was sufficient for every policy, or that timestamp and revocation trust were also anchored |
+
+Structural replay is still useful. It tells you whether the package is internally coherent. A structurally valid package can still be unacceptable for reliance if you do not know whose signing key you are using.
+
+Anchored replay adds issuer continuity. It verifies the same package against a key you pinned outside the package.
+
+## Why the trust anchor must arrive separately
+
+A package must not be allowed to authenticate itself by shipping the same public key that makes its own signatures appear trustworthy.
+
+If the package carries both the evidence under review and the authoritative trust anchor, it collapses evidence custody and trust-root custody into one surface.
+
+For that reason:
+
+- the package should carry the evidence and replay instructions
+- the trust anchor should arrive through a separate custody path
+- the reviewer should pin the trust anchor locally before anchored replay
+
+## Reviewer trust model
+
+Keep these questions separate:
+
+### 1. Is the package internally consistent?
+
+Structural replay answers this.
+
+### 2. Is the signer trusted for this issuer?
+
+Anchored replay answers this using a reviewer-supplied trust anchor.
+
+### 3. Is the trust-anchor delivery channel acceptable for my policy?
+
+Reviewer policy answers this. A documented handoff record can help, but it does not replace reviewer judgment.
+
+These are separate gates. A package can pass one and fail another.
+
+## What you need for anchored replay
+
+Obtain:
+
+- the review package or proof bundle
+- the issuer signing public key as a PEM file
+- the issuer key fingerprint or expected key ID
+- the replay instructions that came with the package
+- optionally, a documented trust-anchor handoff record
+
+The issuer signing public key must come through a custody path separate from the package itself.
+
+Examples of separate custody paths include:
+
+- a reviewer-controlled local trust store
+- direct verified handoff
+- authenticated issuer-domain email
+- verified secure messaging
+- a separately trusted issuer key registry
+
+## Basic workflow
+
+### 1. Receive the package
+
+A typical review package may contain files such as:
+
+- `attestation_bundle.json`
+- `attestation_claim.json`
+- `verification_result_offline.json`
+- `REPLAY.md`
+- `REVIEWER_NOTE.md`
+
+Treat the package as evidence to inspect, not as its own authoritative trust-anchor source.
+
+### 2. Obtain the issuer signing key separately
+
+Receive the issuer signing public key through a separate custody path.
+
+Do not rely on a PEM shipped inside the same package as the evidence under review.
+
+### 3. Confirm key identity
+
+Compare the received key against the expected fingerprint or key ID.
+
+A key match confirms key identity. It does not by itself prove the delivery channel was independent or sufficient for your policy.
+
+### 4. Pin the key locally
+
+Store the key in a reviewer-controlled location outside the package.
+
+```bash
+mkdir -p ~/.witnessops/trust
+cp /received/issuer_signing_key.pem ~/.witnessops/trust/issuer_signing_key.pem
+chmod 0644 ~/.witnessops/trust/issuer_signing_key.pem
+```
+
+### 5. Run structural replay
+
+Follow the package's replay instructions. A package-specific command may look like this:
+
+```bash
+python scripts/verify_attestation.py /path/to/attestation_bundle.json --pretty
+```
+
+Expected outcome:
+
+- internal checks run
+- issuer continuity is not yet established
+
+If the package verifier exposes trust-anchor state explicitly, the unanchored result is commonly reported as `trust_anchor_status: not_checked`.
+
+### 6. Run anchored replay
+
+Run the same replay flow with your pinned trusted key. A package-specific command may look like this:
+
+```bash
+python scripts/verify_attestation.py /path/to/attestation_bundle.json \
+  --trusted-key ~/.witnessops/trust/issuer_signing_key.pem \
+  --pretty
+```
+
+Expected outcome for a valid package signed by the trusted issuer key:
+
+- the package remains internally consistent
+- signer continuity is established against the reviewer-pinned key
+
+If the package verifier exposes trust-anchor state explicitly, a successful anchored result is commonly reported as `trust_anchor_status: anchored`. A supplied but mismatched key is commonly reported as `trust_anchor_status: failed`.
+
+## How to read the result
+
+The exact output shape depends on the replay tool, but the interpretation should stay stable:
+
+- internal consistency means the package replayed cleanly against its declared structure and signatures
+- anchored means the signer matched a reviewer-supplied trusted key
+- not checked means no trusted key was supplied, so issuer continuity was not established
+- failed means a trusted key was supplied, but it did not match the signer
+
+An internally consistent result without anchored signer continuity is still only a structural result.
+
+## Timestamp trust and revocation are separate
+
+Anchored replay for the signing key does not automatically anchor timestamp authority.
+
+If your policy requires timestamp anchoring, provide a separate reviewer-supplied timestamp trust anchor and check the timestamp-specific output from the replay tool.
+
+Revocation is separate too. A package can be structurally valid and anchored for signing-key continuity while still lacking a revocation check required by your policy.
+
+## What anchored replay does not prove
+
+Anchored replay does not by itself prove:
+
+- the issuer's legal identity beyond your own identity-verification standard
+- that the delivery channel is cryptographically proven
+- that timestamp authority is trusted, unless separately anchored
+- that revocation has been checked, unless separately checked
+- that your policy is complete or sufficient
+- that the evidence is exhaustive
+
+Anchored replay narrows the trust boundary. It does not eliminate reviewer policy.
+
+## Reviewer decision model
+
+Use this simple reading model:
+
+- structural replay succeeds without a trusted key: internally consistent, but issuer continuity not established
+- anchored replay succeeds with a reviewer-pinned key: internally consistent, with signing-key continuity established against that key
+- anchored replay fails against a supplied trusted key: do not rely on the package as issued by that trusted signer
+
+From there, apply your own policy for:
+
+- channel sufficiency
+- timestamp trust
+- revocation requirements
+- claim scope and exclusions
+
+## Recommended reviewer questions
+
+Before relying on an anchored result, ask:
+
+1. Did I obtain the signing key outside the package?
+2. Did I verify that the key matched the expected issuer key identity?
+3. Is the delivery channel acceptable under my policy?
+4. Did anchored replay establish signer continuity against my pinned key?
+5. Do I also require timestamp anchoring?
+6. Do I also require revocation to be checked?
+
+## Related pages
+
+- [Verification](/docs/how-it-works/verification) for receipt-first and package verification basics
+- [Evidence Bundles](/docs/how-it-works/evidence-bundles) for package contents and offline verification material
+- [Security Practices](/docs/security-systems/security-practices) for current-state key distribution and trust limits

@@ -92,6 +92,12 @@ export interface AdmissionQueueRow {
   ledgerEventCount: number;
   assessmentStatus: AssessmentStatus | null;
   assessmentRunId: string | null;
+  /**
+   * Local cache of the control-plane run id returned by the scope-approved
+   * handoff. Display only — not the source of truth for downstream lifecycle
+   * state. The authoritative facts live in control-plane (CP-001/CP-002).
+   */
+  controlPlaneRunId: string | null;
   snapshotState: AdmissionState | null;
   submission: IntakeSubmissionRecord;
   firstResponseSubject: string | null;
@@ -568,6 +574,7 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       ledgerEventCount: derived.ledgerEventCount,
       assessmentStatus: issuance?.assessmentStatus ?? null,
       assessmentRunId: issuance?.assessmentRunId ?? null,
+      controlPlaneRunId: issuance?.controlPlaneRunId ?? null,
       snapshotState: snapshot?.state ?? null,
       submission: snapshot?.submission ?? {},
       firstResponseSubject: firstResponse?.subject ?? null,
@@ -686,6 +693,7 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       ledgerEventCount: 0,
       assessmentStatus: issuance?.assessmentStatus ?? null,
       assessmentRunId: issuance?.assessmentRunId ?? null,
+      controlPlaneRunId: issuance?.controlPlaneRunId ?? null,
       snapshotState: snapshot.state,
       submission: snapshot.submission,
       firstResponseSubject: firstResponse?.subject ?? null,
