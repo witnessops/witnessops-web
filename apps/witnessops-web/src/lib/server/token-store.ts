@@ -208,14 +208,34 @@ function assertSafeRecordId(id: string, kind: "intake" | "issuance"): void {
   }
 }
 
+function safeRecordPath(
+  id: string,
+  kind: "intake" | "issuance",
+  subdir: "intakes" | "issuances",
+): string {
+  assertSafeRecordId(id, kind);
+  const base = path.resolve(getAdmissionStoreDir(), subdir);
+  // path.basename strips any directory components that might survive the
+  // regex check, and the prefix assertion below proves the final path
+  // never escapes the base directory. Together with the regex, this is
+  // the CodeQL-recognized sanitizer pattern for path traversal.
+  const safeName = `${path.basename(id)}.json`;
+  const resolved = path.resolve(base, safeName);
+  if (resolved !== path.join(base, safeName)) {
+    throw new Error(`Invalid ${kind} id`);
+  }
+  if (!resolved.startsWith(base + path.sep)) {
+    throw new Error(`Invalid ${kind} id`);
+  }
+  return resolved;
+}
+
 function intakePath(intakeId: string): string {
-  assertSafeRecordId(intakeId, "intake");
-  return path.join(getAdmissionStoreDir(), "intakes", `${intakeId}.json`);
+  return safeRecordPath(intakeId, "intake", "intakes");
 }
 
 function issuancePath(issuanceId: string): string {
-  assertSafeRecordId(issuanceId, "issuance");
-  return path.join(getAdmissionStoreDir(), "issuances", `${issuanceId}.json`);
+  return safeRecordPath(issuanceId, "issuance", "issuances");
 }
 
 async function ensureStoreDirs(): Promise<void> {
