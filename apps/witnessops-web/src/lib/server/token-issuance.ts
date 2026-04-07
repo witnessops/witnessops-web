@@ -36,6 +36,7 @@ import {
 import { renderVerificationEmail } from "./token-email-template";
 import { sendVerificationEmail } from "./send-verification-email";
 import { triggerAssessment } from "./assessment-client";
+import { notifyScopeApproved } from "./control-plane-client";
 import { appendIntakeEvent } from "./intake-event-ledger";
 
 type VerificationChannel = Exclude<ChannelName, "noreply">;
@@ -524,9 +525,10 @@ export async function approveScopeAndStartRecon(
   const approvedAt = nowIso();
   const approvalNote = normalizeText(input.approvalNote);
   const approverName = normalizeText(input.approverName);
+  const isFirstApproval = originalIssuance.approvalStatus !== "approved";
   let latestIssuance = originalIssuance;
 
-  if (originalIssuance.approvalStatus !== "approved") {
+  if (isFirstApproval) {
     latestIssuance = await updateIssuance(
       originalIssuance.issuanceId,
       (existing) => ({
@@ -564,11 +566,8 @@ export async function approveScopeAndStartRecon(
         scope: originalIntake.submission.scope ?? null,
       },
     });
-  } else if (
-    originalIssuance.approvalStatus === "approved" &&
-    originalIssuance.assessmentRunId === null &&
-    originalIssuance.assessmentStatus === "pending"
-  ) {
+  } else if (originalIssuance.controlPlaneRunId) {
+    // Handoff already acknowledged — return cached display state.
     return {
       status: "already_approved",
       channel: originalIntake.channel,
@@ -580,32 +579,71 @@ export async function approveScopeAndStartRecon(
       approverEmail: originalIssuance.approverEmail ?? originalIssuance.email,
       approverName: originalIssuance.approverName ?? null,
       approvalNote: originalIssuance.approvalNote ?? null,
+      assessmentRunId: originalIssuance.controlPlaneRunId,
+      assessmentStatus: originalIssuance.assessmentStatus ?? "pending",
+      run_id: originalIssuance.controlPlaneRunId,
+    };
+  }
+
+  // Send scope-approved handoff to control plane.
+  // Throws on network error or rejection — caller retains scope_approved state.
+  // Safe to retry: issuanceId is the idempotency key on the control-plane side.
+  const ack = await notifyScopeApproved({
+    issuanceId: originalIssuance.issuanceId,
+    domain: originalIssuance.email.split("@")[1] ?? "",
+    contactEmail: originalIssuance.email,
+    scopeApproval: {
+      timestamp: latestIssuance.approvalAt ?? approvedAt,
+      approvedBy: originalIssuance.email,
+      approverName: latestIssuance.approverName ?? null,
+      approvalNote: latestIssuance.approvalNote ?? null,
+      scope: originalIntake.submission.scope ?? null,
+    },
+  });
+
+  if (!ack) {
+    console.warn(
+      "[token-issuance] CONTROL_PLANE_URL not configured — handoff skipped for",
+      originalIssuance.issuanceId,
+    );
+    return {
+      status: isFirstApproval ? "approved" : "already_approved",
+      channel: originalIntake.channel,
+      intakeId: originalIntake.intakeId,
+      issuanceId: originalIssuance.issuanceId,
+      email: originalIssuance.email,
+      approvedAt: latestIssuance.approvalAt ?? approvedAt,
+      approvalStatus: "approved",
+      approverEmail: latestIssuance.approverEmail ?? originalIssuance.email,
+      approverName: latestIssuance.approverName ?? null,
+      approvalNote: latestIssuance.approvalNote ?? null,
       assessmentRunId: null,
       assessmentStatus: "pending",
     };
   }
 
-  const assessment = await ensureAssessmentAttached(latestIssuance);
-  const refreshed = (await getIssuanceById(originalIssuance.issuanceId)) ??
-    latestIssuance;
+  // Store control-plane run ID as display cache only.
+  // Do not write assessmentRunId, assessmentStatus, or assessmentError here —
+  // those fields are control-plane authority after handoff.
+  await updateIssuance(originalIssuance.issuanceId, (existing) => ({
+    ...existing,
+    controlPlaneRunId: ack.runId,
+  }));
 
   return {
-    status:
-      originalIssuance.approvalStatus === "approved"
-        ? "already_approved"
-        : "approved",
+    status: isFirstApproval ? "approved" : "already_approved",
     channel: originalIntake.channel,
     intakeId: originalIntake.intakeId,
     issuanceId: originalIssuance.issuanceId,
     email: originalIssuance.email,
-    approvedAt: refreshed.approvalAt ?? approvedAt,
+    approvedAt: latestIssuance.approvalAt ?? approvedAt,
     approvalStatus: "approved",
-    approverEmail: refreshed.approverEmail ?? originalIssuance.email,
-    approverName: refreshed.approverName ?? null,
-    approvalNote: refreshed.approvalNote ?? null,
-    assessmentRunId: assessment.assessmentRunId,
-    assessmentStatus: assessment.assessmentStatus,
-    run_id: assessment.assessmentRunId ?? undefined,
+    approverEmail: latestIssuance.approverEmail ?? originalIssuance.email,
+    approverName: latestIssuance.approverName ?? null,
+    approvalNote: latestIssuance.approvalNote ?? null,
+    assessmentRunId: ack.runId,
+    assessmentStatus: "pending",
+    run_id: ack.runId,
   };
 }
 
