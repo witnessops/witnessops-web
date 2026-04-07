@@ -134,6 +134,19 @@ export function CustomerProofPackage({
                 {view.disposition.comment}
               </div>
             ) : null}
+            {view.disposition.receipt ? (
+              <div
+                data-testid="customer-acceptance-receipt"
+                className="mt-3 rounded border border-zinc-800 bg-black/30 p-2"
+              >
+                <div className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono mb-1">
+                  Acceptance receipt (v{view.disposition.receipt.schemaVersion})
+                </div>
+                <div className="text-xs text-zinc-200 font-mono break-all">
+                  {view.disposition.receipt.receiptHash}
+                </div>
+              </div>
+            ) : null}
           </dl>
         ) : (
           <div className="text-sm text-zinc-400">

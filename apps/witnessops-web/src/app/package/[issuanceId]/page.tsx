@@ -15,6 +15,7 @@ import { getIssuanceById } from "@/lib/server/token-store";
 import {
   getCompletionView,
   getCustomerAcceptance,
+  getCustomerAcceptanceReceipt,
 } from "@/lib/server/control-plane-client";
 import { buildCustomerProofPackageView } from "@/lib/server/customer-proof-package";
 import { CustomerProofPackage } from "@/components/customer-proof-package";
@@ -85,7 +86,20 @@ export default async function CustomerPackagePage({
       ? null
       : acceptanceResult;
 
-  const view = buildCustomerProofPackageView(completion, acceptance);
+  // CP-004 / WEB-015: when a disposition exists, also fetch the
+  // frozen receipt artifact so the page can surface its hash. The
+  // receipt is content-addressed and read-only.
+  const receiptResult = acceptance
+    ? await getCustomerAcceptanceReceipt(runId)
+    : null;
+  const receipt =
+    receiptResult === null ||
+    receiptResult === "not_found" ||
+    receiptResult === "not_configured"
+      ? null
+      : receiptResult;
+
+  const view = buildCustomerProofPackageView(completion, acceptance, receipt);
 
   return (
     <main className="min-h-screen bg-black text-zinc-100">

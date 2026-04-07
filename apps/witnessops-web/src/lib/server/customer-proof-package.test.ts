@@ -11,6 +11,7 @@ import {
 import type {
   ControlPlaneCompletionView,
   ControlPlaneCustomerAcceptanceRecord,
+  ControlPlaneCustomerAcceptanceReceiptEnvelope,
   ControlPlaneDeliveryRecord,
   ControlPlaneRunState,
 } from "./control-plane-client";
@@ -152,7 +153,63 @@ test("buildCustomerProofPackageView: accepted disposition surfaces actor and tim
     acceptedBy: "customer@example.com",
     acceptedAt: "2026-04-06T09:00:00Z",
     comment: "looks good",
+    receipt: null,
   });
+});
+
+function receiptEnvelope(
+  overrides: Partial<ControlPlaneCustomerAcceptanceReceiptEnvelope> = {},
+): ControlPlaneCustomerAcceptanceReceiptEnvelope {
+  return {
+    schema: "customer_acceptance_receipt",
+    schema_version: 1,
+    receipt_hash: "sha256:" + "a".repeat(64),
+    receipt: {
+      schema: "customer_acceptance_receipt",
+      schema_version: 1,
+      run_id: "run_demo",
+      disposition: "accepted",
+      accepted_by: "customer@example.com",
+      accepted_at: "2026-04-06T09:00:00Z",
+      bundle_id: "bundle_abc",
+      artifact_hash: "sha256:deadbeef",
+      comment: null,
+    },
+    ...overrides,
+  };
+}
+
+test("WEB-015: receipt absent yields disposition.receipt = null", () => {
+  const view = buildCustomerProofPackageView(
+    completion({ state: "acknowledged", acknowledged: true }),
+    acceptance(),
+    null,
+  );
+  assert.equal(view.disposition?.receipt, null);
+});
+
+test("WEB-015: receipt present propagates hash and schema_version", () => {
+  const view = buildCustomerProofPackageView(
+    completion({ state: "acknowledged", acknowledged: true }),
+    acceptance(),
+    receiptEnvelope({
+      schema_version: 1,
+      receipt_hash: "sha256:" + "b".repeat(64),
+    }),
+  );
+  assert.deepEqual(view.disposition?.receipt, {
+    receiptHash: "sha256:" + "b".repeat(64),
+    schemaVersion: 1,
+  });
+});
+
+test("WEB-015: receipt without acceptance is not surfaced (no disposition block)", () => {
+  const view = buildCustomerProofPackageView(
+    completion({ state: "acknowledged", acknowledged: true }),
+    null,
+    receiptEnvelope(),
+  );
+  assert.equal(view.disposition, null);
 });
 
 test("buildCustomerProofPackageView: rejected disposition is preserved", () => {

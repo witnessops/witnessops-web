@@ -11,6 +11,7 @@
 import type {
   ControlPlaneCompletionView,
   ControlPlaneCustomerAcceptanceRecord,
+  ControlPlaneCustomerAcceptanceReceiptEnvelope,
 } from "./control-plane-client";
 
 export type PackageStage =
@@ -34,11 +35,17 @@ export interface PackageDelivery {
   acknowledgedAt: string | null;
 }
 
+export interface PackageReceipt {
+  receiptHash: string;
+  schemaVersion: number;
+}
+
 export interface PackageDisposition {
   disposition: "accepted" | "rejected";
   acceptedBy: string;
   acceptedAt: string;
   comment: string | null;
+  receipt: PackageReceipt | null;
 }
 
 export interface CustomerProofPackageView {
@@ -70,6 +77,7 @@ export function stageFrom(
 export function buildCustomerProofPackageView(
   completion: ControlPlaneCompletionView,
   acceptance: ControlPlaneCustomerAcceptanceRecord | null,
+  receipt: ControlPlaneCustomerAcceptanceReceiptEnvelope | null = null,
 ): CustomerProofPackageView {
   const delivery = completion.delivery;
   return {
@@ -93,6 +101,17 @@ export function buildCustomerProofPackageView(
           acceptedBy: acceptance.accepted_by,
           acceptedAt: acceptance.accepted_at,
           comment: acceptance.comment,
+          // Receipt is only meaningful when an acceptance record
+          // exists. CP-004 guarantees the receipt is emitted on the
+          // first-write disposition path; absence here means either
+          // CP-004 is not yet wired in this environment or the
+          // receipt fetch was skipped/404.
+          receipt: receipt
+            ? {
+                receiptHash: receipt.receipt_hash,
+                schemaVersion: receipt.schema_version,
+              }
+            : null,
         }
       : null,
   };
