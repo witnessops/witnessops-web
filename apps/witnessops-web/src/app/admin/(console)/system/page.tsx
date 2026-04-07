@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { AdminSystem } from "../../../../components/admin/admin-system";
-import { AdminActions } from "../../../../components/admin/admin-actions";
 import { AdminAuthInfo } from "../../../../components/admin/admin-auth-info";
 import { AdminKbLink } from "../../../../components/admin/admin-kb-link";
 
@@ -31,7 +30,6 @@ export default async function AdminSystemPage() {
   return (
     <>
       <AdminSystem />
-      <AdminActions />
       <AdminAuthInfo keyHash={keyHash} />
       <AdminKbLink />
     </>
