@@ -125,6 +125,21 @@ export interface IntakeRecord {
   responseProviderOutcome?: IntakeResponseProviderOutcomeRecord;
   responseMailboxReceipt?: IntakeMailboxReceiptRecord;
   reconciliation?: IntakeReconciliationRecord;
+  /**
+   * Operator-side action recorded against this intake (WEB-004).
+   * Surfaces explicit reject and clarification-request outcomes that
+   * were previously approximated through reply/reconcile flows.
+   */
+  operatorAction?: OperatorActionRecord | null;
+}
+
+export interface OperatorActionRecord {
+  kind: "reject" | "request_clarification";
+  recordedAt: string;
+  actor: string;
+  reason: string;
+  /** Only present when kind === "request_clarification". */
+  clarificationQuestion?: string | null;
 }
 
 export interface TokenIssuanceRecord {
@@ -175,12 +190,52 @@ export function getAdmissionStoreDir(): string {
   );
 }
 
+/**
+ * Whitelist for record identifiers used to build filesystem paths.
+ *
+ * Restricting to `[A-Za-z0-9_-]+` blocks every path-traversal vector
+ * (no `/`, `\`, `..`, or NUL) without changing the IDs the rest of the
+ * system actually generates (`intk_<hex>`, `iss_<hex>`). Any caller
+ * passing a malformed identifier — including HTTP request bodies that
+ * reach `getIntakeById` / `getIssuanceById` — is rejected before the
+ * path is constructed.
+ */
+const SAFE_RECORD_ID_RE = /^[A-Za-z0-9_-]+$/;
+
+function assertSafeRecordId(id: string, kind: "intake" | "issuance"): void {
+  if (typeof id !== "string" || !SAFE_RECORD_ID_RE.test(id)) {
+    throw new Error(`Invalid ${kind} id`);
+  }
+}
+
+function safeRecordPath(
+  id: string,
+  kind: "intake" | "issuance",
+  subdir: "intakes" | "issuances",
+): string {
+  assertSafeRecordId(id, kind);
+  const base = path.resolve(getAdmissionStoreDir(), subdir);
+  // path.basename strips any directory components that might survive the
+  // regex check, and the prefix assertion below proves the final path
+  // never escapes the base directory. Together with the regex, this is
+  // the CodeQL-recognized sanitizer pattern for path traversal.
+  const safeName = `${path.basename(id)}.json`;
+  const resolved = path.resolve(base, safeName);
+  if (resolved !== path.join(base, safeName)) {
+    throw new Error(`Invalid ${kind} id`);
+  }
+  if (!resolved.startsWith(base + path.sep)) {
+    throw new Error(`Invalid ${kind} id`);
+  }
+  return resolved;
+}
+
 function intakePath(intakeId: string): string {
-  return path.join(getAdmissionStoreDir(), "intakes", `${intakeId}.json`);
+  return safeRecordPath(intakeId, "intake", "intakes");
 }
 
 function issuancePath(issuanceId: string): string {
-  return path.join(getAdmissionStoreDir(), "issuances", `${issuanceId}.json`);
+  return safeRecordPath(issuanceId, "issuance", "issuances");
 }
 
 async function ensureStoreDirs(): Promise<void> {

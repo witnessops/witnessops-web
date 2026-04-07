@@ -15,6 +15,7 @@ import { QUEUE_FILTER_KEYS } from "@/lib/admin/queue-filter-keys";
 
 import type { FilterGroup } from "@/lib/admin/queue-filter-types";
 import { AdminQueueFilteredList } from "./admin-queue-filtered-list";
+import { AdminOperatorActionsForm } from "./admin-operator-actions-form";
 import { AdminReconcileIntakeForm } from "./admin-reconcile-intake-form";
 import { AdminRespondIntakeForm } from "./admin-respond-intake-form";
 import styles from "./admin.module.css";
@@ -604,6 +605,17 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
             <PostApprovalLifecycle view={lifecycle} retryActionEnabled />
           </div>
         </details>
+      ) : null}
+
+      <AdminOperatorActionsForm
+        intakeId={row.intakeId}
+        alreadyRejected={row.state === "rejected"}
+      />
+
+      {row.operatorActionKind === "request_clarification" && row.state !== "rejected" ? (
+        <div className={styles.queueWarning} data-testid="operator-action-state" data-kind="request_clarification">
+          Operator clarification request recorded. Waiting on claimant.
+        </div>
       ) : null}
 
       {row.reconciliationPending && !row.reconciliationResolved ? (

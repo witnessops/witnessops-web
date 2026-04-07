@@ -98,6 +98,13 @@ export interface AdmissionQueueRow {
    * state. The authoritative facts live in control-plane (CP-001/CP-002).
    */
   controlPlaneRunId: string | null;
+  /**
+   * Operator-side action recorded against the intake (WEB-004). Surfaces
+   * explicit reject and clarification-request outcomes to the admin queue.
+   */
+  operatorActionKind:
+    | import("./token-store").OperatorActionRecord["kind"]
+    | null;
   snapshotState: AdmissionState | null;
   submission: IntakeSubmissionRecord;
   firstResponseSubject: string | null;
@@ -575,6 +582,7 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       assessmentStatus: issuance?.assessmentStatus ?? null,
       assessmentRunId: issuance?.assessmentRunId ?? null,
       controlPlaneRunId: issuance?.controlPlaneRunId ?? null,
+      operatorActionKind: snapshot?.operatorAction?.kind ?? null,
       snapshotState: snapshot?.state ?? null,
       submission: snapshot?.submission ?? {},
       firstResponseSubject: firstResponse?.subject ?? null,
@@ -694,6 +702,7 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       assessmentStatus: issuance?.assessmentStatus ?? null,
       assessmentRunId: issuance?.assessmentRunId ?? null,
       controlPlaneRunId: issuance?.controlPlaneRunId ?? null,
+      operatorActionKind: snapshot?.operatorAction?.kind ?? null,
       snapshotState: snapshot.state,
       submission: snapshot.submission,
       firstResponseSubject: firstResponse?.subject ?? null,

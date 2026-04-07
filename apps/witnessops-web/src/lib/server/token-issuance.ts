@@ -38,6 +38,7 @@ import { sendVerificationEmail } from "./send-verification-email";
 import { triggerAssessment } from "./assessment-client";
 import { notifyScopeApproved } from "./control-plane-client";
 import { claimantActionBlocksApproval } from "./claimant-actions";
+import { operatorRejectionBlocksApproval } from "./operator-actions";
 import { appendIntakeEvent } from "./intake-event-ledger";
 
 type VerificationChannel = Exclude<ChannelName, "noreply">;
@@ -529,6 +530,14 @@ export async function approveScopeAndStartRecon(
   if (blocking.blocked) {
     throw new Error(
       `Scope approval is blocked because the claimant has ${blocking.kind === "retract" ? "retracted the engagement" : "disagreed with the proposed scope"}.`,
+    );
+  }
+
+  // WEB-004: an operator rejection (approval_denied) blocks subsequent
+  // approval through the same code path that gates claimant exits.
+  if (operatorRejectionBlocksApproval(originalIssuance)) {
+    throw new Error(
+      "Scope approval is blocked because an operator has rejected this intake.",
     );
   }
 
