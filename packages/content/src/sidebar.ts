@@ -52,7 +52,11 @@ const OFFSEC_DOCS_LAYERS: Array<{
     items: [
       { kind: "link", href: "/docs", title: "Docs Home" },
       { kind: "doc", href: "/docs/getting-started" },
-      { kind: "link", href: getSurfaceUrl("witnessops", "/why-witnessops"), title: "Why WitnessOps" },
+      {
+        kind: "link",
+        href: getSurfaceUrl("witnessops", "/why-witnessops"),
+        title: "Why WitnessOps",
+      },
       { kind: "doc", href: "/docs/audiences", title: "Audience Guides" },
       { kind: "doc", href: "/docs/audiences/new-operator" },
       { kind: "doc", href: "/docs/audiences/manager-approver" },
@@ -71,6 +75,7 @@ const OFFSEC_DOCS_LAYERS: Array<{
       { kind: "doc", href: "/docs/how-it-works/proof-model" },
       { kind: "doc", href: "/docs/how-it-works/evidence-bundles" },
       { kind: "doc", href: "/docs/how-it-works/verification" },
+      { kind: "doc", href: "/docs/how-it-works/anchored-replay" },
       { kind: "doc", href: "/docs/how-it-works/standards" },
     ],
   },
