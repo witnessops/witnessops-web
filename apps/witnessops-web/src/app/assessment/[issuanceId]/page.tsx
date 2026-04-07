@@ -4,6 +4,7 @@ import { getIntakeById, getIssuanceById } from "@/lib/server/token-store";
 import { getAssessmentStatus } from "@/lib/server/assessment-client";
 import { buildPostApprovalLifecycle } from "@/lib/server/post-approval-lifecycle";
 import { PostApprovalLifecycle } from "@/components/post-approval-lifecycle";
+import { AssessmentTerminalNotice } from "@/components/assessment-terminal-notice";
 import { AssessmentPoller } from "./assessment-poller";
 import { ScopeApprovalForm } from "./scope-approval-form";
 import { ClaimantActionsForm } from "./claimant-actions-form";
@@ -43,6 +44,10 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
   const postApprovalView = record.controlPlaneRunId
     ? await buildPostApprovalLifecycle(record)
     : null;
+  const assessmentTerminalView =
+    postApprovalView?.stage === "accepted" || postApprovalView?.stage === "rejected"
+      ? postApprovalView
+      : null;
 
   // Fetch live status for completed runs (so the initial render is rich)
   let initialStatus = record.assessmentStatus ?? "unavailable";
@@ -208,7 +213,12 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
             Governed Recon Results
           </div>
           {postApprovalView ? (
-            <PostApprovalLifecycle view={postApprovalView} />
+            <>
+              <PostApprovalLifecycle view={postApprovalView} />
+              {assessmentTerminalView ? (
+                <AssessmentTerminalNotice view={assessmentTerminalView} />
+              ) : null}
+            </>
           ) : approvalStatus === "approved" && record.assessmentRunId ? (
             <>
               {statusIsStale ? (
