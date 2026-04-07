@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getIntakeById, getIssuanceById } from "@/lib/server/token-store";
 import { getAssessmentStatus } from "@/lib/server/assessment-client";
+import { buildPostApprovalLifecycle } from "@/lib/server/post-approval-lifecycle";
+import { PostApprovalLifecycle } from "@/components/post-approval-lifecycle";
 import { AssessmentPoller } from "./assessment-poller";
 import { ScopeApprovalForm } from "./scope-approval-form";
 
@@ -33,6 +35,13 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
 
   // Extract domain for display
   const domain = record.email.split("@")[1] ?? "";
+
+  // WEB-001: when the issuance has been handed off to control-plane,
+  // build the post-approval lifecycle view from authoritative truth.
+  // Local handoff metadata stays clearly separated in the rendered view.
+  const postApprovalView = record.controlPlaneRunId
+    ? await buildPostApprovalLifecycle(record)
+    : null;
 
   // Fetch live status for completed runs (so the initial render is rich)
   let initialStatus = record.assessmentStatus ?? "unavailable";
@@ -113,7 +122,9 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
           <div className="text-xs text-zinc-500 uppercase tracking-wider font-mono mb-3">
             Governed Recon Results
           </div>
-          {approvalStatus === "approved" && record.assessmentRunId ? (
+          {postApprovalView ? (
+            <PostApprovalLifecycle view={postApprovalView} />
+          ) : approvalStatus === "approved" && record.assessmentRunId ? (
             <>
               {statusIsStale ? (
                 <div className="mb-3 rounded border border-yellow-900/60 bg-yellow-950/20 px-3 py-2 text-xs text-yellow-300/80">

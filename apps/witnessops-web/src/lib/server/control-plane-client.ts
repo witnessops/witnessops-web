@@ -86,3 +86,104 @@ export async function notifyScopeApproved(
     timestamp: body.timestamp,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Read surfaces (WEB-001)
+//
+// These functions read post-approval lifecycle truth from control-plane.
+// They are read-only. Web must not write to delivered/acknowledged/completed
+// state — those remain control-plane authority (CP-001/CP-002).
+// ---------------------------------------------------------------------------
+
+export type ControlPlaneRunState =
+  | "requested"
+  | "authorized"
+  | "scope_locked"
+  | "token_issued"
+  | "collecting"
+  | "deriving"
+  | "decision_recorded"
+  | "coverage_recorded"
+  | "bundled"
+  | "delivered"
+  | "acknowledged"
+  | "completed"
+  | "revoked"
+  | "failed";
+
+export interface ControlPlaneLifecycle {
+  run_id: string;
+  state: ControlPlaneRunState;
+  bundle_present: boolean;
+  delivery_present: boolean;
+  acknowledgment_present: boolean;
+  completion_present: boolean;
+}
+
+export interface ControlPlaneDeliveryRecord {
+  schema: "delivery_record";
+  run_id: string;
+  bundle_id: string;
+  artifact_hash: string;
+  recipient: string;
+  channel: string;
+  delivered_at: string;
+  acknowledged_at?: string;
+  acknowledged_by?: string;
+  acknowledgment_method?: string;
+}
+
+export interface ControlPlaneCompletionRecord {
+  schema: "engagement_completion";
+  run_id: string;
+  completed_at: string;
+  completed_by: string;
+  completion_basis: string;
+}
+
+export interface ControlPlaneCompletionView {
+  run_id: string;
+  state: ControlPlaneRunState;
+  delivered: boolean;
+  acknowledged: boolean;
+  completed: boolean;
+  completion_status: "not_yet_complete" | "completed";
+  delivery: ControlPlaneDeliveryRecord | null;
+  completion: ControlPlaneCompletionRecord | null;
+}
+
+async function controlPlaneGet<T>(
+  path: string,
+): Promise<T | "not_configured" | "not_found"> {
+  const config = readConfig();
+  if (!config) return "not_configured";
+
+  const response = await fetch(`${config.url}${path}`, {
+    method: "GET",
+    headers: { "X-API-Key": config.apiKey },
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (response.status === 404) return "not_found";
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "(unreadable)");
+    throw new Error(
+      `Control plane GET ${path} returned ${response.status}: ${detail}`,
+    );
+  }
+  return (await response.json()) as T;
+}
+
+export async function getRunLifecycle(
+  runId: string,
+): Promise<ControlPlaneLifecycle | "not_configured" | "not_found"> {
+  return controlPlaneGet<ControlPlaneLifecycle>(`/v1/runs/${runId}/lifecycle`);
+}
+
+export async function getCompletionView(
+  runId: string,
+): Promise<ControlPlaneCompletionView | "not_configured" | "not_found"> {
+  return controlPlaneGet<ControlPlaneCompletionView>(
+    `/v1/runs/${runId}/completion`,
+  );
+}

@@ -3,6 +3,8 @@ import {
   formatAdmissionStateLabel,
   type AdmissionQueueRow,
 } from "@/lib/server/admission-queue";
+import { buildPostApprovalLifecycle, type PostApprovalLifecycleView } from "@/lib/server/post-approval-lifecycle";
+import type { TokenIssuanceRecord } from "@/lib/server/token-store";
 import { formatProviderOutcomeStatusLabel } from "@/lib/provider-outcomes";
 import { isManualReconciliationBlocked } from "@/lib/server/evidence-resolution";
 import { buildReconciliationNoteTemplate } from "@/lib/server/reconciliation-note-policy";
@@ -304,7 +306,18 @@ function defaultResponseBody(row: AdmissionQueueRow): string {
   return lines.filter((line): line is string => line !== null).join("\n");
 }
 
-function renderRow(row: AdmissionQueueRow) {
+const POST_APPROVAL_STAGE_LABEL: Record<string, string> = {
+  awaiting_approval: "awaiting approval",
+  handoff_pending: "handoff pending",
+  handoff_accepted: "handoff accepted",
+  delivery_pending: "delivery pending",
+  delivered: "delivered",
+  acknowledged: "acknowledged",
+  completed: "completed",
+  failed: "failed",
+};
+
+function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView) {
   const stale = deriveStalePendingFlags(row);
 
   return (
@@ -409,6 +422,21 @@ function renderRow(row: AdmissionQueueRow) {
           <span className={styles.queueMetaLabel}>Assessment</span>
           {row.assessmentStatus ?? "not attached"}
         </span>
+        {row.controlPlaneRunId ? (
+          <span>
+            <span className={styles.queueMetaLabel}>CP Run</span>
+            {row.controlPlaneRunId}
+          </span>
+        ) : null}
+        {lifecycle ? (
+          <span data-testid="post-approval-stage" data-stage={lifecycle.stage}>
+            <span className={styles.queueMetaLabel}>Lifecycle</span>
+            {POST_APPROVAL_STAGE_LABEL[lifecycle.stage] ?? lifecycle.stage}
+            {lifecycle.authoritative
+              ? ` · cp:${lifecycle.authoritative.controlPlaneState}`
+              : ""}
+          </span>
+        ) : null}
         {row.responseActor ? (
           <span>
             <span className={styles.queueMetaLabel}>Actor</span>
@@ -593,9 +621,33 @@ interface AdminAdmissionQueueProps {
   initialFilter?: string | null;
 }
 
+async function buildLifecycleByRunId(
+  rows: AdmissionQueueRow[],
+): Promise<Map<string, PostApprovalLifecycleView>> {
+  const result = new Map<string, PostApprovalLifecycleView>();
+  const targets = rows.filter((r) => r.controlPlaneRunId);
+  if (targets.length === 0) return result;
+  const fetched = await Promise.all(
+    targets.map(async (row) => {
+      // Synthesize a minimal TokenIssuanceRecord-shaped object — only the
+      // fields buildPostApprovalLifecycle reads. Avoids re-fetching the
+      // issuance from disk for each row.
+      const minimal = {
+        approvalStatus: "approved" as const,
+        approvalAt: row.respondedAt ?? row.updatedAt,
+        controlPlaneRunId: row.controlPlaneRunId!,
+      } as TokenIssuanceRecord;
+      return [row.controlPlaneRunId!, await buildPostApprovalLifecycle(minimal)] as const;
+    }),
+  );
+  for (const [runId, view] of fetched) result.set(runId, view);
+  return result;
+}
+
 export async function AdminAdmissionQueue({ initialFilter }: AdminAdmissionQueueProps = {}) {
   try {
     const view = await buildAdmissionQueueView();
+    const lifecycleByRunId = await buildLifecycleByRunId(view.rows);
     const report = buildReconciliationReportFromView(view);
     const reconciliationRows = view.rows.filter(
       (row) => row.reconciliationPending,
@@ -738,7 +790,14 @@ export async function AdminAdmissionQueue({ initialFilter }: AdminAdmissionQueue
             groups={filterGroups}
             initialFilter={initialFilter ?? null}
           >
-            {view.rows.map(renderRow)}
+            {view.rows.map((row) =>
+              renderRow(
+                row,
+                row.controlPlaneRunId
+                  ? lifecycleByRunId.get(row.controlPlaneRunId)
+                  : undefined,
+              ),
+            )}
           </AdminQueueFilteredList>
         )}
       </>
