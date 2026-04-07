@@ -3,6 +3,7 @@ import { buildAdmissionQueueView } from "@/lib/server/admission-queue";
 import { buildReconciliationReportFromView } from "@/lib/server/reconciliation-report";
 import { AdminOverviewGrid } from "../../../components/admin/admin-overview-grid";
 import { AdminEmptyState } from "../../../components/admin/admin-empty-state";
+import { buildLifecycleByRunId } from "../../../components/admin/admin-admission-queue";
 
 export const metadata: Metadata = {
   title: "Admin — Overview",
@@ -22,5 +23,24 @@ export default async function AdminOverviewPage() {
     return <AdminEmptyState variant="unavailable" detail={message} />;
   }
 
-  return <AdminOverviewGrid view={view} report={report} />;
+  let customerAccepted = 0;
+  let customerRejected = 0;
+  try {
+    const lifecycleByRunId = await buildLifecycleByRunId(view.rows);
+    for (const lifecycle of lifecycleByRunId.values()) {
+      if (lifecycle.stage === "accepted") customerAccepted++;
+      else if (lifecycle.stage === "rejected") customerRejected++;
+    }
+  } catch {
+    // Lifecycle data unavailable; customer acceptance counts remain 0.
+  }
+
+  return (
+    <AdminOverviewGrid
+      view={view}
+      report={report}
+      customerAccepted={customerAccepted}
+      customerRejected={customerRejected}
+    />
+  );
 }
