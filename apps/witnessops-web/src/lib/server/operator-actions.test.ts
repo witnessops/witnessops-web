@@ -18,6 +18,7 @@ import {
   getIntakeById,
   getIssuanceById,
   type TokenIssuanceRecord,
+  updateIntake,
 } from "./token-store";
 
 import { POST as engage } from "../../app/api/engage/route";
@@ -521,4 +522,152 @@ test("WEB-005: end-to-end reject -> rescind -> approve succeeds", async () => {
     delete process.env.CONTROL_PLANE_URL;
     delete process.env.CONTROL_PLANE_API_KEY;
   }
+});
+
+// ---------------------------------------------------------------------------
+// WEB-006: pre-approval intake stage gate for reject + clarification
+// ---------------------------------------------------------------------------
+
+async function forceIntakeStateForTest(
+  intakeId: string,
+  state: "responded" | "replayed" | "expired",
+): Promise<void> {
+  await updateIntake(intakeId, (current) => ({
+    ...current,
+    state,
+    updatedAt: new Date().toISOString(),
+  }));
+}
+
+test("WEB-006: reject from responded -> 409 with state-named message", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web006-reject-responded-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await forceIntakeStateForTest(issued.intakeId, "responded");
+
+  await assert.rejects(
+    () =>
+      rejectIntakeAsOperator({
+        intakeId: issued.intakeId,
+        actor: "operator@example.com",
+        reason: "Try anyway",
+      }),
+    (err) =>
+      err instanceof OperatorActionError &&
+      err.status === 409 &&
+      /responded/i.test(err.message),
+  );
+});
+
+test("WEB-006: reject from replayed -> 409", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web006-reject-replayed-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await forceIntakeStateForTest(issued.intakeId, "replayed");
+
+  await assert.rejects(
+    () =>
+      rejectIntakeAsOperator({
+        intakeId: issued.intakeId,
+        actor: "operator@example.com",
+        reason: "Try anyway",
+      }),
+    (err) =>
+      err instanceof OperatorActionError &&
+      err.status === 409 &&
+      /replayed/i.test(err.message),
+  );
+});
+
+test("WEB-006: reject from expired -> 409", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web006-reject-expired-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await forceIntakeStateForTest(issued.intakeId, "expired");
+
+  await assert.rejects(
+    () =>
+      rejectIntakeAsOperator({
+        intakeId: issued.intakeId,
+        actor: "operator@example.com",
+        reason: "Try anyway",
+      }),
+    (err) =>
+      err instanceof OperatorActionError &&
+      err.status === 409 &&
+      /expired/i.test(err.message),
+  );
+});
+
+test("WEB-006: request_clarification from responded -> 409", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web006-clarify-responded-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await forceIntakeStateForTest(issued.intakeId, "responded");
+
+  await assert.rejects(
+    () =>
+      requestClarificationAsOperator({
+        intakeId: issued.intakeId,
+        actor: "operator@example.com",
+        reason: "Need more detail",
+        clarificationQuestion: "Confirm subdomains",
+      }),
+    (err) =>
+      err instanceof OperatorActionError &&
+      err.status === 409 &&
+      /responded/i.test(err.message),
+  );
+});
+
+test("WEB-006: request_clarification from replayed -> 409", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web006-clarify-replayed-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await forceIntakeStateForTest(issued.intakeId, "replayed");
+
+  await assert.rejects(
+    () =>
+      requestClarificationAsOperator({
+        intakeId: issued.intakeId,
+        actor: "operator@example.com",
+        reason: "Need more detail",
+        clarificationQuestion: "Confirm subdomains",
+      }),
+    (err) =>
+      err instanceof OperatorActionError &&
+      err.status === 409 &&
+      /replayed/i.test(err.message),
+  );
+});
+
+test("WEB-006: request_clarification from expired -> 409", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web006-clarify-expired-"));
+  const issued = await issueVerifiedToken(baseDir);
+  await forceIntakeStateForTest(issued.intakeId, "expired");
+
+  await assert.rejects(
+    () =>
+      requestClarificationAsOperator({
+        intakeId: issued.intakeId,
+        actor: "operator@example.com",
+        reason: "Need more detail",
+        clarificationQuestion: "Confirm subdomains",
+      }),
+    (err) =>
+      err instanceof OperatorActionError &&
+      err.status === 409 &&
+      /expired/i.test(err.message),
+  );
+});
+
+test("WEB-006: existing reject from verified state still works (regression guard)", async () => {
+  // The new gate must NOT block legitimate operator actions on
+  // pre-approval intakes. verified is the default state from
+  // issueVerifiedToken; this is the path the existing WEB-004 tests
+  // exercise. Re-asserting it directly here so future re-tightenings
+  // of the allowed-state set are caught immediately.
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-web006-reject-verified-"));
+  const issued = await issueVerifiedToken(baseDir);
+  const result = await rejectIntakeAsOperator({
+    intakeId: issued.intakeId,
+    actor: "operator@example.com",
+    reason: "Out of scope",
+  });
+  assert.equal(result.state, "rejected");
 });

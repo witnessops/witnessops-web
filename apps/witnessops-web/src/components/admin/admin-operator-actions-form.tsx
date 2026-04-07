@@ -14,6 +14,22 @@ import styles from "./admin.module.css";
 interface Props {
   intakeId: string;
   alreadyRejected: boolean;
+  /**
+   * WEB-006: true only when the row is in a pre-approval intake state
+   * (submitted / verification_sent / verified / admitted) where reject
+   * and request_clarification are server-side allowed. False on
+   * responded / replayed / expired and any other post-engagement or
+   * terminal state. When false the form renders nothing — the operator
+   * has no intake-stage action vocabulary on this row.
+   */
+  applicable: boolean;
+  /**
+   * WEB-006: true when an operator clarification request is already
+   * recorded against this intake. Used to disable the "Request
+   * clarification" button (still rendered, but inert) so operators
+   * cannot stack multiple pending requests; reject remains available.
+   */
+  pendingClarification: boolean;
 }
 
 type Mode = "reject" | "request_clarification" | null;
@@ -144,6 +160,17 @@ export function AdminOperatorActionsForm(props: Props) {
     );
   }
 
+  // WEB-006: render nothing on rows where the server-side gate would
+  // refuse the action. Hiding the affordances keeps the queue from
+  // suggesting that an operator can reject or clarify against an
+  // already-engaged or terminal intake — the previous behavior would
+  // silently overwrite responded state. The clarification "Waiting on
+  // claimant" banner in admin-admission-queue still renders separately
+  // when relevant.
+  if (!props.applicable) {
+    return null;
+  }
+
   async function submit() {
     setError("");
     if (!mode) return;
@@ -200,7 +227,15 @@ export function AdminOperatorActionsForm(props: Props) {
         <button
           type="button"
           className={styles.rowAction}
+          disabled={props.pendingClarification}
+          aria-disabled={props.pendingClarification}
+          title={
+            props.pendingClarification
+              ? "A clarification request is already pending. Wait for the claimant to act."
+              : undefined
+          }
           onClick={() => {
+            if (props.pendingClarification) return;
             setError("");
             setMode((current) =>
               current === "request_clarification" ? null : "request_clarification",
@@ -210,6 +245,12 @@ export function AdminOperatorActionsForm(props: Props) {
           Request clarification
         </button>
       </div>
+      {props.pendingClarification ? (
+        <div className="mt-1 text-[10px] text-zinc-500" data-testid="clarification-pending-note">
+          A clarification request is already pending. Wait for the claimant
+          to act before recording another.
+        </div>
+      ) : null}
 
       {mode ? (
         <div className="mt-2 space-y-2 rounded border border-zinc-800 bg-black/30 p-2 text-xs">
