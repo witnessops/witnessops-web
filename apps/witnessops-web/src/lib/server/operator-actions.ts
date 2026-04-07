@@ -36,6 +36,21 @@ import {
 
 export type OperatorActionKind = OperatorActionRecord["kind"];
 
+/**
+ * WEB-006: pre-approval intake states from which an operator may take
+ * an intake-stage action (reject or request_clarification). Outside
+ * this set the intake has either already been engaged (responded), is
+ * already terminal (rejected, expired, replayed), or is otherwise
+ * outside the operator's intake-stage vocabulary, and the action would
+ * be a state-corrupting overwrite.
+ */
+const OPERATOR_ACTION_ALLOWED_STATES: ReadonlySet<AdmissionState> = new Set([
+  "submitted",
+  "verification_sent",
+  "verified",
+  "admitted",
+]);
+
 export class OperatorActionError extends Error {
   status: number;
   constructor(message: string, status = 400) {
@@ -116,6 +131,16 @@ export async function rejectIntakeAsOperator(
     }
     throw new OperatorActionError(
       "Intake is already rejected by another path.",
+      409,
+    );
+  }
+  // WEB-006: refuse on states outside the pre-approval intake stage so
+  // a reject does not silently overwrite responded / replayed / expired
+  // facts. The rejected case above stays first so its idempotent-replay
+  // path is not blocked by this gate.
+  if (!OPERATOR_ACTION_ALLOWED_STATES.has(intake.state)) {
+    throw new OperatorActionError(
+      `Cannot reject an intake in state "${intake.state}". Operator reject is only valid in the pre-approval intake stage.`,
       409,
     );
   }
@@ -200,6 +225,16 @@ export async function requestClarificationAsOperator(
   if (intake.state === "rejected") {
     throw new OperatorActionError(
       "Cannot request clarification on a rejected intake.",
+      409,
+    );
+  }
+  // WEB-006: refuse on states outside the pre-approval intake stage so
+  // a clarification request is not recorded against an already-engaged
+  // (responded) or terminal (replayed/expired) intake. The rejected
+  // case above stays first to preserve its existing 409 error message.
+  if (!OPERATOR_ACTION_ALLOWED_STATES.has(intake.state)) {
+    throw new OperatorActionError(
+      `Cannot request clarification on an intake in state "${intake.state}". Operator clarification is only valid in the pre-approval intake stage.`,
       409,
     );
   }

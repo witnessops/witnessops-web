@@ -610,11 +610,18 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
       <AdminOperatorActionsForm
         intakeId={row.intakeId}
         alreadyRejected={row.state === "rejected"}
+        applicable={
+          row.state === "submitted" ||
+          row.state === "verification_sent" ||
+          row.state === "verified" ||
+          row.state === "admitted"
+        }
+        pendingClarification={row.operatorActionKind === "request_clarification"}
       />
 
       {row.operatorActionKind === "request_clarification" && row.state !== "rejected" ? (
         <div className={styles.queueWarning} data-testid="operator-action-state" data-kind="request_clarification">
-          Operator clarification request recorded. Waiting on claimant.
+          Operator clarification request recorded. <strong>No operator action required</strong> — waiting on the claimant to amend, proceed, retract, or disagree.
         </div>
       ) : null}
 
