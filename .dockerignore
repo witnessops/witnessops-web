@@ -1,0 +1,16 @@
+.azure
+.git
+.github
+.next
+**/.next
+.turbo
+node_modules
+**/node_modules
+coverage
+dist
+tmp
+*.log
+!apps/witnessops-web/.next/standalone
+!apps/witnessops-web/.next/standalone/**
+!apps/witnessops-web/.next/static
+!apps/witnessops-web/.next/static/**
