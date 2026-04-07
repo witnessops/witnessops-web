@@ -217,3 +217,59 @@ export async function getCustomerAcceptance(
     `/v1/runs/${runId}/customer-acceptance`,
   );
 }
+
+export interface CustomerAcceptanceSubmission {
+  disposition: "accepted" | "rejected";
+  accepted_by: string;
+  comment: string | null;
+}
+
+export type CustomerAcceptanceSubmitResult =
+  | { kind: "ok"; record: ControlPlaneCustomerAcceptanceRecord }
+  | { kind: "conflict"; message: string }
+  | { kind: "not_configured" };
+
+/**
+ * Submit a customer acceptance disposition (CP-003).
+ *
+ * The control-plane is the authority on first-write-wins + idempotent
+ * replay. This wrapper returns:
+ *  - { kind: "ok", record } on 200 (first write OR idempotent replay)
+ *  - { kind: "conflict", message } on 409 (no delivery, wrong source
+ *    state, or different field than existing record)
+ *  - { kind: "not_configured" } when env is not wired
+ *  - throws on network errors or other non-2xx status
+ */
+export async function submitCustomerAcceptance(
+  runId: string,
+  submission: CustomerAcceptanceSubmission,
+): Promise<CustomerAcceptanceSubmitResult> {
+  const config = readConfig();
+  if (!config) return { kind: "not_configured" };
+
+  const response = await fetch(
+    `${config.url}/v1/runs/${runId}/customer-acceptance`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": config.apiKey,
+      },
+      body: JSON.stringify(submission),
+      signal: AbortSignal.timeout(15_000),
+    },
+  );
+
+  if (response.status === 409) {
+    const detail = await response.text().catch(() => "(unreadable)");
+    return { kind: "conflict", message: detail };
+  }
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "(unreadable)");
+    throw new Error(
+      `Control plane POST customer-acceptance returned ${response.status}: ${detail}`,
+    );
+  }
+  const record = (await response.json()) as ControlPlaneCustomerAcceptanceRecord;
+  return { kind: "ok", record };
+}

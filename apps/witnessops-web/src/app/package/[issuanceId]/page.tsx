@@ -18,6 +18,7 @@ import {
 } from "@/lib/server/control-plane-client";
 import { buildCustomerProofPackageView } from "@/lib/server/customer-proof-package";
 import { CustomerProofPackage } from "@/components/customer-proof-package";
+import { CustomerDispositionForm } from "./customer-disposition-form";
 
 export const metadata: Metadata = {
   title: "Proof package",
@@ -91,6 +92,10 @@ export default async function CustomerPackagePage({
       <div className="max-w-2xl mx-auto px-4 py-12 space-y-8">
         <Header issuanceId={issuanceId} email={email} />
         <CustomerProofPackage view={view} />
+        {view.disposition === null &&
+        (view.stage === "delivered" || view.stage === "acknowledged") ? (
+          <CustomerDispositionForm issuanceId={issuanceId} email={email} />
+        ) : null}
         <div className="text-xs text-zinc-700 border-t border-zinc-900 pt-4">
           Proof package contents are sealed with DSSE Ed25519 envelopes and
           stored as append-only proof records. This page is session-private.

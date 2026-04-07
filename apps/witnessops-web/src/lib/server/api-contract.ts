@@ -142,6 +142,13 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     summary: "Claimant approves scope and starts governed recon",
   },
   {
+    path: "/api/package/[issuanceId]/disposition",
+    methods: ["POST"],
+    category: "public-claimant",
+    summary:
+      "Customer accepts or rejects the delivered proof package (WEB-014)",
+  },
+  {
     path: "/api/assessment/[issuanceId]/amend",
     methods: ["POST"],
     category: "public-claimant",
