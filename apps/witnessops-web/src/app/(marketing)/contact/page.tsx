@@ -5,14 +5,28 @@ import { getMailboxConfig } from "@/lib/mailboxes";
 
 export const metadata: Metadata = {
   title: "Engage",
-  description: "Tell us what you need governed. Every engagement runs through the same governed pipeline.",
+  description:
+    "Tell us what needs governed. Every engagement runs through the same mailbox-verified, policy-gated pipeline.",
   alternates: getCanonicalAlternates("witnessops", "/contact"),
+  openGraph: {
+    title: "Engage | WitnessOps",
+    description:
+      "Tell us what needs governed. Every engagement runs through the same mailbox-verified, policy-gated pipeline.",
+    siteName: "WitnessOps",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Engage | WitnessOps",
+    description:
+      "Tell us what needs governed. Every engagement runs through the same mailbox-verified, policy-gated pipeline.",
+  },
 };
 
 export default function ContactPage() {
   const mailboxes = getMailboxConfig();
   return (
-    <div className="mx-auto max-w-[1100px] px-6 py-20">
+    <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1100px] px-6 py-20">
       {/* Proof bar */}
       <div
         className="mb-10 border-y border-surface-border py-3 text-center"
@@ -58,7 +72,7 @@ export default function ContactPage() {
               {[
                 "Policy-gated execution",
                 "Signed evidence chains",
-                "Independent verification",
+                "Third-party verification",
                 "Compliance-ready deliverables",
                 "Response within 1 business day",
               ].map((item) => (
@@ -78,10 +92,10 @@ export default function ContactPage() {
           <div
             className="mt-10"
             style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "var(--color-brand-muted)", lineHeight: 1.8 }}
-          >
-            <div>Respect the penguin.</div>
-            <div>Bring receipts.</div>
-          </div>
+        >
+          <div>Respect the penguin.</div>
+          <div>Bring receipts.</div>
+        </div>
         </div>
 
         {/* Right — form */}
@@ -102,6 +116,6 @@ export default function ContactPage() {
           <ContactForm contactEmail={mailboxes.engage} />
         </div>
       </div>
-    </div>
+    </main>
   );
 }

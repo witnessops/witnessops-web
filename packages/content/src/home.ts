@@ -40,7 +40,6 @@ export const WitnessOpsSectionTypeSchema = z.enum([
   "expansion_path",
 ]);
 
-export const OffsecSectionTypeSchema = WitnessOpsSectionTypeSchema;
 export const SharedSectionTypeSchema = WitnessOpsSectionTypeSchema;
 
 export const ReducedVaultMeshSectionTypeSchema = z.enum([
@@ -386,8 +385,6 @@ export const WitnessOpsHomeSectionSchema = z.discriminatedUnion("type", [
   ExpansionPathSectionSchema,
 ]);
 
-export const OffsecHomeSectionSchema = WitnessOpsHomeSectionSchema;
-
 /**
  * Order rules
  */
@@ -421,8 +418,6 @@ const REQUIRED_WITNESSOPS_SECTION_ORDER = [
   "offer",
   "expansion_path",
 ] as const;
-
-const REQUIRED_OFFSEC_SECTION_ORDER = REQUIRED_WITNESSOPS_SECTION_ORDER;
 
 const REQUIRED_VAULTMESH_SECTION_ORDER = [
   "offer",
@@ -650,7 +645,7 @@ export const WitnessOpsHomeSchema = BaseHomeSchema.extend({
   theme: ThemeSchema.extend({
     brand: z.literal("witnessops"),
   }),
-  sections: z.array(OffsecHomeSectionSchema),
+  sections: z.array(WitnessOpsHomeSectionSchema),
 }).superRefine((data, ctx) => {
   validateUniqueSectionIds(data.sections, ctx);
   validateNoDuplicateSectionTypes(data.sections, ctx);
@@ -687,8 +682,6 @@ export const WitnessOpsHomeSchema = BaseHomeSchema.extend({
   }
 });
 
-export const OffsecHomeSchema = WitnessOpsHomeSchema;
-
 /**
  * Union schema for loader entrypoints
  * Note: Using z.union instead of z.discriminatedUnion because superRefine
@@ -705,10 +698,8 @@ export const MarketingHomeSchema = z.union([
 export type Cta = z.infer<typeof CtaSchema>;
 export type HomeSection = z.infer<typeof HomeSectionSchema>;
 export type WitnessOpsHomeSection = z.infer<typeof WitnessOpsHomeSectionSchema>;
-export type OffsecHomeSection = WitnessOpsHomeSection;
 export type VaultMeshHome = z.infer<typeof VaultMeshHomeSchema>;
 export type WitnessOpsHome = z.infer<typeof WitnessOpsHomeSchema>;
-export type OffsecHome = WitnessOpsHome;
 export type MarketingHome = z.infer<typeof MarketingHomeSchema>;
 
 /**
@@ -720,10 +711,6 @@ export function parseVaultMeshHome(input: unknown): VaultMeshHome {
 
 export function parseWitnessOpsHome(input: unknown): WitnessOpsHome {
   return WitnessOpsHomeSchema.parse(input);
-}
-
-export function parseOffsecHome(input: unknown): OffsecHome {
-  return parseWitnessOpsHome(input);
 }
 
 export function parseMarketingHome(input: unknown): MarketingHome {
@@ -739,10 +726,6 @@ export function safeParseVaultMeshHome(input: unknown) {
 
 export function safeParseWitnessOpsHome(input: unknown) {
   return WitnessOpsHomeSchema.safeParse(input);
-}
-
-export function safeParseOffsecHome(input: unknown) {
-  return safeParseWitnessOpsHome(input);
 }
 
 export function safeParseMarketingHome(input: unknown) {

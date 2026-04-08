@@ -1,10 +1,14 @@
 /**
  * HTTP client for the WitnessOps control plane.
  *
- * Reads CONTROL_PLANE_URL and CONTROL_PLANE_API_KEY from environment.
+ * Reads CONTROL_PLANE_URL and either CONTROL_PLANE_API_KEY or
+ * CONTROL_PLANE_SERVICE_IDENTITY_* from environment.
+ *
  * If CONTROL_PLANE_URL is not set, notifyScopeApproved returns null gracefully
  * so that the caller can degrade without crashing.
  */
+
+import { createHmac, randomUUID } from "node:crypto";
 
 export interface ScopeApprovalHandoffRequest {
   issuanceId: string;
@@ -27,11 +31,93 @@ export interface ScopeApprovedAck {
   timestamp: string;
 }
 
-function readConfig(): { url: string; apiKey: string } | null {
+export interface ControlPlaneActorContext {
+  actor: string;
+  actorAuthSource: string;
+  actorSessionHash: string | null;
+}
+
+interface ServiceIdentityConfig {
+  secret: string;
+  subject: string;
+}
+
+function b64url(input: string | Buffer): string {
+  return Buffer.from(input)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function readServiceIdentityConfig(): ServiceIdentityConfig | null {
+  const secret = process.env.CONTROL_PLANE_SERVICE_IDENTITY_SECRET?.trim();
+  const subject = process.env.CONTROL_PLANE_SERVICE_IDENTITY_SUBJECT?.trim();
+
+  if (!secret && !subject) return null;
+  if (!secret || !subject) {
+    throw new Error(
+      "CONTROL_PLANE_SERVICE_IDENTITY_SECRET and CONTROL_PLANE_SERVICE_IDENTITY_SUBJECT must be configured together",
+    );
+  }
+
+  return { secret, subject };
+}
+
+function buildServiceAssertion(config: ServiceIdentityConfig, role: string): string {
+  const payloadB64 = b64url(
+    JSON.stringify({
+      sub: config.subject,
+      aud: "bridge-api",
+      role,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 300,
+      jti: randomUUID(),
+    }),
+  );
+  const signature = createHmac("sha256", config.secret)
+    .update(payloadB64)
+    .digest();
+  return `${payloadB64}.${b64url(signature)}`;
+}
+
+function buildAuthHeaders(
+  role: "operator" | "reviewer" | "admin",
+  actorContext?: ControlPlaneActorContext,
+): Record<string, string> {
+  const serviceIdentity = readServiceIdentityConfig();
+  const headers: Record<string, string> = {};
+
+  if (serviceIdentity) {
+    headers["X-WitnessOps-Service-Assertion"] = buildServiceAssertion(
+      serviceIdentity,
+      role,
+    );
+  } else {
+    const apiKey = process.env.CONTROL_PLANE_API_KEY?.trim();
+    if (!apiKey) {
+      throw new Error(
+        "CONTROL_PLANE_API_KEY is required when service identity is not configured",
+      );
+    }
+    headers["X-API-Key"] = apiKey;
+  }
+
+  if (actorContext) {
+    headers["X-WitnessOps-Actor"] = actorContext.actor;
+    headers["X-WitnessOps-Actor-Auth-Source"] = actorContext.actorAuthSource;
+    if (actorContext.actorSessionHash) {
+      headers["X-WitnessOps-Actor-Session-Hash"] = actorContext.actorSessionHash;
+    }
+  }
+
+  return headers;
+}
+
+function readConfig(): { url: string } | null {
   const url = process.env.CONTROL_PLANE_URL?.trim();
-  const apiKey = process.env.CONTROL_PLANE_API_KEY?.trim();
-  if (!url || !apiKey) return null;
-  return { url, apiKey };
+  if (!url) return null;
+  return { url };
 }
 
 /**
@@ -52,7 +138,7 @@ export async function notifyScopeApproved(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-API-Key": config.apiKey,
+      ...buildAuthHeaders("operator"),
     },
     body: JSON.stringify(req),
     signal: AbortSignal.timeout(15_000),
@@ -162,7 +248,7 @@ async function controlPlaneGet<T>(
 
   const response = await fetch(`${config.url}${path}`, {
     method: "GET",
-    headers: { "X-API-Key": config.apiKey },
+    headers: buildAuthHeaders("operator"),
     signal: AbortSignal.timeout(15_000),
   });
 
@@ -193,13 +279,14 @@ export type AuthorizeRunResult =
  */
 export async function authorizeRun(
   runId: string,
+  actorContext?: ControlPlaneActorContext,
 ): Promise<AuthorizeRunResult> {
   const config = readConfig();
   if (!config) return { kind: "not_configured" };
 
   const response = await fetch(`${config.url}/v1/runs/${runId}/authorize`, {
     method: "POST",
-    headers: { "X-API-Key": config.apiKey },
+    headers: buildAuthHeaders("operator", actorContext),
     signal: AbortSignal.timeout(15_000),
   });
 
@@ -324,7 +411,7 @@ export async function submitCustomerAcceptance(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-API-Key": config.apiKey,
+        ...buildAuthHeaders("operator"),
       },
       body: JSON.stringify(submission),
       signal: AbortSignal.timeout(15_000),

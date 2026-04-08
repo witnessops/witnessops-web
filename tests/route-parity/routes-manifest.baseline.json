@@ -51,12 +51,76 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/api/admin/lifecycle/[runId]/authorize",
+      "regex": "^/api/admin/lifecycle/([^/]+?)/authorize(?:/)?$",
+      "routeKeys": {
+        "nxtPrunId": "nxtPrunId"
+      },
+      "namedRegex": "^/api/admin/lifecycle/(?<nxtPrunId>[^/]+?)/authorize(?:/)?$"
+    },
+    {
+      "page": "/api/admin/lifecycle/[runId]/retry-request",
+      "regex": "^/api/admin/lifecycle/([^/]+?)/retry\\-request(?:/)?$",
+      "routeKeys": {
+        "nxtPrunId": "nxtPrunId"
+      },
+      "namedRegex": "^/api/admin/lifecycle/(?<nxtPrunId>[^/]+?)/retry\\-request(?:/)?$"
+    },
+    {
       "page": "/api/assessment/[issuanceId]",
       "regex": "^/api/assessment/([^/]+?)(?:/)?$",
       "routeKeys": {
         "nxtPissuanceId": "nxtPissuanceId"
       },
       "namedRegex": "^/api/assessment/(?<nxtPissuanceId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/assessment/[issuanceId]/amend",
+      "regex": "^/api/assessment/([^/]+?)/amend(?:/)?$",
+      "routeKeys": {
+        "nxtPissuanceId": "nxtPissuanceId"
+      },
+      "namedRegex": "^/api/assessment/(?<nxtPissuanceId>[^/]+?)/amend(?:/)?$"
+    },
+    {
+      "page": "/api/assessment/[issuanceId]/approve",
+      "regex": "^/api/assessment/([^/]+?)/approve(?:/)?$",
+      "routeKeys": {
+        "nxtPissuanceId": "nxtPissuanceId"
+      },
+      "namedRegex": "^/api/assessment/(?<nxtPissuanceId>[^/]+?)/approve(?:/)?$"
+    },
+    {
+      "page": "/api/assessment/[issuanceId]/disagree",
+      "regex": "^/api/assessment/([^/]+?)/disagree(?:/)?$",
+      "routeKeys": {
+        "nxtPissuanceId": "nxtPissuanceId"
+      },
+      "namedRegex": "^/api/assessment/(?<nxtPissuanceId>[^/]+?)/disagree(?:/)?$"
+    },
+    {
+      "page": "/api/assessment/[issuanceId]/reopen",
+      "regex": "^/api/assessment/([^/]+?)/reopen(?:/)?$",
+      "routeKeys": {
+        "nxtPissuanceId": "nxtPissuanceId"
+      },
+      "namedRegex": "^/api/assessment/(?<nxtPissuanceId>[^/]+?)/reopen(?:/)?$"
+    },
+    {
+      "page": "/api/assessment/[issuanceId]/retract",
+      "regex": "^/api/assessment/([^/]+?)/retract(?:/)?$",
+      "routeKeys": {
+        "nxtPissuanceId": "nxtPissuanceId"
+      },
+      "namedRegex": "^/api/assessment/(?<nxtPissuanceId>[^/]+?)/retract(?:/)?$"
+    },
+    {
+      "page": "/api/package/[issuanceId]/disposition",
+      "regex": "^/api/package/([^/]+?)/disposition(?:/)?$",
+      "routeKeys": {
+        "nxtPissuanceId": "nxtPissuanceId"
+      },
+      "namedRegex": "^/api/package/(?<nxtPissuanceId>[^/]+?)/disposition(?:/)?$"
     },
     {
       "page": "/assessment/[issuanceId]",
@@ -81,6 +145,14 @@
         "nxtPreceiptId": "nxtPreceiptId"
       },
       "namedRegex": "^/execution/(?<nxtPreceiptId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/package/[issuanceId]",
+      "regex": "^/package/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPissuanceId": "nxtPissuanceId"
+      },
+      "namedRegex": "^/package/(?<nxtPissuanceId>[^/]+?)(?:/)?$"
     },
     {
       "page": "/support/[slug]",
@@ -115,6 +187,24 @@
       "regex": "^/admin/login(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/login(?:/)?$"
+    },
+    {
+      "page": "/admin/queue",
+      "regex": "^/admin/queue(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/queue(?:/)?$"
+    },
+    {
+      "page": "/admin/reports",
+      "regex": "^/admin/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/reports(?:/)?$"
+    },
+    {
+      "page": "/admin/system",
+      "regex": "^/admin/system(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/system(?:/)?$"
     },
     {
       "page": "/contact",

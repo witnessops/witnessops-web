@@ -9,12 +9,25 @@ import { getMailboxConfig } from "@/lib/mailboxes";
 
 export function generateMetadata(): Metadata {
   const doc = loadSupportPage("support-policy");
+  const title = doc?.title ?? "Support";
+  const description =
+    doc?.description ?? "WitnessOps support policy, disclosure guidance, and mailbox-verified support intake.";
 
   return {
-    title: doc?.title ?? "Support",
-    description:
-      doc?.description ?? "WITNESSOPS support resources and service policies.",
+    title,
+    description,
     alternates: getCanonicalAlternates("witnessops", "/support"),
+    openGraph: {
+      title: `${title} | WitnessOps`,
+      description,
+      siteName: "WitnessOps",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | WitnessOps`,
+      description,
+    },
   };
 }
 
@@ -107,7 +120,7 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
               Prefer direct email?
             </p>
             <p className="text-xs text-text-muted leading-relaxed mb-3">
-              You can still write to the support mailbox directly. No human workflow starts until the sender mailbox is verified.
+              You can still write to the support mailbox directly. A support thread is not admitted until the sender mailbox is verified.
             </p>
             <a
               href={`mailto:${mailboxes.support}`}

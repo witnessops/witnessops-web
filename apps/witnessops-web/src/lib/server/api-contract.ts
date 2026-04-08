@@ -189,6 +189,18 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     summary: "Admin logout",
   },
   {
+    path: "/api/admin/oidc/start",
+    methods: ["GET"],
+    category: "operator",
+    summary: "Start admin OIDC sign-in with Entra",
+  },
+  {
+    path: "/api/admin/oidc/callback",
+    methods: ["GET"],
+    category: "operator",
+    summary: "Complete admin OIDC callback and establish session",
+  },
+  {
     path: "/api/admin/intake/respond",
     methods: ["POST"],
     category: "operator",

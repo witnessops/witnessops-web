@@ -17,6 +17,7 @@
     "@witnessops/proof": "workspace:*",
     "@witnessops/ui": "workspace:*",
     "framer-motion": "^12.36.0",
+    "jose": "^6.2.2",
     "js-yaml": "^4.1.0",
     "lucide-react": "^1.7.0",
     "next": "^15.1.0",

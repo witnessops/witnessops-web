@@ -166,7 +166,7 @@ export function ContactForm({ contactEmail }: { contactEmail: string }) {
             <option value="">Select engagement type</option>
             <option value="recon">External reconnaissance</option>
             <option value="assessment">Vulnerability assessment</option>
-            <option value="continuous">Continuous monitoring</option>
+            <option value="continuous">Continuous proof-backed security</option>
             <option value="compliance">Compliance evidence</option>
             <option value="custom">Custom engagement</option>
           </select>

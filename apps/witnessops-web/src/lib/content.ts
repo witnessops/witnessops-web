@@ -6,8 +6,8 @@ import {
   type ContentFrontmatter,
   type ContentSection,
   type ContentTrustBoundaryVariant,
-  parseOffsecHome,
-  type OffsecHome,
+  parseWitnessOpsHome,
+  type WitnessOpsHome,
 } from "@witnessops/content";
 
 const CONTENT_ROOT = path.resolve(process.cwd(), "../../content/witnessops");
@@ -27,13 +27,13 @@ export interface ContentDocument {
   trustBoundaryVariant?: ContentTrustBoundaryVariant;
 }
 
-export function loadHomeContent(): OffsecHome {
+export function loadHomeContent(): WitnessOpsHome {
   const raw = fs.readFileSync(
     path.join(CONTENT_ROOT, "landing/home.yaml"),
     "utf-8",
   );
   const data = yaml.load(raw);
-  return parseOffsecHome(data);
+  return parseWitnessOpsHome(data);
 }
 
 export function loadYaml<T = unknown>(relativePath: string): T {

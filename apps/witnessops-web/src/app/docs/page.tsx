@@ -7,9 +7,22 @@ import { getDocsSidebar } from "@witnessops/content/sidebar";
 export const metadata: Metadata = {
   title: "Docs — WitnessOps",
   description:
-    "Everything you need to run governed security operations and verify the resulting evidence.",
+    "Learn how WitnessOps turns security work into portable proof bundles.",
   alternates: {
     canonical: getDocCanonicalUrl("witnessops", []),
+  },
+  openGraph: {
+    title: "Docs — WitnessOps",
+    description:
+      "Learn how WitnessOps turns security work into portable proof bundles.",
+    siteName: "WitnessOps",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Docs — WitnessOps",
+    description:
+      "Learn how WitnessOps turns security work into portable proof bundles.",
   },
 };
 
@@ -120,15 +133,15 @@ const useCases = [
   {
     title: "Reconnaissance",
     description:
-      "Run a governed external assessment and receive a report plus signed receipt.",
+      "Run governed reconnaissance and receive a report plus signed receipt.",
   },
   {
     title: "Assessment",
     description:
-      "Execute deeper testing with stronger evidence continuity and proof artifacts.",
+      "Execute deeper testing with portable proof bundles and third-party verification.",
   },
   {
-    title: "Continuous operations",
+    title: "Continuous proof-backed security",
     description:
       "Maintain recurring governed execution and evidence across ongoing security work.",
   },
@@ -136,16 +149,16 @@ const useCases = [
 
 const differentiators = [
   {
-    left: "Most assessments produce reports.",
+    left: "Most assessments stop at reports.",
     right: "WitnessOps also produces signed evidence of what actually ran.",
   },
   {
     left: "Most platforms log events.",
-    right: "WitnessOps produces receipts designed for verification.",
+    right: "WitnessOps produces receipts designed for third-party verification.",
   },
   {
     left: "Most verification depends on the vendor.",
-    right: "WitnessOps is built so evidence can be checked independently.",
+    right: "WitnessOps is built so evidence can be checked outside the originating runtime.",
   },
 ];
 
@@ -166,18 +179,35 @@ export default async function DocsIndexPage() {
           className="mt-2 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary lg:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          WITNESSOPS Documentation
+          Learn how WitnessOps turns security work into portable proof bundles
         </h1>
 
         <p className="mt-4 max-w-[600px] text-sm leading-relaxed text-text-muted tracking-wide">
-          Governed security operations. Signed evidence. Independent verification.
+          See how signed lineage, evidence integrity, and offline verification
+          fit together so serious cyber claims can be checked without trusting
+          WitnessOps.
         </p>
 
         <p className="mt-4 max-w-[720px] text-sm leading-relaxed text-text-muted tracking-wide">
-          Learn how WitnessOps runs scoped security work under policy, produces
-          signed receipts, and makes the resulting evidence verifiable without
-          depending on WitnessOps itself.
+          WitnessOps separates execution, evidence, verification, and
+          presentation so serious cyber claims can survive export from the
+          environment where they were created.
         </p>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href={getSurfaceUrl("witnessops", "/verify")}
+            className="inline-flex items-center border border-brand-accent bg-brand-accent px-4 py-2 text-sm font-semibold text-brand-ink transition-opacity hover:opacity-90"
+          >
+            Try the Public Verifier
+          </Link>
+          <Link
+            href="/docs/evidence/receipts"
+            className="inline-flex items-center border border-surface-border px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent"
+          >
+            Read a Sample Bundle
+          </Link>
+        </div>
 
         {/* Stats strip */}
         <div className="mt-6 flex gap-0 border border-surface-border w-fit">
@@ -223,7 +253,7 @@ export default async function DocsIndexPage() {
           className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted mb-4"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Start Here
+          Understand It In 4 Steps
           <span className="flex-1 h-px bg-surface-border" />
         </h2>
 

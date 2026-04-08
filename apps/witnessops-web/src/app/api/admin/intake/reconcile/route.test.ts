@@ -28,6 +28,7 @@ function buildValidReconciliationNote(): string {
 }
 
 function applyTestEnv(baseDir: string): void {
+  process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS = "1";
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
 }
@@ -139,6 +140,7 @@ async function seedReconciliationCase() {
 }
 
 afterEach(async () => {
+  delete process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS;
   await clearTokenStore();
 });
 

@@ -1,4 +1,4 @@
-import type { OffsecHomeSection } from "@witnessops/content";
+import type { WitnessOpsHomeSection } from "@witnessops/content";
 import { ProofStrip } from "@/components/marketing/proof-strip";
 import { ProblemSection } from "@/components/marketing/problem-section";
 import { CategorySection } from "@/components/marketing/category-section";
@@ -13,8 +13,8 @@ import { OfferSection } from "@/components/marketing/offer-section";
 import { ExpansionPathSection } from "@/components/marketing/expansion-path-section";
 
 type SectionRendererMap = {
-  [K in OffsecHomeSection["type"]]: (
-    section: Extract<OffsecHomeSection, { type: K }>,
+  [K in WitnessOpsHomeSection["type"]]: (
+    section: Extract<WitnessOpsHomeSection, { type: K }>,
   ) => React.ReactNode;
 };
 
@@ -39,7 +39,7 @@ const sectionRenderers: SectionRendererMap = {
   ),
 };
 
-export function renderHomeSections(sections: OffsecHomeSection[]) {
+export function renderHomeSections(sections: WitnessOpsHomeSection[]) {
   return sections.map((section) => {
     if (!section.enabled) {
       return null;

@@ -27,35 +27,35 @@ export function SystemFraming() {
           lineHeight: 1.02,
         }}
       >
-        Every operation witnessed. Every result verifiable.
+        Portable proof bundles for serious cyber claims.
       </h1>
 
       <p className="max-w-[540px] text-base leading-relaxed text-text-secondary mb-6">
-        WitnessOps runs governed security operations and produces signed,
-        timestamped receipts for what was executed, what was approved, and what
-        stayed in scope.
+        WitnessOps runs governed security work and produces signed proof
+        bundles that customers, auditors, and counterparties can verify
+        offline, without trusting us to remain in the loop.
       </p>
 
       <div className="max-w-[540px] space-y-2 text-sm leading-relaxed mb-8" style={{ color: "var(--color-text-muted)" }}>
-        <p>Not just reports.</p>
-        <p>Not just logs.</p>
-        <p>Portable evidence you can verify independently.</p>
+        <p>Most security work is easy to claim. Hard to prove.</p>
+        <p>Signed receipts, typed lineage, and portable verification.</p>
+        <p>Closed models are acceptable. Closed proof is not.</p>
       </div>
 
       <div className="mb-8 flex flex-wrap gap-3">
         <Link
-          href="#governed-recon"
+          href="/verify"
           className="inline-flex items-center bg-brand-accent px-5 py-3 text-surface-bg transition-all hover:brightness-110 hover:shadow-[0_0_20px_rgba(255,107,53,0.25)]"
           style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}
         >
-          Start Governed Recon
+          Try the Verifier
         </Link>
         <Link
-          href="/contact"
+          href="/docs/evidence/receipt-spec"
           className="inline-flex items-center border border-surface-border px-5 py-3 text-text-primary transition-all hover:border-brand-accent/40 hover:text-brand-accent"
           style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}
         >
-          Engage
+          See Sample Proof
         </Link>
       </div>
 
@@ -63,7 +63,7 @@ export function SystemFraming() {
         className="max-w-[540px] text-sm leading-relaxed mb-10"
         style={{ color: "var(--color-text-muted)" }}
       >
-        Built for teams that need proof, not post-hoc storytelling.
+        No setup. No special access. Verify a real proof bundle in seconds.
       </p>
 
       {/* Trust strip */}
@@ -85,6 +85,13 @@ export function SystemFraming() {
         <span style={{ color: "var(--color-surface-border)" }}>&middot;</span>
         <span>offline-verifiable</span>
       </div>
+
+      <p
+        className="mt-6 max-w-[540px] text-sm leading-relaxed"
+        style={{ color: "var(--color-brand-accent)" }}
+      >
+        Do not trust the claim. Verify the bundle.
+      </p>
     </section>
   );
 }

@@ -10,8 +10,21 @@ import { listVerifyFixtures } from "@/lib/verify-fixtures";
 export const metadata: Metadata = {
   title: "Verify a Receipt",
   description:
-    "Verify WitnessOps receipts in receipt-only mode, inspect deterministic checks, and distinguish malformed input from unsupported inputs.",
+    "Verify a proof bundle offline.",
   alternates: getCanonicalAlternates("witnessops", "/verify"),
+  openGraph: {
+    title: "Verify a Receipt | WitnessOps",
+    description:
+      "Verify a proof bundle offline.",
+    siteName: "WitnessOps",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Verify a Receipt | WitnessOps",
+    description:
+      "Verify a proof bundle offline.",
+  },
 };
 
 const verificationScope = [
@@ -41,13 +54,33 @@ export default function VerifyPage() {
               Verify
             </p>
             <h1 className="text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
-              Verify a WitnessOps receipt without depending on the original runtime.
+              Verify a proof bundle offline.
             </h1>
             <p className="mt-5 max-w-[48rem] text-base leading-8 text-text-secondary">
-              <code>/verify</code> is receipt-first and fail-closed. Paste or upload receipt
-              JSON, inspect the deterministic checks, and see malformed input,
-              unsupported input, and proof failure separated clearly.
+              Inspect whether a serious cyber claim survives independent
+              verification through signatures, lineage, and evidence integrity
+              checks, without relying on the originating system or WitnessOps
+              to stay in the loop.
             </p>
+            <p className="mt-4 max-w-[48rem] text-base leading-8 text-text-secondary">
+              Start here if you need to test whether a serious cyber claim
+              survives independent verification.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="#verify-console"
+                className="inline-flex items-center border border-brand-accent bg-brand-accent px-4 py-2 text-sm font-semibold text-brand-ink transition-opacity hover:opacity-90"
+              >
+                Verify a Sample Bundle
+              </Link>
+              <Link
+                href="#verify-console"
+                className="inline-flex items-center border border-surface-border px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent"
+              >
+                Upload Your Own
+              </Link>
+            </div>
 
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               {verificationScope.map((item) => (
@@ -74,8 +107,9 @@ export default function VerifyPage() {
               <p className="mt-3 max-w-[48rem] text-sm leading-relaxed text-text-secondary">
                 In <code>/verify</code> v1, `valid` means the receipt artifact verified in
                 receipt-only mode. It does not mean the referenced artifact bytes
-                were fetched and rehashed again. That is why scope and artifact
-                revalidation stay visible beside the public verdict.
+                were fetched and rehashed again. Scope and artifact revalidation
+                remain visible beside the public verdict so the result does not
+                overclaim.
               </p>
             </div>
           </div>
@@ -113,7 +147,7 @@ export default function VerifyPage() {
         />
       </SectionShell>
 
-      <SectionShell className="pt-0">
+      <SectionShell className="pt-0" id="verify-console">
         <VerifyConsole fixtures={fixtures} />
       </SectionShell>
 
