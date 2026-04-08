@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getIntakeById, getIssuanceById } from "@/lib/server/token-store";
 import { getAssessmentStatus } from "@/lib/server/assessment-client";
+import { getAssessmentAuthorizationSummary } from "@/lib/server/assessment-authorization-summary";
 import { buildPostApprovalLifecycle } from "@/lib/server/post-approval-lifecycle";
 import { PostApprovalLifecycle } from "@/components/post-approval-lifecycle";
 import { AssessmentTerminalNotice } from "@/components/assessment-terminal-notice";
@@ -48,6 +49,7 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
     postApprovalView?.stage === "accepted" || postApprovalView?.stage === "rejected"
       ? postApprovalView
       : null;
+  const authorizationSummary = getAssessmentAuthorizationSummary(postApprovalView);
 
   // Fetch live status for completed runs (so the initial render is rich)
   let initialStatus = record.assessmentStatus ?? "unavailable";
@@ -201,9 +203,10 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
               Authorization
             </div>
             <div className="text-sm text-zinc-200">
-              Passive-only recon authorized for{" "}
+              {authorizationSummary.messageLead}{" "}
               <span className="font-mono text-emerald-400">{domain}</span>
             </div>
+            <div className="mt-1 text-xs text-zinc-500">{authorizationSummary.detail}</div>
           </div>
         ) : null}
 
