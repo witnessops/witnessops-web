@@ -34,7 +34,8 @@ import type { TokenIssuanceRecord } from "./token-store";
 export type PostApprovalStage =
   | "awaiting_approval"
   | "handoff_pending"
-  | "handoff_accepted"
+  | "authorization_pending"
+  | "authorized"
   | "delivery_pending"
   | "delivered"
   | "acknowledged"
@@ -112,7 +113,8 @@ export type PostApprovalLifecycleView =
     }
   | {
       stage:
-        | "handoff_accepted"
+        | "authorization_pending"
+        | "authorized"
         | "delivery_pending"
         | "delivered"
         | "acknowledged"
@@ -152,9 +154,11 @@ function buildLocal(record: TokenIssuanceRecord): PostApprovalLocalHandoff {
  * Translate raw control-plane state into a user-facing stage.
  *
  * Mapping (post-approval only):
- *  - requested / authorized / scope_locked / token_issued / collecting
- *    / deriving / decision_recorded / coverage_recorded
- *      → handoff_accepted (the run is on its way to bundled)
+ *  - requested
+ *      → authorization_pending (handoff accepted, but execution not yet authorized)
+ *  - authorized / scope_locked / token_issued / collecting / deriving
+ *    / decision_recorded / coverage_recorded
+ *      → authorized (execution may proceed or already be underway)
  *  - bundled → delivery_pending (bundle exists, no delivery record yet)
  *  - delivered → delivered
  *  - acknowledged → acknowledged
@@ -175,7 +179,8 @@ export function stageFromControlPlane(
   if (view.acknowledged) return "acknowledged";
   if (view.delivered) return "delivered";
   if (view.state === "bundled") return "delivery_pending";
-  return "handoff_accepted";
+  if (view.state === "requested") return "authorization_pending";
+  return "authorized";
 }
 
 export interface BuildLifecycleDeps {

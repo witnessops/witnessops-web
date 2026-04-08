@@ -311,7 +311,8 @@ function defaultResponseBody(row: AdmissionQueueRow): string {
 const POST_APPROVAL_STAGE_LABEL: Record<string, string> = {
   awaiting_approval: "awaiting approval",
   handoff_pending: "handoff pending",
-  handoff_accepted: "handoff accepted",
+  authorization_pending: "awaiting start",
+  authorized: "authorized",
   delivery_pending: "delivery pending",
   delivered: "delivered",
   acknowledged: "acknowledged",
@@ -452,15 +453,15 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
           Render condition:
             - lifecycle is present
             - the row is in a forward stage that carries an optional
-              retryRequest (handoff_accepted / delivery_pending /
+              retryRequest (authorization_pending / authorized / delivery_pending /
               delivered / acknowledged / completed)
             - retryRequest exists
             - retryRequest.recovered === true
 
           The retry_pending and failed stages handle their own UX via
-          the existing collapsible <details> block below; this badge
-          is forward-stage only.
-        */}
+            the existing collapsible <details> block below; this badge
+            is forward-stage only.
+         */}
         {lifecycle &&
         lifecycle.stage !== "awaiting_approval" &&
         lifecycle.stage !== "handoff_pending" &&
@@ -640,6 +641,15 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
             <PostApprovalLifecycle view={lifecycle} retryActionEnabled />
           </div>
         </details>
+      ) : null}
+
+      {lifecycle?.stage === "authorization_pending" ? (
+        <div className="mt-2">
+          <PostApprovalLifecycle
+            view={lifecycle}
+            authorizeActionEnabled
+          />
+        </div>
       ) : null}
 
       <AdminOperatorActionsForm
