@@ -13,6 +13,7 @@ import { POST as support } from "../../../support/route";
 import { POST } from "./route";
 
 function applyTestEnv(baseDir: string): void {
+  process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS = "1";
   process.env.WITNESSOPS_TOKEN_SIGNING_SECRET = "test-secret";
   process.env.WITNESSOPS_TOKEN_TTL_MINUTES = "15";
   process.env.WITNESSOPS_TOKEN_FROM_EMAIL = "support@witnessops.com";
@@ -79,6 +80,7 @@ async function createAdmittedSupportIntake(baseDir: string) {
 }
 
 afterEach(async () => {
+  delete process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS;
   await clearTokenStore();
 });
 

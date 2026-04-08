@@ -25,7 +25,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    const result = await authorizeRun(runId);
+    const result = await authorizeRun(runId, {
+      actor: session.actor,
+      actorAuthSource: session.actorAuthSource,
+      actorSessionHash: session.actorSessionHash,
+    });
     if (result.kind === "not_configured") {
       return invalid("Control plane is not configured for this deployment.", 503);
     }

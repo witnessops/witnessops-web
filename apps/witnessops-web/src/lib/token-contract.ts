@@ -20,6 +20,7 @@ export const normalizedEmailSchema = z
 export const adminActorAuthSourceSchema = z.enum([
   "local_bypass",
   "session_cookie",
+  "oidc_session",
 ]);
 
 export const intakeChannelSchema = z.enum(channelNames);

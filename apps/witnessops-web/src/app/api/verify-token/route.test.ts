@@ -252,6 +252,23 @@ test("verify-token GET route redirects to assessment results page on success", a
   );
 });
 
+test("verify-token GET route uses the public origin instead of the internal request host", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
+  const issued = await issueToken(baseDir);
+
+  const response = await GET(
+    new Request(
+      `https://0.0.0.0:3000/api/verify-token?issuanceId=${encodeURIComponent(issued.issuanceId)}&email=${encodeURIComponent(issued.email)}&token=${encodeURIComponent(issued.token)}`,
+    ),
+  );
+
+  assert.equal(response.status, 302);
+  assert.equal(
+    response.headers.get("location"),
+    `https://witnessops.com/assessment/${issued.issuanceId}?email=${encodeURIComponent(issued.email)}`,
+  );
+});
+
 test("verify-token GET route redirects support verification to the support page", async () => {
   const baseDir = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-support-verify-"),
@@ -273,5 +290,25 @@ test("verify-token GET route redirects support verification to the support page"
   assert.ok(
     location.includes("threadId=thr_"),
     `Expected redirect to include threadId, got: ${location}`,
+  );
+});
+
+test("verify-token GET support redirect uses the public origin instead of the internal request host", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-support-verify-"),
+  );
+  const issued = await issueSupportToken(baseDir);
+
+  const response = await GET(
+    new Request(
+      `https://0.0.0.0:3000/api/verify-token?issuanceId=${encodeURIComponent(issued.issuanceId)}&email=${encodeURIComponent(issued.email)}&token=${encodeURIComponent(issued.token)}`,
+    ),
+  );
+
+  assert.equal(response.status, 302);
+  const location = response.headers.get("location") ?? "";
+  assert.ok(
+    location.startsWith("https://witnessops.com/support?"),
+    `Expected public support redirect, got: ${location}`,
   );
 });

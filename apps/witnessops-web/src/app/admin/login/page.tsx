@@ -24,6 +24,10 @@ export default function AdminLoginPage() {
     reader.readAsText(file);
   }, []);
 
+  const handleMicrosoftSignIn = useCallback(() => {
+    window.location.href = "/api/admin/oidc/start";
+  }, []);
+
   const handleSubmit = async () => {
     if (!keyValue) {
       setMessage({ text: "No key provided.", type: "error" });
@@ -150,6 +154,14 @@ export default function AdminLoginPage() {
           padding: 1px 6px;
         }
 
+        .auth-subnote {
+          font-size: 9px;
+          color: #52556a;
+          line-height: 1.7;
+          margin-bottom: 18px;
+          letter-spacing: 0.04em;
+        }
+
         .drop-zone {
           border: 1px dashed #232738;
           padding: 28px;
@@ -226,6 +238,13 @@ export default function AdminLoginPage() {
           transition: all 0.15s;
         }
 
+        .auth-submit.primary {
+          margin-top: 0;
+          margin-bottom: 14px;
+          border-color: #ff6b35;
+          color: #ff6b35;
+        }
+
         .auth-submit:hover {
           border-color: #ff6b35;
           color: #ff6b35;
@@ -272,9 +291,17 @@ export default function AdminLoginPage() {
           <div className="auth-body">
             <div className="auth-glyph">&#x1F510;</div>
             <div className="auth-instruction">
-              Drop your <code>.witnessops-key</code> file below
+              Sign in with Microsoft for named admin access.
               <br />
-              or paste the key directly.
+              Legacy key entry remains a compatibility fallback.
+            </div>
+
+            <button className="auth-submit primary" onClick={handleMicrosoftSignIn}>
+              Sign In With Microsoft
+            </button>
+
+            <div className="auth-subnote">
+              Use the key path only if the OIDC admin seam is not yet configured for this deployment.
             </div>
 
             <div
@@ -336,8 +363,7 @@ export default function AdminLoginPage() {
             </div>
           </div>
           <div className="auth-footer">
-            Key-file authentication &middot; SHA-256 &middot; No passwords
-            stored
+            Named OIDC admin entry preferred &middot; legacy key path retained temporarily
           </div>
         </div>
       </div>

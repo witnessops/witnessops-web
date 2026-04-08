@@ -80,19 +80,20 @@ export function ScanHero() {
           lineHeight: 1.06,
         }}
       >
-        Free Governed Recon
+        Start with the verifier. Then run the work.
       </h2>
 
       <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-text-muted">
-        Start with a scoped, non-intrusive assessment of your externally
-        visible assets.
+        Start by verifying a real proof bundle. Then move into a scoped,
+        non-intrusive governed recon when you are ready to generate your own
+        bundle.
       </p>
 
       <div className="mx-auto mt-6 max-w-xl space-y-2 text-sm leading-relaxed text-text-muted">
         <p>Use your business email.</p>
         <p>Verify your domain.</p>
         <p>Approve the scope.</p>
-        <p>Receive a security report and a signed receipt.</p>
+        <p>Receive a security report and a signed, portable proof bundle.</p>
         <p>No intrusive testing without explicit approval.</p>
       </div>
 
@@ -133,7 +134,7 @@ export function ScanHero() {
               textTransform: "uppercase",
             }}
           >
-            {status === "submitting" ? "Issuing..." : "Start Governed Recon"}
+            {status === "submitting" ? "Issuing..." : "Start Free Governed Recon"}
           </button>
         </form>
       )}

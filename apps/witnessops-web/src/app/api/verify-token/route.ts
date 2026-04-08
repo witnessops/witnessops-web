@@ -13,6 +13,14 @@ function invalidRequest(message: string, status = 400) {
   return NextResponse.json({ ok: false, error: message }, { status });
 }
 
+function readPublicOrigin(request: Request): URL {
+  const configuredOrigin =
+    process.env.WITNESSOPS_VERIFY_BASE_URL?.trim() ||
+    process.env.NEXT_PUBLIC_OS_SITE_URL?.trim();
+
+  return new URL(configuredOrigin || request.url);
+}
+
 async function handleVerification(
   payload: unknown,
 ): Promise<VerifyTokenResponse | NextResponse> {
@@ -43,6 +51,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const publicOrigin = readPublicOrigin(request);
   const payload = {
     issuanceId: searchParams.get("issuanceId") ?? "",
     email: searchParams.get("email") ?? "",
@@ -53,7 +62,7 @@ export async function GET(request: Request) {
   if (result instanceof NextResponse) return result;
 
   if (result.channel === "support") {
-    const supportUrl = new URL("/support", request.url);
+    const supportUrl = new URL("/support", publicOrigin);
     supportUrl.searchParams.set("verified", "1");
     supportUrl.searchParams.set("intakeId", result.intakeId);
     if (result.threadId) {
@@ -65,7 +74,7 @@ export async function GET(request: Request) {
 
   const assessmentUrl = new URL(
     `/assessment/${encodeURIComponent(result.issuanceId)}`,
-    request.url,
+    publicOrigin,
   );
   assessmentUrl.searchParams.set("email", result.email);
   return NextResponse.redirect(assessmentUrl, { status: 302 });

@@ -5,6 +5,7 @@ import {
   engageRequestSchema,
   engageResponseSchema,
 } from "@/lib/token-contract";
+import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 import { publicIssuanceErrorResponse } from "@/lib/server/public-issuance-error";
 import { createVerificationIssuance } from "@/lib/server/token-issuance";
 
@@ -12,6 +13,11 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResponse = enforcePublicIntakeRateLimit(request, "engage");
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const parsed = engageRequestSchema.safeParse(await request.json());
     if (!parsed.success) {
       return NextResponse.json(

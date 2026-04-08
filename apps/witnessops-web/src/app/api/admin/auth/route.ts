@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createAdminSessionCookie } from "@/lib/server/admin-session";
+import { readAdminOidcConfig } from "@/lib/server/admin-oidc";
 
 async function sha256Hex(input: string): Promise<string> {
   const encoded = new TextEncoder().encode(input);
@@ -8,26 +10,14 @@ async function sha256Hex(input: string): Promise<string> {
     .join("");
 }
 
-async function signPayload(payloadB64: string, secret: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    encoder.encode(payloadB64),
-  );
-
-  return btoa(String.fromCharCode(...new Uint8Array(signature)));
-}
-
 export async function POST(request: NextRequest) {
+  if (readAdminOidcConfig()) {
+    return NextResponse.json(
+      { error: "Admin OIDC is configured; use the OIDC login entry." },
+      { status: 409 },
+    );
+  }
+
   const expectedHash = process.env.WITNESSOPS_ADMIN_KEY_HASH;
   const secret = process.env.WITNESSOPS_ADMIN_SECRET;
 
@@ -60,17 +50,14 @@ export async function POST(request: NextRequest) {
     hash: hash.slice(0, 16),
     exp: Date.now() + 8 * 60 * 60 * 1000, // 8 hours
   };
-
-  const payloadB64 = btoa(JSON.stringify(payload));
-  const signature = await signPayload(payloadB64, secret);
-  const cookieValue = `${payloadB64}.${signature}`;
+  const cookieValue = await createAdminSessionCookie(payload);
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set("witnessops-admin-session", cookieValue, {
     httpOnly: true,
     secure: true,
     sameSite: "strict",
-    path: "/admin",
+    path: "/",
     maxAge: 28800, // 8 hours
   });
 

@@ -10,12 +10,12 @@ status:
 
 seo:
   title: "Proof-Backed Security Operations | WitnessOps"
-  description: "WitnessOps runs governed security operations and produces signed, timestamped receipts that can be verified independently."
+  description: "WitnessOps runs governed security work and produces signed proof bundles that customers, auditors, and counterparties can verify offline without trusting WitnessOps to stay in the loop."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "WitnessOps"
-  og_description: "Governed security operations with signed, independently verifiable receipts."
+  og_title: "WitnessOps — Portable Proof Bundles for Serious Cyber Claims"
+  og_description: "Signed proof bundles with explicit lineage and offline verification for customers, auditors, and counterparties."
   twitter_card: "summary_large_image"
 
 theme:
@@ -33,6 +33,8 @@ navbar:
       href: "/why-witnessops"
     - label: "Docs"
       href: "/docs"
+    - label: "Verify"
+      href: "/verify"
     - label: "Support"
       href: "/support"
   cta:
@@ -42,21 +44,22 @@ navbar:
 
 hero:
   eyebrow: "Proof-Backed Security Operations"
-  title: "Every operation witnessed. Every result verifiable."
-  body: "WitnessOps runs governed security operations and produces signed, timestamped receipts for what was executed, what was approved, and what stayed in scope."
+  title: "Portable proof bundles for serious cyber claims"
+  body: "WitnessOps runs governed security work and produces signed proof bundles that customers, auditors, and counterparties can verify offline, without trusting us to remain in the loop."
   supporting_points:
-    - "Not just reports."
-    - "Not just logs."
-    - "Portable evidence you can verify independently."
-    - "Built for teams that need proof, not post-hoc storytelling."
+    - "Most security work is easy to claim. Hard to prove."
+    - "Signed receipts with explicit lineage."
+    - "Portable evidence that survives export."
+    - "Built for operators and relying parties."
   primary_cta:
-    label: "Start Governed Recon"
-    href: "/#governed-recon"
+    label: "Try the Verifier"
+    href: "/verify"
     variant: "primary"
   secondary_cta:
-    label: "Engage"
-    href: "/contact"
+    label: "See Sample Proof"
+    href: "/docs/evidence/receipt-spec"
     variant: "secondary"
+  microcopy: "No setup. No special access. Verify a real proof bundle in seconds."
   proof_badges:
     - "Verification"
     - "Attestation"
@@ -79,7 +82,7 @@ hero:
 
 trust_bar:
   enabled: true
-  label: "Governed security operations with signed, independently verifiable receipts"
+  label: "Governed security operations with signed receipts and portable proof"
   items:
     - "Verification"
     - "Attestation"
@@ -108,14 +111,14 @@ sections:
   - type: "problem"
     id: "problem"
     enabled: true
-    title: "After a pentest, what proof do you have?"
-    body: "Your team ran scans, tested exploits, documented findings. But when someone asks exactly what ran, who approved it, and whether it stayed in scope — the answer is scattered across logs, tickets, and memory."
+    title: "Most security work is easy to claim. Hard to prove."
+    body: "Security vendors ship reports. Teams collect logs. Screenshots get passed around. Then the real question lands: can this claim survive independent verification? That is where the story usually breaks."
     bullets:
-      - "Scans ran, but there's no signed record of what was tested"
-      - "Approvals happened, but the policy decision is hard to reconstruct"
-      - "Findings exist, but the evidence chain is fragmented"
-      - "The report says 'tested' — but can anyone verify that independently?"
-    closing: "WitnessOps produces signed receipts for every governed operation. Not just reports about work — signed records of what ran."
+      - "Reports tell a story"
+      - "Logs create noise"
+      - "Screenshots do not travel"
+      - "Vendor trust does not scale"
+    closing: "WitnessOps leaves behind a signed proof bundle you can inspect, verify offline, and carry across teams without routing trust back through us."
 
   - type: "category_comparison"
     id: "category"
@@ -137,13 +140,13 @@ sections:
     enabled: true
     title: "Why governed execution matters now"
     items:
-      - title: "Regulators want proof, not reports"
+      - title: "Regulators and auditors want proof, not reports"
         body: "Compliance frameworks increasingly require evidence of what was tested, not just what was found."
       - title: "AI systems need auditable security"
-        body: "AI governance requires verifiable records of security testing — not self-reported summaries."
-      - title: "Clients ask 'show me the evidence'"
-        body: "Enterprises and insurers want to verify that security operations actually happened as described."
-    closing: "The era of trust-based security reporting is ending. Evidence-based verification is replacing it."
+        body: "AI governance requires verifiable records of security testing, not self-reported summaries."
+      - title: "Clients, insurers, and acquirers ask 'show me the evidence'"
+        body: "Counterparties want to verify that security operations actually happened as described."
+    closing: "Trust-based security reporting is giving way to evidence-based verification."
 
   - type: "pipeline"
     id: "pipeline"
@@ -223,27 +226,29 @@ sections:
   - type: "audiences"
     id: "audiences"
     enabled: true
-    title: "Built for teams that run security operations"
+    title: "Built for operators and relying parties"
     cards:
       - title: "Penetration testers"
-        body: "Turn every engagement into a chain of signed receipts that records what governed action ran, who was recorded for it, and which execution material and policy context it was bound to."
+        body: "Turn every engagement into a chain of signed receipts that records what governed action ran, who approved it, and which execution material and policy context it was bound to."
       - title: "Red teams"
         body: "Govern offensive workflows with scope enforcement and approval gates. Produce evidence, not just reports."
       - title: "Security operations"
-        body: "Incident response, containment, and remediation — all governed, all receipted, all reviewable."
-      - title: "Compliance teams"
-        body: "Show regulators governed records of what ran, when, by whom, and which execution material and scope context were bound to that run."
+        body: "Incident response, containment, and remediation, all governed, all receipted, all reviewable."
+      - title: "Auditors and insurers"
+        body: "Verify the evidence chain independently instead of relying on vendor narration or replay from memory."
+      - title: "Customers and acquirers"
+        body: "Inspect what ran, when it ran, and what authority bound it without depending on WitnessOps to stay in the loop."
 
   - type: "positioning"
     id: "positioning"
     enabled: true
-    title: "Not a scanner. Not a tool. A governance layer."
-    body: "WitnessOps wraps your existing tools in governed runbooks that produce signed receipts and linked execution material."
+    title: "Built for a world where trust is not enough."
+    body: "Closed models are acceptable. Closed proof is not. WitnessOps separates execution, evidence, and verification so claims do not depend on the system that produced them."
     points:
-      - "Your tools keep running. WitnessOps adds the governance."
-      - "Every operation produces a receipt. Not a log — a receipt."
-      - "Receipts chain together. One engagement, one evidence trail."
-      - "Receipt signatures can be checked with the right public key."
+      - "Proof should survive export."
+      - "Proof should survive handoff."
+      - "Proof should survive us disappearing from the middle."
+      - "Do not trust the claim. Verify the bundle."
 
   - type: "offer"
     id: "offer"
@@ -278,10 +283,10 @@ sections:
 final_cta:
   enabled: true
   title: "Your next security operation should produce proof."
-  body: "Not screenshots. Not notes. Signed evidence of what ran, who approved it, and whether it stayed in scope. Start with a governed recon. Inspect the receipt. Verify the result."
+  body: "Not screenshots. Not notes. Signed evidence of what ran, who approved it, and whether it stayed in scope. Try the verifier, inspect the proof, then start a governed recon when you are ready to generate your own evidence."
   primary_cta:
-    label: "Start Governed Recon"
-    href: "/#governed-recon"
+    label: "Try the Verifier"
+    href: "/verify"
     variant: "primary"
   secondary_cta:
     label: "Engage"
