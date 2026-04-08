@@ -182,6 +182,42 @@ export async function getRunLifecycle(
   return controlPlaneGet<ControlPlaneLifecycle>(`/v1/runs/${runId}/lifecycle`);
 }
 
+export type AuthorizeRunResult =
+  | { kind: "ok"; run: ControlPlaneLifecycle }
+  | { kind: "conflict"; status: 400 | 409; message: string }
+  | { kind: "not_configured" };
+
+/**
+ * Explicitly authorize a handed-off run to progress from requested to
+ * authorized (WEB-021 / CP-005).
+ */
+export async function authorizeRun(
+  runId: string,
+): Promise<AuthorizeRunResult> {
+  const config = readConfig();
+  if (!config) return { kind: "not_configured" };
+
+  const response = await fetch(`${config.url}/v1/runs/${runId}/authorize`, {
+    method: "POST",
+    headers: { "X-API-Key": config.apiKey },
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (response.status === 400 || response.status === 409) {
+    const detail = await response.text().catch(() => "(unreadable)");
+    return { kind: "conflict", status: response.status, message: detail };
+  }
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "(unreadable)");
+    throw new Error(
+      `Control plane POST authorize returned ${response.status}: ${detail}`,
+    );
+  }
+
+  const run = (await response.json()) as ControlPlaneLifecycle;
+  return { kind: "ok", run };
+}
+
 export async function getCompletionView(
   runId: string,
 ): Promise<ControlPlaneCompletionView | "not_configured" | "not_found"> {

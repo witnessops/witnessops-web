@@ -1,3 +1,5 @@
+import React from "react";
+
 /**
  * Post-approval lifecycle renderer (WEB-001).
  *
@@ -8,6 +10,7 @@
  */
 
 import type { PostApprovalLifecycleView, PostApprovalStage } from "@/lib/server/post-approval-lifecycle";
+import { AdminAuthorizeRunAction } from "@/components/admin/admin-authorize-run-action";
 
 interface Props {
   view: PostApprovalLifecycleView;
@@ -17,12 +20,18 @@ interface Props {
    * admin queue passes this in — the assessment page renders read-only.
    */
   retryActionEnabled?: boolean;
+  /**
+   * When set, render the admin/operator authorize-start affordance for
+   * control-plane runs that are still at requested.
+   */
+  authorizeActionEnabled?: boolean;
 }
 
 const STAGE_LABELS: Record<PostApprovalStage, string> = {
   awaiting_approval: "Awaiting approval",
   handoff_pending: "Handoff pending",
-  handoff_accepted: "Handoff accepted",
+  authorization_pending: "Awaiting start",
+  authorized: "Authorized",
   delivery_pending: "Delivery pending",
   delivered: "Delivered",
   acknowledged: "Acknowledged",
@@ -38,8 +47,10 @@ const STAGE_DESCRIPTIONS: Record<PostApprovalStage, string> = {
     "Explicit scope approval is required before governed recon starts.",
   handoff_pending:
     "Approval recorded locally. Waiting for control plane to confirm the handoff.",
-  handoff_accepted:
-    "Control plane has accepted the scope-approved handoff. Governed recon is in progress.",
+  authorization_pending:
+    "Control plane has accepted the scope-approved handoff, but this run is still requested. An operator must authorize/start it before governed recon can proceed.",
+  authorized:
+    "Control plane has authorized the run. Execution may proceed and may already be underway.",
   delivery_pending:
     "Proof bundle is ready. Delivery has not yet been recorded by control plane.",
   delivered:
@@ -61,7 +72,8 @@ const STAGE_DESCRIPTIONS: Record<PostApprovalStage, string> = {
 const STAGE_TONE: Record<PostApprovalStage, string> = {
   awaiting_approval: "border-zinc-700 bg-zinc-900 text-zinc-300",
   handoff_pending: "border-zinc-700 bg-zinc-900 text-zinc-300",
-  handoff_accepted: "border-blue-900/60 bg-blue-950/20 text-blue-200",
+  authorization_pending: "border-amber-900/60 bg-amber-950/30 text-amber-200",
+  authorized: "border-blue-900/60 bg-blue-950/20 text-blue-200",
   delivery_pending: "border-blue-900/60 bg-blue-950/20 text-blue-200",
   delivered: "border-emerald-900 bg-emerald-950/30 text-emerald-200",
   acknowledged: "border-emerald-900 bg-emerald-950/30 text-emerald-200",
@@ -75,7 +87,8 @@ const STAGE_TONE: Record<PostApprovalStage, string> = {
 const STAGE_ORDER: PostApprovalStage[] = [
   "awaiting_approval",
   "handoff_pending",
-  "handoff_accepted",
+  "authorization_pending",
+  "authorized",
   "delivery_pending",
   "delivered",
   "acknowledged",
@@ -119,13 +132,21 @@ function StagePill({ stage, current }: { stage: PostApprovalStage; current: Post
   );
 }
 
-export function PostApprovalLifecycle({ view, retryActionEnabled = false }: Props) {
+export function PostApprovalLifecycle({
+  view,
+  retryActionEnabled = false,
+  authorizeActionEnabled = false,
+}: Props) {
   const { stage, local, authoritative, failureReason } = view;
   const retryRequest = "retryRequest" in view ? view.retryRequest : null;
   const showRetryAction =
     retryActionEnabled &&
     Boolean(local.controlPlaneRunId) &&
     (stage === "failed" || stage === "retry_pending");
+  const showAuthorizeAction =
+    authorizeActionEnabled &&
+    Boolean(local.controlPlaneRunId) &&
+    authoritative?.controlPlaneState === "requested";
 
   return (
     <section
@@ -230,6 +251,27 @@ export function PostApprovalLifecycle({ view, retryActionEnabled = false }: Prop
             Requesting a retry records intent only. It does not mark this run as delivered. Successful recovery will appear when control plane records a new delivered_at.
           </div>
         </form>
+      ) : null}
+
+      {showAuthorizeAction ? (
+        <div
+          data-testid="authorize-run-panel"
+          className="rounded border border-amber-900/60 bg-amber-950/10 p-4 space-y-2"
+        >
+          <div className="text-[10px] font-mono uppercase tracking-wider text-amber-300">
+            Authorize / start · operator only
+          </div>
+          <div className="text-sm text-amber-100">
+            This run has been handed off successfully, but control plane still
+            reports <span className="font-mono">requested</span>. Authorize it
+            to advance the run to <span className="font-mono">authorized</span>.
+          </div>
+          <AdminAuthorizeRunAction runId={local.controlPlaneRunId!} />
+          <div className="text-[10px] text-zinc-500">
+            Handoff accepted is not the same as execution started. The
+            authoritative run state must move from requested to authorized.
+          </div>
+        </div>
       ) : null}
 
       {/* Authoritative downstream lifecycle — clearly labeled as control plane */}

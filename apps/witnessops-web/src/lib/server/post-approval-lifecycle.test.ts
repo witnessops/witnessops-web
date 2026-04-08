@@ -106,9 +106,15 @@ test("stageFromControlPlane: bundled -> delivery_pending", () => {
   assert.equal(stageFromControlPlane(upstream({ state: "bundled" })), "delivery_pending");
 });
 
-test("stageFromControlPlane: in-progress states -> handoff_accepted", () => {
+test("stageFromControlPlane: requested -> authorization_pending", () => {
+  assert.equal(
+    stageFromControlPlane(upstream({ state: "requested" })),
+    "authorization_pending",
+  );
+});
+
+test("stageFromControlPlane: authorized+ states -> authorized", () => {
   for (const state of [
-    "requested",
     "authorized",
     "scope_locked",
     "token_issued",
@@ -119,8 +125,8 @@ test("stageFromControlPlane: in-progress states -> handoff_accepted", () => {
   ] as const) {
     assert.equal(
       stageFromControlPlane(upstream({ state })),
-      "handoff_accepted",
-      `expected handoff_accepted for ${state}`,
+      "authorized",
+      `expected authorized for ${state}`,
     );
   }
 });
@@ -175,14 +181,24 @@ test("buildPostApprovalLifecycle: approved without controlPlaneRunId -> handoff_
   assert.equal(view.authoritative, null);
 });
 
-test("buildPostApprovalLifecycle: handoff_accepted reads from control plane", async () => {
+test("buildPostApprovalLifecycle: requested reads as authorization_pending", async () => {
+  const view = await buildPostApprovalLifecycle(
+    record({ controlPlaneRunId: "run_demo123" }),
+    deps(async () => upstream({ state: "requested" })),
+  );
+  assert.equal(view.stage, "authorization_pending");
+  assert.ok(view.authoritative);
+  assert.equal(view.authoritative?.source, "control_plane");
+  assert.equal(view.authoritative?.controlPlaneState, "requested");
+});
+
+test("buildPostApprovalLifecycle: authorized reads from control plane", async () => {
   const view = await buildPostApprovalLifecycle(
     record({ controlPlaneRunId: "run_demo123" }),
     deps(async () => upstream({ state: "collecting" })),
   );
-  assert.equal(view.stage, "handoff_accepted");
+  assert.equal(view.stage, "authorized");
   assert.ok(view.authoritative);
-  assert.equal(view.authoritative?.source, "control_plane");
   assert.equal(view.authoritative?.controlPlaneState, "collecting");
 });
 

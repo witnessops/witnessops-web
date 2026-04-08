@@ -230,6 +230,12 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     category: "operator",
     summary: "Operator records local retry intent against a control-plane run (WEB-002); never marks delivery as successful",
   },
+  {
+    path: "/api/admin/lifecycle/[runId]/authorize",
+    methods: ["POST"],
+    category: "operator",
+    summary: "Operator authorizes or starts a handed-off control-plane run (WEB-021 / CP-005)",
+  },
 
   // -------------------------------------------------------------------------
   // provider-webhook — external sender, not user-triggered
