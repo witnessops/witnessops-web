@@ -9,12 +9,7 @@
     "./docs": "./src/docs.ts",
     "./signals": "./src/signals.ts",
     "./sidebar": "./src/sidebar.ts",
-    "./sitemap": "./src/sitemap.ts",
-    "./kb": "./kb/index.ts",
-    "./kb/pages": "./kb/pages/index.ts",
-    "./kb/pages/*": "./kb/pages/*.tsx",
-    "./kb/components": "./kb/components/index.ts",
-    "./kb/components/*": "./kb/components/*.tsx"
+    "./sitemap": "./src/sitemap.ts"
   },
   "dependencies": {
     "@witnessops/config": "workspace:*",
