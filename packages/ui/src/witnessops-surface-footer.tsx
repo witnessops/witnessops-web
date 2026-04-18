@@ -5,7 +5,7 @@ import {
   type VaultMeshFooterLink,
   type VaultMeshFooterSurfaceId,
 } from "../../config/src/surfaces";
-import styles from "./vaultmesh-surface-footer.module.css";
+import styles from "./witnessops-surface-footer.module.css";
 
 export interface VaultMeshSurfaceFooterProps {
   surfaceId: VaultMeshFooterSurfaceId;
