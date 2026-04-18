@@ -1,0 +1,117 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "${AZURE_ENV_NAME}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION}"
+    },
+    "resourceGroupName": {
+      "value": "<resource-group-name>"
+    },
+    "containerAppName": {
+      "value": "<web-container-app-name>"
+    },
+    "containerAppsEnvironmentName": {
+      "value": "<aca-managed-environment-name>"
+    },
+    "containerRegistryName": {
+      "value": "<acr-name>"
+    },
+    "containerRegistryLoginServer": {
+      "value": "<acr-name>.azurecr.io"
+    },
+    "containerImageRepository": {
+      "value": "${CONTAINER_IMAGE_REPOSITORY}"
+    },
+    "containerImageTag": {
+      "value": "${CONTAINER_IMAGE_TAG}"
+    },
+    "vnetName": {
+      "value": "<vnet-name>"
+    },
+    "logAnalyticsWorkspaceName": {
+      "value": "<log-analytics-workspace-name>"
+    },
+    "bridgeContainerAppName": {
+      "value": "<bridge-container-app-name>"
+    },
+    "bridgeEnvironmentName": {
+      "value": "<bridge-aca-environment-name>"
+    },
+    "bridgeSubnetAddressPrefix": {
+      "value": "<10.x.y.0/23>"
+    },
+    "publicCustomDomainCertificateName": {
+      "value": ""
+    },
+    "publicCustomDomainHostname": {
+      "value": ""
+    },
+    "persistentVolumeName": {
+      "value": "witnessops-web-data"
+    },
+    "persistentStorageName": {
+      "value": "witnessops-web-data"
+    },
+    "persistentMountPath": {
+      "value": "/mnt/data"
+    },
+    "persistentStorageAccountName": {
+      "value": "<storage-account-name>"
+    },
+    "persistentStorageShareName": {
+      "value": "witnessops-web-data"
+    },
+    "witnessopsTokenSigningSecret": {
+      "value": "${WITNESSOPS_TOKEN_SIGNING_SECRET}"
+    },
+    "witnessopsM365TenantId": {
+      "value": "${WITNESSOPS_M365_TENANT_ID}"
+    },
+    "witnessopsM365ClientId": {
+      "value": "${WITNESSOPS_M365_CLIENT_ID}"
+    },
+    "witnessopsM365WebhookSecret": {
+      "value": "${WITNESSOPS_M365_WEBHOOK_SECRET}"
+    },
+    "witnessopsM365ClientSecret": {
+      "value": "${WITNESSOPS_M365_CLIENT_SECRET}"
+    },
+    "witnessopsGesAssessmentKey": {
+      "value": "${WITNESSOPS_GES_ASSESSMENT_KEY}"
+    },
+    "witnessopsAdminSecret": {
+      "value": "${WITNESSOPS_ADMIN_SECRET}"
+    },
+    "witnessopsAdminKeyHash": {
+      "value": "${WITNESSOPS_ADMIN_KEY_HASH}"
+    },
+    "witnessopsAdminOidcTenantId": {
+      "value": "${WITNESSOPS_ADMIN_OIDC_TENANT_ID}"
+    },
+    "witnessopsAdminOidcClientId": {
+      "value": "${WITNESSOPS_ADMIN_OIDC_CLIENT_ID}"
+    },
+    "witnessopsAdminOidcClientSecret": {
+      "value": "${WITNESSOPS_ADMIN_OIDC_CLIENT_SECRET}"
+    },
+    "witnessopsAdminOidcRedirectUri": {
+      "value": "${WITNESSOPS_ADMIN_OIDC_REDIRECT_URI}"
+    },
+    "witnessopsAdminOidcAllowedEmailsJson": {
+      "value": "${WITNESSOPS_ADMIN_OIDC_ALLOWED_EMAILS_JSON}"
+    },
+    "controlPlaneServiceIdentitySecret": {
+      "value": "${CONTROL_PLANE_SERVICE_IDENTITY_SECRET}"
+    },
+    "controlPlaneUpstreamUrl": {
+      "value": "${CONTROL_PLANE_UPSTREAM_URL}"
+    },
+    "controlPlaneApiKey": {
+      "value": "${CONTROL_PLANE_API_KEY}"
+    }
+  }
+}
