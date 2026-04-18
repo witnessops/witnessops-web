@@ -26,16 +26,17 @@ const staticRoutes: StaticRoute[] = [
     lastModified: () => new Date(loadHomeContent().status.last_reviewed),
   },
   { route: "/contact", sourcePath: "src/app/(marketing)/contact/page.tsx" },
-  { route: "/signals", sourcePath: "src/app/signals/page.tsx" },
-  { route: "/verify", sourcePath: "src/app/verify/page.tsx" },
   {
     route: "/proof-backed-security-systems",
     sourcePath: "src/app/proof-backed-security-systems/page.tsx",
   },
   { route: "/privacy", sourcePath: "src/app/privacy/page.tsx" },
+  { route: "/review", sourcePath: "src/app/review/page.tsx" },
   { route: "/security", sourcePath: "src/app/security/page.tsx" },
+  { route: "/signals", sourcePath: "src/app/signals/page.tsx" },
   { route: "/support", sourcePath: "src/app/support/page.tsx" },
   { route: "/terms", sourcePath: "src/app/terms/page.tsx" },
+  { route: "/verify", sourcePath: "src/app/verify/page.tsx" },
   { route: "/why-witnessops", sourcePath: "src/app/why-witnessops/page.tsx" },
 ];
 
