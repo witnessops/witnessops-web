@@ -7,7 +7,6 @@ services:
     project: ./apps/witnessops-web
     host: containerapp
     language: js
-    resourceName: ca-witnessops-prod
     image: witnessops-web
     config:
       packageManager: pnpm

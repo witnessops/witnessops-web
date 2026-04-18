@@ -20,3 +20,14 @@ output/
 # Screenshot / audit artifacts
 audit-*.png
 *-cards.png
+.playwright-cli
+
+# Azure Developer CLI local environment (contains live env identifiers / secrets)
+.azure/
+
+# Local Bicep parameters file (contains live resource names). Use main.parameters.example.json as template.
+infra/main.parameters.json
+
+# Bicep compiled output (build artifact)
+infra/main.json
+infra/modules/*.json

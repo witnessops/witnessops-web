@@ -1,28 +1,37 @@
-# witnessops-web
+# WitnessOps Web
 
-Live authoritative repo for the WitnessOps web surface.
+Portable proof for governed security work.
 
-## Authority
+WitnessOps turns governed security workflows into signed, portable proof bundles
+that anyone with the bundle can independently verify.
 
-- Canonical remote: `https://github.com/witnessops/witnessops-web`
-- Default branch: `main`
-- Release authority: internal/manual for now
+This repository is the public web surface for WitnessOps — the marketing site,
+the `/verify` route for verifying received proof bundles, and the `/api/verify`
+endpoint that backs it.
 
-## Owned surfaces
+## What this repository proves
 
-- `apps/witnessops-web` is the live app surface.
-- `content/witnessops` is the live content root.
-- `packages/config`, `packages/content`, `packages/proof`, `packages/ui`, and `packages/tsconfig` are the shared support packages required by the app.
-- `packages/proof/src/receipt` is the only proof lane in this repo.
-- `/verify` and `/api/verify` are first-class owned surfaces.
+- A bundle dropped into `/verify` produces a deterministic verification result.
+- The `/api/verify` route is the same verification path, available to programs.
+- No sign-in is required to verify a bundle.
 
-## Operator entrypoints
+## What this repository does not claim
 
-- Health: `pnpm health`
-- Release: `pnpm release`
+- It is not the control plane.
+- It does not issue or sign bundles.
+- It does not store customer data.
 
-See [`commands.md`](./commands.md) for the frozen command contract.
+## Verifying a bundle
 
-## Validation
+Visit <https://witnessops.com/verify>, drop in a bundle, and read the result.
+Programmatic callers can post the same bundle to `/api/verify` and receive the
+same result.
 
-The health command covers build, lint, typecheck, tests, docs validation, signals validation, route parity, receipt smoke, and `@witnessops/proof` tests.
+## Security
+
+For vulnerability disclosure, see [`SECURITY.md`](./SECURITY.md).
+
+## Contributors
+
+- Local validation: `pnpm health` (build, lint, typecheck, tests, route parity, receipt smoke).
+- Frozen command contract: [`commands.md`](./commands.md).
