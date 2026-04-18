@@ -26,8 +26,6 @@ export {
   type ProductCardItem,
   type ProductFlowStep,
 } from "./product-page";
-export { CategoryStack, type CategoryStackProps } from "./category-stack";
-export { CategoryDiagram, type CategoryDiagramProps } from "./category-diagram";
 export {
   ProtocolSurfaceHeader,
   ProtocolSurfacePanel,
@@ -50,10 +48,10 @@ export {
 export {
   WitnessOpsSurfaceFooter,
   type WitnessOpsSurfaceFooterProps,
-} from "./vaultmesh-surface-footer";
+} from "./witnessops-surface-footer";
 export {
   WitnessOpsSiblingNavbar,
   type WitnessOpsSiblingNavbarProps,
-} from "./vaultmesh-sibling-navbar";
+} from "./witnessops-sibling-navbar";
 export * from "./brand";
 export * from "./mdx";

@@ -38,7 +38,7 @@ type CuratedNavItem =
       title: string;
     };
 
-const OFFSEC_DOCS_LAYERS: Array<{
+const WITNESSOPS_DOCS_LAYERS: Array<{
   id: string;
   title: string;
   description: string;
@@ -160,11 +160,11 @@ function compareItems(left: DocsNavItem, right: DocsNavItem) {
   return left.title.localeCompare(right.title);
 }
 
-async function getCuratedOffsecSidebar(): Promise<DocsNavSection[]> {
+async function getCuratedWitnessopsSidebar(): Promise<DocsNavSection[]> {
   const docs = await listDocPages("witnessops");
   const docsByHref = new Map(docs.map((doc) => [getDocHref(doc.slug), doc]));
 
-  return OFFSEC_DOCS_LAYERS.map((section) => ({
+  return WITNESSOPS_DOCS_LAYERS.map((section) => ({
     id: section.id,
     title: section.title,
     description: section.description,
@@ -201,7 +201,7 @@ export function getDocsLayerForHref(
     return null;
   }
 
-  const layer = OFFSEC_DOCS_LAYERS.find((candidate) =>
+  const layer = WITNESSOPS_DOCS_LAYERS.find((candidate) =>
     candidate.items.some((item) => item.href === href),
   );
 
@@ -227,7 +227,7 @@ export async function getDocsSidebar(
   surface: DocsSurface,
 ): Promise<DocsNavSection[]> {
   if (surface === "witnessops") {
-    return getCuratedOffsecSidebar();
+    return getCuratedWitnessopsSidebar();
   }
 
   const docs = await listDocPages(surface);
