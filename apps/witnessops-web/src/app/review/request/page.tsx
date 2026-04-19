@@ -5,14 +5,14 @@ import { getMailboxConfig } from "@/lib/mailboxes";
 export const metadata: Metadata = {
   title: "Request a Review",
   description:
-    "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on who can act, what runs, what evidence exists, and what can be checked later.",
+    "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path and requires mailbox verification before the request enters the queue.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on who can act, what runs, what evidence exists, and what can be checked later.",
+      "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path and requires mailbox verification before the request enters the queue.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on who can act, what runs, what evidence exists, and what can be checked later.",
+      "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path and requires mailbox verification before the request enters the queue.",
   },
 };
 
@@ -63,9 +63,9 @@ export default function ReviewRequestPage() {
             </h1>
             <p className="mb-8 max-w-[420px] text-sm leading-relaxed text-text-muted">
               Bring one workflow, one automation boundary, or one operator
-              decision path. WitnessOps returns a bounded review of who can act,
-              what runs, what evidence exists, and what another person could
-              check later.
+              decision path. This page starts a bounded review intake for one
+              real path. The request enters the queue only after mailbox
+              verification.
             </p>
 
             <div
@@ -73,8 +73,8 @@ export default function ReviewRequestPage() {
               style={{ fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.04em", color: "var(--color-text-secondary)" }}
             >
               <div>One workflow.</div>
-              <div>One review.</div>
-              <div>One report.</div>
+              <div>One review request.</div>
+              <div>One queue entry.</div>
               <div>Clear limits.</div>
             </div>
 
@@ -95,8 +95,8 @@ export default function ReviewRequestPage() {
               className="mt-6 max-w-[420px] text-xs leading-relaxed text-text-muted"
               style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}
             >
-              This request is for one real path only. It is not a broad audit or
-              a catch-all security engagement.
+              This request is for one real path only. It is not a broad audit, a
+              catch-all security engagement, or an instant review result.
             </p>
           </div>
 
@@ -125,6 +125,7 @@ export default function ReviewRequestPage() {
           </div>
           <p className="mb-6 text-sm leading-relaxed text-text-muted">
             Submit one workflow, automation boundary, or operator decision path.
+            Mailbox verification is required before the request enters the queue.
           </p>
           <ContactForm contactEmail={mailboxes.engage} />
         </div>
