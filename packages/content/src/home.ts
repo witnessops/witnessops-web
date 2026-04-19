@@ -38,6 +38,10 @@ export const WitnessOpsSectionTypeSchema = z.enum([
   "positioning",
   "offer",
   "expansion_path",
+  "contract",
+  "verifiable_items",
+  "boundary",
+  "workflows",
 ]);
 
 export const SharedSectionTypeSchema = WitnessOpsSectionTypeSchema;
@@ -134,14 +138,15 @@ export const HeroSchema = z.object({
   eyebrow: NonEmptyString,
   title: NonEmptyString,
   body: NonEmptyString,
-  supporting_points: z.array(NonEmptyString).min(1),
+  supporting_points: z.array(NonEmptyString),
   primary_cta: CtaSchema,
   secondary_cta: CtaSchema,
-  proof_badges: z.array(NonEmptyString).min(1),
-  media: z.object({
-    type: z.literal("terminal"),
-    terminal: TerminalBlockSchema,
-  }),
+  microcopy: z.string().optional(),
+  proof_badges: z.array(NonEmptyString),
+  media: z.discriminatedUnion("type", [
+    z.object({ type: z.literal("terminal"), terminal: TerminalBlockSchema }),
+    z.object({ type: z.literal("code_excerpt"), code: CodeBlockSchema }),
+  ]),
 });
 
 export const VaultMeshHeroSchema = z.object({
@@ -354,6 +359,75 @@ export const ExpansionPathSectionSchema = BaseSectionSchema.extend({
   ctas: z.array(CtaSchema).min(1),
 });
 
+// ── Phase 4 new section schemas ──────────────────────────────────────────────
+
+export const ContractStepSchema = z.object({
+  label: NonEmptyString,
+  body: NonEmptyString,
+});
+
+export const ContractSectionSchema = BaseSectionSchema.extend({
+  type: z.literal("contract"),
+  title: NonEmptyString,
+  lede: NonEmptyString,
+  steps: z.array(ContractStepSchema).min(1),
+  closing: NonEmptyString,
+  cta: CtaSchema.optional(),
+});
+
+export const VerifiableItemSchema = z.object({
+  title: NonEmptyString,
+  body: NonEmptyString,
+  proof_link: NonEmptyString,
+  proof_link_label: NonEmptyString,
+});
+
+export const VerifiableItemsSectionSchema = BaseSectionSchema.extend({
+  type: z.literal("verifiable_items"),
+  title: NonEmptyString,
+  lede: NonEmptyString,
+  items: z.array(VerifiableItemSchema).min(1),
+  closing: NonEmptyString,
+  cta: CtaSchema.optional(),
+  ctas: z.array(CtaSchema).min(1).optional(),
+});
+
+export const BoundaryItemSchema = z.object({
+  title: NonEmptyString,
+  body: NonEmptyString,
+});
+
+export const BoundarySectionSchema = BaseSectionSchema.extend({
+  type: z.literal("boundary"),
+  title: NonEmptyString,
+  lede: NonEmptyString,
+  items: z.array(BoundaryItemSchema).min(1),
+  closing: NonEmptyString,
+});
+
+export const WorkflowCardSchema = z.object({
+  title: NonEmptyString,
+  body: NonEmptyString,
+  proof_link: NonEmptyString,
+  proof_link_label: NonEmptyString,
+});
+
+export const WorkflowSurfaceSchema = z.object({
+  title: NonEmptyString,
+  body: NonEmptyString,
+});
+
+export const WorkflowsSectionSchema = BaseSectionSchema.extend({
+  type: z.literal("workflows"),
+  title: NonEmptyString,
+  lede: NonEmptyString,
+  cards: z.array(WorkflowCardSchema).min(1),
+  surfaces: z.array(WorkflowSurfaceSchema).min(1),
+  internal_surfaces_disclosure: NonEmptyString,
+  cta: CtaSchema.optional(),
+  ctas: z.array(CtaSchema).min(1).optional(),
+});
+
 export const HomeSectionSchema = z.discriminatedUnion("type", [
   ProofStripSectionSchema,
   ProblemSectionSchema,
@@ -368,6 +442,10 @@ export const HomeSectionSchema = z.discriminatedUnion("type", [
   OfferSectionSchema,
   ExpansionPathSectionSchema,
   IoMapSectionSchema,
+  ContractSectionSchema,
+  VerifiableItemsSectionSchema,
+  BoundarySectionSchema,
+  WorkflowsSectionSchema,
 ]);
 
 export const WitnessOpsHomeSectionSchema = z.discriminatedUnion("type", [
@@ -383,6 +461,10 @@ export const WitnessOpsHomeSectionSchema = z.discriminatedUnion("type", [
   PositioningSectionSchema,
   OfferSectionSchema,
   ExpansionPathSectionSchema,
+  ContractSectionSchema,
+  VerifiableItemsSectionSchema,
+  BoundarySectionSchema,
+  WorkflowsSectionSchema,
 ]);
 
 /**
@@ -671,7 +753,9 @@ export const WitnessOpsHomeSchema = BaseHomeSchema.extend({
     });
   }
 
+  // "verified" line check only applies to terminal media
   if (
+    data.hero.media.type === "terminal" &&
     !data.hero.media.terminal.lines.some((line) => line.includes("verified"))
   ) {
     ctx.addIssue({
@@ -701,6 +785,10 @@ export type WitnessOpsHomeSection = z.infer<typeof WitnessOpsHomeSectionSchema>;
 export type VaultMeshHome = z.infer<typeof VaultMeshHomeSchema>;
 export type WitnessOpsHome = z.infer<typeof WitnessOpsHomeSchema>;
 export type MarketingHome = z.infer<typeof MarketingHomeSchema>;
+export type ContractSection = z.infer<typeof ContractSectionSchema>;
+export type VerifiableItemsSection = z.infer<typeof VerifiableItemsSectionSchema>;
+export type BoundarySection = z.infer<typeof BoundarySectionSchema>;
+export type WorkflowsSection = z.infer<typeof WorkflowsSectionSchema>;
 
 /**
  * Parse helpers

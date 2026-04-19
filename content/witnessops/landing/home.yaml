@@ -9,13 +9,13 @@ status:
   last_reviewed: "2026-03-13"
 
 seo:
-  title: "Proof-Backed Security Operations | WitnessOps"
-  description: "WitnessOps runs governed security work and produces signed proof bundles that customers, auditors, and counterparties can verify offline without trusting WitnessOps to stay in the loop."
+  title: "Portable Proof for Governed Security Work | WitnessOps"
+  description: "WitnessOps turns governed security work into signed, portable proof artifacts that customers, auditors, insurers, and counterparties can verify independently."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "WitnessOps — Portable Proof Bundles for Serious Cyber Claims"
-  og_description: "Signed proof bundles with explicit lineage and offline verification for customers, auditors, and counterparties."
+  og_title: "WitnessOps — Governed Security Work into Portable Proof"
+  og_description: "From governed action to signed receipt to independent verification for customers, auditors, insurers, and counterparties."
   twitter_card: "summary_large_image"
 
 theme:
@@ -35,10 +35,12 @@ navbar:
       href: "/docs"
     - label: "Verify"
       href: "/verify"
+    - label: "Library"
+      href: "/library"
     - label: "Support"
       href: "/support"
   cta:
-    label: "Engage"
+    label: "Contact"
     href: "/contact"
     variant: "primary"
 
@@ -46,11 +48,7 @@ hero:
   eyebrow: "Security workflows with proof you can verify"
   title: "WitnessOps turns governed security work into portable proof bundles that external reviewers can inspect independently."
   body: "We run bounded security workflows and produce proof bundles that third parties can verify without relying on our runtime."
-  supporting_points:
-    - "Most security work is easy to claim. Hard to prove."
-    - "Signed receipts with explicit lineage."
-    - "Portable evidence that survives export."
-    - "Built for operators and relying parties."
+  supporting_points: []
   primary_cta:
     label: "Verify a sample bundle"
     href: "/verify"
@@ -59,30 +57,23 @@ hero:
     label: "Request a workflow review"
     href: "/review"
     variant: "secondary"
-  microcopy: "No setup. No special access. Verify a real proof bundle in seconds."
-  proof_badges:
-    - "Verification"
-    - "Attestation"
-    - "Status"
-    - "Operator Hub"
+  microcopy: "Runs in the browser against a receipt already published on this site. No account. No backend call. No data leaves the page."
+  proof_badges: []
   media:
-    type: "terminal"
-    terminal:
-      language: "bash"
+    type: "code_excerpt"
+    code:
+      language: "json"
       lines:
-        - "$ cat receipt.json"
-        - ""
-        - "RECEIPT:   rx-20260312-a7f3"
-        - "POLICY:    policy:external-recon:v1"
-        - "CHAIN:     prev=rx-20260312-e2b1"
-        - "EXECUTION: sha256:9d5e42..."
-        - "verified:  continuity+integrity"
-        - ""
-        - "SIGNATURE: ed25519:k7x9..."
+        - "{"
+        - "  \"schemaVersion\": \"tier1-freeze-v2.1\","
+        - "  \"artifactHash\": \"sha256:9d5e42a8...\","
+        - "  \"executionHash\": \"sha256:c7b3f1d4...\","
+        - "  \"signature\": \"ed25519:k7x9m3p2...\""
+        - "}"
 
 trust_bar:
-  enabled: true
-  label: "Governed security operations with signed receipts and portable proof"
+  enabled: false
+  label: "Governed security work with signed receipts and portable proof"
   items:
     - "Verification"
     - "Attestation"
@@ -110,7 +101,7 @@ sections:
 
   - type: "problem"
     id: "problem"
-    enabled: true
+    enabled: false
     title: "Most security work is easy to claim. Hard to prove."
     body: "Security vendors ship reports. Teams collect logs. Screenshots get passed around. Then the real question lands: can this claim survive independent verification? That is where the story usually breaks."
     bullets:
@@ -122,7 +113,7 @@ sections:
 
   - type: "category_comparison"
     id: "category"
-    enabled: true
+    enabled: false
     title: "Tools run. WitnessOps governs."
     rows:
       - left: "Nmap"
@@ -133,24 +124,24 @@ sections:
         right: "tests web apps — but can the governed path be reconstructed?"
       - left: "WitnessOps"
         right: "wraps all of them in governed, evidence-producing runbooks"
-    closing: "WitnessOps is not a replacement for your tools. It's the governance layer that makes them auditable."
+    closing: "WitnessOps is not a replacement for your tools. It is the governance layer that makes them auditable."
 
   - type: "why_now"
     id: "why-now"
-    enabled: true
+    enabled: false
     title: "Why governed execution matters now"
     items:
       - title: "Regulators and auditors want proof, not reports"
         body: "Compliance frameworks increasingly require evidence of what was tested, not just what was found."
       - title: "AI systems need auditable security"
         body: "AI governance requires verifiable records of security testing, not self-reported summaries."
-      - title: "Clients, insurers, and acquirers ask 'show me the evidence'"
+      - title: "Clients, insurers, and acquirers ask show me the evidence"
         body: "Counterparties want to verify that security operations actually happened as described."
     closing: "Trust-based security reporting is giving way to evidence-based verification."
 
   - type: "pipeline"
     id: "pipeline"
-    enabled: true
+    enabled: false
     title: "From runbook to published evidence in four steps."
     steps:
       - label: "Define the runbook"
@@ -164,9 +155,9 @@ sections:
 
   - type: "artifact_anatomy"
     id: "artifact"
-    enabled: true
+    enabled: false
     title: "One chain. One replay path."
-    body: "An WitnessOps Tier 1 chain contains the published evidence needed to inspect a governed operational action without turning the UI into a verifier."
+    body: "A WitnessOps Tier 1 chain contains the published evidence needed to inspect a governed operational action without turning the UI into a verifier."
     tree:
       root: "published-chain.json"
       entries:
@@ -187,7 +178,7 @@ sections:
 
   - type: "proof_object"
     id: "proof-object"
-    enabled: true
+    enabled: false
     title: "A governed operation becomes a Tier 1 receipt binding"
     body: "Richer evidence stays in adjacent manifests, state, logs, and notes. The published receipt surface exposes the frozen Tier 1 binding shape."
     code:
@@ -207,7 +198,7 @@ sections:
 
   - type: "platform_surfaces"
     id: "surfaces"
-    enabled: true
+    enabled: false
     title: "A governed execution platform, not a loose toolchain"
     cards:
       - title: "Governed Execution"
@@ -225,7 +216,7 @@ sections:
 
   - type: "audiences"
     id: "audiences"
-    enabled: true
+    enabled: false
     title: "Built for operators and relying parties"
     cards:
       - title: "Penetration testers"
@@ -241,7 +232,7 @@ sections:
 
   - type: "positioning"
     id: "positioning"
-    enabled: true
+    enabled: false
     title: "Built for a world where trust is not enough."
     body: "Closed models are acceptable. Closed proof is not. WitnessOps separates execution, evidence, and verification so claims do not depend on the system that produced them."
     points:
@@ -252,7 +243,7 @@ sections:
 
   - type: "offer"
     id: "offer"
-    enabled: true
+    enabled: false
     title: "Start with one runbook."
     price_label: "FIRST STEP"
     delivery_label: "ONE ENGAGEMENT"
@@ -269,7 +260,7 @@ sections:
 
   - type: "expansion_path"
     id: "expansion"
-    enabled: true
+    enabled: false
     title: "One runbook becomes a campaign. One campaign becomes an evidence trail."
     body: "Start with a single governed operation. Chain receipts across scans, tests, and responses. Build a governed security history that auditors and regulators can inspect without oral reconstruction."
     ctas:
@@ -280,22 +271,120 @@ sections:
         href: "/proof-backed-security-systems"
         variant: "ghost"
 
+  - type: "contract"
+    id: "contract"
+    enabled: true
+    title: "Every run follows four steps."
+    lede: "The sequence is fixed: approve, execute, record, publish. The result is a portable bundle others can verify."
+    steps:
+      - label: "Approve"
+        body: "A policy gate must pass before any tool runs. Approval is recorded."
+      - label: "Execute"
+        body: "The tool runs inside approved scope. Execution is bound to policy context."
+      - label: "Record"
+        body: "A signed receipt captures what ran, who approved it, and the binding context."
+      - label: "Publish"
+        body: "The signed bundle is published and portable. Verification does not depend on us."
+    closing: "The order is fixed: approve, execute, record, publish."
+    cta:
+      label: "Read the verification contract"
+      href: "/docs/how-it-works/verification"
+      variant: "ghost"
+
+  - type: "verifiable_items"
+    id: "verifiable"
+    enabled: true
+    title: "Verify live proof bundles."
+    lede: "These bundles are live and ready for independent review."
+    items:
+      - title: "Phishing triage"
+        body: "Phishing triage under a governed runbook. Receipt records scope, approval, and result."
+        proof_link: "/library/samples/phishing-triage"
+        proof_link_label: "View phishing triage bundle"
+      - title: "Approval-gated containment"
+        body: "Containment action with explicit approval before execution. The receipt shows the gate."
+        proof_link: "/library/samples/approval-gated-containment"
+        proof_link_label: "View approval-gated containment bundle"
+      - title: "Evidence export audit package"
+        body: "Full evidence export from a governed engagement. Independently verifiable offline."
+        proof_link: "/library/samples/evidence-export-audit-package"
+        proof_link_label: "View evidence export audit bundle"
+    closing: "Use these bundles to test whether evidence survives external handoff."
+    ctas:
+      - label: "Inspect sample bundles"
+        href: "/library"
+        variant: "primary"
+      - label: "Request a workflow review"
+        href: "/contact"
+        variant: "ghost"
+
+  - type: "boundary"
+    id: "boundary"
+    enabled: true
+    title: "Trust assumptions still exist."
+    lede: "Here is what still depends on us."
+    items:
+      - title: "Runtime integrity"
+        body: "We run the execution environment. A compromised runtime could produce false receipts. Signed hashes reduce risk, but runtime integrity is not independently verifiable."
+      - title: "Key management"
+        body: "Receipt signatures depend on our key infrastructure. We use HSM-backed keys and publish key rotation policy."
+      - title: "Schema continuity"
+        body: "Receipt schema is versioned and published. Breaking schema changes would affect historical verification."
+      - title: "Policy enforcement"
+        body: "Policy gates run on our infrastructure. You can verify that evaluation occurred, but not independently prove engine correctness."
+    closing: "Trust should be scoped and explicit."
+
+  - type: "workflows"
+    id: "workflows"
+    enabled: true
+    title: "Governed workflows with checkable proof."
+    lede: "Security operations in, portable proof out."
+    cards:
+      - title: "Phishing triage"
+        body: "Classify and scope a phishing incident under a governed runbook. Receipt records scope and approval."
+        proof_link: "/library/samples/phishing-triage"
+        proof_link_label: "View phishing triage bundle"
+      - title: "Approval-gated containment"
+        body: "Execute containment with an enforced approval gate. No execution without recorded approval."
+        proof_link: "/library/samples/approval-gated-containment"
+        proof_link_label: "View containment bundle"
+      - title: "Evidence export audit package"
+        body: "Package a governed engagement into a portable evidence bundle for external reviewers."
+        proof_link: "/library/samples/evidence-export-audit-package"
+        proof_link_label: "View audit package bundle"
+    surfaces:
+      - title: "CLI"
+        body: "Run workflows from the command line. Receipts are written locally and can be published."
+      - title: "Operator surface"
+        body: "Deterministic execution interface for operators."
+      - title: "API"
+        body: "Trigger runs programmatically. Receipts return in the response."
+      - title: "Audit export"
+        body: "Export signed evidence bundles compatible with offline verifiers."
+    internal_surfaces_disclosure: "Some surfaces are internal only: policy authoring, receipt query, and operator administration."
+    ctas:
+      - label: "Inspect workflow bundles"
+        href: "/library"
+        variant: "primary"
+      - label: "Request review"
+        href: "/contact"
+        variant: "ghost"
+
 final_cta:
   enabled: true
-  title: "Your next security operation should produce proof."
-  body: "Not screenshots. Not notes. Signed evidence of what ran, who approved it, and whether it stayed in scope. Try the verifier, inspect the proof, then start a governed recon when you are ready to generate your own evidence."
-  primary_cta:
-    label: "Try the Verifier"
-    href: "/verify"
-    variant: "primary"
-  secondary_cta:
-    label: "Engage"
-    href: "/contact"
-    variant: "secondary"
+  title: "Ready to review one real workflow?"
+  body: "If the proof path holds for your review context, move to scope intake. We define boundaries, scope limits, and expected evidence before execution."
+  ctas:
+    - label: "Request review"
+      href: "/contact"
+      variant: "primary"
+    - label: "Read the verification contract"
+      href: "/docs/how-it-works/verification"
+      variant: "ghost"
 
 footer:
-  brand_line: "WitnessOps — Public Surface"
-  subline: "Proof-backed security systems."
+  brand_line: "WitnessOps"
+  subline: "Portable proof for governed security work."
   links:
     - label: "How It Works"
       href: "/why-witnessops"
@@ -303,6 +392,8 @@ footer:
       href: "/verify"
     - label: "Docs"
       href: "/docs"
+    - label: "Library"
+      href: "/library"
     - label: "Support"
       href: "/support"
   legal_links:

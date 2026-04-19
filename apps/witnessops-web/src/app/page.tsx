@@ -1,43 +1,42 @@
+import type { Metadata } from "next";
+import { FinalCta } from "@/components/marketing/final-cta";
+import { Hero } from "@/components/marketing/hero";
+import { renderHomeSections } from "@/components/marketing/home-section-registry";
 import { loadHomeContent } from "@/lib/content";
 import { buildMetadata } from "@/lib/seo";
-import { SystemFraming } from "@/components/product/system-framing";
-import { ScanHero } from "@/components/product/scan-hero";
-import { ScanSteps } from "@/components/product/scan-steps";
-import { ScanOutput } from "@/components/product/scan-output";
-import { ReceiptPreview } from "@/components/product/receipt-preview";
-import { ServicesTier } from "@/components/product/services-tier";
-import { DocsPreview } from "@/components/product/docs-preview";
-import { FinalCta } from "@/components/marketing/final-cta";
 
-export async function generateMetadata() {
-  const content = loadHomeContent();
-  return buildMetadata(content.seo);
-}
+const home = loadHomeContent();
+
+export const metadata: Metadata = buildMetadata(home.seo);
 
 export default function HomePage() {
-  const content = loadHomeContent();
-
   return (
-    <main id="main-content" tabIndex={-1}>
-      {/* 1. System — establish what WitnessOps is */}
-      <SystemFraming />
+    <main id="main-content" tabIndex={-1} data-page="home">
+      <Hero
+        eyebrow={home.hero.eyebrow}
+        title={home.hero.title}
+        body={home.hero.body}
+        supporting_points={home.hero.supporting_points}
+        primary_cta={home.hero.primary_cta}
+        secondary_cta={home.hero.secondary_cta}
+        proof_badges={home.hero.proof_badges}
+        media={home.hero.media}
+        trustBar={home.trust_bar}
+        microcopy={home.hero.microcopy}
+      />
 
-      {/* 2. Offer — the scan as a demonstration of the system */}
-      <ScanHero />
-      <ScanSteps />
+      {renderHomeSections(home.sections)}
 
-      {/* 3. Proof — show the receipt early */}
-      <ReceiptPreview />
-      <ScanOutput />
-
-      {/* 4. Services — depth ladder */}
-      <ServicesTier />
-
-      {/* 5. Documentation */}
-      <DocsPreview />
-
-      {/* 6. Close */}
-      {content.final_cta.enabled && <FinalCta {...content.final_cta} />}
+      {home.final_cta.enabled && (
+        <FinalCta
+          enabled={home.final_cta.enabled}
+          title={home.final_cta.title}
+          body={home.final_cta.body}
+          primary_cta={home.final_cta.primary_cta}
+          secondary_cta={home.final_cta.secondary_cta}
+          ctas={home.final_cta.ctas}
+        />
+      )}
     </main>
   );
 }

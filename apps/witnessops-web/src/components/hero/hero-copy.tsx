@@ -8,6 +8,7 @@ type HeroCopyProps = {
   primaryCta: { label: string; href: string; variant: string };
   secondaryCta: { label: string; href: string; variant: string };
   proofBadges: string[];
+  microcopy?: string;
 };
 
 export function HeroCopy({
@@ -18,24 +19,20 @@ export function HeroCopy({
   primaryCta,
   secondaryCta,
   proofBadges,
+  microcopy,
 }: HeroCopyProps) {
   return (
-    <div className="max-w-[40rem] lg:pr-6 xl:pr-10">
-      <p className="mb-4 text-sm font-medium tracking-wide text-brand-accent uppercase">
-        {eyebrow}
-      </p>
+    <div>
+      <p className="kb-section-tag mb-3">{eyebrow}</p>
 
-      <h1
-        className="mb-6 max-w-[15ch] text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-balance text-text-primary md:text-5xl lg:text-6xl"
-        style={{ fontFamily: "var(--font-display)" }}
-      >
+      <h1 className="mb-4 max-w-[26ch] text-2xl font-semibold leading-[1.2] tracking-[-0.005em] text-balance text-text-primary md:text-[28px] lg:text-[32px]">
         {title}
       </h1>
 
-      <p className="mb-7 max-w-[34rem] text-lg leading-8 text-text-secondary">{body}</p>
+      <p className="mb-2 max-w-[56ch] text-base leading-7 text-text-secondary">{body}</p>
 
       {supportingPoints.length > 0 && (
-        <ul className="mb-9 space-y-2.5">
+        <ul className="mb-4 space-y-2">
           {supportingPoints.map((point) => (
             <li key={point} className="flex items-start gap-2 text-sm text-text-secondary">
               <span className="mt-1 text-brand-accent" aria-hidden="true">
@@ -47,7 +44,7 @@ export function HeroCopy({
         </ul>
       )}
 
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="mt-6 flex flex-wrap items-center gap-4">
         <CtaButton
           label={primaryCta.label}
           href={primaryCta.href}
@@ -60,12 +57,16 @@ export function HeroCopy({
         />
       </div>
 
+      {microcopy && (
+        <p className="mt-3 text-xs font-mono text-text-muted">{microcopy}</p>
+      )}
+
       {proofBadges.length > 0 && (
-        <div className="mt-8 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-2">
           {proofBadges.map((badge) => (
             <span
               key={badge}
-              className="rounded-full border border-surface-border bg-surface-card px-3 py-1 text-xs text-text-muted transition-all duration-200 hover:border-brand-accent/30 hover:text-text-secondary hover:shadow-[0_0_12px_rgba(255,107,53,0.06)]"
+              className="border border-surface-border bg-surface-card px-3 py-1 text-xs text-text-muted transition-colors duration-200 hover:border-accent-trust/40 hover:text-text-secondary"
             >
               {badge}
             </span>

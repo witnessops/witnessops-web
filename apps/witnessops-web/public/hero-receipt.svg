@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 480" fill="none" aria-hidden="true">
+  <defs>
+    <pattern id="dotGrid" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.7" fill="#35353f" />
+    </pattern>
+    <linearGradient id="accentRule" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f27a3d" />
+      <stop offset="100%" stop-color="#64a8ac" />
+    </linearGradient>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000" stop-opacity="0" />
+      <stop offset="100%" stop-color="#000" stop-opacity="0.88" />
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="420" height="480" fill="url(#dotGrid)" opacity="0.82" />
+
+  <g stroke="#5a5a66" stroke-width="1.2" fill="none">
+    <path d="M8 24 L8 8 L24 8" />
+    <path d="M412 24 L412 8 L396 8" />
+    <path d="M8 456 L8 472 L24 472" />
+    <path d="M412 456 L412 472 L396 472" />
+  </g>
+
+  <g transform="translate(58 72)">
+    <rect x="0" y="0" width="304" height="336" fill="#0b0b0f" stroke="#4a4a55" stroke-width="1.2" />
+
+    <rect x="0" y="0" width="304" height="30" fill="#141419" />
+    <rect x="0" y="29" width="304" height="1.5" fill="url(#accentRule)" opacity="0.9" />
+    <circle cx="14" cy="15" r="3" fill="#6bc498" />
+    <text x="28" y="19" font-family="ui-monospace, Menlo, monospace" font-size="8" fill="#faf7f2" letter-spacing="0.08em">
+      APPROVAL-GATED PHISHING TRIAGE · SAMPLE
+    </text>
+
+    <g stroke="#3a3a44" stroke-width="1">
+      <line x1="0" y1="30" x2="304" y2="30" />
+      <line x1="132" y1="30" x2="132" y2="256" />
+      <line x1="0" y1="62" x2="304" y2="62" />
+      <line x1="0" y1="94" x2="304" y2="94" />
+      <line x1="0" y1="126" x2="304" y2="126" />
+      <line x1="0" y1="158" x2="304" y2="158" />
+      <line x1="0" y1="190" x2="304" y2="190" />
+      <line x1="0" y1="222" x2="304" y2="222" />
+      <line x1="0" y1="256" x2="304" y2="256" />
+    </g>
+
+    <g font-family="ui-monospace, Menlo, monospace" font-size="8.5" fill="#8a8680" letter-spacing="0.08em">
+      <text x="14" y="51">WORKFLOW ID</text>
+      <text x="14" y="83">POLICY PROFILE</text>
+      <text x="14" y="115">APPROVAL GATE</text>
+      <text x="14" y="147">EVIDENCE DIGEST</text>
+      <text x="14" y="179">SIGNING KEY</text>
+      <text x="14" y="211">AUDIT CONTEXT</text>
+    </g>
+
+    <g fill="#4a4a55">
+      <rect x="146" y="44" width="140" height="8" rx="1.5" />
+      <rect x="146" y="76" width="140" height="8" rx="1.5" />
+      <rect x="146" y="108" width="118" height="8" rx="1.5" />
+      <rect x="146" y="140" width="94" height="8" rx="1.5" />
+      <rect x="146" y="172" width="72" height="8" rx="1.5" />
+      <rect x="146" y="204" width="112" height="8" rx="1.5" />
+    </g>
+
+    <rect x="16" y="274" width="272" height="48" fill="#060608" stroke="#3a3a44" />
+    <text x="28" y="294" font-family="ui-monospace, Menlo, monospace" font-size="8" fill="#d0ccc4" letter-spacing="0.12em">
+      SIGNED PROOF BUNDLE
+    </text>
+    <rect x="28" y="300" width="248" height="7" fill="url(#accentRule)" opacity="0.55" rx="1" />
+
+    <g stroke="#f27a3d" stroke-width="1.2">
+      <line x1="-9" y1="15" x2="0" y2="15" />
+      <line x1="304" y1="15" x2="313" y2="15" />
+    </g>
+  </g>
+
+  <rect x="0" y="416" width="420" height="64" fill="url(#fade)" />
+</svg>

@@ -11,6 +11,10 @@ import { AudienceSection } from "@/components/marketing/audience-section";
 import { PositioningSection } from "@/components/marketing/positioning-section";
 import { OfferSection } from "@/components/marketing/offer-section";
 import { ExpansionPathSection } from "@/components/marketing/expansion-path-section";
+import { ContractSection } from "@/components/marketing/contract-section";
+import { VerifiableSection } from "@/components/marketing/verifiable-section";
+import { BoundarySection } from "@/components/marketing/boundary-section";
+import { WorkflowsSection } from "@/components/marketing/workflows-section";
 
 type SectionRendererMap = {
   [K in WitnessOpsHomeSection["type"]]: (
@@ -37,6 +41,10 @@ const sectionRenderers: SectionRendererMap = {
   expansion_path: (section) => (
     <ExpansionPathSection key={section.id} {...section} />
   ),
+  contract: (section) => <ContractSection key={section.id} {...section} />,
+  verifiable_items: (section) => <VerifiableSection key={section.id} {...section} />,
+  boundary: (section) => <BoundarySection key={section.id} {...section} />,
+  workflows: (section) => <WorkflowsSection key={section.id} {...section} />,
 };
 
 export function renderHomeSections(sections: WitnessOpsHomeSection[]) {
