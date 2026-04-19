@@ -22,7 +22,7 @@ After this page, you should be able to:
 - choose containment actions based on interaction depth, not assumptions
 - escalate when impact or uncertainty crosses defined thresholds
 
-## Mechanism-first recovery sequence (first minutes/hours)
+## Mechanism-first recovery sequence (first minutes and hours)
 
 Use this sequence when a user reports clicking a suspicious link, opening an attachment, entering credentials, or approving MFA unexpectedly.
 
@@ -35,32 +35,32 @@ Use this sequence when a user reports clicking a suspicious link, opening an att
 ### 15–60 minutes: verify exposure and contain account risk
 
 4. Check identity and session telemetry for unfamiliar successful sign-ins near the interaction window.
-5. If credential, token, or MFA exposure is plausible, reset credentials and revoke active sessions/tokens for the affected account.
-6. Review mailbox and account changes: forwarding rules, OAuth/app grants, reset-method changes, and unusual outbound mail.
+5. If credential, token, or MFA exposure is plausible, reset credentials and revoke active sessions or tokens for the affected account.
+6. Review mailbox and account changes: forwarding rules, OAuth or app grants, reset-method changes, and unusual outbound mail.
 
 ### 1–4 hours: bound scope and reduce spread
 
-7. Validate whether adjacent workflows were touched (finance approvals, internal messaging, file-sharing access).
+7. Validate whether adjacent workflows were touched, such as finance approvals, internal messaging, or file-sharing access.
 8. Check for secondary phishing from the affected account and notify recipients through known-good channels.
 9. Run endpoint triage when attachment open or execution evidence exists; avoid destructive cleanup until key artifacts are captured.
 
 ## Decision gates for containment vs escalation
 
-- **Gate A (exposure-only):** message reported, no click/open/credential/MFA/session evidence.
+- **Gate A (exposure-only):** message reported, no click, open, credential, MFA, or session evidence.
   - Decision: block indicators, retain artifacts, document as exposure-only, monitor.
-- **Gate B (interaction):** click/open evidence exists, but no credential/MFA/session compromise evidence yet.
-  - Decision: preserve full timeline, increase auth/endpoint monitoring, apply scoped containment.
-- **Gate C (account exposure likely):** credential entry, unexpected MFA approval, suspicious session, or token/app-grant anomaly.
+- **Gate B (interaction):** click or open evidence exists, but no credential, MFA, or session-compromise evidence yet.
+  - Decision: preserve the full timeline, increase auth or endpoint monitoring, apply scoped containment.
+- **Gate C (account exposure likely):** credential entry, unexpected MFA approval, suspicious session, or token or app-grant anomaly.
   - Decision: perform account containment immediately and execute [Phishing Investigation](/docs/scenarios/phishing-investigation).
-- **Gate D (escalation threshold):** privileged account, multi-user spread, finance/regulatory workflow impact, or scope cannot be bounded quickly.
+- **Gate D (escalation threshold):** privileged account, multi-user spread, finance or regulatory workflow impact, or scope cannot be bounded quickly.
   - Decision: escalate through governed incident handling using [Do I Need to Escalate?](/docs/decisions/escalation) and required approvals.
 
 ## Evidence preservation requirements during response
 
-- preserve original artifacts before user mailbox cleanup or endpoint remediation
+- preserve original artifacts before mailbox cleanup or endpoint remediation
 - record collection source, timestamp, and collector for each artifact
-- retain immutable copies/hashes for URLs, attachments, and key logs where possible
-- document each containment action (what changed, by whom, and why)
+- retain immutable copies or hashes for URLs, attachments, and key logs where possible
+- document each containment action: what changed, by whom, and why
 - keep sensitive artifacts in controlled handling paths via [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling)
 
 ## What WitnessOps controls support vs cannot guarantee
@@ -77,12 +77,12 @@ Use this sequence when a user reports clicking a suspicious link, opening an att
 - prevention of all phishing interactions
 - complete reconstruction if required telemetry is missing, late, or altered
 - attacker attribution from a single event
-- external recovery outcomes (for example, third-party financial reversal timelines)
+- external recovery outcomes, such as third-party financial reversal timelines
 
 ## Observed vs inferred separation
 
-- **Observed:** preserved lure artifact, click/open telemetry, sign-in/session logs, mailbox-rule changes, token/app-grant changes.
-- **Inferred:** "attacker fully controlled the account," "all impacted systems are known," or "no further risk remains."
+- **Observed:** preserved lure artifact, click or open telemetry, sign-in or session logs, mailbox-rule changes, token or app-grant changes.
+- **Inferred:** "the attacker fully controlled the account," "all impacted systems are known," or "no further risk remains."
 
 Use observed evidence to justify immediate response actions.
 Keep inferred statements explicit and provisional until corroborated.
@@ -97,10 +97,10 @@ Assumptions:
 
 Limits:
 
-- delayed reporting can remove short-lived evidence (redirect chains, transient sessions)
+- delayed reporting can remove short-lived evidence, such as redirect chains or transient sessions
 - adversaries may evade, suppress, or overwrite telemetry
-- some scope decisions remain probabilistic until additional corroborating evidence is collected
+- some scope decisions remain probabilistic until more corroborating evidence is collected
 
 ## Next-page handoff
 
-Continue to [How Attackers Think](/docs/security-education/attacker-perspective) for attacker economics and path selection logic that explain why these recovery gates matter.
+Continue to [How Attackers Think](/docs/security-education/attacker-perspective) for attacker economics and path-selection logic that explain why these recovery gates matter.
