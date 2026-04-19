@@ -20,10 +20,10 @@ This page turns attacker economics into defensive priorities so operators can ra
 After this page, you should be able to:
 
 - map suspicious activity to attacker decision points instead of treating events as random
-- identify which controls increase attacker effort at each decision point
+- identify which controls raise attacker effort at each decision point
 - choose escalation gates based on observed risk to identity, privileged access, and finance workflows
 
-## Mechanism-first attacker decision model (target selection, lure choice, friction avoidance, monetization path)
+## Mechanism-first attacker decision model
 
 Most campaigns optimize for repeatable return, not novelty.
 
@@ -31,21 +31,21 @@ Most campaigns optimize for repeatable return, not novelty.
 |---|---|---|---|
 | Target selection | "Where can one compromise create the fastest business impact?" | Focus on accounts tied to approvals, payments, vendor trust, or privileged access | Harden high-impact workflows first and reduce single-user failure points |
 | Lure choice | "Which message is most likely to get action without verification?" | Reuse familiar business lures: invoice, shared file, login alert, policy reset | Route reports by workflow context and require out-of-band verification for high-impact requests |
-| Friction avoidance | "How do I avoid strong controls and noisy behavior?" | Prefer weak MFA coverage, stale sessions, and normal-looking timing/channels | Close bypass paths: enforce MFA, revoke risky sessions, and monitor unusual sign-in patterns |
-| Monetization path | "How does access convert to value?" | Payment diversion, data theft/extortion leverage, internal phishing spread, or access resale | Prioritize actions that interrupt conversion to financial or operational impact |
+| Friction avoidance | "How do I avoid strong controls and noisy behavior?" | Prefer weak MFA coverage, stale sessions, and normal-looking timing and channels | Close bypass paths: enforce MFA, revoke risky sessions, and monitor unusual sign-in patterns |
+| Monetization path | "How does access convert to value?" | Payment diversion, data theft or extortion leverage, internal phishing spread, or access resale | Prioritize actions that interrupt conversion to financial or operational impact |
 
 ## Observable operator signals tied to attacker decision points
 
 | Decision point | Directly observable operator signals | Why the signal matters |
 |---|---|---|
 | Target selection | repeated lures to finance approvers, admins, or vendor-facing users; role-focused targeting patterns | suggests the attacker is optimizing for high-impact workflows |
-| Lure choice | sender/reply-to mismatch, lookalike domains, urgency language tied to business workflows, payment-change requests | indicates the lure is built to bypass normal verification behavior |
-| Friction avoidance | repeated attempts against accounts without enforced MFA, suspicious new sign-ins after interaction, mailbox/session persistence changes | indicates control-evasion and attempts to maintain access quietly |
-| Monetization path | beneficiary-change requests, unusual outbound finance communication, bulk sensitive data access, internal lure propagation | indicates movement from access to business impact |
+| Lure choice | sender or reply-to mismatch, lookalike domains, urgency language tied to business workflows, payment-change requests | indicates the lure is built to bypass normal verification behavior |
+| Friction avoidance | repeated attempts against accounts without enforced MFA, suspicious new sign-ins after interaction, mailbox or session persistence changes | indicates control evasion and attempts to maintain access quietly |
+| Monetization path | beneficiary-change requests, unusual outbound finance communication, bulk sensitive-data access, internal lure propagation | indicates movement from access to business impact |
 
 ## Practical defensive decisions and escalation gates
 
-1. Protect likely high-return targets first (finance, privileged, and vendor-trust workflows).
+1. Protect likely high-return targets first: finance, privileged, and vendor-trust workflows.
 2. Treat workflow-themed lures as potential impact events, not only awareness events.
 3. Disrupt friction-avoidance behavior quickly: revoke risky sessions, reset credentials where warranted, and remove persistence changes.
 4. Escalate when observed signals indicate conversion toward financial, regulatory, or multi-user impact.
@@ -53,9 +53,9 @@ Most campaigns optimize for repeatable return, not novelty.
 Gate definitions:
 
 - **Gate A (exposure-only):** suspicious lure observed, no interaction evidence.
-- **Gate B (interaction):** click/open occurred, no credential/MFA/session-compromise evidence yet.
+- **Gate B (interaction):** click or open occurred, no credential, MFA, or session-compromise evidence yet.
 - **Gate C (account exposure likely):** credential entry, unexpected MFA approval, suspicious new session, or persistence changes.
-- **Gate D (high impact):** privileged account involvement, payment/workflow impact, multi-user spread, or scope cannot be bounded quickly.
+- **Gate D (high impact):** privileged account involvement, payment or workflow impact, multi-user spread, or scope cannot be bounded quickly.
 
 ## What WitnessOps controls can support vs cannot guarantee
 
@@ -63,7 +63,7 @@ Gate definitions:
 
 - [Threat Model](/docs/security-systems/threat-model) to map likely abuse paths to controls
 - [Phishing Investigation](/docs/scenarios/phishing-investigation) for governed triage and containment sequencing
-- [Do I Need to Escalate?](/docs/decisions/escalation) and [What Evidence Is Required?](/docs/decisions/evidence-required) for impact/uncertainty gates
+- [Do I Need to Escalate?](/docs/decisions/escalation) and [What Evidence Is Required?](/docs/decisions/evidence-required) for impact and uncertainty gates
 - [Policy Gates](/docs/security-systems/policy-gates) for approval on high-impact actions
 - [Receipts](/docs/evidence/receipts) for signed decision and remediation traceability
 
@@ -72,12 +72,12 @@ Gate definitions:
 - prevention of all phishing or identity-entry attempts
 - complete reconstruction when telemetry is missing, delayed, or altered
 - attacker intent or attribution from a single artifact set
-- external recovery outcomes (for example, third-party fund recovery timelines)
+- external recovery outcomes, such as third-party fund-recovery timelines
 
 ## Observed vs inferred separation
 
-- **Observed:** preserved lure artifacts, sign-in/session logs, mailbox/persistence changes, payment-workflow artifacts, and timeline events.
-- **Inferred:** "attacker had full control," "all impacted systems are known," or "financial intent is proven."
+- **Observed:** preserved lure artifacts, sign-in or session logs, mailbox or persistence changes, payment-workflow artifacts, and timeline events.
+- **Inferred:** "the attacker had full control," "all impacted systems are known," or "financial intent is proven."
 
 Use observed signals to justify immediate containment.
 Keep inferred claims explicit and provisional until corroborated.
@@ -92,9 +92,9 @@ Assumptions:
 
 Limits:
 
-- delayed reporting can remove short-lived evidence (redirect chains, transient sessions)
+- delayed reporting can remove short-lived evidence, such as redirect chains or transient sessions
 - adversaries may evade, suppress, or overwrite telemetry
-- some scope and intent conclusions remain probabilistic until additional corroboration is collected
+- some scope and intent conclusions remain probabilistic until more corroborating evidence is collected
 
 ## Next-page handoff
 
