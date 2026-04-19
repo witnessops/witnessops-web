@@ -15,7 +15,7 @@ This page defines the integration-author lane for developers who design and main
 
 Integrations become unsafe and unauditable when interface boundaries, evidence behavior, and failure handling are implicit.
 
-This page gives the first-pass build path so integration decisions remain governable, auditable, and receipt-compatible.
+This page gives the first-pass build path so integration decisions stay governable, auditable, and receipt-compatible.
 
 ## 2. What you should understand after reading
 
@@ -31,11 +31,11 @@ After this page, you should understand:
 
 ### Must know first before implementation
 
-Before writing or approving integration code/docs, require:
+Before writing or approving integration code or docs, require:
 
-- an explicit integration boundary and non-goals
+- a clear integration boundary and non-goals
 - a clear interface contract for inputs, outputs, errors, and permission requirements
-- defined evidence/receipt compatibility expectations
+- defined evidence and receipt compatibility expectations
 - governed failure and escalation behavior for blocked scope, approval stalls, tool failure, and evidence mismatch
 
 ### Read first (in order)
@@ -52,8 +52,8 @@ Before writing or approving integration code/docs, require:
 | Decision | What you own | Primary pages |
 | --- | --- | --- |
 | Boundary and non-goal definition | Declare allowed actions, explicit non-goals, and prohibited implicit behavior | [Integrations](/docs/integrations), [Governance](/docs/governance) |
-| Interface contract design | Define stable input/output shape, error semantics, and permission/approval expectations | [Runbooks](/docs/operations/runbooks), [Authorization Model](/docs/governance/authorization-model) |
-| Evidence compatibility | Ensure emitted artifacts and metadata can be captured and linked in receipts | [Receipt Spec](/docs/evidence/receipt-spec), [What Evidence Is Required?](/docs/decisions/evidence-required) |
+| Interface contract design | Define stable input and output shape, error semantics, and permission or approval expectations | [Runbooks](/docs/operations/runbooks), [Authorization Model](/docs/governance/authorization-model) |
+| Evidence compatibility | Make sure emitted artifacts and metadata can be captured and linked in receipts | [Receipt Spec](/docs/evidence/receipt-spec), [What Evidence Is Required?](/docs/decisions/evidence-required) |
 | Failure and escalation behavior | Encode operator-visible handling for scope denial, approval pause, tool failure, and evidence mismatch | [Runbooks](/docs/operations/runbooks), [Do I Need to Escalate?](/docs/decisions/escalation) |
 
 ### Defer initially
@@ -68,22 +68,22 @@ Defer these until interface and evidence contracts are stable:
 
 | Layer | What is observed | What is inferred |
 | --- | --- | --- |
-| Interface execution | declared input/output schema, runbook step behavior, permission gates, explicit exit states | that the interface is sufficient for every operational context |
+| Interface execution | declared input and output schema, runbook step behavior, permission gates, explicit exit states | that the interface is sufficient for every operational context |
 | Evidence behavior | emitted artifacts, hashes, timestamps, receipt-linked fields, explicit failure records | that captured evidence is complete for all future investigations |
 | Operational impact | documented escalation triggers and blocked-path handling | that integration correctness implies correct operator or incident decisions |
 
-Treat inferred claims as assumptions requiring validation, not as observed guarantees.
+Treat inferred claims as assumptions that need validation, not as observed guarantees.
 
 ## 5. Role-specific trust assumptions
 
-Operate with these assumptions explicit:
+Operate with these assumptions kept explicit:
 
-- **Host/tool integrity and key custody are external assumptions:** compromised runtime or key handling invalidates contract guarantees.
+- **Host, tool integrity, and key custody are outside assumptions:** compromised runtime or key handling breaks contract guarantees.
 - **Integration correctness is not operational correctness:** a technically correct interface can still support poor incident or business decisions.
-- **Proof compatibility depends on artifact-contract adherence:** missing or inconsistent artifact semantics break verification and auditability.
+- **Proof compatibility depends on artifact-contract discipline:** missing or inconsistent artifact semantics break verification and auditability.
 - **Scope and approval enforcement remain configuration-backed:** incorrect policy or boundary configuration produces incorrect integration behavior.
 
-See [Threat Model](/docs/security-systems/threat-model) for the full trust boundary map.
+See [Threat Model](/docs/security-systems/threat-model) for the full trust-boundary map.
 
 ## 6. Next-page handoff
 
