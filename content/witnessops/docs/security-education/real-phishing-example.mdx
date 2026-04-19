@@ -20,9 +20,9 @@ After this page, you should be able to:
 
 - walk a phishing report through delivery, interaction, credential, and post-access stages
 - state what each artifact supports and what it does not support
-- choose a response gate that matches evidence quality
+- choose a response gate that matches the evidence quality
 
-## Mechanism-first walkthrough of a representative phishing artifact/event
+## Mechanism-first walkthrough of a representative phishing artifact or event
 
 This walkthrough is synthetic but mechanically representative.
 Treat it as an artifact-handling exercise, not as attribution.
@@ -45,11 +45,11 @@ https://login-microsoft-security-check[.]com/verify
 
 | Chain stage | Primary artifact | What to verify in that artifact | Evidence boundary |
 |---|---|---|---|
-| Delivery | `phishing-email.eml` | sender/reply-to mismatch, header path, auth results | supports suspicious-message classification, not account compromise |
-| Interaction | click telemetry / browser history | whether and when the user opened or clicked | supports interaction timing, not credential exposure |
+| Delivery | `phishing-email.eml` | sender or reply-to mismatch, header path, auth results | supports suspicious-message classification, not account compromise |
+| Interaction | click telemetry or browser history | whether and when the user opened or clicked | supports interaction timing, not credential exposure |
 | Credential capture | fake-page capture + user statement | non-canonical login domain, credential entry claim, unexpected MFA prompt context | supports likely credential exposure when corroborated |
-| Session establishment | identity sign-in logs | successful sign-in from unfamiliar IP/device after interaction | supports potential unauthorized session |
-| Post-access actions | mailbox/cloud audit logs | forwarding rules, outbound anomalies, token/app changes | supports impact progression if present |
+| Session establishment | identity sign-in logs | successful sign-in from an unfamiliar IP or device after interaction | supports possible unauthorized session |
+| Post-access actions | mailbox or cloud audit logs | forwarding rules, outbound anomalies, token or app changes | supports impact progression if present |
 
 ## Observable indicators and what each indicator supports
 
@@ -57,20 +57,20 @@ https://login-microsoft-security-check[.]com/verify
 |---|---|---|---|
 | Claimed brand does not match sender domain | preserved email headers | impersonation attempt | that credentials were entered |
 | Link resolves to a non-canonical or lookalike domain | resolved URL evidence | lure destination is attacker-controlled or untrusted | that compromise already occurred |
-| User confirms entering credentials or approving MFA | user interview + timeline note | account-exposure likelihood | that attacker successfully authenticated |
-| Successful new sign-in after interaction window | identity provider sign-in logs | possible unauthorized session establishment | full blast radius |
+| User confirms entering credentials or approving MFA | user interview + timeline note | account-exposure likelihood | that the attacker successfully authenticated |
+| Successful new sign-in after the interaction window | identity-provider sign-in logs | possible unauthorized session establishment | full blast radius |
 | New forwarding rule or unusual outbound activity | mailbox audit logs | post-access activity likely occurred | attacker intent or attribution |
 
 ## Response decisions and escalation gates tied to evidence quality
 
-- **Gate A (exposure-only):** preserved lure artifact, no click/open evidence.
-  - Decision: classify exposure-only, block indicators, notify user, document receipt.
-- **Gate B (interaction):** click/open evidence exists, but no credential/MFA/session evidence.
-  - Decision: preserve full timeline, monitor sign-in telemetry, run endpoint checks if attachment interaction occurred.
+- **Gate A (exposure-only):** preserved lure artifact, no click or open evidence.
+  - Decision: classify exposure-only, block indicators, notify the user, document the receipt.
+- **Gate B (interaction):** click or open evidence exists, but no credential, MFA, or session evidence.
+  - Decision: preserve the full timeline, monitor sign-in telemetry, run endpoint checks if attachment interaction occurred.
 - **Gate C (account exposure likely):** credential entry, MFA approval, or suspicious new session evidence.
-  - Decision: reset credentials, revoke sessions/tokens, inspect mailbox changes, execute [Phishing Investigation](/docs/scenarios/phishing-investigation).
+  - Decision: reset credentials, revoke sessions or tokens, inspect mailbox changes, execute [Phishing Investigation](/docs/scenarios/phishing-investigation).
 - **Gate D (high impact):** privileged account, multi-user spread, or payment/workflow impact.
-  - Decision: escalate through governed incident path with [Policy Gates](/docs/security-systems/policy-gates) before high-impact actions.
+  - Decision: escalate through the governed incident path with [Policy Gates](/docs/security-systems/policy-gates) before high-impact actions.
 
 ## What WitnessOps controls support vs cannot guarantee
 
@@ -86,16 +86,16 @@ https://login-microsoft-security-check[.]com/verify
 
 - prevention of all phishing delivery attempts
 - complete reconstruction when telemetry is missing, delayed, or altered
-- attacker attribution from a single lure or single sign-in event
-- external recovery outcomes (for example, third-party financial reversal)
+- attacker attribution from a single lure or sign-in event
+- external recovery outcomes, such as third-party financial reversal
 
 ## Observed vs inferred separation
 
 - **Observed:** preserved email headers, resolved URL, click timestamp, sign-in event record, mailbox rule-change log.
-- **Inferred:** "credentials were definitely stolen," "attacker fully controlled the mailbox," or "scope is complete."
+- **Inferred:** "credentials were definitely stolen," "the attacker fully controlled the mailbox," or "scope is complete."
 
 Use observed artifacts to justify immediate containment.
-Keep inferred claims explicit and provisional until corroborated.
+Keep inferred claims explicit and provisional until more evidence confirms them.
 
 ## Trust assumptions and limits
 
@@ -107,9 +107,9 @@ Assumptions:
 
 Limits:
 
-- delayed reporting can remove short-lived evidence (redirect chains, transient sessions)
+- delayed reporting can remove short-lived evidence, such as redirect chains or transient sessions
 - adversaries may evade, suppress, or overwrite telemetry
-- some scope conclusions remain probabilistic until additional corroboration is collected
+- some scope conclusions remain probabilistic until more corroborating evidence is collected
 
 ## Next-page handoff
 
