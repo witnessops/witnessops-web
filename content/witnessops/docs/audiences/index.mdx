@@ -9,31 +9,31 @@ draft: false
 
 # Audiences
 
-This section routes each reader role to the right starting path so they can act safely without reading the entire corpus first.
+This section helps each reader start in the right place so they can act safely without reading the entire docs set first.
 
 ## 1. Problem this page solves
 
-Readers lose time and make bad assumptions when role-specific entry points are unclear.
+Readers lose time and make bad assumptions when role-specific starting points are unclear.
 
-This page defines role-based starts, decision ownership boundaries, and what each role should ignore initially.
+This page defines role-based starts, decision boundaries, and what each role should ignore at first.
 
 ## 2. What you should understand after reading
 
 After this page, you should understand:
 
-- which audience path matches your role
+- which reading path matches your role
 - what each role needs first
 - which decisions each role owns or supports
-- where to start and what to defer initially
+- where to start and what to defer at the beginning
 
 ## 3. Mechanism-first audience routing model
 
 | Role | Owns or leads | Start here first | Defer initially |
 | --- | --- | --- | --- |
-| [New Operator](/docs/audiences/new-operator) | in-scope execution decisions, evidence capture, escalation triggers | scope -> operations -> evidence/decisions | deep integration/reference tails |
-| [Defender](/docs/audiences/defender) | triage validation, containment/evidence preservation, incident escalation | evidence -> operations -> governance/decisions | implementation/integration authoring detail |
+| [New Operator](/docs/audiences/new-operator) | in-scope execution decisions, evidence capture, escalation triggers | scope -> operations -> evidence and decisions | deep integration and reference tails |
+| [Defender](/docs/audiences/defender) | triage validation, containment and evidence preservation, incident escalation | evidence -> operations -> governance and decisions | implementation and integration authoring detail |
 | [Manager / Approver](/docs/audiences/manager-approver) | authorization boundaries, proportionality, approval and review standards | governance -> authorization -> evidence -> decisions | low-level tool execution detail |
-| [Integration Author](/docs/audiences/integration-author) | integration boundaries, runbook interfaces, evidence contract behavior | integrations -> runbooks -> receipt spec/governance | scenario education paths |
+| [Integration Author](/docs/audiences/integration-author) | integration boundaries, runbook interfaces, evidence contract behavior | integrations -> runbooks -> receipt spec and governance | scenario education paths |
 
 ## 4. Observed vs inferred
 
@@ -44,7 +44,7 @@ After this page, you should understand:
 
 ## 5. Role-specific trust assumptions
 
-All roles share core trust limits (upstream input quality, runtime/tool integrity, bounded evidence interpretation), but each role emphasizes different risk:
+All roles share the same core trust limits, such as upstream input quality, runtime and tool integrity, and bounded evidence interpretation, but each role tends to fail in a different way:
 
 - operators: scope and action proportionality errors
 - defenders: triage overconfidence under uncertainty
@@ -53,4 +53,4 @@ All roles share core trust limits (upstream input quality, runtime/tool integrit
 
 ## 6. Next-page handoff
 
-Next, read [New Operator](/docs/audiences/new-operator) as the first role entry path in this cluster.
+Next, read [New Operator](/docs/audiences/new-operator) as the first role entry path in this section.
