@@ -11,8 +11,8 @@ draft: false
 
 ## Problem this page solves
 
-Most security education stops at "spot suspicious behavior" and leaves operators without a response model.
-This section defines how to move from a reported event to a controlled decision with evidence and boundaries.
+Most security education stops at “spot suspicious behavior” and leaves operators without a response model.
+This section explains how to move from a reported event to a controlled decision with evidence and boundaries.
 
 ## Reader outcome
 
@@ -20,15 +20,15 @@ After this section, you should be able to:
 
 - map a report to an attack-chain stage
 - separate direct signals from assumptions
-- choose a response action that matches evidence quality
+- choose a response action that matches the evidence quality
 - document containment and escalation decisions under WitnessOps controls
 
 ## Mechanism-first education model
 
 Each lesson uses the same operational sequence:
 
-1. **Attack chain** — what the attacker is attempting at this stage.
-2. **Signals** — what can be observed directly (email headers, sign-in telemetry, endpoint events, rule changes).
+1. **Attack chain** — what the attacker is trying to do at this stage.
+2. **Signals** — what can be observed directly, such as email headers, sign-in telemetry, endpoint events, or rule changes.
 3. **Response decisions** — contain, investigate, escalate, or hold.
 4. **Control boundary** — which actions require runbook execution, policy-gate approval, and signed receipts.
 
@@ -39,7 +39,7 @@ This maps education to response mechanics: chain -> signals -> decisions -> cont
 **These pages can teach:**
 
 - repeatable triage patterns for common attacker paths
-- evidence collection priorities before destructive cleanup
+- evidence-collection priorities before destructive cleanup
 - escalation triggers for high-impact or high-uncertainty cases
 - where to apply [Runbooks](/docs/operations/runbooks), [Policy Gates](/docs/security-systems/policy-gates), and [Receipts](/docs/evidence/receipts)
 
@@ -54,8 +54,8 @@ This maps education to response mechanics: chain -> signals -> decisions -> cont
 
 Treat every claim as either observed or inferred:
 
-- **Observed:** directly recorded evidence (message artifact, timestamped sign-in, mailbox rule change, endpoint alert).
-- **Inferred:** analyst conclusion built from observed facts (credential theft, attacker objective, blast radius).
+- **Observed:** directly recorded evidence, such as a message artifact, timestamped sign-in, mailbox rule change, or endpoint alert.
+- **Inferred:** analyst conclusion built from observed facts, such as credential theft, attacker objective, or blast radius.
 
 Use observed facts to justify immediate containment. Use inferred claims to guide investigation, not to skip evidence requirements.
 
