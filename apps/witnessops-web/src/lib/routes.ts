@@ -1,6 +1,8 @@
 export const routes = {
   home: "/",
   contact: "/contact",
+  review: "/review",
+  reviewRequest: "/review/request",
   verify: "/verify",
   whyOffsec: "/why-witnessops",
   proofBackedSecuritySystems: "/proof-backed-security-systems",
