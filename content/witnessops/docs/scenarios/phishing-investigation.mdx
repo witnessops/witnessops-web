@@ -33,22 +33,22 @@ After this page, you should understand:
 
 ## 3. Mechanism-first investigation sequence (signal intake to closure)
 
-1. **Intake and case binding.** Record report source, timestamp, reporter, and suspicious artifact reference.
-2. **Preserve primary artifact.** Preserve original message/artifact before analysis or remediation.
-3. **Validate technical indicators.** Review sender identity, routing/authentication data, destinations, and attachment details.
+1. **Intake and case binding.** Record the report source, timestamp, reporter, and suspicious artifact reference.
+2. **Preserve the primary artifact.** Preserve the original message or artifact before analysis or remediation.
+3. **Validate technical indicators.** Review sender identity, routing and authentication data, destinations, and attachment details.
 4. **Assess interaction and impact.** Establish whether the target clicked, submitted credentials, approved MFA, or executed content.
-5. **Classify and choose disposition.** Mark benign, suspicious/unconfirmed, phishing, or probable compromise based on current evidence only.
-6. **Close or escalate explicitly.** Either close with bounded rationale or escalate with evidence package and unresolved risk notes.
+5. **Classify and choose a disposition.** Mark benign, suspicious/unconfirmed, phishing, or probable compromise based only on the current evidence.
+6. **Close or escalate explicitly.** Either close with a bounded rationale or escalate with an evidence package and unresolved-risk notes.
 
 ## 4. Decision gates at each stage
 
 | Stage | Scope gate | Evidence sufficiency gate | Escalation gate |
 | --- | --- | --- | --- |
-| Intake and case binding | Is this report in your authorized intake lane and asset boundary? ([Is This In Scope?](/docs/decisions/scope-check)) | Do you have enough intake context to start (reporter, time, artifact reference)? | Escalate immediately if reporter or target falls outside local authority boundary. |
-| Preserve primary artifact | Is preservation method allowed for this data class and system? | Is the original artifact (or immutable provider reference) captured without alteration? | Escalate if you cannot preserve the primary artifact without policy exception. |
-| Validate technical indicators | Are planned checks limited to authorized message/artifact analysis? | Do collected indicators support a bounded technical finding (e.g., spoofing pattern, malicious destination)? | Escalate if indicators imply active campaign, privileged target exposure, or controls failure. |
-| Assess interaction and impact | Is user/account follow-up within your role and approval boundary? | Do you have direct interaction facts (click, credential entry, MFA approval, execution) from reliable sources? | Escalate if interaction suggests account or endpoint compromise, or if impact cannot be bounded. |
-| Classify and choose disposition | Is selected action (warn, quarantine, reset, hold) authorized at your level? | Is classification supported by preserved artifacts and explicit rationale? ([What Evidence Is Required?](/docs/decisions/evidence-required)) | Escalate if required action exceeds local authority or evidence remains insufficient under risk. |
+| Intake and case binding | Is this report in your authorized intake lane and asset boundary? ([Is This In Scope?](/docs/decisions/scope-check)) | Do you have enough intake context to start: reporter, time, artifact reference? | Escalate immediately if the reporter or target falls outside local authority. |
+| Preserve the primary artifact | Is the preservation method allowed for this data class and system? | Is the original artifact, or an immutable provider reference, captured without alteration? | Escalate if you cannot preserve the primary artifact without a policy exception. |
+| Validate technical indicators | Are the planned checks limited to authorized message or artifact analysis? | Do the collected indicators support a bounded technical finding, such as spoofing pattern or malicious destination? | Escalate if indicators suggest an active campaign, privileged target exposure, or control failure. |
+| Assess interaction and impact | Is user or account follow-up within your role and approval boundary? | Do you have direct interaction facts from reliable sources: click, credential entry, MFA approval, execution? | Escalate if interaction suggests account or endpoint compromise, or if impact cannot be bounded. |
+| Classify and choose disposition | Is the selected action, such as warn, quarantine, reset, or hold, authorized at your level? | Is the classification supported by preserved artifacts and explicit rationale? ([What Evidence Is Required?](/docs/decisions/evidence-required)) | Escalate if the required action exceeds local authority or evidence remains insufficient under risk. |
 | Close or hand off | Is local closure allowed for this event class? | Does the record let another reviewer reconstruct what was observed, decided, and done? | Use [Do I Need to Escalate?](/docs/decisions/escalation) when authority, evidence, or risk boundaries are exceeded. |
 
 ## 5. Evidence path (what to preserve, and when)
@@ -68,26 +68,26 @@ Screenshots are supporting artifacts, not substitutes for primary evidence.
 | Layer | What is observed | What is inferred |
 | --- | --- | --- |
 | Intake and artifact analysis | message content, headers, sender attributes, URLs, attachment properties, report metadata | attacker intent, campaign attribution, full targeting scope |
-| Interaction and impact | confirmed clicks/submissions/approvals/execution events, log timestamps, affected identities | degree of compromise, persistence, total blast radius |
+| Interaction and impact | confirmed clicks, submissions, approvals, execution events, log timestamps, affected identities | degree of compromise, persistence, total blast radius |
 | Disposition | documented classification, actions taken, escalation decision and rationale | long-term impact likelihood, future attacker behavior |
 
-Do not promote inferred conclusions to observed facts without additional evidence.
+Do not promote inferred conclusions to observed facts without more evidence.
 
 ## 7. Trust assumptions and limits
 
-- reporter statements can be incomplete or incorrect
+- reporter statements can be incomplete or wrong
 - mail, identity, and endpoint telemetry can be delayed or missing
-- provider metadata can show routing/authentication outcomes but not attacker intent
+- provider metadata can show routing and authentication outcomes but not attacker intent
 - absence of evidence is not evidence of absence when logs are incomplete
 - this workflow governs triage and bounded response; broader tenant-wide containment may require separate authority and incident handling
 
-See [Threat Model](/docs/security-systems/threat-model) for trust boundary context.
+See [Threat Model](/docs/security-systems/threat-model) for trust-boundary context.
 
 ## 8. Closure and handoff
 
 Choose one explicit end state:
 
-- **Close locally:** evidence is sufficient, risk is bounded, and local authority permits closure. Record final rationale and actions.
+- **Close locally:** evidence is sufficient, risk is bounded, and local authority permits closure. Record the final rationale and actions.
 - **Escalate:** evidence or authority boundary is exceeded. Hand off with preserved artifacts, gate outcomes, open questions, and risk notes via [Do I Need to Escalate?](/docs/decisions/escalation).
 
 After closure or escalation, return to [Scenarios](/docs/scenarios) for the next governed case flow or to the relevant decision page for follow-on action.
