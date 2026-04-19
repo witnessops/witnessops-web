@@ -1,6 +1,6 @@
 ---
 title: "Why Software Updates Matter"
-description: "Mechanism-first update-trust decisions with source integrity checks, rollout controls, verification signals, and rollback/escalation gates."
+description: "Mechanism-first update-trust decisions with source integrity checks, rollout controls, verification signals, and rollback or escalation gates."
 section: "docs"
 order: 6
 nav_label: "Software Updates"
@@ -11,63 +11,64 @@ draft: false
 
 Updates reduce exposure, but every update is also a change-risk event. This page keeps patch decisions governed by evidence: source integrity, rollout safety, verification signals, and bounded escalation.
 
-## 1) Problem this page solves
+## 1. Problem this page solves
 
-Teams often default to one of two weak extremes: "patch everything immediately" or "delay until convenient." Both can fail. This page gives a risk-bounded model for deciding when to fast-track, stage, contain, roll back, or escalate update actions.
+Teams often default to one of two weak extremes: “patch everything immediately” or “delay until convenient.” Both can fail.
+This page gives a risk-bounded model for deciding when to fast-track, stage, contain, roll back, or escalate update actions.
 
-## 2) Reader outcome
+## 2. Reader outcome
 
 After this page, you should be able to:
 
 - evaluate update trust using concrete source-integrity and exposure signals
-- choose rollout lanes (emergency, staged, or deferred-with-containment) based on evidence
+- choose rollout lanes — emergency, staged, or deferred-with-containment — based on evidence
 - define verification, rollback, and escalation gates without over-claiming certainty
 
-## 3) Mechanism-first update-trust model
+## 3. Mechanism-first update-trust model
 
 | Model axis | What to verify first | Elevated-risk signals | Decision implication |
 |---|---|---|---|
-| Source integrity | Official vendor channel, package signature, checksum/provenance, release authenticity | Unofficial mirror, signature failure, checksum mismatch, unexpected maintainer/source change | Do not deploy broadly until integrity is resolved; treat as potential supply-chain risk |
-| Exploit pressure and exposure | CVE/advisory severity, known exploitation status, internet/privileged exposure of affected assets | Exploited-in-the-wild notice, active exploit telemetry, internet-facing vulnerable service, privileged workflow dependency | Increase rollout urgency and containment priority |
-| Rollout safety controls | Canary cohort, dependency compatibility, backup/rollback readiness, approval path | Missing rollback artifact, untested dependency break risk, no canary guardrail, unclear owner authority | Prefer staged deployment; block wide rollout until control gaps close |
+| Source integrity | official vendor channel, package signature, checksum or provenance, release authenticity | unofficial mirror, signature failure, checksum mismatch, unexpected maintainer or source change | do not deploy broadly until integrity is resolved; treat as potential supply-chain risk |
+| Exploit pressure and exposure | CVE or advisory severity, known exploitation status, internet or privileged exposure of affected assets | exploited-in-the-wild notice, active exploit telemetry, internet-facing vulnerable service, privileged workflow dependency | increase rollout urgency and containment priority |
+| Rollout safety controls | canary cohort, dependency compatibility, backup or rollback readiness, approval path | missing rollback artifact, untested dependency-break risk, no canary guardrail, unclear owner authority | prefer staged deployment; block wide rollout until control gaps close |
 
-Mechanism chain: update release -> source validation -> risk classification -> lane selection (emergency/staged/deferred-with-containment) -> post-deploy verification -> rollback or escalation when gates trigger.
+Mechanism chain: update release -> source validation -> risk classification -> lane selection (emergency, staged, or deferred-with-containment) -> post-deploy verification -> rollback or escalation when gates trigger.
 
-## 4) Observable indicators and what they support
+## 4. Observable indicators and what they support
 
 | Observable indicator | What it can support | What it cannot prove alone |
 |---|---|---|
-| Vendor advisory + authenticated release notes for affected version | Patch relevance and urgency assessment | That your environment is already compromised |
-| Signature/hash/provenance verification success | Release artifact integrity from expected source | Absence of all defects or malicious behavior |
-| Asset inventory and scan evidence showing vulnerable version in production | Confirmed exposure scope and prioritization target list | Exact exploitability on each host without context |
-| Exploit attempts tied to the disclosed vulnerability | Need for accelerated rollout or containment | Full blast radius or attacker objective |
-| Canary rollout telemetry stable (error rate, latency, auth flow health) | Confidence to expand rollout scope | Safety across every downstream dependency |
-| Post-update regressions or control failures | Need for rollback, hold, or emergency fix path | Root cause certainty without deeper analysis |
+| Vendor advisory + authenticated release notes for the affected version | patch relevance and urgency assessment | that your environment is already compromised |
+| Signature, hash, or provenance verification success | release-artifact integrity from the expected source | absence of all defects or malicious behavior |
+| Asset inventory and scan evidence showing a vulnerable version in production | confirmed exposure scope and prioritization target list | exact exploitability on each host without context |
+| Exploit attempts tied to the disclosed vulnerability | need for accelerated rollout or containment | full blast radius or attacker objective |
+| Canary rollout telemetry stable, such as error rate, latency, and auth-flow health | confidence to expand rollout scope | safety across every downstream dependency |
+| Post-update regressions or control failures | need for rollback, hold, or emergency fix path | root-cause certainty without deeper analysis |
 
-## 5) Practical rollout/containment decisions + escalation gates
+## 5. Practical rollout, containment, and escalation decisions
 
 Gate definitions:
 
 - **Gate A (integrity uncertainty):** source authenticity cannot be confirmed
 - **Gate B (high exploit pressure):** credible active exploitation + exposed affected assets
 - **Gate C (rollout instability):** canary or early cohort shows unacceptable regression
-- **Gate D (high impact):** privileged/critical workflow disruption or likely active compromise
+- **Gate D (high impact):** privileged or critical workflow disruption, or likely active compromise
 
-| Evidence state | Practical rollout/containment decision | Escalation gate |
+| Evidence state | Practical rollout or containment decision | Escalation gate |
 |---|---|---|
-| Integrity unresolved, no exploit signal yet | Hold broad deployment, validate source out-of-band, preserve artifacts, constrain install paths | Gate A |
-| Integrity confirmed + high exploit pressure on exposed assets | Run emergency lane: patch highest-risk systems first, apply temporary containment where patch cannot land immediately | Gate B |
-| Routine pressure with good controls | Use staged rollout (pilot -> cohort -> broad), verify at each step before expansion | None (continue governed rollout) |
-| Canary/regression signals exceed thresholds | Pause expansion, invoke rollback for impacted cohort, preserve evidence, open engineering/security incident thread | Gate C |
-| Signs of exploitation or critical service impact during patch window | Execute incident workflow, isolate affected systems, involve security/operations leadership under policy-gated authority | Gate D |
+| Integrity unresolved, no exploit signal yet | hold broad deployment, validate source out-of-band, preserve artifacts, constrain install paths | Gate A |
+| Integrity confirmed + high exploit pressure on exposed assets | run the emergency lane: patch highest-risk systems first, apply temporary containment where the patch cannot land immediately | Gate B |
+| Routine pressure with good controls | use staged rollout (pilot -> cohort -> broad), verify at each step before expansion | none (continue governed rollout) |
+| Canary or regression signals exceed thresholds | pause expansion, invoke rollback for the impacted cohort, preserve evidence, open engineering/security incident thread | Gate C |
+| Signs of exploitation or critical service impact during the patch window | execute the incident workflow, isolate affected systems, involve security and operations leadership under policy-gated authority | Gate D |
 
 Use [Runbooks](/docs/operations/runbooks), [What Evidence Is Required?](/docs/decisions/evidence-required), [Do I Need to Escalate?](/docs/decisions/escalation), and [Policy Gates](/docs/security-systems/policy-gates) to keep decisions explicit and auditable.
 
-## 6) WitnessOps support vs non-guarantees
+## 6. What WitnessOps can support vs cannot guarantee
 
 **WitnessOps can support:**
 
-- governed execution and approval boundaries for high-impact rollout/rollback actions
+- governed execution and approval boundaries for high-impact rollout and rollback actions
 - signed [Receipts](/docs/evidence/receipts) for observed version state, decisions, and executed changes
 - verification workflows through [Verification](/docs/how-it-works/verification) and operational checks on `/verify` and `/api/verify`
 - repeatable evidence capture for patch timing, containment, and escalation outcomes
@@ -79,16 +80,16 @@ Use [Runbooks](/docs/operations/runbooks), [What Evidence Is Required?](/docs/de
 - prevention of all exploitation before rollout completion
 - legal, financial, or regulatory outcomes beyond the quality of available evidence
 
-## 7) Observed vs inferred separation
+## 7. Observed vs inferred separation
 
 Keep records split by statement type:
 
-- **Observed:** advisory metadata, artifact signature/hash results, version inventory, rollout telemetry, rollback execution logs, containment actions
-- **Inferred:** "this patch is safe everywhere," "no hidden compromise exists," "all affected assets are known," or attribution claims
+- **Observed:** advisory metadata, artifact signature or hash results, version inventory, rollout telemetry, rollback execution logs, containment actions
+- **Inferred:** “this patch is safe everywhere,” “no hidden compromise exists,” “all affected assets are known,” or attribution claims
 
 Make containment and rollout decisions from observed signals; keep inferences explicitly labeled until corroborated.
 
-## 8) Trust assumptions and limits
+## 8. Trust assumptions and limits
 
 Assumptions:
 
@@ -102,6 +103,6 @@ Limits:
 - legitimate patches can still create environment-specific regressions
 - missing telemetry can block certainty about exploit attempts or full exposure scope
 
-## 9) Next-page handoff
+## 9. Next-page handoff
 
 Continue to [Reference](/docs/reference) for stable command and artifact-class details used to execute and verify governed update operations.
