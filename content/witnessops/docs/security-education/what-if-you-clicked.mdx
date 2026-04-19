@@ -38,7 +38,7 @@ Use this sequence when a user reports clicking a suspicious link, opening an att
 5. If credential, token, or MFA exposure is plausible, reset credentials and revoke active sessions or tokens for the affected account.
 6. Review mailbox and account changes: forwarding rules, OAuth or app grants, reset-method changes, and unusual outbound mail.
 
-### 1–4 hours: bound scope and reduce spread
+### 1–4 hours: bound impact scope and reduce spread
 
 7. Validate whether adjacent workflows were touched, such as finance approvals, internal messaging, or file-sharing access.
 8. Check for secondary phishing from the affected account and notify recipients through known-good channels.
@@ -52,8 +52,10 @@ Use this sequence when a user reports clicking a suspicious link, opening an att
   - Decision: preserve the full timeline, increase auth or endpoint monitoring, apply scoped containment.
 - **Gate C (account exposure likely):** credential entry, unexpected MFA approval, suspicious session, or token or app-grant anomaly.
   - Decision: perform account containment immediately and execute [Phishing Investigation](/docs/scenarios/phishing-investigation).
-- **Gate D (escalation threshold):** privileged account, multi-user spread, finance or regulatory workflow impact, or scope cannot be bounded quickly.
+- **Gate D (escalation threshold):** privileged account, multi-user spread, finance or regulatory workflow impact, or impact scope cannot be bounded quickly.
   - Decision: escalate through governed incident handling using [Do I Need to Escalate?](/docs/decisions/escalation) and required approvals.
+
+Close locally only when the evidence is sufficient, the impact scope is bounded, and the selected action stays inside your authorization boundary. Otherwise escalate explicitly.
 
 ## Evidence preservation requirements during response
 
@@ -99,7 +101,7 @@ Limits:
 
 - delayed reporting can remove short-lived evidence, such as redirect chains or transient sessions
 - adversaries may evade, suppress, or overwrite telemetry
-- some scope decisions remain probabilistic until more corroborating evidence is collected
+- some impact-scope decisions remain probabilistic until more corroborating evidence is collected
 
 ## Next-page handoff
 
