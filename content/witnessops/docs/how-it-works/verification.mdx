@@ -1,13 +1,13 @@
 ---
 title: "How to Verify a Receipt"
-description: "Verify a WitnessOps receipt or proof bundle offline without trusting WitnessOps."
+description: "Check a WitnessOps receipt or proof bundle offline without relying on WitnessOps to stay in the middle."
 section: "docs"
 order: 4
 nav_label: "Verify a Receipt"
 draft: false
 trust_boundary_variant: "verification"
 page_answer:
-  question: "How do I check a receipt or bundle offline, and how should I interpret valid, invalid, and indeterminate verification results?"
+  question: "How do I check a receipt or bundle offline, and how should I read valid, invalid, and indeterminate results?"
   links:
     - href: "/docs/evidence/receipt-spec"
       label: "Receipt Spec"
@@ -19,17 +19,17 @@ page_answer:
 
 # How to Verify a Receipt
 
-This page solves one operational question: how to verify a receipt or bundle offline, and how to interpret `valid`, `invalid`, and `indeterminate` results without overstating claims.
+This page answers one practical question: how to verify a receipt or bundle offline, and how to read `valid`, `invalid`, and `indeterminate` results without claiming too much.
 
 ## 1. Problem this page solves
 
-Many teams can export artifacts but cannot explain which checks were actually proven.
+Many teams can export artifacts but cannot say which checks were actually proven.
 
-Verification requires a deterministic sequence that separates:
+Verification needs a deterministic sequence that separates:
 
-- cryptographic proof that succeeded
-- checks that were not present
-- trust dependencies that remain external
+- proof that passed
+- checks that were missing
+- trust dependencies that still sit outside the bundle
 
 This page defines that sequence.
 
@@ -37,33 +37,33 @@ This page defines that sequence.
 
 After this page, you should understand:
 
-- minimum artifacts required to verify a receipt
-- exact check order for independent verification
+- the minimum artifacts needed to verify a receipt
+- the exact order of checks for independent verification
 - what each verdict means (`valid`, `invalid`, `indeterminate`)
-- what is proven vs still trusted
+- what is proven and what still depends on trust
 
 ## 3. Minimum artifact set
 
-At minimum, start with receipt material and trusted key material.
+At minimum, start with the receipt material and trusted key material.
 
 | Artifact | Status | Why it matters |
 | --- | --- | --- |
 | Receipt JSON or exported bundle | required | Core proof statement and references |
-| Signing public key / trusted key source | required | Signature authenticity cannot be checked without it |
-| RFC 3161 timestamp token + chain | conditional | Required when trusted-time claim is present |
-| Log checkpoint + inclusion proof | conditional | Required when append-only publication claim is present |
+| Signing public key or trusted key source | required | You cannot check signature authenticity without it |
+| RFC 3161 timestamp token + chain | conditional | Required when the receipt claims trusted time |
+| Log checkpoint + inclusion proof | conditional | Required when the receipt claims append-only publication |
 
 ## 4. Verification procedure (exact order)
 
-1. **Confirm artifact set.** Determine whether you have receipt-only or a fuller bundle.
-2. **Verify manifest integrity.** If `MANIFEST.json` exists, recompute listed hashes first.
-3. **Verify signature.** Check signed payload against trusted key material.
-4. **Verify structure and binding.** Confirm schema and digest references are internally consistent.
-5. **Verify timestamp layer.** If present, validate RFC 3161 token and chain.
-6. **Verify log inclusion layer.** If present, validate inclusion proof and checkpoint signature.
-7. **Verify continuity links.** If prior-state links exist, ensure no chain break.
+1. **Confirm the artifact set.** Determine whether you have receipt-only material or a fuller bundle.
+2. **Verify manifest integrity.** If `MANIFEST.json` exists, recompute the listed hashes first.
+3. **Verify the signature.** Check the signed payload against trusted key material.
+4. **Verify structure and bindings.** Confirm schema and digest references are internally consistent.
+5. **Verify the timestamp layer.** If present, validate the RFC 3161 token and chain.
+6. **Verify the log inclusion layer.** If present, validate the inclusion proof and checkpoint signature.
+7. **Verify continuity links.** If prior-state links exist, confirm there is no chain break.
 
-Do not skip sequence order. Integrity and signature checks come before interpreting higher proof layers.
+Do not skip the order. Integrity and signature checks come before you interpret higher proof layers.
 
 ## 5. Expected results and interpretation
 
@@ -78,9 +78,9 @@ Do not skip sequence order. Integrity and signature checks come before interpret
 
 Verdict interpretation:
 
-- **`valid`**: required checks for the declared claim set passed.
+- **`valid`**: the required checks for the declared claim set passed.
 - **`invalid`**: one or more proof-bearing checks failed.
-- **`indeterminate`**: structure/signature may be plausible, but required external trust condition could not be established locally.
+- **`indeterminate`**: the bundle may be coherent, but a required outside trust condition could not be established locally.
 
 ## 6. What is proven vs what remains trusted
 
@@ -88,25 +88,25 @@ Verdict interpretation:
 
 - issuer-bound signed statement integrity
 - digest and artifact consistency
-- optional trusted-time and inclusion claims when corresponding material is present and valid
+- optional trusted-time and inclusion claims when the matching material is present and valid
 
 **Still trusted externally**
 
 - key distribution authenticity
 - TSA trust and time-source trust
-- log-operator trust model (unless additional witness policy is satisfied)
+- log-operator trust model, unless additional witness policy is satisfied
 
 ## 7. Common failure modes
 
-- Missing file or hash mismatch -> tampered or incomplete bundle.
-- Signature failure -> claimed issuer authenticity not established.
-- Timestamp failure -> trusted-time claim not established.
-- Inclusion proof failure -> append-only publication not established.
+- Missing file or hash mismatch → tampered or incomplete bundle.
+- Signature failure → issuer authenticity not established.
+- Timestamp failure → trusted-time claim not established.
+- Inclusion proof failure → append-only publication claim not established.
 
-Report failures by layer rather than collapsing everything into a single vague pass/fail statement.
+Report failures by layer instead of collapsing everything into one vague pass/fail line.
 
 ## 8. Next-page handoff
 
-Next, read [Receipts](/docs/evidence/receipts) to inspect the atomic proof object this verification flow is evaluating.
+Next, read [Receipts](/docs/evidence/receipts) to inspect the proof object this verification flow is evaluating.
 
 Then use [Anchored Replay](/docs/how-it-works/anchored-replay) when reviewer-supplied trust-anchor continuity is required.
