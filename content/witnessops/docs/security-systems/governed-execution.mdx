@@ -2,7 +2,7 @@
 title: "Governed Execution"
 description: "How WitnessOps moves from intent to scope, approval, execution, evidence capture, and receipt emission without collapsing runtime control into proof marketing."
 section: "docs"
-order: 2
+order: 20
 nav_label: "Governed Execution"
 draft: false
 page_answer:
@@ -18,123 +18,82 @@ page_answer:
 
 # Governed Execution
 
-Governed execution is the runtime control path inside WitnessOps. It is how the system moves from operator intent to scoped action, evidence capture, and receipt emission without relying on ad hoc shell access or informal operator memory.
+This page answers a specific boundary question: what happens inside runtime control, and where proof/verification starts afterward.
 
-This page is about runtime mechanics. It is not the full architecture page and it is not the verification page.
+## 1. Problem this page solves
 
-## What Governed Execution Means
+Security teams need a deterministic execution path, not post-hoc storytelling. Without governed runtime control, teams cannot reliably prove:
 
-In WitnessOps, a step is governed only if it passes through the declared control path before anything touches the target.
+- which action was requested
+- whether it was in scope
+- whether approvals were satisfied before execution
+- what evidence was captured at execution time
 
-That path exists to answer five runtime questions in order:
+Governed execution is the control layer that enforces those checks before work touches the target.
 
-1. what is being requested
-2. is it in scope
-3. does it require approval
-4. what evidence will be captured
-5. what receipt-bearing statement should be emitted when the step resolves
+## 2. What you should understand after reading
 
-If those questions are bypassed, the action may still happen in the real world, but it did not happen inside the WitnessOps governance boundary.
+After this page, you should understand:
 
-## Runtime Flow
+- the exact runtime sequence for a governed step
+- the execution outcomes (`executed`, `denied`, `paused`, `failed`)
+- what artifacts are emitted at runtime boundary
+- what this layer proves vs what remains outside it
 
-### 1. Intent enters the runtime
+## 3. Runtime mechanism (exact order)
 
-A governed operation starts as declared intent: target, objective, and requested capability. WitnessOps does not begin with raw shell commands. It begins with a structured request that can be checked.
+1. **Intent enters runtime.** Requested step, target, and capability are declared.
+2. **Scope and policy gates evaluate.** Preconditions are checked before execution.
+3. **Approval gate pauses if required.** Intrusive work halts until explicit approval is recorded.
+4. **Step executes under governance.** Tool action runs only if gates pass.
+5. **Evidence capture occurs at execution time.** Artifacts and digests are recorded.
+6. **Receipt-bearing statement emits.** Outcome is bound to execution context and continuity references.
 
-### 2. Scope and policy are evaluated
+If this sequence is bypassed, the action may still occur operationally, but it did not occur inside WitnessOps governance.
 
-Before execution, the runtime evaluates whether the requested action is permitted for the current target, environment, and policy context.
+## 4. Runtime outcomes and their meaning
 
-If the action is out of scope or disallowed, the runtime stops there. This is an execution outcome, not a documentation suggestion.
-
-WitnessOps enforces policy at runtime and records that enforcement, but the proof system guarantees the record of the decision path, not the correctness of the policy inputs or policy design themselves.
-
-### 3. Approval gates pause when required
-
-Some actions are too intrusive to proceed automatically. When that boundary is crossed, the runtime pauses and waits for explicit approval.
-
-The important property is that approval is part of the runtime path, not a note added later. Until the gate is satisfied, the step does not run.
-
-### 4. The governed step executes
-
-If scope and approval conditions are satisfied, the declared runbook step executes. WitnessOps governs the execution path. It does not claim to certify that the underlying tool is perfect.
-
-That distinction matters. Runtime governance proves what path was allowed and taken. It does not convert every tool result into unquestionable truth.
-
-### 5. Evidence is captured at the point of execution
-
-Artifacts produced by the governed step are recorded as execution evidence. Common outputs include state updates, manifests, logs, and artifact digests.
-
-The trust goal here is not pretty reporting. It is making later tampering and incomplete export detectable.
-
-### 6. Receipt-bearing artifacts are emitted
-
-When the governed step resolves, WitnessOps emits the receipt-bearing record for that outcome. That record binds the governed event to:
-
-- the execution context
-- the policy and approval context
-- the captured evidence references
-- the continuity structure that places the event into the wider run
-
-This is where runtime control hands off to the proof surface. See [Receipts](/docs/evidence/receipts) and [Receipt Specification](/docs/evidence/receipt-spec) for the proof object itself.
-
-## The Four Runtime Outcomes That Matter
-
-Most governed steps end in one of four ways:
-
-| Outcome | What it means |
+| Outcome | Meaning |
 | --- | --- |
-| Executed | The step was permitted, ran, and produced its governed result |
-| Denied | Policy or scope blocked the step before execution |
-| Paused | Approval or another gate is still pending |
-| Failed | The step ran but did not resolve successfully |
+| Executed | Step was permitted and completed under governance |
+| Denied | Scope/policy blocked execution before run |
+| Paused | Approval or required gate still pending |
+| Failed | Step ran but did not resolve successfully |
 
-These are runtime states. They should not be confused with proof-verification states like `valid`, `invalid`, or `indeterminate`, which belong later in the chain.
+These are runtime outcomes, not verification verdicts (`valid` / `invalid` / `indeterminate`).
 
-## Resumable by Design
+## 5. Artifacts emitted at runtime boundary
 
-Governed execution is resumable because approvals and gate outcomes are part of the runtime state, not hidden in operator memory.
+A governed run emits runtime evidence that later supports proof checking:
 
-When a step pauses for approval, the operation can resume from the correct point later. That preserves continuity and reduces the temptation to rerun or reconstruct work informally.
+- execution state
+- evidence manifests and artifact references
+- signed receipt-bearing artifacts
 
-## What Governed Execution Produces
+Those materials are consumed by [Receipts](/docs/evidence/receipts), [Execution Chains](/docs/evidence/execution-chains), and [How to Verify a Receipt](/docs/how-it-works/verification).
 
-The exact filenames and packaging vary by runbook and delivery surface, but the runtime consistently produces three classes of material:
+## 6. What this layer proves
 
-- execution state describing what completed, failed, or remains gated
-- evidence manifests and artifact references describing what was captured
-- signed receipt-bearing artifacts describing the governed outcome
+Governed execution proves the action passed through a controlled runtime path and that the resulting evidence/receipt was emitted from that path.
 
-Those outputs are what later become [Execution Chains](/docs/evidence/execution-chains) and portable verification packages.
+It does not prove:
 
-## What Governed Execution Does Not Do
+- tool correctness
+- perfect human judgment
+- external trust-root integrity by itself
 
-Governed execution does not, by itself:
+## 7. Remaining trust assumptions
 
-- prove the underlying tool was correct
-- perform independent third-party verification
-- resolve every trust assumption around keys, hosts, or identity
-- replace the architecture, threat model, or verification pages
+This layer still depends on assumptions outside runtime enforcement:
 
-Its job is narrower and more important than that: ensure the work passed through a controlled runtime path and emitted evidence strong enough for later verification.
+- correctness of configured scope and policy inputs
+- integrity of host/tooling environment
+- key and trust-root management outside the single step
 
-## Where Runtime Stops and Verification Starts
+These assumptions are explicit boundaries, not hidden guarantees.
 
-WitnessOps runtime ends at governed execution plus receipt emission. Independent proof checking happens afterward against the artifacts the runtime produced.
+## 8. Next-page handoff
 
-That separation is intentional:
+Next, read [How to Verify a Receipt](/docs/how-it-works/verification) to move from runtime emission to independent proof checking.
 
-- runtime control answers whether the action was governed
-- receipt semantics answer what statement was issued
-- chain continuity answers how events connect
-- verification answers what a third party can confirm offline
-
-Keeping those layers separate is what makes the public trust story credible.
-
-## Read Next
-
-- [Threat Model](/docs/security-systems/threat-model) for what the runtime can and cannot prove
-- [Receipts](/docs/evidence/receipts) for the atomic proof object
-- [Execution Chains](/docs/evidence/execution-chains) for continuity and ordering
-- [Verification](/docs/how-it-works/verification) for the external check path
+Then read [Threat Model and Trust Boundaries](/docs/security-systems/threat-model) for the full limits and dispute posture.

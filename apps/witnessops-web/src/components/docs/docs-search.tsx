@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { trackDocsPathExit } from "@/lib/docs-nav-analytics";
 
 interface DocEntry {
   title: string;
@@ -109,8 +110,17 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
         setActiveIndex((prev) => Math.max(prev - 1, 0));
       } else if (e.key === "Enter" && flatResults[activeIndex]) {
         e.preventDefault();
+        const target = flatResults[activeIndex];
+        trackDocsPathExit({
+          fromPath: window.location.pathname,
+          toPath: target.href,
+          navSurface: "search",
+          eventType: "search_result_enter",
+          interactionType: "keyboard",
+          layerContext: target.layerTitle,
+        });
         onClose();
-        window.location.href = flatResults[activeIndex].href;
+        window.location.href = target.href;
       }
     },
     [flatResults, activeIndex, onClose]
@@ -135,6 +145,7 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Search documentation"
+        data-docs-nav-surface="search"
       >
         {/* Search input */}
         <div className="flex items-center gap-3 border-b border-surface-border px-4 py-3">
@@ -198,6 +209,7 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
                         : "text-text-secondary hover:bg-surface-bg hover:text-text-primary"
                     }`}
                     data-active={isActive}
+                    data-docs-layer-context={entry.section}
                     onClick={onClose}
                     onMouseEnter={() => setActiveIndex(idx)}
                   >

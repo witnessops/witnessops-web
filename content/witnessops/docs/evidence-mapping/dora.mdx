@@ -1,6 +1,6 @@
 ---
 title: "DORA Evidence Mapping"
-description: "Evidence-mapping template for showing how WitnessOps evidence and independent verification records support DORA obligations."
+description: "Evidence-mapping template for showing how WitnessOps evidence and independent verification records may support DORA-oriented obligations."
 section: "docs"
 order: 3
 nav_label: "DORA"
@@ -9,76 +9,98 @@ draft: false
 
 # DORA Evidence Mapping
 
-## Applicability
+## Problem this page solves
 
-Use this template when a financial entity, ICT control owner, or auditor wants to understand how WitnessOps evidence and independent verification records may support evidence for:
+DORA asks entities to demonstrate operational resilience outcomes across governance, incident handling, testing, and third-party oversight. WitnessOps emits operational records, not legal determinations. Teams need a repeatable way to map evidence to DORA-oriented obligations while explicitly documenting boundaries, assumptions, and unresolved gaps.
 
-- ICT risk management
-- controlled security testing
-- governance and accountability
-- traceability of operational actions
-- evidentiary support during review or audit
+## Reader outcome
 
-This template is a control-support worksheet, not a legal interpretation.
+After completing this page, you should be able to:
 
-## How to use this template
+- map a DORA-oriented obligation area to concrete WitnessOps artifacts
+- separate direct evidence from supporting context
+- document what independent verification can confirm
+- record residual gaps, trust assumptions, and manual dependencies
+- assemble a review packet without certification-style claims
 
-For each DORA article or requirement area:
+## Mechanism-first DORA mapping model
 
-1. name the article or obligation being mapped
-2. describe the operational or governance outcome required
-3. identify WitnessOps-generated evidence
-4. identify independent verification records
-5. note what remains manual, legal, organizational, or external
-6. list the exact auditor-facing artifacts
+Treat each mapping row as one mechanism under one DORA-oriented obligation area (for example: ICT risk governance traceability, incident evidence continuity, resilience testing evidence, third-party interaction controls, or accountability records).
 
-## Evidence mapping table
+1. Name the obligation area and mechanism being examined.
+2. Attach direct evidence emitted by governed execution.
+3. Attach independent verification output for continuity, attribution, and consistency.
+4. Add supporting context needed for scope and policy interpretation.
+5. Record what remains manual, external, legal, or unresolved.
+6. Link exact artifacts a reviewer can inspect without oral reconstruction.
 
-| Control / article / function | What this framework requires | Evidence WitnessOps can emit | What independent verification can confirm | Gaps / trust assumptions | Artifacts an auditor should inspect | Operator checklist |
-| --- | --- | --- | --- | --- | --- | --- |
-| ICT Risk Management Framework | Financial entities maintain a sound, comprehensive, and documented ICT risk management framework. | Governed runbooks, authorization records, execution constraints, evidence trails, receipt history, documented workflows. | An independent verifier can confirm that recorded executions align with declared workflows, approvals, and evidence continuity. | Enterprise-wide framework ownership, board oversight, and policy maintenance are external organizational responsibilities. | Governance records, runbook inventory, receipts, policy-linked workflows, approval history. | Confirm the activity maps to an approved process and that evidence is preserved end to end. |
-| ICT Systems, Protocols, and Tools Governance | ICT operations should be controlled, documented, and proportionate to risk. | Tool catalog entries, adapter definitions, execution logs, approval checkpoints, denial records, controlled workflow paths. | An independent verifier can confirm that only declared tools and workflows were used and that sensitive actions are attributable. | Baseline infrastructure controls and enterprise tooling governance may be outside platform scope. | Catalog entry, adapter metadata, execution logs, approval chain, exception records. | Verify the selected tool path is approved and documented before use. |
-| Incident Management and Classification Support | Significant ICT-related incidents must be managed, classified, and documented. | Recorded observations, preserved artifacts, timestamps, state transitions, evidence bundles, escalation records. | An independent verifier can confirm that evidence bundles are intact, attributable, and linked to the relevant investigation or action. | Formal legal reporting, competent authority notifications, and regulatory classifications remain manual and entity-owned. | Incident record, evidence bundle, escalation note, verification results, final receipt. | Preserve artifacts first, then record classification rationale and escalation triggers. |
-| Testing of Digital Operational Resilience | Entities must perform appropriate testing of ICT tools, systems, and processes. | Test runbooks, scope definitions, authorization records, execution receipts, target metadata, and recorded observations with artifact hashes tied to the execution receipt. | An independent verifier can confirm that recorded actions and artifacts correspond to the declared targets and execution steps. | Test program design, frequency, sampling, and regulatory interpretation remain external. | Scope approval, runbook, test evidence, receipts, recorded observations, verification output. | Confirm the test objective, scope, and approval status before starting. |
-| Third-Party / External Dependency Evidence Support | Oversight of ICT third-party risk requires traceable operational records. | Execution records tied to external systems, dependency references, evidence bundles, approval history for third-party interactions. | An independent verifier can confirm that interactions with external targets match declared scope and preserved evidence. | Contracting, concentration-risk analysis, and vendor governance remain outside product scope. | Third-party scope record, approval note, evidence set, receipts, exception records. | Confirm third-party boundaries are explicit and approved. |
-| Governance and Accountability Traceability | Decision-making and action ownership should be demonstrable. | Identity-linked action history, approval records, role-linked execution metadata, closeout records. | An independent verifier can confirm actor attribution, event sequence integrity, and linkage between approval and execution. | Board obligations and governance committee processes are external. | Approval logs, identity-linked receipts, role mapping records, verification reports. | Ensure every material action has a clear owner and approver where required. |
-| Evidence Preservation for Audit and Review | Relevant operational evidence should be reviewable after the fact. | Receipts, manifests, preserved artifacts, execution logs, state transitions, closeout records. | An independent verifier can confirm integrity, continuity, and correspondence between claims and stored evidence. | Retention policy, legal hold, and long-term archive controls may be external. | Receipt chain, manifest, evidence bundle, retention references, verification outputs. | Check that closure is not performed before evidence is complete and attributable. |
+| DORA-oriented obligation area | Mechanism under review | Direct evidence (required) | Supporting context (optional) | Verification question | Residual gap / dependency |
+| --- | --- | --- | --- | --- | --- |
+| ICT risk governance traceability | Approval and constrained execution path | approvals, identity-linked actions, runbook constraints, execution receipts | policy ownership notes, control narratives, committee references | Do approvals, actors, and executed actions remain attributable end-to-end? | Enterprise risk framework design and board accountability are external |
+| ICT systems and control governance support | Declared tool/workflow boundary enforcement | adapter metadata, allow/deny events, governed workflow logs, exception records | infrastructure standards, platform architecture notes | Did execution stay inside declared and approved control boundaries? | Baseline infrastructure hardening and tooling governance may live outside WitnessOps |
+| ICT incident evidence readiness support | Incident observation and escalation chain | timestamped observations, preserved artifacts, escalation records, receipt-linked timelines | incident taxonomy, notification playbooks | Is incident evidence complete, attributable, and linked to declared scope? | Legal classification and authority reporting remain organization-owned |
+| Digital operational resilience testing support | Authorized test execution and evidence preservation | test scope records, authorizations, execution receipts, artifact manifests | test program cadence, sampling rationale | Do recorded test actions and artifacts match approved scope and declared steps? | Test adequacy and regulatory interpretation are external judgments |
+| Third-party ICT dependency oversight support | Controlled interaction with external systems | scoped target records, approval history, interaction logs, evidence bundles | vendor inventory, contract obligations | Do third-party interactions match declared scope and preserved evidence? | Vendor governance, concentration-risk analysis, and contract enforcement are external |
+| Auditability and accountability records | Closure and reviewer-ready evidence packet | closeout records, manifests, receipts, verification outputs | retention policy references, archive procedures | Can a reviewer reconstruct what happened from artifacts alone? | Long-term retention and legal-hold controls may depend on external systems |
 
-## Gaps / trust assumptions
+This is a mapping aid, not a DORA conformity decision or certification instrument.
 
-Typical gaps to record here:
+## Evidence classes and mapping logic (direct evidence vs supporting context)
 
-- statutory interpretation of DORA articles is legal counsel territory
-- regulatory reporting obligations remain manual
-- entity-wide ICT risk governance is broader than WitnessOps evidence capture and independent verification
-- third-party contractual oversight is external
-- long-term retention and archive policy may depend on separate systems
+**Direct evidence** is generated by execution and evidence systems and is required for bounded mapping claims:
 
-## Auditor inspection guide
+- receipts, manifests, event logs, approvals, preserved artifact references, verification outputs
 
-An auditor should inspect:
+**Supporting context** helps interpretation but does not independently prove fulfillment of a DORA-oriented obligation:
 
-- approved scope and workflow records
-- execution receipts and evidence bundles
-- role- and identity-linked approvals
-- preserved investigation artifacts
-- exception and denial events
-- independent verification records
-- documentation of what is manual or outside scope
+- policy documents, governance narratives, architecture diagrams, vendor registers, meeting records
 
-## Operator checklist
+Use this logic:
 
-- Identify the exact DORA obligation or article being mapped.
-- Write the control objective in entity-specific language.
-- Attach emitted WitnessOps evidence, not just summaries.
-- Attach the exact verification records that corroborate those artifacts.
-- Record any legal, organizational, or platform-boundary limitations.
-- Do not imply that operational evidence alone satisfies the full article.
-- Ensure the mapping can stand up to audit review without narrative reconstruction.
+- if direct evidence is present and independently verifiable, the row can support a bounded claim about recorded activity
+- if only supporting context is present, mark the row as contextual support, not evidentiary proof
+- if direct evidence and context conflict, preserve both and mark the mismatch for review
 
-## Related pages
+## Bounded claims (what mapping can support vs cannot assert)
 
-- [Governance](/docs/governance)
-- [Evidence](/docs/evidence)
-- [Operations](/docs/operations)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
+### What this mapping can support
+
+- that specific governed actions occurred and were recorded
+- that artifact-to-claim linkage is inspectable
+- that independent verification confirmed integrity/continuity checks on mapped records
+- that explicit gaps and external dependencies were documented
+
+### What this mapping cannot assert
+
+- legal interpretation of DORA articles or applicability outcomes
+- regulatory conformity, certification, attestation, or audit-pass status
+- organization-wide control effectiveness beyond captured evidence
+- sufficiency of governance or risk decisions made outside recorded mechanisms
+
+Do not present this mapping as legal advice.
+
+## Observed vs inferred separation
+
+Keep each row split between facts and interpretation:
+
+- **Observed:** facts directly present in receipts, logs, manifests, approvals, and preserved artifacts.
+- **Inferred:** conclusions about effectiveness, sufficiency, resilience posture, or legal adequacy.
+
+Only observed data is directly verifiable from system records. Inferred conclusions require accountable human judgment.
+
+## Trust assumptions and limits
+
+Record assumptions explicitly in each mapping packet, including:
+
+- identity and access-control integrity outside this mapping
+- host/platform integrity where evidence is generated and stored
+- key-management and signing-control integrity
+- retention and archival behavior in external systems
+- completeness/correctness of upstream systems (CMDB, ticketing, vendor records, SIEM)
+- legal interpretation and governance decisions owned by the organization
+
+If an assumption is unverified in the packet, treat it as a stated limit.
+
+## Next-page handoff to `/docs/evidence-mapping/eu-ai-act`
+
+Continue to [EU AI Act Evidence Mapping](/docs/evidence-mapping/eu-ai-act) to apply the same bounded, mechanism-first method to AI Act-oriented obligations and boundaries.

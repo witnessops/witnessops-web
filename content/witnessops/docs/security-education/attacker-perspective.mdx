@@ -9,66 +9,93 @@ draft: false
 
 # How Attackers Think
 
-You are not being targeted. You are being automated.
+## Problem this page solves
 
-## Scenario
+Security teams often see phishing artifacts and account anomalies as isolated events.
+Without an attacker decision model, containment can be delayed or mis-prioritized.
+This page turns attacker economics into defensive priorities so operators can raise attacker cost early.
 
-An attacker scans thousands of targets for the cheapest path to revenue: exposed identities, weak controls, unpatched systems, or easy-to-open lures.
+## Reader outcome
 
-## Attack Chain
+After this page, you should be able to:
 
-```
-Reconnaissance
-  ↓
-Initial access
-  ↓
-Persistence
-  ↓
-Lateral movement or quiet data access
-  ↓
-Fraud, theft, or ransomware
-```
+- map suspicious activity to attacker decision points instead of treating events as random
+- identify which controls increase attacker effort at each decision point
+- choose escalation gates based on observed risk to identity, privileged access, and finance workflows
 
-There is usually no genius improvisation here. There is repetition at scale.
+## Mechanism-first attacker decision model (target selection, lure choice, friction avoidance, monetization path)
 
-## Observable Evidence
+Most campaigns optimize for repeatable return, not novelty.
 
-Look for:
+| Decision point | Attacker question | Common low-cost path | Defensive implication |
+|---|---|---|---|
+| Target selection | "Where can one compromise create the fastest business impact?" | Focus on accounts tied to approvals, payments, vendor trust, or privileged access | Harden high-impact workflows first and reduce single-user failure points |
+| Lure choice | "Which message is most likely to get action without verification?" | Reuse familiar business lures: invoice, shared file, login alert, policy reset | Route reports by workflow context and require out-of-band verification for high-impact requests |
+| Friction avoidance | "How do I avoid strong controls and noisy behavior?" | Prefer weak MFA coverage, stale sessions, and normal-looking timing/channels | Close bypass paths: enforce MFA, revoke risky sessions, and monitor unusual sign-in patterns |
+| Monetization path | "How does access convert to value?" | Payment diversion, data theft/extortion leverage, internal phishing spread, or access resale | Prioritize actions that interrupt conversion to financial or operational impact |
 
-- broad scanning or password-spray activity across exposed services
-- phishing against common business workflows such as invoices or login alerts
-- repeated attempts against accounts without MFA
-- post-login actions that favor persistence, forwarding, or quiet data access
-- concentration on easy paths instead of technically complex ones
+## Observable operator signals tied to attacker decision points
 
-## Operator Response
+| Decision point | Directly observable operator signals | Why the signal matters |
+|---|---|---|
+| Target selection | repeated lures to finance approvers, admins, or vendor-facing users; role-focused targeting patterns | suggests the attacker is optimizing for high-impact workflows |
+| Lure choice | sender/reply-to mismatch, lookalike domains, urgency language tied to business workflows, payment-change requests | indicates the lure is built to bypass normal verification behavior |
+| Friction avoidance | repeated attempts against accounts without enforced MFA, suspicious new sign-ins after interaction, mailbox/session persistence changes | indicates control-evasion and attempts to maintain access quietly |
+| Monetization path | beneficiary-change requests, unusual outbound finance communication, bulk sensitive data access, internal lure propagation | indicates movement from access to business impact |
 
-1. Close the cheapest attacker paths first: MFA, unique passwords, patching, controlled file handling.
-2. Treat repeated low-skill activity as real risk, not background noise.
-3. Preserve evidence before broad cleanup so the path can be reconstructed.
-4. Move quickly when you see identity compromise, exposed admin surfaces, or persistent mailbox changes.
+## Practical defensive decisions and escalation gates
 
-## WitnessOps Controls
+1. Protect likely high-return targets first (finance, privileged, and vendor-trust workflows).
+2. Treat workflow-themed lures as potential impact events, not only awareness events.
+3. Disrupt friction-avoidance behavior quickly: revoke risky sessions, reset credentials where warranted, and remove persistence changes.
+4. Escalate when observed signals indicate conversion toward financial, regulatory, or multi-user impact.
 
-The system view should include:
+Gate definitions:
 
-- [Threat Model](/docs/security-systems/threat-model) for the documented abuse paths
-- [Policy Gates](/docs/security-systems/policy-gates) to make intrusive actions approval-bound
-- [WitnessOps Architecture](/docs/security-systems/witnessops-architecture) for the evidence-first operating model
-- [Receipts](/docs/evidence/receipts) so response actions are as reviewable as the initial finding
+- **Gate A (exposure-only):** suspicious lure observed, no interaction evidence.
+- **Gate B (interaction):** click/open occurred, no credential/MFA/session-compromise evidence yet.
+- **Gate C (account exposure likely):** credential entry, unexpected MFA approval, suspicious new session, or persistence changes.
+- **Gate D (high impact):** privileged account involvement, payment/workflow impact, multi-user spread, or scope cannot be bounded quickly.
 
-## The economics
+## What WitnessOps controls can support vs cannot guarantee
 
-| Item | Cost |
-|------|------|
-| Phishing kit | $50–200 |
-| Email list | $100–500 |
-| Hosting for fake login pages | $10/month |
-| Credential marketplace access | $20–100 |
-| Credential stuffing tool | Often free |
+**WitnessOps can support:**
 
-Total investment: **under $500**.
+- [Threat Model](/docs/security-systems/threat-model) to map likely abuse paths to controls
+- [Phishing Investigation](/docs/scenarios/phishing-investigation) for governed triage and containment sequencing
+- [Do I Need to Escalate?](/docs/decisions/escalation) and [What Evidence Is Required?](/docs/decisions/evidence-required) for impact/uncertainty gates
+- [Policy Gates](/docs/security-systems/policy-gates) for approval on high-impact actions
+- [Receipts](/docs/evidence/receipts) for signed decision and remediation traceability
 
-Expected return from one compromised business email: **$50,000–500,000**.
+**WitnessOps cannot guarantee:**
 
-That is why phishing, credential reuse, and patch lag keep recurring. The economics work unless you raise the cost.
+- prevention of all phishing or identity-entry attempts
+- complete reconstruction when telemetry is missing, delayed, or altered
+- attacker intent or attribution from a single artifact set
+- external recovery outcomes (for example, third-party fund recovery timelines)
+
+## Observed vs inferred separation
+
+- **Observed:** preserved lure artifacts, sign-in/session logs, mailbox/persistence changes, payment-workflow artifacts, and timeline events.
+- **Inferred:** "attacker had full control," "all impacted systems are known," or "financial intent is proven."
+
+Use observed signals to justify immediate containment.
+Keep inferred claims explicit and provisional until corroborated.
+
+## Trust assumptions and limits
+
+Assumptions:
+
+- email, identity, endpoint, and workflow telemetry is retained and time-aligned enough for sequence reconstruction
+- key artifacts are preserved before broad cleanup or remediation
+- intrusive actions follow policy and approval gates
+
+Limits:
+
+- delayed reporting can remove short-lived evidence (redirect chains, transient sessions)
+- adversaries may evade, suppress, or overwrite telemetry
+- some scope and intent conclusions remain probabilistic until additional corroboration is collected
+
+## Next-page handoff
+
+Continue to [The Cost of One Click](/docs/security-education/cost-of-a-click) for business-impact framing that maps these attacker decision points to concrete loss scenarios.

@@ -2,130 +2,81 @@
 title: "New Operator"
 description: "Start here if you are doing hands-on security work and need to understand scope, workflows, evidence, and escalation."
 section: "docs"
-order: 1
+order: 10
 nav_label: "New Operator"
 draft: false
 ---
 
 # New Operator
 
-Welcome to WitnessOps Docs. This page is for operators doing hands-on security work who need to work safely, consistently, and with usable evidence.
+This page defines the operator lane for hands-on security execution under governed scope, approval, and evidence rules.
 
-## What this role uses the docs for
+## 1. Problem this page solves
 
-Use these docs to:
+Operators lose control of risk when execution starts before scope, approval boundaries, and evidence requirements are explicit.
 
-- understand what kinds of work are allowed
-- choose the right workflow for an assessment or investigation
-- collect evidence correctly
-- know when to stop and escalate
-- turn technical activity into defensible records
+This page gives the first-pass operating path so execution decisions stay auditable and proportional.
 
-## Start here
+## 2. What you should understand after reading
 
-Read these in order:
+After this page, you should understand:
+
+- the operator role boundary: execute in-scope work, capture evidence, escalate at boundaries
+- what to read first before running technical steps
+- which execution decisions you own
+- what to treat as observed evidence vs inferred conclusion
+- what to defer until after the first operating cycle
+
+## 3. Mechanism-first role path
+
+### Read first (in order)
 
 1. [Getting Started](/docs/getting-started)
 2. [Authorization Model](/docs/governance/authorization-model)
 3. [Operations](/docs/operations)
 4. [Evidence](/docs/evidence)
-5. [Runbooks](/docs/operations/runbooks)
-6. [FAQ](/docs/faq)
+5. [Is This In Scope?](/docs/decisions/scope-check)
+6. [Do I Need to Escalate?](/docs/decisions/escalation)
+7. [What Evidence Is Required?](/docs/decisions/evidence-required)
 
-## What you are allowed to do
+### Decisions you own in this role
 
-You may:
+| Decision | What you own | Primary pages |
+| --- | --- | --- |
+| Scope check | Confirm each target and action remains in approved scope before execution | [Authorization Model](/docs/governance/authorization-model), [Is This In Scope?](/docs/decisions/scope-check) |
+| Workflow selection | Choose the least disruptive runbook path that can answer the objective | [Operations](/docs/operations), [Runbooks](/docs/operations/runbooks) |
+| Evidence sufficiency | Collect enough traceable evidence to support or reject the claim | [Evidence](/docs/evidence), [What Evidence Is Required?](/docs/decisions/evidence-required) |
+| Escalation trigger | Stop and escalate when scope, approval, or impact certainty breaks | [Do I Need to Escalate?](/docs/decisions/escalation) |
 
-- investigate activity that is in scope
-- follow approved workflows and runbooks
-- collect evidence needed to support findings
-- escalate when scope, safety, or impact is unclear
+### Defer initially
 
-You may not:
+Defer these until your first governed workflow is complete:
 
-- test outside approved scope
-- improvise intrusive actions without approval
-- collect unnecessary sensitive data
-- continue once you hit an approval boundary without clearance
+- integration implementation details in [Integration Author](/docs/audiences/integration-author)
+- low-level receipt field references in [Receipt Spec](/docs/evidence/receipt-spec)
+- scenario pages not tied to the current assignment
 
-## Trust boundaries you should know
+## 4. Observed vs inferred
 
-Before starting any work, understand these limits:
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Execution and evidence | scope gate allow/deny outcomes, approval events, command/tool output, timestamps, receipt-linked artifacts | root cause, exploitability, business impact, attacker intent |
+| Failure handling | explicit governed failures (approval stall, tool crash, evidence hash mismatch) | confidence that the investigation is complete |
 
-- **Scope enforcement** depends on `in-scope.txt` — a configuration file, not an access control list. If the file is wrong, enforcement is wrong.
-- **Self-approval** is only possible when the workflow and external policy explicitly allow it. Separation of duties still depends on configuration.
-- **Host compromise** defeats all governance controls. WitnessOps assumes a trustworthy host.
-- **Tool output** is captured verbatim but not validated for correctness. A tool that returns garbage produces a valid receipt containing garbage.
-- **Receipts** prove execution occurred. They do not prove findings are correct.
+Treat inferred conclusions as conclusions. Do not record them as direct observations.
 
-See [Threat Model](/docs/security-systems/threat-model) for the full trust boundary map.
+## 5. Role-specific trust assumptions
 
-## How to work well here
+Operate with these assumptions explicit:
 
-A good operator:
+- **Scope enforcement** is driven by `in-scope.txt`. If configuration is wrong, enforcement boundaries are wrong.
+- **Approval behavior** follows workflow and external policy. Paused approvals do not auto-resolve.
+- **Runtime integrity** (host, keys, toolchain) is assumed. Host compromise invalidates governance guarantees.
+- **Tool output quality** is not validated by receipt generation. Receipts can attest execution of incorrect tool output.
+- **Receipt guarantees** prove what ran and what was captured, not whether your conclusion is correct.
 
-- starts with scope and objective
-- documents what they are doing while they do it
-- prefers the least disruptive validation path
-- captures evidence that another person can verify
-- knows when to stop and ask
+See [Threat Model](/docs/security-systems/threat-model) for the complete trust boundary map.
 
-## Common mistakes
+## 6. Next-page handoff
 
-- starting technical work before confirming scope
-- jumping to exploitation before basic enumeration
-- capturing screenshots without context
-- failing to record timestamps, targets, or commands
-- treating "probably safe" as equivalent to approved
-
-## Typical workflow
-
-### 1. Confirm the task
-
-Identify the target, objective, and approval status.
-
-### 2. Choose the right path
-
-Use an existing runbook or scenario page before inventing a new process.
-
-### 3. Gather baseline evidence
-
-Collect enough information to understand the system before taking action.
-
-### 4. Validate carefully
-
-Use the least disruptive method that can confirm or reject the hypothesis.
-
-### 5. Capture evidence
-
-Record what you observed, how you observed it, and why it matters.
-
-### 6. Escalate or close
-
-Escalate if impact or uncertainty increases. Close only when evidence is complete.
-
-## When things go wrong
-
-- **Scope gate blocks you:** The step does not run. The denial is recorded. Resume after expanding scope or correcting the target.
-- **Approval stalls:** Execution pauses indefinitely. No timeout kills the run. Wait for a principal to act or cancel.
-- **Tool crashes:** The step is marked failed. The failure is recorded in the receipt with exit code and stderr.
-- **Evidence hash mismatch:** The receipt for that step is not generated. The chain breaks.
-
-These are not errors — they are the system working correctly.
-
-## What success looks like
-
-You can explain:
-
-- what you were asked to do
-- what systems or artifacts were in scope
-- what steps you performed
-- what evidence supports your conclusion
-- whether the issue needs escalation or remediation
-
-## Read next
-
-- [Investigating a Phishing Report](/docs/scenarios/phishing-investigation)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
-- [Do I Need to Escalate?](/docs/decisions/escalation)
-- [Is This In Scope?](/docs/decisions/scope-check)
+Next, read [Defender](/docs/audiences/defender) for the triage and containment path that follows operator-led execution.

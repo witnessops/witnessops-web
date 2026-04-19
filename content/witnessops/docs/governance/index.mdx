@@ -9,9 +9,52 @@ draft: false
 
 # Governance
 
-WitnessOps governance pages explain who can authorize actions, how controls are enforced, and which records survive audit.
+Governance defines the authority boundary for WitnessOps operations: who can authorize actions, how exceptions are handled, and what decisions remain auditable later.
 
-## In this section
+## 1. Problem this page solves
 
-- [Authorization Model](/docs/governance/authorization-model)
-- [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass)
+Execution evidence alone cannot prove governance quality if authorization, exception handling, and audit boundaries are unclear.
+
+This page provides the governance map so readers can evaluate authority and exception posture as a system, not as isolated controls.
+
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- where authorization authority is defined
+- how normal and exception governance paths differ
+- which governance records should survive review and dispute
+
+## 3. Mechanism-first governance model
+
+Governance in WitnessOps is read in this order:
+
+| Governance surface | What it defines | Primary page |
+| --- | --- | --- |
+| Authorization boundary | principals, approval modes, required authorization record | [Authorization Model](/docs/governance/authorization-model) |
+| Exception path | when lab/scope-bypass is allowed and how it must be recorded | [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass) |
+| Runtime enforcement linkage | how authorization decisions are enforced before execution | [Policy Gates](/docs/security-systems/policy-gates) |
+| Audit continuity | what evidence remains reviewable after execution | [Receipts](/docs/evidence/receipts) |
+
+## 4. Observed vs inferred
+
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Observed | explicit approval model, exception controls, and governance-linked evidence references | none beyond documented controls |
+| Inferred | governance sufficiency for a specific organization or legal posture | depends on external policy and reviewer standards |
+
+## 5. Trust assumptions
+
+Governance controls reduce ambiguity, but still depend on:
+
+- truthful identity and policy inputs from upstream systems
+- correct configuration of enforcement boundaries
+- accurate recording of exceptions and approvals
+
+Governance records improve reviewability; they do not guarantee decision quality by themselves.
+
+## 6. Next-page handoff
+
+Next, read [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass) to inspect the explicit exception path and its trust limits.
+
+Then use [Authorization Model](/docs/governance/authorization-model) for the full principal and approval contract.

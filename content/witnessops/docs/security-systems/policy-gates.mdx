@@ -1,43 +1,79 @@
 ---
 title: "Policy Gates"
-description: "How WitnessOps enforces approvals and preconditions before execution."
+description: "How WitnessOps enforces approvals, scope, and preconditions before execution proceeds."
 section: "docs"
-order: 3
+order: 30
 nav_label: "Policy Gates"
 draft: false
 ---
 
 # Policy Gates
 
-A policy gate is a checkpoint that must pass before a runbook step executes. Gates are declarative. You define them in the runbook. WitnessOps evaluates them at runtime.
+Policy gates are the runtime enforcement layer that turns authorization policy into an allow-or-block decision before a step executes.
 
-## Gate Types
+## 1. Problem this page solves
 
-**Scope check.** Verifies that the target of the current step falls within the authorized scope. If a runbook targets `10.0.0.0/24` and a step tries to reach `192.168.1.1`, the scope gate fails and the step does not execute. Scope is enforced per-step, not just at runbook start.
+Authorization can look complete on paper while execution still runs outside intended boundaries.
 
-**Approval requirement.** Requires an authorized principal to explicitly approve the step before it runs. The operator sees what the step will do, reviews the parameters, and either approves or rejects. Approval identity and timestamp are recorded in the receipt.
+This page defines how WitnessOps enforces preconditions at runtime so policy is not treated as documentation-only.
 
-**Target authorization.** Confirms that the target domain, IP range, or asset identifier has been pre-authorized for this engagement. This is distinct from scope — target authorization checks against an external authorization record, not just the runbook's declared scope.
+## 2. What you should understand after reading
 
-**Freemail rejection.** Blocks operations initiated by operators using freemail addresses (gmail.com, yahoo.com, etc.) as their principal identity. Governed operations require identifiable principals. Anonymous or disposable identities do not satisfy the gate.
+After this page, you should understand:
 
-**Tool allowlist.** Confirms that the tool referenced by the step is on the permitted tool list for this runbook's classification level. A reconnaissance runbook should not invoke exploitation tools.
+- which gate families are evaluated before execution
+- how gate composition and evaluation order work
+- what happens when a gate fails
+- what gate evidence is emitted for later review
 
-## What Happens When a Gate Fails
+## 3. Enforcement mechanism
 
-Gate failure stops execution at that step. The behavior is deterministic:
+Gates are declared with runbook steps and evaluated at execution time.
 
-1. The step does not execute. No partial execution. No fallback.
-2. WitnessOps records the gate failure in the execution state, including which gate failed and why.
-3. The operation pauses. It can be resumed after the gate condition is resolved — for example, after scope is expanded or approval is granted.
-4. If the gate failure is terminal (unsupported tool, invalid principal), the operation ends and a receipt is emitted recording the failure.
+For a step to run, all required gates for that step must pass. Evaluation is ordered and short-circuits on first failure.
 
-Gate failures are not errors. They are the system working correctly. A scope gate that blocks an out-of-scope target is doing its job.
+That design prevents “partial approval” behavior and preserves deterministic reviewability.
 
-## Gate Composition
+## 4. Gate families
 
-Steps can require multiple gates. A step that performs active exploitation might require scope check, target authorization, tool allowlist, and approval — all four must pass. Gates evaluate in order. The first failure stops evaluation.
+| Gate family | What is enforced | Failure meaning |
+| --- | --- | --- |
+| Scope check | Target stays inside approved scope boundary | Out-of-scope execution attempt blocked |
+| Approval requirement | Required approver has explicitly authorized step | No valid approval path |
+| Target authorization | Target has pre-authorization for engagement/context | Target not authorized for this run |
+| Environmental constraint | Runtime context satisfies policy window/classification/network constraints | Right action, wrong context |
+| Freemail rejection | Principal identity meets governance identity requirements | Identity quality below policy floor |
+| Tool allowlist | Step tool is permitted for workflow risk class | Unauthorized capability invocation |
 
-## Gates in the Receipt
+## 5. Gate failure semantics
 
-Every receipt records which gates were evaluated and their results. An approved step shows the approving principal and timestamp. A scope-checked step shows the scope boundary that was enforced. This makes the gate evaluation auditable after the fact.
+When a gate fails:
+
+1. the step does not execute
+2. failure reason and failing gate are recorded
+3. operation either pauses for correction or ends if terminal
+4. receipt evidence captures the blocked state
+
+A blocked gate is a successful control outcome, not a runtime defect.
+
+## 6. Evidence and trust boundary
+
+Receipts should record gate set, evaluation order, pass/fail states, and approval identity/timestamps where required.
+
+This proves policy checks were evaluated as part of execution path.
+
+What remains trust-based:
+
+- correctness of external policy sources
+- correctness of upstream identity systems
+- quality of scope inputs and classification mapping
+
+## 7. Next-page handoff
+
+Next, read [Evidence](/docs/evidence) to see how these gate outcomes appear in portable execution evidence and receipt chains.
+
+Then use:
+
+- [Receipts](/docs/evidence/receipts) for receipt-level gate and execution records
+- [Authorization Model](/docs/governance/authorization-model) for principal/approval authority boundaries
+- [Scope Check](/docs/decisions/scope-check) for operator-side boundary decisions

@@ -1,0 +1,87 @@
+---
+title: "man witnessops(7)"
+description: "Non-indexed operator manual reference for WitnessOps command usage semantics and boundaries."
+section: "docs"
+order: 10
+nav_label: "man witnessops(7)"
+draft: true
+---
+
+Quick reference links: [Reference](/docs/reference) · [Commands](/docs/reference/commands) · [Proof Artifact Classes](/docs/reference/proof-artifact-classes) · [Glossary](/docs/glossary) · [man witnessops(7)](/docs/man/witnessops) (current page)
+
+WITNESSOPS(7)                    Operator Manual                     WITNESSOPS(7)
+
+NAME
+     witnessops - operator manual reference for governed execution commands
+
+PURPOSE
+     Non-indexed operator-manual page for /docs/man/witnessops.
+     Use this page for authoritative command usage semantics and artifact expectations.
+
+WHEN TO USE THIS PAGE
+     Use this page when you need to:
+       1. confirm command lifecycle order and invocation shape
+       2. confirm expected run artifacts for review and handoff
+       3. confirm manual-reference boundaries before policy or approval decisions
+
+SYNOPSIS
+     new-engagement <engagement-name>
+     runbook-exec <runbook-id> --target <target> --engagement <engagement-name> [--no-scope] [--lab]
+     runbook-state <engagement-name> <run-id> [--json]
+     runbook-approve <engagement-name> <run-id> --approve [--by <operator>]
+     runbook-resume <engagement-name> <run-id>
+
+COMMAND USAGE SEMANTICS
+     new-engagement
+         Initializes ops/engagements/<engagement-name>/ and creates workspace structure.
+         Does not set scope and does not execute runbooks.
+
+     runbook-exec
+         Validates inputs, enforces scope by default, executes ordered runbook steps.
+         Terminal runs emit state.json, manifest.json, hash-manifest.txt,
+         runbook-summary.md, and receipt.json.
+
+     runbook-state
+         Read-only run inspection.
+         Reports status; does not mutate run state, approval state, or step flow.
+
+     runbook-approve
+         Records explicit approval metadata for the current gate.
+         Approval records permission only; use runbook-resume to continue execution.
+
+     runbook-resume
+         Continues from the next incomplete step under normal governed checks.
+         Does not bypass future scope checks or future approval gates.
+
+SCOPE BOUNDARIES AND NON-CLAIMS
+     This page is a manual reference surface. It does not:
+       - approve actions or authorize exceptions
+       - replace governance policy or approver accountability
+       - decide escalation outcomes for operators
+       - replace evidence interpretation or verifier judgment
+       - claim canonical bundle-verification or corpus-lane guarantees
+
+CANONICAL CROSSLINKS
+     Governance and authorization:
+       /docs/governance
+       /docs/governance/authorization-model
+
+     Decision procedures:
+       /docs/decisions/scope-check
+       /docs/decisions/escalation
+       /docs/decisions/evidence-required
+
+     Evidence contracts:
+       /docs/evidence/receipts
+       /docs/evidence/receipt-spec
+
+     Reference contracts:
+       /docs/reference
+       /docs/reference/commands
+       /docs/reference/proof-artifact-classes
+
+CLOSURE
+     Rewrite lane closure: /docs/man/witnessops rewrite ends here.
+     Next lane: navigation normalization.
+
+WITNESSOPS                           2026-04-17                          WITNESSOPS(7)

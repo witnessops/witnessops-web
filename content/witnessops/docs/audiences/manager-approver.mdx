@@ -2,125 +2,89 @@
 title: "Manager / Approver"
 description: "Guidance for approvers who define boundaries, review evidence, and authorize proportional security work."
 section: "docs"
-order: 2
+order: 20
 nav_label: "Manager / Approver"
 draft: false
 ---
 
 # Manager / Approver
 
-This page is for people who approve work, define boundaries, and make sure operational security work stays aligned with business risk, policy, and evidence requirements.
+This page defines the manager/approver lane for setting authorization boundaries, testing proportionality, and deciding whether work proceeds under governed scope.
 
-## What this role uses the docs for
+## 1. Problem this page solves
 
-Use these docs to:
+Approval quality collapses when authority limits, scope boundaries, and evidence standards are implicit.
 
-- decide whether work should proceed
-- confirm whether a request is in scope
-- understand approval boundaries
-- review evidence quality
-- ensure actions are proportionate to the objective
+This page gives a first-pass approval path so authorize/reject/escalate decisions are explicit, auditable, and tied to documented gates.
 
-## Your responsibility
+## 2. What you should understand after reading
 
-Your job is not to perform the technical work. Your job is to make sure:
+After this page, you should understand:
 
-- the work is authorized
-- the objective is clear
-- the risk is understood
-- the least disruptive path is being used
-- evidence is sufficient for later review
+- the role boundary: authorize, reject, or escalate governed work; do not run the technical workflow
+- what must be known before approval
+- which decisions you own vs what you defer
+- how to separate observed records from inferred confidence
+- which pages to read first and which detail to ignore initially
 
-## Start here
+## 3. Mechanism-first role path
 
-Read these in order:
+### Must know first before approval
+
+Before approving any request, require:
+
+- a specific objective and expected outcome
+- explicit in-scope target and action boundaries
+- proposed workflow path and escalation conditions
+- defined evidence standard for acceptance/review
+
+### Read first (in order)
 
 1. [Governance](/docs/governance)
 2. [Authorization Model](/docs/governance/authorization-model)
-3. [Evidence](/docs/evidence)
-4. [Operations](/docs/operations)
-5. [Receipt Spec](/docs/evidence/receipt-spec)
-6. [FAQ](/docs/faq)
+3. [Is This In Scope?](/docs/decisions/scope-check)
+4. [What Evidence Is Required?](/docs/decisions/evidence-required)
+5. [Do I Need to Escalate?](/docs/decisions/escalation)
+6. [Evidence](/docs/evidence)
 
-## Questions to ask before approving
+### Decisions you own in this role
 
-- What is the exact objective?
-- What system, user group, or environment is in scope?
-- What actions are planned?
-- What could go wrong if the work is performed?
-- Does the operator need elevated approval for any step?
-- What evidence will be produced?
-- What is the rollback or stop condition?
+| Decision | What you own | Primary pages |
+| --- | --- | --- |
+| Authorization decision | Approve, reject, or pause based on objective legitimacy, scope clarity, and control readiness | [Governance](/docs/governance), [Authorization Model](/docs/governance/authorization-model) |
+| Boundary definition | Set allowed targets, action limits, timing, and escalation expectations before execution begins | [Authorization Model](/docs/governance/authorization-model), [Is This In Scope?](/docs/decisions/scope-check) |
+| Proportionality check | Require the least disruptive path that can satisfy the objective | [Governance](/docs/governance), [Do I Need to Escalate?](/docs/decisions/escalation) |
+| Evidence acceptance standard | Define and enforce minimum evidence needed for post-run review and accountability | [What Evidence Is Required?](/docs/decisions/evidence-required), [Evidence](/docs/evidence) |
 
-## Approve when
+### Defer initially
 
-Approve when:
+Defer these until your first approval-review cycle is complete:
 
-- the objective is legitimate and clear
-- the target is confirmed in scope
-- the planned activity matches the objective
-- safety controls are in place
-- escalation conditions are defined
-- evidence expectations are clear
+- low-level tool execution specifics and operator command detail
+- integration implementation detail in [Integration Author](/docs/audiences/integration-author)
+- receipt field-by-field internals in [Receipt Spec](/docs/evidence/receipt-spec)
 
-## Do not approve when
+## 4. Observed vs inferred
 
-Do not approve when:
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Approval input and record | request objective, scope declarations, approver identity/time, decision state, documented conditions | that the plan is complete, safe, or sufficient under unseen conditions |
+| Post-execution review | receipt-linked artifacts, explicit failures, escalation events, timestamps, evidence package contents | conclusion correctness, long-term risk reduction, or full business impact |
 
-- scope is ambiguous
-- the action is broader than the stated need
-- the operator cannot explain the workflow
-- the evidence plan is weak or missing
-- the action introduces business risk without justification
-- there is a safer alternative that has not been considered
+Treat inferred conclusions as judgment calls that require explicit rationale, not as direct observations.
 
-## What good evidence looks like
+## 5. Role-specific trust assumptions
 
-Good evidence is:
+Operate with these assumptions explicit:
 
-- attributable to a specific target or event
-- time-bounded
-- understandable by someone not present during execution
-- sufficient to support a decision later
-- minimal but complete
+- **Approval quality depends on input quality:** weak scope/objective/evidence input drives weak approvals.
+- **Recorded approval is not validated approval:** the system records who approved and when, but cannot prevent poor decisions.
+- **Scope enforcement is configuration-backed:** if `in-scope.txt` is wrong, approved boundaries are wrong.
+- **Proportionality remains human-controlled:** no workflow can replace approver judgment on business risk tradeoffs.
+- **Receipts attest events, not decision correctness:** they prove what ran and what was captured, not whether approval choices were right.
 
-Bad evidence is:
+See [Threat Model](/docs/security-systems/threat-model) for full trust boundary context.
 
-- a screenshot with no source context
-- a claim without output or traceability
-- a conclusion without a method
-- raw data with no explanation
+## 6. Next-page handoff
 
-## Approval trust boundaries
-
-Be aware of these limits when approving:
-
-- **Self-approval** is only possible when the workflow and external policy explicitly allow it. The current system does not treat it as the default for governed work.
-- **Approval is recorded**, not prevented from being rubber-stamped. The receipt shows who approved and when.
-- **Scope** is enforced from `in-scope.txt`. If the file is wrong, the approved scope is wrong.
-
-See [Security Practices](/docs/security-systems/security-practices) for the current-state vs target-state table.
-
-## Common approval mistakes
-
-- approving based on urgency alone
-- assuming a known operator means a known scope
-- accepting vague phrases like "basic testing"
-- failing to define escalation boundaries
-- approving collection of more data than necessary
-
-## What success looks like
-
-A good approver can later answer:
-
-- why the work was authorized
-- what boundaries were set
-- what evidence was expected
-- whether those expectations were met
-- whether the result justified the action taken
-
-## Read next
-
-- [Is This In Scope?](/docs/decisions/scope-check)
-- [Do I Need to Escalate?](/docs/decisions/escalation)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
+Next, read [Integration Author](/docs/audiences/integration-author) to translate approval boundaries and evidence expectations into integration and runbook interfaces.

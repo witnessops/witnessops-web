@@ -9,100 +9,82 @@ draft: false
 
 # WitnessOps Catalog
 
-The WitnessOps catalog is the authoritative list of governed execution capabilities available to operators. Each entry is a runbook -- a versioned workflow definition that the execution engine can validate, run, and produce evidence for. If a capability is not in the catalog, the engine cannot execute it.
+The WitnessOps catalog is the governed description layer for executable runbooks. It constrains what can be requested, how capability boundaries are declared, and what evidence contracts must exist before execution is allowed.
 
-## What the catalog controls
+## 1. Problem this page solves
 
-The catalog enforces three constraints:
+Without a formal catalog boundary, capability claims drift into ad hoc execution and undocumented operator expectations. That breaks review because a verifier cannot tell which behavior was declared, which behavior actually executed, and which evidence requirements were in force.
 
-1. **Available capabilities are explicit.** Operators can only request runbooks that exist in the catalog. There is no ad-hoc execution path.
-2. **Each runbook declares its category and scope.** The engine uses this metadata to apply the correct policy gates, tool wrappers, and evidence capture rules.
-3. **Versioning is pinned.** Each runbook has a version number. Receipts record which version was executed. Changes to a runbook produce a new version, not an in-place mutation.
+This page defines the catalog as a governance mechanism so capability scope and evidence expectations stay explicit and testable.
 
-## Listing the catalog
+## 2. Reader outcome
 
-Operators view the catalog with:
+After this page, you should be able to:
 
-```bash
-bash automation/helpers/runbook-list.sh
-```
+- explain what the WitnessOps catalog governs and what it does not govern
+- identify the minimum contract fields each catalog entry must declare
+- separate catalog description from runtime truth and analyst judgment
+- apply observed-vs-inferred boundaries when reading catalog-backed execution results
 
-Output format:
+## 3. Mechanism-first catalog model
 
-```text
-ID                       VERSION  CATEGORY        SUMMARY
-attack-surface-discovery 2        recon           External attack surface discovery
-initial-external-recon   2        recon           Quick external recon workflow
-web-recon                2        recon           Scoped web reconnaissance workflow
-tls-review               2        recon           TLS configuration review
-web-content-discovery    2        recon           Web content and directory discovery
-ad-enumeration           2        enumeration     Active Directory enumeration
-smb-share-enum           2        enumeration     SMB share enumeration
-linux-basic-enum         2        enumeration     Linux host basic enumeration
-web-exploitation         2        exploitation    Web exploitation workflow
-campaign-orchestrator    2        orchestration   Multi-phase campaign orchestration
-```
+Treat the catalog as a versioned control contract, not as a feature brochure.
 
-## Runbook coverage by threat phase
-
-The catalog maps to the WitnessOps threat operations lifecycle. Current coverage:
-
-| Threat phase | Runbooks | Category |
+| Catalog role | What it is | What it is not |
 | --- | --- | --- |
-| Target discovery | `attack-surface-discovery`, `initial-external-recon` | recon |
-| Reconnaissance | `web-recon`, `tls-review`, `web-content-discovery` | recon |
-| Enumeration | `ad-enumeration`, `smb-share-enum`, `linux-basic-enum` | enumeration |
-| Vulnerability identification | `tls-review`, `web-exploitation` | recon / exploitation |
-| Exploitation | `web-exploitation` | exploitation |
-| Campaign orchestration | `campaign-orchestrator` | orchestration |
+| Capability declaration | A bounded, versioned runbook entry that can be authorized for execution | A promise that execution will always succeed |
+| Governance anchor | The source of declared scope, authority requirements, and evidence expectations | A substitute for policy gates, approvals, or runtime enforcement |
+| Evidence contract pointer | A declaration of what artifacts and receipt linkage must exist when the run executes | Proof that captured artifacts are globally true beyond their capture context |
 
-Phases not yet covered by dedicated runbooks: post-exploitation, privilege escalation, lateral movement, and impact validation. These phases are planned but do not have first-class catalog entries today.
+If a capability is not declared in the catalog, it is outside the governed execution lane.
 
-## Runbook detail
+## 4. What catalog entries must specify
 
-### Recon category
+Each entry must specify the following at minimum:
 
-**attack-surface-discovery** (v2) -- Identifies reachable targets and external infrastructure. Runs DNS discovery, subdomain enumeration, and HTTP probing. Produces asset inventories under `recon/`.
+| Required field | Minimum declaration | Why it matters |
+| --- | --- | --- |
+| Scope | Allowed target boundary, action boundary, and disallowed operations | Prevents scope creep and ad hoc execution expansion |
+| Authority | Required policy state, approval requirements, and identity/role assumptions | Makes authorization preconditions auditable |
+| Artifacts and evidence expectations | Expected outputs, capture format, and receipt-linkage requirements | Defines what must be present for downstream review and verification |
+| Failure and escalation behavior | Failure classes, stop/continue rules, and escalation path | Ensures failure handling is governed rather than improvised |
 
-**initial-external-recon** (v2) -- Quick external reconnaissance combining port scanning, service fingerprinting, and basic enumeration. Designed as the standard first runbook for new engagements.
+Entries that omit any of these fields should be treated as incomplete control contracts, not production-ready capability definitions.
 
-**web-recon** (v2) -- Scoped web reconnaissance including port scanning, technology detection, content discovery, and vulnerability scanning. Produces structured scan output and a runbook summary.
+## 5. Ownership boundary
 
-**tls-review** (v2) -- Evaluates TLS configuration, certificate validity, cipher suites, and known TLS weaknesses. Produces TLS-specific scan artifacts.
+The catalog describes allowed and expected behavior. It does not replace runtime facts.
 
-**web-content-discovery** (v2) -- Directory and file discovery against web targets using wordlist-driven fuzzing. Captures discovered paths and response codes.
+| Boundary area | Catalog responsibility | Outside catalog responsibility |
+| --- | --- | --- |
+| Definition layer | Declares capability contract, version, and required governance metadata | Proves that a specific execution instance met real-world objectives |
+| Runtime layer | Provides the reference contract used to evaluate execution conformance | Guarantees environment stability, remote system truth, or tool correctness |
+| Operational judgment | Supplies bounded terms for interpreting run outcomes | Decides final risk significance without human review |
 
-### Enumeration category
+Use the catalog to frame review, then use receipts and execution evidence to test what actually happened.
 
-**ad-enumeration** (v2) -- Active Directory enumeration for domain-joined environments. Covers user, group, GPO, and trust enumeration.
+## 6. Observed vs inferred separation
 
-**smb-share-enum** (v2) -- SMB share discovery and access-level enumeration. Identifies readable and writable shares.
+| Layer | Observed | Inferred |
+| --- | --- | --- |
+| Catalog record | Declared runbook contract, version, and governance fields | That every future execution will satisfy intent |
+| Execution evidence | Captured artifacts, timestamps, receipt references, and status outcomes | That external systems were truthful or complete in all dimensions |
+| Operational conclusion | Analyst statement tied to observed evidence and stated assumptions | Broad certainty claims beyond captured scope |
 
-**linux-basic-enum** (v2) -- Basic Linux host enumeration including users, services, network configuration, and file system review.
+Keep this separation explicit to avoid promoting policy metadata into factual runtime certainty.
 
-### Exploitation category
+## 7. Trust assumptions and limits
 
-**web-exploitation** (v2) -- Web exploitation workflow covering SQL injection, authentication bypass, and other web attack vectors. This runbook includes approval-gated steps -- intrusive actions pause for explicit operator approval before execution proceeds.
+Catalog use depends on bounded assumptions:
 
-### Orchestration category
+- catalog data is maintained under change control and version integrity
+- runtime enforcement correctly applies the declared catalog contract
+- evidence capture pipelines preserve artifact integrity and linkage
+- external systems and environments may still fail, drift, or misreport
+- human review is required before elevating execution output into high-confidence operational conclusions
 
-**campaign-orchestrator** (v2) -- Multi-phase campaign workflow that sequences child runbooks into a coordinated operation. Current orchestration chain:
+A catalog entry can narrow ambiguity, but it cannot remove uncertainty outside captured evidence and governed controls.
 
-```text
-campaign-orchestrator
-  -> attack-surface-discovery
-  -> web-recon
-  -> tls-review
-  -> web-exploitation
-  -> ad-enumeration
-```
+## 8. Next-page handoff to `/docs/evidence/execution-chains`
 
-Each child run produces independent evidence. The parent run aggregates campaign-level artifacts including `campaign-manifest.json` and `campaign-receipt.json`.
-
-## Catalog governance
-
-The catalog is not a convenience index. It is a governance boundary:
-
-- **Adding a runbook** requires defining its steps, tool wrappers, evidence capture rules, and policy gates. Undeclared capabilities cannot execute.
-- **Removing a runbook** removes the ability to run that workflow. Existing receipts referencing the removed runbook remain valid historical evidence.
-- **Modifying a runbook** increments its version. Old receipts reference old versions; new runs reference the current version. Version history is never rewritten.
+Next, read [Execution Chains](/docs/evidence/execution-chains) for how receipt-level events are connected into continuity that can be verified as an ordered proof story.

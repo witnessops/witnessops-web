@@ -2,104 +2,65 @@
 title: "Three-Layer Stack"
 description: "How WitnessOps separates operator contracts, execution runtime, and proof infrastructure."
 section: "docs"
-order: 4
+order: 60
 nav_label: "Three-Layer Stack"
 draft: false
 ---
 
 # Three-Layer Stack
 
-WitnessOps separates three concerns that most platforms collapse into one: what the operator intends, how execution happens, and how proof is produced. Each layer has a single job and a clear ownership boundary.
+The three-layer stack defines ownership boundaries so intent, execution, and proof are not collapsed into one trust surface.
 
-## The Layers
+## 1. Problem this page solves
 
-```
-L2: Operator Contracts
-    Skills, routing, frozen reporting, worker semantics, dashboard
-    OWNS: what to do
+When operator contracts, runtime execution, and proof production are mixed, reviewers cannot tell which layer owns which claim or failure.
 
-L1: Execution Runtime
-    Runbooks, wrappers, policy gates, scope checks, approvals, evidence capture
-    OWNS: how to do it
+This page separates those layers and defines how they connect.
 
-L0: Proof Infrastructure
-    Signing, hash chains, Merkle proofs, receipts, bundles, verification
-    OWNS: proving it happened
-```
+## 2. What you should understand after reading
 
-## Why Three Layers
+After this page, you should understand:
 
-Most security platforms mix intent, execution, and proof into one system. When they do, three things go wrong:
+- what each layer owns
+- where layer handoffs occur
+- how trust and failure interpretation changes by layer
 
-1. **The operator cannot change what to test without touching execution code.** Skill routing and runbook execution are different concerns with different change frequencies.
+## 3. Mechanism-first layer model
 
-2. **Execution evidence is only as trustworthy as the executor.** If the same system runs the tool and produces the proof, a compromised executor can produce convincing but false evidence.
+| Layer | Owns | Does not own |
+| --- | --- | --- |
+| Operator Contracts | intent routing, launch semantics, reporting contract | direct tool execution and proof signing |
+| Execution Runtime | governed execution, policy gates, scope/approval enforcement, evidence capture | final proof authority |
+| Proof Infrastructure | signing, continuity, bundle integrity, verification interfaces | security tool execution |
 
-3. **Reporting becomes coupled to execution internals.** When the reporting shape depends on execution internals, every runtime change risks breaking the reporting contract.
+### Layer handoff sequence
 
-Separating the layers means each one can evolve independently and each one can be verified independently.
-
-## What Each Layer Owns
-
-### L2: Operator Contracts
-
-This layer answers: **what should be done?**
-
-- Skill selection and routing (which skill matches the operator's intent)
-- Launch manifests (structured request for execution)
-- Worker semantics (plan, summary, evidence handoff)
-- Frozen reporting contracts (output shapes that do not change when execution evolves)
-- Dashboard and review tooling
-
-L2 never executes tools. It selects, routes, and reports.
-
-### L1: Execution Runtime
-
-This layer answers: **how is it done?**
-
-- Runbook engine (YAML workflows with typed steps)
-- Scanner and tool wrappers (Nmap, Nuclei, Ffuf, etc.)
-- Policy gates and scope enforcement
-- Approval boundaries for intrusive actions
-- Engagement-local state and raw evidence capture
-- Campaign orchestration for multi-phase operations
-
-L1 never produces final proof artifacts. It executes governed operations and captures raw evidence.
-
-### L0: Proof Infrastructure
-
-This layer answers: **can you prove it happened?**
-
-- Receipt signing (Ed25519, DSSE envelopes)
-- Hash-chained receipt ledgers (append-only NDJSON)
-- Merkle tree construction and verification
-- Proof bundle packaging (portable, offline-verifiable)
-- Timestamp binding (RFC 3161)
-- Governance modules (proof-mesh, constitutional substrate)
-- Bridge dispatch with policy enforcement and preview-confirm safety
-
-L0 never executes security tools. It verifies, signs, and governs.
-
-## How the Layers Connect
-
-```
-L2 emits a launch manifest
-  ↓
-L1 executes the governed operation and captures raw evidence
-  ↓
-L0 signs the evidence, chains it, timestamps it, and packages it into a proof bundle
-  ↓
-L2 consumes the verified evidence into frozen reporting contracts
+```text
+Operator Contracts define what should run
+  -> Execution Runtime executes under governance controls
+    -> Proof Infrastructure binds execution artifacts into proof continuity
+      -> verification consumers evaluate proof outputs
 ```
 
-The key property: **L2 never talks to L1 directly for proof.** All proof flows through L0. This means the proof layer can be audited independently of both the operator contracts and the execution runtime.
+## 4. Observed vs inferred
 
-## What This Means for Trust
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Observed | Layer ownership boundaries, handoff sequence, control/proof responsibilities | None beyond declared model |
+| Inferred | Auditability and review quality improve when boundaries are respected | Depends on implementation discipline and enforcement quality |
 
-A client who receives a WitnessOps proof bundle is trusting L0 — the proof infrastructure — not L1 or L2. The signing keys, the timestamp authority, and the transparency log are all L0 concerns.
+## 5. Trust assumptions
 
-If L1 (the execution runtime) is compromised, the evidence it captured may be wrong — but the proof that it was captured is still cryptographically valid. The proof chain records what happened faithfully, even when what happened is a failure.
+Layer separation improves clarity, but does not remove all trust:
 
-If L2 (the operator contracts) change, the reporting shape may evolve — but the underlying proof artifacts remain stable. A proof bundle from last year still verifies with today's tools.
+- Execution Runtime still depends on runtime/tool integrity
+- Proof Infrastructure still depends on key and trust-root integrity
+- Operator Contracts still depend on truthful policy/intent inputs
 
-That is the point of separation: each layer can fail independently, and each layer can be verified independently.
+A layer can be internally correct while another layer fails; this is why failure interpretation must stay layer-specific.
+
+## 6. Next-page handoff
+
+Next, read [Security Practices](/docs/security-systems/security-practices) to see how this layer model maps to current operational controls, limits, and trust posture.
+
+Then use [Governed Execution](/docs/security-systems/governed-execution) for step-level runtime mechanics.

@@ -2,89 +2,69 @@
 title: "Do I Need to Escalate?"
 description: "A decision guide for knowing when to stop, raise risk, and involve an approver or response lead."
 section: "docs"
-order: 2
+order: 20
 nav_label: "Do I Need to Escalate?"
 draft: false
 ---
 
 # Do I Need to Escalate?
 
-Use this page when a task becomes riskier, broader, or less certain than originally expected.
+Use this page to decide when work must stop locally and be routed to higher authority.
 
-## Purpose
+Escalation is not failure. It is the control that prevents unauthorized certainty.
 
-Escalation protects the operator, the environment, and the quality of the response. Escalation is not failure. It is controlled decision-making.
+## 1. Problem this page solves
 
-## Escalate immediately if
+Governed work fails when escalation is implicit, delayed, or personality-based.
 
-- scope becomes unclear
-- the target appears more sensitive than expected
-- a user may be compromised
-- privileged accounts are involved
-- multiple users or systems may be affected
-- the action may impact production
-- the next step would be intrusive or difficult to reverse
-- you are being asked to move faster than evidence allows
-- legal, privacy, or compliance concerns appear
-- you cannot explain why the next action is safe
+This page defines when risk or uncertainty exceeds local decision authority.
 
-## Escalate before continuing if
+## 2. What you should understand after reading
 
-- you want to move from review to active testing
-- you need broader access than originally approved
-- you need to collect more sensitive data
-- you suspect the issue is larger than the original report
-- your evidence is incomplete but pressure is increasing
-- you need to coordinate with another team
+After this page, you should understand:
 
-## Do not delay escalation because
+- what escalation triggers are in scope
+- which uncertainty/risk patterns require escalation
+- what to do before and after escalation
+- when escalation is required even if execution seems possible
 
-- you want to "be sure" first
-- the requester seems confident
-- it feels like a small issue
-- you think asking will slow things down
-- you do not want to look inexperienced
+## 3. Mechanism-first escalation path
 
-These are common causes of avoidable mistakes.
+1. **Identify active task/decision.** Clarify current objective and planned action.
+2. **Identify escalation signals.** Detect scope ambiguity, evidence weakness, risk elevation, failed checks, or authority gaps.
+3. **Check local resolution authority.** Determine whether you are allowed to resolve within current boundaries.
+4. **If local resolution is not allowed, stop/hold.** Do not continue high-risk or ambiguous execution.
+5. **Escalate to correct authority.** Route to approver/response lead with decision context.
+6. **Preserve evidence and rationale.** Ensure escalation package is reviewable and actionable.
 
-## What to provide when escalating
+Escalation is required when the system cannot justify continued action within current authority, evidence, or risk limits.
 
-Include:
+## 4. Observed vs inferred
 
-- the original objective
-- the target or artifact involved
-- what you observed
-- what you have already done
-- what risks you now see
-- what action you believe may be needed next
-- what evidence supports your concern
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Observed | scope conflicts, missing approvals, contradictory artifacts, failed checks, explicit risk signals | none beyond recorded signals |
+| Inferred | judgment that uncertainty/risk is too high to continue safely | depends on operator interpretation and context pressure |
 
-## Good escalation example
+## 5. Trust assumptions
 
-> I was validating a reported phishing email. The message is malicious, and the user confirmed they entered credentials. The account has elevated access. I preserved the message, captured link and sender details, and documented user interaction. I recommend escalation for account review, session invalidation, and broader exposure assessment.
+Escalation quality depends on assumptions that can fail:
 
-## Poor escalation example
+- operators can underestimate risk
+- evidence can look cleaner than underlying reality
+- time pressure can distort judgment
+- escalation outcome depends on correct routing and preserved context
 
-> This looks bad. Can someone take over?
+## 6. Explicit decision outcomes
 
-The first is actionable. The second creates confusion.
+| Outcome | Condition | Action |
+| --- | --- | --- |
+| Continue locally | risk/uncertainty remains within authority and evidence limits | proceed under governed controls |
+| Stop and escalate | authority/evidence/risk boundary exceeded | halt local progression and escalate |
+| Preserve and hold | escalation needed but immediate execution unsafe or unclear | preserve artifacts and wait for decision |
+| Redirect to lab/non-production path | normal governed path is not applicable but controlled exception is possible | use documented exception controls |
+| Deny action pending clarification | requested action cannot be justified with current inputs | do not execute until clarified/approved |
 
-## If you are unsure
+## 7. Next-page handoff
 
-Escalate. Uncertainty around impact, scope, or authority is itself a valid escalation reason.
-
-## Quick action frame
-
-| Check | Use this rule |
-| --- | --- |
-| **When to stop** | Stop when the next action is intrusive, hard to reverse, or broader than the original task. |
-| **Escalation trigger** | Escalate when scope, impact, authority, or evidence quality becomes uncertain. |
-| **Evidence required** | Provide the objective, target, observations, actions already taken, current risks, and recommended next step. |
-| **Next path** | Continue to [What Evidence Is Required?](/docs/decisions/evidence-required) or the relevant scenario page before any higher-risk action. |
-
-## Related pages
-
-- [Investigating a Phishing Report](/docs/scenarios/phishing-investigation)
-- [Is This In Scope?](/docs/decisions/scope-check)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
-- [Manager / Approver](/docs/audiences/manager-approver)
+Next, read [Audiences](/docs/audiences) for role-specific decision and escalation reading paths (operator, approver, defender, integration author).

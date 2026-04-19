@@ -9,52 +9,59 @@ draft: false
 
 # FAQ
 
-## About WitnessOps
+Recurring operator and reviewer questions, answered with bounded claims.
 
-### What is WitnessOps?
+## Execution, Proof, and Presentation
 
-WitnessOps is a governance layer for security operations. It wraps existing tools in policy-enforced runbooks that emit signed evidence. It governs your stack; it does not replace it.
+### Is WitnessOps a scanner?
 
-### How is WitnessOps different from a vulnerability scanner?
+No. WitnessOps governs tool execution (scope, policy gates, approvals, evidence capture). It can orchestrate scanners, but it is not a scanner engine itself.  
+**Scope limit:** finding quality still depends on the underlying tool and its configuration. See [Governed Execution](/docs/security-systems/governed-execution) and [Runbooks](/docs/operations/runbooks).
 
-A scanner finds vulnerabilities. WitnessOps governs the tools that do the finding. Run Nmap through WitnessOps and you get scope enforcement, policy gates, and a signed receipt. Run it directly and you do not.
+### What is the difference between execution and proof?
 
-### How do receipts become independently verifiable?
+Execution is runtime control (`executed`, `denied`, `paused`, `failed`). Proof is post-execution verification of signed and linked artifacts (`valid`, `invalid`, `indeterminate`).  
+**Scope limit:** successful execution is not automatically a successful proof result, and proof validity is not a claim about business impact. See [Governed Execution](/docs/security-systems/governed-execution), [Proof Model](/docs/how-it-works/proof-model), and [How to Verify a Receipt](/docs/how-it-works/verification).
 
-WitnessOps executes governed operations and emits receipts. Those receipts can be packaged into proof bundles that third parties verify independently. WitnessOps produces evidence; the separate verification surface packages and checks it.
+### What is the difference between proof and presentation?
 
-### Who is WitnessOps built for?
+Proof artifacts are verification-bearing materials (receipts, manifests, trust material, continuity artifacts). Presentation is operator-facing display (dashboards, summaries, status views).  
+**Scope limit:** presentation can summarize proof, but it is not proof-bearing on its own. See [Proof Model](/docs/how-it-works/proof-model) and [Evidence Bundles](/docs/how-it-works/evidence-bundles).
 
-Security operators. Penetration testers who need to prove what they tested. Red teams that need scope enforcement and approval controls. SOC analysts who need auditable incident response workflows. Compliance teams that need verifiable records of security testing.
+### Does a receipt prove a finding is true?
 
-## How It Works
+No. A receipt proves a governed claim was emitted and cryptographically bound to referenced artifacts.  
+**Scope limit:** receipt validity does not prove exploitability, severity, remediation quality, or organizational risk acceptance. See [Receipts](/docs/evidence/receipts), [Receipt Spec](/docs/evidence/receipt-spec), and [What Evidence Is Required?](/docs/decisions/evidence-required).
 
-### What is a runbook?
+## Authority and Runtime Boundaries
 
-A YAML workflow that defines an operation step by step. Each step references a tool, declares inputs, and specifies policy gates. Runbooks are versioned and reusable. See the [Runbooks](/docs/operations/runbooks) page for structure details.
+### Who has authority to let a step run?
 
-### What happens when a policy gate fails?
+Runtime gates evaluate policy-bound principals (`operator`, `approver`, `system`) and permit or deny execution accordingly.  
+**Scope limit:** WitnessOps enforces the configured authorization contract; it does not independently guarantee upstream identity sources are truthful. See [Authorization Model](/docs/governance/authorization-model) and [Policy Gates](/docs/security-systems/policy-gates).
 
-The step does not execute. No partial execution, no fallback. WitnessOps records the failure, and the operation pauses. You can resolve the issue — expand scope, get approval, fix the principal identity — and resume from where it stopped.
+### Can an operator bypass policy gates?
 
-### What does a receipt contain?
+Not inside governed runtime: a failed gate blocks the step. A tool may still be run outside WitnessOps, but that action is outside governance and outside the WitnessOps receipt chain.  
+**Scope limit:** lack of a WitnessOps receipt proves lack of governed execution for that action, not that no action happened elsewhere. See [Governed Execution](/docs/security-systems/governed-execution) and [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass).
 
-A receipt contains the runbook reference, policy gate context, operator identity, timestamp, execution hash, cryptographic signature, and a link to the previous receipt. The surrounding manifests, state files, and logs carry the richer execution detail. See [Receipts](/docs/evidence/receipts) for the current field list and example.
+### Where does independent verification happen?
 
-### Can I pause and resume an operation?
+Verification is performed on exported proof artifacts, including on `/verify` and `/api/verify`, using deterministic integrity and signature checks.  
+**Scope limit:** verification checks declared proof layers; it does not rerun tools against live targets. See [How to Verify a Receipt](/docs/how-it-works/verification) and [Evidence Bundles](/docs/how-it-works/evidence-bundles).
 
-Yes. Governed execution preserves state. When a step requires approval, execution pauses and waits. You can return later, approve the gate, and resume without re-running previous steps.
+## Evidence Sufficiency and Decisions
 
-## Security and Trust
+### How much evidence is enough?
 
-### What happens to my data?
+Enough means sufficient for the current decision (`proceed`, `close`, `escalate`), not maximum artifact volume.  
+**Scope limit:** more artifacts do not automatically strengthen a claim; sufficiency depends on claim relevance, quality, and reviewability. See [What Evidence Is Required?](/docs/decisions/evidence-required) and [Do I Need to Escalate?](/docs/decisions/escalation).
 
-Tool outputs are hashed. Receipts contain the hashes, not the raw findings. This means you can share a receipt as signed evidence that an operation happened without exposing what it found. The actual output files stay under your control.
+### Does WitnessOps replace reviewer judgment?
 
-### Can I verify a receipt independently?
+No. WitnessOps makes execution and proof artifacts reviewable; humans still interpret risk, context, and acceptable action.  
+**Scope limit:** governance and proof reduce ambiguity but do not remove external trust assumptions. See [Three-Layer Stack](/docs/security-systems/three-layer-stack) and [Threat Model and Trust Boundaries](/docs/security-systems/threat-model).
 
-Yes. Receipts are signed with Ed25519. Anyone with the public key can verify the signature and confirm the receipt has not been modified. For full independent verification, receipts can be packaged into proof bundles that third parties evaluate without trusting the operator.
+## Need term definitions first?
 
-### What prevents an operator from skipping a policy gate?
-
-The governance layer enforces gates at runtime. Tools execute inside the governance boundary, not outside it. There is no way to invoke a tool through WitnessOps without passing its declared gates. If you bypass WitnessOps and run the tool directly, no receipt is produced — which is itself detectable evidence of ungoverned execution.
+Use the [Glossary](/docs/glossary) for canonical definitions before deep review or dispute handling.

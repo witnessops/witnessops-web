@@ -9,62 +9,98 @@ draft: false
 
 # What To Do If You Clicked
 
-You clicked a link. You entered your password. You realized it was phishing. Now what?
+## Problem this page solves
 
-Do not panic. Act fast.
+After a phishing click, teams often choose between fast cleanup and careful investigation without a clear recovery model.
+This page gives a time-bounded, evidence-first sequence so early actions reduce risk without destroying proof.
 
-## Scenario
+## Reader outcome
 
-A user clicked a phishing link and may have entered credentials or approved access. Time now matters more than perfect diagnosis.
+After this page, you should be able to:
 
-## Attack Chain
+- run first-hour triage with explicit evidence boundaries
+- choose containment actions based on interaction depth, not assumptions
+- escalate when impact or uncertainty crosses defined thresholds
 
-```
-User clicks lure
-  ↓
-Credentials or session token are exposed
-  ↓
-Attacker attempts real sign-in
-  ↓
-Mailbox, cloud, or downstream systems become reachable
-```
+## Mechanism-first recovery sequence (first minutes/hours)
 
-## Observable Evidence
+Use this sequence when a user reports clicking a suspicious link, opening an attachment, entering credentials, or approving MFA unexpectedly.
 
-Look for:
+### 0–15 minutes: stabilize and preserve
 
-- the original phishing message or link
-- confirmation that credentials, MFA approval, or a file interaction occurred
-- new sessions from unknown locations or devices
-- forwarding rules, sent mail, or password resets after the click
-- endpoint alerts if a file was opened or executed
+1. Capture a short user statement: what was opened, clicked, entered, approved, or executed, and when.
+2. Preserve source artifacts before cleanup: original message (`.eml` when possible), URL, attachment hash, and screenshots.
+3. Start a response timeline with UTC timestamps and actor identity for each step.
 
-## Operator Response
+### 15–60 minutes: verify exposure and contain account risk
 
-### In the next 5 minutes
+4. Check identity and session telemetry for unfamiliar successful sign-ins near the interaction window.
+5. If credential, token, or MFA exposure is plausible, reset credentials and revoke active sessions/tokens for the affected account.
+6. Review mailbox and account changes: forwarding rules, OAuth/app grants, reset-method changes, and unusual outbound mail.
 
-1. Change the affected password immediately.
-2. Enable MFA if it is not already enabled.
-3. Revoke active sessions you do not recognize.
+### 1–4 hours: bound scope and reduce spread
 
-### In the next 30 minutes
+7. Validate whether adjacent workflows were touched (finance approvals, internal messaging, file-sharing access).
+8. Check for secondary phishing from the affected account and notify recipients through known-good channels.
+9. Run endpoint triage when attachment open or execution evidence exists; avoid destructive cleanup until key artifacts are captured.
 
-4. Report the event with the email, link, account, and click time.
-5. Check for mailbox forwarding rules and unexpected sent mail.
-6. Notify recipients if the attacker already sent messages from the account.
+## Decision gates for containment vs escalation
 
-### In the next 24 hours
+- **Gate A (exposure-only):** message reported, no click/open/credential/MFA/session evidence.
+  - Decision: block indicators, retain artifacts, document as exposure-only, monitor.
+- **Gate B (interaction):** click/open evidence exists, but no credential/MFA/session compromise evidence yet.
+  - Decision: preserve full timeline, increase auth/endpoint monitoring, apply scoped containment.
+- **Gate C (account exposure likely):** credential entry, unexpected MFA approval, suspicious session, or token/app-grant anomaly.
+  - Decision: perform account containment immediately and execute [Phishing Investigation](/docs/scenarios/phishing-investigation).
+- **Gate D (escalation threshold):** privileged account, multi-user spread, finance/regulatory workflow impact, or scope cannot be bounded quickly.
+  - Decision: escalate through governed incident handling using [Do I Need to Escalate?](/docs/decisions/escalation) and required approvals.
 
-7. Monitor for password resets, login alerts, and financial abuse.
-8. Run a malware scan if a file was opened or downloaded.
+## Evidence preservation requirements during response
 
-## WitnessOps Controls
+- preserve original artifacts before user mailbox cleanup or endpoint remediation
+- record collection source, timestamp, and collector for each artifact
+- retain immutable copies/hashes for URLs, attachments, and key logs where possible
+- document each containment action (what changed, by whom, and why)
+- keep sensitive artifacts in controlled handling paths via [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling)
 
-The governed response should use:
+## What WitnessOps controls support vs cannot guarantee
 
-- [Phishing Investigation](/docs/scenarios/phishing-investigation)
-- [Do I Need to Escalate?](/docs/decisions/escalation)
-- [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling)
-- [Receipts](/docs/evidence/receipts)
+**WitnessOps can support:**
 
-Speed matters more than perfection. The attacker is automated. Every minute counts.
+- [Phishing Investigation](/docs/scenarios/phishing-investigation) for governed recovery sequencing
+- [Do I Need to Escalate?](/docs/decisions/escalation) for impact- and uncertainty-based escalation gates
+- [What Evidence Is Required?](/docs/decisions/evidence-required) for minimum decision completeness
+- [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling) and [Receipts](/docs/evidence/receipts) for controlled evidence flow and signed response history
+
+**WitnessOps cannot guarantee:**
+
+- prevention of all phishing interactions
+- complete reconstruction if required telemetry is missing, late, or altered
+- attacker attribution from a single event
+- external recovery outcomes (for example, third-party financial reversal timelines)
+
+## Observed vs inferred separation
+
+- **Observed:** preserved lure artifact, click/open telemetry, sign-in/session logs, mailbox-rule changes, token/app-grant changes.
+- **Inferred:** "attacker fully controlled the account," "all impacted systems are known," or "no further risk remains."
+
+Use observed evidence to justify immediate response actions.
+Keep inferred statements explicit and provisional until corroborated.
+
+## Trust assumptions and limits
+
+Assumptions:
+
+- identity, mailbox, and endpoint telemetry is retained and time-aligned enough for sequence reconstruction
+- responders preserve key artifacts before broad cleanup
+- high-impact actions follow policy and approval gates
+
+Limits:
+
+- delayed reporting can remove short-lived evidence (redirect chains, transient sessions)
+- adversaries may evade, suppress, or overwrite telemetry
+- some scope decisions remain probabilistic until additional corroborating evidence is collected
+
+## Next-page handoff
+
+Continue to [How Attackers Think](/docs/security-education/attacker-perspective) for attacker economics and path selection logic that explain why these recovery gates matter.

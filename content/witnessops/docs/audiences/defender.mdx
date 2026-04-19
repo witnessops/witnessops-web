@@ -2,109 +2,82 @@
 title: "Defender"
 description: "A starting point for defenders, analysts, and responders handling suspicious activity, phishing, and account-risk investigations."
 section: "docs"
-order: 3
+order: 30
 nav_label: "Defender"
 draft: false
 ---
 
 # Defender
 
-This page is for security engineers, defenders, incident responders, and analysts who use the docs to investigate suspicious activity, validate reports, and support safe triage.
+This page defines the defender lane for analysts and responders who triage suspicious activity, contain active risk, preserve evidence, and escalate when incident criteria are met.
 
-## What this role uses the docs for
+## 1. Problem this page solves
 
-Use these docs to:
+Defender work fails when triage, containment, and escalation happen without explicit decision ownership and evidence thresholds.
 
-- investigate reported phishing and suspicious activity
-- validate alerts without overreacting
-- collect evidence for escalation
-- understand when a security event becomes an incident
-- coordinate with operators and approvers
+This page gives the first-pass path so defender decisions stay fast, auditable, and proportional under uncertainty.
 
-## Start here
+## 2. What you should understand after reading
 
-Read these in order:
+After this page, you should understand:
 
-1. [Security Education](/docs/security-education)
-2. [Evidence](/docs/evidence)
-3. [Operations](/docs/operations)
-4. [Governance](/docs/governance)
-5. [FAQ](/docs/faq)
+- the defender role boundary: validate signals, contain risk, preserve evidence, escalate at decision gates
+- what to read first before acting on alerts or reports
+- which incident decisions you own and which you hand off
+- how to separate observed facts from inferred conclusions
+- what to defer until the active case loop is complete
 
-## What defenders should optimize for
+## 3. Mechanism-first role path
 
-- fast triage
-- low false confidence
-- clear escalation triggers
-- good evidence hygiene
-- user safety and business continuity
+### Read first (in order)
 
-## Trust boundaries you should know
+1. [Evidence](/docs/evidence)
+2. [Operations](/docs/operations)
+3. [Do I Need to Escalate?](/docs/decisions/escalation)
+4. [What Evidence Is Required?](/docs/decisions/evidence-required)
+5. [Authorization Model](/docs/governance/authorization-model)
+6. [Investigating a Phishing Report](/docs/scenarios/phishing-investigation)
 
-Before investigating, understand these limits:
+### Decisions you own in this role
 
-- **Scope enforcement** depends on `in-scope.txt` — a configuration file, not an access control list. If the file is wrong, enforcement is wrong.
-- **Self-approval** is only possible when the workflow and external policy explicitly allow it. Separation of duties still depends on configuration.
-- **Host compromise** defeats all governance controls. WitnessOps assumes a trustworthy host.
-- **Receipts** prove execution occurred. They do not prove findings are correct or that the investigation was complete.
+| Decision | What you own | Primary pages |
+| --- | --- | --- |
+| Triage classification | Decide whether signals are informational, suspicious, or confirmed malicious based on available artifacts | [Evidence](/docs/evidence), [Operations](/docs/operations) |
+| Containment selection | Apply the least disruptive containment that reduces live risk while preserving future investigation value | [Operations](/docs/operations), [Runbooks](/docs/operations/runbooks) |
+| Escalation trigger | Escalate when compromise indicators, privileged exposure, spread potential, or boundary uncertainty exceeds defender authority | [Do I Need to Escalate?](/docs/decisions/escalation), [Authorization Model](/docs/governance/authorization-model) |
+| Evidence sufficiency | Ensure case artifacts support later approval, incident review, and post-incident decisions | [What Evidence Is Required?](/docs/decisions/evidence-required), [Evidence](/docs/evidence) |
+
+### Defer initially
+
+Defer these until the current case is triaged and either contained or escalated:
+
+- integration authoring and connector implementation detail in [Integration Author](/docs/audiences/integration-author)
+- field-level receipt internals in [Receipt Spec](/docs/evidence/receipt-spec)
+- scenario catalog pages that do not match the active incident type
+
+## 4. Observed vs inferred
+
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Alert and artifact review | message/header artifacts, sender infrastructure data, auth results, linked indicators, timeline events | attacker intent, campaign attribution, full blast radius |
+| Containment and response | account disable/reset actions, mail-flow blocks, endpoint/network controls, timestamps, case notes | certainty that all persistence paths are removed |
+| Escalation readiness | explicit evidence gaps, policy boundary breaches, privileged impact signals | business impact severity beyond currently observed evidence |
+
+Treat inferred conclusions as hypotheses until additional evidence confirms them.
+
+## 5. Role-specific trust assumptions
+
+Operate with these assumptions explicit:
+
+- **Incoming signals are imperfect:** user reports, alerts, and artifacts may be incomplete, delayed, or intentionally deceptive.
+- **Evidence timing lags risk:** containment may begin before evidence is complete; record what was known at each decision point.
+- **Escalation timing is a control:** delaying escalation can increase impact, while premature escalation can disrupt operations without added safety.
+- **Scope and approval boundaries are configuration-backed:** defender actions still depend on accurate policy and workflow configuration.
+- **Runtime integrity is assumed:** host or key compromise invalidates workflow and evidence guarantees.
+- **Receipts attest execution, not correctness:** they prove what ran and what was captured, not whether your analytic conclusion is true.
 
 See [Threat Model](/docs/security-systems/threat-model) for the full trust boundary map.
 
-## Typical defender workflow
+## 6. Next-page handoff
 
-### 1. Triage the report
-
-Determine what was reported, by whom, and when.
-
-### 2. Establish the facts
-
-Check the sender, links, attachments, authentication signals, affected accounts, and related activity.
-
-### 3. Assess impact
-
-Decide whether the event is informational, suspicious, or confirmed malicious.
-
-### 4. Contain where needed
-
-Take the minimum action needed to protect users and systems.
-
-### 5. Preserve evidence
-
-Keep the message, logs, indicators, and decision trail.
-
-### 6. Escalate when necessary
-
-Escalate if there is evidence of compromise, user interaction, spread, or privileged exposure.
-
-## Common investigations
-
-- phishing reports
-- suspicious login alerts
-- malicious attachment claims
-- credential reuse concerns
-- mailbox rule abuse
-- account takeover indicators
-
-## Common mistakes
-
-- deleting the artifact before preserving it
-- trusting appearance over headers and actual links
-- escalating too late after confirmed user interaction
-- failing to document what was verified
-- treating "no immediate signs" as "no risk"
-
-## What success looks like
-
-You can show:
-
-- what was reported
-- what you validated
-- what evidence supported the conclusion
-- what containment occurred
-- whether more response work is required
-
-## Read next
-
-- [Investigating a Phishing Report](/docs/scenarios/phishing-investigation)
-- [Do I Need to Escalate?](/docs/decisions/escalation)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
+Next, read [Manager / Approver](/docs/audiences/manager-approver) to align defender outputs with approval and risk-acceptance decisions.

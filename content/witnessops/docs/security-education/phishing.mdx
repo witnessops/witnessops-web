@@ -9,60 +9,84 @@ draft: false
 
 # Why Phishing Works
 
-Phishing is an identity attack wrapped in a normal business workflow.
+## Problem this page solves
 
-## Scenario
+Phishing reports often jump from "user clicked" to broad cleanup without a clear compromise model.
+This page gives a stage-based response path so containment matches evidence quality.
 
-You receive an email from a supplier. Subject line: "Invoice #4821 — Payment Due."
+## Reader outcome
 
-The sender name matches a real contact. There is a PDF attachment or a link to "view the invoice online."
+After this page, you should be able to:
 
-You click it.
+- map a phishing report to a specific chain stage
+- collect stage-appropriate signals before intrusive actions
+- choose containment with explicit escalation gates
 
-## Attack Chain
+## Mechanism-first scenario model (phishing chain stages)
 
-```
-Email arrives
-  ↓
-User clicks the link
-  ↓
-Fake login page appears
-  ↓
-Credentials are entered
-  ↓
-Attacker signs in to the real mailbox
-  ↓
-Mailbox abuse, resets, or fraud begin
-```
+Scenario: a supplier-themed invoice email sends a user to a fake login page.
 
-This can take less than a minute from click to compromise.
+1. **Delivery** — lure reaches the inbox and appears routine.
+2. **Interaction** — user opens the message and follows a link or attachment.
+3. **Credential capture** — credentials, MFA approval, or session token are exposed.
+4. **Session establishment** — attacker authenticates to the real service.
+5. **Post-access actions** — forwarding rules, resets, internal phishing, or payment fraud attempts begin.
 
-## Observable Evidence
+## Observable signals per stage
 
-Look for:
+| Stage | Directly observable signals |
+|---|---|
+| Delivery | Preserved message, header path, sender/reply-to mismatch, domain age/reputation |
+| Interaction | Click telemetry, URL resolution, attachment open or execution events |
+| Credential capture | User confirmation, fake-login artifact, authentication prompt mismatch |
+| Session establishment | Unfamiliar successful sign-in, new session/device, impossible-travel pattern |
+| Post-access actions | Mailbox rule changes, outbound burst, reset attempts, administrative anomalies |
 
-- the preserved message with headers
-- a lookalike domain or mismatched reply-to
-- user confirmation that a link was clicked or credentials were entered
-- unfamiliar mailbox or identity-provider sign-ins
-- new forwarding rules, inbox rules, or password reset activity
+## Practical response/containment sequence with decision gates
 
-These artifacts show what happened. They do not prove analytical correctness on their own.
+1. Preserve source artifacts (email, URL, attachment hash, user timeline).
+2. Validate interaction depth (opened only, clicked, credentials entered, MFA approved).
+3. **Gate A:** No click and no execution -> classify as exposure-only, block indicators, document.
+4. **Gate B:** Click or file open without credential evidence -> isolate endpoint if needed, monitor auth telemetry, continue investigation.
+5. **Gate C:** Credential, MFA, or token exposure likely -> revoke sessions, reset credentials, remove attacker changes, run the governed phishing workflow.
+6. **Gate D:** Privileged account, multi-user spread, or financial workflow impact -> escalate through the governed incident path.
 
-## Operator Response
+## What WitnessOps controls can support vs cannot guarantee
 
-1. Preserve the original message before changing or deleting anything.
-2. Validate the sender, links, attachments, and user interaction path.
-3. If credentials may have been entered, revoke sessions and start account containment immediately.
-4. Escalate if privileged accounts, MFA approval, executed code, or multi-user exposure is involved.
+**WitnessOps can support:**
 
-Use [Investigating a Phishing Report](/docs/scenarios/phishing-investigation) for the governed workflow.
+- [Phishing Investigation](/docs/scenarios/phishing-investigation) for governed triage and evidence capture
+- [Policy Gates](/docs/security-systems/policy-gates) for approval before intrusive tenant-wide actions
+- [What Evidence Is Required?](/docs/decisions/evidence-required) for decision completeness
+- [Receipts](/docs/evidence/receipts) for signed containment and remediation traceability
 
-## WitnessOps Controls
+**WitnessOps cannot guarantee:**
 
-The response should be tied to:
+- prevention of every phishing attempt
+- complete reconstruction when telemetry is missing, delayed, or tampered with
+- attacker attribution from a single artifact
 
-- [Phishing Investigation](/docs/scenarios/phishing-investigation) for validation and triage
-- [Policy Gates](/docs/security-systems/policy-gates) before intrusive mailbox or tenant-wide actions
-- [What Evidence Is Required?](/docs/decisions/evidence-required) for a complete incident record
-- [Receipts](/docs/evidence/receipts) to sign the investigation and remediation chain
+## Observed vs inferred separation
+
+- **Observed:** message artifact, resolved URL, sign-in record, rule-change log.
+- **Inferred:** "credentials were stolen," "attacker intended fraud," or "blast radius is complete."
+
+Use observed evidence to justify immediate containment. Treat inferred claims as hypotheses until corroborated.
+
+## Trust assumptions and limits
+
+Assumptions:
+
+- logs are retained and time-aligned enough for sequence reconstruction
+- original artifacts are preserved before cleanup
+- responders follow policy gates for high-impact actions
+
+Limits:
+
+- delayed reporting can hide first access
+- adversaries may evade or remove telemetry
+- some scope decisions remain probabilistic until additional evidence arrives
+
+## Next-page handoff
+
+Continue to [7 Phishing Tricks Attackers Use](/docs/security-education/phishing-tricks) for recurring lure patterns and how they map back to this chain.

@@ -2,17 +2,58 @@
 title: "Decisions"
 description: "Fast decision guides for scope, escalation, and evidence handling in WitnessOps workflows."
 section: "docs"
-order: 1
+order: 0
 nav_label: "Decisions"
 draft: false
 ---
 
 # Decisions
 
-These pages are short operator decision aids. Use them when you need to stop, escalate, confirm scope, or decide whether the record is complete enough to proceed or close.
+This section defines the decision system that keeps key operator judgments explicit before, during, and after governed work.
 
-## In this section
+## 1. Problem this page solves
 
-- [Is This In Scope?](/docs/decisions/scope-check)
-- [Do I Need to Escalate?](/docs/decisions/escalation)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
+Governed execution fails when scope, evidence, and escalation decisions remain implicit or undocumented.
+
+This page maps decision classes so operators know what must be decided, when, and against which standards.
+
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- which decision classes govern operator flow
+- when each decision class occurs
+- which controls or artifacts support each class
+- where deeper pages define each decision standard
+
+## 3. Mechanism-first decision model
+
+| Decision class | Typical timing | Supporting controls/artifacts | Standard page |
+| --- | --- | --- | --- |
+| Scope check | before action | authorization boundary + scope constraints | [Is This In Scope?](/docs/decisions/scope-check) |
+| Evidence required | during work and before closure | evidence capture expectations + reviewability criteria | [What Evidence Is Required?](/docs/decisions/evidence-required) |
+| Escalation | when risk/scope/impact uncertainty increases | escalation criteria + risk boundary signals | [Do I Need to Escalate?](/docs/decisions/escalation) |
+| Closure/disposition | end of workflow | sufficient evidence + explicit rationale + action record | [What Evidence Is Required?](/docs/decisions/evidence-required) |
+
+Operationally, the decision flow is: **scope -> execute/observe -> evidence sufficiency -> escalate or close**.
+
+## 4. Observed vs inferred
+
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Observed | documented decision points, criteria pages, and evidence requirements | none beyond documented standards |
+| Inferred | decision quality in live operations | depends on operator discipline, context clarity, and enforcement quality |
+
+## 5. Trust assumptions
+
+Decision structure reduces drift, but still depends on:
+
+- upstream facts being sufficiently accurate and complete
+- operators documenting ambiguity honestly
+- judgment quality under time/uncertainty pressure
+
+A documented decision system improves consistency; it does not eliminate human judgment.
+
+## 6. Next-page handoff
+
+Next, read [Is This In Scope?](/docs/decisions/scope-check) to start with the first decision boundary before governed action begins.

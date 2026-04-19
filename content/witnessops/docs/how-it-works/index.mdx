@@ -9,33 +9,92 @@ draft: false
 
 # How It Works
 
-WitnessOps produces portable proof objects for governed operations. This section explains the proof model: what gets signed, what gets timestamped, what goes into a proof bundle, and how a third party verifies it without trusting WitnessOps.
+This page explains the mechanism path from governed execution to verifiable evidence. It is the model page for how WitnessOps moves from runtime controls to proof artifacts.
 
-## The Proof Chain
+## 1. Problem this page solves
+
+Security teams often have logs but no cryptographic chain from authorization to execution to proof.
+
+When challenged, they need to answer:
+
+- what ran
+- under what authority and policy
+- whether scope controls were applied
+- what can be verified independently
+
+This page defines the mechanism that connects those answers.
+
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- the exact stage order for a governed run
+- which artifacts are generated at each stage
+- where independent verification begins
+- what this mechanism proves and what it does not prove
+
+## 3. Mechanism sequence (exact order)
 
 Every governed operation follows this sequence:
 
-1. **Statement** — a structured claim about what happened, who authorized it, and what policy applied
-2. **Signature** — the statement is signed using a standards-based envelope so the exact payload is unambiguous
-3. **Timestamp** — the signed object is timestamped by a separate authority so trusted time is external, not self-asserted
-4. **Publication** — the signed, timestamped receipt is committed to an append-only ledger
-5. **Bundle** — all proof material is packaged into a portable evidence bundle with trust roots included
+1. **Declare intent and scope.** Runbook step, target scope, and gate requirements are selected.
+2. **Evaluate policy gates.** Scope, approvals, and preconditions are checked before execution.
+3. **Execute governed step.** Tool action runs only if gates pass.
+4. **Capture and hash artifacts.** Execution outputs are materialized and hashed.
+5. **Emit signed receipt.** A structured execution statement is signed.
+6. **Attach external proof layers.** Timestamp and log/inclusion material are attached when available.
+7. **Publish continuity state.** Receipt links to prior state so sequence integrity can be replayed.
+8. **Export proof bundle.** Receipt plus supporting artifacts can be handed to an independent verifier.
 
-The result is a proof object that can be verified offline, by anyone, without calling WitnessOps.
+## 4. Artifacts produced by the mechanism
 
-## What Makes This Different
+For a successful governed run, expect:
 
-Most security platforms produce logs. Some produce reports. WitnessOps produces **receipts** — signed, timestamped records that prove what ran, who approved it, what policy applied, and whether execution stayed in scope.
+- **`receipt.json`** — signed execution statement
+- **`manifest.json`** — artifact inventory with hash bindings
+- **`state.json`** — execution state for replay and investigation
 
-The difference matters when someone asks: *"Prove it."*
+Depending on configured proof layers, bundles may also include timestamp and log inclusion material.
 
-A log says something happened. A receipt proves it, with cryptographic evidence a third party can check independently.
+## 5. Independent verification path
 
-## Sections
+A reviewer can verify without calling WitnessOps by checking:
 
-- [Proof Model](/docs/how-it-works/proof-model) — what gets signed, timestamped, and verified
-- [Receipt Anatomy](/docs/evidence/receipts) — the structure of a WitnessOps receipt
-- [Evidence Bundles](/docs/how-it-works/evidence-bundles) — what is in a proof bundle and how to verify it offline
-- [Verification](/docs/how-it-works/verification) — how to verify a receipt without trusting WitnessOps
-- [Anchored Replay](/docs/how-it-works/anchored-replay) — how a reviewer establishes signer continuity with a separately delivered trust anchor
-- [Standards Alignment](/docs/how-it-works/standards) — which open standards WitnessOps uses and why
+- receipt signature validity
+- structure and digest bindings
+- timestamp token validity (if present)
+- log inclusion/checkpoint consistency (if present)
+- continuity links to prior state (if provided)
+
+Start with [How to Verify a Receipt](/docs/how-it-works/verification), then use [Anchored Replay](/docs/how-it-works/anchored-replay) when reviewer-supplied trust anchors are required.
+
+## 6. What this mechanism proves
+
+This mechanism proves that governed execution claims were recorded with cryptographic integrity and linked evidence.
+
+It does not, by itself, prove:
+
+- that every tool result is correct
+- that human judgment was always optimal
+- that external trust roots are uncompromised
+
+## 7. Remaining trust assumptions
+
+The model still depends on explicit trust inputs:
+
+- key distribution and rotation posture
+- timestamp authority trust
+- transparency-log trust root continuity
+- policy authoring quality and approval quality
+
+These assumptions are explicit design boundaries, not hidden guarantees.
+
+## 8. Next-page handoff
+
+Next, read [Governed Execution](/docs/security-systems/governed-execution) for runtime authority boundaries and gate behavior under real execution pressure.
+
+Then continue to [Proof Model](/docs/how-it-works/proof-model) for authority layers, signature layers, and strength hierarchy.
+
+Then review [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the portable package exported from this mechanism path.
+
+If you need standards mapping details, read [Standards Alignment](/docs/how-it-works/standards).

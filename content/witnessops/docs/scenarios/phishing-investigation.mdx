@@ -2,153 +2,92 @@
 title: "Investigating a Phishing Report"
 description: "A practical workflow for validating suspicious messages, determining user impact, preserving evidence, and escalating when needed."
 section: "docs"
-order: 1
+order: 10
 nav_label: "Phishing Investigation"
 draft: false
 ---
 
 # Investigating a Phishing Report
 
-Use this workflow when a user reports a suspicious email, message, or login prompt.
+Use this page to run a governed phishing investigation from first report to explicit closure or escalation.
 
-## Goal
+## 1. Problem this page solves
 
-Determine whether the report is:
+Phishing triage often fails in three ways:
 
-- benign
-- suspicious but unconfirmed
-- phishing
-- confirmed compromise requiring incident response
+- scope expands before authority is checked
+- conclusions are asserted before evidence is sufficient
+- escalation is delayed because compromise is treated as a confidence question instead of a control boundary
 
-## Assumptions
+This page defines a bounded investigation sequence with explicit gates so actions and conclusions remain reviewable.
 
-- the report came from an employee, user, or monitored mailbox
-- you have access to the message or a preserved copy
-- you can review headers, links, and surrounding context
+## 2. Reader outcome
 
-## Scope limits
+After this page, you should understand:
 
-This workflow is for validation and triage. Do not expand into broad mailbox or tenant-wide response unless escalation is justified.
+- the ordered investigation path from signal intake to case disposition
+- where scope, evidence sufficiency, and escalation must be decided
+- what evidence must be preserved at each stage
+- how to separate observed facts from inferred conclusions
+- how to close locally or hand off with a complete package
 
-## Step 1: Preserve the artifact
+## 3. Mechanism-first investigation sequence (signal intake to closure)
 
-Capture:
+1. **Intake and case binding.** Record report source, timestamp, reporter, and suspicious artifact reference.
+2. **Preserve primary artifact.** Preserve original message/artifact before analysis or remediation.
+3. **Validate technical indicators.** Review sender identity, routing/authentication data, destinations, and attachment details.
+4. **Assess interaction and impact.** Establish whether the target clicked, submitted credentials, approved MFA, or executed content.
+5. **Classify and choose disposition.** Mark benign, suspicious/unconfirmed, phishing, or probable compromise based on current evidence only.
+6. **Close or escalate explicitly.** Either close with bounded rationale or escalate with evidence package and unresolved risk notes.
 
-- the original message if available
-- screenshots only as supporting evidence, not as the primary source
-- full sender details
-- subject line
-- timestamp
-- links, attachments, and recipient list if relevant
+## 4. Decision gates at each stage
 
-Do not delete or alter the original until evidence is preserved.
+| Stage | Scope gate | Evidence sufficiency gate | Escalation gate |
+| --- | --- | --- | --- |
+| Intake and case binding | Is this report in your authorized intake lane and asset boundary? ([Is This In Scope?](/docs/decisions/scope-check)) | Do you have enough intake context to start (reporter, time, artifact reference)? | Escalate immediately if reporter or target falls outside local authority boundary. |
+| Preserve primary artifact | Is preservation method allowed for this data class and system? | Is the original artifact (or immutable provider reference) captured without alteration? | Escalate if you cannot preserve the primary artifact without policy exception. |
+| Validate technical indicators | Are planned checks limited to authorized message/artifact analysis? | Do collected indicators support a bounded technical finding (e.g., spoofing pattern, malicious destination)? | Escalate if indicators imply active campaign, privileged target exposure, or controls failure. |
+| Assess interaction and impact | Is user/account follow-up within your role and approval boundary? | Do you have direct interaction facts (click, credential entry, MFA approval, execution) from reliable sources? | Escalate if interaction suggests account or endpoint compromise, or if impact cannot be bounded. |
+| Classify and choose disposition | Is selected action (warn, quarantine, reset, hold) authorized at your level? | Is classification supported by preserved artifacts and explicit rationale? ([What Evidence Is Required?](/docs/decisions/evidence-required)) | Escalate if required action exceeds local authority or evidence remains insufficient under risk. |
+| Close or hand off | Is local closure allowed for this event class? | Does the record let another reviewer reconstruct what was observed, decided, and done? | Use [Do I Need to Escalate?](/docs/decisions/escalation) when authority, evidence, or risk boundaries are exceeded. |
 
-## Step 2: Review the visible signs
+## 5. Evidence path (what to preserve, and when)
 
-Check for:
+| When | Preserve | Why it is required |
+| --- | --- | --- |
+| At intake | report source, reporter identity, timestamp, artifact identifier/location | establishes chain of intake and case origin |
+| Before analysis | original message/artifact copy, full headers/metadata, recipient scope | preserves primary evidence before any change |
+| During indicator validation | extracted URLs, resolved destinations, sender/reply-path comparison, attachment metadata/hash where available | supports technical findings and classification rationale |
+| During interaction assessment | user statement, auth/access logs, endpoint/mail telemetry tied to interaction claims | distinguishes attempted phishing from probable compromise |
+| At disposition | classification decision, action taken, approval/escalation records, unresolved questions | supports closure review or escalation handoff |
 
-- urgency or fear language
-- requests for credentials or MFA codes
-- fake login pages
-- mismatched sender identity
-- suspicious attachments
-- brand impersonation
-- security alert language designed to provoke action
+Screenshots are supporting artifacts, not substitutes for primary evidence.
 
-These signals help triage, but they are not enough on their own.
+## 6. Observed vs inferred
 
-## Step 3: Validate the technical indicators
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Intake and artifact analysis | message content, headers, sender attributes, URLs, attachment properties, report metadata | attacker intent, campaign attribution, full targeting scope |
+| Interaction and impact | confirmed clicks/submissions/approvals/execution events, log timestamps, affected identities | degree of compromise, persistence, total blast radius |
+| Disposition | documented classification, actions taken, escalation decision and rationale | long-term impact likelihood, future attacker behavior |
 
-Review:
+Do not promote inferred conclusions to observed facts without additional evidence.
 
-- sender domain
-- reply-to mismatch
-- link destinations
-- attachment type
-- mail authentication results if available
-- whether the message was actually sent from the claimed service
+## 7. Trust assumptions and limits
 
-Check whether displayed links match actual destinations.
+- reporter statements can be incomplete or incorrect
+- mail, identity, and endpoint telemetry can be delayed or missing
+- provider metadata can show routing/authentication outcomes but not attacker intent
+- absence of evidence is not evidence of absence when logs are incomplete
+- this workflow governs triage and bounded response; broader tenant-wide containment may require separate authority and incident handling
 
-## Step 4: Determine user interaction
+See [Threat Model](/docs/security-systems/threat-model) for trust boundary context.
 
-Ask:
+## 8. Closure and handoff
 
-- did the user click anything
-- did they enter credentials
-- did they approve MFA
-- did they open an attachment
-- did they download or execute anything
+Choose one explicit end state:
 
-This determines whether the issue is only phishing content or a possible compromise.
+- **Close locally:** evidence is sufficient, risk is bounded, and local authority permits closure. Record final rationale and actions.
+- **Escalate:** evidence or authority boundary is exceeded. Hand off with preserved artifacts, gate outcomes, open questions, and risk notes via [Do I Need to Escalate?](/docs/decisions/escalation).
 
-## Step 5: Classify the event
-
-### Benign
-
-The message is legitimate or low-risk and no harmful indicators are present.
-
-### Suspicious
-
-Some indicators are present, but malicious intent is not yet confirmed.
-
-### Phishing
-
-The message clearly attempts deception, credential theft, or unsafe interaction.
-
-### Escalate immediately
-
-Escalate if:
-
-- the user clicked and entered credentials
-- MFA may have been approved
-- an attachment was opened and executed
-- multiple users received the same lure
-- privileged or sensitive accounts are involved
-
-## Step 6: Take minimum necessary action
-
-Depending on the result:
-
-- warn the reporter
-- quarantine or remove the message where appropriate
-- block or monitor indicators
-- trigger credential reset and session review if interaction occurred
-- open an incident if compromise is plausible
-
-## Evidence to collect
-
-- preserved message or message identifier
-- sender and recipient details
-- headers if available
-- link destinations
-- attachment metadata
-- screenshots of the lure if useful
-- notes on user interaction
-- your classification and rationale
-
-## What good looks like
-
-At the end of this workflow, another responder should be able to tell:
-
-- what the message claimed
-- what it actually did
-- whether a user interacted
-- whether compromise is likely
-- what action was taken
-
-## Quick action frame
-
-| Check | Use this rule |
-| --- | --- |
-| **When to stop** | Stop when the next step would move from message validation into broader account, mailbox, or tenant response without approval. |
-| **Escalation trigger** | Escalate immediately if credentials were entered, MFA may have been approved, code was executed, or privileged accounts are involved. |
-| **Evidence required** | Preserve the message or identifier, sender and recipient details, indicators, user interaction status, and your classification rationale. |
-| **Next path** | Continue to [Do I Need to Escalate?](/docs/decisions/escalation) for incident handoff or [What Evidence Is Required?](/docs/decisions/evidence-required) to confirm the record is complete. |
-
-## Related pages
-
-- [Do I Need to Escalate?](/docs/decisions/escalation)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
-- [Is This In Scope?](/docs/decisions/scope-check)
-- [Defender](/docs/audiences/defender)
+After closure or escalation, return to [Scenarios](/docs/scenarios) for the next governed case flow or to the relevant decision page for follow-on action.

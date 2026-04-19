@@ -1,85 +1,109 @@
 ---
-title: "Why MFA Stops Most Attacks"
-description: "An MFA lesson framed as scenario, attack chain, observable evidence, operator response, and WitnessOps controls."
+title: "MFA Abuse and Defense"
+description: "Mechanism-first MFA abuse and defense with signals, escalation gates, and bounded claims."
 section: "docs"
 order: 3
 nav_label: "MFA"
 draft: false
 ---
 
-# Why MFA Stops Most Attacks
+# MFA Abuse and Defense
 
-A stolen password without MFA gives instant access. A stolen password with MFA often gives nothing.
+## Problem this page solves
 
-## Scenario
+Teams often deploy MFA and then over-trust it. This page addresses the operational gap: attackers still gain access through user pressure, real-time relay, token reuse, and weak fallback paths.
 
-An attacker gets a valid password from phishing, password reuse, or a public breach. They try it against email, cloud, or finance systems.
+## Reader outcome
 
-## Attack Chain
+After reading, you should be able to:
 
-### Without MFA
+- map common MFA abuse paths to concrete attacker actions
+- identify what each observable signal can and cannot support
+- choose governed containment and escalation decisions without over-claiming certainty
 
-```
-Password stolen
-  ↓
-Attacker signs in
-  ↓
-Account compromised
-```
+## Mechanism-first MFA abuse model
 
-### With MFA
+### 1) Prompt bombing (MFA fatigue)
 
-```
-Password stolen
-  ↓
-Attacker tries to sign in
-  ↓
-MFA prompt or challenge appears
-  ↓
-User denies or does not possess the factor
-  ↓
-Access blocked
-```
+**Attacker path:** attacker has a valid password, repeatedly triggers push prompts, and waits for accidental approval.
 
-## Observable Evidence
+**Operational point:** MFA was present, but user approval became the attack surface.
 
-Look for:
+### 2) Real-time relay (adversary-in-the-middle)
 
-- repeated sign-in attempts that fail on the MFA step
-- MFA prompts the user did not initiate
-- weak MFA methods such as SMS on sensitive accounts
-- privileged accounts with no MFA at all
-- successful logins from exposed accounts that should have been challenged
+**Attacker path:** phishing infrastructure proxies the live login flow, captures primary credentials and challenge completion, then steals the resulting session.
 
-## Operator Response
+**Operational point:** this is not "MFA failed" in isolation; the session was captured after challenge success.
 
-1. Enable MFA first on email, cloud admin, and finance systems.
-2. Prefer phishing-resistant methods for privileged or high-value accounts.
-3. Treat unsolicited MFA prompts as evidence of attempted compromise.
-4. Reset the password and revoke sessions if a prompt was accidentally approved.
+### 3) Token/session abuse
 
-## WitnessOps Controls
+**Attacker path:** attacker obtains an already-valid session or refresh token (for example from endpoint compromise, browser theft, or prior relay) and replays it.
 
-The governed path should include:
+**Operational point:** no fresh MFA event may appear because the attacker reuses a post-auth session state.
 
-- [Authorization Model](/docs/governance/authorization-model) for who may change authentication settings
-- [Policy Gates](/docs/security-systems/policy-gates) for approval on privileged account changes
-- [What Evidence Is Required?](/docs/decisions/evidence-required) to capture the account, method, and observed risk
-- [Receipts](/docs/evidence/receipts) to sign exposure checks and corrective actions
+### 4) Fallback weakness exploitation
 
-## Which MFA to use
+**Attacker path:** attacker targets weaker recovery or fallback methods (SMS, voice, helpdesk override, recovery codes, email reset path).
 
-| Method | Strength | Notes |
-|--------|----------|-------|
-| **Hardware key** | Strongest | Phishing-resistant. Best for privileged access. |
-| **Authenticator app** | Strong | Good default for most users. |
-| **Push notification** | Good | Watch for fatigue and accidental approval. |
-| **SMS code** | Better than nothing | Weakest option. Use only if nothing better is available. |
+**Operational point:** strongest configured factor does not help if weaker fallback routes remain exploitable.
 
-Priority order:
+## Observable signals and what each can support
 
-1. **Email** — your email is the master key to every other account
-2. **Cloud services** — Microsoft 365, Google Workspace, AWS
-3. **Financial accounts** — banking, payroll
-4. **Social media** — used for impersonation and resets
-5. **Everything else**
+| Signal | What it can support | What it cannot prove alone |
+|---|---|---|
+| Burst of denied/unanswered MFA prompts | Active use of valid credentials against an account | User compromise or attacker identity |
+| Successful sign-in following prompt burst | Increased likelihood of fatigue approval or related misuse | Exact mechanism (fatigue vs relay vs insider) |
+| New session from unusual ASN/device after phishing lure | Plausible relay/session theft hypothesis | Definitive attribution to one campaign |
+| Session activity without nearby fresh MFA challenge | Token/session reuse hypothesis | Initial theft method |
+| MFA method or recovery settings changed unexpectedly | Potential persistence or control-hardening by attacker | Whether data access already occurred |
+| Helpdesk/manual bypass event | Fallback route was exercised | Whether bypass was malicious or approved |
+
+## Response decisions + escalation gates
+
+Use governed decisions tied to evidence strength:
+
+1. **Contain account immediately** (revoke sessions, force credential reset, require re-auth) when suspicious access is observed, not only when intent is confirmed.
+2. **Freeze authentication-factor changes** and verify identity out-of-band before restoring access when fallback abuse is plausible.
+3. **Escalate to incident response** when any of the following gates are met: privileged account impact, confirmed post-auth session misuse, multiple users in one campaign, or sensitive-system access.
+4. **Require policy-governed approval** for high-impact recovery actions under [Authorization Model](/docs/governance/authorization-model) and [Policy Gates](/docs/security-systems/policy-gates), with evidence captured per [What Evidence Is Required?](/docs/decisions/evidence-required).
+
+## WitnessOps support vs non-guarantees
+
+**WitnessOps can support:**
+
+- durable capture of observed authentication and response artifacts
+- signed decision records and action receipts for containment/escalation steps
+- governed operator workflows for high-impact account recovery decisions
+
+**WitnessOps does not guarantee:**
+
+- prevention of every MFA abuse path by itself
+- perfect identity attribution from authentication logs alone
+- complete upstream telemetry quality from every IdP, endpoint, or third-party system
+
+## Observed vs inferred separation
+
+Keep records explicitly separated:
+
+- **Observed:** raw auth events, prompt counts, timestamps, source network/device metadata, factor-change events, executed containment actions.
+- **Inferred:** "user approved by mistake," "relay infrastructure was used," "same actor as prior campaign," and other analytic judgments.
+
+Store both, but never present inferred conclusions as raw evidence.
+
+## Trust assumptions and limits
+
+This guidance assumes:
+
+- identity-provider and endpoint timestamps are materially reliable
+- telemetry retention is sufficient for reconstruction
+- responders follow governed escalation and evidence-handling process
+
+Limits remain:
+
+- location/device risk signals are probabilistic
+- missing logs reduce confidence and may prevent mechanism confirmation
+- human reporting delay can obscure the earliest attacker actions
+
+## Next-page handoff
+
+MFA abuse commonly begins with valid credentials. Continue to [Password Reuse](/docs/security-education/password-reuse) for the upstream exposure path that frequently seeds these attacks.

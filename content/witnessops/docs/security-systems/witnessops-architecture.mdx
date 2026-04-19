@@ -2,112 +2,73 @@
 title: "WitnessOps Architecture"
 description: "Clean system overview for how WitnessOps connects governed execution, proof production, and portable verification."
 section: "docs"
-order: 1
+order: 10
 nav_label: "WitnessOps Architecture"
 draft: false
 ---
 
 # WitnessOps Architecture
 
-WitnessOps is a governed execution system for security operations. It does not replace the underlying tools. It wraps them in policy, continuity, and proof so the resulting work can be inspected later without depending on the live platform.
+WitnessOps architecture is the boundary map that connects governed runtime control to portable proof and later independent review.
 
-This page is the orientation map, not the full deep dive. For the structural breakdown, go straight to [Three-Layer Stack](/docs/security-systems/three-layer-stack).
+## 1. Problem this page solves
 
-## System Overview
+Without a shared architecture map, readers collapse execution and proof into one surface and overstate what either layer can guarantee.
+
+This page defines the end-to-end system flow and ownership boundaries before deeper layer and posture pages.
+
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- the end-to-end flow from intent to external verification
+- which responsibilities belong to runtime control vs proof production
+- what the architecture preserves and what remains outside system guarantees
+
+## 3. Mechanism-first architecture path
 
 ```text
-Objective
-  -> Approval and policy decision
-    -> Governed execution
-      -> Evidence artifacts
-        -> Signed receipts and continuity
-          -> Portable bundle
-            -> Offline verification
+Intent + authority context
+  -> Governed execution path
+    -> Evidence capture
+      -> Signed continuity artifacts
+        -> Portable bundle
+          -> Independent verification
 ```
 
-That is the core WitnessOps story. The architecture exists to keep those stages explicit instead of collapsing them into one opaque application.
+Runtime control governs what can happen (scope, approval, and runbook-constrained execution).  
+Proof production begins at evidence capture and binds what did happen into portable artifacts for later review.
 
-## What the Architecture Is Trying to Preserve
+Inputs to this path are authority context, scoped intent, and runtime outputs.  
+Outputs are signed receipts, continuity links, and bundle artifacts that external reviewers can verify without runtime access.
 
-WitnessOps is optimized for three outcomes:
+### Responsibility boundaries
 
-- governed execution instead of ad hoc operator action
-- reconstructable evidence instead of scattered logs and screenshots
-- portable verification instead of platform-dependent trust
-
-Those three goals explain why WitnessOps separates execution concerns from proof concerns.
-
-## The Four Pages That Matter Most
-
-This page should point you to the right depth, not repeat every subsystem description.
-
-### Structural model
-
-Start with [Three-Layer Stack](/docs/security-systems/three-layer-stack) for the clearest explanation of how operator contracts, execution runtime, and proof infrastructure are separated.
-
-### Runtime control path
-
-Go to [Governed Execution](/docs/security-systems/governed-execution) for the runtime path: runbooks, gates, approvals, resumable state, and receipt emission.
-
-### Trust boundaries
-
-Go to [Threat Model](/docs/security-systems/threat-model) for what WitnessOps controls, what it does not, and where proof cannot compensate for host, tool, or identity failures.
-
-### Proof validation
-
-Go to [Verification](/docs/how-it-works/verification) for how the proof package is checked outside the live system.
-
-## High-Level Layer Ownership
-
-At the highest level, the architecture separates four responsibilities:
-
-| Responsibility | What it owns | Primary page |
+| Responsibility | What it owns | Primary depth page |
 | --- | --- | --- |
-| Operator intent | what should happen | [Three-Layer Stack](/docs/security-systems/three-layer-stack) |
-| Runtime control | how governed work runs | [Governed Execution](/docs/security-systems/governed-execution) |
-| Proof production | how receipts, chains, and bundles are formed | [Receipts](/docs/evidence/receipts) |
-| Independent checking | how a third party verifies the result | [Verification](/docs/how-it-works/verification) |
+| Runtime control | policy, approvals, scope, governed execution | [Governed Execution](/docs/security-systems/governed-execution) |
+| Layer ownership model | separation of contracts/runtime/proof | [Three-Layer Stack](/docs/security-systems/three-layer-stack) |
+| Proof artifact construction | receipts, chains, bundle material | [Receipts](/docs/evidence/receipts) |
+| Independent checking | verifier procedure and verdict semantics | [Verification](/docs/how-it-works/verification) |
 
-This is the architectural boundary that matters most to a buyer or auditor: execution and proof are related, but they are not the same surface.
+## 4. Observed vs inferred
 
-## What WitnessOps Owns
+| Layer | What is explicit | What remains interpretation |
+| --- | --- | --- |
+| Observed | Documented runtime controls, proof artifact path, verification interfaces | None beyond documented behavior |
+| Inferred | Confidence in operational trust posture from architecture quality | Depends on reviewer policy and real implementation integrity |
 
-WitnessOps owns:
+## 5. Trust assumptions
 
-- governed execution paths
-- policy and approval enforcement at runtime
-- evidence capture and receipt issuance
-- continuity between governed events
-- bundle-ready proof material for offline verification
+Architecture reduces ambiguity, but does not remove external dependencies:
 
-## What WitnessOps Does Not Own
+- scanner/tool correctness remains external
+- host/runtime integrity remains external
+- upstream identity/scope/policy input quality remains external
+- legal interpretation of evidence remains external
 
-WitnessOps does not magically guarantee:
+## 6. Next-page handoff
 
-- scanner correctness
-- host integrity
-- scope configuration correctness outside the enforced inputs it receives
-- enterprise identity truthfulness beyond the identity claims provided to it
-- legal interpretation of the evidence it produces
+Next, read [Three-Layer Stack](/docs/security-systems/three-layer-stack) to inspect the ownership separation that this architecture map depends on.
 
-Those are system boundaries, not product defects hidden in fine print.
-
-## How to Read the Architecture
-
-Use this page when you need orientation.
-
-Use the linked pages when you need actual depth:
-
-- [Three-Layer Stack](/docs/security-systems/three-layer-stack) for structure
-- [Governed Execution](/docs/security-systems/governed-execution) for runtime mechanics
-- [Threat Model](/docs/security-systems/threat-model) for trust boundaries
-- [Receipts](/docs/evidence/receipts) for proof objects
-- [Execution Chains](/docs/evidence/execution-chains) for continuity
-- [Verification](/docs/how-it-works/verification) for the external check path
-
-## Read Next
-
-- [Three-Layer Stack](/docs/security-systems/three-layer-stack)
-- [Governed Execution](/docs/security-systems/governed-execution)
-- [Threat Model](/docs/security-systems/threat-model)
-- [Verification](/docs/how-it-works/verification)
+Then use [Governed Execution](/docs/security-systems/governed-execution) and [Threat Model](/docs/security-systems/threat-model) for runtime and boundary depth.

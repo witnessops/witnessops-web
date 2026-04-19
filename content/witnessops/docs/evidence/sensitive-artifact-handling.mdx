@@ -9,100 +9,90 @@ draft: false
 
 # Sensitive Artifact Handling
 
-Some WitnessOps workflows produce more than logs and receipts. They can also produce credentials, tokens, message content, attachments, screenshots, or other user-linked artifacts.
+WitnessOps evidence workflows sometimes require raw credentials, tokens, message bodies, or similar high-risk artifacts. This page defines a governed lifecycle so teams can preserve necessary evidence without treating raw sensitive data as routine documentation.
 
-Those artifacts are often necessary. They are also a risk.
+## 1. Problem this page solves
 
-## What counts as sensitive
+Operational teams often collect sensitive artifacts quickly but govern them inconsistently. That creates avoidable failure modes: over-collection, uncontrolled duplication, broad access, and retention without clear end conditions.
 
-Treat these as sensitive by default:
+This page defines a narrow control model for sensitive artifacts so reviewers can test:
 
-- credentials, password captures, and reset material
-- session cookies, bearer tokens, API keys, and OAuth grants
-- preserved phishing messages and attachments
-- mailbox exports, chat content, or user documents
-- screenshots containing secrets, personal data, or internal system details
-- raw loot collected during exploitation or containment work
+- why an artifact was collected
+- where it is controlled
+- who can access or share it
+- when it must be retired
 
-If you are unsure, handle the artifact as sensitive until proven otherwise.
+## 2. Reader outcome
 
-## Default handling rules
+After this page, you should be able to:
 
-Use these rules for every sensitive artifact:
+- run a lifecycle for sensitive artifacts: collect, classify, store, access/share, retire
+- apply stage-specific decision gates before artifacts move forward
+- separate checkable handling facts from interpretation
+- state what the handling model can and cannot guarantee
 
-1. **Collect the minimum necessary.** Do not capture extra data because it might be interesting later.
-2. **Separate raw artifacts from summaries.** Raw loot belongs in controlled storage. Notes and receipts should reference it, not duplicate it.
-3. **Keep access narrow.** Only the operators and approvers who need the artifact should be able to read it.
-4. **Use host controls outside WitnessOps.** WitnessOps records hashes and receipts; it does not provide secret-at-rest protection for you.
-5. **Redact before sharing.** If an artifact leaves the working group, remove secrets and irrelevant personal data first.
-6. **Define retention and destruction up front.** Sensitive artifacts should not live forever by accident.
+## 3. Mechanism-first lifecycle model
 
-## The `loot/` directory
+Sensitive artifact handling is a staged control system, not a single storage rule.
 
-The default engagement layout includes a `loot/` directory for high-sensitivity outputs.
+### Collect
 
-That does **not** mean everything sensitive should be dumped there casually.
+Collect only artifacts required for an approved objective. At collection time, record source, collector, time, and objective linkage. If the artifact is not needed to support the objective, do not collect it.
 
-Use `loot/` only when:
+### Classify
 
-- the artifact is necessary to support the objective
-- the collection was authorized
-- the artifact cannot be reduced to a safer summary or hash reference
-- the storage and access plan is clear to the team
+Assign a handling class before wider team use. At minimum, classify for credential/access risk, personal data content, legal/contract constraints, and operational blast radius if exposed. Unclassified artifacts stay quarantined.
 
-Do not copy the same sensitive artifact into `notes/`, screenshots, chat messages, and report drafts.
+### Store
 
-## Evidence versus raw data
+Store raw artifacts only in approved controlled locations (for example, restricted `loot/` lanes or equivalent governed stores). WitnessOps receipts can bind hashes and provenance; they do not provide secret-at-rest controls by themselves. Do not duplicate raw secrets into notes, tickets, or report drafts.
 
-Receipts and manifests are the portable evidence layer. Raw sensitive artifacts are not.
+### Access and share
 
-Prefer this pattern:
+Grant access by explicit role/need, not by convenience. Share the minimum form needed for the task: hash/reference first, redacted derivative second, raw artifact only when required and approved. Every external handoff should record recipient scope and purpose.
 
-- keep the raw sensitive artifact in controlled storage
-- hash it and bind the hash into the governed evidence record
-- describe the observation in notes without repeating the secret
-- share the receipt or proof material first, and the raw artifact only when necessary
+### Retire
 
-This keeps the verification story intact without spreading the sensitive payload.
+Define retirement conditions at first storage: retention owner, trigger date/event, and destruction procedure. Before retirement, confirm no active legal or incident hold applies. Record retirement action so the artifact lifecycle has an auditable end state.
 
-## Handling by artifact type
+## 4. Control boundaries and decision gates by lifecycle stage
 
-| Artifact type | Minimum handling standard |
-| --- | --- |
-| Credentials or password captures | Do not place in general notes. Store only where explicitly authorized. Rotate or invalidate as part of response where appropriate. |
-| Session cookies or tokens | Treat as active access, not just evidence. Revoke if compromise is plausible and avoid copying into screenshots or tickets. |
-| Phishing messages and attachments | Preserve the original where possible. Share identifiers or hashes before forwarding raw content broadly. |
-| Screenshots | Use only when needed for context. Crop or redact secrets, personal data, and unrelated tabs or windows. |
-| Raw loot from host or app testing | Keep only what supports the objective. If the artifact exceeds the authorized need, stop and escalate. |
+| Stage | Boundary to enforce | Decision gate (must be answered before advance) | If gate fails |
+| --- | --- | --- | --- |
+| Collect | Authorization and minimum-necessary scope | Was this artifact explicitly authorized and required for the objective? | Stop collection and escalate to approver. |
+| Classify | Sensitivity and constraint labeling | Is the artifact labeled with handling class and constraints? | Keep quarantined; no broad access. |
+| Store | Approved containment boundary | Is storage location approved with narrow access controls and no uncontrolled copies? | Block placement and remediate storage path. |
+| Access/share | Need-to-know release boundary | Is recipient scope approved and payload minimized/redacted for purpose? | Deny transfer; require redaction or approval update. |
+| Retire | Retention and hold boundary | Has retention objective ended and hold status been cleared by owner? | Retain under hold and re-review at next gate date. |
 
-## Retention and destruction
+A passed gate means "allowed to proceed under current assumptions," not "risk eliminated."
 
-The docs do not impose a universal retention period. That decision belongs to the engagement, legal, and organizational policy context.
+## 5. Observed vs inferred separation
 
-What the docs do require is clarity:
+| Layer | What is directly checkable | What is not proven by that check alone |
+| --- | --- | --- |
+| Observed handling facts | Collection authorization record, classification label, controlled storage reference, access log entry, retirement record | That all off-system copies were eliminated |
+| Inferred conclusions | "Because gates passed, handling was likely compliant" | Full legal adequacy or organizational policy completeness |
+| Outside this proof lane | Endpoint hygiene, human intent, external recipient controls | Requires separate security, legal, and governance evidence |
 
-- who owns the artifact
-- why it is being retained
-- when it should be deleted or archived
-- what must happen before destruction, such as hash verification or closeout review
+Keep reports explicit about which statements are observed controls versus inference.
 
-If nobody can answer those four questions, retention is already out of control.
+## 6. Trust assumptions and limits
 
-## Failure states
+This page assumes:
 
-Treat these as handling failures:
+- approvers and operators record lifecycle events honestly
+- storage and access systems enforce configured controls as designed
+- hash binding and receipts are generated and preserved correctly
+- retention owners review hold status before destruction
 
-- raw secrets copied into notes, tickets, or screenshots without need
-- sensitive artifacts retained after the objective is complete
-- artifacts shared outside the approved group without redaction
-- collection performed before authorization was clear
-- no explanation of why the artifact had to be preserved
+Limits to state explicitly:
 
-A valid receipt does not excuse bad artifact handling.
+- WitnessOps does not guarantee secret encryption, DLP, or recipient behavior outside approved systems
+- lifecycle gates reduce handling risk but do not remove breach or misuse risk
+- a valid receipt does not prove collection necessity or policy correctness by itself
+- missing lifecycle records reduce confidence and should be reported as a control gap
 
-## Related pages
+## 7. Next-page handoff
 
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
-- [Receipts](/docs/evidence/receipts)
-- [Receipt Spec](/docs/evidence/receipt-spec)
-- [Investigating a Phishing Report](/docs/scenarios/phishing-investigation)
+Continue to [Evidence Mapping](/docs/evidence-mapping) to map these handling controls and limits to external frameworks and reviewer-facing control objectives.

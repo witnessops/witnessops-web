@@ -18,131 +18,92 @@ page_answer:
 
 # Execution Chains
 
-Execution chains are how WitnessOps turns a set of individual receipts into a continuity story. A receipt proves one governed event. A chain proves how those events connect.
+An execution chain is the continuity layer across multiple receipts. A receipt says one governed event was issued. A chain lets a reviewer test whether the presented event history is internally ordered and intact.
 
-This page leads from chained receipts to Merkle commitment, bundle packaging, and verification order.
+## 1. Problem this page solves
 
-## Why Chains Matter
+Single receipts are useful but incomplete for sequence review.
 
-Without a chain, you can inspect isolated events.
+Reviewers usually need continuity answers:
 
-With a chain, you can test continuity:
+- did prerequisite events appear before high-impact actions?
+- does the presented history have link breaks or missing segments?
+- were receipts reordered or modified after issuance?
 
-- did approval happen before execution?
-- did a denial happen before an override?
-- is a critical step missing?
-- was the final proof package assembled from the same receipt stream it claims to represent?
+This page defines exactly what chain evidence can establish for those questions.
 
-That continuity is what turns proof artifacts into an operational narrative instead of a loose pile of records.
+## 2. Reader outcome
 
-## Chain Basics
+After this page, you should be able to:
 
-Each receipt contributes two continuity anchors:
+- identify the fields that create chain continuity
+- run concrete continuity checks (link, order, integrity)
+- separate chain-backed conclusions from interpretation and assumptions
 
-- its own `entry_hash`
-- the `prev_hash` pointing to the prior receipt in the same stream
+## 3. Mechanism-first chain model
 
-Together with sequence order, those fields create an append-only structure.
+Chain continuity comes from receipt fields, not from narrative summaries.
 
-```text
-R1  entry_hash = aaa...   prev_hash = 000...
-R2  entry_hash = bbb...   prev_hash = aaa...
-R3  entry_hash = ccc...   prev_hash = bbb...
-R4  entry_hash = ddd...   prev_hash = ccc...
-```
+### Event linking
 
-If any receipt is removed, reordered, or modified, continuity breaks visibly.
+Each receipt carries continuity fields in its ledger block:
 
-## What a Chain Lets a Reviewer Check
+- `ledger.stream` -> which stream/lane the receipt belongs to
+- `ledger.seq` -> sequence position inside that stream
+- `ledger.prev_hash` -> declared hash of the prior receipt in that stream
+- `ledger.entry_hash` -> hash of this receipt's canonical bytes
 
-An intact chain lets a reviewer answer practical questions about governed execution:
+At minimum, a verifier checks that `prev_hash` in receipt _N_ matches `entry_hash` in the predecessor receipt for the same stream.
 
-- whether a gated approval actually preceded the intrusive step
-- whether expected runbook stages are missing
-- whether the proof package is presenting a complete sequence or a selective subset
-- whether later receipts genuinely descend from earlier ones
+### Ordering
 
-This matters more than aesthetics. Trust depends on order, not just existence.
+Ordering is tested per stream, not across unrelated streams.
 
-## From Chained Receipts to Merkle Root
+A verifier groups receipts by `ledger.stream`, sorts by `ledger.seq`, and checks for unexpected gaps, duplicates, or predecessor mismatches. If boundaries are declared (for example, first/last sequence in a bundle), those boundaries must match what is presented.
 
-Chains provide sequence-level continuity. Merkle commitment provides package-level commitment.
+### Integrity continuity
 
-When WitnessOps packages receipts into a portable bundle, the committed receipt set can also be summarized by a Merkle root. That adds three useful properties:
+Integrity continuity is the combined result of:
 
-- one root can cover many receipts
-- a verifier can check inclusion without replaying every artifact
-- bundle integrity can be discussed at the package level as well as the single-receipt level
+1. `entry_hash` recomputation matching each receipt's declared value
+2. `prev_hash` links matching predecessor `entry_hash` values
+3. sequence order checks passing for the claimed stream segment
 
-The clean mental model is:
+If any of those fail, continuity is broken for that segment.
 
-- receipt = atomic governed statement
-- chain = ordered continuity between statements
-- Merkle root = batch commitment over the packaged set
-- bundle = transport surface carrying the proof material
+## 4. What chain evidence can support vs what it cannot prove
 
-## Bundle Packaging
+| Chain evidence can support | Chain evidence cannot prove |
+| --- | --- |
+| Receipt A is linked as predecessor of Receipt B in the presented stream | The underlying real-world action definitely happened as described |
+| Presented sequence has no detected reorder/modify break under the checked rules | No events were omitted outside the declared stream boundary |
+| A declared stream segment is internally consistent | Operator judgment or approval quality was correct |
+| A bundle's chain material matches its own declared continuity links | Host integrity, tool correctness, or organizational policy quality |
 
-When a chain leaves the runtime, it should travel with the material required to verify it offline. In the current public model that means a bundle including, at minimum:
+Chain evidence is continuity evidence. It is not a substitute for full incident truth.
 
-- manifest and bundle identity data
-- the receipt set or chain material
-- signature-bearing artifacts
-- timestamp or checkpoint artifacts when present
-- public trust material required by the verifier
+## 5. Observed vs inferred separation
 
-The chain alone says, "these statements connect." The bundle says, "here is everything you need to test that claim without calling us back."
+| Layer | What it contains | Confidence boundary |
+| --- | --- | --- |
+| Observed (directly checkable) | Hash recomputation results, `prev_hash` link matches, `seq` ordering outcomes, declared stream boundaries | Determined by verifier checks over presented artifacts |
+| Inferred (interpretive) | "Approval preceded execution, so policy was likely followed" | Depends on human interpretation of observed order |
+| Outside chain proof | Event correctness, target appropriateness, source-system reliability | Requires additional evidence and trust inputs |
 
-## Verification Order
+Keep these layers separate in reports so continuity checks are not overstated.
 
-The safest way to verify a packaged chain is to move from outer package integrity to inner continuity.
+## 6. Trust assumptions and limits
 
-1. verify bundle structure and required manifest fields
-2. verify artifact presence and declared hashes
-3. verify signature and digest relationships on the receipt-bearing artifacts
-4. walk receipt order, `entry_hash`, and `prev_hash` continuity
-5. verify Merkle commitment or inclusion material when provided
-6. evaluate witness policy or trust-registry requirements if declared
+Chain verification still depends on explicit assumptions:
 
-That order matters because a broken package should fail before a verifier tries to infer continuity from incomplete or altered bytes.
+- canonicalization and hashing rules are implemented consistently
+- issuance keys and signing controls were not subverted at issue time
+- stream identity and scope boundaries are declared honestly
+- the verifier received the full artifact set for the claimed chain segment
+- timestamp/trusted-time guarantees come from timestamp evidence, not chain order alone
 
-## What Breaks a Chain
+When an assumption is uncertain, report reduced confidence instead of upgrading claims.
 
-Chains break for concrete reasons:
+## 7. Next-page handoff
 
-- a receipt was modified after issuance
-- a receipt was removed from the presented sequence
-- receipts were reordered
-- the package contains only a subset but presents it as a whole
-- the Merkle commitment does not match the packaged receipt set
-
-When that happens, the right response is not to smooth the UI over it. The right response is to downgrade trust and explain which layer failed.
-
-## Partial and Multi-Phase Work
-
-Real engagements often contain more than one stream. Recon, validation, escalation, and remediation may produce different receipt runs or chain segments.
-
-That is acceptable as long as the boundaries are explicit. A package can contain multiple chains, but each chain still needs:
-
-- a clear stream identity
-- intact internal order
-- an honest explanation of what is and is not included
-
-The proof story should be explicit about gaps rather than implying false totality.
-
-## Chains and Public Verification Results
-
-The current verifier returns `valid`, `invalid`, or `indeterminate` for the bundle that carries the chain.
-
-- `valid` means the declared package, digests, and trust conditions passed
-- `invalid` means a proof-bearing check failed
-- `indeterminate` means the package may be internally coherent, but a declared trust dependency could not be satisfied locally
-
-That distinction matters for continuity reviews. Missing trust context is not the same as a proven break, and a proven break is not the same as an incomplete archive.
-
-## Read Next
-
-- [Receipts](/docs/evidence/receipts) for the atomic proof object
-- [Receipt Specification](/docs/evidence/receipt-spec) for the receipt contract
-- [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the transport package
-- [Verification](/docs/how-it-works/verification) for the operator workflow
+Next, read [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling) to apply strict controls to raw credentials, tokens, and other high-risk artifacts that may accompany chain evidence.

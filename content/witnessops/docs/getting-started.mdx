@@ -1,6 +1,6 @@
 ---
 title: "Getting Started"
-description: "Start with WitnessOps governed execution, operational controls, and receipt evidence."
+description: "Go from first contact to one governed run and one verifiable receipt."
 section: "docs"
 order: 2
 nav_label: "Getting Started"
@@ -9,37 +9,86 @@ draft: false
 
 # Getting Started
 
-WitnessOps is a governance layer for security operations. It wraps existing tools in policy-enforced runbooks and emits signed receipts and linked execution material for every governed operation.
+This page solves one specific problem: how a serious reader gets from first contact to one governed run and one verifiable receipt.
 
-This is not a scanner. It governs tools like Nmap, Nuclei, and Burp Suite.
+## 1. Problem this page solves
 
-## Step 1: Understand the Problem
+Most security work leaves fragmented evidence. After execution, teams often cannot answer clearly:
 
-Manual security testing produces no verifiable record. After a pentest, when someone asks what ran, who approved it, and whether it stayed in scope, the answer is scattered across logs, tickets, and memory.
+- what ran
+- under what scope and policy
+- who approved intrusive actions
+- whether the record can be verified outside the originating system
 
-WitnessOps solves this by enforcing policy at execution time and emitting signed receipts for every governed action. The receipt records what governed action ran, which policy context applied, who was recorded as the operator, when it completed, and which execution material it binds to.
+WitnessOps addresses this by enforcing policy at runtime and emitting signed receipts linked to execution artifacts.
 
-## Step 2: Read a Runbook
+## 2. What you should understand after reading
 
-A runbook is a YAML workflow. Each step names a tool, declares its inputs, and specifies the policy gates that must pass before execution.
+After this page, you should understand:
 
-Start with a simple runbook. Notice the sequence, the gates, and how each step feeds the next receipt.
+- the minimum setup needed for a first governed run
+- the exact order of the first governed path
+- which artifact marks success
+- what is independently verifiable
+- what is still a trust assumption
 
-See [Runbooks](/docs/operations/runbooks) for format details and an example structure.
+## 3. Minimum setup and assumptions
 
-## Step 3: Run Your First Governed Operation
+Before running anything:
 
-Start with a workflow you already run manually: a port scan, a web application test, or an incident isolation procedure.
+- You have an authorized target scope (domain/IP/asset list).
+- You have a runbook describing tools, steps, and gates. See [Runbooks](/docs/operations/runbooks).
+- You have policy and approval requirements defined. See [Policy Gates](/docs/security-systems/policy-gates).
+- You know the approval authority model for the run. See [Authorization Model](/docs/governance/authorization-model).
+- You can export the resulting receipt and related artifacts for independent review.
 
-1. **Define the runbook.** Write the YAML. Declare targets, tools, and gates.
-2. **Set the scope.** Specify which domains, IPs, or assets are authorized.
-3. **Execute.** WitnessOps enforces every gate. If a step requires approval, execution pauses until the configured approving principal acts. Default configurations can still allow self-approval.
-4. **Inspect the receipt.** After execution completes, WitnessOps emits a signed receipt. The receipt contains the runbook ID, operator identity, policy gate context, timestamp, execution hash, continuity link, and a cryptographic signature.
+## 4. First governed path (exact order)
 
-The receipt is the signed continuity layer inside a wider evidence record. It links to the previous receipt in the chain, forming a continuous execution history.
+1. **Define the runbook.** Declare targets, governed tools, gate requirements, and expected artifacts.
+2. **Set scope and approval path.** Ensure authorized boundaries and approver expectations are explicit before execution.
+3. **Execute the runbook.** WitnessOps enforces gates at each step; failed gates stop progression.
+4. **Record approvals/exceptions.** If a gate requires approval, execution pauses until approval is recorded.
+5. **Complete the run and emit artifacts.** On successful completion, receipt and evidence artifacts are written.
 
-## What to Read Next
+If no receipt is emitted, treat the run as incomplete for proof purposes.
 
-- [Governed Execution](/docs/security-systems/governed-execution) — how policy enforcement works at runtime
-- [Policy Gates](/docs/security-systems/policy-gates) — scope checks, approvals, and failure handling
-- [Receipts](/docs/evidence/receipts) — what a receipt contains and how to verify one
+## 5. Artifact you should expect at the end
+
+A successful first run should produce:
+
+- **`receipt.json`** — signed governance record with execution binding and continuity link
+- **`manifest.json`** — inventory of produced artifacts and hashes
+- **`state.json`** — execution state context for replay and investigation
+
+The minimum success condition is one valid signed receipt linked to the executed governed action.
+
+## 6. What can be verified independently
+
+Independent verification should confirm:
+
+- receipt signature validity
+- execution-binding fields and artifact references
+- continuity link to prior receipt state (when present)
+- artifact hash integrity against the manifest
+
+Use [How to Verify a Receipt](/docs/how-it-works/verification), [Receipt Specification](/docs/evidence/receipt-spec), or the public [Verifier](/verify) for receipt-first checks.
+
+## 7. What is proven vs what is still trusted
+
+**Proven by artifacts**
+
+- A governed action completed with recorded scope/policy context.
+- Approval and gate events were recorded for that run.
+- The receipt and referenced artifacts are cryptographically consistent.
+
+**Still trusted**
+
+- Underlying tool correctness and finding quality.
+- Human judgment quality (operator and approver decisions).
+- Key distribution and timestamp authority continuity.
+
+## 8. Next-page handoff
+
+Next, read [How It Works](/docs/how-it-works) to move from first-run execution to the full mechanism model.
+
+After that, continue to [Governed Execution](/docs/security-systems/governed-execution) for runtime authority boundaries.

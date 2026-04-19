@@ -9,76 +9,64 @@ draft: false
 
 # Proof Model
 
-WitnessOps receipts are not just signed JSON. They are structured proof objects with three independent layers of assurance that can be present in different combinations.
+The proof model defines how governed actions become portable, challengeable evidence instead of one-time runtime events.
 
-Each layer strengthens the claim, but not every receipt or bundle carries every layer. The verifier should report what is actually available, not assume the strongest case by default.
+## 1. Problem this page solves
 
-## Three Authorities, Three Signatures
+Execution alone does not preserve trust. A step can run, succeed, and still be impossible to challenge later if proof artifacts are missing or weak.
 
-| Authority | What it signs | What it proves |
+This page defines the exact proof path in WitnessOps from governed action to independent verification.
+
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- what gets signed
+- what gets timestamped
+- what gets chained
+- what can be verified independently later
+- what still requires external trust
+
+## 3. Mechanism-first proof sequence
+
+WitnessOps proof flow works in this strict order:
+
+1. **Governed action occurs.** Runtime policy, scope, and approvals determine whether the step executes.
+2. **Execution artifacts are captured.** The system records the operation result and proof-relevant references.
+3. **Receipt is issued.** A structured statement is signed by the issuer key to bind intent, actor, result, and continuity references.
+4. **Proof layers are attached.** Optional timestamp and publication/continuity material strengthen the claim set.
+5. **Proof is packaged for transport.** Bundle artifacts and trust material enable local replay by a third party.
+6. **Later challenge/review is performed.** A verifier checks integrity, signatures, time/publication layers, and continuity based on declared claims.
+
+### What each proof layer adds
+
+| Layer | What is bound | What it proves |
 | --- | --- | --- |
-| **WitnessOps** (receipt issuer) | The execution statement | "This specific operation was governed and recorded by us" |
-| **Timestamp authority** | The digest of the signed statement | "This signed object existed before this time" |
-| **Transparency log** | The checkpoint over all committed entries | "This receipt was committed to an append-only history" |
+| Issuer signature | Structured receipt statement | Issuer-bound claim integrity |
+| Timestamp layer | Digest of signed receipt envelope | Claimed signed object existed before declared time |
+| Continuity/publication layer | Receipt sequence linkage and log/checkpoint references when present | Claim is connected to an append-only continuity story |
 
-Each authority uses a different key. No single compromise can silently forge all three.
+Execution creates events. The proof model determines which of those events remain challengeable later.
 
-## What Gets Signed
+## 4. Observed vs inferred
 
-The receipt issuer signs a structured statement containing:
-
-- **Subject** — what the receipt is about (an artifact digest, a deployment, a promotion)
-- **Actor** — who performed the operation
-- **Intent** — what was requested and under what policy
-- **Result** — what happened (success, failure, denial)
-- **Ledger reference** — sequence number and chain hash linking this receipt to the previous one
-
-The statement is wrapped in a standard signing envelope that makes the exact payload bytes unambiguous. This prevents confusion attacks where the same bytes could be interpreted as different payload types.
-
-## What Gets Timestamped
-
-The timestamp authority signs the digest of the complete signed envelope — not the raw event, not the unsigned statement. This binds trusted time to the exact signed object that a verifier will later check.
-
-Timestamping the signed envelope (rather than the raw payload) means the verifier can confirm: this specific signed statement existed before this specific time.
-
-## What Gets Logged
-
-The receipt digest is committed to an append-only transparency log. The log publishes signed checkpoints that cover all committed entries up to that point.
-
-An inclusion proof shows that a specific receipt is covered by a specific checkpoint. A consistency proof shows that a later checkpoint extends an earlier one without removing entries.
-
-## Receipt Strength Hierarchy
-
-Not all receipts carry all three layers. The strength depends on what proof material is attached:
-
-| Level | What it includes | What it proves |
+| Category | Included material | Confidence boundary |
 | --- | --- | --- |
-| Signed receipt | Statement + signature | "We issued this claim" |
-| Timestamped receipt | + timestamp token | "This claim existed before this time" |
-| Published receipt | + inclusion proof + checkpoint | "This claim was committed to an append-only history" |
-| Witnessed receipt | + witness cosignature | "An independent party confirmed the log's append-only evolution" |
+| Directly captured | Signed receipt fields, digest bindings, continuity links, declared bundle artifacts | Cryptographically or structurally testable |
+| Derived claims | Operational narrative assembled from artifact order and relationships | Depends on correct interpretation of captured artifacts |
+| Presentation summaries | Dashboards, status rollups, human summaries | Useful for operations, not proof-bearing by default |
 
-Each level is additive. A signed receipt is still valid — it just proves less than a published receipt.
+## 5. Trust assumptions
 
-If a timestamp token or inclusion proof is absent, the receipt may still be valid as a signed statement. What changes is the strength of the result, not the existence of the receipt itself.
+The proof model reduces trust requirements, but does not remove all trust:
 
-If a required external trust condition cannot be established locally, the verifier should return `indeterminate`, not `valid`.
+- **Origin-system assumptions:** upstream systems feeding identity/scope/context are accurate.
+- **Execution-environment assumptions:** runtime host, key custody, and pipeline controls were not compromised outside captured proof layers.
+- **Operator/input assumptions:** provided intent and target context were truthful and policy-aligned.
+- **Trust-root assumptions:** verifier has authentic key and trust anchor material.
 
-## What This Means in Practice
+## 6. Next-page handoff
 
-When a client receives a WitnessOps proof bundle, they may hold:
+Next, read [Evidence Bundles](/docs/how-it-works/evidence-bundles) to see the concrete container that carries this proof model to independent reviewers.
 
-- A signed statement proving who issued the claim
-- A timestamp token proving when the signed claim existed
-- An inclusion proof proving the claim was logged
-- Trust roots to verify all of the above without calling WitnessOps
-
-The exact contents depend on which proof layers the bundle claims and which trust roots are packaged with it.
-
-That is the difference between "we say it happened" and "here is cryptographic evidence that it happened, and you can check it yourself."
-
-## Read Next
-
-- [Receipts](/docs/evidence/receipts) for the bridge from proof model to atomic receipt
-- [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the portable package and required artifacts
-- [Verification](/docs/how-it-works/verification) for the operator procedure and outcome handling
+Then use [Verification](/docs/how-it-works/verification) to run the deterministic checking sequence and interpret `valid`, `invalid`, and `indeterminate`.

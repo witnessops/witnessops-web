@@ -2,7 +2,7 @@
 title: "Threat Model and Trust Boundaries"
 description: "What WitnessOps can prove, what it assumes, and how verification and disputes should be handled when proof claims are challenged."
 section: "docs"
-order: 3
+order: 40
 nav_label: "Threat Model"
 draft: false
 trust_boundary_variant: "default"
@@ -21,7 +21,13 @@ page_answer:
 
 WitnessOps is designed to make governed security work inspectable. It is not designed to eliminate every trust assumption.
 
-This page states four things clearly:
+## 1. Problem this page solves
+
+Proof artifacts are often over-read. Teams need a precise boundary statement for what is actually proven, what remains assumed, and how to handle disputes when proof claims are challenged.
+
+## 2. What you should understand after reading
+
+This page makes four outcomes explicit:
 
 - what WitnessOps can prove
 - what WitnessOps cannot prove
@@ -169,10 +175,12 @@ The important point is to distinguish three dispute types:
 
 Those are not the same class of problem and should not be handled as if they were.
 
-## Read Next
+## 8. Next-page handoff
 
-- [Governed Execution](/docs/security-systems/governed-execution) for the runtime control path
-- [Receipts](/docs/evidence/receipts) for what the atomic proof object means
-- [Receipt Specification](/docs/evidence/receipt-spec) for the technical contract
-- [Verification](/docs/how-it-works/verification) for the check procedure
+Next, read [Authorization Model](/docs/governance/authorization-model) for approval and authority boundaries that sit above this threat model.
+
+Then use these as needed:
+
+- [Verification](/docs/how-it-works/verification) for check procedure
+- [Receipt Specification](/docs/evidence/receipt-spec) for technical receipt contract
 - [Security Practices](/docs/security-systems/security-practices) for disclosure and operational security posture

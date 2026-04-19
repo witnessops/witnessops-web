@@ -9,77 +9,95 @@ draft: false
 
 # NIST CSF 2.0 Evidence Mapping
 
-## Applicability
+## Problem this page solves
 
-Use this template when a security, risk, or audit team wants to understand:
+NIST CSF 2.0 asks for outcomes at the function and category level. WitnessOps emits operational records. Teams need a repeatable way to map those records to CSF language without claiming that evidence capture alone proves control effectiveness or regulatory conformity.
 
-- what governance and operational evidence exists
-- what WitnessOps can emit during governed execution
-- what independent verification can confirm
-- what remains manual, inherited, or outside product scope
+## Reader outcome
 
-Use it as a working record during control design, audit preparation, or evidence review.
+After completing this page, you should be able to:
 
-## How to use this template
+- map a CSF function/category to concrete WitnessOps artifacts
+- separate direct evidence from supporting context
+- document what independent verification confirms
+- record residual gaps, trust assumptions, and manual dependencies
+- assemble a review packet without certification-style claims
 
-For each selected NIST CSF 2.0 function or category:
+## Mechanism-first mapping method for NIST CSF 2.0 functions/categories
 
-1. identify the control objective
-2. record what WitnessOps emits directly
-3. record what independent verification confirms
-4. record manual dependencies and trust assumptions
-5. identify the exact artifacts an auditor should inspect
+Treat each mapping row as one mechanism under one CSF category (for example: `GV.RR`, `ID.AM`, `PR.PS`, `DE.CM`, `RS.AN`, `RC.RP`).
 
-## Evidence mapping table
+1. Name the CSF function and category being mapped.
+2. State the mechanism being examined (approval gate, governed execution path, receipt issuance, evidence preservation, verification run).
+3. Attach direct evidence emitted by that mechanism.
+4. Attach independent verification output that tests continuity, attribution, and consistency.
+5. Add supporting context needed to interpret scope, ownership, or policy intent.
+6. Record what remains manual, external, or unresolved.
+7. Link exact artifacts a reviewer can inspect without oral reconstruction.
 
-| Function / Category | What this framework requires | Evidence WitnessOps can emit | What independent verification can confirm | Gaps / trust assumptions | Artifacts an auditor should inspect | Operator checklist |
+| NIST function | Category | Mechanism under review | Direct evidence (required) | Supporting context (optional but useful) | Verification question | Residual gap / dependency |
 | --- | --- | --- | --- | --- | --- | --- |
-| GV.OV — Organizational Context | Organization understands mission, stakeholders, legal and regulatory context, and risk environment. | Scope definitions, authorization records, engagement metadata, runbook purpose statements, documented target boundaries. | An independent verifier can confirm that declared scope, target identifiers, and execution metadata match the stored evidence chain and approval context. | Business context and enterprise risk appetite usually remain manual and organization-owned. | Scope record, approval record, engagement manifest, runbook metadata, execution receipt. | Confirm scope is explicit, objective is documented, and target boundaries are recorded. |
-| GV.RR — Roles, Responsibilities, and Authorities | Cybersecurity roles and decision rights are defined and assigned. | Operator identity, approval checkpoints, role-linked actions, audit trail of who initiated, approved, and executed work. | An independent verifier can confirm actor identity linkage, approval sequence, and action-to-role traceability across the evidence chain. | HR, job-description, and broader governance assignments remain outside product scope. | Approval logs, receipts, role mapping records, identity-linked event history. | Confirm each sensitive action has an attributable actor and approver where required. |
-| GV.PO — Policy | Policies for cybersecurity risk management are established and followed. | Runbook constraints, governed execution paths, documented approval gates, prohibited-action handling, execution records. | An independent verifier can confirm that execution followed documented paths and that blocked or denied actions appear in the governed record. | Corporate policy text and exceptions process are usually maintained outside WitnessOps and independent verification. | Policy-linked runbook, denial events, execution receipts, change history. | Check that the selected workflow matches approved policy and that exceptions are documented. |
-| ID.AM — Asset Management | Relevant assets, systems, data, and services are identified and tied to operations. | Target identifiers, environment labels, system references, engagement-local manifests, evidence-linked target metadata. | An independent verifier can confirm that artifacts and execution events point to declared targets and not undeclared assets. | Enterprise CMDB completeness and asset ownership are external dependencies. | Asset reference list, manifest, target map, receipts, evidence objects. | Verify the target is uniquely identified before execution starts. |
-| PR.PS — Platform Security | Platforms are configured and managed to protect confidentiality, integrity, and availability. | Execution-boundary records, tool constraints, adapter metadata, controlled invocation paths, approval-linked sensitive actions. | An independent verifier can confirm that execution stayed within governed boundaries and that privileged actions are attributable. | Baseline hardening and infrastructure configuration are usually outside the product boundary. | Tool catalog entry, runbook definition, adapter logs, approval records, receipts. | Confirm the action used an approved path and did not bypass governed controls. |
-| DE.CM — Continuous Monitoring | Relevant systems and activities are monitored to detect anomalies and events. | Execution logs, evidence events, state transitions, approval events, exception records, receipts. | An independent verifier can confirm continuity across execution evidence, verification outputs, and recorded event sequence. | SIEM correlation, enterprise detection engineering, and sensor coverage may be external. | Event timeline, verification logs, receipt chain, exception records. | Ensure key execution and decision events are preserved and reviewable. |
-| RS.AN — Incident Analysis | Incidents are analyzed to support response and decision-making. | Recorded observations, preserved artifacts, receipt-linked notes, and execution chronology. | An independent verifier can confirm that preserved artifacts are attributable and linked to the stated case, without proving analytical correctness. | Human analysis quality and incident command decisions remain manual. | Evidence bundle, analyst notes, decision log, receipts, preserved source artifacts. | Record rationale, timestamps, affected targets, and the source artifacts behind each conclusion. |
-| RC.RP — Recovery Plan Execution | Recovery activities are coordinated and tracked. | Action history, rollback notes if captured, closeout records, final receipt, evidence of post-action review. | An independent verifier can confirm that closure records align with earlier approvals, evidence, and execution history. | Broader recovery operations, business continuity, and service restoration are usually external. | Final receipt, closeout note, approval chain, post-incident review record. | Confirm closure is supported by evidence and any unresolved risks are documented. |
+| GV | GV.RR Roles/Responsibilities | Approval and authorization chain | approval records, identity-linked actions, execution receipts | HR role matrix, org chart, policy ownership notes | Do actor, approver, and action linkage remain intact end-to-end? | Enterprise role design and segregation-of-duty controls outside WitnessOps |
+| ID | ID.AM Asset Management | Scope declaration and target binding | scope records, target identifiers, manifests, receipt-linked evidence references | CMDB extracts, asset owner registry, environment inventory | Do artifacts and execution events map to declared targets only? | CMDB completeness and ownership accuracy are external assumptions |
+| PR | PR.PS Platform Security | Constrained execution path | runbook constraints, adapter metadata, governed execution logs, denials/exceptions | baseline hardening standards, infra control docs | Did execution stay within approved boundaries and recorded controls? | Underlying host hardening and infra posture may be external |
+| DE | DE.CM Continuous Monitoring | Event and evidence continuity | event logs, state transitions, receipts, preserved artifacts | SIEM correlation rules, monitoring runbooks | Is the evidence chain complete and internally consistent? | Sensor coverage and enterprise telemetry completeness external |
+| RS | RS.AN Incident Analysis | Observation and analysis traceability | timestamped observations, preserved artifacts, analyst notes linked to receipts | incident taxonomy, response procedures | Are conclusions traceable to recorded observations and source artifacts? | Analytical correctness still requires accountable human judgment |
+| RC | RC.RP Recovery Planning | Closure and post-action review | closeout records, final receipts, approval history, post-action notes | continuity plans, recovery policy docs | Does closure evidence align with prior approvals and execution history? | Service restoration effectiveness may depend on external systems/processes |
 
-## Gaps / trust assumptions
+## Evidence classes and mapping logic (direct evidence vs supporting context)
 
-Use this section to record what this template does not prove on its own.
+**Direct evidence** is generated by execution and evidence systems and is expected for a supportable mapping claim:
 
-Typical examples:
+- receipts, manifests, event logs, approval records, preserved artifact references, verification outputs
 
-- enterprise policy ownership is maintained outside WitnessOps evidence capture and independent verification
-- asset inventory completeness depends on external systems
-- HR role assignments and segregation-of-duty design are external
-- broader infrastructure hardening evidence may live in separate platforms
-- human judgment in incident analysis is not automatically verifiable
+**Supporting context** helps interpretation but does not independently prove a CSF outcome:
 
-## Auditor inspection guide
+- policy text, control narratives, CMDB exports, role catalogs, architecture diagrams, runbooks outside captured execution
 
-An auditor should inspect:
+Use this logic:
 
-- approval and authorization records
-- runbook metadata and change history
-- execution receipts and timelines
-- evidence bundles tied to specific targets
-- denial or exception events
-- independent verification outputs and mismatch records
-- documentation showing which controls remain manual
+- If direct evidence is present and independently verifiable, the mapping can support a bounded claim about what occurred.
+- If only supporting context is present, mark the row as contextual support, not evidentiary proof.
+- If direct evidence and context conflict, preserve both and mark the mismatch for review.
 
-## Operator checklist
+## Bounded claims: what this mapping can support vs what it cannot assert
 
-- Confirm the selected NIST CSF 2.0 function or category is relevant.
-- Record the specific control objective in plain language.
-- Attach the exact WitnessOps artifacts that support the activity.
-- Attach the exact verification records that corroborate those artifacts.
-- Note what remains manual, inherited, or out of scope.
-- Avoid claiming that artifact presence alone proves control effectiveness.
-- Ensure an auditor could reproduce the mapping without oral explanation.
+### What this mapping can support
 
-## Related pages
+- that specific governed actions occurred and were recorded
+- that artifact-to-claim linkage is inspectable
+- that independent verification confirmed integrity/continuity checks for the mapped records
+- that explicit gaps and external dependencies were documented
 
-- [Governance](/docs/governance)
-- [Authorization Model](/docs/governance/authorization-model)
-- [Evidence](/docs/evidence)
-- [Receipt Spec](/docs/evidence/receipt-spec)
+### What this mapping cannot assert
+
+- legal or regulatory conformity determinations
+- certification, attestation, or audit-pass status
+- organization-wide control effectiveness
+- adequacy of governance decisions made outside captured evidence
+
+## Observed vs inferred separation
+
+Keep each row split between facts and interpretation:
+
+- **Observed:** data directly present in receipts, logs, manifests, approvals, and preserved artifacts.
+- **Inferred:** conclusions about effectiveness, sufficiency, maturity, or risk reduction.
+
+Only observed data is directly verifiable from system records. Inferred conclusions require accountable human judgment.
+
+## Trust assumptions and limits
+
+Record assumptions explicitly in each mapping packet, including:
+
+- identity provider correctness and access-control integrity outside this mapping
+- host/platform integrity where evidence is generated and stored
+- key-management and signing control integrity
+- retention and archival behavior in external systems
+- completeness/correctness of upstream systems (CMDB, HRIS, ticketing, SIEM)
+- legal interpretation and governance decisions owned by the organization
+
+If an assumption is unverified in the packet, treat it as a stated limit.
+
+## Next-page handoff to `/docs/evidence-mapping/dora`
+
+Continue to [DORA Evidence Mapping](/docs/evidence-mapping/dora) to apply the same mechanism-first method to DORA-specific obligations and boundaries.

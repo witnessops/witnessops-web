@@ -3,53 +3,76 @@ title: "Operational Security Scenarios"
 description: "Learn security through attack chains, observable evidence, operator response, and WitnessOps controls."
 section: "docs"
 order: 0
-nav_label: "Operational Scenarios"
+nav_label: "Security Education"
 draft: false
 ---
 
 # Operational Security Scenarios
 
-Security failures rarely begin with sophisticated exploits.
-They begin with ordinary decisions: clicking a link, reusing a password, delaying an update, opening the wrong file.
+## Problem this page solves
 
-WitnessOps teaches security through operational scenarios, not awareness slogans.
+Most security education stops at "spot suspicious behavior" and leaves operators without a response model.
+This section defines how to move from a reported event to a controlled decision with evidence and boundaries.
 
-## How to read these lessons
+## Reader outcome
 
-Each lesson follows the same structure:
+After this section, you should be able to:
 
-1. **Scenario** — the real situation the operator or user faces
-2. **Attack chain** — how the attacker progresses from the first action to compromise
-3. **Observable evidence** — the logs, alerts, and artifacts that reveal what happened
-4. **Operator response** — the next actions a defender should take
-5. **WitnessOps controls** — the runbooks, policy gates, and receipts that should govern or document the response
+- map a report to an attack-chain stage
+- separate direct signals from assumptions
+- choose a response action that matches evidence quality
+- document containment and escalation decisions under WitnessOps controls
 
-This keeps the lessons aligned with how WitnessOps works: mistake, attack chain, evidence, operation, receipt.
+## Mechanism-first education model
 
-## Core scenarios
+Each lesson uses the same operational sequence:
 
-These are the highest-signal behaviors for everyday defensive operations.
+1. **Attack chain** — what the attacker is attempting at this stage.
+2. **Signals** — what can be observed directly (email headers, sign-in telemetry, endpoint events, rule changes).
+3. **Response decisions** — contain, investigate, escalate, or hold.
+4. **Control boundary** — which actions require runbook execution, policy-gate approval, and signed receipts.
 
-1. [Why Phishing Works](/docs/security-education/phishing) — how one email becomes a full compromise
-2. [Password Reuse](/docs/security-education/password-reuse) — why one password everywhere means one breach everywhere
-3. [Why MFA Stops Most Attacks](/docs/security-education/mfa) — the single most effective control
-4. [Why Software Updates Matter](/docs/security-education/software-updates) — the open door attackers walk through
-5. [Safe Downloads & Attachments](/docs/security-education/safe-downloads) — malware does not install itself
+This maps education to response mechanics: chain -> signals -> decisions -> controlled action.
 
-## Attack economics and operator context
+## What these pages can teach vs what they cannot guarantee
 
-6. [The Cost of One Click](/docs/security-education/cost-of-a-click) — how one phishing interaction becomes a business incident
-7. [How Attackers Think](/docs/security-education/attacker-perspective) — why cheap, repeatable paths matter most
+**These pages can teach:**
 
-## Reference examples
+- repeatable triage patterns for common attacker paths
+- evidence collection priorities before destructive cleanup
+- escalation triggers for high-impact or high-uncertainty cases
+- where to apply [Runbooks](/docs/operations/runbooks), [Policy Gates](/docs/security-systems/policy-gates), and [Receipts](/docs/evidence/receipts)
 
-8. [7 Phishing Tricks](/docs/security-education/phishing-tricks) — the lures attackers reuse because they still work
-9. [A Real Phishing Email](/docs/security-education/real-phishing-example) — line-by-line breakdown of an actual lure
-10. [If You Clicked](/docs/security-education/what-if-you-clicked) — immediate recovery steps after user interaction
+**These pages cannot guarantee:**
 
-## Related WitnessOps pages
+- prevention of all compromise attempts
+- complete visibility when logs are missing or tampered with
+- attacker attribution from a single artifact
+- correctness of intrusive response actions without required approvals
 
-- [Runbooks](/docs/operations/runbooks)
-- [Policy Gates](/docs/security-systems/policy-gates)
-- [Receipts](/docs/evidence/receipts)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
+## Observed vs inferred separation
+
+Treat every claim as either observed or inferred:
+
+- **Observed:** directly recorded evidence (message artifact, timestamped sign-in, mailbox rule change, endpoint alert).
+- **Inferred:** analyst conclusion built from observed facts (credential theft, attacker objective, blast radius).
+
+Use observed facts to justify immediate containment. Use inferred claims to guide investigation, not to skip evidence requirements.
+
+## Trust assumptions and limits
+
+This section assumes:
+
+- source telemetry is available and time-aligned enough to reconstruct sequence
+- operators preserve original artifacts before remediation
+- escalation and intrusive actions stay bounded by policy gates
+
+Limits remain explicit:
+
+- delayed reporting can hide first access
+- missing telemetry can block confident scope determination
+- some conclusions remain probabilistic until corroborated
+
+## Next-page handoff
+
+Continue to [Why Phishing Works](/docs/security-education/phishing) to apply this model to the most common identity-entry path and its first response decisions.

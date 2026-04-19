@@ -1,17 +1,80 @@
 ---
 title: "Reference"
-description: "Reference pages for WitnessOps commands, route maps, content model, and redirects."
+description: "Authoritative command, term, and artifact reference surfaces for WitnessOps operators, integrators, and reviewers."
 section: "docs"
-order: 1
+order: 0
 nav_label: "Reference"
 draft: false
 ---
 
 # Reference
 
-Reference pages collect stable implementation-facing details for operators and integrators.
+Reference is the contract lookup surface for WitnessOps. Use it when you need exact command entry points, stable artifact names, and shared term definitions for execution or review.
 
-## In this section
+## Quick reference links
 
+- [Reference](/docs/reference) (current page)
 - [Commands](/docs/reference/commands)
 - [Proof Artifact Classes](/docs/reference/proof-artifact-classes)
+- [Glossary](/docs/glossary)
+- [man witnessops(7)](/docs/man/witnessops)
+
+## 1. Problem this page solves
+
+Concept pages explain why mechanisms exist. Reference pages define what to call them and where to find the contract.
+
+Without a stable reference map, teams drift on command names, artifact labels, and review language. This page prevents that drift by routing you to the source-of-truth surfaces.
+
+## 2. What you should understand after reading
+
+After this page, you should know:
+
+- where command truth lives
+- where artifact-class truth lives
+- where shared term definitions live
+- which claims this section does not make
+- which page to open next for command-level execution detail
+
+## 3. Truth map: commands, terms, and artifacts
+
+| Surface | Truth defined here | Use when |
+| --- | --- | --- |
+| [Commands](/docs/reference/commands) | Operator command entry points, flags, produced artifacts, and lifecycle sequencing | You need exact command behavior and invocation shape |
+| [man witnessops(7)](/docs/man/witnessops) | Non-indexed operator manual rendering of command semantics and lifecycle boundaries | You need terminal-style manual semantics without changing primary docs indexing posture |
+| [Proof Artifact Classes](/docs/reference/proof-artifact-classes) | Current artifact classes, ownership lanes, and status labels (`live / public`, `retained-reference / corpus class`, `planned, not live`) | You need class naming discipline across docs, app, and review |
+| [Glossary](/docs/glossary) | Shared term definitions used across governance, operations, and evidence docs | You need precise meaning of recurring terms before interpreting workflow pages |
+
+If conceptual pages and reference pages differ in wording, treat reference pages as naming authority and conceptual pages as mechanism explanation.
+
+## 4. Bounded claims and explicit scope limits
+
+This section is intentionally narrow.
+
+- It defines reference routing and terminology boundaries; it does not authorize actions.
+- It does not replace [Governance](/docs/governance), [Authorization Model](/docs/governance/authorization-model), or escalation policy pages.
+- It does not widen this reference surface beyond the current receipt-oriented public lane.
+- It does not freeze canonical bundle-verification or corpus-only vocabularies as universal live-web guarantees.
+- It keeps `/docs/man/witnessops` as a non-indexed supplemental reference, linked from reference surfaces instead of promoted as a primary-flow entry point.
+- It does not prove conclusion correctness; receipts and verification prove bounded artifact integrity claims, not perfect operational judgment.
+
+## 5. Workflow crosslinks
+
+### Operator workflow links
+
+1. [New Operator](/docs/audiences/new-operator)
+2. [Operations](/docs/operations)
+3. [Runbooks](/docs/operations/runbooks)
+4. [Commands](/docs/reference/commands)
+5. [Evidence](/docs/evidence)
+
+### Reviewer and approver workflow links
+
+1. [Manager / Approver](/docs/audiences/manager-approver)
+2. [Receipts](/docs/evidence/receipts)
+3. [How to Verify a Receipt](/docs/how-it-works/verification)
+4. [Receipt Spec](/docs/evidence/receipt-spec)
+5. [Threat Model](/docs/security-systems/threat-model)
+
+## 6. Next-page handoff
+
+Next, read [Commands](/docs/reference/commands) for the exact operational entry points and command-by-command artifact outputs.

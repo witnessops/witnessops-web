@@ -4,6 +4,7 @@ import {
   getDocSectionDescriptor,
   getDocSectionTitle,
   listDocPages,
+  type DocPage,
   type DocsSurface,
 } from "./docs";
 
@@ -38,12 +39,15 @@ type CuratedNavItem =
       title: string;
     };
 
-const WITNESSOPS_DOCS_LAYERS: Array<{
+type CuratedDocsLayer = {
   id: string;
   title: string;
   description: string;
   items: CuratedNavItem[];
-}> = [
+  generatedChildLeafParents?: string[];
+};
+
+const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
   {
     id: "getting-started",
     title: "Getting Started",
@@ -101,6 +105,7 @@ const WITNESSOPS_DOCS_LAYERS: Array<{
     title: "Tasks",
     description:
       "Task-oriented guides for running operations, making decisions, and closing governed workflows safely.",
+    generatedChildLeafParents: ["/docs/security-education"],
     items: [
       { kind: "doc", href: "/docs/operations" },
       { kind: "doc", href: "/docs/operations/runbooks" },
@@ -122,6 +127,11 @@ const WITNESSOPS_DOCS_LAYERS: Array<{
     items: [
       { kind: "doc", href: "/docs/reference" },
       { kind: "doc", href: "/docs/reference/commands" },
+      {
+        kind: "link",
+        href: "/docs/man/witnessops",
+        title: "man witnessops(7) (non-indexed)",
+      },
       {
         kind: "doc",
         href: "/docs/reference/proof-artifact-classes",
@@ -160,15 +170,98 @@ function compareItems(left: DocsNavItem, right: DocsNavItem) {
   return left.title.localeCompare(right.title);
 }
 
-async function getCuratedWitnessopsSidebar(): Promise<DocsNavSection[]> {
+function compareDocsForGeneratedNav(left: DocPage, right: DocPage) {
+  const leftOrder = left.order ?? Number.MAX_SAFE_INTEGER;
+  const rightOrder = right.order ?? Number.MAX_SAFE_INTEGER;
+
+  if (leftOrder !== rightOrder) {
+    return leftOrder - rightOrder;
+  }
+
+  return (left.navLabel ?? left.title).localeCompare(right.navLabel ?? right.title);
+}
+
+function buildNonLeafSlugKeys(docs: DocPage[]) {
+  const nonLeafSlugKeys = new Set<string>();
+
+  for (const doc of docs) {
+    for (let depth = 1; depth < doc.slug.length; depth += 1) {
+      nonLeafSlugKeys.add(doc.slug.slice(0, depth).join("/"));
+    }
+  }
+
+  return nonLeafSlugKeys;
+}
+
+function isDirectChildSlug(slug: string[], parentSlug: string[]) {
+  if (slug.length !== parentSlug.length + 1) {
+    return false;
+  }
+
+  return parentSlug.every((segment, index) => slug[index] === segment);
+}
+
+function getGeneratedChildLeafItems({
+  section,
+  docs,
+  docsByHref,
+  existingHrefs,
+  nonLeafSlugKeys,
+}: {
+  section: CuratedDocsLayer;
+  docs: DocPage[];
+  docsByHref: Map<string, DocPage>;
+  existingHrefs: Set<string>;
+  nonLeafSlugKeys: Set<string>;
+}): DocsNavItem[] {
+  const generatedItems: DocsNavItem[] = [];
+
+  for (const parentHref of section.generatedChildLeafParents ?? []) {
+    if (!existingHrefs.has(parentHref)) {
+      continue;
+    }
+
+    const parentDoc = docsByHref.get(parentHref);
+    if (!parentDoc) {
+      continue;
+    }
+
+    const childLeafDocs = docs
+      .filter((doc) => {
+        if (!isDirectChildSlug(doc.slug, parentDoc.slug)) {
+          return false;
+        }
+
+        if (nonLeafSlugKeys.has(doc.slug.join("/"))) {
+          return false;
+        }
+
+        const href = getDocHref(doc.slug);
+        return !existingHrefs.has(href);
+      })
+      .sort(compareDocsForGeneratedNav);
+
+    for (const doc of childLeafDocs) {
+      const href = getDocHref(doc.slug);
+      existingHrefs.add(href);
+      generatedItems.push({
+        title: doc.navLabel ?? doc.title,
+        href,
+        order: generatedItems.length + 1,
+      });
+    }
+  }
+
+  return generatedItems;
+}
+
+async function getCuratedOffsecSidebar(): Promise<DocsNavSection[]> {
   const docs = await listDocPages("witnessops");
   const docsByHref = new Map(docs.map((doc) => [getDocHref(doc.slug), doc]));
+  const nonLeafSlugKeys = buildNonLeafSlugKeys(docs);
 
-  return WITNESSOPS_DOCS_LAYERS.map((section) => ({
-    id: section.id,
-    title: section.title,
-    description: section.description,
-    items: section.items
+  return OFFSEC_DOCS_LAYERS.map((section) => {
+    const curatedItems = section.items
       .map((item, index) => {
         if (item.kind === "link") {
           return {
@@ -189,8 +282,27 @@ async function getCuratedWitnessopsSidebar(): Promise<DocsNavSection[]> {
           order: index + 1,
         };
       })
-      .filter((item): item is DocsNavItem => item !== null),
-  }));
+      .filter((item): item is DocsNavItem => item !== null);
+
+    const existingHrefs = new Set(curatedItems.map((item) => item.href));
+    const generatedItems = getGeneratedChildLeafItems({
+      section,
+      docs,
+      docsByHref,
+      existingHrefs,
+      nonLeafSlugKeys,
+    }).map((item, index) => ({
+      ...item,
+      order: curatedItems.length + index + 1,
+    }));
+
+    return {
+      id: section.id,
+      title: section.title,
+      description: section.description,
+      items: [...curatedItems, ...generatedItems],
+    };
+  });
 }
 
 export function getDocsLayerForHref(
@@ -201,9 +313,15 @@ export function getDocsLayerForHref(
     return null;
   }
 
-  const layer = WITNESSOPS_DOCS_LAYERS.find((candidate) =>
-    candidate.items.some((item) => item.href === href),
-  );
+  const layer = OFFSEC_DOCS_LAYERS.find((candidate) => {
+    if (candidate.items.some((item) => item.href === href)) {
+      return true;
+    }
+
+    return (candidate.generatedChildLeafParents ?? []).some((parentHref) =>
+      href.startsWith(`${parentHref}/`),
+    );
+  });
 
   if (!layer) {
     return null;
@@ -227,7 +345,7 @@ export async function getDocsSidebar(
   surface: DocsSurface,
 ): Promise<DocsNavSection[]> {
   if (surface === "witnessops") {
-    return getCuratedWitnessopsSidebar();
+    return getCuratedOffsecSidebar();
   }
 
   const docs = await listDocPages(surface);

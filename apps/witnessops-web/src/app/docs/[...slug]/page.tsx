@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import type { ComponentType } from "react";
 import { getDocsUrl, getSurfaceUrl } from "@witnessops/config";
 import {
   getCanonicalDocSlug,
@@ -10,13 +11,16 @@ import {
   getDocSectionTitle,
   getLegacyDocRedirectSlug,
   listDocPages,
+  type DocPage,
 } from "@witnessops/content/docs";
-import { getDocsLayerForSlug } from "@witnessops/content/sidebar";
+import { getDocsLayerForSlug, getDocsSidebar } from "@witnessops/content/sidebar";
 import { MarkdownContent } from "@witnessops/ui/mdx";
 import { QuickActionFrame } from "@/components/docs/quick-action-frame";
 import { EvidenceMappingGuardrails } from "@/components/docs/evidence-mapping-guardrails";
+import { VerifyFirstVerifierFlow } from "@/components/docs/verify-first-verifier-flow";
 import { PageAnswer } from "@/components/docs/page-answer";
 import { TrustBoundarySnippet } from "@/components/shared/trust-boundary-snippet";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 /** Quick action frame data for pages that need it */
 const QUICK_ACTION_FRAMES: Record<string, {
@@ -51,6 +55,10 @@ const QUICK_ACTION_FRAMES: Record<string, {
   },
 };
 
+const DOC_COMPONENT_INJECTIONS: Record<string, ComponentType> = {
+  "quickstart/verify-first": VerifyFirstVerifierFlow,
+};
+
 interface Props {
   params: Promise<{ slug: string[] }>;
 }
@@ -73,23 +81,68 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Document Not Found" };
   }
 
+  const description =
+    doc.description ?? "WitnessOps documentation and verification guidance.";
+
   return {
     title: doc.title,
-    description: doc.description,
+    description,
     alternates: {
       canonical: getDocCanonicalUrl("witnessops", doc.slug),
+    },
+    openGraph: {
+      title: `${doc.title} | WitnessOps`,
+      description,
+      siteName: "WitnessOps",
+      type: "article",
+      images: DEFAULT_OPEN_GRAPH_IMAGES,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${doc.title} | WitnessOps`,
+      description,
+      images: DEFAULT_TWITTER_IMAGES,
     },
   };
 }
 
 async function getAdjacentDocs(currentSlug: string[]) {
-  const docs = await listDocPages("witnessops");
+  const [docs, sidebar] = await Promise.all([
+    listDocPages("witnessops"),
+    getDocsSidebar("witnessops"),
+  ]);
+  const docsByHref = new Map(docs.map((doc) => [getDocHref(doc.slug), doc]));
+  const seenHrefs = new Set<string>();
+  const orderedDocs: DocPage[] = [];
+
+  for (const section of sidebar) {
+    for (const item of section.items) {
+      const doc = docsByHref.get(item.href);
+      if (!doc || seenHrefs.has(item.href)) {
+        continue;
+      }
+
+      seenHrefs.add(item.href);
+      orderedDocs.push(doc);
+    }
+  }
+
+  for (const doc of docs) {
+    const href = getDocHref(doc.slug);
+    if (seenHrefs.has(href)) {
+      continue;
+    }
+
+    seenHrefs.add(href);
+    orderedDocs.push(doc);
+  }
+
   const slugKey = currentSlug.join("/");
-  const idx = docs.findIndex((d) => d.slug.join("/") === slugKey);
+  const idx = orderedDocs.findIndex((doc) => doc.slug.join("/") === slugKey);
 
   return {
-    prev: idx > 0 ? docs[idx - 1] : null,
-    next: idx < docs.length - 1 ? docs[idx + 1] : null,
+    prev: idx > 0 ? orderedDocs[idx - 1] : null,
+    next: idx >= 0 && idx < orderedDocs.length - 1 ? orderedDocs[idx + 1] : null,
   };
 }
 
@@ -111,9 +164,16 @@ export default async function DocPage({ params }: Props) {
   const layer = getDocsLayerForSlug("witnessops", doc.slug);
   const { prev, next } = await getAdjacentDocs(doc.slug);
   const pageAnswer = doc.pageAnswer;
+  const InjectedDocComponent = DOC_COMPONENT_INJECTIONS[doc.slug.join("/")];
 
   return (
-    <main id="main-content" tabIndex={-1} className="docs-page-enter mx-auto max-w-3xl">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="docs-page-enter mx-auto max-w-3xl"
+      data-docs-nav-surface="docs-content"
+      data-docs-layer-context={layer?.id ?? doc.section}
+    >
       {/* KB-grade Breadcrumb */}
       <nav className="kb-breadcrumb" aria-label="Breadcrumb">
         <a href={getDocsUrl("witnessops")}>DOCS</a>
@@ -156,6 +216,7 @@ export default async function DocPage({ params }: Props) {
 
       {/* Body */}
       <MarkdownContent source={doc.body} siteBaseUrl={getSurfaceUrl("witnessops")} />
+      {InjectedDocComponent ? <InjectedDocComponent /> : null}
 
       {/* Quick Action Frame (auto-injected for decision/scenario pages) */}
       {QUICK_ACTION_FRAMES[doc.slug.join("/")] && (
@@ -163,11 +224,16 @@ export default async function DocPage({ params }: Props) {
       )}
 
       {/* KB-grade Prev / Next */}
-      <nav className="kb-related mt-16" aria-label="Pagination">
+      <nav
+        className="kb-related mt-16"
+        aria-label="Pagination"
+        data-docs-nav-surface="pagination"
+      >
         {prev ? (
           <Link
             href={prev.slug.length === 0 ? "/docs" : `/docs/${prev.slug.join("/")}`}
             className="kb-related-link"
+            data-docs-event-type="previous_click"
           >
             &larr; {prev.navLabel ?? prev.title}
           </Link>
@@ -176,6 +242,7 @@ export default async function DocPage({ params }: Props) {
           <Link
             href={`/docs/${next.slug.join("/")}`}
             className="kb-related-link"
+            data-docs-event-type="next_click"
           >
             {next.navLabel ?? next.title} &rarr;
           </Link>

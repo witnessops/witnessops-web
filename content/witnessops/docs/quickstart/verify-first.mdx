@@ -1,0 +1,46 @@
+---
+title: "Verify First (Quickstart)"
+description: "Bounded, mechanism-first receipt verification with explicit execution, proof, evidence, and interpretation separation."
+section: "docs"
+order: 2
+nav_label: "Verify First"
+draft: false
+---
+
+# Verify First (Quickstart)
+
+Use this quickstart when you need a first-pass verification result without collapsing execution, proof, evidence, and interpretation into a single claim.
+
+## Scope and bounded references
+
+- Run the verification surface at [/verify](/verify).
+- For full verification semantics, read [Verification](/docs/how-it-works/verification).
+- For receipt context, read [Receipts](/docs/evidence/receipts).
+- For field-level requirements, read [Receipt Spec](/docs/evidence/receipt-spec).
+- For adversary and trust-boundary assumptions, read [Threat Model](/docs/security-systems/threat-model).
+
+## Execution, proof, evidence, and interpretation are separate lanes
+
+| Lane | Question answered | Output |
+| --- | --- | --- |
+| Execution | What action was performed and by whom? | Operational event record. |
+| Proof | Did deterministic verifier checks pass on supplied artifacts? | Per-check pass/fail/indeterminate status. |
+| Evidence | Which artifacts were actually available to verify? | Receipt and referenced materials with integrity status. |
+| Interpretation | What decision should a reviewer make? | Human policy and risk conclusion with assumptions documented. |
+
+Treat these lanes independently. A strong proof result does not replace interpretation, and interpretation without verified evidence is unsupported.
+
+## Procedure
+
+1. Gather the receipt and referenced materials you plan to rely on.
+2. Run the canonical verifier flow rendered below; do not reorder or skip contract steps.
+3. Record outcomes per step and tie each outcome to the inspected evidence.
+4. Make policy or incident conclusions only after listing unresolved assumptions.
+
+## Verify First sample paths
+
+Use these sample routes to practice the same verifier lane across bounded scenarios:
+
+- [Phishing triage](/library/samples/phishing-triage)
+- [Approval-gated containment](/library/samples/approval-gated-containment)
+- [Evidence export audit package](/library/samples/evidence-export-audit-package)

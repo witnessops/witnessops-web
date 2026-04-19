@@ -9,85 +9,108 @@ draft: false
 
 # A Real Phishing Email
 
-This example is synthetic, but the structure matches real phishing lures.
+## Problem this page solves
 
-## Scenario
+Phishing examples often become stories instead of investigations, which makes response decisions drift away from evidence.
+This page shows a representative phishing artifact set and ties each conclusion to what is directly observable.
 
-A user receives a security alert that looks urgent and branded correctly enough to earn a fast click.
+## Reader outcome
 
-## Attack Chain
+After this page, you should be able to:
 
-```
-Phishing email arrives
-  ↓
-User trusts display name and urgency
-  ↓
-User clicks the fake verification link
-  ↓
-Fake login page captures credentials
-  ↓
-Attacker signs in to the real account
-```
+- walk a phishing report through delivery, interaction, credential, and post-access stages
+- state what each artifact supports and what it does not support
+- choose a response gate that matches evidence quality
 
-## Observable Evidence
+## Mechanism-first walkthrough of a representative phishing artifact/event
 
-Look for:
+This walkthrough is synthetic but mechanically representative.
+Treat it as an artifact-handling exercise, not as attribution.
 
-- a sender domain that does not match the claimed brand
-- a link that resolves to a lookalike or newly registered domain
-- user confirmation that credentials were entered
-- a second-stage login to the real provider from an unfamiliar source
-- later mailbox activity such as new rules, sessions, or outbound mail
+### Representative lure artifact (preserved message excerpt)
 
-## Operator Response
-
-1. Preserve the original email and the resolved destination link.
-2. Confirm whether the user clicked, entered credentials, or approved MFA.
-3. Revoke sessions, reset credentials, and review mailbox changes if interaction occurred.
-4. Record the timeline so later responders can reconstruct the case.
-
-## WitnessOps Controls
-
-The governed path should use:
-
-- [Phishing Investigation](/docs/scenarios/phishing-investigation)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
-- [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling)
-- [Receipts](/docs/evidence/receipts)
-
-## Example lure
-
-```
+```txt
 From: Microsoft Account Team <security@microsft-account.com>
-To: you@yourcompany.com
+Reply-To: noreply@microsft-account.com
 Subject: Unusual sign-in activity on your account
 
-We detected a sign-in to your Microsoft account from
-an unrecognized device.
+We detected unusual activity.
+Verify your account now to avoid access restrictions.
 
-Location: Moscow, Russia
-Time: March 14, 2026 03:41 AM
-Device: Unknown
-
-If this wasn't you, verify your account immediately
-to prevent unauthorized access.
-
-[Verify My Account]
+Verify My Account:
+https://login-microsoft-security-check[.]com/verify
 ```
 
-## What gives it away
+### Stage-by-stage artifact walkthrough
 
-- `microsft-account.com` is not `microsoft.com`
-- the location and time are meant to create urgency, not clarity
-- the button leads to a domain the attacker controls
-- the page may redirect to the real provider after capture to reduce suspicion
+| Chain stage | Primary artifact | What to verify in that artifact | Evidence boundary |
+|---|---|---|---|
+| Delivery | `phishing-email.eml` | sender/reply-to mismatch, header path, auth results | supports suspicious-message classification, not account compromise |
+| Interaction | click telemetry / browser history | whether and when the user opened or clicked | supports interaction timing, not credential exposure |
+| Credential capture | fake-page capture + user statement | non-canonical login domain, credential entry claim, unexpected MFA prompt context | supports likely credential exposure when corroborated |
+| Session establishment | identity sign-in logs | successful sign-in from unfamiliar IP/device after interaction | supports potential unauthorized session |
+| Post-access actions | mailbox/cloud audit logs | forwarding rules, outbound anomalies, token/app changes | supports impact progression if present |
 
-## Example evidence trail
+## Observable indicators and what each indicator supports
 
-| Artifact | What it contains |
-|----------|-----------------|
-| `phishing-email.eml` | Full email with headers and routing |
-| `fake-login-page.html` | Preserved phishing page or screenshot |
-| `domain-registration.txt` | Registration details for the lure domain |
-| `credential-capture-timing.log` | When the user entered credentials |
-| `mailbox-login-audit.log` | Follow-on sign-in from a different IP |
+| Observable indicator | Source artifact | What it supports | What it does not prove by itself |
+|---|---|---|---|
+| Claimed brand does not match sender domain | preserved email headers | impersonation attempt | that credentials were entered |
+| Link resolves to a non-canonical or lookalike domain | resolved URL evidence | lure destination is attacker-controlled or untrusted | that compromise already occurred |
+| User confirms entering credentials or approving MFA | user interview + timeline note | account-exposure likelihood | that attacker successfully authenticated |
+| Successful new sign-in after interaction window | identity provider sign-in logs | possible unauthorized session establishment | full blast radius |
+| New forwarding rule or unusual outbound activity | mailbox audit logs | post-access activity likely occurred | attacker intent or attribution |
+
+## Response decisions and escalation gates tied to evidence quality
+
+- **Gate A (exposure-only):** preserved lure artifact, no click/open evidence.
+  - Decision: classify exposure-only, block indicators, notify user, document receipt.
+- **Gate B (interaction):** click/open evidence exists, but no credential/MFA/session evidence.
+  - Decision: preserve full timeline, monitor sign-in telemetry, run endpoint checks if attachment interaction occurred.
+- **Gate C (account exposure likely):** credential entry, MFA approval, or suspicious new session evidence.
+  - Decision: reset credentials, revoke sessions/tokens, inspect mailbox changes, execute [Phishing Investigation](/docs/scenarios/phishing-investigation).
+- **Gate D (high impact):** privileged account, multi-user spread, or payment/workflow impact.
+  - Decision: escalate through governed incident path with [Policy Gates](/docs/security-systems/policy-gates) before high-impact actions.
+
+## What WitnessOps controls support vs cannot guarantee
+
+**WitnessOps controls can support:**
+
+- [Phishing Investigation](/docs/scenarios/phishing-investigation) for governed triage and containment sequencing
+- [What Evidence Is Required?](/docs/decisions/evidence-required) for minimum evidence completeness before intrusive action
+- [Do I Need to Escalate?](/docs/decisions/escalation) for escalation criteria tied to impact and uncertainty
+- [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling) for controlled handling of email, URL, and identity artifacts
+- [Receipts](/docs/evidence/receipts) for signed, replayable decision records
+
+**WitnessOps cannot guarantee:**
+
+- prevention of all phishing delivery attempts
+- complete reconstruction when telemetry is missing, delayed, or altered
+- attacker attribution from a single lure or single sign-in event
+- external recovery outcomes (for example, third-party financial reversal)
+
+## Observed vs inferred separation
+
+- **Observed:** preserved email headers, resolved URL, click timestamp, sign-in event record, mailbox rule-change log.
+- **Inferred:** "credentials were definitely stolen," "attacker fully controlled the mailbox," or "scope is complete."
+
+Use observed artifacts to justify immediate containment.
+Keep inferred claims explicit and provisional until corroborated.
+
+## Trust assumptions and limits
+
+Assumptions:
+
+- email, identity, and mailbox telemetry is retained and time-aligned enough to reconstruct sequence
+- original artifacts are preserved before mailbox cleanup or endpoint remediation
+- high-impact actions follow policy and approval gates
+
+Limits:
+
+- delayed reporting can remove short-lived evidence (redirect chains, transient sessions)
+- adversaries may evade, suppress, or overwrite telemetry
+- some scope conclusions remain probabilistic until additional corroboration is collected
+
+## Next-page handoff
+
+Continue to [What To Do If You Clicked](/docs/security-education/what-if-you-clicked) for time-bounded recovery actions when interaction has already occurred.

@@ -4,6 +4,7 @@ import { getSurfaceUrl } from "@witnessops/config";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { getDocsSidebar } from "@witnessops/content/sidebar";
 import { CtaButton } from "@/components/shared/cta-button";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const docsDescription =
   "Start here for WitnessOps governed execution, evidence, verification, and explicit trust boundaries.";
@@ -19,11 +20,13 @@ export const metadata: Metadata = {
     description: docsDescription,
     siteName: "WitnessOps",
     type: "website",
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
     title: "Docs — WitnessOps",
     description: docsDescription,
+    images: DEFAULT_TWITTER_IMAGES,
   },
 };
 
@@ -244,7 +247,7 @@ export default async function DocsIndexPage() {
             label="Inspect sample bundles"
           />
           <CtaButton
-            href="/review/request"
+            href="/contact?intent=review"
             variant="secondary"
             label="Request workflow review"
           />

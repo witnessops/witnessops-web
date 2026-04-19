@@ -9,96 +9,151 @@ draft: false
 
 # Glossary
 
-Core terms used across WitnessOps documentation.
+Canonical definitions for the `/docs` surface. These terms describe current live/public WitnessOps behavior; retained-reference or corpus terms are out of scope unless explicitly linked.
+
+## Quick reference links
+
+- [Reference](/docs/reference)
+- [Commands](/docs/reference/commands)
+- [Proof Artifact Classes](/docs/reference/proof-artifact-classes)
+- [Glossary](/docs/glossary) (current page)
+- [man witnessops(7)](/docs/man/witnessops)
+
+## Canonical term families
+
+### Governance and execution control
+
+[Governed Execution](/docs/security-systems/governed-execution) · [Policy Gates](/docs/security-systems/policy-gates) · [Runbooks](/docs/operations/runbooks) · [Scope Check](/docs/decisions/scope-check)
+
+### Identity and authorization
+
+[Authorization Model](/docs/governance/authorization-model) · [Manager / Approver](/docs/audiences/manager-approver)
+
+### Evidence and receipt continuity
+
+[Receipts](/docs/evidence/receipts) · [Receipt Spec](/docs/evidence/receipt-spec) · [Execution Chains](/docs/evidence/execution-chains) · [Evidence Bundles](/docs/how-it-works/evidence-bundles)
+
+### Verification and trust boundaries
+
+[How to Verify a Receipt](/docs/how-it-works/verification) · [Threat Model](/docs/security-systems/threat-model) · [Proof Artifact Classes](/docs/reference/proof-artifact-classes)
+
+## Definitions
 
 ### Approval Gate
 
-A policy gate requiring explicit approval before a governed step executes. In the Tier 1 chain, the gate decision is published as `P1`.
-
-### Canonical Mailbox
-
-The shared Microsoft 365 mailbox `security@witnessops.com`. This is the canonical Tier 1 mailbox identity. `security+witnessops@witnessops.com` may be used as an optional receive-only alias when plus addressing is enabled, but it does not replace the canonical mailbox.
+A policy gate that pauses a step until an approver records an explicit decision.
+**Scope note:** This is narrower than a policy gate. In the Tier 1 chain, the approval decision is represented as `P1`.
 
 ### Campaign
 
-A set of related execution chains within a single engagement.
+A related set of governed runs and evidence chains for one operational objective.
+
+### Canonical Mailbox
+
+The shared Microsoft 365 mailbox `security@witnessops.com`, used as the canonical Tier 1 mailbox identity.
+**Scope note:** `security+witnessops@witnessops.com` can be an optional receive-only alias when plus addressing is enabled, but it does not replace the canonical mailbox.
 
 ### Deterministic Replay
 
-The ability to recompute the published Tier 1 evidence path from serialized artifacts and verify its integrity without live mailbox, network, or UI state. `V0` is the Tier 1 replay-verification result.
+Recomputing chain integrity from serialized artifacts without relying on live mailbox, network, or UI state.
+**Scope note:** Replay verifies artifact integrity and continuity; it does not re-run tools against live targets.
 
 ### Evidence Manifest
 
-A declared list of evidence artifacts and their content hashes for a governed operation.
+The signed/hashed inventory (for example `MANIFEST.json`) that lists bundle artifacts and expected digests.
 
 ### Execution Chain
 
-The ordered Tier 1 evidence sequence `M0 -> E0 -> P1 -> E2 -> R0 -> V0`. `MX0` may exist internally before `E0`, but it is not part of the published chain.
+The published Tier 1 continuity sequence `M0 -> E0 -> P1 -> E2 -> R0 -> V0`.
+**Scope note:** This sequence is a continuity contract, not a claim that every operational fact is represented.
 
 ### Governed Execution
 
-Operational activity that runs within enforced policy constraints. Every tool invocation passes through scope checks, approval gates, and policy enforcement before executing.
+Runtime enforcement that applies scope and policy gates before a step can run, then emits evidence and receipt-bearing artifacts.
 
 ### M0
 
-Mailbox readiness proof for the canonical shared mailbox.
+Tier 1 mailbox-readiness proof for the canonical shared mailbox.
+
+### E0
+
+Tier 1 pre-approval execution-evidence checkpoint.
+
+### P1
+
+Tier 1 checkpoint that records the approval-gate decision.
+
+### E2
+
+Tier 1 post-approval execution-evidence checkpoint.
 
 ### MX0
 
-Internal-only mailbox transport and export evidence. `MX0` may feed `E0`, but it is not a published proof artifact.
+Internal-only mailbox transport/export evidence that may feed `E0`.
+**Scope note:** `MX0` is not a published proof artifact.
 
 ### Operator
 
-The human or system identity that initiates and runs a governed operation. Operator identity may appear in the published chain, but verification authority does not depend on trusting the UI's display of that value.
+The principal that initiates and runs a governed workflow step.
+**Scope note:** Operator identity is recorded for auditability, but identity truthfulness is an external trust assumption.
 
 ### Policy Gate
 
-A runbook checkpoint that must pass before execution proceeds.
-
-### R0
-
-The published receipt wrapper in the Tier 1 chain. `R0` carries:
-
-- `artifactHash`, the hash of the frozen `R0` body projection
-- `tier1.executionHash`, the hash of the typed Tier 1 execution payload
-- a PV receipt projection whose `record_digest` must bind to the already-computed `executionHash`
+A required pre-execution control check (for example scope, approval, tool allowlist, or environment constraints). A step runs only when its required gates pass.
 
 ### Principal
 
-An authenticated identity authorized to perform actions within WitnessOps. Principals can be operators, approvers, or system identities. Freemail addresses are rejected as principal identities.
+A policy-bound identity class (`operator`, `approver`, or `system`) used in authorization and gate evaluation.
 
 ### Proof Bundle
 
-A sealed package of evidence — including receipts, manifests, and integrity material — that can be independently verified. Proof bundles are portable artifacts produced from WitnessOps receipts.
+A portable package that carries receipt material, digest inventories, and trust artifacts for offline verification.
+**Scope note:** A proof bundle transports proof artifacts; it is not itself a guarantee that all external trust assumptions hold.
+
+### R0
+
+The published Tier 1 receipt wrapper. `R0` binds the frozen receipt projection (`artifactHash`) and the typed execution payload digest (`tier1.executionHash`), then carries the PV receipt projection that must bind to that execution digest.
 
 ### Receipt
 
-In the current WitnessOps public model, "receipt" usually refers to `R0`, the Tier 1 receipt wrapper. It is part of the published chain `M0 -> E0 -> P1 -> E2 -> R0 -> V0`, not a standalone legacy `prevReceipt` object.
+The atomic proof statement for a governed event.
+**Scope note:** In the Tier 1 naming lane, `R0` is the published receipt wrapper inside the chain; receipt validity still does not prove tool correctness or business-impact conclusions.
 
 ### Receipt Chain
 
-See [Execution Chain](#execution-chain).
+Another name for the execution chain continuity path. See [Execution Chain](#execution-chain).
 
 ### Runbook
 
-A YAML workflow definition describing the steps, tools, policy gates, and expected evidence for an operation.
+A versioned workflow contract that declares ordered steps, required gates, scope boundary, and expected evidence outputs.
 
 ### Scope
 
-The set of authorized targets for a governed operation. Scope is enforced per-step from the active scope configuration and related policy inputs. Targets outside that declared scope are blocked.
+The authorized target boundary for a governed operation.
 
 ### Scope Enforcement
 
-The runtime mechanism that checks every tool invocation against the declared scope before allowing execution. Scope enforcement is per-step, not just per-runbook.
+Per-step runtime checks that block actions outside declared scope before execution occurs.
 
 ### Target Domain
 
-A domain, IP range, or asset identifier authorized for a governed operation.
+A domain, address range, or asset identifier authorized by scope policy for an operation.
 
 ### V0
 
-The local verification result for the published Tier 1 chain. `V0` is produced by the shared proof receipt boundary and remains local-only: no live mailbox, Graph, Defender, or UI session state is required to replay it.
+The local verification result for the published Tier 1 chain.
+**Scope note:** `V0` is local/offline replay output, not a live dependency on mailbox, Graph, Defender, or UI session state.
+
+### Verification Result
+
+The contract verdict returned by verification surfaces (`valid`, `invalid`, `indeterminate`) for declared checks.
+**Scope note:** `indeterminate` means required external trust context could not be established locally; it is not the same as cryptographic failure.
 
 ### Witness
 
-An independent observer that records execution events and signs attestations confirming they occurred. Witnesses belong to the separate verification surface, not the WitnessOps execution runtime.
+An independent verification-side observer that can attest to declared proof-policy conditions.
+**Scope note:** Witness semantics belong to verification/trust layers, not to core execution-runtime control.
+
+## Next-page handoff
+
+For operator-facing command semantics and route-level runtime/receipt behavior, continue to [man witnessops(7)](/docs/man/witnessops).

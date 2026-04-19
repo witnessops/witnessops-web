@@ -2,147 +2,79 @@
 title: "Is This In Scope?"
 description: "A decision page for determining whether a target, workflow, or action is authorized before work begins."
 section: "docs"
-order: 1
+order: 10
 nav_label: "Is This In Scope?"
 draft: false
 ---
 
 # Is This In Scope?
 
-Use this decision page before performing security work on any system, account, message, asset, or workflow.
+Use this page to decide whether a target, workflow, or action is authorized before execution begins.
 
-## Purpose
+Scope is not a description of intent. It is the boundary that determines whether execution is authorized at all.
 
-Prevent unauthorized work, reduce unnecessary risk, and make sure actions match the approved objective.
+## 1. Problem this page solves
 
-## Start here
+Scope ambiguity causes unsafe execution, weak evidence, and approvals that cannot be defended later.
 
-Ask these questions in order.
+This page defines a concrete decision path for scope authorization before work starts.
 
-## 1. Do I know exactly what the target is?
+## 2. What you should understand after reading
 
-Examples:
+After this page, you should understand:
 
-- a specific mailbox
-- a specific application
-- a known host
-- a named environment
-- a defined user report
+- what scope check means in practice
+- which inputs are required before execution
+- which questions must be answered before proceeding
+- when to proceed, stop, escalate, or move to lab/non-production path
 
-If no, stop. Clarify the target first.
+## 3. Mechanism-first scope decision path
 
-## 2. Do I know why work is being requested?
+1. **Identify target/workflow.** Confirm exact target identity and environment.
+2. **Identify authority source.** Confirm policy/approval source that authorizes this class of work.
+3. **Identify allowed action class.** Confirm intended action is allowed for this role and objective.
+4. **Identify constraints/exclusions.** Confirm boundaries, disallowed targets, and sensitivity limits.
+5. **Evaluate in-scope decision.** Determine whether execution is authorized under current facts.
+6. **Choose outcome.** Proceed, do not proceed, escalate, or shift to lab/non-production exception path.
 
-You should be able to state the objective in one sentence.
+## 4. Required decision inputs
 
-Examples:
+At minimum, scope decision requires:
 
-- validate a reported phishing email
-- review a login alert
-- test a specific application path
-- collect evidence for a suspected compromise
+- target identity (system/account/artifact/workflow)
+- objective statement (why work is requested)
+- authority source (policy, approval, role boundary)
+- action class and expected impact
+- exclusions and escalation boundaries
 
-If the purpose is vague, stop and clarify.
+If one of these is unclear, scope is not yet established.
 
-## 3. Is there explicit authorization for this kind of work?
+## 5. Observed vs inferred
 
-Check whether the activity is:
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Observed | policy/approval records, declared scope, target facts, action constraints | none beyond documented inputs |
+| Inferred | whether available inputs are sufficient for safe execution | depends on judgment quality and context completeness |
 
-- already covered by approved process
-- allowed for your role
-- allowed for this environment
-- allowed for the actions you plan to take
+## 6. Trust assumptions
 
-If you do not know, treat it as not yet approved.
+Scope decisions depend on assumptions that may fail:
 
-## 4. Is the planned action proportionate?
+- scope inputs can be incomplete or stale
+- approvals can be broad but operationally ambiguous
+- correct judgment still depends on truthful upstream facts
 
-Ask:
+Documented scope method reduces drift; it does not eliminate judgment.
 
-- do I need this action to answer the question
-- is there a less disruptive way to validate first
-- does this move from observation to interference
+## 7. Decision outcomes
 
-If the action is broader than necessary, redesign it.
+| Outcome | Condition | Action |
+| --- | --- | --- |
+| Proceed | inputs clear and authorization valid | continue under governed path |
+| Do not proceed | explicit out-of-scope or disallowed action | stop execution |
+| Escalate for clarification | ambiguity in target, authority, or impact | escalate before action |
+| Shift to lab/non-production path | normal scope cannot apply but controlled exception is justified | use documented exception controls ([Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass)) |
 
-## 5. Could this affect users, systems, or evidence?
+## 8. Next-page handoff
 
-Examples:
-
-- password resets
-- blocking or deleting messages
-- changing configurations
-- executing code
-- interacting with production services
-
-If yes, verify that the impact is expected and approved.
-
-## 6. Does this cross an escalation boundary?
-
-Common escalation boundaries:
-
-- privileged accounts
-- sensitive data
-- production systems
-- broad tenant-wide actions
-- intrusive validation
-- destructive or hard-to-reverse changes
-
-If yes, escalate before proceeding.
-
-## Scope decision
-
-### In scope
-
-Proceed only when:
-
-- the target is clearly identified
-- the objective is clear
-- authorization exists
-- the action is necessary
-- the risk is proportionate
-- escalation boundaries are not crossed without approval
-
-### Not clearly in scope
-
-Stop and ask for clarification when:
-
-- the target is ambiguous
-- the environment is unclear
-- the objective is vague
-- the action seems broader than the task
-- the user or manager assumes approval without stating it
-
-### Out of scope
-
-Do not proceed when:
-
-- the target is not authorized
-- the action exceeds the stated purpose
-- the work affects unrelated assets
-- the activity would create avoidable risk
-
-## Record your decision
-
-Before acting, record:
-
-- what target you believe is in scope
-- what objective you are addressing
-- what action you plan to take
-- why you believe it is authorized
-
-## Quick action frame
-
-| Check | Use this rule |
-| --- | --- |
-| **When to stop** | Stop when the target, environment, or objective is ambiguous. |
-| **Escalation trigger** | Escalate when the next step affects privileged accounts, production systems, sensitive data, or broad tenant scope. |
-| **Evidence required** | Record the target, objective, planned action, and why you believe it is authorized. |
-| **Next path** | Continue to [Do I Need to Escalate?](/docs/decisions/escalation) or [What Evidence Is Required?](/docs/decisions/evidence-required) before acting. |
-
-## Related pages
-
-- [Do I Need to Escalate?](/docs/decisions/escalation)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
-- [Manager / Approver](/docs/audiences/manager-approver)
-- [New Operator](/docs/audiences/new-operator)
+Next, read [What Evidence Is Required?](/docs/decisions/evidence-required) to define the minimum record standard for whatever scope decision outcome follows.

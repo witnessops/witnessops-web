@@ -2,15 +2,74 @@
 title: "Scenarios"
 description: "Worked investigation flows that show how WitnessOps decisions and evidence handling apply in practice."
 section: "docs"
-order: 1
+order: 0
 nav_label: "Scenarios"
 draft: false
 ---
 
 # Scenarios
 
-These pages show concrete workflows. Use them when you want a practical path through triage, investigation, escalation, and evidence capture.
+This section bridges role guidance into practical investigation execution with explicit decision and evidence gates.
 
-## In this section
+## 1. Problem this page solves
 
-- [Phishing Investigation](/docs/scenarios/phishing-investigation)
+Role pages define ownership boundaries, but responders still need a repeatable way to execute real cases without collapsing scope, evidence, and escalation into ad hoc judgment.
+
+This page defines the scenario index model so case work stays bounded, reviewable, and consistent across operator and defender lanes.
+
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- what scenarios are for in the WitnessOps documentation system
+- how to use scenarios as execution models, not narrative examples
+- the decision sequence that governs scenario progression
+- the evidence checkpoints required before advancing or closing
+- what is directly observed vs what remains inferred during case work
+
+## 3. Mechanism-first scenario model
+
+Use scenarios as controlled execution frames:
+
+1. **Start from an observed trigger.** A report, alert, or artifact creates the case entry condition.
+2. **Bind role and authority.** Apply role boundaries from [Audiences](/docs/audiences) before taking action.
+3. **Run decision gates in order.** Apply scope, classification, evidence, and escalation checks as explicit gates.
+4. **Capture evidence at each gate.** Record artifacts and rationale before moving to the next decision.
+5. **Escalate or close explicitly.** End with a documented disposition path, not an implicit stop.
+
+Scenarios define flow discipline for practical cases; they do not replace governance or decision standards.
+
+## 4. Decision sequence and evidence checkpoints
+
+| Gate | Decision question | Minimum evidence checkpoint | If gate fails |
+| --- | --- | --- | --- |
+| Entry gate | Is there an actionable observed trigger? | report source, timestamp, preserved starting artifact | stop and request sufficient intake context |
+| Scope gate | Is the next action authorized and in scope? | target/action boundary record, applicable approval state | stop or escalate for authorization/scope review |
+| Classification gate | What class of event is currently supported by evidence? | observed indicators, technical validation artifacts, confidence notes | hold provisional classification and gather more evidence |
+| Impact gate | Is user/system interaction or compromise indicated? | interaction timeline, affected identities/assets, supporting artifacts | continue bounded triage and avoid over-claiming impact |
+| Escalation/closure gate | Is evidence sufficient to close, or is escalation required? | decision rationale, evidence package completeness, unresolved risk notes | escalate via [Do I Need to Escalate?](/docs/decisions/escalation) |
+
+## 5. Observed vs inferred
+
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Scenario progression | gate outcomes, collected artifacts, timestamps, explicit actions taken | certainty of root cause, attacker intent, full blast radius |
+| Case conclusions | documented classification and disposition rationale | long-term impact, campaign attribution, future recurrence likelihood |
+
+Treat inferred conclusions as hypotheses until additional evidence confirms them.
+
+## 6. Trust assumptions and limits
+
+Scenario quality depends on explicit assumptions:
+
+- **Input quality is variable:** reports and alerts may be incomplete or deceptive.
+- **Policy/configuration accuracy is external:** incorrect scope or approval configuration produces incorrect gate outcomes.
+- **Runtime/tool integrity is assumed:** host or key compromise invalidates workflow confidence.
+- **Evidence attests process, not truth:** artifacts and receipts show what was captured, not that conclusions are correct.
+- **Human judgment remains required:** scenarios reduce drift but cannot remove uncertainty in live incidents.
+
+See [Threat Model](/docs/security-systems/threat-model) for full trust boundary context.
+
+## 7. Next-page handoff
+
+Next, run [Investigating a Phishing Report](/docs/scenarios/phishing-investigation) as the first concrete scenario and apply each gate/checkpoint in order.

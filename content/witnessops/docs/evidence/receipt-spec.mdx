@@ -22,16 +22,22 @@ This is the technical diligence page for WitnessOps Receipt v2. It defines what 
 
 If you need the conceptual overview first, start with [Receipts](/docs/evidence/receipts). If you need the operator workflow, go to [Verification](/docs/how-it-works/verification).
 
-## What This Page Covers
+## 1. Problem this page solves
 
-Use this page to answer diligence questions such as:
+Reviewers often receive a receipt artifact but still need a field-level contract for what is signed, what is referenced, and what verification can actually assert.
+
+This page solves that diligence problem by defining the Receipt v2 shape and its proof references in technical terms.
+
+## 2. What you should understand after reading
+
+After this page, you should be able to answer:
 
 - What exactly is a WitnessOps Receipt v2?
 - What is signed, what is timestamped, and what is only referenced?
 - Which fields establish continuity between receipts?
 - How does the current verification path classify success, failure, or incomplete trust?
 
-This page describes the public receipt contract. It does not replace the verifier implementation or the bundle contract. It explains how they fit together.
+This page describes the public receipt contract. It does not replace the verifier implementation or bundle contract. It explains how they fit together.
 
 ## Receipt v2 at a Glance
 
@@ -254,9 +260,12 @@ Receipt v2 does not, by itself, prove:
 
 Those boundaries belong in the threat model, not hidden in marketing copy.
 
-## Read Next
+## 8. Next-page handoff
 
-- [Receipts](/docs/evidence/receipts) for the conceptual bridge page
+Next, read [Threat Model and Trust Boundaries](/docs/security-systems/threat-model) to evaluate what this receipt contract can and cannot guarantee under adversarial conditions.
+
+Then continue with:
+
 - [Execution Chains](/docs/evidence/execution-chains) for continuity and Merkle packaging
-- [Proof Model](/docs/how-it-works/proof-model) for the signature and timestamp layers
-- [Verification](/docs/how-it-works/verification) for the operator workflow
+- [Proof Model](/docs/how-it-works/proof-model) for signature and timestamp layers
+- [Verification](/docs/how-it-works/verification) for operator workflow

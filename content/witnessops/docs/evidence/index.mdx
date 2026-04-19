@@ -9,11 +9,61 @@ draft: false
 
 # Evidence
 
-WitnessOps evidence pages focus on what operations produce and how those artifacts support later verification.
+Evidence is not every artifact a system emits. In WitnessOps, evidence is the subset of artifacts that support later review, challenge, and verification.
 
-## In this section
+## 1. Problem this page solves
 
-- [Receipts](/docs/evidence/receipts)
-- [Receipt Spec](/docs/evidence/receipt-spec)
-- [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling)
-- [Execution Chains](/docs/evidence/execution-chains)
+Operational systems produce many outputs: logs, UI state, exports, notes, and runtime byproducts.
+
+This page defines what counts as evidence in WitnessOps and what does not, so later trust decisions are based on verifiable artifacts instead of presentation surfaces.
+
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- which artifact classes make up the evidence surface
+- what each class is for in review and verification
+- what is directly captured vs derived later
+- what remains outside proof and therefore trust-based
+
+## 3. Mechanism-first evidence model
+
+WitnessOps evidence is best understood in this order:
+
+| Artifact class | Primary role | Why it matters |
+| --- | --- | --- |
+| Receipts | Atomic governed event records | Proves a specific step or decision was recorded |
+| Execution chains | Ordered continuity across receipts | Shows event order and missing/altered sequence risk |
+| Bundles | Portable package of proof-bearing artifacts | Enables offline verification without calling back to runtime |
+| Sensitive artifacts | Raw high-risk payloads (credentials, tokens, user-linked content) | May support findings but require strict handling and minimization |
+| Mappings and export surfaces | Indexes/manifests linking context to artifacts | Improve retrieval/review, but are not proof by themselves |
+
+## 4. Observed vs inferred
+
+| Layer | What it includes | Confidence boundary |
+| --- | --- | --- |
+| Directly captured | Receipt fields, digest links, chain continuity fields, declared bundle artifacts | Verifiable from emitted artifacts |
+| Derived | Operational narrative built from receipt order and artifact relationships | Depends on correct interpretation of captured evidence |
+| External trust inputs | Identity provenance, scope-source quality, policy-source correctness, external legal/organizational approvals | Not independently proven by artifact chain |
+
+## 5. Trust assumptions you must keep explicit
+
+WitnessOps signs and links evidence artifacts, but does not independently prove every upstream system feeding those artifacts.
+
+Keep these assumptions explicit:
+
+- signatures prove artifact integrity relative to what was signed
+- references to identity/scope/policy depend on external systems being accurate
+- raw outputs may be operationally useful but not automatically proof-bearing
+
+> A receipt is evidence. A dashboard is presentation. A raw output may be neither.
+
+## 6. Next-page handoff
+
+Next, read [Receipts](/docs/evidence/receipts) to understand the atomic evidence object and what a single receipt proves.
+
+Then use:
+
+- [Execution Chains](/docs/evidence/execution-chains) for continuity across multiple events
+- [Receipt Spec](/docs/evidence/receipt-spec) for field-level technical diligence
+- [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling) for high-risk payload controls

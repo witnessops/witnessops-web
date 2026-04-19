@@ -1,6 +1,6 @@
 ---
 title: "The Cost of One Click"
-description: "A business-impact lesson framed as scenario, attack chain, observable evidence, operator response, and WitnessOps controls."
+description: "A mechanism-first model that links click events to bounded, evidence-backed business impact."
 section: "docs"
 order: 4
 nav_label: "Cost of a Click"
@@ -9,61 +9,82 @@ draft: false
 
 # The Cost of One Click
 
-Clicking a link feels harmless. The consequences are not.
+A click is an event, not automatically a breach. This page shows how to move from a click to a bounded impact statement using observable evidence.
 
-## Scenario
+## 1) Problem this page solves
 
-A phishing email lands in one inbox. One person clicks. Nothing looks obviously broken yet.
+Teams often jump from "someone clicked" to "major incident" before proving what failed and what business effect occurred. This page provides a disciplined impact path so response decisions are proportionate to evidence.
 
-## Attack Chain
+## 2) Reader outcome
 
-```
-User clicks a phishing link
-  ↓
-Credentials or session token are exposed
-  ↓
-Attacker signs in to the mailbox
-  ↓
-Attacker learns payment and approval patterns
-  ↓
-Fraud, data exposure, or ransomware entry follows
-```
+After this page, you should be able to:
 
-This is often business email compromise, not cinematic "hacking."
+- map a click event to an impact level without over-claiming
+- identify the minimum evidence needed to support each level
+- choose containment and escalation actions based on confidence
 
-## Observable Evidence
+## 3) Mechanism-first impact model
 
-Look for:
+| Impact level | Event -> control failure path -> business effect categories |
+|---|---|
+| Level 0: Exposure attempt | User clicks a suspicious link -> no confirmed credential/session capture -> user risk and monitoring workload only |
+| Level 1: Potential compromise | User clicks and submits credential/session material -> attacker now has usable access material if controls fail -> elevated account misuse risk |
+| Level 2: Confirmed account misuse | Captured access material is used successfully -> MFA/session/token controls fail, are bypassed, or are absent -> communication integrity risk, confidential data access risk, transaction process risk |
+| Level 3: Confirmed business effect | Unauthorized access persists long enough for downstream action -> preventive and detective controls do not interrupt in time -> realized effects such as fraudulent transaction attempts, unauthorized disclosure, or measurable operational disruption |
 
-- a preserved phishing message or lookalike login page
-- successful sign-in from a new IP or device
-- mailbox rules, forwarding, or password resets created after the click
-- unusual finance or payment requests from the compromised mailbox
-- outbound communication that does not match normal sender behavior
+Business effect categories should stay bounded to what is evidenced: financial process integrity, confidentiality, operational continuity, and trust in official communications.
 
-## Operator Response
+## 4) Observable evidence needed to support each impact level
 
-1. Preserve the email, link, and user interaction timeline.
-2. Revoke sessions and contain the affected account.
-3. Review mailbox rules, sent mail, and downstream payment or vendor workflows.
-4. Escalate quickly if finance, privileged, or multi-user exposure is possible.
+| Impact level | Minimum supporting evidence |
+|---|---|
+| Level 0 | Original phishing message or URL, user click telemetry, and timeline entry showing no confirmed submission |
+| Level 1 | Evidence of submission behavior (form post, browser artifact, or preserved phishing workflow) plus user/account linkage |
+| Level 2 | Identity-provider or service logs showing successful unauthorized sign-in/token use, with contextual anomalies (device, IP, geo, timing, rule changes) |
+| Level 3 | Verifiable downstream artifacts tied to the unauthorized access path (payment instruction trail, data access/export logs, or service-impact records) |
 
-## WitnessOps Controls
+If evidence only supports a lower level, keep impact statements at that lower level until additional facts are confirmed.
 
-The governed path should include:
+## 5) Practical response and escalation decisions by impact confidence
 
-- [Phishing Investigation](/docs/scenarios/phishing-investigation) for the initial workflow
-- [Do I Need to Escalate?](/docs/decisions/escalation) for account-takeover and fraud risk
-- [What Evidence Is Required?](/docs/decisions/evidence-required) for insurer, auditor, or legal review
-- [Receipts](/docs/evidence/receipts) to sign the investigation, containment, and remediation chain
+| Confidence in impact claim | Practical response | Escalation decision |
+|---|---|---|
+| Low (single signal, gaps remain) | Preserve artifacts, validate user account activity, begin targeted containment for exposed account | Escalate to security lead when privileged or finance-adjacent accounts are involved |
+| Medium (multiple aligned signals, some uncertainty) | Revoke sessions/tokens, rotate credentials, inspect mailbox rules and high-risk workflows | Escalate to incident owner and affected business process owners |
+| High (corroborated technical and business evidence) | Execute full incident workflow, document scope and affected processes, track remediation to closure | Escalate to executive, legal, and compliance channels per policy triggers |
 
-The cost is financial, but the response still starts with evidence quality and governed execution.
+## 6) What WitnessOps controls can support vs cannot guarantee
 
-## Typical business impact
+WitnessOps can support:
 
-| Consequence | Typical cost |
-|------------|-------------|
-| **Wire fraud** | $50,000 – $500,000 per incident |
-| **Ransomware** | $200,000 – $5,000,000 |
-| **Data breach notification** | $150 per record |
-| **Business disruption** | Days to weeks of reduced operations |
+- structured response through [Phishing Investigation](/docs/scenarios/phishing-investigation)
+- thresholded escalation through [Do I Need to Escalate?](/docs/decisions/escalation)
+- evidence-quality checks through [What Evidence Is Required?](/docs/decisions/evidence-required)
+- signed execution records through [Receipts](/docs/evidence/receipts)
+
+WitnessOps cannot guarantee:
+
+- that users will never click or submit credentials
+- that third-party telemetry will always be complete or timely
+- reversal of financial loss or external-party actions
+- legal or insurance outcomes beyond the available evidence record
+
+## 7) Observed vs inferred separation
+
+Treat these as separate statement types in reports:
+
+- **Observed:** directly supported by artifacts or logs (for example, "successful sign-in from new device at 09:13 UTC")
+- **Inferred:** plausible interpretation not yet directly proven (for example, "attacker likely harvested credentials from lookalike page")
+
+Do not present inferred impact as confirmed impact. Keep both tracks visible until evidence resolves uncertainty.
+
+## 8) Trust assumptions and limits
+
+- Source logs are trusted only to the extent they are complete, retained, and time-synchronized.
+- User testimony is useful context but may be incomplete under stress.
+- Some attacker actions can occur outside available telemetry.
+- Impact estimates should be revised as new evidence arrives; early estimates are provisional.
+
+## 9) Next-page handoff
+
+To reduce the chance that Level 1 becomes Level 2, continue to [Why MFA Stops Most Attacks](/docs/security-education/mfa).

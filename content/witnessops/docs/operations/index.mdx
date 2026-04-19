@@ -9,8 +9,51 @@ draft: false
 
 # Operations
 
-Operations pages describe how teams move through governed execution without losing approval or evidence boundaries.
+Operations defines how authorized work becomes repeatable operator execution without collapsing controls, evidence, and escalation into one surface.
 
-## In this section
+## 1. Problem this page solves
 
-- [Runbooks](/docs/operations/runbooks)
+Security operations fail when teams rely on intent and tooling alone.  
+Governed work needs an operational model that preserves authorization boundaries, execution discipline, and reviewable evidence.
+
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- what the operations surface covers
+- how work moves from authorization into controlled execution
+- where runbooks, evidence, and escalation fit in that flow
+- what this page intentionally leaves to deeper pages
+
+## 3. Mechanism-first operational path
+
+1. **Authorized work enters operations.** Governance decisions define what is allowed.
+2. **Bounded procedure is selected.** A runbook or controlled workflow defines execution shape.
+3. **Policy and scope checks apply.** Preconditions are evaluated before execution steps run.
+4. **Execution runs under controls.** Operators execute within governed boundaries.
+5. **Evidence is captured.** Artifacts and receipts preserve what occurred for later review.
+6. **Escalation or closure occurs.** Work either closes with sufficient evidence or escalates by policy.
+
+This page defines the path model. It does not define every step schema in depth.
+
+## 4. Observed vs inferred
+
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Observed | documented runbook role, policy/scope gating, evidence capture and escalation points | none beyond declared process controls |
+| Inferred | operational quality and reliability of outcomes | depends on operator discipline and enforcement consistency |
+
+## 5. Trust assumptions
+
+Operations controls still depend on:
+
+- operator judgment quality and adherence to procedure
+- runtime/tool integrity during execution
+- upstream scope/approval input correctness
+- exception-path handling quality when normal controls are bypassed
+
+Operations can enforce flow discipline, but cannot eliminate all operational risk.
+
+## 6. Next-page handoff
+
+Next, read [Runbooks](/docs/operations/runbooks) for the concrete workflow contract that operationalizes this path.

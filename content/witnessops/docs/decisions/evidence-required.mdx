@@ -2,135 +2,71 @@
 title: "What Evidence Is Required?"
 description: "A practical standard for collecting enough evidence to support a decision, close a task, or justify escalation."
 section: "docs"
-order: 3
+order: 30
 nav_label: "Evidence Required"
 draft: false
 ---
 
 # What Evidence Is Required?
 
-Use this page to determine what to collect before closing a task, making a decision, or escalating an issue.
+Use this page to decide when evidence is sufficient for a decision, closure, or escalation.
 
-## Purpose
+## 1. Problem this page solves
 
-Evidence should allow another person to understand:
+Teams fail in two opposite ways:
 
-- what happened
-- what you checked
-- what you found
-- why you concluded what you concluded
+- acting on weak evidence
+- collecting more artifacts without a decision standard
 
-Evidence records what you observed and what method you used. It does not prove the conclusion is correct — it proves the work was performed and recorded.
+This page defines evidence sufficiency as a decision-support standard, not an artifact-volume target.
 
-## Minimum evidence standard
+## 2. What you should understand after reading
 
-At minimum, capture:
+After this page, you should understand:
 
-- what the target or artifact was
-- when you reviewed it
-- what method you used
-- what you observed
-- what conclusion you reached
+- what “evidence required” means in WitnessOps
+- what makes evidence sufficient for a specific decision
+- when evidence is enough to proceed, close, or escalate
+- when additional collection is not the right next move
 
-If one of those is missing, the record is probably incomplete.
+## 3. Mechanism-first sufficiency path
 
-## Evidence by task type
+1. **Define the decision.** What decision are you making now (proceed, close, escalate, contain)?
+2. **Define the claim.** What claim must the evidence support for that decision?
+3. **Define minimum evidence set.** Identify smallest set of direct, relevant, reviewable artifacts required.
+4. **Test evidence quality.** Confirm artifacts are attributable, timely, and interpretable by another reviewer.
+5. **Choose decision outcome.** Mark sufficient/insufficient and take the appropriate action path.
 
-### For phishing triage
+## 4. Observed vs inferred
 
-Capture:
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Observed | captured artifacts, receipts, logs, target facts, timestamps, method record | none beyond recorded facts |
+| Inferred | conclusion drawn from observed artifacts | judgment quality and context interpretation |
 
-- the message or message identifier
-- sender details
-- subject line
-- link or attachment details
-- relevant screenshots
-- user interaction status
-- your classification and rationale
+Do not treat inference as proof-bearing observation.
 
-### For suspicious login review
+## 5. Trust assumptions
 
-Capture:
+Evidence sufficiency still depends on bounded trust:
 
-- account involved
-- time of alert or activity
-- source details if available
-- whether access was successful
-- whether the activity matches known user behavior
-- what containment or follow-up occurred
+- evidence can be partial or missing key context
+- source systems can be incomplete or misleading
+- sufficiency depends on decision type, not artifact count
+- more artifacts do not automatically mean stronger evidence
 
-### For operational testing
+Evidence is sufficient only when it can support the decision being made without overstating what the artifacts actually show.
 
-Capture:
+## 6. Decision outcomes
 
-- the target
-- the objective
-- the steps performed
-- command or action context where appropriate
-- outputs or observations
-- whether the result was successful, failed, or inconclusive
+| Outcome | Condition | Action |
+| --- | --- | --- |
+| Evidence sufficient to proceed | claim support meets current decision threshold | continue under governed path |
+| Evidence sufficient to close | closure claim is reviewable and bounded | close with explicit rationale |
+| Evidence insufficient, gather more | specific missing artifact/fact is identifiable and obtainable | collect targeted additional evidence |
+| Evidence insufficient, escalate | uncertainty/risk exceeds safe local decision boundary | escalate with current evidence package |
+| Evidence too weak for claim | available artifacts cannot support asserted claim | do not assert claim; reframe or stop |
 
-### For escalation
+## 7. Next-page handoff
 
-Capture:
-
-- the trigger for escalation
-- the facts known so far
-- the risk introduced by further action
-- what decision is needed next
-
-## Good evidence characteristics
-
-Good evidence is:
-
-- specific
-- relevant
-- traceable
-- understandable
-- limited to what is necessary
-
-## Weak evidence examples
-
-Weak evidence includes:
-
-- screenshots with no source context
-- copied output with no explanation
-- conclusions without observations
-- "looks suspicious" with no supporting details
-- missing timestamps or target identifiers
-
-## Evidence checklist before closing
-
-Before you close the task, confirm:
-
-- I identified the correct target or artifact
-- I recorded enough detail for another person to review my work
-- My conclusion is supported by what I captured
-- I documented any uncertainty
-- I recorded any action taken or recommended
-
-## When evidence is not enough
-
-Do not close the task if:
-
-- the core artifact was not preserved
-- the target is not clearly identified
-- the conclusion depends on memory
-- the rationale is not written down
-- the next reviewer would need to repeat your work from scratch
-
-## Quick action frame
-
-| Check | Use this rule |
-| --- | --- |
-| **When to stop** | Stop before closing when the artifact, method, rationale, or timeline cannot be reconstructed from the record. |
-| **Escalation trigger** | Escalate when the available evidence suggests broader impact but does not yet support a safe conclusion. |
-| **Evidence required** | Capture the target, time, method, observation, conclusion, and any uncertainty or follow-up action. |
-| **Next path** | Continue to [Do I Need to Escalate?](/docs/decisions/escalation) if more risk is emerging, or return to the scenario workflow to collect missing facts. |
-
-## Related pages
-
-- [Investigating a Phishing Report](/docs/scenarios/phishing-investigation)
-- [Do I Need to Escalate?](/docs/decisions/escalation)
-- [Is This In Scope?](/docs/decisions/scope-check)
-- [Evidence](/docs/evidence)
+Next, read [Do I Need to Escalate?](/docs/decisions/escalation) to apply this sufficiency standard when risk, uncertainty, or impact boundaries are crossed.

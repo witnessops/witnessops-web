@@ -2,122 +2,89 @@
 title: "Integration Author"
 description: "Guidance for developers and integrators building tooling, adapters, and documentation-linked workflows for WitnessOps."
 section: "docs"
-order: 4
+order: 40
 nav_label: "Integration Author"
 draft: false
 ---
 
 # Integration Author
 
-This page is for developers and integrators who extend the platform with new tooling, adapters, or documentation-linked workflows.
+This page defines the integration-author lane for developers who design and maintain tooling, adapters, and runbook interfaces in WitnessOps.
 
-## What this role uses the docs for
+## 1. Problem this page solves
 
-Use these docs to:
+Integrations become unsafe and unauditable when interface boundaries, evidence behavior, and failure handling are implicit.
 
-- understand integration boundaries
-- implement consistent inputs and outputs
-- make tools auditable
-- support evidence collection
-- avoid creating undocumented behavior
+This page gives the first-pass build path so integration decisions remain governable, auditable, and receipt-compatible.
 
-## Start here
+## 2. What you should understand after reading
 
-Read these in order:
+After this page, you should understand:
+
+- the role boundary: define interface contracts and integration behavior, not live incident judgments
+- what must be explicit before implementation starts
+- which integration decisions you own
+- how to separate observed interface behavior from inferred operational confidence
+- what to read first and what to defer initially
+
+## 3. Mechanism-first role path
+
+### Must know first before implementation
+
+Before writing or approving integration code/docs, require:
+
+- an explicit integration boundary and non-goals
+- a clear interface contract for inputs, outputs, errors, and permission requirements
+- defined evidence/receipt compatibility expectations
+- governed failure and escalation behavior for blocked scope, approval stalls, tool failure, and evidence mismatch
+
+### Read first (in order)
 
 1. [Integrations](/docs/integrations)
-2. [WitnessOps Catalog](/docs/integrations/witnessops-catalog)
-3. [Runbooks](/docs/operations/runbooks)
-4. [Receipt Spec](/docs/evidence/receipt-spec)
-5. [Governance](/docs/governance)
-6. [FAQ](/docs/faq)
+2. [Runbooks](/docs/operations/runbooks)
+3. [Receipt Spec](/docs/evidence/receipt-spec)
+4. [Governance](/docs/governance)
+5. [Authorization Model](/docs/governance/authorization-model)
+6. [What Evidence Is Required?](/docs/decisions/evidence-required)
 
-## Design principles
+### Decisions you own in this role
 
-An integration should be:
+| Decision | What you own | Primary pages |
+| --- | --- | --- |
+| Boundary and non-goal definition | Declare allowed actions, explicit non-goals, and prohibited implicit behavior | [Integrations](/docs/integrations), [Governance](/docs/governance) |
+| Interface contract design | Define stable input/output shape, error semantics, and permission/approval expectations | [Runbooks](/docs/operations/runbooks), [Authorization Model](/docs/governance/authorization-model) |
+| Evidence compatibility | Ensure emitted artifacts and metadata can be captured and linked in receipts | [Receipt Spec](/docs/evidence/receipt-spec), [What Evidence Is Required?](/docs/decisions/evidence-required) |
+| Failure and escalation behavior | Encode operator-visible handling for scope denial, approval pause, tool failure, and evidence mismatch | [Runbooks](/docs/operations/runbooks), [Do I Need to Escalate?](/docs/decisions/escalation) |
 
-- predictable
-- minimally privileged
-- easy to audit
-- explicit about inputs and outputs
-- governed by default inside the runbook path
-- easy to explain in documentation
+### Defer initially
 
-Host, keys, and tool integrity remain trust assumptions. Do not design integrations that assume these are guaranteed.
+Defer these until interface and evidence contracts are stable:
 
-## WitnessOps / verification boundary
+- operator and defender workflow playbooks not required for the integration contract
+- scenario deep-dives not tied to the current interface decision
+- non-essential feature expansion outside the declared integration boundary
 
-WitnessOps signs receipts. Independent proof verification belongs to the separate verification surface. Do not build integrations that assume WitnessOps verifies proof bundles or operates a public verification surface.
+## 4. Observed vs inferred
 
-## What every integration must define
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Interface execution | declared input/output schema, runbook step behavior, permission gates, explicit exit states | that the interface is sufficient for every operational context |
+| Evidence behavior | emitted artifacts, hashes, timestamps, receipt-linked fields, explicit failure records | that captured evidence is complete for all future investigations |
+| Operational impact | documented escalation triggers and blocked-path handling | that integration correctness implies correct operator or incident decisions |
 
-- what problem it solves
-- what input it accepts
-- what output it returns
-- what evidence it produces
-- what errors it can emit
-- what permissions or approvals it needs
-- what actions are non-destructive vs intrusive
+Treat inferred claims as assumptions requiring validation, not as observed guarantees.
 
-## Required documentation sections
+## 5. Role-specific trust assumptions
 
-Every integration page should include:
+Operate with these assumptions explicit:
 
-- purpose
-- supported use cases
-- prerequisites
-- input schema or expected arguments
-- output examples
-- evidence behavior
-- failure modes
-- safety notes
-- troubleshooting
-- version compatibility
+- **Host/tool integrity and key custody are external assumptions:** compromised runtime or key handling invalidates contract guarantees.
+- **Integration correctness is not operational correctness:** a technically correct interface can still support poor incident or business decisions.
+- **Proof compatibility depends on artifact-contract adherence:** missing or inconsistent artifact semantics break verification and auditability.
+- **Scope and approval enforcement remain configuration-backed:** incorrect policy or boundary configuration produces incorrect integration behavior.
 
-## Integration author checklist
+See [Threat Model](/docs/security-systems/threat-model) for the full trust boundary map.
 
-Before publishing:
+## 6. Next-page handoff
 
-- confirm the integration has a narrow purpose
-- define clear success and failure conditions
-- provide at least one real example
-- document evidence output
-- document approval boundaries
-- document known limitations
-- provide troubleshooting guidance
-
-## When things go wrong
-
-Know these governed execution failure modes:
-
-- **Scope gate blocks the step:** The step does not run. No partial execution. The denial is recorded.
-- **Approval stalls:** Execution pauses. The operation sits in a paused state until a principal acts.
-- **Tool crashes:** The step is marked failed. Exit code and stderr are recorded in the receipt.
-- **Evidence hash mismatch:** The receipt for that step is not generated. The chain breaks.
-
-Your integration should document which of these failure modes apply and how the user should respond.
-
-## Common mistakes
-
-- wrapping a tool without documenting assumptions
-- returning output that cannot be interpreted later
-- skipping evidence guidance
-- hiding dangerous behavior behind convenience
-- failing to distinguish validation from exploitation
-
-## What success looks like
-
-A good integration lets a user answer:
-
-- when should I use this
-- what will it do
-- what evidence will I get
-- what can go wrong
-- when should I stop and escalate
-
-## Read next
-
-- [Runbooks](/docs/operations/runbooks)
-- [Integrations](/docs/integrations)
-- [WitnessOps Catalog](/docs/integrations/witnessops-catalog)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
+Next, read [Scenarios](/docs/scenarios) to validate these integration contracts against end-to-end investigation flows.

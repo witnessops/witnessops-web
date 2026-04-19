@@ -131,7 +131,11 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
   })();
 
   const sidebarContent = (
-    <nav aria-label="Documentation navigation" className="sidebar-kb">
+    <nav
+      aria-label="Documentation navigation"
+      className="sidebar-kb"
+      data-docs-nav-surface="sidebar"
+    >
       {/* Search */}
       <div className="sidebar-kb-search">
         <input
@@ -153,7 +157,11 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
           const active = isSectionActive(section);
 
           return (
-            <div key={section.id} className="sidebar-kb-section">
+            <div
+              key={section.id}
+              className="sidebar-kb-section"
+              data-docs-layer-context={section.id}
+            >
               <button
                 type="button"
                 className={`sidebar-kb-section-header ${active ? "active" : ""}`}

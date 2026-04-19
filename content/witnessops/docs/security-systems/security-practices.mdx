@@ -2,94 +2,79 @@
 title: "Security Practices"
 description: "How WitnessOps protects its own operations, handles vulnerabilities, and manages trust."
 section: "docs"
-order: 4
+order: 50
 nav_label: "Security Practices"
 draft: false
 ---
 
 # Security Practices
 
-This page describes how WitnessOps secures its own operations, where the trust boundaries still are, and what remains target-state only.
+This page defines the current security posture for WitnessOps operations: what controls are active, what evidence they emit, and where limits remain explicit.
 
-## How WitnessOps Protects Its Own Operations
+## 1. Problem this page solves
 
-**All execution flows through the runbook engine.** There is no backdoor. No direct tool invocation. No shell escape hatch. If a tool runs, a runbook step authorized it. If no runbook step authorized it, it did not run inside the governance boundary.
+Security claims become misleading when current controls, target-state goals, and trust assumptions are mixed together.
 
-**Evidence is hashed at generation time.** When a step produces output, WitnessOps hashes the artifact immediately. The hash goes into the manifest. Changing the artifact after the fact breaks the hash. Anyone comparing manifest hashes to artifact contents will detect the modification.
+This page separates those layers so readers can judge present posture without overclaiming maturity.
 
-**Tier 1 receipt bindings are explicit.** The published WitnessOps evidence chain is `M0 -> E0 -> P1 -> E2 -> R0 -> V0`. `R0.artifactHash` covers the frozen `R0` body projection. `R0.tier1.executionHash` covers the typed Tier 1 execution payload over `M0`, `E0`, `P1`, and `E2`. `V0` recomputes both locally and checks that the embedded PV projection binds to the already-computed `executionHash`.
+## 2. What you should understand after reading
 
-**State files are append-only during execution.** The execution state grows as steps complete. Steps are appended. Completed steps are not overwritten. If state is tampered with mid-execution, the append-only invariant is violated and detectable on inspection.
+After this page, you should understand:
 
-## Security mailbox
+- which controls are currently enforced
+- what evidence those controls emit
+- which threat/failure classes remain outside protection
+- where current state differs from target state
 
-The canonical WitnessOps security mailbox is the Microsoft 365 shared mailbox `security@witnessops.com`.
+## 3. Mechanism-first security posture
 
-If Exchange Online plus addressing is enabled, `security+witnessops@witnessops.com` may be used as a receive-only alias for controlled Tier 1 token intake. The alias is optional and non-canonical. Governance and disclosure stay anchored to `security@witnessops.com`.
+### Active controls
 
-## Key Management
+| Control | Current behavior | Evidence surface |
+| --- | --- | --- |
+| Governed execution boundary | Tool runs only through authorized runbook path | runbook state + gate records |
+| Artifact integrity | Outputs hashed at generation and bound to manifests | artifact hashes + manifest checks |
+| Tier 1 receipt linkage | `M0 -> E0 -> P1 -> E2 -> R0 -> V0` binding is explicit and replayable | receipt chain + local recomputation |
+| Append-only execution state | step history appends over time | state continuity inspection |
 
-WitnessOps uses Ed25519 keys for receipt signing. Current state:
-
-**Key generation.** Keys are generated locally on the operator workstation using standard Ed25519 generation.
-
-**Key storage.** Private keys are stored on the local filesystem. There is no HSM integration. There is no automatic rotation. The key lives where the operator puts it.
-
-**Key trust.** Verification of a receipt signature requires the corresponding public key. There is no public key registry. Key distribution is manual. If you do not have the right public key, you cannot verify the receipt.
-
-**What this means.** A compromised workstation means a compromised signing key. No rotation means the same key can span multiple engagements. A lost key breaks future verification against a fresh key.
-
-See the target state below.
-
-## Responsible Disclosure
-
-Report vulnerabilities to **security@witnessops.com**.
-
-This shared mailbox is the canonical reporting address. `security+witnessops@witnessops.com`, when enabled, is not the canonical disclosure identity.
-
-- Response within 72 hours.
-- We will acknowledge the report, assign a severity, and provide an expected resolution timeline.
-- No bounty program currently. We may establish one in the future.
-- Do not disclose publicly before coordinating with us.
-
-If you find a way to forge a receipt, bypass a gate without detection, or tamper with evidence without breaking hashes, we want to know immediately.
-
-## What WitnessOps Does NOT Protect Against
-
-**Compromised operator workstation.** If the machine is owned, everything is owned. The engine, the tools, the keys, the evidence. WitnessOps assumes a trustworthy host. It cannot verify that assumption.
-
-**Malicious tool wrappers.** An attacker with repo write access can replace a tool wrapper with a trojanized version. WitnessOps will invoke it, capture its output, and sign a receipt. The receipt will be valid. The output will be poisoned. WitnessOps does not verify tool binary integrity.
-
-**Network interception.** Tool output traveling over the network — Nmap results, DNS responses, HTTP traffic — can be intercepted or modified. WitnessOps captures what the tool returns. If the tool received tampered data, WitnessOps records tampered data.
-
-**Operator collusion.** Two operators who trust each other can approve each other's scope expansions and intrusive steps. The approval gate records who approved, but it does not enforce separation of duties unless configured to do so. Self-approval is only permitted when the workflow and external policy explicitly allow it.
-
-## Current State vs Target State
-
-We believe in stating where we are, not where we wish we were.
+### Current vs target capabilities
 
 | Capability | Current | Target |
-|---|---|---|
-| Signing algorithm | Ed25519 | Ed25519 (no change planned) |
-| Key storage | Local filesystem | HSM or secure enclave |
-| Key rotation | Manual, operator-initiated | Automated, policy-driven |
-| Key revocation | Not supported | Revocation list with timestamp |
-| Approval model | Policy-bound self-approval where allowed | Multi-party approval with separation of duties |
-| Tool integrity | Not verified | Wrapper hash verification before invocation |
-| Audit log | Local state files | Centralized append-only log with independent witness |
+| --- | --- | --- |
+| Signing algorithm | Ed25519 | Ed25519 |
+| Key storage | local filesystem | HSM/secure enclave |
+| Key rotation | manual | automated policy-driven |
+| Key revocation | not supported | revocation list + timestamp |
+| Approval model | self-approval only when explicit workflow policy permits scoped low-risk actions | multi-party separation of duties |
+| Tool integrity checking | not verified | wrapper hash verification pre-run |
+| Audit log posture | local state files | independent append-only witness log |
 
-The gap between current and target is real. We document it directly rather than implying it is already closed.
+## 4. Observed vs inferred
 
----
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Observed | documented controls, explicit gaps, emitted evidence artifacts | none beyond stated controls |
+| Inferred | risk reduction under current posture | depends on deployment discipline and external policy context |
 
-## Trust Schema
+## 5. Trust assumptions and limits
 
-| Field | Value |
-|---|---|
-| **Threats addressed** | Evidence tampering, receipt forgery, unauthorized tool execution, undisclosed vulnerabilities |
-| **Trust assumptions** | Host is uncompromised; signing key is secure; tool binaries are authentic; operator workstation is trusted |
-| **Control enforced** | Runbook-only execution, evidence hashing, Tier 1 chain publication (`M0 -> E0 -> P1 -> E2 -> R0 -> V0`), local `V0` replay, append-only state, responsible disclosure process |
-| **Failure modes** | Key compromise (forged receipts), tool wrapper compromise (poisoned output), host compromise (total loss of trust), collusion (bypassed approval) |
-| **Evidence emitted** | Published Tier 1 chain artifacts, hashed manifests, append-only execution state |
-| **How to verify** | Use the shared proof receipt boundary to recompute `R0.artifactHash`, `tier1.executionHash`, and the PV binding; compare manifest hashes to artifacts; inspect approval records for principal identity |
-| **What this does not protect** | Compromised host, network-level interception, malicious tool binaries, operator collusion, key loss or theft |
+Current posture does not independently eliminate these risks:
+
+- compromised operator workstation or host
+- malicious or tampered tool wrappers
+- network-level data tampering before capture
+- collusion or weak separation of duties
+- key compromise/loss without revocation support
+
+These are explicit boundary conditions, not hidden exceptions.
+These controls improve integrity and reviewability, but they do not make compromise, collusion, or tool deception impossible.
+
+## 6. Disclosure path
+
+Report vulnerabilities to **security@witnessops.com** (canonical mailbox).
+
+`security+witnessops@witnessops.com` may be used as an optional alias when enabled, but does not replace canonical disclosure identity.
+
+## 7. Next-page handoff
+
+Next, read [Governance](/docs/governance) to map this security posture into approval, authorization, and audit boundaries.

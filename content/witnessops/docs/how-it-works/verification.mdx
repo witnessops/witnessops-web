@@ -19,155 +19,94 @@ page_answer:
 
 # How to Verify a Receipt
 
-Use this page when you need to confirm that a WitnessOps receipt or proof bundle is authentic without depending on the WitnessOps runtime.
+This page solves one operational question: how to verify a receipt or bundle offline, and how to interpret `valid`, `invalid`, and `indeterminate` results without overstating claims.
 
-If you also need signer continuity against a reviewer-supplied trust anchor obtained outside the package, continue to [Anchored Replay](/docs/how-it-works/anchored-replay). This page covers verification of the package material itself, not trust-anchor onboarding.
+## 1. Problem this page solves
 
-Verification is an independent act. The verifier checks signatures, timestamps, hashes, and inclusion proofs locally, then reports exactly what was confirmed and what remains external trust.
+Many teams can export artifacts but cannot explain which checks were actually proven.
 
-## What you'll do
+Verification requires a deterministic sequence that separates:
 
-- Confirm you have the receipt or bundle and the artifacts needed to verify it
-- Verify the signature, execution binding, timestamp, and inclusion proof in order
-- Distinguish cryptographic proof from the trust assumptions that remain outside the bundle
+- cryptographic proof that succeeded
+- checks that were not present
+- trust dependencies that remain external
 
-## Canonical artifact
+This page defines that sequence.
 
-Start with the signed receipt and, when available, the full proof bundle that surrounds it.
+## 2. What you should understand after reading
 
-At minimum, a verifier should have:
+After this page, you should understand:
 
-- The receipt JSON or exported bundle
-- The signing public key or trusted key distribution source
-- Any included RFC 3161 timestamp token and certificate chain
-- Any included log checkpoint and inclusion proof
+- minimum artifacts required to verify a receipt
+- exact check order for independent verification
+- what each verdict means (`valid`, `invalid`, `indeterminate`)
+- what is proven vs still trusted
 
-The more complete the artifact set, the more of the evidence chain you can verify offline.
+## 3. Minimum artifact set
 
-Use this compact view to tell at a glance what you can verify from the files you have:
-
-| Artifact set | What you can verify | What remains external trust |
-| --- | --- | --- |
-| Receipt only | Signature, structure, and any embedded proof references | Key distribution, timestamp trust, log trust |
-| Receipt + timestamp | Signature plus trusted time for the signed object | Key distribution, log trust |
-| Receipt + timestamp + inclusion proof | Signature, trusted time, and log commitment | Key distribution unless the bundle includes trusted roots |
-| Full proof bundle | Manifest integrity plus the full declared proof chain | Out-of-band trust roots and policy prerequisites |
-
-Use the table below to separate what is required from what is only needed when the bundle claims a stronger proof layer.
+At minimum, start with receipt material and trusted key material.
 
 | Artifact | Status | Why it matters |
 | --- | --- | --- |
-| Receipt JSON or exported bundle | required | This is the statement and its surrounding proof material |
-| Signing public key or trusted key distribution source | required | The signature cannot be checked without trusted key material |
-| RFC 3161 timestamp token and certificate chain | conditional | Needed only when the bundle claims trusted time |
-| Log checkpoint and inclusion proof | conditional | Needed only when the bundle claims log inclusion |
+| Receipt JSON or exported bundle | required | Core proof statement and references |
+| Signing public key / trusted key source | required | Signature authenticity cannot be checked without it |
+| RFC 3161 timestamp token + chain | conditional | Required when trusted-time claim is present |
+| Log checkpoint + inclusion proof | conditional | Required when append-only publication claim is present |
 
-## Procedure
+## 4. Verification procedure (exact order)
 
-### 1. Confirm the artifact set
+1. **Confirm artifact set.** Determine whether you have receipt-only or a fuller bundle.
+2. **Verify manifest integrity.** If `MANIFEST.json` exists, recompute listed hashes first.
+3. **Verify signature.** Check signed payload against trusted key material.
+4. **Verify structure and binding.** Confirm schema and digest references are internally consistent.
+5. **Verify timestamp layer.** If present, validate RFC 3161 token and chain.
+6. **Verify log inclusion layer.** If present, validate inclusion proof and checkpoint signature.
+7. **Verify continuity links.** If prior-state links exist, ensure no chain break.
 
-Check whether you are verifying a standalone receipt or a fuller proof bundle.
+Do not skip sequence order. Integrity and signature checks come before interpreting higher proof layers.
 
-If you only have the receipt, you can still verify the signature, structure, and any embedded proof references. If you have the bundle, you can also verify manifest integrity and surrounding evidence files.
+## 5. Expected results and interpretation
 
-### 2. Verify bundle integrity
-
-If a `MANIFEST.json` is present, verify every listed file against its SHA-256 digest before you inspect the receipt itself.
-
-If any file is missing or its digest does not match, the bundle is tampered and the rest of the chain should be treated as suspect.
-
-### 3. Verify the signature
-
-Verify the signed receipt or signed envelope against the expected public key.
-
-The goal here is not just “does a signature exist,” but “does this exact payload verify against the trusted key material for the claimed issuer.”
-
-If the signature does not verify, the receipt cannot be treated as authentic.
-
-### 4. Check the receipt structure and execution binding
-
-Confirm the receipt follows the expected schema and that its digest references match the included artifacts.
-
-This step answers two questions:
-
-- Is the receipt well-formed?
-- Does it bind to the execution material it claims to describe?
-
-If the structure is malformed or referenced digests do not match, the receipt is not internally consistent.
-
-### 5. Verify the timestamp
-
-If an RFC 3161 token is present, compute the digest of the signed bytes and verify the timestamp token against the TSA certificate chain.
-
-Timestamp verification is local. You need the token and the certificate chain, not a live connection to WitnessOps.
-
-If the timestamp does not verify, you may still have a valid signature, but you do not have trusted time for that signed object.
-
-### 6. Verify log inclusion
-
-If an inclusion proof and checkpoint are present, verify the proof against the checkpoint and verify the checkpoint signature against the log public key.
-
-This proves the receipt digest was committed to the append-only log at that checkpoint size.
-
-If the inclusion proof fails, the receipt may still be signed, but ledger commitment is not established.
-
-### 7. Verify continuity when available
-
-If the bundle includes a prior receipt, prior checkpoint, or continuity link, verify that the current artifact extends the prior state without breaks.
-
-This strengthens the claim from a single valid receipt to a replayable history segment.
-
-## Expected results
-
-A careful verifier should report each step separately rather than collapse everything into a single pass/fail result.
-
-| Check | Possible outcomes |
+| Check | Outcomes |
 | --- | --- |
 | Bundle integrity | pass / tampered |
 | Signature | valid / invalid / missing key |
-| Receipt structure and binding | well-formed / malformed / digest mismatch |
-| Timestamp | valid / invalid / not present |
-| Log inclusion | valid / invalid / not present |
-| Continuity | proven / not present |
+| Structure and binding | well-formed / malformed / digest mismatch |
+| Timestamp layer | valid / invalid / not present |
+| Log inclusion layer | valid / invalid / not present |
+| Continuity layer | proven / not present |
 
-A receipt can be signed and structurally valid even when timestamping or log inclusion are absent. The point is to report what is proven, not to pretend all assurances are identical.
+Verdict interpretation:
 
-Treat `not present` as acceptable only for optional or conditionally claimed artifacts. If a claimed proof layer is required by policy but the verifier cannot satisfy it locally, the result should be `indeterminate`, not `valid`.
+- **`valid`**: required checks for the declared claim set passed.
+- **`invalid`**: one or more proof-bearing checks failed.
+- **`indeterminate`**: structure/signature may be plausible, but required external trust condition could not be established locally.
 
-`indeterminate` means the artifact may still be authentic, but the verifier could not establish a required external trust condition with the material available locally. That is different from `invalid`, which means a proof-bearing check failed.
+## 6. What is proven vs what remains trusted
 
-### Worked interpretation
+**Proven when checks pass**
 
-- A signed receipt with no timestamp token and no inclusion proof can still verify as `valid` if no policy requires those layers.
-- A receipt whose signature verifies but whose trust root cannot be established locally should be `indeterminate`.
-- A receipt whose signature, digest, or inclusion checks fail should be `invalid`.
+- issuer-bound signed statement integrity
+- digest and artifact consistency
+- optional trusted-time and inclusion claims when corresponding material is present and valid
 
-### Worked examples
+**Still trusted externally**
 
-- `valid`: a receipt JSON, trusted signing key, and matching manifest all verify; the bundle lacks a timestamp token, but no policy requires trusted time.
-- `invalid`: the receipt signature checks out, but the manifest digest for the signed envelope does not match the bytes in the bundle.
-- `indeterminate`: the receipt is well formed and the signature is plausible, but the verifier cannot establish the required TSA or log trust root from the local bundle.
+- key distribution authenticity
+- TSA trust and time-source trust
+- log-operator trust model (unless additional witness policy is satisfied)
 
-## Trust boundaries and failure modes
+## 7. Common failure modes
 
-Even a fully verified receipt still depends on some external trust:
+- Missing file or hash mismatch -> tampered or incomplete bundle.
+- Signature failure -> claimed issuer authenticity not established.
+- Timestamp failure -> trusted-time claim not established.
+- Inclusion proof failure -> append-only publication not established.
 
-- **The signing key must be trusted.** The verifier needs to know that the public key in the bundle belongs to the claimed issuer. Trust root distribution is out-of-band.
-- **The TSA must be trusted.** The timestamp is only as strong as the TSA's certificate chain and time source.
-- **The log operator is a single party.** Without a witness cosigning checkpoints, a single log operator can theoretically present different views to different verifiers. Witness support narrows this.
+Report failures by layer rather than collapsing everything into a single vague pass/fail statement.
 
-Common failure modes are straightforward:
+## 8. Next-page handoff
 
-- Missing or mismatched files mean the bundle was altered or exported incompletely.
-- Invalid signatures mean the claimed issuer did not sign the artifact you received.
-- Invalid timestamps mean trusted time was not established.
-- Missing inclusion proofs mean append-only publication was not demonstrated.
+Next, read [Receipts](/docs/evidence/receipts) to inspect the atomic proof object this verification flow is evaluating.
 
-WitnessOps should be explicit about these boundaries instead of hiding them behind a green check.
-
-## Related pages
-
-- [Getting Started](/docs/getting-started) — first-run path for new operators
-- [Receipt Specification](/docs/evidence/receipt-spec) — field-level schema reference
-- [Proof Model](/docs/how-it-works/proof-model) — explanation of the artifact model behind verification
-- [Anchored Replay](/docs/how-it-works/anchored-replay) — reviewer-supplied trust-anchor onboarding for issuer continuity
+Then use [Anchored Replay](/docs/how-it-works/anchored-replay) when reviewer-supplied trust-anchor continuity is required.

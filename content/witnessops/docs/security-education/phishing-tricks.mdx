@@ -1,6 +1,6 @@
 ---
 title: "7 Phishing Tricks Attackers Use"
-description: "A phishing-pattern lesson framed as scenario, attack chain, observable evidence, operator response, and WitnessOps controls."
+description: "Recurring phishing lure patterns mapped to chain mechanics, observable signals, and response decisions."
 section: "docs"
 order: 8
 nav_label: "7 Phishing Tricks"
@@ -9,58 +9,102 @@ draft: false
 
 # 7 Phishing Tricks Attackers Use
 
-Attackers reuse the same patterns because they work at scale.
+## Problem this page solves
 
-## Scenario
+Phishing reports often classify a message as "suspicious" but do not identify the lure mechanism or the decision point it targeted.
+This page maps recurring lure patterns to chain stages so containment and escalation can follow observed evidence.
 
-An attacker sends a lure that looks routine enough to bypass your first instinct to slow down.
+## Reader outcome
 
-## Attack Chain
+After this page, you should be able to:
 
-```
-Urgency or trust signal
-  ↓
-User clicks before validating
-  ↓
-Credential capture or malicious file access
-  ↓
-Account compromise or device infection
-```
+- classify common phishing lures by mechanism, not theme
+- map each pattern to where it acts in the phishing chain
+- select response actions with explicit escalation gates
 
-## Observable Evidence
+## Mechanism-first pattern model (common lure mechanics and chain location)
 
-Look for:
+Use the same chain stages defined in [Why Phishing Works](/docs/security-education/phishing): Delivery -> Interaction -> Credential capture -> Session establishment -> Post-access actions.
 
-- sender-display-name mismatch
-- lookalike or unrelated destination domains
-- urgency, fear, secrecy, or payment pressure
-- files with macros, archives, or double extensions
-- login pages that do not use the provider's real domain
+| Lure mechanic | Typical operator-facing example | Primary chain stage(s) affected |
+|---|---|---|
+| Authority impersonation | "IT admin" or executive sender display name | Delivery, Interaction |
+| Urgency or fear compression | "Account disabled in 10 minutes" | Interaction |
+| Link misdirection / lookalike domain | Branded text, attacker-controlled URL | Interaction, Credential capture |
+| Attachment execution bait | Invoice/archive/doc requiring enable-content | Interaction, Post-access actions |
+| Fake security verification | "Confirm unusual login" flow | Credential capture, Session establishment |
+| Conversation hijack / vendor thread spoof | Reply-like email in business thread style | Delivery, Interaction |
+| Payment or invoice workflow spoof | Bank-detail change or urgent payment request | Interaction, Post-access actions |
 
-## Operator Response
+## Pattern-to-signal table (directly observable indicators)
 
-1. Pause before interacting with the message.
-2. Check the sender, hover the link, and verify through another channel.
-3. Preserve the message if it looks suspicious.
-4. If someone already interacted, move to a governed phishing investigation immediately.
+| Pattern | Directly observable indicators |
+|---|---|
+| Authority impersonation | display name vs actual sender mismatch; reply-to domain divergence; unusual sending infrastructure in headers |
+| Urgency or fear compression | short action deadline; threat language without case/ticket reference; pressure to avoid normal verification path |
+| Link misdirection / lookalike domain | hover target mismatch; non-canonical domain; URL redirects to newly registered or unrelated host |
+| Attachment execution bait | archive or macro-enabled file; double extension; endpoint telemetry showing open/execution attempt |
+| Fake security verification | login page not on canonical provider domain; unexpected MFA prompt context; user reports credential entry to non-standard flow |
+| Conversation hijack / vendor thread spoof | message style mimics ongoing thread but missing prior thread IDs; subtle sender-domain variation; request scope shift |
+| Payment or invoice workflow spoof | change-of-bank-details request; off-process payment urgency; mismatch with known procurement cadence |
 
-## WitnessOps Controls
+## Practical response decisions per pattern with escalation gates
 
-The response should tie into:
+Gate definitions:
 
-- [Phishing Investigation](/docs/scenarios/phishing-investigation)
-- [What Evidence Is Required?](/docs/decisions/evidence-required)
-- [Policy Gates](/docs/security-systems/policy-gates)
-- [Receipts](/docs/evidence/receipts)
+- **Gate A (exposure-only):** no click, no file open, no credential or MFA interaction
+- **Gate B (interaction):** click or file open occurred, but no credential/MFA/session evidence yet
+- **Gate C (account exposure likely):** credential entry, MFA approval, or suspicious new session evidence
+- **Gate D (high impact):** privileged account, multi-user spread, or financial workflow impact
 
-## The seven patterns
+| Pattern | Immediate response decision | Escalation gate |
+|---|---|---|
+| Authority impersonation | preserve email headers, verify sender via known channel, block sender/domain indicators | Gate B if user engaged; Gate D if privileged or finance approver impersonated |
+| Urgency or fear compression | pause requested action, validate claim in trusted portal, preserve message timeline | Gate B on click/open; Gate C on credential/MFA interaction |
+| Link misdirection / lookalike domain | resolve URL safely, preserve redirect chain, block destination and lookalikes | Gate B on click; Gate C if credentials entered or auth prompt approved |
+| Attachment execution bait | quarantine sample, collect hash, review endpoint process tree and child execution | Gate C if execution evidence exists; Gate D if multiple endpoints or privileged host involvement |
+| Fake security verification | collect fake-page artifacts, review sign-in logs, revoke suspicious sessions | Gate C when credential/MFA/session evidence appears; Gate D for admin account impact |
+| Conversation hijack / vendor thread spoof | preserve full thread metadata, out-of-band verify request, monitor downstream recipients | Gate C if sensitive data shared; Gate D if spread or payment workflow changed |
+| Payment or invoice workflow spoof | hold transaction/change request, verify beneficiary through known contact path, preserve approval trail | Gate D on any initiated transfer, account-change execution, or finance-system impact |
 
-1. **Urgency and fear** — warnings that demand immediate action
-2. **Fake login pages** — pages that copy a trusted brand but use the wrong domain
-3. **Attachment-based malware** — files that execute scripts or macros
-4. **Impersonation of trusted people** — executives, vendors, or IT support
-5. **Link misdirection** — displayed text and actual destination do not match
-6. **Fake deliveries or invoices** — normal business process used as bait
-7. **Security alerts** — defensive language used to trigger a fast click
+## What WitnessOps controls can support vs cannot guarantee
 
-The rule stays the same: pause, validate, then act.
+**WitnessOps can support:**
+
+- [Phishing Investigation](/docs/scenarios/phishing-investigation) for governed triage, artifact capture, and containment sequence
+- [What Evidence Is Required?](/docs/decisions/evidence-required) for decision completeness before intrusive action
+- [Policy Gates](/docs/security-systems/policy-gates) for approval controls on high-impact response steps
+- [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling) for controlled handling of emails, URLs, and credentials-related artifacts
+- [Receipts](/docs/evidence/receipts) for signed decision and remediation traceability
+
+**WitnessOps cannot guarantee:**
+
+- prevention of all phishing delivery attempts
+- full reconstruction when required telemetry is missing, delayed, or altered
+- attacker intent or attribution from a single lure artifact
+- recovery of external financial transfers without third-party process outcomes
+
+## Observed vs inferred separation
+
+- **Observed:** sender/header mismatch, resolved URL, file hash, click/open telemetry, sign-in/session log, payment-change request artifact.
+- **Inferred:** "credentials were definitely stolen," "attacker had mailbox control," or "full blast radius is known."
+
+Use observed artifacts to justify immediate containment. Keep inferred claims explicit until corroborated.
+
+## Trust assumptions and limits
+
+Assumptions:
+
+- email, endpoint, identity, and finance telemetry is retained and time-aligned enough for sequence reconstruction
+- original artifacts are preserved before user mailbox cleanup or endpoint remediation
+- responder actions follow policy gates when tenant-wide, privileged, or financial-impact steps are proposed
+
+Limits:
+
+- delayed reporting can remove short-lived artifacts (redirect chains, ephemeral pages, transient sessions)
+- adversaries may evade, suppress, or overwrite telemetry
+- some scope decisions remain probabilistic until additional corroborating evidence is collected
+
+## Next-page handoff
+
+Continue to [A Real Phishing Email](/docs/security-education/real-phishing-example) for a line-by-line lure walkthrough using this same observed-signal and escalation model.

@@ -2,18 +2,55 @@
 title: "Audiences"
 description: "Role-based reading paths for operators, approvers, defenders, and integration authors."
 section: "docs"
-order: 1
+order: 0
 nav_label: "Audiences"
 draft: false
 ---
 
 # Audiences
 
-These pages organize WitnessOps docs by role so readers can start with the decisions, trust boundaries, and workflows that matter to them.
+This section routes each reader role to the right starting path so they can act safely without reading the entire corpus first.
 
-## In this section
+## 1. Problem this page solves
 
-- [New Operator](/docs/audiences/new-operator)
-- [Manager / Approver](/docs/audiences/manager-approver)
-- [Defender](/docs/audiences/defender)
-- [Integration Author](/docs/audiences/integration-author)
+Readers lose time and make bad assumptions when role-specific entry points are unclear.
+
+This page defines role-based starts, decision ownership boundaries, and what each role should ignore initially.
+
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- which audience path matches your role
+- what each role needs first
+- which decisions each role owns or supports
+- where to start and what to defer initially
+
+## 3. Mechanism-first audience routing model
+
+| Role | Owns or leads | Start here first | Defer initially |
+| --- | --- | --- | --- |
+| [New Operator](/docs/audiences/new-operator) | in-scope execution decisions, evidence capture, escalation triggers | scope -> operations -> evidence/decisions | deep integration/reference tails |
+| [Defender](/docs/audiences/defender) | triage validation, containment/evidence preservation, incident escalation | evidence -> operations -> governance/decisions | implementation/integration authoring detail |
+| [Manager / Approver](/docs/audiences/manager-approver) | authorization boundaries, proportionality, approval and review standards | governance -> authorization -> evidence -> decisions | low-level tool execution detail |
+| [Integration Author](/docs/audiences/integration-author) | integration boundaries, runbook interfaces, evidence contract behavior | integrations -> runbooks -> receipt spec/governance | scenario education paths |
+
+## 4. Observed vs inferred
+
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Observed | role pages define starting order, responsibilities, and handoffs | none beyond documented role contracts |
+| Inferred | role effectiveness in practice | depends on reader discipline and adherence to role boundaries |
+
+## 5. Role-specific trust assumptions
+
+All roles share core trust limits (upstream input quality, runtime/tool integrity, bounded evidence interpretation), but each role emphasizes different risk:
+
+- operators: scope and action proportionality errors
+- defenders: triage overconfidence under uncertainty
+- approvers: authority overreach or rubber-stamp risk
+- integrators: undocumented behavior and weak interface contracts
+
+## 6. Next-page handoff
+
+Next, read [New Operator](/docs/audiences/new-operator) as the first role entry path in this cluster.

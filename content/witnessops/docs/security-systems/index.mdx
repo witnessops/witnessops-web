@@ -2,21 +2,60 @@
 title: "Security Systems"
 description: "The conceptual model for proof-backed security systems on WitnessOps."
 section: "docs"
-order: 1
+order: 0
 nav_label: "Security Systems"
 draft: false
 ---
 
 # Security Systems
 
-WitnessOps documents the runtime control model for proof-backed security systems.
+This section defines the system model for governed security operations where execution, proof, and trust boundaries are explicit.
 
-This section explains why governed execution exists and how it differs from ad hoc operator tooling.
+## 1. Problem this page solves
 
-## In this section
+Security docs often describe controls in isolation. Readers can miss how authority, runtime behavior, and proof surfaces connect as one system.
 
-- [WitnessOps Architecture](/docs/security-systems/witnessops-architecture)
+This page provides the category map so deeper pages are read in the right order.
+
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- what this section is responsible for
+- how #15–#18 fit together as one cluster
+- where to go next for architecture, layer separation, and operational trust posture
+
+## 3. Mechanism-first section model
+
+Read this cluster in sequence:
+
+| Queue | Page | System role |
+| --- | --- | --- |
+| #16 | [WitnessOps Architecture](/docs/security-systems/witnessops-architecture) | End-to-end system overview and boundary map |
+| #17 | [Three-Layer Stack](/docs/security-systems/three-layer-stack) | Ownership separation across contracts, runtime, and proof |
+| #18 | [Security Practices](/docs/security-systems/security-practices) | Current controls, limits, and trust posture |
+
+Supporting control/depth pages in this family:
+
 - [Governed Execution](/docs/security-systems/governed-execution)
 - [Policy Gates](/docs/security-systems/policy-gates)
 - [Threat Model](/docs/security-systems/threat-model)
-- [Security Practices](/docs/security-systems/security-practices)
+
+## 4. Observed vs inferred
+
+| Layer | What is explicit | What remains interpretation |
+| --- | --- | --- |
+| Observed | Runtime controls, gate behavior, documented threat boundaries, evidence/proof references | None beyond what pages explicitly state |
+| Inferred | System confidence and trust posture based on those controls | Reviewer interpretation of sufficiency for their policy context |
+
+## 5. Trust assumptions for this section
+
+This section does not remove external trust dependencies. It assumes:
+
+- runtime environment and operator identity inputs are trustworthy enough for governed execution
+- proof verification readers have authentic trust roots
+- policy/scope sources used by runtime controls are accurate
+
+## 6. Next-page handoff
+
+Next, read [WitnessOps Architecture](/docs/security-systems/witnessops-architecture) to establish the system-level map before layer and practice depth pages.

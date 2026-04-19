@@ -9,80 +9,93 @@ draft: false
 
 # Runbooks
 
-A runbook is a YAML definition of an operational workflow. It declares what tools run, in what order, against which targets, and under what policy constraints. Runbooks are how you convert manual security procedures into governed, repeatable operations.
+Runbooks are the operational contract that turns authorized work into bounded, repeatable execution paths.
 
-## What a Runbook Contains
+## 1. Problem this page solves
 
-Every runbook has four sections:
+Without runbooks, operations drift into ad hoc tool use and inconsistent evidence quality.
 
-- **Metadata** — runbook ID, version, classification, author
-- **Scope** — authorized targets (domains, IP ranges, asset identifiers)
-- **Steps** — ordered list of actions, each referencing a tool and declaring policy gates
-- **Evidence** — what artifacts this runbook is expected to produce
+This page defines how runbooks constrain execution shape so governed operations remain repeatable and reviewable.
 
-## Example Structure
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- what a runbook defines
+- how runbooks connect authorization to execution controls
+- how runbook steps relate to evidence and approvals
+- what this page leaves to deeper schema/command references
+
+## 3. Mechanism-first runbook model
+
+1. **Authorized work enters operations.**
+2. **A runbook is selected by objective/risk class.**
+3. **Scope and policy gates are declared per step.**
+4. **Execution runs in ordered bounded steps.**
+5. **Evidence and receipt continuity are emitted.**
+6. **Escalation or closure follows policy outcomes.**
+
+Runbooks govern execution shape; they do not replace authorization policy or verification logic.
+
+## 4. Core runbook components
+
+Every runbook should define:
+
+- **Metadata**: runbook ID, version, classification, owner
+- **Scope**: allowed targets and exclusions
+- **Steps**: ordered actions with tool references and gate requirements
+- **Evidence contract**: expected artifacts and continuity expectations
+
+### Example shape
 
 ```yaml
 runbook:
   id: rb_external_recon_v2
   version: 2
   classification: reconnaissance
-  author: ops-team-alpha
 
 scope:
   targets:
     - "example.com"
     - "10.0.1.0/24"
-  exclusions:
-    - "10.0.1.250"
 
 steps:
   - id: step_dns_enum
     tool: dns-enumeration
-    inputs:
-      domain: "example.com"
     gates:
       - type: scope_check
-
-  - id: step_port_scan
-    tool: nmap
-    inputs:
-      targets: "10.0.1.0/24"
-      flags: "-sV -sC"
-    gates:
-      - type: scope_check
-      - type: tool_allowlist
 
   - id: step_vuln_scan
     tool: nuclei
-    inputs:
-      targets_from: step_port_scan.outputs
-      templates: "cves,misconfigurations"
     gates:
       - type: scope_check
       - type: approval
-        required_principal: "lead-operator"
 
 evidence:
   outputs:
     - dns_records
-    - port_scan_results
     - vulnerability_findings
   receipt_chain: true
 ```
 
-This is a simplified representation. The actual schema includes additional fields for timeout handling, retry policy, and evidence hashing configuration.
+## 5. Observed vs inferred
 
-## Steps and Tool References
+| Layer | What is observed | What is inferred |
+| --- | --- | --- |
+| Observed | declared step order, gate requirements, scope constraints, emitted evidence contract | none beyond declared runbook design |
+| Inferred | operational quality and safety of outcomes | depends on execution discipline and enforcement fidelity |
 
-Each step declares a tool by identifier. WitnessOps resolves the tool at runtime. The tool executes inside the governance boundary — its inputs are validated against the scope, and its outputs are captured for the receipt.
+## 6. Trust assumptions
 
-Steps can reference outputs from previous steps. The `targets_from` field above feeds port scan results into the vulnerability scan. This creates a data dependency chain that WitnessOps enforces at execution time.
+Runbook governance still depends on:
 
-## Approval Gates in Steps
+- correctness of upstream authorization/scope inputs
+- runtime/tool integrity during execution
+- operator adherence to defined step and escalation behavior
+- exception-path controls when normal boundaries are bypassed
 
-When a step includes an approval gate, execution pauses. The operator or a designated principal reviews the step parameters and approves or rejects. The approval decision, approver identity, and timestamp are all captured in the step's receipt.
+Runbook versioning improves traceability, but does not independently prove execution quality.
 
-## Runbook Versioning
+## 7. Next-page handoff
 
-Runbooks are versioned. When you change a runbook, you increment the version. Receipts reference the specific runbook version that was executed. This means you can always trace a receipt back to the exact workflow definition that produced it.
+Next, read [Decisions](/docs/decisions) to see how operators decide scope, evidence sufficiency, and escalation while executing runbook-defined workflows.
