@@ -244,7 +244,7 @@ export default async function DocsIndexPage() {
             label="Inspect sample bundles"
           />
           <CtaButton
-            href="/contact?intent=review"
+            href="/review/request"
             variant="secondary"
             label="Request workflow review"
           />

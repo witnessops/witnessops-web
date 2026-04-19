@@ -291,6 +291,12 @@
       "namedRegex": "^/review(?:/)?$"
     },
     {
+      "page": "/review/request",
+      "regex": "^/review/request(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/request(?:/)?$"
+    },
+    {
       "page": "/review/sample-report",
       "regex": "^/review/sample\\-report(?:/)?$",
       "routeKeys": {},

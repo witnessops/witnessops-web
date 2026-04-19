@@ -25,7 +25,7 @@ const staticRoutes: StaticRoute[] = [
     route: "",
     lastModified: () => new Date(loadHomeContent().status.last_reviewed),
   },
-  { route: "/contact", sourcePath: "src/app/(marketing)/contact/page.tsx" },
+  { route: "/review/request", sourcePath: "src/app/review/request/page.tsx" },
   {
     route: "/proof-backed-security-systems",
     sourcePath: "src/app/proof-backed-security-systems/page.tsx",
