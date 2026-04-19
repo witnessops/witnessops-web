@@ -51,6 +51,8 @@ Scenario: a supplier-themed invoice email sends a user to a fake login page.
 5. **Gate C:** Credential, MFA, or token exposure likely -> revoke sessions, reset credentials, remove attacker changes, run the governed phishing workflow.
 6. **Gate D:** Privileged account, multi-user spread, or financial workflow impact -> escalate through the governed incident path.
 
+Close locally only when the evidence is sufficient, risk is bounded, and the selected action stays inside your authorization boundary. Otherwise escalate explicitly.
+
 ## What WitnessOps controls can support vs what they cannot guarantee
 
 **WitnessOps can support:**
@@ -85,7 +87,7 @@ Limits:
 
 - delayed reporting can hide first access
 - adversaries may evade or remove telemetry
-- some scope decisions remain probabilistic until additional evidence arrives
+- some impact-scope decisions remain probabilistic until additional evidence arrives
 
 ## Next-page handoff
 
