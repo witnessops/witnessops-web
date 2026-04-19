@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLayoutEffect, useRef } from "react";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { WitnessOpsMark } from "./witnessops-mark";
 
@@ -27,6 +28,7 @@ interface NavbarProps {
 
 export function Navbar({ links, cta, announcement }: NavbarProps) {
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
 
   const isDocsRoute = pathname?.startsWith("/docs") ?? false;
   const LIBRARY_ROUTES = ["/library"];
@@ -43,6 +45,32 @@ export function Navbar({ links, cta, announcement }: NavbarProps) {
     ? { enabled: false, text: "", href: "" }
     : announcement;
   const brandLabel = "WitnessOps";
+
+  useLayoutEffect(() => {
+    const navElement = navRef.current;
+    if (!navElement) return;
+
+    const updateNavbarHeight = () => {
+      const measuredHeight = navElement.offsetHeight;
+      document.documentElement.style.setProperty(
+        "--app-navbar-height",
+        `${measuredHeight}px`,
+      );
+    };
+
+    updateNavbarHeight();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateNavbarHeight();
+    });
+    resizeObserver.observe(navElement);
+    window.addEventListener("resize", updateNavbarHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateNavbarHeight);
+    };
+  }, [pathname, effectiveAnnouncement.enabled]);
 
   function isExternalHref(href: string) {
     return href.startsWith("https://") || href.startsWith("http://");
@@ -80,7 +108,10 @@ export function Navbar({ links, cta, announcement }: NavbarProps) {
           </div>
         </div>
       )}
-      <nav className="sticky top-0 z-50 border-b border-surface-border/50 bg-surface-bg/95 backdrop-blur supports-[backdrop-filter]:bg-surface-bg/80 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-brand-accent/20 after:to-transparent">
+      <nav
+        ref={navRef}
+        className="sticky top-0 z-50 border-b border-surface-border/50 bg-surface-bg/95 backdrop-blur supports-[backdrop-filter]:bg-surface-bg/80 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-brand-accent/20 after:to-transparent"
+      >
         <div className="mx-auto flex max-w-content items-center justify-between px-6 py-4">
           <Link
             href={logoHref}
