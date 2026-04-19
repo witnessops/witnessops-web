@@ -9,12 +9,12 @@ import { listVerifyFixtures } from "@/lib/verify-fixtures";
 export const metadata: Metadata = {
   title: "Verify a Receipt",
   description:
-    "Check what a published proof bundle can show, what it cannot show, and where the trust limits still are.",
+    "Check what a published receipt can show, what it cannot show, and where the trust limits still are.",
   alternates: getCanonicalAlternates("witnessops", "/verify"),
   openGraph: {
     title: "Verify a Receipt | WitnessOps",
     description:
-      "Check what a published proof bundle can show, what it cannot show, and where the trust limits still are.",
+      "Check what a published receipt can show, what it cannot show, and where the trust limits still are.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Verify a Receipt | WitnessOps",
     description:
-      "Check what a published proof bundle can show, what it cannot show, and where the trust limits still are.",
+      "Check what a published receipt can show, what it cannot show, and where the trust limits still are.",
   },
 };
 
@@ -36,45 +36,41 @@ const verificationScope = [
     body: "It does not prove that every action was correct, that every decision was right, or that you now know the full story of an incident.",
   },
   {
-    title: "How results are labeled",
-    body: "Results are shown as verified, declared, inferred, or not proven so you can see exactly how strong each conclusion is.",
+    title: "Verifier mode",
+    body: "This public surface runs in receipt-first v1 mode. Proof-bundle uploads and unsupported receipt classes fail closed.",
   },
 ];
 
 const firstRunSteps = [
   {
     title: "1. Try a known-good sample",
-    expected: "Expected outcome: inferred in receipt-only mode.",
-    why: "This shows the verifier can reproduce a clean pass path.",
+    expected: "Expected outcome: valid for a known-good receipt.",
+    why: "This shows the verifier can reproduce a clean receipt pass path.",
   },
   {
     title: "2. Try a known-bad sample",
-    expected: "Expected outcome: not proven with a named breach.",
+    expected: "Expected outcome: invalid or input rejected with a named breach or failure.",
     why: "This shows that failure is visible and explained, not hidden.",
   },
   {
     title: "3. Try your own receipt",
-    expected: "Expected outcome: a scope-bound result with clear trust limits.",
+    expected: "Expected outcome: a receipt-scoped result with clear trust limits.",
     why: "This applies the same rules to your real artifact.",
   },
 ];
 
 const resultSemantics = [
   {
-    label: "Verified",
-    detail: "Shown directly by checks this verifier ran.",
+    label: "Valid",
+    detail: "The required checks for the declared receipt scope passed.",
   },
   {
-    label: "Declared",
-    detail: "Stated by the artifact, but not independently proven here.",
+    label: "Invalid",
+    detail: "One or more proof-bearing receipt checks failed.",
   },
   {
-    label: "Inferred",
-    detail: "Suggested by partial evidence or by the limits of this verifier mode.",
-  },
-  {
-    label: "Not proven",
-    detail: "Failed, missing, unsupported, or not checked.",
+    label: "Indeterminate",
+    detail: "The receipt may be coherent, but a required outside trust condition could not be established locally.",
   },
 ];
 
@@ -90,25 +86,26 @@ export default function VerifyPage() {
               Verify
             </p>
             <h1 className="text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
-              Check a published proof bundle.
+              Check a published receipt.
             </h1>
             <p className="mt-5 max-w-[48rem] text-base leading-8 text-text-secondary">
-              Use this page to see what a published bundle can show now, what it
+              Use this page to see what a published receipt can show now, what it
               cannot show, and what to inspect next.
             </p>
             <p className="mt-4 max-w-[48rem] text-base leading-8 text-text-secondary">
-              This verifier checks the receipt and the claims tied to that
-              receipt. It does not claim to prove the full runtime story.
+              This verifier checks receipt JSON in receipt-first v1 mode. It does
+              not currently accept proof-bundle uploads, and it does not claim to
+              prove the full runtime story.
             </p>
             <p className="mt-4 max-w-[48rem] text-sm leading-7 text-text-muted">
               If a check passes, read the trust limits before relying on the
-              result. If it fails, read the named breach before trusting any
-              claim built on top of it.
+              result. If it fails, read the named breach or failure before
+              trusting any claim built on top of it.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
-              <CtaButton href="#verify-console" variant="primary" label="Try a sample bundle" />
-              <CtaButton href="#verify-console" variant="secondary" label="Verify a bundle" />
+              <CtaButton href="#verify-console" variant="primary" label="Try a sample receipt" />
+              <CtaButton href="#verify-console" variant="secondary" label="Verify a receipt" />
             </div>
 
             <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -130,8 +127,8 @@ export default function VerifyPage() {
               </div>
               <p className="mt-3 max-w-[48rem] text-sm leading-relaxed text-text-secondary">
                 Browser input is sent to <code>/api/verify</code> for receipt-level
-                checks. Make sure that matches your handling rules before you
-                submit a production artifact.
+                checks in receipt-first v1 mode. Make sure that matches your
+                handling rules before you submit a production artifact.
               </p>
             </div>
 
@@ -164,9 +161,9 @@ export default function VerifyPage() {
       <SectionShell className="pt-0">
         <div className="border border-surface-border bg-surface-bg p-6">
           <div className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-            Result labels
+            Result verdicts
           </div>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-3">
             {resultSemantics.map((state) => (
               <div key={state.label} className="border border-surface-border bg-surface-card p-4">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary">
