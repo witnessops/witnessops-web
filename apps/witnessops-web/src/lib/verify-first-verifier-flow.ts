@@ -2,7 +2,7 @@ export type SharedVerifierFlowStepId =
   | "inspect-operation-claim"
   | "inspect-raw-receipt"
   | "verify-signature-and-timestamp"
-  | "verify-manifest-bundle-completeness"
+  | "verify-referenced-artifact-completeness"
   | "inspect-chain-continuity"
   | "review-remaining-trust-assumptions";
 
@@ -10,7 +10,7 @@ export type SharedVerifierFlowStepName =
   | "inspect operation claim"
   | "inspect raw receipt"
   | "verify signature and timestamp"
-  | "verify manifest/bundle completeness"
+  | "verify referenced artifact completeness"
   | "inspect chain continuity"
   | "review remaining trust assumptions";
 
@@ -40,10 +40,10 @@ export const SHARED_VERIFIER_FLOW_STEPS = [
       "Verify receipt signature material and validate timestamp token binding, issuer chain, and accepted time window.",
   },
   {
-    id: "verify-manifest-bundle-completeness",
-    name: "verify manifest/bundle completeness",
+    id: "verify-referenced-artifact-completeness",
+    name: "verify referenced artifact completeness",
     detail:
-      "Check that every manifest or bundle entry referenced by the receipt is present, hash-matching, and not silently omitted.",
+      "Check that every artifact referenced by the receipt is present, hash-matching, and not silently omitted. If a manifest or proof bundle is available, include those completeness checks here.",
   },
   {
     id: "inspect-chain-continuity",
@@ -74,7 +74,7 @@ export const SHARED_VERIFIER_FLOW_COPY_BLOCKS = {
     heading: "What this proves",
     points: [
       "The receipt can be inspected as claimed input, including raw fields used by the verifier.",
-      "Signature, timestamp, manifest/bundle completeness, and continuity checks passed under the configured verification policy.",
+      "Signature, timestamp, referenced-artifact integrity, and continuity checks passed under the configured verification policy.",
     ],
   },
   whatThisDoesNotProve: {
