@@ -6,14 +6,14 @@ import { usePathname } from "next/navigation";
 import { getSurfaceUrl } from "@witnessops/config";
 
 const LIBRARY_PRIMARY_HREFS = new Set([
-  "/library/start-here",
-  "/library/notes",
-  "/library/reviews",
-  "/library/frameworks",
+  "/library",
   "/docs",
+  "/review",
+  "/review/request",
+  "/review/sample-report",
   "/verify",
 ]);
-const LIBRARY_QUIET_HREFS = new Set(["/review"]);
+const LIBRARY_QUIET_HREFS = new Set<string>();
 const GITHUB_PROFILE_HREF = "https://github.com/witnessops";
 
 interface FooterProps {
@@ -30,13 +30,12 @@ const LIBRARY_FOOTER: FooterProps & { motto: string } = {
   subline:
     "Structured writing on proof systems, trust boundaries, and verification reasoning.",
   links: [
-    { label: "Start here", href: "/library/start-here" },
-    { label: "Notes", href: "/library/notes" },
-    { label: "Reviews", href: "/library/reviews" },
-    { label: "Frameworks", href: "/library/frameworks" },
+    { label: "Library", href: "/library" },
     { label: "Docs", href: "/docs" },
+    { label: "Review", href: "/review" },
+    { label: "Request review", href: "/review/request" },
+    { label: "Sample report", href: "/review/sample-report" },
     { label: "Verify", href: "/verify" },
-    { label: "Operator review", href: "/review" },
   ],
   legal_links: [
     { label: "Privacy", href: "/privacy" },

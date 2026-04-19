@@ -27,31 +27,31 @@ const writingTopics = [
 
 const startHerePaths = [
   {
-    title: "Start with the reading library",
+    title: "Start with product docs",
     description:
-      "Begin with the orientation page. It covers what WitnessOps publishes, what topics it covers, and the best first reads.",
-    href: "/library/start-here",
+      "Use docs first for scope, trust boundaries, and the verification model.",
+    href: "/docs",
     primary: true,
   },
   {
-    title: "Authority is not execution",
+    title: "Review the lane",
     description:
-      "A system can have the authority to act and still not be the system that acts. Confusing the two creates invisible risk.",
-    href: "/library/notes/authority-is-not-execution",
+      "See the bounded workflow review surface and what a review covers.",
+    href: "/review",
     primary: false,
   },
   {
-    title: "Why compliance dashboards are not security evidence",
+    title: "See a sample report",
     description:
-      "Compliance dashboards present internal state as if it were independently verifiable. Trace the evidence chain and it ends inside the system.",
-    href: "/library/reviews/why-compliance-dashboards-are-not-security-evidence",
+      "Inspect the sample report shape before submitting one real workflow.",
+    href: "/review/sample-report",
     primary: false,
   },
   {
-    title: "How to evaluate an AI agent for production",
+    title: "Request a workflow review",
     description:
-      "A checklist anchored to authority boundaries, scope enforcement, policy gates, evidence completeness, and independent verification.",
-    href: "/library/frameworks/how-to-evaluate-an-ai-agent-for-production",
+      "Submit one real workflow, boundary, or operator decision path.",
+    href: "/review/request",
     primary: false,
   },
 ];
@@ -66,25 +66,25 @@ const trustCriteria = [
 
 export const metadata: Metadata = {
   title: {
-    absolute: "WitnessOps Library — Trust boundaries, verification, and governed systems",
+    absolute: "WitnessOps Library — Docs, review, and verification entry points",
   },
   description:
-    "The WitnessOps reasoning library: notes, reviews, and frameworks on trust boundaries, verification, failure modes, and governed systems.",
+    "The WitnessOps library entry point for product docs, workflow review, sample report inspection, and verification.",
   alternates: {
     canonical: "/library",
   },
   openGraph: {
-    title: "WitnessOps Library — Trust boundaries, verification, and governed systems",
+    title: "WitnessOps Library — Docs, review, and verification entry points",
     description:
-      "Notes, reviews, and frameworks on trust boundaries, verification, failure modes, and governed systems.",
+      "Start with docs, inspect a sample report, request a workflow review, and run bounded verification.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "WitnessOps Library — Trust boundaries, verification, and governed systems",
+    title: "WitnessOps Library — Docs, review, and verification entry points",
     description:
-      "The WitnessOps reasoning library on trust boundaries, verification, and governed systems.",
+      "Entry points for docs, review, sample report inspection, and verification.",
   },
 };
 
@@ -101,18 +101,19 @@ export default function LibraryPage() {
           className="mt-3 text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-4xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Sample proof bundles you can inspect by use case.
+          Public entry points for docs, review, and verification.
         </h1>
         <p className="mt-5 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
-          Use this library to inspect sample bundles, see workflow evidence
-          shapes, and understand where trust assumptions still remain.
+          Use this page to start in the right place: docs for model context,
+          sample report for output shape, review for one real workflow, and
+          verify for bounded checks.
         </p>
         <p className="mt-3 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
-          Start with samples by use case, then request a workflow review when
-          you need a bounded judgment on one real path.
+          It keeps the path bounded and explicit, without implying coverage that
+          is not currently published.
         </p>
         <div className="mt-8">
-          <CtaButton href="/library/samples" variant="primary" label="Inspect sample bundles" />
+          <CtaButton href="/review/sample-report" variant="primary" label="Inspect sample report" />
         </div>
       </header>
 
@@ -131,9 +132,8 @@ export default function LibraryPage() {
             behavior under scrutiny.
           </p>
           <p>
-            The docs cover the product. The notes, reviews, and frameworks are
-            public writing on how system claims should be evaluated when the
-            stakes are higher than a demo.
+            Docs cover the product contract. Review and verify cover the
+            operational surfaces that are currently live.
           </p>
         </div>
       </section>
@@ -210,9 +210,8 @@ export default function LibraryPage() {
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
         <p className="mb-5 max-w-[680px] text-sm leading-relaxed text-text-muted">
-          Start with the reading library if you want the full map. The notes,
-          reviews, and frameworks cover the core distinctions, trust boundaries,
-          and verification reasoning underneath the themes on this site.
+          Start with docs for model context, then inspect a sample report and
+          request a bounded review for one real workflow.
         </p>
         <div className="space-y-4">
           {startHerePaths

@@ -7,11 +7,10 @@ import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { WitnessOpsMark } from "./witnessops-mark";
 
 const LIBRARY_NAV_LINKS = [
-  { label: "Start here", href: "/library/start-here" },
-  { label: "Notes", href: "/library/notes" },
-  { label: "Reviews", href: "/library/reviews" },
-  { label: "Frameworks", href: "/library/frameworks" },
+  { label: "Library", href: "/library" },
   { label: "Docs", href: "/docs" },
+  { label: "Review", href: "/review" },
+  { label: "Request review", href: "/review/request" },
 ];
 
 const LIBRARY_NAV_CTA = {
