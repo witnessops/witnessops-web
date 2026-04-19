@@ -13,7 +13,7 @@ The three-layer stack defines ownership boundaries so intent, execution, and pro
 
 ## 1. Problem this page solves
 
-When operator contracts, runtime execution, and proof production are mixed, reviewers cannot tell which layer owns which claim or failure.
+When operator contracts, runtime execution, and proof production are mixed together, reviewers cannot tell which layer owns which claim or failure.
 
 This page separates those layers and defines how they connect.
 
@@ -30,8 +30,8 @@ After this page, you should understand:
 | Layer | Owns | Does not own |
 | --- | --- | --- |
 | Operator Contracts | intent routing, launch semantics, reporting contract | direct tool execution and proof signing |
-| Execution Runtime | governed execution, policy gates, scope/approval enforcement, evidence capture | final proof authority |
-| Proof Infrastructure | signing, continuity, bundle integrity, verification interfaces | security tool execution |
+| Execution Runtime | governed execution, policy gates, scope and approval enforcement, evidence capture | final proof authority |
+| Proof Infrastructure | signing, continuity, bundle integrity, verification interfaces | security-tool execution |
 
 ### Layer handoff sequence
 
@@ -46,18 +46,18 @@ Operator Contracts define what should run
 
 | Layer | What is observed | What is inferred |
 | --- | --- | --- |
-| Observed | Layer ownership boundaries, handoff sequence, control/proof responsibilities | None beyond declared model |
-| Inferred | Auditability and review quality improve when boundaries are respected | Depends on implementation discipline and enforcement quality |
+| Observed | layer ownership boundaries, handoff sequence, control and proof responsibilities | none beyond the declared model |
+| Inferred | auditability and review quality improve when boundaries are respected | depends on implementation discipline and enforcement quality |
 
 ## 5. Trust assumptions
 
-Layer separation improves clarity, but does not remove all trust:
+Layer separation improves clarity, but it does not remove all trust:
 
-- Execution Runtime still depends on runtime/tool integrity
+- Execution Runtime still depends on runtime and tool integrity
 - Proof Infrastructure still depends on key and trust-root integrity
-- Operator Contracts still depend on truthful policy/intent inputs
+- Operator Contracts still depend on truthful policy and intent inputs
 
-A layer can be internally correct while another layer fails; this is why failure interpretation must stay layer-specific.
+A layer can be internally correct while another layer fails. This is why failure interpretation must stay layer-specific.
 
 ## 6. Next-page handoff
 
