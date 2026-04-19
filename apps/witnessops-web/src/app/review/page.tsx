@@ -4,14 +4,14 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "Review",
   description:
-    "Review one real system before you trust it. WitnessOps returns a bounded review report on authority, execution, evidence, and replayability.",
+    "Review one real system before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
   alternates: {
     canonical: "/review",
   },
   openGraph: {
     title: "Review | WitnessOps",
     description:
-      "Review one real system before you trust it. WitnessOps returns a bounded review report on authority, execution, evidence, and replayability.",
+      "Review one real system before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -19,26 +19,26 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Review | WitnessOps",
     description:
-      "Review one real system before you trust it. WitnessOps returns a bounded review report on authority, execution, evidence, and replayability.",
+      "Review one real system before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
   },
 };
 
 const whatYouGet = [
-  "Authority boundary map",
-  "Tool and permission review",
-  "Execution path inspection",
-  "Evidence capture assessment",
-  "Replayability judgment",
-  "Concrete integrity risks",
-  "Operator recommendations",
+  "Who can approve or act",
+  "Which tools and permissions matter",
+  "What the execution path looks like",
+  "What evidence is kept",
+  "What can be replayed later",
+  "What looks weak",
+  "What to do next",
 ];
 
 const sampleReportBullets = [
-  "What was inspected",
-  "Which authorities could act",
-  "Which execution path was observed",
-  "Which artifacts supported judgment",
-  "Which gaps blocked stronger conclusions",
+  "What was reviewed",
+  "Who could act",
+  "What path was observed",
+  "What evidence supported the judgment",
+  "What remained unclear or out of scope",
 ];
 
 export default function ReviewPage() {
@@ -54,13 +54,12 @@ export default function ReviewPage() {
           className="mt-2 text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-4xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Review one real system before you trust it
+          Review one real system before you rely on it
         </h1>
         <p className="mt-4 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
-          Send one workflow, one automation boundary, or one operator decision
-          path. WitnessOps returns a bounded review report showing who can act,
-          how execution actually happens, what evidence is captured, and whether
-          the result can be independently replayed.
+          Bring one workflow, one automation boundary, or one operator decision
+          path. WitnessOps returns a bounded report showing who can act, what
+          runs, what evidence is kept, and what another person could check later.
         </p>
         <div className="mt-6 border border-surface-border bg-surface-card/50 p-4">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
@@ -69,20 +68,19 @@ export default function ReviewPage() {
           <ul className="mt-3 space-y-2 text-sm leading-relaxed text-text-muted">
             <li>
               <span className="font-semibold text-text-primary">Who should submit:</span>{" "}
-              teams bringing one real workflow, automation boundary, or operator handoff.
+              teams with one real workflow, one automation boundary, or one operator handoff to review.
             </li>
             <li>
               <span className="font-semibold text-text-primary">What qualifies:</span>{" "}
-              one path with observable approvals, execution records, and evidence artifacts.
+              one path with real approvals, execution records, and evidence.
             </li>
             <li>
               <span className="font-semibold text-text-primary">What you get:</span>{" "}
-              a bounded report with authority map, execution-path inspection, evidence assessment,
-              replayability judgment, and operator recommendations.
+              a bounded report on authority, execution, evidence, replayability, and next steps.
             </li>
             <li>
               <span className="font-semibold text-text-primary">Out of scope:</span>{" "}
-              broad audit coverage, continuous assurance claims, and open-ended consulting.
+              broad audits, open-ended consulting, or claims about the whole environment.
             </li>
           </ul>
         </div>
@@ -90,14 +88,13 @@ export default function ReviewPage() {
           <div>
             <CtaButton href="/review/request" variant="primary" label="Request a review" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              Submit one real workflow, control path, or operator handoff for
-              bounded inspection.
+              Submit one workflow or control path for bounded review.
             </p>
           </div>
           <div>
             <CtaButton href="/review/sample-report" variant="secondary" label="View sample report" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              Inspect the sample report first, then submit one real workflow for bounded review.
+              See the report shape before you submit a real workflow.
             </p>
           </div>
         </div>
@@ -125,8 +122,8 @@ export default function ReviewPage() {
           Scope note
         </h2>
         <p className="text-sm leading-relaxed text-text-muted">
-          Bounded review only: one workflow path, one authority map, one evidence
-          judgment. Not broad audit coverage or continuous assurance.
+          This is a bounded review of one path. It is not a broad audit and it
+          does not claim to cover everything in your stack.
         </p>
       </section>
 
@@ -138,9 +135,8 @@ export default function ReviewPage() {
           Trust boundary note
         </h2>
         <p className="text-sm leading-relaxed text-text-muted">
-          Findings are limited to the workflow, access, artifacts, and evidence
-          available during review. Conclusions are bounded to that inspection
-          path.
+          The result is limited to the workflow, access, and evidence available
+          during review. Anything outside that boundary stays outside the claim.
         </p>
       </section>
 
@@ -153,13 +149,12 @@ export default function ReviewPage() {
           className="mt-2 text-2xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-3xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          See what a bounded review looks like
+          See what the report looks like
         </h2>
         <p className="mt-4 max-w-[680px] text-sm leading-relaxed text-text-muted">
           Open a sample dossier and inspect the exact review shape: system
           boundary, authority map, execution path, observed evidence,
-          replayability judgment, and named failure modes. No marketing summary
-          in place of the report.
+          replayability judgment, and named failure modes.
         </p>
         <ul className="mt-6 space-y-2 text-sm leading-relaxed text-text-muted">
           {sampleReportBullets.map((item) => (
@@ -173,8 +168,7 @@ export default function ReviewPage() {
           className="text-center text-xs leading-relaxed text-text-muted"
           style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}
         >
-          Designed for teams that need a legible judgment on one real mechanism
-          before wider reliance.
+          Built for teams that need a clear judgment on one real mechanism.
         </p>
       </section>
     </main>
