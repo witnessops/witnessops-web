@@ -11,7 +11,7 @@ draft: false
 
 ## Problem this page solves
 
-Teams often deploy MFA and then over-trust it. This page addresses the operational gap: attackers still gain access through user pressure, real-time relay, token reuse, and weak fallback paths.
+Teams often deploy MFA and then trust it too much. This page covers the operational gap: attackers still gain access through user pressure, real-time relay, token reuse, and weak fallback paths.
 
 ## Reader outcome
 
@@ -29,53 +29,53 @@ After reading, you should be able to:
 
 **Operational point:** MFA was present, but user approval became the attack surface.
 
-### 2) Real-time relay (adversary-in-the-middle)
+### 2) Real-time relay (adversary in the middle)
 
 **Attacker path:** phishing infrastructure proxies the live login flow, captures primary credentials and challenge completion, then steals the resulting session.
 
-**Operational point:** this is not "MFA failed" in isolation; the session was captured after challenge success.
+**Operational point:** this is not “MFA failed” in isolation; the session was captured after challenge success.
 
-### 3) Token/session abuse
+### 3) Token or session abuse
 
-**Attacker path:** attacker obtains an already-valid session or refresh token (for example from endpoint compromise, browser theft, or prior relay) and replays it.
+**Attacker path:** attacker obtains an already-valid session or refresh token, for example from endpoint compromise, browser theft, or prior relay, and replays it.
 
 **Operational point:** no fresh MFA event may appear because the attacker reuses a post-auth session state.
 
 ### 4) Fallback weakness exploitation
 
-**Attacker path:** attacker targets weaker recovery or fallback methods (SMS, voice, helpdesk override, recovery codes, email reset path).
+**Attacker path:** attacker targets weaker recovery or fallback methods such as SMS, voice, helpdesk override, recovery codes, or email reset paths.
 
-**Operational point:** strongest configured factor does not help if weaker fallback routes remain exploitable.
+**Operational point:** the strongest configured factor does not help if weaker fallback routes remain exploitable.
 
 ## Observable signals and what each can support
 
 | Signal | What it can support | What it cannot prove alone |
 |---|---|---|
-| Burst of denied/unanswered MFA prompts | Active use of valid credentials against an account | User compromise or attacker identity |
-| Successful sign-in following prompt burst | Increased likelihood of fatigue approval or related misuse | Exact mechanism (fatigue vs relay vs insider) |
-| New session from unusual ASN/device after phishing lure | Plausible relay/session theft hypothesis | Definitive attribution to one campaign |
-| Session activity without nearby fresh MFA challenge | Token/session reuse hypothesis | Initial theft method |
+| Burst of denied or unanswered MFA prompts | Active use of valid credentials against an account | User compromise or attacker identity |
+| Successful sign-in following prompt burst | Increased likelihood of fatigue approval or related misuse | Exact mechanism, such as fatigue vs relay vs insider |
+| New session from unusual ASN or device after phishing lure | Plausible relay or session-theft hypothesis | Definitive attribution to one campaign |
+| Session activity without a nearby fresh MFA challenge | Token or session reuse hypothesis | Initial theft method |
 | MFA method or recovery settings changed unexpectedly | Potential persistence or control-hardening by attacker | Whether data access already occurred |
-| Helpdesk/manual bypass event | Fallback route was exercised | Whether bypass was malicious or approved |
+| Helpdesk or manual bypass event | Fallback route was exercised | Whether bypass was malicious or approved |
 
-## Response decisions + escalation gates
+## Response decisions and escalation gates
 
 Use governed decisions tied to evidence strength:
 
-1. **Contain account immediately** (revoke sessions, force credential reset, require re-auth) when suspicious access is observed, not only when intent is confirmed.
+1. **Contain the account immediately** — revoke sessions, force credential reset, and require re-auth when suspicious access is observed, not only when intent is confirmed.
 2. **Freeze authentication-factor changes** and verify identity out-of-band before restoring access when fallback abuse is plausible.
-3. **Escalate to incident response** when any of the following gates are met: privileged account impact, confirmed post-auth session misuse, multiple users in one campaign, or sensitive-system access.
+3. **Escalate to incident response** when any of these gates are met: privileged account impact, confirmed post-auth session misuse, multiple users in one campaign, or sensitive-system access.
 4. **Require policy-governed approval** for high-impact recovery actions under [Authorization Model](/docs/governance/authorization-model) and [Policy Gates](/docs/security-systems/policy-gates), with evidence captured per [What Evidence Is Required?](/docs/decisions/evidence-required).
 
-## WitnessOps support vs non-guarantees
+## What WitnessOps can support vs cannot guarantee
 
 **WitnessOps can support:**
 
 - durable capture of observed authentication and response artifacts
-- signed decision records and action receipts for containment/escalation steps
-- governed operator workflows for high-impact account recovery decisions
+- signed decision records and action receipts for containment and escalation steps
+- governed operator workflows for high-impact account-recovery decisions
 
-**WitnessOps does not guarantee:**
+**WitnessOps cannot guarantee:**
 
 - prevention of every MFA abuse path by itself
 - perfect identity attribution from authentication logs alone
@@ -85,8 +85,8 @@ Use governed decisions tied to evidence strength:
 
 Keep records explicitly separated:
 
-- **Observed:** raw auth events, prompt counts, timestamps, source network/device metadata, factor-change events, executed containment actions.
-- **Inferred:** "user approved by mistake," "relay infrastructure was used," "same actor as prior campaign," and other analytic judgments.
+- **Observed:** raw auth events, prompt counts, timestamps, source network or device metadata, factor-change events, executed containment actions.
+- **Inferred:** “user approved by mistake,” “relay infrastructure was used,” “same actor as prior campaign,” and other analytic judgments.
 
 Store both, but never present inferred conclusions as raw evidence.
 
@@ -100,10 +100,10 @@ This guidance assumes:
 
 Limits remain:
 
-- location/device risk signals are probabilistic
+- location and device risk signals are probabilistic
 - missing logs reduce confidence and may prevent mechanism confirmation
 - human reporting delay can obscure the earliest attacker actions
 
 ## Next-page handoff
 
-MFA abuse commonly begins with valid credentials. Continue to [Password Reuse](/docs/security-education/password-reuse) for the upstream exposure path that frequently seeds these attacks.
+MFA abuse commonly begins with valid credentials. Continue to [Password Reuse](/docs/security-education/password-reuse) for the upstream exposure path that often seeds these attacks.
