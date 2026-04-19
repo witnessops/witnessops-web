@@ -10,7 +10,7 @@ status:
 
 seo:
   title: "Portable Proof for Governed Security Work | WitnessOps"
-  description: "WitnessOps helps teams turn security work into signed proof bundles that customers, auditors, and partners can check for themselves."
+  description: "WitnessOps helps teams turn governed security work into signed receipts and portable proof artifacts that customers, auditors, and partners can check for themselves."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
@@ -47,17 +47,17 @@ navbar:
 hero:
   eyebrow: "Security work with proof you can check"
   title: "WitnessOps turns security work into proof other people can check."
-  body: "We run bounded security workflows and produce signed proof bundles that customers, auditors, and partners can inspect outside WitnessOps."
+  body: "We run bounded security workflows and produce signed receipts plus portable proof artifacts that customers, auditors, and partners can inspect outside WitnessOps."
   supporting_points: []
   primary_cta:
-    label: "Verify a sample bundle"
+    label: "Verify a sample receipt"
     href: "/verify"
     variant: "primary"
   secondary_cta:
     label: "Request a workflow review"
     href: "/review/request"
     variant: "secondary"
-  microcopy: "Runs in your browser against a sample receipt already on this site. No account. No backend call. No data leaves the page."
+  microcopy: "Uses the public verifier against a sample receipt already on this site. No account. Receipt-first v1 checks."
   proof_badges: []
   media:
     type: "code_excerpt"
