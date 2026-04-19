@@ -5,14 +5,14 @@ import { getMailboxConfig } from "@/lib/mailboxes";
 export const metadata: Metadata = {
   title: "Request a Review",
   description:
-    "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on authority, execution, evidence, and replayability.",
+    "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on who can act, what runs, what evidence exists, and what can be checked later.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on authority, execution, evidence, and replayability.",
+      "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on who can act, what runs, what evidence exists, and what can be checked later.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -20,18 +20,18 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on authority, execution, evidence, and replayability.",
+      "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on who can act, what runs, what evidence exists, and what can be checked later.",
   },
 };
 
 const reviewBullets = [
-  "Authority boundary map",
-  "Tool and permission review",
-  "Execution path inspection",
-  "Evidence capture assessment",
-  "Replayability judgment",
-  "Concrete integrity risks",
-  "Operator recommendations",
+  "Who can approve or act",
+  "Which tools and permissions matter",
+  "What runs and in what order",
+  "What evidence is kept",
+  "What can be replayed later",
+  "What looks weak",
+  "What to do next",
 ];
 
 export default function ReviewRequestPage() {
@@ -63,18 +63,19 @@ export default function ReviewRequestPage() {
             </h1>
             <p className="mb-8 max-w-[420px] text-sm leading-relaxed text-text-muted">
               Bring one workflow, one automation boundary, or one operator
-              decision path. WitnessOps returns a bounded review on authority,
-              execution, evidence, and replayability.
+              decision path. WitnessOps returns a bounded review of who can act,
+              what runs, what evidence exists, and what another person could
+              check later.
             </p>
 
             <div
               className="mb-10 space-y-1"
               style={{ fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.04em", color: "var(--color-text-secondary)" }}
             >
-              <div>Scoped.</div>
-              <div>Reviewed.</div>
-              <div>Bounded.</div>
-              <div>Replayable.</div>
+              <div>One workflow.</div>
+              <div>One review.</div>
+              <div>One report.</div>
+              <div>Clear limits.</div>
             </div>
 
             <ul className="border-t border-surface-border">
@@ -94,9 +95,8 @@ export default function ReviewRequestPage() {
               className="mt-6 max-w-[420px] text-xs leading-relaxed text-text-muted"
               style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}
             >
-              One real system. One real decision path. One bounded report. Not a
-              broad audit, not a generic security assessment, not a claim of
-              continuous assurance.
+              This request is for one real path only. It is not a broad audit or
+              a catch-all security engagement.
             </p>
           </div>
 
@@ -124,8 +124,7 @@ export default function ReviewRequestPage() {
             Start your review request
           </div>
           <p className="mb-6 text-sm leading-relaxed text-text-muted">
-            Submit one real workflow, automation boundary, or operator decision
-            path for bounded review.
+            Submit one workflow, automation boundary, or operator decision path.
           </p>
           <ContactForm contactEmail={mailboxes.engage} />
         </div>
