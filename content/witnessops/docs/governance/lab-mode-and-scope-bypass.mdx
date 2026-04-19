@@ -9,44 +9,44 @@ draft: false
 
 # Lab Mode and Scope Bypass
 
-Lab mode and scope bypass define the explicit exception path when normal governance scope enforcement is intentionally suspended.
+Lab mode and scope bypass define the explicit exception path for cases where normal scope enforcement is intentionally suspended.
 
 ## 1. Problem this page solves
 
-Normal governed execution assumes scope checks pass before execution.  
-Some lab/test scenarios require controlled exceptions, and those exceptions must be recorded without being confused for normal governed production evidence.
+Normal governed execution assumes scope checks pass before execution.
+Some lab and test scenarios require controlled exceptions, and those exceptions must be recorded without being confused for normal governed production evidence.
 
 ## 2. What you should understand after reading
 
 After this page, you should understand:
 
 - when lab mode is allowed
-- what `--lab` and `--no-scope` mean operationally
+- what `--lab` and `--no-scope` mean in practice
 - what must be documented before and after exception use
 - what a bypassed receipt can and cannot prove
 
 ## 3. Mechanism-first exception path
 
-1. **Declare exception intent.** Lab objective and reason scope enforcement is insufficient are documented.
-2. **Constrain exception boundary.** Target boundary, environment class, and stop condition are explicitly set.
-3. **Authorize exception.** Named approver accepts elevated risk posture.
-4. **Execute with explicit markers.** `--lab` marks lab run; `--no-scope` bypasses scope enforcement when required.
-5. **Record exception evidence.** Receipt/evidence chain must show lab status and bypass state unambiguously.
-6. **Interpret trust posture correctly.** Bypassed run is treated as exception evidence, not normal governed scope-compliant evidence.
+1. **Declare the exception intent.** Document the lab objective and why normal scope enforcement is not enough.
+2. **Constrain the exception boundary.** Set the target boundary, environment class, and stop condition explicitly.
+3. **Authorize the exception.** A named approver accepts the elevated risk posture.
+4. **Execute with explicit markers.** `--lab` marks a lab run; `--no-scope` bypasses scope enforcement when required.
+5. **Record exception evidence.** The receipt and evidence chain must show lab status and bypass state clearly.
+6. **Interpret the trust posture correctly.** A bypassed run is exception evidence, not normal governed scope-compliant evidence.
 
-See [Commands](/docs/reference/commands) for command reference details.
+See [Commands](/docs/reference/commands) for command-reference details.
 
 ## 4. Required controls and evidence fields
 
 Before running with lab mode or scope bypass, define:
 
-- why normal scope enforcement is insufficient
-- exact target boundary
-- named approver for exception risk
-- environment classification (lab/sandbox/demo/isolated test)
-- stop condition for unintended scope/data impact
+- why normal scope enforcement is not enough
+- the exact target boundary
+- the named approver for the exception risk
+- the environment classification (lab, sandbox, demo, isolated test)
+- the stop condition for unintended scope or data impact
 
-Evidence record must show:
+The evidence record must show:
 
 - lab marker present
 - bypass state present
@@ -60,8 +60,8 @@ In the current receipt model, `scope_validated: false` means normal scope enforc
 
 | Layer | What is observed | What is inferred |
 | --- | --- | --- |
-| Observed | explicit lab/bypass markers, approver record, exception rationale, run artifacts | none beyond recorded exception facts |
-| Inferred | whether exception was appropriate for policy context | depends on external governance standards and reviewer judgment |
+| Observed | explicit lab or bypass markers, approver record, exception rationale, run artifacts | none beyond recorded exception facts |
+| Inferred | whether the exception was appropriate for the policy context | depends on outside governance standards and reviewer judgment |
 
 ## 6. Trust assumptions and hard-fail boundaries
 
@@ -69,12 +69,12 @@ Lab mode is not a speed shortcut. It is an explicit trust-posture downgrade with
 
 Hard-fail examples:
 
-- bypass without named approver
-- lab run claimed against production target without explicit written exception
+- bypass without a named approver
+- lab run claimed against a production target without explicit written exception
 - exception run later represented as normal governed scope-compliant evidence
-- sensitive artifact collection without handling plan
+- sensitive artifact collection without a handling plan
 
-A bypassed receipt can still prove that a run occurred and artifacts were linked.  
+A bypassed receipt can still prove that a run occurred and that artifacts were linked.
 It cannot prove that normal scope controls were satisfied.
 
 ## 7. Next-page handoff
