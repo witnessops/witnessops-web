@@ -1,6 +1,6 @@
 ---
 title: "Policy Gates"
-description: "How WitnessOps enforces approvals, scope, and preconditions before execution proceeds."
+description: "How WitnessOps enforces approvals, scope, and preconditions before execution can proceed."
 section: "docs"
 order: 30
 nav_label: "Policy Gates"
@@ -9,19 +9,19 @@ draft: false
 
 # Policy Gates
 
-Policy gates are the runtime enforcement layer that turns authorization policy into an allow-or-block decision before a step executes.
+Policy gates are the runtime enforcement layer that turns authorization policy into an allow-or-block decision before a step runs.
 
 ## 1. Problem this page solves
 
-Authorization can look complete on paper while execution still runs outside intended boundaries.
+Authorization can look complete on paper while execution still runs outside the intended boundary.
 
-This page defines how WitnessOps enforces preconditions at runtime so policy is not treated as documentation-only.
+This page explains how WitnessOps enforces preconditions at runtime so policy is not treated as documentation only.
 
 ## 2. What you should understand after reading
 
 After this page, you should understand:
 
-- which gate families are evaluated before execution
+- which gate families are checked before execution
 - how gate composition and evaluation order work
 - what happens when a gate fails
 - what gate evidence is emitted for later review
@@ -30,41 +30,41 @@ After this page, you should understand:
 
 Gates are declared with runbook steps and evaluated at execution time.
 
-For a step to run, all required gates for that step must pass. Evaluation is ordered and short-circuits on first failure.
+For a step to run, all required gates for that step must pass. Evaluation is ordered and stops on the first failure.
 
-That design prevents “partial approval” behavior and preserves deterministic reviewability.
+That design prevents partial-approval behavior and keeps later review deterministic.
 
 ## 4. Gate families
 
 | Gate family | What is enforced | Failure meaning |
 | --- | --- | --- |
-| Scope check | Target stays inside approved scope boundary | Out-of-scope execution attempt blocked |
-| Approval requirement | Required approver has explicitly authorized step | No valid approval path |
-| Target authorization | Target has pre-authorization for engagement/context | Target not authorized for this run |
-| Environmental constraint | Runtime context satisfies policy window/classification/network constraints | Right action, wrong context |
+| Scope check | Target stays inside the approved scope boundary | Out-of-scope execution attempt blocked |
+| Approval requirement | A required approver has explicitly authorized the step | No valid approval path |
+| Target authorization | The target has pre-authorization for the engagement or context | Target not authorized for this run |
+| Environmental constraint | Runtime context satisfies policy window, classification, or network constraints | Right action, wrong context |
 | Freemail rejection | Principal identity meets governance identity requirements | Identity quality below policy floor |
-| Tool allowlist | Step tool is permitted for workflow risk class | Unauthorized capability invocation |
+| Tool allowlist | The step tool is permitted for the workflow risk class | Unauthorized capability invocation |
 
 ## 5. Gate failure semantics
 
 When a gate fails:
 
-1. the step does not execute
-2. failure reason and failing gate are recorded
-3. operation either pauses for correction or ends if terminal
+1. the step does not run
+2. the failure reason and failing gate are recorded
+3. the operation either pauses for correction or ends if terminal
 4. receipt evidence captures the blocked state
 
 A blocked gate is a successful control outcome, not a runtime defect.
 
 ## 6. Evidence and trust boundary
 
-Receipts should record gate set, evaluation order, pass/fail states, and approval identity/timestamps where required.
+Receipts should record the gate set, evaluation order, pass/fail states, and approval identity and timestamps where required.
 
-This proves policy checks were evaluated as part of execution path.
+This proves policy checks were evaluated as part of the execution path.
 
-What remains trust-based:
+What still depends on trust:
 
-- correctness of external policy sources
+- correctness of outside policy sources
 - correctness of upstream identity systems
 - quality of scope inputs and classification mapping
 
@@ -75,5 +75,5 @@ Next, read [Evidence](/docs/evidence) to see how these gate outcomes appear in p
 Then use:
 
 - [Receipts](/docs/evidence/receipts) for receipt-level gate and execution records
-- [Authorization Model](/docs/governance/authorization-model) for principal/approval authority boundaries
+- [Authorization Model](/docs/governance/authorization-model) for principal and approval boundaries
 - [Scope Check](/docs/decisions/scope-check) for operator-side boundary decisions
