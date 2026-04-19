@@ -9,12 +9,12 @@ import { listVerifyFixtures } from "@/lib/verify-fixtures";
 export const metadata: Metadata = {
   title: "Verify a Receipt",
   description:
-    "Evaluate receipt integrity and proof boundaries with deterministic receipt-first verification.",
+    "Check what a published proof bundle can show, what it cannot show, and where the trust limits still are.",
   alternates: getCanonicalAlternates("witnessops", "/verify"),
   openGraph: {
     title: "Verify a Receipt | WitnessOps",
     description:
-      "Evaluate receipt integrity and proof boundaries with deterministic receipt-first verification.",
+      "Check what a published proof bundle can show, what it cannot show, and where the trust limits still are.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -22,59 +22,59 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Verify a Receipt | WitnessOps",
     description:
-      "Evaluate receipt integrity and proof boundaries with deterministic receipt-first verification.",
+      "Check what a published proof bundle can show, what it cannot show, and where the trust limits still are.",
   },
 };
 
 const verificationScope = [
   {
-    title: "What this proves now",
-    body: "Receipt integrity checks executed by the verifier: signature/timestamp consistency, declared stage consistency, and deterministic breach reporting.",
+    title: "What this can show",
+    body: "The verifier checks the receipt itself: signature, timestamp, stage, and other receipt-level consistency checks.",
   },
   {
-    title: "What this does not prove",
-    body: "Execution correctness, decision quality, complete incident truth, or full bundle-byte revalidation outside receipt-only scope.",
+    title: "What this cannot show",
+    body: "It does not prove that every action was correct, that every decision was right, or that you now know the full story of an incident.",
   },
   {
-    title: "Decision semantics",
-    body: "Results are presented as verified, declared, inferred, or not proven so verification scope stays explicit.",
+    title: "How results are labeled",
+    body: "Results are shown as verified, declared, inferred, or not proven so you can see exactly how strong each conclusion is.",
   },
 ];
 
 const firstRunSteps = [
   {
-    title: "1. Run a known-valid sample",
-    expected: "Expected outcome: inferred (receipt checks pass in receipt-only mode).",
-    why: "Confirms the verifier can reproduce a deterministic pass path.",
+    title: "1. Try a known-good sample",
+    expected: "Expected outcome: inferred in receipt-only mode.",
+    why: "This shows the verifier can reproduce a clean pass path.",
   },
   {
-    title: "2. Run a known-invalid sample",
-    expected: "Expected outcome: not proven (breach is detected and explained).",
-    why: "Confirms failure detection is visible and auditable.",
+    title: "2. Try a known-bad sample",
+    expected: "Expected outcome: not proven with a named breach.",
+    why: "This shows that failure is visible and explained, not hidden.",
   },
   {
-    title: "3. Run your own receipt",
-    expected: "Expected outcome: explicit scope-bound result with trust assumptions.",
-    why: "Applies the same contract to your real artifact.",
+    title: "3. Try your own receipt",
+    expected: "Expected outcome: a scope-bound result with clear trust limits.",
+    why: "This applies the same rules to your real artifact.",
   },
 ];
 
 const resultSemantics = [
   {
     label: "Verified",
-    detail: "Directly established by checks executed in this verifier mode.",
+    detail: "Shown directly by checks this verifier ran.",
   },
   {
     label: "Declared",
-    detail: "Claimed by artifact metadata, not independently established.",
+    detail: "Stated by the artifact, but not independently proven here.",
   },
   {
     label: "Inferred",
-    detail: "Suggested by partial evidence or mode limits, not fully established.",
+    detail: "Suggested by partial evidence or by the limits of this verifier mode.",
   },
   {
     label: "Not proven",
-    detail: "Failed, missing, unsupported, or not executed.",
+    detail: "Failed, missing, unsupported, or not checked.",
   },
 ];
 
@@ -90,25 +90,24 @@ export default function VerifyPage() {
               Verify
             </p>
             <h1 className="text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
-              Verify a published proof bundle.
+              Check a published proof bundle.
             </h1>
             <p className="mt-5 max-w-[48rem] text-base leading-8 text-text-secondary">
-              Use this page to check what a published bundle can prove now, what
-              it cannot prove, and what to do next.
+              Use this page to see what a published bundle can show now, what it
+              cannot show, and what to inspect next.
             </p>
             <p className="mt-4 max-w-[48rem] text-base leading-8 text-text-secondary">
-              This verifier checks receipt integrity and scope-bound claims; it
-              does not prove complete incident truth or total runtime
-              correctness.
+              This verifier checks the receipt and the claims tied to that
+              receipt. It does not claim to prove the full runtime story.
             </p>
             <p className="mt-4 max-w-[48rem] text-sm leading-7 text-text-muted">
-              If verification passes, inspect assumptions and evidence
-              continuity. If it fails, inspect the named breach before trusting
-              downstream claims.
+              If a check passes, read the trust limits before relying on the
+              result. If it fails, read the named breach before trusting any
+              claim built on top of it.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
-              <CtaButton href="#verify-console" variant="primary" label="Verify a sample bundle" />
+              <CtaButton href="#verify-console" variant="primary" label="Try a sample bundle" />
               <CtaButton href="#verify-console" variant="secondary" label="Verify a bundle" />
             </div>
 
@@ -130,9 +129,9 @@ export default function VerifyPage() {
                 Data handling boundary
               </div>
               <p className="mt-3 max-w-[48rem] text-sm leading-relaxed text-text-secondary">
-                Browser input is sent to <code>/api/verify</code> for receipt-first
-                deterministic checks. Keep sensitive handling policy aligned to your
-                environment before submitting production artifacts.
+                Browser input is sent to <code>/api/verify</code> for receipt-level
+                checks. Make sure that matches your handling rules before you
+                submit a production artifact.
               </p>
             </div>
 
@@ -141,7 +140,7 @@ export default function VerifyPage() {
 
           <div className="space-y-4 border border-surface-border bg-surface-bg p-5">
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-              First-run path
+              First run
             </div>
             <div className="space-y-4">
               {firstRunSteps.map((step) => (
@@ -165,7 +164,7 @@ export default function VerifyPage() {
       <SectionShell className="pt-0">
         <div className="border border-surface-border bg-surface-bg p-6">
           <div className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-            Result semantics
+            Result labels
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {resultSemantics.map((state) => (
@@ -189,14 +188,14 @@ export default function VerifyPage() {
       <SectionShell className="pt-0" narrow>
         <div className="border border-surface-border bg-surface-bg p-6">
           <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-            Read Next
+            Read next
           </div>
           <h2 className="text-2xl font-semibold text-text-primary">
-            Continue with the full verification map.
+            Keep going with the verification docs.
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-text-muted">
-            Use load-bearing docs to inspect receipt structure, verification scope,
-            and threat-boundary assumptions.
+            Use the docs below to inspect receipt structure, verification scope,
+            and trust limits in more detail.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <CtaButton
@@ -212,7 +211,7 @@ export default function VerifyPage() {
             <CtaButton
               href="/docs/evidence/receipts"
               variant="secondary"
-              label="Receipt Concepts"
+              label="Receipt Basics"
             />
             <CtaButton
               href="/docs/evidence/receipt-spec"
@@ -222,7 +221,7 @@ export default function VerifyPage() {
             <CtaButton
               href="/docs/security-systems/threat-model"
               variant="secondary"
-              label="Threat Model"
+              label="Trust Limits"
             />
           </div>
         </div>
