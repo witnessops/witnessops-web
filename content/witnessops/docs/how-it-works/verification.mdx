@@ -7,7 +7,7 @@ nav_label: "Verify a Receipt"
 draft: false
 trust_boundary_variant: "verification"
 page_answer:
-  question: "How do I check a receipt or bundle offline, and how should I read valid, invalid, and indeterminate results?"
+  question: "How do I check a receipt or proof bundle offline, and how should I read valid, invalid, and indeterminate results?"
   links:
     - href: "/docs/evidence/receipt-spec"
       label: "Receipt Spec"
@@ -19,7 +19,7 @@ page_answer:
 
 # How to Verify a Receipt
 
-This page answers one practical question: how to verify a receipt or bundle offline, and how to read `valid`, `invalid`, and `indeterminate` results without claiming too much.
+This page answers one practical question: how to verify a receipt or proof bundle offline, and how to read `valid`, `invalid`, and `indeterminate` results without claiming too much.
 
 ## 1. Problem this page solves
 
@@ -29,7 +29,7 @@ Verification needs a deterministic sequence that separates:
 
 - proof that passed
 - checks that were missing
-- trust dependencies that still sit outside the bundle
+- trust dependencies that still sit outside the proof bundle
 
 This page defines that sequence.
 
@@ -48,14 +48,14 @@ At minimum, start with the receipt material and trusted key material.
 
 | Artifact | Status | Why it matters |
 | --- | --- | --- |
-| Receipt JSON or exported bundle | required | Core proof statement and references |
+| Receipt JSON or exported proof bundle | required | Core proof statement and references |
 | Signing public key or trusted key source | required | You cannot check signature authenticity without it |
 | RFC 3161 timestamp token + chain | conditional | Required when the receipt claims trusted time |
 | Log checkpoint + inclusion proof | conditional | Required when the receipt claims append-only publication |
 
 ## 4. Verification procedure (exact order)
 
-1. **Confirm the artifact set.** Determine whether you have receipt-only material or a fuller bundle.
+1. **Confirm the artifact set.** Determine whether you have receipt-only material or a proof bundle.
 2. **Verify manifest integrity.** If `MANIFEST.json` exists, recompute the listed hashes first.
 3. **Verify the signature.** Check the signed payload against trusted key material.
 4. **Verify structure and bindings.** Confirm schema and digest references are internally consistent.
@@ -69,7 +69,7 @@ Do not skip the order. Integrity and signature checks come before you interpret 
 
 | Check | Outcomes |
 | --- | --- |
-| Bundle integrity | pass / tampered |
+| Proof-bundle integrity | pass / tampered |
 | Signature | valid / invalid / missing key |
 | Structure and binding | well-formed / malformed / digest mismatch |
 | Timestamp layer | valid / invalid / not present |
@@ -80,7 +80,7 @@ Verdict interpretation:
 
 - **`valid`**: the required checks for the declared claim set passed.
 - **`invalid`**: one or more proof-bearing checks failed.
-- **`indeterminate`**: the bundle may be coherent, but a required outside trust condition could not be established locally.
+- **`indeterminate`**: the proof bundle may be coherent, but a required outside trust condition could not be established locally.
 
 ## 6. What is proven vs what remains trusted
 
@@ -98,7 +98,7 @@ Verdict interpretation:
 
 ## 7. Common failure modes
 
-- Missing file or hash mismatch → tampered or incomplete bundle.
+- Missing file or hash mismatch → tampered or incomplete proof bundle.
 - Signature failure → issuer authenticity not established.
 - Timestamp failure → trusted-time claim not established.
 - Inclusion proof failure → append-only publication claim not established.
@@ -107,6 +107,6 @@ Report failures by layer instead of collapsing everything into one vague pass/fa
 
 ## 8. Next-page handoff
 
-Next, read [Receipts](/docs/evidence/receipts) to inspect the proof object this verification flow is evaluating.
+Next, read [Receipts](/docs/evidence/receipts) to inspect the proof statement this verification flow is evaluating.
 
 Then use [Anchored Replay](/docs/how-it-works/anchored-replay) when reviewer-supplied trust-anchor continuity is required.
