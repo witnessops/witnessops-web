@@ -9,13 +9,13 @@ draft: false
 
 # Integrations
 
-This page defines integrations as governed boundary contracts between WitnessOps execution paths and external systems.
+This page explains integrations as governed boundary contracts between WitnessOps execution paths and external systems.
 
 ## 1. Problem this page solves
 
-Without explicit boundary contracts, integration guidance collapses into tool lists and capability claims. That makes it hard to audit which behavior is governed by WitnessOps, which behavior depends on external systems, and what evidence can actually support review.
+Without clear boundary contracts, integration guidance collapses into tool lists and capability claims. That makes it hard to audit which behavior is governed by WitnessOps, which behavior depends on external systems, and what evidence can actually support review.
 
-This page establishes the integration contract model so integration claims stay bounded, testable, and receipt-compatible.
+This page defines the integration contract model so integration claims stay bounded, testable, and receipt-compatible.
 
 ## 2. Reader outcome
 
@@ -24,51 +24,51 @@ After this page, you should understand:
 - why integrations are treated as boundary contracts, not catalog marketing
 - how integrations attach to governed execution and evidence paths
 - what WitnessOps controls vs what external systems control
-- what proof/evidence compatibility requires for integrations
+- what proof and evidence compatibility requires for integrations
 - where observed facts stop and inferred conclusions begin
 
 ## 3. Mechanism-first integration model
 
 Integrations attach to existing governed paths. They do not create a parallel execution lane.
 
-| Path stage | Integration attachment point | Governance/evidence effect |
+| Path stage | Integration attachment point | Governance and evidence effect |
 | --- | --- | --- |
-| Runbook step definition | Step declares the integration contract (inputs, outputs, error shape, allowed scope) | Invocation behavior is versioned and reviewable through the runbook contract |
-| Policy and authorization gates | Integration call is allowed only after normal scope/approval checks pass | Integrations inherit governed authorization boundaries |
-| Adapter execution | WitnessOps wrapper executes the external call and records structured success/failure state | Execution outcome becomes auditable as step-level evidence |
+| Runbook step definition | Step declares the integration contract: inputs, outputs, error shape, allowed scope | Invocation behavior is versioned and reviewable through the runbook contract |
+| Policy and authorization gates | Integration call is allowed only after normal scope and approval checks pass | Integrations inherit governed authorization boundaries |
+| Adapter execution | WitnessOps wrapper executes the external call and records structured success or failure state | Execution outcome becomes auditable as step-level evidence |
 | Artifact capture | Adapter output is captured as evidence artifacts with stable metadata | Captured artifacts can be linked into receipts for replay and review |
 | Receipt binding | Receipt records hashes, references, and contract identifiers for captured artifacts | Verifiers can check integrity and linkage of what was captured |
 
-## 4. Ownership and boundary split (WitnessOps-controlled vs external-controlled behavior)
+## 4. Ownership and boundary split
 
 | Boundary area | WitnessOps-controlled behavior | External-controlled behavior |
 | --- | --- | --- |
-| Contract and invocation rules | interface schema, scope constraints, gate ordering, failure-state recording | whether the remote API/system honors its own semantics |
-| Call transport and identity usage | wrapper behavior, configured auth path, retry/timeout policy in runbook context | upstream availability, remote auth backend decisions, remote rate limits |
-| Evidence capture and receipt linkage | artifact capture policy, metadata normalization, hash/link recording | truthfulness/completeness of remote payload contents |
+| Contract and invocation rules | interface schema, scope constraints, gate ordering, failure-state recording | whether the remote API or system honors its own semantics |
+| Call transport and identity usage | wrapper behavior, configured auth path, retry and timeout policy in runbook context | upstream availability, remote auth backend decisions, remote rate limits |
+| Evidence capture and receipt linkage | artifact capture policy, metadata normalization, hash and link recording | truthfulness and completeness of remote payload contents |
 | Operator-facing interpretation | how results are framed in governed workflows and decisions | real-world meaning of remote telemetry beyond captured fields |
 
-## 5. Evidence/proof compatibility model for integrations
+## 5. Evidence and proof compatibility model for integrations
 
 Integration output is proof-compatible only when all of the following are explicit and captured:
 
 | Requirement | Minimum auditable signal |
 | --- | --- |
-| Contract identity | integration/runbook step identifier and version in execution metadata |
-| Invocation outcome | explicit success/failure state with timestamps and error class when failed |
-| Artifact integrity | stored artifact references with hashes and deterministic paths/IDs |
+| Contract identity | integration or runbook step identifier and version in execution metadata |
+| Invocation outcome | explicit success or failure state with timestamps and error class when failed |
+| Artifact integrity | stored artifact references with hashes and deterministic paths or IDs |
 | Receipt linkage | receipt fields that bind invocation metadata to captured artifacts |
-| Verification scope statement | explicit note that verification attests capture/integrity, not external truth |
+| Verification scope statement | explicit note that verification attests capture and integrity, not external truth |
 
-If any required signal is missing, treat the integration result as operational input, not as strong proof.
+If one of these signals is missing, treat the integration result as operational input, not as strong proof.
 
 ## 6. Observed vs inferred separation
 
 | Layer | What is observed | What is inferred |
 | --- | --- | --- |
 | Integration execution | gate outcomes, request context metadata, adapter exit state, captured artifacts | that the external system's internal state is correct or complete |
-| Receipt/proof verification | integrity and linkage of captured artifacts to a governed run | that captured external outputs are globally true outside capture scope |
-| Operational conclusions | documented analyst interpretation based on captured signals | attacker intent, full impact, or root cause certainty without additional evidence |
+| Receipt and proof verification | integrity and linkage of captured artifacts to a governed run | that captured external outputs are globally true outside capture scope |
+| Operational conclusions | documented analyst interpretation based on captured signals | attacker intent, full impact, or root-cause certainty without additional evidence |
 
 ## 7. Trust assumptions and limits
 
@@ -82,6 +82,6 @@ Keep these assumptions explicit:
 
 For broader trust-boundary context, see [Threat Model](/docs/security-systems/threat-model).
 
-## 8. Next-page handoff to `/docs/integrations/witnessops-catalog`
+## 8. Next-page handoff
 
 Next, read [WitnessOps Catalog](/docs/integrations/witnessops-catalog) for the concrete integration surface inventory and its versioned governance boundaries.
