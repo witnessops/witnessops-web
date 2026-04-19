@@ -15,16 +15,16 @@ Authorization is the control contract that separates a requested action from an 
 
 Teams often have execution evidence but weak evidence of who authorized what and under which boundaries.
 
-This page defines the authorization model that must exist before governed execution is allowed to proceed.
+This page explains the authorization model that must exist before governed execution is allowed to proceed.
 
 ## 2. What you should understand after reading
 
 After this page, you should understand:
 
-- which principals exist and what each role authorizes
+- which principals exist and what each role can authorize
 - approval modes and their risk posture
 - what authorization records must include before execution
-- what authorization proves vs what remains trust-based
+- what authorization proves and what still depends on trust
 
 ## 3. Principals and authority scope
 
@@ -32,11 +32,11 @@ WitnessOps records three principal classes:
 
 | Principal | Role | Assumption boundary |
 | --- | --- | --- |
-| `operator` | Initiates and runs workflow | Caller identity provenance is external trust input |
-| `approver` | Authorizes gated/high-risk steps | Approver authority mapping is externally maintained |
+| `operator` | Initiates and runs the workflow | Caller identity provenance is an outside trust input |
+| `approver` | Authorizes gated or high-risk steps | Approver authority mapping is maintained outside WitnessOps |
 | `system` | Automation principal for orchestration | Permissions are minimally scoped and policy-bound |
 
-If identity input is false, WitnessOps preserves false identity faithfully. That is an explicit trust boundary.
+If identity input is false, WitnessOps preserves that false identity faithfully. That is an explicit trust boundary.
 
 ## 4. Approval modes and minimum bar
 
@@ -46,17 +46,17 @@ If identity input is false, WitnessOps preserves false identity faithfully. That
 | Designated approver | Named principal required | Better accountability for intrusive actions |
 | Multi-party approval | Target posture for highest-risk lanes | Strongest resistance to single-principal failure |
 
-For production-impacting or sensitive-data workflows, require designated approver or stronger.
+For production-impacting or sensitive-data workflows, require a designated approver or stronger.
 
 ## 5. Required authorization record fields
 
 Before execution, authorization should clearly capture:
 
-1. objective of the step
-2. exact target boundary
-3. technique class/risk class
-4. approval authority and timestamp path
-5. time/context constraints (engagement/incident window)
+1. the objective of the step
+2. the exact target boundary
+3. the technique class or risk class
+4. the approval authority and timestamp path
+5. the time or context constraints, such as engagement or incident window
 
 If one of these is missing, authorization quality is incomplete.
 
@@ -64,32 +64,32 @@ If one of these is missing, authorization quality is incomplete.
 
 Authorization fails when identity, scope, approval, tool allowance, or record completeness does not satisfy policy.
 
-On failure, the step does not run and denial becomes part of governed record.
+On failure, the step does not run and the denial becomes part of the governed record.
 
 Authorization evidence should include:
 
 - operator and approver principals
-- approval/denial timestamp
+- approval or denial timestamp
 - runbook version and policy context
 - gate evaluation outcomes
-- target/engagement linkage
+- target or engagement linkage
 
-This proves decision-path existence, not decision quality.
+This proves the decision path existed. It does not prove the decision was good.
 
 ## 7. What authorization does not guarantee
 
 Authorization does not guarantee:
 
-- truthful upstream identity source
-- perfect scope source quality
+- a truthful upstream identity source
+- perfect scope-source quality
 - independent judgment where self-approval is allowed
-- prevention of collusion by itself
+- prevention of collusion on its own
 
-Its core value is reviewability: unsafe approvals and scope drift are inspectable after the fact.
+Its core value is reviewability: unsafe approvals and scope drift remain inspectable after the fact.
 
 ## 8. Next-page handoff
 
-Next, read [Policy Gates](/docs/security-systems/policy-gates) for per-step enforcement behavior that executes this authorization contract.
+Next, read [Policy Gates](/docs/security-systems/policy-gates) for the per-step enforcement behavior that puts this authorization contract into action.
 
 Then use:
 
