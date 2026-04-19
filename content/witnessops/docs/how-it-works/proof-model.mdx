@@ -1,6 +1,6 @@
 ---
 title: "Proof Model"
-description: "What gets signed, timestamped, and verified in the WitnessOps proof chain."
+description: "What gets signed, timestamped, and checked in the WitnessOps proof chain."
 section: "docs"
 order: 2
 nav_label: "Proof Model"
@@ -9,13 +9,13 @@ draft: false
 
 # Proof Model
 
-The proof model defines how governed actions become portable, challengeable evidence instead of one-time runtime events.
+The proof model explains how a governed action becomes evidence another person can carry, challenge, and check later.
 
 ## 1. Problem this page solves
 
-Execution alone does not preserve trust. A step can run, succeed, and still be impossible to challenge later if proof artifacts are missing or weak.
+Execution alone does not preserve trust. A step can run and succeed, but still be hard to challenge later if the proof artifacts are missing or weak.
 
-This page defines the exact proof path in WitnessOps from governed action to independent verification.
+This page explains the exact proof path in WitnessOps from governed action to independent verification.
 
 ## 2. What you should understand after reading
 
@@ -24,29 +24,29 @@ After this page, you should understand:
 - what gets signed
 - what gets timestamped
 - what gets chained
-- what can be verified independently later
-- what still requires external trust
+- what another person can verify later
+- what still depends on outside trust
 
 ## 3. Mechanism-first proof sequence
 
 WitnessOps proof flow works in this strict order:
 
-1. **Governed action occurs.** Runtime policy, scope, and approvals determine whether the step executes.
-2. **Execution artifacts are captured.** The system records the operation result and proof-relevant references.
-3. **Receipt is issued.** A structured statement is signed by the issuer key to bind intent, actor, result, and continuity references.
-4. **Proof layers are attached.** Optional timestamp and publication/continuity material strengthen the claim set.
-5. **Proof is packaged for transport.** Bundle artifacts and trust material enable local replay by a third party.
-6. **Later challenge/review is performed.** A verifier checks integrity, signatures, time/publication layers, and continuity based on declared claims.
+1. **A governed action happens.** Runtime policy, scope, and approvals decide whether the step can run.
+2. **Execution artifacts are captured.** The system records the result and the proof-relevant references.
+3. **A receipt is issued.** A structured statement is signed to bind intent, actor, result, and continuity references.
+4. **Proof layers are attached.** Optional timestamp and publication or continuity material strengthen the claim set.
+5. **Proof is packaged for transport.** Bundle artifacts and trust material let a third party replay checks locally.
+6. **A later challenge or review happens.** A verifier checks integrity, signatures, time or publication layers, and continuity based on the declared claims.
 
 ### What each proof layer adds
 
 | Layer | What is bound | What it proves |
 | --- | --- | --- |
 | Issuer signature | Structured receipt statement | Issuer-bound claim integrity |
-| Timestamp layer | Digest of signed receipt envelope | Claimed signed object existed before declared time |
-| Continuity/publication layer | Receipt sequence linkage and log/checkpoint references when present | Claim is connected to an append-only continuity story |
+| Timestamp layer | Digest of signed receipt envelope | The claimed signed object existed before the declared time |
+| Continuity or publication layer | Receipt sequence linkage and log or checkpoint references, when present | The claim is connected to an append-only continuity story |
 
-Execution creates events. The proof model determines which of those events remain challengeable later.
+Execution creates events. The proof model decides which of those events stay challengeable later.
 
 ## 4. Observed vs inferred
 
@@ -58,15 +58,15 @@ Execution creates events. The proof model determines which of those events remai
 
 ## 5. Trust assumptions
 
-The proof model reduces trust requirements, but does not remove all trust:
+The proof model reduces trust requirements, but it does not remove all trust:
 
-- **Origin-system assumptions:** upstream systems feeding identity/scope/context are accurate.
-- **Execution-environment assumptions:** runtime host, key custody, and pipeline controls were not compromised outside captured proof layers.
-- **Operator/input assumptions:** provided intent and target context were truthful and policy-aligned.
-- **Trust-root assumptions:** verifier has authentic key and trust anchor material.
+- **Origin-system assumptions:** upstream systems feeding identity, scope, and context are accurate.
+- **Execution-environment assumptions:** the runtime host, key custody, and pipeline controls were not compromised outside the captured proof layers.
+- **Operator and input assumptions:** the provided intent and target context were truthful and policy-aligned.
+- **Trust-root assumptions:** the verifier has authentic key and trust-anchor material.
 
 ## 6. Next-page handoff
 
-Next, read [Evidence Bundles](/docs/how-it-works/evidence-bundles) to see the concrete container that carries this proof model to independent reviewers.
+Next, read [Evidence Bundles](/docs/how-it-works/evidence-bundles) to see the concrete package that carries this proof model to independent reviewers.
 
-Then use [Verification](/docs/how-it-works/verification) to run the deterministic checking sequence and interpret `valid`, `invalid`, and `indeterminate`.
+Then use [Verification](/docs/how-it-works/verification) to run the deterministic checking sequence and read `valid`, `invalid`, and `indeterminate` correctly.
