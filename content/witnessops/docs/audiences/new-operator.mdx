@@ -9,11 +9,11 @@ draft: false
 
 # New Operator
 
-This page defines the operator lane for hands-on security execution under governed scope, approval, and evidence rules.
+This page defines the operator lane for hands-on security work under governed scope, approval, and evidence rules.
 
 ## 1. Problem this page solves
 
-Operators lose control of risk when execution starts before scope, approval boundaries, and evidence requirements are explicit.
+Operators lose control of risk when execution starts before scope, approval boundaries, and evidence requirements are clear.
 
 This page gives the first-pass operating path so execution decisions stay auditable and proportional.
 
@@ -21,7 +21,7 @@ This page gives the first-pass operating path so execution decisions stay audita
 
 After this page, you should understand:
 
-- the operator role boundary: execute in-scope work, capture evidence, escalate at boundaries
+- the operator role boundary: run in-scope work, capture evidence, escalate at the boundary
 - what to read first before running technical steps
 - which execution decisions you own
 - what to treat as observed evidence vs inferred conclusion
@@ -43,7 +43,7 @@ After this page, you should understand:
 
 | Decision | What you own | Primary pages |
 | --- | --- | --- |
-| Scope check | Confirm each target and action remains in approved scope before execution | [Authorization Model](/docs/governance/authorization-model), [Is This In Scope?](/docs/decisions/scope-check) |
+| Scope check | Confirm each target and action stays in approved scope before execution | [Authorization Model](/docs/governance/authorization-model), [Is This In Scope?](/docs/decisions/scope-check) |
 | Workflow selection | Choose the least disruptive runbook path that can answer the objective | [Operations](/docs/operations), [Runbooks](/docs/operations/runbooks) |
 | Evidence sufficiency | Collect enough traceable evidence to support or reject the claim | [Evidence](/docs/evidence), [What Evidence Is Required?](/docs/decisions/evidence-required) |
 | Escalation trigger | Stop and escalate when scope, approval, or impact certainty breaks | [Do I Need to Escalate?](/docs/decisions/escalation) |
@@ -60,22 +60,22 @@ Defer these until your first governed workflow is complete:
 
 | Layer | What is observed | What is inferred |
 | --- | --- | --- |
-| Execution and evidence | scope gate allow/deny outcomes, approval events, command/tool output, timestamps, receipt-linked artifacts | root cause, exploitability, business impact, attacker intent |
-| Failure handling | explicit governed failures (approval stall, tool crash, evidence hash mismatch) | confidence that the investigation is complete |
+| Execution and evidence | scope gate allow or deny outcomes, approval events, command or tool output, timestamps, receipt-linked artifacts | root cause, exploitability, business impact, attacker intent |
+| Failure handling | explicit governed failures such as approval stall, tool crash, or evidence hash mismatch | confidence that the investigation is complete |
 
 Treat inferred conclusions as conclusions. Do not record them as direct observations.
 
 ## 5. Role-specific trust assumptions
 
-Operate with these assumptions explicit:
+Operate with these assumptions kept explicit:
 
 - **Scope enforcement** is driven by `in-scope.txt`. If configuration is wrong, enforcement boundaries are wrong.
-- **Approval behavior** follows workflow and external policy. Paused approvals do not auto-resolve.
-- **Runtime integrity** (host, keys, toolchain) is assumed. Host compromise invalidates governance guarantees.
+- **Approval behavior** follows workflow and outside policy. Paused approvals do not auto-resolve.
+- **Runtime integrity** (host, keys, toolchain) is assumed. Host compromise breaks governance guarantees.
 - **Tool output quality** is not validated by receipt generation. Receipts can attest execution of incorrect tool output.
 - **Receipt guarantees** prove what ran and what was captured, not whether your conclusion is correct.
 
-See [Threat Model](/docs/security-systems/threat-model) for the complete trust boundary map.
+See [Threat Model](/docs/security-systems/threat-model) for the full trust-boundary map.
 
 ## 6. Next-page handoff
 
