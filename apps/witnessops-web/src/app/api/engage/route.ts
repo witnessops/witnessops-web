@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email, name, org, intent, scope } = parsed.data;
+    const { email, name, org, scope } = parsed.data;
     if (!isBusinessEmail(email)) {
       return NextResponse.json(
         { ok: false, error: "Please use your business email." },
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       submission: {
         name,
         org,
-        intent,
+        intent: "review",
         scope,
       },
     });
