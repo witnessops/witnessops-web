@@ -59,17 +59,6 @@ export async function middleware(request: NextRequest) {
   );
   const { search } = request.nextUrl;
 
-  if (host === primaryHost) {
-    const docsPath = stripDocsPrefix(pathname);
-
-    if (docsPath !== null) {
-      return NextResponse.redirect(
-        `https://${docsHost}${docsPath}${search}`,
-        308,
-      );
-    }
-  }
-
   if (host === docsHost) {
     if (isWitnessOpsSupportPath(pathname)) {
       return NextResponse.redirect(
