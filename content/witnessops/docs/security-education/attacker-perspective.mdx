@@ -55,7 +55,9 @@ Gate definitions:
 - **Gate A (exposure-only):** suspicious lure observed, no interaction evidence.
 - **Gate B (interaction):** click or open occurred, no credential, MFA, or session-compromise evidence yet.
 - **Gate C (account exposure likely):** credential entry, unexpected MFA approval, suspicious new session, or persistence changes.
-- **Gate D (high impact):** privileged account involvement, payment or workflow impact, multi-user spread, or scope cannot be bounded quickly.
+- **Gate D (high impact):** privileged account involvement, payment or workflow impact, multi-user spread, or impact scope cannot be bounded quickly.
+
+Close locally only when the evidence is sufficient, the impact scope is bounded, and the selected action stays inside your authorization boundary. Otherwise escalate explicitly.
 
 ## What WitnessOps controls can support vs cannot guarantee
 
@@ -94,7 +96,7 @@ Limits:
 
 - delayed reporting can remove short-lived evidence, such as redirect chains or transient sessions
 - adversaries may evade, suppress, or overwrite telemetry
-- some scope and intent conclusions remain probabilistic until more corroborating evidence is collected
+- some impact-scope and intent conclusions remain probabilistic until more corroborating evidence is collected
 
 ## Next-page handoff
 
