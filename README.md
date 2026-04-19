@@ -1,31 +1,29 @@
 # WitnessOps Web
 
-Portable proof for governed security work.
+Public web surface for WitnessOps.
 
-WitnessOps turns governed security workflows into signed, portable proof bundles
-that anyone with the bundle can independently verify.
+This repository contains the public WitnessOps site, the `/verify` route for
+checking proof bundles, and the `/api/verify` endpoint behind that flow.
 
-This repository is the public web surface for WitnessOps — the marketing site,
-the `/verify` route for verifying received proof bundles, and the `/api/verify`
-endpoint that backs it.
+## What this repository does
 
-## What this repository proves
+- Shows the public WitnessOps pages.
+- Lets anyone check a proof bundle through `/verify`.
+- Exposes the same verification path through `/api/verify` for programmatic use.
+- Returns deterministic verification results for the same bundle input.
 
-- A bundle dropped into `/verify` produces a deterministic verification result.
-- The `/api/verify` route is the same verification path, available to programs.
-- No sign-in is required to verify a bundle.
-
-## What this repository does not claim
+## What this repository does not do
 
 - It is not the control plane.
 - It does not issue or sign bundles.
-- It does not store customer data.
+- It is not the system that runs customer workflows.
+- It does not store customer data as part of normal verification.
 
-## Verifying a bundle
+## Verify a bundle
 
-Visit <https://witnessops.com/verify>, drop in a bundle, and read the result.
+Open <https://witnessops.com/verify>, drop in a bundle, and read the result.
 Programmatic callers can post the same bundle to `/api/verify` and receive the
-same result.
+same verification path and result shape.
 
 ## Security
 
