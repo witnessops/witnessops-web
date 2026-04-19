@@ -9,13 +9,13 @@ draft: false
 
 # Evidence
 
-Evidence is not every artifact a system emits. In WitnessOps, evidence is the subset of artifacts that support later review, challenge, and verification.
+Evidence is not every artifact a system emits. In WitnessOps, evidence is the subset of artifacts that supports later review, challenge, and verification.
 
 ## 1. Problem this page solves
 
 Operational systems produce many outputs: logs, UI state, exports, notes, and runtime byproducts.
 
-This page defines what counts as evidence in WitnessOps and what does not, so later trust decisions are based on verifiable artifacts instead of presentation surfaces.
+This page defines what counts as evidence in WitnessOps and what does not, so later trust decisions are based on checkable artifacts instead of presentation surfaces.
 
 ## 2. What you should understand after reading
 
@@ -33,18 +33,18 @@ WitnessOps evidence is best understood in this order:
 | Artifact class | Primary role | Why it matters |
 | --- | --- | --- |
 | Receipts | Atomic governed event records | Proves a specific step or decision was recorded |
-| Execution chains | Ordered continuity across receipts | Shows event order and missing/altered sequence risk |
+| Execution chains | Ordered continuity across receipts | Shows event order and missing or altered sequence risk |
 | Bundles | Portable package of proof-bearing artifacts | Enables offline verification without calling back to runtime |
-| Sensitive artifacts | Raw high-risk payloads (credentials, tokens, user-linked content) | May support findings but require strict handling and minimization |
-| Mappings and export surfaces | Indexes/manifests linking context to artifacts | Improve retrieval/review, but are not proof by themselves |
+| Sensitive artifacts | Raw high-risk payloads, such as credentials, tokens, or user-linked content | May support findings but require strict handling and minimization |
+| Mappings and export surfaces | Indexes and manifests linking context to artifacts | Improve retrieval and review, but are not proof by themselves |
 
 ## 4. Observed vs inferred
 
 | Layer | What it includes | Confidence boundary |
 | --- | --- | --- |
-| Directly captured | Receipt fields, digest links, chain continuity fields, declared bundle artifacts | Verifiable from emitted artifacts |
-| Derived | Operational narrative built from receipt order and artifact relationships | Depends on correct interpretation of captured evidence |
-| External trust inputs | Identity provenance, scope-source quality, policy-source correctness, external legal/organizational approvals | Not independently proven by artifact chain |
+| Directly captured | receipt fields, digest links, chain continuity fields, declared bundle artifacts | verifiable from emitted artifacts |
+| Derived | operational narrative built from receipt order and artifact relationships | depends on correct interpretation of captured evidence |
+| External trust inputs | identity provenance, scope-source quality, policy-source correctness, outside legal or organizational approvals | not independently proven by the artifact chain |
 
 ## 5. Trust assumptions you must keep explicit
 
@@ -53,8 +53,8 @@ WitnessOps signs and links evidence artifacts, but does not independently prove 
 Keep these assumptions explicit:
 
 - signatures prove artifact integrity relative to what was signed
-- references to identity/scope/policy depend on external systems being accurate
-- raw outputs may be operationally useful but not automatically proof-bearing
+- references to identity, scope, and policy depend on external systems being accurate
+- raw outputs may be operationally useful but are not automatically proof-bearing
 
 > A receipt is evidence. A dashboard is presentation. A raw output may be neither.
 
