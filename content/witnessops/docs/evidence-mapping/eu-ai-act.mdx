@@ -11,11 +11,11 @@ draft: false
 
 ## Problem this page solves
 
-EU AI Act obligations are role-dependent, use-case-dependent, and frequently interpreted across legal, governance, and engineering teams. Organizations often have operational records but no bounded method to map those records to selected EU AI Act obligations without overclaiming. This page provides that bounded mapping method.
+EU AI Act obligations are role-dependent, use-case-dependent, and often interpreted across legal, governance, and engineering teams. Organizations often have operational records but no bounded method to map those records to selected EU AI Act obligations without overclaiming. This page provides that bounded mapping method.
 
 ## Reader outcome
 
-After completing this page, you should be able to:
+After this page, you should be able to:
 
 - map selected EU AI Act obligation areas to concrete WitnessOps artifacts
 - separate direct evidence from supporting context
@@ -25,28 +25,28 @@ After completing this page, you should be able to:
 
 ## Mechanism-first mapping model for selected EU AI Act obligations
 
-Treat each row as one mechanism under one selected obligation area (for example: role determination support, risk management support, logging/record-keeping support, human oversight support, or post-market monitoring support).
+Treat each row as one mechanism under one selected obligation area, for example role determination support, risk management support, logging and record-keeping support, human oversight support, or post-market monitoring support.
 
-1. Name the selected obligation area and mechanism being examined.
-2. Attach direct evidence emitted by governed execution.
+1. Name the selected obligation area and the mechanism being examined.
+2. Attach the direct evidence emitted by governed execution.
 3. Attach independent verification output for continuity, attribution, and consistency checks.
 4. Add supporting context needed for scope, role, and policy interpretation.
 5. Record what remains legal, manual, external, or unresolved.
-6. Link exact artifacts a reviewer can inspect without oral reconstruction.
+6. Link the exact artifacts a reviewer can inspect without oral reconstruction.
 
 | Selected EU AI Act obligation area | Mechanism under review | Direct evidence (required) | Supporting context (optional) | Verification question | Residual gap / dependency |
 | --- | --- | --- | --- | --- | --- |
 | Role and applicability determination support | Workflow scope declaration and role-tagged approvals | use-case declarations, system-boundary metadata, role-linked approvals, execution receipts | legal role memos, governance charters, product classification notes | Do executed workflows align with declared scope and role tags? | Provider/deployer role determination, high-risk classification, and legal applicability are external judgments |
-| Risk management process support | Constrained execution path with exceptions | approval gates, deny events, exception records, risk-linked runbook constraints, receipt timelines | risk methodology docs, committee minutes, escalation policy | Did execution stay within approved boundaries and record deviations? | Risk framework adequacy and legal sufficiency are external to evidence capture |
+| Risk management process support | Constrained execution path with exceptions | approval gates, deny events, exception records, risk-linked runbook constraints, receipt timelines | risk methodology docs, committee minutes, escalation policy | Did execution stay inside approved boundaries and record deviations? | Risk framework adequacy and legal sufficiency are external to evidence capture |
 | Data and data-governance traceability support | Input/output provenance linkage | source artifact references, provenance metadata, transformation logs, evidence manifests | data quality assessments, rights/licensing reviews, data governance policy | Are mapped outputs traceable to declared inputs and recorded handling steps? | Data representativeness, bias assessment, and lawful-data-use determinations are external |
 | Technical documentation and record-keeping support | Artifact preservation and evidence continuity | event logs, manifests, receipts, change history, verification outputs | model cards, technical file narratives, architecture diagrams | Can a reviewer reconstruct what happened from preserved records alone? | Formal technical-documentation completeness and retention-law interpretation are external |
-| Human oversight support | Human intervention, pause, override, and approval points | intervention logs, pause/resume events, approval records, escalation records | oversight procedures, staffing model, training records | Did required human checkpoints occur where the mechanism declares they should? | Oversight design adequacy and operator competency are not proven by logs alone |
-| Accuracy/robustness/cybersecurity support | Approved test and monitoring evidence chain | test execution receipts, validation artifacts, anomaly observations, control-event logs | acceptance criteria, benchmark plans, security test methodologies | Are test/monitoring observations attributable and linked to declared mechanisms? | Scientific validity, robustness thresholds, and security certification remain external |
+| Human oversight support | Human intervention, pause, override, and approval points | intervention logs, pause/resume events, approval records, escalation records | oversight procedures, staffing model, training records | Did required human checkpoints occur where the mechanism says they should? | Oversight design adequacy and operator competency are not proven by logs alone |
+| Accuracy/robustness/cybersecurity support | Approved test and monitoring evidence chain | test execution receipts, validation artifacts, anomaly observations, control-event logs | acceptance criteria, benchmark plans, security test methodologies | Are test and monitoring observations attributable and linked to declared mechanisms? | Scientific validity, robustness thresholds, and security certification remain external |
 | Post-market monitoring and incident readiness support | Observation-to-escalation evidence path | timestamped observations, incident records linked to receipts, escalation timelines, closeout records | incident taxonomy, reporting playbooks, regulator communication procedures | Is there an inspectable chain from observation through response and closure? | Legal reporting thresholds, timeliness determinations, and regulator obligations are external |
 
-This is a bounded evidence-mapping template for selected obligations. It is not legal advice and not a conformity assessment outcome.
+This is a bounded evidence-mapping template for selected obligations. It is not legal advice and not a conformity-assessment outcome.
 
-## Evidence classes and mapping logic (direct evidence vs supporting context)
+## Evidence classes and mapping logic
 
 **Direct evidence** is generated by execution and evidence systems and is required for bounded mapping claims:
 
@@ -58,18 +58,18 @@ This is a bounded evidence-mapping template for selected obligations. It is not 
 
 Use this logic:
 
-- if direct evidence is present and independently verifiable, the row can support a bounded claim about recorded activity
-- if only supporting context is present, mark the row as contextual support, not evidentiary proof
-- if direct evidence and context conflict, preserve both and mark the mismatch for review
+- If direct evidence is present and independently verifiable, the row can support a bounded claim about recorded activity.
+- If only supporting context is present, mark the row as contextual support, not evidentiary proof.
+- If direct evidence and context conflict, preserve both and mark the mismatch for review.
 
-## Bounded claims (what mapping can support vs cannot assert/certify)
+## Bounded claims (what mapping can support vs what it cannot assert or certify)
 
 ### What this mapping can support
 
 - that specific governed actions occurred and were recorded
 - that artifact-to-claim linkage is inspectable
-- that independent verification confirmed continuity/attribution checks on mapped records
-- that explicit gaps and external dependencies were documented
+- that independent verification confirmed continuity and attribution checks on mapped records
+- that explicit gaps and outside dependencies were documented
 
 ### What this mapping cannot assert or certify
 
@@ -94,10 +94,10 @@ Only observed data is directly verifiable from system records. Inferred conclusi
 Record assumptions explicitly in each mapping packet, including:
 
 - identity and access-control integrity outside this mapping
-- host/platform integrity where evidence is generated and stored
+- host and platform integrity where evidence is generated and stored
 - key-management and signing-control integrity
-- completeness/correctness of upstream systems (asset inventories, ticketing, model registries, CMDB)
-- retention and archival behavior in external systems
+- completeness and correctness of upstream systems such as asset inventories, ticketing, model registries, and CMDB
+- retention and archival behavior in outside systems
 - legal interpretation, governance ownership, and role determination by the organization
 
 If an assumption is unverified in the packet, treat it as a stated limit.
