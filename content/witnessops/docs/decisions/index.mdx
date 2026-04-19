@@ -13,9 +13,9 @@ This section defines the decision system that keeps key operator judgments expli
 
 ## 1. Problem this page solves
 
-Governed execution fails when scope, evidence, and escalation decisions remain implicit or undocumented.
+Governed execution fails when scope, evidence, and escalation decisions stay implicit or undocumented.
 
-This page maps decision classes so operators know what must be decided, when, and against which standards.
+This page maps the decision classes so operators know what must be decided, when, and against which standards.
 
 ## 2. What you should understand after reading
 
@@ -24,18 +24,20 @@ After this page, you should understand:
 - which decision classes govern operator flow
 - when each decision class occurs
 - which controls or artifacts support each class
-- where deeper pages define each decision standard
+- where the deeper pages define each decision standard
 
 ## 3. Mechanism-first decision model
 
-| Decision class | Typical timing | Supporting controls/artifacts | Standard page |
+| Decision class | Typical timing | Supporting controls and artifacts | Standard page |
 | --- | --- | --- | --- |
 | Scope check | before action | authorization boundary + scope constraints | [Is This In Scope?](/docs/decisions/scope-check) |
-| Evidence required | during work and before closure | evidence capture expectations + reviewability criteria | [What Evidence Is Required?](/docs/decisions/evidence-required) |
-| Escalation | when risk/scope/impact uncertainty increases | escalation criteria + risk boundary signals | [Do I Need to Escalate?](/docs/decisions/escalation) |
-| Closure/disposition | end of workflow | sufficient evidence + explicit rationale + action record | [What Evidence Is Required?](/docs/decisions/evidence-required) |
+| Evidence required | during work and before closure | evidence-capture expectations + reviewability criteria | [What Evidence Is Required?](/docs/decisions/evidence-required) |
+| Escalation | when risk, scope, or impact uncertainty increases | escalation criteria + risk-boundary signals | [Do I Need to Escalate?](/docs/decisions/escalation) |
+| Closure or disposition | end of workflow | sufficient evidence + explicit rationale + action record | [What Evidence Is Required?](/docs/decisions/evidence-required) |
 
-Operationally, the decision flow is: **scope -> execute/observe -> evidence sufficiency -> escalate or close**.
+Operationally, the decision flow is:
+
+**scope -> execute and observe -> evidence sufficiency -> escalate or close**
 
 ## 4. Observed vs inferred
 
@@ -46,13 +48,13 @@ Operationally, the decision flow is: **scope -> execute/observe -> evidence suff
 
 ## 5. Trust assumptions
 
-Decision structure reduces drift, but still depends on:
+Decision structure reduces drift, but it still depends on:
 
 - upstream facts being sufficiently accurate and complete
 - operators documenting ambiguity honestly
-- judgment quality under time/uncertainty pressure
+- judgment quality under time and uncertainty pressure
 
-A documented decision system improves consistency; it does not eliminate human judgment.
+A documented decision system improves consistency. It does not eliminate human judgment.
 
 ## 6. Next-page handoff
 
