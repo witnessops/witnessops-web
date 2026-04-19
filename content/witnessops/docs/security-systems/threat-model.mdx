@@ -1,6 +1,6 @@
 ---
 title: "Threat Model and Trust Boundaries"
-description: "What WitnessOps can prove, what it assumes, and how verification and disputes should be handled when proof claims are challenged."
+description: "What WitnessOps can prove, what it assumes, and what to do when a proof claim is challenged."
 section: "docs"
 order: 40
 nav_label: "Threat Model"
@@ -19,24 +19,24 @@ page_answer:
 
 # Threat Model and Trust Boundaries
 
-WitnessOps is designed to make governed security work inspectable. It is not designed to eliminate every trust assumption.
+WitnessOps is built to make governed security work easier to inspect. It is not built to remove every trust assumption.
 
 ## 1. Problem this page solves
 
-Proof artifacts are often over-read. Teams need a precise boundary statement for what is actually proven, what remains assumed, and how to handle disputes when proof claims are challenged.
+Proof artifacts are easy to over-read. Teams need a clear statement of what is proven, what is still assumed, and what to do when a proof claim is challenged.
 
 ## 2. What you should understand after reading
 
-This page makes four outcomes explicit:
+This page makes four things explicit:
 
 - what WitnessOps can prove
 - what WitnessOps cannot prove
-- which trust assumptions remain external to the proof system
+- which trust assumptions still sit outside the proof system
 - how to handle verification failures or disputed proof claims
 
-## Three Authority Domains
+## Three authority domains
 
-The clearest way to read WitnessOps is to separate three authority domains:
+The simplest way to read WitnessOps is to separate three authority domains:
 
 | Authority domain | What it decides |
 | --- | --- |
@@ -44,11 +44,11 @@ The clearest way to read WitnessOps is to separate three authority domains:
 | Issuance authority | what receipt-bearing statement and bundle material are emitted |
 | Verification authority | what an external verifier can confirm from the artifacts and trust material provided |
 
-These domains are related but not interchangeable. Execution does not make a claim true merely because it ran. Issuance does not make a claim trustworthy merely because it was signed. Verification does not make the underlying operational judgment correct merely because the proof package is intact.
+These domains are related, but they are not the same thing. Execution does not make a claim true just because something ran. Issuance does not make a claim trustworthy just because it was signed. Verification does not make the underlying operational judgment correct just because the proof package is intact.
 
-## What WitnessOps Can Prove
+## What WitnessOps can prove
 
-When the runtime and surrounding proof material behave as designed, WitnessOps can prove narrower things than a marketing page might imply, but stronger things than a normal dashboard can support.
+When the runtime and the surrounding proof material behave as designed, WitnessOps can prove narrower things than a marketing page might imply, but stronger things than a normal dashboard can support.
 
 WitnessOps can prove:
 
@@ -58,29 +58,29 @@ WitnessOps can prove:
 - declared artifact hashes, signatures, and digest relationships verify when the verifier returns `valid`
 - declared witness or trust-policy conditions passed when they are present and the verifier does not return `indeterminate`
 
-That is a strong proof claim. It is not the same thing as proving that the underlying tool was correct or that the operator made the right judgment.
+That is a strong proof claim. It is not the same as proving that the underlying tool was correct or that the operator made the right decision.
 
-## What WitnessOps Cannot Prove
+## What WitnessOps cannot prove
 
 WitnessOps cannot, by itself, prove:
 
 - that the workstation or host was uncompromised
 - that the wrapped tools behaved correctly
 - that the selected target or scope was appropriate
-- that the caller-supplied operator identity was truthful in an absolute sense
-- that a partial bundle represents the entire operational story
+- that the caller-supplied operator identity was true in an absolute sense
+- that a partial bundle represents the whole operational story
 - that a valid receipt implies a valid security conclusion
 
-The key distinction is simple: WitnessOps proves governed issuance, continuity, and proof integrity. It does not prove omniscience.
+The key distinction is simple: WitnessOps proves governed issuance, continuity, and proof integrity. It does not prove everything.
 
-## Explicit Trust Assumptions
+## Explicit trust assumptions
 
-The current trust model depends on several assumptions that sit outside the receipt itself.
+The current trust model still depends on assumptions that sit outside the receipt itself.
 
 | Boundary | Current assumption |
 | --- | --- |
-| Operator identity | WitnessOps records the principal presented to it. If the calling system lies, WitnessOps preserves the lie faithfully. |
-| Scope source | Runtime gates enforce the configured scope source they are given. If that source is wrong or was changed improperly, enforcement reflects that wrong input. |
+| Operator identity | WitnessOps records the principal presented to it. If the calling system lies, WitnessOps preserves that lie faithfully. |
+| Scope source | Runtime gates enforce the configured scope source they are given. If that source is wrong or changed improperly, enforcement reflects that wrong input. |
 | Host integrity | The machine running WitnessOps is assumed not to be compromised before evidence is captured and signed. |
 | Tool integrity | Wrapped tools are assumed to be authentic and behaving as expected. WitnessOps captures their output; it does not certify their correctness. |
 | Signing keys | Receipt authenticity depends on uncompromised private keys and trustworthy public-key distribution. If signing keys are compromised, the system can produce receipts that verify cryptographically but should no longer be trusted as genuine issuer claims. |
@@ -88,7 +88,7 @@ The current trust model depends on several assumptions that sit outside the rece
 
 If any of these assumptions fail, proof may still exist, but the meaning of that proof changes.
 
-## Runtime Failures vs Proof Failures
+## Runtime failures vs proof failures
 
 The most useful way to read the system is to separate runtime control failures from proof-layer failures.
 
@@ -121,11 +121,11 @@ These are proof failures. They indicate malformed inputs, broken digest relation
 
 ### Indeterminate trust outcomes
 
-Not every incomplete verification result is a hard failure. The current verifier can return `indeterminate` when a package is structurally coherent but a declared external trust dependency cannot be satisfied locally.
+Not every incomplete verification result is a hard failure. The verifier can return `indeterminate` when a package is structurally coherent but a declared outside trust dependency cannot be satisfied locally.
 
 That distinction matters. Missing trust context is different from proven tampering.
 
-## What a Bypass Looks Like
+## What a bypass looks like
 
 Suppose an operator wants to run a step against a target that is currently out of scope.
 
@@ -140,25 +140,25 @@ WitnessOps did not make the scope source immutable. It was not designed to. What
 
 The control here is auditability and continuity, not magical prevention.
 
-## Partial Bundle Risk
+## Partial bundle risk
 
 A partial bundle can still produce a `valid` verification result for the artifacts it actually contains.
 
 That does not mean it proves completeness of the operational record. A verifier may be able to confirm that a presented subset is internally intact while still being unable to conclude that the subset represents the whole engagement, chain, or decision path.
 
-This is why continuity inspection and packaging honesty matter alongside cryptographic validity.
+This is why continuity inspection and honest packaging matter alongside cryptographic validity.
 
-## What Verification Should Mean
+## What verification should mean
 
 Verification should be read precisely.
 
 - `valid` means the declared package and proof checks passed
 - `invalid` means a proof-bearing check failed
-- `indeterminate` means the package may be coherent, but a declared external trust condition could not be completed locally
+- `indeterminate` means the package may be coherent, but a declared outside trust condition could not be completed locally
 
-Those statuses are more useful than a generic green or red badge because they tell the reviewer what kind of dispute they are actually dealing with.
+These statuses are more useful than a generic green or red badge because they tell the reviewer what kind of dispute they are actually dealing with.
 
-## Verification and Dispute Handling
+## Verification and dispute handling
 
 If a receipt, chain, or bundle is disputed, the right move is not to debate screenshots. Preserve the artifacts and work from the proof surface outward.
 
@@ -173,14 +173,14 @@ The important point is to distinguish three dispute types:
 - a proof disagreement about what can be verified
 - a security incident involving possible forgery, compromise, or manipulated trust material
 
-Those are not the same class of problem and should not be handled as if they were.
+Those are not the same kind of problem and should not be handled as if they were.
 
 ## 8. Next-page handoff
 
-Next, read [Authorization Model](/docs/governance/authorization-model) for approval and authority boundaries that sit above this threat model.
+Next, read [Authorization Model](/docs/governance/authorization-model) for the approval and authority boundaries that sit above this threat model.
 
 Then use these as needed:
 
-- [Verification](/docs/how-it-works/verification) for check procedure
-- [Receipt Specification](/docs/evidence/receipt-spec) for technical receipt contract
+- [Verification](/docs/how-it-works/verification) for the check procedure
+- [Receipt Specification](/docs/evidence/receipt-spec) for the technical receipt contract
 - [Security Practices](/docs/security-systems/security-practices) for disclosure and operational security posture
