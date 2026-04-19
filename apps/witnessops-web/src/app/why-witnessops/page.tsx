@@ -5,12 +5,12 @@ import { SectionShell } from "@/components/shared/section-shell";
 export const metadata: Metadata = {
   title: "Why WitnessOps",
   description:
-    "WitnessOps governs security operations and produces signed receipts that customers, auditors, and counterparties can verify after the run.",
+    "WitnessOps helps teams turn security work into signed proof that customers, auditors, and partners can check after the work is done.",
   alternates: getCanonicalAlternates("witnessops", "/why-witnessops"),
   openGraph: {
     title: "Why WitnessOps | WitnessOps",
     description:
-      "WitnessOps governs security operations and produces signed receipts that customers, auditors, and counterparties can verify after the run.",
+      "WitnessOps helps teams turn security work into signed proof that customers, auditors, and partners can check after the work is done.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Why WitnessOps | WitnessOps",
     description:
-      "WitnessOps governs security operations and produces signed receipts that customers, auditors, and counterparties can verify after the run.",
+      "WitnessOps helps teams turn security work into signed proof that customers, auditors, and partners can check after the work is done.",
   },
 };
 
@@ -30,38 +30,35 @@ export default function WhyWitnessOpsPage() {
           Why WitnessOps
         </p>
         <h1 className="text-4xl font-bold tracking-tight text-text-primary">
-          Why security workflows need portable proof.
+          Why security work needs proof people can check.
         </h1>
         <div className="mt-8 space-y-6 text-base leading-8 text-text-secondary">
           <p>
-            Most security evidence fails at handoff. WitnessOps records approved
-            workflow execution as portable proof bundles others can inspect
-            independently.
+            Most security work becomes hard to trust once it leaves the team that
+            ran it. Reports, screenshots, and logs can show that something
+            happened, but they usually do not make the work easy to check later.
           </p>
           <p>
-            The point is not to generate a prettier incident report. The point
-            is to make the operational record durable enough that auditors,
-            insurers, regulators, customers, and acquirers can inspect it
-            without trusting WitnessOps to stay in the loop.
+            WitnessOps is built to leave a better handoff behind. It records what
+            was approved, what ran, and what evidence was kept, then packages
+            that into signed proof other people can inspect for themselves.
           </p>
           <p>
-            Security operations should not end as a story reconstructed from
-            logs, screenshots, and memory. They should end as signed records
-            that preserve the decision, the execution binding, and the
-            evidence chain.
+            The goal is simple: when the work changes hands, the next person
+            should not have to rely on memory, loose screenshots, or a vendor
+            summary to understand what happened.
           </p>
-          <p>WitnessOps keeps the public surface focused on what readers need to do next:</p>
+          <p>That is why the public path stays focused on a few clear actions:</p>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Review one workflow boundary.</li>
-            <li>Inspect what was approved and executed.</li>
-            <li>Verify the published proof bundle.</li>
-            <li>See explicit trust assumptions.</li>
+            <li>Review one real workflow.</li>
+            <li>See who could approve or act.</li>
+            <li>Check the published proof bundle.</li>
+            <li>Read the trust limits in plain language.</li>
           </ul>
           <p>
-            The runtime may be complex. The public explanation should not be.
-            That is why the documentation is organized around user intent,
-            states trust boundaries directly, and treats verification as a
-            separate act rather than a vendor-controlled response.
+            The system behind this may be complex. The explanation should not be.
+            That is why WitnessOps keeps execution, evidence, and verification as
+            separate concerns and says clearly where trust still sits with us.
           </p>
         </div>
       </SectionShell>
