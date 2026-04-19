@@ -16,7 +16,8 @@ NAME
 
 PURPOSE
      Non-indexed operator-manual page for /docs/man/witnessops.
-     Use this page for authoritative command usage semantics and artifact expectations.
+     Use this page for authoritative command semantics, lifecycle order,
+     and operator-visible artifact expectations.
 
 WHEN TO USE THIS PAGE
      Use this page when you need to:
@@ -33,17 +34,19 @@ SYNOPSIS
 
 COMMAND USAGE SEMANTICS
      new-engagement
-         Initializes ops/engagements/<engagement-name>/ and creates workspace structure.
+         Initializes ops/engagements/<engagement-name>/ and creates the workspace structure.
          Does not set scope and does not execute runbooks.
 
      runbook-exec
-         Validates inputs, enforces scope by default, executes ordered runbook steps.
+         Validates inputs, enforces scope by default, executes ordered runbook steps,
+         and writes terminal artifacts when the run completes.
          Terminal runs emit state.json, manifest.json, hash-manifest.txt,
          runbook-summary.md, and receipt.json.
 
      runbook-state
          Read-only run inspection.
-         Reports status; does not mutate run state, approval state, or step flow.
+         Reports status and step progress.
+         Does not mutate run state, approval state, or step flow.
 
      runbook-approve
          Records explicit approval metadata for the current gate.
@@ -80,8 +83,7 @@ CANONICAL CROSSLINKS
        /docs/reference/commands
        /docs/reference/proof-artifact-classes
 
-CLOSURE
-     Rewrite lane closure: /docs/man/witnessops rewrite ends here.
-     Next lane: navigation normalization.
+NEXT PAGE
+     Continue to /docs/reference/commands for the fully indexed command contract.
 
 WITNESSOPS                           2026-04-17                          WITNESSOPS(7)
