@@ -55,7 +55,7 @@ hero:
     variant: "primary"
   secondary_cta:
     label: "Request a workflow review"
-    href: "/review"
+    href: "/review/request"
     variant: "secondary"
   microcopy: "Runs in the browser against a receipt already published on this site. No account. No backend call. No data leaves the page."
   proof_badges: []
@@ -315,7 +315,7 @@ sections:
         href: "/library"
         variant: "primary"
       - label: "Request a workflow review"
-        href: "/review"
+        href: "/review/request"
         variant: "ghost"
 
   - type: "boundary"
@@ -367,7 +367,7 @@ sections:
         href: "/library"
         variant: "primary"
       - label: "Request review"
-        href: "/review"
+        href: "/review/request"
         variant: "ghost"
 
 final_cta:
@@ -376,7 +376,7 @@ final_cta:
   body: "If the proof path holds for your review context, move to scope intake. We define boundaries, scope limits, and expected evidence before execution."
   ctas:
     - label: "Request review"
-      href: "/review"
+      href: "/review/request"
       variant: "primary"
     - label: "Read the verification contract"
       href: "/docs/how-it-works/verification"
