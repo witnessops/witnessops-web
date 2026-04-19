@@ -21,7 +21,7 @@ This page defines the catalog as a governance mechanism so capability scope and 
 
 After this page, you should be able to:
 
-- explain what the WitnessOps catalog governs and what it does not govern
+- explain what the WitnessOps catalog governs and what it does not
 - identify the minimum contract fields each catalog entry must declare
 - separate catalog description from runtime truth and analyst judgment
 - apply observed-vs-inferred boundaries when reading catalog-backed execution results
@@ -40,16 +40,16 @@ If a capability is not declared in the catalog, it is outside the governed execu
 
 ## 4. What catalog entries must specify
 
-Each entry must specify the following at minimum:
+Each entry must specify these fields at minimum:
 
 | Required field | Minimum declaration | Why it matters |
 | --- | --- | --- |
 | Scope | Allowed target boundary, action boundary, and disallowed operations | Prevents scope creep and ad hoc execution expansion |
-| Authority | Required policy state, approval requirements, and identity/role assumptions | Makes authorization preconditions auditable |
-| Artifacts and evidence expectations | Expected outputs, capture format, and receipt-linkage requirements | Defines what must be present for downstream review and verification |
-| Failure and escalation behavior | Failure classes, stop/continue rules, and escalation path | Ensures failure handling is governed rather than improvised |
+| Authority | Required policy state, approval requirements, and identity or role assumptions | Makes authorization preconditions auditable |
+| Artifacts and evidence expectations | Expected outputs, capture format, and receipt-linkage requirements | Defines what must exist for downstream review and verification |
+| Failure and escalation behavior | Failure classes, stop or continue rules, and escalation path | Keeps failure handling governed rather than improvised |
 
-Entries that omit any of these fields should be treated as incomplete control contracts, not production-ready capability definitions.
+Entries that omit one of these fields should be treated as incomplete control contracts, not production-ready capability definitions.
 
 ## 5. Ownership boundary
 
@@ -71,7 +71,7 @@ Use the catalog to frame review, then use receipts and execution evidence to tes
 | Execution evidence | Captured artifacts, timestamps, receipt references, and status outcomes | That external systems were truthful or complete in all dimensions |
 | Operational conclusion | Analyst statement tied to observed evidence and stated assumptions | Broad certainty claims beyond captured scope |
 
-Keep this separation explicit to avoid promoting policy metadata into factual runtime certainty.
+Keep this separation explicit so policy metadata does not get promoted into runtime certainty.
 
 ## 7. Trust assumptions and limits
 
@@ -81,10 +81,10 @@ Catalog use depends on bounded assumptions:
 - runtime enforcement correctly applies the declared catalog contract
 - evidence capture pipelines preserve artifact integrity and linkage
 - external systems and environments may still fail, drift, or misreport
-- human review is required before elevating execution output into high-confidence operational conclusions
+- human review is required before execution output becomes a high-confidence operational conclusion
 
 A catalog entry can narrow ambiguity, but it cannot remove uncertainty outside captured evidence and governed controls.
 
-## 8. Next-page handoff to `/docs/evidence/execution-chains`
+## 8. Next-page handoff
 
-Next, read [Execution Chains](/docs/evidence/execution-chains) for how receipt-level events are connected into continuity that can be verified as an ordered proof story.
+Next, read [Execution Chains](/docs/evidence/execution-chains) for how receipt-level events are connected into continuity that can be checked as an ordered proof story.
