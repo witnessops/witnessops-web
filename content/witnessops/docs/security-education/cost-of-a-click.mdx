@@ -11,11 +11,12 @@ draft: false
 
 A click is an event, not automatically a breach. This page shows how to move from a click to a bounded impact statement using observable evidence.
 
-## 1) Problem this page solves
+## 1. Problem this page solves
 
-Teams often jump from "someone clicked" to "major incident" before proving what failed and what business effect occurred. This page provides a disciplined impact path so response decisions are proportionate to evidence.
+Teams often jump from "someone clicked" to "major incident" before proving what failed and what business effect occurred.
+This page gives a disciplined impact path so response decisions stay proportionate to the evidence.
 
-## 2) Reader outcome
+## 2. Reader outcome
 
 After this page, you should be able to:
 
@@ -23,68 +24,68 @@ After this page, you should be able to:
 - identify the minimum evidence needed to support each level
 - choose containment and escalation actions based on confidence
 
-## 3) Mechanism-first impact model
+## 3. Mechanism-first impact model
 
 | Impact level | Event -> control failure path -> business effect categories |
 |---|---|
-| Level 0: Exposure attempt | User clicks a suspicious link -> no confirmed credential/session capture -> user risk and monitoring workload only |
-| Level 1: Potential compromise | User clicks and submits credential/session material -> attacker now has usable access material if controls fail -> elevated account misuse risk |
-| Level 2: Confirmed account misuse | Captured access material is used successfully -> MFA/session/token controls fail, are bypassed, or are absent -> communication integrity risk, confidential data access risk, transaction process risk |
+| Level 0: Exposure attempt | User clicks a suspicious link -> no confirmed credential or session capture -> user risk and monitoring workload only |
+| Level 1: Potential compromise | User clicks and submits credential or session material -> attacker now has usable access material if controls fail -> elevated account-misuse risk |
+| Level 2: Confirmed account misuse | Captured access material is used successfully -> MFA, session, or token controls fail, are bypassed, or are absent -> communication-integrity risk, confidential-data access risk, transaction-process risk |
 | Level 3: Confirmed business effect | Unauthorized access persists long enough for downstream action -> preventive and detective controls do not interrupt in time -> realized effects such as fraudulent transaction attempts, unauthorized disclosure, or measurable operational disruption |
 
-Business effect categories should stay bounded to what is evidenced: financial process integrity, confidentiality, operational continuity, and trust in official communications.
+Business-effect categories should stay bounded to what is evidenced: financial-process integrity, confidentiality, operational continuity, and trust in official communications.
 
-## 4) Observable evidence needed to support each impact level
+## 4. Observable evidence needed to support each impact level
 
 | Impact level | Minimum supporting evidence |
 |---|---|
-| Level 0 | Original phishing message or URL, user click telemetry, and timeline entry showing no confirmed submission |
-| Level 1 | Evidence of submission behavior (form post, browser artifact, or preserved phishing workflow) plus user/account linkage |
-| Level 2 | Identity-provider or service logs showing successful unauthorized sign-in/token use, with contextual anomalies (device, IP, geo, timing, rule changes) |
-| Level 3 | Verifiable downstream artifacts tied to the unauthorized access path (payment instruction trail, data access/export logs, or service-impact records) |
+| Level 0 | original phishing message or URL, user click telemetry, and a timeline entry showing no confirmed submission |
+| Level 1 | evidence of submission behavior, such as form post, browser artifact, or preserved phishing workflow, plus user or account linkage |
+| Level 2 | identity-provider or service logs showing successful unauthorized sign-in or token use, with contextual anomalies such as device, IP, geo, timing, or rule changes |
+| Level 3 | verifiable downstream artifacts tied to the unauthorized access path, such as payment-instruction trail, data access or export logs, or service-impact records |
 
-If evidence only supports a lower level, keep impact statements at that lower level until additional facts are confirmed.
+If evidence only supports a lower level, keep impact statements at that lower level until more facts are confirmed.
 
-## 5) Practical response and escalation decisions by impact confidence
+## 5. Practical response and escalation decisions by impact confidence
 
 | Confidence in impact claim | Practical response | Escalation decision |
 |---|---|---|
-| Low (single signal, gaps remain) | Preserve artifacts, validate user account activity, begin targeted containment for exposed account | Escalate to security lead when privileged or finance-adjacent accounts are involved |
-| Medium (multiple aligned signals, some uncertainty) | Revoke sessions/tokens, rotate credentials, inspect mailbox rules and high-risk workflows | Escalate to incident owner and affected business process owners |
-| High (corroborated technical and business evidence) | Execute full incident workflow, document scope and affected processes, track remediation to closure | Escalate to executive, legal, and compliance channels per policy triggers |
+| Low (single signal, gaps remain) | preserve artifacts, validate user account activity, begin targeted containment for the exposed account | escalate to a security lead when privileged or finance-adjacent accounts are involved |
+| Medium (multiple aligned signals, some uncertainty) | revoke sessions or tokens, rotate credentials, inspect mailbox rules and high-risk workflows | escalate to the incident owner and affected business-process owners |
+| High (corroborated technical and business evidence) | execute the full incident workflow, document scope and affected processes, track remediation to closure | escalate to executive, legal, and compliance channels per policy triggers |
 
-## 6) What WitnessOps controls can support vs cannot guarantee
+## 6. What WitnessOps controls can support vs cannot guarantee
 
-WitnessOps can support:
+**WitnessOps can support:**
 
 - structured response through [Phishing Investigation](/docs/scenarios/phishing-investigation)
 - thresholded escalation through [Do I Need to Escalate?](/docs/decisions/escalation)
 - evidence-quality checks through [What Evidence Is Required?](/docs/decisions/evidence-required)
 - signed execution records through [Receipts](/docs/evidence/receipts)
 
-WitnessOps cannot guarantee:
+**WitnessOps cannot guarantee:**
 
 - that users will never click or submit credentials
 - that third-party telemetry will always be complete or timely
-- reversal of financial loss or external-party actions
+- reversal of financial loss or outside-party actions
 - legal or insurance outcomes beyond the available evidence record
 
-## 7) Observed vs inferred separation
+## 7. Observed vs inferred separation
 
 Treat these as separate statement types in reports:
 
-- **Observed:** directly supported by artifacts or logs (for example, "successful sign-in from new device at 09:13 UTC")
-- **Inferred:** plausible interpretation not yet directly proven (for example, "attacker likely harvested credentials from lookalike page")
+- **Observed:** directly supported by artifacts or logs, for example, "successful sign-in from new device at 09:13 UTC"
+- **Inferred:** plausible interpretation not yet directly proven, for example, "attacker likely harvested credentials from a lookalike page"
 
 Do not present inferred impact as confirmed impact. Keep both tracks visible until evidence resolves uncertainty.
 
-## 8) Trust assumptions and limits
+## 8. Trust assumptions and limits
 
-- Source logs are trusted only to the extent they are complete, retained, and time-synchronized.
-- User testimony is useful context but may be incomplete under stress.
-- Some attacker actions can occur outside available telemetry.
-- Impact estimates should be revised as new evidence arrives; early estimates are provisional.
+- source logs are trusted only to the extent they are complete, retained, and time-synchronized
+- user testimony is useful context but may be incomplete under stress
+- some attacker actions can occur outside available telemetry
+- impact estimates should be revised as new evidence arrives; early estimates are provisional
 
-## 9) Next-page handoff
+## 9. Next-page handoff
 
 To reduce the chance that Level 1 becomes Level 2, continue to [Why MFA Stops Most Attacks](/docs/security-education/mfa).
