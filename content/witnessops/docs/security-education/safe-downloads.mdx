@@ -9,68 +9,69 @@ draft: false
 
 # Safe Downloads & Attachments
 
-A file is risky when untrusted source, risky payload behavior, and a reachable execution path line up. This page keeps response decisions tied to evidence instead of assumptions.
+A file is risky when an untrusted source, risky payload behavior, and a reachable execution path line up. This page keeps response decisions tied to evidence instead of assumptions.
 
-## 1) Problem this page solves
+## 1. Problem this page solves
 
-Teams often classify files as "safe" or "unsafe" too early, then either execute risky payloads or block legitimate work without evidence. This page provides an operational model for staging checks, containment, and escalation based on observable indicators.
+Teams often classify files as “safe” or “unsafe” too early, then either execute risky payloads or block legitimate work without enough evidence.
+This page gives an operational model for staged checks, containment, and escalation based on observable indicators.
 
-## 2) Reader outcome
+## 2. Reader outcome
 
 After this page, you should be able to:
 
-- assess file/download risk through source trust, payload behavior, and execution-path exposure
+- assess file or download risk through source trust, payload behavior, and execution-path exposure
 - use concrete indicators to support proportionate response choices
 - apply staged response and escalation gates without over-claiming certainty
 
-## 3) Mechanism-first file-risk model (source trust, payload behavior, execution paths)
+## 3. Mechanism-first file-risk model
 
 | Model axis | What to verify first | Elevated-risk signals | Why this axis matters |
 |---|---|---|---|
-| Source trust | Delivery channel, sender/domain legitimacy, publisher identity, expectedness of transfer | Lookalike sender/domain, unofficial mirror, missing/invalid signature, checksum mismatch | Untrusted origin increases probability the file is weaponized before any execution evidence appears |
-| Payload behavior | File type capabilities, embedded scripts/macros, archive nesting, required permissions | Macro-enabled docs, script launchers, executable content hidden in archives, password-protected archives from untrusted senders | Payload capability determines what can execute and what post-execution behaviors are plausible |
-| Execution paths | How the file could run in your environment (user open, auto-run helper, interpreter handoff, child process chain) | Office/reader app spawning script interpreter, installer creating scheduled task/service, unexpected child-process tree | Execution path determines whether risk remains theoretical or becomes active compromise potential |
+| Source trust | delivery channel, sender or domain legitimacy, publisher identity, expectedness of transfer | lookalike sender or domain, unofficial mirror, missing or invalid signature, checksum mismatch | untrusted origin increases the chance the file is weaponized before any execution evidence appears |
+| Payload behavior | file-type capabilities, embedded scripts or macros, archive nesting, required permissions | macro-enabled docs, script launchers, executable content hidden in archives, password-protected archives from untrusted senders | payload capability determines what can execute and what post-execution behavior is plausible |
+| Execution paths | how the file could run in your environment, such as user open, auto-run helper, interpreter handoff, or child-process chain | Office or reader app spawning a script interpreter, installer creating a scheduled task or service, unexpected child-process tree | execution path determines whether risk remains theoretical or becomes active compromise potential |
 
-Mechanism chain: file arrival -> trust validation -> payload triage -> execution-path exposure check -> governed action (allow, isolate, or escalate).
+Mechanism chain: file arrival -> trust validation -> payload triage -> execution-path exposure check -> governed action, such as allow, isolate, or escalate.
 
-## 4) Observable indicators and what they support
+## 4. Observable indicators and what they support
 
 | Observable indicator | What it can support | What it cannot prove alone |
 |---|---|---|
-| Sender/domain mismatch or unofficial download host | Elevated source-risk and need for staged triage | That payload execution already occurred |
-| Signature absent/invalid or hash mismatch against vendor value | Integrity concern and probable tampering | Specific malware family or actor attribution |
-| Double extension, misleading filename, or high-risk archive structure | Intent to disguise executable content | Successful execution on endpoint |
-| Macro/script prompt or document-to-interpreter child process | Execution-path activation and likely code execution attempt | Full post-execution impact scope |
-| New binary/script initiating rare outbound connections | Probable payload activity requiring containment | Whether credentials/data were definitely exfiltrated |
-| Persistence artifacts (scheduled task, startup entry, new service) after open/run event | Post-execution foothold attempt | Complete blast radius across all systems |
+| Sender or domain mismatch or unofficial download host | elevated source risk and need for staged triage | that payload execution already occurred |
+| Signature absent or invalid, or hash mismatch against vendor value | integrity concern and probable tampering | specific malware family or actor attribution |
+| Double extension, misleading filename, or high-risk archive structure | intent to disguise executable content | successful execution on the endpoint |
+| Macro or script prompt or document-to-interpreter child process | execution-path activation and likely code-execution attempt | full post-execution impact scope |
+| New binary or script initiating rare outbound connections | probable payload activity requiring containment | whether credentials or data were definitely exfiltrated |
+| Persistence artifacts, such as scheduled task, startup entry, or new service, after open or run event | post-execution foothold attempt | complete blast radius across all systems |
 
-## 5) Practical response decisions + escalation gates
+## 5. Practical response decisions and escalation gates
 
 Use staged checks before permitting execution:
 
-1. **Stage 0 (intake/preserve):** capture source context (message headers or URL), compute hash, preserve original artifact.
-2. **Stage 1 (source validation):** verify sender/channel, publisher signature, and vendor checksum when available.
-3. **Stage 2 (static triage):** inspect file type, embedded scripts/macros, and archive contents in isolated workflow.
-4. **Stage 3 (controlled execution if required):** only under approved, isolated detonation path with [Policy Gates](/docs/security-systems/policy-gates).
-5. **Stage 4 (decision + documentation):** allow, quarantine, or escalate with evidence and signed record.
+1. **Stage 0 (intake and preserve):** capture source context, such as message headers or URL, compute a hash, preserve the original artifact.
+2. **Stage 1 (source validation):** verify sender or channel, publisher signature, and vendor checksum when available.
+3. **Stage 2 (static triage):** inspect file type, embedded scripts or macros, and archive contents in an isolated workflow.
+4. **Stage 3 (controlled execution if required):** only under an approved, isolated detonation path with [Policy Gates](/docs/security-systems/policy-gates).
+5. **Stage 4 (decision + documentation):** allow, quarantine, or escalate with evidence and a signed record.
 
 Gate definitions:
 
-- **Gate A (suspicious source):** source trust concerns, no execution evidence
+- **Gate A (suspicious source):** source-trust concerns, no execution evidence
 - **Gate B (high-risk payload):** payload characteristics indicate likely abuse potential, still pre-execution
-- **Gate C (execution likely/observed):** process or telemetry indicates code execution path activated
-- **Gate D (high impact):** privileged endpoint/account involvement, multi-host spread, or sensitive-workflow exposure
+- **Gate C (execution likely or observed):** process or telemetry indicates the code-execution path activated
+- **Gate D (high impact):** privileged endpoint or account involvement, multi-host spread, or sensitive-workflow exposure
 
 | Evidence state | Practical response decision | Escalation gate |
 |---|---|---|
-| Source anomaly only | Quarantine file, validate origin out-of-band, block distribution pending review | Gate A |
-| High-risk payload characteristics without execution evidence | Keep file isolated, complete static triage, require approval before any detonation | Gate B |
-| Execution-path indicators present | Isolate affected endpoint/session, preserve process/network artifacts, initiate incident workflow | Gate C |
-| Confirmed persistence/spread or sensitive-system impact | Activate major escalation path, involve security leadership, apply policy-governed high-impact actions | Gate D |
+| Source anomaly only | quarantine the file, validate origin out-of-band, block distribution pending review | Gate A |
+| High-risk payload characteristics without execution evidence | keep the file isolated, complete static triage, require approval before any detonation | Gate B |
+| Execution-path indicators present | isolate the affected endpoint or session, preserve process and network artifacts, initiate the incident workflow | Gate C |
+| Confirmed persistence, spread, or sensitive-system impact | activate the major escalation path, involve security leadership, apply policy-governed high-impact actions | Gate D |
 
 Use [What Evidence Is Required?](/docs/decisions/evidence-required), [Do I Need to Escalate?](/docs/decisions/escalation), and [Runbooks](/docs/operations/runbooks) to keep action thresholds explicit.
 
-## 6) WitnessOps support vs non-guarantees
+## 6. What WitnessOps can support vs cannot guarantee
 
 **WitnessOps can support:**
 
@@ -82,33 +83,33 @@ Use [What Evidence Is Required?](/docs/decisions/evidence-required), [Do I Need 
 **WitnessOps does not guarantee:**
 
 - prevention of every malicious-file delivery attempt
-- complete intelligence from external reputation/signature sources
+- complete intelligence from outside reputation or signature sources
 - perfect attribution from file and endpoint telemetry alone
 - recovery of all downstream business or legal outcomes outside the evidence record
 
-## 7) Observed vs inferred separation
+## 7. Observed vs inferred separation
 
 Keep records split by statement type:
 
-- **Observed:** source metadata, hash/signature results, file properties, process lineage, network connections, persistence artifacts, containment actions taken
-- **Inferred:** "this actor authored the payload," "all affected hosts are known," or "no data left the environment"
+- **Observed:** source metadata, hash or signature results, file properties, process lineage, network connections, persistence artifacts, containment actions taken
+- **Inferred:** “this actor authored the payload,” “all affected hosts are known,” or “no data left the environment”
 
 Contain based on observed risk signals; keep inferred conclusions explicitly labeled until corroborated.
 
-## 8) Trust assumptions and limits
+## 8. Trust assumptions and limits
 
 Assumptions:
 
 - endpoint, email, proxy, and identity telemetry is retained and time-aligned enough for sequence reconstruction
 - file samples and metadata are preserved before cleanup or auto-remediation removes evidence
-- operators execute staging checks via authorized, governed workflows
+- operators execute staging checks through authorized, governed workflows
 
 Limits:
 
 - some payloads are environment-aware and may hide behavior during controlled analysis
 - missing logs or delayed reporting can prevent definitive mechanism confirmation
-- compressed/encrypted archives and script chains can obscure full capability until deeper analysis
+- compressed or encrypted archives and script chains can obscure full capability until deeper analysis
 
-## 9) Next-page handoff
+## 9. Next-page handoff
 
 Safe file handling reduces initial compromise opportunities, but vulnerable software still creates exploitable paths. Continue to [Why Software Updates Matter](/docs/security-education/software-updates).
