@@ -1,6 +1,6 @@
 ---
 title: "Receipts"
-description: "Conceptual bridge page for what a WitnessOps receipt is, what it proves, and how it relates to bundles, signatures, timestamps, and chain continuity."
+description: "What a WitnessOps receipt is, what it proves, and how it connects to bundles, signatures, timestamps, and chain continuity."
 section: "docs"
 order: 2
 nav_label: "Receipts"
@@ -9,11 +9,11 @@ draft: false
 
 # Receipts
 
-A receipt is the atomic proof object in WitnessOps. It is the smallest portable statement about a governed event that can be checked independently.
+A receipt is the basic proof object in WitnessOps. It is the smallest portable statement about a governed event that another person can check independently.
 
 ## 1. Problem this page solves
 
-Security teams often share logs and screenshots, but those are hard to verify independently.
+Security teams often share logs and screenshots, but those are hard to verify outside the team that created them.
 
 Receipts solve a narrower and stronger problem:
 
@@ -25,53 +25,53 @@ Receipts solve a narrower and stronger problem:
 
 After this page, you should understand:
 
-- what a receipt contains at conceptual level
-- what receipts prove vs what they do not prove
-- how receipts relate to bundles, timestamps, and chain continuity
-- why receipt strength is layered rather than binary
+- what a receipt contains at a high level
+- what a receipt proves and what it does not prove
+- how receipts connect to bundles, timestamps, and chain continuity
+- why receipt strength is layered rather than all-or-nothing
 
-## 3. Receipt mechanism (what it is)
+## 3. Receipt mechanism
 
 A receipt combines four elements:
 
-1. statement about a governed action/decision/result
+1. a statement about a governed action, decision, or result
 2. issuer-bound signature material
-3. continuity linkage to surrounding receipt stream
+3. continuity linkage to the surrounding receipt stream
 4. references to supporting proof artifacts in the bundle
 
-In practice, it tells a reviewer what happened, under whose recorded authority, and where this event sits in sequence.
+In practice, it tells a reviewer what happened, under whose recorded authority, and where the event sits in sequence.
 
 ## 4. What a receipt proves
 
-When verification succeeds for available layers, a receipt can prove:
+When verification succeeds for the available layers, a receipt can prove:
 
 - the issuer-bound statement has not been modified
 - the statement exists at a specific place in continuity history
-- referenced proof layers (timestamp/inclusion/witness) are satisfied when present and valid
+- referenced proof layers such as timestamp, inclusion, or witness checks are satisfied when present and valid
 
-This is stronger than logging and narrower than claiming end-to-end operational truth.
+This is stronger than ordinary logging and narrower than a claim of full operational truth.
 
 ## 5. What remains outside receipt proof
 
 A receipt does not prove:
 
 - underlying tool correctness
-- perfect operator/approver judgment
-- uncompromised host state by itself
-- complete story if surrounding artifacts are missing
+- perfect operator or approver judgment
+- uncompromised host state on its own
+- the complete story if surrounding artifacts are missing
 
-Receipt proof is about governed issuance integrity, not omniscience.
+Receipt proof is about governed issuance integrity, not total knowledge.
 
 ## 6. Strength ladder (layered assurance)
 
 | Level | Meaning |
 | --- | --- |
-| Signed receipt | Issuer claim can be checked |
-| Timestamped receipt | Signed object is bound to trusted time |
+| Signed receipt | The issuer claim can be checked |
+| Timestamped receipt | The signed object is bound to trusted time |
 | Bundled receipt | Surrounding integrity material is available for offline checks |
-| Witnessed receipt | Declared witness/trust policy checks also succeed |
+| Witnessed receipt | Declared witness or trust-policy checks also succeed |
 
-Each level is additive. Missing higher layers means "proves less," not "worthless."
+Each level adds something. Missing higher layers means the receipt proves less, not that it proves nothing.
 
 ## 7. Common interpretation and failure signals
 
@@ -79,15 +79,15 @@ Verification focuses on concrete checks: required fields, hashes, signatures, di
 
 Typical failure signals:
 
-- hash mismatch -> bytes changed
-- signature failure -> issuer authenticity not established
-- digest mismatch -> proof references do not align
-- `indeterminate` -> required external trust condition not established locally
+- hash mismatch → bytes changed
+- signature failure → issuer authenticity not established
+- digest mismatch → proof references do not line up
+- `indeterminate` → a required outside trust condition could not be established locally
 
-Report by layer, not with a vague single score.
+Report by layer instead of collapsing everything into one vague score.
 
 ## 8. Next-page handoff
 
 Next, read [Receipt Specification](/docs/evidence/receipt-spec) for the field-level technical contract.
 
-Then continue to [Execution Chains](/docs/evidence/execution-chains) for continuity and ordering behavior across multiple receipts.
+Then continue to [Execution Chains](/docs/evidence/execution-chains) for continuity and ordering across multiple receipts.
