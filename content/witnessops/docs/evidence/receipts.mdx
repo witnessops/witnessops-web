@@ -1,6 +1,6 @@
 ---
 title: "Receipts"
-description: "What a WitnessOps receipt is, what it proves, and how it connects to bundles, signatures, timestamps, and chain continuity."
+description: "What a WitnessOps receipt is, what it proves, and how it connects to proof bundles, signatures, timestamps, and chain continuity."
 section: "docs"
 order: 2
 nav_label: "Receipts"
@@ -9,7 +9,7 @@ draft: false
 
 # Receipts
 
-A receipt is the basic proof object in WitnessOps. It is the smallest portable statement about a governed event that another person can check independently.
+A receipt is the atomic proof statement in WitnessOps. It is the smallest portable statement about a governed event that another person can check independently.
 
 ## 1. Problem this page solves
 
@@ -27,7 +27,7 @@ After this page, you should understand:
 
 - what a receipt contains at a high level
 - what a receipt proves and what it does not prove
-- how receipts connect to bundles, timestamps, and chain continuity
+- how receipts connect to proof bundles, timestamps, and chain continuity
 - why receipt strength is layered rather than all-or-nothing
 
 ## 3. Receipt mechanism
@@ -37,7 +37,7 @@ A receipt combines four elements:
 1. a statement about a governed action, decision, or result
 2. issuer-bound signature material
 3. continuity linkage to the surrounding receipt stream
-4. references to supporting proof artifacts in the bundle
+4. references to supporting proof artifacts in the proof bundle
 
 In practice, it tells a reviewer what happened, under whose recorded authority, and where the event sits in sequence.
 
@@ -68,7 +68,7 @@ Receipt proof is about governed issuance integrity, not total knowledge.
 | --- | --- |
 | Signed receipt | The issuer claim can be checked |
 | Timestamped receipt | The signed object is bound to trusted time |
-| Bundled receipt | Surrounding integrity material is available for offline checks |
+| Receipt in a proof bundle | Surrounding integrity material is available for offline checks |
 | Witnessed receipt | Declared witness or trust-policy checks also succeed |
 
 Each level adds something. Missing higher layers means the receipt proves less, not that it proves nothing.
