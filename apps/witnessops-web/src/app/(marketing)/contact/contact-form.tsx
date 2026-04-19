@@ -188,7 +188,7 @@ export function ContactForm({
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-signal-green)" }}
           role="status"
         >
-          <span>&#10003;</span> Verification email sent. Nothing enters the queue until you confirm mailbox control.
+          <span>&#10003;</span> Verification email sent. The review request enters the queue only after you confirm mailbox control.
         </div>
       )}
       {status === "error" && (
@@ -211,7 +211,7 @@ export function ContactForm({
             className="whitespace-nowrap"
             style={{ color: "var(--color-brand-accent)" }}
           >
-            Response within 1 business day
+            Mailbox verification required before queue entry
           </span>
           <span className="inline-flex items-center whitespace-nowrap">
             <span
