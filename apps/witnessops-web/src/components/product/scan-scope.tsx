@@ -1,26 +1,26 @@
 export function ScanScope() {
   const included = [
-    "DNS / NS / MX / TXT records",
-    "Subdomain enumeration",
-    "HTTP/TLS reachability",
-    "TLS configuration review",
-    "Security headers check",
-    "Service fingerprinting",
+    "One named workflow or decision path",
+    "Observed authority boundary",
+    "Tool and permission review",
+    "Execution-path inspection",
+    "Evidence capture assessment",
+    "Replayability judgment",
   ];
 
   const excluded = [
-    "Exploitation",
-    "Brute force / credentials",
-    "Intrusive fuzzing",
-    "Authenticated testing",
-    "Destructive actions",
-    "Mailbox testing",
+    "Broad audit coverage",
+    "Continuous assurance claims",
+    "Multi-workflow expansion",
+    "Open-ended consulting",
+    "Unbounded architecture review",
+    "Runtime operation on your behalf",
   ];
 
   return (
     <section className="mx-auto max-w-[700px] px-6 pb-24">
       <h2 className="mb-8 text-center text-2xl font-bold text-text-primary">
-        Governed scope. Nothing more.
+        Bounded scope. Nothing more.
       </h2>
       <div className="grid grid-cols-2 gap-12">
         <div>
