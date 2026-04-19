@@ -7,7 +7,7 @@ import { CtaButton } from "@/components/shared/cta-button";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const docsDescription =
-  "Start here for WitnessOps governed execution, evidence, verification, and explicit trust boundaries.";
+  "Start here for WitnessOps execution, evidence, verification, and trust limits.";
 
 export const metadata: Metadata = {
   title: "Docs — WitnessOps",
@@ -35,26 +35,26 @@ const pageContract = [
     label: "Problem",
     title: "Why this page exists",
     description:
-      "Security operations usually leave scattered evidence. This page gives a single map from governed execution to independently verifiable proof.",
+      "Security work often leaves behind scattered evidence. This page shows where to start and what to read next.",
   },
   {
     label: "Outcome",
     title: "What you should know after reading",
     description:
-      "You should understand where to start, what mechanism to inspect first, and where the trust assumptions remain.",
+      "You should know where to start, what the main model is, and where the trust limits still are.",
   },
   {
     label: "Mechanism",
-    title: "How the model works at a glance",
+    title: "How the model works in one line",
     description:
-      "Runbooks enforce policy and scope at execution time, then emit signed receipts and linked evidence that can be checked outside WitnessOps.",
+      "A workflow is approved, run, recorded, and published so another person can check the result later.",
   },
 ];
 
 const trustAssumptions = [
-  "Receipts prove governed execution was recorded with integrity; they do not prove every tool finding is correct.",
-  "Approval records prove authorization events were captured; they do not prove perfect reviewer judgment.",
-  "Independent verification still depends on correct public-key distribution and timestamp-authority continuity.",
+  "Receipts can show that governed execution was recorded with integrity, but they do not prove every finding is correct.",
+  "Approval records can show that an approval was captured, but they do not prove the approver made the right call.",
+  "Independent verification still depends on correct public-key distribution and timestamp continuity.",
 ];
 
 const coreConcepts = [
@@ -68,107 +68,107 @@ const coreConcepts = [
     label: "Provable",
     title: "Signed receipts",
     description:
-      "Each governed operation emits a signed record of what ran, under what authority, and when.",
+      "Each governed action leaves a signed record of what ran, under what authority, and when.",
   },
   {
     label: "Bounded",
     title: "Portable verification",
     description:
-      "Evidence is designed to remain verifiable outside the originating system.",
+      "Evidence is designed so other people can check it outside the system that produced it.",
   },
   {
     label: "Explicit",
-    title: "Trust boundaries",
+    title: "Trust limits",
     description:
-      "Each page names what WitnessOps controls, what it delegates, and what remains an assumption.",
+      "Each page says what WitnessOps controls, what it delegates, and what still needs trust.",
   },
 ];
 
 const entryPaths = [
   {
-    title: "Start sequence (early block)",
+    title: "Start sequence",
     description:
-      "Use this queue order first so entry clarity, proof clarity, and trust-boundary clarity are established before long-tail pages.",
+      "Use this order first so you understand the model, the proof path, and the trust limits before going deeper.",
     items: [
       {
         href: "/docs/getting-started",
         title: "1. Getting Started",
         description:
-          "Problem, reader outcome, first governed run, and the proof path.",
+          "Start here for the first walkthrough of the model and the proof path.",
       },
       {
         href: "/docs/how-it-works",
         title: "2. How It Works",
         description:
-          "Mechanism map from policy-gated execution to signed evidence artifacts.",
+          "See the path from policy-gated execution to signed evidence.",
       },
       {
         href: "/docs/security-systems/governed-execution",
         title: "3. Governed Execution",
         description:
-          "Runtime authority path: scope, approval, control, and receipt emission.",
+          "Inspect scope, approval, control, and receipt emission.",
       },
       {
         href: "/docs/how-it-works/verification",
         title: "4. Verification",
         description:
-          "How to verify receipts and bundles independently of WitnessOps.",
+          "Learn how to check receipts and bundles outside WitnessOps.",
       },
     ],
   },
   {
-    title: "Evidence and proof surfaces",
+    title: "Proof and evidence",
     description:
-      "Read these to inspect artifact shape, cryptographic fields, continuity, and verification contracts.",
+      "Read these pages to inspect artifact shape, cryptographic fields, continuity, and verification rules.",
     items: [
       {
         href: "/docs/evidence/receipts",
         title: "Receipts",
         description:
-          "Conceptual contract for what a receipt proves and what it does not.",
+          "What a receipt can prove and what it cannot prove.",
       },
       {
         href: "/docs/evidence/receipt-spec",
         title: "Receipt Specification",
         description:
-          "Canonical technical fields, chain references, and signature structure.",
+          "The core technical fields, chain references, and signature structure.",
       },
       {
         href: "/docs/security-systems/threat-model",
         title: "Threat Model and Trust Boundaries",
         description:
-          "Explicit limits, delegated controls, and dispute/verification stance.",
+          "The limits, delegated controls, and dispute model.",
       },
       {
         href: getSurfaceUrl("witnessops", "/verify"),
         title: "Public Verifier",
         description:
-          "Run receipt-first checks against uploaded artifacts in the public surface.",
+          "Run checks against uploaded artifacts in the public surface.",
       },
     ],
   },
   {
-    title: "Authority and approval path",
+    title: "Authority and approval",
     description:
-      "Read these when reviewing whether execution authority was valid before work ran.",
+      "Read these when you need to know whether execution authority was valid before work ran.",
     items: [
       {
         href: "/docs/governance/authorization-model",
         title: "Authorization Model",
         description:
-          "Approval boundaries, operator roles, and exception handling model.",
+          "Approval boundaries, operator roles, and exception handling.",
       },
       {
         href: "/docs/security-systems/policy-gates",
         title: "Policy Gates",
         description:
-          "What must pass before execution proceeds and what fails closed.",
+          "What must pass before execution can proceed and what fails closed.",
       },
       {
         href: "/docs/operations/runbooks",
         title: "Runbooks",
         description:
-          "How workflows encode scope, gates, evidence outputs, and runtime sequence.",
+          "How workflows define scope, gates, evidence outputs, and runtime order.",
       },
     ],
   },
@@ -179,13 +179,13 @@ const nextHandoff = [
     href: "/docs/getting-started",
     title: "Next page: Getting Started",
     description:
-      "Start here immediately. This is queue item #2 and the first full walkthrough page.",
+      "Start here first. It is the first full walkthrough page.",
   },
   {
     href: "/docs/how-it-works",
     title: "Then: How It Works",
     description:
-      "Move from overview to mechanism-level model before deeper references.",
+      "Move from overview to mechanism before going deeper.",
   },
   {
     href: "/docs/security-systems/governed-execution",
@@ -213,28 +213,29 @@ export default async function DocsIndexPage() {
           className="mt-2 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary lg:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Documentation for the model, verification path, and review surfaces.
+          Docs for the model, proof path, and review surfaces.
         </h1>
 
         <p className="mt-4 max-w-[700px] text-sm leading-relaxed tracking-wide text-text-muted">
-          Choose your next step: understand the model, verify a bundle, inspect
-          sample artifacts, or request workflow review.
+          Choose your next step: learn the model, verify a bundle, inspect sample
+          artifacts, or request a workflow review.
         </p>
 
         <p className="mt-3 max-w-[700px] text-sm leading-relaxed tracking-wide text-text-muted">
-          These docs map mechanisms and limits. They do not claim complete
-          runtime truth by default. If you need one starting point, begin with{" "}
+          These docs explain how the system works and where the limits are. They
+          do not claim complete runtime truth by default. If you need one place
+          to start, begin with{" "}
           <Link className="text-brand-accent hover:opacity-80" href="/docs/getting-started">
             Getting Started
           </Link>
-          . Then follow the early block in order.
+          . Then follow the early pages in order.
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">
           <CtaButton
             href="/docs/getting-started"
             variant="primary"
-            label="Understand the model"
+            label="Learn the model"
           />
           <CtaButton
             href="/docs/how-it-works/verification"
@@ -247,7 +248,7 @@ export default async function DocsIndexPage() {
             label="Inspect sample bundles"
           />
           <CtaButton
-            href="/contact?intent=review"
+            href="/review/request"
             variant="secondary"
             label="Request workflow review"
           />
@@ -315,9 +316,9 @@ export default async function DocsIndexPage() {
             Verify First quickstart
           </h3>
           <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-text-muted">
-            Start with a bounded, mechanism-first verification pass: inspect
-            receipt artifacts, run verifier checks, and keep execution, proof,
-            evidence, and interpretation as separate lanes.
+            Start with a bounded verification pass: inspect the receipt, run the
+            verifier, and keep execution, evidence, and interpretation as
+            separate concerns.
           </p>
           <Link
             href="/docs/quickstart/verify-first"
