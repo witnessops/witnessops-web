@@ -2,29 +2,59 @@ import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { ContactForm } from "./contact-form";
 import { getMailboxConfig } from "@/lib/mailboxes";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
-  title: "Engage",
+  title: "Request a Review",
   description:
-    "Tell us what needs governed. Every engagement runs through the same mailbox-verified, policy-gated pipeline.",
+    "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on authority, execution, evidence, and replayability.",
   alternates: getCanonicalAlternates("witnessops", "/contact"),
   openGraph: {
-    title: "Engage | WitnessOps",
+    title: "Request a Review | WitnessOps",
     description:
-      "Tell us what needs governed. Every engagement runs through the same mailbox-verified, policy-gated pipeline.",
+      "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on authority, execution, evidence, and replayability.",
     siteName: "WitnessOps",
     type: "website",
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Engage | WitnessOps",
+    title: "Request a Review | WitnessOps",
     description:
-      "Tell us what needs governed. Every engagement runs through the same mailbox-verified, policy-gated pipeline.",
+      "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on authority, execution, evidence, and replayability.",
+    images: DEFAULT_TWITTER_IMAGES,
   },
 };
 
-export default function ContactPage() {
+const ALLOWED_INTENTS = new Set([
+  "review",
+  "recon",
+  "assessment",
+  "continuous",
+  "compliance",
+  "custom",
+]);
+
+const reviewBullets = [
+  "Authority boundary map",
+  "Tool and permission review",
+  "Execution path inspection",
+  "Evidence capture assessment",
+  "Replayability judgment",
+  "Concrete integrity risks",
+  "Operator recommendations",
+];
+
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ intent?: string | string[] }>;
+}) {
   const mailboxes = getMailboxConfig();
+  const params = (await searchParams) ?? {};
+  const rawIntent = Array.isArray(params.intent) ? params.intent[0] : params.intent;
+  const initialIntent = rawIntent && ALLOWED_INTENTS.has(rawIntent) ? rawIntent : undefined;
+
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1100px] px-6 py-20">
       {/* Proof bar */}
@@ -50,10 +80,12 @@ export default function ContactPage() {
               className="text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary mb-4"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Engage
+              Request a review
             </h1>
-            <p className="text-sm leading-relaxed text-text-muted mb-8 max-w-[360px]">
-              Every engagement runs through the same governed pipeline.
+            <p className="text-sm leading-relaxed text-text-muted mb-8 max-w-[420px]">
+              Bring one workflow, one automation boundary, or one operator
+              decision path. WitnessOps returns a bounded review on authority,
+              execution, evidence, and replayability.
             </p>
 
             {/* Pipeline words */}
@@ -62,20 +94,14 @@ export default function ContactPage() {
               style={{ fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.04em", color: "var(--color-text-secondary)" }}
             >
               <div>Scoped.</div>
-              <div>Approved.</div>
-              <div>Receipted.</div>
-              <div>Verifiable.</div>
+              <div>Reviewed.</div>
+              <div>Bounded.</div>
+              <div>Replayable.</div>
             </div>
 
-            {/* Checklist */}
+            {/* Review checklist */}
             <ul className="border-t border-surface-border">
-              {[
-                "Policy-gated execution",
-                "Signed evidence chains",
-                "Third-party verification",
-                "Compliance-ready deliverables",
-                "Response within 1 business day",
-              ].map((item) => (
+              {reviewBullets.map((item) => (
                 <li
                   key={item}
                   className="flex items-center gap-3 border-b border-surface-border py-3"
@@ -86,6 +112,16 @@ export default function ContactPage() {
                 </li>
               ))}
             </ul>
+
+            {/* Scope / trust framing */}
+            <p
+              className="mt-6 max-w-[420px] text-xs leading-relaxed text-text-muted"
+              style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}
+            >
+              One real system. One real decision path. One bounded report. Not a
+              broad audit, not a generic security assessment, not a claim of
+              continuous assurance.
+            </p>
           </div>
 
           {/* Penguin motto */}
@@ -101,7 +137,7 @@ export default function ContactPage() {
         {/* Right — form */}
         <div className="p-10 md:p-12" style={{ background: "var(--color-surface-bg-alt)" }}>
           <div
-            className="mb-6"
+            className="mb-2"
             style={{
               fontFamily: "var(--font-display)",
               fontSize: 14,
@@ -111,9 +147,13 @@ export default function ContactPage() {
               color: "var(--color-text-muted)",
             }}
           >
-            Get started
+            Start your review request
           </div>
-          <ContactForm contactEmail={mailboxes.engage} />
+          <p className="mb-6 text-sm leading-relaxed text-text-muted">
+            Submit one real workflow, automation boundary, or operator decision
+            path for bounded review.
+          </p>
+          <ContactForm contactEmail={mailboxes.engage} initialIntent={initialIntent} />
         </div>
       </div>
     </main>

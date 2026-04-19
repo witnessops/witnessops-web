@@ -75,7 +75,7 @@ export function Navbar({ links, cta, announcement }: NavbarProps) {
           </div>
         </div>
       )}
-      <nav className="sticky top-0 z-50 border-b border-surface-border/50 bg-surface-bg/95 backdrop-blur transition-all duration-300 supports-[backdrop-filter]:bg-surface-bg/80 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-brand-accent/20 after:to-transparent">
+      <nav className="sticky top-0 z-50 border-b border-surface-border/50 bg-surface-bg/95 backdrop-blur supports-[backdrop-filter]:bg-surface-bg/80 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-brand-accent/20 after:to-transparent">
         <div className="mx-auto flex max-w-content items-center justify-between px-6 py-4">
           <Link
             href={logoHref}

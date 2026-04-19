@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ActionButton } from "@/components/shared/action-button";
 
 type FieldName = "name" | "org" | "email" | "intent" | "scope";
 
@@ -24,6 +25,11 @@ const inputStyle: React.CSSProperties = {
   letterSpacing: "0.03em",
 };
 
+const optionStyle: React.CSSProperties = {
+  backgroundColor: "#ffffff",
+  color: "#111111",
+};
+
 function SelectChevron() {
   return (
     <span
@@ -36,7 +42,13 @@ function SelectChevron() {
   );
 }
 
-export function ContactForm({ contactEmail }: { contactEmail: string }) {
+export function ContactForm({
+  contactEmail,
+  initialIntent,
+}: {
+  contactEmail: string;
+  initialIntent?: string;
+}) {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("Failed to send. Please try again.");
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
@@ -133,7 +145,7 @@ export function ContactForm({ contactEmail }: { contactEmail: string }) {
       </div>
 
       <div>
-        <label htmlFor="email" className="mb-2 block" style={labelStyle}>Email</label>
+        <label htmlFor="email" className="mb-2 block" style={labelStyle}>Work email</label>
         <input
           id="email" name="email" type="email" required
           aria-invalid={fieldErrors.email ? true : undefined}
@@ -146,7 +158,7 @@ export function ContactForm({ contactEmail }: { contactEmail: string }) {
       </div>
 
       <div>
-        <label htmlFor="intent" className="mb-2 block" style={labelStyle}>Intent</label>
+        <label htmlFor="intent" className="mb-2 block" style={labelStyle}>What kind of review do you need?</label>
         <div className="relative">
           <select
             id="intent" name="intent" required
@@ -159,16 +171,17 @@ export function ContactForm({ contactEmail }: { contactEmail: string }) {
               appearance: "none",
               WebkitAppearance: "none",
               MozAppearance: "none",
-              colorScheme: "dark",
+              colorScheme: "light",
             }}
-            defaultValue=""
+            defaultValue={initialIntent ?? ""}
           >
-            <option value="">Select engagement type</option>
-            <option value="recon">External reconnaissance</option>
-            <option value="assessment">Vulnerability assessment</option>
-            <option value="continuous">Continuous proof-backed security</option>
-            <option value="compliance">Compliance evidence</option>
-            <option value="custom">Custom engagement</option>
+            <option value="" style={optionStyle}>Select review type</option>
+            <option value="review" style={optionStyle}>One workflow review</option>
+            <option value="recon" style={optionStyle}>External reconnaissance</option>
+            <option value="assessment" style={optionStyle}>Vulnerability assessment</option>
+            <option value="continuous" style={optionStyle}>Continuous proof-backed security</option>
+            <option value="compliance" style={optionStyle}>Compliance evidence</option>
+            <option value="custom" style={optionStyle}>Custom engagement</option>
           </select>
           <SelectChevron />
         </div>
@@ -176,29 +189,28 @@ export function ContactForm({ contactEmail }: { contactEmail: string }) {
       </div>
 
       <div>
-        <label htmlFor="scope" className="mb-2 block" style={labelStyle}>Scope</label>
+        <label htmlFor="scope" className="mb-2 block" style={labelStyle}>Describe the workflow</label>
         <textarea
           id="scope" name="scope" rows={3}
+          aria-describedby="scope-helper"
           className="w-full bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none p-3"
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
-          placeholder="Target domains, systems, or describe your needs..."
+          placeholder="Describe one workflow, automation boundary, or operator decision path."
         />
+        <p id="scope-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
+          Include the main systems involved, who can approve or act, and what
+          evidence exists today.
+        </p>
       </div>
 
-      <button
+      <ActionButton
         type="submit"
+        variant="primary"
         disabled={status === "sending"}
-        className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98]"
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: 13,
-          fontWeight: 600,
-          letterSpacing: "0.14em",
-          textTransform: "uppercase",
-        }}
+        className="w-full"
       >
-        {status === "sending" ? "Sending..." : "Send Verification Link"}
-      </button>
+        {status === "sending" ? "Sending..." : "Request review"}
+      </ActionButton>
 
       {status === "sent" && (
         <div
@@ -224,9 +236,30 @@ export function ContactForm({ contactEmail }: { contactEmail: string }) {
         className="pt-4 border-t border-surface-border"
         style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-brand-muted)", letterSpacing: "0.06em" }}
       >
-        <span style={{ color: "var(--color-brand-accent)" }}>&lt; 1 business day</span>
-        <span className="mx-2" style={{ color: "var(--color-surface-border)" }}>&middot;</span>
-        {contactEmail}
+        <div className="flex flex-wrap items-center gap-y-1">
+          <span
+            className="whitespace-nowrap"
+            style={{ color: "var(--color-brand-accent)" }}
+          >
+            Response within 1 business day
+          </span>
+          <span className="inline-flex items-center whitespace-nowrap">
+            <span
+              className="mx-2"
+              style={{ color: "var(--color-surface-border)" }}
+              aria-hidden="true"
+            >
+              &middot;
+            </span>
+            <a
+              href={`mailto:${contactEmail}`}
+              className="whitespace-nowrap underline decoration-surface-border underline-offset-2 transition-colors hover:text-text-primary"
+              style={{ color: "inherit" }}
+            >
+              {contactEmail}
+            </a>
+          </span>
+        </div>
       </div>
     </form>
   );

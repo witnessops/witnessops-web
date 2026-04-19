@@ -1,44 +1,83 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { VerifyConsole } from "@/components/verify/verify-console";
-import { CodeFrame } from "@/components/shared/code-frame";
 import { SectionShell } from "@/components/shared/section-shell";
+import { CtaButton } from "@/components/shared/cta-button";
 import { TrustBoundarySnippet } from "@/components/shared/trust-boundary-snippet";
 import { listVerifyFixtures } from "@/lib/verify-fixtures";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Verify a Receipt",
   description:
-    "Verify a proof bundle offline.",
+    "Evaluate receipt integrity and proof boundaries with deterministic receipt-first verification.",
   alternates: getCanonicalAlternates("witnessops", "/verify"),
   openGraph: {
     title: "Verify a Receipt | WitnessOps",
     description:
-      "Verify a proof bundle offline.",
+      "Evaluate receipt integrity and proof boundaries with deterministic receipt-first verification.",
     siteName: "WitnessOps",
     type: "website",
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
     title: "Verify a Receipt | WitnessOps",
     description:
-      "Verify a proof bundle offline.",
+      "Evaluate receipt integrity and proof boundaries with deterministic receipt-first verification.",
+    images: DEFAULT_TWITTER_IMAGES,
   },
 };
 
 const verificationScope = [
   {
-    title: "Included in v1",
-    body: "Receipt JSON verification, deterministic checks, breach reporting, and explicit malformed versus unsupported failure classes.",
+    title: "What this proves now",
+    body: "Receipt integrity checks executed by the verifier: signature/timestamp consistency, declared stage consistency, and deterministic breach reporting.",
   },
   {
-    title: "Not included in v1",
-    body: "Bundle uploads, mixed payloads, legacy bundle contracts, and artifact-byte revalidation.",
+    title: "What this does not prove",
+    body: "Execution correctness, decision quality, complete incident truth, or full bundle-byte revalidation outside receipt-only scope.",
   },
   {
-    title: "Public result model",
-    body: "The public verdict stays deterministic while still exposing receipt-only scope and artifact-revalidation state.",
+    title: "Decision semantics",
+    body: "Results are presented as verified, declared, inferred, or not proven so verification scope stays explicit.",
+  },
+];
+
+const firstRunSteps = [
+  {
+    title: "1. Run a known-valid sample",
+    expected: "Expected outcome: inferred (receipt checks pass in receipt-only mode).",
+    why: "Confirms the verifier can reproduce a deterministic pass path.",
+  },
+  {
+    title: "2. Run a known-invalid sample",
+    expected: "Expected outcome: not proven (breach is detected and explained).",
+    why: "Confirms failure detection is visible and auditable.",
+  },
+  {
+    title: "3. Run your own receipt",
+    expected: "Expected outcome: explicit scope-bound result with trust assumptions.",
+    why: "Applies the same contract to your real artifact.",
+  },
+];
+
+const resultSemantics = [
+  {
+    label: "Verified",
+    detail: "Directly established by checks executed in this verifier mode.",
+  },
+  {
+    label: "Declared",
+    detail: "Claimed by artifact metadata, not independently established.",
+  },
+  {
+    label: "Inferred",
+    detail: "Suggested by partial evidence or mode limits, not fully established.",
+  },
+  {
+    label: "Not proven",
+    detail: "Failed, missing, unsupported, or not executed.",
   },
 ];
 
@@ -48,38 +87,32 @@ export default function VerifyPage() {
   return (
     <main id="main-content" tabIndex={-1}>
       <SectionShell>
-        <div className="grid gap-10 lg:grid-cols-[1.08fr,0.92fr] lg:items-start">
+        <div className="grid gap-8 lg:grid-cols-[1.14fr,0.86fr] lg:items-start">
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
               Verify
             </p>
             <h1 className="text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
-              Verify a proof bundle offline.
+              Verify a published proof bundle.
             </h1>
             <p className="mt-5 max-w-[48rem] text-base leading-8 text-text-secondary">
-              Inspect whether a serious cyber claim survives independent
-              verification through signatures, lineage, and evidence integrity
-              checks, without relying on the originating system or WitnessOps
-              to stay in the loop.
+              Use this page to check what a published bundle can prove now, what
+              it cannot prove, and what to do next.
             </p>
             <p className="mt-4 max-w-[48rem] text-base leading-8 text-text-secondary">
-              Start here if you need to test whether a serious cyber claim
-              survives independent verification.
+              This verifier checks receipt integrity and scope-bound claims; it
+              does not prove complete incident truth or total runtime
+              correctness.
+            </p>
+            <p className="mt-4 max-w-[48rem] text-sm leading-7 text-text-muted">
+              If verification passes, inspect assumptions and evidence
+              continuity. If it fails, inspect the named breach before trusting
+              downstream claims.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="#verify-console"
-                className="inline-flex items-center border border-brand-accent bg-brand-accent px-4 py-2 text-sm font-semibold text-brand-ink transition-opacity hover:opacity-90"
-              >
-                Verify a Sample Bundle
-              </Link>
-              <Link
-                href="#verify-console"
-                className="inline-flex items-center border border-surface-border px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent"
-              >
-                Upload Your Own
-              </Link>
+              <CtaButton href="#verify-console" variant="primary" label="Verify a sample bundle" />
+              <CtaButton href="#verify-console" variant="secondary" label="Verify a bundle" />
             </div>
 
             <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -95,56 +128,61 @@ export default function VerifyPage() {
               ))}
             </div>
 
-            <TrustBoundarySnippet variant="verification" className="mt-8" />
-
             <div className="mt-8 border border-surface-border bg-surface-bg p-5">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-                Receipt-only caveat
+                Data handling boundary
               </div>
-              <h2 className="mt-3 text-2xl font-semibold text-text-primary">
-                A tampered PV example can still verify here.
-              </h2>
               <p className="mt-3 max-w-[48rem] text-sm leading-relaxed text-text-secondary">
-                In <code>/verify</code> v1, `valid` means the receipt artifact verified in
-                receipt-only mode. It does not mean the referenced artifact bytes
-                were fetched and rehashed again. Scope and artifact revalidation
-                remain visible beside the public verdict so the result does not
-                overclaim.
+                Browser input is sent to <code>/api/verify</code> for receipt-first
+                deterministic checks. Keep sensitive handling policy aligned to your
+                environment before submitting production artifacts.
               </p>
             </div>
+
+            <TrustBoundarySnippet variant="verification" className="mt-8" />
           </div>
 
-          <CodeFrame
-            language="bash"
-            variant="terminal"
-            title="verify-flow"
-            lines={[
-              "$ paste receipt JSON",
-              "$ POST /api/verify",
-              "",
-              "verdict: valid",
-              "scope: receipt-only",
-              "artifact_revalidation: not_performed",
-              "proof_stage_verified: PV",
-            ]}
-          />
+          <div className="space-y-4 border border-surface-border bg-surface-bg p-5">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+              First-run path
+            </div>
+            <div className="space-y-4">
+              {firstRunSteps.map((step) => (
+                <div key={step.title} className="border border-surface-border bg-surface-card p-4">
+                  <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary">
+                    {step.title}
+                  </h2>
+                  <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+                    {step.expected}
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-text-muted">
+                    {step.why}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </SectionShell>
 
       <SectionShell className="pt-0">
-        <CodeFrame
-          language="bash"
-          variant="terminal"
-          title="tampered-pv-example"
-          lines={[
-            "$ POST /api/verify  # tampered PV receipt",
-            "",
-            "verdict: valid",
-            "scope: receipt-only",
-            "artifact_revalidation: not_performed",
-            "meaning: receipt artifact verified; referenced bytes not rechecked",
-          ]}
-        />
+        <div className="border border-surface-border bg-surface-bg p-6">
+          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+            Result semantics
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {resultSemantics.map((state) => (
+              <div key={state.label} className="border border-surface-border bg-surface-card p-4">
+                <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary">
+                  {state.label}
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                  {state.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
       </SectionShell>
 
       <SectionShell className="pt-0" id="verify-console">
@@ -157,25 +195,38 @@ export default function VerifyPage() {
             Read Next
           </div>
           <h2 className="text-2xl font-semibold text-text-primary">
-            Verification is one trust layer, not the whole system.
+            Continue with the full verification map.
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-text-muted">
-            Use the docs to understand receipt structure, verification scope, and
-            where higher-assurance bundle checks fit after receipt-first v1.
+            Use load-bearing docs to inspect receipt structure, verification scope,
+            and threat-boundary assumptions.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link
+            <CtaButton
+              href="/docs/quickstart/verify-first"
+              variant="primary"
+              label="Verify First Quickstart"
+            />
+            <CtaButton
               href="/docs/how-it-works/verification"
-              className="inline-flex items-center border border-brand-accent bg-brand-accent px-4 py-2 text-sm font-semibold text-brand-ink transition-opacity hover:opacity-90"
-            >
-              Verification Docs
-            </Link>
-            <Link
+              variant="secondary"
+              label="Verification Docs"
+            />
+            <CtaButton
+              href="/docs/evidence/receipts"
+              variant="secondary"
+              label="Receipt Concepts"
+            />
+            <CtaButton
               href="/docs/evidence/receipt-spec"
-              className="inline-flex items-center border border-surface-border px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent"
-            >
-              Receipt Spec
-            </Link>
+              variant="secondary"
+              label="Receipt Spec"
+            />
+            <CtaButton
+              href="/docs/security-systems/threat-model"
+              variant="secondary"
+              label="Threat Model"
+            />
           </div>
         </div>
       </SectionShell>

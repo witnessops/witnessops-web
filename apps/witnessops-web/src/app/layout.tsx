@@ -4,6 +4,7 @@ import { Footer } from "@/components/marketing/footer";
 import { Navbar } from "@/components/shared/navbar";
 import { loadHomeContent } from "@/lib/content";
 import { KonamiPenguin } from "@/components/shared/konami-penguin";
+import { RouteScrollReset } from "@/components/shared/route-scroll-reset";
 import "./globals.css";
 
 const surface = getSurface("witnessops");
@@ -86,6 +87,7 @@ export default function RootLayout({
           cta={content.navbar.cta}
           announcement={content.navbar.announcement}
         />
+        <RouteScrollReset />
         {children}
         <Footer {...content.footer} />
         <KonamiPenguin />

@@ -32,6 +32,10 @@ const staticRoutes: StaticRoute[] = [
   },
   { route: "/privacy", sourcePath: "src/app/privacy/page.tsx" },
   { route: "/review", sourcePath: "src/app/review/page.tsx" },
+  {
+    route: "/review/sample-report",
+    sourcePath: "src/app/review/sample-report/page.tsx",
+  },
   { route: "/security", sourcePath: "src/app/security/page.tsx" },
   { route: "/signals", sourcePath: "src/app/signals/page.tsx" },
   { route: "/support", sourcePath: "src/app/support/page.tsx" },

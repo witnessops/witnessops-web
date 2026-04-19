@@ -30,13 +30,13 @@ export default function WhyWitnessOpsPage() {
           Why WitnessOps
         </p>
         <h1 className="text-4xl font-bold tracking-tight text-text-primary">
-          WitnessOps is the governed execution surface for security operations.
+          Why security workflows need portable proof.
         </h1>
         <div className="mt-8 space-y-6 text-base leading-8 text-text-secondary">
           <p>
-            WitnessOps governs approved security work under scope, policy, and
-            approval controls. It records what happened and produces signed
-            evidence that can be verified after the run is complete.
+            Most security evidence fails at handoff. WitnessOps records approved
+            workflow execution as portable proof bundles others can inspect
+            independently.
           </p>
           <p>
             The point is not to generate a prettier incident report. The point
@@ -52,10 +52,10 @@ export default function WhyWitnessOpsPage() {
           </p>
           <p>WitnessOps keeps the public surface focused on what readers need to do next:</p>
           <ul className="list-disc pl-6 space-y-2">
-            <li>start a governed engagement,</li>
-            <li>operate under policy,</li>
-            <li>verify what happened,</li>
-            <li>understand the trust model.</li>
+            <li>Review one workflow boundary.</li>
+            <li>Inspect what was approved and executed.</li>
+            <li>Verify the published proof bundle.</li>
+            <li>See explicit trust assumptions.</li>
           </ul>
           <p>
             The runtime may be complex. The public explanation should not be.

@@ -43,21 +43,21 @@ navbar:
     variant: "primary"
 
 hero:
-  eyebrow: "Proof-Backed Security Operations"
-  title: "Portable proof bundles for serious cyber claims"
-  body: "WitnessOps runs governed security work and produces signed proof bundles that customers, auditors, and counterparties can verify offline, without trusting us to remain in the loop."
+  eyebrow: "Security workflows with proof you can verify"
+  title: "WitnessOps turns governed security work into portable proof bundles that external reviewers can inspect independently."
+  body: "We run bounded security workflows and produce proof bundles that third parties can verify without relying on our runtime."
   supporting_points:
     - "Most security work is easy to claim. Hard to prove."
     - "Signed receipts with explicit lineage."
     - "Portable evidence that survives export."
     - "Built for operators and relying parties."
   primary_cta:
-    label: "Try the Verifier"
+    label: "Verify a sample bundle"
     href: "/verify"
     variant: "primary"
   secondary_cta:
-    label: "See Sample Proof"
-    href: "/docs/evidence/receipt-spec"
+    label: "Request a workflow review"
+    href: "/review"
     variant: "secondary"
   microcopy: "No setup. No special access. Verify a real proof bundle in seconds."
   proof_badges:
