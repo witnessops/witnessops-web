@@ -88,7 +88,7 @@ export default function ReviewPage() {
         </div>
         <div className="mt-8 flex flex-wrap items-start gap-x-8 gap-y-6">
           <div>
-            <CtaButton href="/contact?intent=review" variant="primary" label="Request a review" />
+            <CtaButton href="/contact" variant="primary" label="Request a review" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
               Submit one real workflow, control path, or operator handoff for
               bounded inspection.
