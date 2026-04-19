@@ -1,6 +1,6 @@
 ---
 title: "Evidence Bundles"
-description: "What is in a WitnessOps proof bundle and how to verify it offline."
+description: "What is in a WitnessOps proof bundle and how to check it offline."
 section: "docs"
 order: 3
 nav_label: "Evidence Bundles"
@@ -9,22 +9,22 @@ draft: false
 
 # Evidence Bundles
 
-A proof bundle is the portable package that carries proof artifacts from runtime to independent reviewers.
+A proof bundle is the portable package that carries proof artifacts from runtime to an independent reviewer.
 
 ## 1. Problem this page solves
 
-Without packaging, proof artifacts are scattered across systems, exports, and operator notes.
+Without packaging, proof artifacts end up scattered across systems, exports, and operator notes.
 
-A verifier needs a stable package with integrity boundaries. This page defines what is inside a WitnessOps bundle and how that package supports offline review.
+A verifier needs one stable package with clear integrity boundaries. This page explains what is inside a WitnessOps bundle and how that package supports offline review.
 
 ## 2. What you should understand after reading
 
 After this page, you should understand:
 
 - what a bundle contains
-- which artifacts are required vs conditional
-- how the bundle supports local/offline verification
-- where bundle limits begin
+- which artifacts are required and which are conditional
+- how the bundle supports local or offline verification
+- where the bundle limits begin
 
 ## 3. Mechanism-first artifact order
 
@@ -32,34 +32,34 @@ Read a bundle in this order:
 
 | Order | Artifact class | Typical files | Why it exists |
 | --- | --- | --- | --- |
-| 1 | Receipt claim | `CLAIM.json`, `CLAIM.dsse.json` | Defines issuer-bound governed statement |
-| 2 | Referenced evidence artifacts | `artifacts/`, referenced receipt/context files | Carries supporting material linked to the claim |
+| 1 | Receipt claim | `CLAIM.json`, `CLAIM.dsse.json` | Defines the issuer-bound governed statement |
+| 2 | Referenced evidence artifacts | `artifacts/`, referenced receipt or context files | Carries the supporting material linked to the claim |
 | 3 | Signature trust material | `trust/org-signing-pubkey.pem` | Allows offline issuer signature checks |
-| 4 | Timestamp material (when claimed) | `CLAIM.dsse.sha256`, `TIMESTAMP.tsr`, `TIMESTAMP.meta.json`, `trust/tsa-cert-chain.pem` | Binds trusted time to the signed object |
-| 5 | Chain/inclusion material (when claimed) | `receipts/receipts.ndjson`, `ROOT.txt`, `trust/log-pubkey.pem` | Supports continuity and append-only publication checks |
-| 6 | Manifest/index | `MANIFEST.json` | Anchors complete file inventory and digest integrity |
-| 7 | Verification structure metadata | bundle layout + declared claim layers | Tells reviewer which checks are expected |
+| 4 | Timestamp material, when claimed | `CLAIM.dsse.sha256`, `TIMESTAMP.tsr`, `TIMESTAMP.meta.json`, `trust/tsa-cert-chain.pem` | Binds trusted time to the signed object |
+| 5 | Chain or inclusion material, when claimed | `receipts/receipts.ndjson`, `ROOT.txt`, `trust/log-pubkey.pem` | Supports continuity and append-only publication checks |
+| 6 | Manifest or index | `MANIFEST.json` | Anchors the full file inventory and digest integrity |
+| 7 | Verification structure metadata | bundle layout + declared claim layers | Tells the reviewer which checks are expected |
 
 ### Required vs conditional bundle layers
 
 | Artifact | Status | Verification role |
 | --- | --- | --- |
 | `MANIFEST.json` | required | Detects tampering or incomplete export |
-| `CLAIM.json` | required | Declares governed assertion |
-| `CLAIM.dsse.json` | required | Defines canonical signed bytes |
-| `receipts/receipts.ndjson` | required | Provides receipt continuity substrate |
+| `CLAIM.json` | required | Declares the governed assertion |
+| `CLAIM.dsse.json` | required | Defines the canonical signed bytes |
+| `receipts/receipts.ndjson` | required | Provides the continuity substrate |
 | `trust/org-signing-pubkey.pem` | required | Enables issuer signature validation |
-| Timestamp and TSA files | conditional | Required only when trusted-time claim is declared |
-| Chain/log trust files | conditional | Required only when publication/continuity claims are declared |
+| Timestamp and TSA files | conditional | Required only when a trusted-time claim is declared |
+| Chain or log trust files | conditional | Required only when publication or continuity claims are declared |
 | `CLAIM.intoto.json` | optional | Compatibility with attestation tooling |
 
 ## 4. Observed vs inferred
 
 | Layer | What is available | Confidence boundary |
 | --- | --- | --- |
-| Directly included artifacts | Files physically present in bundle with digests/signatures/checkpoint references | Testable by local verifier |
-| Derived claims | Assertions drawn from successful artifact checks (for example, “signed before time X”) | Valid only when corresponding layer material is present and valid |
-| Outside dependencies | Origin conditions, upstream identity/scope correctness, capture context fidelity | Not recreated by bundle bytes alone |
+| Directly included artifacts | Files physically present in the bundle with digests, signatures, and checkpoint references | Testable by a local verifier |
+| Derived claims | Assertions drawn from successful artifact checks, for example “signed before time X” | Valid only when the matching layer material is present and valid |
+| Outside dependencies | Origin conditions, upstream identity or scope correctness, capture-context fidelity | Not recreated by bundle bytes alone |
 
 ## 5. Trust assumptions
 
@@ -67,9 +67,9 @@ A bundle preserves proof artifacts. It does not recreate every condition of orig
 
 Trust assumptions that remain explicit:
 
-- bundle references are accurate representations of source capture context
-- upstream systems feeding identity/scope/policy were correct
-- runtime environment and key custody were trustworthy at issuance time
+- bundle references accurately represent the source capture context
+- upstream systems feeding identity, scope, and policy were correct
+- the runtime environment and key custody were trustworthy at issuance time
 - verifier trust roots are authentic
 
 A bundle is not proof by itself. It is the transport surface for proof artifacts.
