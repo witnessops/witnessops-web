@@ -40,8 +40,8 @@ navbar:
     - label: "Support"
       href: "/support"
   cta:
-    label: "Contact"
-    href: "/contact"
+    label: "Review"
+    href: "/review"
     variant: "primary"
 
 hero:
@@ -254,8 +254,8 @@ sections:
       - "signed receipt output"
     body: "Pick your most critical workflow. Run it through WitnessOps. See the receipt."
     cta:
-      label: "Contact"
-      href: "/contact"
+      label: "Review"
+      href: "/review"
       variant: "primary"
 
   - type: "expansion_path"
@@ -315,7 +315,7 @@ sections:
         href: "/library"
         variant: "primary"
       - label: "Request a workflow review"
-        href: "/contact"
+        href: "/review"
         variant: "ghost"
 
   - type: "boundary"
@@ -367,7 +367,7 @@ sections:
         href: "/library"
         variant: "primary"
       - label: "Request review"
-        href: "/contact"
+        href: "/review"
         variant: "ghost"
 
 final_cta:
@@ -376,7 +376,7 @@ final_cta:
   body: "If the proof path holds for your review context, move to scope intake. We define boundaries, scope limits, and expected evidence before execution."
   ctas:
     - label: "Request review"
-      href: "/contact"
+      href: "/review"
       variant: "primary"
     - label: "Read the verification contract"
       href: "/docs/how-it-works/verification"
