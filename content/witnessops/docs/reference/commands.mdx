@@ -21,7 +21,7 @@ This page is the command contract for operators running governed workflows and r
 
 ## 1. Problem this page solves
 
-Command names are easy to remember; command semantics are where drift happens.
+Command names are easy to remember. Command semantics are where drift happens.
 
 This page fixes that by defining:
 
@@ -29,12 +29,12 @@ This page fixes that by defining:
 - usage boundaries for governed vs exception paths
 - expected artifacts and observable outputs for review
 
-## 2. Audience task and expected outcome
+## 2. What you should understand after reading
 
 After this page:
 
 - operators can run the five-command lifecycle without guessing side effects
-- approvers/reviewers can map command actions to `state.json`, `receipt.json`, and run artifacts
+- approvers and reviewers can map command actions to `state.json`, `receipt.json`, and run artifacts
 - both lanes can separate command guarantees from broader policy or verification claims
 
 ## 3. Command surface and lifecycle order
@@ -47,7 +47,7 @@ The command surface is intentionally narrow:
 4. `runbook-approve`
 5. `runbook-resume`
 
-Use this order for normal governed execution. Repeated `runbook-state` checks are expected; repeated `runbook-resume` is safe for interrupted runs.
+Use this order for normal governed execution. Repeated `runbook-state` checks are expected. Repeated `runbook-resume` is safe for interrupted runs.
 
 ## 4. Command semantics, boundaries, and outputs
 
@@ -57,7 +57,7 @@ Use this order for normal governed execution. Repeated `runbook-state` checks ar
 bash automation/helpers/new-engagement.sh <engagement-name>
 ```
 
-**Semantics:** Initializes an engagement workspace at `ops/engagements/<engagement-name>/`.
+**Semantics:** initializes an engagement workspace at `ops/engagements/<engagement-name>/`.
 
 **Expected outputs:**
 
@@ -71,7 +71,7 @@ ops/engagements/<engagement-name>/
 └── report/
 ```
 
-**Usage boundary:** This command does not set scope or execute runbooks. Populate `scope/in-scope.txt` before `runbook-exec`.
+**Usage boundary:** this command does not set scope or execute runbooks. Populate `scope/in-scope.txt` before `runbook-exec`.
 
 ### `runbook-exec`
 
@@ -81,18 +81,18 @@ bash automation/helpers/runbook-exec.sh <runbook-id> \
   --engagement <engagement-name>
 ```
 
-**Semantics:** Validates runbook inputs, creates a timestamped run directory, enforces scope by default, executes ordered steps, and emits receipt-linked artifacts when the run reaches a terminal state.
+**Semantics:** validates runbook inputs, creates a timestamped run directory, enforces scope by default, executes ordered steps, and emits receipt-linked artifacts when the run reaches a terminal state.
 
-**Expected outputs:** Run directory under `ops/engagements/<engagement>/report/drafts/` with `state.json`, `manifest.json`, `hash-manifest.txt`, `runbook-summary.md`, step logs, and `receipt.json` at terminal completion.
+**Expected outputs:** a run directory under `ops/engagements/<engagement>/report/drafts/` with `state.json`, `manifest.json`, `hash-manifest.txt`, `runbook-summary.md`, step logs, and `receipt.json` at terminal completion.
 
 **Options:**
 
 | Flag | Purpose |
 | --- | --- |
-| `--target` | Primary target for the runbook. Required. |
-| `--engagement` | Engagement workspace name. Required. |
-| `--no-scope` | Bypass scope enforcement. Exception path only. |
-| `--lab` | Mark the run as lab execution. |
+| `--target` | primary target for the runbook. Required. |
+| `--engagement` | engagement workspace name. Required. |
+| `--no-scope` | bypass scope enforcement. Exception path only. |
+| `--lab` | mark the run as lab execution. |
 
 **Usage boundary:** `--no-scope` and `--lab` are not normal production-governed paths. Review [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass) before use.
 
@@ -102,15 +102,15 @@ bash automation/helpers/runbook-exec.sh <runbook-id> \
 bash automation/helpers/runbook-state.sh <engagement-name> <run-id>
 ```
 
-**Semantics:** Read-only state inspection for a run.
+**Semantics:** read-only state inspection for a run.
 
-**Expected outputs:** Formatted status on stdout (status, completed steps, pending step/gate). With `--json`, raw `state.json`.
+**Expected outputs:** formatted status on stdout, such as status, completed steps, and pending step or gate. With `--json`, raw `state.json`.
 
 | Flag | Purpose |
 | --- | --- |
-| `--json` | Output raw state JSON instead of formatted summary. |
+| `--json` | output raw state JSON instead of formatted summary. |
 
-**Usage boundary:** This command does not mutate run state, approve gates, or resume execution.
+**Usage boundary:** this command does not mutate run state, approve gates, or resume execution.
 
 ### `runbook-approve`
 
@@ -118,16 +118,16 @@ bash automation/helpers/runbook-state.sh <engagement-name> <run-id>
 bash automation/helpers/runbook-approve.sh <engagement-name> <run-id> --approve
 ```
 
-**Semantics:** Writes an explicit approval event for the currently gated step in paused state.
+**Semantics:** writes an explicit approval event for the currently gated step in paused state.
 
-**Expected outputs:** Updated `state.json` approval record (step, approver identity, timestamp), later embedded in `receipt.json`.
+**Expected outputs:** updated `state.json` approval record with step, approver identity, and timestamp, later embedded in `receipt.json`.
 
 | Flag | Purpose |
 | --- | --- |
-| `--approve` | Confirm approval action. Required. |
-| `--by <operator>` | Record specific approver identity. Defaults to current operator identity. |
+| `--approve` | confirm approval action. Required. |
+| `--by <operator>` | record specific approver identity. Defaults to current operator identity. |
 
-**Usage boundary:** Approval records permission; they do not execute the gated step. Use `runbook-resume` to continue.
+**Usage boundary:** approval records permission. They do not execute the gated step. Use `runbook-resume` to continue.
 
 ### `runbook-resume`
 
@@ -135,11 +135,11 @@ bash automation/helpers/runbook-approve.sh <engagement-name> <run-id> --approve
 bash automation/helpers/runbook-resume.sh <engagement-name> <run-id>
 ```
 
-**Semantics:** Continues from the next incomplete step in `state.json`. If a step was interrupted while `running`, it restarts that step from the beginning.
+**Semantics:** continues from the next incomplete step in `state.json`. If a step was interrupted while `running`, it restarts that step from the beginning.
 
-**Expected outputs:** Additional step artifacts in the same run directory and final `receipt.json` when terminal.
+**Expected outputs:** additional step artifacts in the same run directory and final `receipt.json` when terminal.
 
-**Usage boundary:** Resume does not bypass future gates or scope checks; it re-enters governed step flow.
+**Usage boundary:** resume does not bypass future gates or scope checks. It re-enters governed step flow.
 
 ## 5. Explicit scope limits and non-claims
 
@@ -147,8 +147,8 @@ This page defines command behavior only. It does not:
 
 - replace [Governance](/docs/governance), [Authorization Model](/docs/governance/authorization-model), or escalation policy
 - claim canonical bundle-verification or retained-reference corpus semantics as part of this command contract
-- prove tool correctness, operator/approver judgment quality, or business-impact conclusions
-- expose internal-only proof implementation detail beyond operator/reviewer-visible artifacts
+- prove tool correctness, operator or approver judgment quality, or business-impact conclusions
+- expose internal-only proof implementation detail beyond operator and reviewer-visible artifacts
 
 ## 6. Operator and reviewer crosslinks
 
@@ -160,7 +160,7 @@ This page defines command behavior only. It does not:
 4. [What Evidence Is Required?](/docs/decisions/evidence-required)
 5. [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling)
 
-### Approver/reviewer lane
+### Approver and reviewer lane
 
 1. [Manager / Approver](/docs/audiences/manager-approver)
 2. [Receipts](/docs/evidence/receipts)
