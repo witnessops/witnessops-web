@@ -9,11 +9,11 @@ draft: false
 
 # Scenarios
 
-This section bridges role guidance into practical investigation execution with explicit decision and evidence gates.
+This section turns role guidance into practical investigation flows with explicit decision and evidence gates.
 
 ## 1. Problem this page solves
 
-Role pages define ownership boundaries, but responders still need a repeatable way to execute real cases without collapsing scope, evidence, and escalation into ad hoc judgment.
+Role pages define ownership boundaries, but responders still need a repeatable way to run real cases without collapsing scope, evidence, and escalation into ad hoc judgment.
 
 This page defines the scenario index model so case work stays bounded, reviewable, and consistent across operator and defender lanes.
 
@@ -21,7 +21,7 @@ This page defines the scenario index model so case work stays bounded, reviewabl
 
 After this page, you should understand:
 
-- what scenarios are for in the WitnessOps documentation system
+- what scenarios are for in the WitnessOps docs system
 - how to use scenarios as execution models, not narrative examples
 - the decision sequence that governs scenario progression
 - the evidence checkpoints required before advancing or closing
@@ -37,17 +37,17 @@ Use scenarios as controlled execution frames:
 4. **Capture evidence at each gate.** Record artifacts and rationale before moving to the next decision.
 5. **Escalate or close explicitly.** End with a documented disposition path, not an implicit stop.
 
-Scenarios define flow discipline for practical cases; they do not replace governance or decision standards.
+Scenarios define flow discipline for practical cases. They do not replace governance or decision standards.
 
 ## 4. Decision sequence and evidence checkpoints
 
 | Gate | Decision question | Minimum evidence checkpoint | If gate fails |
 | --- | --- | --- | --- |
-| Entry gate | Is there an actionable observed trigger? | report source, timestamp, preserved starting artifact | stop and request sufficient intake context |
-| Scope gate | Is the next action authorized and in scope? | target/action boundary record, applicable approval state | stop or escalate for authorization/scope review |
-| Classification gate | What class of event is currently supported by evidence? | observed indicators, technical validation artifacts, confidence notes | hold provisional classification and gather more evidence |
-| Impact gate | Is user/system interaction or compromise indicated? | interaction timeline, affected identities/assets, supporting artifacts | continue bounded triage and avoid over-claiming impact |
-| Escalation/closure gate | Is evidence sufficient to close, or is escalation required? | decision rationale, evidence package completeness, unresolved risk notes | escalate via [Do I Need to Escalate?](/docs/decisions/escalation) |
+| Entry gate | Is there an actionable observed trigger? | report source, timestamp, preserved starting artifact | stop and request enough intake context |
+| Scope gate | Is the next action authorized and in scope? | target and action boundary record, applicable approval state | stop or escalate for authorization or scope review |
+| Classification gate | What class of event is currently supported by the evidence? | observed indicators, technical validation artifacts, confidence notes | hold provisional classification and gather more evidence |
+| Impact gate | Is user or system interaction or compromise indicated? | interaction timeline, affected identities or assets, supporting artifacts | continue bounded triage and avoid over-claiming impact |
+| Escalation or closure gate | Is evidence sufficient to close, or is escalation required? | decision rationale, evidence package completeness, unresolved risk notes | escalate via [Do I Need to Escalate?](/docs/decisions/escalation) |
 
 ## 5. Observed vs inferred
 
@@ -63,13 +63,13 @@ Treat inferred conclusions as hypotheses until additional evidence confirms them
 Scenario quality depends on explicit assumptions:
 
 - **Input quality is variable:** reports and alerts may be incomplete or deceptive.
-- **Policy/configuration accuracy is external:** incorrect scope or approval configuration produces incorrect gate outcomes.
-- **Runtime/tool integrity is assumed:** host or key compromise invalidates workflow confidence.
+- **Policy and configuration accuracy are external:** incorrect scope or approval configuration produces incorrect gate outcomes.
+- **Runtime and tool integrity are assumed:** host or key compromise reduces workflow confidence.
 - **Evidence attests process, not truth:** artifacts and receipts show what was captured, not that conclusions are correct.
 - **Human judgment remains required:** scenarios reduce drift but cannot remove uncertainty in live incidents.
 
-See [Threat Model](/docs/security-systems/threat-model) for full trust boundary context.
+See [Threat Model](/docs/security-systems/threat-model) for full trust-boundary context.
 
 ## 7. Next-page handoff
 
-Next, run [Investigating a Phishing Report](/docs/scenarios/phishing-investigation) as the first concrete scenario and apply each gate/checkpoint in order.
+Next, run [Investigating a Phishing Report](/docs/scenarios/phishing-investigation) as the first concrete scenario and apply each gate and checkpoint in order.
