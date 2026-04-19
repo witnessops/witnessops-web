@@ -9,13 +9,13 @@ draft: false
 
 # Manager / Approver
 
-This page defines the manager/approver lane for setting authorization boundaries, testing proportionality, and deciding whether work proceeds under governed scope.
+This page defines the manager and approver lane for setting authorization boundaries, testing proportionality, and deciding whether work proceeds under governed scope.
 
 ## 1. Problem this page solves
 
 Approval quality collapses when authority limits, scope boundaries, and evidence standards are implicit.
 
-This page gives a first-pass approval path so authorize/reject/escalate decisions are explicit, auditable, and tied to documented gates.
+This page gives a first-pass approval path so authorize, reject, or escalate decisions are explicit, auditable, and tied to documented gates.
 
 ## 2. What you should understand after reading
 
@@ -34,9 +34,9 @@ After this page, you should understand:
 Before approving any request, require:
 
 - a specific objective and expected outcome
-- explicit in-scope target and action boundaries
-- proposed workflow path and escalation conditions
-- defined evidence standard for acceptance/review
+- clear in-scope target and action boundaries
+- a proposed workflow path and escalation conditions
+- a defined evidence standard for acceptance and review
 
 ### Read first (in order)
 
@@ -54,7 +54,7 @@ Before approving any request, require:
 | Authorization decision | Approve, reject, or pause based on objective legitimacy, scope clarity, and control readiness | [Governance](/docs/governance), [Authorization Model](/docs/governance/authorization-model) |
 | Boundary definition | Set allowed targets, action limits, timing, and escalation expectations before execution begins | [Authorization Model](/docs/governance/authorization-model), [Is This In Scope?](/docs/decisions/scope-check) |
 | Proportionality check | Require the least disruptive path that can satisfy the objective | [Governance](/docs/governance), [Do I Need to Escalate?](/docs/decisions/escalation) |
-| Evidence acceptance standard | Define and enforce minimum evidence needed for post-run review and accountability | [What Evidence Is Required?](/docs/decisions/evidence-required), [Evidence](/docs/evidence) |
+| Evidence acceptance standard | Define and enforce the minimum evidence needed for post-run review and accountability | [What Evidence Is Required?](/docs/decisions/evidence-required), [Evidence](/docs/evidence) |
 
 ### Defer initially
 
@@ -68,22 +68,22 @@ Defer these until your first approval-review cycle is complete:
 
 | Layer | What is observed | What is inferred |
 | --- | --- | --- |
-| Approval input and record | request objective, scope declarations, approver identity/time, decision state, documented conditions | that the plan is complete, safe, or sufficient under unseen conditions |
+| Approval input and record | request objective, scope declarations, approver identity and time, decision state, documented conditions | that the plan is complete, safe, or sufficient under unseen conditions |
 | Post-execution review | receipt-linked artifacts, explicit failures, escalation events, timestamps, evidence package contents | conclusion correctness, long-term risk reduction, or full business impact |
 
-Treat inferred conclusions as judgment calls that require explicit rationale, not as direct observations.
+Treat inferred conclusions as judgment calls that need explicit rationale, not as direct observations.
 
 ## 5. Role-specific trust assumptions
 
-Operate with these assumptions explicit:
+Operate with these assumptions kept explicit:
 
-- **Approval quality depends on input quality:** weak scope/objective/evidence input drives weak approvals.
+- **Approval quality depends on input quality:** weak scope, objective, or evidence input produces weak approvals.
 - **Recorded approval is not validated approval:** the system records who approved and when, but cannot prevent poor decisions.
 - **Scope enforcement is configuration-backed:** if `in-scope.txt` is wrong, approved boundaries are wrong.
 - **Proportionality remains human-controlled:** no workflow can replace approver judgment on business risk tradeoffs.
 - **Receipts attest events, not decision correctness:** they prove what ran and what was captured, not whether approval choices were right.
 
-See [Threat Model](/docs/security-systems/threat-model) for full trust boundary context.
+See [Threat Model](/docs/security-systems/threat-model) for full trust-boundary context.
 
 ## 6. Next-page handoff
 
