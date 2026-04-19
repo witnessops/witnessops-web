@@ -1,6 +1,6 @@
 ---
 title: "Governed Execution"
-description: "How WitnessOps moves from intent to scope, approval, execution, evidence capture, and receipt emission without collapsing runtime control into proof marketing."
+description: "How WitnessOps moves from intent to scope, approval, execution, evidence capture, and receipt emission."
 section: "docs"
 order: 20
 nav_label: "Governed Execution"
@@ -18,11 +18,11 @@ page_answer:
 
 # Governed Execution
 
-This page answers a specific boundary question: what happens inside runtime control, and where proof/verification starts afterward.
+This page answers one boundary question: what happens inside runtime control, and where proof and verification start afterward.
 
 ## 1. Problem this page solves
 
-Security teams need a deterministic execution path, not post-hoc storytelling. Without governed runtime control, teams cannot reliably prove:
+Security teams need a deterministic execution path, not a story rebuilt after the fact. Without governed runtime control, teams cannot reliably prove:
 
 - which action was requested
 - whether it was in scope
@@ -37,57 +37,57 @@ After this page, you should understand:
 
 - the exact runtime sequence for a governed step
 - the execution outcomes (`executed`, `denied`, `paused`, `failed`)
-- what artifacts are emitted at runtime boundary
-- what this layer proves vs what remains outside it
+- what artifacts are emitted at the runtime boundary
+- what this layer proves and what remains outside it
 
 ## 3. Runtime mechanism (exact order)
 
-1. **Intent enters runtime.** Requested step, target, and capability are declared.
+1. **Intent enters runtime.** The requested step, target, and capability are declared.
 2. **Scope and policy gates evaluate.** Preconditions are checked before execution.
-3. **Approval gate pauses if required.** Intrusive work halts until explicit approval is recorded.
-4. **Step executes under governance.** Tool action runs only if gates pass.
-5. **Evidence capture occurs at execution time.** Artifacts and digests are recorded.
-6. **Receipt-bearing statement emits.** Outcome is bound to execution context and continuity references.
+3. **Approval pauses if required.** Intrusive work stops until explicit approval is recorded.
+4. **The step executes under governance.** The tool action runs only if the gates pass.
+5. **Evidence is captured at execution time.** Artifacts and digests are recorded.
+6. **A receipt-bearing statement is emitted.** The outcome is bound to the execution context and continuity references.
 
-If this sequence is bypassed, the action may still occur operationally, but it did not occur inside WitnessOps governance.
+If this sequence is bypassed, the action may still happen operationally, but it did not happen inside WitnessOps governance.
 
 ## 4. Runtime outcomes and their meaning
 
 | Outcome | Meaning |
 | --- | --- |
-| Executed | Step was permitted and completed under governance |
-| Denied | Scope/policy blocked execution before run |
-| Paused | Approval or required gate still pending |
-| Failed | Step ran but did not resolve successfully |
+| Executed | The step was permitted and completed under governance |
+| Denied | Scope or policy blocked execution before the run |
+| Paused | Approval or another required gate is still pending |
+| Failed | The step ran but did not complete successfully |
 
-These are runtime outcomes, not verification verdicts (`valid` / `invalid` / `indeterminate`).
+These are runtime outcomes, not verification verdicts such as `valid`, `invalid`, or `indeterminate`.
 
-## 5. Artifacts emitted at runtime boundary
+## 5. Artifacts emitted at the runtime boundary
 
-A governed run emits runtime evidence that later supports proof checking:
+A governed run emits runtime evidence that later supports proof checks:
 
 - execution state
 - evidence manifests and artifact references
 - signed receipt-bearing artifacts
 
-Those materials are consumed by [Receipts](/docs/evidence/receipts), [Execution Chains](/docs/evidence/execution-chains), and [How to Verify a Receipt](/docs/how-it-works/verification).
+Those materials are used by [Receipts](/docs/evidence/receipts), [Execution Chains](/docs/evidence/execution-chains), and [How to Verify a Receipt](/docs/how-it-works/verification).
 
 ## 6. What this layer proves
 
-Governed execution proves the action passed through a controlled runtime path and that the resulting evidence/receipt was emitted from that path.
+Governed execution proves that the action passed through a controlled runtime path and that the resulting evidence and receipt were emitted from that path.
 
 It does not prove:
 
 - tool correctness
 - perfect human judgment
-- external trust-root integrity by itself
+- outside trust-root integrity on its own
 
 ## 7. Remaining trust assumptions
 
 This layer still depends on assumptions outside runtime enforcement:
 
 - correctness of configured scope and policy inputs
-- integrity of host/tooling environment
+- integrity of the host and tooling environment
 - key and trust-root management outside the single step
 
 These assumptions are explicit boundaries, not hidden guarantees.
