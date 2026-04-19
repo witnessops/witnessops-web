@@ -5,7 +5,6 @@ import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
 import { TrustBoundarySnippet } from "@/components/shared/trust-boundary-snippet";
 import { listVerifyFixtures } from "@/lib/verify-fixtures";
-import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Verify a Receipt",
@@ -18,14 +17,12 @@ export const metadata: Metadata = {
       "Evaluate receipt integrity and proof boundaries with deterministic receipt-first verification.",
     siteName: "WitnessOps",
     type: "website",
-    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
     title: "Verify a Receipt | WitnessOps",
     description:
       "Evaluate receipt integrity and proof boundaries with deterministic receipt-first verification.",
-    images: DEFAULT_TWITTER_IMAGES,
   },
 };
 

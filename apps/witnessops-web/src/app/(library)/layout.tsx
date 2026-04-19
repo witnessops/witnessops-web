@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { DEFAULT_OPEN_GRAPH_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: {
@@ -10,7 +9,6 @@ export const metadata: Metadata = {
     "Reasoning on trust boundaries, verification, failure modes, and governed systems.",
   openGraph: {
     siteName: "WitnessOps",
-    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
 };
 

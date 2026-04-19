@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { SectionShell } from "@/components/shared/section-shell";
-import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Sample Review Report",
@@ -14,14 +13,12 @@ export const metadata: Metadata = {
       "Illustrative sample dossier showing bounded-review structure and judgment style. This is not a live customer report and not a claim of completed verification for your system.",
     siteName: "WitnessOps",
     type: "website",
-    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
     title: "Sample Review Report | WitnessOps",
     description:
       "Illustrative sample dossier showing bounded-review structure and judgment style. This is not a live customer report and not a claim of completed verification for your system.",
-    images: DEFAULT_TWITTER_IMAGES,
   },
 };
 

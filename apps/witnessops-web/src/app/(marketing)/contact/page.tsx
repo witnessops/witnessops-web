@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { ContactForm } from "./contact-form";
 import { getMailboxConfig } from "@/lib/mailboxes";
-import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Request a Review",
@@ -15,14 +14,12 @@ export const metadata: Metadata = {
       "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on authority, execution, evidence, and replayability.",
     siteName: "WitnessOps",
     type: "website",
-    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
     title: "Request a Review | WitnessOps",
     description:
       "Bring one workflow, automation boundary, or operator decision path. WitnessOps returns a bounded review on authority, execution, evidence, and replayability.",
-    images: DEFAULT_TWITTER_IMAGES,
   },
 };
 

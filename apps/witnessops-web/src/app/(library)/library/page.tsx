@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CtaButton } from "@/components/shared/cta-button";
-import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const writingTopics = [
   {
@@ -80,14 +79,12 @@ export const metadata: Metadata = {
       "Notes, reviews, and frameworks on trust boundaries, verification, failure modes, and governed systems.",
     siteName: "WitnessOps",
     type: "website",
-    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
   twitter: {
     card: "summary",
     title: "WitnessOps Library — Trust boundaries, verification, and governed systems",
     description:
       "The WitnessOps reasoning library on trust boundaries, verification, and governed systems.",
-    images: DEFAULT_TWITTER_IMAGES,
   },
 };
 

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { CtaButton } from "@/components/shared/cta-button";
-import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 export const metadata: Metadata = {
   title: "Review",
@@ -15,14 +14,12 @@ export const metadata: Metadata = {
       "Review one real system before you trust it. WitnessOps returns a bounded review report on authority, execution, evidence, and replayability.",
     siteName: "WitnessOps",
     type: "website",
-    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
   twitter: {
     card: "summary",
     title: "Review | WitnessOps",
     description:
       "Review one real system before you trust it. WitnessOps returns a bounded review report on authority, execution, evidence, and replayability.",
-    images: DEFAULT_TWITTER_IMAGES,
   },
 };
 

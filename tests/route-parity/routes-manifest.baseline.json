@@ -243,6 +243,12 @@
       "namedRegex": "^/icon\\.svg(?:/)?$"
     },
     {
+      "page": "/library",
+      "regex": "^/library(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/library(?:/)?$"
+    },
+    {
       "page": "/og/home",
       "regex": "^/og/home(?:/)?$",
       "routeKeys": {},
@@ -283,6 +289,12 @@
       "regex": "^/review(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/review(?:/)?$"
+    },
+    {
+      "page": "/review/sample-report",
+      "regex": "^/review/sample\\-report(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-report(?:/)?$"
     },
     {
       "page": "/robots.txt",
