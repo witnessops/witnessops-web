@@ -24,66 +24,66 @@ Anchored replay explains how a reviewer moves from package-local checks to conti
 
 Bundle verification can prove internal consistency, but that alone does not establish issuer continuity beyond the package itself.
 
-Anchored replay adds an external continuity point so reviewers can test whether package claims hold when compared to independently obtained anchor material.
+Anchored replay adds an outside continuity point so a reviewer can test whether the package claims still hold when compared to anchor material obtained through a separate path.
 
 ## 2. What you should understand after reading
 
 After this page, you should understand:
 
-- what can be checked inside the bundle
+- what you can check inside the bundle
 - what requires an outside anchor
 - how anchored replay extends package-local verification
-- what anchored replay still does not independently prove
+- what anchored replay still does not prove on its own
 
 ## 3. Mechanism-first anchored replay path
 
 Use this exact order:
 
-1. **Inspect bundle artifacts.** Identify proof-bearing files and declared claim layers.
-2. **Validate internal consistency.** Check manifest, signatures, and declared internal links.
-3. **Identify required anchor point.** Determine which continuity claim needs external anchor (for example, signer continuity).
-4. **Obtain anchor outside the package.** Retrieve reviewer-trusted anchor through separate custody path.
-5. **Compare package state to anchored state.** Replay with reviewer-supplied anchor and evaluate match/mismatch.
-6. **Determine continuity outcome.** Decide whether continuity is established, untested, or failed.
+1. **Inspect the bundle artifacts.** Identify the proof-bearing files and declared claim layers.
+2. **Validate internal consistency.** Check the manifest, signatures, and declared internal links.
+3. **Identify the required anchor point.** Determine which continuity claim needs an external anchor, for example signer continuity.
+4. **Obtain the anchor outside the package.** Retrieve the reviewer-trusted anchor through a separate custody path.
+5. **Compare package state to anchored state.** Replay with the reviewer-supplied anchor and evaluate match or mismatch.
+6. **Determine the continuity outcome.** Decide whether continuity is established, untested, or failed.
 
 ### Inside-package vs outside-anchor scope
 
 | Scope | What you observe | What it can establish |
 | --- | --- | --- |
-| Bundle-local replay | Package contents, hashes, signatures, chain links | Internal coherence of packaged claim set |
-| Anchored replay | Same package + external trusted anchor | Whether claim continuity holds against reviewer-pinned trust point |
+| Bundle-local replay | Package contents, hashes, signatures, chain links | Internal coherence of the packaged claim set |
+| Anchored replay | Same package + external trusted anchor | Whether claim continuity holds against a reviewer-pinned trust point |
 
 ## 4. Observed vs inferred
 
 | Layer | Observed material | Inferred claim |
 | --- | --- | --- |
-| Package observations | Bundle files, digest matches, signature checks, chain references | Package is internally coherent |
-| Anchor observations | External key/anchor material and replay result against it | Continuity relative to that anchor |
-| Inference boundary | Combination of package + anchor checks | Broader trust conclusion over time/packages requires policy interpretation |
+| Package observations | Bundle files, digest matches, signature checks, chain references | The package is internally coherent |
+| Anchor observations | External key or anchor material and replay result against it | Continuity relative to that anchor |
+| Inference boundary | Combination of package + anchor checks | Broader trust conclusions over time or across packages still require policy interpretation |
 
 ## 5. Trust assumptions
 
-Anchored replay depends on explicit trust inputs:
+Anchored replay depends on a few explicit trust inputs:
 
-- trust in anchor source authenticity
-- trust in anchor retrieval path independence
-- trust that replay tooling is correctly evaluating package-to-anchor comparison
+- trust in the anchor source authenticity
+- trust in the independence of the anchor retrieval path
+- trust that replay tooling is evaluating the package-to-anchor comparison correctly
 
-What anchored replay confirms:
+What anchored replay can confirm:
 
-- package-local consistency still holds when checked against reviewer-supplied anchor
+- package-local consistency still holds when checked against the reviewer-supplied anchor
 - signer continuity can be established for that anchor scope
 
-What it does not independently prove:
+What it does not prove on its own:
 
-- legal/organizational identity claims beyond reviewer policy
-- timestamp trust or revocation unless separately anchored and checked
-- exhaustiveness of evidence outside included artifacts
+- legal or organizational identity claims beyond reviewer policy
+- timestamp trust or revocation unless those are separately anchored and checked
+- completeness of evidence outside the included artifacts
 
 A bundle can prove internal consistency. Anchored replay tests whether that consistency survives comparison to an outside continuity point.
 
-Replay is not magic. Replay is a bounded artifact-and-anchor comparison.
+Replay is not magic. It is a bounded comparison between package artifacts and an external anchor.
 
 ## 6. Next-page handoff
 
-Next, read [Verification](/docs/how-it-works/verification) for the deterministic procedure and verdict handling that operationalizes this replay model.
+Next, read [Verification](/docs/how-it-works/verification) for the deterministic procedure and verdict handling that puts this replay model into practice.
