@@ -7,7 +7,21 @@ export function RouteScrollReset() {
   const pathname = usePathname();
 
   useLayoutEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    resetScroll();
+
+    const rafOne = window.requestAnimationFrame(() => {
+      resetScroll();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(rafOne);
+    };
   }, [pathname]);
 
   return null;
