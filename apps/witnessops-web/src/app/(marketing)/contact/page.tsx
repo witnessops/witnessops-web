@@ -23,15 +23,6 @@ export const metadata: Metadata = {
   },
 };
 
-const ALLOWED_INTENTS = new Set([
-  "review",
-  "recon",
-  "assessment",
-  "continuous",
-  "compliance",
-  "custom",
-]);
-
 const reviewBullets = [
   "Authority boundary map",
   "Tool and permission review",
@@ -42,15 +33,8 @@ const reviewBullets = [
   "Operator recommendations",
 ];
 
-export default async function ContactPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ intent?: string | string[] }>;
-}) {
+export default function ContactPage() {
   const mailboxes = getMailboxConfig();
-  const params = (await searchParams) ?? {};
-  const rawIntent = Array.isArray(params.intent) ? params.intent[0] : params.intent;
-  const initialIntent = rawIntent && ALLOWED_INTENTS.has(rawIntent) ? rawIntent : undefined;
 
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1100px] px-6 py-20">
@@ -65,21 +49,21 @@ export default async function ContactPage({
           color: "var(--color-brand-muted)",
         }}
       >
-        Controlled &middot; Provable &middot; Bounded &middot; Fail-safe
+        Controlled · Provable · Bounded · Fail-safe
       </div>
 
       {/* Split layout */}
-      <div className="grid gap-0 md:grid-cols-2 border border-surface-border">
+      <div className="grid gap-0 border border-surface-border md:grid-cols-2">
         {/* Left — value prop */}
-        <div className="border-r border-surface-border p-10 md:p-12 flex flex-col justify-between">
+        <div className="flex flex-col justify-between border-r border-surface-border p-10 md:p-12">
           <div>
             <h1
-              className="text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary mb-4"
+              className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Request a review
             </h1>
-            <p className="text-sm leading-relaxed text-text-muted mb-8 max-w-[420px]">
+            <p className="mb-8 max-w-[420px] text-sm leading-relaxed text-text-muted">
               Bring one workflow, one automation boundary, or one operator
               decision path. WitnessOps returns a bounded review on authority,
               execution, evidence, and replayability.
@@ -125,10 +109,10 @@ export default async function ContactPage({
           <div
             className="mt-10"
             style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "var(--color-brand-muted)", lineHeight: 1.8 }}
-        >
-          <div>Respect the penguin.</div>
-          <div>Bring receipts.</div>
-        </div>
+          >
+            <div>Respect the penguin.</div>
+            <div>Bring receipts.</div>
+          </div>
         </div>
 
         {/* Right — form */}
@@ -150,7 +134,7 @@ export default async function ContactPage({
             Submit one real workflow, automation boundary, or operator decision
             path for bounded review.
           </p>
-          <ContactForm contactEmail={mailboxes.engage} initialIntent={initialIntent} />
+          <ContactForm contactEmail={mailboxes.engage} />
         </div>
       </div>
     </main>
