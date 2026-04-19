@@ -11,41 +11,41 @@ draft: false
 
 ## Problem this page solves
 
-DORA asks entities to demonstrate operational resilience outcomes across governance, incident handling, testing, and third-party oversight. WitnessOps emits operational records, not legal determinations. Teams need a repeatable way to map evidence to DORA-oriented obligations while explicitly documenting boundaries, assumptions, and unresolved gaps.
+DORA asks entities to show operational resilience outcomes across governance, incident handling, testing, and third-party oversight. WitnessOps emits operational records, not legal determinations. Teams need a repeatable way to map evidence to DORA-oriented obligations while clearly documenting boundaries, assumptions, and unresolved gaps.
 
 ## Reader outcome
 
-After completing this page, you should be able to:
+After this page, you should be able to:
 
 - map a DORA-oriented obligation area to concrete WitnessOps artifacts
 - separate direct evidence from supporting context
 - document what independent verification can confirm
-- record residual gaps, trust assumptions, and manual dependencies
-- assemble a review packet without certification-style claims
+- record remaining gaps, trust assumptions, and manual dependencies
+- assemble a review packet without making certification-style claims
 
 ## Mechanism-first DORA mapping model
 
-Treat each mapping row as one mechanism under one DORA-oriented obligation area (for example: ICT risk governance traceability, incident evidence continuity, resilience testing evidence, third-party interaction controls, or accountability records).
+Treat each mapping row as one mechanism under one DORA-oriented obligation area, for example ICT risk governance traceability, incident evidence continuity, resilience testing evidence, third-party interaction controls, or accountability records.
 
-1. Name the obligation area and mechanism being examined.
-2. Attach direct evidence emitted by governed execution.
+1. Name the obligation area and the mechanism being examined.
+2. Attach the direct evidence emitted by governed execution.
 3. Attach independent verification output for continuity, attribution, and consistency.
 4. Add supporting context needed for scope and policy interpretation.
 5. Record what remains manual, external, legal, or unresolved.
-6. Link exact artifacts a reviewer can inspect without oral reconstruction.
+6. Link the exact artifacts a reviewer can inspect without oral reconstruction.
 
 | DORA-oriented obligation area | Mechanism under review | Direct evidence (required) | Supporting context (optional) | Verification question | Residual gap / dependency |
 | --- | --- | --- | --- | --- | --- |
 | ICT risk governance traceability | Approval and constrained execution path | approvals, identity-linked actions, runbook constraints, execution receipts | policy ownership notes, control narratives, committee references | Do approvals, actors, and executed actions remain attributable end-to-end? | Enterprise risk framework design and board accountability are external |
-| ICT systems and control governance support | Declared tool/workflow boundary enforcement | adapter metadata, allow/deny events, governed workflow logs, exception records | infrastructure standards, platform architecture notes | Did execution stay inside declared and approved control boundaries? | Baseline infrastructure hardening and tooling governance may live outside WitnessOps |
+| ICT systems and control governance support | Declared tool and workflow boundary enforcement | adapter metadata, allow/deny events, governed workflow logs, exception records | infrastructure standards, platform architecture notes | Did execution stay inside declared and approved control boundaries? | Baseline infrastructure hardening and tooling governance may live outside WitnessOps |
 | ICT incident evidence readiness support | Incident observation and escalation chain | timestamped observations, preserved artifacts, escalation records, receipt-linked timelines | incident taxonomy, notification playbooks | Is incident evidence complete, attributable, and linked to declared scope? | Legal classification and authority reporting remain organization-owned |
 | Digital operational resilience testing support | Authorized test execution and evidence preservation | test scope records, authorizations, execution receipts, artifact manifests | test program cadence, sampling rationale | Do recorded test actions and artifacts match approved scope and declared steps? | Test adequacy and regulatory interpretation are external judgments |
-| Third-party ICT dependency oversight support | Controlled interaction with external systems | scoped target records, approval history, interaction logs, evidence bundles | vendor inventory, contract obligations | Do third-party interactions match declared scope and preserved evidence? | Vendor governance, concentration-risk analysis, and contract enforcement are external |
-| Auditability and accountability records | Closure and reviewer-ready evidence packet | closeout records, manifests, receipts, verification outputs | retention policy references, archive procedures | Can a reviewer reconstruct what happened from artifacts alone? | Long-term retention and legal-hold controls may depend on external systems |
+| Third-party ICT dependency oversight support | Controlled interaction with outside systems | scoped target records, approval history, interaction logs, evidence bundles | vendor inventory, contract obligations | Do third-party interactions match declared scope and preserved evidence? | Vendor governance, concentration-risk analysis, and contract enforcement are external |
+| Auditability and accountability records | Closure and reviewer-ready evidence packet | closeout records, manifests, receipts, verification outputs | retention policy references, archive procedures | Can a reviewer reconstruct what happened from artifacts alone? | Long-term retention and legal-hold controls may depend on outside systems |
 
 This is a mapping aid, not a DORA conformity decision or certification instrument.
 
-## Evidence classes and mapping logic (direct evidence vs supporting context)
+## Evidence classes and mapping logic
 
 **Direct evidence** is generated by execution and evidence systems and is required for bounded mapping claims:
 
@@ -57,18 +57,18 @@ This is a mapping aid, not a DORA conformity decision or certification instrumen
 
 Use this logic:
 
-- if direct evidence is present and independently verifiable, the row can support a bounded claim about recorded activity
-- if only supporting context is present, mark the row as contextual support, not evidentiary proof
-- if direct evidence and context conflict, preserve both and mark the mismatch for review
+- If direct evidence is present and independently verifiable, the row can support a bounded claim about recorded activity.
+- If only supporting context is present, mark the row as contextual support, not evidentiary proof.
+- If direct evidence and context conflict, preserve both and mark the mismatch for review.
 
-## Bounded claims (what mapping can support vs cannot assert)
+## Bounded claims (what mapping can support vs what it cannot assert)
 
 ### What this mapping can support
 
 - that specific governed actions occurred and were recorded
 - that artifact-to-claim linkage is inspectable
-- that independent verification confirmed integrity/continuity checks on mapped records
-- that explicit gaps and external dependencies were documented
+- that independent verification confirmed integrity and continuity checks on mapped records
+- that explicit gaps and outside dependencies were documented
 
 ### What this mapping cannot assert
 
@@ -93,10 +93,10 @@ Only observed data is directly verifiable from system records. Inferred conclusi
 Record assumptions explicitly in each mapping packet, including:
 
 - identity and access-control integrity outside this mapping
-- host/platform integrity where evidence is generated and stored
+- host and platform integrity where evidence is generated and stored
 - key-management and signing-control integrity
-- retention and archival behavior in external systems
-- completeness/correctness of upstream systems (CMDB, ticketing, vendor records, SIEM)
+- retention and archival behavior in outside systems
+- completeness and correctness of upstream systems such as CMDB, ticketing, vendor records, and SIEM
 - legal interpretation and governance decisions owned by the organization
 
 If an assumption is unverified in the packet, treat it as a stated limit.
