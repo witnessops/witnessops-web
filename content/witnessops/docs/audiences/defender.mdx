@@ -13,7 +13,7 @@ This page defines the defender lane for analysts and responders who triage suspi
 
 ## 1. Problem this page solves
 
-Defender work fails when triage, containment, and escalation happen without explicit decision ownership and evidence thresholds.
+Defender work fails when triage, containment, and escalation happen without clear decision ownership and evidence thresholds.
 
 This page gives the first-pass path so defender decisions stay fast, auditable, and proportional under uncertainty.
 
@@ -44,8 +44,8 @@ After this page, you should understand:
 | --- | --- | --- |
 | Triage classification | Decide whether signals are informational, suspicious, or confirmed malicious based on available artifacts | [Evidence](/docs/evidence), [Operations](/docs/operations) |
 | Containment selection | Apply the least disruptive containment that reduces live risk while preserving future investigation value | [Operations](/docs/operations), [Runbooks](/docs/operations/runbooks) |
-| Escalation trigger | Escalate when compromise indicators, privileged exposure, spread potential, or boundary uncertainty exceeds defender authority | [Do I Need to Escalate?](/docs/decisions/escalation), [Authorization Model](/docs/governance/authorization-model) |
-| Evidence sufficiency | Ensure case artifacts support later approval, incident review, and post-incident decisions | [What Evidence Is Required?](/docs/decisions/evidence-required), [Evidence](/docs/evidence) |
+| Escalation trigger | Escalate when compromise indicators, privileged exposure, spread potential, or boundary uncertainty exceed defender authority | [Do I Need to Escalate?](/docs/decisions/escalation), [Authorization Model](/docs/governance/authorization-model) |
+| Evidence sufficiency | Make sure case artifacts support later approval, incident review, and post-incident decisions | [What Evidence Is Required?](/docs/decisions/evidence-required), [Evidence](/docs/evidence) |
 
 ### Defer initially
 
@@ -59,24 +59,24 @@ Defer these until the current case is triaged and either contained or escalated:
 
 | Layer | What is observed | What is inferred |
 | --- | --- | --- |
-| Alert and artifact review | message/header artifacts, sender infrastructure data, auth results, linked indicators, timeline events | attacker intent, campaign attribution, full blast radius |
-| Containment and response | account disable/reset actions, mail-flow blocks, endpoint/network controls, timestamps, case notes | certainty that all persistence paths are removed |
+| Alert and artifact review | message and header artifacts, sender infrastructure data, auth results, linked indicators, timeline events | attacker intent, campaign attribution, full blast radius |
+| Containment and response | account disable or reset actions, mail-flow blocks, endpoint or network controls, timestamps, case notes | certainty that all persistence paths are removed |
 | Escalation readiness | explicit evidence gaps, policy boundary breaches, privileged impact signals | business impact severity beyond currently observed evidence |
 
-Treat inferred conclusions as hypotheses until additional evidence confirms them.
+Treat inferred conclusions as hypotheses until more evidence confirms them.
 
 ## 5. Role-specific trust assumptions
 
-Operate with these assumptions explicit:
+Operate with these assumptions kept explicit:
 
 - **Incoming signals are imperfect:** user reports, alerts, and artifacts may be incomplete, delayed, or intentionally deceptive.
 - **Evidence timing lags risk:** containment may begin before evidence is complete; record what was known at each decision point.
 - **Escalation timing is a control:** delaying escalation can increase impact, while premature escalation can disrupt operations without added safety.
 - **Scope and approval boundaries are configuration-backed:** defender actions still depend on accurate policy and workflow configuration.
-- **Runtime integrity is assumed:** host or key compromise invalidates workflow and evidence guarantees.
-- **Receipts attest execution, not correctness:** they prove what ran and what was captured, not whether your analytic conclusion is true.
+- **Runtime integrity is assumed:** host or key compromise breaks workflow and evidence guarantees.
+- **Receipts attest execution, not correctness:** they prove what ran and what was captured, not whether the analytic conclusion is true.
 
-See [Threat Model](/docs/security-systems/threat-model) for the full trust boundary map.
+See [Threat Model](/docs/security-systems/threat-model) for the full trust-boundary map.
 
 ## 6. Next-page handoff
 
