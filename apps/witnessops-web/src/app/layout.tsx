@@ -40,10 +40,12 @@ export const metadata: Metadata = {
   },
 };
 
-const appShellStyle = {
-  ["--app-navbar-height" as any]: "72px",
+const appShellStyle: React.CSSProperties & {
+  "--app-navbar-height": string;
+} = {
+  "--app-navbar-height": "72px",
   scrollPaddingTop: "calc(var(--app-navbar-height) + 16px)",
-} as React.CSSProperties;
+};
 
 export default function RootLayout({
   children,
