@@ -9,7 +9,7 @@ draft: false
 
 # Proof Artifact Classes
 
-This page is the artifact-class naming contract for operators, approvers/reviewers, and integrators. Use it to keep artifact names consistent across public docs, `/verify`, `/api/verify`, and retained-reference verifier/corpus material.
+This page is the artifact-class naming contract for operators, approvers and reviewers, and integrators. Use it to keep artifact names consistent across public docs, `/verify`, `/api/verify`, and retained-reference verifier or corpus material.
 
 ## Quick reference links
 
@@ -27,8 +27,8 @@ Artifact labels drift fastest at the boundaries between execution, verification,
 
 After this page:
 
-- operators can map run outputs to the correct artifact class names
-- reviewers/approvers can separate live/public classes from retained-reference-only classes
+- operators can map run outputs to the correct artifact-class names
+- reviewers and approvers can separate live and public classes from retained-reference-only classes
 - integrators can avoid promoting internal or corpus-only terms into public contracts
 
 ## 3. Current artifact classes (authoritative)
@@ -38,12 +38,12 @@ After this page:
 | `receipt` | WitnessOps receipt contract | `live / public` | [Receipts](/docs/evidence/receipts), [Receipt Spec](/docs/evidence/receipt-spec), [How to Verify a Receipt](/docs/how-it-works/verification), `/verify`, `/api/verify` | Atomic proof statement for governed events in the current public lane. |
 | `proof bundle` | WitnessOps bundle + verification contract | `live / public` | [Evidence Bundles](/docs/how-it-works/evidence-bundles), [How to Verify a Receipt](/docs/how-it-works/verification), `/verify` explanatory copy | Portable package for receipt-linked trust artifacts. `/verify` v1 does not accept bundle uploads. |
 | `manifest` | Bundle-verification lane (`MANIFEST.json`) | `current verifier / bundle term` | [Evidence Bundles](/docs/how-it-works/evidence-bundles), [Receipt Spec](/docs/evidence/receipt-spec) verification model | Inventory and digest anchor inside a proof bundle. |
-| `verification result` | Verification contract + verify response contract | `live output term` | [How to Verify a Receipt](/docs/how-it-works/verification), [Receipt Spec](/docs/evidence/receipt-spec), `/api/verify` responses | Output semantics are `valid`, `invalid`, `indeterminate` at contract level (details below). |
-| `witness record` | Retained-reference verifier/corpus vocabulary | `retained-reference / corpus class` | Retained-reference fixtures/corpus vocabulary and internal taxonomy surfaces | Not a first-class live/public artifact class for operator-facing docs. |
-| `runtime trace` | Retained-reference verifier/corpus vocabulary | `retained-reference / corpus class` | Retained-reference fixtures/corpus vocabulary and internal taxonomy surfaces | Keep as retained-reference terminology unless a live lane freezes it. |
-| `proof-object` | Retained-reference verifier/corpus vocabulary | `retained-reference / corpus class` | Retained-reference fixtures/corpus vocabulary and internal taxonomy surfaces | Do not equate this class with generic prose "proof object" without an explicit lane freeze. |
-| `delivery record` | Control-plane delivery lifecycle (`witnessops-control-plane`) | `planned, not live` | Internal delivery lifecycle code/tests | Not a public proof-artifact class in the current docs contract. |
-| `acknowledgment` | Control-plane post-delivery lifecycle (`witnessops-control-plane`) | `planned, not live` | Internal delivery lifecycle code/tests | Delivery-state term, not a frozen live/public artifact class. |
+| `verification result` | Verification contract + verify response contract | `live output term` | [How to Verify a Receipt](/docs/how-it-works/verification), [Receipt Spec](/docs/evidence/receipt-spec), `/api/verify` responses | Output semantics are `valid`, `invalid`, `indeterminate` at contract level. |
+| `witness record` | Retained-reference verifier or corpus vocabulary | `retained-reference / corpus class` | Retained-reference fixtures, corpus vocabulary, and internal taxonomy surfaces | Not a first-class live or public artifact class for operator-facing docs. |
+| `runtime trace` | Retained-reference verifier or corpus vocabulary | `retained-reference / corpus class` | Retained-reference fixtures, corpus vocabulary, and internal taxonomy surfaces | Keep as retained-reference terminology unless a live lane freezes it. |
+| `proof-object` | Retained-reference verifier or corpus vocabulary | `retained-reference / corpus class` | Retained-reference fixtures, corpus vocabulary, and internal taxonomy surfaces | Do not equate this class with generic prose "proof object" without an explicit lane freeze. |
+| `delivery record` | Control-plane delivery lifecycle (`witnessops-control-plane`) | `planned, not live` | Internal delivery lifecycle code and tests | Not a public proof-artifact class in the current docs contract. |
+| `acknowledgment` | Control-plane post-delivery lifecycle (`witnessops-control-plane`) | `planned, not live` | Internal delivery lifecycle code and tests | Delivery-state term, not a frozen live or public artifact class. |
 
 ## 4. Status semantics and verification-result semantics
 
@@ -51,11 +51,11 @@ After this page:
 
 | Status label | Meaning | Interpretation boundary |
 | --- | --- | --- |
-| `live / public` | Current class name for public docs and operator/reviewer-facing surfaces | Safe to use in current public documentation and route-level explanations |
+| `live / public` | Current class name for public docs and operator or reviewer-facing surfaces | Safe to use in current public documentation and route-level explanations |
 | `live output term` | Current public output vocabulary from verification-facing surfaces | Use for result reporting; do not expand beyond stated verification scope |
 | `current verifier / bundle term` | Active term inside bundle-verification structure | Treat as bundle-contract vocabulary, not a generic runtime-event label |
-| `retained-reference / corpus class` | Observed in retained-reference verifier/corpus material | Do not present as guaranteed live/public class behavior |
-| `planned, not live` | Name appears in internal/planning lanes but is not frozen publicly | Must be marked non-live; not a public contract claim |
+| `retained-reference / corpus class` | Observed in retained-reference verifier or corpus material | Do not present as guaranteed live or public class behavior |
+| `planned, not live` | Name appears in internal or planning lanes but is not frozen publicly | Must be marked non-live; not a public contract claim |
 
 ### Verification-result status semantics
 
@@ -63,9 +63,9 @@ For verification output interpretation:
 
 - `valid`: required checks for the declared scope passed
 - `invalid`: one or more proof-bearing checks failed
-- `indeterminate`: external trust requirement was declared but could not be established locally
+- `indeterminate`: an external trust requirement was declared but could not be established locally
 
-Current `/api/verify` v1 for supported receipt inputs is receipt-first and returns deterministic receipt-lane verdicts, while malformed/unsupported input classes are reported separately (`FAILURE_INPUT_MALFORMED`, `FAILURE_INPUT_UNSUPPORTED`).
+Current `/api/verify` v1 for supported receipt inputs is receipt-first and returns deterministic receipt-lane verdicts, while malformed or unsupported input classes are reported separately (`FAILURE_INPUT_MALFORMED`, `FAILURE_INPUT_UNSUPPORTED`).
 
 ## 5. Explicit scope limits and non-claims
 
@@ -73,7 +73,7 @@ This page is a naming and status reference only. It does not:
 
 - freeze a full, universal proof-object ontology
 - widen `/verify` v1 into full bundle-upload or artifact-byte revalidation claims
-- promote retained-reference/corpus-only terms into live/public operator contracts
+- promote retained-reference or corpus-only terms into live or public operator contracts
 - replace [Verification](/docs/how-it-works/verification), [Receipt Spec](/docs/evidence/receipt-spec), or [Threat Model](/docs/security-systems/threat-model)
 - expose internal-only proof implementation detail through operator-facing surfaces
 
