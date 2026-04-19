@@ -11,81 +11,115 @@ draft: false
 
 WitnessOps uses open standards for the cryptographic envelope, trusted time, and attestation layers. Some internal packaging and ledger formats remain custom, documented, and intentionally non-standard.
 
-## The Principle
+## 1. Problem this page solves
+
+Standards pages often collapse two separate questions:
+
+- which standards are used for core proof
+- which formats stay custom for internal operations
+
+This page keeps those layers separate and explains the order in which WitnessOps applies standards.
+
+## 2. What you should understand after reading
+
+After this page, you should understand:
+
+- which standards WitnessOps uses now
+- why those standards are applied in a specific order
+- what each standard contributes to the proof path
+- which internal formats stay custom and why
+
+## 3. Core principle
 
 > Standardize signature first, then time, then meaning, then ecosystem export.
 
-This is the frozen priority order. Each standard solves one problem cleanly, and they compose in sequence:
+This is the frozen priority order. Each standard solves one problem cleanly, and they compose in sequence.
 
 | Priority | Standard | What it solves |
 | --- | --- | --- |
-| 1 | **DSSE v1.0.2** | What exact bytes were signed |
-| 2 | **RFC 3161** | Trusted time over a signed object |
-| 3 | **in-toto v1.0** | What the signed claim means (structured attestation) |
-| 4 | **SLSA v1.2** | Build provenance and supply-chain assurance |
-| 5 | **SCITT** | Interoperable transparency receipts (future) |
+| 1 | **DSSE v1.0.2** | what exact bytes were signed |
+| 2 | **RFC 3161** | trusted time over a signed object |
+| 3 | **in-toto v1.0** | what the signed claim means as a structured attestation |
+| 4 | **SLSA v1.2** | build provenance and supply-chain assurance |
+| 5 | **SCITT** | interoperable transparency receipts in a future export lane |
 
-## Why This Order
+## 4. Why this order exists
 
-**DSSE first** because it solves the most dangerous ambiguity: "what exactly was signed?" Without DSSE, a signed blob could be interpreted as multiple payload types. DSSE binds the payload type and exact bytes into the signature. Every other standard builds on this.
+### DSSE first
 
-**RFC 3161 second** because trusted time is the biggest external-verification upgrade after signature clarity. A self-asserted timestamp from the issuer proves nothing to a skeptic. An RFC 3161 token from an independent timestamp authority proves the signed object existed before a specific time — and can be verified offline with the token and TSA chain alone.
+DSSE solves the most dangerous ambiguity first: **what exactly was signed?**
 
-**in-toto third** because it standardizes what the claim means. DSSE tells you the bytes are authentic. in-toto tells you the bytes represent a structured statement with a subject, a predicate type, and domain-specific content. This makes WitnessOps claims readable by standard attestation tooling.
+Without DSSE, a signed blob can be interpreted as multiple payload types. DSSE binds both payload type and exact bytes into the signature. Everything else builds on that.
 
-**SLSA and SCITT later** because they are ecosystem interoperability targets, not core proof primitives. SLSA matters when WitnessOps proof bundles need to interoperate with build provenance systems. SCITT matters when receipts need to be registered with external transparency services. Neither is required for local proof construction or offline verification.
+### RFC 3161 second
 
-## What Each Standard Provides
+Trusted time is the biggest verification upgrade after signature clarity.
+
+A self-asserted timestamp from the issuer proves very little to a skeptical reviewer. An RFC 3161 token from an independent timestamp authority proves the signed object existed before a specific time and can be checked offline with the token and TSA chain.
+
+### in-toto third
+
+in-toto standardizes what the claim means.
+
+DSSE tells you the bytes are authentic. in-toto tells you the bytes represent a structured statement with a subject, predicate type, and domain-specific content. That makes WitnessOps claims readable by standard attestation tooling.
+
+### SLSA and SCITT later
+
+SLSA and SCITT are ecosystem interoperability targets, not core proof primitives.
+
+SLSA matters when WitnessOps bundles need to interoperate with build-provenance systems. SCITT matters when receipts need external transparency registration. Neither is required for local proof construction or offline verification.
+
+## 5. What each standard provides
 
 ### DSSE (Dead Simple Signing Envelope)
 
-- Wraps every signed receipt and claim
-- Prevents payload-type confusion attacks
-- Payload type: `application/vnd.witnessops.execution-receipt.v2+json`
-- Specification: [DSSE v1.0.2](https://github.com/secure-systems-lab/dsse/blob/master/protocol.md)
+- wraps every signed receipt and claim
+- prevents payload-type confusion attacks
+- payload type: `application/vnd.witnessops.execution-receipt.v2+json`
+- specification: DSSE v1.0.2
 
 ### RFC 3161 (Time-Stamp Protocol)
 
-- Timestamps the SHA-256 digest of the DSSE envelope bytes
-- Produces a portable, independently verifiable timestamp token
-- Token format: DER-encoded TimeStampResponse
-- Can be verified with OpenSSL or any RFC 3161-compatible tool
-- Specification: [RFC 3161](https://www.rfc-editor.org/rfc/rfc3161)
+- timestamps the SHA-256 digest of the DSSE envelope bytes
+- produces a portable, independently verifiable timestamp token
+- token format: DER-encoded `TimeStampResponse`
+- can be verified with OpenSSL or any RFC 3161-compatible tool
+- specification: RFC 3161
 
 ### in-toto (Attestation Framework)
 
-- Wraps claims as standard statements with subject, predicate type, and predicate content
+- wraps claims as standard statements with subject, predicate type, and predicate content
 - WitnessOps uses custom predicate types for execution receipts, promotions, drift, and rollbacks
-- Allows standard attestation tooling to parse WitnessOps claims without WitnessOps-specific code
-- Specification: [in-toto Attestation Framework v1.0](https://github.com/in-toto/attestation)
+- allows standard attestation tooling to parse WitnessOps claims without WitnessOps-specific code
+- specification: in-toto Attestation Framework v1.0
 
-## What Stays Custom
+## 6. What stays custom
 
-WitnessOps uses custom formats for internal operations that do not need ecosystem interoperability:
+WitnessOps keeps some internal formats custom because they do not need broader ecosystem interoperability:
 
-- **Hash-chained NDJSON ledgers** — the internal receipt chain format
-- **Merkle batch proofs** — the internal integrity structure
-- **Bundle directory layout** — the packaging convention
+- **hash-chained NDJSON ledgers** — internal receipt-chain format
+- **Merkle batch proofs** — internal integrity structure
+- **bundle directory layout** — packaging convention
 
-These formats are stable and documented but are not proposed as external standards. Standards are for export. Internal formats are for speed and operational control.
+These formats are stable and documented, but they are not proposed as external standards. Standards are for export. Internal formats are for operational speed and control.
 
-## Current Implementation Status
+## 7. Current implementation status
 
 | Standard | Status in WitnessOps |
 | --- | --- |
-| DSSE v1.0.2 | Implemented. Every receipt and claim is DSSE-wrapped. |
-| RFC 3161 | Implemented. Timestamp request generation and digest binding verification. TSA integration is operational. |
-| in-toto v1.0 | Implemented. Claims are emitted as in-toto Statements with custom predicates. |
-| SLSA v1.2 | Aligned. Build provenance predicates used where applicable. |
-| SCITT | Designed for future compatibility. Not yet required for core verification. |
+| DSSE v1.0.2 | implemented; every receipt and claim is DSSE-wrapped |
+| RFC 3161 | implemented; timestamp request generation and digest-binding verification are operational |
+| in-toto v1.0 | implemented; claims are emitted as in-toto Statements with custom predicates |
+| SLSA v1.2 | aligned; build-provenance predicates are used where applicable |
+| SCITT | future compatibility target; not required for core verification |
 
-## What This Means for Verifiers
+## 8. What this means for verifiers
 
-A verifier does not need WitnessOps-specific tools. Standard cryptographic libraries can:
+A verifier does not need WitnessOps-specific tooling for the core standards path. Standard cryptographic tooling can:
 
-- Parse the DSSE envelope and verify the Ed25519 signature
-- Verify the RFC 3161 timestamp token against the TSA certificate chain
-- Parse the in-toto Statement and inspect the predicate
-- Verify the Merkle inclusion proof against the checkpoint
+- parse the DSSE envelope and verify the Ed25519 signature
+- verify the RFC 3161 timestamp token against the TSA certificate chain
+- parse the in-toto Statement and inspect the predicate
+- verify the Merkle inclusion proof against the checkpoint
 
-WitnessOps is built to be verified, not to be trusted.
+WitnessOps is built to be verified, not to be trusted by default.
