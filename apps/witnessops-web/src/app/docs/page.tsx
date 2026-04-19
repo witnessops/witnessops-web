@@ -112,7 +112,7 @@ const entryPaths = [
         href: "/docs/how-it-works/verification",
         title: "4. Verification",
         description:
-          "Learn how to check receipts and bundles outside WitnessOps.",
+          "Learn how to check receipts and proof bundles outside WitnessOps.",
       },
     ],
   },
@@ -143,7 +143,7 @@ const entryPaths = [
         href: getSurfaceUrl("witnessops", "/verify"),
         title: "Public Verifier",
         description:
-          "Run checks against uploaded artifacts in the public surface.",
+          "Run receipt-first checks against receipt JSON in the public surface.",
       },
     ],
   },
@@ -217,8 +217,8 @@ export default async function DocsIndexPage() {
         </h1>
 
         <p className="mt-4 max-w-[700px] text-sm leading-relaxed tracking-wide text-text-muted">
-          Choose your next step: learn the model, verify a bundle, inspect sample
-          artifacts, or request a workflow review.
+          Choose your next step: learn the model, verify a receipt, inspect sample
+          bundles, or request a workflow review.
         </p>
 
         <p className="mt-3 max-w-[700px] text-sm leading-relaxed tracking-wide text-text-muted">
@@ -240,7 +240,7 @@ export default async function DocsIndexPage() {
           <CtaButton
             href="/docs/how-it-works/verification"
             variant="secondary"
-            label="Verify a bundle"
+            label="Verify a receipt"
           />
           <CtaButton
             href="/library"
