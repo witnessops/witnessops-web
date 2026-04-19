@@ -1,6 +1,6 @@
 ---
 title: "Receipt Specification"
-description: "Authoritative technical diligence page for WitnessOps Receipt v2, proof references, and the current verification model."
+description: "Technical reference for WitnessOps Receipt v2, its proof references, and what the current verifier can assert about it."
 section: "docs"
 order: 4
 nav_label: "Receipt Spec"
@@ -18,9 +18,9 @@ page_answer:
 
 # Receipt Specification
 
-This is the technical diligence page for WitnessOps Receipt v2. It defines what a receipt is expected to carry, which proof references matter, how continuity is expressed, and how the current verifier interprets the surrounding proof package.
+This is the technical reference page for WitnessOps Receipt v2. It explains what a receipt is expected to carry, which proof references matter, how continuity is expressed, and how the current verifier reads the surrounding proof package.
 
-If you need the conceptual overview first, start with [Receipts](/docs/evidence/receipts). If you need the operator workflow, go to [Verification](/docs/how-it-works/verification).
+If you need the concept first, start with [Receipts](/docs/evidence/receipts). If you need the operator workflow, go to [Verification](/docs/how-it-works/verification).
 
 ## 1. Problem this page solves
 
@@ -39,7 +39,7 @@ After this page, you should be able to answer:
 
 This page describes the public receipt contract. It does not replace the verifier implementation or bundle contract. It explains how they fit together.
 
-## Receipt v2 at a Glance
+## Receipt v2 at a glance
 
 Receipt v2 is the canonical statement WitnessOps issues for a governed event. It is designed to be:
 
@@ -47,7 +47,7 @@ Receipt v2 is the canonical statement WitnessOps issues for a governed event. It
 - structured enough for offline verification
 - narrow enough to stay atomic
 
-Receipt v2 is not the entire evidence bundle. It is the atomic proof statement inside the wider trust package.
+Receipt v2 is not the full evidence bundle. It is the atomic proof statement inside the wider trust package.
 
 At minimum, a Receipt v2 needs to express five things:
 
@@ -55,9 +55,9 @@ At minimum, a Receipt v2 needs to express five things:
 2. continuity position within a receipt stream
 3. claimed event details
 4. proof references to signed and timestamped material
-5. enough linkage to let a verifier connect the receipt to the bundle and chain around it
+5. enough linkage to connect the receipt to the bundle and chain around it
 
-## Canonical Shape
+## Canonical shape
 
 The public shape below is intentionally simplified, but it reflects the current model: a governed statement plus structured references to the cryptographic artifacts that bind it.
 
@@ -109,7 +109,7 @@ The public shape below is intentionally simplified, but it reflects the current 
 
 The exact packaging may vary by bundle or delivery format. The trust model does not: the receipt is the claim, and the bundle carries the surrounding material required to verify that claim.
 
-## Field Groups
+## Field groups
 
 ### Receipt identity
 
@@ -122,7 +122,7 @@ These fields identify the artifact being inspected.
 | `intent.type` | Names the governed event category |
 | `result.status` | Records the terminal outcome claimed by the issuer |
 
-These fields tell the verifier what kind of statement they are looking at. They do not establish continuity or proof strength by themselves.
+These fields tell the verifier what kind of statement they are looking at. They do not establish continuity or proof strength on their own.
 
 ### Continuity fields
 
@@ -149,7 +149,7 @@ These fields describe the governed event itself.
 | `intent` | What was requested under policy |
 | `result` | What WitnessOps says happened |
 
-These are critical for audit reconstruction, but they remain issuer claims until the surrounding proof material verifies.
+These fields matter for audit reconstruction, but they remain issuer claims until the surrounding proof material verifies.
 
 ### Proof reference fields
 
@@ -167,7 +167,7 @@ Receipt v2 carries references to cryptographic artifacts rather than pretending 
 
 These references matter because the receipt does not become portable proof until a verifier can locate and validate the signed, timestamped, and committed material around it.
 
-## DSSE Reference Model
+## DSSE reference model
 
 The signing layer is a DSSE envelope over the receipt statement. For diligence purposes, the important points are:
 
@@ -175,9 +175,9 @@ The signing layer is a DSSE envelope over the receipt statement. For diligence p
 - the envelope bytes are the object being signed
 - the envelope digest is the object later bound to trusted time
 
-That ordering matters. The timestamp should bind to the signed envelope, not to an unsigned precursor and not to a human-readable rendering.
+That order matters. The timestamp should bind to the signed envelope, not to an unsigned precursor and not to a human-readable rendering.
 
-## RFC 3161 Reference Model
+## RFC 3161 reference model
 
 WitnessOps uses RFC 3161 as the trusted-time reference for the signed object. In the public model:
 
@@ -187,7 +187,7 @@ WitnessOps uses RFC 3161 as the trusted-time reference for the signed object. In
 
 When the timestamp token is absent, the receipt may still be valid as a signed statement, but it proves less about time.
 
-## Canonicalization and Derived Hashes
+## Canonicalization and derived hashes
 
 Receipt verification depends on deterministic hashing. Two rules matter:
 
@@ -198,7 +198,7 @@ Current typed proof paths in the implementation follow this rule explicitly. Art
 
 For a technical buyer, the important consequence is simple: if canonicalization rules are ambiguous, trust drops immediately. WitnessOps treats canonicalization as part of the proof contract, not as a UI detail.
 
-## Current Verification Model
+## Current verification model
 
 The current public verification model is bundle-oriented. A receipt is evaluated in the context of the canonical proof bundle around it, not as an isolated text file.
 
@@ -217,11 +217,11 @@ Those statuses mean:
 | --- | --- |
 | `valid` | Required bundle structure and proof checks passed |
 | `invalid` | A proof-bearing check failed |
-| `indeterminate` | The bundle may be well-formed, but a required external trust condition was unavailable |
+| `indeterminate` | The bundle may be well-formed, but a required outside trust condition was unavailable |
 
 That last case matters. WitnessOps treats incomplete trust state differently from a hard cryptographic failure.
 
-## Current Failure Vocabulary
+## Current failure vocabulary
 
 The current verifier distinguishes between malformed input, failed proof, and missing trust context. Common public-facing failure classes include:
 
@@ -235,9 +235,9 @@ The current verifier distinguishes between malformed input, failed proof, and mi
 - `FAILURE_WITNESS_LINEAGE_MISMATCH`
 - `FAILURE_WITNESS_QUORUM_UNSATISFIED`
 
-For diligence review, that separation is important. A receipt that fails because bytes changed is different from a receipt that is well-formed but cannot satisfy a required witness policy.
+For diligence review, that separation matters. A receipt that fails because bytes changed is different from a receipt that is well-formed but cannot satisfy a required witness policy.
 
-## What Receipt v2 Proves
+## What Receipt v2 proves
 
 Receipt v2 proves that WitnessOps issued a specific governed statement and bound that statement into a continuity structure with explicit proof references.
 
@@ -248,7 +248,7 @@ When the surrounding bundle also verifies, the verifier can additionally conclud
 - the receipt sits inside the declared trust package
 - any declared witness policy or trust-registry requirement was satisfied, unless the verifier returns `indeterminate`
 
-## What Receipt v2 Does Not Prove
+## What Receipt v2 does not prove
 
 Receipt v2 does not, by itself, prove:
 
