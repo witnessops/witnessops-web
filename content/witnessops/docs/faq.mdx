@@ -15,52 +15,61 @@ Recurring operator and reviewer questions, answered with bounded claims.
 
 ### Is WitnessOps a scanner?
 
-No. WitnessOps governs tool execution (scope, policy gates, approvals, evidence capture). It can orchestrate scanners, but it is not a scanner engine itself.  
+No. WitnessOps governs tool execution: scope, policy gates, approvals, and evidence capture. It can orchestrate scanners, but it is not a scanner engine itself.
+
 **Scope limit:** finding quality still depends on the underlying tool and its configuration. See [Governed Execution](/docs/security-systems/governed-execution) and [Runbooks](/docs/operations/runbooks).
 
 ### What is the difference between execution and proof?
 
-Execution is runtime control (`executed`, `denied`, `paused`, `failed`). Proof is post-execution verification of signed and linked artifacts (`valid`, `invalid`, `indeterminate`).  
+Execution is runtime control (`executed`, `denied`, `paused`, `failed`). Proof is post-execution verification of signed and linked artifacts (`valid`, `invalid`, `indeterminate`).
+
 **Scope limit:** successful execution is not automatically a successful proof result, and proof validity is not a claim about business impact. See [Governed Execution](/docs/security-systems/governed-execution), [Proof Model](/docs/how-it-works/proof-model), and [How to Verify a Receipt](/docs/how-it-works/verification).
 
 ### What is the difference between proof and presentation?
 
-Proof artifacts are verification-bearing materials (receipts, manifests, trust material, continuity artifacts). Presentation is operator-facing display (dashboards, summaries, status views).  
+Proof artifacts are verification-bearing materials, such as receipts, manifests, trust material, and continuity artifacts. Presentation is operator-facing display: dashboards, summaries, and status views.
+
 **Scope limit:** presentation can summarize proof, but it is not proof-bearing on its own. See [Proof Model](/docs/how-it-works/proof-model) and [Evidence Bundles](/docs/how-it-works/evidence-bundles).
 
 ### Does a receipt prove a finding is true?
 
-No. A receipt proves a governed claim was emitted and cryptographically bound to referenced artifacts.  
+No. A receipt proves a governed claim was emitted and cryptographically bound to referenced artifacts.
+
 **Scope limit:** receipt validity does not prove exploitability, severity, remediation quality, or organizational risk acceptance. See [Receipts](/docs/evidence/receipts), [Receipt Spec](/docs/evidence/receipt-spec), and [What Evidence Is Required?](/docs/decisions/evidence-required).
 
 ## Authority and Runtime Boundaries
 
 ### Who has authority to let a step run?
 
-Runtime gates evaluate policy-bound principals (`operator`, `approver`, `system`) and permit or deny execution accordingly.  
+Runtime gates evaluate policy-bound principals (`operator`, `approver`, `system`) and permit or deny execution accordingly.
+
 **Scope limit:** WitnessOps enforces the configured authorization contract; it does not independently guarantee upstream identity sources are truthful. See [Authorization Model](/docs/governance/authorization-model) and [Policy Gates](/docs/security-systems/policy-gates).
 
 ### Can an operator bypass policy gates?
 
-Not inside governed runtime: a failed gate blocks the step. A tool may still be run outside WitnessOps, but that action is outside governance and outside the WitnessOps receipt chain.  
+Not inside governed runtime: a failed gate blocks the step. A tool may still be run outside WitnessOps, but that action is outside governance and outside the WitnessOps receipt chain.
+
 **Scope limit:** lack of a WitnessOps receipt proves lack of governed execution for that action, not that no action happened elsewhere. See [Governed Execution](/docs/security-systems/governed-execution) and [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass).
 
 ### Where does independent verification happen?
 
-Verification is performed on exported proof artifacts, including on `/verify` and `/api/verify`, using deterministic integrity and signature checks.  
+Verification is performed on exported proof artifacts, including on `/verify` and `/api/verify`, using deterministic integrity and signature checks.
+
 **Scope limit:** verification checks declared proof layers; it does not rerun tools against live targets. See [How to Verify a Receipt](/docs/how-it-works/verification) and [Evidence Bundles](/docs/how-it-works/evidence-bundles).
 
 ## Evidence Sufficiency and Decisions
 
 ### How much evidence is enough?
 
-Enough means sufficient for the current decision (`proceed`, `close`, `escalate`), not maximum artifact volume.  
+Enough means sufficient for the current decision (`proceed`, `close`, `escalate`), not maximum artifact volume.
+
 **Scope limit:** more artifacts do not automatically strengthen a claim; sufficiency depends on claim relevance, quality, and reviewability. See [What Evidence Is Required?](/docs/decisions/evidence-required) and [Do I Need to Escalate?](/docs/decisions/escalation).
 
 ### Does WitnessOps replace reviewer judgment?
 
-No. WitnessOps makes execution and proof artifacts reviewable; humans still interpret risk, context, and acceptable action.  
-**Scope limit:** governance and proof reduce ambiguity but do not remove external trust assumptions. See [Three-Layer Stack](/docs/security-systems/three-layer-stack) and [Threat Model and Trust Boundaries](/docs/security-systems/threat-model).
+No. WitnessOps makes execution and proof artifacts reviewable; humans still interpret risk, context, and acceptable action.
+
+**Scope limit:** governance and proof reduce ambiguity but do not remove outside trust assumptions. See [Three-Layer Stack](/docs/security-systems/three-layer-stack) and [Threat Model and Trust Boundaries](/docs/security-systems/threat-model).
 
 ## Need term definitions first?
 
