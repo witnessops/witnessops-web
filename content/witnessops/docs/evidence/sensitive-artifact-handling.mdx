@@ -9,11 +9,11 @@ draft: false
 
 # Sensitive Artifact Handling
 
-WitnessOps evidence workflows sometimes require raw credentials, tokens, message bodies, or similar high-risk artifacts. This page defines a governed lifecycle so teams can preserve necessary evidence without treating raw sensitive data as routine documentation.
+WitnessOps evidence workflows sometimes require raw credentials, tokens, message bodies, or other high-risk artifacts. This page defines a governed lifecycle so teams can preserve necessary evidence without treating raw sensitive data as routine documentation.
 
 ## 1. Problem this page solves
 
-Operational teams often collect sensitive artifacts quickly but govern them inconsistently. That creates avoidable failure modes: over-collection, uncontrolled duplication, broad access, and retention without clear end conditions.
+Operational teams often collect sensitive artifacts quickly but govern them unevenly. That creates avoidable failure modes: over-collection, uncontrolled duplication, broad access, and retention without clear end conditions.
 
 This page defines a narrow control model for sensitive artifacts so reviewers can test:
 
@@ -26,7 +26,7 @@ This page defines a narrow control model for sensitive artifacts so reviewers ca
 
 After this page, you should be able to:
 
-- run a lifecycle for sensitive artifacts: collect, classify, store, access/share, retire
+- run a lifecycle for sensitive artifacts: collect, classify, store, access or share, retire
 - apply stage-specific decision gates before artifacts move forward
 - separate checkable handling facts from interpretation
 - state what the handling model can and cannot guarantee
@@ -37,23 +37,23 @@ Sensitive artifact handling is a staged control system, not a single storage rul
 
 ### Collect
 
-Collect only artifacts required for an approved objective. At collection time, record source, collector, time, and objective linkage. If the artifact is not needed to support the objective, do not collect it.
+Collect only artifacts required for an approved objective. At collection time, record the source, collector, time, and objective linkage. If the artifact is not needed to support the objective, do not collect it.
 
 ### Classify
 
-Assign a handling class before wider team use. At minimum, classify for credential/access risk, personal data content, legal/contract constraints, and operational blast radius if exposed. Unclassified artifacts stay quarantined.
+Assign a handling class before wider team use. At minimum, classify for credential or access risk, personal-data content, legal or contract constraints, and operational blast radius if exposed. Unclassified artifacts stay quarantined.
 
 ### Store
 
-Store raw artifacts only in approved controlled locations (for example, restricted `loot/` lanes or equivalent governed stores). WitnessOps receipts can bind hashes and provenance; they do not provide secret-at-rest controls by themselves. Do not duplicate raw secrets into notes, tickets, or report drafts.
+Store raw artifacts only in approved controlled locations, such as restricted `loot/` lanes or equivalent governed stores. WitnessOps receipts can bind hashes and provenance; they do not provide secret-at-rest controls on their own. Do not duplicate raw secrets into notes, tickets, or report drafts.
 
 ### Access and share
 
-Grant access by explicit role/need, not by convenience. Share the minimum form needed for the task: hash/reference first, redacted derivative second, raw artifact only when required and approved. Every external handoff should record recipient scope and purpose.
+Grant access by explicit role and need, not by convenience. Share the minimum form needed for the task: hash or reference first, redacted derivative second, raw artifact only when required and approved. Every outside handoff should record recipient scope and purpose.
 
 ### Retire
 
-Define retirement conditions at first storage: retention owner, trigger date/event, and destruction procedure. Before retirement, confirm no active legal or incident hold applies. Record retirement action so the artifact lifecycle has an auditable end state.
+Define retirement conditions at first storage: retention owner, trigger date or event, and destruction procedure. Before retirement, confirm no active legal or incident hold applies. Record the retirement action so the artifact lifecycle has an auditable end state.
 
 ## 4. Control boundaries and decision gates by lifecycle stage
 
@@ -61,21 +61,21 @@ Define retirement conditions at first storage: retention owner, trigger date/eve
 | --- | --- | --- | --- |
 | Collect | Authorization and minimum-necessary scope | Was this artifact explicitly authorized and required for the objective? | Stop collection and escalate to approver. |
 | Classify | Sensitivity and constraint labeling | Is the artifact labeled with handling class and constraints? | Keep quarantined; no broad access. |
-| Store | Approved containment boundary | Is storage location approved with narrow access controls and no uncontrolled copies? | Block placement and remediate storage path. |
-| Access/share | Need-to-know release boundary | Is recipient scope approved and payload minimized/redacted for purpose? | Deny transfer; require redaction or approval update. |
-| Retire | Retention and hold boundary | Has retention objective ended and hold status been cleared by owner? | Retain under hold and re-review at next gate date. |
+| Store | Approved containment boundary | Is the storage location approved with narrow access controls and no uncontrolled copies? | Block placement and remediate the storage path. |
+| Access/share | Need-to-know release boundary | Is recipient scope approved and payload minimized or redacted for the purpose? | Deny transfer; require redaction or approval update. |
+| Retire | Retention and hold boundary | Has the retention objective ended and has hold status been cleared by the owner? | Retain under hold and review again at the next gate date. |
 
-A passed gate means "allowed to proceed under current assumptions," not "risk eliminated."
+A passed gate means “allowed to proceed under current assumptions,” not “risk removed.”
 
 ## 5. Observed vs inferred separation
 
 | Layer | What is directly checkable | What is not proven by that check alone |
 | --- | --- | --- |
 | Observed handling facts | Collection authorization record, classification label, controlled storage reference, access log entry, retirement record | That all off-system copies were eliminated |
-| Inferred conclusions | "Because gates passed, handling was likely compliant" | Full legal adequacy or organizational policy completeness |
-| Outside this proof lane | Endpoint hygiene, human intent, external recipient controls | Requires separate security, legal, and governance evidence |
+| Inferred conclusions | “Because gates passed, handling was likely compliant” | Full legal adequacy or organizational policy completeness |
+| Outside this proof lane | Endpoint hygiene, human intent, outside recipient controls | Requires separate security, legal, and governance evidence |
 
-Keep reports explicit about which statements are observed controls versus inference.
+Keep reports explicit about which statements are observed controls and which are inference.
 
 ## 6. Trust assumptions and limits
 
@@ -90,9 +90,9 @@ Limits to state explicitly:
 
 - WitnessOps does not guarantee secret encryption, DLP, or recipient behavior outside approved systems
 - lifecycle gates reduce handling risk but do not remove breach or misuse risk
-- a valid receipt does not prove collection necessity or policy correctness by itself
+- a valid receipt does not prove collection necessity or policy correctness on its own
 - missing lifecycle records reduce confidence and should be reported as a control gap
 
 ## 7. Next-page handoff
 
-Continue to [Evidence Mapping](/docs/evidence-mapping) to map these handling controls and limits to external frameworks and reviewer-facing control objectives.
+Continue to [Evidence Mapping](/docs/evidence-mapping) to map these handling controls and limits to outside frameworks and reviewer-facing control objectives.
