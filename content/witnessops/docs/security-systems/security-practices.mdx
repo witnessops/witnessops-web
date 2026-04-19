@@ -9,13 +9,13 @@ draft: false
 
 # Security Practices
 
-This page defines the current security posture for WitnessOps operations: what controls are active, what evidence they emit, and where limits remain explicit.
+This page explains the current security posture for WitnessOps operations: which controls are active, what evidence they emit, and where the limits still are.
 
 ## 1. Problem this page solves
 
 Security claims become misleading when current controls, target-state goals, and trust assumptions are mixed together.
 
-This page separates those layers so readers can judge present posture without overclaiming maturity.
+This page separates those layers so readers can judge the present posture without overstating maturity.
 
 ## 2. What you should understand after reading
 
@@ -23,7 +23,7 @@ After this page, you should understand:
 
 - which controls are currently enforced
 - what evidence those controls emit
-- which threat/failure classes remain outside protection
+- which threat and failure classes remain outside protection
 - where current state differs from target state
 
 ## 3. Mechanism-first security posture
@@ -32,10 +32,10 @@ After this page, you should understand:
 
 | Control | Current behavior | Evidence surface |
 | --- | --- | --- |
-| Governed execution boundary | Tool runs only through authorized runbook path | runbook state + gate records |
-| Artifact integrity | Outputs hashed at generation and bound to manifests | artifact hashes + manifest checks |
+| Governed execution boundary | Tools run only through an authorized runbook path | runbook state + gate records |
+| Artifact integrity | Outputs are hashed at generation and bound to manifests | artifact hashes + manifest checks |
 | Tier 1 receipt linkage | `M0 -> E0 -> P1 -> E2 -> R0 -> V0` binding is explicit and replayable | receipt chain + local recomputation |
-| Append-only execution state | step history appends over time | state continuity inspection |
+| Append-only execution state | Step history appends over time | state continuity inspection |
 
 ### Current vs target capabilities
 
@@ -54,7 +54,7 @@ After this page, you should understand:
 | Layer | What is observed | What is inferred |
 | --- | --- | --- |
 | Observed | documented controls, explicit gaps, emitted evidence artifacts | none beyond stated controls |
-| Inferred | risk reduction under current posture | depends on deployment discipline and external policy context |
+| Inferred | risk reduction under current posture | depends on deployment discipline and outside policy context |
 
 ## 5. Trust assumptions and limits
 
@@ -64,16 +64,16 @@ Current posture does not independently eliminate these risks:
 - malicious or tampered tool wrappers
 - network-level data tampering before capture
 - collusion or weak separation of duties
-- key compromise/loss without revocation support
+- key compromise or loss without revocation support
 
 These are explicit boundary conditions, not hidden exceptions.
 These controls improve integrity and reviewability, but they do not make compromise, collusion, or tool deception impossible.
 
 ## 6. Disclosure path
 
-Report vulnerabilities to **security@witnessops.com** (canonical mailbox).
+Report vulnerabilities to **security@witnessops.com**.
 
-`security+witnessops@witnessops.com` may be used as an optional alias when enabled, but does not replace canonical disclosure identity.
+`security+witnessops@witnessops.com` may be used as an optional alias when enabled, but it does not replace the canonical disclosure identity.
 
 ## 7. Next-page handoff
 
