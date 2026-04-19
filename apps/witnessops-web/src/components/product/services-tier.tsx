@@ -27,7 +27,7 @@ export function ServicesTier() {
         "Bounded review report",
         "Named weak points and next steps",
       ],
-      cta: { label: "Request review", href: "/contact", variant: "primary" as const },
+      cta: { label: "Request review", href: "/review/request", variant: "primary" as const },
       featured: true,
     },
     {
