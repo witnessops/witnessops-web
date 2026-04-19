@@ -9,7 +9,7 @@ draft: false
 
 # Glossary
 
-Canonical definitions for the `/docs` surface. These terms describe current live/public WitnessOps behavior; retained-reference or corpus terms are out of scope unless explicitly linked.
+Canonical definitions for the `/docs` surface. These terms describe current live and public WitnessOps behavior. Retained-reference or corpus terms are out of scope unless explicitly linked.
 
 ## Quick reference links
 
@@ -19,7 +19,7 @@ Canonical definitions for the `/docs` surface. These terms describe current live
 - [Glossary](/docs/glossary) (current page)
 - [man witnessops(7)](/docs/man/witnessops)
 
-## Canonical term families
+## Term families
 
 ### Governance and execution control
 
@@ -42,6 +42,7 @@ Canonical definitions for the `/docs` surface. These terms describe current live
 ### Approval Gate
 
 A policy gate that pauses a step until an approver records an explicit decision.
+
 **Scope note:** This is narrower than a policy gate. In the Tier 1 chain, the approval decision is represented as `P1`.
 
 ### Campaign
@@ -51,20 +52,23 @@ A related set of governed runs and evidence chains for one operational objective
 ### Canonical Mailbox
 
 The shared Microsoft 365 mailbox `security@witnessops.com`, used as the canonical Tier 1 mailbox identity.
+
 **Scope note:** `security+witnessops@witnessops.com` can be an optional receive-only alias when plus addressing is enabled, but it does not replace the canonical mailbox.
 
 ### Deterministic Replay
 
 Recomputing chain integrity from serialized artifacts without relying on live mailbox, network, or UI state.
-**Scope note:** Replay verifies artifact integrity and continuity; it does not re-run tools against live targets.
+
+**Scope note:** Replay verifies artifact integrity and continuity. It does not re-run tools against live targets.
 
 ### Evidence Manifest
 
-The signed/hashed inventory (for example `MANIFEST.json`) that lists bundle artifacts and expected digests.
+The signed or hashed inventory, for example `MANIFEST.json`, that lists bundle artifacts and expected digests.
 
 ### Execution Chain
 
 The published Tier 1 continuity sequence `M0 -> E0 -> P1 -> E2 -> R0 -> V0`.
+
 **Scope note:** This sequence is a continuity contract, not a claim that every operational fact is represented.
 
 ### Governed Execution
@@ -89,26 +93,29 @@ Tier 1 post-approval execution-evidence checkpoint.
 
 ### MX0
 
-Internal-only mailbox transport/export evidence that may feed `E0`.
+Internal-only mailbox transport or export evidence that may feed `E0`.
+
 **Scope note:** `MX0` is not a published proof artifact.
 
 ### Operator
 
 The principal that initiates and runs a governed workflow step.
+
 **Scope note:** Operator identity is recorded for auditability, but identity truthfulness is an external trust assumption.
 
 ### Policy Gate
 
-A required pre-execution control check (for example scope, approval, tool allowlist, or environment constraints). A step runs only when its required gates pass.
+A required pre-execution control check, for example scope, approval, tool allowlist, or environment constraints. A step runs only when its required gates pass.
 
 ### Principal
 
-A policy-bound identity class (`operator`, `approver`, or `system`) used in authorization and gate evaluation.
+A policy-bound identity class — `operator`, `approver`, or `system` — used in authorization and gate evaluation.
 
 ### Proof Bundle
 
 A portable package that carries receipt material, digest inventories, and trust artifacts for offline verification.
-**Scope note:** A proof bundle transports proof artifacts; it is not itself a guarantee that all external trust assumptions hold.
+
+**Scope note:** A proof bundle transports proof artifacts. It is not itself a guarantee that all outside trust assumptions hold.
 
 ### R0
 
@@ -117,11 +124,12 @@ The published Tier 1 receipt wrapper. `R0` binds the frozen receipt projection (
 ### Receipt
 
 The atomic proof statement for a governed event.
-**Scope note:** In the Tier 1 naming lane, `R0` is the published receipt wrapper inside the chain; receipt validity still does not prove tool correctness or business-impact conclusions.
+
+**Scope note:** In the Tier 1 naming lane, `R0` is the published receipt wrapper inside the chain. Receipt validity still does not prove tool correctness or business-impact conclusions.
 
 ### Receipt Chain
 
-Another name for the execution chain continuity path. See [Execution Chain](#execution-chain).
+Another name for the execution-chain continuity path. See [Execution Chain](#execution-chain).
 
 ### Runbook
 
@@ -142,18 +150,21 @@ A domain, address range, or asset identifier authorized by scope policy for an o
 ### V0
 
 The local verification result for the published Tier 1 chain.
-**Scope note:** `V0` is local/offline replay output, not a live dependency on mailbox, Graph, Defender, or UI session state.
+
+**Scope note:** `V0` is local and offline replay output, not a live dependency on mailbox, Graph, Defender, or UI session state.
 
 ### Verification Result
 
-The contract verdict returned by verification surfaces (`valid`, `invalid`, `indeterminate`) for declared checks.
-**Scope note:** `indeterminate` means required external trust context could not be established locally; it is not the same as cryptographic failure.
+The contract verdict returned by verification surfaces — `valid`, `invalid`, or `indeterminate` — for declared checks.
+
+**Scope note:** `indeterminate` means required outside trust context could not be established locally. It is not the same as cryptographic failure.
 
 ### Witness
 
 An independent verification-side observer that can attest to declared proof-policy conditions.
-**Scope note:** Witness semantics belong to verification/trust layers, not to core execution-runtime control.
+
+**Scope note:** Witness semantics belong to verification and trust layers, not to core execution-runtime control.
 
 ## Next-page handoff
 
-For operator-facing command semantics and route-level runtime/receipt behavior, continue to [man witnessops(7)](/docs/man/witnessops).
+For operator-facing command semantics and route-level runtime and receipt behavior, continue to [man witnessops(7)](/docs/man/witnessops).
