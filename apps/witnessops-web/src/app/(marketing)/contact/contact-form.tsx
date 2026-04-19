@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-type FieldName = "name" | "org" | "email" | "intent" | "scope";
+type FieldName = "name" | "org" | "email" | "scope";
 
 const labelStyle: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
@@ -15,38 +15,16 @@ const labelStyle: React.CSSProperties = {
 const inputClass =
   "w-full bg-transparent border-0 border-b border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none py-2";
 
-const selectClass =
-  "w-full border-0 border-b border-surface-border bg-transparent py-2 pr-10 text-left text-text-primary focus:border-brand-accent focus:outline-none";
-
 const inputStyle: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
   fontSize: 13,
   letterSpacing: "0.03em",
 };
 
-const optionStyle: React.CSSProperties = {
-  backgroundColor: "#ffffff",
-  color: "#111111",
-};
-
-function SelectChevron() {
-  return (
-    <span
-      aria-hidden="true"
-      className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-brand-muted"
-      style={{ fontSize: 10, lineHeight: 1 }}
-    >
-      v
-    </span>
-  );
-}
-
 export function ContactForm({
   contactEmail,
-  initialIntent,
 }: {
   contactEmail: string;
-  initialIntent?: string;
 }) {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("Failed to send. Please try again.");
@@ -80,7 +58,7 @@ export function ContactForm({
           name: data.get("name"),
           org: data.get("org"),
           email: data.get("email"),
-          intent: data.get("intent"),
+          intent: "review",
           scope: data.get("scope"),
         }),
       });
@@ -101,17 +79,18 @@ export function ContactForm({
     }
   }
 
-  function handleInvalid(e: React.InvalidEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  function handleInvalid(e: React.InvalidEvent<HTMLInputElement | HTMLTextAreaElement>) {
     updateFieldError(e.currentTarget.name as FieldName, e.currentTarget.validationMessage);
   }
 
-  function handleFieldInput(e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  function handleFieldInput(e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const field = e.currentTarget;
     updateFieldError(field.name as FieldName, field.validity.valid ? "" : field.validationMessage);
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" aria-busy={status === "sending"}>
+      <input type="hidden" name="intent" value="review" />
       <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
         {status === "sending"
           ? "Sending..."
@@ -157,34 +136,16 @@ export function ContactForm({
       </div>
 
       <div>
-        <label htmlFor="intent" className="mb-2 block" style={labelStyle}>What kind of review do you need?</label>
-        <div className="relative">
-          <select
-            id="intent" name="intent" required
-            aria-invalid={fieldErrors.intent ? true : undefined}
-            onInvalid={handleInvalid} onInput={handleFieldInput}
-            className={`${selectClass} ${fieldErrors.intent ? "!border-signal-red" : ""}`}
-            style={{
-              ...inputStyle,
-              background: "transparent",
-              appearance: "none",
-              WebkitAppearance: "none",
-              MozAppearance: "none",
-              colorScheme: "light",
-            }}
-            defaultValue={initialIntent ?? ""}
-          >
-            <option value="" style={optionStyle}>Select review type</option>
-            <option value="review" style={optionStyle}>One workflow review</option>
-            <option value="recon" style={optionStyle}>External reconnaissance</option>
-            <option value="assessment" style={optionStyle}>Vulnerability assessment</option>
-            <option value="continuous" style={optionStyle}>Continuous proof-backed security</option>
-            <option value="compliance" style={optionStyle}>Compliance evidence</option>
-            <option value="custom" style={optionStyle}>Custom engagement</option>
-          </select>
-          <SelectChevron />
+        <div className="mb-2 block" style={labelStyle}>Review type</div>
+        <div
+          className="border border-surface-border bg-transparent px-3 py-3 text-text-primary"
+          style={{ ...inputStyle, lineHeight: 1.4 }}
+        >
+          One workflow review
         </div>
-        {fieldErrors.intent && <p className="mt-1 text-xs text-signal-red">{fieldErrors.intent}</p>}
+        <p className="mt-2 text-xs leading-relaxed text-text-muted">
+          This lane is bounded to one workflow, one automation boundary, or one operator decision path.
+        </p>
       </div>
 
       <div>
@@ -195,11 +156,15 @@ export function ContactForm({
           className="w-full bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none p-3"
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
           placeholder="Describe one workflow, automation boundary, or operator decision path."
+          onInvalid={handleInvalid}
+          onInput={handleFieldInput}
+          aria-invalid={fieldErrors.scope ? true : undefined}
         />
         <p id="scope-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
           Include the main systems involved, who can approve or act, and what
           evidence exists today.
         </p>
+        {fieldErrors.scope && <p className="mt-1 text-xs text-signal-red">{fieldErrors.scope}</p>}
       </div>
 
       <button
