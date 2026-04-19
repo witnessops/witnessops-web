@@ -13,9 +13,9 @@ Runbooks are the operational contract that turns authorized work into bounded, r
 
 ## 1. Problem this page solves
 
-Without runbooks, operations drift into ad hoc tool use and inconsistent evidence quality.
+Without runbooks, operations drift into ad hoc tool use and uneven evidence quality.
 
-This page defines how runbooks constrain execution shape so governed operations remain repeatable and reviewable.
+This page explains how runbooks constrain execution shape so governed operations stay repeatable and reviewable.
 
 ## 2. What you should understand after reading
 
@@ -24,18 +24,18 @@ After this page, you should understand:
 - what a runbook defines
 - how runbooks connect authorization to execution controls
 - how runbook steps relate to evidence and approvals
-- what this page leaves to deeper schema/command references
+- what this page leaves to deeper schema and command references
 
 ## 3. Mechanism-first runbook model
 
 1. **Authorized work enters operations.**
-2. **A runbook is selected by objective/risk class.**
+2. **A runbook is selected by objective and risk class.**
 3. **Scope and policy gates are declared per step.**
-4. **Execution runs in ordered bounded steps.**
+4. **Execution runs in ordered, bounded steps.**
 5. **Evidence and receipt continuity are emitted.**
 6. **Escalation or closure follows policy outcomes.**
 
-Runbooks govern execution shape; they do not replace authorization policy or verification logic.
+Runbooks govern execution shape. They do not replace authorization policy or verification logic.
 
 ## 4. Core runbook components
 
@@ -82,19 +82,19 @@ evidence:
 
 | Layer | What is observed | What is inferred |
 | --- | --- | --- |
-| Observed | declared step order, gate requirements, scope constraints, emitted evidence contract | none beyond declared runbook design |
+| Observed | declared step order, gate requirements, scope constraints, emitted evidence contract | none beyond the declared runbook design |
 | Inferred | operational quality and safety of outcomes | depends on execution discipline and enforcement fidelity |
 
 ## 6. Trust assumptions
 
 Runbook governance still depends on:
 
-- correctness of upstream authorization/scope inputs
-- runtime/tool integrity during execution
+- correctness of upstream authorization and scope inputs
+- runtime and tool integrity during execution
 - operator adherence to defined step and escalation behavior
 - exception-path controls when normal boundaries are bypassed
 
-Runbook versioning improves traceability, but does not independently prove execution quality.
+Runbook versioning improves traceability, but it does not prove execution quality on its own.
 
 ## 7. Next-page handoff
 
