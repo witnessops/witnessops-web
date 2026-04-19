@@ -11,7 +11,7 @@ draft: false
 
 Use this page to decide whether a target, workflow, or action is authorized before execution begins.
 
-Scope is not a description of intent. It is the boundary that determines whether execution is authorized at all.
+Scope is not a description of intent. It is the boundary that decides whether execution is authorized at all.
 
 ## 1. Problem this page solves
 
@@ -26,24 +26,24 @@ After this page, you should understand:
 - what scope check means in practice
 - which inputs are required before execution
 - which questions must be answered before proceeding
-- when to proceed, stop, escalate, or move to lab/non-production path
+- when to proceed, stop, escalate, or move to a lab or non-production path
 
 ## 3. Mechanism-first scope decision path
 
-1. **Identify target/workflow.** Confirm exact target identity and environment.
-2. **Identify authority source.** Confirm policy/approval source that authorizes this class of work.
-3. **Identify allowed action class.** Confirm intended action is allowed for this role and objective.
-4. **Identify constraints/exclusions.** Confirm boundaries, disallowed targets, and sensitivity limits.
-5. **Evaluate in-scope decision.** Determine whether execution is authorized under current facts.
-6. **Choose outcome.** Proceed, do not proceed, escalate, or shift to lab/non-production exception path.
+1. **Identify the target or workflow.** Confirm the exact target identity and environment.
+2. **Identify the authority source.** Confirm the policy or approval source that authorizes this class of work.
+3. **Identify the allowed action class.** Confirm the intended action is allowed for this role and objective.
+4. **Identify constraints and exclusions.** Confirm boundaries, disallowed targets, and sensitivity limits.
+5. **Evaluate the in-scope decision.** Determine whether execution is authorized under the current facts.
+6. **Choose the outcome.** Proceed, do not proceed, escalate, or shift to the lab or non-production exception path.
 
 ## 4. Required decision inputs
 
-At minimum, scope decision requires:
+At minimum, a scope decision requires:
 
-- target identity (system/account/artifact/workflow)
-- objective statement (why work is requested)
-- authority source (policy, approval, role boundary)
+- target identity (system, account, artifact, or workflow)
+- objective statement (why the work is requested)
+- authority source (policy, approval, or role boundary)
 - action class and expected impact
 - exclusions and escalation boundaries
 
@@ -53,8 +53,8 @@ If one of these is unclear, scope is not yet established.
 
 | Layer | What is observed | What is inferred |
 | --- | --- | --- |
-| Observed | policy/approval records, declared scope, target facts, action constraints | none beyond documented inputs |
-| Inferred | whether available inputs are sufficient for safe execution | depends on judgment quality and context completeness |
+| Observed | policy or approval records, declared scope, target facts, action constraints | none beyond the documented inputs |
+| Inferred | whether the available inputs are sufficient for safe execution | depends on judgment quality and context completeness |
 
 ## 6. Trust assumptions
 
@@ -64,16 +64,16 @@ Scope decisions depend on assumptions that may fail:
 - approvals can be broad but operationally ambiguous
 - correct judgment still depends on truthful upstream facts
 
-Documented scope method reduces drift; it does not eliminate judgment.
+A documented scope method reduces drift. It does not remove judgment.
 
 ## 7. Decision outcomes
 
 | Outcome | Condition | Action |
 | --- | --- | --- |
-| Proceed | inputs clear and authorization valid | continue under governed path |
+| Proceed | inputs are clear and authorization is valid | continue under the governed path |
 | Do not proceed | explicit out-of-scope or disallowed action | stop execution |
 | Escalate for clarification | ambiguity in target, authority, or impact | escalate before action |
-| Shift to lab/non-production path | normal scope cannot apply but controlled exception is justified | use documented exception controls ([Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass)) |
+| Shift to lab/non-production path | normal scope cannot apply but a controlled exception is justified | use documented exception controls ([Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass)) |
 
 ## 8. Next-page handoff
 
