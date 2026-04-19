@@ -1,6 +1,6 @@
 ---
 title: "Execution Chains"
-description: "How chained receipts become continuity, Merkle commitments, portable bundles, and a verifiable order of operations."
+description: "How chained receipts become continuity, portable bundles, and a verifiable order of operations."
 section: "docs"
 order: 3
 nav_label: "Execution Chains"
@@ -18,11 +18,11 @@ page_answer:
 
 # Execution Chains
 
-An execution chain is the continuity layer across multiple receipts. A receipt says one governed event was issued. A chain lets a reviewer test whether the presented event history is internally ordered and intact.
+An execution chain is the continuity layer across multiple receipts. A receipt says one governed event was issued. A chain lets a reviewer test whether the presented event history is ordered and intact.
 
 ## 1. Problem this page solves
 
-Single receipts are useful but incomplete for sequence review.
+Single receipts are useful, but they are not enough for sequence review.
 
 Reviewers usually need continuity answers:
 
@@ -30,14 +30,14 @@ Reviewers usually need continuity answers:
 - does the presented history have link breaks or missing segments?
 - were receipts reordered or modified after issuance?
 
-This page defines exactly what chain evidence can establish for those questions.
+This page explains exactly what chain evidence can establish for those questions.
 
 ## 2. Reader outcome
 
 After this page, you should be able to:
 
 - identify the fields that create chain continuity
-- run concrete continuity checks (link, order, integrity)
+- run concrete continuity checks such as link, order, and integrity
 - separate chain-backed conclusions from interpretation and assumptions
 
 ## 3. Mechanism-first chain model
@@ -48,26 +48,26 @@ Chain continuity comes from receipt fields, not from narrative summaries.
 
 Each receipt carries continuity fields in its ledger block:
 
-- `ledger.stream` -> which stream/lane the receipt belongs to
-- `ledger.seq` -> sequence position inside that stream
-- `ledger.prev_hash` -> declared hash of the prior receipt in that stream
-- `ledger.entry_hash` -> hash of this receipt's canonical bytes
+- `ledger.stream` → which stream or lane the receipt belongs to
+- `ledger.seq` → sequence position inside that stream
+- `ledger.prev_hash` → declared hash of the prior receipt in that stream
+- `ledger.entry_hash` → hash of this receipt's canonical bytes
 
 At minimum, a verifier checks that `prev_hash` in receipt _N_ matches `entry_hash` in the predecessor receipt for the same stream.
 
 ### Ordering
 
-Ordering is tested per stream, not across unrelated streams.
+Ordering is checked per stream, not across unrelated streams.
 
-A verifier groups receipts by `ledger.stream`, sorts by `ledger.seq`, and checks for unexpected gaps, duplicates, or predecessor mismatches. If boundaries are declared (for example, first/last sequence in a bundle), those boundaries must match what is presented.
+A verifier groups receipts by `ledger.stream`, sorts by `ledger.seq`, and checks for unexpected gaps, duplicates, or predecessor mismatches. If boundaries are declared, such as the first or last sequence in a bundle, those boundaries must match what is presented.
 
 ### Integrity continuity
 
 Integrity continuity is the combined result of:
 
-1. `entry_hash` recomputation matching each receipt's declared value
-2. `prev_hash` links matching predecessor `entry_hash` values
-3. sequence order checks passing for the claimed stream segment
+1. recomputing `entry_hash` and matching each receipt's declared value
+2. confirming `prev_hash` links match predecessor `entry_hash` values
+3. confirming sequence order checks pass for the claimed stream segment
 
 If any of those fail, continuity is broken for that segment.
 
@@ -76,7 +76,7 @@ If any of those fail, continuity is broken for that segment.
 | Chain evidence can support | Chain evidence cannot prove |
 | --- | --- |
 | Receipt A is linked as predecessor of Receipt B in the presented stream | The underlying real-world action definitely happened as described |
-| Presented sequence has no detected reorder/modify break under the checked rules | No events were omitted outside the declared stream boundary |
+| The presented sequence has no detected reorder or modify break under the checked rules | No events were omitted outside the declared stream boundary |
 | A declared stream segment is internally consistent | Operator judgment or approval quality was correct |
 | A bundle's chain material matches its own declared continuity links | Host integrity, tool correctness, or organizational policy quality |
 
@@ -100,10 +100,10 @@ Chain verification still depends on explicit assumptions:
 - issuance keys and signing controls were not subverted at issue time
 - stream identity and scope boundaries are declared honestly
 - the verifier received the full artifact set for the claimed chain segment
-- timestamp/trusted-time guarantees come from timestamp evidence, not chain order alone
+- timestamp and trusted-time guarantees come from timestamp evidence, not chain order alone
 
 When an assumption is uncertain, report reduced confidence instead of upgrading claims.
 
 ## 7. Next-page handoff
 
-Next, read [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling) to apply strict controls to raw credentials, tokens, and other high-risk artifacts that may accompany chain evidence.
+Next, read [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling) to apply stricter controls to raw credentials, tokens, and other high-risk artifacts that may accompany chain evidence.
