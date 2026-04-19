@@ -28,6 +28,11 @@ function sectionBulletColor(id: string): string {
   return "border-surface-border";
 }
 
+const desktopSidebarStyle = {
+  top: "var(--app-navbar-height, 72px)",
+  height: "calc(100vh - var(--app-navbar-height, 72px))",
+} as React.CSSProperties;
+
 export function DocsSidebar({ sections }: DocsSidebarProps) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -209,7 +214,10 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
 
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 lg:block">
-        <div className="sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto border-r border-surface-border bg-surface-bg-alt sidebar-kb-scroll">
+        <div
+          className="sticky overflow-y-auto border-r border-surface-border bg-surface-bg-alt sidebar-kb-scroll"
+          style={desktopSidebarStyle}
+        >
           {sidebarContent}
         </div>
       </aside>
