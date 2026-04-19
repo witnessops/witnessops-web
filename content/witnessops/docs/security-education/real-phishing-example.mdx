@@ -47,7 +47,7 @@ https://login-microsoft-security-check[.]com/verify
 |---|---|---|---|
 | Delivery | `phishing-email.eml` | sender or reply-to mismatch, header path, auth results | supports suspicious-message classification, not account compromise |
 | Interaction | click telemetry or browser history | whether and when the user opened or clicked | supports interaction timing, not credential exposure |
-| Credential capture | fake-page capture + user statement | non-canonical login domain, credential entry claim, unexpected MFA prompt context | supports likely credential exposure when corroborated |
+| Credential capture | fake-page capture + user statement | non-canonical login domain, credential-entry claim, unexpected MFA prompt context | supports likely credential exposure when corroborated |
 | Session establishment | identity sign-in logs | successful sign-in from an unfamiliar IP or device after interaction | supports possible unauthorized session |
 | Post-access actions | mailbox or cloud audit logs | forwarding rules, outbound anomalies, token or app changes | supports impact progression if present |
 
@@ -58,7 +58,7 @@ https://login-microsoft-security-check[.]com/verify
 | Claimed brand does not match sender domain | preserved email headers | impersonation attempt | that credentials were entered |
 | Link resolves to a non-canonical or lookalike domain | resolved URL evidence | lure destination is attacker-controlled or untrusted | that compromise already occurred |
 | User confirms entering credentials or approving MFA | user interview + timeline note | account-exposure likelihood | that the attacker successfully authenticated |
-| Successful new sign-in after the interaction window | identity-provider sign-in logs | possible unauthorized session establishment | full blast radius |
+| Successful new sign-in after the interaction window | identity-provider sign-in logs | possible unauthorized session establishment | full impact scope |
 | New forwarding rule or unusual outbound activity | mailbox audit logs | post-access activity likely occurred | attacker intent or attribution |
 
 ## Response decisions and escalation gates tied to evidence quality
@@ -69,8 +69,10 @@ https://login-microsoft-security-check[.]com/verify
   - Decision: preserve the full timeline, monitor sign-in telemetry, run endpoint checks if attachment interaction occurred.
 - **Gate C (account exposure likely):** credential entry, MFA approval, or suspicious new session evidence.
   - Decision: reset credentials, revoke sessions or tokens, inspect mailbox changes, execute [Phishing Investigation](/docs/scenarios/phishing-investigation).
-- **Gate D (high impact):** privileged account, multi-user spread, or payment/workflow impact.
+- **Gate D (high impact):** privileged account, multi-user spread, or payment or workflow impact.
   - Decision: escalate through the governed incident path with [Policy Gates](/docs/security-systems/policy-gates) before high-impact actions.
+
+Close locally only when the evidence is sufficient, the impact scope is bounded, and the selected action stays inside your authorization boundary. Otherwise escalate explicitly.
 
 ## What WitnessOps controls support vs cannot guarantee
 
@@ -92,7 +94,7 @@ https://login-microsoft-security-check[.]com/verify
 ## Observed vs inferred separation
 
 - **Observed:** preserved email headers, resolved URL, click timestamp, sign-in event record, mailbox rule-change log.
-- **Inferred:** "credentials were definitely stolen," "the attacker fully controlled the mailbox," or "scope is complete."
+- **Inferred:** "credentials were definitely stolen," "the attacker fully controlled the mailbox," or "the full impact scope is known."
 
 Use observed artifacts to justify immediate containment.
 Keep inferred claims explicit and provisional until more evidence confirms them.
@@ -109,7 +111,7 @@ Limits:
 
 - delayed reporting can remove short-lived evidence, such as redirect chains or transient sessions
 - adversaries may evade, suppress, or overwrite telemetry
-- some scope conclusions remain probabilistic until more corroborating evidence is collected
+- some impact-scope conclusions remain probabilistic until more corroborating evidence is collected
 
 ## Next-page handoff
 
