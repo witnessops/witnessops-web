@@ -2,33 +2,33 @@ export function ScanSteps() {
   const steps = [
     {
       num: "01",
-      title: "Verify Your Domain",
-      desc: "We confirm control of a mailbox on your business domain.",
-      badge: "DOMAIN VERIFIED",
+      title: "Name the boundary",
+      desc: "Choose one workflow, automation boundary, or operator decision path to review.",
+      badge: "SCOPE NAMED",
       badgeColor: "var(--color-text-muted)",
       badgeBorder: "var(--color-surface-border)",
     },
     {
       num: "02",
-      title: "Approve the Scope",
-      desc: "You see what will be tested and approve it before execution begins.",
-      badge: "APPROVAL GATE",
+      title: "Gather the evidence",
+      desc: "Provide the approvals, execution records, and artifacts that support judgment on that path.",
+      badge: "ARTIFACTS PRESENT",
       badgeColor: "var(--color-brand-accent)",
       badgeBorder: "rgba(255,107,53,0.2)",
     },
     {
       num: "03",
-      title: "Run the Operation",
-      desc: "WitnessOps executes the governed recon within the approved boundary.",
-      badge: "GOVERNED EXECUTION",
+      title: "Review the mechanism",
+      desc: "WitnessOps inspects authority, execution, evidence capture, and replayability for the bounded path.",
+      badge: "BOUNDED INSPECTION",
       badgeColor: "var(--color-brand-accent)",
       badgeBorder: "rgba(255,107,53,0.2)",
     },
     {
       num: "04",
-      title: "Receive Proof",
-      desc: "You get a security report, a signed receipt, and a clear verification path.",
-      badge: "RECEIPT SIGNED",
+      title: "Receive the judgment",
+      desc: "You get a bounded report with named weak points, blocked conclusions, and the next recommended step.",
+      badge: "REPORT RETURNED",
       badgeColor: "var(--color-signal-green)",
       badgeBorder: "rgba(0,212,126,0.2)",
     },
@@ -40,7 +40,7 @@ export function ScanSteps() {
         className="mb-3"
         style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--color-brand-muted)" }}
       >
-        How It Works
+        Review flow
       </p>
       <div className="grid grid-cols-1 gap-px bg-surface-border sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((step) => (
