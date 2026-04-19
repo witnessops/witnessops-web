@@ -13,7 +13,7 @@ Use this quickstart when you need a first-pass verification result without colla
 
 ## Scope and bounded references
 
-- Run the verification surface at [/verify](/verify).
+- Run the public verification surface at [/verify](/verify) for receipt-first v1 checks.
 - For full verification semantics, read [Verification](/docs/how-it-works/verification).
 - For receipt context, read [Receipts](/docs/evidence/receipts).
 - For field-level requirements, read [Receipt Spec](/docs/evidence/receipt-spec).
@@ -32,10 +32,11 @@ Treat these lanes independently. A strong proof result does not replace interpre
 
 ## Procedure
 
-1. Gather the receipt and referenced materials you plan to rely on.
-2. Run the canonical verifier flow rendered below; do not reorder or skip contract steps.
-3. Record outcomes per step and tie each outcome to the inspected evidence.
-4. Make policy or incident conclusions only after listing unresolved assumptions.
+1. Start with the receipt.
+2. If you have referenced materials or a proof bundle, keep them available for deeper checks, but do not collapse those later checks into the receipt-first result.
+3. Run the canonical verifier flow rendered below; do not reorder or skip contract steps.
+4. Record outcomes per step and tie each outcome to the inspected evidence.
+5. Make policy or incident conclusions only after listing unresolved assumptions.
 
 ## Verify First sample paths
 
