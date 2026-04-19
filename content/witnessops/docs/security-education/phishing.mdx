@@ -12,46 +12,46 @@ draft: false
 ## Problem this page solves
 
 Phishing reports often jump from "user clicked" to broad cleanup without a clear compromise model.
-This page gives a stage-based response path so containment matches evidence quality.
+This page gives a stage-based response path so containment matches the evidence quality.
 
 ## Reader outcome
 
 After this page, you should be able to:
 
 - map a phishing report to a specific chain stage
-- collect stage-appropriate signals before intrusive actions
+- collect stage-appropriate signals before taking intrusive actions
 - choose containment with explicit escalation gates
 
 ## Mechanism-first scenario model (phishing chain stages)
 
 Scenario: a supplier-themed invoice email sends a user to a fake login page.
 
-1. **Delivery** — lure reaches the inbox and appears routine.
-2. **Interaction** — user opens the message and follows a link or attachment.
+1. **Delivery** — the lure reaches the inbox and looks routine.
+2. **Interaction** — the user opens the message and follows a link or attachment.
 3. **Credential capture** — credentials, MFA approval, or session token are exposed.
-4. **Session establishment** — attacker authenticates to the real service.
-5. **Post-access actions** — forwarding rules, resets, internal phishing, or payment fraud attempts begin.
+4. **Session establishment** — the attacker authenticates to the real service.
+5. **Post-access actions** — forwarding rules, resets, internal phishing, or payment-fraud attempts begin.
 
 ## Observable signals per stage
 
 | Stage | Directly observable signals |
 |---|---|
-| Delivery | Preserved message, header path, sender/reply-to mismatch, domain age/reputation |
-| Interaction | Click telemetry, URL resolution, attachment open or execution events |
-| Credential capture | User confirmation, fake-login artifact, authentication prompt mismatch |
-| Session establishment | Unfamiliar successful sign-in, new session/device, impossible-travel pattern |
-| Post-access actions | Mailbox rule changes, outbound burst, reset attempts, administrative anomalies |
+| Delivery | preserved message, header path, sender/reply-to mismatch, domain age or reputation |
+| Interaction | click telemetry, URL resolution, attachment open or execution events |
+| Credential capture | user confirmation, fake-login artifact, authentication prompt mismatch |
+| Session establishment | unfamiliar successful sign-in, new session or device, impossible-travel pattern |
+| Post-access actions | mailbox rule changes, outbound burst, reset attempts, administrative anomalies |
 
-## Practical response/containment sequence with decision gates
+## Practical response and containment sequence with decision gates
 
-1. Preserve source artifacts (email, URL, attachment hash, user timeline).
-2. Validate interaction depth (opened only, clicked, credentials entered, MFA approved).
+1. Preserve source artifacts, such as the email, URL, attachment hash, and user timeline.
+2. Validate interaction depth: opened only, clicked, credentials entered, or MFA approved.
 3. **Gate A:** No click and no execution -> classify as exposure-only, block indicators, document.
-4. **Gate B:** Click or file open without credential evidence -> isolate endpoint if needed, monitor auth telemetry, continue investigation.
+4. **Gate B:** Click or file open without credential evidence -> isolate the endpoint if needed, monitor auth telemetry, continue investigation.
 5. **Gate C:** Credential, MFA, or token exposure likely -> revoke sessions, reset credentials, remove attacker changes, run the governed phishing workflow.
 6. **Gate D:** Privileged account, multi-user spread, or financial workflow impact -> escalate through the governed incident path.
 
-## What WitnessOps controls can support vs cannot guarantee
+## What WitnessOps controls can support vs what they cannot guarantee
 
 **WitnessOps can support:**
 
