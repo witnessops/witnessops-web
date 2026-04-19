@@ -1,6 +1,6 @@
 ---
 title: "How It Works"
-description: "How WitnessOps produces signed, timestamped, offline-verifiable proof for every governed operation."
+description: "How WitnessOps turns a governed operation into signed proof another person can check."
 section: "docs"
 order: 1
 nav_label: "How It Works"
@@ -9,42 +9,42 @@ draft: false
 
 # How It Works
 
-This page explains the mechanism path from governed execution to verifiable evidence. It is the model page for how WitnessOps moves from runtime controls to proof artifacts.
+This page explains the path from a governed action to proof another person can check.
 
 ## 1. Problem this page solves
 
-Security teams often have logs but no cryptographic chain from authorization to execution to proof.
+Security teams often have logs, but no clear chain from approval to execution to proof.
 
 When challenged, they need to answer:
 
 - what ran
-- under what authority and policy
+- who allowed it to run
 - whether scope controls were applied
-- what can be verified independently
+- what another person can verify independently
 
-This page defines the mechanism that connects those answers.
+This page explains the mechanism that connects those answers.
 
 ## 2. What you should understand after reading
 
 After this page, you should understand:
 
 - the exact stage order for a governed run
-- which artifacts are generated at each stage
-- where independent verification begins
+- which artifacts are created at each stage
+- where independent verification starts
 - what this mechanism proves and what it does not prove
 
 ## 3. Mechanism sequence (exact order)
 
 Every governed operation follows this sequence:
 
-1. **Declare intent and scope.** Runbook step, target scope, and gate requirements are selected.
-2. **Evaluate policy gates.** Scope, approvals, and preconditions are checked before execution.
-3. **Execute governed step.** Tool action runs only if gates pass.
-4. **Capture and hash artifacts.** Execution outputs are materialized and hashed.
-5. **Emit signed receipt.** A structured execution statement is signed.
-6. **Attach external proof layers.** Timestamp and log/inclusion material are attached when available.
-7. **Publish continuity state.** Receipt links to prior state so sequence integrity can be replayed.
-8. **Export proof bundle.** Receipt plus supporting artifacts can be handed to an independent verifier.
+1. **Declare intent and scope.** Choose the runbook step, target scope, and required gates.
+2. **Evaluate policy gates.** Check scope, approvals, and preconditions before execution.
+3. **Execute the governed step.** The tool action runs only if the gates pass.
+4. **Capture and hash artifacts.** Write the execution outputs and hash them.
+5. **Emit the signed receipt.** Sign a structured statement of what ran.
+6. **Attach outside proof layers.** Add timestamp and log/inclusion material when available.
+7. **Publish continuity state.** Link the receipt to prior state so the sequence can be replayed.
+8. **Export the proof bundle.** Hand the receipt and supporting artifacts to an independent reviewer.
 
 ## 4. Artifacts produced by the mechanism
 
@@ -54,47 +54,47 @@ For a successful governed run, expect:
 - **`manifest.json`** — artifact inventory with hash bindings
 - **`state.json`** — execution state for replay and investigation
 
-Depending on configured proof layers, bundles may also include timestamp and log inclusion material.
+Depending on the configured proof layers, the bundle may also include timestamp and log inclusion material.
 
 ## 5. Independent verification path
 
-A reviewer can verify without calling WitnessOps by checking:
+A reviewer can verify the bundle without calling WitnessOps by checking:
 
 - receipt signature validity
 - structure and digest bindings
-- timestamp token validity (if present)
-- log inclusion/checkpoint consistency (if present)
-- continuity links to prior state (if provided)
+- timestamp token validity, if present
+- log inclusion and checkpoint consistency, if present
+- continuity links to prior state, if provided
 
 Start with [How to Verify a Receipt](/docs/how-it-works/verification), then use [Anchored Replay](/docs/how-it-works/anchored-replay) when reviewer-supplied trust anchors are required.
 
 ## 6. What this mechanism proves
 
-This mechanism proves that governed execution claims were recorded with cryptographic integrity and linked evidence.
+This mechanism can prove that a governed execution claim was recorded with cryptographic integrity and linked evidence.
 
 It does not, by itself, prove:
 
 - that every tool result is correct
-- that human judgment was always optimal
-- that external trust roots are uncompromised
+- that every human decision was right
+- that outside trust roots are uncompromised
 
 ## 7. Remaining trust assumptions
 
-The model still depends on explicit trust inputs:
+The model still depends on a few trust inputs:
 
 - key distribution and rotation posture
 - timestamp authority trust
 - transparency-log trust root continuity
 - policy authoring quality and approval quality
 
-These assumptions are explicit design boundaries, not hidden guarantees.
+These are named design boundaries, not hidden guarantees.
 
 ## 8. Next-page handoff
 
 Next, read [Governed Execution](/docs/security-systems/governed-execution) for runtime authority boundaries and gate behavior under real execution pressure.
 
-Then continue to [Proof Model](/docs/how-it-works/proof-model) for authority layers, signature layers, and strength hierarchy.
+Then continue to [Proof Model](/docs/how-it-works/proof-model) for authority layers, signature layers, and proof strength.
 
-Then review [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the portable package exported from this mechanism path.
+Then review [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the portable package exported from this path.
 
 If you need standards mapping details, read [Standards Alignment](/docs/how-it-works/standards).
