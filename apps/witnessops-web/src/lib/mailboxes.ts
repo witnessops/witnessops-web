@@ -18,7 +18,10 @@ export function getMailboxConfig(): MailboxConfig {
     engage: readMailbox("WITNESSOPS_MAILBOX_ENGAGE", "engage@witnessops.com"),
     security: readMailbox("WITNESSOPS_MAILBOX_SECURITY", "security@witnessops.com"),
     hello: readMailbox("WITNESSOPS_MAILBOX_HELLO", "hello@witnessops.com"),
-    noreply: readMailbox("WITNESSOPS_MAILBOX_NOREPLY", "noreply@witnessops.com"),
+    noreply: readMailbox(
+      "WITNESSOPS_MAILBOX_NOREPLY",
+      "witnessopsno-reply@witnessops.com",
+    ),
     outreach: readMailbox("WITNESSOPS_MAILBOX_OUTREACH", "outreach@witnessops.com"),
     support: readMailbox("WITNESSOPS_MAILBOX_SUPPORT", "support@witnessops.com"),
   };

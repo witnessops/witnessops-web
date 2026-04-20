@@ -275,21 +275,21 @@ export function AdminOverviewGrid({ view, report, customerAccepted, customerReje
               <span className={styles.sparklineLabel}>Started</span>
               <Sparkline
                 values={report.timeline.map((t) => t.ambiguityStarted)}
-                color="#ff6b35"
+                color="var(--color-brand-accent)"
               />
             </div>
             <div className={styles.sparklineItem}>
               <span className={styles.sparklineLabel}>Resolved</span>
               <Sparkline
                 values={report.timeline.map((t) => t.ambiguityResolved)}
-                color="#00d47e"
+                color="var(--color-signal-green)"
               />
             </div>
             <div className={styles.sparklineItem}>
               <span className={styles.sparklineLabel}>Open</span>
               <Sparkline
                 values={report.timeline.map((t) => t.openAtClose)}
-                color="#ef4444"
+                color="var(--color-signal-red)"
               />
             </div>
           </div>

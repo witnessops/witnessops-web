@@ -131,6 +131,7 @@ export interface IntakeRecord {
    * were previously approximated through reply/reconcile flows.
    */
   operatorAction?: OperatorActionRecord | null;
+  queue?: QueueRecordBundle | null;
 }
 
 export interface OperatorActionRecord {
@@ -140,6 +141,77 @@ export interface OperatorActionRecord {
   reason: string;
   /** Only present when kind === "request_clarification". */
   clarificationQuestion?: string | null;
+}
+
+export type QueueWorkflowState =
+  | "pending_operator_review"
+  | "clarification_pending"
+  | "scope_drafting"
+  | "scope_approved"
+  | "responded";
+
+export type QueuePriority = "low" | "normal" | "high" | "urgent";
+
+export type ScopeContractStatus = "draft" | "approved" | "superseded" | "withdrawn";
+
+export interface ScopeContractRecord {
+  scopeContractId: string;
+  intakeId: string;
+  version: number;
+  status: ScopeContractStatus;
+  scopeStatement: string;
+  systemsInScope: string[];
+  actorsInScope: string[];
+  explicitOutOfScope: string[];
+  approvedBy?: string | null;
+  approvedAt?: string | null;
+  supersededBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QueueClarificationRecord {
+  clarificationRecordId: string;
+  intakeId: string;
+  question: string;
+  reason: string;
+  actor: string;
+  recordedAt: string;
+  clearedAt?: string | null;
+  clearedBy?: string | null;
+}
+
+export interface QueueResponseRecord {
+  responseId: string;
+  intakeId: string;
+  scopeContractId: string;
+  respondedBy: string;
+  respondedAt: string;
+  channel: ChannelName;
+  responseSummary: string;
+  clarificationResolutionNote?: string | null;
+}
+
+export interface QueueProjectionRecord {
+  queueWorkflowState: QueueWorkflowState;
+  assignedOperator: string | null;
+  priority: QueuePriority;
+  currentScopeContractId: string | null;
+  scopeContractStatus: ScopeContractStatus | null;
+  currentClarificationRecordId: string | null;
+  clarificationOutstanding: boolean;
+  respondedAt: string | null;
+  lastOperatorActionAt: string | null;
+  projectionVersion: number;
+  eventSequence: number;
+  responseRecordId: string | null;
+}
+
+export interface QueueRecordBundle {
+  projection: QueueProjectionRecord;
+  scopeContracts: ScopeContractRecord[];
+  clarifications: QueueClarificationRecord[];
+  responses: QueueResponseRecord[];
 }
 
 export interface TokenIssuanceRecord {

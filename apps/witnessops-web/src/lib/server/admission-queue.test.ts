@@ -48,7 +48,7 @@ function makeIssuance(
     status: "issued",
     threadId: null,
     delivery: {
-      mailbox: "engage@witnessops.com",
+      mailbox: "witnessopsno-reply@witnessops.com",
       alias: null,
       templateVersion: "tier1-token-v2",
       provider: "file",

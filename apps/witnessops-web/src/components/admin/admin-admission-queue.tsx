@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { cookies } from "next/headers";
 import {
   buildAdmissionQueueView,
   formatAdmissionStateLabel,
@@ -5,6 +7,7 @@ import {
 } from "@/lib/server/admission-queue";
 import { buildPostApprovalLifecycle, type PostApprovalLifecycleView } from "@/lib/server/post-approval-lifecycle";
 import type { TokenIssuanceRecord } from "@/lib/server/token-store";
+import { verifyAdminSessionCookie } from "@/lib/server/admin-session";
 import { PostApprovalLifecycle } from "../post-approval-lifecycle";
 import { formatProviderOutcomeStatusLabel } from "@/lib/provider-outcomes";
 import { isManualReconciliationBlocked } from "@/lib/server/evidence-resolution";
@@ -14,10 +17,11 @@ import { buildReconciliationReportFromView } from "@/lib/server/reconciliation-r
 import { QUEUE_FILTER_KEYS } from "@/lib/admin/queue-filter-keys";
 
 import type { FilterGroup } from "@/lib/admin/queue-filter-types";
-import { AdminQueueFilteredList } from "./admin-queue-filtered-list";
 import { AdminOperatorActionsForm } from "./admin-operator-actions-form";
 import { AdminReconcileIntakeForm } from "./admin-reconcile-intake-form";
 import { AdminRespondIntakeForm } from "./admin-respond-intake-form";
+import { AdminQueueActionRail } from "./admin-queue-action-rail";
+import { AdminQueueVerifyProjection } from "./admin-queue-verify-projection";
 import styles from "./admin.module.css";
 
 function formatTimestamp(value: string): string {
@@ -33,6 +37,34 @@ function buildDefaultReconciliationNote(row: AdmissionQueueRow): string {
     provider: row.responseProvider,
     providerMessageId: row.responseProviderMessageId,
   });
+}
+
+async function resolveAdminActor(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("witnessops-admin-session")?.value;
+  if (sessionCookie) {
+    const payload = await verifyAdminSessionCookie(sessionCookie);
+    if (payload) {
+      if (
+        payload.actorAuthSource === "oidc_session" &&
+        typeof payload.actor === "string"
+      ) {
+        return payload.actor;
+      }
+      if (typeof payload.hash === "string") {
+        return `admin:${payload.hash}`;
+      }
+    }
+  }
+
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS === "1"
+  ) {
+    return "local-dev";
+  }
+
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -194,6 +226,43 @@ function trimText(value: string | null | undefined, maxLength = 120): string | n
   return value.length > maxLength ? `${value.slice(0, maxLength - 1)}...` : value;
 }
 
+function formatQueueWorkflowLabel(state: AdmissionQueueRow["queueWorkflowState"]): string {
+  return state.replace(/_/g, " ");
+}
+
+function formatChannelLabel(channel: AdmissionQueueRow["channel"]): string {
+  if (channel === "engage") {
+    return "review";
+  }
+  return channel;
+}
+
+function formatRequesterLabel(row: AdmissionQueueRow): string {
+  const parts = [row.submission.name, row.submission.org].filter(Boolean);
+  if (parts.length > 0) {
+    return parts.join(" · ");
+  }
+  return row.email ?? row.intakeId;
+}
+
+function formatScopeContractLabel(row: AdmissionQueueRow): string {
+  if (!row.queueScopeContractStatus) {
+    return "none";
+  }
+
+  return row.queueCurrentScopeContractId
+    ? `${row.queueScopeContractStatus} · ${row.queueCurrentScopeContractId}`
+    : row.queueScopeContractStatus;
+}
+
+function buildQueueUrl(filter: string | null, selected: string | null): string {
+  const params = new URLSearchParams();
+  if (filter) params.set("filter", filter);
+  if (selected) params.set("selected", selected);
+  const query = params.toString();
+  return query ? `/admin/queue?${query}` : "/admin/queue";
+}
+
 function rowHeadline(row: AdmissionQueueRow): string {
   if (row.state === "responded" && row.firstResponseSubject) {
     return row.firstResponseSubject;
@@ -323,17 +392,109 @@ const POST_APPROVAL_STAGE_LABEL: Record<string, string> = {
   failed: "failed",
 };
 
-function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView) {
+function renderQueueListItem(
+  row: AdmissionQueueRow,
+  activeFilter: string | null,
+  selectedIntakeId: string | null,
+) {
   const stale = deriveStalePendingFlags(row);
-
+  const queueAge = `${hoursAgo(row.createdAt)}h`;
+  const lastActionAge = row.queueLastOperatorActionAt
+    ? `${hoursAgo(row.queueLastOperatorActionAt)}h`
+    : "n/a";
+  const isSelected = row.intakeId === selectedIntakeId;
   return (
-    <div
+    <Link
       key={row.intakeId}
-      data-intake-id={row.intakeId}
-      className={`${styles.queueItem}${row.hasDivergence ? ` ${styles.queueItemWarning}` : ""}`}
+      href={buildQueueUrl(activeFilter, row.intakeId)}
+      className={`${styles.queueListItem}${isSelected ? ` ${styles.queueListItemActive}` : ""}`}
     >
+      <div className={styles.queueListPrimary}>
+        <div className={styles.queueListHeadline}>{rowHeadline(row)}</div>
+        <div className={styles.queueListMeta}>
+          <span>{row.intakeId}</span>
+          <span>{formatChannelLabel(row.channel)}</span>
+          <span>{row.queueAssignedOperator ?? "unassigned"}</span>
+          <span>{formatQueueWorkflowLabel(row.queueWorkflowState)}</span>
+          <span>{row.queuePriority}</span>
+          <span>age {queueAge}</span>
+          <span>last action {lastActionAge}</span>
+        </div>
+      </div>
+      <div className={styles.queueBadges}>
+        {row.queueEligible ? (
+          <span className={`${styles.queueBadge} ${styles.queueBadgeReady}`}>
+            READY
+          </span>
+        ) : null}
+        <span className={`${styles.queueBadge} ${styles.queueBadgeAccent}`}>
+          {formatQueueWorkflowLabel(row.queueWorkflowState).toUpperCase()}
+        </span>
+        <span className={styles.queueBadge}>{row.queuePriority.toUpperCase()}</span>
+        {row.queueClarificationOutstanding ? (
+          <span className={`${styles.queueBadge} ${styles.queueBadgeAlert}`}>
+            CLARIFICATION
+          </span>
+        ) : null}
+        {row.hasDivergence ? (
+          <span className={`${styles.queueBadge} ${styles.queueBadgeAlert}`}>
+            DIVERGENT
+          </span>
+        ) : null}
+        {stale.awaitingResponse ? (
+          <span className={`${styles.queueBadge} ${styles.queueBadgeAlert}`}>
+            AWAITING RESPONSE
+          </span>
+        ) : null}
+      </div>
+    </Link>
+  );
+}
+
+function renderDetailPanel(
+  row: AdmissionQueueRow,
+  lifecycle: PostApprovalLifecycleView | undefined,
+) {
+  const stale = deriveStalePendingFlags(row);
+  const queueAge = `${hoursAgo(row.createdAt)}h`;
+  const lastActionAge = row.queueLastOperatorActionAt
+    ? `${hoursAgo(row.queueLastOperatorActionAt)}h`
+    : "n/a";
+  return (
+    <div className={styles.queueDetailPanel}>
       <div className={styles.queueHeader}>
-        <div className={styles.queueHeadline}>{rowHeadline(row)}</div>
+        <div className={styles.queueHeaderMain}>
+          <div className={styles.queueHeaderTitle}>{rowHeadline(row)}</div>
+          <div className={styles.queueHeaderSubline}>
+            {formatRequesterLabel(row)}
+          </div>
+          <div className={styles.queueHeaderMeta}>
+            <span className={styles.queueHeaderMetaItem}>
+              <span className={styles.queueHeaderMetaLabel}>Intake</span>
+              {row.intakeId}
+            </span>
+            <span className={styles.queueHeaderMetaItem}>
+              <span className={styles.queueHeaderMetaLabel}>Channel</span>
+              {formatChannelLabel(row.channel)}
+            </span>
+            <span className={styles.queueHeaderMetaItem}>
+              <span className={styles.queueHeaderMetaLabel}>Owner</span>
+              {row.queueAssignedOperator ?? "unassigned"}
+            </span>
+            <span className={styles.queueHeaderMetaItem}>
+              <span className={styles.queueHeaderMetaLabel}>Priority</span>
+              {row.queuePriority}
+            </span>
+            <span className={styles.queueHeaderMetaItem}>
+              <span className={styles.queueHeaderMetaLabel}>Age</span>
+              {queueAge}
+            </span>
+            <span className={styles.queueHeaderMetaItem}>
+              <span className={styles.queueHeaderMetaLabel}>Last action</span>
+              {lastActionAge}
+            </span>
+          </div>
+        </div>
         <div className={styles.queueBadges}>
           {row.queueEligible ? (
             <span className={`${styles.queueBadge} ${styles.queueBadgeReady}`}>
@@ -341,10 +502,13 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
             </span>
           ) : null}
           <span className={`${styles.queueBadge} ${styles.queueBadgeAccent}`}>
-            {row.channel.toUpperCase()}
+            {formatChannelLabel(row.channel).toUpperCase()}
           </span>
           <span className={styles.queueBadge}>
             {formatAdmissionStateLabel(row.state).toUpperCase()}
+          </span>
+          <span className={`${styles.queueBadge} ${styles.queueBadgeAccent}`}>
+            {formatQueueWorkflowLabel(row.queueWorkflowState).toUpperCase()}
           </span>
           {row.source === "snapshot-only" ? (
             <span className={`${styles.queueBadge} ${styles.queueBadgeAlert}`}>
@@ -409,6 +573,34 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
           {row.intakeId}
         </span>
         <span>
+          <span className={styles.queueMetaLabel}>Queue State</span>
+          {formatQueueWorkflowLabel(row.queueWorkflowState)}
+        </span>
+        <span>
+          <span className={styles.queueMetaLabel}>Queue Owner</span>
+          {row.queueAssignedOperator ?? "unassigned"}
+        </span>
+        <span>
+          <span className={styles.queueMetaLabel}>Priority</span>
+          {row.queuePriority}
+        </span>
+        <span>
+          <span className={styles.queueMetaLabel}>Scope Contract</span>
+          {formatScopeContractLabel(row)}
+        </span>
+        <span>
+          <span className={styles.queueMetaLabel}>Clarification</span>
+          {row.queueClarificationOutstanding ? "outstanding" : "clear"}
+        </span>
+        <span>
+          <span className={styles.queueMetaLabel}>Queue Response</span>
+          {row.queueRespondedAt ? formatTimestamp(row.queueRespondedAt) : "not yet"}
+        </span>
+        <span>
+          <span className={styles.queueMetaLabel}>Projection</span>
+          v{row.queueProjectionVersion} · seq {row.queueEventSequence}
+        </span>
+        <span>
           <span className={styles.queueMetaLabel}>Issuance</span>
           {row.latestIssuanceId ?? "none"}
         </span>
@@ -443,25 +635,6 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
               : ""}
           </span>
         ) : null}
-        {/*
-          WEB-009: surface a forward-stage row whose previously-requested
-          retry has since been outpaced by a successful delivery in
-          control plane. The aggregator computes `recovered` by comparing
-          `requested_at` to upstream `delivered_at`; this badge consumes
-          that derived flag without re-deriving it.
-
-          Render condition:
-            - lifecycle is present
-            - the row is in a forward stage that carries an optional
-              retryRequest (authorization_pending / authorized / delivery_pending /
-              delivered / acknowledged / completed)
-            - retryRequest exists
-            - retryRequest.recovered === true
-
-          The retry_pending and failed stages handle their own UX via
-            the existing collapsible <details> block below; this badge
-            is forward-stage only.
-         */}
         {lifecycle &&
         lifecycle.stage !== "awaiting_approval" &&
         lifecycle.stage !== "handoff_pending" &&
@@ -562,6 +735,35 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
         ) : null}
       </div>
 
+      <div className={styles.queueActionPanel}>
+        <div className={styles.queueActionTitle}>Queue actions</div>
+        <AdminQueueActionRail
+          key={`queue-action-${row.intakeId}`}
+          intakeId={row.intakeId}
+          projectionVersion={row.queueProjectionVersion}
+          eventSequence={row.queueEventSequence}
+          queueWorkflowState={row.queueWorkflowState}
+          queueAssignedOperator={row.queueAssignedOperator}
+          queuePriority={row.queuePriority}
+          queueClarificationOutstanding={row.queueClarificationOutstanding}
+          queueScopeContractStatus={row.queueScopeContractStatus}
+          queueCurrentScopeContractId={row.queueCurrentScopeContractId}
+          queueRespondedAt={row.queueRespondedAt}
+        />
+      </div>
+
+      <details className={styles.queueDiagnostics}>
+        <summary className={styles.queueDiagnosticsSummary}>
+          Integrity & verification
+        </summary>
+        <div className={styles.queueDiagnosticsBody}>
+          <AdminQueueVerifyProjection
+            key={`queue-verify-${row.intakeId}`}
+            intakeId={row.intakeId}
+          />
+        </div>
+      </details>
+
       {(() => {
         const timeline = deriveEvidenceTimeline(row);
         return timeline.length > 1 ? (
@@ -624,14 +826,6 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
         <div className={styles.reconciliationReason}>{row.reconciliationNote}</div>
       ) : null}
 
-      {row.queueEligible && !row.hasDivergence ? (
-        <AdminRespondIntakeForm
-          intakeId={row.intakeId}
-          defaultSubject={defaultResponseSubject(row)}
-          defaultBody={defaultResponseBody(row)}
-        />
-      ) : null}
-
       {lifecycle && (lifecycle.stage === "failed" || lifecycle.stage === "retry_pending") ? (
         <details data-testid="post-approval-retry-panel" className="mt-2">
           <summary className="cursor-pointer text-xs font-mono text-amber-300">
@@ -645,84 +839,92 @@ function renderRow(row: AdmissionQueueRow, lifecycle?: PostApprovalLifecycleView
 
       {lifecycle?.stage === "authorization_pending" ? (
         <div className="mt-2">
-          <PostApprovalLifecycle
-            view={lifecycle}
-            authorizeActionEnabled
+          <PostApprovalLifecycle view={lifecycle} authorizeActionEnabled />
+        </div>
+      ) : null}
+
+      <details className={styles.legacyActions}>
+        <summary className={styles.legacyActionsSummary}>
+          Legacy intake actions
+        </summary>
+        <div className={styles.legacyActionsBody}>
+          {row.queueEligible && !row.hasDivergence ? (
+            <AdminRespondIntakeForm
+              intakeId={row.intakeId}
+              defaultSubject={defaultResponseSubject(row)}
+              defaultBody={defaultResponseBody(row)}
+            />
+          ) : null}
+
+          <AdminOperatorActionsForm
+            intakeId={row.intakeId}
+            alreadyRejected={row.state === "rejected"}
+            applicable={
+              row.state === "submitted" ||
+              row.state === "verification_sent" ||
+              row.state === "verified" ||
+              row.state === "admitted"
+            }
+            pendingClarification={row.operatorActionKind === "request_clarification"}
+            claimantActionBlocking={
+              row.claimantActionKind === "retract" ||
+              row.claimantActionKind === "disagree"
+            }
           />
-        </div>
-      ) : null}
 
-      <AdminOperatorActionsForm
-        intakeId={row.intakeId}
-        alreadyRejected={row.state === "rejected"}
-        applicable={
-          row.state === "submitted" ||
-          row.state === "verification_sent" ||
-          row.state === "verified" ||
-          row.state === "admitted"
-        }
-        pendingClarification={row.operatorActionKind === "request_clarification"}
-        claimantActionBlocking={
-          row.claimantActionKind === "retract" ||
-          row.claimantActionKind === "disagree"
-        }
-      />
+          {row.operatorActionKind === "request_clarification" && row.state !== "rejected" ? (
+            <div
+              className={styles.queueWarning}
+              data-testid="operator-action-state"
+              data-kind="request_clarification"
+            >
+              Operator clarification request recorded. <strong>No operator action required</strong> — waiting on the claimant to amend, proceed, retract, or disagree.
+            </div>
+          ) : null}
 
-      {row.operatorActionKind === "request_clarification" && row.state !== "rejected" ? (
-        <div className={styles.queueWarning} data-testid="operator-action-state" data-kind="request_clarification">
-          Operator clarification request recorded. <strong>No operator action required</strong> — waiting on the claimant to amend, proceed, retract, or disagree.
-        </div>
-      ) : null}
+          {row.claimantActionKind === "retract" ||
+          row.claimantActionKind === "disagree" ? (
+            <div
+              className={styles.queueWarning}
+              data-testid="claimant-action-state"
+              data-kind={row.claimantActionKind}
+            >
+              Claimant action recorded: <strong>{row.claimantActionKind}</strong>.
+              Approval is blocked until the claimant reopens it. This is
+              independent of any operator action; rescinding an operator
+              rejection alone will not unblock approval.
+            </div>
+          ) : null}
 
-      {/*
-        WEB-010: surface a co-existing claimant terminal action so the
-        operator does not have to dig into the assessment page to see
-        that approval is still blocked from the claimant side. The
-        banner is symmetric in shape to the request_clarification one
-        above and uses the same queueWarning class for visual parity.
-        Cross-actor reopen is explicitly out of scope — the operator
-        cannot clear a claimant action; this is visibility only.
-      */}
-      {row.claimantActionKind === "retract" ||
-      row.claimantActionKind === "disagree" ? (
-        <div
-          className={styles.queueWarning}
-          data-testid="claimant-action-state"
-          data-kind={row.claimantActionKind}
-        >
-          Claimant action recorded: <strong>{row.claimantActionKind}</strong>.
-          Approval is blocked until the claimant reopens it. This is
-          independent of any operator action; rescinding an operator
-          rejection alone will not unblock approval.
+          {row.reconciliationPending && !row.reconciliationResolved ? (
+            <AdminReconcileIntakeForm
+              intakeId={row.intakeId}
+              defaultNote={buildDefaultReconciliationNote(row)}
+              evidenceSubcase={row.responseEvidenceSubcase}
+              evidenceCaseLabel={
+                row.responseEvidenceSubcase
+                  ? formatReconciliationSubcaseLabel(row.responseEvidenceSubcase)
+                  : null
+              }
+            />
+          ) : blockedReasonForRow(row) ? (
+            <div className={styles.queueBlockedReason}>
+              Blocked: {blockedReasonForRow(row)}
+            </div>
+          ) : row.reconciliationPending ? (
+            <div className={styles.queueWarning}>
+              Cannot reconcile until the current evidence case is classifiable from stored facts.
+            </div>
+          ) : null}
         </div>
-      ) : null}
-
-      {row.reconciliationPending && !row.reconciliationResolved ? (
-        <AdminReconcileIntakeForm
-          intakeId={row.intakeId}
-          defaultNote={buildDefaultReconciliationNote(row)}
-          evidenceSubcase={row.responseEvidenceSubcase}
-          evidenceCaseLabel={
-            row.responseEvidenceSubcase
-              ? formatReconciliationSubcaseLabel(row.responseEvidenceSubcase)
-              : null
-          }
-        />
-      ) : blockedReasonForRow(row) ? (
-        <div className={styles.queueBlockedReason}>
-          Blocked: {blockedReasonForRow(row)}
-        </div>
-      ) : row.reconciliationPending ? (
-        <div className={styles.queueWarning}>
-          Cannot reconcile until the current evidence case is classifiable from stored facts.
-        </div>
-      ) : null}
+      </details>
     </div>
   );
 }
 
 interface AdminAdmissionQueueProps {
   initialFilter?: string | null;
+  selectedIntakeId?: string | null;
 }
 
 export async function buildLifecycleByRunId(
@@ -748,15 +950,75 @@ export async function buildLifecycleByRunId(
   return result;
 }
 
-export async function AdminAdmissionQueue({ initialFilter }: AdminAdmissionQueueProps = {}) {
+export async function AdminAdmissionQueue({
+  initialFilter,
+  selectedIntakeId,
+}: AdminAdmissionQueueProps = {}) {
   try {
     const view = await buildAdmissionQueueView();
     const lifecycleByRunId = await buildLifecycleByRunId(view.rows);
     const report = buildReconciliationReportFromView(view);
+    const currentActor = await resolveAdminActor();
     const reconciliationRows = view.rows.filter(
       (row) => row.reconciliationPending,
     );
+
+    const workflowTabs: FilterGroup[] = [
+      {
+        key: QUEUE_FILTER_KEYS.queueMyWork,
+        label: "My Work",
+        intakeIds: currentActor
+          ? view.rows
+              .filter((r) => r.queueAssignedOperator === currentActor)
+              .map((r) => r.intakeId)
+          : [],
+      },
+      {
+        key: QUEUE_FILTER_KEYS.queueUnassigned,
+        label: "Unassigned",
+        intakeIds: view.rows
+          .filter((r) => !r.queueAssignedOperator)
+          .map((r) => r.intakeId),
+      },
+      {
+        key: QUEUE_FILTER_KEYS.queuePendingReview,
+        label: "Pending Review",
+        intakeIds: view.rows
+          .filter((r) => r.queueWorkflowState === "pending_operator_review")
+          .map((r) => r.intakeId),
+      },
+      {
+        key: QUEUE_FILTER_KEYS.queueClarification,
+        label: "Clarification",
+        intakeIds: view.rows
+          .filter((r) => r.queueWorkflowState === "clarification_pending")
+          .map((r) => r.intakeId),
+      },
+      {
+        key: QUEUE_FILTER_KEYS.queueScopeDrafting,
+        label: "Scope Drafting",
+        intakeIds: view.rows
+          .filter((r) => r.queueWorkflowState === "scope_drafting")
+          .map((r) => r.intakeId),
+      },
+      {
+        key: QUEUE_FILTER_KEYS.queueScopeApproved,
+        label: "Scope Approved",
+        intakeIds: view.rows
+          .filter((r) => r.queueWorkflowState === "scope_approved")
+          .map((r) => r.intakeId),
+      },
+      {
+        key: QUEUE_FILTER_KEYS.queueResponded,
+        label: "Responded",
+        intakeIds: view.rows
+          .filter((r) => r.queueWorkflowState === "responded")
+          .map((r) => r.intakeId),
+      },
+    ];
+
     const filterGroups: FilterGroup[] = [
+      ...workflowTabs,
       {
         key: QUEUE_FILTER_KEYS.ready,
         label: "Ready",
@@ -851,6 +1113,43 @@ export async function AdminAdmissionQueue({ initialFilter }: AdminAdmissionQueue
       })),
     ];
 
+    const activeFilter = initialFilter ?? null;
+    const activeGroup = activeFilter
+      ? filterGroups.find((g) => g.key === activeFilter) ?? null
+      : null;
+    const allowedSet = activeGroup ? new Set(activeGroup.intakeIds) : null;
+    const filteredRows = allowedSet
+      ? view.rows.filter((row) => allowedSet.has(row.intakeId))
+      : view.rows;
+    const selectedRow =
+      (selectedIntakeId
+        ? filteredRows.find((row) => row.intakeId === selectedIntakeId)
+        : null) ??
+      filteredRows[0] ??
+      null;
+    const selectedLifecycle =
+      selectedRow?.controlPlaneRunId
+        ? lifecycleByRunId.get(selectedRow.controlPlaneRunId)
+        : undefined;
+
+    const workflowTabKeys = new Set<string>([
+      QUEUE_FILTER_KEYS.queueMyWork,
+      QUEUE_FILTER_KEYS.queueUnassigned,
+      QUEUE_FILTER_KEYS.queuePendingReview,
+      QUEUE_FILTER_KEYS.queueClarification,
+      QUEUE_FILTER_KEYS.queueScopeDrafting,
+      QUEUE_FILTER_KEYS.queueScopeApproved,
+      QUEUE_FILTER_KEYS.queueResponded,
+    ]);
+    const workflowTabsVisible = workflowTabs.filter(
+      (group) =>
+        group.key !== QUEUE_FILTER_KEYS.queueMyWork || Boolean(currentActor),
+    );
+    const secondaryFilters = filterGroups.filter(
+      (group) =>
+        !workflowTabKeys.has(group.key) && group.intakeIds.length > 0,
+    );
+
     return (
       <>
         {reconciliationRows.length > 0 ? (
@@ -891,18 +1190,12 @@ export async function AdminAdmissionQueue({ initialFilter }: AdminAdmissionQueue
                   <div className={styles.reconciliationReason}>
                     {row.divergenceReasons.join(" | ")}
                   </div>
-                  <AdminReconcileIntakeForm
-                    intakeId={row.intakeId}
-                    defaultNote={buildDefaultReconciliationNote(row)}
-                    evidenceSubcase={row.responseEvidenceSubcase}
-                    evidenceCaseLabel={
-                      row.responseEvidenceSubcase
-                        ? formatReconciliationSubcaseLabel(
-                            row.responseEvidenceSubcase,
-                          )
-                        : null
-                    }
-                  />
+                  <Link
+                    className={styles.rowAction}
+                    href={buildQueueUrl(activeFilter, row.intakeId)}
+                  >
+                    Open in queue
+                  </Link>
                 </div>
               ))}
             </div>
@@ -912,19 +1205,70 @@ export async function AdminAdmissionQueue({ initialFilter }: AdminAdmissionQueue
         {view.rows.length === 0 ? (
           <div className={styles.emptyState}>No admission history yet.</div>
         ) : (
-          <AdminQueueFilteredList
-            groups={filterGroups}
-            initialFilter={initialFilter ?? null}
-          >
-            {view.rows.map((row) =>
-              renderRow(
-                row,
-                row.controlPlaneRunId
-                  ? lifecycleByRunId.get(row.controlPlaneRunId)
-                  : undefined,
-              ),
-            )}
-          </AdminQueueFilteredList>
+          <div className={styles.queueSplitView}>
+            <div className={styles.queueListPane}>
+              <div className={styles.queueTabs}>
+                <Link
+                  href={buildQueueUrl(null, null)}
+                  className={`${styles.queueTab}${!activeFilter ? ` ${styles.queueTabActive}` : ""}`}
+                >
+                  All
+                  <span className={styles.queueTabCount}>{view.rows.length}</span>
+                </Link>
+                {workflowTabsVisible.map((tab) => (
+                  <Link
+                    key={tab.key}
+                    href={buildQueueUrl(tab.key, null)}
+                    className={`${styles.queueTab}${activeFilter === tab.key ? ` ${styles.queueTabActive}` : ""}`}
+                  >
+                    {tab.label}
+                    <span className={styles.queueTabCount}>{tab.intakeIds.length}</span>
+                  </Link>
+                ))}
+              </div>
+
+              {secondaryFilters.length > 0 ? (
+                <div className={styles.filterBar}>
+                  {secondaryFilters.map((group) => (
+                    <Link
+                      key={group.key}
+                      href={buildQueueUrl(group.key, null)}
+                      className={`${styles.filterPill}${activeFilter === group.key ? ` ${styles.filterPillActive}` : ""}`}
+                    >
+                      {group.label} ({group.intakeIds.length})
+                    </Link>
+                  ))}
+                  {activeFilter ? (
+                    <Link href={buildQueueUrl(null, null)} className={styles.filterPill}>
+                      Clear
+                    </Link>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {filteredRows.length === 0 ? (
+                <div className={styles.emptyState}>
+                  No items match the current filter.
+                </div>
+              ) : (
+                <div className={styles.queueList}>
+                  {filteredRows.map((row) =>
+                    renderQueueListItem(row, activeFilter, selectedRow?.intakeId ?? null),
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className={styles.queueDetailPane}>
+              {selectedRow ? (
+                renderDetailPanel(selectedRow, selectedLifecycle)
+              ) : (
+                <div className={styles.emptyState}>
+                  Select an intake to view queue details.
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </>
     );

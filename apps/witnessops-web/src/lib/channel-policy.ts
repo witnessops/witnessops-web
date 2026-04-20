@@ -7,6 +7,10 @@ export type ChannelName = (typeof channelNames)[number];
 export interface ChannelPolicy {
   channel: ChannelName;
   mailboxKey: keyof Pick<MailboxConfig, "engage" | "support" | "noreply">;
+  verificationMailboxKey: keyof Pick<
+    MailboxConfig,
+    "engage" | "support" | "noreply"
+  >;
   inboundAllowed: boolean;
   requiresVerifiedMailbox: boolean;
   requiresBusinessEmail: boolean;
@@ -18,6 +22,7 @@ const CHANNEL_POLICIES: Record<ChannelName, ChannelPolicy> = {
   engage: {
     channel: "engage",
     mailboxKey: "engage",
+    verificationMailboxKey: "noreply",
     inboundAllowed: true,
     requiresVerifiedMailbox: true,
     requiresBusinessEmail: true,
@@ -27,6 +32,7 @@ const CHANNEL_POLICIES: Record<ChannelName, ChannelPolicy> = {
   support: {
     channel: "support",
     mailboxKey: "support",
+    verificationMailboxKey: "support",
     inboundAllowed: true,
     requiresVerifiedMailbox: true,
     requiresBusinessEmail: false,
@@ -36,6 +42,7 @@ const CHANNEL_POLICIES: Record<ChannelName, ChannelPolicy> = {
   noreply: {
     channel: "noreply",
     mailboxKey: "noreply",
+    verificationMailboxKey: "noreply",
     inboundAllowed: false,
     requiresVerifiedMailbox: false,
     requiresBusinessEmail: false,
@@ -53,6 +60,13 @@ export function getChannelMailbox(
   mailboxes: MailboxConfig = getMailboxConfig(),
 ): string {
   return mailboxes[getChannelPolicy(channel).mailboxKey];
+}
+
+export function getChannelVerificationMailbox(
+  channel: ChannelName,
+  mailboxes: MailboxConfig = getMailboxConfig(),
+): string {
+  return mailboxes[getChannelPolicy(channel).verificationMailboxKey];
 }
 
 export function getChannelReplyRedirectMailbox(

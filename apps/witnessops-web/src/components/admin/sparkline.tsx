@@ -7,12 +7,16 @@ interface SparklineProps {
 
 export function Sparkline({
   values,
-  color = "#ff6b35",
+  color = "var(--color-brand-accent)",
   width = 80,
   height = 28,
 }: SparklineProps) {
   if (values.length < 2) {
-    return <span style={{ color: "#52556a", fontSize: "10px" }}>&mdash;</span>;
+    return (
+      <span style={{ color: "var(--color-text-muted)", fontSize: "10px" }}>
+        &mdash;
+      </span>
+    );
   }
 
   const max = Math.max(...values, 1);

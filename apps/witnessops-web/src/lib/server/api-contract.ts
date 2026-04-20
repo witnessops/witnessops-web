@@ -82,8 +82,9 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
   {
     path: "/api/contact",
     methods: ["POST"],
-    category: "public-utility",
-    summary: "Public contact form submission",
+    category: "public-claimant",
+    summary: "Contact alias for review request intake",
+    note: "Compatibility alias; canonical review request route is /api/review/request.",
   },
   {
     path: "/api/support",
@@ -105,8 +106,14 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     path: "/api/engage",
     methods: ["POST"],
     category: "public-claimant",
-    summary: "Initial engagement intake",
-    note: "Co-existing pair with /api/intake; canonical-vs-legacy decision deferred to a separate explicit lane.",
+    summary: "Legacy review request intake (alias of /api/review/request)",
+    note: "Co-existing with /api/review/request; canonical route is /api/review/request.",
+  },
+  {
+    path: "/api/review/request",
+    methods: ["POST"],
+    category: "public-claimant",
+    summary: "Review request intake (mailbox-verified)",
   },
   {
     path: "/api/intake",
@@ -235,6 +242,18 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     methods: ["POST"],
     category: "operator",
     summary: "Operator rescinds own rejection (WEB-005); reads original ledger event for previous_state",
+  },
+  {
+    path: "/api/admin/queue/command",
+    methods: ["POST"],
+    category: "operator",
+    summary: "Apply a canonical queue command via the shared executor",
+  },
+  {
+    path: "/api/admin/queue/verify-projection",
+    methods: ["POST"],
+    category: "operator",
+    summary: "Verify queue projection parity for a single intake",
   },
   {
     path: "/api/admin/lifecycle/[runId]/retry-request",

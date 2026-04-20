@@ -303,6 +303,14 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
               value: string(appSettings.WITNESSOPS_MAIL_PROVIDER)
             }
             {
+              name: 'WITNESSOPS_MAILBOX_ENGAGE'
+              value: string(appSettings.WITNESSOPS_MAILBOX_ENGAGE)
+            }
+            {
+              name: 'WITNESSOPS_MAILBOX_NOREPLY'
+              value: string(appSettings.WITNESSOPS_MAILBOX_NOREPLY)
+            }
+            {
               name: 'WITNESSOPS_INTAKE_STORE_DIR'
               value: string(appSettings.WITNESSOPS_INTAKE_STORE_DIR)
             }

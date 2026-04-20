@@ -7,10 +7,15 @@ export const metadata: Metadata = {
 };
 
 interface Props {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; selected?: string }>;
 }
 
 export default async function AdminQueuePage({ searchParams }: Props) {
   const params = await searchParams;
-  return <AdminAdmissionQueue initialFilter={params.filter ?? null} />;
+  return (
+    <AdminAdmissionQueue
+      initialFilter={params.filter ?? null}
+      selectedIntakeId={params.selected ?? null}
+    />
+  );
 }

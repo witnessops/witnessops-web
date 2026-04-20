@@ -16,6 +16,13 @@ function formatAgeHours(value: number): string {
   return value <= 0 ? "<1h" : `${value}h`;
 }
 
+function formatChannelLabel(channel: string): string {
+  if (channel === "engage") {
+    return "review";
+  }
+  return channel;
+}
+
 function formatClosureSourceLabel(
   kind: "provider_outcome" | "mailbox_receipt" | "manual_reconciliation",
 ): string {
@@ -91,7 +98,9 @@ export function ReconciliationReportView({
         <div className={styles.summaryGrid}>
           {report.byChannel.map((channel) => (
             <div key={channel.channel} className={styles.summaryCard}>
-              <div className={styles.summaryLabel}>{channel.channel}</div>
+              <div className={styles.summaryLabel}>
+                {formatChannelLabel(channel.channel)}
+              </div>
               <div className={styles.summaryValue}>
                 {channel.pending} / {channel.resolved}
               </div>
@@ -212,7 +221,7 @@ export function ReconciliationReportView({
               </div>
               <div className={styles.reconciliationMeta}>
                 <span>{row.intakeId}</span>
-                <span>{row.channel}</span>
+                <span>{formatChannelLabel(row.channel)}</span>
                 <span>{row.deliveryAttemptId ?? "attempt missing"}</span>
                 <span>
                   {row.providerOutcomeStatus

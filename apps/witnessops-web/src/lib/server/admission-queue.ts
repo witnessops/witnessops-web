@@ -13,6 +13,7 @@ import {
 } from "@/lib/provider-outcomes";
 
 import { resolveAmbiguity } from "./evidence-resolution";
+import { buildQueueBundle } from "./queue-projection";
 
 import {
   readIntakeEvents,
@@ -30,6 +31,9 @@ import {
   type AssessmentStatus,
   type IntakeRecord,
   type IntakeSubmissionRecord,
+  type QueuePriority,
+  type QueueWorkflowState,
+  type ScopeContractStatus,
   type TokenIssuanceRecord,
 } from "./token-store";
 
@@ -152,6 +156,18 @@ export interface AdmissionQueueRow {
   reconciliationEvidenceSubcase: DeliveryEvidenceSubcase | null;
   reconciliationNotePolicyVersion: string | null;
   reconciliationSubcase: ReconciliationReportSubcase | null;
+  queueWorkflowState: QueueWorkflowState;
+  queueAssignedOperator: string | null;
+  queuePriority: QueuePriority;
+  queueCurrentScopeContractId: string | null;
+  queueScopeContractStatus: ScopeContractStatus | null;
+  queueCurrentClarificationRecordId: string | null;
+  queueClarificationOutstanding: boolean;
+  queueLastOperatorActionAt: string | null;
+  queueRespondedAt: string | null;
+  queueProjectionVersion: number;
+  queueEventSequence: number;
+  queueResponseRecordId: string | null;
   source: "ledger" | "snapshot-only";
   reconciliationPending: boolean;
   reconciliationResolved: boolean;
@@ -550,6 +566,22 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       respondedAt: snapshot?.respondedAt ?? null,
     });
     const mailboxReceipt = snapshot?.responseMailboxReceipt ?? null;
+    const queueProjection = snapshot
+      ? buildQueueBundle(snapshot).projection
+      : {
+          queueWorkflowState: "pending_operator_review" as QueueWorkflowState,
+          assignedOperator: null,
+          priority: "normal" as QueuePriority,
+          currentScopeContractId: null,
+          scopeContractStatus: null,
+          currentClarificationRecordId: null,
+          clarificationOutstanding: false,
+          respondedAt: null,
+          lastOperatorActionAt: null,
+          projectionVersion: 0,
+          eventSequence: 0,
+          responseRecordId: null,
+        };
     const ambiguity = resolveAmbiguity({
       hasFirstResponse: Boolean(firstResponse),
       derivedState: derived.state,
@@ -643,6 +675,19 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       reconciliationNotePolicyVersion:
         reconciliationRecorded?.notePolicyVersion ?? null,
       reconciliationSubcase,
+      queueWorkflowState: queueProjection.queueWorkflowState,
+      queueAssignedOperator: queueProjection.assignedOperator,
+      queuePriority: queueProjection.priority,
+      queueCurrentScopeContractId: queueProjection.currentScopeContractId,
+      queueScopeContractStatus: queueProjection.scopeContractStatus,
+      queueCurrentClarificationRecordId:
+        queueProjection.currentClarificationRecordId,
+      queueClarificationOutstanding: queueProjection.clarificationOutstanding,
+      queueLastOperatorActionAt: queueProjection.lastOperatorActionAt,
+      queueRespondedAt: queueProjection.respondedAt,
+      queueProjectionVersion: queueProjection.projectionVersion,
+      queueEventSequence: queueProjection.eventSequence,
+      queueResponseRecordId: queueProjection.responseRecordId,
       source: "ledger",
       reconciliationPending,
       reconciliationResolved,
@@ -661,6 +706,7 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       : null;
     const firstResponse = snapshot.firstResponse;
     const reconciliationRecorded = snapshot.reconciliation;
+    const queueProjection = buildQueueBundle(snapshot).projection;
     const providerOutcomeStatus =
       snapshot.responseProviderOutcome?.status ?? null;
     const providerOutcomeObservedAt =
@@ -757,6 +803,19 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       reconciliationNotePolicyVersion:
         reconciliationRecorded?.notePolicyVersion ?? null,
       reconciliationSubcase,
+      queueWorkflowState: queueProjection.queueWorkflowState,
+      queueAssignedOperator: queueProjection.assignedOperator,
+      queuePriority: queueProjection.priority,
+      queueCurrentScopeContractId: queueProjection.currentScopeContractId,
+      queueScopeContractStatus: queueProjection.scopeContractStatus,
+      queueCurrentClarificationRecordId:
+        queueProjection.currentClarificationRecordId,
+      queueClarificationOutstanding: queueProjection.clarificationOutstanding,
+      queueLastOperatorActionAt: queueProjection.lastOperatorActionAt,
+      queueRespondedAt: queueProjection.respondedAt,
+      queueProjectionVersion: queueProjection.projectionVersion,
+      queueEventSequence: queueProjection.eventSequence,
+      queueResponseRecordId: queueProjection.responseRecordId,
       source: "snapshot-only",
       reconciliationPending: snapshotAmbiguity.pending,
       reconciliationResolved: snapshotAmbiguity.resolved,

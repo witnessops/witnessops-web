@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   return handleReviewRequestIntake(request, {
-    rateLimitNamespace: "engage",
-    source: "api/engage",
+    rateLimitNamespace: "review-request",
+    source: "api/review/request",
   });
 }

@@ -1,6 +1,6 @@
 import { isBusinessEmail } from "@/lib/freemail-policy";
 import {
-  getChannelMailbox,
+  getChannelVerificationMailbox,
   getChannelPolicy,
   assertInboundAllowed,
   type ChannelName,
@@ -337,7 +337,7 @@ export async function createVerificationIssuance(
 
   const delivery = await sendVerificationEmail({
     to: input.email,
-    from: getChannelMailbox(input.channel),
+    from: getChannelVerificationMailbox(input.channel),
     subject: template.subject,
     text: template.text,
   });
@@ -354,7 +354,7 @@ export async function createVerificationIssuance(
     threadId: null,
     approvalStatus: "pending",
     delivery: {
-      mailbox: getChannelMailbox(input.channel),
+      mailbox: getChannelVerificationMailbox(input.channel),
       alias: null,
       templateVersion: template.templateVersion,
       provider: delivery.provider,

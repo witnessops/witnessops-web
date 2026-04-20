@@ -342,7 +342,7 @@ async function seedResolvedCase() {
       email: "security@witnessops.com",
       threadId: "thr_report_resolved",
       delivery: {
-        mailbox: "engage@witnessops.com",
+        mailbox: "witnessopsno-reply@witnessops.com",
         alias: null,
         templateVersion: "tier1-token-v2",
         provider: "file",

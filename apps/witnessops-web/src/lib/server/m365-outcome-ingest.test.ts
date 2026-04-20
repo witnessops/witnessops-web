@@ -91,7 +91,7 @@ function makeIssuance(): TokenIssuanceRecord {
     status: "verified",
     threadId: "thr_m365_test",
     delivery: {
-      mailbox: "engage@witnessops.com",
+      mailbox: "witnessopsno-reply@witnessops.com",
       alias: null,
       templateVersion: "tier1-token-v2",
       provider: "m365",
