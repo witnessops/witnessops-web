@@ -10,7 +10,7 @@ const LIBRARY_NAV_LINKS = [
   { label: "Library", href: "/library" },
   { label: "Docs", href: "/docs" },
   { label: "Review", href: "/review" },
-  { label: "Request review", href: "/review/request" },
+  { label: "Request a Review", href: "/review/request" },
 ];
 
 const LIBRARY_NAV_CTA = {

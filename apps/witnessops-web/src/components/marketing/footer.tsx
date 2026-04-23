@@ -29,12 +29,12 @@ interface FooterProps {
 const LIBRARY_FOOTER: FooterProps & { motto: string } = {
   brand_line: "WitnessOps",
   subline:
-    "Public entry points for docs, review, sample cases, sample report inspection, and verification.",
+    "Public entry points for docs, review, verifier fixtures, explanatory sample cases, and the illustrative sample report.",
   links: [
     { label: "Library", href: "/library" },
     { label: "Docs", href: "/docs" },
     { label: "Review", href: "/review" },
-    { label: "Request review", href: "/review/request" },
+    { label: "Request a Review", href: "/review/request" },
     { label: "Sample cases", href: "/review/sample-cases" },
     { label: "Sample report", href: "/review/sample-report" },
     { label: "Verify", href: "/verify" },

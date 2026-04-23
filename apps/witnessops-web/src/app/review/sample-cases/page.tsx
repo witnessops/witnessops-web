@@ -26,32 +26,32 @@ export const metadata: Metadata = {
 
 const surfaceLegend = [
   {
-    title: "Verifier sample receipts",
+    title: "Verifier fixtures",
     description:
-      "Small public fixtures used on /verify to show what receipt checks can confirm today and how failure appears.",
+      "Small public sample receipts used on /verify to show what receipt checks can confirm today and how failure appears.",
     href: "/verify",
     label: "Open verifier",
   },
   {
-    title: "Generic sample report",
+    title: "Illustrative sample report",
     description:
       "One illustrative dossier showing report structure and judgment style without claiming a live customer proof path.",
     href: "/review/sample-report",
     label: "Open sample report",
   },
   {
-    title: "Named sample cases",
+    title: "Explanatory sample cases",
     description:
       "Published workflow-class pages with stable routes, named boundaries, authority maps, evidence expectations, and trust-dependent gaps.",
     href: "/review/sample-cases",
     label: "Current surface",
   },
   {
-    title: "Real workflow review requests",
+    title: "Live Review request lane",
     description:
       "The intake path for one real workflow, automation boundary, or operator decision path that you want reviewed.",
     href: "/review/request",
-    label: "Request review",
+    label: "Request a Review",
   },
 ];
 
@@ -99,7 +99,7 @@ export default function SampleCasesIndexPage() {
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <CtaButton href="/review" variant="primary" label="Back to review" />
-              <CtaButton href="/review/request" variant="secondary" label="Request a workflow review" />
+              <CtaButton href="/review/request" variant="secondary" label="Request a Review" />
             </div>
           </section>
 
@@ -117,7 +117,7 @@ export default function SampleCasesIndexPage() {
 
           <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
-              Public proof surface legend
+              Public artifact classes
             </h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               {surfaceLegend.map((item) => (

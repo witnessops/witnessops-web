@@ -43,7 +43,7 @@ const startHerePaths = [
   {
     title: "Review the lane",
     description:
-      "See the bounded workflow review surface and what a review covers.",
+      "See the bounded review surface and what a review covers.",
     href: "/review",
     primary: false,
   },
@@ -55,7 +55,7 @@ const startHerePaths = [
     primary: false,
   },
   {
-    title: "Request a workflow review",
+    title: "Request a Review",
     description:
       "Submit one real workflow, boundary, or operator decision path.",
     href: "/review/request",
@@ -71,27 +71,58 @@ const trustCriteria = [
   "what happens when normal operation breaks down",
 ];
 
+const artifactClasses = [
+  {
+    title: "Verifier fixtures",
+    description:
+      "Public sample receipts on /verify used to show receipt checks, named failures, and fail-closed behavior. They are not live customer artifacts.",
+    href: "/verify",
+    label: "Open verifier",
+  },
+  {
+    title: "Explanatory sample cases",
+    description:
+      "Published named workflow-class pages with stable routes, authority maps, evidence expectations, and trust-dependent gaps.",
+    href: "/review/sample-cases",
+    label: "Browse sample cases",
+  },
+  {
+    title: "Illustrative sample report",
+    description:
+      "A generic dossier that shows review structure and judgment style. It is not a live customer report.",
+    href: "/review/sample-report",
+    label: "Open sample report",
+  },
+  {
+    title: "Live review request lane",
+    description:
+      "The public intake path for one real workflow, automation boundary, or operator decision path. It is a live request surface, not a published proof artifact.",
+    href: "/review/request",
+    label: "Request a Review",
+  },
+];
+
 export const metadata: Metadata = {
   title: {
-    absolute: "WitnessOps Library — Docs, review, and verification entry points",
+    absolute: "WitnessOps Library — Docs, review, verification, and artifact classes",
   },
   description:
-    "The WitnessOps library entry point for product docs, workflow review, sample report inspection, sample cases, and verification.",
+    "The WitnessOps library entry point for product docs, review, verifier fixtures, explanatory sample cases, the illustrative sample report, and receipt verification.",
   alternates: {
     canonical: "/library",
   },
   openGraph: {
-    title: "WitnessOps Library — Docs, review, and verification entry points",
+    title: "WitnessOps Library — Docs, review, verification, and artifact classes",
     description:
-      "Inspect sample proof artifacts, browse named sample cases, request a workflow review, and use docs for model and trust-boundary context.",
+      "Inspect verifier fixtures, explanatory sample cases, the illustrative sample report, request a review, and use docs for model and trust-boundary context.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "WitnessOps Library — Docs, review, and verification entry points",
+    title: "WitnessOps Library — Docs, review, verification, and artifact classes",
     description:
-      "Entry points for proof artifacts, sample cases, review, sample report inspection, and docs.",
+      "Entry points for verifier fixtures, explanatory sample cases, the illustrative sample report, Review, and docs.",
   },
 };
 
@@ -108,21 +139,22 @@ export default function LibraryPage() {
           className="mt-3 text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-4xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Public entry points for proof, review, docs, and verification.
+          Public entry points for review, verification, docs, and current artifact classes.
         </h1>
         <p className="mt-5 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
-          Use this page to start in the right place: inspect sample proof
-          artifacts, browse named sample cases, review one real workflow, read
-          the sample report shape, and use docs for the model and trust boundaries.
+          Use this page to start in the right place: inspect verifier fixtures,
+          browse explanatory sample cases, read the illustrative sample report,
+          request a review for one real workflow, and use docs for the model and trust boundaries.
         </p>
         <p className="mt-3 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
-          It keeps the path bounded and explicit, without implying coverage that
-          is not currently published.
+          No live customer proof artifact is linked from this index. The public
+          artifact classes here are sample or intake surfaces, each with its own
+          boundary and claim limit.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <CtaButton href="/verify" variant="primary" label="Verify a sample receipt" />
           <CtaButton href="/review/sample-cases" variant="secondary" label="Browse named sample cases" />
-          <CtaButton href="/review/request" variant="secondary" label="Request workflow review" />
+          <CtaButton href="/review/request" variant="secondary" label="Request a Review" />
         </div>
       </header>
 
@@ -136,13 +168,54 @@ export default function LibraryPage() {
         </h2>
         <div className="max-w-[680px] space-y-4 text-sm leading-relaxed text-text-muted">
           <p>
-            WitnessOps public surfaces include product docs, sample cases,
-            workflow review entry points, and receipt verification.
+            WitnessOps public surfaces include product docs, verifier fixtures,
+            explanatory sample cases, one illustrative sample report, the live
+            review request lane, and receipt verification.
           </p>
           <p>
             Docs cover the product contract. Review and verify cover the
-            operational surfaces that are currently live.
+            operational surfaces that are currently live, while the sample
+            surfaces stay explicitly non-live.
           </p>
+        </div>
+      </section>
+
+      <section id="artifact-classes" className="mb-16 border-b border-surface-border pb-10">
+        <h2
+          className="mb-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          Artifact classes on this surface
+          <span className="h-px flex-1 bg-surface-border" />
+        </h2>
+        <p className="mb-5 max-w-[680px] text-sm leading-relaxed text-text-muted">
+          These are the public classes currently exposed here. Each one has a
+          different authority, status, and claim boundary.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          {artifactClasses.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="kb-hover-card kb-hover-row kb-hover-row--rail-top relative border border-surface-border bg-surface-bg p-5"
+            >
+              <h3
+                className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                {item.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                {item.description}
+              </p>
+              <p
+                className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-accent"
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
+                {item.label}
+              </p>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -218,9 +291,9 @@ export default function LibraryPage() {
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
         <p className="mb-5 max-w-[680px] text-sm leading-relaxed text-text-muted">
-          Start by verifying a sample receipt, then browse named sample cases,
-          request a bounded review for one real workflow, and use docs for deeper
-          model context.
+          Start by verifying a sample receipt, then browse explanatory sample
+          cases, request a bounded review for one real workflow, and use docs
+          for deeper model context.
         </p>
         <div className="space-y-4">
           {startHerePaths
@@ -288,7 +361,7 @@ export default function LibraryPage() {
           className="mt-4 inline-block text-xs text-text-muted transition-colors hover:text-text-primary"
           style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}
         >
-          Open review intake &rarr;
+          Request a Review &rarr;
         </Link>
       </section>
     </main>

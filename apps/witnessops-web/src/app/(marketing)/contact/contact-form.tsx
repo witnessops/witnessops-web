@@ -136,12 +136,12 @@ export function ContactForm({
       </div>
 
       <div>
-        <div className="mb-2 block" style={labelStyle}>Review type</div>
+        <div className="mb-2 block" style={labelStyle}>Review scope</div>
         <div
           className="border border-surface-border bg-transparent px-3 py-3 text-text-primary"
           style={{ ...inputStyle, lineHeight: 1.4 }}
         >
-          One workflow review
+          One real workflow
         </div>
         <p className="mt-2 text-xs leading-relaxed text-text-muted">
           This lane is bounded to one workflow, one automation boundary, or one operator decision path.
@@ -179,7 +179,7 @@ export function ContactForm({
           textTransform: "uppercase",
         }}
       >
-        {status === "sending" ? "Sending..." : "Request review"}
+        {status === "sending" ? "Sending..." : "Request a Review"}
       </button>
 
       {status === "sent" && (

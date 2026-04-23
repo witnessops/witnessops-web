@@ -76,14 +76,14 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
               className="mb-2"
               style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--color-brand-muted)" }}
             >
-              Need a workflow review instead?
+              Need a Review instead?
             </p>
             <p className="text-sm leading-relaxed text-text-muted">
               Support is for product help, access issues, and verifier questions.
               If you want WitnessOps to inspect one real workflow, automation boundary,
               or operator decision path, use{" "}
               <Link href="/review/request" className="text-brand-accent underline-offset-4 hover:underline">
-                Review intake
+                Request a Review
               </Link>
               .
             </p>

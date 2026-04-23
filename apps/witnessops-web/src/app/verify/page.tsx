@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 const statusChips = [
-  { label: "Surface", value: "Fixture" },
+  { label: "Sample class", value: "Verifier fixtures" },
   { label: "Mode", value: "Public verifier" },
   { label: "Scope", value: "Receipt-first v1" },
 ];
@@ -107,6 +107,11 @@ export default function VerifyPage() {
               If a check passes, read the trust limits before relying on the
               result. If it fails, read the named breach or failure before
               trusting any claim built on top of it.
+            </p>
+            <p className="mt-4 max-w-[48rem] text-sm leading-7 text-text-muted">
+              The sample buttons below load verifier fixtures: public sample
+              receipts used to show clean pass, named failure, and fail-closed
+              behavior. They are not live customer artifacts.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2">

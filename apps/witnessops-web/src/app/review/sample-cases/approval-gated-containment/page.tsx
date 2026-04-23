@@ -6,7 +6,7 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "Sample Case — Approval-Gated Containment",
   description:
-    "Named sample case showing how WitnessOps reviews an approval-gated containment path: authority, execution, evidence, replayability, and failure modes. This is a published sample case, not a live customer artifact.",
+    "Named sample case showing how WitnessOps reviews an approval-gated containment path: authority, execution, evidence, replayability, and failure modes. This is a published explanatory sample case, not a live customer artifact.",
   alternates: getCanonicalAlternates(
     "witnessops",
     "/review/sample-cases/approval-gated-containment",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Sample Case — Approval-Gated Containment | WitnessOps",
     description:
-      "Named sample case showing how WitnessOps reviews an approval-gated containment path: authority, execution, evidence, replayability, and failure modes. This is a published sample case, not a live customer artifact.",
+      "Named sample case showing how WitnessOps reviews an approval-gated containment path: authority, execution, evidence, replayability, and failure modes. This is a published explanatory sample case, not a live customer artifact.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -22,12 +22,12 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Sample Case — Approval-Gated Containment | WitnessOps",
     description:
-      "Named sample case showing how WitnessOps reviews an approval-gated containment path: authority, execution, evidence, replayability, and failure modes. This is a published sample case, not a live customer artifact.",
+      "Named sample case showing how WitnessOps reviews an approval-gated containment path: authority, execution, evidence, replayability, and failure modes. This is a published explanatory sample case, not a live customer artifact.",
   },
 };
 
 const statusChips = [
-  { label: "Surface", value: "Published named case" },
+  { label: "Artifact class", value: "Explanatory sample case" },
   { label: "Class", value: "Workflow type" },
   { label: "Status", value: "Not live" },
 ];
@@ -173,8 +173,8 @@ export default function ApprovalGatedContainmentSampleCasePage() {
               Approval-gated containment review
             </h1>
             <p className="text-base leading-8 text-text-secondary">
-              This is a named published sample case showing how WitnessOps would
-              review a containment path that requires recorded approval before
+              This is a named published explanatory sample case showing how
+              WitnessOps would review a containment path that requires recorded approval before
               execution. It is a stable explanatory route, not a live customer
               artifact and not a claim of completed verification for your environment.
             </p>
@@ -190,7 +190,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
               ))}
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
-              <CtaButton href="/review/request" variant="primary" label="Request this review type" />
+              <CtaButton href="/review/request" variant="primary" label="Request a Review" />
               <CtaButton href="/review/sample-report" variant="secondary" label="Compare with sample report" />
               <CtaButton href="/review/sample-cases" variant="secondary" label="Browse all named sample cases" />
             </div>

@@ -10,12 +10,12 @@ status:
 
 seo:
   title: "Portable Proof for Consequential Security Work | WitnessOps"
-  description: "WitnessOps runs bounded security workflows and produces signed receipts plus portable proof artifacts that customers, auditors, and partners can inspect outside the source system."
+  description: "WitnessOps runs bounded security workflows and produces signed receipts plus reviewable evidence packages that customers, auditors, and partners can inspect outside the source system."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
   og_title: "WitnessOps — Consequential Security Work into Portable Proof"
-  og_description: "Bounded security workflows, signed receipts, and portable proof artifacts that hold up outside the source system."
+  og_description: "Bounded security workflows, signed receipts, and reviewable evidence packages that hold up outside the source system."
   twitter_card: "summary_large_image"
 
 theme:
@@ -47,14 +47,14 @@ navbar:
 hero:
   eyebrow: "Security work with proof other people can check"
   title: "Security decisions should end in proof, not trust."
-  body: "We run bounded security workflows and produce signed receipts plus portable proof artifacts that customers, auditors, and partners can inspect outside WitnessOps."
+  body: "We run bounded security workflows and produce signed receipts plus reviewable evidence packages that customers, auditors, and partners can inspect outside WitnessOps."
   supporting_points: []
   primary_cta:
     label: "Verify a sample receipt"
     href: "/verify"
     variant: "primary"
   secondary_cta:
-    label: "Request a workflow review"
+    label: "Request a Review"
     href: "/review/request"
     variant: "secondary"
   microcopy: "Use the public verifier against a sample receipt already on this site. No account required."
@@ -109,7 +109,7 @@ sections:
       - "Logs create noise"
       - "Screenshots do not travel"
       - "Vendor trust does not scale"
-    closing: "WitnessOps leaves behind portable proof artifacts you can inspect, verify offline, and carry across teams without routing trust back through us."
+    closing: "WitnessOps leaves behind reviewable evidence packages you can inspect, verify offline, and carry across teams without routing trust back through us."
 
   - type: "category_comparison"
     id: "category"
@@ -275,7 +275,7 @@ sections:
     id: "contract"
     enabled: true
     title: "Every run follows the same order."
-    lede: "Approve, execute, record, publish. The result is signed receipts plus portable proof artifacts other people can check outside WitnessOps."
+    lede: "Approve, execute, record, publish. The result is signed receipts plus reviewable evidence packages other people can check outside WitnessOps."
     steps:
       - label: "Approve"
         body: "A policy gate must pass before any tool runs. Approval is recorded."
@@ -284,7 +284,7 @@ sections:
       - label: "Record"
         body: "A signed receipt records what ran, who approved it, and the binding context."
       - label: "Publish"
-        body: "Portable proof artifacts are published for outside review. Verification does not depend on WitnessOps staying in the middle."
+        body: "Reviewable evidence packages can be exported for outside review. The public site stays bounded to verifier fixtures, explanatory sample cases, the illustrative sample report, and the live review request lane."
     closing: "Approve, execute, record, publish."
     cta:
       label: "Read the verification contract"
@@ -295,7 +295,7 @@ sections:
     id: "verifiable"
     enabled: true
     title: "Inspect sample receipts in the public verifier."
-    lede: "These verifier fixtures show what the public receipt checks can confirm today."
+    lede: "These verifier fixtures are public sample receipts used to show what the current receipt checks can confirm today."
     items:
       - title: "Valid receipt sample"
         body: "A known-good receipt fixture for the clean pass path in receipt-first mode."
@@ -309,12 +309,12 @@ sections:
         body: "A receipt-shaped input outside supported scope that fails closed in the public verifier."
         proof_link: "/verify"
         proof_link_label: "Open verifier samples"
-    closing: "Use these verifier samples to see what receipt checks can confirm, what they cannot confirm, and how failure is exposed."
+    closing: "These are verifier fixtures, not live customer artifacts. Use them to see what receipt checks can confirm, what they cannot confirm, and how failure is exposed."
     ctas:
       - label: "Try verifier samples"
         href: "/verify"
         variant: "primary"
-      - label: "Request a workflow review"
+      - label: "Request a Review"
         href: "/review/request"
         variant: "ghost"
 
@@ -337,21 +337,21 @@ sections:
   - type: "workflows"
     id: "workflows"
     enabled: true
-    title: "Workflow types in. Signed receipts and portable proof out."
-    lede: "WitnessOps is designed for consequential workflows where later scrutiny matters."
+    title: "Workflow types in. Signed receipts and reviewable evidence out."
+    lede: "WitnessOps is designed for consequential workflows where later scrutiny matters. The current public review surface includes explanatory sample cases, one illustrative sample report, and a live review request lane."
     cards:
       - title: "Privileged access grant review"
         body: "Review whether authority, execution, and evidence line up for a real access grant path."
         proof_link: "/review/sample-cases/privileged-access-grant"
-        proof_link_label: "Open named sample case"
+        proof_link_label: "Open explanatory sample case"
       - title: "Approval-gated containment"
         body: "Check whether containment required recorded approval before execution and whether the evidence survives outside the source system."
         proof_link: "/review/sample-cases/approval-gated-containment"
-        proof_link_label: "Open named sample case"
+        proof_link_label: "Open explanatory sample case"
       - title: "Evidence export audit package"
-        body: "Inspect whether a governed engagement can be packaged into portable proof artifacts for outside review."
+        body: "Inspect whether a governed engagement can be packaged into reviewable evidence packages for outside review."
         proof_link: "/review/sample-report"
-        proof_link_label: "Open sample report"
+        proof_link_label: "Open illustrative sample report"
     surfaces:
       - title: "CLI"
         body: "Run workflows from the command line and write receipts locally."
@@ -360,13 +360,13 @@ sections:
       - title: "API"
         body: "Trigger runs programmatically and receive receipts in response."
       - title: "Audit export"
-        body: "Export portable proof artifacts for offline review."
+        body: "Export reviewable evidence packages for offline review."
     internal_surfaces_disclosure: "Some surfaces remain internal only, including policy authoring, receipt query, and operator administration."
     ctas:
       - label: "Review workflow types"
         href: "/review"
         variant: "primary"
-      - label: "Request review"
+      - label: "Request a Review"
         href: "/review/request"
         variant: "ghost"
 
@@ -375,7 +375,7 @@ final_cta:
   title: "Ready to test one real workflow?"
   body: "Send one completed workflow. We check whether the authority path, execution path, and evidence package survive external review. Boundary, scope, and expected evidence are defined before anything runs."
   ctas:
-    - label: "Request review"
+    - label: "Request a Review"
       href: "/review/request"
       variant: "primary"
     - label: "Read the verification contract"

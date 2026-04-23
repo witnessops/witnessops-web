@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 const statusChips = [
   { label: "Surface", value: "Email follow-up" },
   { label: "Scope", value: "One real workflow" },
-  { label: "Lane", value: "Review intake" },
+  { label: "Lane", value: "Review" },
 ];
 
 const reviewBullets = [
@@ -181,7 +181,7 @@ export default function ReviewRequestPage() {
           </div>
           <p className="mb-6 text-sm leading-relaxed text-text-muted">
             Submit one workflow, automation boundary, or operator decision path.
-            We respond by email from the review intake mailbox.
+            We respond by email from the review mailbox.
           </p>
 
           <div className="mb-6 border border-surface-border bg-surface-bg p-5">
@@ -246,7 +246,7 @@ export default function ReviewRequestPage() {
           <ContactForm contactEmail={mailboxes.engage} />
 
           <p className="mt-6 text-xs leading-relaxed text-text-muted" style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}>
-            The details you enter here are sent for email follow-up through the review intake mailbox. Do not paste secrets or material you cannot place in email.
+            The details you enter here are sent for email follow-up through the review mailbox. Do not paste secrets or material you cannot place in email.
           </p>
         </div>
       </div>
