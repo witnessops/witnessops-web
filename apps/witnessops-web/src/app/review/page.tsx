@@ -98,9 +98,15 @@ export default function ReviewPage() {
             </p>
           </div>
           <div>
-            <CtaButton href="/review/sample-cases/privileged-access-grant" variant="secondary" label="View named sample case" />
+            <CtaButton href="/review/sample-cases/privileged-access-grant" variant="secondary" label="Access grant case" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
               Inspect a published privileged access grant review case.
+            </p>
+          </div>
+          <div>
+            <CtaButton href="/review/sample-cases/approval-gated-containment" variant="secondary" label="Containment case" />
+            <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
+              Inspect a published approval-gated containment review case.
             </p>
           </div>
         </div>
