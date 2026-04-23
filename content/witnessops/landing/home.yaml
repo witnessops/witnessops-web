@@ -320,7 +320,6 @@ sections:
     id: "boundary"
     enabled: true
     title: "Trust assumptions are explicit."
-    lede: "WitnessOps reduces trust. It does not pretend to remove it completely."
     items:
       - title: "Runtime integrity"
         body: "We run the execution environment. A compromised runtime could produce bad receipts. Signed hashes reduce risk, but they do not remove it."
