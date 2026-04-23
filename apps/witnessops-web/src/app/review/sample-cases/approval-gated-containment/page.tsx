@@ -47,6 +47,30 @@ const caseFacts = [
   },
 ];
 
+const artifactManifest = [
+  {
+    label: "Artifact class",
+    value: "Published explanatory sample case",
+  },
+  {
+    label: "Receipt status",
+    value: "No live customer receipt published on this page",
+  },
+  {
+    label: "Publication status",
+    value: "Public named sample case with stable route",
+  },
+  {
+    label: "Replay scope",
+    value: "Narrative review path and named evidence expectations only",
+  },
+  {
+    label: "Trust-dependent gaps",
+    value:
+      "Pre-execution gate enforcement proof, target-state confirmation, and portable replay outside response tooling",
+  },
+];
+
 const reviewBoundary = [
   "Containment request and stated incident rationale",
   "Approver identity, standing, and approval event",
@@ -166,6 +190,24 @@ export default function ApprovalGatedContainmentSampleCasePage() {
                 </p>
               </div>
             ))}
+          </section>
+
+          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
+              Artifact manifest
+            </h2>
+            <dl className="mt-4 grid gap-4 md:grid-cols-2">
+              {artifactManifest.map((item) => (
+                <div key={item.label}>
+                  <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                    {item.label}
+                  </dt>
+                  <dd className="mt-2 text-sm leading-7 text-text-secondary">
+                    {item.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </section>
 
           <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
