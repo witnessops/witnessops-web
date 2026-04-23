@@ -229,7 +229,7 @@ export default function ReviewRequestPage() {
           <ContactForm contactEmail={mailboxes.engage} />
 
           <p className="mt-6 text-xs leading-relaxed text-text-muted" style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}>
-            Sent for email follow-up through the review mailbox. Do not paste secrets or material you cannot place in email.
+            Email follow-up only. Do not paste secrets.
           </p>
         </div>
       </div>
