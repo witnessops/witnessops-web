@@ -61,7 +61,6 @@ hero:
     label: "Request a Review"
     href: "/review/request"
     variant: "secondary"
-  microcopy: "Use the public verifier against a sample receipt already on this site. No account required."
   proof_badges: []
   media:
     type: "code_excerpt"
