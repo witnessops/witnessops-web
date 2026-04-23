@@ -308,7 +308,6 @@ sections:
         body: "A receipt-shaped input outside supported scope that fails closed in the public verifier."
         proof_link: "/verify"
         proof_link_label: "Open verifier samples"
-    closing: "These are verifier fixtures, not live customer artifacts. Use them to see what receipt checks can confirm, what they cannot confirm, and how failure is exposed."
     ctas:
       - label: "Try verifier samples"
         href: "/verify"
