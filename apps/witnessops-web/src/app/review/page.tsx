@@ -4,14 +4,14 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "Review",
   description:
-    "Review one real workflow before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
+    "Review one real workflow. WitnessOps returns a bounded report on authority, execution, evidence, and replayability.",
   alternates: {
     canonical: "/review",
   },
   openGraph: {
     title: "Review | WitnessOps",
     description:
-      "Review one real workflow before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
+      "Review one real workflow. WitnessOps returns a bounded report on authority, execution, evidence, and replayability.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -19,18 +19,17 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Review | WitnessOps",
     description:
-      "Review one real workflow before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
+      "Review one real workflow. WitnessOps returns a bounded report on authority, execution, evidence, and replayability.",
   },
 };
 
 const whatYouGet = [
-  "Who can approve or act",
-  "Which tools and permissions matter",
-  "What the execution path looks like",
-  "What evidence is kept",
-  "What can be replayed later",
-  "What looks weak",
-  "What to do next",
+  "Authority boundary",
+  "Execution path",
+  "Evidence kept",
+  "Replayability",
+  "Weak points",
+  "Next steps",
 ];
 
 const sampleReportBullets = [
@@ -54,12 +53,12 @@ export default function ReviewPage() {
           className="mt-2 text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-4xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Review one real workflow before you rely on it
+          Review one real workflow
         </h1>
         <p className="mt-4 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
-          Bring one workflow, one automation boundary, or one operator decision
-          path. WitnessOps returns a bounded report showing who can act, what
-          runs, what evidence is kept, and what another person could check later.
+          Bring one workflow, one automation boundary, or one operator path.
+          WitnessOps returns a bounded report on authority, execution,
+          evidence, and replayability.
         </p>
         <div className="mt-6 border border-surface-border bg-surface-card/50 p-4">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
