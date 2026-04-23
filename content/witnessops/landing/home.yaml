@@ -53,7 +53,6 @@ hero:
     title: "For consequential AI workflows"
     body:
       - "Prove who approved it, what ran, and what evidence survives outside the source system."
-    microcopy: "Evidence for later scrutiny, not a broad AI compliance claim."
   primary_cta:
     label: "Verify a sample receipt"
     href: "/verify"
