@@ -151,6 +151,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             <div className="flex flex-wrap gap-3 pt-2">
               <CtaButton href="/review/request" variant="primary" label="Request this review type" />
               <CtaButton href="/review/sample-report" variant="secondary" label="Compare with sample report" />
+              <CtaButton href="/review/sample-cases" variant="secondary" label="Browse all named sample cases" />
             </div>
           </section>
 
