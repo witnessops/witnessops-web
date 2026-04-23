@@ -45,7 +45,6 @@ navbar:
     variant: "primary"
 
 hero:
-  eyebrow: "Consequential work with proof other people can check"
   title: "Consequential decisions should end in proof, not trust."
   body: "We run bounded workflows and produce signed receipts plus evidence packages that customers, auditors, and partners can inspect outside WitnessOps."
   supporting_points: []
