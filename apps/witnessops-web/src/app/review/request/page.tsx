@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { getMailboxConfig } from "@/lib/mailboxes";
 
@@ -46,12 +47,6 @@ const prepareBullets = [
   "State who could approve or act",
   "Describe the evidence you already have",
   "Include time bounds or key event order if known",
-];
-
-const exclusionBullets = [
-  "Product help, access issues, and verifier questions belong on /support",
-  "Responsible disclosure belongs on /security",
-  "Do not use this page for a broad audit or catch-all security engagement",
 ];
 
 const nextSteps = [
@@ -227,14 +222,25 @@ export default function ReviewRequestPage() {
             >
               Use another lane instead
             </div>
-            <ul className="space-y-2 text-sm leading-relaxed text-text-muted">
-              {exclusionBullets.map((item) => (
-                <li key={item} className="flex gap-3">
-                  <span style={{ color: "var(--color-brand-accent)" }}>•</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-3 text-sm leading-relaxed text-text-muted">
+              <p>
+                Product help, access issues, and verifier questions belong on{" "}
+                <Link href="/support" className="text-brand-accent underline-offset-4 hover:underline">
+                  Support
+                </Link>
+                .
+              </p>
+              <p>
+                Responsible disclosure belongs on{" "}
+                <Link href="/security" className="text-brand-accent underline-offset-4 hover:underline">
+                  Security
+                </Link>
+                .
+              </p>
+              <p>
+                Do not use this page for a broad audit or catch-all security engagement.
+              </p>
+            </div>
           </div>
 
           <ContactForm contactEmail={mailboxes.engage} />
