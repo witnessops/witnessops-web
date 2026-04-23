@@ -26,6 +26,12 @@ export const metadata: Metadata = {
   },
 };
 
+const statusChips = [
+  { label: "Surface", value: "Published named case" },
+  { label: "Class", value: "Workflow type" },
+  { label: "Status", value: "Not live" },
+];
+
 const caseFacts = [
   {
     label: "Case name",
@@ -172,6 +178,17 @@ export default function ApprovalGatedContainmentSampleCasePage() {
               execution. It is a stable explanatory route, not a live customer
               artifact and not a claim of completed verification for your environment.
             </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {statusChips.map((chip) => (
+                <div
+                  key={chip.label}
+                  className="rounded-full border border-surface-border bg-surface-bg px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-text-muted"
+                >
+                  <span className="font-semibold text-text-primary">{chip.label}:</span>{" "}
+                  {chip.value}
+                </div>
+              ))}
+            </div>
             <div className="flex flex-wrap gap-3 pt-2">
               <CtaButton href="/review/request" variant="primary" label="Request this review type" />
               <CtaButton href="/review/sample-report" variant="secondary" label="Compare with sample report" />
