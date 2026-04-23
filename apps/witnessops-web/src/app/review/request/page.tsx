@@ -73,20 +73,6 @@ export default function ReviewRequestPage() {
         </div>
 
         <div className="p-10 md:p-12" style={{ background: "var(--color-surface-bg-alt)" }}>
-          <div
-            className="mb-6"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: 14,
-              fontWeight: 600,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "var(--color-text-muted)",
-            }}
-          >
-            Submit one workflow for review
-          </div>
-
           <div className="mb-6 border border-surface-border bg-surface-bg p-5">
             <div
               className="mb-3"
