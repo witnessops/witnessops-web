@@ -361,7 +361,6 @@ sections:
         body: "Trigger runs programmatically and receive receipts in response."
       - title: "Audit export"
         body: "Export reviewable evidence packages for offline review."
-    internal_surfaces_disclosure: "Some surfaces remain internal only, including policy authoring, receipt query, and operator administration."
     ctas:
       - label: "Review workflow types"
         href: "/review"
