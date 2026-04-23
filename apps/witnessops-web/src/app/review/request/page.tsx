@@ -93,7 +93,7 @@ export default function ReviewRequestPage() {
 
         <div className="p-10 md:p-12" style={{ background: "var(--color-surface-bg-alt)" }}>
           <div
-            className="mb-2"
+            className="mb-6"
             style={{
               fontFamily: "var(--font-display)",
               fontSize: 14,
@@ -105,9 +105,6 @@ export default function ReviewRequestPage() {
           >
             Submit one workflow for review
           </div>
-          <p className="mb-6 text-sm leading-relaxed text-text-muted">
-            Submit one workflow or operator path. We reply by email from the review mailbox.
-          </p>
 
           <div className="mb-6 border border-surface-border bg-surface-bg p-5">
             <div
