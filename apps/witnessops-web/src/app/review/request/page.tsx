@@ -54,8 +54,7 @@ export default function ReviewRequestPage() {
               Request a review
             </h1>
             <p className="mb-6 max-w-[420px] text-sm leading-relaxed text-text-muted">
-              Bring one workflow, one automation boundary, or one operator decision path.
-              We review requests by email after intake.
+              Bring one workflow or operator path. Review continues by email.
             </p>
 
             <ul className="border-t border-surface-border">
