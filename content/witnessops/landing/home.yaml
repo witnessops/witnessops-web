@@ -372,7 +372,6 @@ sections:
 final_cta:
   enabled: true
   title: "Ready to test one real workflow?"
-  body: "Send one completed workflow. We check whether the authority path, execution path, and evidence package survive external review. Boundary, scope, and expected evidence are defined before anything runs."
   ctas:
     - label: "Request a Review"
       href: "/review/request"
