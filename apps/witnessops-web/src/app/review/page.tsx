@@ -176,9 +176,8 @@ export default function ReviewPage() {
           See what the report looks like
         </h2>
         <p className="mt-4 max-w-[680px] text-sm leading-relaxed text-text-muted">
-          Open a sample dossier and inspect the exact review shape: system
-          boundary, authority map, execution path, observed evidence,
-          replayability judgment, and named failure modes.
+          Open a sample dossier and inspect the review shape: boundary, authority,
+          execution path, evidence, and replayability.
         </p>
         <ul className="mt-6 space-y-2 text-sm leading-relaxed text-text-muted">
           {sampleReportBullets.map((item) => (
