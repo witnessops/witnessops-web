@@ -40,13 +40,6 @@ const reviewBullets = [
   "What to do next",
 ];
 
-const prepareBullets = [
-  "Name one workflow or decision path",
-  "List the systems and tools involved",
-  "State who could approve or act",
-  "Describe the evidence you already have",
-];
-
 const nextSteps = [
   "We check that it fits one bounded path",
   "We reply by email with scope and gaps",
@@ -95,30 +88,6 @@ export default function ReviewRequestPage() {
                 </li>
               ))}
             </ul>
-
-            <div className="mt-8 border border-surface-border bg-surface-bg p-5">
-              <div
-                className="mb-3"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "var(--color-text-muted)",
-                }}
-              >
-                Before you submit
-              </div>
-              <ul className="space-y-2 text-sm leading-relaxed text-text-muted">
-                {prepareBullets.map((item) => (
-                  <li key={item} className="flex gap-3">
-                    <span style={{ color: "var(--color-brand-accent)" }}>•</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
 
             <p
               className="mt-6 max-w-[420px] text-xs leading-relaxed text-text-muted"
