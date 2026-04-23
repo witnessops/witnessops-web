@@ -45,6 +45,7 @@ navbar:
     variant: "primary"
 
 hero:
+  eyebrow: "Consequential work with proof other people can check"
   title: "Consequential decisions should end in proof, not trust."
   body: "We run bounded workflows and produce signed receipts plus evidence packages that customers, auditors, and partners can inspect outside WitnessOps."
   supporting_points: []
@@ -283,6 +284,7 @@ sections:
         body: "A signed receipt records what ran, who approved it, and the binding context."
       - label: "Publish"
         body: "Reviewable evidence packages can be exported for outside review. The public site stays bounded to verifier fixtures, explanatory sample cases, the illustrative sample report, and the live review request lane."
+    closing: "Approve, execute, record, publish."
     cta:
       label: "Read the verification contract"
       href: "/docs/how-it-works/verification"
@@ -292,6 +294,7 @@ sections:
     id: "verifiable"
     enabled: true
     title: "Inspect sample receipts in the public verifier."
+    lede: "These verifier fixtures are public sample receipts used to show what the current receipt checks can confirm today."
     items:
       - title: "Valid receipt sample"
         body: "A known-good receipt fixture for the clean pass path in receipt-first mode."
@@ -312,11 +315,13 @@ sections:
       - label: "Request a Review"
         href: "/review/request"
         variant: "ghost"
+    closing: "These are verifier fixtures, not live customer artifacts. Use them to see what receipt checks can confirm, what they cannot confirm, and how failure is exposed."
 
   - type: "boundary"
     id: "boundary"
     enabled: true
     title: "Trust assumptions are explicit."
+    lede: "WitnessOps reduces trust. It does not pretend to remove it completely."
     items:
       - title: "Runtime integrity"
         body: "We run the execution environment. A compromised runtime could produce bad receipts. Signed hashes reduce risk, but they do not remove it."
@@ -326,11 +331,13 @@ sections:
         body: "Historical verification depends on published, versioned receipt schemas remaining stable over time."
       - title: "Policy enforcement"
         body: "Policy gates run on our infrastructure. You can verify that evaluation happened, but not prove the policy engine is perfect."
+    closing: "Trust should be named, bounded, and kept as small as possible."
 
   - type: "workflows"
     id: "workflows"
     enabled: true
     title: "Workflow types in. Signed receipts and reviewable evidence out."
+    lede: "WitnessOps is designed for consequential workflows where later scrutiny matters. The current public review surface includes explanatory sample cases, one illustrative sample report, and a live review request lane."
     cards:
       - title: "Privileged access grant review"
         body: "Review whether authority, execution, and evidence line up for a real access grant path."
@@ -353,6 +360,7 @@ sections:
         body: "Trigger runs programmatically and receive receipts in response."
       - title: "Audit export"
         body: "Export reviewable evidence packages for offline review."
+    internal_surfaces_disclosure: "Some surfaces remain internal only, including policy authoring, receipt query, and operator administration."
     ctas:
       - label: "Review workflow types"
         href: "/review"
@@ -364,6 +372,7 @@ sections:
 final_cta:
   enabled: true
   title: "Ready to test one real workflow?"
+  body: "Send one completed workflow. We check whether the authority path, execution path, and evidence package survive external review. Boundary, scope, and expected evidence are defined before anything runs."
   ctas:
     - label: "Request a Review"
       href: "/review/request"
