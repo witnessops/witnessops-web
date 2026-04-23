@@ -94,7 +94,13 @@ export default function ReviewPage() {
           <div>
             <CtaButton href="/review/sample-report" variant="secondary" label="View sample report" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              See the report shape before you submit a real workflow.
+              See the generic report shape before you submit a real workflow.
+            </p>
+          </div>
+          <div>
+            <CtaButton href="/review/sample-cases/privileged-access-grant" variant="secondary" label="View named sample case" />
+            <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
+              Inspect a published privileged access grant review case.
             </p>
           </div>
         </div>
