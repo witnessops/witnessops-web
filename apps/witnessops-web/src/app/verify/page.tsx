@@ -26,6 +26,12 @@ export const metadata: Metadata = {
   },
 };
 
+const statusChips = [
+  { label: "Surface", value: "Fixture" },
+  { label: "Mode", value: "Public verifier" },
+  { label: "Scope", value: "Receipt-first v1" },
+];
+
 const verificationScope = [
   {
     title: "What this can show",
@@ -102,6 +108,18 @@ export default function VerifyPage() {
               result. If it fails, read the named breach or failure before
               trusting any claim built on top of it.
             </p>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              {statusChips.map((chip) => (
+                <div
+                  key={chip.label}
+                  className="rounded-full border border-surface-border bg-surface-bg px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-text-muted"
+                >
+                  <span className="font-semibold text-text-primary">{chip.label}:</span>{" "}
+                  {chip.value}
+                </div>
+              ))}
+            </div>
 
             <div className="mt-6 flex flex-wrap gap-3">
               <CtaButton href="#verify-console" variant="primary" label="Try a sample receipt" />
