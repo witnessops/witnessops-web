@@ -152,7 +152,7 @@ export default function ReviewRequestPage() {
               style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}
             >
               This request is for one real path only. It is not a broad audit, a
-              catch-all security engagement, or an instant review result.
+              catch-all review of your environment, or an instant review result.
             </p>
           </div>
 
@@ -238,7 +238,7 @@ export default function ReviewRequestPage() {
                 .
               </p>
               <p>
-                Do not use this page for a broad audit or catch-all security engagement.
+                Do not use this page for a broad audit or catch-all review of your environment.
               </p>
             </div>
           </div>
