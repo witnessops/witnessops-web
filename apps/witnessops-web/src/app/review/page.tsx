@@ -4,14 +4,14 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "Review",
   description:
-    "Review one real system before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
+    "Review one real workflow before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
   alternates: {
     canonical: "/review",
   },
   openGraph: {
     title: "Review | WitnessOps",
     description:
-      "Review one real system before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
+      "Review one real workflow before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Review | WitnessOps",
     description:
-      "Review one real system before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
+      "Review one real workflow before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
   },
 };
 
@@ -54,7 +54,7 @@ export default function ReviewPage() {
           className="mt-2 text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-4xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Review one real system before you rely on it
+          Review one real workflow before you rely on it
         </h1>
         <p className="mt-4 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
           Bring one workflow, one automation boundary, or one operator decision
