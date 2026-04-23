@@ -143,24 +143,10 @@ export default function ReviewPage() {
           className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Scope note
+          Boundary note
         </h2>
         <p className="text-sm leading-relaxed text-text-muted">
-          This is a bounded review of one path. It is not a broad audit and it
-          does not claim to cover everything in your stack.
-        </p>
-      </section>
-
-      <section className="mb-10 border-b border-surface-border pb-8">
-        <h2
-          className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Trust boundary note
-        </h2>
-        <p className="text-sm leading-relaxed text-text-muted">
-          The result is limited to the workflow, access, and evidence available
-          during review. Anything outside that boundary stays outside the claim.
+          One bounded path only. Outside the reviewed workflow, access, and evidence, no claim is made.
         </p>
       </section>
 
