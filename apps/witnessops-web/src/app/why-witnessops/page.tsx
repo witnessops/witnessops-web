@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { SectionShell } from "@/components/shared/section-shell";
+import { CtaButton } from "@/components/shared/cta-button";
 
 export const metadata: Metadata = {
   title: "Why WitnessOps",
@@ -61,6 +62,16 @@ export default function WhyWitnessOpsPage() {
             That is why WitnessOps keeps execution, evidence, and verification as
             separate concerns and says clearly where trust still sits with us.
           </p>
+        </div>
+
+        <div className="mt-10 border-t border-surface-border pt-8">
+          <p className="mb-4 text-sm leading-relaxed text-text-muted">
+            Keep going with one real workflow review or inspect a sample receipt first.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <CtaButton href="/review" variant="primary" label="Review one workflow" />
+            <CtaButton href="/verify" variant="secondary" label="Verify a sample receipt" />
+          </div>
         </div>
       </SectionShell>
     </main>
