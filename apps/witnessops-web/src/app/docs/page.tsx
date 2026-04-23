@@ -243,7 +243,7 @@ export default async function DocsIndexPage() {
             label="Verify a receipt"
           />
           <CtaButton
-            href="/library"
+            href="/review/sample-cases"
             variant="secondary"
             label="Inspect sample cases"
           />
