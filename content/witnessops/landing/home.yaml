@@ -6,16 +6,16 @@ slug: "/"
 status:
   draft: false
   canonical: true
-  last_reviewed: "2026-03-13"
+  last_reviewed: "2026-04-23"
 
 seo:
-  title: "Portable Proof for Governed Security Work | WitnessOps"
-  description: "WitnessOps helps teams turn security work into signed proof bundles that customers, auditors, and partners can check for themselves."
+  title: "Portable Proof for Consequential Security Work | WitnessOps"
+  description: "WitnessOps runs bounded security workflows and produces signed receipts plus portable proof artifacts that customers, auditors, and partners can inspect outside the source system."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "WitnessOps — Security Work into Proof You Can Check"
-  og_description: "From governed action to signed receipt to proof other people can check for themselves."
+  og_title: "WitnessOps — Consequential Security Work into Portable Proof"
+  og_description: "Bounded security workflows, signed receipts, and portable proof artifacts that hold up outside the source system."
   twitter_card: "summary_large_image"
 
 theme:
@@ -45,19 +45,19 @@ navbar:
     variant: "primary"
 
 hero:
-  eyebrow: "Security work with proof you can check"
-  title: "WitnessOps turns security work into proof other people can check."
-  body: "We run bounded security workflows and produce signed proof bundles that customers, auditors, and partners can inspect outside WitnessOps."
+  eyebrow: "Consequential security work with proof other people can check"
+  title: "Security decisions should end in proof, not trust."
+  body: "We run bounded security workflows and produce signed receipts plus portable proof artifacts that customers, auditors, and partners can inspect outside WitnessOps."
   supporting_points: []
   primary_cta:
-    label: "Verify a sample bundle"
+    label: "Verify a sample receipt"
     href: "/verify"
     variant: "primary"
   secondary_cta:
     label: "Request a workflow review"
     href: "/review/request"
     variant: "secondary"
-  microcopy: "Runs in your browser against a sample receipt already on this site. No account. No backend call. No data leaves the page."
+  microcopy: "Use the public verifier against a sample receipt already on this site. No account required. Receipt-first checks."
   proof_badges: []
   media:
     type: "code_excerpt"
@@ -109,7 +109,7 @@ sections:
       - "Logs create noise"
       - "Screenshots do not travel"
       - "Vendor trust does not scale"
-    closing: "WitnessOps leaves behind a signed proof bundle you can inspect, verify offline, and carry across teams without routing trust back through us."
+    closing: "WitnessOps leaves behind portable proof artifacts you can inspect, verify offline, and carry across teams without routing trust back through us."
 
   - type: "category_comparison"
     id: "category"
@@ -239,7 +239,7 @@ sections:
       - "Proof should survive export."
       - "Proof should survive handoff."
       - "Proof should survive us disappearing from the middle."
-      - "Do not trust the claim. Verify the bundle."
+      - "Do not trust the claim. Verify the artifacts."
 
   - type: "offer"
     id: "offer"
@@ -274,18 +274,18 @@ sections:
   - type: "contract"
     id: "contract"
     enabled: true
-    title: "Every run follows four steps."
-    lede: "The order is fixed: approve, run, record, publish. The result is a proof bundle other people can check."
+    title: "Every run follows the same order."
+    lede: "Approve, execute, record, publish. The result is signed receipts plus portable proof artifacts that hold up outside WitnessOps."
     steps:
       - label: "Approve"
         body: "A policy gate must pass before any tool runs. Approval is recorded."
       - label: "Execute"
-        body: "The tool runs inside approved scope. Execution is tied to the policy context."
+        body: "The workflow runs inside approved scope. Execution is bound to the approval context."
       - label: "Record"
         body: "A signed receipt records what ran, who approved it, and the binding context."
       - label: "Publish"
-        body: "The signed bundle is published and portable. Verification does not depend on us."
-    closing: "The order is fixed: approve, run, record, publish."
+        body: "Portable proof artifacts are published for outside review. Verification does not depend on WitnessOps staying in the middle."
+    closing: "Approve, execute, record, publish."
     cta:
       label: "Read the verification contract"
       href: "/docs/how-it-works/verification"
@@ -294,24 +294,24 @@ sections:
   - type: "verifiable_items"
     id: "verifiable"
     enabled: true
-    title: "Verify live proof bundles."
-    lede: "These sample bundles are live and ready to inspect."
+    title: "Inspect sample proof artifacts."
+    lede: "These sample cases show what a governed run leaves behind."
     items:
       - title: "Phishing triage"
-        body: "Phishing triage under a governed runbook. The receipt records scope, approval, and result."
-        proof_link: "/library/samples/phishing-triage"
-        proof_link_label: "View phishing triage bundle"
+        body: "Phishing triage under a governed runbook, with a signed receipt and supporting proof artifacts."
+        proof_link: "/library"
+        proof_link_label: "Open sample cases"
       - title: "Approval-gated containment"
-        body: "Containment action with explicit approval before execution. The receipt shows the gate."
-        proof_link: "/library/samples/approval-gated-containment"
-        proof_link_label: "View approval-gated containment bundle"
+        body: "Containment action with explicit approval before execution, including the gate record, signed receipt, and supporting artifacts."
+        proof_link: "/library"
+        proof_link_label: "Open sample cases"
       - title: "Evidence export audit package"
-        body: "A full evidence export from a governed engagement. You can inspect it offline."
-        proof_link: "/library/samples/evidence-export-audit-package"
-        proof_link_label: "View evidence export audit bundle"
-    closing: "Use these bundles to see what survives handoff and what still depends on trust."
+        body: "A governed engagement packaged into portable proof artifacts for offline review."
+        proof_link: "/library"
+        proof_link_label: "Open sample cases"
+    closing: "Use these samples to see what survives handoff and what still depends on trust."
     ctas:
-      - label: "Inspect sample bundles"
+      - label: "Inspect sample cases"
         href: "/library"
         variant: "primary"
       - label: "Request a workflow review"
@@ -321,49 +321,49 @@ sections:
   - type: "boundary"
     id: "boundary"
     enabled: true
-    title: "Some trust still sits with us."
-    lede: "Here is what you still have to trust WitnessOps for."
+    title: "Trust assumptions are explicit."
+    lede: "WitnessOps reduces trust. It does not pretend to remove it completely."
     items:
       - title: "Runtime integrity"
         body: "We run the execution environment. A compromised runtime could produce bad receipts. Signed hashes reduce risk, but they do not remove it."
       - title: "Key management"
-        body: "Receipt signatures depend on our key infrastructure. We use HSM-backed keys and publish key rotation policy."
+        body: "Receipt signatures depend on our key infrastructure and rotation discipline."
       - title: "Schema continuity"
-        body: "Receipt schema is versioned and published. Breaking schema changes would affect historical verification."
+        body: "Historical verification depends on published, versioned receipt schemas remaining stable over time."
       - title: "Policy enforcement"
         body: "Policy gates run on our infrastructure. You can verify that evaluation happened, but not prove the policy engine is perfect."
-    closing: "Trust should be named and kept as small as possible."
+    closing: "Trust should be named, bounded, and kept as small as possible."
 
   - type: "workflows"
     id: "workflows"
     enabled: true
-    title: "Security workflows in, proof bundles out."
-    lede: "These examples show the kind of work WitnessOps records and packages."
+    title: "Security workflows in. Portable proof out."
+    lede: "WitnessOps is designed for consequential workflows where later scrutiny matters."
     cards:
       - title: "Phishing triage"
-        body: "Classify and scope a phishing incident under a governed runbook. The receipt records scope and approval."
-        proof_link: "/library/samples/phishing-triage"
-        proof_link_label: "View phishing triage bundle"
+        body: "Classify and scope a phishing incident under a governed runbook."
+        proof_link: "/library"
+        proof_link_label: "Open workflow samples"
       - title: "Approval-gated containment"
-        body: "Run containment with an approval gate. No execution without recorded approval."
-        proof_link: "/library/samples/approval-gated-containment"
-        proof_link_label: "View containment bundle"
+        body: "Run containment only after recorded approval."
+        proof_link: "/library"
+        proof_link_label: "Open workflow samples"
       - title: "Evidence export audit package"
-        body: "Package a governed engagement into a proof bundle for outside review."
-        proof_link: "/library/samples/evidence-export-audit-package"
-        proof_link_label: "View audit package bundle"
+        body: "Package a governed engagement into portable proof artifacts for outside review."
+        proof_link: "/library"
+        proof_link_label: "Open workflow samples"
     surfaces:
       - title: "CLI"
-        body: "Run workflows from the command line. Receipts are written locally and can be published."
+        body: "Run workflows from the command line and write receipts locally."
       - title: "Operator surface"
-        body: "Use a deterministic execution interface for operators."
+        body: "Use a deterministic operator interface for bounded execution."
       - title: "API"
-        body: "Trigger runs programmatically and get receipts in the response."
+        body: "Trigger runs programmatically and receive receipts in response."
       - title: "Audit export"
-        body: "Export signed proof bundles for offline review."
-    internal_surfaces_disclosure: "Some surfaces are internal only: policy authoring, receipt query, and operator administration."
+        body: "Export portable proof artifacts for offline review."
+    internal_surfaces_disclosure: "Some surfaces remain internal only, including policy authoring, receipt query, and operator administration."
     ctas:
-      - label: "Inspect workflow bundles"
+      - label: "Inspect workflow samples"
         href: "/library"
         variant: "primary"
       - label: "Request review"
@@ -372,8 +372,8 @@ sections:
 
 final_cta:
   enabled: true
-  title: "Ready to review one real workflow?"
-  body: "If the proof path makes sense for your case, move to the intake. We set the boundary, scope, and expected evidence before anything runs."
+  title: "Ready to test one real workflow?"
+  body: "Send one completed workflow. We check whether the authority path, execution path, and evidence package survive external review. Boundary, scope, and expected evidence are defined before anything runs."
   ctas:
     - label: "Request review"
       href: "/review/request"
@@ -384,7 +384,7 @@ final_cta:
 
 footer:
   brand_line: "WitnessOps"
-  subline: "Portable proof for governed security work."
+  subline: "Portable proof for consequential security work."
   links:
     - label: "How It Works"
       href: "/why-witnessops"
