@@ -35,7 +35,7 @@ const pageContract = [
     label: "Problem",
     title: "Why this page exists",
     description:
-      "Security work often leaves behind scattered evidence. This page shows where to start and what to read next.",
+      "Consequential work often leaves behind scattered evidence. This page shows where to start and what to read next.",
   },
   {
     label: "Outcome",
@@ -62,7 +62,7 @@ const coreConcepts = [
     label: "Controlled",
     title: "Governed execution",
     description:
-      "Security work runs through explicit scope, policy, and approval controls.",
+      "Consequential workflows run through explicit scope, policy, and approval controls.",
   },
   {
     label: "Provable",
