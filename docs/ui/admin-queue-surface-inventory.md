@@ -6,10 +6,11 @@ Scope: admin surfaces, queue-adjacent public entrypoints, and Phase 2 boundary s
 | surface | control | route / endpoint | phase status | route status (intake-only) | source of truth | label status | notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | /contact | Redirect to /review/request | GET /contact | phase1-authoritative | n/a | Next.js redirect | approved | permanentRedirect to /review/request |
-| /review/request | Review request form (name/org/email/scope + Request review) | GET /review/request | phase1-authoritative | n/a | ContactForm + review request page | approved | Posts to /api/review/request |
+| /review/request | Review request form (name/org/email/scope + Request review) | GET /review/request | phase1-authoritative | n/a | ContactForm + review request page | approved | Posts to /api/contact for email-only follow-up |
 | /api/review/request | Review intake submission | POST /api/review/request | phase1-authoritative | authoritative | handleReviewRequestIntake + token issuance | approved | Canonical intake entrypoint |
 | /api/engage | Intake alias endpoint | POST /api/engage | phase1-authoritative | alias | handleReviewRequestIntake + token issuance | approved | Alias for /api/review/request |
-| /api/contact | Intake alias endpoint | POST /api/contact | phase1-authoritative | alias | handleReviewRequestIntake + token issuance | approved | Alias for /api/review/request |
+| /api/contact | Direct review request email | POST /api/contact | phase1-authoritative | n/a | sendMail (file/resend/m365) | approved | Email-only path to engage@witnessops.com; does not write queue state |
+| /api/support/message | Direct support request email | POST /api/support/message | phase1-authoritative | n/a | sendMail (file/resend/m365) | approved | Email-only path to support@witnessops.com; does not write queue state |
 | /api/intake | Intake stub endpoint | POST /api/intake | legacy-transitional | stub/inactive | stub log only | deprecated | Does not write intake/issuance records |
 | /api/verify-token | Verify mailbox token | GET /api/verify-token, POST /api/verify-token | phase2-boundary | n/a | verifyIssuedToken + issuance store | approved | GET redirects to /assessment/{issuanceId} (or /support); Phase 2 boundary dependency |
 | /admin/login | OIDC sign-in | GET /api/admin/oidc/start | phase1-authoritative | n/a | OIDC session issuance | approved | Callback at /api/admin/oidc/callback |

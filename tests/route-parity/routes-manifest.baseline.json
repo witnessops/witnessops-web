@@ -297,6 +297,24 @@
       "namedRegex": "^/review/request(?:/)?$"
     },
     {
+      "page": "/review/sample-cases",
+      "regex": "^/review/sample\\-cases(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases(?:/)?$"
+    },
+    {
+      "page": "/review/sample-cases/approval-gated-containment",
+      "regex": "^/review/sample\\-cases/approval\\-gated\\-containment(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/approval\\-gated\\-containment(?:/)?$"
+    },
+    {
+      "page": "/review/sample-cases/privileged-access-grant",
+      "regex": "^/review/sample\\-cases/privileged\\-access\\-grant(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/privileged\\-access\\-grant(?:/)?$"
+    },
+    {
       "page": "/review/sample-report",
       "regex": "^/review/sample\\-report(?:/)?$",
       "routeKeys": {},

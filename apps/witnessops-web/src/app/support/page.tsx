@@ -62,7 +62,7 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
         )}
         {resolvedSearchParams.verified === "1" && (
           <div className="mt-5 border border-signal-green/30 bg-signal-green/5 px-4 py-3 text-sm text-signal-green">
-            Mailbox verified. Your support thread is now in the queue{resolvedSearchParams.threadId ? ` as ${resolvedSearchParams.threadId}` : ""}.
+            Mailbox verified for a queue-backed support request{resolvedSearchParams.threadId ? ` as ${resolvedSearchParams.threadId}` : ""}.
           </div>
         )}
       </header>
@@ -115,8 +115,8 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
               Prefer direct email?
             </p>
             <p className="mb-3 text-xs leading-relaxed text-text-muted">
-              You can email the support mailbox directly. The request only enters
-              the queue after mailbox verification.
+              You can email the support mailbox directly. The form on this page
+              also routes to email rather than the admin queue.
             </p>
             <a
               href={`mailto:${mailboxes.support}`}

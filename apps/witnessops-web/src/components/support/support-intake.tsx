@@ -71,7 +71,7 @@ const KB_ENTRIES = [
 ];
 
 export function SupportIntake({ supportEmail }: { supportEmail: string }) {
-  const [status, setStatus] = useState<"idle" | "search" | "form" | "sending" | "verification_sent" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "search" | "form" | "sending" | "sent" | "error">("idle");
   const [email, setEmail] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<typeof KB_ENTRIES>([]);
@@ -100,7 +100,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
     const data = new FormData(form);
 
     try {
-      const res = await fetch("/api/support", {
+      const res = await fetch("/api/support/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -117,7 +117,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
         throw new Error(err.error ?? "Failed to submit");
       }
 
-      setStatus("verification_sent");
+      setStatus("sent");
     } catch (err) {
       setStatus("error");
       setErrorMsg(err instanceof Error ? err.message : "Failed to submit.");
@@ -137,10 +137,10 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
         <span style={{
           ...mono, fontSize: 8, letterSpacing: "0.12em", textTransform: "uppercase", padding: "2px 8px",
           border: "1px solid",
-          borderColor: status === "verification_sent" ? "rgba(0,212,126,0.3)" : status === "error" ? "rgba(239,68,68,0.3)" : "var(--color-surface-border)",
-          color: status === "verification_sent" ? "var(--color-signal-green)" : status === "error" ? "var(--color-signal-red)" : "var(--color-brand-muted)",
+          borderColor: status === "sent" ? "rgba(0,212,126,0.3)" : status === "error" ? "rgba(239,68,68,0.3)" : "var(--color-surface-border)",
+          color: status === "sent" ? "var(--color-signal-green)" : status === "error" ? "var(--color-signal-red)" : "var(--color-brand-muted)",
         }}>
-          {status === "verification_sent" ? "VERIFICATION SENT" : status === "error" ? "ERROR" : "VERIFY MAILBOX"}
+          {status === "sent" ? "SENT" : status === "error" ? "ERROR" : "EMAIL SUPPORT"}
         </span>
       </div>
 
@@ -199,7 +199,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
               className="mt-5 w-full py-3 border border-surface-border text-text-muted disabled:opacity-30 transition-all hover:border-brand-accent/40 hover:text-text-primary"
               style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}
             >
-              Still need help? Verify and open a ticket
+              Still need help? Email support
             </button>
           </div>
         )}
@@ -310,15 +310,15 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
           </form>
         )}
 
-        {/* ── VERIFICATION SENT ── */}
-        {status === "verification_sent" && (
+        {/* ── SENT ── */}
+        {status === "sent" && (
           <div className="py-10 text-center">
             <div style={{ fontSize: 20, color: "var(--color-signal-green)", marginBottom: 12 }}>✓</div>
             <p style={{ ...mono, fontSize: 12, color: "var(--color-signal-green)", letterSpacing: "0.06em", marginBottom: 8 }}>
-              Verification email sent.
+              Support request sent.
             </p>
             <p style={{ ...mono, fontSize: 10, color: "var(--color-brand-muted)", letterSpacing: "0.04em" }}>
-              Your request stays outside the support queue until you confirm mailbox control.
+              We will continue by email from the support mailbox.
             </p>
           </div>
         )}
@@ -329,7 +329,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
         className="border-t border-surface-border px-5 py-3 flex items-center justify-between"
         style={{ ...mono, fontSize: 9, color: "var(--color-surface-border)", letterSpacing: "0.06em" }}
       >
-        <span>Verified mailbox required</span>
+        <span>Email follow-up</span>
         <span>{supportEmail}</span>
       </div>
     </div>

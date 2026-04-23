@@ -5,14 +5,14 @@ import { getMailboxConfig } from "@/lib/mailboxes";
 export const metadata: Metadata = {
   title: "Request a Review",
   description:
-    "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path, covering authority, execution, and evidence, and requires mailbox verification before the request enters the queue.",
+    "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request to the WitnessOps engage mailbox for email follow-up.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path, covering authority, execution, and evidence, and requires mailbox verification before the request enters the queue.",
+      "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request to the WitnessOps engage mailbox for email follow-up.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -20,14 +20,14 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path, covering authority, execution, and evidence, and requires mailbox verification before the request enters the queue.",
+      "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request to the WitnessOps engage mailbox for email follow-up.",
   },
 };
 
 const statusChips = [
-  { label: "Surface", value: "Live intake" },
+  { label: "Surface", value: "Email follow-up" },
   { label: "Scope", value: "One real workflow" },
-  { label: "Gate", value: "Mailbox verification" },
+  { label: "Mailbox", value: "Engage" },
 ];
 
 const reviewBullets = [
@@ -69,10 +69,8 @@ export default function ReviewRequestPage() {
             </h1>
             <p className="mb-6 max-w-[420px] text-sm leading-relaxed text-text-muted">
               Bring one workflow, one automation boundary, or one operator
-              decision path. This page starts a bounded review intake for one
-              real path: authority path, execution path, evidence kept, and
-              what another person can check later. The request enters the queue
-              only after mailbox verification.
+              decision path. This page sends a bounded review request to the
+              WitnessOps engage mailbox. We continue by email.
             </p>
 
             <div className="mb-8 flex flex-wrap gap-2">
@@ -93,7 +91,7 @@ export default function ReviewRequestPage() {
             >
               <div>One workflow.</div>
               <div>One review request.</div>
-              <div>One queue entry.</div>
+              <div>One email thread.</div>
               <div>Clear limits.</div>
             </div>
 
@@ -144,8 +142,7 @@ export default function ReviewRequestPage() {
           </div>
           <p className="mb-6 text-sm leading-relaxed text-text-muted">
             Submit one workflow, automation boundary, or operator decision path.
-            Describe one real path with real authority, execution, and evidence.
-            Mailbox verification is required before the request enters the queue.
+            We respond by email from the engage mailbox.
           </p>
           <ContactForm contactEmail={mailboxes.engage} />
         </div>
