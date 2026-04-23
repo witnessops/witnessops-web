@@ -96,16 +96,6 @@ export default function ReviewRequestPage() {
               ))}
             </div>
 
-            <div
-              className="mb-10 space-y-1"
-              style={{ fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.04em", color: "var(--color-text-secondary)" }}
-            >
-              <div>One workflow.</div>
-              <div>One request.</div>
-              <div>One email thread.</div>
-              <div>Clear limits.</div>
-            </div>
-
             <ul className="border-t border-surface-border">
               {reviewBullets.map((item) => (
                 <li
