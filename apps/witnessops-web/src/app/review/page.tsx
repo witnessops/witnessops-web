@@ -130,13 +130,10 @@ export default function ReviewPage() {
         </h2>
         <div className="space-y-4 text-sm leading-relaxed text-text-muted">
           <p>
-            Review one AI-related workflow the same way: who approved it, what ran, and what evidence survives external review.
+            Review one AI-related workflow the same way: who approved it, what ran, and what evidence survives.
           </p>
           <p>
-            The claim stays bounded to one workflow evidence path. This is not a blanket judgment on an AI system or a legal opinion about AI Act obligations.
-          </p>
-          <p>
-            Example: review an AI-assisted access approval, escalation, or triage workflow to see whether approval, execution, and evidence still line up under external scrutiny.
+            Bounded to one workflow path. Not a blanket AI-system judgment or an AI Act opinion.
           </p>
         </div>
       </section>
