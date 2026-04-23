@@ -74,6 +74,35 @@ export default function WhyWitnessOpsPage() {
           </div>
         </div>
       </SectionShell>
+      <SectionShell narrow spacing="compact" className="border-t border-surface-border">
+        <div className="space-y-5 text-base leading-8 text-text-secondary">
+          <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
+            Where this fits for AI governance
+          </h2>
+          <p>
+            For organizations using AI in consequential workflows, the hard
+            problem is often not only model output. It is whether the decision
+            path can survive later review.
+          </p>
+          <p>
+            WitnessOps is a proof-backed workflow layer. It helps produce signed
+            receipts and reviewable evidence packages for bounded workflows,
+            including AI-related ones, so reviewers can inspect authority,
+            execution, and recorded evidence outside the original system.
+          </p>
+          <p>
+            WitnessOps does not replace an AI governance or AI Act program, and
+            does not claim to satisfy AI Act obligations on its own. It helps make
+            selected workflow controls and decision paths more reviewable.
+          </p>
+          <ul className="list-disc space-y-2 pl-6">
+            <li>record who approved the workflow</li>
+            <li>show what executed within scope</li>
+            <li>preserve evidence for later review</li>
+            <li>expose where trust assumptions still remain</li>
+          </ul>
+        </div>
+      </SectionShell>
     </main>
   );
 }

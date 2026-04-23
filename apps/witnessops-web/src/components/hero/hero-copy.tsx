@@ -5,6 +5,11 @@ type HeroCopyProps = {
   title: string;
   body: string;
   supportingPoints: string[];
+  aiNote?: {
+    title: string;
+    body: string[];
+    microcopy?: string;
+  };
   primaryCta: { label: string; href: string; variant: string };
   secondaryCta: { label: string; href: string; variant: string };
   proofBadges: string[];
@@ -16,6 +21,7 @@ export function HeroCopy({
   title,
   body,
   supportingPoints,
+  aiNote,
   primaryCta,
   secondaryCta,
   proofBadges,
@@ -30,6 +36,24 @@ export function HeroCopy({
       </h1>
 
       <p className="mb-2 max-w-[56ch] text-base leading-7 text-text-secondary">{body}</p>
+
+      {aiNote && (
+        <section className="mt-5 max-w-[56ch] border-l border-surface-border pl-4">
+          <h2 className="text-sm font-semibold leading-6 text-text-primary">
+            {aiNote.title}
+          </h2>
+          <div className="mt-2 space-y-2 text-sm leading-6 text-text-secondary">
+            {aiNote.body.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+          {aiNote.microcopy && (
+            <p className="mt-3 text-xs leading-5 text-text-muted">
+              {aiNote.microcopy}
+            </p>
+          )}
+        </section>
+      )}
 
       {supportingPoints.length > 0 && (
         <ul className="mb-4 space-y-2">

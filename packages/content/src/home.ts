@@ -101,6 +101,12 @@ export const CodeBlockSchema = z.object({
   lines: z.array(z.string()),
 });
 
+export const HeroAiNoteSchema = z.object({
+  title: NonEmptyString,
+  body: z.array(NonEmptyString).min(1),
+  microcopy: NonEmptyString.optional(),
+});
+
 export const SeoSchema = z.object({
   title: NonEmptyString,
   description: NonEmptyString,
@@ -139,6 +145,7 @@ export const HeroSchema = z.object({
   title: NonEmptyString,
   body: NonEmptyString,
   supporting_points: z.array(NonEmptyString),
+  ai_note: HeroAiNoteSchema.optional(),
   primary_cta: CtaSchema,
   secondary_cta: CtaSchema,
   microcopy: z.string().optional(),

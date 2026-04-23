@@ -131,6 +131,37 @@ export default function ReviewPage() {
           className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
+          AI-related workflow review
+        </h2>
+        <div className="space-y-4 text-sm leading-relaxed text-text-muted">
+          <p>
+            If a workflow includes AI assistance or AI-driven steps, the review
+            stays bounded to the workflow evidence path.
+          </p>
+          <p>
+            We check whether the authority boundary, execution path, and
+            evidence package survive external review. That can include whether
+            an approval existed, whether the workflow ran within defined scope,
+            whether decision points were preserved, and whether the resulting
+            evidence can be inspected outside the source system.
+          </p>
+          <p>
+            This is a review of one real workflow, not a blanket judgment on an
+            AI system or a legal opinion about AI Act obligations.
+          </p>
+          <p>
+            Example: review an AI-assisted access approval, escalation, or triage
+            workflow to see whether approval, execution, and evidence still line
+            up under external scrutiny.
+          </p>
+        </div>
+      </section>
+
+      <section className="mb-10 border-b border-surface-border pb-8">
+        <h2
+          className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
           Scope note
         </h2>
         <p className="text-sm leading-relaxed text-text-muted">

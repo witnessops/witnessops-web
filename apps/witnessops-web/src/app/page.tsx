@@ -17,6 +17,7 @@ export default function HomePage() {
         title={home.hero.title}
         body={home.hero.body}
         supporting_points={home.hero.supporting_points}
+        ai_note={home.hero.ai_note}
         primary_cta={home.hero.primary_cta}
         secondary_cta={home.hero.secondary_cta}
         proof_badges={home.hero.proof_badges}

@@ -49,6 +49,12 @@ hero:
   title: "Consequential decisions should end in proof, not trust."
   body: "We run bounded workflows and produce signed receipts plus evidence packages that customers, auditors, and partners can inspect outside WitnessOps."
   supporting_points: []
+  ai_note:
+    title: "For AI-related workflows where later scrutiny matters"
+    body:
+      - "WitnessOps can help produce reviewable evidence for consequential AI-related workflows."
+      - "We do not replace an AI governance or AI Act program. We help show whether one bounded workflow followed an approved path, ran within scope, and left evidence other people can inspect outside the source system."
+    microcopy: "Useful when the question is not just what the system decided, but who approved the workflow, what executed, and whether the evidence survives external review."
   primary_cta:
     label: "Verify a sample receipt"
     href: "/verify"

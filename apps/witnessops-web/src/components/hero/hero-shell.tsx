@@ -5,6 +5,11 @@ type HeroShellProps = {
   title: string;
   body: string;
   supportingPoints: string[];
+  aiNote?: {
+    title: string;
+    body: string[];
+    microcopy?: string;
+  };
   primaryCta: { label: string; href: string; variant: string };
   secondaryCta: { label: string; href: string; variant: string };
   proofBadges: string[];
@@ -22,6 +27,7 @@ export function HeroShell({
   title,
   body,
   supportingPoints,
+  aiNote,
   primaryCta,
   secondaryCta,
   proofBadges,
@@ -42,6 +48,7 @@ export function HeroShell({
             title={title}
             body={body}
             supportingPoints={supportingPoints}
+            aiNote={aiNote}
             primaryCta={primaryCta}
             secondaryCta={secondaryCta}
             proofBadges={proofBadges}
