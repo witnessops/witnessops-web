@@ -416,7 +416,7 @@ export function getWitnessOpsFooterContract(
     domainLabel: surface?.hostname ?? surfaceId,
     copyright: "© WITNESSOPS Foundation",
     partner: {
-      label: "Portable proof for consequential security work",
+      label: "Portable proof for consequential workflows",
       href: getSurfaceUrl("witnessops"),
     },
     surfaces: [{ label: "WitnessOps", href: getSurfaceUrl("witnessops") }],
