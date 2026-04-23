@@ -6,14 +6,14 @@ import { getMailboxConfig } from "@/lib/mailboxes";
 export const metadata: Metadata = {
   title: "Request a Review",
   description:
-    "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request for email follow-up.",
+    "Bring one workflow or operator path. This page sends a bounded review request for email follow-up.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request for email follow-up.",
+      "Bring one workflow or operator path. This page sends a bounded review request for email follow-up.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request for email follow-up.",
+      "Bring one workflow or operator path. This page sends a bounded review request for email follow-up.",
   },
 };
 
@@ -33,25 +33,23 @@ const statusChips = [
 
 const reviewBullets = [
   "Who can approve or act",
-  "Which tools and permissions matter",
   "What runs and in what order",
-  "What evidence is kept",
+  "What evidence exists",
   "What can be replayed later",
   "What looks weak",
   "What to do next",
 ];
 
 const prepareBullets = [
-  "Name one workflow or operator decision path",
-  "List the systems, tools, and permissions involved",
+  "Name one workflow or decision path",
+  "List the systems and tools involved",
   "State who could approve or act",
   "Describe the evidence you already have",
-  "Include time bounds or key event order if known",
 ];
 
 const nextSteps = [
-  "We review whether the request fits one bounded path",
-  "We continue by email to confirm scope, limits, and missing evidence",
+  "We check that the request fits one bounded path",
+  "We reply by email with scope and gaps",
   "No review result is produced at submit time",
 ];
 
@@ -83,9 +81,8 @@ export default function ReviewRequestPage() {
               Request a review
             </h1>
             <p className="mb-6 max-w-[420px] text-sm leading-relaxed text-text-muted">
-              Bring one workflow, one automation boundary, or one operator
-              decision path. This page sends a bounded review request for
-              email follow-up. We continue by email after intake review.
+              Bring one workflow, one automation boundary, or one operator decision path.
+              We review requests by email after intake.
             </p>
 
             <div className="mb-8 flex flex-wrap gap-2">
@@ -105,7 +102,7 @@ export default function ReviewRequestPage() {
               style={{ fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.04em", color: "var(--color-text-secondary)" }}
             >
               <div>One workflow.</div>
-              <div>One review request.</div>
+              <div>One request.</div>
               <div>One email thread.</div>
               <div>Clear limits.</div>
             </div>
@@ -135,7 +132,7 @@ export default function ReviewRequestPage() {
                   color: "var(--color-text-muted)",
                 }}
               >
-                Prepare before you submit
+                Before you submit
               </div>
               <ul className="space-y-2 text-sm leading-relaxed text-text-muted">
                 {prepareBullets.map((item) => (
@@ -151,8 +148,7 @@ export default function ReviewRequestPage() {
               className="mt-6 max-w-[420px] text-xs leading-relaxed text-text-muted"
               style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}
             >
-              This request is for one real path only. It is not a broad audit, a
-              catch-all review of your environment, or an instant review result.
+              One real path only. Not a broad audit, catch-all review, or instant result.
             </p>
           </div>
 
@@ -180,8 +176,7 @@ export default function ReviewRequestPage() {
             Submit one workflow for review
           </div>
           <p className="mb-6 text-sm leading-relaxed text-text-muted">
-            Submit one workflow, automation boundary, or operator decision path.
-            We respond by email from the review mailbox.
+            Submit one workflow or operator path. We reply by email from the review mailbox.
           </p>
 
           <div className="mb-6 border border-surface-border bg-surface-bg p-5">
@@ -237,16 +232,14 @@ export default function ReviewRequestPage() {
                 </Link>
                 .
               </p>
-              <p>
-                Do not use this page for a broad audit or catch-all review of your environment.
-              </p>
+              <p>Do not use this page for a broad environment review.</p>
             </div>
           </div>
 
           <ContactForm contactEmail={mailboxes.engage} />
 
           <p className="mt-6 text-xs leading-relaxed text-text-muted" style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}>
-            The details you enter here are sent for email follow-up through the review mailbox. Do not paste secrets or material you cannot place in email.
+            Sent for email follow-up through the review mailbox. Do not paste secrets or material you cannot place in email.
           </p>
         </div>
       </div>
