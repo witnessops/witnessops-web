@@ -105,7 +105,7 @@ export default function VerifyPage() {
 
             <div className="mt-6 flex flex-wrap gap-3">
               <CtaButton href="#verify-console" variant="primary" label="Try a sample receipt" />
-              <CtaButton href="#verify-console" variant="secondary" label="Verify a receipt" />
+              <CtaButton href="/docs/how-it-works/verification" variant="secondary" label="How verification works" />
             </div>
 
             <div className="mt-8 grid gap-4 md:grid-cols-3">
