@@ -88,13 +88,6 @@ export default function ReviewRequestPage() {
                 </li>
               ))}
             </ul>
-
-            <p
-              className="mt-6 max-w-[420px] text-xs leading-relaxed text-text-muted"
-              style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}
-            >
-              One real path only. Not a broad audit, catch-all review, or instant result.
-            </p>
           </div>
         </div>
 
