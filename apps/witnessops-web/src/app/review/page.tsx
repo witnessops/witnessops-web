@@ -66,20 +66,16 @@ export default function ReviewPage() {
           </h2>
           <ul className="mt-3 space-y-2 text-sm leading-relaxed text-text-muted">
             <li>
-              <span className="font-semibold text-text-primary">Who should submit:</span>{" "}
-              teams with one real workflow, one automation boundary, or one operator handoff to review.
+              <span className="font-semibold text-text-primary">Good fit:</span>{" "}
+              one real path with approvals, execution records, and evidence.
             </li>
             <li>
-              <span className="font-semibold text-text-primary">What qualifies:</span>{" "}
-              one path with real approvals, execution records, and evidence.
-            </li>
-            <li>
-              <span className="font-semibold text-text-primary">What you get:</span>{" "}
-              a bounded report on authority, execution, evidence, replayability, and next steps.
+              <span className="font-semibold text-text-primary">Submit:</span>{" "}
+              one workflow, one automation boundary, or one operator handoff.
             </li>
             <li>
               <span className="font-semibold text-text-primary">Out of scope:</span>{" "}
-              broad audits, open-ended consulting, or claims about the whole environment.
+              broad audits or whole-environment claims.
             </li>
           </ul>
         </div>
