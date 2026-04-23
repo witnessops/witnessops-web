@@ -235,7 +235,7 @@ const contracts: Record<SurfaceId, SurfaceUIContract> = {
     surfaceId: "witnessops",
     brand: "witnessops",
     brandLine: "WITNESSOPS",
-    subline: "Portable proof for consequential security work.",
+    subline: "Portable proof for consequential workflows.",
     role: "security",
     shell: {
       theme: "dark",
