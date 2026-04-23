@@ -51,7 +51,7 @@ export function ContactForm({
     const data = new FormData(form);
 
     try {
-      const res = await fetch("/api/review/request", {
+      const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -95,7 +95,7 @@ export function ContactForm({
         {status === "sending"
           ? "Sending..."
           : status === "sent"
-            ? "Verification email sent."
+            ? "Message sent."
             : ""}
       </div>
 
@@ -188,7 +188,7 @@ export function ContactForm({
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-signal-green)" }}
           role="status"
         >
-          <span>&#10003;</span> Verification email sent. The review request enters the queue only after you confirm mailbox control.
+          <span>&#10003;</span> Message sent. We will follow up by email.
         </div>
       )}
       {status === "error" && (
@@ -211,7 +211,7 @@ export function ContactForm({
             className="whitespace-nowrap"
             style={{ color: "var(--color-brand-accent)" }}
           >
-            Mailbox verification required before queue entry
+            Email follow-up
           </span>
           <span className="inline-flex items-center whitespace-nowrap">
             <span

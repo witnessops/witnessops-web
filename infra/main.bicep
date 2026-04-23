@@ -106,6 +106,7 @@ var appSettings = {
   WITNESSOPS_VERIFY_BASE_URL: publicBaseUrl
   WITNESSOPS_MAIL_PROVIDER: 'm365'
   WITNESSOPS_MAILBOX_ENGAGE: 'Engage@witnessops.com'
+  WITNESSOPS_MAILBOX_SUPPORT: 'support@witnessops.com'
   WITNESSOPS_MAILBOX_NOREPLY: 'WitnessOpsNo-Reply@witnessops.com'
   WITNESSOPS_INTAKE_STORE_DIR: empty(persistentMountPath)
     ? '/tmp/witnessops/intake-store'

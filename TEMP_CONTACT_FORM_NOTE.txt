@@ -1,0 +1,42 @@
+TEMP CONTACT/SUPPORT FORM CHANGE (2026-04-23)
+
+What changed
+- /review/request POSTs to /api/contact for direct email follow-up, no mailbox verification.
+- /api/contact sends a plain-text review request email to engage@witnessops.com via the configured mail provider.
+- The support page form POSTs to /api/support/message for direct email follow-up, no admin queue write.
+- /api/support/message sends a plain-text support request email to support@witnessops.com via the configured mail provider.
+- Inventory + api-contract distinguish the email-only public form paths from retained queue-backed verified APIs.
+- Mailbox config uses WITNESSOPS_MAILBOX_ENGAGE and WITNESSOPS_MAILBOX_SUPPORT.
+
+Key files
+- apps/witnessops-web/src/app/(marketing)/contact/contact-form.tsx
+- apps/witnessops-web/src/app/review/request/page.tsx
+- apps/witnessops-web/src/components/support/support-intake.tsx
+- apps/witnessops-web/src/app/support/page.tsx
+- apps/witnessops-web/src/app/api/contact/route.ts
+- apps/witnessops-web/src/app/api/contact/route.test.ts
+- apps/witnessops-web/src/app/api/support/message/route.ts
+- apps/witnessops-web/src/app/api/support/message/route.test.ts
+- apps/witnessops-web/src/lib/mailboxes.ts
+- apps/witnessops-web/src/lib/server/api-contract.ts
+- docs/ui/admin-queue-surface-inventory.md
+
+Rollback (restore verification-based intake)
+1) Revert /api/contact to call handleReviewRequestIntake (alias of /api/review/request).
+   - apps/witnessops-web/src/app/api/contact/route.ts
+2) Point the review form back to /api/review/request and restore verification copy.
+   - apps/witnessops-web/src/app/(marketing)/contact/contact-form.tsx
+   - apps/witnessops-web/src/app/review/request/page.tsx
+3) Point the support form back to /api/support and restore verified intake copy if queue-backed support is desired.
+   - apps/witnessops-web/src/components/support/support-intake.tsx
+   - apps/witnessops-web/src/app/support/page.tsx
+4) Update inventory + api-contract entries to reflect alias/verified behavior.
+   - docs/ui/admin-queue-surface-inventory.md
+   - apps/witnessops-web/src/lib/server/api-contract.ts
+5) Remove /api/support/message if no longer needed.
+
+Operational notes
+- Direct email depends on WITNESSOPS_MAIL_PROVIDER (file/resend/m365).
+- Review requests use WITNESSOPS_MAILBOX_ENGAGE, default engage@witnessops.com.
+- Support requests use WITNESSOPS_MAILBOX_SUPPORT, default support@witnessops.com.
+- /api/review/request, /api/engage, and /api/support remain queue-backed verified APIs unless separately changed.

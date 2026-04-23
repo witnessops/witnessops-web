@@ -82,15 +82,23 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
   {
     path: "/api/contact",
     methods: ["POST"],
-    category: "public-claimant",
-    summary: "Contact alias for review request intake",
-    note: "Compatibility alias; canonical review request route is /api/review/request.",
+    category: "public-utility",
+    summary: "Direct review request email to engage mailbox",
+    note: "Email-only public form path; does not write intake or queue state.",
   },
   {
     path: "/api/support",
     methods: ["POST"],
     category: "public-utility",
-    summary: "Public support form submission",
+    summary: "Verified support intake submission",
+    note: "Queue-backed support API retained for verified intake flows.",
+  },
+  {
+    path: "/api/support/message",
+    methods: ["POST"],
+    category: "public-utility",
+    summary: "Direct support request email to support mailbox",
+    note: "Email-only support form path; does not write intake or queue state.",
   },
   {
     path: "/api/receipts",
