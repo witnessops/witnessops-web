@@ -297,7 +297,6 @@ sections:
     id: "verifiable"
     enabled: true
     title: "Inspect sample receipts in the public verifier."
-    lede: "These verifier fixtures are public sample receipts used to show what the current receipt checks can confirm today."
     items:
       - title: "Valid receipt sample"
         body: "A known-good receipt fixture for the clean pass path in receipt-first mode."
