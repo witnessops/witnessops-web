@@ -25,12 +25,6 @@ export const metadata: Metadata = {
   },
 };
 
-const statusChips = [
-  { label: "Surface", value: "Email follow-up" },
-  { label: "Scope", value: "One real workflow" },
-  { label: "Lane", value: "Review" },
-];
-
 const reviewBullets = [
   "Who can approve or act",
   "What runs and in what order",
@@ -63,18 +57,6 @@ export default function ReviewRequestPage() {
               Bring one workflow, one automation boundary, or one operator decision path.
               We review requests by email after intake.
             </p>
-
-            <div className="mb-8 flex flex-wrap gap-2">
-              {statusChips.map((chip) => (
-                <div
-                  key={chip.label}
-                  className="rounded-full border border-surface-border bg-surface-bg px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-text-muted"
-                >
-                  <span className="font-semibold text-text-primary">{chip.label}:</span>{" "}
-                  {chip.value}
-                </div>
-              ))}
-            </div>
 
             <ul className="border-t border-surface-border">
               {reviewBullets.map((item) => (
