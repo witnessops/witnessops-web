@@ -9,13 +9,13 @@ status:
   last_reviewed: "2026-04-23"
 
 seo:
-  title: "Portable Proof for Consequential Security Work | WitnessOps"
-  description: "WitnessOps runs bounded security workflows and produces signed receipts plus reviewable evidence packages that customers, auditors, and partners can inspect outside the source system."
+  title: "Portable Proof for Consequential Work | WitnessOps"
+  description: "WitnessOps runs bounded workflows and produces signed receipts plus evidence packages that customers, auditors, and partners can inspect outside the source system."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "WitnessOps — Consequential Security Work into Portable Proof"
-  og_description: "Bounded security workflows, signed receipts, and reviewable evidence packages that hold up outside the source system."
+  og_title: "WitnessOps — Consequential Work into Portable Proof"
+  og_description: "Bounded workflows, signed receipts, and evidence packages that hold up outside the source system."
   twitter_card: "summary_large_image"
 
 theme:
@@ -45,9 +45,9 @@ navbar:
     variant: "primary"
 
 hero:
-  eyebrow: "Security work with proof other people can check"
-  title: "Security decisions should end in proof, not trust."
-  body: "We run bounded security workflows and produce signed receipts plus reviewable evidence packages that customers, auditors, and partners can inspect outside WitnessOps."
+  eyebrow: "Consequential work with proof other people can check"
+  title: "Consequential decisions should end in proof, not trust."
+  body: "We run bounded workflows and produce signed receipts plus evidence packages that customers, auditors, and partners can inspect outside WitnessOps."
   supporting_points: []
   primary_cta:
     label: "Verify a sample receipt"
@@ -73,7 +73,7 @@ hero:
 
 trust_bar:
   enabled: false
-  label: "Governed security work with signed receipts and portable proof"
+  label: "Governed consequential workflows with signed receipts and portable proof"
   items:
     - "Verification"
     - "Attestation"
@@ -102,8 +102,8 @@ sections:
   - type: "problem"
     id: "problem"
     enabled: false
-    title: "Most security work is easy to claim. Hard to prove."
-    body: "Security vendors ship reports. Teams collect logs. Screenshots get passed around. Then the real question lands: can this claim survive independent verification? That is where the story usually breaks."
+    title: "Most consequential work is easy to claim. Hard to prove."
+    body: "Teams ship reports, collect logs, and pass around screenshots. Then the real question lands: can this claim survive independent verification? That is where the story usually breaks."
     bullets:
       - "Reports tell a story"
       - "Logs create noise"
@@ -202,7 +202,7 @@ sections:
     title: "A governed execution platform, not a loose toolchain"
     cards:
       - title: "Governed Execution"
-        body: "Run security and infrastructure actions under explicit control paths."
+        body: "Run consequential workflows and infrastructure actions under explicit control paths."
       - title: "Policy Gates"
         body: "Enforce approvals and preconditions before execution."
       - title: "Signed Receipts"
@@ -262,7 +262,7 @@ sections:
     id: "expansion"
     enabled: false
     title: "One runbook becomes a campaign. One campaign becomes an evidence trail."
-    body: "Start with a single governed operation. Chain receipts across scans, tests, and responses. Build a governed security history that auditors and regulators can inspect without oral reconstruction."
+    body: "Start with a single governed operation. Chain receipts across scans, tests, and responses. Build a governed workflow history that auditors and regulators can inspect without oral reconstruction."
     ctas:
       - label: "Why WitnessOps"
         href: "/why-witnessops"
@@ -384,7 +384,7 @@ final_cta:
 
 footer:
   brand_line: "WitnessOps"
-  subline: "Portable proof for consequential security work."
+  subline: "Portable proof for consequential workflows."
   links:
     - label: "Why WitnessOps"
       href: "/why-witnessops"
