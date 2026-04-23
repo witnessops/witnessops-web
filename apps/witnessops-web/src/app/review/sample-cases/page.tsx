@@ -24,6 +24,37 @@ export const metadata: Metadata = {
   },
 };
 
+const surfaceLegend = [
+  {
+    title: "Verifier sample receipts",
+    description:
+      "Small public fixtures used on /verify to show what receipt checks can confirm today and how failure appears.",
+    href: "/verify",
+    label: "Open verifier",
+  },
+  {
+    title: "Generic sample report",
+    description:
+      "One illustrative dossier showing report structure and judgment style without claiming a live customer proof path.",
+    href: "/review/sample-report",
+    label: "Open sample report",
+  },
+  {
+    title: "Named sample cases",
+    description:
+      "Published workflow-class pages with stable routes, named boundaries, authority maps, evidence expectations, and trust-dependent gaps.",
+    href: "/review/sample-cases",
+    label: "Current surface",
+  },
+  {
+    title: "Real workflow review requests",
+    description:
+      "The intake path for one real workflow, automation boundary, or operator decision path that you want reviewed.",
+    href: "/review/request",
+    label: "Request review",
+  },
+];
+
 const sampleCases = [
   {
     title: "Privileged access grant review",
@@ -82,6 +113,31 @@ export default function SampleCasesIndexPage() {
               <li>Name the integrity gaps and stronger evidence needed to close them.</li>
               <li>Avoid implying a live customer proof path where none is published.</li>
             </ul>
+          </section>
+
+          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
+              Public proof surface legend
+            </h2>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {surfaceLegend.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="block rounded-xl border border-surface-border bg-surface-bg p-4 transition-colors hover:bg-surface-card/60"
+                >
+                  <h3 className="text-sm font-semibold text-text-primary">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-7 text-text-secondary">
+                    {item.description}
+                  </p>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent">
+                    {item.label}
+                  </p>
+                </Link>
+              ))}
+            </div>
           </section>
 
           <section className="space-y-4">
