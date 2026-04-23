@@ -136,9 +136,8 @@ export default function LibraryPage() {
         </h2>
         <div className="max-w-[680px] space-y-4 text-sm leading-relaxed text-text-muted">
           <p>
-            WitnessOps is both a platform for governed operations and a public
-            reading library on trust boundaries, verification, and system
-            behavior under scrutiny.
+            WitnessOps public surfaces include product docs, sample cases,
+            workflow review entry points, and receipt verification.
           </p>
           <p>
             Docs cover the product contract. Review and verify cover the
@@ -147,12 +146,12 @@ export default function LibraryPage() {
         </div>
       </section>
 
-      <section id="what-i-write-about" className="mb-16 border-b border-surface-border pb-10">
+      <section id="published-themes" className="mb-16 border-b border-surface-border pb-10">
         <h2
           className="mb-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          What I write about
+          Published themes
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
         <div className="space-y-0 border border-surface-border">
@@ -285,11 +284,11 @@ export default function LibraryPage() {
           boundary check.
         </p>
         <Link
-          href="/review"
+          href="/review/request"
           className="mt-4 inline-block text-xs text-text-muted transition-colors hover:text-text-primary"
           style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}
         >
-          Request a workflow review &rarr;
+          Open review intake &rarr;
         </Link>
       </section>
     </main>
