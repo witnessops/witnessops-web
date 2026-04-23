@@ -171,15 +171,6 @@ export default function ReviewPage() {
           ))}
         </ul>
       </section>
-
-      <section className="mb-8">
-        <p
-          className="text-center text-xs leading-relaxed text-text-muted"
-          style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}
-        >
-          Built for teams that need a clear judgment on one real mechanism.
-        </p>
-      </section>
     </main>
   );
 }
