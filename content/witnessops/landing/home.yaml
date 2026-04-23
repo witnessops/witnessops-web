@@ -288,7 +288,6 @@ sections:
         body: "A signed receipt records what ran, who approved it, and the binding context."
       - label: "Publish"
         body: "Reviewable evidence packages can be exported for outside review. The public site stays bounded to verifier fixtures, explanatory sample cases, the illustrative sample report, and the live review request lane."
-    closing: "Approve, execute, record, publish."
     cta:
       label: "Read the verification contract"
       href: "/docs/how-it-works/verification"
