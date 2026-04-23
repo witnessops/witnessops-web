@@ -10,6 +10,7 @@ const LIBRARY_PRIMARY_HREFS = new Set([
   "/docs",
   "/review",
   "/review/request",
+  "/review/sample-cases",
   "/review/sample-report",
   "/verify",
 ]);
@@ -28,12 +29,13 @@ interface FooterProps {
 const LIBRARY_FOOTER: FooterProps & { motto: string } = {
   brand_line: "WitnessOps",
   subline:
-    "Structured writing on proof systems, trust boundaries, and verification reasoning.",
+    "Public entry points for docs, review, sample cases, sample report inspection, and verification.",
   links: [
     { label: "Library", href: "/library" },
     { label: "Docs", href: "/docs" },
     { label: "Review", href: "/review" },
     { label: "Request review", href: "/review/request" },
+    { label: "Sample cases", href: "/review/sample-cases" },
     { label: "Sample report", href: "/review/sample-report" },
     { label: "Verify", href: "/verify" },
   ],
@@ -44,7 +46,7 @@ const LIBRARY_FOOTER: FooterProps & { motto: string } = {
   ],
   build_label: "Build: STATIC",
   copyright: "© WitnessOps",
-  motto: "Making reasoning inspectable.",
+  motto: "Make boundaries legible. Bring receipts.",
 };
 
 function resolveFooterHref(href: string): string {
@@ -148,7 +150,7 @@ export function Footer({
               style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "var(--color-brand-muted)" }}
             >
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-signal-green shadow-[0_0_6px_var(--color-signal-green)]" />
-              {isLibrarySurface ? "Reading library" : "Proof-backed operations"}
+              {isLibrarySurface ? "Public entry points" : "Proof-backed operations"}
             </span>
             <p className="max-w-[280px] text-xs leading-relaxed text-text-muted">
               {content.subline}
