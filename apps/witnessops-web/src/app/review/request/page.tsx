@@ -24,6 +24,12 @@ export const metadata: Metadata = {
   },
 };
 
+const statusChips = [
+  { label: "Surface", value: "Live intake" },
+  { label: "Scope", value: "One real workflow" },
+  { label: "Gate", value: "Mailbox verification" },
+];
+
 const reviewBullets = [
   "Who can approve or act",
   "Which tools and permissions matter",
@@ -61,13 +67,25 @@ export default function ReviewRequestPage() {
             >
               Request a review
             </h1>
-            <p className="mb-8 max-w-[420px] text-sm leading-relaxed text-text-muted">
+            <p className="mb-6 max-w-[420px] text-sm leading-relaxed text-text-muted">
               Bring one workflow, one automation boundary, or one operator
               decision path. This page starts a bounded review intake for one
               real path: authority path, execution path, evidence kept, and
               what another person can check later. The request enters the queue
               only after mailbox verification.
             </p>
+
+            <div className="mb-8 flex flex-wrap gap-2">
+              {statusChips.map((chip) => (
+                <div
+                  key={chip.label}
+                  className="rounded-full border border-surface-border bg-surface-bg px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-text-muted"
+                >
+                  <span className="font-semibold text-text-primary">{chip.label}:</span>{" "}
+                  {chip.value}
+                </div>
+              ))}
+            </div>
 
             <div
               className="mb-10 space-y-1"
