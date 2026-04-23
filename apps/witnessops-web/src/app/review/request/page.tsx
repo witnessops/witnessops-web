@@ -48,9 +48,8 @@ const prepareBullets = [
 ];
 
 const nextSteps = [
-  "We check that the request fits one bounded path",
+  "We check that it fits one bounded path",
   "We reply by email with scope and gaps",
-  "No review result is produced at submit time",
 ];
 
 export default function ReviewRequestPage() {
@@ -215,24 +214,15 @@ export default function ReviewRequestPage() {
                 color: "var(--color-text-muted)",
               }}
             >
-              Use another lane instead
+              Other lanes
             </div>
             <div className="space-y-3 text-sm leading-relaxed text-text-muted">
               <p>
-                Product help, access issues, and verifier questions belong on{" "}
-                <Link href="/support" className="text-brand-accent underline-offset-4 hover:underline">
-                  Support
-                </Link>
-                .
+                Product help, access issues, and verifier questions: <Link href="/support" className="text-brand-accent underline-offset-4 hover:underline">Support</Link>.
               </p>
               <p>
-                Responsible disclosure belongs on{" "}
-                <Link href="/security" className="text-brand-accent underline-offset-4 hover:underline">
-                  Security
-                </Link>
-                .
+                Responsible disclosure: <Link href="/security" className="text-brand-accent underline-offset-4 hover:underline">Security</Link>.
               </p>
-              <p>Do not use this page for a broad environment review.</p>
             </div>
           </div>
 
