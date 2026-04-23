@@ -423,6 +423,7 @@ export function getWitnessOpsFooterContract(
     docs: [
       { label: "Docs", href: getDocsUrl("witnessops") },
       { label: "How It Works", href: getDocsUrl("witnessops", "/how-it-works") },
+      { label: "Sample Cases", href: getSurfaceUrl("witnessops", "/review/sample-cases") },
       { label: "Evidence", href: getDocsUrl("witnessops", "/evidence") },
       { label: "Governance", href: getDocsUrl("witnessops", "/governance") },
       { label: "Reference", href: getDocsUrl("witnessops", "/reference") },
