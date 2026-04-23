@@ -49,7 +49,6 @@ hero:
   body: "We run bounded workflows and produce signed receipts plus evidence packages that customers, auditors, and partners can inspect outside WitnessOps."
   supporting_points: []
   ai_note:
-    title: "For consequential AI workflows"
     body:
       - "Prove who approved it, what ran, and what evidence survives outside the source system."
   primary_cta:
