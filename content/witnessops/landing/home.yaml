@@ -45,7 +45,7 @@ navbar:
     variant: "primary"
 
 hero:
-  eyebrow: "Consequential security work with proof other people can check"
+  eyebrow: "Security work with proof other people can check"
   title: "Security decisions should end in proof, not trust."
   body: "We run bounded security workflows and produce signed receipts plus portable proof artifacts that customers, auditors, and partners can inspect outside WitnessOps."
   supporting_points: []
@@ -57,7 +57,7 @@ hero:
     label: "Request a workflow review"
     href: "/review/request"
     variant: "secondary"
-  microcopy: "Use the public verifier against a sample receipt already on this site. No account. Receipt-first v1 checks."
+  microcopy: "Use the public verifier against a sample receipt already on this site. No account required."
   proof_badges: []
   media:
     type: "code_excerpt"
