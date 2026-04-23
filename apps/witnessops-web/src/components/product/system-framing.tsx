@@ -13,7 +13,7 @@ export function SystemFraming() {
           color: "var(--color-brand-accent)",
         }}
       >
-        Proof-Backed Security Operations
+        Consequential Work with Portable Proof
       </p>
 
       <h1
@@ -27,17 +27,17 @@ export function SystemFraming() {
           lineHeight: 1.02,
         }}
       >
-        Portable proof bundles for serious cyber claims.
+        Portable proof for consequential claims.
       </h1>
 
       <p className="max-w-[540px] text-base leading-relaxed text-text-secondary mb-6">
-        WitnessOps runs governed security work and produces signed proof
-        bundles that customers, auditors, and counterparties can verify
-        offline, without trusting us to remain in the loop.
+        WitnessOps runs governed workflows and produces signed receipts plus
+        reviewable evidence packages that customers, auditors, and counterparties
+        can inspect outside WitnessOps.
       </p>
 
       <div className="max-w-[540px] space-y-2 text-sm leading-relaxed mb-8" style={{ color: "var(--color-text-muted)" }}>
-        <p>Most security work is easy to claim. Hard to prove.</p>
+        <p>Most consequential work is easy to claim. Hard to prove.</p>
         <p>Signed receipts, typed lineage, and portable verification.</p>
         <p>Closed models are acceptable. Closed proof is not.</p>
       </div>
@@ -63,7 +63,7 @@ export function SystemFraming() {
         className="max-w-[540px] text-sm leading-relaxed mb-10"
         style={{ color: "var(--color-text-muted)" }}
       >
-        No setup. No special access. Verify a real proof bundle in seconds.
+        No setup. No special access. Verify a real receipt in seconds.
       </p>
 
       {/* Trust strip */}
@@ -90,7 +90,7 @@ export function SystemFraming() {
         className="mt-6 max-w-[540px] text-sm leading-relaxed"
         style={{ color: "var(--color-brand-accent)" }}
       >
-        Do not trust the claim. Verify the bundle.
+        Do not trust the claim. Verify the artifacts.
       </p>
     </section>
   );
