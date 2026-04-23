@@ -83,25 +83,25 @@ export default function ReviewPage() {
           <div>
             <CtaButton href="/review/request" variant="primary" label="Request a review" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              Submit one workflow or control path for bounded review.
+              Submit one path for review.
             </p>
           </div>
           <div>
             <CtaButton href="/review/sample-report" variant="secondary" label="View sample report" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              See the generic report shape before you submit a real workflow.
+              See the report shape first.
             </p>
           </div>
           <div>
             <CtaButton href="/review/sample-cases/privileged-access-grant" variant="secondary" label="Access grant case" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              Inspect a published privileged access grant review case.
+              See a published access grant case.
             </p>
           </div>
           <div>
             <CtaButton href="/review/sample-cases/approval-gated-containment" variant="secondary" label="Containment case" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              Inspect a published approval-gated containment review case.
+              See a published containment case.
             </p>
           </div>
         </div>
