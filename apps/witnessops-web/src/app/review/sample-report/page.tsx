@@ -23,6 +23,12 @@ export const metadata: Metadata = {
   },
 };
 
+const statusChips = [
+  { label: "Surface", value: "Illustrative sample" },
+  { label: "Form", value: "Generic dossier" },
+  { label: "Status", value: "Not live" },
+];
+
 const artifactManifest = [
   {
     label: "Artifact class",
@@ -139,6 +145,17 @@ export default function SampleReportPage() {
               judgment style. It is not a live customer report and not a claim
               of completed verification for your system.
             </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {statusChips.map((chip) => (
+                <div
+                  key={chip.label}
+                  className="rounded-full border border-surface-border bg-surface-bg px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-text-muted"
+                >
+                  <span className="font-semibold text-text-primary">{chip.label}:</span>{" "}
+                  {chip.value}
+                </div>
+              ))}
+            </div>
             <div className="flex flex-wrap gap-3 pt-2">
               <CtaButton href="/review/sample-cases" variant="secondary" label="Browse named sample cases" />
               <CtaButton href="/review/request" variant="primary" label="Request a workflow review" />
