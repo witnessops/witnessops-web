@@ -11,7 +11,7 @@ export function generateMetadata(): Metadata {
   const doc = loadSupportPage("support-policy");
   const title = doc?.title ?? "Support";
   const description =
-    doc?.description ?? "Support policy, disclosure guidance, and mailbox-verified support intake.";
+    doc?.description ?? "Support policy, disclosure guidance, and email follow-up through the support mailbox.";
 
   return {
     title,
@@ -62,7 +62,7 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
         )}
         {resolvedSearchParams.verified === "1" && (
           <div className="mt-5 border border-signal-green/30 bg-signal-green/5 px-4 py-3 text-sm text-signal-green">
-            Mailbox verified for a queue-backed support request{resolvedSearchParams.threadId ? ` as ${resolvedSearchParams.threadId}` : ""}.
+            Mailbox verified for support email follow-up{resolvedSearchParams.threadId ? ` as ${resolvedSearchParams.threadId}` : ""}.
           </div>
         )}
       </header>
