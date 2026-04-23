@@ -452,7 +452,7 @@ export function getWitnessOpsSiblingNavContract(
   return {
     surfaceId,
     links: [
-      { label: "How It Works", href: "/why-witnessops", matchPrefixes: ["/why-witnessops"] },
+      { label: "Why WitnessOps", href: "/why-witnessops", matchPrefixes: ["/why-witnessops"] },
       { label: "Docs", href: sharedDocsHref, matchPrefixes: ["/docs"] },
       { label: "Support", href: getSurfaceUrl("witnessops", "/support"), matchPrefixes: ["/support"] },
     ],
