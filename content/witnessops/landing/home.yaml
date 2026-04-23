@@ -331,10 +331,6 @@ sections:
         body: "Historical verification depends on published, versioned receipt schemas remaining stable over time."
       - title: "Policy enforcement"
         body: "Policy gates run on our infrastructure. You can verify that evaluation happened, but not prove the policy engine is perfect."
-    cta:
-      label: "Read the verification contract"
-      href: "/docs/how-it-works/verification"
-      variant: "ghost"
 
   - type: "workflows"
     id: "workflows"
