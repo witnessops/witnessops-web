@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { SectionShell } from "@/components/shared/section-shell";
+import { CtaButton } from "@/components/shared/cta-button";
 
 export const metadata: Metadata = {
   title: "Sample Review Report",
@@ -114,6 +115,10 @@ export default function SampleReportPage() {
               judgment style. It is not a live customer report and not a claim
               of completed verification for your system.
             </p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <CtaButton href="/review/sample-cases" variant="secondary" label="Browse named sample cases" />
+              <CtaButton href="/review/request" variant="primary" label="Request a workflow review" />
+            </div>
           </section>
 
           <section className="space-y-3 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
