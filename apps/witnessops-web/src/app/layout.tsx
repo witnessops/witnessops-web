@@ -9,6 +9,8 @@ import "./globals.css";
 
 const surface = getSurface("witnessops");
 
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: {
     default: "WITNESSOPS — Proof-Backed Security Systems",
