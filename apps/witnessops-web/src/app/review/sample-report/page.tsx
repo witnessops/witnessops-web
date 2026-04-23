@@ -23,6 +23,30 @@ export const metadata: Metadata = {
   },
 };
 
+const artifactManifest = [
+  {
+    label: "Artifact class",
+    value: "Illustrative sample dossier",
+  },
+  {
+    label: "Receipt status",
+    value: "No live customer receipt published on this page",
+  },
+  {
+    label: "Publication status",
+    value: "Public generic sample report with stable route",
+  },
+  {
+    label: "Replay scope",
+    value: "Narrative dossier shape and bounded judgment pattern only",
+  },
+  {
+    label: "Trust-dependent gaps",
+    value:
+      "Approval-to-execution identity binding, immutable deployment digest proof, and portable replay outside operator tooling",
+  },
+];
+
 const authorityMap = [
   {
     authority: "Human approver",
@@ -119,6 +143,24 @@ export default function SampleReportPage() {
               <CtaButton href="/review/sample-cases" variant="secondary" label="Browse named sample cases" />
               <CtaButton href="/review/request" variant="primary" label="Request a workflow review" />
             </div>
+          </section>
+
+          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
+              Artifact manifest
+            </h2>
+            <dl className="mt-4 grid gap-4 md:grid-cols-2">
+              {artifactManifest.map((item) => (
+                <div key={item.label}>
+                  <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                    {item.label}
+                  </dt>
+                  <dd className="mt-2 text-sm leading-7 text-text-secondary">
+                    {item.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </section>
 
           <section className="space-y-3 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
