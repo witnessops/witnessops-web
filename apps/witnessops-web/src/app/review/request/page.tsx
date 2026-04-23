@@ -71,7 +71,7 @@ export default function ReviewRequestPage() {
       </div>
 
       <div className="grid gap-0 border border-surface-border md:grid-cols-2">
-        <div className="flex flex-col justify-between border-r border-surface-border p-10 md:p-12">
+        <div className="border-r border-surface-border p-10 md:p-12">
           <div>
             <h1
               className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary"
@@ -139,14 +139,6 @@ export default function ReviewRequestPage() {
             >
               One real path only. Not a broad audit, catch-all review, or instant result.
             </p>
-          </div>
-
-          <div
-            className="mt-10"
-            style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "var(--color-brand-muted)", lineHeight: 1.8 }}
-          >
-            <div>Respect the penguin.</div>
-            <div>Bring receipts.</div>
           </div>
         </div>
 
