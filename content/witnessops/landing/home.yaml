@@ -342,8 +342,8 @@ sections:
     cards:
       - title: "Privileged access grant review"
         body: "Review whether authority, execution, and evidence line up for a real access grant path."
-        proof_link: "/review"
-        proof_link_label: "Review this workflow type"
+        proof_link: "/review/sample-cases/privileged-access-grant"
+        proof_link_label: "Open named sample case"
       - title: "Approval-gated containment"
         body: "Check whether containment required recorded approval before execution and whether the evidence survives outside the source system."
         proof_link: "/review"
