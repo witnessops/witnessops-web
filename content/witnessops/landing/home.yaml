@@ -48,9 +48,6 @@ hero:
   title: "Consequential decisions should end in proof, not trust."
   body: "We run bounded workflows and produce signed receipts plus evidence packages that customers, auditors, and partners can inspect outside WitnessOps."
   supporting_points: []
-  ai_note:
-    body:
-      - "Prove who approved it, what ran, and what evidence survives outside the source system."
   primary_cta:
     label: "Verify a sample receipt"
     href: "/verify"
