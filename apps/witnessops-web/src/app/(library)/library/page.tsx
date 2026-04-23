@@ -27,10 +27,10 @@ const writingTopics = [
 
 const startHerePaths = [
   {
-    title: "Inspect sample proof artifacts",
+    title: "Verify a sample receipt",
     description:
-      "See what a governed run leaves behind before you submit a real workflow.",
-    href: "/library",
+      "Use the public verifier to inspect a sample receipt before you submit a real workflow.",
+    href: "/verify",
     primary: true,
   },
   {
@@ -112,8 +112,9 @@ export default function LibraryPage() {
           It keeps the path bounded and explicit, without implying coverage that
           is not currently published.
         </p>
-        <div className="mt-8">
-          <CtaButton href="/review/request" variant="primary" label="Request workflow review" />
+        <div className="mt-8 flex flex-wrap gap-3">
+          <CtaButton href="/verify" variant="primary" label="Verify a sample receipt" />
+          <CtaButton href="/review/request" variant="secondary" label="Request workflow review" />
         </div>
       </header>
 
@@ -210,8 +211,8 @@ export default function LibraryPage() {
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
         <p className="mb-5 max-w-[680px] text-sm leading-relaxed text-text-muted">
-          Start by inspecting sample proof artifacts, then request a bounded
-          review for one real workflow and use docs for deeper model context.
+          Start by verifying a sample receipt, then request a bounded review for
+          one real workflow and use docs for deeper model context.
         </p>
         <div className="space-y-4">
           {startHerePaths
