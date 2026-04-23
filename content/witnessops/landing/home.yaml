@@ -339,7 +339,6 @@ sections:
     id: "workflows"
     enabled: true
     title: "Workflow types in. Signed receipts and reviewable evidence out."
-    lede: "WitnessOps is designed for consequential workflows where later scrutiny matters. The current public review surface includes explanatory sample cases, one illustrative sample report, and a live review request lane."
     cards:
       - title: "Privileged access grant review"
         body: "Review whether authority, execution, and evidence line up for a real access grant path."
