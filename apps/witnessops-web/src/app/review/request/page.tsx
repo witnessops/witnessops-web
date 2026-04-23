@@ -57,19 +57,6 @@ export default function ReviewRequestPage() {
 
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1100px] px-6 py-20">
-      <div
-        className="mb-10 border-y border-surface-border py-3 text-center"
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: 10,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "var(--color-brand-muted)",
-        }}
-      >
-        Controlled · Provable · Bounded · Fail-safe
-      </div>
-
       <div className="grid gap-0 border border-surface-border md:grid-cols-2">
         <div className="border-r border-surface-border p-10 md:p-12">
           <div>
