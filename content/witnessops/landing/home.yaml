@@ -29,7 +29,7 @@ navbar:
     text: ""
     href: ""
   links:
-    - label: "How It Works"
+    - label: "Why WitnessOps"
       href: "/why-witnessops"
     - label: "Docs"
       href: "/docs"
@@ -264,7 +264,7 @@ sections:
     title: "One runbook becomes a campaign. One campaign becomes an evidence trail."
     body: "Start with a single governed operation. Chain receipts across scans, tests, and responses. Build a governed security history that auditors and regulators can inspect without oral reconstruction."
     ctas:
-      - label: "How It Works"
+      - label: "Why WitnessOps"
         href: "/why-witnessops"
         variant: "secondary"
       - label: "The Artifact Model"
@@ -350,8 +350,8 @@ sections:
         proof_link_label: "Open named sample case"
       - title: "Evidence export audit package"
         body: "Inspect whether a governed engagement can be packaged into portable proof artifacts for outside review."
-        proof_link: "/review"
-        proof_link_label: "Review this workflow type"
+        proof_link: "/review/sample-report"
+        proof_link_label: "Open sample report"
     surfaces:
       - title: "CLI"
         body: "Run workflows from the command line and write receipts locally."
@@ -386,7 +386,7 @@ footer:
   brand_line: "WitnessOps"
   subline: "Portable proof for consequential security work."
   links:
-    - label: "How It Works"
+    - label: "Why WitnessOps"
       href: "/why-witnessops"
     - label: "Verify"
       href: "/verify"

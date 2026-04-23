@@ -5,14 +5,14 @@ import { getMailboxConfig } from "@/lib/mailboxes";
 export const metadata: Metadata = {
   title: "Request a Review",
   description:
-    "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request to the WitnessOps engage mailbox for email follow-up.",
+    "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request for email follow-up.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request to the WitnessOps engage mailbox for email follow-up.",
+      "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request for email follow-up.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -20,14 +20,14 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request to the WitnessOps engage mailbox for email follow-up.",
+      "Bring one workflow, automation boundary, or operator decision path. This page sends a bounded review request for email follow-up.",
   },
 };
 
 const statusChips = [
   { label: "Surface", value: "Email follow-up" },
   { label: "Scope", value: "One real workflow" },
-  { label: "Mailbox", value: "Engage" },
+  { label: "Lane", value: "Review intake" },
 ];
 
 const reviewBullets = [
@@ -38,6 +38,26 @@ const reviewBullets = [
   "What can be replayed later",
   "What looks weak",
   "What to do next",
+];
+
+const prepareBullets = [
+  "Name one workflow or operator decision path",
+  "List the systems, tools, and permissions involved",
+  "State who could approve or act",
+  "Describe the evidence you already have",
+  "Include time bounds or key event order if known",
+];
+
+const exclusionBullets = [
+  "Product help, access issues, and verifier questions belong on /support",
+  "Responsible disclosure belongs on /security",
+  "Do not use this page for a broad audit or catch-all security engagement",
+];
+
+const nextSteps = [
+  "We review whether the request fits one bounded path",
+  "We continue by email to confirm scope, limits, and missing evidence",
+  "No review result is produced at submit time",
 ];
 
 export default function ReviewRequestPage() {
@@ -69,8 +89,8 @@ export default function ReviewRequestPage() {
             </h1>
             <p className="mb-6 max-w-[420px] text-sm leading-relaxed text-text-muted">
               Bring one workflow, one automation boundary, or one operator
-              decision path. This page sends a bounded review request to the
-              WitnessOps engage mailbox. We continue by email.
+              decision path. This page sends a bounded review request for
+              email follow-up. We continue by email after intake review.
             </p>
 
             <div className="mb-8 flex flex-wrap gap-2">
@@ -108,6 +128,30 @@ export default function ReviewRequestPage() {
               ))}
             </ul>
 
+            <div className="mt-8 border border-surface-border bg-surface-bg p-5">
+              <div
+                className="mb-3"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "var(--color-text-muted)",
+                }}
+              >
+                Prepare before you submit
+              </div>
+              <ul className="space-y-2 text-sm leading-relaxed text-text-muted">
+                {prepareBullets.map((item) => (
+                  <li key={item} className="flex gap-3">
+                    <span style={{ color: "var(--color-brand-accent)" }}>•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             <p
               className="mt-6 max-w-[420px] text-xs leading-relaxed text-text-muted"
               style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}
@@ -142,9 +186,62 @@ export default function ReviewRequestPage() {
           </div>
           <p className="mb-6 text-sm leading-relaxed text-text-muted">
             Submit one workflow, automation boundary, or operator decision path.
-            We respond by email from the engage mailbox.
+            We respond by email from the review intake mailbox.
           </p>
+
+          <div className="mb-6 border border-surface-border bg-surface-bg p-5">
+            <div
+              className="mb-3"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 13,
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              What happens next
+            </div>
+            <ul className="space-y-2 text-sm leading-relaxed text-text-muted">
+              {nextSteps.map((item) => (
+                <li key={item} className="flex gap-3">
+                  <span style={{ color: "var(--color-brand-accent)" }}>•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mb-6 border border-surface-border bg-surface-bg p-5">
+            <div
+              className="mb-3"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 13,
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              Use another lane instead
+            </div>
+            <ul className="space-y-2 text-sm leading-relaxed text-text-muted">
+              {exclusionBullets.map((item) => (
+                <li key={item} className="flex gap-3">
+                  <span style={{ color: "var(--color-brand-accent)" }}>•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <ContactForm contactEmail={mailboxes.engage} />
+
+          <p className="mt-6 text-xs leading-relaxed text-text-muted" style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}>
+            The details you enter here are sent for email follow-up through the review intake mailbox. Do not paste secrets or material you cannot place in email.
+          </p>
         </div>
       </div>
     </main>
