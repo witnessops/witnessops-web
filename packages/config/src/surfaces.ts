@@ -416,7 +416,7 @@ export function getWitnessOpsFooterContract(
     domainLabel: surface?.hostname ?? surfaceId,
     copyright: "© WITNESSOPS Foundation",
     partner: {
-      label: "Proof-backed security operations",
+      label: "Portable proof for consequential security work",
       href: getSurfaceUrl("witnessops"),
     },
     surfaces: [{ label: "WitnessOps", href: getSurfaceUrl("witnessops") }],
@@ -428,7 +428,7 @@ export function getWitnessOpsFooterContract(
       { label: "Reference", href: getDocsUrl("witnessops", "/reference") },
     ],
     support: [
-      { label: "Contact", href: getSurfaceUrl("witnessops", "/contact") },
+      { label: "Review", href: getSurfaceUrl("witnessops", "/review") },
       { label: "Support", href: getSurfaceUrl("witnessops", "/support") },
     ],
     legal: [
@@ -456,8 +456,8 @@ export function getWitnessOpsSiblingNavContract(
       { label: "Support", href: getSurfaceUrl("witnessops", "/support"), matchPrefixes: ["/support"] },
     ],
     cta: {
-      label: "Engage",
-      href: getSurfaceUrl("witnessops", "/contact"),
+      label: "Review",
+      href: getSurfaceUrl("witnessops", "/review"),
       variant: "primary",
     },
   };

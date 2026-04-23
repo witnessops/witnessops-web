@@ -5,14 +5,14 @@ import { getMailboxConfig } from "@/lib/mailboxes";
 export const metadata: Metadata = {
   title: "Request a Review",
   description:
-    "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path and requires mailbox verification before the request enters the queue.",
+    "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path, covering authority, execution, and evidence, and requires mailbox verification before the request enters the queue.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path and requires mailbox verification before the request enters the queue.",
+      "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path, covering authority, execution, and evidence, and requires mailbox verification before the request enters the queue.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Request a Review | WitnessOps",
     description:
-      "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path and requires mailbox verification before the request enters the queue.",
+      "Bring one workflow, automation boundary, or operator decision path. This page starts a bounded review intake for one real path, covering authority, execution, and evidence, and requires mailbox verification before the request enters the queue.",
   },
 };
 
@@ -64,8 +64,9 @@ export default function ReviewRequestPage() {
             <p className="mb-8 max-w-[420px] text-sm leading-relaxed text-text-muted">
               Bring one workflow, one automation boundary, or one operator
               decision path. This page starts a bounded review intake for one
-              real path. The request enters the queue only after mailbox
-              verification.
+              real path: authority path, execution path, evidence kept, and
+              what another person can check later. The request enters the queue
+              only after mailbox verification.
             </p>
 
             <div
@@ -121,10 +122,11 @@ export default function ReviewRequestPage() {
               color: "var(--color-text-muted)",
             }}
           >
-            Start your review request
+            Submit one workflow for review
           </div>
           <p className="mb-6 text-sm leading-relaxed text-text-muted">
             Submit one workflow, automation boundary, or operator decision path.
+            Describe one real path with real authority, execution, and evidence.
             Mailbox verification is required before the request enters the queue.
           </p>
           <ContactForm contactEmail={mailboxes.engage} />

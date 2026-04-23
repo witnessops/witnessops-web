@@ -27,10 +27,10 @@ const writingTopics = [
 
 const startHerePaths = [
   {
-    title: "Start with product docs",
+    title: "Inspect sample proof artifacts",
     description:
-      "Use docs first for scope, trust boundaries, and the verification model.",
-    href: "/docs",
+      "See what a governed run leaves behind before you submit a real workflow.",
+    href: "/library",
     primary: true,
   },
   {
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "WitnessOps Library — Docs, review, and verification entry points",
     description:
-      "Start with docs, inspect a sample report, request a workflow review, and run bounded verification.",
+      "Inspect sample proof artifacts, request a workflow review, and use docs for model and trust-boundary context.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -84,7 +84,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "WitnessOps Library — Docs, review, and verification entry points",
     description:
-      "Entry points for docs, review, sample report inspection, and verification.",
+      "Entry points for proof artifacts, review, sample report inspection, and docs.",
   },
 };
 
@@ -101,19 +101,19 @@ export default function LibraryPage() {
           className="mt-3 text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-4xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Public entry points for docs, review, and verification.
+          Public entry points for proof, review, docs, and verification.
         </h1>
         <p className="mt-5 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
-          Use this page to start in the right place: docs for model context,
-          sample report for output shape, review for one real workflow, and
-          verify for bounded checks.
+          Use this page to start in the right place: inspect sample proof
+          artifacts, review one real workflow, read the sample report shape, and
+          use docs for the model and trust boundaries.
         </p>
         <p className="mt-3 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
           It keeps the path bounded and explicit, without implying coverage that
           is not currently published.
         </p>
         <div className="mt-8">
-          <CtaButton href="/review/sample-report" variant="primary" label="Inspect sample report" />
+          <CtaButton href="/review/request" variant="primary" label="Request workflow review" />
         </div>
       </header>
 
@@ -210,8 +210,8 @@ export default function LibraryPage() {
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
         <p className="mb-5 max-w-[680px] text-sm leading-relaxed text-text-muted">
-          Start with docs for model context, then inspect a sample report and
-          request a bounded review for one real workflow.
+          Start by inspecting sample proof artifacts, then request a bounded
+          review for one real workflow and use docs for deeper model context.
         </p>
         <div className="space-y-4">
           {startHerePaths
@@ -226,7 +226,7 @@ export default function LibraryPage() {
                   className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-accent"
                   style={{ fontFamily: "var(--font-mono)" }}
                 >
-                  Recommended first read
+                  Recommended first stop
                 </p>
                 <h3
                   className="mt-3 text-sm font-semibold uppercase tracking-[0.08em] text-text-primary"

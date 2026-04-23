@@ -5,12 +5,12 @@ import { SectionShell } from "@/components/shared/section-shell";
 export const metadata: Metadata = {
   title: "Why WitnessOps",
   description:
-    "WitnessOps helps teams turn security work into signed proof that customers, auditors, and partners can check after the work is done.",
+    "WitnessOps helps teams turn consequential security work into signed receipts and portable proof artifacts that customers, auditors, and partners can inspect after the work is done.",
   alternates: getCanonicalAlternates("witnessops", "/why-witnessops"),
   openGraph: {
     title: "Why WitnessOps | WitnessOps",
     description:
-      "WitnessOps helps teams turn security work into signed proof that customers, auditors, and partners can check after the work is done.",
+      "WitnessOps helps teams turn consequential security work into signed receipts and portable proof artifacts that customers, auditors, and partners can inspect after the work is done.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Why WitnessOps | WitnessOps",
     description:
-      "WitnessOps helps teams turn security work into signed proof that customers, auditors, and partners can check after the work is done.",
+      "WitnessOps helps teams turn consequential security work into signed receipts and portable proof artifacts that customers, auditors, and partners can inspect after the work is done.",
   },
 };
 
@@ -41,7 +41,8 @@ export default function WhyWitnessOpsPage() {
           <p>
             WitnessOps is built to leave a better handoff behind. It records what
             was approved, what ran, and what evidence was kept, then packages
-            that into signed proof other people can inspect for themselves.
+            that into signed receipts and portable proof artifacts other people
+            can inspect for themselves.
           </p>
           <p>
             The goal is simple: when the work changes hands, the next person
@@ -52,7 +53,7 @@ export default function WhyWitnessOpsPage() {
           <ul className="list-disc pl-6 space-y-2">
             <li>Review one real workflow.</li>
             <li>See who could approve or act.</li>
-            <li>Check the published proof bundle.</li>
+            <li>Inspect sample proof artifacts.</li>
             <li>Read the trust limits in plain language.</li>
           </ul>
           <p>
