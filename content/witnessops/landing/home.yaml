@@ -49,11 +49,6 @@ hero:
   title: "Consequential decisions should end in proof, not trust."
   body: "We run bounded workflows and produce signed receipts plus evidence packages that customers, auditors, and partners can inspect outside WitnessOps."
   supporting_points: []
-  ai_note:
-    title: "For consequential AI workflows"
-    body:
-      - "Prove who approved it, what ran, and what evidence survives outside the source system."
-    microcopy: "Evidence for later scrutiny, not a broad AI compliance claim."
   primary_cta:
     label: "Verify a sample receipt"
     href: "/verify"
@@ -62,7 +57,6 @@ hero:
     label: "Request a Review"
     href: "/review/request"
     variant: "secondary"
-  microcopy: "Use the public verifier against a sample receipt already on this site. No account required."
   proof_badges: []
   media:
     type: "code_excerpt"
@@ -314,7 +308,6 @@ sections:
         body: "A receipt-shaped input outside supported scope that fails closed in the public verifier."
         proof_link: "/verify"
         proof_link_label: "Open verifier samples"
-    closing: "These are verifier fixtures, not live customer artifacts. Use them to see what receipt checks can confirm, what they cannot confirm, and how failure is exposed."
     ctas:
       - label: "Try verifier samples"
         href: "/verify"
@@ -322,6 +315,7 @@ sections:
       - label: "Request a Review"
         href: "/review/request"
         variant: "ghost"
+    closing: "These are verifier fixtures, not live customer artifacts. Use them to see what receipt checks can confirm, what they cannot confirm, and how failure is exposed."
 
   - type: "boundary"
     id: "boundary"

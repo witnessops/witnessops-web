@@ -4,14 +4,14 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "Review",
   description:
-    "Review one real workflow before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
+    "Review one real workflow. WitnessOps returns a bounded report on authority, execution, evidence, and replayability.",
   alternates: {
     canonical: "/review",
   },
   openGraph: {
     title: "Review | WitnessOps",
     description:
-      "Review one real workflow before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
+      "Review one real workflow. WitnessOps returns a bounded report on authority, execution, evidence, and replayability.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -19,18 +19,17 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Review | WitnessOps",
     description:
-      "Review one real workflow before you rely on it. WitnessOps returns a bounded report on who can act, what ran, what evidence exists, and what can be checked later.",
+      "Review one real workflow. WitnessOps returns a bounded report on authority, execution, evidence, and replayability.",
   },
 };
 
 const whatYouGet = [
-  "Who can approve or act",
-  "Which tools and permissions matter",
-  "What the execution path looks like",
-  "What evidence is kept",
-  "What can be replayed later",
-  "What looks weak",
-  "What to do next",
+  "Authority boundary",
+  "Execution path",
+  "Evidence kept",
+  "Replayability",
+  "Weak points",
+  "Next steps",
 ];
 
 const sampleReportBullets = [
@@ -54,12 +53,12 @@ export default function ReviewPage() {
           className="mt-2 text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-4xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Review one real workflow before you rely on it
+          Review one real workflow
         </h1>
         <p className="mt-4 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
-          Bring one workflow, one automation boundary, or one operator decision
-          path. WitnessOps returns a bounded report showing who can act, what
-          runs, what evidence is kept, and what another person could check later.
+          Bring one workflow, one automation boundary, or one operator path.
+          WitnessOps returns a bounded report on authority, execution,
+          evidence, and replayability.
         </p>
         <div className="mt-6 border border-surface-border bg-surface-card/50 p-4">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
@@ -67,20 +66,16 @@ export default function ReviewPage() {
           </h2>
           <ul className="mt-3 space-y-2 text-sm leading-relaxed text-text-muted">
             <li>
-              <span className="font-semibold text-text-primary">Who should submit:</span>{" "}
-              teams with one real workflow, one automation boundary, or one operator handoff to review.
+              <span className="font-semibold text-text-primary">Good fit:</span>{" "}
+              one real path with approvals, execution records, and evidence.
             </li>
             <li>
-              <span className="font-semibold text-text-primary">What qualifies:</span>{" "}
-              one path with real approvals, execution records, and evidence.
-            </li>
-            <li>
-              <span className="font-semibold text-text-primary">What you get:</span>{" "}
-              a bounded report on authority, execution, evidence, replayability, and next steps.
+              <span className="font-semibold text-text-primary">Submit:</span>{" "}
+              one workflow, one automation boundary, or one operator handoff.
             </li>
             <li>
               <span className="font-semibold text-text-primary">Out of scope:</span>{" "}
-              broad audits, open-ended consulting, or claims about the whole environment.
+              broad audits or whole-environment claims.
             </li>
           </ul>
         </div>
@@ -88,25 +83,25 @@ export default function ReviewPage() {
           <div>
             <CtaButton href="/review/request" variant="primary" label="Request a review" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              Submit one workflow or control path for bounded review.
+              Submit one path for review.
             </p>
           </div>
           <div>
             <CtaButton href="/review/sample-report" variant="secondary" label="View sample report" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              See the generic report shape before you submit a real workflow.
+              See the report shape first.
             </p>
           </div>
           <div>
             <CtaButton href="/review/sample-cases/privileged-access-grant" variant="secondary" label="Access grant case" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              Inspect a published privileged access grant review case.
+              See a published access grant case.
             </p>
           </div>
           <div>
             <CtaButton href="/review/sample-cases/approval-gated-containment" variant="secondary" label="Containment case" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              Inspect a published approval-gated containment review case.
+              See a published containment case.
             </p>
           </div>
         </div>
@@ -135,24 +130,10 @@ export default function ReviewPage() {
         </h2>
         <div className="space-y-4 text-sm leading-relaxed text-text-muted">
           <p>
-            If a workflow includes AI assistance or AI-driven steps, the review
-            stays bounded to the workflow evidence path.
+            Review one AI-related workflow the same way: who approved it, what ran, and what evidence survives.
           </p>
           <p>
-            We check whether the authority boundary, execution path, and
-            evidence package survive external review. That can include whether
-            an approval existed, whether the workflow ran within defined scope,
-            whether decision points were preserved, and whether the resulting
-            evidence can be inspected outside the source system.
-          </p>
-          <p>
-            This is a review of one real workflow, not a blanket judgment on an
-            AI system or a legal opinion about AI Act obligations.
-          </p>
-          <p>
-            Example: review an AI-assisted access approval, escalation, or triage
-            workflow to see whether approval, execution, and evidence still line
-            up under external scrutiny.
+            Bounded to one workflow path. Not a blanket AI-system judgment or an AI Act opinion.
           </p>
         </div>
       </section>
@@ -162,24 +143,10 @@ export default function ReviewPage() {
           className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Scope note
+          Boundary note
         </h2>
         <p className="text-sm leading-relaxed text-text-muted">
-          This is a bounded review of one path. It is not a broad audit and it
-          does not claim to cover everything in your stack.
-        </p>
-      </section>
-
-      <section className="mb-10 border-b border-surface-border pb-8">
-        <h2
-          className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Trust boundary note
-        </h2>
-        <p className="text-sm leading-relaxed text-text-muted">
-          The result is limited to the workflow, access, and evidence available
-          during review. Anything outside that boundary stays outside the claim.
+          One bounded path only. Outside the reviewed workflow, access, and evidence, no claim is made.
         </p>
       </section>
 
@@ -195,24 +162,14 @@ export default function ReviewPage() {
           See what the report looks like
         </h2>
         <p className="mt-4 max-w-[680px] text-sm leading-relaxed text-text-muted">
-          Open a sample dossier and inspect the exact review shape: system
-          boundary, authority map, execution path, observed evidence,
-          replayability judgment, and named failure modes.
+          Open a sample dossier and inspect the review shape: boundary, authority,
+          execution path, evidence, and replayability.
         </p>
         <ul className="mt-6 space-y-2 text-sm leading-relaxed text-text-muted">
           {sampleReportBullets.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
-      </section>
-
-      <section className="mb-8">
-        <p
-          className="text-center text-xs leading-relaxed text-text-muted"
-          style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}
-        >
-          Built for teams that need a clear judgment on one real mechanism.
-        </p>
       </section>
     </main>
   );
