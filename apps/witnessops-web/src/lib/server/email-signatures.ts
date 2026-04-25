@@ -57,7 +57,24 @@ type HtmlSignatureConfig = {
   contact: HtmlSignatureLine[];
   location?: string;
   accentColor: string;
+  proofColor?: string;
 };
+
+const WO_EMAIL_COLORS = {
+  bg: "#000000",
+  surface: "#141419",
+  surfaceHover: "#1d1d24",
+  text: "#faf7f2",
+  textSecondary: "#d0ccc4",
+  textMuted: "#8a8680",
+  accent: "#f27a3d",
+  trust: "#64a8ac",
+  border: "#2e2e36",
+  borderStrong: "#4a4a55",
+  success: "#6bc498",
+  warning: "#e3b060",
+  danger: "#e07570",
+} as const;
 
 const HTML_SIGNATURES: Record<
   Exclude<EmailSignatureProfile, "none">,
@@ -71,7 +88,7 @@ const HTML_SIGNATURES: Record<
       { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
       { text: "witnessops.com", href: "https://witnessops.com" },
     ],
-    accentColor: "#2563eb",
+    accentColor: WO_EMAIL_COLORS.trust,
   },
   personal_admin: {
     name: "Karol Stefanski",
@@ -83,7 +100,7 @@ const HTML_SIGNATURES: Record<
       { text: "+353 83 040 1096", href: "tel:+353830401096" },
     ],
     location: "Dublin, Ireland",
-    accentColor: "#64748b",
+    accentColor: WO_EMAIL_COLORS.textMuted,
   },
   founder_default: {
     name: "Karol Stefanski",
@@ -97,7 +114,7 @@ const HTML_SIGNATURES: Record<
       { text: "+353 83 040 1096", href: "tel:+353830401096" },
     ],
     location: "Dublin, Ireland",
-    accentColor: "#0f766e",
+    accentColor: WO_EMAIL_COLORS.accent,
   },
   security_buyer: {
     name: "Karol Stefanski",
@@ -111,14 +128,18 @@ const HTML_SIGNATURES: Record<
       { text: "+353 83 040 1096", href: "tel:+353830401096" },
     ],
     location: "Dublin, Ireland",
-    accentColor: "#7c3aed",
+    accentColor: WO_EMAIL_COLORS.trust,
+    proofColor: WO_EMAIL_COLORS.trust,
   },
 };
 
 const SIGNATURE_FONT_STACK = "Arial, Helvetica, sans-serif";
-const SIGNATURE_TEXT_COLOR = "#111827";
-const SIGNATURE_MUTED_COLOR = "#475569";
-const SIGNATURE_RULE_COLOR = "#d7dde8";
+const SIGNATURE_TEXT_COLOR = WO_EMAIL_COLORS.text;
+const SIGNATURE_SECONDARY_COLOR = WO_EMAIL_COLORS.textSecondary;
+const SIGNATURE_MUTED_COLOR = WO_EMAIL_COLORS.textMuted;
+const SIGNATURE_LINK_COLOR = WO_EMAIL_COLORS.trust;
+const SIGNATURE_RULE_COLOR = WO_EMAIL_COLORS.border;
+const SIGNATURE_STRONG_RULE_COLOR = WO_EMAIL_COLORS.borderStrong;
 
 function escapeHtml(value: string): string {
   return value
@@ -140,7 +161,7 @@ function renderInlineText(value: string): string {
     const href = token.includes("@") && !token.startsWith("http")
       ? `mailto:${token}`
       : token;
-    rendered += `<a href="${escapeHtml(href)}" style="color:#2563eb;text-decoration:none">${escapeHtml(token)}</a>`;
+    rendered += `<a href="${escapeHtml(href)}" style="color:${SIGNATURE_LINK_COLOR};text-decoration:none">${escapeHtml(token)}</a>`;
     lastIndex = index + token.length;
   }
 
@@ -149,20 +170,19 @@ function renderInlineText(value: string): string {
 
 function renderContactLink(
   line: HtmlSignatureLine,
-  accentColor: string,
 ): string {
   const text = escapeHtml(line.text);
   if (!line.href) {
     return `<span style="color:${SIGNATURE_MUTED_COLOR};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px">${text}</span>`;
   }
 
-  return `<a href="${escapeHtml(line.href)}" style="color:${accentColor};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;text-decoration:none">${text}</a>`;
+  return `<a href="${escapeHtml(line.href)}" style="color:${SIGNATURE_LINK_COLOR};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;text-decoration:none">${text}</a>`;
 }
 
 function renderContactRow(config: HtmlSignatureConfig): string {
   const separator = `<span style="color:${SIGNATURE_RULE_COLOR};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px">&nbsp;|&nbsp;</span>`;
   return config.contact
-    .map((line) => renderContactLink(line, config.accentColor))
+    .map((line) => renderContactLink(line))
     .join(separator);
 }
 
@@ -188,40 +208,34 @@ export function getHtmlSignature(profile: EmailSignatureProfile): string {
   }
 
   const config = HTML_SIGNATURES[profile];
+  const proofColor = config.proofColor ?? WO_EMAIL_COLORS.accent;
   return [
-    `<table data-witnessops-signature-profile="${profile}" role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:${SIGNATURE_FONT_STACK};color:${SIGNATURE_TEXT_COLOR};width:100%;max-width:560px">`,
+    `<table data-witnessops-signature-profile="${profile}" role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:${SIGNATURE_FONT_STACK};color:${SIGNATURE_TEXT_COLOR};background-color:${WO_EMAIL_COLORS.bg};width:100%;max-width:560px">`,
     "<tr>",
-    `<td style="border-top:1px solid ${SIGNATURE_RULE_COLOR};padding-top:14px">`,
-    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt">',
-    "<tr>",
-    `<td width="5" style="width:5px;background:${config.accentColor};font-size:1px;line-height:1px">&nbsp;</td>`,
-    '<td width="14" style="width:14px;font-size:1px;line-height:1px">&nbsp;</td>',
-    "<td>",
+    `<td width="5" bgcolor="${config.accentColor}" style="width:5px;background-color:${config.accentColor};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-left:1px solid ${SIGNATURE_STRONG_RULE_COLOR};font-size:1px;line-height:1px">&nbsp;</td>`,
+    `<td bgcolor="${WO_EMAIL_COLORS.surface}" style="background-color:${WO_EMAIL_COLORS.surface};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-right:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};padding:13px 15px 14px 14px">`,
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt">',
     "<tr>",
     `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:15px;line-height:20px;font-weight:700;color:${SIGNATURE_TEXT_COLOR};padding:0">${escapeHtml(config.name)}</td>`,
     "</tr>",
     "<tr>",
-    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_MUTED_COLOR};padding:1px 0 0 0">${escapeHtml(config.role)} <span style="color:${SIGNATURE_RULE_COLOR}">·</span> <span style="color:${SIGNATURE_TEXT_COLOR};font-weight:600">${escapeHtml(config.brand)}</span></td>`,
+    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_SECONDARY_COLOR};padding:1px 0 0 0">${escapeHtml(config.role)} <span style="color:${SIGNATURE_RULE_COLOR}">·</span> <span style="color:${SIGNATURE_TEXT_COLOR};font-weight:600">${escapeHtml(config.brand)}</span></td>`,
     "</tr>",
     renderOptionalTextCell(
       config.proofLine,
-      `font-family:${SIGNATURE_FONT_STACK};font-size:13px;line-height:18px;font-weight:700;color:${config.accentColor};padding:8px 0 0 0`,
+      `font-family:${SIGNATURE_FONT_STACK};font-size:13px;line-height:18px;font-weight:700;color:${proofColor};padding:9px 0 0 0`,
     ),
     renderOptionalTextCell(
       config.detailLine,
-      `font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_MUTED_COLOR};padding:1px 0 0 0`,
+      `font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_SECONDARY_COLOR};padding:1px 0 0 0`,
     ),
     "<tr>",
-    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_MUTED_COLOR};padding:8px 0 0 0">${renderContactRow(config)}</td>`,
+    `<td style="border-top:1px solid ${SIGNATURE_RULE_COLOR};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_MUTED_COLOR};padding:8px 0 0 0">${renderContactRow(config)}</td>`,
     "</tr>",
     renderOptionalTextCell(
       config.location,
       `font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_MUTED_COLOR};padding:2px 0 0 0`,
     ),
-    "</table>",
-    "</td>",
-    "</tr>",
     "</table>",
     "</td>",
     "</tr>",

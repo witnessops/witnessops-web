@@ -54,7 +54,7 @@ test("applyTextSignature appends the selected plain-text signature", () => {
 test("applyHtmlSignature renders safe HTML body and selected signature", () => {
   assert.equal(
     textToEmailHtml("Hello <operator>\nVisit https://witnessops.com"),
-    '<p style="margin:0 0 12px 0">Hello &lt;operator&gt;<br>Visit <a href="https://witnessops.com" style="color:#2563eb;text-decoration:none">https://witnessops.com</a></p>',
+    '<p style="margin:0 0 12px 0">Hello &lt;operator&gt;<br>Visit <a href="https://witnessops.com" style="color:#64a8ac;text-decoration:none">https://witnessops.com</a></p>',
   );
 
   const signed = applyHtmlSignature("Hello\n", "founder_default");
@@ -65,8 +65,14 @@ test("applyHtmlSignature renders safe HTML body and selected signature", () => {
   );
   assert.match(signed, /<table data-witnessops-signature-profile="founder_default"/);
   assert.match(signed, /role="presentation"/);
-  assert.match(signed, /background:#0f766e/);
-  assert.match(signed, /border-top:1px solid #d7dde8/);
+  assert.match(signed, /background-color:#000000/);
+  assert.match(signed, /background-color:#141419/);
+  assert.match(signed, /background-color:#f27a3d/);
+  assert.match(signed, /color:#faf7f2/);
+  assert.match(signed, /color:#d0ccc4/);
+  assert.match(signed, /color:#64a8ac/);
+  assert.match(signed, /border-top:1px solid #4a4a55/);
+  assert.match(signed, /border-top:1px solid #2e2e36/);
   assert.match(signed, /Agents act\. WitnessOps proves\./);
   assert.match(signed, /href="mailto:ks@witnessops.com"/);
   assert.equal(applyHtmlSignature("Hello\n", "none"), textToEmailHtml("Hello\n"));
