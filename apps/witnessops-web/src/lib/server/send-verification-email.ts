@@ -2,6 +2,11 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash, randomUUID, sign } from "node:crypto";
 import { getMailboxConfig } from "../mailboxes";
+import { applyTextSignature, type EmailSignatureProfile } from "./email-signatures";
+import {
+  resolveSignatureProfile,
+  type EmailMessageClass,
+} from "./email-signature-policy";
 
 export interface VerificationEmailPayload {
   to: string;
@@ -10,6 +15,8 @@ export interface VerificationEmailPayload {
   text: string;
   /** Stable correlation ID generated before send. Embedded in provider-specific metadata for downstream matching. */
   deliveryAttemptId?: string;
+  messageClass?: EmailMessageClass;
+  signatureProfile?: EmailSignatureProfile;
 }
 
 export interface VerificationEmailDeliveryResult {
@@ -20,6 +27,11 @@ export interface VerificationEmailDeliveryResult {
 
 export type TextEmailPayload = VerificationEmailPayload;
 export type TextEmailDeliveryResult = VerificationEmailDeliveryResult;
+
+type PreparedEmailPayload = VerificationEmailPayload & {
+  from: string;
+  signatureProfile: EmailSignatureProfile;
+};
 
 function readMailProvider(): "file" | "resend" | "m365" {
   const provider = process.env.WITNESSOPS_MAIL_PROVIDER?.toLowerCase();
@@ -41,8 +53,35 @@ function resolveFromEmail(payload: VerificationEmailPayload): string {
   );
 }
 
+function prepareEmailPayload(payload: VerificationEmailPayload): PreparedEmailPayload {
+  const from = resolveFromEmail(payload);
+  const signatureProfile =
+    payload.signatureProfile ??
+    resolveSignatureProfile({
+      from,
+      to: payload.to,
+      messageClass: payload.messageClass,
+    });
+
+  return {
+    ...payload,
+    from,
+    signatureProfile,
+    text: applyTextSignature(payload.text, signatureProfile),
+  };
+}
+
+function policyHeaders(payload: PreparedEmailPayload): string[] {
+  const headers = [`X-WitnessOps-Signature-Profile: ${payload.signatureProfile}`];
+  if (payload.messageClass) {
+    headers.unshift(`X-WitnessOps-Message-Class: ${payload.messageClass}`);
+  }
+
+  return headers;
+}
+
 async function sendWithFileProvider(
-  payload: VerificationEmailPayload,
+  payload: PreparedEmailPayload,
 ): Promise<VerificationEmailDeliveryResult> {
   const outputDir =
     process.env.WITNESSOPS_MAIL_OUTPUT_DIR ??
@@ -51,13 +90,13 @@ async function sendWithFileProvider(
 
   const providerMessageId = `msg_${randomUUID().replace(/-/g, "")}`;
   const deliveredAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
-  const from = resolveFromEmail(payload);
   const eml = [
-    `From: ${from}`,
+    `From: ${payload.from}`,
     `To: ${payload.to}`,
     `Subject: ${payload.subject}`,
     `Date: ${deliveredAt}`,
     `Message-ID: <${providerMessageId}@witnessops.local>`,
+    ...policyHeaders(payload),
     "MIME-Version: 1.0",
     'Content-Type: text/plain; charset="utf-8"',
     "",
@@ -79,7 +118,7 @@ async function sendWithFileProvider(
 }
 
 async function sendWithResendProvider(
-  payload: VerificationEmailPayload,
+  payload: PreparedEmailPayload,
 ): Promise<VerificationEmailDeliveryResult> {
   const apiKey = process.env.WITNESSOPS_RESEND_API_KEY;
   if (!apiKey) {
@@ -90,17 +129,34 @@ async function sendWithResendProvider(
 
   const deliveredAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
   const sendBody: Record<string, unknown> = {
-    from: resolveFromEmail(payload),
+    from: payload.from,
     to: [payload.to],
     subject: payload.subject,
     text: payload.text,
   };
 
-  if (payload.deliveryAttemptId) {
-    sendBody.tags = [
-      { name: "witnessops_delivery_attempt_id", value: payload.deliveryAttemptId },
-    ];
+  const tags: Array<{ name: string; value: string }> = [
+    {
+      name: "witnessops_signature_profile",
+      value: payload.signatureProfile,
+    },
+  ];
+
+  if (payload.messageClass) {
+    tags.push({
+      name: "witnessops_message_class",
+      value: payload.messageClass,
+    });
   }
+
+  if (payload.deliveryAttemptId) {
+    tags.unshift({
+      name: "witnessops_delivery_attempt_id",
+      value: payload.deliveryAttemptId,
+    });
+  }
+
+  sendBody.tags = tags;
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -265,14 +321,26 @@ function buildM365InternetMessageId(deliveryAttemptId: string): string {
 }
 
 async function sendWithM365Provider(
-  payload: VerificationEmailPayload,
+  payload: PreparedEmailPayload,
 ): Promise<VerificationEmailDeliveryResult> {
-  const config = readM365Config(resolveFromEmail(payload));
+  const config = readM365Config(payload.from);
   const accessToken = await requestM365AccessToken(config);
   const deliveredAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
 
-  const internetMessageHeaders: Array<{ name: string; value: string }> = [];
+  const internetMessageHeaders: Array<{ name: string; value: string }> = [
+    {
+      name: "X-WitnessOps-Signature-Profile",
+      value: payload.signatureProfile,
+    },
+  ];
   let providerMessageId: string | null = null;
+
+  if (payload.messageClass) {
+    internetMessageHeaders.unshift({
+      name: "X-WitnessOps-Message-Class",
+      value: payload.messageClass,
+    });
+  }
 
   if (payload.deliveryAttemptId) {
     internetMessageHeaders.push({
@@ -344,13 +412,14 @@ export { buildM365InternetMessageId };
 export async function sendMail(
   payload: TextEmailPayload,
 ): Promise<TextEmailDeliveryResult> {
+  const preparedPayload = prepareEmailPayload(payload);
   switch (readMailProvider()) {
     case "file":
-      return sendWithFileProvider(payload);
+      return sendWithFileProvider(preparedPayload);
     case "resend":
-      return sendWithResendProvider(payload);
+      return sendWithResendProvider(preparedPayload);
     case "m365":
-      return sendWithM365Provider(payload);
+      return sendWithM365Provider(preparedPayload);
     default:
       throw new Error("Unreachable mail provider");
   }

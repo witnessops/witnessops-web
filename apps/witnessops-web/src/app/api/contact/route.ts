@@ -60,6 +60,7 @@ export async function POST(request: Request) {
       subject: `WitnessOps review request - ${parsed.data.email}`,
       text: formatContactBody(parsed.data),
       deliveryAttemptId,
+      messageClass: "internal_notification",
     });
 
     return NextResponse.json(

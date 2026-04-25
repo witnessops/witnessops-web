@@ -5,6 +5,7 @@ import { generateKeyPairSync, randomBytes } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 
+import { getTextSignature } from "./email-signatures";
 import { sendVerificationEmail } from "./send-verification-email";
 
 function generateThrowawayCertAndKeyPem(): { certPem: string; keyPem: string } {
@@ -66,6 +67,7 @@ test("sendVerificationEmail sends via Microsoft 365 Graph with app-only auth", a
     to: "operator@example.com",
     subject: "Verify your WitnessOps access",
     text: "Token: abc123",
+    messageClass: "transactional",
   });
 
   assert.equal(result.provider, "m365");
@@ -95,6 +97,7 @@ test("sendVerificationEmail sends via Microsoft 365 Graph with app-only auth", a
     message: {
       subject: string;
       body: { contentType: string; content: string };
+      internetMessageHeaders: Array<{ name: string; value: string }>;
       toRecipients: Array<{ emailAddress: { address: string } }>;
     };
     saveToSentItems: boolean;
@@ -102,7 +105,20 @@ test("sendVerificationEmail sends via Microsoft 365 Graph with app-only auth", a
 
   assert.equal(sendBody.message.subject, "Verify your WitnessOps access");
   assert.equal(sendBody.message.body.contentType, "Text");
-  assert.equal(sendBody.message.body.content, "Token: abc123");
+  assert.equal(
+    sendBody.message.body.content,
+    `Token: abc123\n\n${getTextSignature("ops_minimal")}`,
+  );
+  assert.deepEqual(sendBody.message.internetMessageHeaders, [
+    {
+      name: "X-WitnessOps-Message-Class",
+      value: "transactional",
+    },
+    {
+      name: "X-WitnessOps-Signature-Profile",
+      value: "ops_minimal",
+    },
+  ]);
   assert.deepEqual(sendBody.message.toRecipients, [
     { emailAddress: { address: "operator@example.com" } },
   ]);

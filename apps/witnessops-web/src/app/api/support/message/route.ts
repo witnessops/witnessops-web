@@ -60,6 +60,7 @@ export async function POST(request: Request) {
       subject: parsed.data.subject || `WitnessOps support request - ${parsed.data.category}`,
       text: formatSupportBody(parsed.data),
       deliveryAttemptId,
+      messageClass: "internal_notification",
     });
 
     return NextResponse.json(

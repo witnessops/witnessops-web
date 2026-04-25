@@ -340,6 +340,7 @@ export async function createVerificationIssuance(
     from: getChannelVerificationMailbox(input.channel),
     subject: template.subject,
     text: template.text,
+    messageClass: "transactional",
   });
 
   const issuanceRecord: TokenIssuanceRecord = {
