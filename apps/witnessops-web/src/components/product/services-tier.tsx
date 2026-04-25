@@ -18,7 +18,7 @@ export function ServicesTier() {
     },
     {
       tier: "PRIMARY",
-      name: "Request a review",
+      name: "Request a proof run",
       anchor: "Single bounded lane",
       hook: "Submit one workflow, automation boundary, or operator decision path for bounded inspection.",
       features: [
@@ -27,7 +27,7 @@ export function ServicesTier() {
         "Bounded review report",
         "Named weak points and next steps",
       ],
-      cta: { label: "Request a Review", href: "/review/request", variant: "primary" as const },
+      cta: { label: "Request Proof Run", href: "/review/request", variant: "primary" as const },
       featured: true,
     },
     {

@@ -62,6 +62,22 @@ const proofQuestions = [
   "What could another party verify or challenge?",
 ];
 
+const buyerFit = [
+  {
+    label: "For",
+    value: "Agent actions later audited or disputed.",
+  },
+  {
+    label: "You get",
+    value:
+      "Authority map, evidence manifest, receipt, verifier result, and challenge path.",
+  },
+  {
+    label: "Do not submit",
+    value: "Secrets, credentials, private keys, customer records, or MFA codes.",
+  },
+];
+
 const workflowTriggers = [
   "code or configuration changes",
   "customer-support actions with tool access",
@@ -127,11 +143,23 @@ export default function ReviewPage() {
             </p>
           </div>
           <div>
-            <CtaButton href={sampleBundleHref} variant="secondary" label="View sample proof run" />
+            <CtaButton href={sampleBundleHref} variant="secondary" label="View Sample Proof Run" />
             <p className="mt-2 max-w-[300px] text-xs leading-relaxed text-text-muted">
               Inspect the receipt shape and verifier path first.
             </p>
           </div>
+        </div>
+        <div className="mt-8 grid gap-px border border-surface-border bg-surface-border md:grid-cols-3">
+          {buyerFit.map((item) => (
+            <div key={item.label} className="bg-surface-bg p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
+                {item.label}
+              </div>
+              <p className="mt-2 text-sm leading-7 text-text-secondary">
+                {item.value}
+              </p>
+            </div>
+          ))}
         </div>
       </header>
 
@@ -216,12 +244,12 @@ export default function ReviewPage() {
           <CtaButton
             href={sampleBundleHref}
             variant="secondary"
-            label="Open AI Agent Action Proof Run sample"
+            label="View Sample Proof Run"
           />
           <CtaButton
             href="/review/request"
             variant="primary"
-            label="Request a proof run"
+            label="Request an AI Agent Action Proof Run"
           />
         </div>
       </section>

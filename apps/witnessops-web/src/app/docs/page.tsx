@@ -218,7 +218,7 @@ export default async function DocsIndexPage() {
 
         <p className="mt-4 max-w-[700px] text-sm leading-relaxed tracking-wide text-text-muted">
           Choose your next step: learn the model, verify a receipt, inspect sample
-          cases, or request a review.
+          cases, or request a proof run.
         </p>
 
         <p className="mt-3 max-w-[700px] text-sm leading-relaxed tracking-wide text-text-muted">
@@ -250,7 +250,7 @@ export default async function DocsIndexPage() {
           <CtaButton
             href="/review/request"
             variant="secondary"
-            label="Request a Review"
+            label="Request Proof Run"
           />
         </div>
       </header>

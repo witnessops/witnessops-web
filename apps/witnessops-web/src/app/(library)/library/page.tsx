@@ -55,7 +55,7 @@ const startHerePaths = [
     primary: false,
   },
   {
-    title: "Request a Review",
+    title: "Request a Proof Run",
     description:
       "Submit one real workflow, boundary, or operator decision path.",
     href: "/review/request",
@@ -98,7 +98,7 @@ const artifactClasses = [
     description:
       "The public intake path for one real workflow, automation boundary, or operator decision path. It is a live request surface, not a published proof artifact.",
     href: "/review/request",
-    label: "Request a Review",
+    label: "Request Proof Run",
   },
 ];
 
@@ -114,7 +114,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "WitnessOps Library — Docs, review, verification, and artifact classes",
     description:
-      "Inspect verifier fixtures, explanatory sample cases, the illustrative sample report, request a review, and use docs for model and trust-boundary context.",
+      "Inspect verifier fixtures, explanatory sample cases, the illustrative sample report, request a proof run, and use docs for model and trust-boundary context.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -144,7 +144,7 @@ export default function LibraryPage() {
         <p className="mt-5 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
           Use this page to start in the right place: inspect verifier fixtures,
           browse explanatory sample cases, read the illustrative sample report,
-          request a review for one real workflow, and use docs for the model and trust boundaries.
+          request a proof run for one real workflow, and use docs for the model and trust boundaries.
         </p>
         <p className="mt-3 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
           No live customer proof artifact is linked from this index. The public
@@ -154,7 +154,7 @@ export default function LibraryPage() {
         <div className="mt-8 flex flex-wrap gap-3">
           <CtaButton href="/verify" variant="primary" label="Verify a sample receipt" />
           <CtaButton href="/review/sample-cases" variant="secondary" label="Browse named sample cases" />
-          <CtaButton href="/review/request" variant="secondary" label="Request a Review" />
+          <CtaButton href="/review/request" variant="secondary" label="Request Proof Run" />
         </div>
       </header>
 
@@ -292,7 +292,7 @@ export default function LibraryPage() {
         </h2>
         <p className="mb-5 max-w-[680px] text-sm leading-relaxed text-text-muted">
           Start by verifying a sample receipt, then browse explanatory sample
-          cases, request a bounded review for one real workflow, and use docs
+          cases, request a bounded proof run for one real workflow, and use docs
           for deeper model context.
         </p>
         <div className="space-y-4">
@@ -361,7 +361,7 @@ export default function LibraryPage() {
           className="mt-4 inline-block text-xs text-text-muted transition-colors hover:text-text-primary"
           style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}
         >
-          Request a Review &rarr;
+          Request Proof Run &rarr;
         </Link>
       </section>
     </main>

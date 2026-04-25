@@ -59,7 +59,7 @@ hero:
     href: "/review/request"
     variant: "primary"
   secondary_cta:
-    label: "View sample proof run"
+    label: "View Sample Proof Run"
     href: "/review/sample-cases/ai-agent-action-proof-run"
     variant: "secondary"
   proof_badges: []
@@ -135,7 +135,7 @@ sections:
       - label: "Request an AI Agent Action Proof Run"
         href: "/review/request"
         variant: "primary"
-      - label: "View sample proof run"
+      - label: "View Sample Proof Run"
         href: "/review/sample-cases/ai-agent-action-proof-run"
         variant: "ghost"
 
@@ -158,7 +158,7 @@ sections:
         proof_link: "/review/sample-cases/ai-agent-action-proof-run"
         proof_link_label: "Open sample bundle"
     ctas:
-      - label: "View sample proof run"
+      - label: "View Sample Proof Run"
         href: "/review/sample-cases/ai-agent-action-proof-run"
         variant: "primary"
       - label: "Read the verification contract"
@@ -190,7 +190,7 @@ final_cta:
     - label: "Request an AI Agent Action Proof Run"
       href: "/review/request"
       variant: "primary"
-    - label: "View sample proof run"
+    - label: "View Sample Proof Run"
       href: "/review/sample-cases/ai-agent-action-proof-run"
       variant: "ghost"
 
