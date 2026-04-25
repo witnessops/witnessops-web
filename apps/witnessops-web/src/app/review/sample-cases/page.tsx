@@ -24,56 +24,41 @@ export const metadata: Metadata = {
   },
 };
 
-const surfaceLegend = [
+const aiProofArtifacts = [
+  "ACTION_BOUNDARY.json",
+  "AUTHORITY_MAP.json",
+  "EVIDENCE_MANIFEST.json",
+  "RECEIPT.json",
+  "VERIFY_RESULT.json",
+  "CHALLENGE_PATH.md",
+  "MANIFEST.sha256",
+];
+
+const supportSurfaces = [
   {
     title: "Verifier fixtures",
     description:
-      "Small public sample receipts used on /verify to show what receipt checks can confirm today and how failure appears.",
+      "Small public receipt examples used on /verify to show what current receipt checks can confirm and how failure appears.",
     href: "/verify",
     label: "Open verifier",
   },
   {
     title: "Illustrative sample report",
     description:
-      "One illustrative dossier showing report structure and judgment style without claiming a live customer proof path.",
+      "An older dossier shape showing review style without claiming a live customer proof path.",
     href: "/review/sample-report",
     label: "Open sample report",
   },
   {
-    title: "AI Agent Action Proof Run sample bundle",
+    title: "Request lane",
     description:
-      "A public standalone bundle showing the authority map, action boundary, evidence manifest, receipt, verifier result, and challenge path for one agent-assisted workflow.",
-    href: "/review/sample-cases/ai-agent-action-proof-run",
-    label: "Open sample proof run",
-  },
-  {
-    title: "Explanatory sample cases",
-    description:
-      "Published workflow-class pages with stable routes, named boundaries, authority maps, evidence expectations, and trust-dependent gaps.",
-    href: "/review/sample-cases",
-    label: "Current surface",
-  },
-  {
-    title: "Live Review request lane",
-    description:
-      "The intake path for one real workflow, automation boundary, or operator decision path that you want reviewed.",
+      "The intake path for one real agent-assisted workflow you want scoped into a proof run.",
     href: "/review/request",
-    label: "Request a Review",
+    label: "Request proof run",
   },
 ];
 
 const sampleCases = [
-  {
-    title: "AI Agent Action Proof Run",
-    href: "/review/sample-cases/ai-agent-action-proof-run",
-    description:
-      "A buyer-facing sample proof run for one agent-assisted code or configuration change, exposing the authority map, action boundary, evidence manifest, signed receipt, verifier result, challenge path, and manifest digest.",
-    signals: [
-      "human approval boundary",
-      "agent/tool action path",
-      "receipt and verifier result",
-    ],
-  },
   {
     title: "Privileged access grant review",
     href: "/review/sample-cases/privileged-access-grant",
@@ -103,7 +88,7 @@ export default function SampleCasesIndexPage() {
     <main id="main-content" tabIndex={-1}>
       <SectionShell narrow>
         <div className="space-y-8">
-          <section className="space-y-4 border-b border-surface-border pb-8">
+          <section className="space-y-5 border-b border-surface-border pb-8">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
               Sample cases
             </p>
@@ -111,14 +96,55 @@ export default function SampleCasesIndexPage() {
               Published sample cases and proof bundles
             </h1>
             <p className="text-base leading-8 text-text-secondary">
-              These pages and bundles show how WitnessOps shapes bounded proof
-              around specific workflow classes. They are explanatory sample
-              materials, not live customer artifacts and not claims of completed
-              verification for your environment.
+              Start with the AI Agent Action Proof Run sample. It shows how a
+              third party inspects the action boundary, authority map, evidence
+              manifest, receipt, verifier result, challenge path, and digest
+              manifest after an agent acts.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <CtaButton href="/review" variant="primary" label="Back to review" />
-              <CtaButton href="/review/request" variant="secondary" label="Request an AI Agent Action Proof Run" />
+              <CtaButton href="/review/request" variant="primary" label="Request an AI Agent Action Proof Run" />
+              <CtaButton href="/review" variant="secondary" label="Read the offer" />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+            <div className="kb-section-tag">Primary sample</div>
+            <div className="mt-3 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
+              <div>
+                <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
+                  AI Agent Action Proof Run
+                </h2>
+                <p className="mt-3 text-base leading-8 text-text-secondary">
+                  A public standalone bundle for one agent-assisted code or
+                  configuration change. Use it to inspect the receipt shape and
+                  verifier path before submitting your own workflow.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <CtaButton
+                    href="/review/sample-cases/ai-agent-action-proof-run"
+                    variant="primary"
+                    label="Open sample proof run"
+                  />
+                  <CtaButton
+                    href="/review/request"
+                    variant="secondary"
+                    label="Request your proof run"
+                  />
+                </div>
+              </div>
+              <div className="rounded-xl border border-surface-border bg-surface-bg p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  Artifact set
+                </h3>
+                <ul className="mt-3 space-y-2 font-mono text-xs leading-6 text-text-muted">
+                  {aiProofArtifacts.map((artifact) => (
+                    <li key={artifact} className="flex gap-2">
+                      <span className="text-brand-accent">✓</span>
+                      <span>{artifact}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </section>
 
@@ -126,21 +152,35 @@ export default function SampleCasesIndexPage() {
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               What these pages are for
             </h2>
-            <ul className="list-disc space-y-2 pl-6 text-base leading-8 text-text-secondary marker:text-brand-accent">
-              <li>Show one bounded workflow class at a time.</li>
-              <li>Separate authority, execution, evidence, and replayability.</li>
-              <li>Name the integrity gaps and stronger evidence needed to close them.</li>
-              <li>Show the AI-agent sample receipt shape and verifier path without claiming production deployment, legal compliance, or complete AI governance coverage.</li>
-              <li>Avoid implying a live customer proof path where none is published.</li>
-            </ul>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-xl border border-surface-border bg-surface-bg p-4">
+                <h3 className="text-sm font-semibold text-text-primary">
+                  Show one bounded workflow class
+                </h3>
+                <p className="mt-2 text-sm leading-7 text-text-secondary">
+                  Each page keeps authority, execution, evidence, verification,
+                  and challenge language separate.
+                </p>
+              </div>
+              <div className="rounded-xl border border-surface-border bg-surface-bg p-4">
+                <h3 className="text-sm font-semibold text-text-primary">
+                  Name the limits
+                </h3>
+                <p className="mt-2 text-sm leading-7 text-text-secondary">
+                  Samples are explanatory. They do not imply live customer
+                  proof, production deployment, legal compliance, or complete
+                  AI governance coverage.
+                </p>
+              </div>
+            </div>
           </section>
 
           <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
-              Public artifact classes
+              Supporting surfaces
             </h2>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {surfaceLegend.map((item) => (
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              {supportSurfaces.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -161,15 +201,18 @@ export default function SampleCasesIndexPage() {
           </section>
 
           <section className="space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
+              Additional named sample cases
+            </h2>
             {sampleCases.map((sampleCase) => (
               <Link
                 key={sampleCase.href}
                 href={sampleCase.href}
                 className="block rounded-2xl border border-surface-border bg-surface-card/40 p-6 transition-colors hover:bg-surface-card/60"
               >
-                <h2 className="text-xl font-semibold text-text-primary">
+                <h3 className="text-xl font-semibold text-text-primary">
                   {sampleCase.title}
-                </h2>
+                </h3>
                 <p className="mt-3 text-base leading-8 text-text-secondary">
                   {sampleCase.description}
                 </p>
