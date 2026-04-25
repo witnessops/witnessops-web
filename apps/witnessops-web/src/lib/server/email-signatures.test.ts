@@ -63,6 +63,10 @@ test("applyHtmlSignature renders safe HTML body and selected signature", () => {
     signed,
     /data-witnessops-signature-profile="founder_default"/,
   );
+  assert.match(signed, /<table data-witnessops-signature-profile="founder_default"/);
+  assert.match(signed, /role="presentation"/);
+  assert.match(signed, /background:#0f766e/);
+  assert.match(signed, /border-top:1px solid #d7dde8/);
   assert.match(signed, /Agents act\. WitnessOps proves\./);
   assert.match(signed, /href="mailto:ks@witnessops.com"/);
   assert.equal(applyHtmlSignature("Hello\n", "none"), textToEmailHtml("Hello\n"));
