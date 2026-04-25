@@ -42,7 +42,7 @@ const nextSteps = [
 ];
 
 const sampleBundleHref =
-  "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run";
+  "/review/sample-cases/ai-agent-action-proof-run";
 
 export default function ReviewRequestPage() {
   const mailboxes = getMailboxConfig();
@@ -123,14 +123,12 @@ export default function ReviewRequestPage() {
               complete AI governance coverage.
             </p>
             <p className="mt-3 text-sm leading-relaxed">
-              <a
+              <Link
                 href={sampleBundleHref}
                 className="text-brand-accent underline-offset-4 hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
               >
-                Open witnessops-sample-cases / ai-agent-action-proof-run
-              </a>
+                Open the AI Agent Action Proof Run sample
+              </Link>
             </p>
           </div>
 

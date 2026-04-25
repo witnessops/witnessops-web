@@ -303,6 +303,12 @@
       "namedRegex": "^/review/sample\\-cases(?:/)?$"
     },
     {
+      "page": "/review/sample-cases/ai-agent-action-proof-run",
+      "regex": "^/review/sample\\-cases/ai\\-agent\\-action\\-proof\\-run(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/ai\\-agent\\-action\\-proof\\-run(?:/)?$"
+    },
+    {
       "page": "/review/sample-cases/approval-gated-containment",
       "regex": "^/review/sample\\-cases/approval\\-gated\\-containment(?:/)?$",
       "routeKeys": {},

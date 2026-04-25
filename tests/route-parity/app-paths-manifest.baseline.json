@@ -53,6 +53,7 @@
   "/review/sample-report/page": "app/review/sample-report/page.js",
   "/review/sample-cases/page": "app/review/sample-cases/page.js",
   "/review/sample-cases/privileged-access-grant/page": "app/review/sample-cases/privileged-access-grant/page.js",
+  "/review/sample-cases/ai-agent-action-proof-run/page": "app/review/sample-cases/ai-agent-action-proof-run/page.js",
   "/signals/page": "app/signals/page.js",
   "/verify/page": "app/verify/page.js",
   "/why-witnessops/page": "app/why-witnessops/page.js",

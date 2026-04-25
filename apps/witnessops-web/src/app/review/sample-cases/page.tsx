@@ -43,8 +43,8 @@ const surfaceLegend = [
     title: "AI Agent Action Proof Run sample bundle",
     description:
       "A public standalone bundle showing the authority map, action boundary, evidence manifest, receipt, verifier result, and challenge path for one agent-assisted workflow.",
-    href: "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run",
-    label: "Open sample bundle",
+    href: "/review/sample-cases/ai-agent-action-proof-run",
+    label: "Open sample proof run",
   },
   {
     title: "Explanatory sample cases",
@@ -63,6 +63,17 @@ const surfaceLegend = [
 ];
 
 const sampleCases = [
+  {
+    title: "AI Agent Action Proof Run",
+    href: "/review/sample-cases/ai-agent-action-proof-run",
+    description:
+      "A buyer-facing sample proof run for one agent-assisted code or configuration change, exposing the authority map, action boundary, evidence manifest, signed receipt, verifier result, challenge path, and manifest digest.",
+    signals: [
+      "human approval boundary",
+      "agent/tool action path",
+      "receipt and verifier result",
+    ],
+  },
   {
     title: "Privileged access grant review",
     href: "/review/sample-cases/privileged-access-grant",
@@ -130,41 +141,21 @@ export default function SampleCasesIndexPage() {
             </h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               {surfaceLegend.map((item) => (
-                item.href.startsWith("http") ? (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className="block rounded-xl border border-surface-border bg-surface-bg p-4 transition-colors hover:bg-surface-card/60"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <h3 className="text-sm font-semibold text-text-primary">
-                      {item.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-7 text-text-secondary">
-                      {item.description}
-                    </p>
-                    <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent">
-                      {item.label}
-                    </p>
-                  </a>
-                ) : (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="block rounded-xl border border-surface-border bg-surface-bg p-4 transition-colors hover:bg-surface-card/60"
-                  >
-                    <h3 className="text-sm font-semibold text-text-primary">
-                      {item.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-7 text-text-secondary">
-                      {item.description}
-                    </p>
-                    <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent">
-                      {item.label}
-                    </p>
-                  </Link>
-                )
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="block rounded-xl border border-surface-border bg-surface-bg p-4 transition-colors hover:bg-surface-card/60"
+                >
+                  <h3 className="text-sm font-semibold text-text-primary">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-7 text-text-secondary">
+                    {item.description}
+                  </p>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent">
+                    {item.label}
+                  </p>
+                </Link>
               ))}
             </div>
           </section>

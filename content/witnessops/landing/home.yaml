@@ -48,6 +48,11 @@ hero:
   eyebrow: "AI Agent Action Proof Run"
   title: "Agents act. WitnessOps proves."
   body: "Signed, portable proof bundles for consequential AI-agent actions. WitnessOps turns one agent-assisted workflow into a bounded proof run a buyer, auditor, security team, or operator can inspect outside the vendor UI."
+  ai_note:
+    title: "Start with one consequential agent-assisted workflow."
+    body:
+      - "We map the approval boundary, capture the evidence path, produce a signed receipt, and return a verifier result showing what another party can check."
+      - "If the evidence is incomplete, the proof says so."
   supporting_points: []
   primary_cta:
     label: "Request an AI Agent Action Proof Run"
@@ -55,7 +60,7 @@ hero:
     variant: "primary"
   secondary_cta:
     label: "View sample proof run"
-    href: "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run"
+    href: "/review/sample-cases/ai-agent-action-proof-run"
     variant: "secondary"
   proof_badges: []
   media:
@@ -131,7 +136,7 @@ sections:
         href: "/review/request"
         variant: "primary"
       - label: "View sample proof run"
-        href: "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run"
+        href: "/review/sample-cases/ai-agent-action-proof-run"
         variant: "ghost"
 
   - type: "verifiable_items"
@@ -142,19 +147,19 @@ sections:
     items:
       - title: "Receipt integrity"
         body: "Whether the receipt has changed since it was signed."
-        proof_link: "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run"
+        proof_link: "/review/sample-cases/ai-agent-action-proof-run"
         proof_link_label: "Open sample bundle"
       - title: "Evidence binding"
         body: "Whether the receipt points to the expected action boundary and evidence manifest."
-        proof_link: "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run"
+        proof_link: "/review/sample-cases/ai-agent-action-proof-run"
         proof_link_label: "Open sample bundle"
       - title: "Failure state"
         body: "What could not be independently verified and what remains challengeable."
-        proof_link: "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run"
+        proof_link: "/review/sample-cases/ai-agent-action-proof-run"
         proof_link_label: "Open sample bundle"
     ctas:
       - label: "View sample proof run"
-        href: "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run"
+        href: "/review/sample-cases/ai-agent-action-proof-run"
         variant: "primary"
       - label: "Read the verification contract"
         href: "/docs/how-it-works/verification"
@@ -186,7 +191,7 @@ final_cta:
       href: "/review/request"
       variant: "primary"
     - label: "View sample proof run"
-      href: "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run"
+      href: "/review/sample-cases/ai-agent-action-proof-run"
       variant: "ghost"
 
 footer:
