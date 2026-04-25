@@ -158,7 +158,7 @@ export default function SampleReportPage() {
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
               <CtaButton href="/review/sample-cases" variant="secondary" label="Browse named sample cases" />
-              <CtaButton href="/review/request" variant="primary" label="Request a Review" />
+              <CtaButton href="/review/request" variant="primary" label="Request Proof Run" />
             </div>
           </section>
 

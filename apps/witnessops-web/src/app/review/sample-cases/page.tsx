@@ -54,7 +54,7 @@ const supportSurfaces = [
     description:
       "The intake path for one real agent-assisted workflow you want scoped into a proof run.",
     href: "/review/request",
-    label: "Request proof run",
+    label: "Request an AI Agent Action Proof Run",
   },
 ];
 
@@ -123,12 +123,12 @@ export default function SampleCasesIndexPage() {
                   <CtaButton
                     href="/review/sample-cases/ai-agent-action-proof-run"
                     variant="primary"
-                    label="Open sample proof run"
+                    label="View Sample Proof Run"
                   />
                   <CtaButton
                     href="/review/request"
                     variant="secondary"
-                    label="Request your proof run"
+                    label="Request an AI Agent Action Proof Run"
                   />
                 </div>
               </div>

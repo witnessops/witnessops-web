@@ -51,6 +51,7 @@ const nextSteps = [
 ];
 
 const sampleArtifacts = [
+  "ACTION_BOUNDARY.json",
   "AUTHORITY_MAP.json",
   "EVIDENCE_MANIFEST.json",
   "RECEIPT.json",
@@ -143,7 +144,7 @@ export default function ReviewRequestPage() {
               href={sampleBundleHref}
               className="text-sm text-brand-accent underline-offset-4 hover:underline"
             >
-              View public sample proof run
+              View Sample Proof Run
             </Link>
           </div>
         </section>
