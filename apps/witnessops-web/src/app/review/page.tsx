@@ -2,43 +2,50 @@ import type { Metadata } from "next";
 import { CtaButton } from "@/components/shared/cta-button";
 
 export const metadata: Metadata = {
-  title: "Review",
+  title: "AI Agent Action Proof Run",
   description:
-    "Review one real workflow. WitnessOps returns a bounded report on authority, execution, evidence, and replayability.",
+    "WitnessOps produces signed, portable proof bundles for one consequential AI-agent action path, with a public sample bundle buyers can inspect.",
   alternates: {
     canonical: "/review",
   },
   openGraph: {
-    title: "Review | WitnessOps",
+    title: "AI Agent Action Proof Run | WitnessOps",
     description:
-      "Review one real workflow. WitnessOps returns a bounded report on authority, execution, evidence, and replayability.",
+      "WitnessOps produces signed, portable proof bundles for one consequential AI-agent action path, with a public sample bundle buyers can inspect.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Review | WitnessOps",
+    title: "AI Agent Action Proof Run | WitnessOps",
     description:
-      "Review one real workflow. WitnessOps returns a bounded report on authority, execution, evidence, and replayability.",
+      "WitnessOps produces signed, portable proof bundles for one consequential AI-agent action path, with a public sample bundle buyers can inspect.",
   },
 };
 
 const whatYouGet = [
-  "Authority boundary",
-  "Execution path",
-  "Evidence kept",
-  "Replayability",
-  "Weak points",
-  "Next steps",
+  "Authority map",
+  "Agent action boundary",
+  "Approval gate",
+  "Evidence manifest",
+  "Signed receipt",
+  "Verifier result",
+  "Challenge path",
+  "Failure-state notes",
 ];
 
-const sampleReportBullets = [
-  "What was reviewed",
-  "Who could act",
-  "What path was observed",
-  "What evidence supported the judgment",
-  "What remained unclear or out of scope",
+const proofQuestions = [
+  "who approved the action",
+  "what agent, tool, or workflow ran",
+  "what system it touched",
+  "what evidence was captured",
+  "what result was produced",
+  "what could and could not be independently verified",
+  "how a third party can challenge the proof",
 ];
+
+const sampleBundleHref =
+  "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run";
 
 export default function ReviewPage() {
   return (
@@ -48,17 +55,18 @@ export default function ReviewPage() {
       className="docs-page-enter mx-auto max-w-3xl px-6 py-10 lg:py-14"
     >
       <header className="mb-12 border-b border-surface-border pb-8">
-        <div className="kb-section-tag">Review</div>
+        <div className="kb-section-tag">AI Agent Action Proof Run</div>
         <h1
           className="mt-2 text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-4xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Review one real workflow
+          Agents act. WitnessOps proves.
         </h1>
         <p className="mt-4 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
-          Bring one workflow, one automation boundary, or one operator path.
-          WitnessOps returns a bounded report on authority, execution,
-          evidence, and replayability.
+          Signed, portable proof bundles for consequential AI-agent actions.
+          WitnessOps turns one agent-assisted workflow into a bounded proof run
+          that a buyer, auditor, security team, or operator can inspect outside
+          the vendor UI.
         </p>
         <div className="mt-6 border border-surface-border bg-surface-card/50 p-4">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
@@ -67,41 +75,39 @@ export default function ReviewPage() {
           <ul className="mt-3 space-y-2 text-sm leading-relaxed text-text-muted">
             <li>
               <span className="font-semibold text-text-primary">Good fit:</span>{" "}
-              one real path with approvals, execution records, and evidence.
+              one consequential agent-assisted workflow touching code, support,
+              finance, access, or regulated operations.
             </li>
             <li>
-              <span className="font-semibold text-text-primary">Submit:</span>{" "}
-              one workflow, one automation boundary, or one operator handoff.
+              <span className="font-semibold text-text-primary">Scope:</span>{" "}
+              one workflow, one agent/tool path, one approval boundary, one
+              evidence manifest, one signed receipt, one verifier result, and
+              one challenge path.
             </li>
             <li>
               <span className="font-semibold text-text-primary">Out of scope:</span>{" "}
-              broad audits or whole-environment claims.
+              production deployment, legal compliance, complete AI governance,
+              or whole-environment claims.
             </li>
           </ul>
         </div>
         <div className="mt-8 flex flex-wrap items-start gap-x-8 gap-y-6">
           <div>
-            <CtaButton href="/review/request" variant="primary" label="Request a review" />
+            <CtaButton href="/review/request" variant="primary" label="Request an AI Agent Action Proof Run" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              Submit one path for review.
+              Submit one agent-assisted action path for scoping.
+            </p>
+          </div>
+          <div>
+            <CtaButton href={sampleBundleHref} variant="secondary" label="View sample proof run" />
+            <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
+              Open the public witnessops-sample-cases bundle.
             </p>
           </div>
           <div>
             <CtaButton href="/review/sample-report" variant="secondary" label="View sample report" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              See the report shape first.
-            </p>
-          </div>
-          <div>
-            <CtaButton href="/review/sample-cases/privileged-access-grant" variant="secondary" label="Access grant case" />
-            <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              See a published access grant case.
-            </p>
-          </div>
-          <div>
-            <CtaButton href="/review/sample-cases/approval-gated-containment" variant="secondary" label="Containment case" />
-            <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              See a published containment case.
+              See the older review report shape.
             </p>
           </div>
         </div>
@@ -126,16 +132,13 @@ export default function ReviewPage() {
           className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          AI-related workflow review
+          What the proof run answers
         </h2>
-        <div className="space-y-4 text-sm leading-relaxed text-text-muted">
-          <p>
-            Review one AI-related workflow the same way: who approved it, what ran, and what evidence survives.
-          </p>
-          <p>
-            Bounded to one workflow path. Not a blanket AI-system judgment or an AI Act opinion.
-          </p>
-        </div>
+        <ul className="space-y-2 text-sm leading-relaxed text-text-muted">
+          {proofQuestions.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
       </section>
 
       <section className="mb-10 border-b border-surface-border pb-8">
@@ -146,30 +149,35 @@ export default function ReviewPage() {
           Boundary note
         </h2>
         <p className="text-sm leading-relaxed text-text-muted">
-          One bounded path only. Outside the reviewed workflow, access, and evidence, no claim is made.
+          The public sample proves the receipt shape and verifier path only. It
+          does not claim production deployment, legal compliance, or complete AI
+          governance coverage.
         </p>
       </section>
 
       <section
-        id="sample-report"
+        id="sample-bundle"
         className="mb-10 scroll-mt-24 border-b border-surface-border pb-8"
       >
-        <div className="kb-section-tag">Sample report</div>
+        <div className="kb-section-tag">Sample bundle</div>
         <h2
           className="mt-2 text-2xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-3xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          See what the report looks like
+          Inspect the public proof-run shape
         </h2>
         <p className="mt-4 max-w-[680px] text-sm leading-relaxed text-text-muted">
-          Open a sample dossier and inspect the review shape: boundary, authority,
-          execution path, evidence, and replayability.
+          The merged sample bundle shows the buyer-facing artifact set for an
+          AI agent proposing and performing a bounded code or configuration
+          change after human approval.
         </p>
-        <ul className="mt-6 space-y-2 text-sm leading-relaxed text-text-muted">
-          {sampleReportBullets.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
+        <div className="mt-6">
+          <CtaButton
+            href={sampleBundleHref}
+            variant="secondary"
+            label="Open witnessops-sample-cases / ai-agent-action-proof-run"
+          />
+        </div>
       </section>
     </main>
   );

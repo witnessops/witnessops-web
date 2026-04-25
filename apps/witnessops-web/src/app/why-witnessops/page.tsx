@@ -52,9 +52,9 @@ export default function WhyWitnessOpsPage() {
           </p>
           <p>That is why the public path stays focused on a few clear actions:</p>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Review one real workflow.</li>
+            <li>Run one AI Agent Action Proof Run.</li>
             <li>See who could approve or act.</li>
-            <li>Inspect verifier fixtures, explanatory sample cases, and the illustrative sample report.</li>
+            <li>Inspect the public AI-agent sample bundle, verifier fixtures, explanatory sample cases, and the illustrative sample report.</li>
             <li>Read the trust limits in plain language.</li>
           </ul>
           <p>
@@ -66,10 +66,10 @@ export default function WhyWitnessOpsPage() {
 
         <div className="mt-10 border-t border-surface-border pt-8">
           <p className="mb-4 text-sm leading-relaxed text-text-muted">
-            Keep going with Review or inspect a verifier fixture first.
+            Keep going with the proof-run offer or inspect a verifier fixture first.
           </p>
           <div className="flex flex-wrap gap-3">
-            <CtaButton href="/review" variant="primary" label="Review one workflow" />
+            <CtaButton href="/review" variant="primary" label="Read the proof-run offer" />
             <CtaButton href="/verify" variant="secondary" label="Verify a sample receipt" />
           </div>
         </div>
@@ -80,10 +80,14 @@ export default function WhyWitnessOpsPage() {
             For consequential AI workflows
           </h2>
           <p>
-            Prove who approved it, what ran, and what evidence survives outside the source system.
+            Agents act. WitnessOps proves who approved the action, what ran,
+            what evidence survives, and how a third party can challenge the
+            proof outside the source system.
           </p>
           <p>
-            WitnessOps helps make one bounded AI-related workflow more reviewable. It does not replace an AI governance or AI Act program.
+            WitnessOps helps make one bounded AI-agent action more reviewable.
+            It does not replace production deployment, legal compliance, or a
+            complete AI governance program.
           </p>
           <ul className="list-disc space-y-2 pl-6">
             <li>record who approved the workflow</li>

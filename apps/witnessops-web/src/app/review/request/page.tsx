@@ -4,40 +4,45 @@ import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { getMailboxConfig } from "@/lib/mailboxes";
 
 export const metadata: Metadata = {
-  title: "Request a Review",
+  title: "Request an AI Agent Action Proof Run",
   description:
-    "Bring one workflow or operator path. This page sends a bounded review request for email follow-up.",
+    "Submit one consequential AI-agent action path for a bounded WitnessOps proof run.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
-    title: "Request a Review | WitnessOps",
+    title: "Request an AI Agent Action Proof Run | WitnessOps",
     description:
-      "Bring one workflow or operator path. This page sends a bounded review request for email follow-up.",
+      "Submit one consequential AI-agent action path for a bounded WitnessOps proof run.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Request a Review | WitnessOps",
+    title: "Request an AI Agent Action Proof Run | WitnessOps",
     description:
-      "Bring one workflow or operator path. This page sends a bounded review request for email follow-up.",
+      "Submit one consequential AI-agent action path for a bounded WitnessOps proof run.",
   },
 };
 
 const reviewBullets = [
-  "Who can approve or act",
-  "What runs and in what order",
-  "What evidence exists",
-  "What can be replayed later",
-  "What looks weak",
-  "What to do next",
+  "Authority map",
+  "Agent action boundary",
+  "Approval gate",
+  "Evidence manifest",
+  "Signed receipt",
+  "Verifier result",
+  "Challenge path",
+  "Failure-state notes",
 ];
 
 const nextSteps = [
-  "We check that it fits one bounded path",
-  "We reply by email with scope and gaps",
+  "We check that it fits one bounded agent-action path",
+  "We reply by email with scope, evidence gaps, and the proof-run boundary",
 ];
+
+const sampleBundleHref =
+  "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run";
 
 export default function ReviewRequestPage() {
   const mailboxes = getMailboxConfig();
@@ -51,10 +56,11 @@ export default function ReviewRequestPage() {
               className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Request a review
+              Request an AI Agent Action Proof Run
             </h1>
             <p className="mb-6 max-w-[420px] text-sm leading-relaxed text-text-muted">
-              Bring one workflow or operator path. Review continues by email.
+              Bring one consequential AI-agent action path. Proof-run scoping
+              continues by email.
             </p>
 
             <ul className="border-t border-surface-border">
@@ -95,6 +101,37 @@ export default function ReviewRequestPage() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="mb-6 border border-surface-border bg-surface-bg p-5">
+            <div
+              className="mb-3"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 13,
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              Sample boundary
+            </div>
+            <p className="text-sm leading-relaxed text-text-muted">
+              The public sample proves the receipt shape and verifier path only.
+              It does not claim production deployment, legal compliance, or
+              complete AI governance coverage.
+            </p>
+            <p className="mt-3 text-sm leading-relaxed">
+              <a
+                href={sampleBundleHref}
+                className="text-brand-accent underline-offset-4 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open witnessops-sample-cases / ai-agent-action-proof-run
+              </a>
+            </p>
           </div>
 
           <div className="mb-6 border border-surface-border bg-surface-bg p-5">
