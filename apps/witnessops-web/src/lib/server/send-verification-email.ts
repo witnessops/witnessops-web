@@ -59,15 +59,21 @@ function resolveFromEmail(payload: VerificationEmailPayload): string {
   );
 }
 
+function readEmailSignaturesEnabled(): boolean {
+  const value = process.env.WITNESSOPS_EMAIL_SIGNATURES_ENABLED?.trim().toLowerCase();
+  return value !== "0" && value !== "false" && value !== "no" && value !== "off";
+}
+
 function prepareEmailPayload(payload: VerificationEmailPayload): PreparedEmailPayload {
   const from = resolveFromEmail(payload);
-  const signatureProfile =
-    payload.signatureProfile ??
-    resolveSignatureProfile({
-      from,
-      to: payload.to,
-      messageClass: payload.messageClass,
-    });
+  const signatureProfile = readEmailSignaturesEnabled()
+    ? payload.signatureProfile ??
+      resolveSignatureProfile({
+        from,
+        to: payload.to,
+        messageClass: payload.messageClass,
+      })
+    : "none";
 
   return {
     ...payload,
