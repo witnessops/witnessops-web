@@ -175,7 +175,17 @@ export const VaultMeshHeroSchema = z.object({
 export const TrustBarSchema = z.object({
   enabled: z.boolean(),
   label: NonEmptyString,
-  items: z.array(NonEmptyString).min(1),
+  items: z.array(NonEmptyString),
+}).superRefine((data, ctx) => {
+  if (!data.enabled || data.items.length > 0) {
+    return;
+  }
+
+  ctx.addIssue({
+    code: z.ZodIssueCode.custom,
+    path: ["items"],
+    message: "Enabled trust bar requires at least one item",
+  });
 });
 
 export const FinalCtaSchema = z.object({
@@ -742,11 +752,6 @@ export const WitnessOpsHomeSchema = BaseHomeSchema.extend({
   validateAllowedSectionTypes(
     data.sections,
     WitnessOpsSectionTypeSchema.options,
-    ctx,
-  );
-  validateRequiredSectionPresence(
-    data.sections,
-    REQUIRED_WITNESSOPS_SECTION_ORDER,
     ctx,
   );
   validateSectionOrder(data.sections, REQUIRED_WITNESSOPS_SECTION_ORDER, ctx);
