@@ -5,7 +5,6 @@ import { generateKeyPairSync, randomBytes } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 
-import { getTextSignature } from "./email-signatures";
 import { sendVerificationEmail } from "./send-verification-email";
 
 function generateThrowawayCertAndKeyPem(): { certPem: string; keyPem: string } {
@@ -104,11 +103,14 @@ test("sendVerificationEmail sends via Microsoft 365 Graph with app-only auth", a
   };
 
   assert.equal(sendBody.message.subject, "Verify your WitnessOps access");
-  assert.equal(sendBody.message.body.contentType, "Text");
-  assert.equal(
+  assert.equal(sendBody.message.body.contentType, "HTML");
+  assert.match(sendBody.message.body.content, /Token: abc123/);
+  assert.match(
     sendBody.message.body.content,
-    `Token: abc123\n\n${getTextSignature("ops_minimal")}`,
+    /data-witnessops-signature-profile="ops_minimal"/,
   );
+  assert.match(sendBody.message.body.content, /Karol Stefanski/);
+  assert.match(sendBody.message.body.content, /href="mailto:ks@witnessops.com"/);
   assert.deepEqual(sendBody.message.internetMessageHeaders, [
     {
       name: "X-WitnessOps-Message-Class",

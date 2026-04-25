@@ -2,7 +2,11 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash, randomUUID, sign } from "node:crypto";
 import { getMailboxConfig } from "../mailboxes";
-import { applyTextSignature, type EmailSignatureProfile } from "./email-signatures";
+import {
+  applyHtmlSignature,
+  applyTextSignature,
+  type EmailSignatureProfile,
+} from "./email-signatures";
 import {
   resolveSignatureProfile,
   type EmailMessageClass,
@@ -30,6 +34,7 @@ export type TextEmailDeliveryResult = VerificationEmailDeliveryResult;
 
 type PreparedEmailPayload = VerificationEmailPayload & {
   from: string;
+  html: string;
   signatureProfile: EmailSignatureProfile;
 };
 
@@ -67,6 +72,7 @@ function prepareEmailPayload(payload: VerificationEmailPayload): PreparedEmailPa
     ...payload,
     from,
     signatureProfile,
+    html: applyHtmlSignature(payload.text, signatureProfile),
     text: applyTextSignature(payload.text, signatureProfile),
   };
 }
@@ -90,6 +96,7 @@ async function sendWithFileProvider(
 
   const providerMessageId = `msg_${randomUUID().replace(/-/g, "")}`;
   const deliveredAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+  const boundary = `witnessops-${providerMessageId}`;
   const eml = [
     `From: ${payload.from}`,
     `To: ${payload.to}`,
@@ -98,9 +105,21 @@ async function sendWithFileProvider(
     `Message-ID: <${providerMessageId}@witnessops.local>`,
     ...policyHeaders(payload),
     "MIME-Version: 1.0",
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    "",
+    `--${boundary}`,
     'Content-Type: text/plain; charset="utf-8"',
+    "Content-Transfer-Encoding: 8bit",
     "",
     payload.text,
+    "",
+    `--${boundary}`,
+    'Content-Type: text/html; charset="utf-8"',
+    "Content-Transfer-Encoding: 8bit",
+    "",
+    payload.html,
+    "",
+    `--${boundary}--`,
     "",
   ].join("\n");
 
@@ -133,6 +152,7 @@ async function sendWithResendProvider(
     to: [payload.to],
     subject: payload.subject,
     text: payload.text,
+    html: payload.html,
   };
 
   const tags: Array<{ name: string; value: string }> = [
@@ -358,8 +378,8 @@ async function sendWithM365Provider(
   const message: Record<string, unknown> = {
     subject: payload.subject,
     body: {
-      contentType: "Text",
-      content: payload.text,
+      contentType: "HTML",
+      content: payload.html,
     },
     toRecipients: [
       {
