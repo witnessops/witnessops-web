@@ -46,49 +46,79 @@ const TEXT_SIGNATURES: Record<EmailSignatureProfile, string> = {
 type HtmlSignatureLine = {
   text: string;
   href?: string;
-  strong?: boolean;
 };
 
-const HTML_SIGNATURE_LINES: Record<EmailSignatureProfile, HtmlSignatureLine[]> = {
-  none: [],
-  ops_minimal: [
-    { text: "Karol Stefanski", strong: true },
-    { text: "WitnessOps" },
-    { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
-    { text: "witnessops.com", href: "https://witnessops.com" },
-  ],
-  personal_admin: [
-    { text: "Karol Stefanski", strong: true },
-    { text: "Founder · WitnessOps" },
-    { text: "Dublin, Ireland" },
-    { text: "Email: ks@witnessops.com", href: "mailto:ks@witnessops.com" },
-    { text: "Web: witnessops.com", href: "https://witnessops.com" },
-    { text: "Phone: +353 83 040 1096", href: "tel:+353830401096" },
-  ],
-  founder_default: [
-    { text: "Karol Stefanski", strong: true },
-    { text: "Founder · WitnessOps" },
-    { text: "Agents act. WitnessOps proves.", strong: true },
-    { text: "Proof layer for consequential AI-agent actions." },
-    { text: "Email: ks@witnessops.com", href: "mailto:ks@witnessops.com" },
-    { text: "Web: witnessops.com", href: "https://witnessops.com" },
-    { text: "Phone: +353 83 040 1096", href: "tel:+353830401096" },
-    { text: "Dublin, Ireland" },
-  ],
-  security_buyer: [
-    { text: "Karol Stefanski", strong: true },
-    { text: "Founder · WitnessOps" },
-    {
-      text: "Signed receipts for consequential AI-agent and security workflows.",
-      strong: true,
-    },
-    { text: "Evidence manifests · offline verification · challenge paths" },
-    { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
-    { text: "witnessops.com", href: "https://witnessops.com" },
-    { text: "+353 83 040 1096", href: "tel:+353830401096" },
-    { text: "Dublin, Ireland" },
-  ],
+type HtmlSignatureConfig = {
+  name: string;
+  role: string;
+  brand: string;
+  proofLine?: string;
+  detailLine?: string;
+  contact: HtmlSignatureLine[];
+  location?: string;
+  accentColor: string;
 };
+
+const HTML_SIGNATURES: Record<
+  Exclude<EmailSignatureProfile, "none">,
+  HtmlSignatureConfig
+> = {
+  ops_minimal: {
+    name: "Karol Stefanski",
+    role: "WitnessOps",
+    brand: "WitnessOps",
+    contact: [
+      { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
+      { text: "witnessops.com", href: "https://witnessops.com" },
+    ],
+    accentColor: "#2563eb",
+  },
+  personal_admin: {
+    name: "Karol Stefanski",
+    role: "Founder",
+    brand: "WitnessOps",
+    contact: [
+      { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
+      { text: "witnessops.com", href: "https://witnessops.com" },
+      { text: "+353 83 040 1096", href: "tel:+353830401096" },
+    ],
+    location: "Dublin, Ireland",
+    accentColor: "#64748b",
+  },
+  founder_default: {
+    name: "Karol Stefanski",
+    role: "Founder",
+    brand: "WitnessOps",
+    proofLine: "Agents act. WitnessOps proves.",
+    detailLine: "Proof layer for consequential AI-agent actions.",
+    contact: [
+      { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
+      { text: "witnessops.com", href: "https://witnessops.com" },
+      { text: "+353 83 040 1096", href: "tel:+353830401096" },
+    ],
+    location: "Dublin, Ireland",
+    accentColor: "#0f766e",
+  },
+  security_buyer: {
+    name: "Karol Stefanski",
+    role: "Founder",
+    brand: "WitnessOps",
+    proofLine: "Signed receipts for consequential AI-agent and security workflows.",
+    detailLine: "Evidence manifests · offline verification · challenge paths",
+    contact: [
+      { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
+      { text: "witnessops.com", href: "https://witnessops.com" },
+      { text: "+353 83 040 1096", href: "tel:+353830401096" },
+    ],
+    location: "Dublin, Ireland",
+    accentColor: "#7c3aed",
+  },
+};
+
+const SIGNATURE_FONT_STACK = "Arial, Helvetica, sans-serif";
+const SIGNATURE_TEXT_COLOR = "#111827";
+const SIGNATURE_MUTED_COLOR = "#475569";
+const SIGNATURE_RULE_COLOR = "#d7dde8";
 
 function escapeHtml(value: string): string {
   return value
@@ -117,15 +147,35 @@ function renderInlineText(value: string): string {
   return rendered + escapeHtml(value.slice(lastIndex));
 }
 
-function renderHtmlSignatureLine(line: HtmlSignatureLine): string {
+function renderContactLink(
+  line: HtmlSignatureLine,
+  accentColor: string,
+): string {
   const text = escapeHtml(line.text);
-  const content = line.href
-    ? `<a href="${escapeHtml(line.href)}" style="color:#2563eb;text-decoration:none">${text}</a>`
-    : line.strong
-      ? `<strong>${text}</strong>`
-      : text;
+  if (!line.href) {
+    return `<span style="color:${SIGNATURE_MUTED_COLOR};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px">${text}</span>`;
+  }
 
-  return `<div>${content}</div>`;
+  return `<a href="${escapeHtml(line.href)}" style="color:${accentColor};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;text-decoration:none">${text}</a>`;
+}
+
+function renderContactRow(config: HtmlSignatureConfig): string {
+  const separator = `<span style="color:${SIGNATURE_RULE_COLOR};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px">&nbsp;|&nbsp;</span>`;
+  return config.contact
+    .map((line) => renderContactLink(line, config.accentColor))
+    .join(separator);
+}
+
+function renderOptionalTextCell(value: string | undefined, style: string): string {
+  if (!value) {
+    return "";
+  }
+
+  return [
+    '<tr>',
+    `<td style="${style}">${escapeHtml(value)}</td>`,
+    "</tr>",
+  ].join("");
 }
 
 export function getTextSignature(profile: EmailSignatureProfile): string {
@@ -133,15 +183,49 @@ export function getTextSignature(profile: EmailSignatureProfile): string {
 }
 
 export function getHtmlSignature(profile: EmailSignatureProfile): string {
-  const lines = HTML_SIGNATURE_LINES[profile];
-  if (lines.length === 0) {
+  if (profile === "none") {
     return "";
   }
 
+  const config = HTML_SIGNATURES[profile];
   return [
-    `<div data-witnessops-signature-profile="${profile}" style="margin-top:16px;font-family:Arial,sans-serif;font-size:14px;line-height:1.45;color:#111827">`,
-    ...lines.map(renderHtmlSignatureLine),
-    "</div>",
+    `<table data-witnessops-signature-profile="${profile}" role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:${SIGNATURE_FONT_STACK};color:${SIGNATURE_TEXT_COLOR};width:100%;max-width:560px">`,
+    "<tr>",
+    `<td style="border-top:1px solid ${SIGNATURE_RULE_COLOR};padding-top:14px">`,
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt">',
+    "<tr>",
+    `<td width="5" style="width:5px;background:${config.accentColor};font-size:1px;line-height:1px">&nbsp;</td>`,
+    '<td width="14" style="width:14px;font-size:1px;line-height:1px">&nbsp;</td>',
+    "<td>",
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt">',
+    "<tr>",
+    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:15px;line-height:20px;font-weight:700;color:${SIGNATURE_TEXT_COLOR};padding:0">${escapeHtml(config.name)}</td>`,
+    "</tr>",
+    "<tr>",
+    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_MUTED_COLOR};padding:1px 0 0 0">${escapeHtml(config.role)} <span style="color:${SIGNATURE_RULE_COLOR}">·</span> <span style="color:${SIGNATURE_TEXT_COLOR};font-weight:600">${escapeHtml(config.brand)}</span></td>`,
+    "</tr>",
+    renderOptionalTextCell(
+      config.proofLine,
+      `font-family:${SIGNATURE_FONT_STACK};font-size:13px;line-height:18px;font-weight:700;color:${config.accentColor};padding:8px 0 0 0`,
+    ),
+    renderOptionalTextCell(
+      config.detailLine,
+      `font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_MUTED_COLOR};padding:1px 0 0 0`,
+    ),
+    "<tr>",
+    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_MUTED_COLOR};padding:8px 0 0 0">${renderContactRow(config)}</td>`,
+    "</tr>",
+    renderOptionalTextCell(
+      config.location,
+      `font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_MUTED_COLOR};padding:2px 0 0 0`,
+    ),
+    "</table>",
+    "</td>",
+    "</tr>",
+    "</table>",
+    "</td>",
+    "</tr>",
+    "</table>",
   ].join("");
 }
 
