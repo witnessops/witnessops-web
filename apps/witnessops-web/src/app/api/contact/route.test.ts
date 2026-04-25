@@ -44,8 +44,11 @@ test("contact route sends direct email to engage", async () => {
   );
   assert.match(raw, /^From:\s+engage@witnessops\.com$/m);
   assert.match(raw, /^To:\s+engage@witnessops\.com$/m);
+  assert.match(raw, /^X-WitnessOps-Message-Class:\s+internal_notification$/m);
+  assert.match(raw, /^X-WitnessOps-Signature-Profile:\s+none$/m);
   assert.match(raw, /WitnessOps review request/);
   assert.match(raw, /operator@example\.com/);
+  assert.doesNotMatch(raw, /Karol Stefanski/);
 });
 
 test("contact route returns a failure when delivery fails", async () => {

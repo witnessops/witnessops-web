@@ -8,6 +8,10 @@ import type {
 } from "@/lib/token-contract";
 
 import { appendIntakeEvent, readIntakeEvents } from "./intake-event-ledger";
+import {
+  isSecurityBuyerAddress,
+  type EmailMessageClass,
+} from "./email-signature-policy";
 import { sendMail } from "./send-verification-email";
 import {
   getIntakeById,
@@ -26,6 +30,19 @@ function digestResponseBody(body: string): string {
 
 function generateDeliveryAttemptId(): string {
   return `rsp_${randomUUID().replace(/-/g, "")}`;
+}
+
+function messageClassForIntakeResponse(
+  channel: string,
+  email: string,
+): EmailMessageClass {
+  if (channel === "support") {
+    return "support";
+  }
+
+  return isSecurityBuyerAddress(email)
+    ? "security_buyer_outreach"
+    : "founder_outreach";
 }
 
 async function hasRespondedEvent(intakeId: string): Promise<boolean> {
@@ -128,6 +145,7 @@ export async function respondToIntake(
     subject,
     text: body,
     deliveryAttemptId,
+    messageClass: messageClassForIntakeResponse(intake.channel, intake.email),
   });
 
   const respondedAt = delivery.deliveredAt || nowIso();

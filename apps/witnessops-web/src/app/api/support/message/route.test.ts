@@ -44,8 +44,11 @@ test("support message route sends direct email to support", async () => {
   );
   assert.match(raw, /^From:\s+support@witnessops\.com$/m);
   assert.match(raw, /^To:\s+support@witnessops\.com$/m);
+  assert.match(raw, /^X-WitnessOps-Message-Class:\s+internal_notification$/m);
+  assert.match(raw, /^X-WitnessOps-Signature-Profile:\s+none$/m);
   assert.match(raw, /WitnessOps support request/);
   assert.match(raw, /operator@example\.com/);
+  assert.doesNotMatch(raw, /Karol Stefanski/);
 });
 
 test("support message route returns a failure when delivery fails", async () => {
