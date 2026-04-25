@@ -11,6 +11,7 @@ import {
   getTextSignature,
   textToEmailHtml,
   type EmailSignatureProfile,
+  wrapEmailHtmlDocument,
 } from "./email-signatures";
 import {
   resolveSignatureProfile,
@@ -54,7 +55,7 @@ test("applyTextSignature appends the selected plain-text signature", () => {
 test("applyHtmlSignature renders safe HTML body and selected signature", () => {
   assert.equal(
     textToEmailHtml("Hello <operator>\nVisit https://witnessops.com"),
-    '<p style="margin:0 0 12px 0">Hello &lt;operator&gt;<br>Visit <a href="https://witnessops.com" style="color:#64a8ac;text-decoration:none">https://witnessops.com</a></p>',
+    '<p style="margin:0 0 12px 0">Hello &lt;operator&gt;<br>Visit <a href="https://witnessops.com" style="color:#64a8ac;-webkit-text-fill-color:#64a8ac;text-decoration:none">https://witnessops.com</a></p>',
   );
 
   const signed = applyHtmlSignature("Hello\n", "founder_default");
@@ -68,14 +69,27 @@ test("applyHtmlSignature renders safe HTML body and selected signature", () => {
   assert.match(signed, /background-color:#000000/);
   assert.match(signed, /background-color:#141419/);
   assert.match(signed, /background-color:#f27a3d/);
+  assert.match(signed, /background-image:linear-gradient\(#000000,#000000\)/);
+  assert.match(signed, /background-image:linear-gradient\(#141419,#141419\)/);
+  assert.match(signed, /background-image:linear-gradient\(#f27a3d,#f27a3d\)/);
   assert.match(signed, /color:#faf7f2/);
   assert.match(signed, /color:#d0ccc4/);
   assert.match(signed, /color:#64a8ac/);
+  assert.match(signed, /-webkit-text-fill-color:#faf7f2/);
+  assert.match(signed, /-webkit-text-fill-color:#d0ccc4/);
+  assert.match(signed, /-webkit-text-fill-color:#64a8ac/);
+  assert.match(signed, /color-scheme:dark;supported-color-schemes:dark/);
   assert.match(signed, /border-top:1px solid #4a4a55/);
   assert.match(signed, /border-top:1px solid #2e2e36/);
   assert.match(signed, /Agents act\. WitnessOps proves\./);
   assert.match(signed, /href="mailto:ks@witnessops.com"/);
   assert.equal(applyHtmlSignature("Hello\n", "none"), textToEmailHtml("Hello\n"));
+
+  const wrapped = wrapEmailHtmlDocument(signed);
+  assert.match(wrapped, /^<!doctype html>/);
+  assert.match(wrapped, /<meta name="color-scheme" content="dark">/);
+  assert.match(wrapped, /<meta name="supported-color-schemes" content="dark">/);
+  assert.match(wrapped, /<body bgcolor="#000000"/);
 });
 
 test("resolveSignatureProfile applies explicit class and deterministic routing rules", () => {
