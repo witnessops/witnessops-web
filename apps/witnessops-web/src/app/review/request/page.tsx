@@ -25,20 +25,37 @@ export const metadata: Metadata = {
   },
 };
 
-const reviewBullets = [
-  "Authority map",
-  "Agent action boundary",
-  "Approval gate",
-  "Evidence manifest",
-  "Signed receipt",
-  "Verifier result",
-  "Challenge path",
-  "Failure-state notes",
+const proofOutputs = [
+  {
+    title: "Authority map",
+    summary: "Who approved the action and where authority stopped.",
+  },
+  {
+    title: "Evidence manifest",
+    summary: "What artifacts exist, what they bind to, and what is missing.",
+  },
+  {
+    title: "Signed receipt",
+    summary: "The bound record of approval, action, evidence, result, and limits.",
+  },
+  {
+    title: "Verifier result + challenge path",
+    summary: "What another party can check, fail, or dispute after the run.",
+  },
 ];
 
 const nextSteps = [
-  "We check that it fits one bounded agent-action path",
-  "We reply by email with scope, evidence gaps, and the proof-run boundary",
+  "We check whether the workflow fits one bounded proof run.",
+  "We identify the approval boundary and evidence gaps.",
+  "We reply by email with the proof-run scope and next action.",
+];
+
+const sampleArtifacts = [
+  "AUTHORITY_MAP.json",
+  "EVIDENCE_MANIFEST.json",
+  "RECEIPT.json",
+  "VERIFY_RESULT.json",
+  "CHALLENGE_PATH.md",
 ];
 
 const sampleBundleHref =
@@ -48,38 +65,91 @@ export default function ReviewRequestPage() {
   const mailboxes = getMailboxConfig();
 
   return (
-    <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1100px] px-6 py-20">
-      <div className="grid gap-0 border border-surface-border md:grid-cols-2">
-        <div className="border-r border-surface-border p-10 md:p-12">
-          <div>
+    <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1180px] px-6 py-20">
+      <div className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr]">
+        <section className="border border-surface-border p-8 md:p-10">
+          <div className="mb-8">
             <h1
-              className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary"
+              className="mb-5 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Request an AI Agent Action Proof Run
             </h1>
-            <p className="mb-6 max-w-[420px] text-sm leading-relaxed text-text-muted">
-              Bring one consequential AI-agent action path. Proof-run scoping
-              continues by email.
+            <p className="max-w-[560px] text-base leading-relaxed text-text-muted">
+              Bring one agent-assisted workflow where later scrutiny matters.
+              We map the approval boundary, evidence path, receipt shape,
+              verifier result, and challenge path.
             </p>
+          </div>
 
-            <ul className="border-t border-surface-border">
-              {reviewBullets.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-center gap-3 border-b border-surface-border py-3"
-                  style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-text-secondary)" }}
-                >
-                  <span style={{ color: "var(--color-signal-green)", fontSize: 10 }}>&#10003;</span>
-                  {item}
+          <div className="mb-8 border-t border-surface-border pt-6">
+            <div
+              className="mb-4"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 13,
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              What you get back
+            </div>
+            <div className="space-y-4">
+              {proofOutputs.map((item, index) => (
+                <div key={item.title} className="grid gap-2 border-b border-surface-border pb-4 sm:grid-cols-[48px_1fr]">
+                  <div
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 11,
+                      color: "var(--color-brand-muted)",
+                    }}
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-text-primary">{item.title}</div>
+                    <p className="mt-1 text-sm leading-relaxed text-text-muted">{item.summary}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="border border-surface-border bg-surface-bg-alt p-5">
+            <div
+              className="mb-3"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              Sample proof bundle
+            </div>
+            <ul className="mb-4 grid gap-2 text-xs leading-relaxed text-text-muted sm:grid-cols-2" style={{ fontFamily: "var(--font-mono)" }}>
+              {sampleArtifacts.map((artifact) => (
+                <li key={artifact} className="flex items-center gap-2">
+                  <span style={{ color: "var(--color-signal-green)", fontSize: 9 }}>&#10003;</span>
+                  <span>{artifact}</span>
                 </li>
               ))}
             </ul>
+            <Link
+              href={sampleBundleHref}
+              className="text-sm text-brand-accent underline-offset-4 hover:underline"
+            >
+              View public sample proof run
+            </Link>
           </div>
-        </div>
+        </section>
 
-        <div className="p-10 md:p-12" style={{ background: "var(--color-surface-bg-alt)" }}>
-          <div className="mb-6 border border-surface-border bg-surface-bg p-5">
+        <section className="border border-surface-border p-8 md:p-10" style={{ background: "var(--color-surface-bg-alt)" }}>
+          <div className="mb-8 border border-surface-border bg-surface-bg p-5">
             <div
               className="mb-3"
               style={{
@@ -93,75 +163,70 @@ export default function ReviewRequestPage() {
             >
               What happens next
             </div>
-            <ul className="space-y-2 text-sm leading-relaxed text-text-muted">
-              {nextSteps.map((item) => (
-                <li key={item} className="flex gap-3">
-                  <span style={{ color: "var(--color-brand-accent)" }}>•</span>
+            <ol className="space-y-3 text-sm leading-relaxed text-text-muted">
+              {nextSteps.map((item, index) => (
+                <li key={item} className="grid grid-cols-[28px_1fr] gap-3">
+                  <span style={{ fontFamily: "var(--font-mono)", color: "var(--color-brand-accent)" }}>
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                   <span>{item}</span>
                 </li>
               ))}
-            </ul>
-          </div>
-
-          <div className="mb-6 border border-surface-border bg-surface-bg p-5">
-            <div
-              className="mb-3"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--color-text-muted)",
-              }}
-            >
-              Sample boundary
-            </div>
-            <p className="text-sm leading-relaxed text-text-muted">
-              The public sample proves the receipt shape and verifier path only.
-              It does not claim production deployment, legal compliance, or
-              complete AI governance coverage.
-            </p>
-            <p className="mt-3 text-sm leading-relaxed">
-              <Link
-                href={sampleBundleHref}
-                className="text-brand-accent underline-offset-4 hover:underline"
-              >
-                Open the AI Agent Action Proof Run sample
-              </Link>
-            </p>
-          </div>
-
-          <div className="mb-6 border border-surface-border bg-surface-bg p-5">
-            <div
-              className="mb-3"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--color-text-muted)",
-              }}
-            >
-              Other lanes
-            </div>
-            <div className="space-y-3 text-sm leading-relaxed text-text-muted">
-              <p>
-                Product help, access issues, and verifier questions: <Link href="/support" className="text-brand-accent underline-offset-4 hover:underline">Support</Link>.
-              </p>
-              <p>
-                Responsible disclosure: <Link href="/security" className="text-brand-accent underline-offset-4 hover:underline">Security</Link>.
-              </p>
-            </div>
+            </ol>
           </div>
 
           <ContactForm contactEmail={mailboxes.engage} />
 
-          <p className="mt-6 text-xs leading-relaxed text-text-muted" style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}>
-            Email follow-up only. Do not paste secrets.
-          </p>
-        </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <div className="border border-surface-border bg-surface-bg p-5">
+              <div
+                className="mb-3"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "var(--color-text-muted)",
+                }}
+              >
+                Before you submit
+              </div>
+              <p className="text-sm leading-relaxed text-text-muted">
+                Describe the workflow and evidence path only. Do not paste
+                secrets, private keys, credentials, customer records, or MFA
+                codes.
+              </p>
+            </div>
+
+            <div className="border border-surface-border bg-surface-bg p-5">
+              <div
+                className="mb-3"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "var(--color-text-muted)",
+                }}
+              >
+                Sample boundary
+              </div>
+              <p className="text-sm leading-relaxed text-text-muted">
+                The public sample proves receipt shape and verifier path only.
+                It is not a production deployment, legal compliance claim, or
+                complete AI governance program.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 text-sm leading-relaxed text-text-muted">
+            Product help, access issues, and verifier questions: <Link href="/support" className="text-brand-accent underline-offset-4 hover:underline">Support</Link>.
+            <span className="mx-2 text-surface-border">/</span>
+            Responsible disclosure: <Link href="/security" className="text-brand-accent underline-offset-4 hover:underline">Security</Link>.
+          </div>
+        </section>
       </div>
     </main>
   );
