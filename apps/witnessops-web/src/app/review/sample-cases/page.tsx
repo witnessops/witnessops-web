@@ -5,22 +5,22 @@ import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
 
 export const metadata: Metadata = {
-  title: "Named Sample Cases",
+  title: "Named Sample Cases and Proof Bundles",
   description:
-    "Browse published named sample cases that show how WitnessOps reviews bounded workflow classes. These are explanatory sample cases, not live customer artifacts.",
+    "Browse published named sample cases and the public AI Agent Action Proof Run sample bundle.",
   alternates: getCanonicalAlternates("witnessops", "/review/sample-cases"),
   openGraph: {
-    title: "Named Sample Cases | WitnessOps",
+    title: "Named Sample Cases and Proof Bundles | WitnessOps",
     description:
-      "Browse published named sample cases that show how WitnessOps reviews bounded workflow classes. These are explanatory sample cases, not live customer artifacts.",
+      "Browse published named sample cases and the public AI Agent Action Proof Run sample bundle.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Named Sample Cases | WitnessOps",
+    title: "Named Sample Cases and Proof Bundles | WitnessOps",
     description:
-      "Browse published named sample cases that show how WitnessOps reviews bounded workflow classes. These are explanatory sample cases, not live customer artifacts.",
+      "Browse published named sample cases and the public AI Agent Action Proof Run sample bundle.",
   },
 };
 
@@ -38,6 +38,13 @@ const surfaceLegend = [
       "One illustrative dossier showing report structure and judgment style without claiming a live customer proof path.",
     href: "/review/sample-report",
     label: "Open sample report",
+  },
+  {
+    title: "AI Agent Action Proof Run sample bundle",
+    description:
+      "A public standalone bundle showing the authority map, action boundary, evidence manifest, receipt, verifier result, and challenge path for one agent-assisted workflow.",
+    href: "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run",
+    label: "Open sample bundle",
   },
   {
     title: "Explanatory sample cases",
@@ -90,16 +97,17 @@ export default function SampleCasesIndexPage() {
               Sample cases
             </p>
             <h1 className="text-4xl font-bold tracking-tight text-text-primary">
-              Published named sample cases
+              Published sample cases and proof bundles
             </h1>
             <p className="text-base leading-8 text-text-secondary">
-              These pages show how WitnessOps reviews specific workflow classes.
-              They are explanatory sample cases with stable routes, not live customer
-              artifacts and not claims of completed verification for your environment.
+              These pages and bundles show how WitnessOps shapes bounded proof
+              around specific workflow classes. They are explanatory sample
+              materials, not live customer artifacts and not claims of completed
+              verification for your environment.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <CtaButton href="/review" variant="primary" label="Back to review" />
-              <CtaButton href="/review/request" variant="secondary" label="Request a Review" />
+              <CtaButton href="/review/request" variant="secondary" label="Request an AI Agent Action Proof Run" />
             </div>
           </section>
 
@@ -111,6 +119,7 @@ export default function SampleCasesIndexPage() {
               <li>Show one bounded workflow class at a time.</li>
               <li>Separate authority, execution, evidence, and replayability.</li>
               <li>Name the integrity gaps and stronger evidence needed to close them.</li>
+              <li>Show the AI-agent sample receipt shape and verifier path without claiming production deployment, legal compliance, or complete AI governance coverage.</li>
               <li>Avoid implying a live customer proof path where none is published.</li>
             </ul>
           </section>
@@ -121,21 +130,41 @@ export default function SampleCasesIndexPage() {
             </h2>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               {surfaceLegend.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="block rounded-xl border border-surface-border bg-surface-bg p-4 transition-colors hover:bg-surface-card/60"
-                >
-                  <h3 className="text-sm font-semibold text-text-primary">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-7 text-text-secondary">
-                    {item.description}
-                  </p>
-                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent">
-                    {item.label}
-                  </p>
-                </Link>
+                item.href.startsWith("http") ? (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className="block rounded-xl border border-surface-border bg-surface-bg p-4 transition-colors hover:bg-surface-card/60"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <h3 className="text-sm font-semibold text-text-primary">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-7 text-text-secondary">
+                      {item.description}
+                    </p>
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent">
+                      {item.label}
+                    </p>
+                  </a>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block rounded-xl border border-surface-border bg-surface-bg p-4 transition-colors hover:bg-surface-card/60"
+                  >
+                    <h3 className="text-sm font-semibold text-text-primary">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-7 text-text-secondary">
+                      {item.description}
+                    </p>
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent">
+                      {item.label}
+                    </p>
+                  </Link>
+                )
               ))}
             </div>
           </section>
