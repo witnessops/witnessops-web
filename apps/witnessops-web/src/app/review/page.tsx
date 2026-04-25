@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { CtaButton } from "@/components/shared/cta-button";
 
 export const metadata: Metadata = {
