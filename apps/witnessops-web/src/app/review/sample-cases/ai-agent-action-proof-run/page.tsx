@@ -38,36 +38,47 @@ const statusChips = [
   { label: "Status", value: "Receipt shape only" },
 ];
 
-const proofRunFacts = [
+const inspectionSteps = [
   {
-    label: "Workflow",
-    value: "AI agent proposes and performs a bounded code or configuration change after human approval.",
+    title: "Read the action boundary",
+    summary: "Confirm the sample is scoped to one workflow, one agent/tool path, and one touched system.",
+    artifact: "ACTION_BOUNDARY.json",
   },
   {
-    label: "Proof question",
-    value:
-      "Can another party inspect who approved the action, what agent/tool path ran, what system it touched, what evidence survived, and what could not be verified?",
+    title: "Check who had authority",
+    summary: "Inspect who may approve, run, review, and challenge the action.",
+    artifact: "AUTHORITY_MAP.json",
   },
   {
-    label: "Buyer path",
-    value:
-      "Use this sample to inspect the artifact set, then request one bounded proof run for your own agent-assisted workflow.",
+    title: "Inspect the evidence manifest",
+    summary: "Review captured artifacts, hashes, sources, and declared evidence gaps.",
+    artifact: "EVIDENCE_MANIFEST.json",
   },
   {
-    label: "Boundary",
-    value:
-      "This sample proves receipt shape and verifier path only. It does not claim production deployment, legal compliance, or complete AI governance coverage.",
+    title: "Read the receipt",
+    summary: "See how approval, action, evidence, result, and limits are bound into one record.",
+    artifact: "RECEIPT.json",
+  },
+  {
+    title: "Read the verifier result",
+    summary: "See what passed, what failed, and what remained outside the verifier boundary.",
+    artifact: "VERIFY_RESULT.json",
+  },
+  {
+    title: "Follow the challenge path",
+    summary: "Understand how another party can inspect, dispute, or ask for stronger evidence.",
+    artifact: "CHALLENGE_PATH.md",
   },
 ];
 
 const artifactFiles = [
   {
-    name: "AUTHORITY_MAP.json",
-    purpose: "Who can approve, run, review, and challenge the agent-assisted action.",
-  },
-  {
     name: "ACTION_BOUNDARY.json",
     purpose: "The one workflow, one action path, and one system boundary under review.",
+  },
+  {
+    name: "AUTHORITY_MAP.json",
+    purpose: "Who can approve, run, review, and challenge the agent-assisted action.",
   },
   {
     name: "EVIDENCE_MANIFEST.json",
@@ -99,12 +110,6 @@ const proofRunOutputs = [
   "one challenge path",
 ];
 
-const ctaCopy = [
-  "Start with one consequential agent-assisted workflow.",
-  "We map the approval boundary, capture the evidence path, produce a signed receipt, and return a verifier result showing what another party can check.",
-  "If the evidence is incomplete, the proof says so.",
-];
-
 function artifactHref(name: string) {
   return `${sampleBlobBaseUrl}/${name}`;
 }
@@ -114,7 +119,7 @@ export default function AiAgentActionProofRunSamplePage() {
     <main id="main-content" tabIndex={-1}>
       <SectionShell narrow>
         <div className="space-y-8">
-          <section className="space-y-4 border-b border-surface-border pb-8">
+          <section className="space-y-5 border-b border-surface-border pb-8">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
               Sample proof run
             </p>
@@ -122,9 +127,10 @@ export default function AiAgentActionProofRunSamplePage() {
               AI Agent Action Proof Run
             </h1>
             <p className="text-base leading-8 text-text-secondary">
-              A public sample bundle for the offer: Agents act. WitnessOps
-              proves. Inspect the artifact set before requesting a proof run for
-              your own agent-assisted workflow.
+              This sample shows how another party checks a proof bundle after an
+              AI agent acts. Inspect the action boundary, evidence manifest,
+              receipt, verifier result, challenge path, and digest manifest
+              before requesting a proof run for your own workflow.
             </p>
             <div className="flex flex-wrap gap-2 pt-1">
               {statusChips.map((chip) => (
@@ -153,31 +159,74 @@ export default function AiAgentActionProofRunSamplePage() {
 
           <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
-              Conversion path
+              How to inspect this sample
             </h2>
-            <div className="mt-4 space-y-3 text-base leading-8 text-text-secondary">
-              {ctaCopy.map((item) => (
-                <p key={item}>{item}</p>
+            <div className="mt-5 grid gap-4">
+              {inspectionSteps.map((step, index) => (
+                <a
+                  key={step.artifact}
+                  href={artifactHref(step.artifact)}
+                  className="grid gap-3 rounded-xl border border-surface-border bg-surface-bg p-4 transition-colors hover:bg-surface-card/60 sm:grid-cols-[56px_1fr]"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="font-mono text-xs uppercase tracking-[0.16em] text-brand-accent">
+                    {String(index + 1).padStart(2, "0")}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-text-primary">
+                      {step.title}
+                    </div>
+                    <p className="mt-2 text-sm leading-7 text-text-secondary">
+                      {step.summary}
+                    </p>
+                    <p className="mt-3 font-mono text-xs text-text-muted">
+                      {step.artifact}
+                    </p>
+                  </div>
+                </a>
               ))}
             </div>
+            <p className="mt-5 text-sm leading-7 text-text-muted">
+              Finish by comparing the bundle files against <span className="font-mono text-text-primary">MANIFEST.sha256</span>.
+              The manifest is the sample drift check, not a production custody claim.
+            </p>
           </section>
 
-          <section className="grid gap-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6 md:grid-cols-2">
-            {proofRunFacts.map((fact) => (
-              <div key={fact.label}>
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
-                  {fact.label}
-                </div>
-                <p className="mt-2 text-base leading-8 text-text-secondary">
-                  {fact.value}
-                </p>
+          <section className="grid gap-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6 md:grid-cols-3">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+                Workflow
               </div>
-            ))}
+              <p className="mt-2 text-base leading-8 text-text-secondary">
+                AI agent proposes and performs a bounded code or configuration
+                change after human approval.
+              </p>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+                Proof question
+              </div>
+              <p className="mt-2 text-base leading-8 text-text-secondary">
+                Can another party inspect who approved the action, what ran,
+                what system it touched, what evidence survived, and what could
+                not be verified?
+              </p>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+                Buyer path
+              </div>
+              <p className="mt-2 text-base leading-8 text-text-secondary">
+                Use the sample to inspect the proof shape, then submit one
+                bounded agent-assisted workflow for your own proof run.
+              </p>
+            </div>
           </section>
 
           <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
-              What the bundle exposes
+              Artifact set
             </h2>
             <div className="grid gap-3">
               {artifactFiles.map((artifact) => (
@@ -202,26 +251,27 @@ export default function AiAgentActionProofRunSamplePage() {
             </div>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
-              Proof-run shape
-            </h2>
-            <ul className="list-disc space-y-2 pl-6 text-base leading-8 text-text-secondary marker:text-brand-accent">
-              {proofRunOutputs.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
-              Boundary
-            </h2>
-            <p className="mt-4 text-base leading-8 text-text-secondary">
-              This sample proves the receipt shape and verifier path only. It
-              does not claim production deployment, legal compliance, or
-              complete AI governance coverage.
-            </p>
+          <section className="grid gap-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6 md:grid-cols-[0.7fr_1.3fr]">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
+                Proof-run shape
+              </h2>
+              <ul className="mt-4 list-disc space-y-2 pl-6 text-base leading-8 text-text-secondary marker:text-brand-accent">
+                {proofRunOutputs.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
+                Boundary
+              </h2>
+              <p className="mt-4 text-base leading-8 text-text-secondary">
+                This sample proves the receipt shape and verifier path only. It
+                does not claim production deployment, legal compliance, or
+                complete AI governance coverage.
+              </p>
+            </div>
           </section>
 
           <section className="space-y-4 border-t border-surface-border pt-8">
@@ -229,9 +279,10 @@ export default function AiAgentActionProofRunSamplePage() {
               Ready to test your own workflow?
             </h2>
             <p className="text-base leading-8 text-text-secondary">
-              Bring one consequential agent-assisted workflow. The request page
-              asks for the workflow name, agent/tool involved, system touched,
-              approval boundary, evidence available, buyer email, and urgency.
+              Use the sample to inspect the proof shape before submitting your
+              own workflow. The request page asks for the workflow name,
+              agent/tool involved, system touched, approval boundary, evidence
+              available, buyer email, and urgency.
             </p>
             <div className="flex flex-wrap gap-3">
               <CtaButton
