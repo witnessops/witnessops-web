@@ -140,6 +140,16 @@ const SIGNATURE_MUTED_COLOR = WO_EMAIL_COLORS.textMuted;
 const SIGNATURE_LINK_COLOR = WO_EMAIL_COLORS.trust;
 const SIGNATURE_RULE_COLOR = WO_EMAIL_COLORS.border;
 const SIGNATURE_STRONG_RULE_COLOR = WO_EMAIL_COLORS.borderStrong;
+const SIGNATURE_DARK_COLOR_SCHEME =
+  "color-scheme:dark;supported-color-schemes:dark;forced-color-adjust:none";
+
+function textColorStyle(color: string): string {
+  return `color:${color};-webkit-text-fill-color:${color}`;
+}
+
+function solidBackgroundStyle(color: string): string {
+  return `background-color:${color};background:${color};background-image:linear-gradient(${color},${color})`;
+}
 
 function escapeHtml(value: string): string {
   return value
@@ -161,7 +171,7 @@ function renderInlineText(value: string): string {
     const href = token.includes("@") && !token.startsWith("http")
       ? `mailto:${token}`
       : token;
-    rendered += `<a href="${escapeHtml(href)}" style="color:${SIGNATURE_LINK_COLOR};text-decoration:none">${escapeHtml(token)}</a>`;
+    rendered += `<a href="${escapeHtml(href)}" style="${textColorStyle(SIGNATURE_LINK_COLOR)};text-decoration:none">${escapeHtml(token)}</a>`;
     lastIndex = index + token.length;
   }
 
@@ -173,14 +183,14 @@ function renderContactLink(
 ): string {
   const text = escapeHtml(line.text);
   if (!line.href) {
-    return `<span style="color:${SIGNATURE_MUTED_COLOR};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px">${text}</span>`;
+    return `<span style="${textColorStyle(SIGNATURE_MUTED_COLOR)};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px">${text}</span>`;
   }
 
-  return `<a href="${escapeHtml(line.href)}" style="color:${SIGNATURE_LINK_COLOR};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;text-decoration:none">${text}</a>`;
+  return `<a href="${escapeHtml(line.href)}" style="${textColorStyle(SIGNATURE_LINK_COLOR)};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;text-decoration:none">${text}</a>`;
 }
 
 function renderContactRow(config: HtmlSignatureConfig): string {
-  const separator = `<span style="color:${SIGNATURE_RULE_COLOR};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px">&nbsp;|&nbsp;</span>`;
+  const separator = `<span style="${textColorStyle(SIGNATURE_RULE_COLOR)};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px">&nbsp;|&nbsp;</span>`;
   return config.contact
     .map((line) => renderContactLink(line))
     .join(separator);
@@ -210,31 +220,31 @@ export function getHtmlSignature(profile: EmailSignatureProfile): string {
   const config = HTML_SIGNATURES[profile];
   const proofColor = config.proofColor ?? WO_EMAIL_COLORS.accent;
   return [
-    `<table data-witnessops-signature-profile="${profile}" role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:${SIGNATURE_FONT_STACK};color:${SIGNATURE_TEXT_COLOR};background-color:${WO_EMAIL_COLORS.bg};width:100%;max-width:560px">`,
+    `<table data-witnessops-signature-profile="${profile}" role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="${WO_EMAIL_COLORS.bg}" style="margin-top:20px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:${SIGNATURE_FONT_STACK};${textColorStyle(SIGNATURE_TEXT_COLOR)};${solidBackgroundStyle(WO_EMAIL_COLORS.bg)};${SIGNATURE_DARK_COLOR_SCHEME};width:100%;max-width:560px">`,
     "<tr>",
-    `<td width="5" bgcolor="${config.accentColor}" style="width:5px;background-color:${config.accentColor};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-left:1px solid ${SIGNATURE_STRONG_RULE_COLOR};font-size:1px;line-height:1px">&nbsp;</td>`,
-    `<td bgcolor="${WO_EMAIL_COLORS.surface}" style="background-color:${WO_EMAIL_COLORS.surface};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-right:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};padding:13px 15px 14px 14px">`,
-    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt">',
+    `<td width="5" bgcolor="${config.accentColor}" style="width:5px;${solidBackgroundStyle(config.accentColor)};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-left:1px solid ${SIGNATURE_STRONG_RULE_COLOR};font-size:1px;line-height:1px">&nbsp;</td>`,
+    `<td bgcolor="${WO_EMAIL_COLORS.surface}" style="${solidBackgroundStyle(WO_EMAIL_COLORS.surface)};${SIGNATURE_DARK_COLOR_SCHEME};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-right:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};padding:13px 15px 14px 14px">`,
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="${WO_EMAIL_COLORS.surface}" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;${solidBackgroundStyle(WO_EMAIL_COLORS.surface)};${SIGNATURE_DARK_COLOR_SCHEME}">`,
     "<tr>",
-    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:15px;line-height:20px;font-weight:700;color:${SIGNATURE_TEXT_COLOR};padding:0">${escapeHtml(config.name)}</td>`,
+    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:15px;line-height:20px;font-weight:700;${textColorStyle(SIGNATURE_TEXT_COLOR)};padding:0">${escapeHtml(config.name)}</td>`,
     "</tr>",
     "<tr>",
-    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_SECONDARY_COLOR};padding:1px 0 0 0">${escapeHtml(config.role)} <span style="color:${SIGNATURE_RULE_COLOR}">·</span> <span style="color:${SIGNATURE_TEXT_COLOR};font-weight:600">${escapeHtml(config.brand)}</span></td>`,
+    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;${textColorStyle(SIGNATURE_SECONDARY_COLOR)};padding:1px 0 0 0">${escapeHtml(config.role)} <span style="${textColorStyle(SIGNATURE_RULE_COLOR)}">·</span> <span style="${textColorStyle(SIGNATURE_TEXT_COLOR)};font-weight:600">${escapeHtml(config.brand)}</span></td>`,
     "</tr>",
     renderOptionalTextCell(
       config.proofLine,
-      `font-family:${SIGNATURE_FONT_STACK};font-size:13px;line-height:18px;font-weight:700;color:${proofColor};padding:9px 0 0 0`,
+      `font-family:${SIGNATURE_FONT_STACK};font-size:13px;line-height:18px;font-weight:700;${textColorStyle(proofColor)};padding:9px 0 0 0`,
     ),
     renderOptionalTextCell(
       config.detailLine,
-      `font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_SECONDARY_COLOR};padding:1px 0 0 0`,
+      `font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;${textColorStyle(SIGNATURE_SECONDARY_COLOR)};padding:1px 0 0 0`,
     ),
     "<tr>",
-    `<td style="border-top:1px solid ${SIGNATURE_RULE_COLOR};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_MUTED_COLOR};padding:8px 0 0 0">${renderContactRow(config)}</td>`,
+    `<td style="border-top:1px solid ${SIGNATURE_RULE_COLOR};font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;${textColorStyle(SIGNATURE_MUTED_COLOR)};padding:8px 0 0 0">${renderContactRow(config)}</td>`,
     "</tr>",
     renderOptionalTextCell(
       config.location,
-      `font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;color:${SIGNATURE_MUTED_COLOR};padding:2px 0 0 0`,
+      `font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;${textColorStyle(SIGNATURE_MUTED_COLOR)};padding:2px 0 0 0`,
     ),
     "</table>",
     "</td>",
@@ -256,6 +266,32 @@ export function textToEmailHtml(text: string): string {
       return `<p style="margin:0 0 12px 0">${lines}</p>`;
     })
     .join("\n");
+}
+
+export function wrapEmailHtmlDocument(content: string): string {
+  const trimmed = content.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  return [
+    "<!doctype html>",
+    '<html lang="en">',
+    "<head>",
+    '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">',
+    '<meta name="color-scheme" content="dark">',
+    '<meta name="supported-color-schemes" content="dark">',
+    "<style>",
+    `:root{color-scheme:dark;supported-color-schemes:dark;}`,
+    `body{margin:0;padding:0;${solidBackgroundStyle(WO_EMAIL_COLORS.bg)};${textColorStyle(SIGNATURE_TEXT_COLOR)};}`,
+    `a{${textColorStyle(SIGNATURE_LINK_COLOR)};}`,
+    "</style>",
+    "</head>",
+    `<body bgcolor="${WO_EMAIL_COLORS.bg}" style="margin:0;padding:0;${solidBackgroundStyle(WO_EMAIL_COLORS.bg)};${textColorStyle(SIGNATURE_TEXT_COLOR)};${SIGNATURE_DARK_COLOR_SCHEME}">`,
+    trimmed,
+    "</body>",
+    "</html>",
+  ].join("");
 }
 
 export function applyTextSignature(

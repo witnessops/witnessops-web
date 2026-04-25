@@ -104,6 +104,15 @@ test("sendVerificationEmail sends via Microsoft 365 Graph with app-only auth", a
 
   assert.equal(sendBody.message.subject, "Verify your WitnessOps access");
   assert.equal(sendBody.message.body.contentType, "HTML");
+  assert.match(sendBody.message.body.content, /^<!doctype html>/);
+  assert.match(
+    sendBody.message.body.content,
+    /<meta name="color-scheme" content="dark">/,
+  );
+  assert.match(
+    sendBody.message.body.content,
+    /background-image:linear-gradient\(#141419,#141419\)/,
+  );
   assert.match(sendBody.message.body.content, /Token: abc123/);
   assert.match(
     sendBody.message.body.content,

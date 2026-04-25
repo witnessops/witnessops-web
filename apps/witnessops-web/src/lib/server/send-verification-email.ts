@@ -6,6 +6,7 @@ import {
   applyHtmlSignature,
   applyTextSignature,
   type EmailSignatureProfile,
+  wrapEmailHtmlDocument,
 } from "./email-signatures";
 import {
   resolveSignatureProfile,
@@ -72,7 +73,7 @@ function prepareEmailPayload(payload: VerificationEmailPayload): PreparedEmailPa
     ...payload,
     from,
     signatureProfile,
-    html: applyHtmlSignature(payload.text, signatureProfile),
+    html: wrapEmailHtmlDocument(applyHtmlSignature(payload.text, signatureProfile)),
     text: applyTextSignature(payload.text, signatureProfile),
   };
 }
