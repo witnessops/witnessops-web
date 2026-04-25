@@ -29,6 +29,7 @@ const envKeys = [
   "WITNESSOPS_MAILBOX_OUTREACH",
   "WITNESSOPS_MAILBOX_SECURITY",
   "WITNESSOPS_RESEND_API_KEY",
+  "WITNESSOPS_EMAIL_SIGNATURES_ENABLED",
   "WITNESSOPS_M365_TENANT_ID",
   "WITNESSOPS_M365_CLIENT_ID",
   "WITNESSOPS_M365_CLIENT_SECRET",
@@ -231,6 +232,38 @@ test("explicit signatureProfile overrides the resolved message class profile", a
   assert.match(raw, /^X-WitnessOps-Message-Class: founder_outreach$/m);
   assert.match(raw, /^X-WitnessOps-Signature-Profile: none$/m);
   assert.doesNotMatch(raw, /Karol Stefanski/);
+});
+
+test("global signature disable forces every provider payload to unsigned", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-signature-disabled-"));
+  process.env.WITNESSOPS_MAIL_PROVIDER = "file";
+  process.env.WITNESSOPS_MAIL_OUTPUT_DIR = path.join(baseDir, "mail-out");
+  process.env.WITNESSOPS_EMAIL_SIGNATURES_ENABLED = "false";
+
+  const result = await sendMail({
+    to: "buyer@example.com",
+    from: "outreach@witnessops.com",
+    subject: "Disabled signatures",
+    text: "No backend signature should be appended.",
+    messageClass: "founder_outreach",
+    signatureProfile: "founder_default",
+  });
+
+  assert.ok(result.providerMessageId);
+  const raw = await readFile(
+    path.join(
+      process.env.WITNESSOPS_MAIL_OUTPUT_DIR!,
+      `${result.providerMessageId}.eml`,
+    ),
+    "utf8",
+  );
+
+  assert.match(raw, /^X-WitnessOps-Message-Class: founder_outreach$/m);
+  assert.match(raw, /^X-WitnessOps-Signature-Profile: none$/m);
+  assert.match(raw, /No backend signature should be appended\./);
+  assert.doesNotMatch(raw, /Karol Stefanski/);
+  assert.doesNotMatch(raw, /data-witnessops-signature-profile=/);
+  assert.doesNotMatch(raw, /Agents act\. WitnessOps proves\./);
 });
 
 test("resend provider sends signed text and signature policy tags", async () => {
