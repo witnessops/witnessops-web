@@ -5,8 +5,11 @@ import os from "node:os";
 import path from "node:path";
 
 import {
+  applyHtmlSignature,
   applyTextSignature,
+  getHtmlSignature,
   getTextSignature,
+  textToEmailHtml,
   type EmailSignatureProfile,
 } from "./email-signatures";
 import {
@@ -46,6 +49,23 @@ test("applyTextSignature appends the selected plain-text signature", () => {
     `Hello\n\n${getTextSignature("ops_minimal")}`,
   );
   assert.equal(applyTextSignature("Hello\n", "none"), "Hello\n");
+});
+
+test("applyHtmlSignature renders safe HTML body and selected signature", () => {
+  assert.equal(
+    textToEmailHtml("Hello <operator>\nVisit https://witnessops.com"),
+    '<p style="margin:0 0 12px 0">Hello &lt;operator&gt;<br>Visit <a href="https://witnessops.com" style="color:#2563eb;text-decoration:none">https://witnessops.com</a></p>',
+  );
+
+  const signed = applyHtmlSignature("Hello\n", "founder_default");
+
+  assert.match(
+    signed,
+    /data-witnessops-signature-profile="founder_default"/,
+  );
+  assert.match(signed, /Agents act\. WitnessOps proves\./);
+  assert.match(signed, /href="mailto:ks@witnessops.com"/);
+  assert.equal(applyHtmlSignature("Hello\n", "none"), textToEmailHtml("Hello\n"));
 });
 
 test("resolveSignatureProfile applies explicit class and deterministic routing rules", () => {
@@ -146,11 +166,15 @@ test("file provider emits signature evidence headers and expected text for every
       raw,
       new RegExp(`^X-WitnessOps-Signature-Profile: ${entry.profile}$`, "m"),
     );
+    assert.match(raw, /^Content-Type: multipart\/alternative;/m);
+    assert.match(raw, /^Content-Type: text\/plain; charset="utf-8"$/m);
+    assert.match(raw, /^Content-Type: text\/html; charset="utf-8"$/m);
     assert.match(raw, new RegExp(`^Body for ${entry.messageClass}$`, "m"));
 
     const signature = getTextSignature(entry.profile);
     if (signature) {
-      assert.match(raw, new RegExp(`\\n\\n${escapeRegExp(signature)}\\n?$`));
+      assert.match(raw, new RegExp(escapeRegExp(signature)));
+      assert.match(raw, new RegExp(escapeRegExp(getHtmlSignature(entry.profile))));
     } else {
       assert.doesNotMatch(raw, /Karol Stefanski/);
     }
@@ -214,9 +238,12 @@ test("resend provider sends signed text and signature policy tags", async () => 
 
   const body = JSON.parse(String(calls[0].init?.body)) as {
     text: string;
+    html: string;
     tags: Array<{ name: string; value: string }>;
   };
   assert.match(body.text, /Signed receipts for consequential AI-agent/);
+  assert.match(body.html, /data-witnessops-signature-profile="security_buyer"/);
+  assert.match(body.html, /Signed receipts for consequential AI-agent/);
   assert.deepEqual(body.tags, [
     {
       name: "witnessops_delivery_attempt_id",
