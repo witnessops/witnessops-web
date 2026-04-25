@@ -45,7 +45,13 @@ const proofQuestions = [
 ];
 
 const sampleBundleHref =
-  "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run";
+  "/review/sample-cases/ai-agent-action-proof-run";
+
+const ctaBridgeCopy = [
+  "Start with one consequential agent-assisted workflow.",
+  "We map the approval boundary, capture the evidence path, produce a signed receipt, and return a verifier result showing what another party can check.",
+  "If the evidence is incomplete, the proof says so.",
+];
 
 export default function ReviewPage() {
   return (
@@ -68,6 +74,13 @@ export default function ReviewPage() {
           that a buyer, auditor, security team, or operator can inspect outside
           the vendor UI.
         </p>
+        <div className="mt-6 border border-surface-border bg-surface-card/50 p-4">
+          <div className="space-y-3 text-sm leading-relaxed text-text-muted">
+            {ctaBridgeCopy.map((item) => (
+              <p key={item}>{item}</p>
+            ))}
+          </div>
+        </div>
         <div className="mt-6 border border-surface-border bg-surface-card/50 p-4">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
             At a glance
@@ -101,7 +114,7 @@ export default function ReviewPage() {
           <div>
             <CtaButton href={sampleBundleHref} variant="secondary" label="View sample proof run" />
             <p className="mt-2 max-w-[280px] text-xs leading-relaxed text-text-muted">
-              Open the public witnessops-sample-cases bundle.
+              Inspect the artifact list before requesting a proof run.
             </p>
           </div>
           <div>
@@ -175,7 +188,7 @@ export default function ReviewPage() {
           <CtaButton
             href={sampleBundleHref}
             variant="secondary"
-            label="Open witnessops-sample-cases / ai-agent-action-proof-run"
+            label="Open AI Agent Action Proof Run sample"
           />
         </div>
       </section>
