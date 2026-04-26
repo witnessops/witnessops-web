@@ -57,6 +57,29 @@ const buyerChecks = [
   },
 ];
 
+const sampleOutcomeRows = [
+  {
+    label: "Action",
+    value:
+      "A sample AI agent performed one bounded code or configuration workflow after human approval.",
+  },
+  {
+    label: "Verifier result",
+    value:
+      "VERIFY_RESULT.json reports pass_with_sample_limitations for the sample receipt shape, manifest checks, and declared evidence boundaries.",
+  },
+  {
+    label: "Limits",
+    value:
+      "This sample does not prove production deployment, legal compliance, source-system truth, production signing-key custody, or complete AI governance.",
+  },
+  {
+    label: "Buyer takeaway",
+    value:
+      "You can inspect how authority, action scope, evidence, receipt, verifier result, challenge path, and manifest fit together before requesting a proof run for your own workflow.",
+  },
+];
+
 const inspectionSteps = [
   {
     title: "Read the action boundary",
@@ -171,7 +194,7 @@ export default function AiAgentActionProofRunSamplePage() {
               <CtaButton
                 href="/review/request"
                 variant="primary"
-                label="Request an AI Agent Action Proof Run"
+                label="Request one proof run"
               />
               <CtaButton
                 href={sampleBaseUrl}
@@ -181,7 +204,7 @@ export default function AiAgentActionProofRunSamplePage() {
               <CtaButton
                 href={buyerWalkthroughHref}
                 variant="secondary"
-                label="Read Buyer Walkthrough"
+                label="Read buyer walkthrough"
               />
             </div>
           </section>
@@ -210,6 +233,47 @@ export default function AiAgentActionProofRunSamplePage() {
             >
               Open BUYER_WALKTHROUGH.md
             </a>
+          </section>
+
+          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+              Sample outcome
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-text-primary">
+              What this sample shows before you open the artifacts
+            </h2>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              {sampleOutcomeRows.map((row) => (
+                <div
+                  key={row.label}
+                  className="rounded-xl border border-surface-border bg-surface-bg p-4"
+                >
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
+                    {row.label}
+                  </div>
+                  <p className="mt-3 text-sm leading-7 text-text-secondary">
+                    {row.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-5 text-sm leading-7 text-text-muted">
+              Read the buyer walkthrough first if you want the plain-English
+              path. Open the artifacts when you want to inspect the bundle
+              directly.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <CtaButton
+                href={buyerWalkthroughHref}
+                variant="secondary"
+                label="Read buyer walkthrough"
+              />
+              <CtaButton
+                href={sampleBaseUrl}
+                variant="secondary"
+                label="View artifacts"
+              />
+            </div>
           </section>
 
           <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
@@ -343,7 +407,7 @@ export default function AiAgentActionProofRunSamplePage() {
               <CtaButton
                 href="/review/request"
                 variant="primary"
-                label="Request an AI Agent Action Proof Run"
+                label="Request one proof run"
               />
               <Link
                 href="/review"

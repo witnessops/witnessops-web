@@ -73,7 +73,7 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
     {
       path: "/review",
       requiredMarkers: ["For"],
-      prohibitedMarkers: ["View sample proof run"],
+      prohibitedMarkers: ["Request an AI Agent Action Proof Run"],
     },
   ];
   const calls: Array<{ input: string; headers?: Record<string, string> }> = [];
@@ -86,7 +86,7 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
       return {
         status: 200,
         async text() {
-          return "For View Sample Proof Run";
+          return "For View sample proof run";
         },
       };
     },
