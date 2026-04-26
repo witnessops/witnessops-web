@@ -19,6 +19,20 @@ Release authority: internal/manual for now
 - Prefer route-parity evidence over interpretation.
 - Do not expose internal-only proof details through operator-facing surfaces.
 
+## Codex Security review
+
+Use [`docs/CODEX_SECURITY_THREAT_MODEL.md`](./docs/CODEX_SECURITY_THREAT_MODEL.md) as the seed context for Codex Security review.
+
+Codex Security may identify findings and propose patches, but it does not authorize merge, deploy, public verification claims, release, or customer-impacting changes.
+
+For security-sensitive changes, preserve these boundaries:
+
+- `/verify` and `/api/verify` accept untrusted receipt input.
+- Invalid, incomplete, ambiguous, or malformed receipt input must not be presented as verified.
+- Receipt parsing, public result rendering, copy, smoke tests, and route parity must not overclaim what the verifier proved.
+- The web surface does not issue, sign, mutate, backfill, or store receipts as part of normal verification.
+- Do not add production secrets, customer data, signing keys, cloud credentials, or private evidence bundles to tests, examples, prompts, or fixtures.
+
 ## Validation
 
 - `pnpm health`
