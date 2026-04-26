@@ -134,6 +134,30 @@ export function ContactForm({
             : ""}
       </div>
 
+      <div className="border border-surface-border bg-surface-bg-alt p-5">
+        <div className="mb-3" style={labelStyle}>
+          Start with non-secret workflow context.
+        </div>
+        <div className="space-y-3 text-sm leading-relaxed text-text-muted">
+          <p>
+            A short description is enough for a first fit check. Name the
+            workflow, the agent or tool involved, the system touched, and what
+            evidence already exists or may be missing.
+          </p>
+          <p>
+            Do not paste secrets, credentials, private keys, customer records,
+            MFA codes, or unrelated production data. Exploratory submissions
+            are acceptable if you are not sure which workflow fits yet.
+          </p>
+          <p>
+            We review whether the workflow can be scoped as one bounded proof
+            run, identify the approval boundary and evidence gaps, then reply by
+            email with fit, scope, and the next action. No proof run starts from
+            the form alone.
+          </p>
+        </div>
+      </div>
+
       <div>
         <label htmlFor="name" className="mb-2 block" style={labelStyle}>Your name</label>
         <input
@@ -158,7 +182,7 @@ export function ContactForm({
       </div>
 
       <div>
-        <label htmlFor="email" className="mb-2 block" style={labelStyle}>Buyer email</label>
+        <label htmlFor="email" className="mb-2 block" style={labelStyle}>Work email</label>
         <input
           id="email" name="email" type="email" required
           aria-invalid={fieldErrors.email ? true : undefined}
@@ -218,7 +242,9 @@ export function ContactForm({
           One workflow. One action path. One receipt. One verifier result. One challenge path.
         </div>
         <p className="mt-2 text-xs leading-relaxed text-text-muted">
-          If the evidence is incomplete, the proof says so.
+          Use plain language. One workflow and known evidence gaps are enough
+          for the first review. If the evidence is incomplete, the proof says
+          so.
         </p>
       </div>
 
@@ -289,8 +315,13 @@ export function ContactForm({
           textTransform: "uppercase",
         }}
       >
-        {status === "sending" ? "Sending..." : "Request Proof Run"}
+        {status === "sending" ? "Sending..." : "Request one proof run"}
       </button>
+
+      <p className="text-xs leading-relaxed text-text-muted">
+        Metadata only is enough for the first review. Keep sensitive records
+        out of this form.
+      </p>
 
       {status === "sent" && (
         <div

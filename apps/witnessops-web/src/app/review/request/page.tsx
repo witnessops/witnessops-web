@@ -4,14 +4,14 @@ import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { getMailboxConfig } from "@/lib/mailboxes";
 
 export const metadata: Metadata = {
-  title: "Request an AI Agent Action Proof Run",
+  title: "Request one proof run",
   description:
     "Submit one consequential AI-agent action path for a bounded WitnessOps proof run.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
-    title: "Request an AI Agent Action Proof Run | WitnessOps",
+    title: "Request one proof run | WitnessOps",
     description:
       "Submit one consequential AI-agent action path for a bounded WitnessOps proof run.",
     siteName: "WitnessOps",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Request an AI Agent Action Proof Run | WitnessOps",
+    title: "Request one proof run | WitnessOps",
     description:
       "Submit one consequential AI-agent action path for a bounded WitnessOps proof run.",
   },
@@ -45,9 +45,9 @@ const proofOutputs = [
 ];
 
 const nextSteps = [
-  "We check whether the workflow fits one bounded proof run.",
+  "We review whether the workflow can be scoped as one bounded proof run.",
   "We identify the approval boundary and evidence gaps.",
-  "We reply by email with the proof-run scope and next action.",
+  "We reply by email with fit, scope, and the next action. No proof run starts from the form alone.",
 ];
 
 const sampleArtifacts = [
@@ -74,7 +74,7 @@ export default function ReviewRequestPage() {
               className="mb-5 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Request an AI Agent Action Proof Run
+              Request one proof run
             </h1>
             <p className="max-w-[560px] text-base leading-relaxed text-text-muted">
               Bring one agent-assisted workflow where later scrutiny matters.
@@ -144,7 +144,7 @@ export default function ReviewRequestPage() {
               href={sampleBundleHref}
               className="text-sm text-brand-accent underline-offset-4 hover:underline"
             >
-              View Sample Proof Run
+              View sample proof run
             </Link>
           </div>
         </section>
