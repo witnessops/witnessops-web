@@ -67,12 +67,13 @@ test("applyHtmlSignature renders safe HTML body and selected signature", () => {
   );
   assert.match(signed, /<table data-witnessops-signature-profile="founder_default"/);
   assert.match(signed, /role="presentation"/);
-  assert.match(signed, /background-color:#000000/);
-  assert.match(signed, /background-color:#141419/);
+  assert.match(signed, /background-color:transparent/);
+  assert.match(signed, /background:transparent/);
   assert.match(signed, /background-color:#f27a3d/);
-  assert.match(signed, /background-image:linear-gradient\(#000000,#000000\)/);
-  assert.match(signed, /background-image:linear-gradient\(#141419,#141419\)/);
+  assert.match(signed, /background-image:none/);
   assert.match(signed, /background-image:linear-gradient\(#f27a3d,#f27a3d\)/);
+  assert.doesNotMatch(signed, /background-color:#000000/);
+  assert.doesNotMatch(signed, /background-color:#141419/);
   assert.match(signed, /color:#faf7f2/);
   assert.match(signed, /color:#d0ccc4/);
   assert.match(signed, /color:#64a8ac/);
@@ -82,7 +83,8 @@ test("applyHtmlSignature renders safe HTML body and selected signature", () => {
   assert.match(signed, /color-scheme:dark;supported-color-schemes:dark/);
   assert.match(signed, /border-top:1px solid #4a4a55/);
   assert.match(signed, /border-top:1px solid #2e2e36/);
-  assert.match(signed, /Agents act\. WitnessOps proves\./);
+  assert.match(signed, /Proof layer for consequential AI-agent actions\./);
+  assert.match(getTextSignature("founder_default"), /Agents act\. WitnessOps proves\./);
   assert.match(signed, /href="mailto:ks@witnessops.com"/);
   assert.equal(applyHtmlSignature("Hello\n", "none"), textToEmailHtml("Hello\n"));
 

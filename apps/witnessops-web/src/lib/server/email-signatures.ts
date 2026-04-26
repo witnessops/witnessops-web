@@ -58,6 +58,7 @@ type HtmlSignatureConfig = {
   location?: string;
   accentColor: string;
   proofColor?: string;
+  transparentSurface?: boolean;
 };
 
 const WO_EMAIL_COLORS = {
@@ -106,8 +107,7 @@ const HTML_SIGNATURES: Record<
     name: "Karol Stefanski",
     role: "Founder",
     brand: "WitnessOps",
-    proofLine: "Agents act. WitnessOps proves.",
-    detailLine: "Proof layer for consequential AI-agent actions.",
+    proofLine: "Proof layer for consequential AI-agent actions.",
     contact: [
       { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
       { text: "witnessops.com", href: "https://witnessops.com" },
@@ -115,6 +115,7 @@ const HTML_SIGNATURES: Record<
     ],
     location: "Dublin, Ireland",
     accentColor: WO_EMAIL_COLORS.accent,
+    transparentSurface: true,
   },
   security_buyer: {
     name: "Karol Stefanski",
@@ -142,6 +143,8 @@ const SIGNATURE_RULE_COLOR = WO_EMAIL_COLORS.border;
 const SIGNATURE_STRONG_RULE_COLOR = WO_EMAIL_COLORS.borderStrong;
 const SIGNATURE_DARK_COLOR_SCHEME =
   "color-scheme:dark;supported-color-schemes:dark;forced-color-adjust:none";
+const SIGNATURE_TRANSPARENT_BACKGROUND =
+  "background-color:transparent;background:transparent;background-image:none";
 
 function textColorStyle(color: string): string {
   return `color:${color};-webkit-text-fill-color:${color}`;
@@ -219,12 +222,25 @@ export function getHtmlSignature(profile: EmailSignatureProfile): string {
 
   const config = HTML_SIGNATURES[profile];
   const proofColor = config.proofColor ?? WO_EMAIL_COLORS.accent;
+  const outerBackground = config.transparentSurface
+    ? SIGNATURE_TRANSPARENT_BACKGROUND
+    : solidBackgroundStyle(WO_EMAIL_COLORS.bg);
+  const surfaceBackground = config.transparentSurface
+    ? SIGNATURE_TRANSPARENT_BACKGROUND
+    : solidBackgroundStyle(WO_EMAIL_COLORS.surface);
+  const outerBgcolor = config.transparentSurface
+    ? ""
+    : ` bgcolor="${WO_EMAIL_COLORS.bg}"`;
+  const surfaceBgcolor = config.transparentSurface
+    ? ""
+    : ` bgcolor="${WO_EMAIL_COLORS.surface}"`;
+
   return [
-    `<table data-witnessops-signature-profile="${profile}" role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="${WO_EMAIL_COLORS.bg}" style="margin-top:20px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:${SIGNATURE_FONT_STACK};${textColorStyle(SIGNATURE_TEXT_COLOR)};${solidBackgroundStyle(WO_EMAIL_COLORS.bg)};${SIGNATURE_DARK_COLOR_SCHEME};width:100%;max-width:560px">`,
+    `<table data-witnessops-signature-profile="${profile}" role="presentation" cellpadding="0" cellspacing="0" border="0"${outerBgcolor} style="margin-top:20px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:${SIGNATURE_FONT_STACK};${textColorStyle(SIGNATURE_TEXT_COLOR)};${outerBackground};${SIGNATURE_DARK_COLOR_SCHEME};width:100%;max-width:560px">`,
     "<tr>",
     `<td width="5" bgcolor="${config.accentColor}" style="width:5px;${solidBackgroundStyle(config.accentColor)};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-left:1px solid ${SIGNATURE_STRONG_RULE_COLOR};font-size:1px;line-height:1px">&nbsp;</td>`,
-    `<td bgcolor="${WO_EMAIL_COLORS.surface}" style="${solidBackgroundStyle(WO_EMAIL_COLORS.surface)};${SIGNATURE_DARK_COLOR_SCHEME};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-right:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};padding:13px 15px 14px 14px">`,
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="${WO_EMAIL_COLORS.surface}" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;${solidBackgroundStyle(WO_EMAIL_COLORS.surface)};${SIGNATURE_DARK_COLOR_SCHEME}">`,
+    `<td${surfaceBgcolor} style="${surfaceBackground};${SIGNATURE_DARK_COLOR_SCHEME};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-right:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};padding:13px 15px 14px 14px">`,
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0"${surfaceBgcolor} style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;${surfaceBackground};${SIGNATURE_DARK_COLOR_SCHEME}">`,
     "<tr>",
     `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:15px;line-height:20px;font-weight:700;${textColorStyle(SIGNATURE_TEXT_COLOR)};padding:0">${escapeHtml(config.name)}</td>`,
     "</tr>",
