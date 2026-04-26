@@ -10,12 +10,12 @@ status:
 
 seo:
   title: "AI Agent Action Proof Run | WitnessOps"
-  description: "WitnessOps gives enterprises signed, portable proof bundles for consequential AI-agent actions, with a public sample bundle buyers can inspect."
+  description: "WitnessOps helps teams produce bounded proof runs for AI-agent actions, with a public sample bundle buyers can inspect."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "Agents act. WitnessOps proves."
-  og_description: "Signed, portable proof bundles for consequential AI-agent actions."
+  og_title: "When an AI agent acts, someone will ask what happened."
+  og_description: "One bounded proof run for approval, action scope, evidence, verifier result, and challenge path."
   twitter_card: "summary_large_image"
 
 theme:
@@ -40,22 +40,23 @@ navbar:
     - label: "Support"
       href: "/support"
   cta:
-    label: "Request Proof Run"
+    label: "Request one proof run"
     href: "/review/request"
     variant: "primary"
 
 hero:
   eyebrow: "AI Agent Action Proof Run"
-  title: "Agents act. WitnessOps proves."
-  body: "Signed, portable proof bundles for consequential AI-agent actions. WitnessOps turns one agent-assisted workflow into a bounded proof run a buyer, auditor, security team, or operator can inspect outside the vendor UI."
+  title: "When an AI agent acts, someone will ask what happened."
+  body: "WitnessOps helps you answer with one bounded proof run: what was approved, what ran, what evidence survived, what the verifier checked, and what remains unproven."
   ai_note:
-    title: "Start with one consequential agent-assisted workflow."
+    title: "What the first run does"
     body:
-      - "We map the approval boundary, capture the evidence path, produce a signed receipt, and return a verifier result showing what another party can check."
-      - "If the evidence is incomplete, the proof says so."
+      - "We map the approval boundary, capture the evidence path, produce a receipt, and return a verifier result plus a challenge path another party can inspect."
+      - "Start with one workflow. Do not submit secrets. If the evidence is incomplete, the proof says so."
+    microcopy: "Not ready to submit a workflow? Inspect the public sample first and see the receipt shape, verifier result, limits, and challenge path."
   supporting_points: []
   primary_cta:
-    label: "Request an AI Agent Action Proof Run"
+    label: "Request one proof run"
     href: "/review/request"
     variant: "primary"
   secondary_cta:
@@ -132,7 +133,7 @@ sections:
         body: "Explain how a third party can inspect or dispute the proof."
     internal_surfaces_disclosure: "Some operational surfaces remain internal, including policy authoring, receipt query, and operator administration."
     ctas:
-      - label: "Request an AI Agent Action Proof Run"
+      - label: "Request one proof run"
         href: "/review/request"
         variant: "primary"
       - label: "View sample proof run"
@@ -187,7 +188,7 @@ final_cta:
   title: "Request one AI-agent proof run."
   body: "Send one completed or planned agent-assisted workflow. We define the boundary, expected evidence, verifier result, and challenge path before anything is reviewed or run."
   ctas:
-    - label: "Request an AI Agent Action Proof Run"
+    - label: "Request one proof run"
       href: "/review/request"
       variant: "primary"
     - label: "View sample proof run"

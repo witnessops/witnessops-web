@@ -34,7 +34,7 @@ const LIBRARY_FOOTER: FooterProps & { motto: string } = {
     { label: "Library", href: "/library" },
     { label: "Docs", href: "/docs" },
     { label: "Review", href: "/review" },
-    { label: "Request a Review", href: "/review/request" },
+    { label: "Request Proof Run", href: "/review/request" },
     { label: "Sample cases", href: "/review/sample-cases" },
     { label: "Sample report", href: "/review/sample-report" },
     { label: "Verify", href: "/verify" },

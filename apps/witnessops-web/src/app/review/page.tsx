@@ -4,14 +4,14 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "AI Agent Action Proof Run",
   description:
-    "WitnessOps produces signed, portable proof bundles for one consequential AI-agent action path, with a public sample bundle buyers can inspect.",
+    "WitnessOps helps teams produce one bounded proof run for an AI-agent action path, with a public sample bundle buyers can inspect.",
   alternates: {
     canonical: "/review",
   },
   openGraph: {
     title: "AI Agent Action Proof Run | WitnessOps",
     description:
-      "WitnessOps produces signed, portable proof bundles for one consequential AI-agent action path, with a public sample bundle buyers can inspect.",
+      "WitnessOps helps teams produce one bounded proof run for an AI-agent action path, with a public sample bundle buyers can inspect.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "AI Agent Action Proof Run | WitnessOps",
     description:
-      "WitnessOps produces signed, portable proof bundles for one consequential AI-agent action path, with a public sample bundle buyers can inspect.",
+      "WitnessOps helps teams produce one bounded proof run for an AI-agent action path, with a public sample bundle buyers can inspect.",
   },
 };
 
@@ -62,6 +62,24 @@ const proofQuestions = [
   "What could another party verify or challenge?",
 ];
 
+const buyerFit = [
+  {
+    label: "For",
+    value:
+      "Agent-assisted work that may be audited, disputed, or reviewed after it happens.",
+  },
+  {
+    label: "You get",
+    value:
+      "A receipt package naming authority, action scope, evidence, verifier result, limits, and challenge path.",
+  },
+  {
+    label: "Do not submit",
+    value:
+      "Secrets, credentials, private keys, customer records, MFA codes, or unrelated production data.",
+  },
+];
+
 const workflowTriggers = [
   "code or configuration changes",
   "customer-support actions with tool access",
@@ -83,12 +101,17 @@ export default function ReviewPage() {
           className="mt-2 max-w-3xl text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Agents act. WitnessOps proves.
+          Get an inspectable record for one AI-agent action.
         </h1>
         <p className="mt-5 max-w-[760px] text-base leading-8 text-text-secondary">
-          Signed, portable proof bundles for consequential AI-agent actions.
-          Start with one workflow where an agent touches code, customer records,
-          finance, access, or another system someone may later audit or dispute.
+          Use WitnessOps when an agent-assisted workflow touches code, access,
+          customer-facing work, finance, or another system someone may audit,
+          dispute, or review later.
+        </p>
+        <p className="mt-4 max-w-[760px] text-sm leading-7 text-text-muted">
+          This is one scoped proof run. It is not a legal compliance claim,
+          complete AI governance program, production deployment claim, or
+          whole-environment assurance.
         </p>
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="border border-surface-border bg-surface-card/50 p-5">
@@ -97,12 +120,13 @@ export default function ReviewPage() {
             </h2>
             <div className="mt-4 space-y-3 text-sm leading-relaxed text-text-muted">
               <p>
-                We map the approval boundary, capture the evidence path,
-                produce a signed receipt, and return a verifier result showing
-                what another party can check.
+                We define the approval boundary, action scope, evidence
+                manifest, receipt, verifier result, and challenge path before
+                the proof run is closed.
               </p>
               <p>
-                If the evidence is incomplete, the proof says so.
+                The public sample shows the artifact order and verifier path
+                before you submit your own workflow.
               </p>
             </div>
           </div>
@@ -121,7 +145,7 @@ export default function ReviewPage() {
         </div>
         <div className="mt-8 flex flex-wrap items-start gap-x-8 gap-y-6">
           <div>
-            <CtaButton href="/review/request" variant="primary" label="Request an AI Agent Action Proof Run" />
+            <CtaButton href="/review/request" variant="primary" label="Request one proof run" />
             <p className="mt-2 max-w-[300px] text-xs leading-relaxed text-text-muted">
               Submit one agent-assisted action path for scoping.
             </p>
@@ -132,6 +156,18 @@ export default function ReviewPage() {
               Inspect the receipt shape and verifier path first.
             </p>
           </div>
+        </div>
+        <div className="mt-8 grid gap-px border border-surface-border bg-surface-border md:grid-cols-3">
+          {buyerFit.map((item) => (
+            <div key={item.label} className="bg-surface-bg p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
+                {item.label}
+              </div>
+              <p className="mt-2 text-sm leading-7 text-text-secondary">
+                {item.value}
+              </p>
+            </div>
+          ))}
         </div>
       </header>
 
@@ -216,12 +252,12 @@ export default function ReviewPage() {
           <CtaButton
             href={sampleBundleHref}
             variant="secondary"
-            label="Open AI Agent Action Proof Run sample"
+            label="View sample proof run"
           />
           <CtaButton
             href="/review/request"
             variant="primary"
-            label="Request a proof run"
+            label="Request one proof run"
           />
         </div>
       </section>
