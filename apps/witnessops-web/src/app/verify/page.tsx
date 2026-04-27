@@ -83,7 +83,6 @@ const resultSemantics = [
 
 export default function VerifyPage() {
   const fixtures = listVerifyFixtures();
-  const publishedBundle = publicProofBundles[0];
 
   return (
     <main id="main-content" tabIndex={-1}>
@@ -203,66 +202,94 @@ export default function VerifyPage() {
         </div>
       </SectionShell>
 
-      {publishedBundle ? (
+      {publicProofBundles.length > 0 ? (
         <SectionShell className="pt-0" narrow>
-          <div className="border border-surface-border bg-surface-bg p-6">
+          <div className="mb-5">
             <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-              Published proof bundle
+              Published proof bundles
             </div>
             <h2 className="text-2xl font-semibold text-text-primary">
-              External exposure proof bundle
+              Downloadable proof bundles
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-text-muted">
-              This downloadable ZIP is verified offline with the included
+              Each downloadable ZIP is verified offline with its included
               receipt, signer registry, source artifacts, and verifier script.
-              The public receipt console below remains receipt-first v1.
+              These bundles prove bounded statements only. The public receipt
+              console below remains receipt-first v1.
             </p>
-            <dl className="mt-5 grid gap-3 text-sm md:grid-cols-2">
-              <div className="border border-surface-border bg-surface-card p-4">
-                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                  Run ID
-                </dt>
-                <dd className="mt-2 font-mono text-xs text-text-primary">
-                  {publishedBundle.runId}
-                </dd>
-              </div>
-              <div className="border border-surface-border bg-surface-card p-4">
-                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                  Target
-                </dt>
-                <dd className="mt-2 font-mono text-xs text-text-primary">
-                  {publishedBundle.target}
-                </dd>
-              </div>
-              <div className="border border-surface-border bg-surface-card p-4">
-                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                  Verifier result
-                </dt>
-                <dd className="mt-2 font-mono text-xs text-text-primary">
-                  {publishedBundle.verifierResult}
-                </dd>
-              </div>
-              <div className="border border-surface-border bg-surface-card p-4">
-                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                  ZIP SHA-256
-                </dt>
-                <dd className="mt-2 break-all font-mono text-xs text-text-primary">
-                  {publishedBundle.manifestSha256}
-                </dd>
-              </div>
-            </dl>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <CtaButton
-                href={publishedBundle.artifactPath}
-                variant="primary"
-                label="Download proof bundle"
-              />
-              <CtaButton
-                href="/docs/how-it-works/evidence-bundles"
-                variant="secondary"
-                label="Evidence bundle docs"
-              />
-            </div>
+          </div>
+          <div className="space-y-4">
+            {publicProofBundles.map((bundle) => (
+              <article key={bundle.id} className="border border-surface-border bg-surface-bg p-6">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+                      Published proof bundle
+                    </div>
+                    <h3 className="mt-2 text-xl font-semibold text-text-primary">
+                      {bundle.title}
+                    </h3>
+                  </div>
+                  <div className="border border-surface-border bg-surface-card px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">
+                    {bundle.status}
+                  </div>
+                </div>
+                <dl className="mt-5 grid gap-3 text-sm md:grid-cols-2">
+                  <div className="border border-surface-border bg-surface-card p-4">
+                    <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                      Run ID
+                    </dt>
+                    <dd className="mt-2 font-mono text-xs text-text-primary">
+                      {bundle.runId}
+                    </dd>
+                  </div>
+                  <div className="border border-surface-border bg-surface-card p-4">
+                    <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                      Workflow
+                    </dt>
+                    <dd className="mt-2 font-mono text-xs text-text-primary">
+                      {bundle.workflow}
+                    </dd>
+                  </div>
+                  <div className="border border-surface-border bg-surface-card p-4">
+                    <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                      Target
+                    </dt>
+                    <dd className="mt-2 font-mono text-xs text-text-primary">
+                      {bundle.target}
+                    </dd>
+                  </div>
+                  <div className="border border-surface-border bg-surface-card p-4">
+                    <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                      Verifier result
+                    </dt>
+                    <dd className="mt-2 font-mono text-xs text-text-primary">
+                      {bundle.verifierResult}
+                    </dd>
+                  </div>
+                  <div className="border border-surface-border bg-surface-card p-4 md:col-span-2">
+                    <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                      ZIP SHA-256
+                    </dt>
+                    <dd className="mt-2 break-all font-mono text-xs text-text-primary">
+                      {bundle.manifestSha256}
+                    </dd>
+                  </div>
+                </dl>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <CtaButton
+                    href={bundle.artifactPath}
+                    variant="primary"
+                    label="Download proof bundle"
+                  />
+                  <CtaButton
+                    href="/docs/how-it-works/evidence-bundles"
+                    variant="secondary"
+                    label="Evidence bundle docs"
+                  />
+                </div>
+              </article>
+            ))}
           </div>
         </SectionShell>
       ) : null}
