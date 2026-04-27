@@ -22,8 +22,8 @@ const TEXT_SIGNATURES: Record<EmailSignatureProfile, string> = {
     "Phone: +353 83 040 1096",
   ].join("\n"),
   founder_default: [
-    "Karol Stefanski",
-    "Founder · WitnessOps",
+    "I ship as - VaultSovereign",
+    "sovereign · human",
     "Agents act. WitnessOps proves.",
     "Proof layer for consequential AI-agent actions.",
     "Email: ks@witnessops.com",
@@ -103,9 +103,9 @@ const HTML_SIGNATURES: Record<
     accentColor: WO_EMAIL_COLORS.textMuted,
   },
   founder_default: {
-    name: "Karol Stefanski",
-    role: "Founder",
-    brand: "WitnessOps",
+    name: "I ship as - VaultSovereign",
+    role: "sovereign",
+    brand: "human",
     proofLine: "Agents act. WitnessOps proves.",
     detailLine: "Proof layer for consequential AI-agent actions.",
     contact: [

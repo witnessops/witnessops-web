@@ -82,6 +82,9 @@ test("applyHtmlSignature renders safe HTML body and selected signature", () => {
   assert.match(signed, /color-scheme:dark;supported-color-schemes:dark/);
   assert.match(signed, /border-top:1px solid #4a4a55/);
   assert.match(signed, /border-top:1px solid #2e2e36/);
+  assert.match(signed, /I ship as - VaultSovereign/);
+  assert.match(signed, /sovereign/);
+  assert.match(signed, /human/);
   assert.match(signed, /Agents act\. WitnessOps proves\./);
   assert.match(signed, /href="mailto:ks@witnessops.com"/);
   assert.equal(applyHtmlSignature("Hello\n", "none"), textToEmailHtml("Hello\n"));
