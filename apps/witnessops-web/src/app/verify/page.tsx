@@ -4,6 +4,7 @@ import { VerifyConsole } from "@/components/verify/verify-console";
 import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
 import { TrustBoundarySnippet } from "@/components/shared/trust-boundary-snippet";
+import { publicProofBundles } from "@/lib/public-proof-bundles";
 import { listVerifyFixtures } from "@/lib/verify-fixtures";
 
 export const metadata: Metadata = {
@@ -82,6 +83,7 @@ const resultSemantics = [
 
 export default function VerifyPage() {
   const fixtures = listVerifyFixtures();
+  const publishedBundle = publicProofBundles[0];
 
   return (
     <main id="main-content" tabIndex={-1}>
@@ -200,6 +202,70 @@ export default function VerifyPage() {
           </div>
         </div>
       </SectionShell>
+
+      {publishedBundle ? (
+        <SectionShell className="pt-0" narrow>
+          <div className="border border-surface-border bg-surface-bg p-6">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+              Published proof bundle
+            </div>
+            <h2 className="text-2xl font-semibold text-text-primary">
+              External exposure proof bundle
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-text-muted">
+              This downloadable ZIP is verified offline with the included
+              receipt, signer registry, source artifacts, and verifier script.
+              The public receipt console below remains receipt-first v1.
+            </p>
+            <dl className="mt-5 grid gap-3 text-sm md:grid-cols-2">
+              <div className="border border-surface-border bg-surface-card p-4">
+                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                  Run ID
+                </dt>
+                <dd className="mt-2 font-mono text-xs text-text-primary">
+                  {publishedBundle.runId}
+                </dd>
+              </div>
+              <div className="border border-surface-border bg-surface-card p-4">
+                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                  Target
+                </dt>
+                <dd className="mt-2 font-mono text-xs text-text-primary">
+                  {publishedBundle.target}
+                </dd>
+              </div>
+              <div className="border border-surface-border bg-surface-card p-4">
+                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                  Verifier result
+                </dt>
+                <dd className="mt-2 font-mono text-xs text-text-primary">
+                  {publishedBundle.verifierResult}
+                </dd>
+              </div>
+              <div className="border border-surface-border bg-surface-card p-4">
+                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                  ZIP SHA-256
+                </dt>
+                <dd className="mt-2 break-all font-mono text-xs text-text-primary">
+                  {publishedBundle.manifestSha256}
+                </dd>
+              </div>
+            </dl>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <CtaButton
+                href={publishedBundle.artifactPath}
+                variant="primary"
+                label="Download proof bundle"
+              />
+              <CtaButton
+                href="/docs/how-it-works/evidence-bundles"
+                variant="secondary"
+                label="Evidence bundle docs"
+              />
+            </div>
+          </div>
+        </SectionShell>
+      ) : null}
 
       <SectionShell className="pt-0" id="verify-console">
         <VerifyConsole fixtures={fixtures} />
