@@ -46,14 +46,18 @@ export function VerifiableSection({
 
   return (
     <SectionShell id={id} spacing="compact" className="border-b border-surface-border">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-start">
-        <figure className="relative aspect-[16/9] overflow-hidden border border-surface-border-strong bg-black lg:aspect-[5/4]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-start">
+        <figure className="relative aspect-[16/9] overflow-hidden bg-black lg:aspect-[5/4]">
           <Image
             src={proofVisual.src}
             alt={proofVisual.alt}
             fill
             sizes="(min-width: 1024px) 38vw, 100vw"
-            className="object-cover object-center opacity-[0.9] brightness-[0.82] saturate-[0.86] scale-[1.55] -translate-x-[18%]"
+            className="-translate-x-[50%] scale-[1.76] object-cover object-[100%_center] opacity-[0.78] brightness-[0.72] saturate-[0.82] contrast-[0.96] lg:-translate-x-[14%] lg:scale-[1.48]"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,3,4,0.18),rgba(3,3,4,0.02)_42%,rgba(3,3,4,0.36))] lg:bg-[linear-gradient(90deg,rgba(3,3,4,1),rgba(3,3,4,0.96)_16%,rgba(3,3,4,0.2)_54%,rgba(3,3,4,0.54))]"
           />
         </figure>
 
@@ -108,7 +112,7 @@ export function VerifiableSection({
                         <span className="text-[12px] text-text-secondary">Checkable</span>
                       </span>
                       <span className="inline-flex items-center gap-1 text-[12px] text-text-muted transition-colors duration-200 group-hover:text-accent-trust">
-                        Open bundle (new tab)
+                        Open bundle
                         <span
                           aria-hidden="true"
                           className="transition-transform duration-200 group-hover:translate-x-0.5"

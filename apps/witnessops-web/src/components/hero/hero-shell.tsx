@@ -44,7 +44,7 @@ export function HeroShell({
   return (
     <section className={`relative bg-surface-bg ${sectionSpacingClass} overflow-hidden`}>
       <div className="mx-auto max-w-[1200px] px-6">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_minmax(0,420px)] gap-7 md:gap-9 lg:gap-10 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_minmax(0,420px)] lg:grid-cols-[1fr_minmax(0,480px)] gap-7 md:gap-9 lg:gap-10 items-start">
           {/* Left column: program header */}
           <HeroCopy
             eyebrow={eyebrow}
@@ -58,18 +58,14 @@ export function HeroShell({
             microcopy={microcopy}
           />
 
-          <div className="relative hidden min-h-[320px] w-full select-none overflow-hidden border border-surface-border-strong bg-black md:block lg:min-h-[360px]">
+          <div className="relative hidden min-h-[300px] w-full select-none overflow-hidden bg-black md:block lg:min-h-[340px]">
             <Image
               src={heroVisual.src}
               alt={heroVisual.alt}
               fill
               priority
-              sizes="(min-width: 1024px) 420px, (min-width: 768px) 36vw, 0px"
-              className="absolute inset-0 h-full w-full object-cover object-[68%_center] opacity-[0.62] brightness-[0.64] saturate-[0.72] contrast-[0.96]"
-            />
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-[radial-gradient(circle_at_74%_48%,rgba(242,122,61,0.11),transparent_34%),linear-gradient(90deg,rgba(3,3,4,0.82),rgba(3,3,4,0.28)_54%,rgba(3,3,4,0.58))]"
+              sizes="(min-width: 1024px) 480px, (min-width: 768px) 36vw, 0px"
+              className="absolute inset-0 h-full w-full object-cover object-[90%_center] opacity-[0.42] brightness-[0.58] saturate-[0.68] contrast-[0.94]"
             />
           </div>
         </div>
