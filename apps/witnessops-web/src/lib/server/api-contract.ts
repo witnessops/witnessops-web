@@ -83,8 +83,8 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     path: "/api/contact",
     methods: ["POST"],
     category: "public-utility",
-    summary: "Direct review request email to engage mailbox",
-    note: "Email-only public form path; does not write intake or queue state.",
+    summary: "Verified review request intake alias",
+    note: "Alias path for verified intake; mailbox verification required before actionable handling.",
   },
   {
     path: "/api/support",
@@ -97,8 +97,8 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     path: "/api/support/message",
     methods: ["POST"],
     category: "public-utility",
-    summary: "Direct support request email to support mailbox",
-    note: "Email-only support form path; does not write intake or queue state.",
+    summary: "Verified support intake alias",
+    note: "Alias path for verified support intake; mailbox verification required before actionable handling.",
   },
   {
     path: "/api/receipts",

@@ -1,18 +1,30 @@
-import test from "node:test";
+import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readdir, readFile } from "node:fs/promises";
+import { mkdtemp } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+
+import { clearTokenStore } from "@/lib/server/token-store";
 
 import { POST } from "./route";
 
 function applyTestEnv(baseDir: string): void {
+  process.env.WITNESSOPS_TOKEN_SIGNING_SECRET = "test-secret";
+  process.env.WITNESSOPS_TOKEN_TTL_MINUTES = "15";
+  process.env.WITNESSOPS_TOKEN_FROM_EMAIL = "support@witnessops.com";
+  process.env.WITNESSOPS_VERIFY_BASE_URL = "https://witnessops.com";
   process.env.WITNESSOPS_MAIL_PROVIDER = "file";
   process.env.WITNESSOPS_MAILBOX_SUPPORT = "support@witnessops.com";
+  process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_MAIL_OUTPUT_DIR = path.join(baseDir, "mail-out");
+  process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
 }
 
-test("support message route sends direct email to support", async () => {
+afterEach(async () => {
+  await clearTokenStore();
+});
+
+test("support message route issues mailbox verification for support intake", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-support-message-"));
   applyTestEnv(baseDir);
 
@@ -31,27 +43,17 @@ test("support message route sends direct email to support", async () => {
   );
 
   assert.equal(response.status, 202);
-  const payload = (await response.json()) as { ok: true; deliveredAt: string };
-  assert.equal(payload.ok, true);
-  assert.ok(payload.deliveredAt);
-
-  const files = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
-  const eml = files.find((file) => file.endsWith(".eml"));
-  assert.ok(eml);
-  const raw = await readFile(
-    path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, eml!),
-    "utf8",
-  );
-  assert.match(raw, /^From:\s+support@witnessops\.com$/m);
-  assert.match(raw, /^To:\s+support@witnessops\.com$/m);
-  assert.match(raw, /^X-WitnessOps-Message-Class:\s+internal_notification$/m);
-  assert.match(raw, /^X-WitnessOps-Signature-Profile:\s+none$/m);
-  assert.match(raw, /WitnessOps support request/);
-  assert.match(raw, /operator@example\.com/);
-  assert.doesNotMatch(raw, /Karol Stefanski/);
+  const payload = (await response.json()) as {
+    channel: string;
+    status: string;
+    admissionState: string;
+  };
+  assert.equal(payload.channel, "support");
+  assert.equal(payload.status, "issued");
+  assert.equal(payload.admissionState, "verification_sent");
 });
 
-test("support message route returns a failure when delivery fails", async () => {
+test("support message route redacts upstream issuance errors", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-support-message-"));
   applyTestEnv(baseDir);
   process.env.WITNESSOPS_MAIL_PROVIDER = "invalid";
@@ -61,7 +63,6 @@ test("support message route returns a failure when delivery fails", async () => 
       method: "POST",
       body: JSON.stringify({
         email: "operator@example.com",
-        subject: "[receipt] Need help verifying a receipt",
         category: "receipt",
         severity: "general",
         message: "Need help verifying a receipt.",
@@ -73,5 +74,5 @@ test("support message route returns a failure when delivery fails", async () => 
   assert.equal(response.status, 500);
   const payload = (await response.json()) as { ok: false; error: string };
   assert.equal(payload.ok, false);
-  assert.equal(payload.error, "Unable to send message.");
+  assert.equal(payload.error, "Unable to issue verification token.");
 });
