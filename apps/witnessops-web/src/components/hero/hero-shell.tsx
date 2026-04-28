@@ -1,3 +1,5 @@
+import Image from "next/image";
+import { assetFoundryVisuals } from "@/lib/asset-foundry-visuals";
 import { HeroCopy } from "./hero-copy";
 
 type HeroShellProps = {
@@ -34,6 +36,7 @@ export function HeroShell({
   microcopy,
   trustBar,
 }: HeroShellProps) {
+  const heroVisual = assetFoundryVisuals.homepageHero;
   const sectionSpacingClass = trustBar.enabled
     ? "pt-9 md:pt-11 pb-7 sm:pb-9"
     : "pt-9 md:pt-11 pb-5 sm:pb-6";
@@ -55,17 +58,20 @@ export function HeroShell({
             microcopy={microcopy}
           />
 
-          {/* Right column: decorative schematic (no fake data) */}
-          <div
-            aria-hidden="true"
-            className="relative hidden md:block h-full min-h-[320px] lg:min-h-[360px] w-full select-none pointer-events-none"
-            style={{
-              backgroundImage: "url('/hero-receipt.svg')",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
-              backgroundSize: "contain",
-            }}
-          />
+          <div className="relative hidden min-h-[320px] w-full select-none overflow-hidden border border-surface-border-strong bg-black md:block lg:min-h-[360px]">
+            <Image
+              src={heroVisual.src}
+              alt={heroVisual.alt}
+              fill
+              priority
+              sizes="(min-width: 1024px) 420px, (min-width: 768px) 36vw, 0px"
+              className="absolute inset-0 h-full w-full object-cover object-[68%_center] opacity-[0.62] brightness-[0.64] saturate-[0.72] contrast-[0.96]"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-[radial-gradient(circle_at_74%_48%,rgba(242,122,61,0.11),transparent_34%),linear-gradient(90deg,rgba(3,3,4,0.82),rgba(3,3,4,0.28)_54%,rgba(3,3,4,0.58))]"
+            />
+          </div>
         </div>
 
         {trustBar.enabled && (
