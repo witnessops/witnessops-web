@@ -100,7 +100,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
     const data = new FormData(form);
 
     try {
-      const res = await fetch("/api/support/message", {
+      const res = await fetch("/api/support", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
