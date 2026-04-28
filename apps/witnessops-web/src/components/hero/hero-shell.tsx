@@ -43,7 +43,22 @@ export function HeroShell({
 
   return (
     <section className={`relative bg-surface-bg ${sectionSpacingClass} overflow-hidden`}>
-      <div className="mx-auto max-w-[1200px] px-6">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[390px] select-none overflow-hidden md:hidden"
+      >
+        <Image
+          src={heroVisual.src}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="absolute inset-0 h-full w-full translate-x-[10%] scale-[1.38] object-cover object-[90%_center] opacity-[0.34] brightness-[0.5] saturate-[0.62] contrast-[0.76]"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,3,4,0.08),rgba(3,3,4,0.38)_42%,rgba(3,3,4,0.94)_100%),linear-gradient(90deg,rgba(3,3,4,0.88),rgba(3,3,4,0.3)_52%,rgba(3,3,4,0.5))]" />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-[1200px] px-6">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_minmax(0,420px)] gap-7 md:gap-9 lg:gap-10 items-start">
           {/* Left column: program header */}
           <HeroCopy
