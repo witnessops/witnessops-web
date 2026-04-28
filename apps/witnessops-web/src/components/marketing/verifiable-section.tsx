@@ -53,7 +53,7 @@ export function VerifiableSection({
             alt={proofVisual.alt}
             fill
             sizes="(min-width: 1024px) 38vw, 100vw"
-            className="object-cover object-center opacity-[0.9] brightness-[0.82] saturate-[0.86] scale-[1.55] -translate-x-[18%]"
+            className="object-cover object-[82%_center] opacity-[0.9] brightness-[0.82] saturate-[0.86] scale-[1.06]"
           />
         </figure>
 
