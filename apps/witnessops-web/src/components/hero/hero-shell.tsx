@@ -59,7 +59,7 @@ export function HeroShell({
       </div>
 
       <div className="relative z-10 mx-auto max-w-[1180px] px-6">
-        <div className="grid grid-cols-1 items-start gap-9 pt-[380px] md:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] md:items-center md:gap-11 md:pt-0 lg:grid-cols-[minmax(0,1fr)_480px] lg:gap-16">
+        <div className="grid grid-cols-1 items-start gap-9 pt-[330px] md:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] md:items-center md:gap-11 md:pt-0 lg:grid-cols-[minmax(0,1fr)_480px] lg:gap-16">
           <HeroCopy
             eyebrow={eyebrow}
             title={title}
