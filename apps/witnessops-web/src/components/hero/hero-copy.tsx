@@ -28,17 +28,34 @@ export function HeroCopy({
   microcopy,
 }: HeroCopyProps) {
   return (
-    <div>
-      <p className="kb-section-tag mb-3">{eyebrow}</p>
+    <div className="min-w-0 max-w-[640px]">
+      <p className="kb-section-tag mb-4 md:mb-5">{eyebrow}</p>
 
-      <h1 className="mb-4 max-w-[26ch] text-2xl font-semibold leading-[1.2] tracking-[-0.005em] text-balance text-text-primary md:text-[28px] lg:text-[32px]">
+      <h1 className="mb-5 max-w-[18ch] text-[34px] font-semibold leading-[1.05] tracking-[-0.02em] text-balance text-text-primary sm:text-[38px] md:text-[46px] md:leading-[1] lg:text-[56px]">
         {title}
       </h1>
 
-      <p className="mb-2 max-w-[56ch] text-base leading-7 text-text-secondary">{body}</p>
+      <p className="max-w-[54ch] text-[17px] leading-8 text-text-secondary md:text-lg">
+        {body}
+      </p>
+
+      <div className="mt-7 flex flex-wrap items-center gap-3 sm:gap-4">
+        <CtaButton
+          label={primaryCta.label}
+          href={primaryCta.href}
+          variant={(primaryCta.variant as "primary" | "secondary" | "ghost") ?? "primary"}
+          className="px-4 text-[13px] font-semibold sm:px-6 sm:text-sm"
+        />
+        <CtaButton
+          label={secondaryCta.label}
+          href={secondaryCta.href}
+          variant={(secondaryCta.variant as "primary" | "secondary" | "ghost") ?? "secondary"}
+          className="border-white/[0.14] bg-white/[0.04] px-4 text-[13px] text-white/[0.85] shadow-none hover:border-white/20 hover:bg-white/[0.06] hover:shadow-none sm:px-6 sm:text-sm"
+        />
+      </div>
 
       {aiNote && (
-        <section className="mt-5 max-w-[56ch] border-l border-surface-border pl-4">
+        <section className="mt-8 max-w-[54ch] border-l border-surface-border pl-4">
           <h2 className="text-sm font-semibold leading-6 text-text-primary">
             {aiNote.title}
           </h2>
@@ -67,19 +84,6 @@ export function HeroCopy({
           ))}
         </ul>
       )}
-
-      <div className="mt-6 flex flex-wrap items-center gap-4">
-        <CtaButton
-          label={primaryCta.label}
-          href={primaryCta.href}
-          variant={(primaryCta.variant as "primary" | "secondary" | "ghost") ?? "primary"}
-        />
-        <CtaButton
-          label={secondaryCta.label}
-          href={secondaryCta.href}
-          variant={(secondaryCta.variant as "primary" | "secondary" | "ghost") ?? "secondary"}
-        />
-      </div>
 
       {microcopy && (
         <p className="mt-3 text-xs font-mono text-text-muted">{microcopy}</p>
