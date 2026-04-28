@@ -4,14 +4,8 @@ import { useState } from "react";
 
 type FieldName =
   | "name"
-  | "org"
   | "email"
-  | "workflowName"
-  | "agentTool"
-  | "systemTouched"
-  | "approvalBoundary"
-  | "evidenceAvailable"
-  | "urgency";
+  | "workflowName";
 
 const labelStyle: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
@@ -22,10 +16,10 @@ const labelStyle: React.CSSProperties = {
 };
 
 const inputClass =
-  "w-full bg-transparent border-0 border-b border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none py-2";
+  "w-full bg-transparent border-0 border-b border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none py-2.5";
 
 const textareaClass =
-  "w-full bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none p-3";
+  "w-full bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none p-4";
 
 const inputStyle: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
@@ -66,19 +60,10 @@ export function ContactForm({
 
     const form = e.currentTarget;
     const data = new FormData(form);
-    const workflowName = stringField(data, "workflowName");
-    const agentTool = stringField(data, "agentTool");
-    const systemTouched = stringField(data, "systemTouched");
-    const approvalBoundary = stringField(data, "approvalBoundary");
-    const evidenceAvailable = stringField(data, "evidenceAvailable");
-    const urgency = stringField(data, "urgency");
+    const workflowSummary = stringField(data, "workflowName");
     const proofRunScope = [
-      `Workflow name: ${workflowName || "not provided"}`,
-      `Agent/tool involved: ${agentTool || "not provided"}`,
-      `System touched: ${systemTouched || "not provided"}`,
-      `Approval boundary: ${approvalBoundary || "not provided"}`,
-      `Evidence available: ${evidenceAvailable || "not provided"}`,
-      `Urgency: ${urgency || "not provided"}`,
+      `Workflow summary: ${workflowSummary || "not provided"}`,
+      "Known evidence or links: not requested in the low-friction first form",
     ].join("\n");
 
     try {
@@ -134,173 +119,50 @@ export function ContactForm({
             : ""}
       </div>
 
-      <div className="border border-surface-border bg-surface-bg-alt p-5">
-        <div className="mb-3" style={labelStyle}>
-          Start with non-secret workflow context.
+      <div className="grid gap-5 md:grid-cols-2">
+        <div>
+          <label htmlFor="name" className="mb-2 block" style={labelStyle}>Your name</label>
+          <input
+            id="name" name="name" type="text" required
+            aria-invalid={fieldErrors.name ? true : undefined}
+            onInvalid={handleInvalid} onInput={handleFieldInput}
+            className={`${inputClass} ${fieldErrors.name ? "!border-signal-red" : ""}`}
+            style={inputStyle}
+            placeholder="Your name"
+          />
+          {fieldErrors.name && <p className="mt-1 text-xs text-signal-red">{fieldErrors.name}</p>}
         </div>
-        <div className="space-y-3 text-sm leading-relaxed text-text-muted">
-          <p>
-            A short description is enough for a first fit check. Name the
-            workflow, the agent or tool involved, the system touched, and what
-            evidence already exists or may be missing.
-          </p>
-          <p>
-            Do not paste secrets, credentials, private keys, customer records,
-            MFA codes, or unrelated production data. Exploratory submissions
-            are acceptable if you are not sure which workflow fits yet.
-          </p>
-          <p>
-            We review whether the workflow can be scoped as one bounded proof
-            run, identify the approval boundary and evidence gaps, then reply by
-            email with fit, scope, and the next action. No proof run starts from
-            the form alone.
-          </p>
+
+        <div>
+          <label htmlFor="email" className="mb-2 block" style={labelStyle}>Work email</label>
+          <input
+            id="email" name="email" type="email" required
+            aria-invalid={fieldErrors.email ? true : undefined}
+            onInvalid={handleInvalid} onInput={handleFieldInput}
+            className={`${inputClass} ${fieldErrors.email ? "!border-signal-red" : ""}`}
+            style={inputStyle}
+            placeholder="buyer@company.com"
+          />
+          {fieldErrors.email && <p className="mt-1 text-xs text-signal-red">{fieldErrors.email}</p>}
         </div>
       </div>
 
       <div>
-        <label htmlFor="name" className="mb-2 block" style={labelStyle}>Your name</label>
-        <input
-          id="name" name="name" type="text" required
-          aria-invalid={fieldErrors.name ? true : undefined}
-          onInvalid={handleInvalid} onInput={handleFieldInput}
-          className={`${inputClass} ${fieldErrors.name ? "!border-signal-red" : ""}`}
-          style={inputStyle}
-          placeholder="Your name"
-        />
-        {fieldErrors.name && <p className="mt-1 text-xs text-signal-red">{fieldErrors.name}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="org" className="mb-2 block" style={labelStyle}>Organization</label>
-        <input
-          id="org" name="org" type="text"
-          className={inputClass}
-          style={inputStyle}
-          placeholder="Company or team"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="email" className="mb-2 block" style={labelStyle}>Work email</label>
-        <input
-          id="email" name="email" type="email" required
-          aria-invalid={fieldErrors.email ? true : undefined}
-          onInvalid={handleInvalid} onInput={handleFieldInput}
-          className={`${inputClass} ${fieldErrors.email ? "!border-signal-red" : ""}`}
-          style={inputStyle}
-          placeholder="buyer@company.com"
-        />
-        {fieldErrors.email && <p className="mt-1 text-xs text-signal-red">{fieldErrors.email}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="workflowName" className="mb-2 block" style={labelStyle}>Workflow name</label>
-        <input
-          id="workflowName" name="workflowName" type="text" required
+        <label htmlFor="workflowName" className="mb-2 block" style={labelStyle}>What should we look at?</label>
+        <textarea
+          id="workflowName" name="workflowName" rows={4} required
+          aria-describedby="workflowName-helper"
+          className={`${textareaClass} ${fieldErrors.workflowName ? "!border-signal-red" : ""}`}
+          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
+          placeholder="One agent-assisted workflow, action, or decision path. Plain language is fine."
+          onInvalid={handleInvalid}
+          onInput={handleFieldInput}
           aria-invalid={fieldErrors.workflowName ? true : undefined}
-          onInvalid={handleInvalid} onInput={handleFieldInput}
-          className={`${inputClass} ${fieldErrors.workflowName ? "!border-signal-red" : ""}`}
-          style={inputStyle}
-          placeholder="Prod config change"
         />
+        <p id="workflowName-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
+          No secrets or customer data. A short summary is enough for the first fit check.
+        </p>
         {fieldErrors.workflowName && <p className="mt-1 text-xs text-signal-red">{fieldErrors.workflowName}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="agentTool" className="mb-2 block" style={labelStyle}>Agent/tool involved</label>
-        <input
-          id="agentTool" name="agentTool" type="text" required
-          aria-invalid={fieldErrors.agentTool ? true : undefined}
-          onInvalid={handleInvalid} onInput={handleFieldInput}
-          className={`${inputClass} ${fieldErrors.agentTool ? "!border-signal-red" : ""}`}
-          style={inputStyle}
-          placeholder="Agent, workflow runner, script, or IDE"
-        />
-        {fieldErrors.agentTool && <p className="mt-1 text-xs text-signal-red">{fieldErrors.agentTool}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="systemTouched" className="mb-2 block" style={labelStyle}>System touched</label>
-        <input
-          id="systemTouched" name="systemTouched" type="text" required
-          aria-invalid={fieldErrors.systemTouched ? true : undefined}
-          onInvalid={handleInvalid} onInput={handleFieldInput}
-          className={`${inputClass} ${fieldErrors.systemTouched ? "!border-signal-red" : ""}`}
-          style={inputStyle}
-          placeholder="Repo, queue, access system, or internal tool"
-        />
-        {fieldErrors.systemTouched && <p className="mt-1 text-xs text-signal-red">{fieldErrors.systemTouched}</p>}
-      </div>
-
-      <div>
-        <div className="mb-2 block" style={labelStyle}>Proof-run scope</div>
-        <div
-          className="border border-surface-border bg-transparent px-3 py-3 text-text-primary"
-          style={{ ...inputStyle, lineHeight: 1.4 }}
-        >
-          One workflow. One action path. One receipt. One verifier result. One challenge path.
-        </div>
-        <p className="mt-2 text-xs leading-relaxed text-text-muted">
-          Use plain language. One workflow and known evidence gaps are enough
-          for the first review. If the evidence is incomplete, the proof says
-          so.
-        </p>
-      </div>
-
-      <div>
-        <label htmlFor="approvalBoundary" className="mb-2 block" style={labelStyle}>Approval boundary</label>
-        <textarea
-          id="approvalBoundary" name="approvalBoundary" rows={3}
-          aria-describedby="approvalBoundary-helper"
-          className={`${textareaClass} ${fieldErrors.approvalBoundary ? "!border-signal-red" : ""}`}
-          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
-          placeholder="Who approves the agent action, and what exactly does that approval allow?"
-          onInvalid={handleInvalid}
-          onInput={handleFieldInput}
-          aria-invalid={fieldErrors.approvalBoundary ? true : undefined}
-        />
-        <p id="approvalBoundary-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
-          Name the human gate, ticket, policy, or approval record if it exists.
-        </p>
-        {fieldErrors.approvalBoundary && <p className="mt-1 text-xs text-signal-red">{fieldErrors.approvalBoundary}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="evidenceAvailable" className="mb-2 block" style={labelStyle}>Evidence available</label>
-        <textarea
-          id="evidenceAvailable" name="evidenceAvailable" rows={3}
-          aria-describedby="evidenceAvailable-helper"
-          className={`${textareaClass} ${fieldErrors.evidenceAvailable ? "!border-signal-red" : ""}`}
-          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
-          placeholder="Logs, prompts, tickets, diffs, exports, approvals, screenshots, or verifier output."
-          onInvalid={handleInvalid}
-          onInput={handleFieldInput}
-          aria-invalid={fieldErrors.evidenceAvailable ? true : undefined}
-        />
-        <p id="evidenceAvailable-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
-          Include what exists today and what you already know is missing.
-        </p>
-        {fieldErrors.evidenceAvailable && <p className="mt-1 text-xs text-signal-red">{fieldErrors.evidenceAvailable}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="urgency" className="mb-2 block" style={labelStyle}>Urgency</label>
-        <select
-          id="urgency" name="urgency" required
-          aria-invalid={fieldErrors.urgency ? true : undefined}
-          onInvalid={handleInvalid}
-          onInput={handleFieldInput}
-          className={`${inputClass} ${fieldErrors.urgency ? "!border-signal-red" : ""}`}
-          style={inputStyle}
-          defaultValue=""
-        >
-          <option value="" disabled>Choose a proof-run window</option>
-          <option value="this_week">This week</option>
-          <option value="this_month">This month</option>
-          <option value="exploratory">Exploratory</option>
-        </select>
-        {fieldErrors.urgency && <p className="mt-1 text-xs text-signal-red">{fieldErrors.urgency}</p>}
       </div>
 
       <button
@@ -315,12 +177,11 @@ export function ContactForm({
           textTransform: "uppercase",
         }}
       >
-        {status === "sending" ? "Sending..." : "Request one proof run"}
+        {status === "sending" ? "Sending..." : "Send request"}
       </button>
 
       <p className="text-xs leading-relaxed text-text-muted">
-        Metadata only is enough for the first review. Keep sensitive records
-        out of this form.
+        We reply by email before anything runs.
       </p>
 
       {status === "sent" && (

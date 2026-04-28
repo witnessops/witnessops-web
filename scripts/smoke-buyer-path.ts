@@ -44,11 +44,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/request",
     requiredMarkers: [
-      "Request one proof run",
+      "Submit one proof run",
+      "Send the minimum context",
+      "What should we look at?",
+      "Send request",
       "What you get back",
-      "Start with non-secret workflow context",
-      "Before you submit",
-      "Sample boundary",
       "View sample proof run",
     ],
   },

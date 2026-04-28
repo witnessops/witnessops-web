@@ -66,96 +66,44 @@ export default function ReviewRequestPage() {
   const mailboxes = getMailboxConfig();
 
   return (
-    <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1180px] px-6 py-20">
-      <div className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr]">
-        <section className="border border-surface-border p-8 md:p-10">
-          <div className="mb-8">
-            <h1
-              className="mb-5 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              Request one proof run
-            </h1>
-            <p className="max-w-[560px] text-base leading-relaxed text-text-muted">
-              Bring one agent-assisted workflow where later scrutiny matters.
-              We map the approval boundary, evidence path, receipt shape,
-              verifier result, and challenge path.
-            </p>
-          </div>
+    <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1040px] px-6 py-12 md:py-16">
+      <section className="mb-8 max-w-[720px]">
+        <div
+          className="mb-4"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "var(--color-brand-muted)",
+          }}
+        >
+          AI agent action proof run
+        </div>
+        <h1
+          className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          Submit one proof run
+        </h1>
+        <p className="max-w-[620px] text-base leading-relaxed text-text-muted">
+          Send the minimum context. We reply by email before anything runs.
+        </p>
+      </section>
 
-          <div className="mb-8 border-t border-surface-border pt-6">
-            <div
-              className="mb-4"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--color-text-muted)",
-              }}
-            >
-              What you get back
-            </div>
-            <div className="space-y-4">
-              {proofOutputs.map((item, index) => (
-                <div key={item.title} className="grid gap-2 border-b border-surface-border pb-4 sm:grid-cols-[48px_1fr]">
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 11,
-                      color: "var(--color-brand-muted)",
-                    }}
-                  >
-                    {String(index + 1).padStart(2, "0")}
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-text-primary">{item.title}</div>
-                    <p className="mt-1 text-sm leading-relaxed text-text-muted">{item.summary}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <section className="border border-surface-border p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}>
+          <ContactForm contactEmail={mailboxes.engage} />
+        </section>
 
-          <div className="border border-surface-border bg-surface-bg-alt p-5">
+        <aside className="space-y-4">
+          <section className="border border-surface-border bg-surface-bg p-5">
             <div
               className="mb-3"
               style={{
                 fontFamily: "var(--font-display)",
                 fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--color-text-muted)",
-              }}
-            >
-              Sample proof bundle
-            </div>
-            <ul className="mb-4 grid gap-2 text-xs leading-relaxed text-text-muted sm:grid-cols-2" style={{ fontFamily: "var(--font-mono)" }}>
-              {sampleArtifacts.map((artifact) => (
-                <li key={artifact} className="flex items-center gap-2">
-                  <span style={{ color: "var(--color-signal-green)", fontSize: 9 }}>&#10003;</span>
-                  <span>{artifact}</span>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href={sampleBundleHref}
-              className="text-sm text-brand-accent underline-offset-4 hover:underline"
-            >
-              View sample proof run
-            </Link>
-          </div>
-        </section>
-
-        <section className="border border-surface-border p-8 md:p-10" style={{ background: "var(--color-surface-bg-alt)" }}>
-          <div className="mb-8 border border-surface-border bg-surface-bg p-5">
-            <div
-              className="mb-3"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 13,
                 fontWeight: 600,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
@@ -174,61 +122,100 @@ export default function ReviewRequestPage() {
                 </li>
               ))}
             </ol>
-          </div>
+          </section>
 
-          <ContactForm contactEmail={mailboxes.engage} />
-
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <div className="border border-surface-border bg-surface-bg p-5">
-              <div
-                className="mb-3"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "var(--color-text-muted)",
-                }}
-              >
-                Before you submit
-              </div>
-              <p className="text-sm leading-relaxed text-text-muted">
-                Describe the workflow and evidence path only. Do not paste
-                secrets, private keys, credentials, customer records, or MFA
-                codes.
-              </p>
+          <section className="border border-surface-border bg-surface-bg p-5">
+            <div
+              className="mb-3"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              Keep it light
             </div>
+            <p className="text-sm leading-relaxed text-text-muted">
+              Do not paste secrets. A short description is enough for the first
+              review.
+            </p>
+          </section>
 
-            <div className="border border-surface-border bg-surface-bg p-5">
-              <div
-                className="mb-3"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "var(--color-text-muted)",
-                }}
-              >
-                Sample boundary
-              </div>
-              <p className="text-sm leading-relaxed text-text-muted">
-                The public sample proves receipt shape and verifier path only.
-                It is not a production deployment, legal compliance claim, or
-                complete AI governance program.
-              </p>
+          <section className="border border-surface-border bg-surface-bg p-5">
+            <div
+              className="mb-3"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              Sample proof bundle
             </div>
-          </div>
+            <ul className="mb-4 grid gap-2 text-xs leading-relaxed text-text-muted" style={{ fontFamily: "var(--font-mono)" }}>
+              {sampleArtifacts.slice(0, 4).map((artifact) => (
+                <li key={artifact} className="flex items-center gap-2">
+                  <span style={{ color: "var(--color-signal-green)", fontSize: 9 }}>&#10003;</span>
+                  <span>{artifact}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={sampleBundleHref}
+              className="text-sm text-brand-accent underline-offset-4 hover:underline"
+            >
+              View sample proof run
+            </Link>
+          </section>
 
-          <div className="mt-6 text-sm leading-relaxed text-text-muted">
-            Product help, access issues, and verifier questions: <Link href="/support" className="text-brand-accent underline-offset-4 hover:underline">Support</Link>.
+          <div className="text-sm leading-relaxed text-text-muted">
+            Need help? <Link href="/support" className="text-brand-accent underline-offset-4 hover:underline">Support</Link>.
             <span className="mx-2 text-surface-border">/</span>
-            Responsible disclosure: <Link href="/security" className="text-brand-accent underline-offset-4 hover:underline">Security</Link>.
+            Disclosure: <Link href="/security" className="text-brand-accent underline-offset-4 hover:underline">Security</Link>.
           </div>
-        </section>
+        </aside>
       </div>
+
+      <section className="mt-10 border-t border-surface-border pt-8">
+        <div
+          className="mb-4"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "var(--color-text-muted)",
+          }}
+        >
+          What you get back
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {proofOutputs.map((item, index) => (
+            <div key={item.title} className="grid gap-2 border border-surface-border bg-surface-bg p-4 sm:grid-cols-[40px_1fr]">
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 11,
+                  color: "var(--color-brand-muted)",
+                }}
+              >
+                {String(index + 1).padStart(2, "0")}
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-text-primary">{item.title}</div>
+                <p className="mt-1 text-sm leading-relaxed text-text-muted">{item.summary}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }
