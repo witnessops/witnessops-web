@@ -116,7 +116,7 @@ export function Navbar({ links, cta, announcement }: NavbarProps) {
             href={logoHref}
             className="flex items-center gap-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
           >
-            <WitnessOpsMark variant="hex" size="sm" />
+            <WitnessOpsMark variant="hex" size="sm" className="max-md:scale-[0.93]" />
             <span
               className="max-[420px]:hidden text-[11px] font-semibold uppercase tracking-[0.14em] leading-none text-text-primary"
               style={{ fontFamily: "var(--font-display)" }}
