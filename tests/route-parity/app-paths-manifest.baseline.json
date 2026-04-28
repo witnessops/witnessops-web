@@ -55,6 +55,7 @@
   "/review/sample-cases/privileged-access-grant/page": "app/review/sample-cases/privileged-access-grant/page.js",
   "/review/sample-cases/ai-agent-action-proof-run/page": "app/review/sample-cases/ai-agent-action-proof-run/page.js",
   "/signals/page": "app/signals/page.js",
+  "/verify-token/page": "app/verify-token/page.js",
   "/verify/page": "app/verify/page.js",
   "/why-witnessops/page": "app/why-witnessops/page.js",
   "/runner-loop/page": "app/runner-loop/page.js",

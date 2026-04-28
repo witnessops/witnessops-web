@@ -1,9 +1,14 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { getIntakeById, getIssuanceById } from "@/lib/server/token-store";
 import { getAssessmentStatus } from "@/lib/server/assessment-client";
 import { getAssessmentAuthorizationSummary } from "@/lib/server/assessment-authorization-summary";
 import { buildPostApprovalLifecycle } from "@/lib/server/post-approval-lifecycle";
+import {
+  CLAIMANT_SESSION_COOKIE_NAME,
+  verifyClaimantSessionCookie,
+} from "@/lib/server/claimant-session";
 import { PostApprovalLifecycle } from "@/components/post-approval-lifecycle";
 import { AssessmentTerminalNotice } from "@/components/assessment-terminal-notice";
 import { AssessmentPoller } from "./assessment-poller";
@@ -30,6 +35,17 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
 
   const record = await getIssuanceById(issuanceId);
   if (!record || record.email !== email) {
+    notFound();
+  }
+
+  const cookieStore = await cookies();
+  const claimantSession = cookieStore.get(CLAIMANT_SESSION_COOKIE_NAME)?.value;
+  if (
+    !verifyClaimantSessionCookie(claimantSession, {
+      issuanceId,
+      email,
+    })
+  ) {
     notFound();
   }
 

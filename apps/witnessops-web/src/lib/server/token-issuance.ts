@@ -292,7 +292,7 @@ export async function createVerificationIssuance(
   const createdAt = nowIso();
   const expiresAt = computeExpiresAt(createdAt);
   const normalizedSubmission = normalizeSubmission(input.submission);
-  const verifyUrl = new URL("/api/verify-token", readVerifyBaseUrl());
+  const verifyUrl = new URL("/verify-token", readVerifyBaseUrl());
   verifyUrl.searchParams.set("issuanceId", issuanceId);
   verifyUrl.searchParams.set("email", input.email);
   verifyUrl.searchParams.set("token", rawToken);

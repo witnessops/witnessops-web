@@ -4,7 +4,12 @@ import { mkdtemp, readFile, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import { clearTokenStore, updateIssuance } from "@/lib/server/token-store";
+import {
+  clearTokenStore,
+  getIssuanceById,
+  updateIssuance,
+} from "@/lib/server/token-store";
+import { CLAIMANT_SESSION_COOKIE_NAME } from "@/lib/server/claimant-session";
 
 import { POST as engage } from "../engage/route";
 import { POST as support } from "../support/route";
@@ -75,6 +80,14 @@ async function issueSupportToken(baseDir: string) {
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
 
+function assertClaimantSessionSet(response: Response): string {
+  const setCookie = response.headers.get("set-cookie") ?? "";
+  assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
+  assert.match(setCookie, /HttpOnly/);
+  assert.match(setCookie, /SameSite=strict/i);
+  return setCookie.split(";")[0]!;
+}
+
 afterEach(async () => {
   global.fetch = originalFetch;
   delete process.env.GES_SERVER_URL;
@@ -110,6 +123,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   );
 
   assert.equal(first.status, 200);
+  assertClaimantSessionSet(first);
   const firstPayload = (await first.json()) as {
     channel: string;
     intakeId: string;
@@ -137,6 +151,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   );
 
   assert.equal(second.status, 200);
+  assertClaimantSessionSet(second);
   const secondPayload = (await second.json()) as {
     status: string;
     admissionState: string;
@@ -230,7 +245,7 @@ test("verify-token route enforces expiry", async () => {
   assert.match(payload.error, /expired/i);
 });
 
-test("verify-token GET route redirects to assessment results page on success", async () => {
+test("verify-token GET route redirects to confirmation page without consuming token", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
   const issued = await issueToken(baseDir);
 
@@ -243,13 +258,17 @@ test("verify-token GET route redirects to assessment results page on success", a
   assert.equal(response.status, 302);
   const location = response.headers.get("location") ?? "";
   assert.ok(
-    location.includes(`/assessment/${issued.issuanceId}`),
-    `Expected redirect to /assessment/:issuanceId, got: ${location}`,
+    location.startsWith("https://witnessops.com/verify-token?"),
+    `Expected redirect to /verify-token, got: ${location}`,
   );
   assert.ok(
-    location.includes("email="),
-    `Expected email param in redirect URL, got: ${location}`,
+    location.includes(`issuanceId=${encodeURIComponent(issued.issuanceId)}`),
+    `Expected issuanceId param in redirect URL, got: ${location}`,
   );
+  assert.ok(location.includes("email="));
+  assert.ok(location.includes("token="));
+  const stored = await getIssuanceById(issued.issuanceId);
+  assert.equal(stored?.status, "issued");
 });
 
 test("verify-token GET route uses the public origin instead of the internal request host", async () => {
@@ -265,11 +284,11 @@ test("verify-token GET route uses the public origin instead of the internal requ
   assert.equal(response.status, 302);
   assert.equal(
     response.headers.get("location"),
-    `https://witnessops.com/assessment/${issued.issuanceId}?email=${encodeURIComponent(issued.email)}`,
+    `https://witnessops.com/verify-token?issuanceId=${encodeURIComponent(issued.issuanceId)}&email=${encodeURIComponent(issued.email)}&token=${encodeURIComponent(issued.token)}`,
   );
 });
 
-test("verify-token GET route redirects support verification to the support page", async () => {
+test("verify-token GET route redirects support verification to confirmation page without consuming token", async () => {
   const baseDir = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-support-verify-"),
   );
@@ -284,13 +303,11 @@ test("verify-token GET route redirects support verification to the support page"
   assert.equal(response.status, 302);
   const location = response.headers.get("location") ?? "";
   assert.ok(
-    location.includes("/support?verified=1"),
-    `Expected redirect to /support with verified=1, got: ${location}`,
+    location.startsWith("https://witnessops.com/verify-token?"),
+    `Expected redirect to /verify-token, got: ${location}`,
   );
-  assert.ok(
-    location.includes("threadId=thr_"),
-    `Expected redirect to include threadId, got: ${location}`,
-  );
+  const stored = await getIssuanceById(issued.issuanceId);
+  assert.equal(stored?.status, "issued");
 });
 
 test("verify-token GET support redirect uses the public origin instead of the internal request host", async () => {
@@ -308,7 +325,7 @@ test("verify-token GET support redirect uses the public origin instead of the in
   assert.equal(response.status, 302);
   const location = response.headers.get("location") ?? "";
   assert.ok(
-    location.startsWith("https://witnessops.com/support?"),
-    `Expected public support redirect, got: ${location}`,
+    location.startsWith("https://witnessops.com/verify-token?"),
+    `Expected public confirmation redirect, got: ${location}`,
   );
 });

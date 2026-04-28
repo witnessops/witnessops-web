@@ -9,6 +9,10 @@ import {
   getIssuanceById,
   updateIssuance,
 } from "@/lib/server/token-store";
+import {
+  CLAIMANT_SESSION_COOKIE_NAME,
+  createClaimantSessionCookieValue,
+} from "@/lib/server/claimant-session";
 
 import { POST as engage } from "../../engage/route";
 import { GET } from "./route";
@@ -37,6 +41,13 @@ async function issueToken(baseDir: string) {
     }),
   );
   return await response.json() as { issuanceId: string; email: string };
+}
+
+function claimantSessionCookie(issuanceId: string, email: string): string {
+  return `${CLAIMANT_SESSION_COOKIE_NAME}=${createClaimantSessionCookieValue({
+    issuanceId,
+    email,
+  })}`;
 }
 
 afterEach(async () => {
@@ -84,6 +95,11 @@ test("assessment route persists live status updates back to the issuance record"
   const response = await GET(
     new Request(
       `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}?email=${encodeURIComponent(issued.email)}`,
+      {
+        headers: {
+          Cookie: claimantSessionCookie(issued.issuanceId, issued.email),
+        },
+      },
     ),
     { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
   );
@@ -99,4 +115,26 @@ test("assessment route persists live status updates back to the issuance record"
   const stored = await getIssuanceById(issued.issuanceId);
   assert.equal(stored?.assessmentStatus, "completed");
   assert.equal(stored?.assessmentError, null);
+});
+
+test("assessment route rejects issuance and email without claimant session", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-assessment-"));
+  const issued = await issueToken(baseDir);
+  await updateIssuance(issued.issuanceId, (record) => ({
+    ...record,
+    status: "verified",
+    verifiedAt: "2026-03-28T12:00:00Z",
+    consumedAt: "2026-03-28T12:00:00Z",
+    assessmentRunId: "run_demo123",
+    assessmentStatus: "pending",
+  }));
+
+  const response = await GET(
+    new Request(
+      `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}?email=${encodeURIComponent(issued.email)}`,
+    ),
+    { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
+  );
+
+  assert.equal(response.status, 401);
 });

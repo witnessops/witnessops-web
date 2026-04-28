@@ -4,6 +4,7 @@ import {
   amendClaimantScope,
   ClaimantActionError,
 } from "@/lib/server/claimant-actions";
+import { isClaimantSessionAuthorized } from "@/lib/server/claimant-session";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,13 @@ export async function POST(request: Request, { params }: RouteContext) {
   const reason = typeof body.reason === "string" ? body.reason : "";
   const amendedScope =
     typeof body.amendedScope === "string" ? body.amendedScope : "";
+
+  if (!email) {
+    return invalid("email is required.", 400);
+  }
+  if (!isClaimantSessionAuthorized(request, { issuanceId, email })) {
+    return invalid("Claimant session is required.", 401);
+  }
 
   try {
     const result = await amendClaimantScope({

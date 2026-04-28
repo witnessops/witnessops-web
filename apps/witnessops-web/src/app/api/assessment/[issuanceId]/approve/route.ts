@@ -4,6 +4,7 @@ import {
   scopeApprovalRequestSchema,
   scopeApprovalResponseSchema,
 } from "@/lib/token-contract";
+import { isClaimantSessionAuthorized } from "@/lib/server/claimant-session";
 import { approveScopeAndStartRecon } from "@/lib/server/token-issuance";
 
 export const runtime = "nodejs";
@@ -28,6 +29,15 @@ export async function POST(
   const parsed = scopeApprovalRequestSchema.safeParse(body);
   if (!parsed.success) {
     return invalid("email is required.", 400);
+  }
+
+  if (
+    !isClaimantSessionAuthorized(request, {
+      issuanceId,
+      email: parsed.data.email,
+    })
+  ) {
+    return invalid("Claimant session is required.", 401);
   }
 
   try {

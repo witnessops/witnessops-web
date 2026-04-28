@@ -72,7 +72,7 @@ test("review request route issues a verification email", async () => {
   );
   assert.match(mailRaw, /^X-WitnessOps-Message-Class: transactional$/m);
   assert.match(mailRaw, /^Token:\s+\S+$/m);
-  assert.match(mailRaw, /https:\/\/witnessops\.com\/api\/verify-token\?/);
+  assert.match(mailRaw, /https:\/\/witnessops\.com\/verify-token\?/);
 });
 
 test("review request route redacts upstream issuance errors", async () => {
