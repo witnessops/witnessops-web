@@ -38,14 +38,14 @@ export function HeroShell({
 }: HeroShellProps) {
   const heroVisual = assetFoundryVisuals.homepageHero;
   const sectionSpacingClass = trustBar.enabled
-    ? "pt-9 md:pt-11 pb-7 sm:pb-9"
-    : "pt-9 md:pt-11 pb-5 sm:pb-6";
+    ? "pb-7 sm:pb-9 md:pt-24"
+    : "pb-5 sm:pb-6 md:pt-24";
 
   return (
-    <section className={`relative bg-surface-bg ${sectionSpacingClass} overflow-hidden`}>
+    <section className={`relative isolate bg-surface-bg ${sectionSpacingClass} overflow-hidden`}>
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[390px] select-none overflow-hidden md:hidden"
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[360px] select-none overflow-hidden md:hidden"
       >
         <Image
           src={heroVisual.src}
@@ -53,14 +53,13 @@ export function HeroShell({
           fill
           priority
           sizes="100vw"
-          className="absolute inset-0 h-full w-full translate-x-[10%] scale-[1.38] object-cover object-[90%_center] opacity-[0.34] brightness-[0.5] saturate-[0.62] contrast-[0.76]"
+          className="absolute inset-0 h-full w-full -translate-x-[8%] scale-[1.55] object-cover object-[78%_center] opacity-[0.76] brightness-[0.82] saturate-[0.95] contrast-[1.02]"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,3,4,0.08),rgba(3,3,4,0.38)_42%,rgba(3,3,4,0.94)_100%),linear-gradient(90deg,rgba(3,3,4,0.88),rgba(3,3,4,0.3)_52%,rgba(3,3,4,0.5))]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,3,4,0)_0%,rgba(3,3,4,0.08)_34%,rgba(3,3,4,0.68)_78%,rgba(3,3,4,1)_100%),linear-gradient(90deg,rgba(3,3,4,1)_0%,rgba(3,3,4,0.86)_18%,rgba(3,3,4,0.18)_54%,rgba(3,3,4,0.2)_100%)]" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-[1200px] px-6">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_minmax(0,420px)] gap-7 md:gap-9 lg:gap-10 items-start">
-          {/* Left column: program header */}
+      <div className="relative z-10 mx-auto max-w-[1180px] px-6">
+        <div className="grid grid-cols-1 items-start gap-9 pt-[330px] md:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] md:items-center md:gap-11 md:pt-0 lg:grid-cols-[minmax(0,1fr)_480px] lg:gap-16">
           <HeroCopy
             eyebrow={eyebrow}
             title={title}
@@ -72,21 +71,7 @@ export function HeroShell({
             proofBadges={proofBadges}
             microcopy={microcopy}
           />
-
-          <div className="relative hidden min-h-[320px] w-full select-none overflow-hidden border border-surface-border-strong bg-black md:block lg:min-h-[360px]">
-            <Image
-              src={heroVisual.src}
-              alt={heroVisual.alt}
-              fill
-              priority
-              sizes="(min-width: 1024px) 420px, (min-width: 768px) 36vw, 0px"
-              className="absolute inset-0 h-full w-full object-cover object-[68%_center] opacity-[0.62] brightness-[0.64] saturate-[0.72] contrast-[0.96]"
-            />
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-[radial-gradient(circle_at_74%_48%,rgba(242,122,61,0.11),transparent_34%),linear-gradient(90deg,rgba(3,3,4,0.82),rgba(3,3,4,0.28)_54%,rgba(3,3,4,0.58))]"
-            />
-          </div>
+          <HeroReceiptPreview imageSrc={heroVisual.src} />
         </div>
 
         {trustBar.enabled && (
@@ -108,5 +93,58 @@ export function HeroShell({
         )}
       </div>
     </section>
+  );
+}
+
+function HeroReceiptPreview({ imageSrc }: { imageSrc: string }) {
+  const rows = [
+    ["Workflow", "AI agent action"],
+    ["Authority", "Approval boundary recorded"],
+    ["Evidence", "Manifest captured"],
+    ["Verifier", "Offline check available"],
+    ["Unproven", "Declared, not hidden"],
+  ];
+
+  return (
+    <div className="relative hidden min-h-[420px] min-w-0 select-none md:block">
+      <div
+        aria-hidden="true"
+        className="absolute inset-y-0 left-0 right-[-8vw] overflow-hidden [mask-image:radial-gradient(ellipse_at_58%_50%,black_0%,black_54%,transparent_78%)]"
+      >
+        <Image
+          src={imageSrc}
+          alt=""
+          fill
+          priority
+          sizes="52vw"
+          className="absolute inset-0 h-full w-full object-cover object-[78%_center] opacity-[0.5] brightness-[0.72] saturate-[0.86] contrast-[0.9] [mask-image:linear-gradient(90deg,transparent_0%,black_30%,black_84%,transparent_100%)]"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,3,4,0.92),rgba(3,3,4,0.22)_45%,rgba(3,3,4,0.72)_100%),linear-gradient(180deg,rgba(3,3,4,0.08),rgba(3,3,4,0.92)_100%)]" />
+      </div>
+
+      <div className="relative ml-auto mt-10 max-w-[420px] rounded-lg border border-white/[0.14] bg-[linear-gradient(180deg,rgba(255,255,255,0.065),rgba(255,255,255,0.025))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur">
+        <p className="mb-4 font-mono text-xs uppercase tracking-[0.12em] text-white/50">
+          Sample verifier result
+        </p>
+        <div className="mb-6 flex items-center gap-3 text-sm font-semibold text-white">
+          <span
+            aria-hidden="true"
+            className="h-2.5 w-2.5 rounded-full bg-brand-accent shadow-[0_0_20px_rgba(255,107,53,0.75)]"
+          />
+          Proof run complete
+        </div>
+        <dl className="grid gap-3">
+          {rows.map(([label, value]) => (
+            <div
+              key={label}
+              className="flex justify-between gap-6 border-t border-white/[0.09] pt-3"
+            >
+              <dt className="text-[13px] text-white/[0.52]">{label}</dt>
+              <dd className="m-0 text-right text-[13px] text-white/[0.88]">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
   );
 }

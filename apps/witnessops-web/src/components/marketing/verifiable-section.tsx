@@ -1,8 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
-import { assetFoundryVisuals } from "@/lib/asset-foundry-visuals";
 
 interface VerifiableItem {
   title: string;
@@ -38,7 +36,6 @@ export function VerifiableSection({
   cta,
   ctas,
 }: VerifiableSectionProps) {
-  const proofVisual = assetFoundryVisuals.proofBundleReceipt;
   const primaryAction = ctas?.length ? ctas[0] : cta;
   const supportingLink = ctas?.length
     ? (ctas.find((entry) => entry.variant === "ghost") ?? ctas[1])
@@ -46,17 +43,7 @@ export function VerifiableSection({
 
   return (
     <SectionShell id={id} spacing="compact" className="border-b border-surface-border">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-start">
-        <figure className="relative aspect-[16/9] overflow-hidden border border-surface-border-strong bg-black lg:aspect-[5/4]">
-          <Image
-            src={proofVisual.src}
-            alt={proofVisual.alt}
-            fill
-            sizes="(min-width: 1024px) 38vw, 100vw"
-            className="object-cover object-center opacity-[0.9] brightness-[0.82] saturate-[0.86] scale-[1.55] -translate-x-[18%]"
-          />
-        </figure>
-
+      <div className="max-w-[920px]">
         <div>
           <p className="kb-section-tag mb-4">WHAT IS VERIFIABLE TODAY</p>
           <h2 className="mb-4 max-w-[36ch] text-2xl font-semibold leading-[1.2] tracking-[-0.005em] text-text-primary md:text-3xl">

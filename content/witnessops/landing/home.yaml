@@ -40,14 +40,14 @@ navbar:
     - label: "Support"
       href: "/support"
   cta:
-    label: "Request one proof run"
+    label: "Submit proof run"
     href: "/review/request"
     variant: "primary"
 
 hero:
   eyebrow: "AI Agent Action Proof Run"
   title: "When an AI agent acts, someone will ask what happened."
-  body: "WitnessOps helps you answer with one bounded proof run: what was approved, what ran, what evidence survived, what the verifier checked, and what remains unproven."
+  body: "WitnessOps turns agent activity into a bounded proof run: what was approved, what executed, what evidence survived, what the verifier checked, and what remains unproven."
   ai_note:
     title: "What the first run does"
     body:
@@ -56,11 +56,11 @@ hero:
     microcopy: "Not ready to submit a workflow? Inspect the public sample first and see the receipt shape, verifier result, limits, and challenge path."
   supporting_points: []
   primary_cta:
-    label: "Request one proof run"
+    label: "Submit proof run"
     href: "/review/request"
     variant: "primary"
   secondary_cta:
-    label: "View sample proof run"
+    label: "Inspect sample receipt"
     href: "/review/sample-cases/ai-agent-action-proof-run"
     variant: "secondary"
   proof_badges: []
