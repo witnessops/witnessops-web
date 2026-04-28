@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { clearTokenStore } from "@/lib/server/token-store";
+import { CLAIMANT_SESSION_COOKIE_NAME } from "@/lib/server/claimant-session";
 
 import { POST as engage } from "../../../engage/route";
 import { POST as verifyToken } from "../../../verify-token/route";
@@ -62,7 +63,13 @@ async function issueVerifiedToken(baseDir: string) {
   );
 
   assert.equal(verified.status, 200);
-  return { issuanceId: issuance.issuanceId, email: issuance.email };
+  const setCookie = verified.headers.get("set-cookie") ?? "";
+  assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
+  return {
+    issuanceId: issuance.issuanceId,
+    email: issuance.email,
+    sessionCookie: setCookie.split(";")[0]!,
+  };
 }
 
 afterEach(async () => {
@@ -109,7 +116,10 @@ test("approval route captures explicit approval and hands off to control plane o
           approverName: "Verified Operator",
           approvalNote: "Approved for passive-only recon.",
         }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: issued.sessionCookie,
+        },
       },
     ),
     { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
@@ -156,7 +166,10 @@ test("approval route captures explicit approval and hands off to control plane o
         body: JSON.stringify({
           email: issued.email,
         }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: issued.sessionCookie,
+        },
       },
     ),
     { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
@@ -172,6 +185,29 @@ test("approval route captures explicit approval and hands off to control plane o
   assert.equal(secondPayload.assessmentRunId, "run_demo123");
   assert.equal(secondPayload.assessmentStatus, "pending");
   assert.equal(fetchCalls.length, 1);
+});
+
+test("approval route rejects issuance and email without claimant session", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-approval-"));
+  const issued = await issueVerifiedToken(baseDir);
+
+  const response = await POST(
+    new Request(
+      `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}/approve`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          email: issued.email,
+          approverName: "Verified Operator",
+          approvalNote: "Approved for passive-only recon.",
+        }),
+        headers: { "Content-Type": "application/json" },
+      },
+    ),
+    { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
+  );
+
+  assert.equal(response.status, 401);
 });
 
 test("approval route requires an email", async () => {

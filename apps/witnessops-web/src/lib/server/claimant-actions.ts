@@ -10,9 +10,9 @@
  *  - disagree : the claimant disputes the proposed scope. Terminal
  *               until re-opened. Approval is blocked.
  *
- * Auth model: claimant actions reuse the existing email-match check that
- * `approveScopeAndStartRecon` uses — the caller must present the email
- * recorded on the issuance.
+ * Route callers must bind the request to a claimant session before invoking
+ * these service functions. This module still enforces issuance/email
+ * consistency as a store-level guard.
  *
  * Boundary: this module ONLY writes the local intake/issuance store. It
  * never writes delivered, acknowledged, or completed truth — those are

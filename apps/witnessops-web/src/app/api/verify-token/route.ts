@@ -5,6 +5,11 @@ import {
   type VerifyTokenResponse,
   verifyTokenResponseSchema,
 } from "@/lib/token-contract";
+import {
+  CLAIMANT_SESSION_COOKIE_NAME,
+  claimantSessionCookieOptions,
+  createClaimantSessionCookieValue,
+} from "@/lib/server/claimant-session";
 import { verifyIssuedToken } from "@/lib/server/token-issuance";
 
 export const runtime = "nodejs";
@@ -43,7 +48,16 @@ export async function POST(request: Request) {
   try {
     const result = await handleVerification(await request.json());
     if (result instanceof NextResponse) return result;
-    return NextResponse.json(result);
+    const response = NextResponse.json(result);
+    response.cookies.set(
+      CLAIMANT_SESSION_COOKIE_NAME,
+      createClaimantSessionCookieValue({
+        issuanceId: result.issuanceId,
+        email: result.email,
+      }),
+      claimantSessionCookieOptions(request.url),
+    );
+    return response;
   } catch {
     return invalidRequest("Invalid request body.");
   }
@@ -52,30 +66,14 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const publicOrigin = readPublicOrigin(request);
-  const payload = {
-    issuanceId: searchParams.get("issuanceId") ?? "",
-    email: searchParams.get("email") ?? "",
-    token: searchParams.get("token") ?? "",
-  };
+  const confirmationUrl = new URL("/verify-token", publicOrigin);
 
-  const result = await handleVerification(payload);
-  if (result instanceof NextResponse) return result;
-
-  if (result.channel === "support") {
-    const supportUrl = new URL("/support", publicOrigin);
-    supportUrl.searchParams.set("verified", "1");
-    supportUrl.searchParams.set("intakeId", result.intakeId);
-    if (result.threadId) {
-      supportUrl.searchParams.set("threadId", result.threadId);
+  for (const key of ["issuanceId", "email", "token"]) {
+    const value = searchParams.get(key);
+    if (value) {
+      confirmationUrl.searchParams.set(key, value);
     }
-    supportUrl.searchParams.set("email", result.email);
-    return NextResponse.redirect(supportUrl, { status: 302 });
   }
 
-  const assessmentUrl = new URL(
-    `/assessment/${encodeURIComponent(result.issuanceId)}`,
-    publicOrigin,
-  );
-  assessmentUrl.searchParams.set("email", result.email);
-  return NextResponse.redirect(assessmentUrl, { status: 302 });
+  return NextResponse.redirect(confirmationUrl, { status: 302 });
 }

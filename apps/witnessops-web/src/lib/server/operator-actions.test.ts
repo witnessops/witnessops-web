@@ -20,6 +20,7 @@ import {
   type TokenIssuanceRecord,
   updateIntake,
 } from "./token-store";
+import { CLAIMANT_SESSION_COOKIE_NAME } from "./claimant-session";
 
 import { POST as engage } from "../../app/api/engage/route";
 import { POST as verifyToken } from "../../app/api/verify-token/route";
@@ -72,7 +73,7 @@ async function issueVerifiedToken(baseDir: string) {
   const token = mailRaw.match(/^Token:\s+(.+)$/m)?.[1];
   assert.ok(token);
 
-  await verifyToken(
+  const verified = await verifyToken(
     new Request("https://witnessops.com/api/verify-token", {
       method: "POST",
       body: JSON.stringify({
@@ -84,12 +85,24 @@ async function issueVerifiedToken(baseDir: string) {
     }),
   );
 
+  assert.equal(verified.status, 200);
+  const setCookie = verified.headers.get("set-cookie") ?? "";
+  assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
+
   // intakeId is on the issuance record after verification
   const record = await getIssuanceById(issuance.issuanceId);
   return {
     issuanceId: issuance.issuanceId,
     email: issuance.email,
     intakeId: record!.intakeId!,
+    sessionCookie: setCookie.split(";")[0]!,
+  };
+}
+
+function jsonHeaders(sessionCookie: string): HeadersInit {
+  return {
+    "Content-Type": "application/json",
+    Cookie: sessionCookie,
   };
 }
 
@@ -306,7 +319,7 @@ test("approve route is blocked after operator reject", async () => {
         approverName: "Verified Operator",
         approvalNote: "Approved",
       }),
-      headers: { "Content-Type": "application/json" },
+      headers: jsonHeaders(issued.sessionCookie),
     }),
     { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
   );
@@ -350,7 +363,7 @@ test("approve route is NOT blocked by a clarification request alone", async () =
           approverName: "Verified Operator",
           approvalNote: "Approved",
         }),
-        headers: { "Content-Type": "application/json" },
+        headers: jsonHeaders(issued.sessionCookie),
       }),
       { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
     );
@@ -512,7 +525,7 @@ test("WEB-005: end-to-end reject -> rescind -> approve succeeds", async () => {
           approverName: "Verified Operator",
           approvalNote: "Approved",
         }),
-        headers: { "Content-Type": "application/json" },
+        headers: jsonHeaders(issued.sessionCookie),
       }),
       { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
     );

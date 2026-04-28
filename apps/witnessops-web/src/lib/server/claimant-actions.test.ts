@@ -19,6 +19,7 @@ import {
   getIssuanceById,
   type TokenIssuanceRecord,
 } from "./token-store";
+import { CLAIMANT_SESSION_COOKIE_NAME } from "./claimant-session";
 
 import { POST as engage } from "../../app/api/engage/route";
 import { POST as verifyToken } from "../../app/api/verify-token/route";
@@ -73,7 +74,7 @@ async function issueVerifiedToken(baseDir: string) {
   const token = mailRaw.match(/^Token:\s+(.+)$/m)?.[1];
   assert.ok(token);
 
-  await verifyToken(
+  const verified = await verifyToken(
     new Request("https://witnessops.com/api/verify-token", {
       method: "POST",
       body: JSON.stringify({
@@ -85,7 +86,21 @@ async function issueVerifiedToken(baseDir: string) {
     }),
   );
 
-  return { issuanceId: issuance.issuanceId, email: issuance.email };
+  assert.equal(verified.status, 200);
+  const setCookie = verified.headers.get("set-cookie") ?? "";
+  assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
+  return {
+    issuanceId: issuance.issuanceId,
+    email: issuance.email,
+    sessionCookie: setCookie.split(";")[0]!,
+  };
+}
+
+function jsonHeaders(sessionCookie: string): HeadersInit {
+  return {
+    "Content-Type": "application/json",
+    Cookie: sessionCookie,
+  };
 }
 
 afterEach(async () => {
@@ -246,6 +261,24 @@ test("retract requires reason", async () => {
   );
 });
 
+test("claimant action route rejects issuance and email without claimant session", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-claimant-route-auth-"));
+  const issued = await issueVerifiedToken(baseDir);
+
+  const response = await retract(
+    new Request("https://witnessops.com/api/assessment/x/retract", {
+      method: "POST",
+      body: JSON.stringify({ email: issued.email, reason: "Out" }),
+      headers: { "Content-Type": "application/json" },
+    }),
+    { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
+  );
+
+  assert.equal(response.status, 401);
+  const stored = await getIssuanceById(issued.issuanceId);
+  assert.equal(stored?.claimantAction ?? null, null);
+});
+
 // ---------------------------------------------------------------------------
 // Approve gate (the critical invariant)
 // ---------------------------------------------------------------------------
@@ -258,7 +291,7 @@ test("approve route is blocked after retract", async () => {
     new Request("https://witnessops.com/api/assessment/x/retract", {
       method: "POST",
       body: JSON.stringify({ email: issued.email, reason: "Out" }),
-      headers: { "Content-Type": "application/json" },
+      headers: jsonHeaders(issued.sessionCookie),
     }),
     { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
   );
@@ -272,7 +305,7 @@ test("approve route is blocked after retract", async () => {
         approverName: "Verified Operator",
         approvalNote: "Approved",
       }),
-      headers: { "Content-Type": "application/json" },
+      headers: jsonHeaders(issued.sessionCookie),
     }),
     { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
   );
@@ -289,7 +322,7 @@ test("approve route is blocked after disagree", async () => {
     new Request("https://witnessops.com/api/assessment/x/disagree", {
       method: "POST",
       body: JSON.stringify({ email: issued.email, reason: "Wrong scope" }),
-      headers: { "Content-Type": "application/json" },
+      headers: jsonHeaders(issued.sessionCookie),
     }),
     { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
   );
@@ -302,7 +335,7 @@ test("approve route is blocked after disagree", async () => {
         approverName: "Verified Operator",
         approvalNote: "Approved",
       }),
-      headers: { "Content-Type": "application/json" },
+      headers: jsonHeaders(issued.sessionCookie),
     }),
     { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
   );
@@ -343,7 +376,7 @@ test("approve route is NOT blocked after amend", async () => {
           reason: "Tightening",
           amendedScope: "Passive-only on www.example.com",
         }),
-        headers: { "Content-Type": "application/json" },
+        headers: jsonHeaders(issued.sessionCookie),
       }),
       { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
     );
@@ -356,7 +389,7 @@ test("approve route is NOT blocked after amend", async () => {
           approverName: "Verified Operator",
           approvalNote: "Approved",
         }),
-        headers: { "Content-Type": "application/json" },
+        headers: jsonHeaders(issued.sessionCookie),
       }),
       { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
     );
@@ -396,7 +429,7 @@ test("claimant actions cannot be taken after approval", async () => {
           approverName: "Verified Operator",
           approvalNote: "Approved",
         }),
-        headers: { "Content-Type": "application/json" },
+        headers: jsonHeaders(issued.sessionCookie),
       }),
       { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
     );
@@ -600,7 +633,7 @@ test("WEB-005: end-to-end retract -> reopen -> approve succeeds", async () => {
           approverName: "Verified Operator",
           approvalNote: "Approved",
         }),
-        headers: { "Content-Type": "application/json" },
+        headers: jsonHeaders(issued.sessionCookie),
       }),
       { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
     );
@@ -625,7 +658,7 @@ test("WEB-005: reopen route returns 200 on retract clearance", async () => {
     new Request("https://witnessops.com/api/assessment/x/reopen", {
       method: "POST",
       body: JSON.stringify({ email: issued.email, reason: "Changed mind" }),
-      headers: { "Content-Type": "application/json" },
+      headers: jsonHeaders(issued.sessionCookie),
     }),
     { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
   );

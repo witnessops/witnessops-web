@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getIssuanceById, updateIssuance } from "@/lib/server/token-store";
 import { getAssessmentStatus } from "@/lib/server/assessment-client";
+import { isClaimantSessionAuthorized } from "@/lib/server/claimant-session";
 import { normalizedEmailSchema } from "@/lib/token-contract";
 
 export const runtime = "nodejs";
@@ -45,6 +46,18 @@ export async function GET(
 
   if (record.email !== emailParsed.data) {
     return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  }
+
+  if (
+    !isClaimantSessionAuthorized(request, {
+      issuanceId,
+      email: emailParsed.data,
+    })
+  ) {
+    return NextResponse.json(
+      { ok: false, error: "Claimant session is required." },
+      { status: 401 },
+    );
   }
 
   // Base response from stored record
