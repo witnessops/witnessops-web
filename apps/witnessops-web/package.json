@@ -6,6 +6,7 @@
     "dev": "next dev --port 3001",
     "build": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\" && next build",
     "start": "next start",
+    "start:ui-proof": "next start --hostname 127.0.0.1 --port 3001",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "TSX_TSCONFIG_PATH=tsconfig.test.json node --import tsx --test 'src/**/*.test.ts' 'src/**/*.test.tsx'",

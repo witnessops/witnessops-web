@@ -16,6 +16,7 @@ dist/
 tmp/
 out/
 output/
+/artifacts/ui-proof/
 
 # Screenshot / audit artifacts
 audit-*.png
