@@ -31,16 +31,23 @@ export function HeroCopy({
     <div className="min-w-0 max-w-[640px]">
       <p className="kb-section-tag mb-4 md:mb-5">{eyebrow}</p>
 
-      <h1 className="mb-5 max-w-[18ch] text-[34px] font-semibold leading-[1.05] tracking-[-0.02em] text-balance text-text-primary sm:text-[38px] md:text-[46px] md:leading-[1] lg:text-[56px]">
+      <h1
+        data-ui-proof-id="homepage-hero-headline"
+        className="mb-5 max-w-[18ch] text-[34px] font-semibold leading-[1.05] tracking-[-0.02em] text-balance text-text-primary sm:text-[38px] md:text-[46px] md:leading-[1] lg:text-[56px]"
+      >
         {title}
       </h1>
 
-      <p className="max-w-[54ch] text-[17px] leading-8 text-text-secondary md:text-lg">
+      <p
+        data-ui-proof-id="homepage-hero-body"
+        className="max-w-[54ch] text-[17px] leading-8 text-text-secondary md:text-lg"
+      >
         {body}
       </p>
 
       <div className="mt-7 flex flex-wrap items-center gap-3 sm:gap-4">
         <CtaButton
+          uiProofId="homepage-hero-primary-cta"
           label={primaryCta.label}
           href={primaryCta.href}
           variant={(primaryCta.variant as "primary" | "secondary" | "ghost") ?? "primary"}

@@ -9,6 +9,7 @@ interface CtaButtonProps {
   variant: Variant;
   className?: string;
   onClick?: MouseEventHandler<HTMLAnchorElement>;
+  uiProofId?: string;
 }
 
 const variantStyles: Record<Variant, string> = {
@@ -26,6 +27,7 @@ export function CtaButton({
   variant,
   className,
   onClick,
+  uiProofId,
 }: CtaButtonProps) {
   const base =
     "inline-flex items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
@@ -39,6 +41,7 @@ export function CtaButton({
         target="_blank"
         rel="noopener noreferrer"
         onClick={onClick}
+        data-ui-proof-id={uiProofId}
       >
         {label}
       </a>
@@ -46,7 +49,12 @@ export function CtaButton({
   }
 
   return (
-    <Link href={href} className={styles} onClick={onClick}>
+    <Link
+      href={href}
+      className={styles}
+      onClick={onClick}
+      data-ui-proof-id={uiProofId}
+    >
       {label}
     </Link>
   );
