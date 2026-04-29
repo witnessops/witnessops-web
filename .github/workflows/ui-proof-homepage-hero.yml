@@ -1,0 +1,115 @@
+name: Homepage Hero UI Proof
+
+on:
+  pull_request:
+    paths:
+      - "apps/witnessops-web/src/components/hero/**"
+      - "apps/witnessops-web/src/components/marketing/hero.tsx"
+      - "apps/witnessops-web/src/components/shared/cta-button.tsx"
+      - "apps/witnessops-web/src/app/page.tsx"
+      - "apps/witnessops-web/src/app/globals.css"
+      - "apps/witnessops-web/src/lib/asset-foundry-visuals.ts"
+      - "apps/witnessops-web/public/visuals/**"
+      - "content/witnessops/landing/home.yaml"
+      - "tests/ui-proof/**"
+      - "playwright.config.ts"
+      - "package.json"
+      - "apps/witnessops-web/package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/ui-proof-homepage-hero.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: homepage-hero-ui-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  homepage-hero-ui-proof:
+    name: Homepage hero UI proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Build witnessops-web
+        run: pnpm --filter witnessops-web build
+
+      - name: Run homepage hero UI proof
+        id: ui_proof
+        continue-on-error: true
+        run: pnpm ui-proof:hero:ci
+
+      - name: Require UI proof report
+        run: test -f artifacts/ui-proof/homepage-hero/latest.json
+
+      - name: Summarize UI proof report
+        run: |
+          node <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          const fs = require("fs");
+          const reportPath = "artifacts/ui-proof/homepage-hero/latest.json";
+          const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+          console.log("## Homepage Hero UI Proof");
+          console.log("");
+          console.log(`- Status: \`${report.status}\``);
+          console.log(`- Proof type: \`${report.proofType}\``);
+          console.log(`- Schema: \`${report.schemaVersion}\``);
+          console.log(`- Route: \`${report.route}\``);
+          console.log(`- Commit: \`${report.commitSha}\``);
+          console.log(`- Generated: \`${report.generatedAt}\``);
+          console.log(`- Browser: \`${report.browser}\``);
+          console.log(`- Asset: \`${report.asset.assetId}\``);
+          console.log("");
+          console.log("| Scenario | Severity | Status | Viewport | Failed checks |");
+          console.log("| --- | --- | --- | --- | --- |");
+          for (const scenario of report.scenarios) {
+            const failedChecks = scenario.checks
+              .filter((check) => check.status === "fail")
+              .map((check) => check.name)
+              .join(", ");
+            console.log(
+              `| ${scenario.scenario.name} | ${scenario.scenario.severity} | ${scenario.status} | ${scenario.scenario.viewport.width}×${scenario.scenario.viewport.height} | ${failedChecks || "—"} |`,
+            );
+          }
+          console.log("");
+          console.log(`Semantic proof step outcome: \`${process.env.UI_PROOF_OUTCOME}\``);
+          if (process.env.UI_PROOF_OUTCOME !== "success") {
+            console.log("");
+            console.log("> Semantic UI proof failures are warn-only in V1. Build, runner startup, and report creation remain blocking.");
+          }
+          NODE
+        env:
+          UI_PROOF_OUTCOME: ${{ steps.ui_proof.outcome }}
+
+      - name: Upload UI proof artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: homepage-hero-ui-proof
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            artifacts/ui-proof/homepage-hero/latest.json
+            artifacts/ui-proof/homepage-hero/grid.png
+            artifacts/ui-proof/homepage-hero/screenshots/**
+            artifacts/ui-proof/playwright-report/**
+            artifacts/ui-proof/test-results/**
