@@ -80,6 +80,60 @@ test("verify route distinguishes malformed request bodies", async () => {
   assert.equal(payload.message, "Receipt payload is not valid JSON.");
 });
 
+test("verify route rejects duplicate top-level receipt fields before verifier verdict", async () => {
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body:
+        '{"receipt":{"schema_version":"1.0.0","proof_stage":"PV","proof_stage":"QV","receipt_id":"rcpt_duplicate_stage_001"}}',
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    failureClass?: string;
+    message?: string;
+    verdict?: string;
+  };
+  assert.equal(payload.ok, false);
+  assert.equal(payload.failureClass, "FAILURE_INPUT_MALFORMED");
+  assert.equal(
+    payload.message,
+    "request body contains duplicate JSON object keys.",
+  );
+  assert.equal(payload.verdict, undefined);
+});
+
+test("verify route rejects duplicate nested receipt fields before verifier verdict", async () => {
+  const ambiguousReceipt =
+    '{"schema_version":"1.0.0","proof_stage":"PV","receipt_id":"rcpt_duplicate_nested_001","integrity":{"record_digest":{"algorithm":"sha256","algorithm":"blake3","value":"abc"}}}';
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receipt: ambiguousReceipt }),
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    failureClass?: string;
+    message?: string;
+    verdict?: string;
+  };
+  assert.equal(payload.ok, false);
+  assert.equal(payload.failureClass, "FAILURE_INPUT_MALFORMED");
+  assert.equal(
+    payload.message,
+    "Receipt payload contains duplicate JSON object keys.",
+  );
+  assert.equal(payload.verdict, undefined);
+});
+
 test("verify route keeps field-level messages for structurally valid receipt objects", async () => {
   const response = await POST(
     new Request("https://witnessops.com/api/verify", {
