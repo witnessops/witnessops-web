@@ -42,8 +42,12 @@ export function HeroShell({
     : "pb-5 sm:pb-6 md:pt-24";
 
   return (
-    <section className={`relative isolate bg-surface-bg ${sectionSpacingClass} overflow-hidden`}>
+    <section
+      data-ui-proof-id="homepage-hero"
+      className={`relative isolate bg-surface-bg ${sectionSpacingClass} overflow-hidden`}
+    >
       <div
+        data-ui-proof-id="homepage-hero-underlay"
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[360px] select-none overflow-hidden md:hidden"
       >
