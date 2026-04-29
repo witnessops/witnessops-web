@@ -1,0 +1,684 @@
+{
+  "schemaVersion": "ui-proof-report.v1",
+  "proofType": "witnessops.web.homepage-hero.mobile",
+  "status": "pass",
+  "repo": "witnessops/witnessops-web",
+  "route": "/",
+  "generatedAt": "2026-04-29T22:11:43.804Z",
+  "commitSha": "cc0008a0e2b0e67ad29444ef37d606b29dbe60de",
+  "browser": "chromium",
+  "asset": {
+    "assetId": "hero_home_proof_execution_surface",
+    "src": "/visuals/asset-foundry/hero_home_proof_execution_surface__hero_1920x640__plate.png",
+    "width": 1920,
+    "height": 640,
+    "sourcePath": "WITNESSOPS_ASSET_SYSTEM_v3_OPERATOR_GRADE_20260427/assets/image_plates/hero_1920x640/hero_home_proof_execution_surface__hero_1920x640__plate.png",
+    "sourceRecord": "witnessops-asset-foundry/asset_system/source_manifests/retired_v3_plate_replacements.json",
+    "sourceStatus": "retired accepted v3 image plate reused as decorative website atmosphere",
+    "sourceCommit": "4d516b3cfc0a6abf20e7ec7c24608fb73e77f5bf",
+    "sourceSha256": "5ee2f957b75ce86c8dc92b6892c0a49d046569f58549bd5a010158b3ddfc49be"
+  },
+  "artifacts": {
+    "report": "artifacts/ui-proof/homepage-hero/latest.json",
+    "grid": "artifacts/ui-proof/homepage-hero/grid.png",
+    "screenshotsDir": "artifacts/ui-proof/homepage-hero/screenshots"
+  },
+  "scenarios": [
+    {
+      "scenario": {
+        "name": "mobile-320-light-default",
+        "viewport": {
+          "width": 320,
+          "height": 740
+        },
+        "colorScheme": "light",
+        "reducedMotion": "no-preference",
+        "contentVariant": "default",
+        "deviceScaleFactor": 2,
+        "severity": "critical"
+      },
+      "status": "pass",
+      "checks": [
+        {
+          "name": "homepage-hero exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-underlay exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-headline exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-body exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-primary-cta exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "headline visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "body visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "primary CTA visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "primary CTA width >= 44 CSS px",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 44",
+          "actual": 153.734375
+        },
+        {
+          "name": "primary CTA height >= 44 CSS px",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 44",
+          "actual": 44
+        },
+        {
+          "name": "no horizontal scroll",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "scrollWidth <= clientWidth + 1",
+          "actual": "320/320"
+        },
+        {
+          "name": "underlay pointer-events is none",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "none",
+          "actual": "none"
+        },
+        {
+          "name": "reduced-motion animation risk absent",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "not applicable unless reduced motion is active",
+          "actual": 0
+        },
+        {
+          "name": "CLS under 0.1",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "< 0.1",
+          "actual": 0
+        },
+        {
+          "name": "scenario screenshot emitted",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "screenshot file exists",
+          "actual": "artifacts/ui-proof/homepage-hero/screenshots/mobile-320-light-default.png"
+        }
+      ],
+      "metrics": {
+        "cls": 0,
+        "ctaWidth": 153.73,
+        "ctaHeight": 44,
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "activeAnimationCount": 0
+      },
+      "screenshotPath": "artifacts/ui-proof/homepage-hero/screenshots/mobile-320-light-default.png"
+    },
+    {
+      "scenario": {
+        "name": "mobile-360-dark-long-copy",
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "colorScheme": "dark",
+        "reducedMotion": "no-preference",
+        "contentVariant": "long",
+        "deviceScaleFactor": 2,
+        "severity": "critical"
+      },
+      "status": "pass",
+      "checks": [
+        {
+          "name": "homepage-hero exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-underlay exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-headline exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-body exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-primary-cta exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "headline visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "body visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "primary CTA visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "primary CTA width >= 44 CSS px",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 44",
+          "actual": 153.734375
+        },
+        {
+          "name": "primary CTA height >= 44 CSS px",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 44",
+          "actual": 44
+        },
+        {
+          "name": "no horizontal scroll",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "scrollWidth <= clientWidth + 1",
+          "actual": "360/360"
+        },
+        {
+          "name": "underlay pointer-events is none",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "none",
+          "actual": "none"
+        },
+        {
+          "name": "reduced-motion animation risk absent",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "not applicable unless reduced motion is active",
+          "actual": 0
+        },
+        {
+          "name": "CLS under 0.1",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "< 0.1",
+          "actual": 0
+        },
+        {
+          "name": "scenario screenshot emitted",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "screenshot file exists",
+          "actual": "artifacts/ui-proof/homepage-hero/screenshots/mobile-360-dark-long-copy.png"
+        }
+      ],
+      "metrics": {
+        "cls": 0,
+        "ctaWidth": 153.73,
+        "ctaHeight": 44,
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "activeAnimationCount": 0
+      },
+      "screenshotPath": "artifacts/ui-proof/homepage-hero/screenshots/mobile-360-dark-long-copy.png"
+    },
+    {
+      "scenario": {
+        "name": "mobile-390-light-reduced-motion",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "colorScheme": "light",
+        "reducedMotion": "reduce",
+        "contentVariant": "default",
+        "deviceScaleFactor": 3,
+        "severity": "critical"
+      },
+      "status": "pass",
+      "checks": [
+        {
+          "name": "homepage-hero exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-underlay exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-headline exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-body exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-primary-cta exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "headline visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "body visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "primary CTA visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "primary CTA width >= 44 CSS px",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 44",
+          "actual": 153.734375
+        },
+        {
+          "name": "primary CTA height >= 44 CSS px",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 44",
+          "actual": 44
+        },
+        {
+          "name": "no horizontal scroll",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "scrollWidth <= clientWidth + 1",
+          "actual": "390/390"
+        },
+        {
+          "name": "underlay pointer-events is none",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "none",
+          "actual": "none"
+        },
+        {
+          "name": "reduced-motion animation risk absent",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "0 active CSS animations inside homepage hero",
+          "actual": 0
+        },
+        {
+          "name": "CLS under 0.1",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "< 0.1",
+          "actual": 0
+        },
+        {
+          "name": "scenario screenshot emitted",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "screenshot file exists",
+          "actual": "artifacts/ui-proof/homepage-hero/screenshots/mobile-390-light-reduced-motion.png"
+        }
+      ],
+      "metrics": {
+        "cls": 0,
+        "ctaWidth": 153.73,
+        "ctaHeight": 44,
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "activeAnimationCount": 0
+      },
+      "screenshotPath": "artifacts/ui-proof/homepage-hero/screenshots/mobile-390-light-reduced-motion.png"
+    },
+    {
+      "scenario": {
+        "name": "mobile-430-dark-slow-asset",
+        "viewport": {
+          "width": 430,
+          "height": 932
+        },
+        "colorScheme": "dark",
+        "reducedMotion": "no-preference",
+        "contentVariant": "long",
+        "deviceScaleFactor": 3,
+        "assetMode": "delayed",
+        "severity": "critical"
+      },
+      "status": "pass",
+      "checks": [
+        {
+          "name": "homepage-hero exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-underlay exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-headline exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-body exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-primary-cta exists",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "headline visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "body visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "primary CTA visible",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "primary CTA width >= 44 CSS px",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 44",
+          "actual": 153.734375
+        },
+        {
+          "name": "primary CTA height >= 44 CSS px",
+          "status": "pass",
+          "severity": "critical",
+          "expected": ">= 44",
+          "actual": 44
+        },
+        {
+          "name": "no horizontal scroll",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "scrollWidth <= clientWidth + 1",
+          "actual": "430/430"
+        },
+        {
+          "name": "underlay pointer-events is none",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "none",
+          "actual": "none"
+        },
+        {
+          "name": "reduced-motion animation risk absent",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "not applicable unless reduced motion is active",
+          "actual": 0
+        },
+        {
+          "name": "CLS under 0.1",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "< 0.1",
+          "actual": 0
+        },
+        {
+          "name": "scenario screenshot emitted",
+          "status": "pass",
+          "severity": "critical",
+          "expected": "screenshot file exists",
+          "actual": "artifacts/ui-proof/homepage-hero/screenshots/mobile-430-dark-slow-asset.png"
+        }
+      ],
+      "metrics": {
+        "cls": 0,
+        "ctaWidth": 153.73,
+        "ctaHeight": 44,
+        "scrollWidth": 430,
+        "clientWidth": 430,
+        "activeAnimationCount": 0
+      },
+      "screenshotPath": "artifacts/ui-proof/homepage-hero/screenshots/mobile-430-dark-slow-asset.png"
+    },
+    {
+      "scenario": {
+        "name": "mobile-280-light-extreme",
+        "viewport": {
+          "width": 280,
+          "height": 653
+        },
+        "colorScheme": "light",
+        "reducedMotion": "reduce",
+        "contentVariant": "long",
+        "deviceScaleFactor": 1,
+        "severity": "warning"
+      },
+      "status": "pass",
+      "checks": [
+        {
+          "name": "homepage-hero exists",
+          "status": "pass",
+          "severity": "warning",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-underlay exists",
+          "status": "pass",
+          "severity": "warning",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-headline exists",
+          "status": "pass",
+          "severity": "warning",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-body exists",
+          "status": "pass",
+          "severity": "warning",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "homepage-hero-primary-cta exists",
+          "status": "pass",
+          "severity": "warning",
+          "expected": ">= 1",
+          "actual": 1
+        },
+        {
+          "name": "headline visible",
+          "status": "pass",
+          "severity": "warning",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "body visible",
+          "status": "pass",
+          "severity": "warning",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "primary CTA visible",
+          "status": "pass",
+          "severity": "warning",
+          "expected": "visible",
+          "actual": true
+        },
+        {
+          "name": "primary CTA width >= 44 CSS px",
+          "status": "pass",
+          "severity": "warning",
+          "expected": ">= 44",
+          "actual": 153.734375
+        },
+        {
+          "name": "primary CTA height >= 44 CSS px",
+          "status": "pass",
+          "severity": "warning",
+          "expected": ">= 44",
+          "actual": 44
+        },
+        {
+          "name": "no horizontal scroll",
+          "status": "pass",
+          "severity": "warning",
+          "expected": "scrollWidth <= clientWidth + 1",
+          "actual": "280/280"
+        },
+        {
+          "name": "underlay pointer-events is none",
+          "status": "pass",
+          "severity": "warning",
+          "expected": "none",
+          "actual": "none"
+        },
+        {
+          "name": "reduced-motion animation risk absent",
+          "status": "pass",
+          "severity": "warning",
+          "expected": "0 active CSS animations inside homepage hero",
+          "actual": 0
+        },
+        {
+          "name": "CLS under 0.1",
+          "status": "pass",
+          "severity": "warning",
+          "expected": "< 0.1",
+          "actual": 0
+        },
+        {
+          "name": "scenario screenshot emitted",
+          "status": "pass",
+          "severity": "warning",
+          "expected": "screenshot file exists",
+          "actual": "artifacts/ui-proof/homepage-hero/screenshots/mobile-280-light-extreme.png"
+        }
+      ],
+      "metrics": {
+        "cls": 0,
+        "ctaWidth": 153.73,
+        "ctaHeight": 44,
+        "scrollWidth": 280,
+        "clientWidth": 280,
+        "activeAnimationCount": 0
+      },
+      "screenshotPath": "artifacts/ui-proof/homepage-hero/screenshots/mobile-280-light-extreme.png"
+    }
+  ]
+}

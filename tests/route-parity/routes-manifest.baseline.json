@@ -393,6 +393,12 @@
       "namedRegex": "^/verify\\-token(?:/)?$"
     },
     {
+      "page": "/verify-ui",
+      "regex": "^/verify\\-ui(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/verify\\-ui(?:/)?$"
+    },
+    {
       "page": "/why-witnessops",
       "regex": "^/why\\-witnessops(?:/)?$",
       "routeKeys": {},
