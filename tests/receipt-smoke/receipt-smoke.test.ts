@@ -27,3 +27,15 @@ test("receipt-only verification rejects unsupported staged inputs", () => {
     assert.equal(result.failureClass, "FAILURE_INPUT_UNSUPPORTED");
   }
 });
+
+test("receipt-only verification rejects duplicate-key receipt JSON", () => {
+  const result = verifyReceiptPayload({
+    receipt:
+      '{"schema_version":"1.0.0","proof_stage":"PV","proof_stage":"QV","receipt_id":"rcpt_duplicate_stage_smoke"}',
+  });
+
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(result.failureClass, "FAILURE_INPUT_MALFORMED");
+  }
+});

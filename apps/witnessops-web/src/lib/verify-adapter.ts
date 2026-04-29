@@ -14,6 +14,7 @@ import type {
   VerifySuccessResponse,
   VerifyVerdict,
 } from "@/lib/verify-contract";
+import { findDuplicateJsonObjectKey } from "./json-ambiguity";
 
 const verifyRequestSchema = z.object({
   receipt: z.union([z.string().min(1), z.record(z.unknown())]),
@@ -74,6 +75,10 @@ function parseReceiptInput(
 ): Record<string, unknown> | VerifyFailureResponse {
   if (typeof receipt !== "string") {
     return receipt;
+  }
+
+  if (findDuplicateJsonObjectKey(receipt) !== null) {
+    return malformed("Receipt payload contains duplicate JSON object keys.");
   }
 
   try {
