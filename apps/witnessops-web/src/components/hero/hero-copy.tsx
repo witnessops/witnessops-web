@@ -51,13 +51,13 @@ export function HeroCopy({
           label={primaryCta.label}
           href={primaryCta.href}
           variant={(primaryCta.variant as "primary" | "secondary" | "ghost") ?? "primary"}
-          className="px-4 text-[13px] font-semibold sm:px-6 sm:text-sm"
+          className="min-h-[44px] px-4 text-[13px] font-semibold sm:px-6 sm:text-sm"
         />
         <CtaButton
           label={secondaryCta.label}
           href={secondaryCta.href}
           variant={(secondaryCta.variant as "primary" | "secondary" | "ghost") ?? "secondary"}
-          className="border-white/[0.14] bg-white/[0.04] px-4 text-[13px] text-white/[0.85] shadow-none hover:border-white/20 hover:bg-white/[0.06] hover:shadow-none sm:px-6 sm:text-sm"
+          className="min-h-[44px] border-white/[0.14] bg-white/[0.04] px-4 text-[13px] text-white/[0.85] shadow-none hover:border-white/20 hover:bg-white/[0.06] hover:shadow-none sm:px-6 sm:text-sm"
         />
       </div>
 
