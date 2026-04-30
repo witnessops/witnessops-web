@@ -36,7 +36,7 @@ const statusChips = [
 const verificationScope = [
   {
     title: "What this can show",
-    body: "The verifier checks the receipt itself: signature, timestamp, stage, and other receipt-level consistency checks.",
+    body: "The public verifier checks supported receipt JSON in receipt-first mode: schema, stage, signature fields, timestamp references, and receipt-level consistency checks.",
   },
   {
     title: "What this cannot show",
@@ -69,7 +69,8 @@ const firstRunSteps = [
 const resultSemantics = [
   {
     label: "Valid",
-    detail: "The required checks for the declared receipt scope passed.",
+    detail:
+      "The required checks for the declared receipt scope passed. On /verify v1, this is receipt-scoped and does not prove artifact-byte revalidation or bundle completeness.",
   },
   {
     label: "Invalid",
@@ -212,9 +213,9 @@ export default function VerifyPage() {
               Downloadable proof bundles
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-text-muted">
-              Each downloadable ZIP is verified offline with its included
-              receipt, signer registry, source artifacts, and verifier script.
-              These bundles prove bounded statements only. The public receipt
+              Each downloadable ZIP is presented for offline verification with
+              its included receipt, signer registry, source artifacts, and
+              verifier script. These bundles prove bounded statements only. The public receipt
               console below remains receipt-first v1.
             </p>
           </div>
