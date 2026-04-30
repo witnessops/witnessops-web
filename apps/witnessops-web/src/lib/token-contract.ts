@@ -126,6 +126,12 @@ export const verifyTokenResponseSchema = z.object({
   admissionState: admissionStateSchema,
   assessmentRunId: z.string().nullable(),
   assessmentStatus: assessmentStatusSchema,
+  postVerifyPath: z
+    .string()
+    .min(1)
+    .refine((value) => value.startsWith("/") && !value.startsWith("//"), {
+      message: "postVerifyPath must be a same-origin path",
+    }),
   run_id: z.string().optional(),
 });
 

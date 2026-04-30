@@ -79,12 +79,18 @@ test("review request route issues a verification email", async () => {
   assert.match(mailRaw, /^To: security@witnessops\.com$/m);
   assert.match(
     mailRaw,
-    /^Subject: WitnessOps verification code for security@witnessops\.com$/m,
+    /^Subject: Verify your WitnessOps access-change proof run request$/m,
   );
   assert.match(mailRaw, /^X-WitnessOps-Message-Class: transactional$/m);
+  assert.match(
+    mailRaw,
+    /^Your WitnessOps access-change proof run request needs mailbox verification\.$/m,
+  );
   assert.match(mailRaw, /^Verification Code:\s+\S+$/m);
   assert.match(mailRaw, /^Open Verification Page: https:\/\/witnessops\.com\/verify-token\?/m);
   assert.doesNotMatch(mailRaw, /^Open Verification Page: .*token=/m);
+  assert.match(mailRaw, /^A proof run has not started\./m);
+  assert.match(mailRaw, /^Do not reply with secrets,/m);
 });
 
 test("review request route redacts upstream issuance errors", async () => {

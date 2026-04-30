@@ -12,20 +12,7 @@ interface Props {
 }
 
 function buildRedirectUrl(payload: VerifyTokenResponse): string {
-  if (payload.channel === "support") {
-    const search = new URLSearchParams({
-      verified: "1",
-      intakeId: payload.intakeId,
-      email: payload.email,
-    });
-    if (payload.threadId) {
-      search.set("threadId", payload.threadId);
-    }
-    return `/support?${search.toString()}`;
-  }
-
-  const search = new URLSearchParams({ email: payload.email });
-  return `/assessment/${encodeURIComponent(payload.issuanceId)}?${search.toString()}`;
+  return payload.postVerifyPath;
 }
 
 export function VerifyTokenForm(props: Props) {
@@ -54,7 +41,12 @@ export function VerifyTokenForm(props: Props) {
         | (Partial<VerifyTokenResponse> & { error?: string })
         | null;
 
-      if (!response.ok || !payload?.issuanceId || !payload.email) {
+      if (
+        !response.ok ||
+        !payload?.issuanceId ||
+        !payload.email ||
+        !payload.postVerifyPath
+      ) {
         setError(payload?.error ?? "Verification failed.");
         return;
       }

@@ -1,6 +1,7 @@
 import type { ChannelName } from "@/lib/channel-policy";
+import { isAccessChangeProofRunIntent } from "@/lib/access-change-proof-run";
 
-export const TOKEN_EMAIL_TEMPLATE_VERSION = "tier1-code-v1" as const;
+export const TOKEN_EMAIL_TEMPLATE_VERSION = "tier1-code-v2" as const;
 
 export interface VerificationEmailTemplateInput {
   channel: Exclude<ChannelName, "noreply">;
@@ -10,6 +11,7 @@ export interface VerificationEmailTemplateInput {
   token: string;
   expiresAt: string;
   verifyUrl: string;
+  intent?: string | null;
 }
 
 export interface VerificationEmailTemplateOutput {
@@ -25,6 +27,33 @@ export interface VerificationEmailTemplateOutput {
 export function renderVerificationEmail(
   input: VerificationEmailTemplateInput,
 ): VerificationEmailTemplateOutput {
+  if (isAccessChangeProofRunIntent(input.intent)) {
+    return {
+      subject: "Verify your WitnessOps access-change proof run request",
+      text: [
+        "WitnessOps access-change proof run verification",
+        "",
+        "Your WitnessOps access-change proof run request needs mailbox verification.",
+        "",
+        `Verification Code: ${input.token}`,
+        "",
+        "Open the verification page and type the code shown above.",
+        "Do not share this code. WitnessOps will never ask for it outside this verification step.",
+        "",
+        "Do not reply with secrets, source exports, logs, screenshots, credentials, or customer evidence.",
+        "A proof run has not started. WitnessOps will confirm fit, scope, payment, and evidence handling by email first.",
+        "",
+        `Intake ID: ${input.intakeId}`,
+        `Issuance ID: ${input.issuanceId}`,
+        `Email: ${input.email}`,
+        `Expires At: ${input.expiresAt}`,
+        "",
+        `Open Verification Page: ${input.verifyUrl}`,
+      ].join("\n"),
+      templateVersion: TOKEN_EMAIL_TEMPLATE_VERSION,
+    };
+  }
+
   return {
     subject: `WitnessOps verification code for ${input.email}`,
     text: [

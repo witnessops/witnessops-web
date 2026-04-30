@@ -12,6 +12,7 @@ import {
 import { CLAIMANT_SESSION_COOKIE_NAME } from "@/lib/server/claimant-session";
 
 import { POST as engage } from "../engage/route";
+import { POST as reviewRequest } from "../review/request/route";
 import { POST as support } from "../support/route";
 import { GET, POST } from "./route";
 
@@ -80,6 +81,34 @@ async function issueSupportToken(baseDir: string) {
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
 
+async function issueAccessChangeToken(baseDir: string) {
+  applyTestEnv(baseDir);
+  const response = await reviewRequest(
+    new Request("https://witnessops.com/api/review/request", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "K. Witness",
+        email: "security@witnessops.com",
+        intent: "access-change-proof-run",
+        scope: "Access change: contractor production access revoked.",
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  const issuance = (await response.json()) as {
+    issuanceId: string;
+    email: string;
+  };
+  const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
+  const mailRaw = await readFile(
+    path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
+    "utf8",
+  );
+  const token = mailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
+  assert.ok(token);
+  return { issuanceId: issuance.issuanceId, email: issuance.email, token };
+}
+
 function assertClaimantSessionSet(response: Response): string {
   const setCookie = response.headers.get("set-cookie") ?? "";
   assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
@@ -127,12 +156,15 @@ test("verify-token route allows repeat verification for the same issuance and to
   const firstPayload = (await first.json()) as {
     channel: string;
     intakeId: string;
+    issuanceId: string;
+    email: string;
     status: string;
     admissionState: string;
     threadId: string | null;
     verifiedAt: string;
     assessmentRunId: string | null;
     assessmentStatus: string;
+    postVerifyPath: string;
   };
   assert.equal(firstPayload.channel, "engage");
   assert.ok(firstPayload.intakeId.startsWith("intk_"));
@@ -141,6 +173,10 @@ test("verify-token route allows repeat verification for the same issuance and to
   assert.ok(firstPayload.threadId?.startsWith("thr_"));
   assert.equal(firstPayload.assessmentRunId, null);
   assert.equal(firstPayload.assessmentStatus, "unavailable");
+  assert.equal(
+    firstPayload.postVerifyPath,
+    `/assessment/${encodeURIComponent(firstPayload.issuanceId)}?email=${encodeURIComponent(firstPayload.email)}`,
+  );
 
   const second = await POST(
     new Request("https://witnessops.com/api/verify-token", {
@@ -153,12 +189,15 @@ test("verify-token route allows repeat verification for the same issuance and to
   assert.equal(second.status, 200);
   assertClaimantSessionSet(second);
   const secondPayload = (await second.json()) as {
+    issuanceId: string;
+    email: string;
     status: string;
     admissionState: string;
     threadId: string | null;
     verifiedAt: string;
     assessmentRunId: string | null;
     assessmentStatus: string;
+    postVerifyPath: string;
   };
   assert.equal(secondPayload.status, "verified");
   assert.equal(secondPayload.admissionState, "admitted");
@@ -166,6 +205,98 @@ test("verify-token route allows repeat verification for the same issuance and to
   assert.equal(secondPayload.threadId, firstPayload.threadId);
   assert.equal(secondPayload.assessmentRunId, null);
   assert.equal(secondPayload.assessmentStatus, "unavailable");
+  assert.equal(
+    secondPayload.postVerifyPath,
+    `/assessment/${encodeURIComponent(secondPayload.issuanceId)}?email=${encodeURIComponent(secondPayload.email)}`,
+  );
+});
+
+test("verify-token route returns access-change confirmation path without assessment attachment on replay", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
+  const fetchCalls: Array<{ input: string; init?: RequestInit }> = [];
+  global.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+    const url = input instanceof Request ? input.url : input.toString();
+    fetchCalls.push({ input: url, init });
+    return new Response(
+      JSON.stringify({ run_id: "run_unexpected", status: "pending" }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  }) as typeof fetch;
+  process.env.GES_SERVER_URL = "https://assessment.internal";
+  process.env.GES_ASSESSMENT_KEY = "test-assessment-key";
+
+  const issued = await issueAccessChangeToken(baseDir);
+
+  const first = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(first.status, 200);
+  const firstPayload = (await first.json()) as {
+    channel: string;
+    assessmentRunId: string | null;
+    assessmentStatus: string;
+    postVerifyPath: string;
+  };
+  assert.equal(firstPayload.channel, "engage");
+  assert.equal(firstPayload.assessmentRunId, null);
+  assert.equal(firstPayload.assessmentStatus, "unavailable");
+  assert.equal(firstPayload.postVerifyPath, "/review/request/confirmed");
+  assert.equal(fetchCalls.length, 0);
+
+  const second = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(second.status, 200);
+  const secondPayload = (await second.json()) as {
+    assessmentRunId: string | null;
+    assessmentStatus: string;
+    postVerifyPath: string;
+  };
+  assert.equal(secondPayload.assessmentRunId, null);
+  assert.equal(secondPayload.assessmentStatus, "unavailable");
+  assert.equal(secondPayload.postVerifyPath, "/review/request/confirmed");
+  assert.equal(fetchCalls.length, 0);
+});
+
+test("verify-token route returns support confirmation path for support issuances", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-support-verify-"));
+  const issued = await issueSupportToken(baseDir);
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as {
+    channel: string;
+    intakeId: string;
+    email: string;
+    threadId: string | null;
+    postVerifyPath: string;
+  };
+  assert.equal(payload.channel, "support");
+  assert.ok(payload.threadId?.startsWith("thr_"));
+  const expected = new URLSearchParams({
+    verified: "1",
+    intakeId: payload.intakeId,
+    email: payload.email,
+    threadId: payload.threadId!,
+  });
+  assert.equal(payload.postVerifyPath, `/support?${expected.toString()}`);
 });
 
 test("verify-token route does not start assessment before explicit approval", async () => {
