@@ -35,7 +35,7 @@ export async function handleReviewRequestIntake(
       );
     }
 
-    const { email, name, org, scope } = parsed.data;
+    const { email, name, org, intent, scope } = parsed.data;
     if (!isBusinessEmail(email)) {
       return NextResponse.json(
         { ok: false, error: "Please use your business email." },
@@ -50,7 +50,7 @@ export async function handleReviewRequestIntake(
       submission: {
         name,
         org,
-        intent: "review",
+        intent: intent ?? "review",
         scope,
       },
     });

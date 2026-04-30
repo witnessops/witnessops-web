@@ -4,7 +4,10 @@ import { mkdtemp, readFile, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import { clearTokenStore } from "@/lib/server/token-store";
+import {
+  clearTokenStore,
+  getIntakeById,
+} from "@/lib/server/token-store";
 
 import { POST } from "./route";
 
@@ -36,9 +39,9 @@ test("review request route issues a verification email", async () => {
       body: JSON.stringify({
         name: "K. Witness",
         email: "security@witnessops.com",
-        intent: "ai-agent-action-proof-run",
+        intent: "access-change-proof-run",
         scope:
-          "Workflow summary: one agent-assisted workflow before production change.",
+          "Access change: contractor production access revoked.",
       }),
       headers: { "Content-Type": "application/json" },
     }),
@@ -50,6 +53,7 @@ test("review request route issues a verification email", async () => {
     email: string;
     status: string;
     admissionState: string;
+    intakeId: string;
     issuanceId: string;
   };
 
@@ -58,6 +62,13 @@ test("review request route issues a verification email", async () => {
   assert.equal(payload.status, "issued");
   assert.equal(payload.admissionState, "verification_sent");
   assert.ok(payload.issuanceId.startsWith("iss_"));
+
+  const intake = await getIntakeById(payload.intakeId);
+  assert.equal(intake?.submission.intent, "access-change-proof-run");
+  assert.equal(
+    intake?.submission.scope,
+    "Access change: contractor production access revoked.",
+  );
 
   const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   assert.equal(mailFiles.length, 1);

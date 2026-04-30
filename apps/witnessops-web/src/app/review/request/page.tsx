@@ -4,63 +4,63 @@ import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { getMailboxConfig } from "@/lib/mailboxes";
 
 export const metadata: Metadata = {
-  title: "Request one proof run",
+  title: "Request one access-change proof run",
   description:
-    "Submit one consequential AI-agent action path for a bounded WitnessOps proof run.",
+    "Start one bounded access-change proof run without submitting secrets or source evidence.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
-    title: "Request one proof run | WitnessOps",
+    title: "Request one access-change proof run | WitnessOps",
     description:
-      "Submit one consequential AI-agent action path for a bounded WitnessOps proof run.",
+      "Start one bounded access-change proof run without submitting secrets or source evidence.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Request one proof run | WitnessOps",
+    title: "Request one access-change proof run | WitnessOps",
     description:
-      "Submit one consequential AI-agent action path for a bounded WitnessOps proof run.",
+      "Start one bounded access-change proof run without submitting secrets or source evidence.",
   },
 };
 
 const proofOutputs = [
   {
-    title: "Authority map",
-    summary: "Who approved the action and where authority stopped.",
+    title: "Run manifest",
+    summary: "What access-change action is in scope, when it happened, and what system is involved.",
+  },
+  {
+    title: "Authority record",
+    summary: "Who had authority to approve the change and what boundary is being claimed.",
   },
   {
     title: "Evidence manifest",
-    summary: "What artifacts exist, what they bind to, and what is missing.",
+    summary: "What source artifacts exist, where they came from, and what remains missing.",
   },
   {
-    title: "Signed receipt",
-    summary: "The bound record of approval, action, evidence, result, and limits.",
-  },
-  {
-    title: "Verifier result + challenge path",
-    summary: "What another party can check, fail, or dispute after the run.",
+    title: "Custody, receipt, and findings",
+    summary: "How the evidence was handled, what the receipt binds, and what the run concludes.",
   },
 ];
 
 const nextSteps = [
-  "We review whether the workflow can be scoped as one bounded proof run.",
-  "We identify the approval boundary and evidence gaps.",
-  "We reply by email with fit, scope, and the next action. No proof run starts from the form alone.",
+  "We check whether the access change can be bounded to one proof run.",
+  "We confirm the authority boundary, likely evidence sources, and obvious gaps.",
+  "We reply by email with fit, scope, fee, and the next action. No proof run starts from the form alone.",
 ];
 
 const sampleArtifacts = [
-  "ACTION_BOUNDARY.json",
-  "AUTHORITY_MAP.json",
-  "EVIDENCE_MANIFEST.json",
-  "RECEIPT.json",
-  "VERIFY_RESULT.json",
-  "CHALLENGE_PATH.md",
+  "run_manifest.json",
+  "authority_record.json",
+  "evidence_manifest.json",
+  "custody_log.json",
+  "receipt.json",
+  "verifier_readme.md",
+  "findings.md",
 ];
 
-const sampleBundleHref =
-  "/review/sample-cases/ai-agent-action-proof-run";
+const offerPageHref = "/access-change-proof-run";
 
 export default function ReviewRequestPage() {
   const mailboxes = getMailboxConfig();
@@ -79,16 +79,18 @@ export default function ReviewRequestPage() {
             color: "var(--color-brand-muted)",
           }}
         >
-          AI agent action proof run
+          Bounded access-change proof run
         </div>
         <h1
           className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Submit one proof run
+          Request one access-change proof run
         </h1>
         <p className="max-w-[620px] text-base leading-relaxed text-text-muted">
-          Send the minimum context. We reply by email before anything runs.
+          Send short non-secret context for one access grant, revoke, role
+          change, vendor access review, or admin permission update. Source
+          materials are handled only after scope and intake are agreed.
         </p>
       </section>
 
@@ -139,8 +141,8 @@ export default function ReviewRequestPage() {
               Keep it light
             </div>
             <p className="text-sm leading-relaxed text-text-muted">
-              Do not paste secrets. A short description is enough for the first
-              review.
+              Do not submit secrets, credentials, source exports, full logs,
+              screenshots, or customer evidence. Name evidence types only.
             </p>
           </section>
 
@@ -156,7 +158,28 @@ export default function ReviewRequestPage() {
                 color: "var(--color-text-muted)",
               }}
             >
-              Sample proof bundle
+              Fee and timeline
+            </div>
+            <div className="space-y-2 text-sm leading-relaxed text-text-muted">
+              <p>EUR 2,500 fixed fee.</p>
+              <p>5 business days after source materials are received.</p>
+              <p>50% upfront, 50% on delivery.</p>
+            </div>
+          </section>
+
+          <section className="border border-surface-border bg-surface-bg p-5">
+            <div
+              className="mb-3"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              Proof-run bundle
             </div>
             <ul className="mb-4 grid gap-2 text-xs leading-relaxed text-text-muted" style={{ fontFamily: "var(--font-mono)" }}>
               {sampleArtifacts.slice(0, 4).map((artifact) => (
@@ -167,11 +190,32 @@ export default function ReviewRequestPage() {
               ))}
             </ul>
             <Link
-              href={sampleBundleHref}
+              href={offerPageHref}
               className="text-sm text-brand-accent underline-offset-4 hover:underline"
             >
-              View sample proof run
+              View access-change offer
             </Link>
+          </section>
+
+          <section className="border border-surface-border bg-surface-bg p-5">
+            <div
+              className="mb-3"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              Boundary
+            </div>
+            <div className="space-y-2 text-sm leading-relaxed text-text-muted">
+              <p>Not a legal audit opinion.</p>
+              <p>Not a compliance certification.</p>
+              <p>Not a verifier-of-record result.</p>
+            </div>
           </section>
 
           <div className="text-sm leading-relaxed text-text-muted">
