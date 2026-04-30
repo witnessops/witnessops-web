@@ -103,23 +103,30 @@ WitnessOps keeps some internal formats custom because they do not need broader e
 
 These formats are stable and documented, but they are not proposed as external standards. Standards are for export. Internal formats are for operational speed and control.
 
-## 7. Current implementation status
+## 7. Repo-evidenced implementation status
 
-| Standard | Status in WitnessOps |
-| --- | --- |
-| DSSE v1.0.2 | implemented; every receipt and claim is DSSE-wrapped |
-| RFC 3161 | implemented; timestamp request generation and digest-binding verification are operational |
-| in-toto v1.0 | implemented; claims are emitted as in-toto Statements with custom predicates |
-| SLSA v1.2 | aligned; build-provenance predicates are used where applicable |
-| SCITT | future compatibility target; not required for core verification |
+This table separates implementation claims visible in this repository from design targets and export alignment. Do not upgrade “documented” or “aligned” to “implemented” unless the emitting or verifying artifact is linked.
+
+| Layer | Safe status language | Evidence boundary |
+| --- | --- | --- |
+| Ed25519 local signature | Implemented for the current receipt verifier path. | Receipt schema and verifier code define local signature attestation fields and Ed25519 checks. |
+| RFC 3161 fields | Represented in receipt schemas and checked structurally in receipt-first mode. Full token and certificate-chain verification requires the timestamp token, chain, and bundle-complete verifier path. | Receipt JSON can carry timestamp references and message-imprint status; receipt-only mode cannot prove the token bytes or chain by itself. |
+| DSSE | Design target or documented envelope unless an emitting/verifying implementation artifact is linked. | This docs pass should not claim every receipt and claim is DSSE-wrapped from this repo alone. |
+| in-toto | Export/alignment target unless emitted statement artifacts are linked. | Keep claim meaning separate from signed-envelope verification. |
+| SLSA | Alignment target for build-provenance contexts, not a core receipt proof primitive. | Use only where the relevant provenance predicate is emitted and verified. |
+| SCITT | Future compatibility target. | Not required for local receipt-first verification. |
 
 ## 8. What this means for verifiers
 
-A verifier does not need WitnessOps-specific tooling for the core standards path. Standard cryptographic tooling can:
+A verifier should choose the verification path that matches the claim being made.
 
-- parse the DSSE envelope and verify the Ed25519 signature
-- verify the RFC 3161 timestamp token against the TSA certificate chain
-- parse the in-toto Statement and inspect the predicate
-- verify the Merkle inclusion proof against the checkpoint
+In public receipt-first mode, the verifier can only make receipt-scoped claims about supported receipt JSON. It cannot prove artifact-byte integrity, bundle completeness, or full timestamp-token validity unless the matching bundle material is present and checked.
+
+In bundle-complete mode, a verifier may use standard cryptographic tooling to check the layers that are actually present, for example:
+
+- verify an Ed25519 signature over the declared signed subject
+- verify an RFC 3161 timestamp token against the TSA certificate chain
+- parse a DSSE or in-toto artifact when that artifact is included in the bundle
+- recompute Merkle or manifest integrity when the referenced artifact bytes are available
 
 WitnessOps is built to be verified, not to be trusted by default.
