@@ -6,6 +6,9 @@ import {
 } from "node:crypto";
 
 const SHA256_PREFIX = "sha256:";
+const HUMAN_CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+const HUMAN_CODE_LENGTH = 12;
+const HUMAN_CODE_GROUP_SIZE = 4;
 
 function readSigningSecret(): string {
   const secret = process.env.WITNESSOPS_TOKEN_SIGNING_SECRET;
@@ -28,7 +31,18 @@ export function generateThreadId(): string {
 }
 
 export function generateRawToken(): string {
-  return randomBytes(24).toString("base64url");
+  let code = "";
+
+  while (code.length < HUMAN_CODE_LENGTH) {
+    for (const byte of randomBytes(HUMAN_CODE_LENGTH)) {
+      code += HUMAN_CODE_ALPHABET.charAt(byte & 31);
+      if (code.length === HUMAN_CODE_LENGTH) break;
+    }
+  }
+
+  return code
+    .match(new RegExp(`.{1,${HUMAN_CODE_GROUP_SIZE}}`, "g"))!
+    .join("-");
 }
 
 export function digestToken(rawToken: string): string {
@@ -42,6 +56,31 @@ export function tokenDigestMatches(
   rawToken: string,
   expectedDigest: string,
 ): boolean {
-  const actual = digestToken(rawToken);
-  return timingSafeEqual(Buffer.from(actual), Buffer.from(expectedDigest));
+  for (const candidate of tokenCandidates(rawToken)) {
+    const actual = digestToken(candidate);
+    if (timingSafeEqual(Buffer.from(actual), Buffer.from(expectedDigest))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function normalizeHumanCode(rawToken: string): string {
+  const compact = rawToken
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+
+  if (compact.length !== HUMAN_CODE_LENGTH) {
+    return rawToken.trim();
+  }
+
+  return compact
+    .match(new RegExp(`.{1,${HUMAN_CODE_GROUP_SIZE}}`, "g"))!
+    .join("-");
+}
+
+function tokenCandidates(rawToken: string): string[] {
+  return Array.from(new Set([rawToken.trim(), normalizeHumanCode(rawToken)]));
 }

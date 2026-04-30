@@ -22,7 +22,7 @@ export default async function VerifyTokenPage({ searchParams }: Props) {
   const issuanceId = params.issuanceId?.trim() ?? "";
   const email = params.email?.trim() ?? "";
   const token = params.token?.trim() ?? "";
-  const isComplete = Boolean(issuanceId && email && token);
+  const hasVerificationContext = Boolean(issuanceId && email);
 
   return (
     <main className="min-h-screen bg-black text-zinc-100">
@@ -31,22 +31,24 @@ export default async function VerifyTokenPage({ searchParams }: Props) {
           WitnessOps Mailbox Verification
         </div>
         <h1 className="text-2xl font-semibold text-zinc-100">
-          Confirm verification
+          Enter verification code
         </h1>
         <p className="mt-3 text-sm leading-6 text-zinc-400">
-          Continue only if you requested this WitnessOps verification message.
+          Type the code from the WitnessOps email. Continue only if you
+          requested this verification message.
         </p>
 
         <div className="mt-8 rounded border border-zinc-800 bg-zinc-950 p-4">
-          {isComplete ? (
+          {hasVerificationContext ? (
             <VerifyTokenForm
               issuanceId={issuanceId}
               email={email}
-              token={token}
+              initialCode={token}
             />
           ) : (
             <div className="text-sm text-red-300">
-              This verification link is incomplete.
+              This verification page is missing the request context. Open the
+              verification page from the email and type the code shown there.
             </div>
           )}
         </div>

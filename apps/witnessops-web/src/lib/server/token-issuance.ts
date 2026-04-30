@@ -295,7 +295,6 @@ export async function createVerificationIssuance(
   const verifyUrl = new URL("/verify-token", readVerifyBaseUrl());
   verifyUrl.searchParams.set("issuanceId", issuanceId);
   verifyUrl.searchParams.set("email", input.email);
-  verifyUrl.searchParams.set("token", rawToken);
 
   const intake: IntakeRecord = {
     intakeId,
