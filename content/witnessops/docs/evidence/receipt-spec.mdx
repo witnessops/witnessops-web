@@ -200,9 +200,12 @@ For a technical buyer, the important consequence is simple: if canonicalization 
 
 ## Current verification model
 
-The current public verification model is bundle-oriented. A receipt is evaluated in the context of the canonical proof bundle around it, not as an isolated text file.
+Keep two verification surfaces separate.
 
-At a high level, the verifier does this:
+- The public `/verify` surface is receipt-first v1. It accepts supported receipt JSON and returns a receipt-scoped result.
+- Bundle-complete verification evaluates the receipt in the context of the canonical proof bundle around it.
+
+At a high level, a bundle-complete verifier does this:
 
 1. normalize and parse the manifest
 2. validate required fields and protocol compatibility
@@ -210,6 +213,8 @@ At a high level, the verifier does this:
 4. validate signature and digest relationships
 5. evaluate witness or trust-registry requirements when declared
 6. return `valid`, `invalid`, or `indeterminate`
+
+The public receipt-first surface does not prove bundle completeness or artifact-byte revalidation. A public `valid` result means supported receipt-level checks passed for the submitted receipt.
 
 Those statuses mean:
 
@@ -221,21 +226,27 @@ Those statuses mean:
 
 That last case matters. WitnessOps treats incomplete trust state differently from a hard cryptographic failure.
 
-## Current failure vocabulary
+## Public failure vocabulary and proof breach codes
 
-The current verifier distinguishes between malformed input, failed proof, and missing trust context. Common public-facing failure classes include:
+The public API first distinguishes input rejection from receipt verification results.
 
-- `FAILURE_REQUIRED_FIELD_MISSING`
-- `FAILURE_BUNDLE_MALFORMED`
-- `FAILURE_HASH_MISMATCH`
-- `FAILURE_SIGNATURE_INVALID`
-- `FAILURE_DIGEST_MISMATCH`
-- `FAILURE_SCHEMA_VERSION_UNSUPPORTED`
-- `FAILURE_WITNESS_INVALID`
-- `FAILURE_WITNESS_LINEAGE_MISMATCH`
-- `FAILURE_WITNESS_QUORUM_UNSATISFIED`
+Public API failure classes:
 
-For diligence review, that separation matters. A receipt that fails because bytes changed is different from a receipt that is well-formed but cannot satisfy a required witness policy.
+- `FAILURE_INPUT_MALFORMED`
+- `FAILURE_INPUT_UNSUPPORTED`
+
+Proof-bearing receipt checks then expose breach codes such as:
+
+- `SCHEMA_MISSING_FIELD`
+- `SCHEMA_UNKNOWN_STAGE`
+- `DIGEST_RECORD_NOT_IN_SET`
+- `DIGEST_ARTIFACT_TAMPERED`
+- `ATTESTATION_SIGNATURE_INVALID`
+- `ANCHOR_RFC3161_IMPRINT_MISMATCH`
+- `WITNESS_SUBJECT_MISMATCH`
+- `WITNESS_UNTRUSTED`
+
+For diligence review, that separation matters. A malformed request is different from a receipt that parses but fails a proof-bearing check.
 
 ## What Receipt v2 proves
 

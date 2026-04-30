@@ -45,7 +45,13 @@ That design prevents partial-approval behavior and keeps later review determinis
 | Freemail rejection | Principal identity meets governance identity requirements | Identity quality below policy floor |
 | Tool allowlist | The step tool is permitted for the workflow risk class | Unauthorized capability invocation |
 
-## 5. Gate failure semantics
+## 5. Documentation boundary
+
+This page defines the policy-gate contract. Before claiming that a specific gate family is operationally enforced in a deployment, tie the claim to a runbook version, control-plane configuration, receipt field, or implementation artifact.
+
+Without that link, the safe claim is that the gate is part of the documented governed-execution model, not that a particular production run enforced it.
+
+## 6. Gate failure semantics
 
 When a gate fails:
 
@@ -56,7 +62,7 @@ When a gate fails:
 
 A blocked gate is a successful control outcome, not a runtime defect.
 
-## 6. Evidence and trust boundary
+## 7. Evidence and trust boundary
 
 Receipts should record the gate set, evaluation order, pass/fail states, and approval identity and timestamps where required.
 
@@ -68,7 +74,7 @@ What still depends on trust:
 - correctness of upstream identity systems
 - quality of scope inputs and classification mapping
 
-## 7. Next-page handoff
+## 8. Next-page handoff
 
 Next, read [Evidence](/docs/evidence) to see how these gate outcomes appear in portable execution evidence and receipt chains.
 

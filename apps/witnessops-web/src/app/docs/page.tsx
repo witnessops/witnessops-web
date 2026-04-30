@@ -55,6 +55,7 @@ const trustAssumptions = [
   "Receipts can show that governed execution was recorded with integrity, but they do not prove every finding is correct.",
   "Approval records can show that an approval was captured, but they do not prove the approver made the right call.",
   "Independent verification still depends on correct public-key distribution and timestamp continuity.",
+  "The public verifier currently runs receipt-first checks. A valid public result does not prove bundle completeness or artifact-byte revalidation.",
 ];
 
 const coreConcepts = [
@@ -169,6 +170,37 @@ const entryPaths = [
         title: "Runbooks",
         description:
           "How workflows define scope, gates, evidence outputs, and runtime order.",
+      },
+    ],
+  },
+  {
+    title: "Security education and response",
+    description:
+      "Use these pages to teach operators how to move from suspicious activity to evidence-backed response decisions.",
+    items: [
+      {
+        href: "/docs/security-education",
+        title: "Operational Security Scenarios",
+        description:
+          "Learn the attack-chain, observable-signal, response-decision, and control-boundary pattern.",
+      },
+      {
+        href: "/docs/security-education/phishing",
+        title: "Why Phishing Works",
+        description:
+          "Map phishing reports to delivery, interaction, credential capture, session, and post-access stages.",
+      },
+      {
+        href: "/docs/security-education/real-phishing-example",
+        title: "A Real Phishing Email",
+        description:
+          "Walk a representative lure through observed evidence, inference boundaries, and response gates.",
+      },
+      {
+        href: "/docs/scenarios/phishing-investigation",
+        title: "Phishing Investigation",
+        description:
+          "Run the governed scenario path when the evidence supports containment or escalation.",
       },
     ],
   },

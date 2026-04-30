@@ -105,19 +105,23 @@ These are operational failures. They do not mean the proof system is lying. They
 
 ### Proof failures
 
-These happen during verification of the resulting bundle or receipt-bearing artifacts. The current public failure vocabulary includes:
+These happen during verification of the resulting receipt, bundle, or receipt-bearing artifacts.
 
-- `FAILURE_REQUIRED_FIELD_MISSING`
-- `FAILURE_BUNDLE_MALFORMED`
-- `FAILURE_HASH_MISMATCH`
-- `FAILURE_SIGNATURE_INVALID`
-- `FAILURE_DIGEST_MISMATCH`
-- `FAILURE_SCHEMA_VERSION_UNSUPPORTED`
-- `FAILURE_WITNESS_INVALID`
-- `FAILURE_WITNESS_LINEAGE_MISMATCH`
-- `FAILURE_WITNESS_QUORUM_UNSATISFIED`
+The public `/verify` API first classifies malformed or unsupported input:
 
-These are proof failures. They indicate malformed inputs, broken digest relationships, invalid signatures, or unsatisfied trust conditions.
+- `FAILURE_INPUT_MALFORMED`
+- `FAILURE_INPUT_UNSUPPORTED`
+
+When a supported receipt is accepted for verification, proof-bearing checks expose breach codes such as:
+
+- `SCHEMA_MISSING_FIELD`
+- `DIGEST_RECORD_NOT_IN_SET`
+- `ATTESTATION_SIGNATURE_INVALID`
+- `ANCHOR_RFC3161_IMPRINT_MISMATCH`
+- `WITNESS_SUBJECT_MISMATCH`
+- `WITNESS_UNTRUSTED`
+
+These are proof failures. They indicate malformed receipt structure, broken digest relationships, invalid signatures, or unsatisfied trust conditions. Report them by layer instead of collapsing them into one generic failure.
 
 ### Indeterminate trust outcomes
 
@@ -152,9 +156,11 @@ This is why continuity inspection and honest packaging matter alongside cryptogr
 
 Verification should be read precisely.
 
-- `valid` means the declared package and proof checks passed
+- `valid` means the declared checks for the selected verification mode passed
 - `invalid` means a proof-bearing check failed
 - `indeterminate` means the package may be coherent, but a declared outside trust condition could not be completed locally
+
+On the public `/verify` surface, `valid` is receipt-scoped. It does not prove bundle completeness, artifact-byte revalidation, or full operational truth.
 
 These statuses are more useful than a generic green or red badge because they tell the reviewer what kind of dispute they are actually dealing with.
 
