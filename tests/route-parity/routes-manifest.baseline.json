@@ -303,6 +303,12 @@
       "namedRegex": "^/review/request(?:/)?$"
     },
     {
+      "page": "/review/request/confirmed",
+      "regex": "^/review/request/confirmed(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/request/confirmed(?:/)?$"
+    },
+    {
       "page": "/review/sample-cases",
       "regex": "^/review/sample\\-cases(?:/)?$",
       "routeKeys": {},

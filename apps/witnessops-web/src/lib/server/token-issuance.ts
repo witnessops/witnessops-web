@@ -5,6 +5,10 @@ import {
   assertInboundAllowed,
   type ChannelName,
 } from "@/lib/channel-policy";
+import {
+  ACCESS_CHANGE_POST_VERIFY_PATH,
+  isAccessChangeProofRunIntent,
+} from "@/lib/access-change-proof-run";
 import type {
   EngageResponse,
   SupportResponse,
@@ -272,8 +276,41 @@ function toVerificationResponse(args: {
     admissionState: args.intake.state,
     assessmentRunId: args.assessmentRunId,
     assessmentStatus: args.assessmentStatus,
+    postVerifyPath: buildPostVerifyPath(args.intake, args.issuance),
     run_id: args.assessmentRunId ?? undefined,
   };
+}
+
+function buildPostVerifyPath(
+  intake: IntakeRecord,
+  issuance: TokenIssuanceRecord,
+): string {
+  if (intake.channel === "support") {
+    const search = new URLSearchParams({
+      verified: "1",
+      intakeId: intake.intakeId,
+      email: issuance.email,
+    });
+    if (intake.threadId) {
+      search.set("threadId", intake.threadId);
+    }
+    return `/support?${search.toString()}`;
+  }
+
+  if (isAccessChangeProofRunIntent(intake.submission.intent)) {
+    return ACCESS_CHANGE_POST_VERIFY_PATH;
+  }
+
+  const search = new URLSearchParams({ email: issuance.email });
+  return `/assessment/${encodeURIComponent(issuance.issuanceId)}?${search.toString()}`;
+}
+
+function shouldAttachAssessment(intake: IntakeRecord): boolean {
+  const policy = getChannelPolicy(intake.channel ?? "engage");
+  return (
+    policy.autoAssessment &&
+    !isAccessChangeProofRunIntent(intake.submission.intent)
+  );
 }
 
 export async function createVerificationIssuance(
@@ -332,6 +369,7 @@ export async function createVerificationIssuance(
     token: rawToken,
     expiresAt,
     verifyUrl: verifyUrl.toString(),
+    intent: normalizedSubmission.intent,
   });
 
   const delivery = await sendVerificationEmail({
@@ -708,7 +746,12 @@ export async function verifyIssuedToken(
         originalIssuance.consumedAt ??
         replayedAt,
     });
-    const assessment = await ensureAssessmentAttached(admitted.issuance);
+    const assessment = shouldAttachAssessment(admitted.intake)
+      ? await ensureAssessmentAttached(admitted.issuance)
+      : {
+          assessmentRunId: null,
+          assessmentStatus: "unavailable" as const,
+        };
     return toVerificationResponse({
       intake: admitted.intake,
       issuance: admitted.issuance,
