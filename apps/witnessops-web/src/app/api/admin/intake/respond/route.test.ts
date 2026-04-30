@@ -52,7 +52,7 @@ async function createAdmittedSupportIntake(baseDir: string) {
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
     "utf8",
   );
-  const token = verificationMail.match(/^Token:\s+(.+)$/m)?.[1];
+  const token = verificationMail.match(/^Verification Code:\s+(.+)$/m)?.[1];
   assert.ok(token);
 
   const verificationResponse = await verifyToken(

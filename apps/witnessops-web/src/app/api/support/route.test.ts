@@ -88,7 +88,7 @@ test("support route issues mailbox verification and persists support intake meta
     "utf8",
   );
   assert.match(mailRaw, /^From:\s+support@witnessops\.com$/m);
-  assert.match(mailRaw, /^Token:\s+.+$/m);
+  assert.match(mailRaw, /^Verification Code:\s+.+$/m);
 
   const eventLogRaw = await readFile(
     path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),

@@ -71,7 +71,7 @@ async function issueVerifiedToken(baseDir: string) {
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
     "utf8",
   );
-  const token = mailRaw.match(/^Token:\s+(.+)$/m)?.[1];
+  const token = mailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
   assert.ok(token);
 
   const verified = await verifyToken(

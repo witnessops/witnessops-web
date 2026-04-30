@@ -1,6 +1,6 @@
 import type { ChannelName } from "@/lib/channel-policy";
 
-export const TOKEN_EMAIL_TEMPLATE_VERSION = "tier1-token-v2" as const;
+export const TOKEN_EMAIL_TEMPLATE_VERSION = "tier1-code-v1" as const;
 
 export interface VerificationEmailTemplateInput {
   channel: Exclude<ChannelName, "noreply">;
@@ -26,18 +26,22 @@ export function renderVerificationEmail(
   input: VerificationEmailTemplateInput,
 ): VerificationEmailTemplateOutput {
   return {
-    subject: `WitnessOps ${input.channel} verification token for ${input.email}`,
+    subject: `WitnessOps verification code for ${input.email}`,
     text: [
-      "WITNESSOPS mailbox verification",
+      "WITNESSOPS verification code",
+      "",
+      `Verification Code: ${input.token}`,
+      "",
+      "Enter this code on the WitnessOps verification page to confirm the mailbox for this request.",
+      "Do not share this code. WitnessOps will never ask for it outside this verification step.",
       "",
       `Channel: ${input.channel}`,
       `Intake ID: ${input.intakeId}`,
       `Issuance ID: ${input.issuanceId}`,
       `Email: ${input.email}`,
-      `Token: ${input.token}`,
       `Expires At: ${input.expiresAt}`,
       "",
-      `Verify Link: ${input.verifyUrl}`,
+      `Open Verification Page: ${input.verifyUrl}`,
     ].join("\n"),
     templateVersion: TOKEN_EMAIL_TEMPLATE_VERSION,
   };
