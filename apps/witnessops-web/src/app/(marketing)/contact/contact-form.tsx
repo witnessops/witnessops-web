@@ -1,6 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+import type { EngageResponse, VerifyTokenResponse } from "@/lib/token-contract";
+import { formatVerificationCode } from "@/lib/verification-code-format";
 
 type FieldName =
   | "name"
@@ -32,6 +36,11 @@ const inputStyle: React.CSSProperties = {
   letterSpacing: "0.03em",
 };
 
+type VerificationStep = Pick<
+  EngageResponse,
+  "issuanceId" | "email" | "expiresAt"
+>;
+
 function stringField(data: FormData, name: string) {
   const value = data.get(name);
   return typeof value === "string" ? value.trim() : "";
@@ -42,9 +51,14 @@ export function ContactForm({
 }: {
   contactEmail: string;
 }) {
+  const router = useRouter();
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [verifyStatus, setVerifyStatus] = useState<"idle" | "verifying" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("Failed to send. Please try again.");
+  const [verifyErrorMessage, setVerifyErrorMessage] = useState("Verification failed. Please try again.");
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
+  const [verificationStep, setVerificationStep] = useState<VerificationStep | null>(null);
+  const [verificationCode, setVerificationCode] = useState("");
 
   function updateFieldError(name: FieldName, message: string) {
     setFieldErrors((current) => {
@@ -100,6 +114,19 @@ export function ContactForm({
         }
         throw new Error(payload.error ?? "Failed to send.");
       }
+      const payload = (await res.json().catch(() => null)) as
+        | Partial<EngageResponse>
+        | null;
+      if (!payload?.issuanceId || !payload.email || !payload.expiresAt) {
+        throw new Error("Verification was issued, but the response was incomplete.");
+      }
+      setVerificationStep({
+        issuanceId: payload.issuanceId,
+        email: payload.email,
+        expiresAt: payload.expiresAt,
+      });
+      setVerificationCode("");
+      setVerifyStatus("idle");
       setStatus("sent");
       form.reset();
     } catch (error) {
@@ -108,6 +135,48 @@ export function ContactForm({
         error instanceof Error && error.message.length > 0
           ? error.message
           : "Failed to send. Please try again.",
+      );
+    }
+  }
+
+  async function handleVerifySubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!verificationStep) return;
+
+    setVerifyStatus("verifying");
+    setVerifyErrorMessage("Verification failed. Please try again.");
+
+    try {
+      const response = await fetch("/api/verify-token", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          issuanceId: verificationStep.issuanceId,
+          email: verificationStep.email,
+          token: verificationCode,
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | (Partial<VerifyTokenResponse> & { error?: string })
+        | null;
+
+      if (
+        !response.ok ||
+        !payload?.issuanceId ||
+        !payload.email ||
+        !payload.postVerifyPath
+      ) {
+        throw new Error(payload?.error ?? "Verification failed.");
+      }
+
+      router.replace(payload.postVerifyPath);
+    } catch (error) {
+      setVerifyStatus("error");
+      setVerifyErrorMessage(
+        error instanceof Error && error.message.length > 0
+          ? error.message
+          : "Verification failed. Please try again.",
       );
     }
   }
@@ -125,6 +194,138 @@ export function ContactForm({
     updateFieldError(field.name as FieldName, field.validity.valid ? "" : field.validationMessage);
   }
 
+  if (verificationStep) {
+    return (
+      <form onSubmit={handleVerifySubmit} className="space-y-5" aria-busy={verifyStatus === "verifying"}>
+        <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
+          {verifyStatus === "verifying"
+            ? "Verifying code..."
+            : "Verification email sent. Enter the code on this page."}
+        </div>
+
+        <div className="border border-surface-border bg-surface-bg p-5">
+          <div className="mb-2" style={labelStyle}>Mailbox verification</div>
+          <h2
+            className="text-xl font-semibold uppercase leading-tight text-text-primary"
+            style={{ fontFamily: "var(--font-display)", letterSpacing: "0.04em" }}
+          >
+            Enter the code from your email
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-text-muted">
+            We sent a verification code to {verificationStep.email}. Keep this page open and type the code here.
+            The email is the code carrier; no link is required to continue.
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-text-muted">
+            A proof run has not started. WitnessOps confirms fit, scope, payment, and evidence handling by email first.
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor="verification-code" className="mb-2 block" style={labelStyle}>
+            Verification code
+          </label>
+          <input
+            id="verification-code"
+            name="verification-code"
+            value={verificationCode}
+            onChange={(event) => {
+              setVerificationCode(formatVerificationCode(event.currentTarget.value));
+              setVerifyErrorMessage("Verification failed. Please try again.");
+              setVerifyStatus("idle");
+            }}
+            autoComplete="one-time-code"
+            autoCapitalize="characters"
+            spellCheck={false}
+            inputMode="text"
+            required
+            maxLength={80}
+            placeholder="ABCD-EFGH-JKLM"
+            className={inputClass}
+            style={{ ...inputStyle, textAlign: "center", letterSpacing: "0.16em" }}
+          />
+          <p className="mt-2 text-xs leading-relaxed text-text-muted">
+            Do not share this code. It expires at {verificationStep.expiresAt}.
+          </p>
+        </div>
+
+        {verifyStatus === "error" && (
+          <div
+            className="flex items-center gap-2 py-3"
+            style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-signal-red)" }}
+            role="alert"
+          >
+            {verifyErrorMessage}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={verifyStatus === "verifying"}
+          className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98]"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 13,
+            fontWeight: 600,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+          }}
+        >
+          {verifyStatus === "verifying" ? "Verifying..." : "Verify code"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setVerificationStep(null);
+            setVerificationCode("");
+            setVerifyStatus("idle");
+            setStatus("idle");
+          }}
+          className="w-full border border-surface-border py-3 text-text-muted transition-colors hover:text-text-primary"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+          }}
+        >
+          Start a new request
+        </button>
+
+        <div
+          className="pt-4 border-t border-surface-border"
+          style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-brand-muted)", letterSpacing: "0.06em" }}
+        >
+          <div className="flex flex-wrap items-center gap-y-1">
+            <span
+              className="whitespace-nowrap"
+              style={{ color: "var(--color-brand-accent)" }}
+            >
+              Email follow-up
+            </span>
+            <span className="inline-flex items-center whitespace-nowrap">
+              <span
+                className="mx-2"
+                style={{ color: "var(--color-surface-border)" }}
+                aria-hidden="true"
+              >
+                &middot;
+              </span>
+              <a
+                href={`mailto:${contactEmail}`}
+                className="whitespace-nowrap underline decoration-surface-border underline-offset-2 transition-colors hover:text-text-primary"
+                style={{ color: "inherit" }}
+              >
+                {contactEmail}
+              </a>
+            </span>
+          </div>
+        </div>
+      </form>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5" aria-busy={status === "sending"}>
       <input type="hidden" name="intent" value="access-change-proof-run" />
@@ -132,7 +333,7 @@ export function ContactForm({
         {status === "sending"
           ? "Sending..."
           : status === "sent"
-            ? "Request sent. Check your email for the verification step."
+            ? "Request sent. Enter the code from your email on this page."
             : ""}
       </div>
 
@@ -279,7 +480,7 @@ export function ContactForm({
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-signal-green)" }}
           role="status"
         >
-          <span>&#10003;</span> Request received. Check your work email for the verification step before scope starts.
+          <span>&#10003;</span> Request received. Enter the code from your work email on this page before scope starts.
         </div>
       )}
       {status === "error" && (

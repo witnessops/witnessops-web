@@ -37,7 +37,8 @@ export function renderVerificationEmail(
         "",
         `Verification Code: ${input.token}`,
         "",
-        "Open the verification page and type the code shown above.",
+        "Return to the WitnessOps request page and type the code shown above.",
+        "Keep the request page open until verification is complete.",
         "Do not share this code. WitnessOps will never ask for it outside this verification step.",
         "",
         "Do not reply with secrets, source exports, logs, screenshots, credentials, or customer evidence.",
@@ -47,8 +48,6 @@ export function renderVerificationEmail(
         `Issuance ID: ${input.issuanceId}`,
         `Email: ${input.email}`,
         `Expires At: ${input.expiresAt}`,
-        "",
-        `Open Verification Page: ${input.verifyUrl}`,
       ].join("\n"),
       templateVersion: TOKEN_EMAIL_TEMPLATE_VERSION,
     };
