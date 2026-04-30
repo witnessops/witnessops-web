@@ -19,7 +19,7 @@ page_answer:
 
 # How to Verify a Receipt
 
-This page answers one practical question: how to verify a receipt or proof bundle offline, and how to read `valid`, `invalid`, and `indeterminate` results without claiming too much.
+This page answers one practical question: how to verify a receipt or proof bundle without collapsing public receipt-first checks, bundle-complete offline review, and anchored replay into the same claim.
 
 ## 1. Problem this page solves
 
@@ -41,10 +41,23 @@ After this page, you should understand:
 - the exact order of checks for independent verification
 - what each verdict means (`valid`, `invalid`, `indeterminate`)
 - what is proven and what still depends on trust
+- how the public `/verify` result differs from bundle-complete verification
 
-## 3. Minimum artifact set
+## 3. Verification modes and claim boundaries
 
-At minimum, start with the receipt material and trusted key material.
+Keep these modes separate before relying on a result.
+
+| Mode | Input | What the result can claim |
+| --- | --- | --- |
+| Public receipt-first v1 | Supported receipt JSON submitted to `/verify` | Receipt-scoped checks passed or failed for that JSON. Artifact bytes and bundle completeness are not revalidated. |
+| Bundle-complete offline | Receipt, manifest, referenced artifact bytes, signatures, timestamp material, and trust material | The verifier can recompute artifact hashes, check manifest integrity, and evaluate declared proof layers that are actually present. |
+| Anchored replay | Bundle-complete material plus reviewer-supplied trust anchor | The package is tested against a continuity or identity anchor obtained outside the package. |
+
+A public `valid` result on `/verify` should be read as receipt-scoped. It does not prove the full runtime story, complete bundle custody, or artifact-byte integrity.
+
+## 4. Minimum artifact set
+
+At minimum, start with the receipt material and trusted key material. For public receipt-first mode, the receipt JSON is the submitted input. For bundle-complete mode, keep the referenced files available so their digests can be recomputed.
 
 | Artifact | Status | Why it matters |
 | --- | --- | --- |
@@ -53,19 +66,20 @@ At minimum, start with the receipt material and trusted key material.
 | RFC 3161 timestamp token + chain | conditional | Required when the receipt claims trusted time |
 | Log checkpoint + inclusion proof | conditional | Required when the receipt claims append-only publication |
 
-## 4. Verification procedure (exact order)
+## 5. Verification procedure (exact order)
 
-1. **Confirm the artifact set.** Determine whether you have receipt-only material or a proof bundle.
-2. **Verify manifest integrity.** If `MANIFEST.json` exists, recompute the listed hashes first.
-3. **Verify the signature.** Check the signed payload against trusted key material.
-4. **Verify structure and bindings.** Confirm schema and digest references are internally consistent.
-5. **Verify the timestamp layer.** If present, validate the RFC 3161 token and chain.
-6. **Verify the log inclusion layer.** If present, validate the inclusion proof and checkpoint signature.
-7. **Verify continuity links.** If prior-state links exist, confirm there is no chain break.
+1. **Confirm the artifact set and mode.** Determine whether you have receipt-only material, a proof bundle, or anchored replay material.
+2. **For public receipt-first checks, inspect the receipt only.** Confirm the supported schema, proof stage, digest relationships, and declared receipt-level checks.
+3. **For bundle-complete checks, verify manifest integrity.** If `MANIFEST.json` exists, recompute the listed hashes before interpreting higher proof layers.
+4. **Verify the signature.** Check the signed payload against trusted key material.
+5. **Verify structure and bindings.** Confirm schema and digest references are internally consistent.
+6. **Verify the timestamp layer.** If present and the token is available, validate the RFC 3161 token and chain.
+7. **Verify the log inclusion layer.** If present, validate the inclusion proof and checkpoint signature.
+8. **Verify continuity links.** If prior-state links exist, confirm there is no chain break.
 
 Do not skip the order. Integrity and signature checks come before you interpret higher proof layers.
 
-## 5. Expected results and interpretation
+## 6. Expected results and interpretation
 
 | Check | Outcomes |
 | --- | --- |
@@ -76,16 +90,19 @@ Do not skip the order. Integrity and signature checks come before you interpret 
 | Log inclusion layer | valid / invalid / not present |
 | Continuity layer | proven / not present |
 
+Public surface note: `/verify` currently runs receipt-first v1. The public adapter may present an internal `limited-pass` as `valid`. Read that result as receipt-scoped: supported receipt checks passed, but artifact revalidation was not performed.
+
 Verdict interpretation:
 
-- **`valid`**: the required checks for the declared claim set passed.
+- **`valid`**: the required checks for the declared claim set and selected mode passed. In public receipt-first mode, this does not prove bundle completeness or artifact-byte integrity.
 - **`invalid`**: one or more proof-bearing checks failed.
 - **`indeterminate`**: the proof bundle may be coherent, but a required outside trust condition could not be established locally.
 
-## 6. What is proven vs what remains trusted
+## 7. What is proven vs what remains trusted
 
 **Proven when checks pass**
 
+- in public receipt-first mode, supported receipt structure and receipt-level consistency only
 - issuer-bound signed statement integrity
 - digest and artifact consistency
 - optional trusted-time and inclusion claims when the matching material is present and valid
@@ -96,7 +113,7 @@ Verdict interpretation:
 - TSA trust and time-source trust
 - log-operator trust model, unless additional witness policy is satisfied
 
-## 7. Common failure modes
+## 8. Common failure modes
 
 - Missing file or hash mismatch → tampered or incomplete proof bundle.
 - Signature failure → issuer authenticity not established.
@@ -105,7 +122,7 @@ Verdict interpretation:
 
 Report failures by layer instead of collapsing everything into one vague pass/fail line.
 
-## 8. Next-page handoff
+## 9. Next-page handoff
 
 Next, read [Receipts](/docs/evidence/receipts) to inspect the proof statement this verification flow is evaluating.
 
