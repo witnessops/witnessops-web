@@ -5,7 +5,12 @@ import { useState } from "react";
 type FieldName =
   | "name"
   | "email"
-  | "workflowName";
+  | "org"
+  | "accessChange"
+  | "systemInvolved"
+  | "approvingAuthority"
+  | "evidenceSummary"
+  | "reviewer";
 
 const labelStyle: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
@@ -60,10 +65,19 @@ export function ContactForm({
 
     const form = e.currentTarget;
     const data = new FormData(form);
-    const workflowSummary = stringField(data, "workflowName");
+    const accessChange = stringField(data, "accessChange");
+    const systemInvolved = stringField(data, "systemInvolved");
+    const approvingAuthority = stringField(data, "approvingAuthority");
+    const evidenceSummary = stringField(data, "evidenceSummary");
+    const reviewer = stringField(data, "reviewer");
     const proofRunScope = [
-      `Workflow summary: ${workflowSummary || "not provided"}`,
-      "Known evidence or links: not requested in the low-friction first form",
+      "Offer: Bounded Access-Change Proof Run",
+      `Access change: ${accessChange || "not provided"}`,
+      `System involved: ${systemInvolved || "not provided"}`,
+      `Approving authority: ${approvingAuthority || "not provided"}`,
+      `Evidence summary: ${evidenceSummary || "not provided"}`,
+      `Reviewer: ${reviewer || "not provided"}`,
+      "First-message boundary: no secrets, source exports, logs, screenshots, or customer evidence requested in the form",
     ].join("\n");
 
     try {
@@ -74,13 +88,16 @@ export function ContactForm({
           name: data.get("name"),
           org: data.get("org"),
           email: data.get("email"),
-          intent: "ai-agent-action-proof-run",
+          intent: "access-change-proof-run",
           scope: proofRunScope,
         }),
       });
 
       if (!res.ok) {
         const payload = await res.json().catch(() => ({ error: "Failed to send." }));
+        if (typeof payload.error === "string" && payload.error.toLowerCase().includes("email")) {
+          updateFieldError("email", payload.error);
+        }
         throw new Error(payload.error ?? "Failed to send.");
       }
       setStatus("sent");
@@ -110,12 +127,12 @@ export function ContactForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" aria-busy={status === "sending"}>
-      <input type="hidden" name="intent" value="ai-agent-action-proof-run" />
+      <input type="hidden" name="intent" value="access-change-proof-run" />
       <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
         {status === "sending"
           ? "Sending..."
           : status === "sent"
-            ? "Message sent."
+            ? "Request sent. Check your email for the verification step."
             : ""}
       </div>
 
@@ -148,21 +165,93 @@ export function ContactForm({
       </div>
 
       <div>
-        <label htmlFor="workflowName" className="mb-2 block" style={labelStyle}>What should we look at?</label>
+        <label htmlFor="org" className="mb-2 block" style={labelStyle}>Company or team</label>
+        <input
+          id="org" name="org" type="text"
+          aria-invalid={fieldErrors.org ? true : undefined}
+          onInvalid={handleInvalid} onInput={handleFieldInput}
+          className={`${inputClass} ${fieldErrors.org ? "!border-signal-red" : ""}`}
+          style={inputStyle}
+          placeholder="Company, team, or project"
+        />
+        {fieldErrors.org && <p className="mt-1 text-xs text-signal-red">{fieldErrors.org}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="accessChange" className="mb-2 block" style={labelStyle}>Access change to inspect</label>
         <textarea
-          id="workflowName" name="workflowName" rows={4} required
-          aria-describedby="workflowName-helper"
-          className={`${textareaClass} ${fieldErrors.workflowName ? "!border-signal-red" : ""}`}
+          id="accessChange" name="accessChange" rows={3} required
+          aria-describedby="accessChange-helper"
+          className={`${textareaClass} ${fieldErrors.accessChange ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
-          placeholder="One agent-assisted workflow, action, or decision path. Plain language is fine."
+          placeholder="Example: contractor production access revoked, admin permission updated, vendor access reviewed."
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
-          aria-invalid={fieldErrors.workflowName ? true : undefined}
+          aria-invalid={fieldErrors.accessChange ? true : undefined}
         />
-        <p id="workflowName-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
-          No secrets or customer data. A short summary is enough for the first fit check.
+        <p id="accessChange-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
+          Plain language only. Do not paste secrets, source exports, full logs, screenshots, or customer data.
         </p>
-        {fieldErrors.workflowName && <p className="mt-1 text-xs text-signal-red">{fieldErrors.workflowName}</p>}
+        {fieldErrors.accessChange && <p className="mt-1 text-xs text-signal-red">{fieldErrors.accessChange}</p>}
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-2">
+        <div>
+          <label htmlFor="systemInvolved" className="mb-2 block" style={labelStyle}>System involved</label>
+          <input
+            id="systemInvolved" name="systemInvolved" type="text"
+            aria-invalid={fieldErrors.systemInvolved ? true : undefined}
+            onInvalid={handleInvalid} onInput={handleFieldInput}
+            className={`${inputClass} ${fieldErrors.systemInvolved ? "!border-signal-red" : ""}`}
+            style={inputStyle}
+            placeholder="Production app, cloud IAM, GitHub, IdP, etc."
+          />
+          {fieldErrors.systemInvolved && <p className="mt-1 text-xs text-signal-red">{fieldErrors.systemInvolved}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="approvingAuthority" className="mb-2 block" style={labelStyle}>Who approved it?</label>
+          <input
+            id="approvingAuthority" name="approvingAuthority" type="text"
+            aria-invalid={fieldErrors.approvingAuthority ? true : undefined}
+            onInvalid={handleInvalid} onInput={handleFieldInput}
+            className={`${inputClass} ${fieldErrors.approvingAuthority ? "!border-signal-red" : ""}`}
+            style={inputStyle}
+            placeholder="Role or title is enough for first contact"
+          />
+          {fieldErrors.approvingAuthority && <p className="mt-1 text-xs text-signal-red">{fieldErrors.approvingAuthority}</p>}
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="evidenceSummary" className="mb-2 block" style={labelStyle}>What evidence exists?</label>
+        <textarea
+          id="evidenceSummary" name="evidenceSummary" rows={3}
+          aria-describedby="evidenceSummary-helper"
+          className={`${textareaClass} ${fieldErrors.evidenceSummary ? "!border-signal-red" : ""}`}
+          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
+          placeholder="Ticket, approval record, access log, export, screenshot, policy text. Name evidence types only."
+          onInvalid={handleInvalid}
+          onInput={handleFieldInput}
+          aria-invalid={fieldErrors.evidenceSummary ? true : undefined}
+        />
+        <p id="evidenceSummary-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
+          Source materials are handled only after scope and intake are agreed.
+        </p>
+        {fieldErrors.evidenceSummary && <p className="mt-1 text-xs text-signal-red">{fieldErrors.evidenceSummary}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="reviewer" className="mb-2 block" style={labelStyle}>Who needs to inspect the bundle?</label>
+        <input
+          id="reviewer" name="reviewer" type="text"
+          aria-invalid={fieldErrors.reviewer ? true : undefined}
+          onInvalid={handleInvalid} onInput={handleFieldInput}
+          className={`${inputClass} ${fieldErrors.reviewer ? "!border-signal-red" : ""}`}
+          style={inputStyle}
+          placeholder="Founder, CTO, security lead, customer, auditor, or internal reviewer"
+        />
+        {fieldErrors.reviewer && <p className="mt-1 text-xs text-signal-red">{fieldErrors.reviewer}</p>}
       </div>
 
       <button
@@ -177,11 +266,11 @@ export function ContactForm({
           textTransform: "uppercase",
         }}
       >
-        {status === "sending" ? "Sending..." : "Send request"}
+        {status === "sending" ? "Sending..." : "Request proof run"}
       </button>
 
       <p className="text-xs leading-relaxed text-text-muted">
-        We reply by email before anything runs.
+        A form submission does not start a proof run. We confirm fit, scope, payment, and evidence handling by email first.
       </p>
 
       {status === "sent" && (
@@ -190,7 +279,7 @@ export function ContactForm({
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-signal-green)" }}
           role="status"
         >
-          <span>&#10003;</span> Proof-run request sent. We will follow up by email.
+          <span>&#10003;</span> Request received. Check your work email for the verification step before scope starts.
         </div>
       )}
       {status === "error" && (
