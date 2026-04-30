@@ -19,6 +19,12 @@ Use this quickstart when you need a first-pass verification result without colla
 - For field-level requirements, read [Receipt Spec](/docs/evidence/receipt-spec).
 - For adversary and trust-boundary assumptions, read [Threat Model](/docs/security-systems/threat-model).
 
+## Public verifier boundary
+
+The public `/verify` surface currently runs receipt-first v1 checks against supported receipt JSON. A public `valid` result means the receipt-scoped checks for that input passed. It does not mean artifact bytes were recomputed, the proof bundle is complete, or every declared outside trust condition was independently established.
+
+Use bundle-complete verification when you need manifest integrity, artifact-byte revalidation, timestamp-token validation, or chain evidence beyond the receipt JSON.
+
 ## Execution, proof, evidence, and interpretation are separate lanes
 
 | Lane | Question answered | Output |
@@ -33,7 +39,7 @@ Treat these lanes independently. A strong proof result does not replace interpre
 ## Procedure
 
 1. Start with the receipt.
-2. If you have referenced materials or a proof bundle, keep them available for deeper checks, but do not collapse those later checks into the receipt-first result.
+2. If you have referenced materials or a proof bundle, keep them available for deeper checks, but do not collapse those later checks into the public receipt-first result.
 3. Run the canonical verifier flow rendered below; do not reorder or skip contract steps.
 4. Record outcomes per step and tie each outcome to the inspected evidence.
 5. Make policy or incident conclusions only after listing unresolved assumptions.
