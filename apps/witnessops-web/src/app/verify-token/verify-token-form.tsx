@@ -4,6 +4,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { VerifyTokenResponse } from "@/lib/token-contract";
+import {
+  formatInitialVerificationCode,
+  formatVerificationCode,
+} from "@/lib/verification-code-format";
 
 interface Props {
   issuanceId: string;
@@ -107,21 +111,4 @@ export function VerifyTokenForm(props: Props) {
       </button>
     </form>
   );
-}
-
-function formatVerificationCode(value: string): string {
-  const compact = value
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 12);
-  const groups = compact.match(/.{1,4}/g);
-  return groups ? groups.join("-") : "";
-}
-
-function formatInitialVerificationCode(value: string): string {
-  const compact = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-  if (compact.length === 12) {
-    return formatVerificationCode(value);
-  }
-  return value.trim();
 }
