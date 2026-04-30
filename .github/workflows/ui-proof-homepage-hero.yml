@@ -95,7 +95,7 @@ jobs:
           console.log(`Semantic proof step outcome: \`${process.env.UI_PROOF_OUTCOME}\``);
           if (process.env.UI_PROOF_OUTCOME !== "success") {
             console.log("");
-            console.log("> Semantic UI proof failures are warn-only in V1. Build, runner startup, and report creation remain blocking.");
+            console.log("> Critical homepage hero UI proof failures are blocking after calibration. Warning-only scenarios remain non-blocking.");
           }
           NODE
         env:
@@ -113,3 +113,15 @@ jobs:
             artifacts/ui-proof/homepage-hero/screenshots/**
             artifacts/ui-proof/playwright-report/**
             artifacts/ui-proof/test-results/**
+
+      - name: Enforce UI proof blocking policy
+        if: always()
+        run: |
+          test -f artifacts/ui-proof/homepage-hero/latest.json
+          if [ "${{ steps.ui_proof.outcome }}" != "success" ]; then
+            echo "Homepage hero UI proof failed a blocking gate."
+            echo "Critical semantic failures, runner failures, or report-generation failures are blocking after calibration."
+            echo "Warning-only scenario failures remain non-blocking because the Playwright spec only fails critical checks."
+            exit 1
+          fi
+          echo "Homepage hero UI proof blocking policy passed."
