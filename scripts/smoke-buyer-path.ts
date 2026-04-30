@@ -42,6 +42,30 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     prohibitedMarkers: ["Request an AI Agent Action Proof Run"],
   },
   {
+    path: "/access-change-proof-run",
+    requiredMarkers: [
+      "Bounded Access-Change Proof Run",
+      "Turn one sensitive access change into an evidence bundle others can inspect.",
+      "€2,500 fixed fee",
+      "Request one access-change proof run",
+      "View fixture demo",
+      "What is not claimed",
+      "This is not a legal audit opinion.",
+      "This is not a compliance certification.",
+      "This is not a verifier-of-record result.",
+      "the action cannot be proven from available evidence",
+    ],
+    prohibitedMarkers: [
+      "verified compliance",
+      "certified compliance",
+      "audit-ready",
+      "audit opinion provided",
+      "platform for AI governance",
+      "proves compliance",
+      "guarantees compliance",
+    ],
+  },
+  {
     path: "/review/request",
     requiredMarkers: [
       "Submit one proof run",

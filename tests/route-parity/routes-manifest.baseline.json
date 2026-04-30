@@ -177,6 +177,12 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/access-change-proof-run",
+      "regex": "^/access\\-change\\-proof\\-run(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/access\\-change\\-proof\\-run(?:/)?$"
+    },
+    {
       "page": "/admin",
       "regex": "^/admin(?:/)?$",
       "routeKeys": {},

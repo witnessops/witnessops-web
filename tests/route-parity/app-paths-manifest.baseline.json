@@ -42,6 +42,7 @@
   "/support/page": "app/support/page.js",
   "/terms/page": "app/terms/page.js",
   "/status/page": "app/status/page.js",
+  "/access-change-proof-run/page": "app/access-change-proof-run/page.js",
   "/page": "app/page.js",
   "/proof-backed-security-systems/page": "app/proof-backed-security-systems/page.js",
   "/review/request/page": "app/review/request/page.js",
