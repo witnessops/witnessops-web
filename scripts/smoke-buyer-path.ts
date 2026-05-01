@@ -27,7 +27,15 @@ export type BuyerPathSmokeResult = {
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps"],
+    requiredMarkers: [
+      "WitnessOps",
+      "Request one proof run",
+      "View sample proof run",
+    ],
+    prohibitedMarkers: [
+      "Submit proof run",
+      "Inspect sample receipt",
+    ],
   },
   {
     path: "/library",
