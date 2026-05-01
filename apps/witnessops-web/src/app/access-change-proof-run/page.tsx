@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 const requestHref = "/support";
-const fixtureDemoHref = "/review/sample-cases/ai-agent-action-proof-run";
+const sampleProofRunHref = "/review/sample-cases/ai-agent-action-proof-run";
 
 const deliverables = [
   "run manifest",
@@ -194,9 +194,9 @@ export default function AccessChangeProofRunPage() {
           </div>
           <div>
             <CtaButton
-              href={fixtureDemoHref}
+              href={sampleProofRunHref}
               variant="secondary"
-              label="View fixture demo"
+              label="View sample proof run"
             />
             <p className="mt-2 max-w-[320px] text-xs leading-relaxed text-text-muted">
               The public sample shows proof-run shape only, not real customer evidence.
