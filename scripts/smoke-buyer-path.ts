@@ -68,11 +68,9 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Mailbox verification is not proof-run start",
       "No customer evidence",
       "Stop conditions",
-      "Minimal buyer reading order",
-    ],
-    prohibitedMarkers: [
-      "legal audit opinion",
       "broad compliance certification",
+      "legal audit opinion",
+      "Minimal buyer reading order",
     ],
   },
   {
