@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import test from "node:test";
 import {
   buyerWalkthroughHref,
+  sampleArtifactDigest,
   sampleArtifactHref,
   sampleArtifactNames,
   sampleBaseUrl,
@@ -107,6 +108,16 @@ test("AI sample artifact contract preserves pinned manifest identity", () => {
   }
 });
 
+test("AI sample artifact contract resolves displayed artifact digests", () => {
+  for (const entry of sampleManifestEntries) {
+    if (sampleDisplayedArtifactNames.includes(entry.file as never)) {
+      assert.equal(sampleArtifactDigest(entry.file as never), entry.sha256);
+    }
+  }
+
+  assert.equal(sampleArtifactDigest("MANIFEST.sha256"), sampleManifestSha256);
+});
+
 test("AI sample artifact contract names displayed and manifest-hashed sets explicitly", () => {
   assert.deepEqual(sampleDisplayedArtifactNames, sampleArtifactNames);
   assert.deepEqual(
@@ -132,6 +143,15 @@ test("AI sample artifact contract names displayed and manifest-hashed sets expli
       assert.ok(displayed.has(artifact), `${artifact} should be displayed.`);
     }
   }
+});
+
+test("AI sample page renders artifact digests from the contract", () => {
+  const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+
+  assert.match(source, /sampleArtifactDigest\(name\)/);
+  assert.match(source, /sampleArtifactDigest\(step\.artifact\)/);
+  assert.match(source, /SHA-256:/);
+  assert.doesNotMatch(source, /SHA-256:\s*[a-f0-9]{64}/);
 });
 
 test("AI sample page renders from the artifact contract", () => {
