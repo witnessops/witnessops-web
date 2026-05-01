@@ -443,9 +443,9 @@ export default function AiAgentActionProofRunSamplePage() {
             </h2>
             <p className="text-base leading-8 text-text-secondary">
               Use the sample to inspect the proof shape before submitting your
-              own workflow. The request page asks for the workflow name,
-              agent/tool involved, system touched, approval boundary, evidence
-              available, buyer email, and urgency.
+              own workflow. The request page asks for your name, work email,
+              optional company or team, workflow, agent/tool path and touched
+              system, approval boundary, and evidence available.
             </p>
             <div className="flex flex-wrap gap-3">
               <CtaButton
