@@ -17,6 +17,7 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/app/review/sample-cases/approval-gated-containment/page.tsx",
   "src/app/review/sample-cases/privileged-access-grant/page.tsx",
   "src/app/verify/page.tsx",
+  "src/app/why-witnessops/page.tsx",
   "../../content/witnessops/landing/home.yaml",
 ] as const;
 
@@ -45,6 +46,8 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "not a live customer artifact",
   "this page explains the architecture model",
   "the artifacts carry the proof",
+  "this page explains why the proof-run model exists",
+  "a proof claim requires a named receipt",
   "receipt-first v1",
   "No proof run starts",
   "No customer evidence",

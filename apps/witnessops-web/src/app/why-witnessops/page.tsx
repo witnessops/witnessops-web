@@ -23,6 +23,13 @@ export const metadata: Metadata = {
   },
 };
 
+const boundaryPoints = [
+  "This page explains why the proof-run model exists. It is not itself a verifier result.",
+  "A proof claim requires a named receipt, evidence manifest, verifier result, or proof bundle.",
+  "This is not a legal compliance claim, production deployment claim, or complete AI governance program.",
+  "Execution, evidence, and verification stay separate so the proof path can be inspected after the work changes hands.",
+];
+
 export default function WhyWitnessOpsPage() {
   return (
     <main id="main-content" tabIndex={-1}>
@@ -70,7 +77,7 @@ export default function WhyWitnessOpsPage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <CtaButton href="/review" variant="primary" label="Read the proof-run offer" />
-            <CtaButton href="/verify" variant="secondary" label="Verify a sample receipt" />
+            <CtaButton href="/verify" variant="secondary" label="Verify receipts and bundles" />
           </div>
         </div>
       </SectionShell>
@@ -80,9 +87,10 @@ export default function WhyWitnessOpsPage() {
             For consequential AI workflows
           </h2>
           <p>
-            Agents act. WitnessOps proves who approved the action, what ran,
-            what evidence survives, and how a third party can challenge the
-            proof outside the source system.
+            Agents act. WitnessOps packages the receipt and evidence path so a
+            third party can inspect who approved the action, what ran, what
+            evidence survives, and how the proof can be challenged outside the
+            source system.
           </p>
           <p>
             WitnessOps helps make one bounded AI-agent action more reviewable.
@@ -94,6 +102,20 @@ export default function WhyWitnessOpsPage() {
             <li>show what executed within scope</li>
             <li>preserve evidence for later review</li>
             <li>name where trust assumptions still remain</li>
+          </ul>
+        </div>
+      </SectionShell>
+      <SectionShell narrow spacing="compact" className="border-t border-surface-border">
+        <div className="space-y-5">
+          <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
+            Boundary
+          </h2>
+          <ul className="grid gap-3 text-sm leading-7 text-text-secondary md:grid-cols-2">
+            {boundaryPoints.map((point) => (
+              <li key={point} className="border border-surface-border bg-surface-bg p-4">
+                {point}
+              </li>
+            ))}
           </ul>
         </div>
       </SectionShell>
