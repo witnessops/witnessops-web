@@ -2,6 +2,12 @@ import Image from "next/image";
 import { assetFoundryVisuals } from "@/lib/asset-foundry-visuals";
 import { HeroCopy } from "./hero-copy";
 
+type HeroMedia = {
+  type: string;
+  terminal?: { language: string; lines: string[] };
+  code?: { language: string; lines: string[] };
+};
+
 type HeroShellProps = {
   eyebrow: string;
   title: string;
@@ -16,7 +22,7 @@ type HeroShellProps = {
   secondaryCta: { label: string; href: string; variant: string };
   proofBadges: string[];
   microcopy?: string;
-  receiptExcerptLines?: string[];
+  media: HeroMedia;
   trustBar: {
     enabled: boolean;
     label: string;
@@ -34,6 +40,7 @@ export function HeroShell({
   secondaryCta,
   proofBadges,
   microcopy,
+  media,
   trustBar,
 }: HeroShellProps) {
   const heroVisual = assetFoundryVisuals.homepageHero;
@@ -75,7 +82,7 @@ export function HeroShell({
             proofBadges={proofBadges}
             microcopy={microcopy}
           />
-          <HeroReceiptPreview imageSrc={heroVisual.src} />
+          <HeroReceiptPreview imageSrc={heroVisual.src} media={media} />
         </div>
 
         {trustBar.enabled && (
@@ -100,14 +107,33 @@ export function HeroShell({
   );
 }
 
-function HeroReceiptPreview({ imageSrc }: { imageSrc: string }) {
-  const rows = [
-    ["Workflow", "AI agent action"],
-    ["Authority", "Approval boundary recorded"],
-    ["Evidence", "Manifest captured"],
-    ["Verifier", "Offline check available"],
-    ["Unproven", "Declared, not hidden"],
-  ];
+function getMediaLanguage(media: HeroMedia): string {
+  if (media.type === "terminal") {
+    return media.terminal?.language ?? "terminal";
+  }
+
+  if (media.type === "code_excerpt") {
+    return media.code?.language ?? "text";
+  }
+
+  return "text";
+}
+
+function getMediaLines(media: HeroMedia): string[] {
+  if (media.type === "terminal") {
+    return media.terminal?.lines ?? [];
+  }
+
+  if (media.type === "code_excerpt") {
+    return media.code?.lines ?? [];
+  }
+
+  return [];
+}
+
+function HeroReceiptPreview({ imageSrc, media }: { imageSrc: string; media: HeroMedia }) {
+  const mediaLanguage = getMediaLanguage(media);
+  const mediaLines = getMediaLines(media);
 
   return (
     <div className="relative hidden min-h-[420px] min-w-0 select-none md:block">
@@ -128,26 +154,26 @@ function HeroReceiptPreview({ imageSrc }: { imageSrc: string }) {
 
       <div className="relative ml-auto mt-10 max-w-[420px] rounded-lg border border-white/[0.14] bg-[linear-gradient(180deg,rgba(255,255,255,0.065),rgba(255,255,255,0.025))] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur">
         <p className="mb-4 font-mono text-xs uppercase tracking-[0.12em] text-white/50">
-          Sample verifier result
+          Sample proof-run excerpt
         </p>
-        <div className="mb-6 flex items-center gap-3 text-sm font-semibold text-white">
-          <span
-            aria-hidden="true"
-            className="h-2.5 w-2.5 rounded-full bg-brand-accent shadow-[0_0_20px_rgba(255,107,53,0.75)]"
-          />
-          Proof run complete
+        <div className="mb-5 flex items-center justify-between gap-3 text-sm font-semibold text-white">
+          <span className="inline-flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="h-2.5 w-2.5 rounded-full bg-brand-accent shadow-[0_0_20px_rgba(255,107,53,0.75)]"
+            />
+            Content-bound preview
+          </span>
+          <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-white/45">
+            {mediaLanguage}
+          </span>
         </div>
-        <dl className="grid gap-3">
-          {rows.map(([label, value]) => (
-            <div
-              key={label}
-              className="flex justify-between gap-6 border-t border-white/[0.09] pt-3"
-            >
-              <dt className="text-[13px] text-white/[0.52]">{label}</dt>
-              <dd className="m-0 text-right text-[13px] text-white/[0.88]">{value}</dd>
-            </div>
-          ))}
-        </dl>
+        <pre
+          data-ui-proof-id="homepage-hero-media"
+          className="max-h-[280px] overflow-hidden whitespace-pre-wrap rounded-md border border-white/[0.09] bg-black/35 p-4 font-mono text-[12px] leading-5 text-white/[0.82]"
+        >
+          {mediaLines.join("\n")}
+        </pre>
       </div>
     </div>
   );
