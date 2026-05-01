@@ -17,6 +17,24 @@ This subtree contains live WitnessOps web app logic, not canonical public proof 
 - Do not expose internal-only proof details through operator-facing surfaces.
 - Keep comments and docs aligned with the live repository name `witnessops-web`.
 
+## Public proof-surface rules
+
+- Public pages explain the proof model; they do not become proof authority unless tied to a named artifact, receipt, verifier result, or manifest.
+- Do not describe a page as verified unless the verifier path or artifact proving that state is named.
+- Keep sample, explanatory, live customer, legal/security, support, and admin surfaces separate.
+- Buyer-visible proof markers must stay aligned with `scripts/smoke-buyer-path.ts`.
+- Claim-boundary language must stay aligned with `src/app/public-claim-boundary.test.ts`.
+
+## AI sample artifact contract
+
+For `src/app/review/sample-cases/ai-agent-action-proof-run/`:
+
+- Treat `sample-artifact-contract.ts` as the local web-side source of truth for pinned sample identity, manifest provenance, artifact names, artifact URLs, and displayed digests.
+- Do not duplicate sample commit, manifest blob SHA, manifest text SHA-256, artifact digests, or GitHub sample URLs in page code when a contract field exists.
+- Keep `artifact-links.test.ts` updated with any contract or page-rendering change.
+- Preserve the distinction between displayed artifacts and manifest-hashed artifacts. `MANIFEST.sha256` is displayed as the digest-list artifact but is not self-listed in the manifest. `README.md` is hashed in the pinned manifest but is not shown as a page inspection artifact.
+- Current boundary: this app records and displays pinned external manifest provenance, but does not recompute individual source artifact bytes locally.
+
 ## Terminology
 
 Use the repo standard terms:
@@ -29,6 +47,11 @@ Use the repo standard terms:
 After changes here:
 ```bash
 pnpm health
+```
+
+If changes touch public buyer/proof-surface copy, also run:
+```bash
+pnpm smoke:buyer-path:test
 ```
 
 If changes touch receipt or proof-shaped data, also run:
