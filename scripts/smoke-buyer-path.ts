@@ -31,6 +31,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "WitnessOps",
       "Request one proof run",
       "View sample proof run",
+      "Approval boundary recorded",
+      "Evidence manifest captured",
+      "Receipt and verifier result returned",
+      "Challenge path declared",
+      "Limits named before reliance",
     ],
     prohibitedMarkers: [
       "Submit proof run",
