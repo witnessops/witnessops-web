@@ -4,10 +4,14 @@ import { getCanonicalAlternates } from "@witnessops/config";
 import { CtaButton } from "@/components/shared/cta-button";
 import { SectionShell } from "@/components/shared/section-shell";
 
+const sampleCommit = "99741c8d50cd3adbfdc28bc317ac563a1e8dd1ef";
+const sampleCommitShort = sampleCommit.slice(0, 12);
+const sampleManifestAnchor =
+  "ed4614932f1b96fa9cc082fb481239ac8655bd49596d846db4da5bf5eb6dca14  RECEIPT.json";
 const sampleBaseUrl =
-  "https://github.com/witnessops/witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run";
+  `https://github.com/witnessops/witnessops-sample-cases/tree/${sampleCommit}/sample-cases/ai-agent-action-proof-run`;
 const sampleBlobBaseUrl =
-  "https://github.com/witnessops/witnessops-sample-cases/blob/main/sample-cases/ai-agent-action-proof-run";
+  `https://github.com/witnessops/witnessops-sample-cases/blob/${sampleCommit}/sample-cases/ai-agent-action-proof-run`;
 const buyerWalkthroughHref = `${sampleBlobBaseUrl}/BUYER_WALKTHROUGH.md`;
 
 export const metadata: Metadata = {
@@ -37,6 +41,7 @@ const statusChips = [
   { label: "Offer", value: "AI Agent Action Proof Run" },
   { label: "Artifact class", value: "Public sample bundle" },
   { label: "Status", value: "Receipt shape and verifier path" },
+  { label: "Sample commit", value: sampleCommitShort },
 ];
 
 const buyerChecks = [
@@ -54,6 +59,27 @@ const buyerChecks = [
     label: "Proof boundary",
     value:
       "The sample demonstrates receipt shape and verifier path. It is not a production deployment, legal compliance claim, or whole-program assurance claim.",
+  },
+];
+
+const lineageRows = [
+  {
+    label: "Sample commit",
+    value: sampleCommit,
+  },
+  {
+    label: "Pinned artifact links",
+    value:
+      "All GitHub artifact links on this page use the sample commit, not the mutable main branch.",
+  },
+  {
+    label: "Manifest anchor",
+    value: sampleManifestAnchor,
+  },
+  {
+    label: "Boundary",
+    value:
+      "The commit pin and manifest line support replayable sample inspection only; they are not production custody proof.",
   },
 ];
 
@@ -206,6 +232,24 @@ export default function AiAgentActionProofRunSamplePage() {
                 variant="secondary"
                 label="Read buyer walkthrough"
               />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
+              Sample lineage
+            </h2>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              {lineageRows.map((row) => (
+                <div key={row.label} className="rounded-xl border border-surface-border bg-surface-bg p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
+                    {row.label}
+                  </div>
+                  <p className="mt-3 break-words font-mono text-xs leading-6 text-text-secondary">
+                    {row.value}
+                  </p>
+                </div>
+              ))}
             </div>
           </section>
 
