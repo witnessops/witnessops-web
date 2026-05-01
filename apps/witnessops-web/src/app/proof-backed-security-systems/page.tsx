@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   alternates: getCanonicalAlternates("witnessops", "/proof-backed-security-systems"),
 };
 
+const modelBoundaries = [
+  "This page explains the architecture model. It does not verify a specific workflow or customer environment.",
+  "Independent checking requires the named artifact set: receipt, manifest, evidence bundle, verifier result, or status digest.",
+  "A proof-backed surface can show what was captured and what passed the declared verifier path. It does not remove source-system or key-custody trust assumptions.",
+  "Operator internals stay separate from public proof presentation unless an artifact explicitly declares a public disclosure boundary.",
+];
+
 export default function ProofBackedSecuritySystemsPage() {
   return (
     <main id="main-content" tabIndex={-1}>
@@ -28,7 +35,7 @@ export default function ProofBackedSecuritySystemsPage() {
                 after the incident, deployment, or remediation run is over.
                 Instead of relying on screenshots or log spelunking, operators
                 publish bundles, manifests, receipts, and status digests that
-                can be verified independently.
+                can be checked independently.
               </p>
               <p>
                 This architecture matters because public trust, auditor review,
@@ -58,6 +65,24 @@ export default function ProofBackedSecuritySystemsPage() {
             ]}
           />
         </div>
+      </SectionShell>
+
+      <SectionShell className="pt-0">
+        <section className="border border-surface-border bg-surface-bg p-6">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+            Model boundary
+          </p>
+          <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
+            The page describes the proof model. The artifacts carry the proof.
+          </h2>
+          <ul className="mt-5 grid gap-3 text-sm leading-7 text-text-secondary md:grid-cols-2">
+            {modelBoundaries.map((boundary) => (
+              <li key={boundary} className="border border-surface-border bg-surface-card p-4">
+                {boundary}
+              </li>
+            ))}
+          </ul>
+        </section>
       </SectionShell>
     </main>
   );
