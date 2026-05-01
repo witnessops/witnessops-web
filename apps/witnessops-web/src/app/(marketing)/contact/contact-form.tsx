@@ -10,7 +10,10 @@ type FieldName =
   | "name"
   | "email"
   | "org"
-  | "accessChange";
+  | "workflow"
+  | "agentPath"
+  | "approvalBoundary"
+  | "evidenceAvailable";
 
 const labelStyle: React.CSSProperties = {
   fontFamily: "var(--font-display)",
@@ -77,12 +80,18 @@ export function ContactForm({
 
     const form = e.currentTarget;
     const data = new FormData(form);
-    const accessChange = stringField(data, "accessChange");
+    const workflow = stringField(data, "workflow");
+    const agentPath = stringField(data, "agentPath");
+    const approvalBoundary = stringField(data, "approvalBoundary");
+    const evidenceAvailable = stringField(data, "evidenceAvailable");
     const proofRunScope = [
-      "Offer: Bounded Access-Change Proof Run",
-      `First-contact note: ${accessChange || "not provided"}`,
-      "First-message boundary: no files, secrets, source exports, logs, screenshots, or customer evidence requested in the form",
-      "Follow-up needed: fit, authority boundary, likely evidence sources, reviewer, scope, fee, and evidence handling",
+      "Offer: AI Agent Action Proof Run",
+      `Workflow: ${workflow || "not provided"}`,
+      `Agent/tool path and touched system: ${agentPath || "not provided"}`,
+      `Approval boundary: ${approvalBoundary || "not provided"}`,
+      `Evidence available: ${evidenceAvailable || "not provided"}`,
+      "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
+      "Follow-up needed: fit, authority boundary, action scope, likely evidence sources, reviewer, verifier result, challenge path, fee, and evidence handling",
     ].join("\n");
 
     try {
@@ -93,7 +102,7 @@ export function ContactForm({
           name: data.get("name"),
           org: data.get("org"),
           email: data.get("email"),
-          intent: "access-change-proof-run",
+          intent: "ai-agent-action-proof-run",
           scope: proofRunScope,
         }),
       });
@@ -260,8 +269,8 @@ export function ContactForm({
           <span>
             I understand this confirms mailbox access only. No proof run starts
             here, and I will not send secrets, logs, screenshots, source
-            exports, or customer evidence until scope and evidence handling are
-            agreed.
+            exports, credentials, private keys, MFA codes, customer records, or
+            production evidence until scope and evidence handling are agreed.
           </span>
         </label>
 
@@ -346,7 +355,7 @@ export function ContactForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" aria-busy={status === "sending"}>
-      <input type="hidden" name="intent" value="access-change-proof-run" />
+      <input type="hidden" name="intent" value="ai-agent-action-proof-run" />
       <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
         {status === "sending"
           ? "Sending..."
@@ -361,8 +370,8 @@ export function ContactForm({
         </div>
         <p className="mt-2 text-sm leading-relaxed text-text-muted">
           Four fields. No files. No evidence upload. Use plain language and
-          save tickets, logs, screenshots, exports, and customer evidence for
-          the scoped intake.
+          save tickets, logs, screenshots, exports, credentials, private keys,
+          MFA codes, and customer evidence for the scoped intake.
         </p>
       </div>
 
@@ -408,23 +417,72 @@ export function ContactForm({
       </div>
 
       <div>
-        <label htmlFor="accessChange" className="mb-2 block" style={labelStyle}>What access change should we inspect?</label>
+        <label htmlFor="workflow" className="mb-2 block" style={labelStyle}>
+          What agent-assisted workflow should we inspect?
+        </label>
         <textarea
-          id="accessChange" name="accessChange" rows={4} required
-          aria-describedby="accessChange-helper"
-          className={`${textareaClass} ${fieldErrors.accessChange ? "!border-signal-red" : ""}`}
+          id="workflow" name="workflow" rows={3} required
+          aria-describedby="workflow-helper"
+          className={`${textareaClass} ${fieldErrors.workflow ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder="Example: contractor production access was revoked. We need a proof bundle showing approval, execution evidence, and remaining gaps."
+          placeholder="Example: an AI coding agent proposed and applied a configuration change after human approval."
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
-          aria-invalid={fieldErrors.accessChange ? true : undefined}
+          aria-invalid={fieldErrors.workflow ? true : undefined}
         />
-        <p id="accessChange-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
-          One or two sentences is enough. Name systems at a high level only.
-          Do not paste secrets, source exports, full logs, screenshots,
-          credentials, or customer evidence.
+        <p id="workflow-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
+          One workflow only. Keep this high level. Do not paste secrets, source exports,
+          full logs, screenshots, credentials, private keys, MFA codes, or customer evidence.
         </p>
-        {fieldErrors.accessChange && <p className="mt-1 text-xs text-signal-red">{fieldErrors.accessChange}</p>}
+        {fieldErrors.workflow && <p className="mt-1 text-xs text-signal-red">{fieldErrors.workflow}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="agentPath" className="mb-2 block" style={labelStyle}>
+          Agent/tool path and touched system
+        </label>
+        <textarea
+          id="agentPath" name="agentPath" rows={3} required
+          className={`${textareaClass} ${fieldErrors.agentPath ? "!border-signal-red" : ""}`}
+          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+          placeholder="Example: coding agent -> repo tool -> staging configuration. Name systems at a high level only."
+          onInvalid={handleInvalid}
+          onInput={handleFieldInput}
+          aria-invalid={fieldErrors.agentPath ? true : undefined}
+        />
+        {fieldErrors.agentPath && <p className="mt-1 text-xs text-signal-red">{fieldErrors.agentPath}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="approvalBoundary" className="mb-2 block" style={labelStyle}>
+          Approval boundary
+        </label>
+        <textarea
+          id="approvalBoundary" name="approvalBoundary" rows={3} required
+          className={`${textareaClass} ${fieldErrors.approvalBoundary ? "!border-signal-red" : ""}`}
+          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+          placeholder="Who approved the action, what authority they used, and where approval stopped."
+          onInvalid={handleInvalid}
+          onInput={handleFieldInput}
+          aria-invalid={fieldErrors.approvalBoundary ? true : undefined}
+        />
+        {fieldErrors.approvalBoundary && <p className="mt-1 text-xs text-signal-red">{fieldErrors.approvalBoundary}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="evidenceAvailable" className="mb-2 block" style={labelStyle}>
+          Evidence available
+        </label>
+        <textarea
+          id="evidenceAvailable" name="evidenceAvailable" rows={3} required
+          className={`${textareaClass} ${fieldErrors.evidenceAvailable ? "!border-signal-red" : ""}`}
+          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+          placeholder="Name evidence types only: tickets, prompts, logs, commit records, approval records, outputs, verifier artifacts."
+          onInvalid={handleInvalid}
+          onInput={handleFieldInput}
+          aria-invalid={fieldErrors.evidenceAvailable ? true : undefined}
+        />
+        {fieldErrors.evidenceAvailable && <p className="mt-1 text-xs text-signal-red">{fieldErrors.evidenceAvailable}</p>}
       </div>
 
       <button
@@ -466,7 +524,6 @@ export function ContactForm({
         </div>
       )}
 
-      {/* Response info */}
       <div
         className="pt-4 border-t border-surface-border"
         style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-brand-muted)", letterSpacing: "0.06em" }}

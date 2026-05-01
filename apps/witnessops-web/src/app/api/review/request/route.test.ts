@@ -29,7 +29,7 @@ afterEach(async () => {
   await clearTokenStore();
 });
 
-test("review request route issues a verification email", async () => {
+test("review request route issues an AI-agent proof-run verification email", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
   applyTestEnv(baseDir);
 
@@ -39,9 +39,9 @@ test("review request route issues a verification email", async () => {
       body: JSON.stringify({
         name: "K. Witness",
         email: "security@witnessops.com",
-        intent: "access-change-proof-run",
+        intent: "ai-agent-action-proof-run",
         scope:
-          "Access change: contractor production access revoked.",
+          "AI agent action: coding agent applied a configuration change after approval.",
       }),
       headers: { "Content-Type": "application/json" },
     }),
@@ -64,10 +64,10 @@ test("review request route issues a verification email", async () => {
   assert.ok(payload.issuanceId.startsWith("iss_"));
 
   const intake = await getIntakeById(payload.intakeId);
-  assert.equal(intake?.submission.intent, "access-change-proof-run");
+  assert.equal(intake?.submission.intent, "ai-agent-action-proof-run");
   assert.equal(
     intake?.submission.scope,
-    "Access change: contractor production access revoked.",
+    "AI agent action: coding agent applied a configuration change after approval.",
   );
 
   const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
@@ -84,7 +84,7 @@ test("review request route issues a verification email", async () => {
   assert.match(mailRaw, /^X-WitnessOps-Message-Class: transactional$/m);
   assert.match(
     mailRaw,
-    /^Confirm your access-change request\.$/m,
+    /^Confirm your AI-agent proof-run request\.$/m,
   );
   assert.match(mailRaw, /^Verification Code:\s+\S+$/m);
   assert.match(mailRaw, /^Enter the code in the verification box\. No link is required\.$/m);
@@ -94,7 +94,7 @@ test("review request route issues a verification email", async () => {
   assert.match(mailRaw, /^This confirms mailbox access only\.$/m);
   assert.match(mailRaw, /^It does not start a proof run\.$/m);
   assert.match(mailRaw, /^Do not reply with secrets,/m);
-  assert.match(mailRaw, /Confirm your access-change request/);
+  assert.match(mailRaw, /Confirm your AI-agent proof-run request/);
   assert.match(mailRaw, /No link is required\. Do not forward or share this code\./);
   assert.match(mailRaw, /data-witnessops-signature-profile="ops_minimal"/);
 });

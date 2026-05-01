@@ -4,63 +4,61 @@ import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { getMailboxConfig } from "@/lib/mailboxes";
 
 export const metadata: Metadata = {
-  title: "Request an access-change proof run",
+  title: "Request an AI Agent Action Proof Run",
   description:
-    "Send a short, non-secret request for one bounded access-change proof run. No files, logs, screenshots, or customer evidence in the first message.",
+    "Send a short, non-secret request for one bounded AI-agent action proof run. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
-    title: "Request an access-change proof run | WitnessOps",
+    title: "Request an AI Agent Action Proof Run | WitnessOps",
     description:
-      "Send a short, non-secret request for one bounded access-change proof run. No files, logs, screenshots, or customer evidence in the first message.",
+      "Send a short, non-secret request for one bounded AI-agent action proof run. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Request an access-change proof run | WitnessOps",
+    title: "Request an AI Agent Action Proof Run | WitnessOps",
     description:
-      "Send a short, non-secret request for one bounded access-change proof run. No files, logs, screenshots, or customer evidence in the first message.",
+      "Send a short, non-secret request for one bounded AI-agent action proof run. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
   },
 };
 
 const proofOutputs = [
   {
-    title: "Run manifest",
-    summary: "What access-change action is in scope, when it happened, and what system is involved.",
+    title: "Authority map",
+    summary: "Who approved the action, who acted, who reviewed it, and where authority stopped.",
   },
   {
-    title: "Authority record",
-    summary: "Who had authority to approve the change and what boundary is being claimed.",
+    title: "Action boundary",
+    summary: "The one workflow, one agent/tool path, and one touched system under review.",
   },
   {
     title: "Evidence manifest",
-    summary: "What source artifacts exist, where they came from, and what remains missing.",
+    summary: "Captured artifact classes, source references, hashes where available, and known evidence gaps.",
   },
   {
-    title: "Custody, receipt, and findings",
-    summary: "How the evidence was handled, what the receipt binds, and what the run concludes.",
+    title: "Receipt and verifier result",
+    summary: "A bound record of approval, action, evidence, result, verification limits, and challenge path.",
   },
 ];
 
 const nextSteps = [
-  "We check whether the access change is bounded enough for one proof run.",
-  "We confirm the authority boundary, likely evidence sources, and obvious gaps.",
+  "We check whether the workflow is bounded enough for one AI-agent proof run.",
+  "We confirm the authority boundary, action path, likely evidence sources, and obvious gaps.",
   "We reply with fit, scope, fee, and next action before any source materials are accepted.",
 ];
 
 const sampleArtifacts = [
-  "run_manifest.json",
-  "authority_record.json",
-  "evidence_manifest.json",
-  "custody_log.json",
-  "receipt.json",
-  "verifier_readme.md",
-  "findings.md",
+  "ACTION_BOUNDARY.json",
+  "AUTHORITY_MAP.json",
+  "EVIDENCE_MANIFEST.json",
+  "RECEIPT.json",
+  "VERIFY_RESULT.json",
+  "CHALLENGE_PATH.md",
+  "MANIFEST.sha256",
 ];
-
-const offerPageHref = "/access-change-proof-run";
 
 export default function ReviewRequestPage() {
   const mailboxes = getMailboxConfig();
@@ -79,18 +77,18 @@ export default function ReviewRequestPage() {
             color: "var(--color-brand-muted)",
           }}
         >
-          Bounded access-change proof run
+          AI Agent Action Proof Run
         </div>
         <h1
           className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Request an access-change proof run
+          Request one AI-agent proof run
         </h1>
-        <p className="max-w-[620px] text-base leading-relaxed text-text-muted">
-          Tell us, in one or two sentences, which access change you want
-          reviewed. No files, logs, screenshots, exports, or customer evidence
-          are needed for the first fit check.
+        <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
+          Tell us which agent-assisted workflow you want scoped. No files, logs,
+          screenshots, exports, credentials, private keys, MFA codes, or customer
+          evidence are needed for the first fit check.
         </p>
       </section>
 
@@ -141,9 +139,10 @@ export default function ReviewRequestPage() {
               First message only
             </div>
             <p className="text-sm leading-relaxed text-text-muted">
-              Do not submit secrets, credentials, source exports, full logs,
-              screenshots, or customer evidence. Name evidence types only; we
-              handle source materials after scope is agreed.
+              Do not submit secrets, credentials, private keys, MFA codes,
+              source exports, full logs, screenshots, customer records, or
+              unrelated production data. Name evidence types only; source
+              materials are handled after scope is agreed.
             </p>
           </section>
 
@@ -159,12 +158,12 @@ export default function ReviewRequestPage() {
                 color: "var(--color-text-muted)",
               }}
             >
-              Fee and timeline
+              Commercial scope
             </div>
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
-              <p>EUR 2,500 fixed fee.</p>
-              <p>5 business days after source materials are received.</p>
-              <p>50% upfront, 50% on delivery.</p>
+              <p>Fee, timing, and evidence handling are confirmed by email after the first fit check.</p>
+              <p>No proof run starts from this form.</p>
+              <p>No customer evidence is accepted until scope is agreed.</p>
             </div>
           </section>
 
@@ -183,7 +182,7 @@ export default function ReviewRequestPage() {
               Typical bundle
             </div>
             <ul className="mb-4 grid gap-2 text-xs leading-relaxed text-text-muted" style={{ fontFamily: "var(--font-mono)" }}>
-              {sampleArtifacts.slice(0, 4).map((artifact) => (
+              {sampleArtifacts.slice(0, 5).map((artifact) => (
                 <li key={artifact} className="flex items-center gap-2">
                   <span style={{ color: "var(--color-signal-green)", fontSize: 9 }}>&#10003;</span>
                   <span>{artifact}</span>
@@ -191,10 +190,10 @@ export default function ReviewRequestPage() {
               ))}
             </ul>
             <Link
-              href={offerPageHref}
+              href="/review/sample-cases/ai-agent-action-proof-run"
               className="text-sm text-brand-accent underline-offset-4 hover:underline"
             >
-              View access-change offer
+              View sample proof run
             </Link>
           </section>
 
@@ -213,9 +212,9 @@ export default function ReviewRequestPage() {
               Boundary kept clear
             </div>
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
-              <p>Not a legal audit opinion.</p>
-              <p>Not a compliance certification.</p>
-              <p>Not a verifier-of-record result.</p>
+              <p>Not a production deployment claim.</p>
+              <p>Not a legal compliance claim.</p>
+              <p>Not a complete AI governance program.</p>
             </div>
           </section>
 
