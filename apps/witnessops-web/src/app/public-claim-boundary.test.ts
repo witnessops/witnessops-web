@@ -23,6 +23,7 @@ const PROHIBITED_PUBLIC_CLAIMS = [
   "audit-ready",
   "audit opinion provided",
   "proves compliance",
+  "proves the receipt shape",
   "guarantees compliance",
   "platform for AI governance",
   "complete AI governance program replacement",

@@ -430,7 +430,7 @@ export default function AiAgentActionProofRunSamplePage() {
                 Boundary
               </h2>
               <p className="mt-4 text-base leading-8 text-text-secondary">
-                This sample proves the receipt shape and verifier path only. It
+                This sample demonstrates the receipt shape and verifier path only. It
                 does not claim production deployment, legal compliance, or
                 complete AI governance coverage.
               </p>
