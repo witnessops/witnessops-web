@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { CtaButton } from "@/components/shared/cta-button";
 
@@ -26,7 +25,7 @@ export const metadata: Metadata = {
   },
 };
 
-const requestHref = "/review/request";
+const requestHref = "/support";
 const fixtureDemoHref = "/review/sample-cases/ai-agent-action-proof-run";
 
 const deliverables = [
@@ -120,12 +119,8 @@ const ctaPrompts = [
   "who needs to review the final bundle",
 ];
 
-function SectionLabel({ children }: { children: ReactNode }) {
-  return (
-    <div className="kb-section-tag">
-      {children}
-    </div>
-  );
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <div className="kb-section-tag">{children}</div>;
 }
 
 function NumberedList({ items }: { items: string[] }) {
@@ -172,6 +167,11 @@ export default function AccessChangeProofRunPage() {
             with authority, source evidence, custody notes, checksums, receipt,
             verifier notes, and findings.
           </p>
+          <p className="text-sm leading-7 text-text-muted">
+            The active public request lane is the AI Agent Action Proof Run.
+            Access-change scoping is handled by email first so this offer does
+            not send buyers into the AI-agent intake form.
+          </p>
         </div>
         <div className="mt-6 grid gap-3 text-sm leading-relaxed text-text-primary sm:grid-cols-2">
           <div className="border border-surface-border bg-surface-card/40 p-4">
@@ -186,10 +186,10 @@ export default function AccessChangeProofRunPage() {
             <CtaButton
               href={requestHref}
               variant="primary"
-              label="Request one access-change proof run"
+              label="Ask about access-change scoping"
             />
             <p className="mt-2 max-w-[320px] text-xs leading-relaxed text-text-muted">
-              Start with one access change. Do not submit secrets in the first message.
+              Start by email through Support. Do not submit secrets in the first message.
             </p>
           </div>
           <div>
@@ -294,7 +294,7 @@ export default function AccessChangeProofRunPage() {
           ))}
         </div>
         <p className="mt-5 max-w-[760px] border border-surface-border bg-surface-bg p-4 text-sm leading-7 text-text-muted">
-          Do not submit secrets through the request form. Source materials are
+          Do not submit secrets through Support or email. Source materials are
           handled only after scope and intake are agreed.
         </p>
       </section>
@@ -375,10 +375,10 @@ export default function AccessChangeProofRunPage() {
           className="mt-2 text-2xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-3xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Request one access-change proof run
+          Ask about access-change scoping
         </h2>
         <p className="mt-4 max-w-[760px] text-sm leading-7 text-text-secondary">
-          Send a short note with:
+          Send a short non-secret note through Support with:
         </p>
         <ul className="mt-5 grid gap-3 text-sm leading-7 text-text-secondary md:grid-cols-2">
           {ctaPrompts.map((item) => (
@@ -388,13 +388,14 @@ export default function AccessChangeProofRunPage() {
           ))}
         </ul>
         <p className="mt-5 max-w-[760px] text-sm leading-7 text-text-muted">
-          Do not submit secrets in the first message.
+          Do not submit secrets in the first message. The active public request
+          lane remains the AI Agent Action Proof Run.
         </p>
         <div className="mt-6">
           <CtaButton
             href={requestHref}
             variant="primary"
-            label="Request one access-change proof run"
+            label="Ask about access-change scoping"
           />
         </div>
       </section>
