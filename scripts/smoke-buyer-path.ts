@@ -30,6 +30,21 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: ["WitnessOps"],
   },
   {
+    path: "/library",
+    requiredMarkers: [
+      "Artifact state matrix",
+      "Published first-party proof bundles",
+      "Status",
+      "Mechanism",
+      "Boundary",
+      "No live customer proof artifact is linked from this index.",
+      "first-party WitnessOps proof bundles",
+    ],
+    prohibitedMarkers: [
+      "The public artifact classes here are sample or intake surfaces",
+    ],
+  },
+  {
     path: "/review",
     requiredMarkers: [
       "AI Agent Action Proof Run",
