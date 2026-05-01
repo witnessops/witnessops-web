@@ -1,12 +1,19 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { AdminSidebar } from "../../../components/admin/admin-sidebar";
 import { AdminAlertBell } from "../../../components/admin/admin-alert-bell";
 import styles from "../../../components/admin/admin.module.css";
 
+export const metadata: Metadata = {
+  title: "WitnessOps Admin Console",
+  robots: { index: false, follow: false },
+};
+
 export default function AdminConsoleLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <>
