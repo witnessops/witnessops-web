@@ -26,6 +26,7 @@ const staticRoutes: StaticRoute[] = [
     lastModified: () => new Date(loadHomeContent().status.last_reviewed),
   },
   { route: "/library", sourcePath: "src/app/(library)/library/page.tsx" },
+  { route: "/pricing", sourcePath: "src/app/(marketing)/pricing/page.tsx" },
   { route: "/review", sourcePath: "src/app/review/page.tsx" },
   { route: "/review/request", sourcePath: "src/app/review/request/page.tsx" },
   {
