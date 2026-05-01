@@ -158,12 +158,22 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Three-minute buyer walkthrough",
       "Sample outcome",
+      "Sample lineage",
+      "Sample commit",
+      "99741c8d50cd3adbfdc28bc317ac563a1e8dd1ef",
+      "Pinned artifact links",
+      "ed4614932f1b96fa9cc082fb481239ac8655bd49596d846db4da5bf5eb6dca14  RECEIPT.json",
       "BUYER_WALKTHROUGH.md",
       "Read buyer walkthrough",
       "Receipt shape and verifier path",
       "MANIFEST.sha256",
     ],
-    prohibitedMarkers: ["Receipt shape only", "receipt shape only"],
+    prohibitedMarkers: [
+      "Receipt shape only",
+      "receipt shape only",
+      "witnessops-sample-cases/tree/main/sample-cases/ai-agent-action-proof-run",
+      "witnessops-sample-cases/blob/main/sample-cases/ai-agent-action-proof-run",
+    ],
   },
 ];
 
