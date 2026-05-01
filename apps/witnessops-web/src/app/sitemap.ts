@@ -25,17 +25,30 @@ const staticRoutes: StaticRoute[] = [
     route: "",
     lastModified: () => new Date(loadHomeContent().status.last_reviewed),
   },
+  { route: "/library", sourcePath: "src/app/(library)/library/page.tsx" },
+  { route: "/review", sourcePath: "src/app/review/page.tsx" },
   { route: "/review/request", sourcePath: "src/app/review/request/page.tsx" },
+  {
+    route: "/review/sample-cases",
+    sourcePath: "src/app/review/sample-cases/page.tsx",
+  },
+  {
+    route: "/review/sample-cases/ai-agent-action-proof-run",
+    sourcePath: "src/app/review/sample-cases/ai-agent-action-proof-run/page.tsx",
+  },
+  {
+    route: "/review/sample-report",
+    sourcePath: "src/app/review/sample-report/page.tsx",
+  },
+  {
+    route: "/access-change-proof-run",
+    sourcePath: "src/app/access-change-proof-run/page.tsx",
+  },
   {
     route: "/proof-backed-security-systems",
     sourcePath: "src/app/proof-backed-security-systems/page.tsx",
   },
   { route: "/privacy", sourcePath: "src/app/privacy/page.tsx" },
-  { route: "/review", sourcePath: "src/app/review/page.tsx" },
-  {
-    route: "/review/sample-report",
-    sourcePath: "src/app/review/sample-report/page.tsx",
-  },
   { route: "/security", sourcePath: "src/app/security/page.tsx" },
   { route: "/signals", sourcePath: "src/app/signals/page.tsx" },
   { route: "/support", sourcePath: "src/app/support/page.tsx" },
