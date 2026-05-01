@@ -11,11 +11,21 @@ import {
   sampleCommit,
   sampleCommitShort,
   sampleManifestAnchor,
+  sampleManifestBlobSha,
   sampleManifestEntries,
+  sampleManifestHref,
+  sampleManifestPath,
   sampleManifestText,
+  sampleSourcePath,
+  sampleSourceRepository,
+  sampleSourceRepositoryUrl,
 } from "./sample-artifact-contract";
 
+const expectedSourceRepository = "witnessops/witnessops-sample-cases";
+const expectedSourcePath = "sample-cases/ai-agent-action-proof-run";
 const expectedSampleCommit = "99741c8d50cd3adbfdc28bc317ac563a1e8dd1ef";
+const expectedManifestPath = `${expectedSourcePath}/MANIFEST.sha256`;
+const expectedManifestBlobSha = "efa7181d7575e95cb63673442cfe48671a3bb8a8";
 const expectedManifestAnchor =
   "ed4614932f1b96fa9cc082fb481239ac8655bd49596d846db4da5bf5eb6dca14  RECEIPT.json";
 
@@ -40,9 +50,21 @@ const expectedArtifacts = [
   "MANIFEST.sha256",
 ] as const;
 
-test("AI sample artifact contract preserves pinned sample identity", () => {
+test("AI sample artifact contract preserves pinned source provenance", () => {
+  assert.equal(sampleSourceRepository, expectedSourceRepository);
+  assert.equal(sampleSourceRepositoryUrl, `https://github.com/${expectedSourceRepository}`);
+  assert.equal(sampleSourcePath, expectedSourcePath);
   assert.equal(sampleCommit, expectedSampleCommit);
   assert.equal(sampleCommitShort, expectedSampleCommit.slice(0, 12));
+  assert.equal(sampleManifestPath, expectedManifestPath);
+  assert.equal(sampleManifestBlobSha, expectedManifestBlobSha);
+  assert.equal(
+    sampleManifestHref,
+    `https://github.com/${expectedSourceRepository}/blob/${expectedSampleCommit}/${expectedManifestPath}`,
+  );
+});
+
+test("AI sample artifact contract preserves pinned manifest identity", () => {
   assert.equal(sampleManifestAnchor, expectedManifestAnchor);
   assert.equal(sampleManifestText, expectedManifestText);
   assert.equal(
@@ -55,11 +77,11 @@ test("AI sample artifact contract preserves pinned sample identity", () => {
   );
   assert.equal(
     sampleBaseUrl,
-    `https://github.com/witnessops/witnessops-sample-cases/tree/${expectedSampleCommit}/sample-cases/ai-agent-action-proof-run`,
+    `https://github.com/${expectedSourceRepository}/tree/${expectedSampleCommit}/${expectedSourcePath}`,
   );
   assert.equal(
     sampleBlobBaseUrl,
-    `https://github.com/witnessops/witnessops-sample-cases/blob/${expectedSampleCommit}/sample-cases/ai-agent-action-proof-run`,
+    `https://github.com/${expectedSourceRepository}/blob/${expectedSampleCommit}/${expectedSourcePath}`,
   );
   assert.equal(
     buyerWalkthroughHref,
