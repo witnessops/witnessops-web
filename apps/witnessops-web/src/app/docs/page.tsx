@@ -89,7 +89,7 @@ const entryPaths = [
   {
     title: "Start sequence",
     description:
-      "Use this order first so you understand the model, the proof path, and the trust limits before going deeper.",
+      "Use this order first so you understand the model, the buyer path, the proof path, and the trust limits before going deeper.",
     items: [
       {
         href: "/docs/getting-started",
@@ -98,20 +98,26 @@ const entryPaths = [
           "Start here for the first walkthrough of the model and the proof path.",
       },
       {
+        href: "/docs/getting-started/proof-run-buyer-path",
+        title: "2. Proof Run Buyer Path",
+        description:
+          "Use this buyer-facing route to inspect the offer, sample, verifier, request, mailbox verification, and evidence-handling boundaries.",
+      },
+      {
         href: "/docs/how-it-works",
-        title: "2. How It Works",
+        title: "3. How It Works",
         description:
           "See the path from policy-gated execution to signed evidence.",
       },
       {
         href: "/docs/security-systems/governed-execution",
-        title: "3. Governed Execution",
+        title: "4. Governed Execution",
         description:
           "Inspect scope, approval, control, and receipt emission.",
       },
       {
         href: "/docs/how-it-works/verification",
-        title: "4. Verification",
+        title: "5. Verification",
         description:
           "Learn how to check receipts and proof bundles outside WitnessOps.",
       },
@@ -126,7 +132,7 @@ const entryPaths = [
         href: "/docs/evidence/receipts",
         title: "Receipts",
         description:
-          "What a receipt can prove and what it cannot prove.",
+          "What a receipt can demonstrate and what it cannot establish by itself.",
       },
       {
         href: "/docs/evidence/receipt-spec",
@@ -208,6 +214,12 @@ const entryPaths = [
 
 const nextHandoff = [
   {
+    href: "/docs/getting-started/proof-run-buyer-path",
+    title: "Buyer path: Proof Run Buyer Path",
+    description:
+      "Use this if you are evaluating the public offer, sample, verifier, request surface, and evidence-handling boundary.",
+  },
+  {
     href: "/docs/getting-started",
     title: "Next page: Getting Started",
     description:
@@ -218,12 +230,6 @@ const nextHandoff = [
     title: "Then: How It Works",
     description:
       "Move from overview to mechanism before going deeper.",
-  },
-  {
-    href: "/docs/security-systems/governed-execution",
-    title: "Then: Governed Execution",
-    description:
-      "Inspect authority boundaries and policy-controlled runtime behavior.",
   },
 ];
 
@@ -255,18 +261,30 @@ export default async function DocsIndexPage() {
 
         <p className="mt-3 max-w-[700px] text-sm leading-relaxed tracking-wide text-text-muted">
           These docs explain how the system works and where the limits are. They
-          do not claim complete runtime truth by default. If you need one place
-          to start, begin with{" "}
+          do not claim complete runtime truth by default. If you are evaluating
+          the public offer as a buyer, begin with{" "}
+          <Link
+            className="text-brand-accent hover:opacity-80"
+            href="/docs/getting-started/proof-run-buyer-path"
+          >
+            Proof Run Buyer Path
+          </Link>
+          . For the general model, begin with{" "}
           <Link className="text-brand-accent hover:opacity-80" href="/docs/getting-started">
             Getting Started
           </Link>
-          . Then follow the early pages in order.
+          .
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">
           <CtaButton
-            href="/docs/getting-started"
+            href="/docs/getting-started/proof-run-buyer-path"
             variant="primary"
+            label="Buyer path"
+          />
+          <CtaButton
+            href="/docs/getting-started"
+            variant="secondary"
             label="Learn the model"
           />
           <CtaButton
@@ -341,6 +359,26 @@ export default async function DocsIndexPage() {
         </h2>
 
         <div className="mb-5 border border-brand-accent/40 bg-brand-accent/5 p-4">
+          <h3
+            className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            Buyer route: Proof Run Buyer Path
+          </h3>
+          <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-text-muted">
+            Start here if you are evaluating the public proof-run offer. It
+            separates the offer, sample, verifier, request form, mailbox
+            verification, and evidence-handling boundary.
+          </p>
+          <Link
+            href="/docs/getting-started/proof-run-buyer-path"
+            className="mt-3 inline-flex items-center border border-surface-border px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent"
+          >
+            Open Proof Run Buyer Path
+          </Link>
+        </div>
+
+        <div className="mb-5 border border-surface-border bg-surface-bg p-4">
           <h3
             className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary"
             style={{ fontFamily: "var(--font-display)" }}
