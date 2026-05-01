@@ -12,6 +12,11 @@ import {
   sampleCommit,
   sampleCommitShort,
   sampleManifestAnchor,
+  sampleManifestBlobSha,
+  sampleManifestHref,
+  sampleManifestPath,
+  sampleManifestSha256,
+  sampleSourceRepository,
   type SampleArtifactName,
 } from "./sample-artifact-contract";
 
@@ -81,6 +86,25 @@ const lineageRows = [
     label: "Boundary",
     value:
       "The commit pin and manifest line support replayable sample inspection only; they are not production custody proof.",
+  },
+];
+
+const manifestProvenanceRows = [
+  {
+    label: "Source repository",
+    value: sampleSourceRepository,
+  },
+  {
+    label: "Manifest path",
+    value: sampleManifestPath,
+  },
+  {
+    label: "Manifest blob SHA",
+    value: sampleManifestBlobSha,
+  },
+  {
+    label: "Manifest text SHA-256",
+    value: sampleManifestSha256,
   },
 ];
 
@@ -244,6 +268,32 @@ export default function AiAgentActionProofRunSamplePage() {
                 </div>
               ))}
             </div>
+          </section>
+
+          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
+              Manifest provenance
+            </h2>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              {manifestProvenanceRows.map((row) => (
+                <div key={row.label} className="rounded-xl border border-surface-border bg-surface-bg p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
+                    {row.label}
+                  </div>
+                  <p className="mt-3 break-words font-mono text-xs leading-6 text-text-secondary">
+                    {row.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <a
+              href={sampleManifestHref}
+              className="mt-5 inline-flex items-center justify-center rounded-md border border-surface-border px-5 py-3 text-sm text-text-primary transition-all hover:border-brand-accent/40 hover:bg-surface-card"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open pinned manifest
+            </a>
           </section>
 
           <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
