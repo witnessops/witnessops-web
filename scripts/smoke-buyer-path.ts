@@ -45,6 +45,28 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/verify",
+    requiredMarkers: [
+      "Artifact state matrix",
+      "Verifier fixtures",
+      "Receipt-first console",
+      "Published first-party proof bundles",
+      "Status",
+      "Mechanism",
+      "Boundary",
+      "not live customer proof artifacts unless explicitly labeled otherwise",
+      "The public receipt console below remains receipt-first v1.",
+    ],
+    prohibitedMarkers: [
+      "verified compliance",
+      "certified compliance",
+      "audit-ready",
+      "audit opinion provided",
+      "proves compliance",
+      "guarantees compliance",
+    ],
+  },
+  {
     path: "/pricing",
     requiredMarkers: [
       "Pricing and commercial scope",

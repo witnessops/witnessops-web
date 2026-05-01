@@ -48,6 +48,33 @@ const verificationScope = [
   },
 ];
 
+const artifactStateRows = [
+  {
+    title: "Verifier fixtures",
+    status: "sample fixture",
+    mechanism:
+      "Receipt JSON examples loaded into the receipt-first console to show clean pass, named failure, malformed input, and fail-closed behavior.",
+    boundary:
+      "Fixtures are not live customer artifacts and do not prove production workflow truth or bundle completeness.",
+  },
+  {
+    title: "Receipt-first console",
+    status: "public verifier surface",
+    mechanism:
+      "Browser input is sent to /api/verify for receipt-level checks in receipt-first v1 mode.",
+    boundary:
+      "A valid result is receipt-scoped. It does not prove artifact-byte revalidation, source-system honesty, or the full runtime story.",
+  },
+  {
+    title: "Published first-party proof bundles",
+    status: "published first-party bundle",
+    mechanism:
+      "Downloadable ZIP bundles include bounded first-party WitnessOps proof materials such as receipt, signer registry, source artifacts, hashes, and verifier-facing instructions.",
+    boundary:
+      "These bundles prove bounded WitnessOps-owned statements only. They are not live customer proof artifacts unless explicitly labeled otherwise.",
+  },
+];
+
 const firstRunSteps = [
   {
     title: "1. Try a known-good sample",
@@ -203,11 +230,48 @@ export default function VerifyPage() {
         </div>
       </SectionShell>
 
+      <SectionShell className="pt-0">
+        <div className="border border-surface-border bg-surface-bg p-6">
+          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+            Artifact state matrix
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {artifactStateRows.map((row) => (
+              <div key={row.title} className="border border-surface-border bg-surface-card p-4">
+                <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary">
+                  {row.title}
+                </h2>
+                <dl className="mt-4 space-y-3 text-sm leading-relaxed text-text-muted">
+                  <div>
+                    <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-accent">
+                      Status
+                    </dt>
+                    <dd className="mt-1">{row.status}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-accent">
+                      Mechanism
+                    </dt>
+                    <dd className="mt-1">{row.mechanism}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-accent">
+                      Boundary
+                    </dt>
+                    <dd className="mt-1">{row.boundary}</dd>
+                  </div>
+                </dl>
+              </div>
+            ))}
+          </div>
+        </div>
+      </SectionShell>
+
       {publicProofBundles.length > 0 ? (
         <SectionShell className="pt-0" narrow>
           <div className="mb-5">
             <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-              Published proof bundles
+              Published first-party proof bundles
             </div>
             <h2 className="text-2xl font-semibold text-text-primary">
               Downloadable proof bundles
@@ -215,7 +279,9 @@ export default function VerifyPage() {
             <p className="mt-3 text-sm leading-relaxed text-text-muted">
               Each downloadable ZIP is presented for offline verification with
               its included receipt, signer registry, source artifacts, and
-              verifier script. These bundles prove bounded statements only. The public receipt
+              verifier-facing instructions. These bundles prove bounded
+              WitnessOps-owned statements only. They are not live customer proof
+              artifacts unless explicitly labeled otherwise. The public receipt
               console below remains receipt-first v1.
             </p>
           </div>
@@ -225,7 +291,7 @@ export default function VerifyPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-                      Published proof bundle
+                      Published first-party proof bundle
                     </div>
                     <h3 className="mt-2 text-xl font-semibold text-text-primary">
                       {bundle.title}
