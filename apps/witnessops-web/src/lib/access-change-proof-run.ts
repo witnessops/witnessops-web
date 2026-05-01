@@ -16,25 +16,28 @@ export function isAiAgentActionProofRunIntent(
   return intent?.trim() === AI_AGENT_ACTION_PROOF_RUN_INTENT;
 }
 
-export function isAccessChangeProofRunIntent(
-  intent: string | null | undefined,
-): boolean {
-  return intent?.trim() === ACCESS_CHANGE_PROOF_RUN_INTENT;
-}
-
 export function isManualProofRunIntent(
   intent: string | null | undefined,
 ): boolean {
   return (
     isAiAgentActionProofRunIntent(intent) ||
-    isAccessChangeProofRunIntent(intent)
+    intent?.trim() === ACCESS_CHANGE_PROOF_RUN_INTENT
   );
+}
+
+// Legacy call sites use this name to decide whether an intake should stay on
+// the mailbox-only proof-run confirmation path instead of entering the older
+// assessment flow. Keep the exported name until those call sites are renamed.
+export function isAccessChangeProofRunIntent(
+  intent: string | null | undefined,
+): boolean {
+  return isManualProofRunIntent(intent);
 }
 
 export function getProofRunRequestLabel(
   intent: string | null | undefined,
 ): string {
-  return isAccessChangeProofRunIntent(intent)
+  return intent?.trim() === ACCESS_CHANGE_PROOF_RUN_INTENT
     ? "access-change proof-run request"
     : "AI-agent proof-run request";
 }
