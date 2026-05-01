@@ -43,6 +43,16 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/docs",
+    requiredMarkers: [
+      "Proof Run Buyer Path",
+      "Buyer route: Proof Run Buyer Path",
+      "Buyer path",
+      "evaluating the public proof-run offer",
+      "offer, sample, verifier, request form, mailbox verification, and evidence-handling boundary",
+    ],
+  },
+  {
     path: "/docs/getting-started/proof-run-buyer-path",
     requiredMarkers: [
       "Proof Run Buyer Path",
