@@ -5,6 +5,7 @@ export const sampleCommit = "99741c8d50cd3adbfdc28bc317ac563a1e8dd1ef";
 export const sampleCommitShort = sampleCommit.slice(0, 12);
 export const sampleManifestPath = `${sampleSourcePath}/MANIFEST.sha256`;
 export const sampleManifestBlobSha = "efa7181d7575e95cb63673442cfe48671a3bb8a8";
+export const sampleManifestSha256 = "6c43e87534a4e445321c46d9765efa885d3df5aa8eb8110a214653b0f46d7447";
 
 export const sampleManifestEntries = [
   {
