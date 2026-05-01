@@ -2,6 +2,8 @@
 
 Frozen operator entrypoints for `witnessops-web`.
 
+This file documents root `package.json` scripts. If a root script changes, update this contract in the same lane or explicitly state why the command surface is unchanged.
+
 ## Health
 
 `pnpm health`
@@ -11,12 +13,39 @@ Runs the full live-repo check:
 - build
 - lint
 - typecheck
-- tests
+- tests through `pnpm test`
 - docs validation
 - signals validation
+
+`pnpm test` currently includes:
+
+- app tests
+- `@witnessops/proof` tests
 - route parity
 - receipt smoke
-- `@witnessops/proof` tests
+- public buyer-path smoke test
+
+## Focused validation commands
+
+`pnpm proof:test`
+
+Runs `@witnessops/proof` tests.
+
+`pnpm route-parity`
+
+Runs route parity against the frozen manifest baseline.
+
+`pnpm receipt-smoke`
+
+Runs receipt smoke tests.
+
+`pnpm docs:validate`
+
+Validates public docs content and docs metadata.
+
+`pnpm signals:validate`
+
+Validates signal content.
 
 ## Release
 
@@ -31,6 +60,10 @@ Builds the live app artifact for the current internal/manual release process. Pr
 Checks the public buyer path with a deterministic Node helper instead of shell text-processing assumptions.
 The command reads `WITNESSOPS_SMOKE_BASE_URL` when set and defaults to `https://witnessops.com`.
 
+`pnpm smoke:buyer-path:test`
+
+Runs the buyer-path smoke test harness without fetching the live site. Use this when public buyer/proof-surface copy, sample markers, route copy, or proof-surface contract markers change.
+
 ## Homepage Hero UI Proof
 
 `pnpm ui-proof:hero`
@@ -40,6 +73,10 @@ Builds `witnessops-web`, runs the homepage hero mobile UI proof locally, and emi
 `pnpm ui-proof:hero:ci`
 
 Runs the same homepage hero UI proof runner used by GitHub Actions.
+
+`pnpm ui-proof:open`
+
+Opens the generated Playwright report under `artifacts/ui-proof/playwright-report`.
 
 ### Blocking policy
 
