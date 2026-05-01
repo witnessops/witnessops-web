@@ -22,6 +22,7 @@ const PUBLIC_CLAIM_SOURCES = [
   "../../content/witnessops/legal/privacy.mdx",
   "../../content/witnessops/legal/security.mdx",
   "../../content/witnessops/legal/terms.mdx",
+  "../../content/witnessops/support/support-policy.mdx",
   "../../content/witnessops/landing/home.yaml",
 ] as const;
 
@@ -60,6 +61,10 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "verification confirms integrity of the artifact",
   "not the correctness",
   "does not guarantee",
+  "does not write an admin queue entry",
+  "not a 24/7 guarantee",
+  "does not promise 24/7 live support",
+  "security reports do not go through the normal support channel",
   "receipt-first v1",
   "No proof run starts",
   "No customer evidence",
@@ -69,6 +74,7 @@ const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "../../content/witnessops/legal/privacy.mdx",
   "../../content/witnessops/legal/security.mdx",
   "../../content/witnessops/legal/terms.mdx",
+  "../../content/witnessops/support/support-policy.mdx",
   "../../content/witnessops/landing/home.yaml",
 ]);
 
