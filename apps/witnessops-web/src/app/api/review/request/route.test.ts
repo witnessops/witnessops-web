@@ -79,20 +79,24 @@ test("review request route issues a verification email", async () => {
   assert.match(mailRaw, /^To: security@witnessops\.com$/m);
   assert.match(
     mailRaw,
-    /^Subject: Verify your WitnessOps access-change proof run request$/m,
+    /^Subject: Your WitnessOps request code$/m,
   );
   assert.match(mailRaw, /^X-WitnessOps-Message-Class: transactional$/m);
   assert.match(
     mailRaw,
-    /^Your WitnessOps access-change proof run request needs mailbox verification\.$/m,
+    /^Confirm your access-change request\.$/m,
   );
   assert.match(mailRaw, /^Verification Code:\s+\S+$/m);
-  assert.match(mailRaw, /^Return to the WitnessOps request page and type the code shown above\.$/m);
-  assert.match(mailRaw, /^Keep the request page open until verification is complete\.$/m);
+  assert.match(mailRaw, /^Enter the code in the verification box\. No link is required\.$/m);
+  assert.match(mailRaw, /^Confirm the mailbox-only boundary before continuing\.$/m);
   assert.doesNotMatch(mailRaw, /^Open Verification Page:/m);
   assert.doesNotMatch(mailRaw, /https:\/\/witnessops\.com\/verify-token/);
-  assert.match(mailRaw, /^A proof run has not started\./m);
+  assert.match(mailRaw, /^This confirms mailbox access only\.$/m);
+  assert.match(mailRaw, /^It does not start a proof run\.$/m);
   assert.match(mailRaw, /^Do not reply with secrets,/m);
+  assert.match(mailRaw, /Confirm your access-change request/);
+  assert.match(mailRaw, /No link is required\. Do not forward or share this code\./);
+  assert.match(mailRaw, /data-witnessops-signature-profile="ops_minimal"/);
 });
 
 test("review request route redacts upstream issuance errors", async () => {

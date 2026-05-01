@@ -5,6 +5,7 @@ import { getMailboxConfig } from "../mailboxes";
 import {
   applyHtmlSignature,
   applyTextSignature,
+  getHtmlSignature,
   type EmailSignatureProfile,
   wrapEmailHtmlDocument,
 } from "./email-signatures";
@@ -18,6 +19,7 @@ export interface VerificationEmailPayload {
   from?: string;
   subject: string;
   text: string;
+  html?: string;
   /** Stable correlation ID generated before send. Embedded in provider-specific metadata for downstream matching. */
   deliveryAttemptId?: string;
   messageClass?: EmailMessageClass;
@@ -74,14 +76,40 @@ function prepareEmailPayload(payload: VerificationEmailPayload): PreparedEmailPa
         messageClass: payload.messageClass,
       })
     : "none";
+  const bodyHtml = payload.html
+    ? appendHtmlSignature(payload.html, signatureProfile)
+    : applyHtmlSignature(payload.text, signatureProfile);
 
   return {
     ...payload,
     from,
     signatureProfile,
-    html: wrapEmailHtmlDocument(applyHtmlSignature(payload.text, signatureProfile)),
+    html: wrapEmailHtmlDocument(bodyHtml),
     text: applyTextSignature(payload.text, signatureProfile),
   };
+}
+
+function appendHtmlSignature(
+  bodyHtml: string,
+  profile: EmailSignatureProfile,
+): string {
+  const signature = getHtmlSignature(profile);
+  const trimmedBody = bodyHtml.trim();
+  if (!signature) {
+    return trimmedBody;
+  }
+
+  const centeredSignature = [
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#000000" style="width:100%;border-collapse:collapse;background-color:#000000;background:#000000;background-image:linear-gradient(#000000,#000000)">',
+    "<tr>",
+    '<td align="center" style="padding:0 16px 24px 16px">',
+    signature,
+    "</td>",
+    "</tr>",
+    "</table>",
+  ].join("");
+
+  return trimmedBody ? `${trimmedBody}\n${centeredSignature}` : centeredSignature;
 }
 
 function policyHeaders(payload: PreparedEmailPayload): string[] {

@@ -68,12 +68,13 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/request",
     requiredMarkers: [
-      "Request one access-change proof run",
-      "Send short non-secret context",
-      "Access change to inspect",
+      "Request an access-change proof run",
+      "one or two sentences",
+      "Start with the minimum.",
+      "What access change should we inspect?",
       "Do not submit secrets",
       "EUR 2,500 fixed fee",
-      "Request proof run",
+      "Send request",
       "What you get back",
       "View access-change offer",
       "Not a legal audit opinion.",

@@ -4,24 +4,24 @@ import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { getMailboxConfig } from "@/lib/mailboxes";
 
 export const metadata: Metadata = {
-  title: "Request one access-change proof run",
+  title: "Request an access-change proof run",
   description:
-    "Start one bounded access-change proof run without submitting secrets or source evidence.",
+    "Send a short, non-secret request for one bounded access-change proof run. No files, logs, screenshots, or customer evidence in the first message.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
-    title: "Request one access-change proof run | WitnessOps",
+    title: "Request an access-change proof run | WitnessOps",
     description:
-      "Start one bounded access-change proof run without submitting secrets or source evidence.",
+      "Send a short, non-secret request for one bounded access-change proof run. No files, logs, screenshots, or customer evidence in the first message.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Request one access-change proof run | WitnessOps",
+    title: "Request an access-change proof run | WitnessOps",
     description:
-      "Start one bounded access-change proof run without submitting secrets or source evidence.",
+      "Send a short, non-secret request for one bounded access-change proof run. No files, logs, screenshots, or customer evidence in the first message.",
   },
 };
 
@@ -45,9 +45,9 @@ const proofOutputs = [
 ];
 
 const nextSteps = [
-  "We check whether the access change can be bounded to one proof run.",
+  "We check whether the access change is bounded enough for one proof run.",
   "We confirm the authority boundary, likely evidence sources, and obvious gaps.",
-  "We reply by email with fit, scope, fee, and the next action. No proof run starts from the form alone.",
+  "We reply with fit, scope, fee, and next action before any source materials are accepted.",
 ];
 
 const sampleArtifacts = [
@@ -85,12 +85,12 @@ export default function ReviewRequestPage() {
           className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Request one access-change proof run
+          Request an access-change proof run
         </h1>
         <p className="max-w-[620px] text-base leading-relaxed text-text-muted">
-          Send short non-secret context for one access grant, revoke, role
-          change, vendor access review, or admin permission update. Source
-          materials are handled only after scope and intake are agreed.
+          Tell us, in one or two sentences, which access change you want
+          reviewed. No files, logs, screenshots, exports, or customer evidence
+          are needed for the first fit check.
         </p>
       </section>
 
@@ -138,11 +138,12 @@ export default function ReviewRequestPage() {
                 color: "var(--color-text-muted)",
               }}
             >
-              Keep it light
+              First message only
             </div>
             <p className="text-sm leading-relaxed text-text-muted">
               Do not submit secrets, credentials, source exports, full logs,
-              screenshots, or customer evidence. Name evidence types only.
+              screenshots, or customer evidence. Name evidence types only; we
+              handle source materials after scope is agreed.
             </p>
           </section>
 
@@ -179,7 +180,7 @@ export default function ReviewRequestPage() {
                 color: "var(--color-text-muted)",
               }}
             >
-              Proof-run bundle
+              Typical bundle
             </div>
             <ul className="mb-4 grid gap-2 text-xs leading-relaxed text-text-muted" style={{ fontFamily: "var(--font-mono)" }}>
               {sampleArtifacts.slice(0, 4).map((artifact) => (
@@ -209,7 +210,7 @@ export default function ReviewRequestPage() {
                 color: "var(--color-text-muted)",
               }}
             >
-              Boundary
+              Boundary kept clear
             </div>
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
               <p>Not a legal audit opinion.</p>
