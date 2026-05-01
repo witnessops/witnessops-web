@@ -13,6 +13,8 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/app/review/request/page.tsx",
   "src/app/review/request/confirmed/page.tsx",
   "src/app/review/sample-cases/ai-agent-action-proof-run/page.tsx",
+  "src/app/review/sample-cases/approval-gated-containment/page.tsx",
+  "src/app/review/sample-cases/privileged-access-grant/page.tsx",
   "src/app/verify/page.tsx",
   "../../content/witnessops/landing/home.yaml",
 ] as const;
@@ -39,6 +41,7 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "does not prove production deployment",
   "does not prove the full runtime story",
   "not live customer proof artifacts",
+  "not a live customer artifact",
   "receipt-first v1",
   "No proof run starts",
   "No customer evidence",
