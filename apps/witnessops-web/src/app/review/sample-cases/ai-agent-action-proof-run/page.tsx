@@ -5,6 +5,7 @@ import { CtaButton } from "@/components/shared/cta-button";
 import { SectionShell } from "@/components/shared/section-shell";
 import {
   buyerWalkthroughHref,
+  sampleArtifactDigest,
   sampleArtifactHref,
   sampleArtifactNames,
   sampleBaseUrl,
@@ -167,6 +168,7 @@ const artifactPurposes: Record<SampleArtifactName, string> = {
 
 const artifactFiles = sampleArtifactNames.map((name) => ({
   name,
+  digest: sampleArtifactDigest(name),
   purpose: artifactPurposes[name],
 }));
 
@@ -337,6 +339,9 @@ export default function AiAgentActionProofRunSamplePage() {
                     <p className="mt-3 font-mono text-xs text-text-muted">
                       {step.artifact}
                     </p>
+                    <p className="mt-2 break-all font-mono text-[11px] leading-5 text-text-muted">
+                      SHA-256: {sampleArtifactDigest(step.artifact)}
+                    </p>
                   </div>
                 </a>
               ))}
@@ -396,6 +401,9 @@ export default function AiAgentActionProofRunSamplePage() {
                   </div>
                   <p className="mt-2 text-sm leading-7 text-text-secondary">
                     {artifact.purpose}
+                  </p>
+                  <p className="mt-3 break-all font-mono text-[11px] leading-5 text-text-muted">
+                    SHA-256: {artifact.digest}
                   </p>
                   <p className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent">
                     Open artifact
