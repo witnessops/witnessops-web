@@ -8,6 +8,8 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/pricing",
   "/review/sample-cases",
   "/review/sample-cases/ai-agent-action-proof-run",
+  "/review/sample-cases/approval-gated-containment",
+  "/review/sample-cases/privileged-access-grant",
   "/access-change-proof-run",
 ] as const;
 
