@@ -145,6 +145,18 @@ test("AI sample artifact contract names displayed and manifest-hashed sets expli
   }
 });
 
+test("AI sample page renders manifest provenance from the artifact contract", () => {
+  const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+
+  assert.match(source, /Manifest provenance/);
+  assert.match(source, /sampleSourceRepository/);
+  assert.match(source, /sampleManifestPath/);
+  assert.match(source, /sampleManifestBlobSha/);
+  assert.match(source, /sampleManifestSha256/);
+  assert.match(source, /href={sampleManifestHref}/);
+  assert.match(source, /Open pinned manifest/);
+});
+
 test("AI sample page renders artifact digests from the contract", () => {
   const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 
