@@ -257,6 +257,33 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/review/sample-report",
+    requiredMarkers: [
+      "Sample report",
+      "Illustrative sample report",
+      "Not live",
+      "not a live customer report",
+      "not a claim of completed verification",
+      "Artifact manifest",
+      "Review boundary",
+      "Authority map",
+      "Execution path observed",
+      "Evidence inspected",
+      "Replayability judgment",
+      "Boundary note",
+      "Request one proof run",
+    ],
+    prohibitedMarkers: [
+      "Request Proof Run",
+      "verified compliance",
+      "certified compliance",
+      "audit-ready",
+      "audit opinion provided",
+      "proves compliance",
+      "guarantees compliance",
+    ],
+  },
+  {
     path: "/review/sample-cases/approval-gated-containment",
     requiredMarkers: [
       "Approval-gated containment review",
