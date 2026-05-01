@@ -4,12 +4,11 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 const webRoot = resolve(__dirname, "../..");
-const repoRoot = resolve(webRoot, "../..");
 
 const PUBLIC_CLAIM_SOURCES = [
   "src/app/(library)/library/page.tsx",
+  "src/app/(marketing)/pricing/page.tsx",
   "src/app/access-change-proof-run/page.tsx",
-  "src/app/pricing/page.tsx",
   "src/app/review/page.tsx",
   "src/app/review/request/page.tsx",
   "src/app/review/request/confirmed/page.tsx",
