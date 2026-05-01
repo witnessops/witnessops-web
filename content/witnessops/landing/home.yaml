@@ -54,7 +54,12 @@ hero:
       - "We map the approval boundary, capture the evidence path, produce a receipt, and return a verifier result plus a challenge path another party can inspect."
       - "Start with one workflow. Do not submit secrets. If the evidence is incomplete, the proof says so."
     microcopy: "Not ready to submit a workflow? Inspect the public sample first and see the receipt shape, verifier result, limits, and challenge path."
-  supporting_points: []
+  supporting_points:
+    - "Approval boundary recorded"
+    - "Evidence manifest captured"
+    - "Receipt and verifier result returned"
+    - "Challenge path declared"
+    - "Limits named before reliance"
   primary_cta:
     label: "Request one proof run"
     href: "/review/request"
@@ -63,7 +68,12 @@ hero:
     label: "View sample proof run"
     href: "/review/sample-cases/ai-agent-action-proof-run"
     variant: "secondary"
-  proof_badges: []
+  proof_badges:
+    - "Authority"
+    - "Evidence"
+    - "Receipt"
+    - "Verifier"
+    - "Challenge path"
   media:
     type: "code_excerpt"
     code:
