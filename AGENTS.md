@@ -11,13 +11,30 @@ Release authority: internal/manual for now
 
 - Treat `/verify` and `/api/verify` as first-class owned surfaces.
 - Keep `packages/proof` limited to the receipt-only lane in this slice.
-- Do not widen into canonical bundle verification or corpus work.
+- Do not widen into canonical bundle verification or corpus work unless a separate lane explicitly authorizes it.
 - Keep live package names on the `@witnessops/*` surface.
 - Use the published remote as the operating source of truth.
 - Use `pnpm health` for the full local check.
 - Use `pnpm release` as the frozen release entrypoint; release remains manual/internal for now.
 - Prefer route-parity evidence over interpretation.
 - Do not expose internal-only proof details through operator-facing surfaces.
+
+## Root file hygiene
+
+- Treat project-root files as operator authority surfaces. Do not delete or rename root files unless the PR names the target files and proves they are stale.
+- A root-file deletion PR must include evidence that the file is unused, superseded, or duplicate: search references, command references, package-script references, and replacement location where applicable.
+- Do not remove active root authority files such as repo instructions, command contracts, security policy, workspace/package contracts, or public README material as part of unrelated page work.
+- Keep root cleanup separate from public copy, verifier semantics, receipt semantics, release, or deploy changes.
+
+## Public proof-surface and sample artifact contract
+
+- The AI Agent Action Proof Run sample page is a public proof-surface, not proof authority by itself.
+- Keep sample artifact identity in `apps/witnessops-web/src/app/review/sample-cases/ai-agent-action-proof-run/sample-artifact-contract.ts`.
+- Do not hard-code sample commits, manifest hashes, artifact digests, or sample URLs directly in the page when a contract field exists.
+- Keep `artifact-links.test.ts` aligned with the sample artifact contract.
+- Keep `scripts/smoke-buyer-path.ts` aligned with buyer-visible proof markers.
+- Current web-side boundary: the web contract records pinned sample manifest provenance and displays artifact digests, but it does not recompute individual source artifact hashes locally.
+- Cross-repo sample artifact verification must be handled in a separate lane before claiming source artifact bytes were independently recomputed by this repo.
 
 ## Codex Security review
 
@@ -37,3 +54,4 @@ For security-sensitive changes, preserve these boundaries:
 
 - `pnpm health`
 - route parity against the frozen baseline captured at slice start
+- buyer-path smoke when public buyer or proof-surface copy changes: `pnpm smoke:buyer-path:test`
