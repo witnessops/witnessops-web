@@ -11,9 +11,13 @@ import {
   sampleBlobBaseUrl,
   sampleCommit,
   sampleCommitShort,
+  sampleDisplayedArtifactNames,
+  sampleDisplayedButNotManifestHashedArtifactNames,
   sampleManifestAnchor,
   sampleManifestBlobSha,
   sampleManifestEntries,
+  sampleManifestHashedArtifactNames,
+  sampleManifestHashedButNotDisplayedArtifactNames,
   sampleManifestHref,
   sampleManifestPath,
   sampleManifestSha256,
@@ -100,6 +104,33 @@ test("AI sample artifact contract preserves pinned manifest identity", () => {
 
   for (const artifact of sampleArtifactNames) {
     assert.equal(sampleArtifactHref(artifact), `${sampleBlobBaseUrl}/${artifact}`);
+  }
+});
+
+test("AI sample artifact contract names displayed and manifest-hashed sets explicitly", () => {
+  assert.deepEqual(sampleDisplayedArtifactNames, sampleArtifactNames);
+  assert.deepEqual(
+    sampleManifestHashedArtifactNames,
+    sampleManifestEntries.map((entry) => entry.file),
+  );
+  assert.deepEqual(sampleDisplayedButNotManifestHashedArtifactNames, [
+    "MANIFEST.sha256",
+  ]);
+  assert.deepEqual(sampleManifestHashedButNotDisplayedArtifactNames, ["README.md"]);
+
+  const displayed = new Set(sampleDisplayedArtifactNames);
+  const hashed = new Set(sampleManifestHashedArtifactNames);
+
+  for (const artifact of sampleDisplayedArtifactNames) {
+    if (!sampleDisplayedButNotManifestHashedArtifactNames.includes(artifact as never)) {
+      assert.ok(hashed.has(artifact), `${artifact} should be manifest-hashed.`);
+    }
+  }
+
+  for (const artifact of sampleManifestHashedArtifactNames) {
+    if (!sampleManifestHashedButNotDisplayedArtifactNames.includes(artifact as never)) {
+      assert.ok(displayed.has(artifact), `${artifact} should be displayed.`);
+    }
   }
 });
 
