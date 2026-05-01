@@ -173,6 +173,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Request one AI-agent proof run",
       "AI Agent Action Proof Run",
+      "Start with a short non-secret fit check.",
       "What agent-assisted workflow should we inspect?",
       "Agent/tool path and touched system",
       "Approval boundary",
@@ -185,6 +186,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Not a complete AI governance program.",
     ],
     prohibitedMarkers: [
+      "Four fields.",
       "Request an access-change proof run",
       "What access change should we inspect?",
       "access-change-proof-run",
