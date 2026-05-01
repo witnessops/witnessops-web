@@ -15,6 +15,16 @@ export async function checkHomepageHero(
   checks.push(await selectorExists(page, "homepage-hero-headline", severity));
   checks.push(await selectorExists(page, "homepage-hero-body", severity));
   checks.push(await selectorExists(page, "homepage-hero-primary-cta", severity));
+  checks.push(await selectorExists(page, "homepage-hero-media", severity));
+  checks.push(
+    await textIncludes(
+      page,
+      "homepage-hero-media",
+      "ai-agent-action-proof-run",
+      "hero media is bound to content-sourced proof-run excerpt",
+      severity,
+    ),
+  );
   checks.push(
     await selectorVisible(page, "homepage-hero-headline", "headline visible", severity),
   );
@@ -143,6 +153,28 @@ async function selectorExists(
     severity,
     expected: ">= 1",
     actual: count,
+  };
+}
+
+async function textIncludes(
+  page: Page,
+  id: string,
+  expectedText: string,
+  label: string,
+  severity: ScenarioSeverity,
+): Promise<CheckResult> {
+  const text = await page
+    .locator(uiProofSelector(id))
+    .first()
+    .textContent()
+    .catch(() => null);
+
+  return {
+    name: label,
+    status: text?.includes(expectedText) ? "pass" : "fail",
+    severity,
+    expected: expectedText,
+    actual: text,
   };
 }
 
