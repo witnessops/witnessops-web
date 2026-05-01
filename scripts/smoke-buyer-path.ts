@@ -45,6 +45,29 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/pricing",
+    requiredMarkers: [
+      "Pricing and commercial scope",
+      "Scope one proof run before pricing is confirmed.",
+      "Primary public lane",
+      "Unit of sale",
+      "Commercial step",
+      "No proof run starts from this page.",
+      "No customer evidence is accepted through pricing.",
+      "No legal compliance claim is made here.",
+      "No production deployment claim is made here.",
+      "No complete AI governance program is promised here.",
+    ],
+    prohibitedMarkers: [
+      "verified compliance",
+      "certified compliance",
+      "audit-ready",
+      "audit opinion provided",
+      "proves compliance",
+      "guarantees compliance",
+    ],
+  },
+  {
     path: "/review",
     requiredMarkers: [
       "AI Agent Action Proof Run",
