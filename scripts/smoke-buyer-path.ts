@@ -155,7 +155,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "€2,500 fixed fee",
       "Ask about access-change scoping",
       "The active public request lane is the AI Agent Action Proof Run.",
-      "View fixture demo",
+      "View sample proof run",
       "What is not claimed",
       "This is not a legal audit opinion.",
       "This is not a compliance certification.",
@@ -163,6 +163,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "the action cannot be proven from available evidence",
     ],
     prohibitedMarkers: [
+      "View fixture demo",
       "Request one access-change proof run",
       "href=\"/review/request\"",
       "verified compliance",
