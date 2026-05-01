@@ -19,7 +19,9 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/app/review/sample-cases/privileged-access-grant/page.tsx",
   "src/app/verify/page.tsx",
   "src/app/why-witnessops/page.tsx",
+  "../../content/witnessops/legal/privacy.mdx",
   "../../content/witnessops/legal/security.mdx",
+  "../../content/witnessops/legal/terms.mdx",
   "../../content/witnessops/landing/home.yaml",
 ] as const;
 
@@ -54,10 +56,21 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "a proof claim requires a named receipt",
   "do not eliminate external trust assumptions",
   "web is a presentation layer only",
+  "public by design",
+  "verification confirms integrity of the artifact",
+  "not the correctness",
+  "does not guarantee",
   "receipt-first v1",
   "No proof run starts",
   "No customer evidence",
 ] as const;
+
+const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
+  "../../content/witnessops/legal/privacy.mdx",
+  "../../content/witnessops/legal/security.mdx",
+  "../../content/witnessops/legal/terms.mdx",
+  "../../content/witnessops/landing/home.yaml",
+]);
 
 function readPublicClaimSources(): Array<{ path: string; content: string }> {
   return PUBLIC_CLAIM_SOURCES.map((sourcePath) => ({
@@ -106,8 +119,7 @@ test("claim-boundary guard scans only public presentation sources", () => {
     PUBLIC_CLAIM_SOURCES.every(
       (sourcePath) =>
         sourcePath.startsWith("src/app/") ||
-        sourcePath === "../../content/witnessops/legal/security.mdx" ||
-        sourcePath === "../../content/witnessops/landing/home.yaml",
+        ALLOWED_NON_APP_CLAIM_SOURCES.has(sourcePath),
     ),
   );
 });
