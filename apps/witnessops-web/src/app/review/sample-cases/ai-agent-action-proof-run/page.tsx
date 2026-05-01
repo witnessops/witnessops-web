@@ -11,8 +11,12 @@ import {
   sampleBaseUrl,
   sampleCommit,
   sampleCommitShort,
+  sampleDisplayedArtifactNames,
+  sampleDisplayedButNotManifestHashedArtifactNames,
   sampleManifestAnchor,
   sampleManifestBlobSha,
+  sampleManifestHashedArtifactNames,
+  sampleManifestHashedButNotDisplayedArtifactNames,
   sampleManifestHref,
   sampleManifestPath,
   sampleManifestSha256,
@@ -105,6 +109,25 @@ const manifestProvenanceRows = [
   {
     label: "Manifest text SHA-256",
     value: sampleManifestSha256,
+  },
+];
+
+const manifestCoverageRows = [
+  {
+    label: "Displayed artifacts",
+    value: sampleDisplayedArtifactNames.join(", "),
+  },
+  {
+    label: "Manifest-hashed artifacts",
+    value: sampleManifestHashedArtifactNames.join(", "),
+  },
+  {
+    label: "Displayed but not manifest-hashed",
+    value: sampleDisplayedButNotManifestHashedArtifactNames.join(", "),
+  },
+  {
+    label: "Manifest-hashed but not displayed",
+    value: sampleManifestHashedButNotDisplayedArtifactNames.join(", "),
   },
 ];
 
@@ -294,6 +317,29 @@ export default function AiAgentActionProofRunSamplePage() {
             >
               Open pinned manifest
             </a>
+          </section>
+
+          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
+              Manifest coverage
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-text-secondary">
+              MANIFEST.sha256 is displayed as the digest-list artifact, but it is
+              not self-listed inside MANIFEST.sha256. README.md is hashed in the
+              pinned manifest, but it is not shown as a page inspection artifact.
+            </p>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              {manifestCoverageRows.map((row) => (
+                <div key={row.label} className="rounded-xl border border-surface-border bg-surface-bg p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
+                    {row.label}
+                  </div>
+                  <p className="mt-3 break-words font-mono text-xs leading-6 text-text-secondary">
+                    {row.value}
+                  </p>
+                </div>
+              ))}
+            </div>
           </section>
 
           <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
