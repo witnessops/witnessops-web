@@ -38,6 +38,14 @@ const staticRoutes: StaticRoute[] = [
     sourcePath: "src/app/review/sample-cases/ai-agent-action-proof-run/page.tsx",
   },
   {
+    route: "/review/sample-cases/approval-gated-containment",
+    sourcePath: "src/app/review/sample-cases/approval-gated-containment/page.tsx",
+  },
+  {
+    route: "/review/sample-cases/privileged-access-grant",
+    sourcePath: "src/app/review/sample-cases/privileged-access-grant/page.tsx",
+  },
+  {
     route: "/review/sample-report",
     sourcePath: "src/app/review/sample-report/page.tsx",
   },
