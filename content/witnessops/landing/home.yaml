@@ -40,7 +40,7 @@ navbar:
     - label: "Support"
       href: "/support"
   cta:
-    label: "Submit proof run"
+    label: "Request one proof run"
     href: "/review/request"
     variant: "primary"
 
@@ -56,11 +56,11 @@ hero:
     microcopy: "Not ready to submit a workflow? Inspect the public sample first and see the receipt shape, verifier result, limits, and challenge path."
   supporting_points: []
   primary_cta:
-    label: "Submit proof run"
+    label: "Request one proof run"
     href: "/review/request"
     variant: "primary"
   secondary_cta:
-    label: "Inspect sample receipt"
+    label: "View sample proof run"
     href: "/review/sample-cases/ai-agent-action-proof-run"
     variant: "secondary"
   proof_badges: []
