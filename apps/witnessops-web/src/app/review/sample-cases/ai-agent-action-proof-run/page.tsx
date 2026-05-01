@@ -3,16 +3,16 @@ import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { CtaButton } from "@/components/shared/cta-button";
 import { SectionShell } from "@/components/shared/section-shell";
-
-const sampleCommit = "99741c8d50cd3adbfdc28bc317ac563a1e8dd1ef";
-const sampleCommitShort = sampleCommit.slice(0, 12);
-const sampleManifestAnchor =
-  "ed4614932f1b96fa9cc082fb481239ac8655bd49596d846db4da5bf5eb6dca14  RECEIPT.json";
-const sampleBaseUrl =
-  `https://github.com/witnessops/witnessops-sample-cases/tree/${sampleCommit}/sample-cases/ai-agent-action-proof-run`;
-const sampleBlobBaseUrl =
-  `https://github.com/witnessops/witnessops-sample-cases/blob/${sampleCommit}/sample-cases/ai-agent-action-proof-run`;
-const buyerWalkthroughHref = `${sampleBlobBaseUrl}/BUYER_WALKTHROUGH.md`;
+import {
+  buyerWalkthroughHref,
+  sampleArtifactHref,
+  sampleArtifactNames,
+  sampleBaseUrl,
+  sampleCommit,
+  sampleCommitShort,
+  sampleManifestAnchor,
+  type SampleArtifactName,
+} from "./sample-artifact-contract";
 
 export const metadata: Metadata = {
   title: "Sample Proof Run - AI Agent Action",
@@ -106,7 +106,11 @@ const sampleOutcomeRows = [
   },
 ];
 
-const inspectionSteps = [
+const inspectionSteps: Array<{
+  title: string;
+  summary: string;
+  artifact: SampleArtifactName;
+}> = [
   {
     title: "Read the action boundary",
     summary: "Confirm the sample is scoped to one workflow, one agent/tool path, and one touched system.",
@@ -144,36 +148,27 @@ const inspectionSteps = [
   },
 ];
 
-const artifactFiles = [
-  {
-    name: "ACTION_BOUNDARY.json",
-    purpose: "The one workflow, one action path, and one system boundary under review.",
-  },
-  {
-    name: "AUTHORITY_MAP.json",
-    purpose: "Who can approve, run, review, and challenge the agent-assisted action.",
-  },
-  {
-    name: "EVIDENCE_MANIFEST.json",
-    purpose: "The captured artifacts, hashes, sources, and known evidence gaps.",
-  },
-  {
-    name: "RECEIPT.json",
-    purpose: "The signed or simulated receipt binding approval, action, evidence, result, and limits.",
-  },
-  {
-    name: "VERIFY_RESULT.json",
-    purpose: "The verifier result showing pass, fail, or limits for the sample bundle.",
-  },
-  {
-    name: "CHALLENGE_PATH.md",
-    purpose: "How a third party can inspect, dispute, or request stronger evidence.",
-  },
-  {
-    name: "MANIFEST.sha256",
-    purpose: "Digest list for checking that the sample artifacts did not silently drift.",
-  },
-];
+const artifactPurposes: Record<SampleArtifactName, string> = {
+  "ACTION_BOUNDARY.json":
+    "The one workflow, one action path, and one system boundary under review.",
+  "AUTHORITY_MAP.json":
+    "Who can approve, run, review, and challenge the agent-assisted action.",
+  "EVIDENCE_MANIFEST.json":
+    "The captured artifacts, hashes, sources, and known evidence gaps.",
+  "RECEIPT.json":
+    "The signed or simulated receipt binding approval, action, evidence, result, and limits.",
+  "VERIFY_RESULT.json":
+    "The verifier result showing pass, fail, or limits for the sample bundle.",
+  "CHALLENGE_PATH.md":
+    "How a third party can inspect, dispute, or request stronger evidence.",
+  "MANIFEST.sha256":
+    "Digest list for checking that the sample artifacts did not silently drift.",
+};
+
+const artifactFiles = sampleArtifactNames.map((name) => ({
+  name,
+  purpose: artifactPurposes[name],
+}));
 
 const proofRunOutputs = [
   "one workflow",
@@ -182,10 +177,6 @@ const proofRunOutputs = [
   "one verifier result",
   "one challenge path",
 ];
-
-function artifactHref(name: string) {
-  return `${sampleBlobBaseUrl}/${name}`;
-}
 
 export default function AiAgentActionProofRunSamplePage() {
   return (
@@ -328,7 +319,7 @@ export default function AiAgentActionProofRunSamplePage() {
               {inspectionSteps.map((step, index) => (
                 <a
                   key={step.artifact}
-                  href={artifactHref(step.artifact)}
+                  href={sampleArtifactHref(step.artifact)}
                   className="grid gap-3 rounded-xl border border-surface-border bg-surface-bg p-4 transition-colors hover:bg-surface-card/60 sm:grid-cols-[56px_1fr]"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -395,7 +386,7 @@ export default function AiAgentActionProofRunSamplePage() {
               {artifactFiles.map((artifact) => (
                 <a
                   key={artifact.name}
-                  href={artifactHref(artifact.name)}
+                  href={sampleArtifactHref(artifact.name)}
                   className="block rounded-xl border border-surface-border bg-surface-bg p-4 transition-colors hover:bg-surface-card/60"
                   target="_blank"
                   rel="noopener noreferrer"
