@@ -366,12 +366,12 @@ export function ContactForm({
 
       <div className="border border-surface-border bg-surface-bg p-4">
         <div className="text-sm font-semibold text-text-primary">
-          Start with the minimum.
+          Start with a short non-secret fit check.
         </div>
         <p className="mt-2 text-sm leading-relaxed text-text-muted">
-          Four fields. No files. No evidence upload. Use plain language and
-          save tickets, logs, screenshots, exports, credentials, private keys,
-          MFA codes, and customer evidence for the scoped intake.
+          No files. No evidence upload. Use plain language and save tickets,
+          logs, screenshots, exports, credentials, private keys, MFA codes, and
+          customer evidence for the scoped intake after handling is agreed.
         </p>
       </div>
 
