@@ -190,7 +190,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
               ))}
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
-              <CtaButton href="/review/request" variant="primary" label="Request Proof Run" />
+              <CtaButton href="/review/request" variant="primary" label="Request one proof run" />
               <CtaButton href="/review/sample-report" variant="secondary" label="Compare with sample report" />
               <CtaButton href="/review/sample-cases" variant="secondary" label="Browse all named sample cases" />
             </div>
