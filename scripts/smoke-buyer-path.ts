@@ -91,6 +91,17 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/support",
+    requiredMarkers: [
+      "Need a proof run instead?",
+      "Request one proof run",
+      "Support is for product help, access issues, and verifier questions.",
+    ],
+    prohibitedMarkers: [
+      "Request an AI Agent Action Proof Run",
+    ],
+  },
+  {
     path: "/verify",
     requiredMarkers: [
       "Artifact state matrix",
