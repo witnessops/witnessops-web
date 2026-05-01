@@ -10,30 +10,27 @@ type FieldName =
   | "name"
   | "email"
   | "org"
-  | "accessChange"
-  | "systemInvolved"
-  | "approvingAuthority"
-  | "evidenceSummary"
-  | "reviewer";
+  | "accessChange";
 
 const labelStyle: React.CSSProperties = {
-  fontFamily: "var(--font-mono)",
-  fontSize: 9,
-  letterSpacing: "0.14em",
+  fontFamily: "var(--font-display)",
+  fontSize: 12,
+  fontWeight: 600,
+  letterSpacing: "0.08em",
   textTransform: "uppercase",
-  color: "var(--color-brand-muted)",
+  color: "var(--color-text-secondary)",
 };
 
 const inputClass =
-  "w-full bg-transparent border-0 border-b border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none py-2.5";
+  "w-full border border-surface-border-strong bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none";
 
 const textareaClass =
-  "w-full bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none p-4";
+  "w-full border border-surface-border-strong bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none";
 
 const inputStyle: React.CSSProperties = {
-  fontFamily: "var(--font-mono)",
-  fontSize: 13,
-  letterSpacing: "0.03em",
+  fontFamily: "var(--font-sans)",
+  fontSize: 15,
+  letterSpacing: 0,
 };
 
 type VerificationStep = Pick<
@@ -59,6 +56,7 @@ export function ContactForm({
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
   const [verificationStep, setVerificationStep] = useState<VerificationStep | null>(null);
   const [verificationCode, setVerificationCode] = useState("");
+  const [verificationBoundaryAccepted, setVerificationBoundaryAccepted] = useState(false);
 
   function updateFieldError(name: FieldName, message: string) {
     setFieldErrors((current) => {
@@ -80,18 +78,11 @@ export function ContactForm({
     const form = e.currentTarget;
     const data = new FormData(form);
     const accessChange = stringField(data, "accessChange");
-    const systemInvolved = stringField(data, "systemInvolved");
-    const approvingAuthority = stringField(data, "approvingAuthority");
-    const evidenceSummary = stringField(data, "evidenceSummary");
-    const reviewer = stringField(data, "reviewer");
     const proofRunScope = [
       "Offer: Bounded Access-Change Proof Run",
-      `Access change: ${accessChange || "not provided"}`,
-      `System involved: ${systemInvolved || "not provided"}`,
-      `Approving authority: ${approvingAuthority || "not provided"}`,
-      `Evidence summary: ${evidenceSummary || "not provided"}`,
-      `Reviewer: ${reviewer || "not provided"}`,
-      "First-message boundary: no secrets, source exports, logs, screenshots, or customer evidence requested in the form",
+      `First-contact note: ${accessChange || "not provided"}`,
+      "First-message boundary: no files, secrets, source exports, logs, screenshots, or customer evidence requested in the form",
+      "Follow-up needed: fit, authority boundary, likely evidence sources, reviewer, scope, fee, and evidence handling",
     ].join("\n");
 
     try {
@@ -126,6 +117,7 @@ export function ContactForm({
         expiresAt: payload.expiresAt,
       });
       setVerificationCode("");
+      setVerificationBoundaryAccepted(false);
       setVerifyStatus("idle");
       setStatus("sent");
       form.reset();
@@ -147,6 +139,10 @@ export function ContactForm({
     setVerifyErrorMessage("Verification failed. Please try again.");
 
     try {
+      if (!verificationBoundaryAccepted) {
+        throw new Error("Confirm the boundary before verifying the code.");
+      }
+
       const response = await fetch("/api/verify-token", {
         method: "POST",
         credentials: "same-origin",
@@ -182,13 +178,13 @@ export function ContactForm({
   }
 
   function handleInvalid(
-    e: React.InvalidEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    e: React.InvalidEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
     updateFieldError(e.currentTarget.name as FieldName, e.currentTarget.validationMessage);
   }
 
   function handleFieldInput(
-    e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
     const field = e.currentTarget;
     updateFieldError(field.name as FieldName, field.validity.valid ? "" : field.validationMessage);
@@ -200,7 +196,7 @@ export function ContactForm({
         <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
           {verifyStatus === "verifying"
             ? "Verifying code..."
-            : "Verification email sent. Enter the code on this page."}
+            : "Verification email sent. Enter the email code on this page."}
         </div>
 
         <div className="border border-surface-border bg-surface-bg p-5">
@@ -209,14 +205,16 @@ export function ContactForm({
             className="text-xl font-semibold uppercase leading-tight text-text-primary"
             style={{ fontFamily: "var(--font-display)", letterSpacing: "0.04em" }}
           >
-            Enter the code from your email
+            Enter your email code
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-text-muted">
-            We sent a verification code to {verificationStep.email}. Keep this page open and type the code here.
-            The email is the code carrier; no link is required to continue.
+            We sent a code to {verificationStep.email}. Keep this page open,
+            then type the code below. The email contains the code only; no link
+            is required.
           </p>
           <p className="mt-2 text-xs leading-relaxed text-text-muted">
-            A proof run has not started. WitnessOps confirms fit, scope, payment, and evidence handling by email first.
+            Mailbox verification does not start a proof run. Fit, scope,
+            payment, and evidence handling are confirmed by email first.
           </p>
         </div>
 
@@ -248,6 +246,25 @@ export function ContactForm({
           </p>
         </div>
 
+        <label className="flex gap-3 border border-surface-border bg-surface-bg p-4 text-sm leading-relaxed text-text-muted">
+          <input
+            type="checkbox"
+            checked={verificationBoundaryAccepted}
+            onChange={(event) => {
+              setVerificationBoundaryAccepted(event.currentTarget.checked);
+              setVerifyErrorMessage("Verification failed. Please try again.");
+              setVerifyStatus("idle");
+            }}
+            className="mt-1 h-4 w-4 shrink-0 accent-brand-accent"
+          />
+          <span>
+            I understand this confirms mailbox access only. No proof run starts
+            here, and I will not send secrets, logs, screenshots, source
+            exports, or customer evidence until scope and evidence handling are
+            agreed.
+          </span>
+        </label>
+
         {verifyStatus === "error" && (
           <div
             className="flex items-center gap-2 py-3"
@@ -260,7 +277,7 @@ export function ContactForm({
 
         <button
           type="submit"
-          disabled={verifyStatus === "verifying"}
+          disabled={verifyStatus === "verifying" || !verificationBoundaryAccepted}
           className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98]"
           style={{
             fontFamily: "var(--font-display)",
@@ -270,7 +287,7 @@ export function ContactForm({
             textTransform: "uppercase",
           }}
         >
-          {verifyStatus === "verifying" ? "Verifying..." : "Verify code"}
+          {verifyStatus === "verifying" ? "Confirming..." : "Confirm mailbox"}
         </button>
 
         <button
@@ -278,6 +295,7 @@ export function ContactForm({
           onClick={() => {
             setVerificationStep(null);
             setVerificationCode("");
+            setVerificationBoundaryAccepted(false);
             setVerifyStatus("idle");
             setStatus("idle");
           }}
@@ -333,8 +351,19 @@ export function ContactForm({
         {status === "sending"
           ? "Sending..."
           : status === "sent"
-            ? "Request sent. Enter the code from your email on this page."
+            ? "Request sent. Enter the email code on this page."
             : ""}
+      </div>
+
+      <div className="border border-surface-border bg-surface-bg p-4">
+        <div className="text-sm font-semibold text-text-primary">
+          Start with the minimum.
+        </div>
+        <p className="mt-2 text-sm leading-relaxed text-text-muted">
+          Four fields. No files. No evidence upload. Use plain language and
+          save tickets, logs, screenshots, exports, and customer evidence for
+          the scoped intake.
+        </p>
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">
@@ -366,7 +395,7 @@ export function ContactForm({
       </div>
 
       <div>
-        <label htmlFor="org" className="mb-2 block" style={labelStyle}>Company or team</label>
+        <label htmlFor="org" className="mb-2 block" style={labelStyle}>Company or team <span className="text-text-muted">(optional)</span></label>
         <input
           id="org" name="org" type="text"
           aria-invalid={fieldErrors.org ? true : undefined}
@@ -379,80 +408,23 @@ export function ContactForm({
       </div>
 
       <div>
-        <label htmlFor="accessChange" className="mb-2 block" style={labelStyle}>Access change to inspect</label>
+        <label htmlFor="accessChange" className="mb-2 block" style={labelStyle}>What access change should we inspect?</label>
         <textarea
-          id="accessChange" name="accessChange" rows={3} required
+          id="accessChange" name="accessChange" rows={4} required
           aria-describedby="accessChange-helper"
           className={`${textareaClass} ${fieldErrors.accessChange ? "!border-signal-red" : ""}`}
-          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
-          placeholder="Example: contractor production access revoked, admin permission updated, vendor access reviewed."
+          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+          placeholder="Example: contractor production access was revoked. We need a proof bundle showing approval, execution evidence, and remaining gaps."
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.accessChange ? true : undefined}
         />
         <p id="accessChange-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
-          Plain language only. Do not paste secrets, source exports, full logs, screenshots, or customer data.
+          One or two sentences is enough. Name systems at a high level only.
+          Do not paste secrets, source exports, full logs, screenshots,
+          credentials, or customer evidence.
         </p>
         {fieldErrors.accessChange && <p className="mt-1 text-xs text-signal-red">{fieldErrors.accessChange}</p>}
-      </div>
-
-      <div className="grid gap-5 md:grid-cols-2">
-        <div>
-          <label htmlFor="systemInvolved" className="mb-2 block" style={labelStyle}>System involved</label>
-          <input
-            id="systemInvolved" name="systemInvolved" type="text"
-            aria-invalid={fieldErrors.systemInvolved ? true : undefined}
-            onInvalid={handleInvalid} onInput={handleFieldInput}
-            className={`${inputClass} ${fieldErrors.systemInvolved ? "!border-signal-red" : ""}`}
-            style={inputStyle}
-            placeholder="Production app, cloud IAM, GitHub, IdP, etc."
-          />
-          {fieldErrors.systemInvolved && <p className="mt-1 text-xs text-signal-red">{fieldErrors.systemInvolved}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="approvingAuthority" className="mb-2 block" style={labelStyle}>Who approved it?</label>
-          <input
-            id="approvingAuthority" name="approvingAuthority" type="text"
-            aria-invalid={fieldErrors.approvingAuthority ? true : undefined}
-            onInvalid={handleInvalid} onInput={handleFieldInput}
-            className={`${inputClass} ${fieldErrors.approvingAuthority ? "!border-signal-red" : ""}`}
-            style={inputStyle}
-            placeholder="Role or title is enough for first contact"
-          />
-          {fieldErrors.approvingAuthority && <p className="mt-1 text-xs text-signal-red">{fieldErrors.approvingAuthority}</p>}
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="evidenceSummary" className="mb-2 block" style={labelStyle}>What evidence exists?</label>
-        <textarea
-          id="evidenceSummary" name="evidenceSummary" rows={3}
-          aria-describedby="evidenceSummary-helper"
-          className={`${textareaClass} ${fieldErrors.evidenceSummary ? "!border-signal-red" : ""}`}
-          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
-          placeholder="Ticket, approval record, access log, export, screenshot, policy text. Name evidence types only."
-          onInvalid={handleInvalid}
-          onInput={handleFieldInput}
-          aria-invalid={fieldErrors.evidenceSummary ? true : undefined}
-        />
-        <p id="evidenceSummary-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
-          Source materials are handled only after scope and intake are agreed.
-        </p>
-        {fieldErrors.evidenceSummary && <p className="mt-1 text-xs text-signal-red">{fieldErrors.evidenceSummary}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="reviewer" className="mb-2 block" style={labelStyle}>Who needs to inspect the bundle?</label>
-        <input
-          id="reviewer" name="reviewer" type="text"
-          aria-invalid={fieldErrors.reviewer ? true : undefined}
-          onInvalid={handleInvalid} onInput={handleFieldInput}
-          className={`${inputClass} ${fieldErrors.reviewer ? "!border-signal-red" : ""}`}
-          style={inputStyle}
-          placeholder="Founder, CTO, security lead, customer, auditor, or internal reviewer"
-        />
-        {fieldErrors.reviewer && <p className="mt-1 text-xs text-signal-red">{fieldErrors.reviewer}</p>}
       </div>
 
       <button
@@ -467,11 +439,12 @@ export function ContactForm({
           textTransform: "uppercase",
         }}
       >
-        {status === "sending" ? "Sending..." : "Request proof run"}
+        {status === "sending" ? "Sending..." : "Send request"}
       </button>
 
       <p className="text-xs leading-relaxed text-text-muted">
-        A form submission does not start a proof run. We confirm fit, scope, payment, and evidence handling by email first.
+        Submitting this form only opens a fit check. No proof run starts until
+        scope, fee, and evidence handling are agreed.
       </p>
 
       {status === "sent" && (
@@ -480,7 +453,7 @@ export function ContactForm({
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-signal-green)" }}
           role="status"
         >
-          <span>&#10003;</span> Request received. Enter the code from your work email on this page before scope starts.
+          <span>&#10003;</span> Request received. Enter the code from your work email on this page.
         </div>
       )}
       {status === "error" && (

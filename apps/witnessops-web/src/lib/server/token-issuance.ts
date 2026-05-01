@@ -377,6 +377,7 @@ export async function createVerificationIssuance(
     from: getChannelVerificationMailbox(input.channel),
     subject: template.subject,
     text: template.text,
+    html: template.html,
     messageClass: "transactional",
   });
 

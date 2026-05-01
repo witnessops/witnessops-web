@@ -118,8 +118,12 @@ test("sendVerificationEmail sends via Microsoft 365 Graph with app-only auth", a
     sendBody.message.body.content,
     /data-witnessops-signature-profile="ops_minimal"/,
   );
-  assert.match(sendBody.message.body.content, /Karol Stefanski/);
-  assert.match(sendBody.message.body.content, /href="mailto:ks@witnessops.com"/);
+  assert.match(sendBody.message.body.content, /WitnessOps/);
+  assert.match(sendBody.message.body.content, /Proof-backed security operations/);
+  assert.match(sendBody.message.body.content, /Authority · evidence · custody · receipts/);
+  assert.match(sendBody.message.body.content, /href="https:\/\/witnessops\.com"/);
+  assert.doesNotMatch(sendBody.message.body.content, /Karol Stefanski/);
+  assert.doesNotMatch(sendBody.message.body.content, /href="mailto:ks@witnessops.com"/);
   assert.deepEqual(sendBody.message.internetMessageHeaders, [
     {
       name: "X-WitnessOps-Message-Class",

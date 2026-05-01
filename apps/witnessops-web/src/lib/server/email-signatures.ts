@@ -8,9 +8,9 @@ export type EmailSignatureProfile =
 const TEXT_SIGNATURES: Record<EmailSignatureProfile, string> = {
   none: "",
   ops_minimal: [
-    "Karol Stefanski",
     "WitnessOps",
-    "ks@witnessops.com",
+    "Proof-backed security operations",
+    "Authority · evidence · custody · receipts",
     "witnessops.com",
   ].join("\n"),
   personal_admin: [
@@ -51,7 +51,7 @@ type HtmlSignatureLine = {
 type HtmlSignatureConfig = {
   name: string;
   role: string;
-  brand: string;
+  brand?: string;
   proofLine?: string;
   detailLine?: string;
   contact: HtmlSignatureLine[];
@@ -81,11 +81,11 @@ const HTML_SIGNATURES: Record<
   HtmlSignatureConfig
 > = {
   ops_minimal: {
-    name: "Karol Stefanski",
-    role: "WitnessOps",
-    brand: "WitnessOps",
+    name: "WitnessOps",
+    role: "Proof-backed security operations",
+    brand: undefined,
+    proofLine: "Authority · evidence · custody · receipts",
     contact: [
-      { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
       { text: "witnessops.com", href: "https://witnessops.com" },
     ],
     accentColor: WO_EMAIL_COLORS.trust,
@@ -229,7 +229,7 @@ export function getHtmlSignature(profile: EmailSignatureProfile): string {
     `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:15px;line-height:20px;font-weight:700;${textColorStyle(SIGNATURE_TEXT_COLOR)};padding:0">${escapeHtml(config.name)}</td>`,
     "</tr>",
     "<tr>",
-    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;${textColorStyle(SIGNATURE_SECONDARY_COLOR)};padding:1px 0 0 0">${escapeHtml(config.role)} <span style="${textColorStyle(SIGNATURE_RULE_COLOR)}">·</span> <span style="${textColorStyle(SIGNATURE_TEXT_COLOR)};font-weight:600">${escapeHtml(config.brand)}</span></td>`,
+    `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:12px;line-height:18px;${textColorStyle(SIGNATURE_SECONDARY_COLOR)};padding:1px 0 0 0">${escapeHtml(config.role)}${config.brand ? ` <span style="${textColorStyle(SIGNATURE_RULE_COLOR)}">·</span> <span style="${textColorStyle(SIGNATURE_TEXT_COLOR)};font-weight:600">${escapeHtml(config.brand)}</span>` : ""}</td>`,
     "</tr>",
     renderOptionalTextCell(
       config.proofLine,
