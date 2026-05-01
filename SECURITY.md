@@ -11,6 +11,9 @@ This repository contains the public web surface for WitnessOps:
 - The Next.js application under `apps/witnessops-web`
 - The `/verify` route
 - The `/api/verify` route
+- Public buyer, review, docs, support, pricing, library, legal, and security pages
+- Public sample-case pages, including the AI Agent Action Proof Run sample surface
+- Web-side sample artifact contracts and buyer-path smoke tests
 
 It does **not** contain the WitnessOps control plane or any backend service.
 Reports against systems outside this repository are out of scope here and
@@ -20,6 +23,19 @@ should be directed to the appropriate project or vendor.
 
 Only the current `main` branch of this repository is supported and receives
 security fixes. Older branches, tags, and historical releases are not patched.
+
+## Proof-surface reporting boundary
+
+Reports about the public verifier, public sample pages, pinned artifact links,
+claim-boundary text, route behavior, or buyer-path smoke coverage are in scope
+for this repository when they affect this web surface.
+
+This repository records and displays pinned external sample manifest provenance,
+but it does not run the customer workflow, issue or sign receipts, operate the
+control plane, or independently recompute external sample artifact bytes as part
+of normal public verification. Reports that require control-plane evidence,
+production customer evidence, signing-key custody, or source-system truth should
+be routed to the owning repository or operational process.
 
 ## Reporting a vulnerability
 
@@ -73,6 +89,9 @@ this repository:
 - Denial-of-service via volumetric traffic flooding
 - Vulnerabilities in third-party dependencies that are already tracked by
   Dependabot or an equivalent automated advisory feed
+- Claims that a sample artifact proves production deployment, legal compliance,
+  source-system truth, or complete AI governance when the page explicitly labels
+  the sample boundary
 
 If you believe one of the above has a concrete, demonstrable security impact
 in this repository, please still report it through the private channels above
