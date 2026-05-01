@@ -4,13 +4,13 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Request verified",
   description:
-    "Mailbox verification is complete for a WitnessOps access-change proof run request.",
+    "Mailbox verification is complete for a WitnessOps AI-agent proof-run request.",
   robots: { index: false, follow: false },
 };
 
 const nextSteps = [
-  "WitnessOps reviews whether the access-change action is bounded enough for one proof run.",
-  "We confirm the authority boundary, likely evidence sources, and obvious gaps.",
+  "WitnessOps reviews whether the agent-assisted workflow is bounded enough for one proof run.",
+  "We confirm the authority boundary, action path, likely evidence sources, verifier result, and obvious gaps.",
   "We reply by email with fit, scope, fee, and next action.",
 ];
 
@@ -23,12 +23,12 @@ const waitLinks = [
   {
     href: "/library",
     label: "Library",
-    body: "Browse public docs, sample cases, and proof presentation material.",
+    body: "Browse public docs, sample cases, proof bundles, and proof presentation material.",
   },
   {
-    href: "/access-change-proof-run",
-    label: "Access-change offer",
-    body: "Review the bounded offer, deliverables, fee, timeline, and boundaries.",
+    href: "/review",
+    label: "Proof-run offer",
+    body: "Review the bounded offer, outputs, fit, and claim boundaries.",
   },
   {
     href: "/support",
@@ -56,7 +56,7 @@ export default function ReviewRequestConfirmedPage() {
             color: "var(--color-brand-muted)",
           }}
         >
-          Access-change proof run request
+          AI-agent proof-run request
         </div>
         <h1
           className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
@@ -65,7 +65,7 @@ export default function ReviewRequestConfirmedPage() {
           Request verified
         </h1>
         <p className="max-w-[620px] text-base leading-relaxed text-text-muted">
-          Your mailbox is verified for this access-change proof run request.
+          Your mailbox is verified for this AI-agent proof-run request.
         </p>
       </section>
 
@@ -84,8 +84,9 @@ export default function ReviewRequestConfirmedPage() {
               handling are agreed.
             </p>
             <p>
-              Do not submit secrets, credentials, source exports, full logs,
-              screenshots, or customer evidence until the intake path is agreed.
+              Do not submit secrets, credentials, private keys, MFA codes,
+              source exports, full logs, screenshots, or customer evidence until
+              the intake path is agreed.
             </p>
           </div>
 
@@ -137,9 +138,9 @@ export default function ReviewRequestConfirmedPage() {
               Boundary
             </div>
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
-              <p>Not a legal audit opinion.</p>
-              <p>Not a compliance certification.</p>
-              <p>Not a verifier-of-record result.</p>
+              <p>Not a production deployment claim.</p>
+              <p>Not a legal compliance claim.</p>
+              <p>Not a complete AI governance program.</p>
             </div>
           </section>
 
