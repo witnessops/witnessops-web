@@ -67,6 +67,17 @@ export const sampleArtifactNames = [
 
 export type SampleArtifactName = (typeof sampleArtifactNames)[number];
 
+export const sampleDisplayedArtifactNames = sampleArtifactNames;
+export const sampleManifestHashedArtifactNames = sampleManifestEntries.map(
+  (entry) => entry.file,
+);
+export const sampleDisplayedButNotManifestHashedArtifactNames = [
+  "MANIFEST.sha256",
+] as const;
+export const sampleManifestHashedButNotDisplayedArtifactNames = [
+  "README.md",
+] as const;
+
 export function sampleArtifactHref(name: SampleArtifactName): string {
   return `${sampleBlobBaseUrl}/${name}`;
 }
