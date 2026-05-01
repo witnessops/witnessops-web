@@ -1,0 +1,146 @@
+---
+title: "Proof Run Buyer Path"
+description: "A buyer-facing reading path for inspecting the sample, understanding the request surface, and knowing what a WitnessOps proof run does and does not start."
+section: "docs"
+order: 2
+nav_label: "Proof Run Buyer Path"
+draft: false
+trust_boundary_variant: "verification"
+page_answer:
+  question: "What should a buyer inspect before requesting one WitnessOps proof run, and what does the request form actually start?"
+  links:
+    - href: "/review"
+      label: "Proof-run offer"
+    - href: "/review/sample-cases/ai-agent-action-proof-run"
+      label: "AI-agent sample proof run"
+    - href: "/review/request"
+      label: "Request one proof run"
+---
+
+# Proof Run Buyer Path
+
+This page gives a buyer-readable path through the public WitnessOps surfaces before submitting a real workflow.
+
+It is for a reviewer who wants to know:
+
+- what the proof-run offer is
+- what the public sample demonstrates
+- what the verifier can and cannot check
+- what the request form starts
+- what source material must not be submitted in the first message
+- what remains outside the proof-run boundary
+
+## 1. Start with the offer
+
+Read [AI Agent Action Proof Run](/review) first.
+
+That page defines the primary public lane: one bounded AI-agent action path with a named authority boundary, expected evidence, receipt, verifier result, challenge path, and stated limits.
+
+Do not read the offer as a broad AI governance program, production deployment claim, legal compliance claim, or whole-environment assurance claim.
+
+## 2. Inspect the sample before submitting your own workflow
+
+Open [AI Agent Action Proof Run sample](/review/sample-cases/ai-agent-action-proof-run).
+
+The sample is a public sample bundle. It demonstrates receipt shape and verifier path only. It is not a live customer artifact.
+
+Use the sample to inspect:
+
+| Artifact | What to check |
+| --- | --- |
+| `ACTION_BOUNDARY.json` | What the agent-assisted action was allowed to do and what stayed out of scope. |
+| `AUTHORITY_MAP.json` | Who approved, acted, observed, reviewed, or challenged the action. |
+| `EVIDENCE_MANIFEST.json` | Which evidence classes are present and which gaps are declared. |
+| `RECEIPT.json` | How approval, action, evidence, result, and limits are bound into one record. |
+| `VERIFY_RESULT.json` | What the sample verifier result reports and what it does not establish. |
+| `CHALLENGE_PATH.md` | How another party can inspect, dispute, or request stronger evidence. |
+| `MANIFEST.sha256` | Whether sample files match the published hash manifest. |
+
+The sample page pins artifact links to a specific sample commit so the public walkthrough is replayable against that version.
+
+## 3. Understand the verifier boundary
+
+Use [Verify](/verify) to understand the public verifier surface.
+
+The public console is receipt-first v1. It can check supported receipt JSON in the public verifier mode. It does not prove the full runtime story, source-system honesty, artifact-byte revalidation, or complete bundle custody.
+
+Read a `valid` result as receipt-scoped unless a page or bundle names a stronger verifier path and the artifacts needed for that path.
+
+## 4. Read commercial scope before relying on price assumptions
+
+Use [Pricing and Commercial Scope](/pricing) to understand what is and is not priced by the public surface.
+
+The public commercial unit is one bounded workflow, one action path, one receipt, one verifier result, and one challenge path.
+
+Fee, timing, and evidence handling are confirmed after the workflow, authority boundary, action path, and expected evidence are scoped.
+
+## 5. Submit only the first non-secret fit check
+
+Use [Request one proof run](/review/request) only after you can describe one bounded workflow.
+
+The request form asks for:
+
+- your name
+- work email
+- optional company or team
+- the agent-assisted workflow
+- the agent/tool path and touched system
+- the approval boundary
+- evidence available
+
+The form does not ask for source exports, screenshots, logs, credentials, private keys, MFA codes, customer records, or production evidence.
+
+## 6. Mailbox verification is not proof-run start
+
+After the request form, the mailbox verification step confirms mailbox access only.
+
+The confirmation page means:
+
+- the mailbox was confirmed for the request
+- no proof run has started
+- no customer evidence has been accepted
+- scope, fee, and evidence handling still need to be agreed
+
+Do not treat mailbox verification as proof-run execution, proof-run acceptance, or evidence handling approval.
+
+## 7. What happens after the first fit check
+
+If the workflow fits the lane, WitnessOps confirms scope by email before any source material is accepted.
+
+The next scoping step should name:
+
+| Contract point | Buyer question |
+| --- | --- |
+| Workflow | What single agent-assisted workflow is under review? |
+| Authority boundary | Who approved the action, and where did authority stop? |
+| Action path | What agent, tool, handoff, and touched system are in scope? |
+| Evidence | Which artifact classes can be safely captured? |
+| Exclusions | What must not be submitted or must be redacted? |
+| Verifier result | What result can another party inspect? |
+| Challenge path | How can another party question or dispute the bundle? |
+
+## 8. Stop conditions
+
+Stop and do not submit the request if:
+
+- the workflow cannot be bounded to one action path
+- no approving authority can be named
+- required evidence is unavailable or cannot be safely handled
+- the goal is a broad compliance certification
+- the goal is a legal audit opinion
+- the request requires production data in the first message
+
+Use [Support](/support) for non-secret questions about fit or evidence handling.
+
+## 9. Minimal buyer reading order
+
+Follow this order when reviewing the public surface:
+
+1. [Proof-run offer](/review)
+2. [AI-agent sample proof run](/review/sample-cases/ai-agent-action-proof-run)
+3. [Verify](/verify)
+4. [Pricing and Commercial Scope](/pricing)
+5. [Request one proof run](/review/request)
+6. [Verification docs](/docs/how-it-works/verification)
+
+The key rule: do not rely on a claim unless the artifact, receipt, verifier result, manifest, or challenge path that supports it is named.

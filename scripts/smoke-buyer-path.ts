@@ -43,6 +43,23 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/docs/getting-started/proof-run-buyer-path",
+    requiredMarkers: [
+      "Proof Run Buyer Path",
+      "what the proof-run offer is",
+      "what the public sample demonstrates",
+      "what the request form starts",
+      "Mailbox verification is not proof-run start",
+      "No customer evidence",
+      "Stop conditions",
+      "Minimal buyer reading order",
+    ],
+    prohibitedMarkers: [
+      "legal audit opinion",
+      "broad compliance certification",
+    ],
+  },
+  {
     path: "/library",
     requiredMarkers: [
       "Artifact state matrix",
@@ -224,10 +241,10 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "BUYER_WALKTHROUGH.md",
       "Read buyer walkthrough",
       "Receipt shape and verifier path",
-      "MANIFEST.sha256",
       "work email",
       "optional company or team",
       "agent/tool path and touched system",
+      "MANIFEST.sha256",
     ],
     prohibitedMarkers: [
       "Receipt shape only",
