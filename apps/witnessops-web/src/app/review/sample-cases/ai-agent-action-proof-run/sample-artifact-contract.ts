@@ -1,5 +1,10 @@
+export const sampleSourceRepository = "witnessops/witnessops-sample-cases";
+export const sampleSourceRepositoryUrl = `https://github.com/${sampleSourceRepository}`;
+export const sampleSourcePath = "sample-cases/ai-agent-action-proof-run";
 export const sampleCommit = "99741c8d50cd3adbfdc28bc317ac563a1e8dd1ef";
 export const sampleCommitShort = sampleCommit.slice(0, 12);
+export const sampleManifestPath = `${sampleSourcePath}/MANIFEST.sha256`;
+export const sampleManifestBlobSha = "efa7181d7575e95cb63673442cfe48671a3bb8a8";
 
 export const sampleManifestEntries = [
   {
@@ -41,11 +46,11 @@ export const sampleManifestText = `${sampleManifestEntries
 export const sampleManifestAnchor =
   "ed4614932f1b96fa9cc082fb481239ac8655bd49596d846db4da5bf5eb6dca14  RECEIPT.json";
 
-export const sampleBaseUrl =
-  `https://github.com/witnessops/witnessops-sample-cases/tree/${sampleCommit}/sample-cases/ai-agent-action-proof-run`;
+export const sampleBaseUrl = `${sampleSourceRepositoryUrl}/tree/${sampleCommit}/${sampleSourcePath}`;
 
-export const sampleBlobBaseUrl =
-  `https://github.com/witnessops/witnessops-sample-cases/blob/${sampleCommit}/sample-cases/ai-agent-action-proof-run`;
+export const sampleBlobBaseUrl = `${sampleSourceRepositoryUrl}/blob/${sampleCommit}/${sampleSourcePath}`;
+
+export const sampleManifestHref = `${sampleSourceRepositoryUrl}/blob/${sampleCommit}/${sampleManifestPath}`;
 
 export const buyerWalkthroughHref = `${sampleBlobBaseUrl}/BUYER_WALKTHROUGH.md`;
 
