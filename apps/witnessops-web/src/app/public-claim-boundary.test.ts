@@ -18,6 +18,7 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/app/review/sample-cases/privileged-access-grant/page.tsx",
   "src/app/verify/page.tsx",
   "src/app/why-witnessops/page.tsx",
+  "../../content/witnessops/legal/security.mdx",
   "../../content/witnessops/landing/home.yaml",
 ] as const;
 
@@ -48,6 +49,8 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "the artifacts carry the proof",
   "this page explains why the proof-run model exists",
   "a proof claim requires a named receipt",
+  "do not eliminate external trust assumptions",
+  "web is a presentation layer only",
   "receipt-first v1",
   "No proof run starts",
   "No customer evidence",
@@ -100,6 +103,7 @@ test("claim-boundary guard scans only public presentation sources", () => {
     PUBLIC_CLAIM_SOURCES.every(
       (sourcePath) =>
         sourcePath.startsWith("src/app/") ||
+        sourcePath === "../../content/witnessops/legal/security.mdx" ||
         sourcePath === "../../content/witnessops/landing/home.yaml",
     ),
   );
