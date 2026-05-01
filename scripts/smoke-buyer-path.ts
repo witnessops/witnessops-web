@@ -36,10 +36,16 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Receipt and verifier result returned",
       "Challenge path declared",
       "Limits named before reliance",
+      "Describe an agent path",
+      "Describe approval context",
+      "Describe evidence context",
     ],
     prohibitedMarkers: [
       "Submit proof run",
       "Inspect sample receipt",
+      "Submit an agent path",
+      "Submit approval context",
+      "Submit evidence context",
     ],
   },
   {
