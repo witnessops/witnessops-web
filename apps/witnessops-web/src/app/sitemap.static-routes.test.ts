@@ -5,6 +5,7 @@ import test from "node:test";
 
 const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/library",
+  "/pricing",
   "/review/sample-cases",
   "/review/sample-cases/ai-agent-action-proof-run",
   "/access-change-proof-run",
