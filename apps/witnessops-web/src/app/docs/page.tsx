@@ -300,7 +300,7 @@ export default async function DocsIndexPage() {
           <CtaButton
             href="/review/request"
             variant="secondary"
-            label="Request Proof Run"
+            label="Request one proof run"
           />
         </div>
       </header>
