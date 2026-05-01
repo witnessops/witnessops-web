@@ -25,19 +25,30 @@ test("AI sample page keeps pinned artifact links and manifest anchor in sync", (
     new RegExp(`const sampleCommit = \"${expectedSampleCommit}\"`),
     "Sample page must pin GitHub artifact links to the expected immutable sample commit.",
   );
-  assert.match(
-    source,
-    new RegExp(expectedManifestAnchor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+  assert.ok(
+    source.includes(expectedManifestAnchor),
     "Sample page must display the expected RECEIPT.json manifest anchor.",
   );
-  assert.match(source, /sampleCommitShort = sampleCommit\.slice\(0, 12\)/);
-  assert.match(source, /sampleBaseUrl =\s*`https:\/\/github\.com\/witnessops\/witnessops-sample-cases\/tree\/\$\{sampleCommit\}\/sample-cases\/ai-agent-action-proof-run`/);
-  assert.match(source, /sampleBlobBaseUrl =\s*`https:\/\/github\.com\/witnessops\/witnessops-sample-cases\/blob\/\$\{sampleCommit\}\/sample-cases\/ai-agent-action-proof-run`/);
+  assert.ok(
+    source.includes("sampleCommitShort = sampleCommit.slice(0, 12)"),
+    "Sample page must derive the short commit label from the pinned commit.",
+  );
+  assert.ok(
+    source.includes(
+      "https://github.com/witnessops/witnessops-sample-cases/tree/${sampleCommit}/sample-cases/ai-agent-action-proof-run",
+    ),
+    "Sample bundle URL must use the pinned sample commit.",
+  );
+  assert.ok(
+    source.includes(
+      "https://github.com/witnessops/witnessops-sample-cases/blob/${sampleCommit}/sample-cases/ai-agent-action-proof-run",
+    ),
+    "Sample artifact blob URL must use the pinned sample commit.",
+  );
 
   for (const artifact of expectedArtifacts) {
-    assert.match(
-      source,
-      new RegExp(`artifact: \"${artifact.replace(/[.*+?^${}()|[\]\\]/g, "\\$&\")}\"|name: \"${artifact.replace(/[.*+?^${}()|[\]\\]/g, "\\$&\")}\"`),
+    assert.ok(
+      source.includes(`artifact: "${artifact}"`) || source.includes(`name: "${artifact}"`),
       `${artifact} should remain listed in the sample inspection or artifact set.`,
     );
   }
