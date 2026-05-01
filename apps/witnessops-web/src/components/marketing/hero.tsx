@@ -1,16 +1,5 @@
 import { HeroShell } from "@/components/hero/hero-shell";
 
-// Receipt excerpt lines sourced from the live receipt at /library/samples/phishing-triage
-// Values are truncated per spec §9 (truncated sha256 values are acceptable).
-const RECEIPT_EXCERPT_LINES = [
-  "{",
-  '  "schemaVersion": "tier1-freeze-v2.1",',
-  '  "artifactHash": "sha256:9d5e42a8f3c1b7e2...",',
-  '  "executionHash": "sha256:3f8c1b2e5a7d094f...",',
-  '  "signature": "ed25519:k7x9m3p2q5r8s1t4..."',
-  "}",
-];
-
 interface HeroProps {
   eyebrow: string;
   title: string;
@@ -47,6 +36,7 @@ export function Hero({
   secondary_cta,
   microcopy,
   proof_badges,
+  media,
   trustBar,
 }: HeroProps) {
   return (
@@ -60,7 +50,7 @@ export function Hero({
       secondaryCta={secondary_cta}
       proofBadges={proof_badges}
       microcopy={microcopy}
-      receiptExcerptLines={RECEIPT_EXCERPT_LINES}
+      media={media}
       trustBar={trustBar}
     />
   );
