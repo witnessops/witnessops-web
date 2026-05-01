@@ -78,6 +78,22 @@ export const sampleManifestHashedButNotDisplayedArtifactNames = [
   "README.md",
 ] as const;
 
+export function sampleArtifactDigest(name: SampleArtifactName): string {
+  if (name === "MANIFEST.sha256") {
+    return sampleManifestSha256;
+  }
+
+  const entry = sampleManifestEntries.find(
+    (manifestEntry) => manifestEntry.file === name,
+  );
+
+  if (!entry) {
+    throw new Error(`Missing sample manifest digest for ${name}`);
+  }
+
+  return entry.sha256;
+}
+
 export function sampleArtifactHref(name: SampleArtifactName): string {
   return `${sampleBlobBaseUrl}/${name}`;
 }
