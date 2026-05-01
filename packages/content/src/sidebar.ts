@@ -56,6 +56,7 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
     items: [
       { kind: "link", href: "/docs", title: "Docs Home" },
       { kind: "doc", href: "/docs/getting-started" },
+      { kind: "doc", href: "/docs/getting-started/proof-run-buyer-path" },
       {
         kind: "link",
         href: getSurfaceUrl("witnessops", "/why-witnessops"),
