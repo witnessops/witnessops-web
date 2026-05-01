@@ -83,7 +83,7 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
               If you want WitnessOps to inspect one real workflow, automation boundary,
               or operator decision path, use{" "}
               <Link href="/review/request" className="text-brand-accent underline-offset-4 hover:underline">
-                Request an AI Agent Action Proof Run
+                Request one proof run
               </Link>
               .
             </p>
