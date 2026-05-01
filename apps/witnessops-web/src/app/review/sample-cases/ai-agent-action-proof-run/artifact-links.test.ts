@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -15,6 +16,7 @@ import {
   sampleManifestEntries,
   sampleManifestHref,
   sampleManifestPath,
+  sampleManifestSha256,
   sampleManifestText,
   sampleSourcePath,
   sampleSourceRepository,
@@ -26,6 +28,7 @@ const expectedSourcePath = "sample-cases/ai-agent-action-proof-run";
 const expectedSampleCommit = "99741c8d50cd3adbfdc28bc317ac563a1e8dd1ef";
 const expectedManifestPath = `${expectedSourcePath}/MANIFEST.sha256`;
 const expectedManifestBlobSha = "efa7181d7575e95cb63673442cfe48671a3bb8a8";
+const expectedManifestSha256 = "6c43e87534a4e445321c46d9765efa885d3df5aa8eb8110a214653b0f46d7447";
 const expectedManifestAnchor =
   "ed4614932f1b96fa9cc082fb481239ac8655bd49596d846db4da5bf5eb6dca14  RECEIPT.json";
 
@@ -50,6 +53,10 @@ const expectedArtifacts = [
   "MANIFEST.sha256",
 ] as const;
 
+function sha256(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex");
+}
+
 test("AI sample artifact contract preserves pinned source provenance", () => {
   assert.equal(sampleSourceRepository, expectedSourceRepository);
   assert.equal(sampleSourceRepositoryUrl, `https://github.com/${expectedSourceRepository}`);
@@ -58,6 +65,8 @@ test("AI sample artifact contract preserves pinned source provenance", () => {
   assert.equal(sampleCommitShort, expectedSampleCommit.slice(0, 12));
   assert.equal(sampleManifestPath, expectedManifestPath);
   assert.equal(sampleManifestBlobSha, expectedManifestBlobSha);
+  assert.equal(sampleManifestSha256, expectedManifestSha256);
+  assert.equal(sha256(sampleManifestText), sampleManifestSha256);
   assert.equal(
     sampleManifestHref,
     `https://github.com/${expectedSourceRepository}/blob/${expectedSampleCommit}/${expectedManifestPath}`,
