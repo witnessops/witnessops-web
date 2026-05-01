@@ -1,5 +1,8 @@
 import type { ChannelName } from "@/lib/channel-policy";
-import { isAccessChangeProofRunIntent } from "@/lib/access-change-proof-run";
+import {
+  getProofRunRequestLabel,
+  isManualProofRunIntent,
+} from "@/lib/access-change-proof-run";
 
 export const TOKEN_EMAIL_TEMPLATE_VERSION = "tier1-code-v2" as const;
 
@@ -41,7 +44,7 @@ function escapeHtml(value: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/\"/g, "&quot;");
 }
 
 function textStyle(color: string): string {
@@ -52,13 +55,14 @@ function backgroundStyle(color: string): string {
   return `background-color:${color};background:${color};background-image:linear-gradient(${color},${color})`;
 }
 
-function renderAccessChangeVerificationHtml(
+function renderProofRunVerificationHtml(
   input: VerificationEmailTemplateInput,
 ): string {
   const code = escapeHtml(input.token);
   const intakeId = escapeHtml(input.intakeId);
   const issuanceId = escapeHtml(input.issuanceId);
   const expiresAt = escapeHtml(input.expiresAt);
+  const requestLabel = escapeHtml(getProofRunRequestLabel(input.intent));
 
   return [
     '<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">',
@@ -71,7 +75,7 @@ function renderAccessChangeVerificationHtml(
     "<tr>",
     `<td style="padding:22px 24px 18px 24px;border-bottom:1px solid ${EMAIL_COLORS.border}">`,
     `<div style="font-family:${EMAIL_FONT_STACK};font-size:12px;line-height:16px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;${textStyle(EMAIL_COLORS.trust)}">WitnessOps verification</div>`,
-    `<h1 style="margin:10px 0 0 0;font-family:${EMAIL_FONT_STACK};font-size:24px;line-height:30px;font-weight:700;${textStyle(EMAIL_COLORS.text)}">Confirm your access-change request</h1>`,
+    `<h1 style="margin:10px 0 0 0;font-family:${EMAIL_FONT_STACK};font-size:24px;line-height:30px;font-weight:700;${textStyle(EMAIL_COLORS.text)}">Confirm your ${requestLabel}</h1>`,
     `<p style="margin:10px 0 0 0;font-family:${EMAIL_FONT_STACK};font-size:14px;line-height:22px;${textStyle(EMAIL_COLORS.textSecondary)}">Use this code on the WitnessOps request page that is already open in your browser.</p>`,
     "</td>",
     "</tr>",
@@ -104,7 +108,7 @@ function renderAccessChangeVerificationHtml(
     `<p style="margin:0;font-family:${EMAIL_FONT_STACK};font-size:13px;line-height:20px;font-weight:700;${textStyle(EMAIL_COLORS.text)}">What this verification means</p>`,
     `<p style="margin:6px 0 0 0;font-family:${EMAIL_FONT_STACK};font-size:13px;line-height:20px;${textStyle(EMAIL_COLORS.textSecondary)}">This confirms mailbox access only. It does not start a proof run. WitnessOps confirms fit, scope, payment, and evidence handling by email before any source materials are accepted.</p>`,
     "</div>",
-    `<p style="margin:16px 0 0 0;font-family:${EMAIL_FONT_STACK};font-size:13px;line-height:20px;${textStyle(EMAIL_COLORS.textMuted)}">Do not reply with secrets, source exports, logs, screenshots, credentials, or customer evidence.</p>`,
+    `<p style="margin:16px 0 0 0;font-family:${EMAIL_FONT_STACK};font-size:13px;line-height:20px;${textStyle(EMAIL_COLORS.textMuted)}">Do not reply with secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, or customer evidence.</p>`,
     `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;margin-top:18px;border-top:1px solid ${EMAIL_COLORS.border}">`,
     "<tr>",
     `<td style="padding-top:12px;font-family:${EMAIL_FONT_STACK};font-size:11px;line-height:17px;${textStyle(EMAIL_COLORS.textMuted)}">Reference: Intake ${intakeId} / Issuance ${issuanceId}<br>Expires: ${expiresAt}</td>`,
@@ -126,13 +130,15 @@ function renderAccessChangeVerificationHtml(
 export function renderVerificationEmail(
   input: VerificationEmailTemplateInput,
 ): VerificationEmailTemplateOutput {
-  if (isAccessChangeProofRunIntent(input.intent)) {
+  if (isManualProofRunIntent(input.intent)) {
+    const requestLabel = getProofRunRequestLabel(input.intent);
+
     return {
       subject: "Your WitnessOps request code",
       text: [
         "WitnessOps verification",
         "",
-        "Confirm your access-change request.",
+        `Confirm your ${requestLabel}.`,
         "",
         `Verification Code: ${input.token}`,
         "",
@@ -144,14 +150,14 @@ export function renderVerificationEmail(
         "It does not start a proof run.",
         "WitnessOps confirms fit, scope, payment, and evidence handling by email before any source materials are accepted.",
         "",
-        "Do not reply with secrets, source exports, logs, screenshots, credentials, or customer evidence.",
+        "Do not reply with secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, or customer evidence.",
         "",
         "Reference",
         `Intake: ${input.intakeId}`,
         `Issuance: ${input.issuanceId}`,
         `Expires: ${input.expiresAt}`,
       ].join("\n"),
-      html: renderAccessChangeVerificationHtml(input),
+      html: renderProofRunVerificationHtml(input),
       templateVersion: TOKEN_EMAIL_TEMPLATE_VERSION,
     };
   }
