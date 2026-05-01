@@ -37,6 +37,10 @@ export default async function VerifyTokenPage({ searchParams }: Props) {
           Type the code from the WitnessOps email. Continue only if you
           requested this verification message.
         </p>
+        <p className="mt-3 text-sm leading-6 text-zinc-500">
+          This confirms mailbox access only. It does not start a proof run,
+          accept customer evidence, confirm scope, or approve evidence handling.
+        </p>
 
         <div className="mt-8 rounded border border-zinc-800 bg-zinc-950 p-4">
           {hasVerificationContext ? (
