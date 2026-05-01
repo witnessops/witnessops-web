@@ -27,9 +27,9 @@ const writingTopics = [
 
 const startHerePaths = [
   {
-    title: "Verify a sample receipt",
+    title: "Verify receipts and bundles",
     description:
-      "Use the public verifier to inspect a sample receipt before you submit a real workflow.",
+      "Use the public verifier to inspect sample receipts and any published first-party proof bundles listed on /verify.",
     href: "/verify",
     primary: true,
   },
@@ -74,29 +74,61 @@ const trustCriteria = [
 const artifactClasses = [
   {
     title: "Verifier fixtures",
-    description:
-      "Public sample receipts on /verify used to show receipt checks, named failures, and fail-closed behavior. They are not live customer artifacts.",
+    status: "sample fixture",
+    mechanism:
+      "Receipt JSON examples loaded into the receipt-first verifier to show clean pass, named failure, malformed input, and fail-closed behavior.",
+    boundary:
+      "Fixtures are not live customer artifacts and do not prove a production workflow or bundle completeness.",
     href: "/verify",
     label: "Open verifier",
   },
   {
+    title: "Published first-party proof bundles",
+    status: "published first-party bundle",
+    mechanism:
+      "Downloadable ZIP bundles on /verify with receipt, manifest hash, source artifacts, and verifier-facing instructions for bounded WitnessOps-owned statements.",
+    boundary:
+      "These are first-party WitnessOps proof bundles, not live customer proof artifacts or customer assurance claims unless explicitly labeled otherwise.",
+    href: "/verify",
+    label: "Open published bundles",
+  },
+  {
+    title: "AI-agent sample proof run",
+    status: "public sample bundle",
+    mechanism:
+      "A stable public sample with action boundary, authority map, evidence manifest, receipt, verifier result, challenge path, and MANIFEST.sha256.",
+    boundary:
+      "The sample demonstrates receipt shape and verifier path only. It is not production deployment, legal compliance, or complete AI governance coverage.",
+    href: "/review/sample-cases/ai-agent-action-proof-run",
+    label: "Open AI-agent sample",
+  },
+  {
     title: "Explanatory sample cases",
-    description:
-      "Published named workflow-class pages with stable routes, authority maps, evidence expectations, and trust-dependent gaps.",
+    status: "explanatory workflow class",
+    mechanism:
+      "Named workflow-class pages with stable routes, authority maps, evidence expectations, and trust-dependent gaps.",
+    boundary:
+      "Sample cases explain shape and reasoning. They do not claim live customer evidence or production proof.",
     href: "/review/sample-cases",
     label: "Browse sample cases",
   },
   {
     title: "Illustrative sample report",
-    description:
-      "A generic dossier that shows review structure and judgment style. It is not a live customer report.",
+    status: "illustrative dossier",
+    mechanism:
+      "A generic dossier that shows review structure and judgment style.",
+    boundary:
+      "It is not a live customer report, verifier-of-record result, legal audit opinion, or compliance certification.",
     href: "/review/sample-report",
     label: "Open sample report",
   },
   {
     title: "Live review request lane",
-    description:
-      "The public intake path for one real workflow, automation boundary, or operator decision path. It is a live request surface, not a published proof artifact.",
+    status: "intake surface",
+    mechanism:
+      "Mailbox verification plus scoped follow-up for one real workflow, automation boundary, or operator decision path.",
+    boundary:
+      "Submitting the form does not start a proof run and does not accept customer evidence until scope and handling are agreed.",
     href: "/review/request",
     label: "Request Proof Run",
   },
@@ -107,14 +139,14 @@ export const metadata: Metadata = {
     absolute: "WitnessOps Library — Docs, review, verification, and artifact classes",
   },
   description:
-    "The WitnessOps library entry point for product docs, review, verifier fixtures, explanatory sample cases, the illustrative sample report, and receipt verification.",
+    "The WitnessOps library entry point for product docs, review, verifier fixtures, published first-party proof bundles, explanatory sample cases, the illustrative sample report, and receipt verification.",
   alternates: {
     canonical: "/library",
   },
   openGraph: {
     title: "WitnessOps Library — Docs, review, verification, and artifact classes",
     description:
-      "Inspect verifier fixtures, explanatory sample cases, the illustrative sample report, request a proof run, and use docs for model and trust-boundary context.",
+      "Inspect verifier fixtures, published first-party proof bundles, explanatory sample cases, the illustrative sample report, request a proof run, and use docs for model and trust-boundary context.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -122,7 +154,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "WitnessOps Library — Docs, review, verification, and artifact classes",
     description:
-      "Entry points for verifier fixtures, explanatory sample cases, the illustrative sample report, Review, and docs.",
+      "Entry points for verifier fixtures, first-party proof bundles, explanatory sample cases, the illustrative sample report, Review, and docs.",
   },
 };
 
@@ -143,16 +175,18 @@ export default function LibraryPage() {
         </h1>
         <p className="mt-5 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
           Use this page to start in the right place: inspect verifier fixtures,
-          browse explanatory sample cases, read the illustrative sample report,
-          request a proof run for one real workflow, and use docs for the model and trust boundaries.
+          published first-party proof bundles, explanatory sample cases, the
+          illustrative sample report, request a proof run for one real workflow,
+          and use docs for the model and trust boundaries.
         </p>
         <p className="mt-3 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
-          No live customer proof artifact is linked from this index. The public
-          artifact classes here are sample or intake surfaces, each with its own
-          boundary and claim limit.
+          No live customer proof artifact is linked from this index. Published
+          bundles on /verify are first-party WitnessOps proof bundles unless a
+          page explicitly labels them otherwise. Each artifact class below names
+          its status, mechanism, and boundary.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <CtaButton href="/verify" variant="primary" label="Verify a sample receipt" />
+          <CtaButton href="/verify" variant="primary" label="Verify receipts and bundles" />
           <CtaButton href="/review/sample-cases" variant="secondary" label="Browse named sample cases" />
           <CtaButton href="/review/request" variant="secondary" label="Request Proof Run" />
         </div>
@@ -169,13 +203,15 @@ export default function LibraryPage() {
         <div className="max-w-[680px] space-y-4 text-sm leading-relaxed text-text-muted">
           <p>
             WitnessOps public surfaces include product docs, verifier fixtures,
-            explanatory sample cases, one illustrative sample report, the live
-            review request lane, and receipt verification.
+            published first-party proof bundles, explanatory sample cases, one
+            illustrative sample report, the live review request lane, and receipt
+            verification.
           </p>
           <p>
             Docs cover the product contract. Review and verify cover the
-            operational surfaces that are currently live, while the sample
-            surfaces stay explicitly non-live.
+            operational surfaces that are currently live. Sample surfaces stay
+            explicitly non-live, while published first-party bundles are bounded
+            WitnessOps-owned proof artifacts with their own declared limits.
           </p>
         </div>
       </section>
@@ -185,17 +221,17 @@ export default function LibraryPage() {
           className="mb-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Artifact classes on this surface
+          Artifact state matrix
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
         <p className="mb-5 max-w-[680px] text-sm leading-relaxed text-text-muted">
           These are the public classes currently exposed here. Each one has a
-          different authority, status, and claim boundary.
+          different authority, status, mechanism, and claim boundary.
         </p>
         <div className="grid gap-4 md:grid-cols-2">
           {artifactClasses.map((item) => (
             <Link
-              key={item.href}
+              key={`${item.title}:${item.href}`}
               href={item.href}
               className="kb-hover-card kb-hover-row kb-hover-row--rail-top relative border border-surface-border bg-surface-bg p-5"
             >
@@ -205,9 +241,26 @@ export default function LibraryPage() {
               >
                 {item.title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-text-muted">
-                {item.description}
-              </p>
+              <dl className="mt-4 space-y-3 text-sm leading-relaxed text-text-muted">
+                <div>
+                  <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-accent">
+                    Status
+                  </dt>
+                  <dd className="mt-1">{item.status}</dd>
+                </div>
+                <div>
+                  <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-accent">
+                    Mechanism
+                  </dt>
+                  <dd className="mt-1">{item.mechanism}</dd>
+                </div>
+                <div>
+                  <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-accent">
+                    Boundary
+                  </dt>
+                  <dd className="mt-1">{item.boundary}</dd>
+                </div>
+              </dl>
               <p
                 className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-accent"
                 style={{ fontFamily: "var(--font-mono)" }}
@@ -291,9 +344,9 @@ export default function LibraryPage() {
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
         <p className="mb-5 max-w-[680px] text-sm leading-relaxed text-text-muted">
-          Start by verifying a sample receipt, then browse explanatory sample
-          cases, request a bounded proof run for one real workflow, and use docs
-          for deeper model context.
+          Start by verifying receipts and bundles, then browse explanatory
+          sample cases, request a bounded proof run for one real workflow, and
+          use docs for deeper model context.
         </p>
         <div className="space-y-4">
           {startHerePaths
