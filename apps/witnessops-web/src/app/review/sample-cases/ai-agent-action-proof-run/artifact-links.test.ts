@@ -157,6 +157,18 @@ test("AI sample page renders manifest provenance from the artifact contract", ()
   assert.match(source, /Open pinned manifest/);
 });
 
+test("AI sample page renders manifest coverage from the artifact contract", () => {
+  const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+
+  assert.match(source, /Manifest coverage/);
+  assert.match(source, /sampleDisplayedArtifactNames/);
+  assert.match(source, /sampleManifestHashedArtifactNames/);
+  assert.match(source, /sampleDisplayedButNotManifestHashedArtifactNames/);
+  assert.match(source, /sampleManifestHashedButNotDisplayedArtifactNames/);
+  assert.match(source, /MANIFEST\.sha256 is displayed as the digest-list artifact/);
+  assert.match(source, /README\.md is hashed in the/);
+});
+
 test("AI sample page renders artifact digests from the contract", () => {
   const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 
