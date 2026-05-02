@@ -5,6 +5,7 @@ Repository-local docs for `witnessops-web` live here when they describe repo ope
 ## Current docs
 
 - [`CODEX_SECURITY_THREAT_MODEL.md`](./CODEX_SECURITY_THREAT_MODEL.md) — seed context for Codex Security review.
+- [`ROOT_SURFACE_INVENTORY.md`](./ROOT_SURFACE_INVENTORY.md) — root/subtree authority-file inventory and stale-file deletion gate.
 
 ## Boundaries
 
