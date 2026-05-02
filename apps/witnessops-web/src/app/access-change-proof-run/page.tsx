@@ -82,6 +82,7 @@ const possibleFindings = [
 const boundaries = [
   "This is not a legal audit opinion.",
   "This is not a compliance certification.",
+  "Not a legal compliance claim.",
   "This is not a penetration test.",
   "This is not a verifier-of-record result.",
   "This is not a claim that the whole company is secure or compliant.",
