@@ -64,6 +64,7 @@ test("sendVerificationEmail sends via Microsoft 365 Graph with app-only auth", a
 
   const result = await sendVerificationEmail({
     to: "operator@example.com",
+    replyTo: "requester@example.com",
     subject: "Verify your WitnessOps access",
     text: "Token: abc123",
     messageClass: "transactional",
@@ -97,6 +98,7 @@ test("sendVerificationEmail sends via Microsoft 365 Graph with app-only auth", a
       subject: string;
       body: { contentType: string; content: string };
       internetMessageHeaders: Array<{ name: string; value: string }>;
+      replyTo?: Array<{ emailAddress: { address: string } }>;
       toRecipients: Array<{ emailAddress: { address: string } }>;
     };
     saveToSentItems: boolean;
@@ -136,6 +138,9 @@ test("sendVerificationEmail sends via Microsoft 365 Graph with app-only auth", a
   ]);
   assert.deepEqual(sendBody.message.toRecipients, [
     { emailAddress: { address: "operator@example.com" } },
+  ]);
+  assert.deepEqual(sendBody.message.replyTo, [
+    { emailAddress: { address: "requester@example.com" } },
   ]);
   assert.equal(sendBody.saveToSentItems, true);
 });
