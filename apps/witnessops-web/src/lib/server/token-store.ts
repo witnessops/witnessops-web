@@ -83,6 +83,16 @@ export interface IntakeReconciliationRecord {
   mailbox: string;
 }
 
+export interface IntakeOperatorNotificationRecord {
+  deliveryAttemptId: string;
+  subject: string;
+  mailbox: string;
+  replyTo: string;
+  provider: string;
+  providerMessageId: string | null;
+  deliveredAt: string;
+}
+
 export interface IntakeResponseProviderOutcomeRecord {
   status: IntakeResponseProviderOutcomeStatus;
   observedAt: string;
@@ -125,6 +135,7 @@ export interface IntakeRecord {
   responseProviderOutcome?: IntakeResponseProviderOutcomeRecord;
   responseMailboxReceipt?: IntakeMailboxReceiptRecord;
   reconciliation?: IntakeReconciliationRecord;
+  operatorNotification?: IntakeOperatorNotificationRecord;
   /**
    * Operator-side action recorded against this intake (WEB-004).
    * Surfaces explicit reject and clarification-request outcomes that
