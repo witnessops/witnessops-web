@@ -1,0 +1,58 @@
+schema: witnessops.public_proof_surface_manifest.v1
+manifest_purpose: stable public web proof-surface index for receipt canary
+
+authority_boundary:
+  owns:
+    - public WitnessOps page presentation
+    - receipt-first verify route presentation
+    - api verify receipt-first endpoint presentation
+    - buyer and review page presentation
+    - sample proof-surface page presentation
+    - CI receipt canary input
+  does_not_own:
+    - receipt issuance
+    - receipt signing
+    - proof-run execution
+    - customer workflow execution
+    - customer data custody
+    - source-system truth
+    - production deployment proof
+    - legal compliance proof
+    - complete AI governance coverage
+
+public_surfaces:
+  verify:
+    route: /verify
+    boundary: receipt-first public verification surface; proof-bundle uploads are not accepted by this public surface
+  api_verify:
+    route: /api/verify
+    boundary: programmatic receipt-first verification path for the same public result shape
+  review:
+    route: /review
+    boundary: buyer-facing bounded review presentation
+  review_request:
+    route: /review/request
+    boundary: intake presentation; does not itself execute proof runs
+  ai_agent_action_sample:
+    route: /review/sample-cases/ai-agent-action-proof-run
+    contract_path: apps/witnessops-web/src/app/review/sample-cases/ai-agent-action-proof-run/sample-artifact-contract.ts
+    boundary: web records pinned sample manifest provenance and displays artifact digests; it does not independently recompute source artifact bytes locally
+
+non_semantic_canary_boundary:
+  changes_to_this_manifest_do_not:
+    - change verify route semantics
+    - change api verify semantics
+    - issue or sign receipts
+    - execute proof runs
+    - store customer data as part of normal verification
+    - recompute external sample artifact bytes
+    - prove production deployment
+    - prove legal compliance
+    - prove source-system truth
+    - expand public claims
+
+receipt_canary:
+  diff_receipt_payload: receipts/public-proof-surface-manifest.diff
+  checksum: receipts/public-proof-surface-manifest.diff.sha256
+  sigstore_bundle: receipts/public-proof-surface-manifest.diff.sigstore.json
+  signer: github-actions-oidc-keyless-cosign
