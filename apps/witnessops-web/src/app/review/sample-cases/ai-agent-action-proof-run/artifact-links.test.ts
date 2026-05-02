@@ -129,8 +129,8 @@ test("AI sample artifact contract names displayed and manifest-hashed sets expli
   ]);
   assert.deepEqual(sampleManifestHashedButNotDisplayedArtifactNames, ["README.md"]);
 
-  const displayed = new Set(sampleDisplayedArtifactNames);
-  const hashed = new Set(sampleManifestHashedArtifactNames);
+  const displayed = new Set<string>(sampleDisplayedArtifactNames);
+  const hashed = new Set<string>(sampleManifestHashedArtifactNames);
 
   for (const artifact of sampleDisplayedArtifactNames) {
     if (!sampleDisplayedButNotManifestHashedArtifactNames.includes(artifact as never)) {
