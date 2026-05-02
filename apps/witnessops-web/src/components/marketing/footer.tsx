@@ -16,6 +16,16 @@ const LIBRARY_PRIMARY_HREFS = new Set([
 ]);
 const LIBRARY_QUIET_HREFS = new Set<string>();
 const GITHUB_PROFILE_HREF = "https://github.com/witnessops";
+const FOOTER_LINK_CLASS =
+  "text-xs font-medium text-text-secondary transition-colors hover:text-text-primary";
+const FOOTER_LOW_EMPHASIS_LINK_CLASS =
+  "text-xs text-text-secondary transition-colors hover:text-text-primary";
+const FOOTER_LEGAL_LINK_CLASS =
+  "text-[11px] text-text-secondary transition-colors hover:text-text-primary";
+const FOOTER_MONO_STYLE = {
+  fontFamily: "var(--font-mono)",
+  letterSpacing: "0.06em",
+};
 
 interface FooterProps {
   brand_line: string;
@@ -104,21 +114,18 @@ export function Footer({
 
   function getRootLinkClassName(href: string) {
     if (!isLibrarySurface) {
-      return "text-xs text-text-muted transition-colors hover:text-text-primary";
+      return FOOTER_LINK_CLASS;
     }
 
     if (LIBRARY_PRIMARY_HREFS.has(href)) {
-      return "text-xs text-text-primary transition-colors hover:text-text-primary";
+      return "text-xs font-medium text-text-primary transition-colors hover:text-text-primary";
     }
 
-    return "text-xs text-text-muted transition-colors hover:text-text-primary";
+    return FOOTER_LOW_EMPHASIS_LINK_CLASS;
   }
 
   function getRootLinkStyle(href: string) {
-    const baseStyle = {
-      fontFamily: "var(--font-mono)",
-      letterSpacing: "0.06em",
-    };
+    const baseStyle = FOOTER_MONO_STYLE;
 
     if (
       !isLibrarySurface ||
@@ -127,7 +134,7 @@ export function Footer({
       return baseStyle;
     }
 
-    return { ...baseStyle, color: "var(--color-brand-muted)", opacity: 0.82 };
+    return { ...baseStyle, color: "var(--color-text-secondary)", opacity: 0.92 };
   }
 
   return (
@@ -140,19 +147,19 @@ export function Footer({
           {/* Brand lockup */}
           <div>
             <p
-              className="text-sm font-semibold uppercase tracking-[0.12em] text-text-primary mb-2"
+              className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-text-primary"
               style={{ fontFamily: "var(--font-display)" }}
             >
               {content.brand_line}
             </p>
             <span
-              className="flex items-center gap-2 mb-2"
-              style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "var(--color-brand-muted)" }}
+              className="mb-2 flex items-center gap-2 text-text-secondary"
+              style={{ ...FOOTER_MONO_STYLE, fontSize: 11 }}
             >
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-signal-green shadow-[0_0_6px_var(--color-signal-green)]" />
               {isLibrarySurface ? "Public entry points" : "Proof-backed operations"}
             </span>
-            <p className="max-w-[280px] text-xs leading-relaxed text-text-muted">
+            <p className="max-w-[320px] text-sm leading-relaxed text-text-secondary">
               {content.subline}
             </p>
           </div>
@@ -199,8 +206,8 @@ export function Footer({
                   href={href}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[10px] text-text-muted transition-colors hover:text-text-primary"
-                  style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.06em" }}
+                  className={FOOTER_LEGAL_LINK_CLASS}
+                  style={FOOTER_MONO_STYLE}
                 >
                   {link.label}
                 </a>
@@ -208,8 +215,8 @@ export function Footer({
                 <Link
                   key={link.href}
                   href={href}
-                  className="text-[10px] text-text-muted transition-colors hover:text-text-primary"
-                  style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.06em" }}
+                  className={FOOTER_LEGAL_LINK_CLASS}
+                  style={FOOTER_MONO_STYLE}
                 >
                   {link.label}
                 </Link>
@@ -220,26 +227,26 @@ export function Footer({
               target="_blank"
               rel="noreferrer"
               aria-label="WitnessOps on GitHub (opens in a new tab)"
-              className="text-[10px] text-text-muted transition-colors hover:text-text-primary"
-              style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.06em" }}
+              className={FOOTER_LEGAL_LINK_CLASS}
+              style={FOOTER_MONO_STYLE}
             >
               GitHub
             </a>
           </div>
           <div
-            className="flex items-center gap-3 text-[10px] text-text-muted"
-            style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.06em" }}
+            className="flex items-center gap-3 text-[11px] text-text-secondary"
+            style={FOOTER_MONO_STYLE}
           >
             <span>{content.build_label}</span>
-            <span style={{ color: "var(--color-surface-border)" }}>·</span>
+            <span className="text-text-muted">·</span>
             <span>{content.copyright}</span>
           </div>
         </div>
 
         {/* Motto */}
         <div
-          className="mt-6 text-center"
-          style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.06em", color: "var(--color-surface-border)" }}
+          className="mt-6 text-center text-[11px] text-text-secondary"
+          style={FOOTER_MONO_STYLE}
         >
           {content.motto}
         </div>
