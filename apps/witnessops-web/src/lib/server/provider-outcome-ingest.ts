@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest } from "next/server";
-import { Webhook } from "svix";
+import { Webhook } from "standardwebhooks";
 import { z } from "zod";
 
 import {
@@ -160,9 +160,9 @@ function verifyAndAdaptResendWebhook(
 
   try {
     webhook.verify(rawBody, {
-      "svix-id": request.headers.get("svix-id") ?? "",
-      "svix-timestamp": request.headers.get("svix-timestamp") ?? "",
-      "svix-signature": request.headers.get("svix-signature") ?? "",
+      "webhook-id": request.headers.get("svix-id") ?? "",
+      "webhook-timestamp": request.headers.get("svix-timestamp") ?? "",
+      "webhook-signature": request.headers.get("svix-signature") ?? "",
     });
   } catch {
     throw new IntakeResponseProviderOutcomeError(
