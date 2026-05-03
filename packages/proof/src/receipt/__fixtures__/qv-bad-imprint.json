@@ -48,9 +48,9 @@
   "attestation": {
     "type": "local-signature",
     "signature_algorithm": "ed25519",
-    "signing_key": { "key_id": "local-ed25519-fixture-01", "public_key": "MCowBQYDK2VwAyEAFixturePublicKeyBase64ForTestingOnly=" },
+    "signing_key": { "key_id": "local-ed25519-fixture-01", "public_key": "MCowBQYDK2VwAyEAUjRWN1RNdWja5sPL5EnAtTbyhoeWHUSqI3KEsDYtwXk=" },
     "signed_subject": { "type": "record_digest", "algorithm": "blake3", "value": "bbbb000000000000000000000000000000000000000000000000000000000000" },
-    "signature": "sig-valid-ed25519-fixture-qv-bad-imprint-001"
+    "signature": "uRMFrypL2BxJgy6ORR6hzT2+CMIVP499MdGuKmblsV1fBS3DIfwFwMCNEgu+sJfQmB4YGzTMTXGHNNG+rQwkBQ=="
   },
   "anchoring": {
     "rfc3161": {
