@@ -179,6 +179,18 @@ describe("receipt verifier — edge cases", () => {
     assert.equal(result.stage, "PV");
     assert.equal(result.overall, "pass");
   });
+
+  it("does not accept fixture-style signature prefixes as verified", () => {
+    const receipt = loadFixture("pv-valid") as Record<string, any>;
+    receipt.attestation.signature = "sig-valid-attacker-controlled-public-input";
+
+    const result = verifyReceipt(receipt);
+    assert.equal(result.stage, "PV");
+    assert.equal(result.overall, "fail");
+
+    const checks = result.checks as Record<string, { status: string; detail?: string }>;
+    assert.equal(checks.local_signature.status, "fail");
+  });
 });
 
 describe("receipt verifier — tier1 freeze v2.1 dispatch", () => {
