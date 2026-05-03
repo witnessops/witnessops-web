@@ -1,9 +1,9 @@
 /**
  * Receipt-level verifier for PV / QV / WV proof stages.
  *
- * Structural verification only — does not recompute file hashes or perform
- * real Ed25519 / RFC-3161 cryptographic verification. Those require access to
- * the actual artifact files and TSR tokens respectively.
+ * Structural verification — does not recompute file hashes or cryptographically
+ * validate RFC-3161 timestamp tokens. Those require access to the actual artifact
+ * files and TSR tokens respectively.
  *
  * What it DOES verify:
  *   - schema structure and required fields per proof stage
@@ -11,9 +11,9 @@
  *   - promotion lineage (predecessor required for QV/WV)
  *   - stage-appropriate constraints (e.g. QV requires blake3 primary, RFC-3161 present)
  *
- * Signature validity checks use a convention: signatures starting with "sig-valid-"
- * are treated as valid in fixture/test mode. Real verification requires injecting
- * a cryptographic verifier.
+ * Ed25519 signatures are verified cryptographically when present, but this verifier
+ * does not establish trust in any signing key. It is a structural verifier for the
+ * receipt format and internal consistency.
  */
 
 import { createPublicKey, verify as cryptoVerify } from "node:crypto";
@@ -157,7 +157,6 @@ function mapTier1FreezeV2_1VerdictToReceiptResult(
 
 /**
  * Verify an Ed25519 signature over a canonical signing payload.
- * Accepts both real signatures and the "sig-valid-" convention for fixtures.
  */
 function verifyEd25519Signature(
   publicKeyB64: string | undefined,
@@ -166,11 +165,6 @@ function verifyEd25519Signature(
 ): boolean {
   if (!signature || !signedSubject?.value || !signedSubject?.algorithm) {
     return false;
-  }
-
-  // Fixture convention: signatures starting with "sig-valid-" pass without crypto
-  if (signature.startsWith("sig-valid-")) {
-    return true;
   }
 
   if (!publicKeyB64) {
