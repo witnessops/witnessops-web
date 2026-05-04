@@ -111,7 +111,7 @@ export default function ReviewPage() {
         <p className="mt-4 max-w-[760px] text-sm leading-7 text-text-muted">
           This is one scoped proof run. It is not a legal compliance claim,
           complete AI governance program, production deployment claim, or
-          whole-environment assurance.
+          whole-environment guarantee.
         </p>
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="border border-surface-border bg-surface-card/50 p-5">
@@ -272,7 +272,7 @@ export default function ReviewPage() {
         <p className="mt-4 text-sm leading-relaxed text-text-muted">
           The public sample proves receipt shape and verifier path only. It does
           not claim production deployment, legal compliance, complete AI
-          governance, or whole-environment assurance. WitnessOps names what is
+          governance, or whole-environment guarantee. WitnessOps names what is
           verified, what is declared, and what remains challengeable.
         </p>
       </section>

@@ -68,6 +68,27 @@ test("evaluateBuyerPathRoute fails when old public markers are still present", (
   assert.deepEqual(result.prohibitedMarkersPresent, ["Receipt shape only"]);
 });
 
+test("access-change smoke contract does not fail on global request nav", () => {
+  const route: BuyerPathSmokeRoute = {
+    path: "/access-change-proof-run",
+    requiredMarkers: ["Bounded Access-Change Proof Run"],
+    prohibitedMarkers: [
+      "Start with a short non-secret fit check.",
+      "What agent-assisted workflow should we inspect?",
+    ],
+  };
+
+  const result = evaluateBuyerPathRoute(
+    route,
+    "https://witnessops.com",
+    200,
+    'Bounded Access-Change Proof Run <a href="/review/request">Request one proof run</a>',
+  );
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.prohibitedMarkersPresent, []);
+});
+
 test("runBuyerPathSmoke uses fetch headers and evaluates each route without shell helpers", async () => {
   const routes: BuyerPathSmokeRoute[] = [
     {

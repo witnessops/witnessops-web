@@ -6,6 +6,7 @@ import path from "node:path";
 
 import {
   clearTokenStore,
+  getIntakeById,
   getIssuanceById,
   updateIssuance,
 } from "@/lib/server/token-store";
@@ -266,6 +267,103 @@ test("verify-token route returns access-change confirmation path without assessm
   assert.equal(secondPayload.assessmentStatus, "unavailable");
   assert.equal(secondPayload.postVerifyPath, "/review/request/confirmed");
   assert.equal(fetchCalls.length, 0);
+});
+
+test("verify-token route sends a reply-ready operator notification for proof-run requests", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-operator-notify-"));
+  applyTestEnv(baseDir);
+
+  const issueResponse = await reviewRequest(
+    new Request("https://witnessops.com/api/review/request", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "K. Witness",
+        org: "WitnessOps Labs",
+        email: "security@witnessops.com",
+        intent: "ai-agent-action-proof-run",
+        scope:
+          "Workflow: coding agent proposed and applied a configuration change after human approval.\nEvidence available: ticket, prompt transcript, commit record.",
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(issueResponse.status, 201);
+  const issued = (await issueResponse.json()) as {
+    intakeId: string;
+    issuanceId: string;
+    email: string;
+  };
+  const [verificationMailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
+  const verificationMailRaw = await readFile(
+    path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, verificationMailFile),
+    "utf8",
+  );
+  const token = verificationMailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
+  assert.ok(token);
+
+  const first = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify({
+        issuanceId: issued.issuanceId,
+        email: issued.email,
+        token,
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(first.status, 200);
+  const firstPayload = (await first.json()) as {
+    postVerifyPath: string;
+    assessmentRunId: string | null;
+  };
+  assert.equal(firstPayload.postVerifyPath, "/review/request/confirmed");
+  assert.equal(firstPayload.assessmentRunId, null);
+
+  const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
+  assert.equal(mailFiles.length, 2);
+  const mailRaws = await Promise.all(
+    mailFiles.map((file) =>
+      readFile(path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, file), "utf8"),
+    ),
+  );
+  const operatorMailRaw = mailRaws.find((raw) =>
+    /^To: engage@witnessops\.com$/m.test(raw),
+  );
+
+  assert.ok(operatorMailRaw);
+  assert.match(operatorMailRaw, /^From: engage@witnessops\.com$/m);
+  assert.match(operatorMailRaw, /^Reply-To: security@witnessops\.com$/m);
+  assert.match(
+    operatorMailRaw,
+    /^Subject: Verified AI-agent proof-run request: WitnessOps Labs$/m,
+  );
+  assert.match(operatorMailRaw, /^X-WitnessOps-Message-Class: internal_notification$/m);
+  assert.match(operatorMailRaw, /^X-WitnessOps-Signature-Profile: none$/m);
+  assert.match(operatorMailRaw, /Reply to this email to continue fit, scope, fee, and evidence-handling discussion/);
+  assert.match(operatorMailRaw, /Workflow: coding agent proposed and applied a configuration change/);
+  assert.match(operatorMailRaw, /No proof run has started\./);
+  assert.match(operatorMailRaw, /No customer evidence has been accepted\./);
+
+  const intake = await getIntakeById(issued.intakeId);
+  assert.equal(intake?.operatorNotification?.mailbox, "engage@witnessops.com");
+  assert.equal(intake?.operatorNotification?.replyTo, "security@witnessops.com");
+
+  const replay = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify({
+        issuanceId: issued.issuanceId,
+        email: issued.email,
+        token,
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(replay.status, 200);
+  assert.equal((await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length, 2);
 });
 
 test("verify-token route returns support confirmation path for support issuances", async () => {

@@ -1,5 +1,7 @@
 import { isBusinessEmail } from "@/lib/freemail-policy";
+import { randomUUID } from "node:crypto";
 import {
+  getChannelMailbox,
   getChannelVerificationMailbox,
   getChannelPolicy,
   assertInboundAllowed,
@@ -7,7 +9,9 @@ import {
 } from "@/lib/channel-policy";
 import {
   ACCESS_CHANGE_POST_VERIFY_PATH,
+  getProofRunRequestLabel,
   isAccessChangeProofRunIntent,
+  isManualProofRunIntent,
 } from "@/lib/access-change-proof-run";
 import type {
   EngageResponse,
@@ -62,6 +66,88 @@ function nowIso(): string {
 function normalizeText(value: string | null | undefined): string | null {
   const normalized = value?.trim();
   return normalized ? normalized : null;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderTextField(label: string, value: string | null | undefined): string {
+  return `${label}: ${normalizeText(value) ?? "not provided"}`;
+}
+
+function renderHtmlField(label: string, value: string | null | undefined): string {
+  return `<p><strong>${escapeHtml(label)}:</strong> ${escapeHtml(normalizeText(value) ?? "not provided")}</p>`;
+}
+
+function operatorNotificationSubject(intake: IntakeRecord): string {
+  const requestLabel = getProofRunRequestLabel(intake.submission.intent);
+  const org = normalizeText(intake.submission.org);
+  const name = normalizeText(intake.submission.name);
+  const identity = org ?? name ?? intake.email;
+  return `Verified ${requestLabel}: ${identity}`;
+}
+
+function renderOperatorNotificationText(args: {
+  intake: IntakeRecord;
+  issuance: TokenIssuanceRecord;
+}): string {
+  const requestLabel = getProofRunRequestLabel(args.intake.submission.intent);
+  return [
+    `Verified WitnessOps ${requestLabel}`,
+    "",
+    "Reply to this email to continue fit, scope, fee, and evidence-handling discussion with the requester.",
+    "",
+    renderTextField("Requester", args.intake.submission.name),
+    renderTextField("Work email", args.issuance.email),
+    renderTextField("Company or team", args.intake.submission.org),
+    renderTextField("Intent", args.intake.submission.intent),
+    `Intake ID: ${args.intake.intakeId}`,
+    `Issuance ID: ${args.issuance.issuanceId}`,
+    `Thread ID: ${args.intake.threadId ?? "not assigned"}`,
+    "",
+    "Submitted request summary:",
+    args.intake.submission.scope ?? "not provided",
+    "",
+    "Operator boundary:",
+    "No proof run has started.",
+    "No customer evidence has been accepted.",
+    "Do not request or accept secrets, credentials, private keys, MFA codes, source exports, full logs, screenshots, customer records, or production evidence until scope and evidence handling are agreed.",
+  ].join("\n");
+}
+
+function renderOperatorNotificationHtml(args: {
+  intake: IntakeRecord;
+  issuance: TokenIssuanceRecord;
+}): string {
+  const requestLabel = getProofRunRequestLabel(args.intake.submission.intent);
+  const scope = args.intake.submission.scope ?? "not provided";
+  return [
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;background:#000000;color:#faf7f2;font-family:Arial,Helvetica,sans-serif">',
+    '<tr><td style="padding:24px">',
+    '<p style="margin:0 0 8px 0;color:#f27a3d;font-size:12px;letter-spacing:1.8px;text-transform:uppercase">Verified request</p>',
+    `<h1 style="margin:0 0 16px 0;color:#faf7f2;font-size:22px;line-height:28px">${escapeHtml(`WitnessOps ${requestLabel}`)}</h1>`,
+    '<p style="margin:0 0 20px 0;color:#d0ccc4;font-size:14px;line-height:21px">Reply to this email to continue fit, scope, fee, and evidence-handling discussion with the requester.</p>',
+    '<div style="border:1px solid #2e2e36;padding:16px;background:#141419">',
+    renderHtmlField("Requester", args.intake.submission.name),
+    renderHtmlField("Work email", args.issuance.email),
+    renderHtmlField("Company or team", args.intake.submission.org),
+    renderHtmlField("Intent", args.intake.submission.intent),
+    renderHtmlField("Intake ID", args.intake.intakeId),
+    renderHtmlField("Issuance ID", args.issuance.issuanceId),
+    renderHtmlField("Thread ID", args.intake.threadId ?? "not assigned"),
+    "</div>",
+    '<h2 style="margin:22px 0 8px 0;color:#faf7f2;font-size:15px;line-height:20px">Submitted request summary</h2>',
+    `<pre style="white-space:pre-wrap;margin:0;padding:14px;border:1px solid #2e2e36;background:#0b0b0d;color:#d0ccc4;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px">${escapeHtml(scope)}</pre>`,
+    '<h2 style="margin:22px 0 8px 0;color:#faf7f2;font-size:15px;line-height:20px">Operator boundary</h2>',
+    '<p style="margin:0;color:#d0ccc4;font-size:13px;line-height:20px">No proof run has started. No customer evidence has been accepted. Do not request or accept secrets, credentials, private keys, MFA codes, source exports, full logs, screenshots, customer records, or production evidence until scope and evidence handling are agreed.</p>',
+    "</td></tr>",
+    "</table>",
+  ].join("");
 }
 
 function normalizeSubmission(
@@ -256,6 +342,73 @@ async function admitVerifiedIntake(args: {
         }));
 
   return { intake, issuance };
+}
+
+async function ensureOperatorNotificationSent(args: {
+  intake: IntakeRecord;
+  issuance: TokenIssuanceRecord;
+  source: string;
+  occurredAt: string;
+}): Promise<IntakeRecord> {
+  if (
+    args.intake.channel !== "engage" ||
+    !isManualProofRunIntent(args.intake.submission.intent)
+  ) {
+    return args.intake;
+  }
+
+  if (args.intake.operatorNotification) {
+    return args.intake;
+  }
+
+  const mailbox = getChannelMailbox(args.intake.channel);
+  const deliveryAttemptId = `opnotif_${randomUUID().replace(/-/g, "")}`;
+  const subject = operatorNotificationSubject(args.intake);
+  const delivery = await sendVerificationEmail({
+    to: mailbox,
+    from: mailbox,
+    replyTo: args.issuance.email,
+    subject,
+    text: renderOperatorNotificationText(args),
+    html: renderOperatorNotificationHtml(args),
+    deliveryAttemptId,
+    messageClass: "internal_notification",
+    signatureProfile: "none",
+  });
+
+  const updated = await updateIntake(args.intake.intakeId, (current) => ({
+    ...current,
+    updatedAt: args.occurredAt,
+    operatorNotification: {
+      deliveryAttemptId,
+      subject,
+      mailbox,
+      replyTo: args.issuance.email,
+      provider: delivery.provider,
+      providerMessageId: delivery.providerMessageId,
+      deliveredAt: delivery.deliveredAt,
+    },
+  }));
+
+  await appendIntakeEvent({
+    event_type: "INTAKE_OPERATOR_NOTIFICATION_SENT",
+    occurred_at: delivery.deliveredAt,
+    channel: updated.channel,
+    intake_id: updated.intakeId,
+    issuance_id: args.issuance.issuanceId,
+    thread_id: updated.threadId,
+    previous_state: args.intake.state,
+    next_state: updated.state,
+    source: args.source,
+    payload: {
+      mailbox,
+      provider: delivery.provider,
+      providerMessageId: delivery.providerMessageId,
+      replyTo: args.issuance.email,
+    },
+  });
+
+  return updated;
 }
 
 function toVerificationResponse(args: {
@@ -747,14 +900,20 @@ export async function verifyIssuedToken(
         originalIssuance.consumedAt ??
         replayedAt,
     });
-    const assessment = shouldAttachAssessment(admitted.intake)
+    const notifiedIntake = await ensureOperatorNotificationSent({
+      intake: admitted.intake,
+      issuance: admitted.issuance,
+      source: "api/verify-token",
+      occurredAt: replayedAt,
+    });
+    const assessment = shouldAttachAssessment(notifiedIntake)
       ? await ensureAssessmentAttached(admitted.issuance)
       : {
           assessmentRunId: null,
           assessmentStatus: "unavailable" as const,
         };
     return toVerificationResponse({
-      intake: admitted.intake,
+      intake: notifiedIntake,
       issuance: admitted.issuance,
       verifiedAt:
         admitted.issuance.verifiedAt ??
@@ -816,9 +975,15 @@ export async function verifyIssuedToken(
     source: "api/verify-token",
     occurredAt: verifiedAt,
   });
+  const notifiedIntake = await ensureOperatorNotificationSent({
+    intake: admitted.intake,
+    issuance: admitted.issuance,
+    source: "api/verify-token",
+    occurredAt: verifiedAt,
+  });
 
   return toVerificationResponse({
-    intake: admitted.intake,
+    intake: notifiedIntake,
     issuance: admitted.issuance,
     verifiedAt,
     assessmentRunId: admitted.issuance.assessmentRunId ?? null,

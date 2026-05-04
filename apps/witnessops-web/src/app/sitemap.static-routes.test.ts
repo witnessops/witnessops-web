@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
+import { getSourceLastModified } from "./sitemap";
+
 const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/library",
   "/pricing",
@@ -23,4 +25,11 @@ test("sitemap includes canonical public buyer routes", () => {
       `Expected sitemap staticRoutes to include ${route}`,
     );
   }
+});
+
+test("sitemap lastModified fallback does not require source files at runtime", () => {
+  assert.equal(
+    getSourceLastModified("src/app/does-not-exist/page.tsx").toISOString(),
+    "2026-01-01T00:00:00.000Z",
+  );
 });

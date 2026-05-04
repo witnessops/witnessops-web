@@ -65,7 +65,8 @@ export default function ReviewRequestConfirmedPage() {
           Request verified
         </h1>
         <p className="max-w-[620px] text-base leading-relaxed text-text-muted">
-          Your mailbox is verified for this AI-agent proof-run request.
+          Your mailbox is verified for this AI-agent proof-run request. The
+          request summary has been routed for operator review.
         </p>
       </section>
 
@@ -77,6 +78,10 @@ export default function ReviewRequestConfirmedPage() {
           <div className="space-y-5 text-sm leading-relaxed text-text-muted">
             <p className="text-base text-text-primary">
               No proof run has started yet.
+            </p>
+            <p>
+              WitnessOps has the non-secret request summary and will reply by
+              email after the first fit check.
             </p>
             <p>No customer evidence has been accepted.</p>
             <p>
@@ -138,9 +143,10 @@ export default function ReviewRequestConfirmedPage() {
               Boundary
             </div>
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
-              <p>Not a production deployment claim.</p>
-              <p>Not a legal compliance claim.</p>
-              <p>Not a complete AI governance program.</p>
+              <p>Not a legal audit opinion.</p>
+              <p>Not a compliance certification.</p>
+              <p>Not a verifier-of-record result.</p>
+              <p>Not a proof-run start.</p>
             </div>
           </section>
 

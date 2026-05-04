@@ -48,9 +48,9 @@
   "attestation": {
     "type": "local-signature",
     "signature_algorithm": "ed25519",
-    "signing_key": { "key_id": "local-ed25519-fixture-01", "public_key": "MCowBQYDK2VwAyEAFixturePublicKeyBase64ForTestingOnly=" },
+    "signing_key": { "key_id": "local-ed25519-fixture-01", "public_key": "MCowBQYDK2VwAyEAUjRWN1RNdWja5sPL5EnAtTbyhoeWHUSqI3KEsDYtwXk=" },
     "signed_subject": { "type": "record_digest", "algorithm": "blake3", "value": "eeee000000000000000000000000000000000000000000000000000000000000" },
-    "signature": "sig-valid-ed25519-fixture-wv-mismatch-001"
+    "signature": "a6ZEk7LJdfFjoo0uqX9JEmtQ/eSzz5JQSopKUYNPVGkPHj8FHBvQT04sr57pEXtanjZJ8mLLKmQEAEKy2BUVCg=="
   },
   "anchoring": {
     "rfc3161": {
@@ -85,8 +85,8 @@
       "signature": {
         "algorithm": "ed25519",
         "key_id": "qin-ed25519-fixture-01",
-        "public_key": "MCowBQYDK2VwAyEAQINFixturePublicKeyBase64ForTest=",
-        "value": "sig-valid-qin-ed25519-fixture-mismatch-001"
+        "public_key": "MCowBQYDK2VwAyEAfoPj5WxqNXWHfZGMtL8Hq6fpfmMf0GUOeKPbhw5NVyQ=",
+        "value": "DunAg+VExP+TNCfSMQqickSXMG0Ggk4sCg1k7iwlFFECUWEwGLxcCGs9XQx+fFwfiJ9zenrOXuNCtvMTFKuEAA=="
       },
       "verification": {
         "signature_valid": true,

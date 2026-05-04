@@ -86,14 +86,14 @@
     "signature_algorithm": "ed25519",
     "signing_key": {
       "key_id": "local-ed25519-fixture-01",
-      "public_key": "MCowBQYDK2VwAyEAFixturePublicKeyBase64ForTestingOnly="
+      "public_key": "MCowBQYDK2VwAyEAUjRWN1RNdWja5sPL5EnAtTbyhoeWHUSqI3KEsDYtwXk="
     },
     "signed_subject": {
       "type": "record_digest",
       "algorithm": "sha256",
       "value": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
     },
-    "signature": "sig-valid-ed25519-fixture-pv-001"
+    "signature": "i5oDreV2DUD7XFWnPdnAmDx9EklB27xLwNzceFAr1NafbQggxj+ZF4KDNcn4dp7w/gUhY+G8yRNoYKrWLxE1Ag=="
   },
   "anchoring": {
     "rfc3161": {

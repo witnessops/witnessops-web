@@ -11,6 +11,11 @@ COPY apps/witnessops-web/.next/standalone ./
 COPY apps/witnessops-web/.next/static ./apps/witnessops-web/.next/static
 COPY apps/witnessops-web/public ./apps/witnessops-web/public
 
+RUN mkdir -p apps/witnessops-web/.next/cache \
+  && chown -R nextjs:nodejs \
+    apps/witnessops-web/.next/cache \
+    apps/witnessops-web/.next/server/app
+
 USER nextjs
 EXPOSE 3000
 

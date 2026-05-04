@@ -13,6 +13,7 @@ const siteUrl =
   process.env.NEXT_PUBLIC_OS_SITE_URL ??
   surface?.canonicalUrl ??
   "https://witnessops.com";
+const fallbackLastModified = new Date("2026-01-01T00:00:00.000Z");
 
 type StaticRoute = {
   route: string;
@@ -66,8 +67,21 @@ const staticRoutes: StaticRoute[] = [
   { route: "/why-witnessops", sourcePath: "src/app/why-witnessops/page.tsx" },
 ];
 
-function getSourceLastModified(sourcePath: string) {
-  return statSync(path.resolve(process.cwd(), sourcePath)).mtime;
+export function getSourceLastModified(sourcePath: string) {
+  try {
+    return statSync(path.resolve(process.cwd(), sourcePath)).mtime;
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      // Standalone production images do not include source .tsx files.
+      return fallbackLastModified;
+    }
+    throw error;
+  }
 }
 
 function normalizeHost(host: string | null) {

@@ -16,6 +16,7 @@ import {
 
 export interface VerificationEmailPayload {
   to: string;
+  replyTo?: string;
   from?: string;
   subject: string;
   text: string;
@@ -135,6 +136,7 @@ async function sendWithFileProvider(
   const eml = [
     `From: ${payload.from}`,
     `To: ${payload.to}`,
+    ...(payload.replyTo ? [`Reply-To: ${payload.replyTo}`] : []),
     `Subject: ${payload.subject}`,
     `Date: ${deliveredAt}`,
     `Message-ID: <${providerMessageId}@witnessops.local>`,
@@ -189,6 +191,10 @@ async function sendWithResendProvider(
     text: payload.text,
     html: payload.html,
   };
+
+  if (payload.replyTo) {
+    sendBody.reply_to = payload.replyTo;
+  }
 
   const tags: Array<{ name: string; value: string }> = [
     {
@@ -424,6 +430,16 @@ async function sendWithM365Provider(
       },
     ],
   };
+
+  if (payload.replyTo) {
+    message.replyTo = [
+      {
+        emailAddress: {
+          address: payload.replyTo,
+        },
+      },
+    ];
+  }
 
   if (internetMessageHeaders.length > 0) {
     message.internetMessageHeaders = internetMessageHeaders;
