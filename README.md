@@ -66,4 +66,5 @@ For vulnerability disclosure, see [`SECURITY.md`](./SECURITY.md).
 - Public buyer/proof-surface validation: `pnpm smoke:buyer-path:test`.
 - Frozen command contract: [`commands.md`](./commands.md).
 - Repository-local docs index: [`docs/README.md`](./docs/README.md).
+- Root/subtree authority-file inventory and stale-file deletion gate: [`docs/ROOT_SURFACE_INVENTORY.md`](./docs/ROOT_SURFACE_INVENTORY.md).
 - Agent instructions: [`AGENTS.md`](./AGENTS.md) and [`apps/witnessops-web/AGENTS.md`](./apps/witnessops-web/AGENTS.md).
