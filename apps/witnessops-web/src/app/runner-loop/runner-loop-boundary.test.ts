@@ -13,6 +13,6 @@ test("runner-loop remains a noindex operational diagram surface", () => {
   assert.match(source, /Runner Loop Specification/);
   assert.match(source, /System Invariant/);
 
-  assert.doesNotMatch(source, /Request one proof run|ContactForm|SupportIntake|\/review\/request/);
+  assert.doesNotMatch(source, /Request one proof run|Package one security workflow|ContactForm|SupportIntake|\/review\/request/);
   assert.doesNotMatch(source, /verified compliance|certified compliance|audit-ready|guarantees compliance/i);
 });

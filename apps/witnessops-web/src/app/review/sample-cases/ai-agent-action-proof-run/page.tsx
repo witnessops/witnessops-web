@@ -150,7 +150,7 @@ const sampleOutcomeRows = [
   {
     label: "Buyer takeaway",
     value:
-      "You can inspect how authority, action scope, evidence, receipt, verifier result, challenge path, and manifest fit together before requesting a proof run for your own workflow.",
+      "You can inspect how authority, action scope, evidence, receipt, verifier result, challenge path, and manifest fit together before packaging your own security workflow.",
   },
 ];
 
@@ -243,7 +243,7 @@ export default function AiAgentActionProofRunSamplePage() {
               This sample shows how another party checks a proof bundle after an
               AI agent acts. Inspect the action boundary, evidence manifest,
               receipt, verifier result, challenge path, and digest manifest
-              before requesting a proof run for your own workflow.
+              before packaging a security workflow for your own case.
             </p>
             <div className="flex flex-wrap gap-2 pt-1">
               {statusChips.map((chip) => (
@@ -260,7 +260,7 @@ export default function AiAgentActionProofRunSamplePage() {
               <CtaButton
                 href="/review/request"
                 variant="primary"
-                label="Request one proof run"
+                label="Package one security workflow"
               />
               <CtaButton
                 href={sampleBaseUrl}
@@ -474,7 +474,7 @@ export default function AiAgentActionProofRunSamplePage() {
               </div>
               <p className="mt-2 text-base leading-8 text-text-secondary">
                 Use the sample to inspect the proof shape, then submit one
-                bounded agent-assisted workflow for your own proof run.
+                bounded agent-assisted workflow for your own package.
               </p>
             </div>
           </section>
@@ -539,20 +539,21 @@ export default function AiAgentActionProofRunSamplePage() {
             <p className="text-base leading-8 text-text-secondary">
               Use the sample to inspect the proof shape before submitting your
               own workflow. The request page asks for your name, work email,
-              optional company or team, workflow, agent/tool path and touched
-              system, approval boundary, and evidence available.
+              optional company or team, security workflow, workflow/tool path
+              and touched system, scope and approval boundary, and evidence
+              available.
             </p>
             <div className="flex flex-wrap gap-3">
               <CtaButton
                 href="/review/request"
                 variant="primary"
-                label="Request one proof run"
+                label="Package one security workflow"
               />
               <Link
                 href="/review"
                 className="inline-flex items-center justify-center rounded-md border border-surface-border px-6 py-3 text-sm text-text-primary transition-all hover:border-brand-accent/40 hover:bg-surface-card"
               >
-                Read the offer
+                Read package offer
               </Link>
             </div>
           </section>

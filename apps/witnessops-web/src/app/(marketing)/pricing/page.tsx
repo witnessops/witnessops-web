@@ -4,14 +4,14 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "Pricing and Commercial Scope | WitnessOps",
   description:
-    "Commercial scope for WitnessOps proof runs: one bounded workflow, no proof run starts from pricing, and fee/timing are confirmed after fit and evidence handling are agreed.",
+    "Commercial scope for WitnessOps proof-backed security workflows: one bounded workflow, no proof run starts from pricing, and fee/timing are confirmed after fit and evidence handling are agreed.",
   alternates: {
     canonical: "/pricing",
   },
   openGraph: {
     title: "Pricing and Commercial Scope | WitnessOps",
     description:
-      "Commercial scope for WitnessOps proof runs: one bounded workflow, no proof run starts from pricing, and fee/timing are confirmed after fit and evidence handling are agreed.",
+      "Commercial scope for WitnessOps proof-backed security workflows: one bounded workflow, no proof run starts from pricing, and fee/timing are confirmed after fit and evidence handling are agreed.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -19,18 +19,18 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Pricing and Commercial Scope | WitnessOps",
     description:
-      "Commercial scope for WitnessOps proof runs: one bounded workflow, no proof run starts from pricing, and fee/timing are confirmed after fit and evidence handling are agreed.",
+      "Commercial scope for WitnessOps proof-backed security workflows: one bounded workflow, no proof run starts from pricing, and fee/timing are confirmed after fit and evidence handling are agreed.",
   },
 };
 
 const commercialScope = [
   {
     label: "Primary public lane",
-    value: "AI Agent Action Proof Run",
+    value: "Proof-Backed Security Workflow",
   },
   {
     label: "Unit of sale",
-    value: "One bounded workflow, one action path, one receipt, one verifier result, one challenge path.",
+    value: "One bounded security workflow packaged into scope, evidence, receipt, verifier result, limits, and challenge path.",
   },
   {
     label: "Commercial step",
@@ -39,9 +39,9 @@ const commercialScope = [
 ];
 
 const includedOutputs = [
-  "authority map",
-  "action boundary",
-  "evidence manifest",
+  "scope map",
+  "security decision record",
+  "evidence package",
   "receipt and verifier result",
   "challenge path",
   "named limits and unresolved gaps",
@@ -59,21 +59,21 @@ const boundaries = [
 const nextSteps = [
   {
     title: "Inspect the sample",
-    body: "Read the AI-agent sample proof run before submitting your own workflow.",
+    body: "Inspect the public AI-agent sample package before submitting your own security workflow.",
     href: "/review/sample-cases/ai-agent-action-proof-run",
-    label: "View sample proof run",
+    label: "Inspect sample package",
   },
   {
-    title: "Read the offer",
-    body: "See the bounded proof-run offer, outputs, fit, and claim boundary.",
+    title: "Read package offer",
+    body: "See what the package returns, what fits, and what remains outside the claim boundary.",
     href: "/review",
-    label: "Read proof-run offer",
+    label: "Read package offer",
   },
   {
-    title: "Request scope",
-    body: "Submit one non-secret workflow description for the first fit check.",
+    title: "Package workflow",
+    body: "Submit one non-secret GitHub, Codex, AI, access, offsec, or remediation workflow for the first fit check.",
     href: "/review/request",
-    label: "Request one proof run",
+    label: "Package one security workflow",
   },
 ];
 
@@ -90,13 +90,13 @@ export default function PricingPage() {
           className="mt-2 max-w-4xl text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Scope one proof run before pricing is confirmed.
+          Price the package after the workflow is bounded.
         </h1>
         <div className="mt-6 max-w-[760px] space-y-4 text-base leading-8 text-text-secondary">
           <p>
-            WitnessOps sells bounded proof runs, not open-ended dashboards or
-            broad assurance claims. The first commercial step is a fit check for
-            one workflow and one proof path.
+            WitnessOps sells a bounded security-workflow package, not an open-ended
+            dashboard, retainer, or broad assurance claim. The first commercial
+            step is a fit check for one workflow and one evidence path.
           </p>
           <p>
             Fee, timing, and evidence handling are confirmed after the workflow,
@@ -104,8 +104,8 @@ export default function PricingPage() {
           </p>
         </div>
         <div className="mt-8 flex flex-wrap gap-3">
-          <CtaButton href="/review/request" variant="primary" label="Request one proof run" />
-          <CtaButton href="/review/sample-cases/ai-agent-action-proof-run" variant="secondary" label="View sample proof run" />
+          <CtaButton href="/review/request" variant="primary" label="Package one security workflow" />
+          <CtaButton href="/review/sample-cases/ai-agent-action-proof-run" variant="secondary" label="Inspect sample package" />
         </div>
       </header>
 
@@ -136,10 +136,10 @@ export default function PricingPage() {
             className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            What a proof run returns
+            What a workflow package returns
           </h2>
           <p className="mt-4 text-sm leading-7 text-text-muted">
-            The output is an inspectable proof bundle with named verification
+            The output is an inspectable evidence package with named verification
             limits, not a broad compliance certification.
           </p>
         </div>

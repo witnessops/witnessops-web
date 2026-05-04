@@ -13,7 +13,7 @@ test("governed-execution route redirects to proof-backed security systems", () =
   );
   assert.doesNotMatch(
     source,
-    /ContactForm|SupportIntake|\/review\/request|Request one proof run/,
-    "Governed execution redirect should not become a local intake or proof-run request surface.",
+    /ContactForm|SupportIntake|\/review\/request|Request one proof run|Package one security workflow/,
+    "Governed execution redirect should not become a local intake or package request surface.",
   );
 });

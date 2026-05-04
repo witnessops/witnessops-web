@@ -1,46 +1,46 @@
 ---
-title: "Proof Run Buyer Path"
-description: "A buyer-facing reading path for inspecting the sample, understanding the request surface, and knowing what a WitnessOps proof run does and does not start."
+title: "Security Workflow Buyer Path"
+description: "A buyer-facing reading path for inspecting the sample, understanding the request surface, and knowing what a WitnessOps security workflow package does and does not start."
 section: "docs"
 order: 2
-nav_label: "Proof Run Buyer Path"
+nav_label: "Security Workflow Buyer Path"
 draft: false
 trust_boundary_variant: "verification"
 page_answer:
-  question: "What should a buyer inspect before requesting one WitnessOps proof run, and what does the request form actually start?"
+  question: "What should a buyer inspect before packaging one WitnessOps security workflow, and what does the request form actually start?"
   links:
     - href: "/review"
-      label: "Proof-run offer"
+      label: "Package offer"
     - href: "/review/sample-cases/ai-agent-action-proof-run"
-      label: "AI-agent sample proof run"
+      label: "AI-agent sample package"
     - href: "/review/request"
-      label: "Request one proof run"
+      label: "Package one security workflow"
 ---
 
-# Proof Run Buyer Path
+# Security Workflow Buyer Path
 
 This page gives a buyer-readable path through the public WitnessOps surfaces before submitting a real workflow.
 
 It is for a reviewer who wants to know:
 
-- what the proof-run offer is
+- what the package offer is
 - what the public sample demonstrates
 - what the verifier can and cannot check
 - what the request form starts
 - what source material must not be submitted in the first message
-- what remains outside the proof-run boundary
+- what remains outside the security-workflow boundary
 
 ## 1. Start with the offer
 
-Read [AI Agent Action Proof Run](/review) first.
+Read [Proof-Backed Security Workflow](/review) first.
 
-That page defines the primary public lane: one bounded AI-agent action path with a named authority boundary, expected evidence, receipt, verifier result, challenge path, and stated limits.
+That page defines the primary public lane: one bounded GitHub, Codex, AI-agent, access, offsec, or remediation workflow with a named authority boundary, expected evidence, receipt, verifier result, challenge path, and stated limits.
 
 Do not read the offer as a broad AI governance program, production deployment claim, legal compliance claim, or whole-environment assurance claim.
 
 ## 2. Inspect the sample before submitting your own workflow
 
-Open [AI Agent Action Proof Run sample](/review/sample-cases/ai-agent-action-proof-run).
+Open [AI-agent sample package](/review/sample-cases/ai-agent-action-proof-run).
 
 The sample is a public sample bundle. It demonstrates receipt shape and verifier path only. It is not a live customer artifact.
 
@@ -48,7 +48,7 @@ Use the sample to inspect:
 
 | Artifact | What to check |
 | --- | --- |
-| `ACTION_BOUNDARY.json` | What the agent-assisted action was allowed to do and what stayed out of scope. |
+| `ACTION_BOUNDARY.json` | What the workflow was allowed to do and what stayed out of scope. |
 | `AUTHORITY_MAP.json` | Who approved, acted, observed, reviewed, or challenged the action. |
 | `EVIDENCE_MANIFEST.json` | Which evidence classes are present and which gaps are declared. |
 | `RECEIPT.json` | How approval, action, evidence, result, and limits are bound into one record. |
@@ -70,22 +70,22 @@ Read a `valid` result as receipt-scoped unless a page or bundle names a stronger
 
 Use [Pricing and Commercial Scope](/pricing) to understand what is and is not priced by the public surface.
 
-The public commercial unit is one bounded workflow, one action path, one receipt, one verifier result, and one challenge path.
+The public commercial unit is one bounded security workflow, one evidence package, one result path, and one challenge path.
 
 Fee, timing, and evidence handling are confirmed after the workflow, authority boundary, action path, and expected evidence are scoped.
 
 ## 5. Submit only the first non-secret fit check
 
-Use [Request one proof run](/review/request) only after you can describe one bounded workflow.
+Use [Package one security workflow](/review/request) only after you can describe one bounded workflow.
 
 The request form asks for:
 
 - your name
 - work email
 - optional company or team
-- the agent-assisted workflow
-- the agent/tool path and touched system
-- the approval boundary
+- the security workflow
+- the workflow/tool path and touched system
+- the scope and approval boundary
 - evidence available
 
 The form does not ask for source exports, screenshots, logs, credentials, private keys, MFA codes, customer records, or production evidence.
@@ -111,7 +111,7 @@ The next scoping step should name:
 
 | Contract point | Buyer question |
 | --- | --- |
-| Workflow | What single agent-assisted workflow is under review? |
+| Workflow | What single GitHub, Codex, AI-agent, access, offsec, or remediation workflow is under review? |
 | Authority boundary | Who approved the action, and where did authority stop? |
 | Action path | What agent, tool, handoff, and touched system are in scope? |
 | Evidence | Which artifact classes can be safely captured? |
@@ -136,11 +136,11 @@ Use [Support](/support) for non-secret questions about fit or evidence handling.
 
 Follow this order when reviewing the public surface:
 
-1. [Proof-run offer](/review)
-2. [AI-agent sample proof run](/review/sample-cases/ai-agent-action-proof-run)
+1. [Package offer](/review)
+2. [AI-agent sample package](/review/sample-cases/ai-agent-action-proof-run)
 3. [Verify](/verify)
 4. [Pricing and Commercial Scope](/pricing)
-5. [Request one proof run](/review/request)
+5. [Package one security workflow](/review/request)
 6. [Verification docs](/docs/how-it-works/verification)
 
 The key rule: do not rely on a claim unless the artifact, receipt, verifier result, manifest, or challenge path that supports it is named.

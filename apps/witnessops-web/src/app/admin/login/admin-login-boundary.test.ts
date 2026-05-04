@@ -17,6 +17,6 @@ test("admin login remains noindex and admin-auth only", () => {
   assert.match(page, /Sign In With Microsoft/);
   assert.match(page, /legacy key path retained temporarily/i);
 
-  assert.doesNotMatch(page, /Request one proof run|ContactForm|SupportIntake|\/review\/request/);
+  assert.doesNotMatch(page, /Request one proof run|Package one security workflow|ContactForm|SupportIntake|\/review\/request/);
   assert.doesNotMatch(page, /verified compliance|certified compliance|audit-ready|guarantees compliance/i);
 });

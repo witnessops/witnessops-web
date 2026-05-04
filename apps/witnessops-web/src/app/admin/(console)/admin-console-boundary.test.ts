@@ -13,6 +13,6 @@ test("admin console layout remains noindex and admin-console only", () => {
   assert.match(source, /aria-label=\"Admin navigation\"/);
   assert.match(source, /Authenticated/);
 
-  assert.doesNotMatch(source, /ContactForm|SupportIntake|Request one proof run|\/review\/request/);
+  assert.doesNotMatch(source, /ContactForm|SupportIntake|Request one proof run|Package one security workflow|\/review\/request/);
   assert.doesNotMatch(source, /verified compliance|certified compliance|audit-ready|guarantees compliance/i);
 });

@@ -13,7 +13,7 @@ test("execution index route redirects to proof-backed security systems", () => {
   );
   assert.doesNotMatch(
     source,
-    /ContactForm|SupportIntake|\/review\/request|Request one proof run/,
-    "Execution index route should not become a local intake or proof-run request surface.",
+    /ContactForm|SupportIntake|\/review\/request|Request one proof run|Package one security workflow/,
+    "Execution index route should not become a local intake or package request surface.",
   );
 });

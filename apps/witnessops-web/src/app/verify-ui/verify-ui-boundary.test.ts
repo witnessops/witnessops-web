@@ -14,5 +14,5 @@ test("verify-ui remains a noindex UI-proof presentation surface", () => {
   assert.match(source, /gridPublicPath = \"\/ui-proofs\/homepage-hero\/grid\.png\"/);
 
   assert.doesNotMatch(source, /verified compliance|certified compliance|audit-ready|guarantees compliance/i);
-  assert.doesNotMatch(source, /Request one proof run|ContactForm|SupportIntake/);
+  assert.doesNotMatch(source, /Request one proof run|Package one security workflow|ContactForm|SupportIntake/);
 });

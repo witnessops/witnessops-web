@@ -4,35 +4,35 @@ import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { getMailboxConfig } from "@/lib/mailboxes";
 
 export const metadata: Metadata = {
-  title: "Request an AI Agent Action Proof Run",
+  title: "Package One Security Workflow",
   description:
-    "Send a short, non-secret request for one bounded AI-agent action proof run. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
+    "Send a short, non-secret request for one bounded GitHub, Codex, AI, access, offsec, or remediation workflow. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
-    title: "Request an AI Agent Action Proof Run | WitnessOps",
+    title: "Package One Security Workflow | WitnessOps",
     description:
-      "Send a short, non-secret request for one bounded AI-agent action proof run. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
+      "Send a short, non-secret request for one bounded GitHub, Codex, AI, access, offsec, or remediation workflow. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Request an AI Agent Action Proof Run | WitnessOps",
+    title: "Package One Security Workflow | WitnessOps",
     description:
-      "Send a short, non-secret request for one bounded AI-agent action proof run. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
+      "Send a short, non-secret request for one bounded GitHub, Codex, AI, access, offsec, or remediation workflow. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
   },
 };
 
 const proofOutputs = [
   {
-    title: "Authority map",
-    summary: "Who approved the action, who acted, who reviewed it, and where authority stopped.",
+    title: "Scope and authority map",
+    summary: "What workflow is in scope, who approved it, who acted, who reviewed it, and where authority stopped.",
   },
   {
-    title: "Action boundary",
-    summary: "The one workflow, one agent/tool path, and one touched system under review.",
+    title: "Workflow boundary",
+    summary: "The one GitHub, Codex, AI, access, offsec, or remediation path and touched system under review.",
   },
   {
     title: "Evidence manifest",
@@ -45,8 +45,8 @@ const proofOutputs = [
 ];
 
 const nextSteps = [
-  "We check whether the workflow is bounded enough for one AI-agent proof run.",
-  "We confirm the authority boundary, action path, likely evidence sources, and obvious gaps.",
+  "We check whether the security workflow is bounded enough for one scoped package.",
+  "We confirm the repo or system boundary, action path, likely evidence sources, and obvious gaps.",
   "We reply with fit, scope, fee, and next action before any source materials are accepted.",
 ];
 
@@ -77,18 +77,19 @@ export default function ReviewRequestPage() {
             color: "var(--color-brand-muted)",
           }}
         >
-          AI Agent Action Proof Run
+          Proof-Backed Security Workflow
         </div>
         <h1
           className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Request one AI-agent proof run
+          Package one security workflow
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
-          Tell us which agent-assisted workflow you want scoped. No files, logs,
-          screenshots, exports, credentials, private keys, MFA codes, or customer
-          evidence are needed for the first fit check.
+          Name the GitHub, Codex, AI, access, offsec, or remediation workflow
+          you want packaged. No files, logs, screenshots, exports, credentials,
+          private keys, MFA codes, or customer evidence are needed for the
+          first fit check.
         </p>
       </section>
 
@@ -193,7 +194,7 @@ export default function ReviewRequestPage() {
               href="/review/sample-cases/ai-agent-action-proof-run"
               className="text-sm text-brand-accent underline-offset-4 hover:underline"
             >
-              View sample proof run
+              Inspect sample package
             </Link>
           </section>
 
@@ -238,7 +239,7 @@ export default function ReviewRequestPage() {
             color: "var(--color-text-muted)",
           }}
         >
-          What you get back
+          What the package contains
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {proofOutputs.map((item, index) => (

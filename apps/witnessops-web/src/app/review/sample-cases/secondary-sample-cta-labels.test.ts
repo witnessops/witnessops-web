@@ -8,13 +8,13 @@ const sampleCasePages = [
   "privileged-access-grant/page.tsx",
 ] as const;
 
-test("secondary sample cases use normalized proof-run CTA labels", () => {
+test("secondary sample cases use normalized security-workflow CTA labels", () => {
   for (const page of sampleCasePages) {
     const source = readFileSync(resolve(__dirname, page), "utf-8");
 
     assert.match(
       source,
-      /label=\"Request one proof run\"/,
+      /label=\"Package one security workflow\"/,
       `${page} should link to the request path with normalized CTA copy`,
     );
     assert.doesNotMatch(

@@ -55,9 +55,9 @@ const startHerePaths = [
     primary: false,
   },
   {
-    title: "Request a Proof Run",
+    title: "Package a Security Workflow",
     description:
-      "Submit one real workflow, boundary, or operator decision path.",
+      "Send one GitHub, Codex, AI, access, offsec, or remediation workflow for package scoping.",
     href: "/review/request",
     primary: false,
   },
@@ -126,11 +126,11 @@ const artifactClasses = [
     title: "Live review request lane",
     status: "intake surface",
     mechanism:
-      "Mailbox verification plus scoped follow-up for one real workflow, automation boundary, or operator decision path.",
+      "Mailbox verification plus scoped follow-up for one real GitHub, Codex, AI, access, offsec, or remediation workflow.",
     boundary:
       "Submitting the form does not start a proof run and does not accept customer evidence until scope and handling are agreed.",
     href: "/review/request",
-    label: "Request Proof Run",
+    label: "Package Security Workflow",
   },
 ];
 
@@ -139,14 +139,14 @@ export const metadata: Metadata = {
     absolute: "WitnessOps Library — Docs, review, verification, and artifact classes",
   },
   description:
-    "The WitnessOps library entry point for product docs, review, verifier fixtures, published first-party proof bundles, explanatory sample cases, the illustrative sample report, and receipt verification.",
+    "The WitnessOps library entry point for product docs, security-workflow review, verifier fixtures, published first-party proof bundles, explanatory sample cases, the illustrative sample report, and receipt verification.",
   alternates: {
     canonical: "/library",
   },
   openGraph: {
     title: "WitnessOps Library — Docs, review, verification, and artifact classes",
     description:
-      "Inspect verifier fixtures, published first-party proof bundles, explanatory sample cases, the illustrative sample report, request a proof run, and use docs for model and trust-boundary context.",
+      "Inspect verifier fixtures, published first-party proof bundles, explanatory sample cases, the illustrative sample report, package one security workflow, and use docs for model and trust-boundary context.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -176,7 +176,7 @@ export default function LibraryPage() {
         <p className="mt-5 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
           Use this page to start in the right place: inspect verifier fixtures,
           published first-party proof bundles, explanatory sample cases, the
-          illustrative sample report, request a proof run for one real workflow,
+          illustrative sample report, package one proof-backed security workflow,
           and use docs for the model and trust boundaries.
         </p>
         <p className="mt-3 max-w-[680px] text-sm leading-relaxed tracking-wide text-text-muted">
@@ -188,7 +188,7 @@ export default function LibraryPage() {
         <div className="mt-8 flex flex-wrap gap-3">
           <CtaButton href="/verify" variant="primary" label="Verify receipts and bundles" />
           <CtaButton href="/review/sample-cases" variant="secondary" label="Browse named sample cases" />
-          <CtaButton href="/review/request" variant="secondary" label="Request Proof Run" />
+          <CtaButton href="/review/request" variant="secondary" label="Package Security Workflow" />
         </div>
       </header>
 
@@ -345,7 +345,7 @@ export default function LibraryPage() {
         </h2>
         <p className="mb-5 max-w-[680px] text-sm leading-relaxed text-text-muted">
           Start by verifying receipts and bundles, then browse explanatory
-          sample cases, request a bounded proof run for one real workflow, and
+          sample cases, package one proof-backed security workflow, and
           use docs for deeper model context.
         </p>
         <div className="space-y-4">
@@ -414,7 +414,7 @@ export default function LibraryPage() {
           className="mt-4 inline-block text-xs text-text-muted transition-colors hover:text-text-primary"
           style={{ fontFamily: "var(--font-mono)", letterSpacing: "0.04em" }}
         >
-          Request Proof Run &rarr;
+          Package Security Workflow &rarr;
         </Link>
       </section>
     </main>

@@ -7,12 +7,12 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "Named Sample Cases and Proof Bundles",
   description:
-    "Browse published named sample cases and the public AI Agent Action Proof Run sample bundle.",
+    "Browse published named sample cases and the public AI Agent Action Proof Run sample package inside the broader package offer.",
   alternates: getCanonicalAlternates("witnessops", "/review/sample-cases"),
   openGraph: {
     title: "Named Sample Cases and Proof Bundles | WitnessOps",
     description:
-      "Browse published named sample cases and the public AI Agent Action Proof Run sample bundle.",
+      "Browse published named sample cases and the public AI Agent Action Proof Run sample package inside the broader package offer.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Named Sample Cases and Proof Bundles | WitnessOps",
     description:
-      "Browse published named sample cases and the public AI Agent Action Proof Run sample bundle.",
+      "Browse published named sample cases and the public AI Agent Action Proof Run sample package inside the broader package offer.",
   },
 };
 
@@ -50,11 +50,11 @@ const supportSurfaces = [
     label: "Open sample report",
   },
   {
-    title: "Request lane",
+    title: "Package lane",
     description:
-      "The intake path for one real agent-assisted workflow you want scoped into a proof run.",
+      "The fit-check path for one real GitHub, Codex, AI-agent, access, offsec, or remediation workflow you want packaged.",
     href: "/review/request",
-    label: "Request one proof run",
+    label: "Package one security workflow",
   },
 ];
 
@@ -96,14 +96,15 @@ export default function SampleCasesIndexPage() {
               Published sample cases and proof bundles
             </h1>
             <p className="text-base leading-8 text-text-secondary">
-              Start with the AI Agent Action Proof Run sample. It shows how a
+              Start with the AI Agent Action Proof Run sample. It is one public
+              example inside the broader package offer, showing how a
               third party inspects the action boundary, authority map, evidence
               manifest, receipt, verifier result, challenge path, and digest
               manifest after an agent acts.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <CtaButton href="/review/request" variant="primary" label="Request one proof run" />
-              <CtaButton href="/review" variant="secondary" label="Read the offer" />
+              <CtaButton href="/review/request" variant="primary" label="Package one security workflow" />
+              <CtaButton href="/review" variant="secondary" label="Read package offer" />
             </div>
           </section>
 
@@ -123,12 +124,12 @@ export default function SampleCasesIndexPage() {
                   <CtaButton
                     href="/review/sample-cases/ai-agent-action-proof-run"
                     variant="primary"
-                    label="View sample proof run"
+                    label="Inspect sample package"
                   />
                   <CtaButton
                     href="/review/request"
                     variant="secondary"
-                    label="Request one proof run"
+                    label="Package one security workflow"
                   />
                 </div>
               </div>
