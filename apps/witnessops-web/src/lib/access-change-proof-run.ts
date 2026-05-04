@@ -38,6 +38,6 @@ export function getProofRunRequestLabel(
   intent: string | null | undefined,
 ): string {
   return intent?.trim() === ACCESS_CHANGE_PROOF_RUN_INTENT
-    ? "access-change proof-run request"
-    : "AI-agent proof-run request";
+    ? "access-change package request"
+    : "security-workflow package request";
 }

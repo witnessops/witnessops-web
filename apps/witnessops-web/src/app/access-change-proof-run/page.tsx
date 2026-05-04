@@ -169,9 +169,9 @@ export default function AccessChangeProofRunPage() {
             verifier notes, and findings.
           </p>
           <p className="text-sm leading-7 text-text-muted">
-            The active public request lane is the AI Agent Action Proof Run.
-            Access-change scoping is handled by email first so this offer does
-            not send buyers into the AI-agent intake form.
+            The active public request lane is the Proof-Backed Security Workflow.
+            Access-change scoping is handled as one security-workflow class with
+            a separate scope and evidence boundary.
           </p>
         </div>
         <div className="mt-6 grid gap-3 text-sm leading-relaxed text-text-primary sm:grid-cols-2">
@@ -197,7 +197,7 @@ export default function AccessChangeProofRunPage() {
             <CtaButton
               href={sampleProofRunHref}
               variant="secondary"
-              label="View sample proof run"
+              label="Inspect sample package"
             />
             <p className="mt-2 max-w-[320px] text-xs leading-relaxed text-text-muted">
               The public sample shows proof-run shape only, not real customer evidence.
@@ -390,7 +390,7 @@ export default function AccessChangeProofRunPage() {
         </ul>
         <p className="mt-5 max-w-[760px] text-sm leading-7 text-text-muted">
           Do not submit secrets in the first message. The active public request
-          lane remains the AI Agent Action Proof Run.
+          lane remains the Proof-Backed Security Workflow.
         </p>
         <div className="mt-6">
           <CtaButton

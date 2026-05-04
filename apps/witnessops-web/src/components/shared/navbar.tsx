@@ -10,7 +10,7 @@ const LIBRARY_NAV_LINKS = [
   { label: "Library", href: "/library" },
   { label: "Docs", href: "/docs" },
   { label: "Review", href: "/review" },
-  { label: "Request Proof Run", href: "/review/request" },
+  { label: "Package Security Workflow", href: "/review/request" },
 ];
 
 const LIBRARY_NAV_CTA = {

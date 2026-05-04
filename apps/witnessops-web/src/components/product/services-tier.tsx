@@ -18,16 +18,16 @@ export function ServicesTier() {
     },
     {
       tier: "PRIMARY",
-      name: "Request a proof run",
+      name: "Package a security workflow",
       anchor: "Single bounded lane",
-      hook: "Submit one workflow, automation boundary, or operator decision path for bounded inspection.",
+      hook: "Send one GitHub, Codex, AI, access, offsec, or remediation workflow and get the bounded package shape before evidence handling starts.",
       features: [
         "Single intake path",
         "Business-email verification",
-        "Bounded review report",
-        "Named weak points and next steps",
+        "Scoped package contents",
+        "Named weak points and limits",
       ],
-      cta: { label: "Request Proof Run", href: "/review/request", variant: "primary" as const },
+      cta: { label: "Package Security Workflow", href: "/review/request", variant: "primary" as const },
       featured: true,
     },
     {
@@ -60,9 +60,9 @@ export function ServicesTier() {
         </p>
         <div className="grid gap-px bg-surface-border sm:grid-cols-3">
           {[
-            { stat: "One", label: "One workflow, one bounded review path, one report." },
-            { stat: "Bounded", label: "The review names what was inspected and what remained out of scope." },
-            { stat: "Legible", label: "The public path stays review-first instead of widening into an engagement menu." },
+            { stat: "One", label: "One workflow, one bounded package path, one return artifact." },
+            { stat: "Bounded", label: "The package names what was inspected and what remained out of scope." },
+            { stat: "Legible", label: "The public path stays package-first instead of widening into an engagement menu." },
           ].map((item) => (
             <div key={item.label} className="bg-surface-bg p-4">
               <div
@@ -91,10 +91,10 @@ export function ServicesTier() {
         className="mb-3 text-text-primary"
         style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}
       >
-        One bounded offer from first click to intake
+        One package offer from first click to intake
       </h2>
       <p className="mb-10 text-sm text-text-muted">
-        These cards are no longer separate service tiers. They are the three public steps around the same bounded review lane.
+        These cards are no longer separate service tiers. They are the three public steps around the same bounded security-work package.
       </p>
 
       <div className="grid grid-cols-1 gap-px bg-surface-border sm:grid-cols-3">
@@ -156,7 +156,7 @@ export function ServicesTier() {
         className="mt-6 flex items-center justify-between border border-surface-border p-4"
         style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-brand-muted)", letterSpacing: "0.06em" }}
       >
-        <span>The public path stays review-first.</span>
+        <span>The public path stays package-first.</span>
         <span style={{ color: "var(--color-signal-green)" }}>Bounded. Not broadened.</span>
       </div>
     </section>

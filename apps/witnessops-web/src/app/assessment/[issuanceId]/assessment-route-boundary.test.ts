@@ -17,6 +17,6 @@ test("assessment route remains noindex, private, and claimant-session gated", ()
   assert.match(source, /This page is session-private/);
   assert.match(source, /Do not share the URL/);
 
-  assert.doesNotMatch(source, /ContactForm|SupportIntake|Request one proof run|\/review\/request/);
+  assert.doesNotMatch(source, /ContactForm|SupportIntake|Request one proof run|Package one security workflow|\/review\/request/);
   assert.doesNotMatch(source, /verified compliance|certified compliance|audit-ready|guarantees compliance/i);
 });

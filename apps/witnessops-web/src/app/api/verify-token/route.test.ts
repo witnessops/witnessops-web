@@ -269,7 +269,7 @@ test("verify-token route returns access-change confirmation path without assessm
   assert.equal(fetchCalls.length, 0);
 });
 
-test("verify-token route sends a reply-ready operator notification for proof-run requests", async () => {
+test("verify-token route sends a reply-ready operator notification for package requests", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-operator-notify-"));
   applyTestEnv(baseDir);
 
@@ -338,7 +338,7 @@ test("verify-token route sends a reply-ready operator notification for proof-run
   assert.match(operatorMailRaw, /^Reply-To: security@witnessops\.com$/m);
   assert.match(
     operatorMailRaw,
-    /^Subject: Verified AI-agent proof-run request: WitnessOps Labs$/m,
+    /^Subject: Verified security-workflow package request: WitnessOps Labs$/m,
   );
   assert.match(operatorMailRaw, /^X-WitnessOps-Message-Class: internal_notification$/m);
   assert.match(operatorMailRaw, /^X-WitnessOps-Signature-Profile: none$/m);

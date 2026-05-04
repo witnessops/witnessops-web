@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 const boundaryPoints = [
-  "This page explains why the proof-run model exists. It is not itself a verifier result.",
+  "This page explains why the security-workflow package model exists. It is not itself a verifier result.",
   "A proof claim requires a named receipt, evidence manifest, verifier result, or proof bundle.",
   "This is not a legal compliance claim, production deployment claim, or complete AI governance program.",
   "Execution, evidence, and verification stay separate so the proof path can be inspected after the work changes hands.",
@@ -59,8 +59,8 @@ export default function WhyWitnessOpsPage() {
           </p>
           <p>That is why the public path stays focused on a few clear actions:</p>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Run one AI Agent Action Proof Run.</li>
-            <li>See who could approve or act.</li>
+            <li>Package one proof-backed security workflow.</li>
+            <li>See what was in scope, what evidence exists, and what remains unproven.</li>
             <li>Inspect the public AI-agent sample bundle, verifier fixtures, explanatory sample cases, and the illustrative sample report.</li>
             <li>Read the trust limits in plain language.</li>
           </ul>
@@ -73,10 +73,10 @@ export default function WhyWitnessOpsPage() {
 
         <div className="mt-10 border-t border-surface-border pt-8">
           <p className="mb-4 text-sm leading-relaxed text-text-muted">
-            Keep going with the proof-run offer or inspect a verifier fixture first.
+            Keep going with the package offer or inspect a verifier fixture first.
           </p>
           <div className="flex flex-wrap gap-3">
-            <CtaButton href="/review" variant="primary" label="Read the proof-run offer" />
+            <CtaButton href="/review" variant="primary" label="Read package offer" />
             <CtaButton href="/verify" variant="secondary" label="Verify receipts and bundles" />
           </div>
         </div>
@@ -84,22 +84,22 @@ export default function WhyWitnessOpsPage() {
       <SectionShell narrow spacing="compact" className="border-t border-surface-border">
         <div className="space-y-5 text-base leading-8 text-text-secondary">
           <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
-            For consequential AI workflows
+            For consequential security workflows
           </h2>
           <p>
-            Agents act. WitnessOps packages the receipt and evidence path so a
-            third party can inspect who approved the action, what ran, what
-            evidence survives, and how the proof can be challenged outside the
-            source system.
+            GitHub reviews, Codex Security findings, AI-agent actions, access
+            changes, offsec handoffs, and remediation lanes all create the same
+            pressure: someone needs to know what happened without trusting a
+            loose summary.
           </p>
           <p>
-            WitnessOps helps make one bounded AI-agent action more reviewable.
+            WitnessOps helps make one bounded security workflow more reviewable.
             It does not replace production deployment, legal compliance, or a
             complete AI governance program.
           </p>
           <ul className="list-disc space-y-2 pl-6">
-            <li>record who approved the workflow</li>
-            <li>show what executed within scope</li>
+            <li>record the workflow scope and authority boundary</li>
+            <li>show what changed or was reviewed within scope</li>
             <li>preserve evidence for later review</li>
             <li>name where trust assumptions still remain</li>
           </ul>

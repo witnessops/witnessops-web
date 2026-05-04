@@ -13,7 +13,7 @@ test("status route remains a redirect to the canonical status surface", () => {
   );
   assert.doesNotMatch(
     source,
-    /ContactForm|SupportIntake|CtaButton|\/review\/request|Request one proof run/,
+    /ContactForm|SupportIntake|CtaButton|\/review\/request|Request one proof run|Package one security workflow/,
     "Status route should not become a local marketing, support, or intake surface.",
   );
 });

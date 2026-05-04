@@ -29,7 +29,7 @@ afterEach(async () => {
   await clearTokenStore();
 });
 
-test("review request route issues an AI-agent proof-run verification email", async () => {
+test("review request route issues a security-workflow package verification email", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
   applyTestEnv(baseDir);
 
@@ -84,7 +84,7 @@ test("review request route issues an AI-agent proof-run verification email", asy
   assert.match(mailRaw, /^X-WitnessOps-Message-Class: transactional$/m);
   assert.match(
     mailRaw,
-    /^Confirm your AI-agent proof-run request\.$/m,
+    /^Confirm your security-workflow package request\.$/m,
   );
   assert.match(mailRaw, /^Verification Code:\s+\S+$/m);
   assert.match(mailRaw, /^Enter the code in the verification box\. No link is required\.$/m);
@@ -94,7 +94,7 @@ test("review request route issues an AI-agent proof-run verification email", asy
   assert.match(mailRaw, /^This confirms mailbox access only\.$/m);
   assert.match(mailRaw, /^It does not start a proof run\.$/m);
   assert.match(mailRaw, /^Do not reply with secrets,/m);
-  assert.match(mailRaw, /Confirm your AI-agent proof-run request/);
+  assert.match(mailRaw, /Confirm your security-workflow package request/);
   assert.match(mailRaw, /No link is required\. Do not forward or share this code\./);
   assert.match(mailRaw, /data-witnessops-signature-profile="ops_minimal"/);
 });

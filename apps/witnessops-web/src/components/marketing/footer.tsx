@@ -39,12 +39,12 @@ interface FooterProps {
 const LIBRARY_FOOTER: FooterProps & { motto: string } = {
   brand_line: "WitnessOps",
   subline:
-    "Public entry points for docs, review, verifier fixtures, explanatory sample cases, and the illustrative sample report.",
+    "Public entry points for docs, security-workflow review, verifier fixtures, explanatory sample cases, and the illustrative sample report.",
   links: [
     { label: "Library", href: "/library" },
     { label: "Docs", href: "/docs" },
     { label: "Review", href: "/review" },
-    { label: "Request Proof Run", href: "/review/request" },
+    { label: "Package Security Workflow", href: "/review/request" },
     { label: "Sample cases", href: "/review/sample-cases" },
     { label: "Sample report", href: "/review/sample-report" },
     { label: "Verify", href: "/verify" },
@@ -91,7 +91,7 @@ export function Footer({
             legal_links,
             build_label,
             copyright,
-            motto: "Respect the penguin. Bring receipts.",
+            motto: "Respect the boundary. Bring receipts.",
           },
     [
       brand_line,

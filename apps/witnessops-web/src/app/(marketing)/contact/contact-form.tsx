@@ -85,13 +85,13 @@ export function ContactForm({
     const approvalBoundary = stringField(data, "approvalBoundary");
     const evidenceAvailable = stringField(data, "evidenceAvailable");
     const proofRunScope = [
-      "Offer: AI Agent Action Proof Run",
+      "Offer: Proof-Backed Security Workflow",
       `Workflow: ${workflow || "not provided"}`,
-      `Agent/tool path and touched system: ${agentPath || "not provided"}`,
-      `Approval boundary: ${approvalBoundary || "not provided"}`,
+      `Workflow/tool path and touched system: ${agentPath || "not provided"}`,
+      `Scope and approval boundary: ${approvalBoundary || "not provided"}`,
       `Evidence available: ${evidenceAvailable || "not provided"}`,
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
-      "Follow-up needed: fit, authority boundary, action scope, likely evidence sources, reviewer, verifier result, challenge path, fee, and evidence handling",
+      "Follow-up needed: fit, workflow boundary, authority boundary, likely evidence sources, package contents, verifier result, challenge path, fee, and evidence handling",
     ].join("\n");
 
     try {
@@ -366,10 +366,10 @@ export function ContactForm({
 
       <div className="border border-surface-border bg-surface-bg p-4">
         <div className="text-sm font-semibold text-text-primary">
-          Start with a short non-secret fit check.
+          Start with a short non-secret package fit check.
         </div>
         <p className="mt-2 text-sm leading-relaxed text-text-muted">
-          No files. No evidence upload. Use plain language and save tickets,
+          Name the workflow, not the evidence. No files. No evidence upload. Use plain language and save tickets,
           logs, screenshots, exports, credentials, private keys, MFA codes, and
           customer evidence for the scoped intake after handling is agreed.
         </p>
@@ -418,14 +418,14 @@ export function ContactForm({
 
       <div>
         <label htmlFor="workflow" className="mb-2 block" style={labelStyle}>
-          What agent-assisted workflow should we inspect?
+          What security workflow should we inspect?
         </label>
         <textarea
           id="workflow" name="workflow" rows={3} required
           aria-describedby="workflow-helper"
           className={`${textareaClass} ${fieldErrors.workflow ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder="Example: an AI coding agent proposed and applied a configuration change after human approval."
+          placeholder="Example: a Codex Security finding, GitHub remediation, AI-agent action, access change, offsec handoff, or incident workflow."
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.workflow ? true : undefined}
@@ -439,13 +439,13 @@ export function ContactForm({
 
       <div>
         <label htmlFor="agentPath" className="mb-2 block" style={labelStyle}>
-          Agent/tool path and touched system
+          Workflow/tool path and touched system
         </label>
         <textarea
           id="agentPath" name="agentPath" rows={3} required
           className={`${textareaClass} ${fieldErrors.agentPath ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder="Example: coding agent -> repo tool -> staging configuration. Name systems at a high level only."
+          placeholder="Example: GitHub issue -> Codex review -> patch branch -> staging check. Name systems at a high level only."
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.agentPath ? true : undefined}
@@ -455,13 +455,13 @@ export function ContactForm({
 
       <div>
         <label htmlFor="approvalBoundary" className="mb-2 block" style={labelStyle}>
-          Approval boundary
+          Scope and approval boundary
         </label>
         <textarea
           id="approvalBoundary" name="approvalBoundary" rows={3} required
           className={`${textareaClass} ${fieldErrors.approvalBoundary ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder="Who approved the action, what authority they used, and where approval stopped."
+          placeholder="What is in scope, who approved the action, what authority they used, and where approval stopped."
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.approvalBoundary ? true : undefined}
@@ -497,11 +497,11 @@ export function ContactForm({
           textTransform: "uppercase",
         }}
       >
-        {status === "sending" ? "Sending..." : "Send request"}
+        {status === "sending" ? "Sending..." : "Send fit check"}
       </button>
 
       <p className="text-xs leading-relaxed text-text-muted">
-        Submitting this form only opens a fit check. No proof run starts until
+        Submitting this form only opens package scoping. No proof run starts until
         scope, fee, and evidence handling are agreed.
       </p>
 

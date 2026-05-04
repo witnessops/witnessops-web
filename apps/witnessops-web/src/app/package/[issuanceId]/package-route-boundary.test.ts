@@ -15,6 +15,6 @@ test("customer proof package route remains noindex, private, and read-only", () 
   assert.match(source, /This page is session-private/);
   assert.match(source, /Do not share the URL/);
 
-  assert.doesNotMatch(source, /Request one proof run|ContactForm|SupportIntake|\/review\/request/);
+  assert.doesNotMatch(source, /Request one proof run|Package one security workflow|ContactForm|SupportIntake|\/review\/request/);
   assert.doesNotMatch(source, /verified compliance|certified compliance|audit-ready|guarantees compliance/i);
 });
