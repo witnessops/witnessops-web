@@ -85,13 +85,13 @@ export function ContactForm({
     const approvalBoundary = stringField(data, "approvalBoundary");
     const evidenceAvailable = stringField(data, "evidenceAvailable");
     const proofRunScope = [
-      "Offer: Proof-Backed Security Workflow",
-      `Workflow: ${workflow || "not provided"}`,
-      `Workflow/tool path and touched system: ${agentPath || "not provided"}`,
-      `Scope and approval boundary: ${approvalBoundary || "not provided"}`,
+      "Offer: Proof Pack Review",
+      `Technical action: ${workflow || "not provided"}`,
+      `Action path and touched system: ${agentPath || "not provided"}`,
+      `Boundary and approval: ${approvalBoundary || "not provided"}`,
       `Evidence available: ${evidenceAvailable || "not provided"}`,
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
-      "Follow-up needed: fit, workflow boundary, authority boundary, likely evidence sources, package contents, verifier result, challenge path, fee, and evidence handling",
+      "Follow-up needed: fit, action boundary, authority boundary, likely evidence sources, possible proof pack contents, verifier path, challenge path, fee, and evidence handling",
     ].join("\n");
 
     try {
@@ -366,10 +366,10 @@ export function ContactForm({
 
       <div className="border border-surface-border bg-surface-bg p-4">
         <div className="text-sm font-semibold text-text-primary">
-          Start with a short non-secret package fit check.
+          Start with a short non-secret proof-pack fit check.
         </div>
         <p className="mt-2 text-sm leading-relaxed text-text-muted">
-          Name the workflow, not the evidence. No files. No evidence upload. Use plain language and save tickets,
+          Name the action, not the evidence. No files. No evidence upload. Use plain language and save tickets,
           logs, screenshots, exports, credentials, private keys, MFA codes, and
           customer evidence for the scoped intake after handling is agreed.
         </p>
@@ -418,20 +418,20 @@ export function ContactForm({
 
       <div>
         <label htmlFor="workflow" className="mb-2 block" style={labelStyle}>
-          What security workflow should we inspect?
+          What technical action should we package?
         </label>
         <textarea
           id="workflow" name="workflow" rows={3} required
           aria-describedby="workflow-helper"
           className={`${textareaClass} ${fieldErrors.workflow ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder="Example: a Codex Security finding, GitHub remediation, AI-agent action, access change, offsec handoff, or incident workflow."
+          placeholder="Example: a code patch, security finding, AI-agent action, access change, operational handoff, or incident workflow."
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.workflow ? true : undefined}
         />
         <p id="workflow-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
-          One workflow only. Keep this high level. Do not paste secrets, source exports,
+          One action only. Keep this high level. Do not paste secrets, source exports,
           full logs, screenshots, credentials, private keys, MFA codes, or customer evidence.
         </p>
         {fieldErrors.workflow && <p className="mt-1 text-xs text-signal-red">{fieldErrors.workflow}</p>}
@@ -439,7 +439,7 @@ export function ContactForm({
 
       <div>
         <label htmlFor="agentPath" className="mb-2 block" style={labelStyle}>
-          Workflow/tool path and touched system
+          Action path and touched system
         </label>
         <textarea
           id="agentPath" name="agentPath" rows={3} required
@@ -455,7 +455,7 @@ export function ContactForm({
 
       <div>
         <label htmlFor="approvalBoundary" className="mb-2 block" style={labelStyle}>
-          Scope and approval boundary
+          Boundary and approval
         </label>
         <textarea
           id="approvalBoundary" name="approvalBoundary" rows={3} required

@@ -9,13 +9,13 @@ status:
   last_reviewed: "2026-04-25"
 
 seo:
-  title: "Proof-Backed Security Workflows | WitnessOps"
-  description: "WitnessOps packages one GitHub, Codex, AI, access, offsec, or remediation workflow into scoped evidence, a receipt, verifier result, named limits, and a challenge path."
+  title: "Bounded Proof Packs for Technical Trust | WitnessOps"
+  description: "WitnessOps helps package one scoped workflow, patch, finding, or approval-gated action when available evidence, receipt artifacts, named limits, and inspection paths can be stated."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "One security workflow in. Proof package out."
-  og_description: "Send one security workflow. Get back scoped evidence, receipt, verifier result, named limits, and a challenge path."
+  og_title: "One bounded action. One scoped proof pack."
+  og_description: "Bring one bounded action for review. If scope and evidence support it, get a package that names evidence references, receipt artifacts, limits, and an inspection path."
   twitter_card: "summary_large_image"
 
 theme:
@@ -40,28 +40,28 @@ navbar:
     - label: "Support"
       href: "/support"
   cta:
-    label: "Package one security workflow"
+    label: "Request one proof run"
     href: "/review/request"
     variant: "primary"
 
 hero:
-  eyebrow: "Proof-Backed Security Workflows"
-  title: "One security workflow in. Proof package out."
-  body: "Send one GitHub, Codex, AI, access, offsec, or remediation workflow. WitnessOps returns scoped evidence, a receipt, verifier result, named limits, and a challenge path another party can inspect."
+  eyebrow: "Bounded proof packs for technical trust"
+  title: "One bounded action. One scoped proof pack."
+  body: "Bring one workflow, patch, finding, access change, or approval-gated action for review. WitnessOps packages the boundary, available evidence, receipt artifacts, named limits, and inspection path when the scope supports it."
   ai_note:
-    title: "What the package gets you"
+    title: "What you get"
     body:
-      - "Bring one real security workflow: a GitHub finding, Codex Security review, AI-agent action, access change, governed offsec handoff, or remediation lane."
-      - "We name the scope, preserve the evidence path, package the result, and make the limits impossible to miss. If evidence is incomplete, the package says so instead of pretending the work is proven."
-    microcopy: "Not ready to submit work? Inspect the public sample first and see the receipt shape, verifier result, limits, and challenge path."
+      - "We name the scope, package available evidence references, record what changed, and show what is still outside scope."
+      - "If evidence is incomplete, the package says so."
+    microcopy: "Not ready to submit work? Inspect the public sample first."
   supporting_points:
-    - "GitHub and repo-security findings"
-    - "Codex Security review lanes"
-    - "AI-agent action evidence"
-    - "Governed offsec handoffs"
-    - "Receipts, verifier results, and limits"
+    - "Code patches"
+    - "Security findings"
+    - "AI-assisted review"
+    - "Access changes"
+    - "Receipt artifacts and limits"
   primary_cta:
-    label: "Package one security workflow"
+    label: "Request one proof run"
     href: "/review/request"
     variant: "primary"
   secondary_cta:
@@ -72,8 +72,8 @@ hero:
     - "Scope"
     - "Evidence"
     - "Receipt"
-    - "Verifier"
-    - "Fix path"
+    - "Limits"
+    - "Inspection path"
   media:
     type: "code_excerpt"
     code:
@@ -98,18 +98,18 @@ sections:
   - type: "contract"
     id: "contract"
     enabled: true
-    title: "No dashboard. No vague audit promise. One package."
-    lede: "Every workflow follows the same order: scope, review, package, challenge."
+    title: "One action. One scoped package. Clear limits."
+    lede: "Scope it. Review available evidence. Package only what can be named. Make the limits inspectable."
     steps:
       - label: "Scope"
-        body: "Pick one concrete security workflow, repo, finding, access path, agent action, or offsec handoff. Name what is in and out."
+        body: "Pick one action. Name what is in and out."
       - label: "Review"
-        body: "Inspect the available evidence, classify the claim, and separate what is known from what still needs human or system proof."
+        body: "Separate evidence from assumptions."
       - label: "Package"
-        body: "Return the evidence path, receipt, result, limits, and next action so the work can survive another reviewer."
+        body: "Return evidence references, receipt artifacts where produced, limits, and next step."
       - label: "Challenge"
-        body: "Make the claim easy to dispute, repeat, fix, or escalate instead of burying it in chat logs and screenshots."
-    closing: "The output is a finished security-work package: what was reviewed, what supports it, what changed, and what still cannot be claimed."
+        body: "Make the result easy to inspect, reject, or strengthen."
+    closing: "The output says what changed, what supports it, and what remains unproven or outside scope."
     cta:
       label: "Read the package offer"
       href: "/review"
@@ -118,33 +118,33 @@ sections:
   - type: "workflows"
     id: "inputs"
     enabled: true
-    title: "Bring one security workflow"
-    lede: "Start with the security work you already need reviewed, fixed, explained, or handed off."
+    title: "Bring one bounded action"
+    lede: "Start with work you already need to explain or hand off."
     cards:
-      - title: "GitHub security work"
-        body: "A finding, pull request, dependency risk, auth boundary, public surface, or remediation lane that needs reviewable evidence."
+      - title: "Code patch"
+        body: "A fix, pull request, dependency risk, auth boundary, or remediation lane that needs reviewable evidence."
         proof_link: "/review/request"
-        proof_link_label: "Describe GitHub security work"
-      - title: "Codex and AI security"
-        body: "A Codex Security finding, AI-agent action, prompt/tool boundary, exec surface, or agent workflow that needs claim control."
+        proof_link_label: "Describe the patch"
+      - title: "Security finding"
+        body: "A finding, AI-assisted review, tool output, or agent action that needs claim control."
         proof_link: "/review/request"
-        proof_link_label: "Describe Codex or AI security work"
-      - title: "Security operations"
-        body: "A governed offsec handoff, access decision, incident workflow, or remediation package where evidence must outlive the run."
+        proof_link_label: "Describe the finding"
+      - title: "Access or operations change"
+        body: "An access decision, incident step, offsec handoff, or workflow where evidence must outlive the run."
         proof_link: "/review/request"
-        proof_link_label: "Describe security workflow"
+        proof_link_label: "Describe the action"
     surfaces:
       - title: "Scope map"
-        body: "Name the repo, workflow, action, system, and boundary."
+        body: "Name the action, system, and boundary."
       - title: "Evidence package"
-        body: "List the artifacts, commands, receipts, hashes, screenshots, reports, or records that support the claim."
+        body: "List the artifacts, commands, receipts, hashes, reports, or records."
       - title: "Decision record"
-        body: "Separate finding, fix, blocked state, follow-up gate, and human review."
+        body: "Separate finding, fix, blocked state, and follow-up gate."
       - title: "Challenge path"
-        body: "Explain what another reviewer can inspect, repeat, reject, or ask to strengthen."
+        body: "Show what another reviewer can inspect, reject, or strengthen."
     internal_surfaces_disclosure: "Some operational surfaces remain internal, including policy authoring, receipt query, and operator administration."
     ctas:
-      - label: "Package one security workflow"
+      - label: "Request one proof run"
         href: "/review/request"
         variant: "primary"
       - label: "Inspect sample package"
@@ -154,19 +154,19 @@ sections:
   - type: "verifiable_items"
     id: "verifiable"
     enabled: true
-    title: "What another party can inspect"
-    lede: "WitnessOps separates the security work from the proof package so the result can be reviewed after the run is over."
+    title: "What can be inspected"
+    lede: "The page is not the proof. A scoped package points to the evidence references and limits."
     items:
       - title: "What was actually in scope"
-        body: "Whether the claim is tied to one named workflow, repo, finding, or action boundary."
+        body: "The named action, system, and boundary."
         proof_link: "/review/sample-cases/ai-agent-action-proof-run"
         proof_link_label: "Open sample package"
       - title: "What evidence supports it"
-        body: "Whether the result points to receipts, manifests, commands, artifacts, or review records instead of assertion."
+        body: "The receipts, manifests, commands, artifacts, or review records referenced by the package."
         proof_link: "/review/sample-cases/ai-agent-action-proof-run"
         proof_link_label: "Open sample package"
       - title: "What remains unproven"
-        body: "What could not be independently checked, what needs a human decision, and what should be challenged before reliance."
+        body: "The limits, assumptions, and decisions still outside the package."
         proof_link: "/review/sample-cases/ai-agent-action-proof-run"
         proof_link_label: "Open sample package"
     ctas:
@@ -182,7 +182,7 @@ sections:
     id: "boundary"
     enabled: true
     title: "What is not claimed"
-    lede: "WitnessOps reduces trust. It does not pretend to remove it completely."
+    lede: "Proof packs reduce trust assumptions. They do not erase them."
     items:
       - title: "Runtime integrity"
         body: "The execution environment must be operated correctly. A compromised runtime could produce bad records."
@@ -196,10 +196,10 @@ sections:
 
 final_cta:
   enabled: true
-  title: "Make one security workflow reviewable."
-  body: "Bring one workflow: GitHub finding, Codex Security review, AI-agent action, access decision, offsec handoff, or remediation lane. Get a proof package: evidence, receipt, verifier result, named limits, and challenge path."
+  title: "Make one technical action reviewable."
+  body: "Bring one workflow, patch, finding, or access change for review. If scope and evidence support it, get a proof pack naming boundary, evidence references, receipt artifacts, limits, and inspection path."
   ctas:
-    - label: "Package one security workflow"
+    - label: "Request one proof run"
       href: "/review/request"
       variant: "primary"
     - label: "Inspect sample package"
@@ -208,7 +208,7 @@ final_cta:
 
 footer:
   brand_line: "WitnessOps"
-  subline: "Portable proof for consequential workflows."
+  subline: "Bounded proof packages for trust-sensitive technical work."
   links:
     - label: "Why WitnessOps"
       href: "/why-witnessops"

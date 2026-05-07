@@ -2,24 +2,24 @@ import type { Metadata } from "next";
 import { CtaButton } from "@/components/shared/cta-button";
 
 export const metadata: Metadata = {
-  title: "Proof-Backed Security Workflow",
+  title: "Proof Pack Review",
   description:
-    "WitnessOps packages one GitHub, Codex, AI, access, offsec, or remediation workflow into scoped evidence, a receipt, verifier result, named limits, and a challenge path.",
+    "WitnessOps reviews one bounded technical action and, when scoped evidence is available, packages evidence references, receipt artifacts, verifier path, named limits, and a challenge path.",
   alternates: {
     canonical: "/review",
   },
   openGraph: {
-    title: "Proof-Backed Security Workflow | WitnessOps",
+    title: "Proof Pack Review | WitnessOps",
     description:
-      "WitnessOps packages one GitHub, Codex, AI, access, offsec, or remediation workflow into scoped evidence, a receipt, verifier result, named limits, and a challenge path.",
+      "WitnessOps reviews one bounded technical action and, when scoped evidence is available, packages evidence references, receipt artifacts, verifier path, named limits, and a challenge path.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Proof-Backed Security Workflow | WitnessOps",
+    title: "Proof Pack Review | WitnessOps",
     description:
-      "WitnessOps packages one GitHub, Codex, AI, access, offsec, or remediation workflow into scoped evidence, a receipt, verifier result, named limits, and a challenge path.",
+      "WitnessOps reviews one bounded technical action and, when scoped evidence is available, packages evidence references, receipt artifacts, verifier path, named limits, and a challenge path.",
   },
 };
 
@@ -29,23 +29,23 @@ const sampleBundleHref =
 const proofOutputs = [
   {
     title: "Scope map",
-    summary: "The repo, finding, workflow, system, and action boundary under review.",
+    summary: "The action, system, owner, and boundary under review.",
   },
   {
     title: "Evidence package",
-    summary: "Commands, artifacts, receipts, hashes, screenshots, reports, and known evidence gaps.",
+    summary: "Available artifacts, receipts, hashes, screenshots, reports, and known gaps.",
   },
   {
-    title: "Security decision record",
-    summary: "What was found, fixed, blocked, deferred, or sent to human review.",
+    title: "Decision record",
+    summary: "What changed, what was decided, and what remains outside scope.",
   },
   {
-    title: "Signed receipt",
-    summary: "A bound record of scope, action, evidence, result, and limits.",
+    title: "Receipt artifact",
+    summary: "A generated package artifact that binds scope, action, evidence references, result, and limits when produced.",
   },
   {
-    title: "Verifier result",
-    summary: "What another party can independently check, fail, or mark out of scope.",
+    title: "Verifier path",
+    summary: "Package artifacts and instructions another party can inspect offline, check, or mark out of scope.",
   },
   {
     title: "Challenge path",
@@ -54,24 +54,24 @@ const proofOutputs = [
 ];
 
 const proofQuestions = [
-  "What security workflow is actually in scope?",
-  "What finding, repo, agent action, access path, or handoff is being reviewed?",
-  "What evidence supports the claim?",
-  "What was fixed, blocked, or left for a human decision?",
-  "What could another party independently inspect?",
-  "What remains unproven or challengeable?",
+  "What technical action is in scope?",
+  "What workflow, repo, access path, finding, or handoff is being reviewed?",
+  "What evidence supports the package?",
+  "What changed or was decided?",
+  "What can another party inspect offline?",
+  "What remains outside scope or challengeable?",
 ];
 
 const buyerFit = [
   {
     label: "For",
     value:
-      "GitHub security, Codex Security, AI-agent, access, offsec, or remediation workflows that need reviewable evidence.",
+      "Code patches, security findings, AI-agent actions, access changes, or operational handoffs that need reviewable evidence.",
   },
   {
     label: "You get",
     value:
-      "A scoped package naming evidence, result, receipt, verifier path, limits, and the next gate.",
+      "A bounded proof pack naming scope, evidence, receipt, verifier path, limits, and the next gate.",
   },
   {
     label: "Do not submit",
@@ -81,11 +81,11 @@ const buyerFit = [
 ];
 
 const workflowTriggers = [
-  "GitHub security findings or pull requests",
-  "Codex Security reports and remediation lanes",
+  "Code patches or pull requests",
+  "Security findings or remediation work",
   "AI-agent actions touching code, access, or data",
-  "identity, exception, or access-change decisions",
-  "governed offsec handoffs and security-operations evidence",
+  "Access, identity, exception, or approval decisions",
+  "Operational handoffs that need evidence",
 ];
 
 export default function ReviewPage() {
@@ -96,22 +96,22 @@ export default function ReviewPage() {
       className="docs-page-enter mx-auto max-w-5xl px-6 py-10 lg:py-14"
     >
       <header className="mb-12 border-b border-surface-border pb-8">
-        <div className="kb-section-tag">Proof-Backed Security Workflow</div>
+        <div className="kb-section-tag">Proof Pack Review</div>
         <h1
           className="mt-2 max-w-3xl text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          One security workflow in. Proof package out.
+          One bounded technical action. One scoped proof pack.
         </h1>
         <p className="mt-5 max-w-[760px] text-base leading-8 text-text-secondary">
-          Use WitnessOps when a GitHub finding, Codex Security report, AI-agent
-          action, access decision, offsec handoff, or remediation lane needs to
-          survive another reviewer.
+          Use WitnessOps when a code patch, security finding, AI-agent action,
+          access decision, or operational handoff needs to be explained to
+          another reviewer.
         </p>
         <p className="mt-4 max-w-[760px] text-sm leading-7 text-text-muted">
-          This is one scoped security workflow package. It is not a legal compliance
-          claim, not a complete AI governance program, not a production deployment
-          claim, and not a whole-environment guarantee.
+          This is not certification, production validation, or a whole-system
+          audit. It is one bounded package with stated evidence, limits, and a
+          challenge path.
         </p>
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="border border-surface-border bg-surface-card/50 p-5">
@@ -120,13 +120,13 @@ export default function ReviewPage() {
             </h2>
             <div className="mt-4 space-y-3 text-sm leading-relaxed text-text-muted">
               <p>
-                We define the scope, inspect the evidence, package the result,
-                preserve the receipt path, and name what another reviewer can
-                inspect before the workflow is closed.
+                We name the boundary, inspect available evidence, package the
+                result, preserve the receipt path, and show what another
+                reviewer can inspect.
               </p>
               <p>
-                No dashboard subscription. No vague audit promise. One bounded
-                package for one security workflow.
+                No dashboard subscription. No vague audit promise. One scoped
+                package for one bounded technical action.
               </p>
             </div>
           </div>
@@ -135,17 +135,17 @@ export default function ReviewPage() {
               Scope
             </h2>
             <div className="mt-4 space-y-2 text-sm leading-relaxed text-text-muted">
-              <p><span className="font-semibold text-text-primary">One workflow.</span></p>
-              <p><span className="font-semibold text-text-primary">One repo or system boundary.</span></p>
+              <p><span className="font-semibold text-text-primary">One technical action.</span></p>
+              <p><span className="font-semibold text-text-primary">One system boundary.</span></p>
               <p><span className="font-semibold text-text-primary">One evidence package.</span></p>
-              <p><span className="font-semibold text-text-primary">One result path.</span></p>
+              <p><span className="font-semibold text-text-primary">One receipt path.</span></p>
               <p><span className="font-semibold text-text-primary">One challenge path.</span></p>
             </div>
           </div>
         </div>
         <div className="mt-8 flex flex-wrap items-start gap-x-8 gap-y-6">
           <div>
-            <CtaButton href="/review/request" variant="primary" label="Package one security workflow" />
+            <CtaButton href="/review/request" variant="primary" label="Request one proof run" />
             <p className="mt-2 max-w-[300px] text-xs leading-relaxed text-text-muted">
               Send the non-secret fit check first.
             </p>
@@ -177,7 +177,7 @@ export default function ReviewPage() {
           className="mt-2 text-2xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-3xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Use this when the security work is too important to leave as chat, screenshots, or a loose report.
+          Use this when one action needs more than chat, screenshots, or a loose report.
         </h2>
         <ul className="mt-6 grid gap-3 text-sm leading-relaxed text-text-muted md:grid-cols-2">
           {workflowTriggers.map((item) => (
@@ -194,7 +194,7 @@ export default function ReviewPage() {
           className="mt-2 text-2xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-3xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          What the package contains
+          What the proof pack contains
         </h2>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {proofOutputs.map((item, index) => (
@@ -257,7 +257,7 @@ export default function ReviewPage() {
           <CtaButton
             href="/review/request"
             variant="primary"
-            label="Package one security workflow"
+            label="Request one proof run"
           />
         </div>
       </section>
@@ -270,10 +270,10 @@ export default function ReviewPage() {
           Boundary
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-text-muted">
-          The public sample proves receipt shape and verifier path only. It does
-          not claim production deployment, legal compliance, complete AI
-          governance, or whole-environment guarantee. WitnessOps names what is
-          verified, what is declared, and what remains challengeable.
+          The public sample demonstrates package shape and verifier path only.
+          It does not claim production deployment, legal compliance,
+          whole-system security, or independent approval. WitnessOps names what
+          is evidenced, what is declared, and what remains challengeable.
         </p>
       </section>
     </main>

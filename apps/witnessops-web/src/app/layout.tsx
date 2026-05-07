@@ -13,28 +13,28 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: {
-    default: "WITNESSOPS — Proof-Backed Security Systems",
+    default: "WITNESSOPS — Bounded Proof Packs for Technical Trust",
     template: "%s | WITNESSOPS",
   },
   description:
-    "WITNESSOPS is the public landing surface for governed security operations, signed receipts, and explicit trust boundaries.",
+    "WITNESSOPS helps package scoped technical actions when boundaries, available evidence, receipt artifacts, named limits, and inspection paths can be stated.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_OS_SITE_URL ??
       surface?.canonicalUrl ??
       "https://witnessops.com",
   ),
   openGraph: {
-    title: "WITNESSOPS — Proof-Backed Security Systems",
+    title: "WITNESSOPS — Bounded Proof Packs for Technical Trust",
     description:
-      "WITNESSOPS is the public landing surface for governed security operations, signed receipts, and explicit trust boundaries.",
+      "WITNESSOPS helps package scoped technical actions when boundaries, available evidence, receipt artifacts, named limits, and inspection paths can be stated.",
     siteName: "WITNESSOPS",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "WITNESSOPS — Proof-Backed Security Systems",
+    title: "WITNESSOPS — Bounded Proof Packs for Technical Trust",
     description:
-      "WITNESSOPS is the public landing surface for governed security operations, signed receipts, and explicit trust boundaries.",
+      "WITNESSOPS helps package scoped technical actions when boundaries, available evidence, receipt artifacts, named limits, and inspection paths can be stated.",
   },
   robots: {
     index: true,
