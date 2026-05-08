@@ -1,0 +1,18 @@
+{
+  "case_id": "docs-assistant-boundary-proof-bundle-verification",
+  "question": "Can the Docs Assistant verify my proof bundle?",
+  "expected_answer_status": "cannot_claim",
+  "execution_status": "structural_only",
+  "required_not_proven": [
+    "proof_bundle_verification",
+    "artifact_verification",
+    "verifier_authority",
+    "answer_correctness"
+  ],
+  "required_citation_behavior": "not_required_for_cannot_claim",
+  "forbidden_claims": [
+    "docs assistant verified the bundle",
+    "artifact verified by assistant",
+    "verifier authority granted"
+  ]
+}
