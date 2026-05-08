@@ -1,0 +1,192 @@
+{
+  "collection_status": "not_collected",
+  "content_records": [
+    {
+      "anchors": [],
+      "classification": "public",
+      "collection_status": "not_collected",
+      "commit_sha": null,
+      "content_body": null,
+      "content_sha256": null,
+      "inclusion_reason": "Approved public docs landing page for future Docs Assistant source inventory.",
+      "source_class": "public_witnessops_docs_pages",
+      "source_id": "src-witnessops-docs",
+      "source_reference": "https://witnessops.com/docs",
+      "source_sha256": null,
+      "source_type": "source_url",
+      "title": "WitnessOps Docs"
+    },
+    {
+      "anchors": [],
+      "classification": "public",
+      "collection_status": "not_collected",
+      "commit_sha": null,
+      "content_body": null,
+      "content_sha256": null,
+      "inclusion_reason": "Approved public review-offer page for bounded source inventory.",
+      "source_class": "public_witnessops_docs_pages",
+      "source_id": "src-witnessops-review",
+      "source_reference": "https://witnessops.com/review",
+      "source_sha256": null,
+      "source_type": "source_url",
+      "title": "WitnessOps Review"
+    },
+    {
+      "anchors": [],
+      "classification": "public",
+      "collection_status": "not_collected",
+      "commit_sha": null,
+      "content_body": null,
+      "content_sha256": null,
+      "inclusion_reason": "Approved public security page for future bounded docs answers.",
+      "source_class": "public_witnessops_docs_pages",
+      "source_id": "src-witnessops-security",
+      "source_reference": "https://witnessops.com/security",
+      "source_sha256": null,
+      "source_type": "source_url",
+      "title": "WitnessOps Security"
+    },
+    {
+      "anchors": [],
+      "classification": "public",
+      "collection_status": "not_collected",
+      "commit_sha": null,
+      "content_body": null,
+      "content_sha256": null,
+      "inclusion_reason": "Approved public support page for non-secret support boundary answers.",
+      "source_class": "public_witnessops_docs_pages",
+      "source_id": "src-witnessops-support",
+      "source_reference": "https://witnessops.com/support",
+      "source_sha256": null,
+      "source_type": "source_url",
+      "title": "WitnessOps Support"
+    },
+    {
+      "anchors": [],
+      "classification": "public",
+      "collection_status": "not_collected",
+      "commit_sha": null,
+      "content_body": null,
+      "content_sha256": null,
+      "inclusion_reason": "Approved public terms page for future bounded policy answers.",
+      "source_class": "public_witnessops_docs_pages",
+      "source_id": "src-witnessops-terms",
+      "source_reference": "https://witnessops.com/terms",
+      "source_sha256": null,
+      "source_type": "source_url",
+      "title": "WitnessOps Terms"
+    },
+    {
+      "anchors": [],
+      "classification": "public",
+      "collection_status": "not_collected",
+      "commit_sha": null,
+      "content_body": null,
+      "content_sha256": null,
+      "inclusion_reason": "Approved public verifier surface pointer for published receipt checks.",
+      "source_class": "public_witnessops_docs_pages",
+      "source_id": "src-witnessops-verify",
+      "source_reference": "https://witnessops.com/verify",
+      "source_sha256": null,
+      "source_type": "source_url",
+      "title": "WitnessOps Verify"
+    },
+    {
+      "anchors": [],
+      "classification": "public",
+      "collection_status": "not_collected",
+      "commit_sha": null,
+      "content_body": null,
+      "content_sha256": null,
+      "inclusion_reason": "Approved public schema authority for future answer-shape conformance.",
+      "source_class": "approved_public_repo_docs",
+      "source_id": "src-contracts-answer-schema",
+      "source_reference": "witnessops/witnessops-contracts:schemas/docs-assistant/answer.schema.json",
+      "source_sha256": null,
+      "source_type": "repo_path",
+      "title": "Docs Assistant Answer Schema"
+    },
+    {
+      "anchors": [],
+      "classification": "public",
+      "collection_status": "not_collected",
+      "commit_sha": null,
+      "content_body": null,
+      "content_sha256": null,
+      "inclusion_reason": "Approved public schema authority for future eval-result conformance.",
+      "source_class": "approved_public_repo_docs",
+      "source_id": "src-contracts-eval-result-schema",
+      "source_reference": "witnessops/witnessops-contracts:schemas/docs-assistant/eval-result.schema.json",
+      "source_sha256": null,
+      "source_type": "repo_path",
+      "title": "Docs Assistant Eval Result Schema"
+    },
+    {
+      "anchors": [],
+      "classification": "public",
+      "collection_status": "not_collected",
+      "commit_sha": null,
+      "content_body": null,
+      "content_sha256": null,
+      "inclusion_reason": "Approved public schema authority for future source-manifest conformance.",
+      "source_class": "approved_public_repo_docs",
+      "source_id": "src-contracts-source-manifest-schema",
+      "source_reference": "witnessops/witnessops-contracts:schemas/docs-assistant/source-manifest.schema.json",
+      "source_sha256": null,
+      "source_type": "repo_path",
+      "title": "Docs Assistant Source Manifest Schema"
+    }
+  ],
+  "external_index_id": null,
+  "generated_from_seed": true,
+  "package_receipt": null,
+  "schema_version": "docs-assistant.corpus-plan.v1",
+  "skipped_sources": [
+    {
+      "reason": "source_not_collected_in_this_lane",
+      "source_id": "src-witnessops-docs",
+      "source_reference": "https://witnessops.com/docs"
+    },
+    {
+      "reason": "source_not_collected_in_this_lane",
+      "source_id": "src-witnessops-review",
+      "source_reference": "https://witnessops.com/review"
+    },
+    {
+      "reason": "source_not_collected_in_this_lane",
+      "source_id": "src-witnessops-security",
+      "source_reference": "https://witnessops.com/security"
+    },
+    {
+      "reason": "source_not_collected_in_this_lane",
+      "source_id": "src-witnessops-support",
+      "source_reference": "https://witnessops.com/support"
+    },
+    {
+      "reason": "source_not_collected_in_this_lane",
+      "source_id": "src-witnessops-terms",
+      "source_reference": "https://witnessops.com/terms"
+    },
+    {
+      "reason": "source_not_collected_in_this_lane",
+      "source_id": "src-witnessops-verify",
+      "source_reference": "https://witnessops.com/verify"
+    },
+    {
+      "reason": "source_not_collected_in_this_lane",
+      "source_id": "src-contracts-answer-schema",
+      "source_reference": "witnessops/witnessops-contracts:schemas/docs-assistant/answer.schema.json"
+    },
+    {
+      "reason": "source_not_collected_in_this_lane",
+      "source_id": "src-contracts-eval-result-schema",
+      "source_reference": "witnessops/witnessops-contracts:schemas/docs-assistant/eval-result.schema.json"
+    },
+    {
+      "reason": "source_not_collected_in_this_lane",
+      "source_id": "src-contracts-source-manifest-schema",
+      "source_reference": "witnessops/witnessops-contracts:schemas/docs-assistant/source-manifest.schema.json"
+    }
+  ],
+  "source_count": 9
+}
