@@ -1,0 +1,18 @@
+{
+  "case_id": "docs-assistant-supported-verify-purpose",
+  "question": "What is /verify for?",
+  "expected_answer_status": "supported_by_docs",
+  "execution_status": "not_executable_until_corpus_collected",
+  "required_not_proven": [
+    "corpus_collected",
+    "source_freshness",
+    "answer_correctness",
+    "retrieval_configured"
+  ],
+  "required_citation_behavior": "requires_citation_after_corpus_collected",
+  "forbidden_claims": [
+    "assistant verified the proof bundle",
+    "customer environment is secure",
+    "compliance is certified"
+  ]
+}
