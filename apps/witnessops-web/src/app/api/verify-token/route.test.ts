@@ -334,7 +334,7 @@ test("verify-token route sends a reply-ready operator notification for package r
   );
 
   assert.ok(operatorMailRaw);
-  assert.match(operatorMailRaw, /^From: engage@witnessops\.com$/m);
+  assert.match(operatorMailRaw, /^From: witnessopsno-reply@witnessops\.com$/m);
   assert.match(operatorMailRaw, /^Reply-To: security@witnessops\.com$/m);
   assert.match(
     operatorMailRaw,

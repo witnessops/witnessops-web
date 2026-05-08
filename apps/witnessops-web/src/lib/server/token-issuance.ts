@@ -362,11 +362,12 @@ async function ensureOperatorNotificationSent(args: {
   }
 
   const mailbox = getChannelMailbox(args.intake.channel);
+  const sender = getChannelVerificationMailbox(args.intake.channel);
   const deliveryAttemptId = `opnotif_${randomUUID().replace(/-/g, "")}`;
   const subject = operatorNotificationSubject(args.intake);
   const delivery = await sendVerificationEmail({
     to: mailbox,
-    from: mailbox,
+    from: sender,
     replyTo: args.issuance.email,
     subject,
     text: renderOperatorNotificationText(args),
