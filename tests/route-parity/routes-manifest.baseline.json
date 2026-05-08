@@ -225,6 +225,12 @@
       "namedRegex": "^/docs(?:/)?$"
     },
     {
+      "page": "/docs/assistant",
+      "regex": "^/docs/assistant(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/docs/assistant(?:/)?$"
+    },
+    {
       "page": "/docs/man/witnessops",
       "regex": "^/docs/man/witnessops(?:/)?$",
       "routeKeys": {},

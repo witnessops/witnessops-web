@@ -87,6 +87,13 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     note: "Alias path for verified intake; mailbox verification required before actionable handling.",
   },
   {
+    path: "/api/docs-assistant/ask",
+    methods: ["POST"],
+    category: "public-utility",
+    summary: "Disabled docs assistant ask endpoint; fail-closed skeleton only",
+    note: "Returns 503 disabled response; no model call, retrieval, key, vector store, upload, or runtime assistant surface.",
+  },
+  {
     path: "/api/support",
     methods: ["POST"],
     category: "public-utility",
