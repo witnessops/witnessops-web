@@ -4,13 +4,13 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Request verified",
   description:
-    "Mailbox verification is complete for a WitnessOps security-workflow request.",
+    "Mailbox verification is complete for a WitnessOps proof-run fit request.",
   robots: { index: false, follow: false },
 };
 
 const nextSteps = [
-  "WitnessOps reviews whether the security workflow is bounded enough for one scoped package.",
-  "We confirm the repo or system boundary, action path, likely evidence sources, verifier result, and obvious gaps.",
+  "WitnessOps reviews whether the technical action is bounded enough for one scoped proof pack.",
+  "We confirm the system boundary, action path, likely evidence sources, possible verifier path, and obvious gaps.",
   "We reply by email with fit, scope, fee, and next action.",
 ];
 
@@ -56,7 +56,7 @@ export default function ReviewRequestConfirmedPage() {
             color: "var(--color-brand-muted)",
           }}
         >
-          Security workflow request
+          Proof run request
         </div>
         <h1
           className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
@@ -65,8 +65,8 @@ export default function ReviewRequestConfirmedPage() {
           Request verified
         </h1>
         <p className="max-w-[620px] text-base leading-relaxed text-text-muted">
-          Your mailbox is verified for this security-workflow request. The
-          request summary has been routed for operator review.
+          Your mailbox is verified for this proof-run fit request. The request
+          summary has been routed for operator review.
         </p>
       </section>
 

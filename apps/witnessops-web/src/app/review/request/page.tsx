@@ -4,49 +4,49 @@ import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { getMailboxConfig } from "@/lib/mailboxes";
 
 export const metadata: Metadata = {
-  title: "Package One Security Workflow",
+  title: "Request One Proof Run",
   description:
-    "Send a short, non-secret request for one bounded GitHub, Codex, AI, access, offsec, or remediation workflow. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
+    "Send a short, non-secret fit request for one bounded technical action. No proof run starts from this form, and no files, logs, screenshots, secrets, credentials, or customer evidence belong in the first message.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
-    title: "Package One Security Workflow | WitnessOps",
+    title: "Request One Proof Run | WitnessOps",
     description:
-      "Send a short, non-secret request for one bounded GitHub, Codex, AI, access, offsec, or remediation workflow. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
+      "Send a short, non-secret fit request for one bounded technical action. No proof run starts from this form, and no files, logs, screenshots, secrets, credentials, or customer evidence belong in the first message.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Package One Security Workflow | WitnessOps",
+    title: "Request One Proof Run | WitnessOps",
     description:
-      "Send a short, non-secret request for one bounded GitHub, Codex, AI, access, offsec, or remediation workflow. No files, logs, screenshots, secrets, credentials, or customer evidence in the first message.",
+      "Send a short, non-secret fit request for one bounded technical action. No proof run starts from this form, and no files, logs, screenshots, secrets, credentials, or customer evidence belong in the first message.",
   },
 };
 
 const proofOutputs = [
   {
-    title: "Scope and authority map",
-    summary: "What workflow is in scope, who approved it, who acted, who reviewed it, and where authority stopped.",
+    title: "Boundary map",
+    summary: "What action is in scope, who approved it, who acted, and where authority stops.",
   },
   {
-    title: "Workflow boundary",
-    summary: "The one GitHub, Codex, AI, access, offsec, or remediation path and touched system under review.",
+    title: "Action path",
+    summary: "The one workflow, tool path, or touched system under review.",
   },
   {
     title: "Evidence manifest",
-    summary: "Captured artifact classes, source references, hashes where available, and known evidence gaps.",
+    summary: "Available artifact classes, source references, hashes where available, and known gaps.",
   },
   {
-    title: "Receipt and verifier result",
-    summary: "A bound record of approval, action, evidence, result, verification limits, and challenge path.",
+    title: "Receipt artifact and verifier path",
+    summary: "Package artifacts that name approval, action, evidence references, limits, and challenge path when the scope supports them.",
   },
 ];
 
 const nextSteps = [
-  "We check whether the security workflow is bounded enough for one scoped package.",
-  "We confirm the repo or system boundary, action path, likely evidence sources, and obvious gaps.",
+  "We check whether the technical action is bounded enough for one proof pack.",
+  "We confirm the system boundary, action path, likely evidence sources, and obvious gaps.",
   "We reply with fit, scope, fee, and next action before any source materials are accepted.",
 ];
 
@@ -77,19 +77,19 @@ export default function ReviewRequestPage() {
             color: "var(--color-brand-muted)",
           }}
         >
-          Proof-Backed Security Workflow
+          Proof Run Request
         </div>
         <h1
           className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Package one security workflow
+          Request one proof run
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
-          Name the GitHub, Codex, AI, access, offsec, or remediation workflow
-          you want packaged. No files, logs, screenshots, exports, credentials,
-          private keys, MFA codes, or customer evidence are needed for the
-          first fit check.
+          Name one code patch, security finding, AI-agent action, access
+          decision, or operational handoff you want packaged. No files, logs,
+          screenshots, exports, credentials, private keys, MFA codes, or
+          customer evidence are needed for the first fit check.
         </p>
       </section>
 
@@ -239,7 +239,7 @@ export default function ReviewRequestPage() {
             color: "var(--color-text-muted)",
           }}
         >
-          What the package contains
+          What the proof pack contains
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {proofOutputs.map((item, index) => (
