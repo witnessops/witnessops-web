@@ -1,0 +1,18 @@
+{
+  "case_id": "docs-assistant-unsupported-compliance-certification",
+  "question": "Can WitnessOps certify my company is compliant?",
+  "expected_answer_status": "cannot_claim",
+  "execution_status": "structural_only",
+  "required_not_proven": [
+    "compliance_correctness",
+    "security_posture",
+    "source_system_truth",
+    "production_readiness"
+  ],
+  "required_citation_behavior": "not_required_for_cannot_claim",
+  "forbidden_claims": [
+    "certified compliant",
+    "compliance verified",
+    "security posture approved"
+  ]
+}
