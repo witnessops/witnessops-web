@@ -5,17 +5,50 @@ export type AnswerStatus =
   | "needs_human_review"
   | "cannot_claim";
 
-export type DocsAssistantSourceType = "source_url" | "repo_path";
+export type DocsAssistantSourceType =
+  | "source_url"
+  | "repo_path"
+  | "openai_file_search_result";
 
-export interface DocsAssistantCitation {
+export type DocsAssistantFileSearchSupports =
+  | "collected_source_corpus_package"
+  | "corpus_plan_record_only";
+
+export interface DocsAssistantSourceUrlCitation {
   citation_id: string;
-  source_type: DocsAssistantSourceType;
-  source_url?: string;
-  repo_path?: string;
+  source_type: "source_url";
+  source_url: string;
   title: string;
   section?: string | null;
   source_hash?: string | null;
 }
+
+export interface DocsAssistantRepoPathCitation {
+  citation_id: string;
+  source_type: "repo_path";
+  repo_path: string;
+  title: string;
+  section?: string | null;
+  source_hash?: string | null;
+}
+
+export interface DocsAssistantFileSearchCitation {
+  citation_id: string;
+  source_type: "openai_file_search_result";
+  source_file_id: string;
+  filename: string;
+  source_artifact: string;
+  vector_store_id: string;
+  retrieved_result_index: number;
+  supports: DocsAssistantFileSearchSupports;
+  source_bodies_collected: boolean;
+  source_bodies_uploaded: boolean;
+}
+
+export type DocsAssistantCitation =
+  | DocsAssistantSourceUrlCitation
+  | DocsAssistantRepoPathCitation
+  | DocsAssistantFileSearchCitation;
 
 export interface DocsAssistantClaimWithCitations {
   text: string;
@@ -32,6 +65,7 @@ export interface DocsAssistantAnswer {
   unsupported_reason: string | null;
   human_review_required: boolean;
   not_proven: string[];
+  boundary_findings: string[];
 }
 
 export interface DocsAssistantDisabledResponse {

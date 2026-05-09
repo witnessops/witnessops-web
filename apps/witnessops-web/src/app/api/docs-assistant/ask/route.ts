@@ -1,12 +1,71 @@
 import { NextResponse } from "next/server";
 
 import { buildDocsAssistantDisabledResponse } from "@/lib/docs-assistant/disabled-response";
+import { buildDocsAssistantRefusalAnswer, evaluateDocsAssistantRefusalPolicy } from "@/lib/docs-assistant/refusal-policy";
+import { readDocsAssistantRuntimeConfig } from "@/lib/docs-assistant/runtime-config";
+import {
+  runDocsAssistantServerRuntime,
+  validateDocsAssistantAskPayload,
+} from "@/lib/docs-assistant/server-runtime";
 
-export async function POST() {
+export const runtime = "nodejs";
+
+const NO_STORE_HEADERS = {
+  "Cache-Control": "no-store",
+};
+
+function disabledResponse() {
   return NextResponse.json(buildDocsAssistantDisabledResponse(), {
     status: 503,
-    headers: {
-      "Cache-Control": "no-store",
-    },
+    headers: NO_STORE_HEADERS,
   });
+}
+
+function invalidRequestResponse(error: string) {
+  return NextResponse.json(
+    { ok: false, error },
+    {
+      status: 400,
+      headers: NO_STORE_HEADERS,
+    },
+  );
+}
+
+export async function POST(request: Request) {
+  const config = readDocsAssistantRuntimeConfig();
+  if (!config.enabled) {
+    return disabledResponse();
+  }
+
+  let rawPayload: unknown;
+  try {
+    rawPayload = await request.json();
+  } catch {
+    return invalidRequestResponse("request_body_must_be_valid_json");
+  }
+
+  const validatedPayload = validateDocsAssistantAskPayload(rawPayload);
+  if (!validatedPayload.ok || !validatedPayload.payload) {
+    return invalidRequestResponse(validatedPayload.error ?? "invalid_request");
+  }
+
+  const refusalDecision = evaluateDocsAssistantRefusalPolicy(
+    validatedPayload.payload.question,
+  );
+  if (refusalDecision.blocked) {
+    return NextResponse.json(
+      buildDocsAssistantRefusalAnswer({
+        question: validatedPayload.payload.question,
+        decision: refusalDecision,
+      }),
+      { headers: NO_STORE_HEADERS },
+    );
+  }
+
+  const answer = await runDocsAssistantServerRuntime({
+    payload: validatedPayload.payload,
+    config,
+  });
+
+  return NextResponse.json(answer, { headers: NO_STORE_HEADERS });
 }
