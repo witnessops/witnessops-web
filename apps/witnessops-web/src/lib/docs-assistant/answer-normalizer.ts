@@ -114,20 +114,7 @@ function parseJsonObject(text: string): Record<string, unknown> | null {
       ? (parsed as Record<string, unknown>)
       : null;
   } catch {
-    const firstBrace = text.indexOf("{");
-    const lastBrace = text.lastIndexOf("}");
-    if (firstBrace < 0 || lastBrace <= firstBrace) {
-      return null;
-    }
-
-    try {
-      const parsed = JSON.parse(text.slice(firstBrace, lastBrace + 1)) as unknown;
-      return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-        ? (parsed as Record<string, unknown>)
-        : null;
-    } catch {
-      return null;
-    }
+    return null;
   }
 }
 
@@ -162,7 +149,15 @@ export function extractOutputTextFromResponse(response: unknown): string | null 
         continue;
       }
 
-      const text = (contentItem as { text?: unknown }).text;
+      const typedContentItem = contentItem as { type?: unknown; text?: unknown };
+      if (
+        typedContentItem.type !== undefined &&
+        typedContentItem.type !== "output_text"
+      ) {
+        continue;
+      }
+
+      const text = typedContentItem.text;
       if (typeof text === "string") {
         fragments.push(text);
       }

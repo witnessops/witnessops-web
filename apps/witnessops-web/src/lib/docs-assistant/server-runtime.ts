@@ -19,6 +19,102 @@ export interface DocsAssistantPayloadValidationResult {
 
 export type DocsAssistantFetch = typeof fetch;
 
+const DOCS_ASSISTANT_CLAIM_SCHEMA = {
+  type: "object",
+  properties: {
+    text: { type: "string" },
+    citation_ids: {
+      type: "array",
+      items: { type: "string" },
+    },
+  },
+  required: ["text", "citation_ids"],
+  additionalProperties: false,
+} as const;
+
+const DOCS_ASSISTANT_FILE_SEARCH_CITATION_SCHEMA = {
+  type: "object",
+  properties: {
+    citation_id: { type: "string" },
+    source_type: { type: "string", enum: ["openai_file_search_result"] },
+    source_file_id: { type: "string" },
+    filename: { type: "string" },
+    source_artifact: { type: "string" },
+    vector_store_id: { type: "string" },
+    retrieved_result_index: { type: "integer" },
+    supports: {
+      type: "string",
+      enum: ["collected_source_corpus_package", "corpus_plan_record_only"],
+    },
+    source_bodies_collected: { type: "boolean" },
+    source_bodies_uploaded: { type: "boolean" },
+  },
+  required: [
+    "citation_id",
+    "source_type",
+    "source_file_id",
+    "filename",
+    "source_artifact",
+    "vector_store_id",
+    "retrieved_result_index",
+    "supports",
+    "source_bodies_collected",
+    "source_bodies_uploaded",
+  ],
+  additionalProperties: false,
+} as const;
+
+const DOCS_ASSISTANT_ANSWER_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    schema_version: { type: "string", enum: ["docs-assistant.answer.v1"] },
+    answer_status: {
+      type: "string",
+      enum: [
+        "supported_by_docs",
+        "partially_supported",
+        "not_found_in_docs",
+        "needs_human_review",
+        "cannot_claim",
+      ],
+    },
+    documented_facts: {
+      type: "array",
+      items: DOCS_ASSISTANT_CLAIM_SCHEMA,
+    },
+    inference: {
+      type: "array",
+      items: DOCS_ASSISTANT_CLAIM_SCHEMA,
+    },
+    citations: {
+      type: "array",
+      items: DOCS_ASSISTANT_FILE_SEARCH_CITATION_SCHEMA,
+    },
+    unsupported_reason: { type: ["string", "null"] },
+    human_review_required: { type: "boolean" },
+    not_proven: {
+      type: "array",
+      items: { type: "string" },
+    },
+    boundary_findings: {
+      type: "array",
+      items: { type: "string" },
+    },
+  },
+  required: [
+    "schema_version",
+    "answer_status",
+    "documented_facts",
+    "inference",
+    "citations",
+    "unsupported_reason",
+    "human_review_required",
+    "not_proven",
+    "boundary_findings",
+  ],
+  additionalProperties: false,
+} as const;
+
 const DOCS_ASSISTANT_BOUNDARY_INSTRUCTION = [
   "You are a staging probe for the WitnessOps Docs Assistant.",
   "Use only file_search results from the approved vector store.",
@@ -27,7 +123,12 @@ const DOCS_ASSISTANT_BOUNDARY_INSTRUCTION = [
   "Do not claim source freshness.",
   "Do not claim proof bundles, artifacts, compliance, security posture, assistant safety, production readiness, or public release are verified.",
   "If file_search results do not support the answer, return cannot_claim.",
-  "Return structured JSON only with answer_status, documented_facts, inference, citations, unsupported_reason, human_review_required, not_proven, and boundary_findings.",
+  "Return exactly one JSON object matching the supplied schema. Do not return Markdown or prose outside the JSON object.",
+  "Set schema_version to docs-assistant.answer.v1.",
+  "Leave citations empty; the server binds file_search citations from tool results.",
+  "When retrieved docs support a bounded route purpose, use supported_by_docs or partially_supported and place broader limits in not_proven instead of refusing the whole answer.",
+  "For verify-purpose questions, include source_freshness, general_answer_correctness, assistant_production_ready, and public_release_approved in not_proven.",
+  "For cannot_claim, not_found_in_docs, or needs_human_review, include a non-empty unsupported_reason and stable not_proven boundaries.",
 ].join(" ");
 
 export function validateDocsAssistantAskPayload(
@@ -81,6 +182,14 @@ export function buildDocsAssistantResponsesRequest(args: {
     tool_choice: { type: "file_search" },
     max_tool_calls: 1,
     include: ["file_search_call.results"],
+    text: {
+      format: {
+        type: "json_schema",
+        name: "docs_assistant_answer",
+        strict: true,
+        schema: DOCS_ASSISTANT_ANSWER_JSON_SCHEMA,
+      },
+    },
     input: [
       {
         role: "developer",

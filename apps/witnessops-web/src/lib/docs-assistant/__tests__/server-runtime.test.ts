@@ -53,6 +53,39 @@ test("docs assistant request builder uses exact staging Responses file-search co
   assert.deepEqual(request.tool_choice, { type: "file_search" });
   assert.equal(request.max_tool_calls, 1);
   assert.deepEqual(request.include, ["file_search_call.results"]);
+  assert.deepEqual(request.text.format.type, "json_schema");
+  assert.deepEqual(request.text.format.name, "docs_assistant_answer");
+  assert.equal(request.text.format.strict, true);
+  assert.equal(request.text.format.schema.type, "object");
+  assert.deepEqual(request.text.format.schema.additionalProperties, false);
+  assert.deepEqual(
+    request.text.format.schema.required,
+    [
+      "schema_version",
+      "answer_status",
+      "documented_facts",
+      "inference",
+      "citations",
+      "unsupported_reason",
+      "human_review_required",
+      "not_proven",
+      "boundary_findings",
+    ],
+  );
+  assert.deepEqual(
+    request.text.format.schema.properties.answer_status.enum,
+    [
+      "supported_by_docs",
+      "partially_supported",
+      "not_found_in_docs",
+      "needs_human_review",
+      "cannot_claim",
+    ],
+  );
+  assert.match(
+    request.input[0]?.content ?? "",
+    /Return exactly one JSON object matching the supplied schema/,
+  );
 });
 
 test("docs assistant server runtime uses injected fake fetch", async () => {
