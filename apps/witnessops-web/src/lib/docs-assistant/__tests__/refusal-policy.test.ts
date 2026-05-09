@@ -48,4 +48,13 @@ test("docs assistant refusal answer returns cannot_claim", () => {
   assert.equal(answer.answer_status, "cannot_claim");
   assert.equal(answer.human_review_required, true);
   assert.match(answer.boundary_findings.join(","), /production_readiness/);
+  assert.deepEqual(
+    [
+      "source_freshness",
+      "general_answer_correctness",
+      "assistant_production_ready",
+      "public_release_approved",
+    ].every((boundary) => answer.not_proven.includes(boundary)),
+    true,
+  );
 });
