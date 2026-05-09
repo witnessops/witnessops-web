@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import test from "node:test";
+import test, { afterEach } from "node:test";
 
 import * as route from "./route";
 import { POST } from "./route";
@@ -24,17 +24,113 @@ const expectedPayload = {
   ],
 };
 
-test("docs assistant ask route is POST-only and fails closed", async () => {
-  assert.equal("GET" in route, false);
+const DOCS_ASSISTANT_ENV_KEYS = [
+  "OPENAI_API_KEY",
+  "WITNESSOPS_DOCS_ASSISTANT_ENABLED",
+  "WITNESSOPS_DOCS_ASSISTANT_STAGE",
+  "WITNESSOPS_DOCS_ASSISTANT_VECTOR_STORE_ID",
+  "WITNESSOPS_DOCS_ASSISTANT_MODEL",
+] as const;
 
-  const response = await POST();
+function makeRequest(body: unknown = { question: "What is /verify for?" }) {
+  return new Request("https://witnessops.com/api/docs-assistant/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
 
-  assert.equal(response.status, 503);
-  assert.equal(response.headers.get("Cache-Control"), "no-store");
-  assert.deepEqual(await response.json(), expectedPayload);
+function clearDocsAssistantEnv() {
+  for (const key of DOCS_ASSISTANT_ENV_KEYS) {
+    delete process.env[key];
+  }
+}
+
+function applyEnabledEnv(overrides: Record<string, string | undefined> = {}) {
+  process.env.WITNESSOPS_DOCS_ASSISTANT_ENABLED = "true";
+  process.env.WITNESSOPS_DOCS_ASSISTANT_STAGE = "staging";
+  process.env.WITNESSOPS_DOCS_ASSISTANT_VECTOR_STORE_ID =
+    "vs_69fe62ba0e8c81918d2763cece82f0c0";
+  process.env.WITNESSOPS_DOCS_ASSISTANT_MODEL = "gpt-5.4-mini";
+  process.env.OPENAI_API_KEY = "test-key";
+
+  for (const [key, value] of Object.entries(overrides)) {
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
+  }
+}
+
+async function withFetchSpy<T>(callback: (getCalls: () => number) => Promise<T>) {
+  const previousFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = (async () => {
+    calls += 1;
+    throw new Error("test fetch should not be called");
+  }) as typeof fetch;
+
+  try {
+    return await callback(() => calls);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+}
+
+afterEach(() => {
+  clearDocsAssistantEnv();
 });
 
-test("docs assistant ask implementation does not include model, secret, retrieval, upload, or corpus paths", () => {
+test("docs assistant ask route is POST-only and fails closed", async () => {
+  assert.equal("GET" in route, false);
+  clearDocsAssistantEnv();
+
+  await withFetchSpy(async (getCalls) => {
+    const response = await POST(makeRequest());
+
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get("Cache-Control"), "no-store");
+    assert.deepEqual(await response.json(), expectedPayload);
+    assert.equal(getCalls(), 0);
+  });
+});
+
+test("docs assistant ask route fails closed without fetch for misconfigured gates", async () => {
+  const cases: Array<{
+    name: string;
+    env: Record<string, string | undefined>;
+  }> = [
+    { name: "env_absent", env: {} },
+    {
+      name: "wrong_stage",
+      env: { WITNESSOPS_DOCS_ASSISTANT_STAGE: "production" },
+    },
+    {
+      name: "wrong_vector_store",
+      env: { WITNESSOPS_DOCS_ASSISTANT_VECTOR_STORE_ID: "vs_wrong" },
+    },
+    { name: "missing_api_key", env: { OPENAI_API_KEY: undefined } },
+  ];
+
+  for (const testCase of cases) {
+    clearDocsAssistantEnv();
+    if (testCase.name !== "env_absent") {
+      applyEnabledEnv(testCase.env);
+    }
+
+    await withFetchSpy(async (getCalls) => {
+      const response = await POST(makeRequest());
+
+      assert.equal(response.status, 503, testCase.name);
+      assert.equal(response.headers.get("Cache-Control"), "no-store");
+      assert.deepEqual(await response.json(), expectedPayload);
+      assert.equal(getCalls(), 0, testCase.name);
+    });
+  }
+});
+
+test("docs assistant route and page do not expose client-side assistant wiring", () => {
   const implementationFiles = [
     resolve(__dirname, "route.ts"),
     resolve(__dirname, "../../../../lib/docs-assistant/answer-contract.ts"),
@@ -45,10 +141,7 @@ test("docs assistant ask implementation does not include model, secret, retrieva
 
   for (const file of implementationFiles) {
     const source = readFileSync(file, "utf-8");
-    assert.doesNotMatch(source, /OpenAI|OPENAI_API_KEY|WITNESSOPS_DOCS_ASSISTANT_/);
-    assert.doesNotMatch(source, /fetch\s*\(/);
-    assert.doesNotMatch(source, /vector[-_ ]?store/i);
-    assert.doesNotMatch(source, /upload/i);
-    assert.doesNotMatch(source, /corpus[-_ ]?generation|generated corpus/i);
+    assert.doesNotMatch(source, /NEXT_PUBLIC.*DOCS_ASSISTANT/i);
+    assert.doesNotMatch(source, /files\.create|vector[-_ ]?store.*upload/i);
   }
 });

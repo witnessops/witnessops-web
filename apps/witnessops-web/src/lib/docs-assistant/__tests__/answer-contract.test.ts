@@ -41,6 +41,24 @@ test("docs assistant citation shape supports URL and repo-path references", () =
   assert.equal(repoPathCitation.source_type, "repo_path");
 });
 
+test("docs assistant citation shape supports OpenAI file-search result references", () => {
+  const fileSearchCitation: DocsAssistantCitation = {
+    citation_id: "src-collected-corpus-runtime-0",
+    source_type: "openai_file_search_result",
+    source_file_id: "file-9ztnkfLvWtUvi9ZY52q2UQ",
+    filename: "CORPUS_PACKAGE.json",
+    source_artifact: "CORPUS_PACKAGE.json",
+    vector_store_id: "vs_69fe62ba0e8c81918d2763cece82f0c0",
+    retrieved_result_index: 0,
+    supports: "collected_source_corpus_package",
+    source_bodies_collected: true,
+    source_bodies_uploaded: true,
+  };
+
+  assert.equal(fileSearchCitation.source_type, "openai_file_search_result");
+  assert.equal(fileSearchCitation.filename, "CORPUS_PACKAGE.json");
+});
+
 test("docs assistant answer shape keeps facts, inference, citations, and not-proven boundaries separate", () => {
   const answer: DocsAssistantAnswer = {
     schema_version: "docs-assistant.answer.v1",
@@ -52,6 +70,7 @@ test("docs assistant answer shape keeps facts, inference, citations, and not-pro
     unsupported_reason: "Not found in approved docs.",
     human_review_required: true,
     not_proven: ["compliance_correctness", "source_system_truth"],
+    boundary_findings: [],
   };
 
   assert.equal(answer.answer_status, "not_found_in_docs");
