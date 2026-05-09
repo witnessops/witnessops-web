@@ -15,10 +15,17 @@ const ANSWER_STATUSES: readonly AnswerStatus[] = [
 
 const DEFAULT_NOT_PROVEN = [
   "source_freshness",
+  "answer_correctness",
   "general_answer_correctness",
   "assistant_safe",
   "assistant_production_ready",
   "public_release_approved",
+];
+
+const NON_SUPPORTED_STATUSES: readonly AnswerStatus[] = [
+  "cannot_claim",
+  "not_found_in_docs",
+  "needs_human_review",
 ];
 
 function isAnswerStatus(value: unknown): value is AnswerStatus {
@@ -31,6 +38,36 @@ function stringArray(value: unknown): string[] {
   }
 
   return value.filter((item): item is string => typeof item === "string");
+}
+
+function unique(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
+function needsNotProvenDefaults(answerStatus: AnswerStatus): boolean {
+  return NON_SUPPORTED_STATUSES.includes(answerStatus);
+}
+
+function normalizeNotProven(value: unknown, answerStatus: AnswerStatus): string[] {
+  const modelNotProven = stringArray(value);
+  if (!needsNotProvenDefaults(answerStatus)) {
+    return modelNotProven;
+  }
+
+  return unique([...modelNotProven, ...DEFAULT_NOT_PROVEN]);
+}
+
+function normalizeUnsupportedReason(
+  value: unknown,
+  answerStatus: AnswerStatus,
+): string | null {
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+
+  return needsNotProvenDefaults(answerStatus)
+    ? "answer_not_supported_by_retrieved_docs"
+    : null;
 }
 
 function normalizeClaims(
@@ -175,15 +212,15 @@ export function normalizeDocsAssistantAnswer(args: {
     documented_facts: normalizeClaims(parsed.documented_facts, citationIds),
     inference: normalizeClaims(parsed.inference, citationIds),
     citations: args.citations,
-    unsupported_reason:
-      typeof parsed.unsupported_reason === "string"
-        ? parsed.unsupported_reason
-        : null,
+    unsupported_reason: normalizeUnsupportedReason(
+      parsed.unsupported_reason,
+      parsed.answer_status,
+    ),
     human_review_required:
       typeof parsed.human_review_required === "boolean"
         ? parsed.human_review_required
         : parsed.answer_status !== "supported_by_docs",
-    not_proven: stringArray(parsed.not_proven),
+    not_proven: normalizeNotProven(parsed.not_proven, parsed.answer_status),
     boundary_findings: boundaryFindings,
   };
 }

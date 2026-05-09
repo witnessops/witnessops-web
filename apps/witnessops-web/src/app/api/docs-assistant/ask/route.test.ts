@@ -130,6 +130,74 @@ test("docs assistant ask route fails closed without fetch for misconfigured gate
   }
 });
 
+test("docs assistant ask route applies refusal precheck without fetch when enabled", async () => {
+  const cases: Array<{
+    name: string;
+    question: string;
+    expectedBoundaries: string[];
+    expectedNotProven: string[];
+  }> = [
+    {
+      name: "compliance",
+      question: "Can WitnessOps certify my company is compliant?",
+      expectedBoundaries: [
+        "compliance_certification_not_allowed",
+        "customer_specific_claim_not_allowed",
+      ],
+      expectedNotProven: [
+        "compliance_correctness",
+        "security_posture",
+        "source_system_truth",
+      ],
+    },
+    {
+      name: "proof_bundle",
+      question: "Can the Docs Assistant verify my proof bundle?",
+      expectedBoundaries: ["proof_bundle_verification_not_allowed"],
+      expectedNotProven: [
+        "proof_bundle_verification",
+        "artifact_verification",
+        "verifier_authority",
+      ],
+    },
+  ];
+
+  for (const testCase of cases) {
+    clearDocsAssistantEnv();
+    applyEnabledEnv();
+
+    await withFetchSpy(async (getCalls) => {
+      const response = await POST(
+        makeRequest({
+          question: testCase.question,
+          case_id: `probe-${testCase.name}`,
+        }),
+      );
+      const body = await response.json();
+
+      assert.equal(response.status, 200, testCase.name);
+      assert.equal(response.headers.get("Cache-Control"), "no-store");
+      assert.equal(body.answer_status, "cannot_claim");
+      assert.equal(body.human_review_required, true);
+      assert.deepEqual(
+        testCase.expectedBoundaries.every((boundary) =>
+          body.boundary_findings.includes(boundary),
+        ),
+        true,
+        testCase.name,
+      );
+      assert.deepEqual(
+        testCase.expectedNotProven.every((boundary) =>
+          body.not_proven.includes(boundary),
+        ),
+        true,
+        testCase.name,
+      );
+      assert.equal(getCalls(), 0, testCase.name);
+    });
+  }
+});
+
 test("docs assistant route and page do not expose client-side assistant wiring", () => {
   const implementationFiles = [
     resolve(__dirname, "route.ts"),

@@ -43,12 +43,87 @@ test("docs assistant answer normalizer preserves cannot_claim", () => {
 
   assert.equal(answer.answer_status, "cannot_claim");
   assert.equal(answer.unsupported_reason, "compliance_certification_not_allowed");
-  assert.deepEqual(answer.not_proven, [
-    "compliance_correctness",
-    "security_posture",
-    "source_system_truth",
-  ]);
+  assert.deepEqual(
+    [
+      "compliance_correctness",
+      "security_posture",
+      "source_system_truth",
+      "source_freshness",
+      "answer_correctness",
+      "general_answer_correctness",
+      "assistant_production_ready",
+      "public_release_approved",
+    ].every((boundary) => answer.not_proven.includes(boundary)),
+    true,
+  );
   assert.equal(answer.citations.length, 1);
+});
+
+test("docs assistant answer normalizer adds stable not-proven labels to verify-purpose cannot_claim fallback", () => {
+  const answer = normalizeDocsAssistantAnswer({
+    question: "What is /verify for?",
+    response: {
+      output_text: JSON.stringify({
+        answer_status: "cannot_claim",
+        documented_facts: [],
+        inference: [],
+        citations: [],
+        unsupported_reason: "",
+        human_review_required: true,
+        not_proven: ["That /verify is intended for broader runtime claims."],
+        boundary_findings: [],
+      }),
+    },
+    citations,
+  });
+
+  assert.equal(answer.answer_status, "cannot_claim");
+  assert.equal(answer.unsupported_reason, "answer_not_supported_by_retrieved_docs");
+  assert.deepEqual(
+    [
+      "source_freshness",
+      "answer_correctness",
+      "general_answer_correctness",
+      "assistant_production_ready",
+      "public_release_approved",
+    ].every((boundary) => answer.not_proven.includes(boundary)),
+    true,
+  );
+  assert.equal(answer.citations.length, 1);
+});
+
+test("docs assistant answer normalizer adds stable not-proven labels to not_found and human-review fallbacks", () => {
+  for (const answerStatus of ["not_found_in_docs", "needs_human_review"] as const) {
+    const answer = normalizeDocsAssistantAnswer({
+      question: "What is outside the docs?",
+      response: {
+        output_text: JSON.stringify({
+          answer_status: answerStatus,
+          documented_facts: [],
+          inference: [],
+          citations: [],
+          unsupported_reason: null,
+          human_review_required: true,
+          not_proven: [],
+          boundary_findings: [],
+        }),
+      },
+      citations: [],
+    });
+
+    assert.equal(answer.answer_status, answerStatus);
+    assert.equal(answer.unsupported_reason, "answer_not_supported_by_retrieved_docs");
+    assert.deepEqual(
+      [
+        "source_freshness",
+        "answer_correctness",
+        "general_answer_correctness",
+        "assistant_production_ready",
+        "public_release_approved",
+      ].every((boundary) => answer.not_proven.includes(boundary)),
+      true,
+    );
+  }
 });
 
 test("docs assistant answer normalizer fails malformed model output into human review", () => {
