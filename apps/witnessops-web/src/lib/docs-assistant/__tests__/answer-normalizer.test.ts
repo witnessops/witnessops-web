@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { normalizeDocsAssistantAnswer } from "../answer-normalizer";
+import {
+  extractOutputTextFromResponse,
+  normalizeDocsAssistantAnswer,
+} from "../answer-normalizer";
 import type { DocsAssistantCitation } from "../answer-contract";
 
 const citations: DocsAssistantCitation[] = [
@@ -137,4 +140,83 @@ test("docs assistant answer normalizer fails malformed model output into human r
   assert.equal(answer.human_review_required, true);
   assert.equal(answer.unsupported_reason, "model_output_not_structured_json");
   assert.match(answer.boundary_findings.join(","), /model_output_not_structured_json/);
+});
+
+test("docs assistant answer normalizer rejects JSON embedded in prose", () => {
+  const answer = normalizeDocsAssistantAnswer({
+    question: "What is /verify for?",
+    response: {
+      output_text: `Here is the JSON: ${JSON.stringify({
+        answer_status: "partially_supported",
+        documented_facts: [],
+        inference: [],
+        citations: [],
+        unsupported_reason: null,
+        human_review_required: false,
+        not_proven: ["source_freshness"],
+        boundary_findings: [],
+      })}`,
+    },
+    citations,
+  });
+
+  assert.equal(answer.answer_status, "needs_human_review");
+  assert.equal(answer.unsupported_reason, "model_output_not_structured_json");
+  assert.match(answer.boundary_findings.join(","), /model_output_not_structured_json/);
+});
+
+test("docs assistant answer normalizer reads real Responses output_text content items", () => {
+  const outputText = JSON.stringify({
+    answer_status: "partially_supported",
+    documented_facts: [
+      {
+        text: "The docs describe a bounded /verify receipt-check surface.",
+        citation_ids: [],
+      },
+    ],
+    inference: [],
+    citations: [],
+    unsupported_reason: null,
+    human_review_required: false,
+    not_proven: [
+      "source_freshness",
+      "general_answer_correctness",
+      "public_release_approved",
+    ],
+    boundary_findings: [],
+  });
+
+  assert.equal(
+    extractOutputTextFromResponse({
+      output: [
+        {
+          type: "message",
+          content: [{ type: "output_text", text: outputText }],
+        },
+      ],
+    }),
+    outputText,
+  );
+
+  const answer = normalizeDocsAssistantAnswer({
+    question: "What is /verify for?",
+    response: {
+      output: [
+        {
+          type: "message",
+          content: [{ type: "output_text", text: outputText }],
+        },
+      ],
+    },
+    citations,
+  });
+
+  assert.equal(answer.answer_status, "partially_supported");
+  assert.equal(answer.documented_facts.length, 1);
+  assert.deepEqual(
+    ["source_freshness", "general_answer_correctness", "public_release_approved"].every(
+      (boundary) => answer.not_proven.includes(boundary),
+    ),
+    true,
+  );
 });
