@@ -14,6 +14,7 @@ and sample proof-surface pages used to explain artifact inspection boundaries.
 - Returns deterministic verification results for the same receipt input.
 - Provides buyer-facing proof-run, sample-case, docs, support, pricing, library, and legal/security surfaces.
 - Presents the AI Agent Action Proof Run sample with pinned artifact links, manifest provenance, visible artifact digests, and buyer-path smoke coverage.
+- Uses Servury/edge02 as the active hosting lane, as classified in [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md).
 
 ## What this repository does not do
 
@@ -23,6 +24,21 @@ and sample proof-surface pages used to explain artifact inspection boundaries.
 - It does not store customer data as part of normal verification.
 - It does not recompute individual source artifact hashes for the external sample repo locally.
 - It does not prove production deployment, legal compliance, source-system truth, or complete AI governance coverage.
+- It does not use Azure Container Apps, `azd`, or root Bicep files as active deployment authority.
+
+## Deployment authority
+
+Deployment guidance lives in [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md).
+
+Current repo boundary:
+
+- active hosting lane: Servury/edge02 clean-server hosting
+- active app runtime inputs: app source, package scripts, Dockerfile, environment examples, and validation commands
+- retired Azure archive: `docs/archive/azure-aca-retired-20260508/`
+
+The archived Azure material is historical reference only. Do not run Azure
+commands, restore Azure deployment paths, or treat the archive as rollback
+authority without a separate explicit Azure reopening lane.
 
 ## Verify a receipt
 
@@ -65,6 +81,7 @@ For vulnerability disclosure, see [`SECURITY.md`](./SECURITY.md).
 - Local validation: `pnpm health` (build, lint, typecheck, tests, route parity, receipt smoke, buyer-path smoke).
 - Public buyer/proof-surface validation: `pnpm smoke:buyer-path:test`.
 - Frozen command contract: [`commands.md`](./commands.md).
+- Deployment authority: [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md).
 - Repository-local docs index: [`docs/README.md`](./docs/README.md).
 - Root/subtree authority-file inventory and stale-file deletion gate: [`docs/ROOT_SURFACE_INVENTORY.md`](./docs/ROOT_SURFACE_INVENTORY.md).
 - Agent instructions: [`AGENTS.md`](./AGENTS.md) and [`apps/witnessops-web/AGENTS.md`](./apps/witnessops-web/AGENTS.md).

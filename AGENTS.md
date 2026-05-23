@@ -19,6 +19,14 @@ Release authority: internal/manual for now
 - Prefer route-parity evidence over interpretation.
 - Do not expose internal-only proof details through operator-facing surfaces.
 
+## Deployment authority
+
+- Use [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md) before any deploy-adjacent work.
+- The active WitnessOps web hosting lane is Servury/edge02 clean-server hosting.
+- Azure Container Apps is retired for this repo. Root `azure.yaml` and `infra/**` were archived under `docs/archive/azure-aca-retired-20260508/`.
+- Do not run `az`, `azd`, Bicep deployment, Azure inventory, Azure cleanup, Azure rollback, or Azure restore work from this repo unless a separate explicit Azure reopening lane names the allowed cloud surfaces, commands, receipts, and stop boundary.
+- Do not treat archived Azure files as active deploy authority, rollback authority, or evidence that Azure resources exist.
+
 ## Root file hygiene
 
 - Treat project-root files as operator authority surfaces. Do not delete or rename root files unless the PR names the target files and proves they are stale.
