@@ -34,10 +34,14 @@ afterEach(() => {
   }
 });
 
-function makeRequest(host: string): NextRequest {
+function makeRequest(
+  host?: string,
+  extraHeaders: Record<string, string> = {},
+): NextRequest {
   return new NextRequest("https://example.com/admin", {
     headers: {
-      host,
+      ...(host ? { host } : {}),
+      ...extraHeaders,
     },
   });
 }
@@ -48,8 +52,26 @@ test("isLocalAdminRequest requires an exact localhost host", () => {
 
   assert.equal(isLocalAdminRequest(makeRequest("localhost:3001")), true);
   assert.equal(isLocalAdminRequest(makeRequest("127.0.0.1:3001")), true);
+  assert.equal(isLocalAdminRequest(makeRequest("[::1]:3001")), true);
   assert.equal(isLocalAdminRequest(makeRequest("localhost.evil.com")), false);
   assert.equal(isLocalAdminRequest(makeRequest("127.0.0.1.evil.com")), false);
+  assert.equal(isLocalAdminRequest(makeRequest("localhost@example.com")), false);
+  assert.equal(isLocalAdminRequest(makeRequest("::1")), false);
+});
+
+test("isLocalAdminRequest ignores forwarded host spoofing", () => {
+  mutableEnv.NODE_ENV = "development";
+  process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS = "1";
+
+  assert.equal(
+    isLocalAdminRequest(
+      makeRequest("staging.example.test", {
+        "x-forwarded-host": "localhost",
+      }),
+    ),
+    false,
+  );
+  assert.equal(isLocalAdminRequest(makeRequest("staging.example.test")), false);
 });
 
 test("getVerifiedAdminSession disables the local bypass in production", async () => {
@@ -58,6 +80,14 @@ test("getVerifiedAdminSession disables the local bypass in production", async ()
 
   const session = await getVerifiedAdminSession(makeRequest("localhost:3001"));
   assert.equal(session, null);
+  assert.equal(
+    isLocalAdminRequest(
+      makeRequest("staging.example.test", {
+        "x-forwarded-host": "localhost",
+      }),
+    ),
+    false,
+  );
 });
 
 test("isLocalAdminRequest requires explicit bypass enablement", () => {
@@ -65,6 +95,13 @@ test("isLocalAdminRequest requires explicit bypass enablement", () => {
   delete process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS;
 
   assert.equal(isLocalAdminRequest(makeRequest("localhost:3001")), false);
+});
+
+test("isLocalAdminRequest requires a direct host header", () => {
+  mutableEnv.NODE_ENV = "development";
+  process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS = "1";
+
+  assert.equal(isLocalAdminRequest(makeRequest()), false);
 });
 
 test("getVerifiedAdminSession accepts signed oidc admin sessions", async () => {

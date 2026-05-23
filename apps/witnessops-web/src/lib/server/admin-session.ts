@@ -17,7 +17,7 @@ export interface VerifiedAdminSession {
   isLocalBypass: boolean;
 }
 
-const LOCAL_DEV_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+const LOCAL_DEV_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 export const ADMIN_SESSION_COOKIE_NAME = "witnessops-admin-session";
 
 function localAdminBypassEnabled(): boolean {
@@ -57,8 +57,16 @@ export async function createAdminSessionCookie(
 }
 
 function normalizeHost(host: string | null): string {
-  const candidate = host?.split(",")[0]?.trim() ?? "";
+  const candidate = host?.trim() ?? "";
   if (!candidate) {
+    return "";
+  }
+  if (
+    candidate.includes(",") ||
+    candidate.includes("@") ||
+    candidate.includes("/") ||
+    candidate.includes("\\")
+  ) {
     return "";
   }
 
@@ -69,7 +77,7 @@ function normalizeHost(host: string | null): string {
   }
 }
 
-function isLocalHost(host: string): boolean {
+function isLocalHost(host: string | null): boolean {
   return LOCAL_DEV_HOSTS.has(normalizeHost(host));
 }
 
@@ -82,11 +90,13 @@ export function isLocalAdminRequest(request: Request | NextRequest): boolean {
     return false;
   }
 
-  const host =
-    request.headers.get("x-forwarded-host") ??
-    request.headers.get("host") ??
-    new URL(request.url).host;
+  // Do not trust x-forwarded-host for local admin bypass. Forwarded headers
+  // can be client-controlled unless set by a trusted proxy.
+  const host = request.headers.get("host");
 
+  // Host is still not proof of local transport. This bypass is only acceptable
+  // when the dev server is bound to loopback or otherwise inaccessible from
+  // untrusted networks.
   return isLocalHost(host);
 }
 

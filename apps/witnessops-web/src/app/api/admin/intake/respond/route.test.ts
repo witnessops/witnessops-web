@@ -96,7 +96,7 @@ test("admin respond route sends the first external reply and records responded",
         subject: "Re: WitnessOps support request",
         body: "We reviewed your receipt and will continue from this thread.",
       }),
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", host: "localhost:3001" },
     }),
   );
 
@@ -175,7 +175,7 @@ test("admin respond route is idempotent after the first responded event", async 
           subject: "Re: WitnessOps support request",
           body: "We reviewed your receipt and will continue from this thread.",
         }),
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", host: "localhost:3001" },
       }),
     );
 

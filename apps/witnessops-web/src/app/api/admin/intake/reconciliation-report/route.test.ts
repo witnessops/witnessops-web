@@ -260,6 +260,9 @@ test("admin reconciliation report route exports unresolved and resolved ambiguit
   const response = await GET(
     new NextRequest(
       "http://localhost:3001/api/admin/intake/reconciliation-report",
+      {
+        headers: { host: "localhost:3001" },
+      },
     ),
   );
 

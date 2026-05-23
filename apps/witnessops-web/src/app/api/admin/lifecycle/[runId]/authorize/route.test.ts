@@ -89,6 +89,7 @@ test("admin authorize route advances a requested run", async () => {
   const response = await POST(
     new NextRequest("http://localhost:3001/api/admin/lifecycle/run_demo123/authorize", {
       method: "POST",
+      headers: { host: "localhost:3001" },
     }),
     { params: Promise.resolve({ runId: "run_demo123" }) },
   );
@@ -121,6 +122,7 @@ test("admin authorize route returns explicit control-plane conflicts", async () 
   const response = await POST(
     new NextRequest("http://localhost:3001/api/admin/lifecycle/run_demo123/authorize", {
       method: "POST",
+      headers: { host: "localhost:3001" },
     }),
     { params: Promise.resolve({ runId: "run_demo123" }) },
   );
