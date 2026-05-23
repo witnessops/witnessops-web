@@ -26,6 +26,17 @@ The following root files were inspected and treated as active authority surfaces
 - `apps/witnessops-web/Dockerfile` — active standalone runtime image definition.
 - `docs/README.md` — repository-local docs index.
 - `docs/CODEX_SECURITY_THREAT_MODEL.md` — seed context for Codex Security review.
+- `docs/DEPLOYMENT_AUTHORITY.md` — repo-local deployment authority classification.
+
+## Observed retired deployment archive
+
+The following files are preserved as historical reference only and are not active
+deployment authority:
+
+- `docs/archive/azure-aca-retired-20260508/azure.yaml` — retired Azure Developer CLI service definition.
+- `docs/archive/azure-aca-retired-20260508/infra/` — retired Azure Container Apps Bicep material.
+
+The active hosting lane is classified in `docs/DEPLOYMENT_AUTHORITY.md`.
 
 ## Sweep results
 
@@ -39,6 +50,7 @@ Observed findings:
 - `docs/README.md` was active but placeholder-like; refreshed separately.
 - Root and app `AGENTS.md` were active but stale in public proof-surface and root-hygiene guidance; refreshed separately.
 - Searches for stale public labels, TODO/FIXME/deprecated markers, backup/temp markers, and mutable sample links did not produce deletion-ready targets.
+- 2026-05-23 update: root `azure.yaml` and `infra/**` were classified as retired Azure ACA material and moved to `docs/archive/azure-aca-retired-20260508/`.
 
 ## Deletion gate
 
@@ -55,4 +67,4 @@ Without that evidence, prefer refresh, index, or explicit hold over deletion.
 
 ## Boundary
 
-This inventory is repository-local documentation. It does not change public site copy, verifier behavior, receipt semantics, package scripts, deploy behavior, Azure resources, or customer-facing flows.
+This inventory is repository-local documentation. It does not change public site copy, verifier behavior, receipt semantics, package scripts, Azure resources, server-provider state, or customer-facing flows.

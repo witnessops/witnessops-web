@@ -60,10 +60,15 @@ Treat the following as first-class review surfaces:
    - `tests/public-smoke/`
    - `scripts/smoke-buyer-path.ts`
 
-5. Deployment-adjacent config
-   - `azure.yaml`
-   - `infra/`
+5. Active deployment-adjacent config
+   - `apps/witnessops-web/Dockerfile`
    - package scripts and workspace build configuration
+   - environment examples that shape runtime expectations
+
+6. Retired deployment archive
+   - `docs/archive/azure-aca-retired-20260508/azure.yaml`
+   - `docs/archive/azure-aca-retired-20260508/infra/`
+   - historical Azure ACA material only; not active deploy authority
 
 ## Untrusted inputs
 
@@ -148,4 +153,4 @@ This prep artifact is sufficient when:
 
 - Codex Security scan context can be seeded from this file.
 - `AGENTS.md` points reviewers to this file.
-- No runtime code, verifier semantics, deploy config, secrets, or production settings were changed by this prep pass.
+- No runtime code, verifier semantics, secrets, production settings, or active deploy authority were changed by this prep artifact.
