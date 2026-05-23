@@ -17,6 +17,13 @@ This subtree contains live WitnessOps web app logic, not canonical public proof 
 - Do not expose internal-only proof details through operator-facing surfaces.
 - Keep comments and docs aligned with the live repository name `witnessops-web`.
 
+## Deployment boundary
+
+- This subtree owns app behavior, not cloud-provider authority.
+- Do not add Azure, `azd`, Bicep, ACA, or provider-specific deployment wiring under this subtree unless a separate explicit Azure reopening lane authorizes it.
+- The active web hosting lane is Servury/edge02 as classified by `../../docs/DEPLOYMENT_AUTHORITY.md`.
+- Archived Azure material under `../../docs/archive/azure-aca-retired-20260508/` is historical reference only.
+
 ## Public proof-surface rules
 
 - Public pages explain the proof model; they do not become proof authority unless tied to a named artifact, receipt, verifier result, or manifest.

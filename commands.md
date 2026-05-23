@@ -4,6 +4,15 @@ Frozen operator entrypoints for `witnessops-web`.
 
 This file documents root `package.json` scripts. If a root script changes, update this contract in the same lane or explicitly state why the command surface is unchanged.
 
+## Deployment command boundary
+
+This repo has no active Azure deployment command surface.
+
+- `pnpm release` builds the app artifact only.
+- Azure `az`, `azd`, Bicep, ACA, rollback, inventory, cleanup, and restore commands are not repo entrypoints.
+- Archived Azure material under `docs/archive/azure-aca-retired-20260508/` is historical reference only.
+- Any future Azure command requires a separate explicit Azure reopening lane with allowed cloud surfaces, validation commands, receipts, and stop boundary.
+
 ## Health
 
 `pnpm health`

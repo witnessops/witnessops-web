@@ -31,6 +31,8 @@ Do not infer that a passing Codex Security review verifies any out-of-scope syst
 
 - `main` in `witnessops/witnessops-web` is the code authority for this web surface.
 - `pnpm health` is the deterministic local validation command for this repo.
+- `docs/DEPLOYMENT_AUTHORITY.md` is the deployment-authority classifier for this repo.
+- Azure ACA material is retired and archived; it must not be treated as active deploy authority during review.
 - Codex Security may identify findings and suggest patches.
 - Codex Security findings do not authorize merge, deploy, verification-claim changes, or release.
 - Human maintainer review remains required for changes that affect security, verifier behavior, receipt semantics, public claim language, or deployment posture.
@@ -69,6 +71,7 @@ Treat the following as first-class review surfaces:
    - `docs/archive/azure-aca-retired-20260508/azure.yaml`
    - `docs/archive/azure-aca-retired-20260508/infra/`
    - historical Azure ACA material only; not active deploy authority
+   - no Azure command or rollback authority is implied by archive presence
 
 ## Untrusted inputs
 

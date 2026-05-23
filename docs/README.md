@@ -15,6 +15,8 @@ Repository-local docs for `witnessops-web` live here when they describe repo ope
 - Do not place production secrets, customer evidence, private proof bundles, signing keys, or cloud credentials here.
 - Do not delete repository-local docs as part of public copy, route, verifier, receipt, or deployment work unless the PR names the file and proves the replacement or stale status.
 - Historical deployment material lives under [`archive/`](./archive/) only when a PR explicitly classifies it as non-active.
+- Agents must not treat archived Azure material as active deployment, rollback, or restore authority.
+- Azure work requires a separate explicit Azure reopening lane; otherwise route deploy-adjacent work through [`DEPLOYMENT_AUTHORITY.md`](./DEPLOYMENT_AUTHORITY.md).
 
 ## Validation
 

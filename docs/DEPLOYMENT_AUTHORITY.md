@@ -5,20 +5,25 @@ Last updated: 2026-05-23
 
 This document classifies deployment-related repository surfaces for
 `witnessops-web`. It is repo-local guidance and is not deploy approval, release
-approval, production verification, or cloud inventory.
+approval, production verification, cloud inventory, rollback approval, or server
+administration authority.
 
 ## Active hosting lane
 
 The active WitnessOps web hosting lane is the clean server path on
-Servury/edge02. This repository's active runtime inputs are the web app source,
-package scripts, standalone Dockerfile, environment examples, and local
-validation commands.
+Servury/edge02. This repository's active runtime inputs are:
+
+- web app source
+- package scripts
+- `apps/witnessops-web/Dockerfile`
+- environment examples
+- local validation commands
 
 Provider-side server configuration, DNS operations, Caddy configuration,
 secrets, billing, and host administration are outside this repository unless a
 separate lane explicitly names those surfaces.
 
-## Retired Azure lane
+## Retired Azure lane: hard boundary
 
 The Azure Container Apps material is retired and archived at:
 
@@ -27,12 +32,24 @@ docs/archive/azure-aca-retired-20260508/
 ```
 
 That archive contains the former root `azure.yaml` and `infra/**` Bicep files.
-They are historical reference only. They are not active deploy inputs, rollback
-authority, release authority, or instructions to run `azd`.
+They are historical reference only.
+
+They are not:
+
+- active deploy inputs
+- rollback authority
+- release authority
+- cloud inventory
+- server-provider authority
+- instructions to run `az`, `azd`, Bicep, or ACA commands
 
 Do not use the archived Azure files for new work unless a separate explicit
 Azure reopening lane names the allowed cloud surfaces, validation commands,
 receipt requirements, and stop boundary.
+
+Default routing for agent work: if a task mentions deployment, hosting, runtime,
+server, provider, or rollback and does not explicitly reopen Azure, treat Azure
+as closed and route to the Servury/edge02 lane or to repo-local app validation.
 
 ## Review boundary
 
@@ -41,4 +58,6 @@ public copy, verifier semantics, receipt semantics, release, and server-provider
 mutation.
 
 Any future PR that removes the archive entirely should include reference search
-results, replacement authority, and the validation commands run.
+results, replacement authority, and the validation commands run. Any future PR
+that reactivates Azure must be treated as a separate deep lane, not a cleanup
+or routine deploy lane.
