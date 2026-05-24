@@ -48,6 +48,28 @@ test("docs assistant runtime config accepts only exact staging anchors", () => {
   }
 });
 
+test("docs assistant runtime config enables in development without staging gates", () => {
+  const config = readDocsAssistantRuntimeConfig({
+    NODE_ENV: "development",
+    OPENAI_API_KEY: "test-key",
+  });
+
+  assert.equal(config.enabled, true);
+  if (config.enabled) {
+    assert.equal(config.stage, "development");
+    assert.equal(config.vectorStoreId, DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID);
+    assert.equal(config.model, DOCS_ASSISTANT_STAGING_MODEL);
+    assert.equal(config.apiKey, "test-key");
+  }
+});
+
+test("docs assistant runtime config still fails closed in development without key", () => {
+  assert.deepEqual(readDocsAssistantRuntimeConfig({ NODE_ENV: "development" }), {
+    enabled: false,
+    reason: "missing_api_key",
+  });
+});
+
 test("docs assistant runtime config fails closed for wrong stage", () => {
   assert.deepEqual(
     readDocsAssistantRuntimeConfig(

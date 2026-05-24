@@ -23,7 +23,7 @@ export interface DocsAssistantRuntimeDisabledConfig {
 
 export interface DocsAssistantRuntimeEnabledConfig {
   enabled: true;
-  stage: "staging";
+  stage: "staging" | "development";
   vectorStoreId: typeof DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID;
   model: typeof DOCS_ASSISTANT_STAGING_MODEL;
   apiKey: string;
@@ -38,6 +38,20 @@ export type DocsAssistantRuntimeEnv = Record<string, string | undefined>;
 export function readDocsAssistantRuntimeConfig(
   env: DocsAssistantRuntimeEnv = process.env,
 ): DocsAssistantRuntimeConfig {
+  if (env.NODE_ENV === "development") {
+    const apiKey = env.OPENAI_API_KEY?.trim();
+    if (!apiKey) {
+      return { enabled: false, reason: "missing_api_key" };
+    }
+    return {
+      enabled: true,
+      stage: "development",
+      vectorStoreId: DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID,
+      model: DOCS_ASSISTANT_STAGING_MODEL,
+      apiKey,
+    };
+  }
+
   if (env.WITNESSOPS_DOCS_ASSISTANT_ENABLED !== "true") {
     return { enabled: false, reason: "gate_not_enabled" };
   }
