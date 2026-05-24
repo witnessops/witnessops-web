@@ -5,6 +5,7 @@ import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { getDocsSidebar } from "@witnessops/content/sidebar";
 import { CtaButton } from "@/components/shared/cta-button";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
+import { DocsAssistantInline } from "@/components/docs-assistant/docs-assistant-inline";
 
 const docsDescription =
   "Start here for WitnessOps execution, evidence, verification, and trust limits.";
@@ -235,6 +236,7 @@ const nextHandoff = [
 
 export default async function DocsIndexPage() {
   const sidebar = await getDocsSidebar("witnessops");
+  const isDev = process.env.NODE_ENV === "development";
 
   return (
     <main
@@ -608,6 +610,8 @@ export default async function DocsIndexPage() {
           ))}
         </div>
       </section>
+
+      {isDev && <DocsAssistantInline pageContext="WitnessOps Docs index" />}
     </main>
   );
 }

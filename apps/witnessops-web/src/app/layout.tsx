@@ -5,6 +5,7 @@ import { Navbar } from "@/components/shared/navbar";
 import { loadHomeContent } from "@/lib/content";
 import { KonamiPenguin } from "@/components/shared/konami-penguin";
 import { RouteScrollReset } from "@/components/shared/route-scroll-reset";
+import { DocsAssistantWidget } from "@/components/docs-assistant/docs-assistant-widget";
 import "./globals.css";
 
 const surface = getSurface("witnessops");
@@ -55,6 +56,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const content = loadHomeContent();
+  const isDev = process.env.NODE_ENV === "development";
 
   return (
     <html lang="en" className="dark" style={appShellStyle}>
@@ -100,6 +102,7 @@ export default function RootLayout({
         {children}
         <Footer {...content.footer} />
         <KonamiPenguin />
+        {isDev && <DocsAssistantWidget />}
       </body>
     </html>
   );
