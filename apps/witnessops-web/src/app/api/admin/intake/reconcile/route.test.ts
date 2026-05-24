@@ -159,7 +159,7 @@ test("admin reconcile route records a reconciliation fact without backfilling re
         evidenceSubcase: "local_attempt_recorded_provider_outcome_unknown",
         note: buildValidReconciliationNote(),
       }),
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", host: "localhost:3001" },
     }),
   );
 
@@ -226,7 +226,7 @@ test("admin reconcile route is idempotent after the reconciliation event exists"
           evidenceSubcase: "local_attempt_recorded_provider_outcome_unknown",
           note: buildValidReconciliationNote(),
         }),
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", host: "localhost:3001" },
       }),
     );
 
@@ -278,7 +278,7 @@ test("admin reconcile route rejects when responded is already durably confirmed"
         evidenceSubcase: "local_attempt_recorded_provider_outcome_unknown",
         note: "Should fail because responded is already durable.",
       }),
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", host: "localhost:3001" },
     }),
   );
 
@@ -336,7 +336,7 @@ test("admin reconcile route rejects once strong downstream provider evidence alr
         evidenceSubcase: "local_attempt_recorded_provider_outcome_unknown",
         note: buildValidReconciliationNote(),
       }),
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", host: "localhost:3001" },
     }),
   );
 
@@ -360,7 +360,7 @@ test("admin reconcile route rejects mismatched evidence subcases", async () => {
         evidenceSubcase: "provider_delivery_evidence_incomplete",
         note: buildValidReconciliationNote(),
       }),
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", host: "localhost:3001" },
     }),
   );
 
@@ -384,7 +384,7 @@ test("admin reconcile route rejects decorative notes that do not satisfy the cas
         evidenceSubcase: "local_attempt_recorded_provider_outcome_unknown",
         note: "Reviewed by ops. Looks fine.",
       }),
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", host: "localhost:3001" },
     }),
   );
 
