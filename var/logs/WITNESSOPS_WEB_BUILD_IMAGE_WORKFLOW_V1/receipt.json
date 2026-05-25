@@ -1,0 +1,25 @@
+{
+  "schema_version": "witnessops.operator_receipt_note.v1",
+  "status": "workflow_created_static_checks_passed_local_build_blocked_by_fetch_no_ci_run_no_image_proof",
+  "workflow_path": ".github/workflows/build-image.yml",
+  "dockerfile_path": "apps/witnessops-web/Dockerfile",
+  "triggers": [
+    "workflow_dispatch",
+    "push main"
+  ],
+  "static_checks_passed": [
+    "git diff --check -- .github/workflows/build-image.yml",
+    "ruby yaml parse",
+    "yq parse"
+  ],
+  "local_health_result": "failed_fetch",
+  "proof_not_created": [
+    "image digest",
+    "SBOM",
+    "cosign signature",
+    "Rekor entry",
+    "GHCR package"
+  ],
+  "no_runtime_mutation": true,
+  "next_gate": "workflow_dispatch smoke after GHCR permission confirmation"
+}
