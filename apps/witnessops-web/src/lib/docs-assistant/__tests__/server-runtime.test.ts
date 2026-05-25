@@ -97,7 +97,12 @@ test("docs assistant server runtime uses injected fake fetch", async () => {
       JSON.stringify({
         output_text: JSON.stringify({
           answer_status: "partially_supported",
-          documented_facts: ["WitnessOps publishes receipt checks at /verify."],
+          documented_facts: [
+            {
+              text: "WitnessOps publishes receipt checks at /verify.",
+              citation_ids: ["src-collected-corpus-probe-verify-purpose-0"],
+            },
+          ],
           inference: [],
           citations: [],
           unsupported_reason: null,

@@ -2,17 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { DocsAssistantBoundaryMeta } from "./docs-assistant-boundary-meta";
+import { DocsAssistantLoadingStatus } from "./docs-assistant-loading-status";
+import { DocsAssistantSourceLinks } from "./docs-assistant-source-links";
 import {
   answerText,
-  citationLabel,
+  docsAssistantRequestErrorDetails,
   type DocsAssistantUiAnswer,
-  visibleCitations,
 } from "./docs-assistant-response";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   citations?: DocsAssistantUiAnswer["citations"];
+  answer?: DocsAssistantUiAnswer;
   error?: boolean;
 }
 
@@ -48,14 +51,27 @@ export function DocsAssistantPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: trimmed }),
       });
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-      const data = await res.json();
+      if (!res.ok) {
+        const error = await docsAssistantRequestErrorDetails(res);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: error.message,
+            error: true,
+            answer: error.answer,
+          },
+        ]);
+        return;
+      }
+      const data = (await res.json()) as DocsAssistantUiAnswer;
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content: answerText(data),
           citations: data.citations,
+          answer: data,
         },
       ]);
     } catch (err) {
@@ -135,26 +151,11 @@ export function DocsAssistantPage() {
                     >
                       {msg.content}
                     </p>
-                    {msg.citations && msg.citations.length > 0 && (
-                      <div className="mt-3">
-                        <p
-                          className="mb-1.5 text-xs uppercase tracking-wider text-text-muted"
-                          style={{ fontFamily: "var(--font-mono)" }}
-                        >
-                          Sources
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {visibleCitations(msg.citations).map((c) => (
-                            <span
-                              key={c.citation_id}
-                              className="rounded border border-surface-border px-2 py-0.5 text-xs text-text-muted"
-                            >
-                              {citationLabel(c)}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <DocsAssistantSourceLinks
+                      answer={msg.answer}
+                      citations={msg.citations}
+                    />
+                    <DocsAssistantBoundaryMeta answer={msg.answer} />
                   </div>
                 </div>
               ),
@@ -162,12 +163,7 @@ export function DocsAssistantPage() {
 
             {loading && (
               <div className="flex justify-start">
-                <p
-                  className="text-xs text-text-muted"
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
-                  Searching docs…
-                </p>
+                <DocsAssistantLoadingStatus />
               </div>
             )}
             <div ref={bottomRef} />
@@ -182,7 +178,7 @@ export function DocsAssistantPage() {
             e.preventDefault();
             ask(question);
           }}
-          className="flex gap-2"
+          className="flex flex-col gap-2 sm:flex-row"
         >
           <input
             ref={inputRef}
@@ -190,12 +186,12 @@ export function DocsAssistantPage() {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Ask anything about WitnessOps docs…"
-            className="flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
+            className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
           />
           <button
             type="submit"
             disabled={loading || !question.trim()}
-            className="rounded border border-surface-border bg-surface-bg px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent disabled:opacity-40"
+            className="shrink-0 rounded border border-surface-border bg-surface-bg px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent disabled:opacity-40"
           >
             Ask
           </button>

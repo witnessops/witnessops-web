@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test, { afterEach } from "node:test";
+import { _resetAllStores } from "@witnessops/config/rate-limit";
 
 import * as route from "./route";
 import { POST } from "./route";
@@ -32,10 +33,13 @@ const DOCS_ASSISTANT_ENV_KEYS = [
   "WITNESSOPS_DOCS_ASSISTANT_MODEL",
 ] as const;
 
-function makeRequest(body: unknown = { question: "What is /verify for?" }) {
+function makeRequest(
+  body: unknown = { question: "What is /verify for?" },
+  headers: Record<string, string> = {},
+) {
   return new Request("https://witnessops.com/api/docs-assistant/ask", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify(body),
   });
 }
@@ -78,8 +82,41 @@ async function withFetchSpy<T>(callback: (getCalls: () => number) => Promise<T>)
   }
 }
 
+async function withSuccessfulFetchSpy<T>(
+  callback: (getCalls: () => number) => Promise<T>,
+) {
+  const previousFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = (async () => {
+    calls += 1;
+    return new Response(
+      JSON.stringify({
+        output_text: JSON.stringify({
+          answer_status: "not_found_in_docs",
+          documented_facts: [],
+          inference: [],
+          citations: [],
+          unsupported_reason: "answer_not_supported_by_retrieved_docs",
+          human_review_required: true,
+          not_proven: ["source_freshness"],
+          boundary_findings: [],
+        }),
+        output: [],
+      }),
+      { status: 200 },
+    );
+  }) as typeof fetch;
+
+  try {
+    return await callback(() => calls);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+}
+
 afterEach(() => {
   clearDocsAssistantEnv();
+  _resetAllStores();
 });
 
 test("docs assistant ask route is POST-only and fails closed", async () => {
@@ -196,6 +233,38 @@ test("docs assistant ask route applies refusal precheck without fetch when enabl
       assert.equal(getCalls(), 0, testCase.name);
     });
   }
+});
+
+test("docs assistant ask route rate limits enabled runtime before fetch", async () => {
+  clearDocsAssistantEnv();
+  _resetAllStores();
+  applyEnabledEnv();
+
+  await withSuccessfulFetchSpy(async (getCalls) => {
+    const requestBody = {
+      question: "What does the public verifier prove?",
+      case_id: "rate-limit-regression",
+    };
+    const headers = { "x-forwarded-for": "203.0.113.55" };
+
+    for (let i = 0; i < 10; i += 1) {
+      const response = await POST(makeRequest(requestBody, headers));
+      assert.equal(response.status, 200, `request ${i + 1}`);
+    }
+
+    assert.equal(getCalls(), 10);
+
+    const limited = await POST(makeRequest(requestBody, headers));
+    assert.equal(limited.status, 429);
+    assert.equal(limited.headers.get("Cache-Control"), "no-store");
+    assert.match(limited.headers.get("Retry-After") ?? "", /^\d+$/);
+    assert.deepEqual(await limited.json(), {
+      ok: false,
+      error: "Rate limit exceeded",
+      code: "RATE_LIMITED",
+    });
+    assert.equal(getCalls(), 10);
+  });
 });
 
 test("docs assistant route and page do not expose client-side assistant wiring", () => {

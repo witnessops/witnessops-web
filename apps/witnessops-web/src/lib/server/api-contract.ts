@@ -90,8 +90,8 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     path: "/api/docs-assistant/ask",
     methods: ["POST"],
     category: "public-utility",
-    summary: "Disabled docs assistant ask endpoint; fail-closed skeleton only",
-    note: "Returns 503 disabled response; no model call, retrieval, key, vector store, upload, or runtime assistant surface.",
+    summary: "Docs assistant ask endpoint with disabled-by-default staging gates",
+    note: "Returns 503 until explicitly enabled; enabled runtime is staging-gated, source-bounded, and public-intake rate limited.",
   },
   {
     path: "/api/support",

@@ -56,11 +56,23 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   // Focus input on mount
   useEffect(() => {
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     requestAnimationFrame(() => inputRef.current?.focus());
+
+    return () => {
+      if (previousFocusRef.current?.isConnected) {
+        previousFocusRef.current.focus();
+      }
+    };
   }, []);
 
   // Escape closes
@@ -72,6 +84,52 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         onClose();
+      }
+      if (e.key !== "Tab") {
+        return;
+      }
+
+      const dialog = dialogRef.current;
+      if (!dialog) {
+        return;
+      }
+
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter(
+        (element) =>
+          !element.hasAttribute("disabled") &&
+          element.getAttribute("aria-hidden") !== "true" &&
+          element.offsetParent !== null,
+      );
+
+      if (focusable.length === 0) {
+        e.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (!dialog.contains(active)) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+        return;
+      }
+
+      if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
       }
     }
     window.addEventListener("keydown", handleKey);
@@ -140,6 +198,7 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         className="w-full max-w-xl overflow-hidden rounded-xl border border-surface-border bg-surface-card shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -176,7 +235,7 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
               setActiveIndex(0);
             }}
             onKeyDown={handleKeyDown}
-            aria-label="Search documentation"
+            aria-label="Search docs input"
           />
           <kbd className="rounded border border-surface-border bg-surface-bg px-1.5 py-0.5 text-[10px] font-medium text-text-muted">
             ESC

@@ -12,7 +12,11 @@ export default function DocsAssistantRoute() {
   const isDev = process.env.NODE_ENV === "development";
 
   if (isDev) {
-    return <DocsAssistantPage />;
+    return (
+      <main id="main-content" tabIndex={-1} className="docs-page-enter">
+        <DocsAssistantPage />
+      </main>
+    );
   }
 
   return (

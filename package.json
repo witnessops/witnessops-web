@@ -17,6 +17,7 @@
     "route-parity": "node --import tsx --test tests/route-parity/route-parity.test.ts",
     "receipt-smoke": "node --import tsx --test tests/receipt-smoke/receipt-smoke.test.ts",
     "smoke:buyer-path": "node --import tsx ./scripts/smoke-buyer-path.ts",
+    "smoke:buyer-path:local": "node --import tsx ./scripts/smoke-buyer-path.ts --base-url http://127.0.0.1:3001",
     "smoke:buyer-path:test": "node --import tsx --test tests/public-smoke/smoke-buyer-path.test.ts",
     "docs:validate": "node --import tsx ./scripts/validate-docs.ts",
     "signals:validate": "node --import tsx ./scripts/validate-signals.ts"
