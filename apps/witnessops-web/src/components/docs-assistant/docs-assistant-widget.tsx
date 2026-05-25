@@ -22,7 +22,6 @@ export function DocsAssistantWidget() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<AnswerState | null>(null);
   const [loading, setLoading] = useState(false);
-  const isDocsPath = pathname.startsWith("/docs");
 
   if (pathname === "/docs/assistant") {
     return null;
@@ -61,13 +60,11 @@ export function DocsAssistantWidget() {
 
   return (
     <div
-      className={`fixed right-4 z-50 flex flex-col items-end gap-3 sm:right-6 ${
-        isDocsPath ? "bottom-20 sm:bottom-6" : "bottom-6"
-      }`}
+      className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6"
     >
       {open && (
         <div
-          className="flex w-[320px] flex-col overflow-hidden rounded border border-surface-border bg-surface-bg shadow-xl"
+          className="flex w-[calc(100vw-2rem)] max-w-[320px] flex-col overflow-hidden rounded border border-surface-border bg-surface-bg shadow-xl"
           style={{ height: 440 }}
         >
           {/* Header */}
@@ -175,7 +172,7 @@ export function DocsAssistantWidget() {
       {/* Toggle button */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded border border-surface-border bg-surface-bg px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-text-primary shadow-lg transition-colors hover:border-brand-accent hover:text-brand-accent"
+        className="flex h-10 items-center gap-2 rounded border border-surface-border bg-surface-bg px-4 text-xs font-semibold uppercase tracking-wider text-text-primary shadow-lg transition-colors hover:border-brand-accent hover:text-brand-accent max-[420px]:w-10 max-[420px]:justify-center max-[420px]:px-0"
         aria-expanded={open}
         aria-label="Toggle docs assistant"
       >
@@ -193,7 +190,7 @@ export function DocsAssistantWidget() {
             strokeLinejoin="round"
           />
         </svg>
-        Ask WitnessOps
+        <span className="max-[420px]:sr-only">Ask WitnessOps</span>
       </button>
     </div>
   );
