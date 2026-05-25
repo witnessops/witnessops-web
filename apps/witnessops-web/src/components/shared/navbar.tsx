@@ -77,7 +77,7 @@ export function Navbar({ links, cta, announcement }: NavbarProps) {
 
   function getDesktopCtaClassName(variant: string) {
     const baseClassName =
-      "hidden h-8 items-center px-5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg md:inline-flex";
+      "hidden h-8 items-center whitespace-nowrap px-5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg md:inline-flex";
 
     if (variant === "secondary") {
       return `${baseClassName} border border-surface-border bg-transparent text-text-primary hover:border-brand-accent/40 hover:bg-surface-card`;
@@ -109,7 +109,7 @@ export function Navbar({ links, cta, announcement }: NavbarProps) {
       )}
       <nav
         ref={navRef}
-        className="sticky top-0 z-50 border-b border-surface-border/50 bg-surface-bg/95 backdrop-blur supports-[backdrop-filter]:bg-surface-bg/80 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-brand-accent/20 after:to-transparent"
+        className="sticky top-0 z-50 border-b border-surface-border/50 bg-surface-bg/95 backdrop-blur supports-[backdrop-filter]:bg-surface-bg/80 relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-brand-accent/20 after:to-transparent"
       >
         <div className="mx-auto flex max-w-content items-center justify-between px-6 py-4">
           <Link
@@ -126,7 +126,7 @@ export function Navbar({ links, cta, announcement }: NavbarProps) {
           </Link>
 
           <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-8 md:flex">
+            <div className="hidden items-center gap-4 md:flex lg:gap-6 xl:gap-8">
               {effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a
@@ -134,7 +134,7 @@ export function Navbar({ links, cta, announcement }: NavbarProps) {
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-full px-3 py-1.5 text-[0.82rem] font-medium tracking-[0.04em] text-text-muted transition-colors hover:bg-white/[0.03] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+                    className="whitespace-nowrap rounded-full px-3 py-1.5 text-[0.82rem] font-medium tracking-[0.04em] text-text-muted transition-colors hover:bg-white/[0.03] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
                   >
                     {link.label}
                   </a>
@@ -142,7 +142,7 @@ export function Navbar({ links, cta, announcement }: NavbarProps) {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="rounded-full px-3 py-1.5 text-[0.82rem] font-medium tracking-[0.04em] text-text-muted transition-colors hover:bg-white/[0.03] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+                    className="whitespace-nowrap rounded-full px-3 py-1.5 text-[0.82rem] font-medium tracking-[0.04em] text-text-muted transition-colors hover:bg-white/[0.03] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
                   >
                     {link.label}
                   </Link>

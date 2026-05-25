@@ -210,7 +210,7 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
       {/* Mobile trigger */}
       <button
         type="button"
-        className="fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full border border-surface-border bg-surface-card px-4 py-2.5 text-sm text-text-secondary shadow-lg transition-colors hover:border-brand-accent/40 hover:text-text-primary lg:hidden"
+        className="fixed bottom-4 left-16 z-40 flex items-center gap-2 rounded border border-surface-border bg-surface-bg px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-text-primary shadow-lg transition-colors hover:border-brand-accent hover:text-brand-accent lg:hidden"
         onClick={() => setDrawerOpen(true)}
         aria-label="Open documentation menu"
       >
@@ -233,7 +233,7 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
       {/* Mobile drawer */}
       {drawerOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={() => setDrawerOpen(false)}
           onKeyDown={handleKeyDown}
         >

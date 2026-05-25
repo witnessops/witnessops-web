@@ -42,6 +42,7 @@ export function WitnessOpsMark({
   return (
     <span
       className={`witnessops-mark ${className}`}
+      suppressHydrationWarning
       style={{
         display: "inline-flex",
         alignItems: "center",
