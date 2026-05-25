@@ -28,6 +28,14 @@ const NON_SUPPORTED_STATUSES: readonly AnswerStatus[] = [
   "needs_human_review",
 ];
 
+const SUPPORTED_STATUSES: readonly AnswerStatus[] = [
+  "supported_by_docs",
+  "partially_supported",
+];
+
+const MISSING_CLAIM_CITATIONS_BOUNDARY =
+  "supported_answer_missing_claim_citations";
+
 function isAnswerStatus(value: unknown): value is AnswerStatus {
   return typeof value === "string" && ANSWER_STATUSES.includes(value as AnswerStatus);
 }
@@ -72,7 +80,7 @@ function normalizeUnsupportedReason(
 
 function normalizeClaims(
   value: unknown,
-  fallbackCitationIds: string[],
+  allowedCitationIds: Set<string>,
 ): DocsAssistantClaimWithCitations[] {
   if (!Array.isArray(value)) {
     return [];
@@ -83,7 +91,7 @@ function normalizeClaims(
     if (typeof item === "string" && item.trim()) {
       claims.push({
         text: item.trim(),
-        citation_ids: fallbackCitationIds,
+        citation_ids: [],
       });
       continue;
     }
@@ -100,11 +108,28 @@ function normalizeClaims(
     const citationIds = stringArray(typedItem.citation_ids);
     claims.push({
       text: typedItem.text.trim(),
-      citation_ids: citationIds.length ? citationIds : fallbackCitationIds,
+      citation_ids: unique(
+        citationIds.filter((citationId) => allowedCitationIds.has(citationId)),
+      ),
     });
   }
 
   return claims;
+}
+
+function isSupportedStatus(answerStatus: AnswerStatus): boolean {
+  return SUPPORTED_STATUSES.includes(answerStatus);
+}
+
+function hasMissingClaimCitations(
+  answerStatus: AnswerStatus,
+  claims: DocsAssistantClaimWithCitations[],
+): boolean {
+  if (!isSupportedStatus(answerStatus)) {
+    return false;
+  }
+
+  return claims.length === 0 || claims.some((claim) => claim.citation_ids.length === 0);
 }
 
 function parseJsonObject(text: string): Record<string, unknown> | null {
@@ -173,7 +198,7 @@ export function normalizeDocsAssistantAnswer(args: {
   citations: DocsAssistantCitation[];
   boundaryFindings?: string[];
 }): DocsAssistantAnswer {
-  const citationIds = args.citations.map((citation) => citation.citation_id);
+  const citationIds = new Set(args.citations.map((citation) => citation.citation_id));
   const outputText = extractOutputTextFromResponse(args.response);
   const parsed = outputText ? parseJsonObject(outputText) : null;
 
@@ -199,13 +224,34 @@ export function normalizeDocsAssistantAnswer(args: {
     ...(args.boundaryFindings ?? []),
     ...stringArray(parsed.boundary_findings),
   ];
+  const documentedFacts = normalizeClaims(parsed.documented_facts, citationIds);
+  const inference = normalizeClaims(parsed.inference, citationIds);
+  const allClaims = [...documentedFacts, ...inference];
+
+  if (hasMissingClaimCitations(parsed.answer_status, allClaims)) {
+    return {
+      schema_version: "docs-assistant.answer.v1",
+      answer_status: "needs_human_review",
+      question: args.question,
+      documented_facts: [],
+      inference: [],
+      citations: args.citations,
+      unsupported_reason: MISSING_CLAIM_CITATIONS_BOUNDARY,
+      human_review_required: true,
+      not_proven: normalizeNotProven(parsed.not_proven, "needs_human_review"),
+      boundary_findings: unique([
+        ...boundaryFindings,
+        MISSING_CLAIM_CITATIONS_BOUNDARY,
+      ]),
+    };
+  }
 
   return {
     schema_version: "docs-assistant.answer.v1",
     answer_status: parsed.answer_status,
     question: args.question,
-    documented_facts: normalizeClaims(parsed.documented_facts, citationIds),
-    inference: normalizeClaims(parsed.inference, citationIds),
+    documented_facts: documentedFacts,
+    inference,
     citations: args.citations,
     unsupported_reason: normalizeUnsupportedReason(
       parsed.unsupported_reason,

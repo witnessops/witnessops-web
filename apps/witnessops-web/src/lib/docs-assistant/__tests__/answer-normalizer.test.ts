@@ -165,13 +165,59 @@ test("docs assistant answer normalizer rejects JSON embedded in prose", () => {
   assert.match(answer.boundary_findings.join(","), /model_output_not_structured_json/);
 });
 
+test("docs assistant answer normalizer downgrades supported answers without claim citations", () => {
+  const answer = normalizeDocsAssistantAnswer({
+    question: "What does the public verifier prove?",
+    response: {
+      output_text: JSON.stringify({
+        answer_status: "supported_by_docs",
+        documented_facts: [
+          {
+            text: "The public verifier proves bundle completeness.",
+            citation_ids: [],
+          },
+        ],
+        inference: [],
+        citations: [],
+        unsupported_reason: null,
+        human_review_required: false,
+        not_proven: ["source_freshness"],
+        boundary_findings: [],
+      }),
+    },
+    citations,
+  });
+
+  assert.equal(answer.answer_status, "needs_human_review");
+  assert.equal(
+    answer.unsupported_reason,
+    "supported_answer_missing_claim_citations",
+  );
+  assert.equal(answer.human_review_required, true);
+  assert.deepEqual(answer.documented_facts, []);
+  assert.match(
+    answer.boundary_findings.join(","),
+    /supported_answer_missing_claim_citations/,
+  );
+  assert.deepEqual(
+    [
+      "source_freshness",
+      "answer_correctness",
+      "general_answer_correctness",
+      "assistant_production_ready",
+      "public_release_approved",
+    ].every((boundary) => answer.not_proven.includes(boundary)),
+    true,
+  );
+});
+
 test("docs assistant answer normalizer reads real Responses output_text content items", () => {
   const outputText = JSON.stringify({
     answer_status: "partially_supported",
     documented_facts: [
       {
         text: "The docs describe a bounded /verify receipt-check surface.",
-        citation_ids: [],
+        citation_ids: ["src-collected-corpus-runtime-0"],
       },
     ],
     inference: [],
@@ -213,6 +259,9 @@ test("docs assistant answer normalizer reads real Responses output_text content 
 
   assert.equal(answer.answer_status, "partially_supported");
   assert.equal(answer.documented_facts.length, 1);
+  assert.deepEqual(answer.documented_facts[0]?.citation_ids, [
+    "src-collected-corpus-runtime-0",
+  ]);
   assert.deepEqual(
     ["source_freshness", "general_answer_correctness", "public_release_approved"].every(
       (boundary) => answer.not_proven.includes(boundary),

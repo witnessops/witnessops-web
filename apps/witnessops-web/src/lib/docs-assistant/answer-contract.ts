@@ -21,6 +21,8 @@ export interface DocsAssistantSourceUrlCitation {
   title: string;
   section?: string | null;
   source_hash?: string | null;
+  source_line_start?: number | null;
+  source_line_end?: number | null;
 }
 
 export interface DocsAssistantRepoPathCitation {
@@ -30,6 +32,8 @@ export interface DocsAssistantRepoPathCitation {
   title: string;
   section?: string | null;
   source_hash?: string | null;
+  source_line_start?: number | null;
+  source_line_end?: number | null;
 }
 
 export interface DocsAssistantFileSearchCitation {
@@ -43,6 +47,9 @@ export interface DocsAssistantFileSearchCitation {
   supports: DocsAssistantFileSearchSupports;
   source_bodies_collected: boolean;
   source_bodies_uploaded: boolean;
+  source_excerpt?: string | null;
+  source_line_start?: number | null;
+  source_line_end?: number | null;
 }
 
 export type DocsAssistantCitation =
