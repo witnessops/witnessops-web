@@ -236,7 +236,6 @@ const nextHandoff = [
 
 export default async function DocsIndexPage() {
   const sidebar = await getDocsSidebar("witnessops");
-  const isDev = process.env.NODE_ENV === "development";
 
   return (
     <main
@@ -611,7 +610,7 @@ export default async function DocsIndexPage() {
         </div>
       </section>
 
-      {isDev && <DocsAssistantInline pageContext="WitnessOps Docs index" />}
+      <DocsAssistantInline pageContext="WitnessOps Docs index" />
     </main>
   );
 }
