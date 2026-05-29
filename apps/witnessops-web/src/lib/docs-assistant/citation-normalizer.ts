@@ -55,6 +55,10 @@ function safeCaseId(caseId: string | null | undefined): string {
   return safe || "runtime";
 }
 
+function optionalText(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
 export function normalizeFileSearchCitations(args: {
   caseId?: string | null;
   vectorStoreId?: string;
@@ -85,6 +89,8 @@ export function normalizeFileSearchCitations(args: {
     const retrievedResultIndex =
       typeof result.index === "number" ? result.index : position;
 
+    const sourceExcerpt =
+      optionalText(result.text_excerpt) ?? optionalText(result.text);
     citations.push({
       citation_id: `${source.citationPrefix}-${safeCaseId(args.caseId)}-${retrievedResultIndex}`,
       source_type: "openai_file_search_result",
@@ -96,6 +102,7 @@ export function normalizeFileSearchCitations(args: {
       supports: source.supports,
       source_bodies_collected: source.sourceBodiesCollected,
       source_bodies_uploaded: source.sourceBodiesUploaded,
+      ...(sourceExcerpt ? { source_excerpt: sourceExcerpt } : {}),
     });
   }
 

@@ -1,18 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
+import { DocsAssistantBoundaryMeta } from "./docs-assistant-boundary-meta";
+import { DocsAssistantLoadingStatus } from "./docs-assistant-loading-status";
+import { DocsAssistantSourceLinks } from "./docs-assistant-source-links";
 import {
   answerText,
-  citationLabel,
+  docsAssistantRequestErrorDetails,
   type DocsAssistantUiAnswer,
-  visibleCitations,
 } from "./docs-assistant-response";
 
 interface AnswerState {
   content: string;
   citations?: DocsAssistantUiAnswer["citations"];
+  answer?: DocsAssistantUiAnswer;
   error?: boolean;
 }
 
@@ -22,6 +25,13 @@ export function DocsAssistantWidget() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<AnswerState | null>(null);
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      inputRef.current?.focus();
+    }
+  }, [open]);
 
   if (pathname === "/docs/assistant") {
     return null;
@@ -39,9 +49,23 @@ export function DocsAssistantWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: trimmed }),
       });
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-      const data = await res.json();
-      setAnswer({ content: answerText(data), citations: data.citations });
+      if (!res.ok) {
+        const error = await docsAssistantRequestErrorDetails(res);
+        setAnswer({
+          content: error.message,
+          error: true,
+          answer: error.answer,
+        });
+        setQuestion("");
+        return;
+      }
+      const data = (await res.json()) as DocsAssistantUiAnswer;
+      setAnswer({
+        content: answerText(data),
+        citations: data.citations,
+        answer: data,
+      });
+      setQuestion("");
     } catch (err) {
       setAnswer({
         content: err instanceof Error ? err.message : "Something went wrong.",
@@ -58,14 +82,23 @@ export function DocsAssistantWidget() {
     setAnswer(null);
   }
 
+  function handleToggle() {
+    if (open) {
+      handleClose();
+      return;
+    }
+
+    setOpen(true);
+  }
+
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6"
+      className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3 max-[420px]:bottom-20 max-[420px]:left-4 max-[420px]:right-4 max-[420px]:items-stretch sm:bottom-6 sm:right-6"
     >
       {open && (
         <div
-          className="flex w-[calc(100vw-2rem)] max-w-[320px] flex-col overflow-hidden rounded border border-surface-border bg-surface-bg shadow-xl"
-          style={{ height: 440 }}
+          className="flex w-[calc(100vw-2rem)] max-w-[320px] flex-col overflow-hidden rounded border border-surface-border bg-surface-bg shadow-xl max-[420px]:w-full max-[420px]:max-w-none"
+          style={{ height: "min(440px, calc(100vh - 8rem))" }}
         >
           {/* Header */}
           <div className="flex shrink-0 items-center justify-between border-b border-surface-border px-4 py-3">
@@ -100,12 +133,7 @@ export function DocsAssistantWidget() {
               )}
 
               {loading && (
-                <p
-                  className="text-xs text-text-muted"
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
-                  Searching docs…
-                </p>
+                <DocsAssistantLoadingStatus compact />
               )}
 
               {answer && (
@@ -118,26 +146,15 @@ export function DocsAssistantWidget() {
                     {answer.content}
                   </p>
 
-                  {answer.citations && answer.citations.length > 0 && (
-                    <div className="mt-3">
-                      <p
-                        className="mb-1.5 text-xs uppercase tracking-wider text-text-muted"
-                        style={{ fontFamily: "var(--font-mono)" }}
-                      >
-                        Sources
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {visibleCitations(answer.citations).map((c) => (
-                          <span
-                            key={c.citation_id}
-                            className="rounded border border-surface-border px-2 py-0.5 text-xs text-text-muted"
-                          >
-                            {citationLabel(c)}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <DocsAssistantSourceLinks
+                    answer={answer.answer}
+                    citations={answer.citations}
+                    compact
+                  />
+                  <DocsAssistantBoundaryMeta
+                    answer={answer.answer}
+                    compact
+                  />
                 </div>
               )}
             </div>
@@ -151,16 +168,17 @@ export function DocsAssistantWidget() {
               className="mt-3 flex shrink-0 gap-2 border-t border-surface-border pt-3"
             >
               <input
+                ref={inputRef}
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="Ask a question…"
-                className="flex-1 rounded border border-surface-border bg-surface-bg px-2.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
+                className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-2.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={loading || !question.trim()}
-                className="rounded border border-surface-border bg-surface-bg px-3 py-2 text-xs text-text-muted transition-colors hover:border-brand-accent hover:text-brand-accent disabled:opacity-40"
+                className="shrink-0 rounded border border-surface-border bg-surface-bg px-3 py-2 text-xs text-text-muted transition-colors hover:border-brand-accent hover:text-brand-accent disabled:opacity-40"
               >
                 Ask
               </button>
@@ -171,7 +189,7 @@ export function DocsAssistantWidget() {
 
       {/* Toggle button */}
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleToggle}
         className="flex h-10 items-center gap-2 rounded border border-surface-border bg-surface-bg px-4 text-xs font-semibold uppercase tracking-wider text-text-primary shadow-lg transition-colors hover:border-brand-accent hover:text-brand-accent max-[420px]:w-10 max-[420px]:justify-center max-[420px]:px-0"
         aria-expanded={open}
         aria-label="Toggle docs assistant"

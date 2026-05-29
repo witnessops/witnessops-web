@@ -70,3 +70,25 @@ test("docs assistant citation normalizer extracts file-search results from Respo
     },
   ]);
 });
+
+test("docs assistant citation normalizer preserves file-search excerpts when present", () => {
+  const result = normalizeFileSearchCitations({
+    results: [
+      {
+        index: 1,
+        file_id: "file-9ztnkfLvWtUvi9ZY52q2UQ",
+        filename: "CORPUS_PACKAGE.json",
+        text_excerpt:
+          "The docs assistant cannot claim source freshness or production readiness.",
+      },
+    ],
+  });
+
+  assert.equal(result.boundary_findings.length, 0);
+  assert.equal(
+    result.citations[0]?.source_type === "openai_file_search_result"
+      ? result.citations[0].source_excerpt
+      : null,
+    "The docs assistant cannot claim source freshness or production readiness.",
+  );
+});

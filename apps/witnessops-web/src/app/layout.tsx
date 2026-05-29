@@ -56,7 +56,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const content = loadHomeContent();
-  const isDev = process.env.NODE_ENV === "development";
 
   return (
     <html lang="en" className="dark" style={appShellStyle}>
@@ -102,7 +101,7 @@ export default function RootLayout({
         {children}
         <Footer {...content.footer} />
         <KonamiPenguin />
-        {isDev && <DocsAssistantWidget />}
+        <DocsAssistantWidget />
       </body>
     </html>
   );

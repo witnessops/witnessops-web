@@ -1,5 +1,5 @@
 function resolveDistDir() {
-  return process.env.NODE_ENV === "development" ? ".next-dev" : ".next";
+  return ".next";
 }
 
 module.exports = { resolveDistDir };

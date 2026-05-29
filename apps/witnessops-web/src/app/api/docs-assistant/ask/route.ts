@@ -7,6 +7,7 @@ import {
   runDocsAssistantServerRuntime,
   validateDocsAssistantAskPayload,
 } from "@/lib/docs-assistant/server-runtime";
+import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 
 export const runtime = "nodejs";
 
@@ -35,6 +36,14 @@ export async function POST(request: Request) {
   const config = readDocsAssistantRuntimeConfig();
   if (!config.enabled) {
     return disabledResponse();
+  }
+
+  const rateLimitResponse = enforcePublicIntakeRateLimit(
+    request,
+    "docs-assistant",
+  );
+  if (rateLimitResponse) {
+    return rateLimitResponse;
   }
 
   let rawPayload: unknown;
