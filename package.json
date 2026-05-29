@@ -30,11 +30,5 @@
     "tsx": "^4.21.0",
     "turbo": "^2.3.0",
     "typescript": "^5.7.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "next": "15.5.15",
-      "postcss": "8.5.10"
-    }
   }
 }

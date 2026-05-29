@@ -17,6 +17,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 
 import { getAdmissionStoreDir } from "./token-store";
+import { getConfiguredEnvPath } from "./storage-config";
 
 export interface DeliveryRetryRequestRecord {
   event_id: string;
@@ -28,9 +29,10 @@ export interface DeliveryRetryRequestRecord {
 
 function getEventDir(): string {
   return (
-    process.env.WITNESSOPS_INTAKE_EVENT_DIR ??
-    process.env.WITNESSOPS_TOKEN_AUDIT_DIR ??
-    path.join(getAdmissionStoreDir(), "events")
+    getConfiguredEnvPath(
+      ["WITNESSOPS_INTAKE_EVENT_DIR", "WITNESSOPS_TOKEN_AUDIT_DIR"],
+      "Delivery retry ledger directory",
+    ) ?? path.join(getAdmissionStoreDir(), "events")
   );
 }
 

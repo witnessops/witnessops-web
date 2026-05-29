@@ -1,9 +1,9 @@
 // Next.js App Router still needs inline script allowance unless the app is
-// fully nonce-backed. Keep the inline allowance, but avoid eval in production.
+// fully nonce-backed. Keep the inline allowance, but limit eval to development.
 const scriptSrc =
-  process.env.NODE_ENV === "production"
-    ? "script-src 'self' 'unsafe-inline'"
-    : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+  process.env.NODE_ENV === "development"
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'";
 
 const contentSecurityPolicy = [
   "default-src 'self'",
