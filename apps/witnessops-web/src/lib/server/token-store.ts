@@ -19,6 +19,7 @@ import type {
   IntakeResponseProviderOutcomeStatus,
 } from "@/lib/provider-outcomes";
 import type { DeliveryEvidenceSubcase } from "./reconciliation-subcases";
+import { getConfiguredEnvPath } from "./storage-config";
 
 /**
  * Intake and issuance JSON files are read models for lookup and operator views.
@@ -267,9 +268,10 @@ export interface ClaimantActionRecord {
 
 export function getAdmissionStoreDir(): string {
   return (
-    process.env.WITNESSOPS_INTAKE_STORE_DIR ??
-    process.env.WITNESSOPS_TOKEN_STORE_DIR ??
-    path.join(process.cwd(), ".witnessops-token-store")
+    getConfiguredEnvPath(
+      ["WITNESSOPS_INTAKE_STORE_DIR", "WITNESSOPS_TOKEN_STORE_DIR"],
+      "Intake store directory",
+    ) ?? path.join(process.cwd(), ".witnessops-token-store")
   );
 }
 

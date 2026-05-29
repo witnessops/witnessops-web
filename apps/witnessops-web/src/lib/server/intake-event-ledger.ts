@@ -6,6 +6,7 @@ import type { ChannelName } from "@/lib/channel-policy";
 import type { AdmissionState } from "@/lib/token-contract";
 
 import { getAdmissionStoreDir } from "./token-store";
+import { getConfiguredEnvPath } from "./storage-config";
 
 /**
  * Material admission transitions become authoritative when they are written to
@@ -29,9 +30,10 @@ export interface IntakeEventRecord {
 
 function getEventDir(): string {
   return (
-    process.env.WITNESSOPS_INTAKE_EVENT_DIR ??
-    process.env.WITNESSOPS_TOKEN_AUDIT_DIR ??
-    path.join(getAdmissionStoreDir(), "events")
+    getConfiguredEnvPath(
+      ["WITNESSOPS_INTAKE_EVENT_DIR", "WITNESSOPS_TOKEN_AUDIT_DIR"],
+      "Intake event ledger directory",
+    ) ?? path.join(getAdmissionStoreDir(), "events")
   );
 }
 

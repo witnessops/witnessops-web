@@ -14,6 +14,7 @@ import { buildPublicIntakeRateLimitKey } from "@/lib/server/public-intake-rate-l
 import { POST as POSTContact } from "./contact/route";
 import { POST as POSTEngage } from "./engage/route";
 import { POST as POSTSupport } from "./support/route";
+import { POST as POSTVerify } from "./verify/route";
 
 function applyTestEnv(baseDir: string): void {
   process.env.WITNESSOPS_TOKEN_SIGNING_SECRET = "test-secret";
@@ -136,4 +137,11 @@ test("support route rate limits per route namespace and ip", async () => {
   applyTestEnv(baseDir);
 
   await exerciseRateLimit(POSTSupport, "/api/support", "203.0.113.30");
+});
+
+test("verify route rate limits per route namespace and ip", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
+  applyTestEnv(baseDir);
+
+  await exerciseRateLimit(POSTVerify, "/api/verify", "203.0.113.50");
 });

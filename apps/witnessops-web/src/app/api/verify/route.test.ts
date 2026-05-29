@@ -1,9 +1,16 @@
-import test from "node:test";
+import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
 
+import { _resetAllStores } from "@witnessops/config/rate-limit";
 import { loadVerifyFixture } from "@/lib/verify-fixtures";
 
 import { POST } from "./route";
+
+const VERIFY_REQUEST_BODY_LIMIT_BYTES = 256 * 1024;
+
+afterEach(() => {
+  _resetAllStores();
+});
 
 test("verify route returns valid for a canonical valid receipt fixture", async () => {
   const fixture = loadVerifyFixture("pv-valid");
@@ -157,6 +164,34 @@ test("verify route keeps field-level messages for structurally valid receipt obj
   assert.equal(payload.ok, false);
   assert.equal(payload.failureClass, "FAILURE_INPUT_MALFORMED");
   assert.equal(payload.message, "receipt.proof_stage is required.");
+});
+
+test("verify route rejects oversized request bodies before verifier parsing", async () => {
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-forwarded-for": "203.0.113.70",
+      },
+      body: JSON.stringify({
+        receipt: "a".repeat(VERIFY_REQUEST_BODY_LIMIT_BYTES),
+      }),
+    }),
+  );
+
+  assert.equal(response.status, 413);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    failureClass?: string;
+    message?: string;
+  };
+  assert.equal(payload.ok, false);
+  assert.equal(payload.failureClass, "FAILURE_INPUT_MALFORMED");
+  assert.equal(
+    payload.message,
+    `request body must not exceed ${VERIFY_REQUEST_BODY_LIMIT_BYTES} bytes.`,
+  );
 });
 
 test("verify route distinguishes unsupported receipt inputs", async () => {

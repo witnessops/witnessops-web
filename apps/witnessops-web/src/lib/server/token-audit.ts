@@ -1,6 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import { getConfiguredEnvPath } from "./storage-config";
+
 export interface TokenAuditRecord {
   kind: "issuance" | "verification";
   issuanceId: string;
@@ -10,8 +12,12 @@ export interface TokenAuditRecord {
 }
 
 function getAuditDir(): string {
-  return process.env.WITNESSOPS_TOKEN_AUDIT_DIR ??
-    path.join(process.cwd(), ".witnessops-token-store", "audit");
+  return (
+    getConfiguredEnvPath(
+      ["WITNESSOPS_TOKEN_AUDIT_DIR"],
+      "Token audit directory",
+    ) ?? path.join(process.cwd(), ".witnessops-token-store", "audit")
+  );
 }
 
 export async function writeTokenAudit(record: TokenAuditRecord): Promise<string> {
