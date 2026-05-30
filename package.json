@@ -28,7 +28,14 @@
     "eslint": "^9.22.0",
     "eslint-config-next": "15.5.15",
     "tsx": "^4.21.0",
-    "turbo": "^2.3.0",
+    "turbo": "^2.9.14",
     "typescript": "^5.7.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": ">=8.5.10",
+      "flatted": ">=3.4.2",
+      "picomatch": ">=4.0.4"
+    }
   }
 }
