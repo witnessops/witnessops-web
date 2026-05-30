@@ -1,0 +1,33 @@
+{
+  "schema_version": "witnessops.operator_receipt_note.v1",
+  "recorded_at": "2026-05-30T03:25:00Z",
+  "status": "local_health_passed_deploy_surface_named_no_runtime_proof_no_server_state_verified",
+  "head_commit": "3f8e333d79fbe4bca64b43114acf6d1ac802aa3f",
+  "active_hosting_lane": "Servury/edge02 clean-server",
+  "authority_doc": "docs/DEPLOYMENT_AUTHORITY.md",
+  "validation_commands_passed": [
+    "pnpm health (build + lint + typecheck + tests + docs:validate + signals:validate)",
+    "shasum -a 256 -c PUBLIC_PROOF_SURFACE_MANIFEST.v1.yaml (via build step)"
+  ],
+  "local_health_result": "passed",
+  "test_summary": {
+    "proof_package_tests": "38 pass, 0 fail",
+    "route_parity": "2 pass, 0 fail",
+    "receipt_smoke": "3 pass, 0 fail",
+    "buyer_path_smoke": "5 pass, 0 fail",
+    "docs_validate": "passed",
+    "signals_validate": "3 signals loaded, passed"
+  },
+  "proof_not_created": [
+    "production deploy receipt",
+    "server-side runtime image digest",
+    "SBOM",
+    "cosign signature",
+    "Rekor transparency log entry",
+    "Servury/edge02 host-state verification",
+    "CI-triggered deploy confirmation"
+  ],
+  "no_runtime_mutation": true,
+  "verifiable_evidence_boundary": "Local repo health only. The live Servury/edge02 surface is outside this workspace's verifiable evidence boundary until a separate server-side receipting lane names the host, image digest, and validation commands used.",
+  "next_gate": "server-side deploy receipt lane: name the image digest, host, and validation commands after next deploy to Servury/edge02"
+}
