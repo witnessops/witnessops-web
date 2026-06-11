@@ -1,0 +1,22 @@
+# witnessops-web reverse proxy (host Caddy, systemd service on edge02)
+#
+# Caddy terminates TLS for witnessops.com and proxies to the loopback-bound
+# container from docker-compose.yml. The public contact/review gate (returning
+# 503 on /review/request, /api/review/request, /api/verify-token when paused)
+# is enforced here at the edge, NOT in the app. Adjust the gate matcher when
+# ungating; keep it under change control.
+
+witnessops.com, www.witnessops.com {
+	encode zstd gzip
+
+	# --- Contact/review gate (comment out the handle block to ungate) ---
+	@gated path /review/request /api/review/request /api/verify-token
+	handle @gated {
+		respond "Service temporarily unavailable" 503
+	}
+
+	# --- App ---
+	handle {
+		reverse_proxy 127.0.0.1:3000
+	}
+}
