@@ -33,17 +33,28 @@ sudo chown -R 1001:1001 /srv/witnessops/data
 sudo cp deploy/.env.example /srv/witnessops/env/witnessops-web.env
 sudo $EDITOR /srv/witnessops/env/witnessops-web.env   # fill in real secrets
 sudo chown root:witnessops /srv/witnessops/env/witnessops-web.env
-sudo chmod 600 /srv/witnessops/env/witnessops-web.env
+sudo chmod 640 /srv/witnessops/env/witnessops-web.env
 ```
+
+`640 root:witnessops` (not `600`) is required: Docker Compose reads `env_file`
+client-side as the operator user, who must be in the `witnessops` group. The
+file stays unreadable to everyone outside that group.
 
 The env file lives on the host only and is never committed. See `deploy/.env.example`
 for the full key list and which directories map to the container mounts.
 
-## 3. (If the GHCR package is private) authenticate Docker
+## 3. Authenticate Docker to GHCR
+
+The `witnessops-web` container package is **private** (org policy disallows
+public packages), so the host must authenticate before it can pull. Use a token
+with `read:packages`:
 
 ```bash
 echo "$GHCR_TOKEN" | docker login ghcr.io -u <github-user> --password-stdin
 ```
+
+For unattended deploys, provision a dedicated `read:packages` PAT (or org deploy
+token) rather than depending on an interactive `gh` session token, which expires.
 
 ## 4. Deploy a released version
 
