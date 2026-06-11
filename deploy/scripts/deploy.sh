@@ -19,6 +19,7 @@
 set -euo pipefail
 
 IMAGE_NAME="ghcr.io/witnessops/witnessops-web"
+READY_TIMEOUT_S="${READY_TIMEOUT_S:-40}"
 OIDC_ISSUER="https://token.actions.githubusercontent.com"
 # Trust images signed by either the release or the build-image workflow on main/tags.
 IDENTITY_REGEXP="^https://github.com/witnessops/witnessops-web/.github/workflows/(release|build-image)\\.yml@refs/(heads|tags)/.+$"
@@ -30,7 +31,7 @@ STATE_DIR="${DEPLOY_DIR}/.state"
 PREVIOUS_FILE="${STATE_DIR}/previous-image"
 CURRENT_FILE="${STATE_DIR}/current-image"
 
-log() { printf '\033[1;34m[deploy]\033[0m %s\n' "$*"; }
+log() { printf '\033[1;34m[deploy]\033[0m %s\n' "$*" >&2; }
 err() { printf '\033[1;31m[deploy:error]\033[0m %s\n' "$*" >&2; }
 die() { err "$*"; exit 1; }
 
@@ -64,13 +65,29 @@ resolve_digest() {
     || die "could not resolve digest for ${tag_ref}"
 }
 
+wait_ready() {
+  # A freshly started container needs a few seconds before it serves. Poll the
+  # root route until it responds (or the compose healthcheck would still be in
+  # its start_period). Without this, smoke runs too early and false-fails.
+  log "waiting for container to become ready on 127.0.0.1:3000 (up to ${READY_TIMEOUT_S}s)"
+  local i code
+  for ((i = 1; i <= READY_TIMEOUT_S; i++)); do
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "http://127.0.0.1:3000/" || echo 000)"
+    [[ "${code}" =~ ^(200|302|303|308)$ ]] && { log "ready after ${i}s (/ -> ${code})"; return 0; }
+    sleep 1
+  done
+  err "container did not become ready within ${READY_TIMEOUT_S}s"
+  return 1
+}
+
 smoke() {
+  wait_ready || return 1
   log "smoke-testing public routes on 127.0.0.1:3000"
   local ok=1
   for path in / /review /verify; do
     local code
     code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "http://127.0.0.1:3000${path}" || echo 000)"
-    if [[ "${code}" =~ ^(200|302|303)$ ]]; then
+    if [[ "${code}" =~ ^(200|302|303|308)$ ]]; then
       log "  ${path} -> ${code} OK"
     else
       err "  ${path} -> ${code} UNEXPECTED"
