@@ -39,6 +39,15 @@ const FILE_FIXTURES = [
     expected: { kind: "verification", verdict: "invalid" },
   },
   {
+    id: "swarm-mesh-export-round3",
+    label: "Swarm mesh export (round 3 trust+revoke)",
+    description:
+      "offsec.swarm.mesh_export.v1 DEV export; R3 structural adapter (not PV/QV/WV).",
+    fileName: "swarm-mesh-export-round3.json",
+    provenance: "app",
+    expected: { kind: "verification", verdict: "valid" },
+  },
+  {
     id: "unsupported-stage",
     label: "Unsupported receipt stage",
     description:

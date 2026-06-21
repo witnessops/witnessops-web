@@ -24,13 +24,18 @@ export interface VerifyBreachView {
   checkName: string;
 }
 
-export type VerifyInputKind = "receipt" | "offsec-shield-receipt";
+export type VerifyInputKind =
+  | "receipt"
+  | "offsec-shield-receipt"
+  | "offsec-swarm-mesh-export";
 
 export interface VerifySuccessResponse {
   ok: true;
   inputKind: VerifyInputKind;
-  /** Set when inputKind is offsec-shield-receipt (R2 adapter; not PV/QV/WV). */
-  adapter?: "witnessops.verify.offsec_shield_receipt.v1";
+  /** R2/R3 structural adapters (not PV/QV/WV). */
+  adapter?:
+    | "witnessops.verify.offsec_shield_receipt.v1"
+    | "witnessops.verify.offsec_swarm_mesh_export.v1";
   verdict: VerifyVerdict;
   scope: VerificationVerdict_["verification_mode"];
   artifactRevalidation: VerificationVerdict_["artifact_revalidation"];

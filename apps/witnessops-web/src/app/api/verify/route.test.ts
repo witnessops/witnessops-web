@@ -242,6 +242,31 @@ test("verify route accepts OffSec Shield receipt via R2 structural adapter", asy
   assert.equal(payload.proofStageClaimed, "unknown");
 });
 
+test("verify route accepts Swarm mesh export via R3 structural adapter", async () => {
+  const raw = loadVerifyFixture("swarm-mesh-export-round3");
+  assert.ok(raw);
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receipt: JSON.parse(raw.receiptInput) }),
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    inputKind?: string;
+    adapter?: string;
+    verdict?: string;
+  };
+  assert.equal(payload.ok, true);
+  assert.equal(payload.inputKind, "offsec-swarm-mesh-export");
+  assert.equal(payload.adapter, "witnessops.verify.offsec_swarm_mesh_export.v1");
+  assert.equal(payload.verdict, "valid");
+});
+
 test("verify route rejects Shield receipt with bad authority binding", async () => {
   const fixture = loadVerifyFixture("offsec-shield-bad-binding");
   assert.ok(fixture);

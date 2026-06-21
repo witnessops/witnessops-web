@@ -19,6 +19,10 @@ import {
   isOffsecShieldReceipt,
   verifyOffsecShieldReceipt,
 } from "./shield-verify-adapter";
+import {
+  isSwarmMeshExport,
+  verifySwarmMeshExport,
+} from "./swarm-verify-adapter";
 
 const verifyRequestSchema = z.object({
   receipt: z.union([z.string().min(1), z.record(z.unknown())]),
@@ -245,6 +249,10 @@ export function verifyReceiptPayload(payload: unknown): VerifyResponse {
 
   if (isOffsecShieldReceipt(parsedReceipt)) {
     return verifyOffsecShieldReceipt(parsedReceipt);
+  }
+
+  if (isSwarmMeshExport(parsedReceipt)) {
+    return verifySwarmMeshExport(parsedReceipt);
   }
 
   const supportFailure = validateSupportedReceipt(parsedReceipt);

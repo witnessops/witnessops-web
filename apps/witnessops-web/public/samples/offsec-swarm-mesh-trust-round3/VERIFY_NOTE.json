@@ -1,0 +1,8 @@
+{
+  "schema": "witnessops.offsec_swarm_verify_note.v1",
+  "witnessops_api_verify_v1": "structural_only",
+  "adapter": "witnessops.verify.offsec_swarm_mesh_export.v1",
+  "reason": "POST MESH_EXPORT.json to /api/verify runs structural checks on swarm export-state envelope (governed + optional ledger).",
+  "offline_verify": "swarm verify-state --state <export.json> --root-pub <dev-root.pub> on mesh node",
+  "safe_claim": "DEV round-3 sample: signed trust + revoke; monotonic valid_at demonstrated on ops-dev-01-operator."
+}

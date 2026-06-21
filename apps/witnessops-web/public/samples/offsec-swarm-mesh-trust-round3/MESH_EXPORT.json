@@ -1,0 +1,88 @@
+{
+  "governed": {
+    "events": [
+      {
+        "compromised_before": null,
+        "issued_at": 100.0,
+        "kind": "trust",
+        "reason": "cli-trust",
+        "revoked_at": null,
+        "root_pub": "8bcf27de357e3af7f53a109091c149b6db85dd22ecabd1a4f7afc63ac702e9a1",
+        "sig": "f15441a1f704f73e91e3ac2f02bae88f2985475b9ad65023159b5ae1881401c4f1dd3db7799e520caebfc208847e13b6320c4010fb0a7b1ca465d1e91acdb80c",
+        "subject_pub": "d04ab232742bb4ab3a1368bd4615e4e6d0224ab71a016baf8520a332c9778737",
+        "tsa_token": null,
+        "valid_from": 0.0,
+        "valid_until": null
+      },
+      {
+        "compromised_before": null,
+        "issued_at": 200.0,
+        "kind": "revoke",
+        "reason": "round3-revoke",
+        "revoked_at": 200.0,
+        "root_pub": "8bcf27de357e3af7f53a109091c149b6db85dd22ecabd1a4f7afc63ac702e9a1",
+        "sig": "dc5cc66e94ab14079e4462a13578dc4820ccc199c17f14e43cd3f47cd73fac1103efa3a7b1bd8ac998ade3f47e6f9ac4f708bd241ae939710a57ccfa20bdd000",
+        "subject_pub": "d04ab232742bb4ab3a1368bd4615e4e6d0224ab71a016baf8520a332c9778737",
+        "tsa_token": null,
+        "valid_from": null,
+        "valid_until": null
+      }
+    ],
+    "log": {
+      "records": [
+        {
+          "hash": "9ce60d18ebf7474de286f5e82401f82be4beed5557a19ee26c93293fb7e3651d",
+          "prev": "0000000000000000000000000000000000000000000000000000000000000000",
+          "record": {
+            "issued_at": 100.0,
+            "kind": "trust",
+            "subject": "d04ab232742bb4ab3a1368bd4615e4e6d0224ab71a016baf8520a332c9778737"
+          }
+        },
+        {
+          "hash": "1846ef8a6605aa5c860f6dc80388c4fb429d135844157f7ead0a891f60d86f10",
+          "prev": "9ce60d18ebf7474de286f5e82401f82be4beed5557a19ee26c93293fb7e3651d",
+          "record": {
+            "kind": "revoke",
+            "revoked_at": 200.0,
+            "subject": "d04ab232742bb4ab3a1368bd4615e4e6d0224ab71a016baf8520a332c9778737"
+          }
+        }
+      ]
+    },
+    "roots": {
+      "8bcf27de357e3af7f53a109091c149b6db85dd22ecabd1a4f7afc63ac702e9a1": {
+        "pubkey": "8bcf27de357e3af7f53a109091c149b6db85dd22ecabd1a4f7afc63ac702e9a1",
+        "valid_from": 0.0,
+        "valid_until": null
+      }
+    },
+    "trusted_tsa": []
+  },
+  "ledger": {
+    "events": [
+      {
+        "detail_id": "surprise_audit",
+        "note": "operator-signed",
+        "pubkey": "197f6b23e16c8532c6abc838facd5ea789be0c76b2920334039bfa8b3d368d61",
+        "sig": "d33e474575b27b879aac935087ac2968b2dfd76afdd41bc5e9ef028d94bd69fa17d33951ee1624de6cc9c3d8b4ff17fa27d32b136927a258add04f654b549607",
+        "t": 999.0,
+        "tsa_token": {
+          "algo": "ed25519-tsa-lab-v1",
+          "sig": "f6ecf70d26d6d22700ef17308b28503443195fa17391914f08e65b1d1a2a3c93600f1acf79538152a7a270437a91f53f43c8fa1f84b8727110a758c25058d203",
+          "subject": "73757270726973655f6175646974",
+          "t": 999.0,
+          "tsa_pub": "1d263ea66562bac7f77462d835dc995093bb6bd67af63ccadb90a2911a3a2d89"
+        }
+      }
+    ],
+    "public_ids": [],
+    "signers": null,
+    "trusted": [
+      "197f6b23e16c8532c6abc838facd5ea789be0c76b2920334039bfa8b3d368d61"
+    ],
+    "trusted_tsa": []
+  },
+  "schema": "offsec.swarm.mesh_export.v1",
+  "witnessops_round": "bastion-0day-hunt-round3"
+}
