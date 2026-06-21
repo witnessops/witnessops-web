@@ -1,0 +1,74 @@
+---
+title: "Mesh Federation and VaultMesh"
+description: "How operator mesh receipts relate to VaultMesh (vmesh) and WitnessOps verification."
+section: "docs"
+order: 65
+nav_label: "Mesh Federation"
+draft: false
+---
+
+# Mesh Federation and VaultMesh
+
+WitnessOps separates **proof verification** from **operator mesh federation** and from the **VaultMesh (vmesh)** product plane. This page states what each layer owns so claims stay honest.
+
+## 1. Problem this page solves
+
+Readers confuse three ideas:
+
+- Mesh health receipts across your own nodes (fleet VM, bastion, goal0)
+- VaultMesh federation branding and ingest URLs
+- WitnessOps `/verify` receipt-first checks (PV/QV/WV v1)
+
+This page maps them without collapsing trust surfaces.
+
+## 2. Three surfaces
+
+| Surface | Owns | Does not own |
+| --- | --- | --- |
+| **WitnessOps verify** | Receipt-stage validation for submitted proof objects (scoped v1) | Hunt execution, live exposure, customer posture scans |
+| **Mesh federation** | Composite operator index (`overall_mesh_gate`), child receipt hashes | Client environment security conclusions |
+| **VaultMesh (vmesh)** | Public federation DNS, hub UI, optional ingest mirror | Bastion scope lock or offensive execution |
+
+## 3. Mechanism-first flow
+
+```text
+OffSecAgent (authorized host) → OffSecShield proof-pack → customer deliverable
+WitnessOps /verify → proof-stage checks on supported receipt shapes
+Operator mesh → MESH-RECEIPT (private) → goal0 vault → optional redacted public receipt → optional vmesh ingest
+```
+
+Mesh federation is **operator infrastructure hygiene**. It supports how you run the lane; it is not a substitute for a buyer proof path on `/verify`.
+
+## 4. Observed vs inferred
+
+| Topic | Observed | Inferred |
+| --- | --- | --- |
+| Mesh receipt | Documented child receipts, gate rules, redaction ADR | None beyond declared gate semantics |
+| vmesh ingest | Client schema and dry-run publish in operator lane | Availability of EU ingest endpoint is environment-specific |
+| `/verify` | Receipt-first v1 scope on the public verifier | Shield proof-packs may require schema alignment before verify |
+
+## 5. Trust assumptions
+
+- Bastion mirror engagement data remains authoritative for hunt gates; mesh receipts on a dev VM are working copies.
+- Public mesh receipts are redacted: no filesystem paths, no scope-lock bodies.
+- Ingest acceptance does not imply hunt verify PASS.
+
+## 6. Public mesh gate (ADR 0008)
+
+Integrators can read a published operator index at `/.well-known/mesh-receipt-index.json` and POST redacted `offseclane.mesh_receipt_public.v1` documents to `/api/mesh-gate` for structure and `content_sha256` checks.
+
+That API is **not** `/api/verify` and does not prove customer environment security.
+
+Operator refresh (after mesh receipt):
+
+```bash
+bash ~/DEV/OffSec/working/scripts/publish-mesh-public-witnessops.sh "$WOPS_HUNT_EVD"
+```
+
+Then rebuild/redeploy witnessops-web on goal0.
+
+## 7. Next-page handoff
+
+Read [Three-Layer Stack](/docs/security-systems/three-layer-stack) for contract vs runtime vs proof ownership.
+
+For OffSec deliverables (Agent + Shield) against WitnessOps review surfaces, integrators should use the operator lane doc **OffSec ↔ WitnessOps wiring** (mesh publish bundle under `docs/local-mesh/`).

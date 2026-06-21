@@ -1,11 +1,13 @@
-FROM node:22-slim AS runtime
+ARG NODE22_RUNTIME_IMAGE=node:22-alpine
+FROM ${NODE22_RUNTIME_IMAGE} AS runtime
+RUN apk add --no-cache libc6-compat
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 WORKDIR /app
 
-RUN groupadd --system --gid 1001 nodejs \
-  && useradd --system --uid 1001 --gid nodejs nextjs
+RUN addgroup -g 1001 -S nodejs \
+  && adduser -S -u 1001 -G nodejs nextjs
 
 COPY apps/witnessops-web/.next/standalone ./
 COPY apps/witnessops-web/.next/static ./apps/witnessops-web/.next/static

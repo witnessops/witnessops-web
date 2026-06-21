@@ -157,6 +157,7 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
       { kind: "doc", href: "/docs/security-systems" },
       { kind: "doc", href: "/docs/security-systems/witnessops-architecture" },
       { kind: "doc", href: "/docs/security-systems/three-layer-stack" },
+      { kind: "doc", href: "/docs/security-systems/mesh-federation-and-vmesh" },
       { kind: "doc", href: "/docs/security-systems/threat-model" },
       { kind: "doc", href: "/docs/security-systems/security-practices" },
     ],

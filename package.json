@@ -2,6 +2,10 @@
   "name": "witnessops-web-workspace",
   "private": true,
   "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22.0.0 <23",
+    "pnpm": "9.15.4"
+  },
   "scripts": {
     "dev": "pnpm --filter witnessops-web dev",
     "build": "pnpm --filter witnessops-web build",
@@ -9,11 +13,14 @@
     "typecheck": "pnpm --filter witnessops-web typecheck",
     "test": "pnpm --filter witnessops-web test && pnpm --filter @witnessops/proof test && pnpm route-parity && pnpm receipt-smoke && pnpm smoke:buyer-path:test",
     "health": "pnpm --filter witnessops-web build && pnpm --filter witnessops-web lint && pnpm --filter witnessops-web typecheck && pnpm test && pnpm docs:validate && pnpm signals:validate",
+    "health:node22": "bash scripts/health-on-node22.sh",
+    "health:node22:goal0": "bash scripts/health-on-node22-goal0.sh",
     "release": "pnpm --filter witnessops-web build",
     "ui-proof:hero": "pnpm --filter witnessops-web build && playwright test homepage-hero.spec.ts",
     "ui-proof:hero:ci": "playwright test homepage-hero.spec.ts",
     "ui-proof:open": "playwright show-report artifacts/ui-proof/playwright-report",
     "proof:test": "pnpm --filter @witnessops/proof test",
+    "optimize:quick-check": "bash .grok/skills/optimize-witnessops-web/scripts/quick-check.sh",
     "route-parity": "node --import tsx --test tests/route-parity/route-parity.test.ts",
     "receipt-smoke": "node --import tsx --test tests/receipt-smoke/receipt-smoke.test.ts",
     "smoke:buyer-path": "node --import tsx ./scripts/smoke-buyer-path.ts",

@@ -2,7 +2,7 @@
 #
 # deploy.sh - versioned, verified deploy of witnessops-web to the current host.
 #
-# Run this ON the target host (edge02), from the deploy/ directory of a checkout
+# Run this ON the target host (goal0-edge-01), from the deploy/ directory of a checkout
 # of this repo. It pulls a released image by version tag, verifies its cosign
 # signature, resolves it to an immutable digest, swaps the running container via
 # docker compose, smoke-tests the public routes, and records the previous digest

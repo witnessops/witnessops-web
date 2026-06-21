@@ -37,9 +37,23 @@ After this page:
 - approvers and reviewers can map command actions to `state.json`, `receipt.json`, and run artifacts
 - both lanes can separate command guarantees from broader policy or verification claims
 
-## 3. Command surface and lifecycle order
+## Fleet and mesh operators (OffSec lane)
 
-The command surface is intentionally narrow:
+Public buyer docs describe the proof package path. **Fleet operators** on the
+WitnessOps mesh use a different entry surface:
+
+| Need | Where |
+| --- | --- |
+| Mesh operator docs (synced bundle) | [hacktheworld.zip/mesh-docs/](https://hacktheworld.zip/mesh-docs/) |
+| Hunt / verify CLI | `wops hunt route`, `wops hunt loop`, `wops hunt verify` (after `vm-tooling-env.sh`) |
+| OffSec lane sync + deploy | OffSec-Lane `sync-to-node.sh`, `docs/local-mesh/COMMAND-CATALOG.md` |
+
+The **runbook helper commands below** apply to the `witnessops-offsec` engagement
+layout (`ops/engagements/`). They are not the full fleet hunt loop.
+
+## 3. Command surface and lifecycle order (runbook helpers)
+
+The runbook helper surface is intentionally narrow:
 
 1. `new-engagement`
 2. `runbook-exec`

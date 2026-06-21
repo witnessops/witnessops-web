@@ -1,0 +1,107 @@
+# witnessops-web: language and optimization strategy
+
+**Status:** operator guidance (2026-06-21)  
+**Scope:** `witnessops-web` monorepo on goal0 mesh (Node 22 standalone Next 15)
+
+This document answers: *which language/runtime to use per layer* when optimizing the WitnessOps public web — without a full rewrite or extra deploy runtimes unless an ADR authorizes them.
+
+## Executive recommendation
+
+| Layer | Keep / use | Do not default to |
+|-------|------------|-------------------|
+| App, API routes, UI | **TypeScript** (Next.js 15, React 19) | Rust/Go full rewrite |
+| Receipt / mesh verify in-process | **TypeScript** + `node:crypto` in `@witnessops/proof` and `src/lib/*` | Python in request path |
+| Canonical JSON + cross-language parity | **TS algorithms** tested against Python fixtures | Ad-hoc second implementations |
+| Security-validator fixtures (offline CI) | **Python** (`tools/witnessops-security-validators/scripts/*.py`) | Porting to TS without lane |
+| Production container | **Node 22** (`deploy/Dockerfile.mesh`) | Second runtime sidecar on goal0 |
+
+**Default optimization posture:** improve **build size, cold start, route hot paths, and test gates** inside the existing TypeScript monorepo. Treat **Rust→WASM or native addons** as a *benchmark-gated* option only for CPU-heavy crypto on large bundles, with parity tests — not the first move.
+
+## Why TypeScript remains the primary language
+
+1. **Product boundary** — `AGENTS.md` treats `/verify`, `/api/verify`, and `packages/proof` as first-class owned surfaces; the repo is already a pnpm workspace with `@witnessops/proof`, `content`, `ui`, `config`.
+2. **Deploy reality** — Mesh build is `pnpm install && pnpm build` → Next **standalone** on **Node 22** (`deploy/Dockerfile.mesh`). Adding Go/Rust services increases goal0 ops and receipt story complexity.
+3. **Verify semantics** — Hot paths use deterministic canonicalization + SHA256 (`packages/proof/src/receipt/.../hash.ts`, `src/lib/mesh-gate.ts`). Python mesh tooling uses `sort_keys` JSON; TS must stay byte-compatible (see mesh-gate fixtures and tests).
+4. **blake3** — Optional in proof; **web bundle aliases `blake3` to false** (`next.config.js`) because witnessops-web does not call it at runtime. Tier-1 freeze v2.1 path in-tree uses SHA256; QV fixtures may mention blake3 for schema completeness — do not enable native blake3 in the browser/server bundle without a security + parity lane.
+
+## Layer-by-layer optimization (what to do first)
+
+### 1. Next.js app (`apps/witnessops-web`)
+
+- **Language:** TypeScript only.
+- **Wins:** `output: "standalone"`, `transpilePackages` for workspace packages, security headers from `@witnessops/config`, rate limits on public intake/verify.
+- **Investigate before rewriting:** bundle analyzer on server chunks; avoid pulling heavy deps into client components for `/verify` and marketing pages; keep MDX/docs in `@witnessops/content` (build-time, not per-request Python).
+
+### 2. API hot paths
+
+| Route | Runtime | Notes |
+|-------|---------|--------|
+| `/api/verify` | `nodejs` | 256 KiB body cap; untrusted input — correctness > microsecond latency |
+| `/api/mesh-gate` | `nodejs` | Operator mesh hygiene only; not customer security proof |
+| Admin / intake | `nodejs` | OIDC, queues — I/O bound |
+
+Optimize with: bounded reads, early malformed rejection, keeping verify logic in `@witnessops/proof` + thin adapters (`verify-adapter`, `mesh-gate.ts`).
+
+### 3. `@witnessops/proof`
+
+- **Language:** TypeScript, `node:crypto` SHA256, shared canonicalize modules.
+- **Tests:** `pnpm proof:test` (tier1-freeze verify, merkle, verify-receipt).
+- **Optional future:** If profiling shows verify CPU dominates at p95 under real receipt sizes:
+  - Extract a **single** hash/canonicalize primitive to **Rust compiled to WASM** or **napi-rs** addon.
+  - **Gate:** same vectors as Python + existing JSON fixtures; no change to public failure classes without schema lane.
+  - **Reject** a separate Go verify microservice unless ADR covers goal0 networking, auth, and receipt scope.
+
+### 4. Offline validators (`tools/witnessops-security-validators`)
+
+- **Language:** Python 3 (fixture validation scripts).
+- **Role:** CI/adoption for security-validator schemas — not in the Next request path.
+- **Optimization:** keep validators offline; do not duplicate in TS unless promoting a validator into `@witnessops/proof` with explicit scope.
+
+### 5. Integrations (OffSec Shield, mesh federation)
+
+- **WitnessOps web:** consume **static samples** and **public mesh receipts** (JSON under `public/`, `/.well-known/`).
+- **Heavy verify** for Shield proof-packs may stay in **Python** (`offsecshield.py verify`) on operator hosts; web shows samples and honest VERIFY_NOTE boundaries (R1 pattern).
+- **Language choice for R2 adapter** (Shield → `/api/verify`): implement adapter in **TypeScript** next to existing verify adapter so one runtime serves the API.
+
+## Languages considered and verdict
+
+| Language | Fit | Verdict |
+|----------|-----|---------|
+| **TypeScript** | Full stack, Next, proof package, tests | **Primary — optimize here** |
+| **JavaScript** | Legacy/config only (`next.config.js`) | Keep minimal |
+| **Python** | Mesh scripts, Shield offline verify, validator fixtures | **Adjacent tooling**, not Next hot path |
+| **Rust** | Crypto primitives, WASM | **Optional** after benchmarks + parity tests |
+| **Go** | Sidecar APIs | **Defer** — ops cost on goal0 |
+| **Zig/C++** | Native blake3 | Only if proof lane mandates blake3 in web verify |
+
+## Release and optimization checklist
+
+Before claiming an optimization shipped:
+
+1. `pnpm health` (build, lint, typecheck, full test suite, docs/signals validate).
+2. If verify/mesh-gate/proof changed: `pnpm proof:test` and targeted route tests under `src/app/api/*/route.test.ts`.
+3. If public copy or buyer paths changed: `pnpm smoke:buyer-path:test`.
+4. If deploy-adjacent: read `docs/DEPLOYMENT_AUTHORITY.md`; mesh deploy via goal0 scripts (see skill `optimize-witnessops-web`).
+5. Do not conflate mesh PASS or sample READY with customer security verification.
+
+## Related authority
+
+- `AGENTS.md` — verify surfaces, proof lane width, `pnpm health`
+- `docs/DEPLOYMENT_AUTHORITY.md` — goal0-edge-01 hosting
+- OffSec lane: `~/DEV/OffSec/docs/local-mesh/` (federation, mesh gate ADR 0008)
+- Agent skill: `.grok/skills/optimize-witnessops-web/SKILL.md`
+
+## Operator deliverables (optimization lane)
+
+| # | Artifact | Role |
+|---|----------|------|
+| 1 | `docs/OPTIMIZATION-LANGUAGE.md` | Language decision record (this file) |
+| 2 | `.grok/skills/optimize-witnessops-web/SKILL.md` | Grok workflow — `/optimize-witnessops-web` |
+| 3 | `.grok/skills/optimize-witnessops-web/scripts/quick-check.sh` | Fast proof + verify + mesh-gate tests |
+| 4 | `AGENTS.md` § Optimization and language strategy | Repo agent entrypoint to (1) and (2) |
+
+Loop complete when (3) exits 0 after `pnpm install` and (1)–(4) are present on disk.
+
+## Node 22 builder (different node)
+
+Fleet VM edits use system Node 20; **production build and full `pnpm health`** use **Node 22** on **goal0-edge-01** (Docker mesh build) or **`pnpm health:node22`** locally. See [`NODE22-BUILDER.md`](./NODE22-BUILDER.md).

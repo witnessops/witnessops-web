@@ -1,0 +1,18 @@
+{
+  "schema": "offsecagent.scope.v1",
+  "scope_id": "scope-local-demo-001",
+  "engagement_id": "offsecagent-demo-001",
+  "allowed_modules": [
+    "local-audit",
+    "hardening-check",
+    "evidence-pack",
+    "render-report"
+  ],
+  "allowed_domains": [],
+  "allowed_hosts": ["localhost"],
+  "rate_limits": {
+    "max_requests_per_second": 1,
+    "max_parallel_jobs": 1,
+    "min_delay_seconds": 1.0
+  }
+}

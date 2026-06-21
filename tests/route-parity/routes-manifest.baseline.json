@@ -18,7 +18,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https://api.vaultmesh.org https://registry.offsec.foundation; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         },
         {
           "key": "Referrer-Policy",
@@ -331,6 +331,12 @@
       "regex": "^/review/sample\\-cases/approval\\-gated\\-containment(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/review/sample\\-cases/approval\\-gated\\-containment(?:/)?$"
+    },
+    {
+      "page": "/review/sample-cases/offsec-shield-local-server-audit",
+      "regex": "^/review/sample\\-cases/offsec\\-shield\\-local\\-server\\-audit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/offsec\\-shield\\-local\\-server\\-audit(?:/)?$"
     },
     {
       "page": "/review/sample-cases/privileged-access-grant",

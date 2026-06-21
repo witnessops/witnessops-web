@@ -1,0 +1,50 @@
+{
+  "schema": "witnessops.offsec_shield_sample_manifest.v1",
+  "sample_id": "offsec-shield-local-server-audit",
+  "sample_publication": {
+    "source": "shield/store/demo-host/local-fixture-a",
+    "fixture": true,
+    "host_class": "synthetic-demo-host"
+  },
+  "run_id": "local-fixture-a",
+  "receipt_id": "secsvc-local-fixture-a",
+  "module": "local-audit",
+  "entries": [
+    {
+      "file": "MANIFEST.sha256",
+      "sha256": "51fccf69dd0721ce1c15e2a866b4eac1f68c2cd5f3da7e9fcc163f756fdae84a"
+    },
+    {
+      "file": "README.md",
+      "sha256": "9aba02f52ff5a45de88eef6d273d9bbc4a05e223d6b4082e130d0ea1a84e64e9"
+    },
+    {
+      "file": "RECEIPT.json",
+      "sha256": "4252ac9b94179bda60c9265ebc81aaf7f0885a156ed50445c1d79cb58b05e0b6"
+    },
+    {
+      "file": "VERIFY_NOTE.json",
+      "sha256": "dee8b4dcfe774c300162538d291ebea1138cd4fa8403bd4368ab55d706a902c8"
+    },
+    {
+      "file": "evidence/authority.json",
+      "sha256": "f732264f1ae592e4d4e24818c49e734e5ed27b2bbba7b710d998abfebad87db1"
+    },
+    {
+      "file": "evidence/findings.json",
+      "sha256": "d1c590aa730d5b5bfa1f7c92b7b031b2aab78a16f7e295f712f28102ad44136d"
+    },
+    {
+      "file": "evidence/posture.json",
+      "sha256": "63e2d3917b2b9ce3edf28a9e60708a0d1e2004fa95783308e8fe1d074150118a"
+    },
+    {
+      "file": "evidence/scope.json",
+      "sha256": "571823760f1f1d3510e3484527d5c0f6765ce27f12698913ae0d06246cb73f6a"
+    },
+    {
+      "file": "evidence_manifest.json",
+      "sha256": "5900574e9e8f96f0a778a53e66ed1dd68d021fb34c1644c7203c7f75d6d3f4ed"
+    }
+  ]
+}

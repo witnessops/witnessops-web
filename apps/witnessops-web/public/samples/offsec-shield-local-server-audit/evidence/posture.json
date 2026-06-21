@@ -1,0 +1,24 @@
+{
+  "schema": "offsecagent.posture.v1",
+  "run_id": "local-fixture-a",
+  "host": "demo-host",
+  "collected_at_utc": "2026-06-14T09:00:00Z",
+  "agent_version": "0.1.0",
+  "authority_ref": "examples/authority.local.json",
+  "scope_ref": "examples/scope.local.json",
+  "fixture": true,
+  "collectors_run": ["HOST-01", "HOST-02", "HOST-03", "HOST-04", "DISK-01", "MEM-01", "NET-01", "FW-01", "SVC-01", "PKG-01", "CFG-01"],
+  "evidence": {
+    "HOST-01": {"id": "HOST-01", "label": "Hostname", "method": "hostname", "ok": true, "value": "demo-host"},
+    "HOST-02": {"id": "HOST-02", "label": "OS name / version", "method": "/etc/os-release", "ok": true, "value": "Ubuntu 24.04.1 LTS"},
+    "HOST-03": {"id": "HOST-03", "label": "Kernel version", "method": "uname -r", "ok": true, "value": "6.8.0-40-generic"},
+    "HOST-04": {"id": "HOST-04", "label": "Uptime", "method": "uptime", "ok": true, "value": "up 4 days, 2:11, 1 user, load average: 0.10, 0.08, 0.05"},
+    "DISK-01": {"id": "DISK-01", "label": "Disk usage summary", "method": "df -P", "ok": true, "value": "/ 50G 41%\n/boot 1G 22%"},
+    "MEM-01": {"id": "MEM-01", "label": "Memory summary", "method": "free", "ok": true, "value": "total=7976MB used=2104MB free=3870MB"},
+    "NET-01": {"id": "NET-01", "label": "Local listening ports", "method": "ss -tuln", "ok": true, "value": "tcp 0.0.0.0:22\ntcp 127.0.0.1:5432\ntcp 0.0.0.0:443"},
+    "FW-01": {"id": "FW-01", "label": "Firewall status", "method": "ufw status", "ok": true, "value": "Status: active"},
+    "SVC-01": {"id": "SVC-01", "label": "Running service names", "method": "systemctl", "ok": true, "value": "ssh.service\nnginx.service\npostgresql.service\ncron.service"},
+    "PKG-01": {"id": "PKG-01", "label": "Package/update summary", "method": "apt", "ok": true, "value": "upgradable=3"},
+    "CFG-01": {"id": "CFG-01", "label": "Config existence checks", "method": "test -e + stat mode", "ok": true, "value": "/etc/ssh/sshd_config present (-rw-r--r--)\n/etc/sudoers present (-r--r-----)\n/etc/hosts present (-rw-r--r--)"}
+  }
+}

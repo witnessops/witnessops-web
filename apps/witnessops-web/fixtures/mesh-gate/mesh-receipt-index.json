@@ -1,0 +1,17 @@
+{
+  "schema": "offseclane.mesh_receipt_index.v1",
+  "published_at": "20260621T181634Z",
+  "engagement_id": "BASTION-0DAY-HUNT-FULL",
+  "overall_mesh_gate": "PASS",
+  "public_receipt_schema": "offseclane.mesh_receipt_public.v1",
+  "content_sha256": "8990248f2fb51510ef76acff6cc2f06e4a1c82ef24ae4a24f2584d3078483b46",
+  "witnessops": {
+    "well_known": "/.well-known/mesh-receipt-index.json",
+    "mesh_gate_api": "/api/mesh-gate"
+  },
+  "disclaimer": "Operator mesh hygiene index only; not customer security or /api/verify.",
+  "vmesh_federation": {
+    "phase": "phase_c",
+    "federation_public_url": "https://federation.vaultmesh.earth"
+  }
+}

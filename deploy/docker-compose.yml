@@ -1,4 +1,4 @@
-# witnessops-web production deployment (Servury / edge02)
+# witnessops-web production deployment (goal0-edge-01 unified public host)
 #
 # This compose file is the single source of truth for how the production
 # container runs. It is intentionally minimal: TLS, the public hostname, and

@@ -1,0 +1,60 @@
+{
+  "schema": "offsecshield.receipt.v1",
+  "schema_id": "https://offsecagent.com/schemas/run_receipt.schema.json",
+  "receipt_id": "secsvc-local-fixture-a",
+  "run_id": "local-fixture-a",
+  "module": "local-audit",
+  "host": "demo-host",
+  "agent_version": "0.1.0",
+  "generated_for": "guardian@vaultmesh.org",
+  "issued_at_utc": "2026-06-21T18:34:12Z",
+  "authority_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "scope_hash": "571823760f1f1d3510e3484527d5c0f6765ce27f12698913ae0d06246cb73f6a",
+  "manifest_path": "MANIFEST.sha256",
+  "evidence_manifest_hash": "5900574e9e8f96f0a778a53e66ed1dd68d021fb34c1644c7203c7f75d6d3f4ed",
+  "collectors_run": [
+    "HOST-01",
+    "HOST-02",
+    "HOST-03",
+    "HOST-04",
+    "DISK-01",
+    "MEM-01",
+    "NET-01",
+    "FW-01",
+    "SVC-01",
+    "PKG-01",
+    "CFG-01"
+  ],
+  "findings_count": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 1,
+    "informational": 1
+  },
+  "artifacts": [
+    {
+      "path": "evidence/authority.json",
+      "sha256": "f732264f1ae592e4d4e24818c49e734e5ed27b2bbba7b710d998abfebad87db1",
+      "bytes": 620
+    },
+    {
+      "path": "evidence/findings.json",
+      "sha256": "d1c590aa730d5b5bfa1f7c92b7b031b2aab78a16f7e295f712f28102ad44136d",
+      "bytes": 920
+    },
+    {
+      "path": "evidence/posture.json",
+      "sha256": "63e2d3917b2b9ce3edf28a9e60708a0d1e2004fa95783308e8fe1d074150118a",
+      "bytes": 2049
+    },
+    {
+      "path": "evidence/scope.json",
+      "sha256": "571823760f1f1d3510e3484527d5c0f6765ce27f12698913ae0d06246cb73f6a",
+      "bytes": 405
+    }
+  ],
+  "signature": null,
+  "no_fabrication": true,
+  "method": "SHA256 computed from bytes on disk; no hash fabricated; verifier reports READY/MISMATCH/MISSING."
+}

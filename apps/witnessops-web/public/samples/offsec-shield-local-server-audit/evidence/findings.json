@@ -1,0 +1,24 @@
+[
+  {
+    "schema": "offsecagent.finding.v1",
+    "finding_id": "F-001",
+    "severity": "low",
+    "title": "Services bound to all interfaces (0.0.0.0)",
+    "observed_in": "NET-01",
+    "rationale": "2 listener(s) bound to 0.0.0.0.",
+    "recommendation": "Bind to specific interfaces or restrict via firewall where external access is not required.",
+    "status": "open",
+    "verification_note": "derived from read-only posture evidence"
+  },
+  {
+    "schema": "offsecagent.finding.v1",
+    "finding_id": "F-002",
+    "severity": "informational",
+    "title": "Read-only posture baseline captured",
+    "observed_in": "HOST-01",
+    "rationale": "A read-only host posture snapshot was collected for review and drift tracking.",
+    "recommendation": "Re-run periodically; compare with `drift` to catch posture changes.",
+    "status": "open",
+    "verification_note": "derived from read-only posture evidence"
+  }
+]

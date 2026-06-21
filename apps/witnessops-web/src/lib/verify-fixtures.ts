@@ -22,6 +22,23 @@ const FILE_FIXTURES = [
     expected: { kind: "verification", verdict: "invalid" },
   },
   {
+    id: "offsec-shield-valid",
+    label: "OffSec Shield receipt (structural)",
+    description:
+      "offsecshield.receipt.v1 sample; /api/verify R2 adapter (not PV/QV/WV).",
+    fileName: "offsec-shield-valid.json",
+    provenance: "app",
+    expected: { kind: "verification", verdict: "valid" },
+  },
+  {
+    id: "offsec-shield-bad-binding",
+    label: "OffSec Shield receipt (bad authority binding)",
+    description: "Shield receipt where authority_hash disagrees with artifacts[].",
+    fileName: "offsec-shield-bad-binding.json",
+    provenance: "app",
+    expected: { kind: "verification", verdict: "invalid" },
+  },
+  {
     id: "unsupported-stage",
     label: "Unsupported receipt stage",
     description:

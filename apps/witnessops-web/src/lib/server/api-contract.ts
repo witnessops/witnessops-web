@@ -152,6 +152,13 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     note: "Co-existing pair with /api/verify; both POST and GET on this path is unusual for a Next.js route handler and is flagged for the same future lane.",
   },
   {
+    path: "/api/mesh-gate",
+    methods: ["GET", "POST"],
+    category: "public-utility",
+    summary:
+      "Operator mesh hygiene: validate published offseclane.mesh_receipt_public.v1 (not customer security proof)",
+  },
+  {
     path: "/api/assessment/[issuanceId]",
     methods: ["GET"],
     category: "public-claimant",

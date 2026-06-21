@@ -14,7 +14,7 @@ and sample proof-surface pages used to explain artifact inspection boundaries.
 - Returns deterministic verification results for the same receipt input.
 - Provides buyer-facing proof-run, sample-case, docs, support, pricing, library, and legal/security surfaces.
 - Presents the AI Agent Action Proof Run sample with pinned artifact links, manifest provenance, visible artifact digests, and buyer-path smoke coverage.
-- Uses Servury/edge02 as the active hosting lane, as classified in [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md).
+- Uses **goal0-edge-01** as the unified public hosting lane (WitnessOps + OffSec vhosts), as classified in [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md). OffSec-Lane copy: `working/sources/witnessops-web/README-LANE.md`.
 
 ## What this repository does not do
 
@@ -32,7 +32,7 @@ Deployment guidance lives in [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_
 
 Current repo boundary:
 
-- active hosting lane: Servury/edge02 clean-server hosting
+- active hosting lane: goal0-edge-01 unified public host (migrating from Servury/edge02)
 - active app runtime inputs: app source, package scripts, Dockerfile, environment examples, and validation commands
 - retired Azure archive: `docs/archive/azure-aca-retired-20260508/`
 

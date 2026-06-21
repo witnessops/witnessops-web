@@ -15,6 +15,10 @@ import type {
   VerifyVerdict,
 } from "@/lib/verify-contract";
 import { findDuplicateJsonObjectKey } from "./json-ambiguity";
+import {
+  isOffsecShieldReceipt,
+  verifyOffsecShieldReceipt,
+} from "./shield-verify-adapter";
 
 const verifyRequestSchema = z.object({
   receipt: z.union([z.string().min(1), z.record(z.unknown())]),
@@ -237,6 +241,10 @@ export function verifyReceiptPayload(payload: unknown): VerifyResponse {
 
   if (!isRecord(parsedReceipt)) {
     return malformed("Receipt payload must decode to a JSON object.");
+  }
+
+  if (isOffsecShieldReceipt(parsedReceipt)) {
+    return verifyOffsecShieldReceipt(parsedReceipt);
   }
 
   const supportFailure = validateSupportedReceipt(parsedReceipt);

@@ -75,7 +75,7 @@ const DOC_SECTION_TITLES: Record<string, string> = {
   operators: "Operator Surface",
   "proof-bundles": "Proof Bundle Specification",
   protocol: "Protocol Core",
-  reference: "Reference Registry",
+  reference: "Reference",
   verification: "Verification Surface",
 };
 

@@ -1,0 +1,23 @@
+{
+  "schema": "offsecagent.authority.v1",
+  "authority_id": "auth-local-demo-001",
+  "client": "Local Operator",
+  "authorized_by": "operator@example.test",
+  "valid_from": "2026-01-01T00:00:00Z",
+  "valid_until": "2030-01-01T00:00:00Z",
+  "allowed_assets": {
+    "domains": [],
+    "hosts": ["localhost"],
+    "repos": []
+  },
+  "prohibited_actions": [
+    "credential theft",
+    "phishing",
+    "persistence",
+    "malware execution",
+    "destructive testing",
+    "third-party scanning",
+    "exploit execution"
+  ],
+  "authorization_artifact": "demo-only; replace with signed authorization hash for client work"
+}

@@ -1,0 +1,125 @@
+{
+  "schema": "offseclane.mesh_receipt_public.v1",
+  "generated_at": "20260621T181634Z",
+  "engagement_id": "BASTION-0DAY-HUNT-FULL",
+  "overall_mesh_gate": "PASS",
+  "nodes": {
+    "fleet_vm": {
+      "host": "debian-termux-7a0efe",
+      "mesh_ip": "10.44.0.22"
+    },
+    "bastion": {
+      "host": "ops-bastion-01",
+      "mesh_ip": "10.44.0.4"
+    },
+    "goal0": {
+      "host": "goal0-edge-01",
+      "mesh_ip": "10.44.0.5"
+    }
+  },
+  "evd_roles": {
+    "working_copy": "fleet_vm",
+    "authoritative_scope": "bastion_mirror_evd"
+  },
+  "bastion_verify": {
+    "reachable": true,
+    "overall": "WARN"
+  },
+  "child_receipts": [
+    {
+      "id": "hunt_route",
+      "schema": "witnessops.hunt_route.v1",
+      "role": "router",
+      "authority": "fleet_vm",
+      "path_redacted": "HUNT-ROUTE-LATEST.json",
+      "sha256": "3a61e53e4d2cfc80d7ea736c55440b11565b439e432eea5dd6d3e25ffb3a3655",
+      "pass": true,
+      "summary": null
+    },
+    {
+      "id": "test_matrix",
+      "schema": "witnessops.test_matrix.v2",
+      "role": "node_regression",
+      "authority": "fleet_vm",
+      "path_redacted": "TEST-MATRIX-LATEST.json",
+      "sha256": "74252ff78ccf65e7a56767e3c9764830e6a5841e4c0567610b1d3973bfdc84d2",
+      "pass": true,
+      "summary": "pass=17 fail=0"
+    },
+    {
+      "id": "organize_mesh",
+      "schema": "offseclane.organize_mesh.v1",
+      "role": "lane_prep",
+      "authority": "fleet_vm",
+      "path_redacted": "ORGANIZE-MESH-LATEST.json",
+      "sha256": "ac588798c00c4ff5523b5fa88ebed36ebd7ecaa4c66c8fa3cbafa4a6b1245cce",
+      "pass": true,
+      "summary": "gates_fail=0"
+    },
+    {
+      "id": "leverage",
+      "schema": "witnessops.fleet_leverage.v1",
+      "role": "compound_hunt",
+      "authority": "fleet_vm",
+      "path_redacted": "LEVERAGE-LATEST.json",
+      "sha256": "c6f39d7863e4f560df3e2bd14508b22a09b34369cf347a2540125e1c2a5c5d5e",
+      "pass": true,
+      "summary": null
+    },
+    {
+      "id": "hunt_closeout",
+      "schema": "witnessops.hunt_closeout.v1",
+      "role": "authoritative_gate",
+      "authority": "bastion",
+      "path_redacted": "bastion:opaque/HUNT-CLOSEOUT-STATUS.json",
+      "sha256": "64e557e42f73166625eb907b1d78d13ecbaa835b664275136ecd2dab353c401c",
+      "pass": true,
+      "summary": "misconfig_complete_no_zero_day"
+    },
+    {
+      "id": "live_validation",
+      "schema": "witnessops.live_validation.v1",
+      "role": "p0_live",
+      "authority": "bastion",
+      "path_redacted": "bastion:opaque/LIVE-VALIDATION-20260621T181634Z.json",
+      "sha256": "e945fd46d37ad6b74ff5d3e5a4e70569f43d9ff6ba2603ce556197036a1bbc03",
+      "pass": false,
+      "summary": null
+    }
+  ],
+  "policy": {
+    "execution_authority": "bastion_mirror_evd",
+    "federation_mode": "pointer_and_hash",
+    "public_redaction": "adr-0007"
+  },
+  "governed_capabilities": [
+    {
+      "name": "fleet-mesh-full-loop",
+      "authority": "fleet_vm",
+      "edge_slot": "fleet-mesh-full-loop",
+      "manifest_sha256": "ccfb5a23684b4e4930cc2b109ce408dc5f9f5a8ecf6a3838a74e1b9b3c5ce3bd",
+      "verify_bundle": "pass"
+    },
+    {
+      "name": "fleet-personal-agent-status",
+      "authority": "fleet_vm",
+      "edge_slot": "fleet-personal-agent-status",
+      "manifest_sha256": "e1b9a62f9eae9a8d0306e6805aaa4923c906d9a7a05486ff9799ac0e2c90e95a",
+      "verify_bundle": "pass"
+    }
+  ],
+  "vmesh_federation": {
+    "phase": "phase_c",
+    "adr": "0003-vaultmesh-federation-dns",
+    "hub_url": "https://hub.vaultmesh.org",
+    "federation_public_url": "https://federation.vaultmesh.earth",
+    "short_alias_url": "https://vmesh.vaultmesh.org",
+    "receipt_publish": {
+      "goal0_path": "/opt/offsec/receipts/mesh/MESH-RECEIPT-LATEST.json",
+      "ingest_url": "https://ingest.vaultmesh.eu/v1/mesh-receipt",
+      "ingest_transport": "https"
+    }
+  },
+  "content_sha256": "8990248f2fb51510ef76acff6cc2f06e4a1c82ef24ae4a24f2584d3078483b46",
+  "source_receipt_sha256": "d5f1353223e91a91ea9cad88e6be709dfd200be00b1b9e0e99538197a82a7c29"
+}

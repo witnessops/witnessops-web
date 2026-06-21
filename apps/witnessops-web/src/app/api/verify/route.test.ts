@@ -214,3 +214,48 @@ test("verify route distinguishes unsupported receipt inputs", async () => {
   assert.equal(payload.ok, false);
   assert.equal(payload.failureClass, "FAILURE_INPUT_UNSUPPORTED");
 });
+
+test("verify route accepts OffSec Shield receipt via R2 structural adapter", async () => {
+  const fixture = loadVerifyFixture("offsec-shield-valid");
+  assert.ok(fixture);
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receipt: JSON.parse(fixture.receiptInput) }),
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    inputKind?: string;
+    adapter?: string;
+    verdict?: string;
+    proofStageClaimed?: string;
+  };
+  assert.equal(payload.ok, true);
+  assert.equal(payload.inputKind, "offsec-shield-receipt");
+  assert.equal(payload.adapter, "witnessops.verify.offsec_shield_receipt.v1");
+  assert.equal(payload.verdict, "valid");
+  assert.equal(payload.proofStageClaimed, "unknown");
+});
+
+test("verify route rejects Shield receipt with bad authority binding", async () => {
+  const fixture = loadVerifyFixture("offsec-shield-bad-binding");
+  assert.ok(fixture);
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receipt: JSON.parse(fixture.receiptInput) }),
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as { ok: boolean; verdict?: string };
+  assert.equal(payload.ok, true);
+  assert.equal(payload.verdict, "invalid");
+});

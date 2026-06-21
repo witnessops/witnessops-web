@@ -24,9 +24,13 @@ export interface VerifyBreachView {
   checkName: string;
 }
 
+export type VerifyInputKind = "receipt" | "offsec-shield-receipt";
+
 export interface VerifySuccessResponse {
   ok: true;
-  inputKind: "receipt";
+  inputKind: VerifyInputKind;
+  /** Set when inputKind is offsec-shield-receipt (R2 adapter; not PV/QV/WV). */
+  adapter?: "witnessops.verify.offsec_shield_receipt.v1";
   verdict: VerifyVerdict;
   scope: VerificationVerdict_["verification_mode"];
   artifactRevalidation: VerificationVerdict_["artifact_revalidation"];

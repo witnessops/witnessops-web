@@ -1,8 +1,8 @@
 # Installing witnessops-web on a host
 
-This is the supported installation method for the production web surface
-(currently Servury / edge02). It runs the released, signed container image from
-GHCR behind a host Caddy reverse proxy.
+This is the supported installation method for the production web surface on
+**goal0-edge-01** (unified public host with OffSec product vhosts). It runs the
+released, signed container image from GHCR behind host Caddy on `167.235.12.232`.
 
 Architecture:
 
@@ -90,11 +90,11 @@ docker compose -f docker-compose.yml ps
 
 ## Notes / current reality
 
-- On edge02 the live container is presently named `witnessops-web-staging` and
-  uses `witnessops-web.staging.env`. This tooling standardizes on the
-  production names `witnessops-web` / `witnessops-web.env`. The first deploy with
-  this tooling performs that one-time rename — stop and remove the old
-  `witnessops-web-staging` container as part of that cutover.
+- **Unified host:** import OffSec-Lane `witnessops-public.Caddyfile` alongside
+  `offsec-public.Caddyfile` on goal0. See OffSec-Lane `docs/local-mesh/SINGLE-PUBLIC-HOST.md`.
+- Legacy **edge02** may still run `witnessops-web-staging` until DNS points at
+  goal0. First goal0 deploy uses production names `witnessops-web` /
+  `witnessops-web.env`.
 - TLS, DNS, and the contact/review gate are host/edge concerns, not app config.
 - Persistent data under `/srv/witnessops/data` must be backed up independently
   (see the production backup custody lane).

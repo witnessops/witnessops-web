@@ -1,0 +1,30 @@
+{
+  "schema": "offsecagent.evidence_manifest.v1",
+  "schema_id": "https://offsecagent.com/schemas/evidence_manifest.schema.json",
+  "run_dir_name": "local-fixture-a",
+  "agent_version": "0.1.0",
+  "generated_at_utc": "2026-06-21T18:34:12Z",
+  "file_count": 4,
+  "files": [
+    {
+      "path": "evidence/authority.json",
+      "sha256": "f732264f1ae592e4d4e24818c49e734e5ed27b2bbba7b710d998abfebad87db1",
+      "bytes": 620
+    },
+    {
+      "path": "evidence/findings.json",
+      "sha256": "d1c590aa730d5b5bfa1f7c92b7b031b2aab78a16f7e295f712f28102ad44136d",
+      "bytes": 920
+    },
+    {
+      "path": "evidence/posture.json",
+      "sha256": "63e2d3917b2b9ce3edf28a9e60708a0d1e2004fa95783308e8fe1d074150118a",
+      "bytes": 2049
+    },
+    {
+      "path": "evidence/scope.json",
+      "sha256": "571823760f1f1d3510e3484527d5c0f6765ce27f12698913ae0d06246cb73f6a",
+      "bytes": 405
+    }
+  ]
+}

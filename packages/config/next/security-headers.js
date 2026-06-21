@@ -11,7 +11,8 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
-  "connect-src 'self' https://api.vaultmesh.org https://registry.offsec.foundation",
+  // Re-add federation/registry origins when those endpoints are live on goal0 DNS.
+  "connect-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

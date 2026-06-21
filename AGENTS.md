@@ -22,7 +22,7 @@ Release authority: internal/manual for now
 ## Deployment authority
 
 - Use [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md) before any deploy-adjacent work.
-- The active WitnessOps web hosting lane is Servury/edge02 clean-server hosting.
+- The active WitnessOps web hosting lane is goal0-edge-01 unified public host (`167.235.12.232`). Servury/edge02 is legacy until DNS cutover.
 - Azure Container Apps is retired for this repo. Root `azure.yaml` and `infra/**` were archived under `docs/archive/azure-aca-retired-20260508/`.
 - Do not run `az`, `azd`, Bicep deployment, Azure inventory, Azure cleanup, Azure rollback, or Azure restore work from this repo unless a separate explicit Azure reopening lane names the allowed cloud surfaces, commands, receipts, and stop boundary.
 - Do not treat archived Azure files as active deploy authority, rollback authority, or evidence that Azure resources exist.
@@ -58,8 +58,15 @@ For security-sensitive changes, preserve these boundaries:
 - The web surface does not issue, sign, mutate, backfill, or store receipts as part of normal verification.
 - Do not add production secrets, customer data, signing keys, cloud credentials, or private evidence bundles to tests, examples, prompts, or fixtures.
 
+## Optimization and language strategy
+
+- Before proposing a new runtime (Go/Rust sidecar, WASM crypto, full rewrite), read [`docs/OPTIMIZATION-LANGUAGE.md`](./docs/OPTIMIZATION-LANGUAGE.md).
+- Grok project skill: `.grok/skills/optimize-witnessops-web/SKILL.md` (`/optimize-witnessops-web`).
+- Fast regression after proof/verify edits: `pnpm optimize:quick-check` (requires `pnpm install`).
+- **Node 22 builder** lives on a **different node** than the fleet VM (Node 20): see [`docs/NODE22-BUILDER.md`](./docs/NODE22-BUILDER.md). Use `pnpm health:node22` (local Docker) or `pnpm health:node22:goal0` / `run-witnessops-mesh-goal0.sh` for release.
+
 ## Validation
 
-- `pnpm health`
+- `pnpm health` — requires **Node 22** on the host (see `.nvmrc`) or run `pnpm health:node22`
 - route parity against the frozen baseline captured at slice start
 - buyer-path smoke when public buyer or proof-surface copy changes: `pnpm smoke:buyer-path:test`

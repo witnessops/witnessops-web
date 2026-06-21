@@ -1,0 +1,9 @@
+{
+  "schema": "witnessops.offsec_shield_verify_note.v1",
+  "witnessops_api_verify_v1": "structural_only",
+  "adapter": "witnessops.verify.offsec_shield_receipt.v1",
+  "reason": "POST RECEIPT.json to /api/verify runs structural checks only; PV/QV/WV proof stages do not apply.",
+  "offline_verify": "python3 tools/offsecshield.py verify <run_dir> (OffSecShield CLI)",
+  "schema_reconciliation": "See shield/SCHEMA_RECONCILIATION.md \u2014 R1 sample + R2 structural adapter shipped.",
+  "safe_claim": "Demonstrates integrity manifest + honest hashes on a synthetic local-audit fixture."
+}

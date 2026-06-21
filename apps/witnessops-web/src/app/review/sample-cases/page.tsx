@@ -58,7 +58,27 @@ const supportSurfaces = [
   },
 ];
 
+const offSecShieldArtifacts = [
+  "RECEIPT.json",
+  "evidence_manifest.json",
+  "MANIFEST.sha256",
+  "evidence/posture.json",
+  "evidence/findings.json",
+  "VERIFY_NOTE.json",
+];
+
 const sampleCases = [
+  {
+    title: "OffSec Shield — local server audit",
+    href: "/review/sample-cases/offsec-shield-local-server-audit",
+    description:
+      "Reference proof bundle from OffSecAgent + OffSecShield (synthetic demo-host fixture): posture, findings, honest manifest hashes, and explicit WitnessOps /verify boundary.",
+    signals: [
+      "read-only posture evidence",
+      "offsecshield.receipt.v1 / run_receipt alignment",
+      "offline Shield verify path",
+    ],
+  },
   {
     title: "Privileged access grant review",
     href: "/review/sample-cases/privileged-access-grant",
@@ -172,6 +192,43 @@ export default function SampleCasesIndexPage() {
                   proof, production deployment, legal compliance, or complete
                   AI governance coverage.
                 </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+            <div className="kb-section-tag">OffSec deliverable sample (R1)</div>
+            <div className="mt-3 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
+              <div>
+                <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
+                  OffSec Shield local server audit
+                </h2>
+                <p className="mt-3 text-base leading-8 text-text-secondary">
+                  Download a synthetic Shield proof bundle to see how OffSec
+                  deliverables relate to WitnessOps verification. Not a substitute
+                  for PV/QV receipts on /verify.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <CtaButton
+                    href="/review/sample-cases/offsec-shield-local-server-audit"
+                    variant="primary"
+                    label="Inspect Shield sample"
+                  />
+                  <CtaButton href="/verify" variant="secondary" label="Open /verify" />
+                </div>
+              </div>
+              <div className="rounded-xl border border-surface-border bg-surface-bg p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  Artifact set
+                </h3>
+                <ul className="mt-3 space-y-2 font-mono text-xs leading-6 text-text-muted">
+                  {offSecShieldArtifacts.map((artifact) => (
+                    <li key={artifact} className="flex gap-2">
+                      <span className="text-brand-accent">✓</span>
+                      <span>{artifact}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </section>
