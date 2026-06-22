@@ -12,6 +12,9 @@ dist/
 .claude/*
 !.claude/commands/
 !.claude/commands/**
+# run-<unit> skills are committed agent tooling (driver.mjs + SKILL.md)
+!.claude/skills/
+!.claude/skills/**
 .playwright-mcp/
 tmp/
 out/
@@ -22,6 +25,12 @@ output/
 audit-*.png
 *-cards.png
 .playwright-cli
+
+# run-witnessops-web driver runtime outputs (screenshots, dev log, pidfile)
+var/screenshots/
+var/driver-dev.log
+var/smoke-run.log
+var/.driver-dev.pid
 
 # Azure Developer CLI local environment (contains live env identifiers / secrets)
 .azure/
