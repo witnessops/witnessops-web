@@ -1,0 +1,44 @@
+# witnessops-web production deployment (Servury / edge02)
+#
+# This compose file is the single source of truth for how the production
+# container runs. It is intentionally minimal: TLS, the public hostname, and
+# the contact/review gate are handled by the host Caddy systemd service, which
+# reverse-proxies to 127.0.0.1:3000 (see deploy/Caddyfile.snippet).
+#
+# The image is pinned by the deploy script via the WITNESSOPS_WEB_IMAGE
+# variable (a :vX.Y.Z tag resolved to an immutable @sha256 digest). Never edit
+# the tag here by hand; use deploy/scripts/deploy.sh.
+
+services:
+  witnessops-web:
+    image: ${WITNESSOPS_WEB_IMAGE:?set WITNESSOPS_WEB_IMAGE to a pinned ghcr.io/...@sha256 ref}
+    container_name: witnessops-web
+    restart: unless-stopped
+
+    # Runtime secrets and config live on the host, outside this repo.
+    env_file:
+      - /srv/witnessops/env/witnessops-web.env
+
+    # Bind only to loopback. Caddy terminates TLS and proxies to this port.
+    ports:
+      - "127.0.0.1:3000:3000"
+
+    # Persistent data. Host paths survive container recreation and are backed
+    # up separately (see the production backup custody lane).
+    volumes:
+      - /srv/witnessops/data/intake-store:/data/intake-store
+      - /srv/witnessops/data/intake-events:/data/intake-events
+      - /srv/witnessops/data/staging-mail-out:/data/mail-out
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

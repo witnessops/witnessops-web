@@ -1,0 +1,268 @@
+name: Release witnessops-web
+
+# Cut a versioned, signed release by pushing a SemVer tag:
+#
+#   git tag v0.1.0 && git push origin v0.1.0
+#
+# This builds the standalone image, pushes it to GHCR tagged :vX.Y.Z, :X.Y.Z,
+# and :stable (plus the immutable digest), generates an SBOM, keyless-signs with
+# cosign, and publishes a GitHub Release carrying the build receipt and the
+# exact deploy command. Deploy is a separate, operator-run step (see
+# deploy/INSTALL.md); this workflow never touches the server.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag to build, e.g. v0.1.0 (must already exist as a git tag)"
+        required: true
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+
+concurrency:
+  group: witnessops-web-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOCKERFILE_PATH: apps/witnessops-web/Dockerfile
+  RECEIPT_DIR: artifacts/release
+
+jobs:
+  release:
+    name: Build, sign, and publish release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Resolve version
+        id: version
+        run: |
+          if [[ -n "${{ github.event.inputs.version }}" ]]; then
+            version="${{ github.event.inputs.version }}"
+          else
+            version="${GITHUB_REF_NAME}"
+          fi
+          if [[ ! "${version}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::version '${version}' is not a vX.Y.Z SemVer tag"
+            exit 1
+          fi
+          {
+            echo "version=${version}"
+            echo "semver=${version#v}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Check out repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: ${{ steps.version.outputs.version }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+        with:
+          version: 9.15.4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify package version matches tag
+        run: |
+          pkg_version="$(node -p "require('./apps/witnessops-web/package.json').version")"
+          if [[ "${pkg_version}" != "${{ steps.version.outputs.semver }}" ]]; then
+            echo "::error::apps/witnessops-web/package.json version (${pkg_version}) does not match tag (${{ steps.version.outputs.semver }}). Bump it in the release PR before tagging."
+            exit 1
+          fi
+
+      - name: Build witnessops-web standalone output
+        run: pnpm --filter witnessops-web build
+
+      - name: Set image metadata
+        id: image
+        run: |
+          mkdir -p "${RECEIPT_DIR}"
+          image_name="ghcr.io/${GITHUB_REPOSITORY,,}"
+          version="${{ steps.version.outputs.version }}"
+          semver="${{ steps.version.outputs.semver }}"
+          {
+            echo "image_name=${image_name}"
+            echo "tag_version=${image_name}:${version}"
+            echo "tag_semver=${image_name}:${semver}"
+            echo "tag_stable=${image_name}:stable"
+            echo "tag_sha=${image_name}:${GITHUB_SHA}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Log in to GHCR with GitHub token
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "${GHCR_TOKEN}" | docker login ghcr.io \
+            --username "${GITHUB_ACTOR}" \
+            --password-stdin
+
+      - name: Set up Docker Buildx
+        run: |
+          docker buildx create --name witnessops-web-release-builder --driver docker-container --use
+          docker buildx inspect --bootstrap
+
+      - name: Build and push image
+        run: |
+          docker buildx build \
+            --file "${DOCKERFILE_PATH}" \
+            --tag "${{ steps.image.outputs.tag_version }}" \
+            --tag "${{ steps.image.outputs.tag_semver }}" \
+            --tag "${{ steps.image.outputs.tag_stable }}" \
+            --tag "${{ steps.image.outputs.tag_sha }}" \
+            --push \
+            --metadata-file "${RECEIPT_DIR}/image-metadata.json" \
+            .
+
+      - name: Record image digest
+        id: digest
+        run: |
+          digest="$(node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));const d=m["containerimage.digest"];if(!d){process.exit(1);}console.log(d);' "${RECEIPT_DIR}/image-metadata.json")"
+          image_ref="${{ steps.image.outputs.image_name }}@${digest}"
+          {
+            echo "digest=${digest}"
+            echo "image_ref=${image_ref}"
+          } >> "${GITHUB_OUTPUT}"
+          printf '%s\n' "${digest}" > "${RECEIPT_DIR}/image-digest.txt"
+          printf '%s\n' "${image_ref}" > "${RECEIPT_DIR}/image-ref.txt"
+
+      - name: Generate image SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.digest.outputs.image_ref }}
+          format: spdx-json
+          output-file: artifacts/release/sbom.spdx.json
+          upload-artifact: false
+
+      - name: Hash SBOM
+        id: sbom
+        run: |
+          sbom_sha256="$(sha256sum "${RECEIPT_DIR}/sbom.spdx.json" | awk '{ print $1 }')"
+          echo "sha256=${sbom_sha256}" >> "${GITHUB_OUTPUT}"
+          printf '%s  %s\n' "${sbom_sha256}" "sbom.spdx.json" > "${RECEIPT_DIR}/sbom.spdx.json.sha256"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@ba7bc0a3fef59531c69a25acd34668d6d3fe6f22
+        with:
+          cosign-release: v3.0.3
+
+      - name: Keyless-sign image with GitHub OIDC
+        env:
+          COSIGN_YES: "true"
+        run: cosign sign --yes "${{ steps.digest.outputs.image_ref }}"
+
+      - name: Attach SBOM to image
+        run: cosign attach sbom --sbom "${RECEIPT_DIR}/sbom.spdx.json" "${{ steps.digest.outputs.image_ref }}"
+
+      - name: Smoke-verify image signature
+        run: |
+          cosign verify \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release\\.yml@refs/tags/.+$" \
+            "${{ steps.digest.outputs.image_ref }}" \
+            > "${RECEIPT_DIR}/cosign-verify.json"
+
+      - name: Write release receipt
+        env:
+          IMAGE_REF: ${{ steps.digest.outputs.image_ref }}
+          IMAGE_DIGEST: ${{ steps.digest.outputs.digest }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SBOM_SHA256: ${{ steps.sbom.outputs.sha256 }}
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const dir = process.env.RECEIPT_DIR;
+          const identityRegexp = `^https://github.com/${process.env.GITHUB_REPOSITORY}/.github/workflows/release\\.yml@refs/tags/.+$`;
+          const receipt = {
+            schema_version: "witnessops.release-receipt.v1",
+            repo: process.env.GITHUB_REPOSITORY,
+            version: process.env.VERSION,
+            run_id: process.env.GITHUB_RUN_ID,
+            commit_sha: process.env.GITHUB_SHA,
+            image: { ref: process.env.IMAGE_REF, digest: process.env.IMAGE_DIGEST },
+            sbom: { path: "sbom.spdx.json", format: "spdx-json", sha256: process.env.SBOM_SHA256 },
+            signing: {
+              method: "sigstore-cosign-keyless-github-oidc",
+              oidc_issuer: "https://token.actions.githubusercontent.com",
+              certificate_identity_regexp: identityRegexp,
+            },
+            deploy_command: `./scripts/deploy.sh ${process.env.VERSION}`,
+            verifier_command: `cosign verify --certificate-oidc-issuer "https://token.actions.githubusercontent.com" --certificate-identity-regexp '${identityRegexp}' "${process.env.IMAGE_REF}"`,
+          };
+          fs.writeFileSync(`${dir}/receipt.json`, JSON.stringify(receipt, null, 2) + "\n");
+          NODE
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_REF: ${{ steps.digest.outputs.image_ref }}
+          IMAGE_DIGEST: ${{ steps.digest.outputs.digest }}
+          TAG_VERSION: ${{ steps.image.outputs.tag_version }}
+        run: |
+          notes="$(cat <<EOF
+          ## witnessops-web ${VERSION}
+
+          Signed container image published to GHCR.
+
+          - **Image (immutable):** \`${IMAGE_REF}\`
+          - **Tags:** \`${TAG_VERSION}\`, \`:stable\`
+          - **Digest:** \`${IMAGE_DIGEST}\`
+          - **SBOM:** attached to the image (spdx-json) and to this release
+
+          ### Deploy (on the host, from \`deploy/\`)
+
+          \`\`\`bash
+          ./scripts/deploy.sh ${VERSION}
+          \`\`\`
+
+          ### Verify the signature
+
+          \`\`\`bash
+          cosign verify \\
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \\
+            --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release\\.yml@refs/tags/.+\$" \\
+            "${IMAGE_REF}"
+          \`\`\`
+          EOF
+          )"
+          gh release create "${VERSION}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "witnessops-web ${VERSION}" \
+            --notes "${notes}" \
+            "${RECEIPT_DIR}/receipt.json#release-receipt.json" \
+            "${RECEIPT_DIR}/sbom.spdx.json#sbom.spdx.json" \
+            "${RECEIPT_DIR}/image-digest.txt#image-digest.txt"
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: witnessops-web-release-receipt
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            artifacts/release/receipt.json
+            artifacts/release/image-digest.txt
+            artifacts/release/image-ref.txt
+            artifacts/release/image-metadata.json
+            artifacts/release/cosign-verify.json
+            artifacts/release/sbom.spdx.json
+            artifacts/release/sbom.spdx.json.sha256
