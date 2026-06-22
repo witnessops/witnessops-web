@@ -33,8 +33,10 @@ const SUPPORTED_STATUSES: readonly AnswerStatus[] = [
   "partially_supported",
 ];
 
-const MISSING_CLAIM_CITATIONS_BOUNDARY =
-  "supported_answer_missing_claim_citations";
+const SUPPORTED_WITHOUT_RETRIEVAL_BOUNDARY =
+  "supported_answer_missing_retrieved_citations";
+
+const SUPPORTED_WITHOUT_CLAIMS_BOUNDARY = "supported_answer_missing_claims";
 
 function isAnswerStatus(value: unknown): value is AnswerStatus {
   return typeof value === "string" && ANSWER_STATUSES.includes(value as AnswerStatus);
@@ -78,9 +80,48 @@ function normalizeUnsupportedReason(
     : null;
 }
 
+// The model is told to reference supporting file_search results by their
+// retrieved_result_index (e.g. "0", "2"), because the full server citation IDs
+// (prefix + case_id + index) are only minted after the model responds. This
+// resolver maps whatever the model emits back to the server-bound citation IDs:
+// an exact server ID, a bare index, or a value ending in the index.
+function buildCitationResolver(
+  citations: DocsAssistantCitation[],
+): (raw: string) => string | null {
+  const byId = new Set(citations.map((citation) => citation.citation_id));
+  const byIndex = new Map(
+    citations
+      .filter(
+        (citation) => citation.source_type === "openai_file_search_result",
+      )
+      .map((citation) => [
+        String(citation.retrieved_result_index),
+        citation.citation_id,
+      ]),
+  );
+
+  return (raw: string): string | null => {
+    const value = raw.trim();
+    if (!value) {
+      return null;
+    }
+    if (byId.has(value)) {
+      return value;
+    }
+    if (byIndex.has(value)) {
+      return byIndex.get(value) ?? null;
+    }
+    const trailingIndex = value.match(/(\d+)$/);
+    if (trailingIndex && byIndex.has(trailingIndex[1])) {
+      return byIndex.get(trailingIndex[1]) ?? null;
+    }
+    return null;
+  };
+}
+
 function normalizeClaims(
   value: unknown,
-  allowedCitationIds: Set<string>,
+  resolveCitationId: (raw: string) => string | null,
 ): DocsAssistantClaimWithCitations[] {
   if (!Array.isArray(value)) {
     return [];
@@ -105,12 +146,12 @@ function normalizeClaims(
       continue;
     }
 
-    const citationIds = stringArray(typedItem.citation_ids);
+    const citationIds = stringArray(typedItem.citation_ids)
+      .map((citationId) => resolveCitationId(citationId))
+      .filter((citationId): citationId is string => citationId !== null);
     claims.push({
       text: typedItem.text.trim(),
-      citation_ids: unique(
-        citationIds.filter((citationId) => allowedCitationIds.has(citationId)),
-      ),
+      citation_ids: unique(citationIds),
     });
   }
 
@@ -121,15 +162,25 @@ function isSupportedStatus(answerStatus: AnswerStatus): boolean {
   return SUPPORTED_STATUSES.includes(answerStatus);
 }
 
-function hasMissingClaimCitations(
+// A supported answer is only invalid when it is not actually grounded: either
+// retrieval returned no citations at all, or the model stated no claims. Claims
+// whose per-claim citation_ids could not be resolved are still kept (citation
+// binding is best-effort) as long as the answer is backed by retrieved docs.
+function supportedDowngradeReason(
   answerStatus: AnswerStatus,
   claims: DocsAssistantClaimWithCitations[],
-): boolean {
+  hasRetrievalCitations: boolean,
+): string | null {
   if (!isSupportedStatus(answerStatus)) {
-    return false;
+    return null;
   }
-
-  return claims.length === 0 || claims.some((claim) => claim.citation_ids.length === 0);
+  if (!hasRetrievalCitations) {
+    return SUPPORTED_WITHOUT_RETRIEVAL_BOUNDARY;
+  }
+  if (claims.length === 0) {
+    return SUPPORTED_WITHOUT_CLAIMS_BOUNDARY;
+  }
+  return null;
 }
 
 function parseJsonObject(text: string): Record<string, unknown> | null {
@@ -198,7 +249,7 @@ export function normalizeDocsAssistantAnswer(args: {
   citations: DocsAssistantCitation[];
   boundaryFindings?: string[];
 }): DocsAssistantAnswer {
-  const citationIds = new Set(args.citations.map((citation) => citation.citation_id));
+  const resolveCitationId = buildCitationResolver(args.citations);
   const outputText = extractOutputTextFromResponse(args.response);
   const parsed = outputText ? parseJsonObject(outputText) : null;
 
@@ -224,11 +275,16 @@ export function normalizeDocsAssistantAnswer(args: {
     ...(args.boundaryFindings ?? []),
     ...stringArray(parsed.boundary_findings),
   ];
-  const documentedFacts = normalizeClaims(parsed.documented_facts, citationIds);
-  const inference = normalizeClaims(parsed.inference, citationIds);
+  const documentedFacts = normalizeClaims(parsed.documented_facts, resolveCitationId);
+  const inference = normalizeClaims(parsed.inference, resolveCitationId);
   const allClaims = [...documentedFacts, ...inference];
 
-  if (hasMissingClaimCitations(parsed.answer_status, allClaims)) {
+  const downgradeReason = supportedDowngradeReason(
+    parsed.answer_status,
+    allClaims,
+    args.citations.length > 0,
+  );
+  if (downgradeReason) {
     return {
       schema_version: "docs-assistant.answer.v1",
       answer_status: "needs_human_review",
@@ -236,13 +292,10 @@ export function normalizeDocsAssistantAnswer(args: {
       documented_facts: [],
       inference: [],
       citations: args.citations,
-      unsupported_reason: MISSING_CLAIM_CITATIONS_BOUNDARY,
+      unsupported_reason: downgradeReason,
       human_review_required: true,
       not_proven: normalizeNotProven(parsed.not_proven, "needs_human_review"),
-      boundary_findings: unique([
-        ...boundaryFindings,
-        MISSING_CLAIM_CITATIONS_BOUNDARY,
-      ]),
+      boundary_findings: unique([...boundaryFindings, downgradeReason]),
     };
   }
 
