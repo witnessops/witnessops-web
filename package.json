@@ -27,7 +27,7 @@
     "@playwright/test": "^1.59.1",
     "eslint": "^9.22.0",
     "eslint-config-next": "15.5.15",
-    "tsx": "^4.21.0",
+    "tsx": "^4.22.4",
     "turbo": "^2.9.14",
     "typescript": "^5.7.0"
   },
