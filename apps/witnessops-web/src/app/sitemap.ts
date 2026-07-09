@@ -28,6 +28,19 @@ const staticRoutes: StaticRoute[] = [
   },
   { route: "/library", sourcePath: "src/app/(library)/library/page.tsx" },
   { route: "/pricing", sourcePath: "src/app/(marketing)/pricing/page.tsx" },
+  { route: "/catalog", sourcePath: "src/app/(marketing)/catalog/page.tsx" },
+  {
+    route: "/catalog/workflows",
+    sourcePath: "src/app/(marketing)/catalog/workflows/page.tsx",
+  },
+  {
+    route: "/catalog/offsec",
+    sourcePath: "src/app/(marketing)/catalog/offsec/page.tsx",
+  },
+  {
+    route: "/catalog/operator-platform",
+    sourcePath: "src/app/(marketing)/catalog/operator-platform/page.tsx",
+  },
   { route: "/review", sourcePath: "src/app/review/page.tsx" },
   { route: "/review/request", sourcePath: "src/app/review/request/page.tsx" },
   {

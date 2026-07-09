@@ -37,6 +37,9 @@ importers:
 
   apps/witnessops-web:
     dependencies:
+      '@witnessops/catalog':
+        specifier: workspace:*
+        version: link:../../packages/catalog
       '@witnessops/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -101,6 +104,16 @@ importers:
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
+  packages/catalog:
+    dependencies:
+      zod:
+        specifier: ^3.24.0
+        version: 3.25.76
+    devDependencies:
       typescript:
         specifier: ^5.7.0
         version: 5.9.3

@@ -6,6 +6,8 @@ import test from "node:test";
 import { getSourceLastModified } from "./sitemap";
 
 const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
+  "/catalog",
+  "/catalog/workflows",
   "/library",
   "/pricing",
   "/review/sample-cases",

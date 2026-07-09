@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { CtaButton } from "@/components/shared/cta-button";
+import { getWorkflowSkus } from "@witnessops/catalog";
 
 export const metadata: Metadata = {
   title: "Pricing and Commercial Scope | WitnessOps",
@@ -78,6 +80,8 @@ const nextSteps = [
 ];
 
 export default function PricingPage() {
+  const workflowSkus = getWorkflowSkus().filter((s) => s.id !== "WORKFLOW-FIT");
+
   return (
     <main
       id="main-content"
@@ -108,6 +112,30 @@ export default function PricingPage() {
           <CtaButton href="/review/sample-cases/ai-agent-action-proof-run" variant="secondary" label="Inspect sample package" />
         </div>
       </header>
+
+      <section className="mb-10 border-b border-surface-border pb-8">
+        <h2
+          className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          Workflow price anchors
+        </h2>
+        <p className="mt-3 text-sm leading-7 text-text-muted">
+          Anchors from the{" "}
+          <Link href="/catalog/workflows" className="text-brand-accent hover:underline">
+            product catalog
+          </Link>
+          . Confirmed after scope — not self-serve checkout.
+        </p>
+        <ul className="mt-4 grid gap-2 text-sm text-text-secondary md:grid-cols-2">
+          {workflowSkus.map((sku) => (
+            <li key={sku.id} className="border border-surface-border bg-surface-card/40 p-4">
+              <span className="font-semibold text-text-primary">{sku.name}</span>
+              <span className="ml-2 text-brand-accent">{sku.price.display}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="mb-10 border-b border-surface-border pb-8">
         <h2

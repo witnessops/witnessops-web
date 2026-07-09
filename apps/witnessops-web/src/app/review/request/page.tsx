@@ -86,10 +86,18 @@ export default function ReviewRequestPage() {
           Request one proof run
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
-          Name one code patch, security finding, AI-agent action, access
-          decision, or operational handoff you want packaged. No files, logs,
-          screenshots, exports, credentials, private keys, MFA codes, or
-          customer evidence are needed for the first fit check.
+          This is a fit check, not evidence intake. Name one code patch,
+          security finding, AI-agent action, access decision, or operational
+          handoff you want packaged. No files, logs, screenshots, exports,
+          credentials, private keys, MFA codes, or customer evidence are needed
+          for the first fit check.
+        </p>
+        <p className="mt-3 max-w-[640px] text-sm leading-relaxed text-text-muted">
+          Prefer email? Send the same non-secret fit check to{" "}
+          <a href={`mailto:${mailboxes.engage}`} className="text-brand-accent underline-offset-4 hover:underline">
+            {mailboxes.engage}
+          </a>
+          .
         </p>
       </section>
 

@@ -369,9 +369,11 @@ export function ContactForm({
           Start with a short non-secret proof-pack fit check.
         </div>
         <p className="mt-2 text-sm leading-relaxed text-text-muted">
-          Name the action, not the evidence. No files. No evidence upload. Use plain language and save tickets,
-          logs, screenshots, exports, credentials, private keys, MFA codes, and
-          customer evidence for the scoped intake after handling is agreed.
+          This is a fit check, not evidence intake. Name the action, not the
+          evidence. No files. No evidence upload. Use plain language and save
+          tickets, logs, screenshots, exports, credentials, private keys, MFA
+          codes, and customer evidence for the scoped intake after handling is
+          agreed.
         </p>
       </div>
 
@@ -445,7 +447,7 @@ export function ContactForm({
           id="agentPath" name="agentPath" rows={3} required
           className={`${textareaClass} ${fieldErrors.agentPath ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder="Example: GitHub issue -> Codex review -> patch branch -> staging check. Name systems at a high level only."
+          placeholder="Example: GitHub issue -> Codex review -> patch branch -> preflight check. Name systems at a high level only."
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.agentPath ? true : undefined}

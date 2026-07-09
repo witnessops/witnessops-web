@@ -1,0 +1,38 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { CatalogSkuCard } from "@/components/catalog/catalog-sku-card";
+import { getSkusByTrack } from "@witnessops/catalog";
+
+export const metadata: Metadata = {
+  title: "Security Proof Packages",
+  description: "Security proof packages requested through WitnessOps: local audits, launch readiness, custody review, and incident readiness.",
+  alternates: { canonical: "/catalog/offsec" },
+};
+
+export default function CatalogOffsecPage() {
+  const offsec = getSkusByTrack("offsec_proof");
+
+  return (
+    <main id="main-content" tabIndex={-1} className="docs-page-enter mx-auto max-w-5xl px-6 py-10 lg:py-14">
+      <header className="mb-10 border-b border-surface-border pb-8">
+        <Link href="/catalog" className="text-xs uppercase tracking-[0.16em] text-brand-accent hover:underline">
+          ← Catalog
+        </Link>
+        <h1 className="mt-4 text-3xl font-semibold uppercase tracking-[0.04em] text-text-primary lg:text-4xl" style={{ fontFamily: "var(--font-display)" }}>
+          Security proof packages
+        </h1>
+        <p className="mt-4 max-w-2xl text-sm leading-7 text-text-secondary">
+          Bounded local checks on authorized hosts. Reports, receipts, and signed proof-packs
+          you inspect offline. Security proof packages are available through
+          WitnessOps request while the public OffSec surface is being prepared;
+          there is no external portal or checkout in the buyer path.
+        </p>
+      </header>
+      <div className="grid gap-4 md:grid-cols-2">
+        {offsec.map((sku) => (
+          <CatalogSkuCard key={sku.id} sku={sku} />
+        ))}
+      </div>
+    </main>
+  );
+}

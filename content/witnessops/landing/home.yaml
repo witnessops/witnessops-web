@@ -9,13 +9,13 @@ status:
   last_reviewed: "2026-04-25"
 
 seo:
-  title: "Bounded Proof Packs for Technical Trust | WitnessOps"
-  description: "WitnessOps helps package one scoped workflow, patch, finding, or approval-gated action when available evidence, receipt artifacts, named limits, and inspection paths can be stated."
+  title: "Proof-Backed Security Work | WitnessOps"
+  description: "WitnessOps sells bounded proof and service packages for teams that need scoped evidence, receipt-backed results, and clear limits."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "One bounded action. One scoped proof pack."
-  og_description: "Bring one bounded action for review. If scope and evidence support it, get a package that names evidence references, receipt artifacts, limits, and an inspection path."
+  og_title: "Proof-backed security work for teams that need evidence, not promises."
+  og_description: "Request one scoped proof run. WitnessOps starts with a non-secret fit check, agrees scope and evidence handling, then delivers a receipt-backed package when the scope supports it."
   twitter_card: "summary_large_image"
 
 theme:
@@ -29,6 +29,8 @@ navbar:
     text: ""
     href: ""
   links:
+    - label: "Catalog"
+      href: "/catalog"
     - label: "Why WitnessOps"
       href: "/why-witnessops"
     - label: "Docs"
@@ -45,15 +47,15 @@ navbar:
     variant: "primary"
 
 hero:
-  eyebrow: "Bounded proof packs for technical trust"
-  title: "One bounded action. One scoped proof pack."
-  body: "Bring one workflow, patch, finding, access change, or approval-gated action for review. WitnessOps packages the boundary, available evidence, receipt artifacts, named limits, and inspection path when the scope supports it."
+  eyebrow: "Bounded proof runs for security and operations work"
+  title: "Proof-backed security work for teams that need evidence, not promises."
+  body: "Request one scoped proof run for a workflow, finding, patch, access change, or launch-readiness question. We start with a non-secret fit check, agree scope, fee, timing, and evidence handling, then deliver a receipt-backed package naming what was checked, what supports it, and what remains outside scope."
   ai_note:
-    title: "What you get"
+    title: "What a proof run delivers"
     body:
-      - "We name the scope, package available evidence references, record what changed, and show what is still outside scope."
+      - "A scope map, evidence references, receipt artifacts where produced, named limits, and an inspection path."
       - "If evidence is incomplete, the package says so."
-    microcopy: "Not ready to submit work? Inspect the public sample first."
+    microcopy: "First request only: no secrets, credentials, files, logs, screenshots, private keys, MFA codes, or customer evidence."
   supporting_points:
     - "Code patches"
     - "Security findings"
@@ -99,7 +101,7 @@ sections:
     id: "contract"
     enabled: true
     title: "One action. One scoped package. Clear limits."
-    lede: "Scope it. Review available evidence. Package only what can be named. Make the limits inspectable."
+    lede: "Start with a fit check. If it is a match, WitnessOps agrees scope, fee, timing, and evidence handling before any proof run starts."
     steps:
       - label: "Scope"
         body: "Pick one action. Name what is in and out."
@@ -130,7 +132,7 @@ sections:
         proof_link: "/review/request"
         proof_link_label: "Describe the finding"
       - title: "Access or operations change"
-        body: "An access decision, incident step, offsec handoff, or workflow where evidence must outlive the run."
+        body: "An access decision, incident step, security handoff, or workflow where evidence must outlive the run."
         proof_link: "/review/request"
         proof_link_label: "Describe the action"
     surfaces:
@@ -197,7 +199,7 @@ sections:
 final_cta:
   enabled: true
   title: "Make one technical action reviewable."
-  body: "Bring one workflow, patch, finding, or access change for review. If scope and evidence support it, get a proof pack naming boundary, evidence references, receipt artifacts, limits, and inspection path."
+  body: "Bring one workflow, patch, finding, or access change for a non-secret fit check. If scope and evidence support it, get a bounded service package naming boundary, evidence references, receipt artifacts, limits, and inspection path."
   ctas:
     - label: "Request one proof run"
       href: "/review/request"
