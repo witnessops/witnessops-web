@@ -1,6 +1,6 @@
 # witnessops-web: language and optimization strategy
 
-**Status:** operator guidance (2026-06-21)  
+**Status:** operator guidance (2026-06-21)
 **Scope:** `witnessops-web` monorepo on goal0 mesh (Node 22 standalone Next 15)
 
 This document answers: *which language/runtime to use per layer* when optimizing the WitnessOps public web — without a full rewrite or extra deploy runtimes unless an ADR authorizes them.

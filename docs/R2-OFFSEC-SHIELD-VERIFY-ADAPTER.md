@@ -1,6 +1,6 @@
 # R2 — OffSec Shield → `/api/verify` adapter
 
-**Status:** shipped (structural lane)  
+**Status:** shipped (structural lane)
 **Adapter id:** `witnessops.verify.offsec_shield_receipt.v1`
 
 ## Boundary
