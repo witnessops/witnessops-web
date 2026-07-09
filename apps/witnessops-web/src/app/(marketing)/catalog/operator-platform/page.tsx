@@ -31,6 +31,11 @@ export default function CatalogOperatorPlatformPage() {
           access through WitnessOps; there is no public app signup, and proof
           runs stay bounded service packages.
         </p>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-text-muted">
+          Workspace access is not a verification claim. It does not include
+          proof runs, does not open public app signup, and does not turn sample
+          dashboards into live customer evidence.
+        </p>
       </header>
       <div className="grid gap-4 md:grid-cols-2">
         {tiers.map((sku) => (

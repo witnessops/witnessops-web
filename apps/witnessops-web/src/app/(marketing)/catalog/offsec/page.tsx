@@ -27,6 +27,12 @@ export default function CatalogOffsecPage() {
           WitnessOps request while the public OffSec surface is being prepared;
           there is no external portal or checkout in the buyer path.
         </p>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-text-muted">
+          Security packages name what was checked, which evidence supports it,
+          which hosts or systems were authorized, and what remains outside
+          scope. They do not launch an OffSec portal, move funds, collect
+          secrets, or certify compliance.
+        </p>
       </header>
       <div className="grid gap-4 md:grid-cols-2">
         {offsec.map((sku) => (

@@ -272,7 +272,7 @@
       "id": "OFFSEC-TRAINING-VM-LAB",
       "track": "offsec_training",
       "name": "Configured training VM",
-      "summary": "Pre-provisioned lab VM with OffSec agent, shield tools, WitnessOps AI tooling (cursor-agent/ollama mesh), and course material access.",
+      "summary": "Pre-provisioned lab VM with security training tools, WitnessOps local assistant tooling, and course material access.",
       "status": "future",
       "availability": "witnessops_request",
       "buyer_personas": ["student", "operator_in_training", "team_lead"],
@@ -285,8 +285,8 @@
         "isolated training VM",
         "offsecshield CLI + agent.sh",
         "shield demo fixtures and verifier utilities",
-        "WitnessOps mesh agents",
-        "local LLM + cursor-agent (lab scope)",
+        "WitnessOps training agents",
+        "local assistant tooling (lab scope)",
         "lab reset policy"
       ],
       "boundaries": [
@@ -656,8 +656,8 @@
     {
       "id": "ADDON-GOAL0-READER",
       "track": "operator_saas",
-      "name": "goal0 read API reader node",
-      "summary": "Add-on: goal0 authenticated read API reader node.",
+      "name": "Private read-only integration node",
+      "summary": "Add-on: private-preview read-only integration access for approved operator environments.",
       "status": "prep_only",
       "availability": "private_preview_request_access",
       "buyer_personas": ["fleet", "integrator"],
@@ -667,7 +667,7 @@
         "billing": "recurring_month",
         "addon": true
       },
-      "deliverables": ["goal0 read API reader access"],
+      "deliverables": ["read-only integration access"],
       "boundaries": ["mesh_bind_only", "read_only"],
       "cta": { "primary": "/review/request" },
       "surfaces": ["witnessops.com"],

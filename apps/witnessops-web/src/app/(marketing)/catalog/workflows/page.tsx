@@ -5,8 +5,8 @@ import { CtaButton } from "@/components/shared/cta-button";
 import { getWorkflowSkus, loadCatalog } from "@witnessops/catalog";
 
 export const metadata: Metadata = {
-  title: "Workflow Packages",
-  description: "WitnessOps workflow SKUs: fit check, S/M/L packages, and re-runs.",
+  title: "Proof Packages",
+  description: "WitnessOps proof packages: fit check, scoped S/M/L proof runs, and same-scope re-runs.",
   alternates: { canonical: "/catalog/workflows" },
 };
 
@@ -21,14 +21,21 @@ export default function CatalogWorkflowsPage() {
           ← Catalog
         </Link>
         <h1 className="mt-4 text-3xl font-semibold uppercase tracking-[0.04em] text-text-primary lg:text-4xl" style={{ fontFamily: "var(--font-display)" }}>
-          WitnessOps workflow packages
+          Proof packages
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-text-secondary">
-          Governed review of one bounded workflow. Fee and timing confirmed after scope —
-          list prices are anchors, not self-serve checkout.
+          Convert one operational doubt into a scoped proof run: a named claim,
+          evidence references, receipt artifacts where produced, a verifier or
+          inspection path, and clear limits. Fee and timing are confirmed after
+          scope; list prices are anchors, not self-serve checkout.
+        </p>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-text-muted">
+          First request only: name the action and boundary. Do not send secrets,
+          logs, screenshots, credentials, raw exports, private keys, MFA codes,
+          or customer evidence until evidence handling is agreed.
         </p>
         <div className="mt-6">
-          <CtaButton href="/review/request" variant="primary" label="Package one workflow" />
+          <CtaButton href="/review/request" variant="primary" label="Request one proof run" />
         </div>
       </header>
       <div className="grid gap-4 md:grid-cols-2">
