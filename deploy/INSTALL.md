@@ -1,8 +1,17 @@
 # Installing witnessops-web on a host
 
-This is the supported installation method for the production web surface on
-**goal0-edge-01** (unified public host with OffSec product vhosts). It runs the
-released, signed container image from GHCR behind host Caddy on `167.235.12.232`.
+> Historical note: this Docker Compose / GHCR / goal0 install flow is not the
+> current production authority for `witnessops.com`. The current live custody
+> path is documented in [`../docs/DEPLOYMENT_CUSTODY.md`](../docs/DEPLOYMENT_CUSTODY.md):
+> ops-dev-01 Caddy -> k3s namespace `witnessops` -> deployment
+> `witnessops-web`. Keep this file as legacy installation reference unless a
+> future lane explicitly reactivates this flow.
+
+This file records the historical installation method for the production web
+surface on **goal0-edge-01** (unified public host with OffSec product vhosts).
+It runs the released, signed container image from GHCR behind host Caddy on
+`167.235.12.232`, but that is not the current live path unless reactivated by a
+future lane.
 
 Architecture:
 

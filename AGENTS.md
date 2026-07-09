@@ -22,7 +22,9 @@ Release authority: internal/manual for now
 ## Deployment authority
 
 - Use [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md) before any deploy-adjacent work.
-- The active WitnessOps web hosting lane is goal0-edge-01 unified public host (`167.235.12.232`). Servury/edge02 is legacy until DNS cutover.
+- Current public web deploy authority is the k3s `witnessops-web` deployment on `ops-dev-01`, with Caddy reverse-proxying apex and `www` traffic to `127.0.0.1:3000`. See [`docs/DEPLOYMENT_CUSTODY.md`](./docs/DEPLOYMENT_CUSTODY.md).
+- DNS/Cloudflare, Caddy changes, API/app exposure, and OffSec/public product-surface exposure require separate explicit lanes.
+- A public web deploy does not imply SaaS, app, API, or OffSec readiness.
 - Azure Container Apps is retired for this repo. Root `azure.yaml` and `infra/**` were archived under `docs/archive/azure-aca-retired-20260508/`.
 - Do not run `az`, `azd`, Bicep deployment, Azure inventory, Azure cleanup, Azure rollback, or Azure restore work from this repo unless a separate explicit Azure reopening lane names the allowed cloud surfaces, commands, receipts, and stop boundary.
 - Do not treat archived Azure files as active deploy authority, rollback authority, or evidence that Azure resources exist.
@@ -63,7 +65,7 @@ For security-sensitive changes, preserve these boundaries:
 - Before proposing a new runtime (Go/Rust sidecar, WASM crypto, full rewrite), read [`docs/OPTIMIZATION-LANGUAGE.md`](./docs/OPTIMIZATION-LANGUAGE.md).
 - Grok project skill: `.grok/skills/optimize-witnessops-web/SKILL.md` (`/optimize-witnessops-web`).
 - Fast regression after proof/verify edits: `pnpm optimize:quick-check` (requires `pnpm install`).
-- **Node 22 builder** lives on a **different node** than the fleet VM (Node 20): see [`docs/NODE22-BUILDER.md`](./docs/NODE22-BUILDER.md). Use `pnpm health:node22` (local Docker) or `pnpm health:node22:goal0` / `run-witnessops-mesh-goal0.sh` for release.
+- **Node 22 builder** may live in a container or staging node rather than the fleet VM (Node 20): see [`docs/NODE22-BUILDER.md`](./docs/NODE22-BUILDER.md). Use `pnpm health:node22` (local Docker) or an explicitly authorized mesh build lane for release-quality validation.
 
 ## Validation
 
