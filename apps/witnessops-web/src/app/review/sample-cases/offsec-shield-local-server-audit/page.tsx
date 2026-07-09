@@ -14,7 +14,7 @@ import {
 export const metadata: Metadata = {
   title: "Sample — OffSec Shield Local Server Audit",
   description:
-    "Public OffSec Shield proof bundle sample: synthetic demo-host posture, evidence manifest, receipt, and offline verify path. Reference-only for WitnessOps /api/verify scope.",
+    "Synthetic public OffSec Shield sample proofpack fixture with demo-host posture, evidence manifest, receipt, and offline manifest inspection boundaries.",
   alternates: getCanonicalAlternates(
     "witnessops",
     "/review/sample-cases/offsec-shield-local-server-audit",
@@ -34,7 +34,7 @@ const statusChips = [
   { label: "Host", value: "Synthetic demo-host (fixture)" },
   {
     label: "WitnessOps /verify",
-    value: "Structural only (R2 adapter; see VERIFY_NOTE)",
+    value: "Not verified through /api/verify; inspect manifest and sidecars",
   },
 ];
 
@@ -53,14 +53,17 @@ export default function OffSecShieldSamplePage() {
               OffSec Shield — local server audit sample
             </h1>
             <p className="text-base leading-8 text-text-secondary">
-              OffSec collects read-only posture and ships a receipt-backed proof
-              bundle. WitnessOps proves named workflows on{" "}
+              OffSec collects read-only posture and ships a receipt-backed audit
+              package fixture. WitnessOps proves named workflows on{" "}
               <Link href="/verify" className="text-brand-accent underline">
                 /verify
               </Link>{" "}
-              for PV/QV/WV receipt stages. This sample shows the Shield
-              deliverable shape and honest limits — not a claim that your
-              environment was audited.
+              for supported PV/QV/WV receipt stages. This sample shows the
+              Shield deliverable shape and honest limits. This sample is not currently verified through WitnessOps /api/verify.
+            </p>
+            <p className="max-w-[48rem] text-sm leading-7 text-text-muted">
+              This is a synthetic public sample proofpack fixture. It demonstrates
+              the structure of a receipt-backed audit package. It is not a live customer audit, not a production verification result, and not evidence that any third-party system was tested.
             </p>
             <div className="flex flex-wrap gap-2">
               {statusChips.map((chip) => (
@@ -76,7 +79,7 @@ export default function OffSecShieldSamplePage() {
               ))}
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
-              <CtaButton href="/verify" variant="secondary" label="Open /verify (PV/QV)" />
+              <CtaButton href="/verify" variant="secondary" label="Read /verify boundary" />
               <CtaButton
                 href="/docs/security-systems/mesh-federation-and-vmesh"
                 variant="secondary"
@@ -172,11 +175,10 @@ export default function OffSecShieldSamplePage() {
                 production hosts match this fixture.
               </li>
               <li>
-                Schema map: <code>offsecshield.receipt.v1</code> →{" "}
-                <code>run_receipt.schema.json</code> per{" "}
-                <code>SCHEMA_RECONCILIATION.md</code> (R2: POST{" "}
-                <code>RECEIPT.json</code> to <code>/api/verify</code> for
-                structural checks only).
+                This sample is not currently verified through WitnessOps /api/verify.
+                Use the included manifest and sidecars to inspect
+                fixture structure. A public verifier path must be named before
+                any verification claim is made.
               </li>
             </ul>
           </section>

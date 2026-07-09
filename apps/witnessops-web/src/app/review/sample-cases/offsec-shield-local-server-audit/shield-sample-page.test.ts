@@ -5,8 +5,16 @@ import test from "node:test";
 
 test("offsec shield sample page declares verify boundary and workflow CTA", () => {
   const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
-  assert.match(source, /Structural only \(R2 adapter/);
-  assert.match(source, /structural checks only/);
+  assert.match(source, /Not verified through \/api\/verify; inspect manifest and sidecars/);
+  assert.match(source, /synthetic public sample proofpack fixture/);
+  assert.match(source, /not a live\s+customer audit/);
+  assert.match(source, /not a production verification result/);
+  assert.match(source, /not\s+evidence that any third-party system was tested/);
+  assert.match(source, /not currently\s+verified through WitnessOps/);
+  assert.match(source, /included manifest and sidecars/);
+  assert.doesNotMatch(source, /Structural only \([A-Z][0-9] adapter/);
+  assert.doesNotMatch(source, /structural checks only/);
+  assert.doesNotMatch(source, /POST[\s\S]*RECEIPT\.json[\s\S]*\/api\/verify/);
   assert.match(source, /label=\"Package one security workflow\"/);
   assert.match(source, /offsec-shield-local-server-audit/);
 });

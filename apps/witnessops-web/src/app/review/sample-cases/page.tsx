@@ -72,7 +72,7 @@ const sampleCases = [
     title: "OffSec Shield — local server audit",
     href: "/review/sample-cases/offsec-shield-local-server-audit",
     description:
-      "Reference proof bundle from OffSecAgent + OffSecShield (synthetic demo-host fixture): posture, findings, honest manifest hashes, and explicit WitnessOps /verify boundary.",
+      "Synthetic public sample proofpack fixture showing receipt-backed audit package structure. It is not a live customer audit, production verification result, or third-party system evidence.",
     signals: [
       "read-only posture evidence",
       "offsecshield.receipt.v1 / run_receipt alignment",
@@ -204,9 +204,10 @@ export default function SampleCasesIndexPage() {
                   OffSec Shield local server audit
                 </h2>
                 <p className="mt-3 text-base leading-8 text-text-secondary">
-                  Download a synthetic Shield proof bundle to see how OffSec
-                  deliverables relate to WitnessOps verification. Not a substitute
-                  for PV/QV receipts on /verify.
+                  Inspect a synthetic public sample proofpack fixture showing
+                  receipt-backed audit package structure. It is not a live
+                  customer audit, production verification result, or third-party
+                  system evidence.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <CtaButton
@@ -214,7 +215,7 @@ export default function SampleCasesIndexPage() {
                     variant="primary"
                     label="Inspect Shield sample"
                   />
-                  <CtaButton href="/verify" variant="secondary" label="Open /verify" />
+                  <CtaButton href="/verify" variant="secondary" label="Read /verify boundary" />
                 </div>
               </div>
               <div className="rounded-xl border border-surface-border bg-surface-bg p-4">

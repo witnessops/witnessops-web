@@ -23,9 +23,9 @@ const FILE_FIXTURES = [
   },
   {
     id: "offsec-shield-valid",
-    label: "OffSec Shield receipt (structural)",
+    label: "OffSec Shield receipt fixture (structural)",
     description:
-      "offsecshield.receipt.v1 sample; /api/verify R2 adapter (not PV/QV/WV).",
+      "Standalone offsecshield.receipt.v1 JSON fixture for /api/verify structural input checks; separate from the local server audit proofpack ZIP and does not revalidate artifact bytes.",
     fileName: "offsec-shield-valid.json",
     provenance: "app",
     expected: { kind: "verification", verdict: "valid" },
