@@ -1,20 +1,20 @@
 {
   "schema": "offseclane.mesh_receipt_public.v1",
-  "generated_at": "20260621T181634Z",
-  "engagement_id": "BASTION-0DAY-HUNT-FULL",
+  "generated_at": "20260703T175023Z",
+  "engagement_id": "REDACTED-OPERATOR-HYGIENE-SAMPLE",
   "overall_mesh_gate": "PASS",
   "nodes": {
     "fleet_vm": {
-      "host": "debian-termux-7a0efe",
-      "mesh_ip": "10.44.0.22"
+      "host": "redacted",
+      "mesh_ip": "redacted"
     },
     "bastion": {
-      "host": "ops-bastion-01",
-      "mesh_ip": "10.44.0.4"
+      "host": "redacted",
+      "mesh_ip": "redacted"
     },
     "goal0": {
-      "host": "goal0-edge-01",
-      "mesh_ip": "10.44.0.5"
+      "host": "redacted",
+      "mesh_ip": "redacted"
     }
   },
   "evd_roles": {
@@ -23,16 +23,37 @@
   },
   "bastion_verify": {
     "reachable": true,
-    "overall": "WARN"
+    "overall": "PASS",
+    "public_boundary": "structure_only_not_hunt_verification"
   },
   "child_receipts": [
+    {
+      "id": "brain_state",
+      "schema": "goal0.brain.state.v1",
+      "role": "brain_view",
+      "authority": "fleet_vm",
+      "path_redacted": "BRAIN-STATE-LATEST.json",
+      "sha256": "d08c60aed4fd4f6d242934630de47905a4833b794c2a4ebc14cff6c278c00b0c",
+      "pass": true,
+      "summary": null
+    },
+    {
+      "id": "mesh_route",
+      "schema": "witnessops.mesh_route.v1",
+      "role": "router",
+      "authority": "fleet_vm",
+      "path_redacted": "MESH-ROUTE-LATEST.json",
+      "sha256": "6cf7371dbdc65fe106065e1d8e1580a230c7a18ddcbf13b8d5c76217b03d5e5b",
+      "pass": true,
+      "summary": null
+    },
     {
       "id": "hunt_route",
       "schema": "witnessops.hunt_route.v1",
       "role": "router",
       "authority": "fleet_vm",
       "path_redacted": "HUNT-ROUTE-LATEST.json",
-      "sha256": "3a61e53e4d2cfc80d7ea736c55440b11565b439e432eea5dd6d3e25ffb3a3655",
+      "sha256": "3129d39be7eaf8690d5d4560761df8433941d6fc5db8ecfee4f808df9a151268",
       "pass": true,
       "summary": null
     },
@@ -42,7 +63,7 @@
       "role": "node_regression",
       "authority": "fleet_vm",
       "path_redacted": "TEST-MATRIX-LATEST.json",
-      "sha256": "74252ff78ccf65e7a56767e3c9764830e6a5841e4c0567610b1d3973bfdc84d2",
+      "sha256": "0dcf75be01f7c8d04b9d962e466fe49b7411ecec75e6fb3efce71e850e3ed395",
       "pass": true,
       "summary": "pass=17 fail=0"
     },
@@ -52,7 +73,7 @@
       "role": "lane_prep",
       "authority": "fleet_vm",
       "path_redacted": "ORGANIZE-MESH-LATEST.json",
-      "sha256": "ac588798c00c4ff5523b5fa88ebed36ebd7ecaa4c66c8fa3cbafa4a6b1245cce",
+      "sha256": "0eb49f02d335c3bf0cfb7de5d104254f668f8706a303f2602e4fa351ac4c00e4",
       "pass": true,
       "summary": "gates_fail=0"
     },
@@ -62,7 +83,7 @@
       "role": "compound_hunt",
       "authority": "fleet_vm",
       "path_redacted": "LEVERAGE-LATEST.json",
-      "sha256": "c6f39d7863e4f560df3e2bd14508b22a09b34369cf347a2540125e1c2a5c5d5e",
+      "sha256": "8ecb3e328fc8563cf8c59873143a6072c7e4daa940393e0b23adc45d41efc95b",
       "pass": true,
       "summary": null
     },
@@ -72,7 +93,7 @@
       "role": "authoritative_gate",
       "authority": "bastion",
       "path_redacted": "bastion:opaque/HUNT-CLOSEOUT-STATUS.json",
-      "sha256": "64e557e42f73166625eb907b1d78d13ecbaa835b664275136ecd2dab353c401c",
+      "sha256": "44fefcb8d8172f4b753890b0fdc00b21820785f5e8da8b51a7570c38b86c667e",
       "pass": true,
       "summary": "misconfig_complete_no_zero_day"
     },
@@ -81,18 +102,40 @@
       "schema": "witnessops.live_validation.v1",
       "role": "p0_live",
       "authority": "bastion",
-      "path_redacted": "bastion:opaque/LIVE-VALIDATION-20260621T181634Z.json",
-      "sha256": "e945fd46d37ad6b74ff5d3e5a4e70569f43d9ff6ba2603ce556197036a1bbc03",
-      "pass": false,
+      "path_redacted": "bastion:opaque/LIVE-VALIDATION-20260703T175024Z.json",
+      "sha256": "867dddd60d53de9beabb6ff8cf568c31de83b5a40f9d7b61903bd4124916bb29",
+      "pass": true,
       "summary": null
     }
   ],
   "policy": {
     "execution_authority": "bastion_mirror_evd",
     "federation_mode": "pointer_and_hash",
-    "public_redaction": "adr-0007"
+    "public_redaction": "adr-0007",
+    "public_boundary": "redacted operator-hygiene receipt fixture/discovery only - not customer assurance, not private mesh inventory, not live topology, not /api/verify proof, not hunt verification, not production security proof"
   },
   "governed_capabilities": [
+    {
+      "name": "0day-hunt",
+      "authority": "fleet_vm",
+      "edge_slot": "0day-hunt",
+      "manifest_sha256": "c8cf5d3aee793d8ca29913579e7a6dd2272cae4a3403dd5eb52a93004bbe7f1f",
+      "verify_bundle": "pass"
+    },
+    {
+      "name": "0day-hunt-loop",
+      "authority": "fleet_vm",
+      "edge_slot": "0day-hunt-loop",
+      "manifest_sha256": "e6ec31186253d60c013e8ea1b6d1e3fc1d48ade18c031a51c4c8ee155cc9f8b1",
+      "verify_bundle": "pass"
+    },
+    {
+      "name": "0day-hunt-router",
+      "authority": "fleet_vm",
+      "edge_slot": "0day-hunt-router",
+      "manifest_sha256": "f0d33479f6e16cb50dc66d2604ee5b5027e7084275c80aa0f7723cbbec9aad44",
+      "verify_bundle": "pass"
+    },
     {
       "name": "fleet-mesh-full-loop",
       "authority": "fleet_vm",
@@ -106,6 +149,20 @@
       "edge_slot": "fleet-personal-agent-status",
       "manifest_sha256": "e1b9a62f9eae9a8d0306e6805aaa4923c906d9a7a05486ff9799ac0e2c90e95a",
       "verify_bundle": "pass"
+    },
+    {
+      "name": "mesh-brain-router",
+      "authority": "fleet_vm",
+      "edge_slot": "mesh-brain-router",
+      "manifest_sha256": "8ecde5ce527b0971ecfb532b7ccd9a0aef08c069d9dae2bd6f6787373a593a0d",
+      "verify_bundle": "pass"
+    },
+    {
+      "name": "vop-verify-v1",
+      "authority": "fleet_vm",
+      "edge_slot": "vop-verify-v1",
+      "manifest_sha256": "de3336e5b5a61a9ffc62b6a78a75e700dfbe50f60dccfb61c6576378044e9163",
+      "verify_bundle": "pass"
     }
   ],
   "vmesh_federation": {
@@ -115,11 +172,14 @@
     "federation_public_url": "https://federation.vaultmesh.earth",
     "short_alias_url": "https://vmesh.vaultmesh.org",
     "receipt_publish": {
-      "goal0_path": "/opt/offsec/receipts/mesh/MESH-RECEIPT-LATEST.json",
+      "goal0_path": "redacted",
       "ingest_url": "https://ingest.vaultmesh.eu/v1/mesh-receipt",
       "ingest_transport": "https"
     }
   },
-  "content_sha256": "8990248f2fb51510ef76acff6cc2f06e4a1c82ef24ae4a24f2584d3078483b46",
-  "source_receipt_sha256": "d5f1353223e91a91ea9cad88e6be709dfd200be00b1b9e0e99538197a82a7c29"
+  "content_sha256": "69e3fece6e715bfc5c0eb5b7d18bcd3cd30d724d49fe3793508720b19eeabfd4",
+  "source_receipt_sha256": "be43d777aeecab9a4012a23228ad2bb1022e02441bfc6b11d30174880211e807",
+  "sample_status": "redacted_operator_hygiene_fixture",
+  "boundary": "redacted operator-hygiene receipt fixture/discovery only - not customer assurance, not private mesh inventory, not live topology, not /api/verify proof, not hunt verification, not production security proof",
+  "public_claim": "operator_mesh_hygiene_structure_only"
 }

@@ -1,17 +1,20 @@
 {
   "schema": "offseclane.mesh_receipt_index.v1",
-  "published_at": "20260621T181634Z",
-  "engagement_id": "BASTION-0DAY-HUNT-FULL",
+  "published_at": "20260703T175023Z",
+  "engagement_id": "REDACTED-OPERATOR-HYGIENE-SAMPLE",
   "overall_mesh_gate": "PASS",
   "public_receipt_schema": "offseclane.mesh_receipt_public.v1",
-  "content_sha256": "8990248f2fb51510ef76acff6cc2f06e4a1c82ef24ae4a24f2584d3078483b46",
+  "content_sha256": "69e3fece6e715bfc5c0eb5b7d18bcd3cd30d724d49fe3793508720b19eeabfd4",
   "witnessops": {
     "well_known": "/.well-known/mesh-receipt-index.json",
     "mesh_gate_api": "/api/mesh-gate"
   },
-  "disclaimer": "Operator mesh hygiene index only; not customer security or /api/verify.",
+  "disclaimer": "redacted operator-hygiene receipt fixture/discovery only - not customer assurance, not private mesh inventory, not live topology, not /api/verify proof, not hunt verification, not production security proof",
   "vmesh_federation": {
     "phase": "phase_c",
     "federation_public_url": "https://federation.vaultmesh.earth"
-  }
+  },
+  "status": "redacted_operator_hygiene_discovery",
+  "boundary": "redacted operator-hygiene receipt fixture/discovery only - not customer assurance, not private mesh inventory, not live topology, not /api/verify proof, not hunt verification, not production security proof",
+  "public_claim": "operator_mesh_hygiene_structure_only"
 }
