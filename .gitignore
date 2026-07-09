@@ -29,6 +29,9 @@ audit-*.png
 # Local Bicep parameters file (contains live resource names). Use main.parameters.example.json as template.
 infra/main.parameters.json
 
+# Private operational receipts/evidence; keep out of the public repo.
+ops/receipts/
+
 # Bicep compiled output (build artifact)
 infra/main.json
 infra/modules/*.json
