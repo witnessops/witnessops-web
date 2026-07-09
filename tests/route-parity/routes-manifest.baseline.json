@@ -131,6 +131,14 @@
       "namedRegex": "^/assessment/(?<nxtPissuanceId>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/catalog/[skuId]",
+      "regex": "^/catalog/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPskuId": "nxtPskuId"
+      },
+      "namedRegex": "^/catalog/(?<nxtPskuId>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/docs/[...slug]",
       "regex": "^/docs/(.+?)(?:/)?$",
       "routeKeys": {
@@ -211,6 +219,30 @@
       "regex": "^/admin/system(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/system(?:/)?$"
+    },
+    {
+      "page": "/catalog",
+      "regex": "^/catalog(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/catalog(?:/)?$"
+    },
+    {
+      "page": "/catalog/offsec",
+      "regex": "^/catalog/offsec(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/catalog/offsec(?:/)?$"
+    },
+    {
+      "page": "/catalog/operator-platform",
+      "regex": "^/catalog/operator\\-platform(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/catalog/operator\\-platform(?:/)?$"
+    },
+    {
+      "page": "/catalog/workflows",
+      "regex": "^/catalog/workflows(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/catalog/workflows(?:/)?$"
     },
     {
       "page": "/contact",
@@ -421,6 +453,12 @@
       "regex": "^/verify\\-ui(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/verify\\-ui(?:/)?$"
+    },
+    {
+      "page": "/why",
+      "regex": "^/why(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/why(?:/)?$"
     },
     {
       "page": "/why-witnessops",
