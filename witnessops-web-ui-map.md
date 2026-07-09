@@ -1,14 +1,15 @@
 # witnessops-web UI Map
 
-Status: regenerated from current source
-Generated: 2026-05-25
-Repo: `/Users/sovereign/WitnessOps/repos/witnessops-web`
-Branch observed: `main`
-Head observed: `845fd3c`
+Status: source-derived UI/route inventory
+Custody reviewed: 2026-07-09
+Prior generation context: 2026-05-25 on `main` at `845fd3c`; historical
+provenance only, not current runtime proof.
 
-This file is an authored UI and route inventory for the current `witnessops-web`
-source tree. It is not proof authority, verifier authority, deployment
-authority, or a release receipt.
+This document is a source-derived UI/route inventory for the `witnessops-web`
+source tree. It is not deployment authority, not proof authority, not product-readiness authority,
+not security assurance, and not release evidence.
+Canonical deployment custody lives in `docs/DEPLOYMENT_CUSTODY.md` and
+`docs/DEPLOYMENT_AUTHORITY.md`.
 
 ## Source Basis
 
@@ -56,6 +57,11 @@ Primary public routes:
 | `/` | `src/app/page.tsx` | Home page built from home content registry and marketing components. |
 | `/why-witnessops` | `src/app/why-witnessops/page.tsx` | Public explanatory page. |
 | `/pricing` | `src/app/(marketing)/pricing/page.tsx` | Public pricing page. |
+| `/catalog` | `src/app/(marketing)/catalog/page.tsx` | Service package catalog index (`@witnessops/catalog`). |
+| `/catalog/workflows` | `src/app/(marketing)/catalog/workflows/page.tsx` | Proof packages. |
+| `/catalog/offsec` | `src/app/(marketing)/catalog/offsec/page.tsx` | security proof packages requested through WitnessOps. |
+| `/catalog/operator-platform` | `src/app/(marketing)/catalog/operator-platform/page.tsx` | private-preview workspace access. |
+| `/catalog/[skuId]` | `src/app/(marketing)/catalog/[skuId]/page.tsx` | Single SKU detail. |
 | `/library` | `src/app/(library)/library/page.tsx` | Library surface under `(library)` layout. |
 | `/review` | `src/app/review/page.tsx` | Review/product path landing page. |
 | `/review/request` | `src/app/review/request/page.tsx` | Public request form path. |
@@ -176,6 +182,10 @@ Important boundary:
 
 ## Admin UI
 
+Admin/API inventory boundary: listed admin and API routes indicate source
+presence only. They do not imply public availability, production exposure,
+customer readiness, or authorization to expose them.
+
 Admin route group:
 
 - Root layout: `apps/witnessops-web/src/app/admin/layout.tsx`
@@ -245,6 +255,8 @@ Key claimant routes:
 ## API Surface Summary
 
 The current API inventory is declared in `apps/witnessops-web/src/lib/server/api-contract.ts`.
+This inventory reflects source declarations only; it does not make any admin,
+operator, provider, app, OffSec, or private surface ready for public exposure.
 
 Categories:
 
@@ -359,4 +371,3 @@ Repo contract also names:
 - Several older local `codex/*` branches remain and are unrelated to this map.
 - This map is source-derived documentation. It should be regenerated after route, page, assistant, admin, or verifier UI changes.
 - This map does not replace the API contract test or any proof/verifier artifact.
-
