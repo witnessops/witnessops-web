@@ -43,7 +43,10 @@ test("Ask WitnessOps offers the five buyer and proof quick prompts", () => {
   ];
 
   for (const prompt of prompts) {
-    assert.match(content, new RegExp(prompt.replace(/[?]/g, "\\?")));
+    assert.ok(
+      content.includes(prompt),
+      `Missing quick prompt: ${prompt}`,
+    );
   }
 });
 
