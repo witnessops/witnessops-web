@@ -4,7 +4,9 @@
   "sample_publication": {
     "source": "shield/store/demo-host/local-fixture-a",
     "fixture": true,
-    "host_class": "synthetic-demo-host"
+    "host_class": "synthetic-demo-host",
+    "public_sample_contract": "This is a public sample proofpack fixture. It demonstrates the structure of a receipt-backed audit package. It is not a live customer audit, not a production verification result, and not evidence that any third-party system was tested.",
+    "localhost_scope_note": "localhost and 127.0.0.1 values are synthetic fixture scope only."
   },
   "run_id": "local-fixture-a",
   "receipt_id": "secsvc-local-fixture-a",
@@ -12,19 +14,19 @@
   "entries": [
     {
       "file": "MANIFEST.sha256",
-      "sha256": "51fccf69dd0721ce1c15e2a866b4eac1f68c2cd5f3da7e9fcc163f756fdae84a"
+      "sha256": "481c07604c58b1242e2a8bf48bf7900e3c3c502beddcfa77170f18d52b829b0c"
     },
     {
       "file": "README.md",
-      "sha256": "9aba02f52ff5a45de88eef6d273d9bbc4a05e223d6b4082e130d0ea1a84e64e9"
+      "sha256": "c958ebba25a3b9103f1ea8885314cced3ee250eb6d471e1ad8a3a71cecb8b9ff"
     },
     {
       "file": "RECEIPT.json",
-      "sha256": "4252ac9b94179bda60c9265ebc81aaf7f0885a156ed50445c1d79cb58b05e0b6"
+      "sha256": "346720cc8270c189b0e88f78a50c4f9e0bb958a4b241fe2f369a36e368996b92"
     },
     {
       "file": "VERIFY_NOTE.json",
-      "sha256": "dee8b4dcfe774c300162538d291ebea1138cd4fa8403bd4368ab55d706a902c8"
+      "sha256": "638130e7401272d6af51b86111e5bb1e7ee052bbbc04cccf39d7359816817740"
     },
     {
       "file": "evidence/authority.json",
@@ -44,7 +46,22 @@
     },
     {
       "file": "evidence_manifest.json",
-      "sha256": "5900574e9e8f96f0a778a53e66ed1dd68d021fb34c1644c7203c7f75d6d3f4ed"
+      "sha256": "03696f0eee780f3c9ad4fefc214613715fff6fc18cecd74a88de7a532ccee60a"
+    },
+    {
+      "file": "proofpack-demo-host-local-fixture-b.zip",
+      "sha256": "b948a9641bccc78cbeddd0960033b7844f8c1c452f51211e6b8545ac8b2e3d8a"
+    },
+    {
+      "file": "proofpack-demo-host-local-fixture-b.zip.sha256",
+      "sha256": "7e437f08cc0c4ee2c70928914f61fca1321b51e0ad48c1fe21a9eeb9409020f3"
     }
-  ]
+  ],
+  "portable_proofpack": {
+    "file": "proofpack-demo-host-local-fixture-b.zip",
+    "sha256_file": "proofpack-demo-host-local-fixture-b.zip.sha256",
+    "fixture": true,
+    "run_id": "local-fixture-b",
+    "note": "Separate synthetic fixture bundle; verify with its internal MANIFEST.sha256."
+  }
 }
