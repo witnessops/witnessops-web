@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { DocsAssistantPage } from "@/components/docs-assistant/docs-assistant-page";
 
 export const metadata: Metadata = {
-  title: "Docs Assistant | WitnessOps",
+  title: "Ask WitnessOps | WitnessOps",
   robots: { index: false, follow: false },
 };
 

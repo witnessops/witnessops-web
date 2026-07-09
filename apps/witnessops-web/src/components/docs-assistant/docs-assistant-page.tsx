@@ -20,10 +20,11 @@ interface Message {
 }
 
 const SUGGESTED_QUESTIONS = [
-  "How does governed execution work?",
-  "What fields are in a WitnessOps receipt?",
-  "What does /verify check?",
-  "What are the current trust limits?",
+  "What package fits a launch readiness review?",
+  "What does a proof packet include?",
+  "Can I send logs or screenshots?",
+  "What is not included in workspace access?",
+  "How do I request a fit check?",
 ];
 
 export function DocsAssistantPage() {
@@ -99,17 +100,21 @@ export function DocsAssistantPage() {
           className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-accent"
           style={{ fontFamily: "var(--font-mono)" }}
         >
-          Assistant
+          Bounded proof guide
         </div>
         <h1
           className="mt-1 text-2xl font-semibold uppercase tracking-tight text-text-primary"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          WitnessOps Docs
+          ASK WITNESSOPS
         </h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Ask anything — receipts, governed execution, verification, or trust
-          boundaries.
+        <p className="mt-2 max-w-2xl text-sm text-text-muted">
+          Ask a non-secret question about proof packets, receipts, verification
+          paths, catalog packages, or safe first contact.
+        </p>
+        <p className="mt-2 max-w-2xl text-xs leading-relaxed text-text-muted">
+          Do not paste secrets, logs, credentials, private keys, MFA codes,
+          screenshots, customer evidence, or raw exports.
         </p>
       </header>
 
@@ -118,7 +123,7 @@ export function DocsAssistantPage() {
         {isEmpty ? (
           <div className="flex h-full flex-col items-center justify-center gap-6 px-4 text-center">
             <p className="max-w-sm text-sm leading-relaxed text-text-muted">
-              Start with a question or pick one below to explore the docs.
+              Pick a bounded buyer or proof question to start.
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {SUGGESTED_QUESTIONS.map((q) => (
@@ -185,7 +190,7 @@ export function DocsAssistantPage() {
             type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ask anything about WitnessOps docs…"
+            placeholder="Ask a non-secret question..."
             className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
           />
           <button
@@ -196,6 +201,10 @@ export function DocsAssistantPage() {
             Ask
           </button>
         </form>
+        <p className="mt-2 text-xs leading-relaxed text-text-muted">
+          Answers are based on public WitnessOps material. For private systems,
+          request a fit check.
+        </p>
       </div>
     </div>
   );

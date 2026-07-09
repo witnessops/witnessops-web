@@ -74,7 +74,23 @@ test("docs assistant unsupported reason does not double-punctuate sentences", ()
       not_proven: ["user_intent"],
       boundary_findings: ["user_intent_not_discernible"],
     }),
-    "I cannot answer that within the approved docs assistant boundary. Boundary reason: The user message 'lll' does not contain a discernible request that can be answered from the provided documents.",
+    "I cannot answer that within the Ask WitnessOps public-material boundary. Do not paste secrets. For private systems, request a fit check. Verification claims require a named artifact, verifier, and proof path. Boundary reason: The user message 'lll' does not contain a discernible request that can be answered from the provided documents.",
+  );
+});
+
+test("Ask WitnessOps refusal copy preserves the public proof boundary", () => {
+  assert.equal(
+    answerText({
+      answer_status: "cannot_claim",
+      documented_facts: [],
+      inference: [],
+      citations: [],
+      unsupported_reason: "proof_bundle_verification_not_allowed",
+      human_review_required: true,
+      not_proven: ["proof_bundle_verification"],
+      boundary_findings: [],
+    }),
+    "I cannot verify proof bundles or artifacts here. Verification claims require a named artifact, verifier, and proof path. For private systems, request a fit check.",
   );
 });
 

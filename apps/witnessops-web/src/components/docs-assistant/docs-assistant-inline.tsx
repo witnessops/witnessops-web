@@ -57,10 +57,21 @@ export function DocsAssistantInline({ pageContext }: Props) {
   return (
     <div className="mt-10 border-t border-surface-border pt-8">
       <p
-        className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
+        className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
         style={{ fontFamily: "var(--font-mono)" }}
       >
-        Ask about this page
+        ASK WITNESSOPS
+      </p>
+      <p className="mt-1 text-sm font-medium text-text-primary">
+        Bounded proof guide
+      </p>
+      <p className="mt-2 text-xs leading-relaxed text-text-muted">
+        Ask a non-secret question about proof packets, receipts, verification
+        paths, catalog packages, or safe first contact.
+      </p>
+      <p className="mb-3 mt-2 text-xs leading-relaxed text-text-muted">
+        Do not paste secrets, logs, credentials, private keys, MFA codes,
+        screenshots, customer evidence, or raw exports.
       </p>
 
       <form
@@ -74,7 +85,7 @@ export function DocsAssistantInline({ pageContext }: Props) {
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask about this page…"
+          placeholder="Ask a non-secret question..."
           className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
         />
         <button
@@ -86,17 +97,16 @@ export function DocsAssistantInline({ pageContext }: Props) {
         </button>
       </form>
 
+      <p className="mt-3 text-xs leading-relaxed text-text-muted">
+        Answers are based on public WitnessOps material. For private systems,
+        request a fit check.
+      </p>
+
       {error && (
         <div className="mt-3">
           <p className="text-sm text-red-400">{error}</p>
           <DocsAssistantBoundaryMeta answer={errorAnswer ?? undefined} />
         </div>
-      )}
-
-      {!error && !response && !loading && (
-        <p className="mt-3 text-xs text-text-muted">
-          Ask a question and the assistant will search the WitnessOps docs.
-        </p>
       )}
 
       {response && (

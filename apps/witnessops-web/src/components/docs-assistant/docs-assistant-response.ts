@@ -63,7 +63,7 @@ export async function docsAssistantRequestErrorDetails(
     const answer = boundaryAnswerFromPayload(payload);
     if (answer) {
       return {
-        message: `Docs Assistant request failed (${response.status}).`,
+        message: `Ask WitnessOps request failed (${response.status}).`,
         answer,
       };
     }
@@ -71,7 +71,7 @@ export async function docsAssistantRequestErrorDetails(
     // Fall back to a status-based message when the response body is not JSON.
   }
 
-  return { message: `Docs Assistant request failed (${response.status}).` };
+  return { message: `Ask WitnessOps request failed (${response.status}).` };
 }
 
 export function boundaryLabel(label: string): string {
@@ -99,15 +99,15 @@ export function boundaryLabel(label: string): string {
 
 function friendlyUnsupportedReason(reason: string): string {
   if (reason === "production_readiness_not_allowed") {
-    return "I cannot claim production readiness from the docs assistant boundary. A human review is required for that claim.";
+    return "I cannot claim production readiness from the Ask WitnessOps public-material boundary. A human review of the named artifact, verifier, and proof path is required.";
   }
 
   if (reason === "proof_bundle_verification_not_allowed") {
-    return "I cannot verify proof bundles or artifacts. Use the approved verifier path for receipt-scoped checks, or ask a human to review the broader proof package.";
+    return "I cannot verify proof bundles or artifacts here. Verification claims require a named artifact, verifier, and proof path. For private systems, request a fit check.";
   }
 
   if (reason === "compliance_certification_not_allowed") {
-    return "I cannot certify compliance or security posture. The docs assistant can only summarize approved documentation with its stated limits.";
+    return "I cannot certify compliance or security posture. Ask WitnessOps only summarizes public WitnessOps material; for private systems, request a fit check.";
   }
 
   const normalizedReason = reason.replaceAll("_", " ").trim();
@@ -115,7 +115,7 @@ function friendlyUnsupportedReason(reason: string): string {
     ? normalizedReason
     : `${normalizedReason}.`;
 
-  return `I cannot answer that within the approved docs assistant boundary. Boundary reason: ${punctuatedReason}`;
+  return `I cannot answer that within the Ask WitnessOps public-material boundary. Do not paste secrets. For private systems, request a fit check. Verification claims require a named artifact, verifier, and proof path. Boundary reason: ${punctuatedReason}`;
 }
 
 function boundaryAnswerFromPayload(payload: unknown): DocsAssistantUiAnswer | undefined {

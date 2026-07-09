@@ -107,16 +107,16 @@ export function DocsAssistantWidget() {
                 className="block text-xs font-semibold uppercase tracking-[0.18em] text-text-primary"
                 style={{ fontFamily: "var(--font-mono)" }}
               >
-                Docs Assistant
+                ASK WITNESSOPS
               </span>
               <span className="block text-xs text-text-muted">
-                WitnessOps
+                Bounded proof guide
               </span>
             </div>
             <button
               onClick={handleClose}
               className="flex h-6 w-6 items-center justify-center rounded text-text-muted transition-colors hover:text-text-primary"
-              aria-label="Close assistant"
+              aria-label="Close Ask WitnessOps"
             >
               ✕
             </button>
@@ -127,8 +127,8 @@ export function DocsAssistantWidget() {
             <div className="flex-1 overflow-y-auto">
               {!answer && !loading && (
                 <p className="text-xs leading-relaxed text-text-muted">
-                  Ask anything about WitnessOps — receipts, governed execution,
-                  verification, or trust boundaries.
+                  Ask a non-secret question about proof packets, receipts,
+                  verification paths, catalog packages, or safe first contact.
                 </p>
               )}
 
@@ -159,6 +159,11 @@ export function DocsAssistantWidget() {
               )}
             </div>
 
+            <p className="mt-3 shrink-0 text-[11px] leading-relaxed text-text-muted">
+              Do not paste secrets, logs, credentials, private keys, MFA codes,
+              screenshots, customer evidence, or raw exports.
+            </p>
+
             {/* Input */}
             <form
               onSubmit={(e) => {
@@ -172,7 +177,7 @@ export function DocsAssistantWidget() {
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Ask a question…"
+                placeholder="Ask a non-secret question..."
                 className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-2.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
               />
               <button
@@ -183,6 +188,10 @@ export function DocsAssistantWidget() {
                 Ask
               </button>
             </form>
+            <p className="mt-2 shrink-0 text-[11px] leading-relaxed text-text-muted">
+              Answers are based on public WitnessOps material. For private
+              systems, request a fit check.
+            </p>
           </div>
         </div>
       )}
@@ -192,7 +201,7 @@ export function DocsAssistantWidget() {
         onClick={handleToggle}
         className="flex h-10 items-center gap-2 rounded border border-surface-border bg-surface-bg px-4 text-xs font-semibold uppercase tracking-wider text-text-primary shadow-lg transition-colors hover:border-brand-accent hover:text-brand-accent max-[420px]:w-10 max-[420px]:justify-center max-[420px]:px-0"
         aria-expanded={open}
-        aria-label="Toggle docs assistant"
+        aria-label="Toggle Ask WitnessOps"
       >
         <svg
           width="14"
