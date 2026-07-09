@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: witnessops-web
+  namespace: witnessops
+  labels:
+    app: witnessops-web
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: witnessops-web
+  template:
+    metadata:
+      labels:
+        app: witnessops-web
+    spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+        - name: witnessops-web
+          image: witnessops-web:replace-me
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+              hostIP: 127.0.0.1
+              hostPort: 3000
+          envFrom:
+            - secretRef:
+                name: witnessops-web-env
+          volumeMounts:
+            - name: intake-store
+              mountPath: /data/intake-store
+            - name: intake-events
+              mountPath: /data/intake-events
+            - name: staging-mail-out
+              mountPath: /data/mail-out
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 768Mi
+      volumes:
+        - name: intake-store
+          persistentVolumeClaim:
+            claimName: witnessops-intake-store
+        - name: intake-events
+          persistentVolumeClaim:
+            claimName: witnessops-intake-events
+        - name: staging-mail-out
+          persistentVolumeClaim:
+            claimName: witnessops-staging-mail-out
