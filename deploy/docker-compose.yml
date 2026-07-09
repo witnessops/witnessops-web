@@ -1,13 +1,20 @@
-# witnessops-web production deployment (goal0-edge-01 unified public host)
+# Historical reference only: legacy Docker Compose / Goal0 deployment shape.
 #
-# This compose file is the single source of truth for how the production
-# container runs. It is intentionally minimal: TLS, the public hostname, and
-# the contact/review gate are handled by the host Caddy systemd service, which
-# reverse-proxies to 127.0.0.1:3000 (see deploy/Caddyfile.snippet).
+# This file is not current production authority for witnessops.com. Current
+# production authority is documented in docs/DEPLOYMENT_CUSTODY.md and
+# docs/DEPLOYMENT_AUTHORITY.md: ops-dev-01 runs Caddy, which proxies apex/www
+# traffic to 127.0.0.1:3000 and the k3s witnessops-web deployment.
+#
+# Do not run compose from this file as a production operation without a new
+# deployment authority lane. It is preserved as historical/reference material:
+# TLS, public hostname handling, and any contact/review gate belonged to the
+# legacy host Caddy path, not to current k3s runtime authority.
 #
 # The image is pinned by the deploy script via the WITNESSOPS_WEB_IMAGE
 # variable (a :vX.Y.Z tag resolved to an immutable @sha256 digest). Never edit
-# the tag here by hand; use deploy/scripts/deploy.sh.
+# the tag here by hand if this historical path is explicitly reactivated.
+
+name: witnessops-web
 
 services:
   witnessops-web:

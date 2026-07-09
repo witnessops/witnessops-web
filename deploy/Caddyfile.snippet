@@ -1,18 +1,22 @@
-# witnessops-web reverse proxy (host Caddy on goal0-edge-01 — unified public host)
-# Legacy: edge02 Servury until DNS cutover. Use bind when sharing IP with OffSec vhosts.
+# Historical reference only: legacy Goal0/edge-style Caddy snippet.
+# This file is not current production authority for witnessops.com.
+# Current production Caddy config lives on ops-dev-01, with apex/www routed to
+# 127.0.0.1:3000 and the k3s witnessops-web deployment. See
+# docs/DEPLOYMENT_CUSTODY.md and docs/DEPLOYMENT_AUTHORITY.md before any
+# deploy-adjacent work. Do not copy or apply this snippet without a new Caddy
+# authority lane.
 #
-# Caddy terminates TLS for witnessops.com and proxies to the loopback-bound
-# container from docker-compose.yml. The public contact/review gate (returning
-# 503 on /review/request, /api/review/request, /api/verify-token when paused)
-# is enforced here at the edge, NOT in the app. Adjust the gate matcher when
-# ungating; keep it under change control.
+# Historical shape: host Caddy on goal0-edge-01, with edge02 Servury as the
+# pre-cutover path, proxying to the loopback-bound container from the legacy
+# docker-compose.yml. The contact/review gate shown below is preserved as
+# reference material only; it is not evidence of the live production gate.
 
 witnessops.com, www.witnessops.com {
 	bind 167.235.12.232
 	encode zstd gzip
 
 	# --- Contact/review gate (comment out the handle block to ungate) ---
-	@gated path /review/request /api/review/request /api/verify-token
+	@gated path /api/review/request /api/verify-token
 	handle @gated {
 		respond "Service temporarily unavailable" 503
 	}
