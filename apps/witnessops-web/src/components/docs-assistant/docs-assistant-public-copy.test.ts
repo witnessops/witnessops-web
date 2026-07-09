@@ -52,3 +52,26 @@ test("Ask WitnessOps loading copy names only public material", () => {
   assert.match(content, /Searching public WitnessOps material/);
   assert.doesNotMatch(content, /Searching docs/);
 });
+
+test("Ask WitnessOps full page uses mobile document flow and desktop scrolling", () => {
+  const content = source("docs-assistant-page.tsx");
+
+  assert.match(content, /min-h-\[calc\(100vh-13rem\)\]/);
+  assert.match(content, /md:h-\[calc\(100vh-13rem\)\]/);
+  assert.match(
+    content,
+    /overflow-visible md:min-h-0 md:flex-1 md:overflow-y-auto/,
+  );
+  assert.match(
+    content,
+    /gap-4 px-4 py-6 text-center md:h-full md:gap-6 md:py-0/,
+  );
+  assert.doesNotMatch(
+    content,
+    /flex h-\[calc\(100vh-13rem\)\] flex-col/,
+  );
+  assert.doesNotMatch(
+    content,
+    /flex h-full flex-col items-center justify-center gap-6/,
+  );
+});

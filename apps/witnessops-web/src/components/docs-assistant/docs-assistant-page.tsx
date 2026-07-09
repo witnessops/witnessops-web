@@ -94,7 +94,7 @@ export function DocsAssistantPage() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="flex h-[calc(100vh-13rem)] flex-col pb-20 md:pb-0">
+    <div className="flex min-h-[calc(100vh-13rem)] flex-col pb-20 md:h-[calc(100vh-13rem)] md:pb-0">
       <header className="mb-4 border-b border-surface-border pb-4">
         <div
           className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-accent"
@@ -112,16 +112,16 @@ export function DocsAssistantPage() {
           Ask a non-secret question about proof packets, receipts, verification
           paths, catalog packages, or safe first contact.
         </p>
-        <p className="mt-2 max-w-2xl text-xs leading-relaxed text-text-muted">
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-muted md:text-xs">
           Do not paste secrets, logs, credentials, private keys, MFA codes,
           screenshots, customer evidence, or raw exports.
         </p>
       </header>
 
       {/* Message list */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="overflow-visible md:min-h-0 md:flex-1 md:overflow-y-auto">
         {isEmpty ? (
-          <div className="flex h-full flex-col items-center justify-center gap-6 px-4 text-center">
+          <div className="flex flex-col items-center justify-center gap-4 px-4 py-6 text-center md:h-full md:gap-6 md:py-0">
             <p className="max-w-sm text-sm leading-relaxed text-text-muted">
               Pick a bounded buyer or proof question to start.
             </p>
@@ -201,7 +201,7 @@ export function DocsAssistantPage() {
             Ask
           </button>
         </form>
-        <p className="mt-2 text-xs leading-relaxed text-text-muted">
+        <p className="mt-2 text-sm leading-relaxed text-text-muted md:text-xs">
           Answers are based on public WitnessOps material. For private systems,
           request a fit check.
         </p>
