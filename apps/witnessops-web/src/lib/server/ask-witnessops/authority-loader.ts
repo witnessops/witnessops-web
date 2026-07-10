@@ -25,6 +25,12 @@ import {
   type PresentationProjectionIdentity,
 } from "./authority-presentation-loader";
 
+import {
+  assembleAnswer,
+  type AssembleAnswerInput,
+  type AssembledAnswer,
+} from "./authority-answer-assembler";
+
 const require = createRequire(import.meta.url);
 const authoritySet: unknown = require(
   "@witnessops/ask-authority/v1/authority-set.json",
@@ -45,6 +51,10 @@ export const getPresentationForSource = getPresentationForSourceImpl;
 export const getGlobalPresentationRules = getGlobalPresentationRulesImpl;
 export const getPresentationProjectionIdentity = getPresentationProjectionIdentityImpl;
 export type { PresentationSourceRecord, GlobalPresentationRules, PresentationProjectionIdentity };
+
+// Assembler surface (server-only composition of policy decision + template + presentation)
+export { assembleAnswer };
+export type { AssembleAnswerInput, AssembledAnswer };
 
 export { classifyQuestion };
 export { executePolicy };

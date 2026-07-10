@@ -14,6 +14,10 @@ const corePath = path.join(
   sourceRoot,
   "lib/server/ask-witnessops/authority-loader-core.ts",
 );
+const assemblerPath = path.join(
+  sourceRoot,
+  "lib/server/ask-witnessops/authority-answer-assembler.ts",
+);
 
 function walkSource(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -41,7 +45,7 @@ test("authority projection is imported by the public server-only loader only", (
 test("no application runtime module consumes the public loader yet", () => {
   const runtimeFiles = walkSource(sourceRoot).filter(
     (file) =>
-      !/\.test\.tsx?$/.test(file) && file !== loaderPath && file !== corePath,
+      !/\.test\.tsx?$/.test(file) && file !== loaderPath && file !== corePath && file !== assemblerPath,
   );
   const importers = runtimeFiles.filter((file) => {
     const source = readFileSync(file, "utf8");
@@ -63,7 +67,7 @@ test("policy executor is exposed only through the server-only loader", () => {
   assert.doesNotMatch(loader, /from\s+["'][^"']*policy-executor["']/); // only through loader re-export
 });
 
-test("public loader runtime exports remain the approved eight queries plus classifier", () => {
+test("public loader runtime exports remain the approved eight queries plus classifier and assembler", () => {
   const loader = readFileSync(loaderPath, "utf8");
   const constExports = [...loader.matchAll(/export const (get[A-Za-z]+)\s*=/g)]
     .map((match) => match[1])
@@ -82,6 +86,9 @@ test("public loader runtime exports remain the approved eight queries plus class
   // classifier and policy executor are re-exported (not const)
   assert.match(loader, /export \{ classifyQuestion \}/);
   assert.match(loader, /export \{ executePolicy \}/);
+
+  // assembler is re-exported (not const)
+  assert.match(loader, /export \{ assembleAnswer \}/);
   assert.doesNotMatch(loader, /getClaimRule|getSelectedSection|listAll|search|getByKind/);
 });
 
@@ -97,4 +104,11 @@ test("application dependencies are explicit and historical route remains untouch
     "utf8",
   );
   assert.doesNotMatch(historicalRoute, /ask-authority|authority-loader/);
+});
+
+test("assembler is exposed only through the server-only loader", () => {
+  const loader = readFileSync(loaderPath, "utf8");
+  assert.match(loader, /export \{ assembleAnswer \}/);
+  assert.match(loader, /^import "server-only";/);
+  assert.doesNotMatch(loader, /from\s+["'][^"']*answer-assembler["']/); // only through loader re-export
 });
