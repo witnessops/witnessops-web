@@ -126,6 +126,14 @@ test("ask-witnessops API route is server-only and does not leak deterministic su
   assert.doesNotMatch(askRouteSource, /from ["'][^"']*ask-witnessops\/authority-loader-core["']/);
 });
 
+test("runtime receipt contract is exposed only through the server-only loader", () => {
+  const loader = readFileSync(loaderPath, "utf8");
+  assert.match(loader, /export \{ createAskRuntimeReceipt \}/);
+  assert.match(loader, /export \{ verifyAskRuntimeReceipt \}/);
+  assert.match(loader, /^import "server-only";/);
+});
+
+
 test("ask pipeline produces deterministic AssembledAnswer for valid input (malformed, closed, and success paths)", async () => {
   const { normalizeAskRequest } = await import(
     "./ask-request-normalizer.ts"
