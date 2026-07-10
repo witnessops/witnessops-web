@@ -84,10 +84,25 @@ function runNode(args) {
 
 function walkFiles(directory) {
   if (!fs.existsSync(directory)) return [];
-  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const entryPath = path.join(directory, entry.name);
-    return entry.isDirectory() ? walkFiles(entryPath) : [entryPath];
-  });
+  return fs.readdirSync(directory, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .flatMap((entry) => {
+      const entryPath = path.join(directory, entry.name);
+      return entry.isDirectory() ? walkFiles(entryPath) : [entryPath];
+    });
+}
+
+function moduleSpecifiers(source) {
+  const specifiers = [];
+  const patterns = [
+    /\b(?:import|export)\s+(?:type\s+)?(?:[^"'`]*?\s+from\s+)?["']([^"']+)["']/g,
+    /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
+    /\brequire\s*\(\s*["']([^"']+)["']\s*,?\s*\)/g,
+  ];
+  for (const pattern of patterns) {
+    for (const match of source.matchAll(pattern)) specifiers.push(match[1]);
+  }
+  return specifiers;
 }
 
 const packageManifest = JSON.parse(fs.readFileSync(path.join(packageRoot, "package.json"), "utf8"));
@@ -209,20 +224,141 @@ for (const [basename, before] of canonicalHashesBefore) {
 
 process.stdout.write("ask-authority runtime projection validation passed\n");
 
-const appManifest = JSON.parse(
-  fs.readFileSync(path.join(repoRoot, "apps/witnessops-web/package.json"), "utf8"),
+const appsRoot = path.join(repoRoot, "apps");
+const approvedAppRoot = path.join(appsRoot, "witnessops-web");
+const approvedAppManifestPath = path.join(approvedAppRoot, "package.json");
+const approvedSourceRoot = path.join(approvedAppRoot, "src");
+const approvedLoader = path.join(
+  approvedSourceRoot,
+  "lib/server/ask-witnessops/authority-loader.ts",
 );
-for (const group of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) {
-  if (appManifest[group]?.["@witnessops/ask-authority"]) {
-    fail(`application_dependency_forbidden:${group}`);
+const authorityPackage = "@witnessops/ask-authority";
+const authorityProjection = "@witnessops/ask-authority/v1/authority-set.json";
+const dependencyGroups = [
+  "dependencies",
+  "devDependencies",
+  "peerDependencies",
+  "optionalDependencies",
+];
+
+const appManifestPaths = fs.readdirSync(appsRoot, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => path.join(appsRoot, entry.name, "package.json"))
+  .filter((manifestPath) => fs.existsSync(manifestPath))
+  .sort();
+
+let authorityDependencyAdmissions = 0;
+for (const manifestPath of appManifestPaths) {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  for (const group of dependencyGroups) {
+    if (!Object.hasOwn(manifest[group] ?? {}, authorityPackage)) continue;
+    if (
+      manifestPath !== approvedAppManifestPath
+      || group !== "dependencies"
+      || manifest[group][authorityPackage] !== "workspace:*"
+    ) {
+      fail(
+        `application_authority_dependency_not_admitted:${path.relative(repoRoot, manifestPath)}:${group}`,
+      );
+    }
+    authorityDependencyAdmissions += 1;
+  }
+}
+if (authorityDependencyAdmissions !== 1) {
+  fail(`application_authority_dependency_count:${authorityDependencyAdmissions}`);
+}
+
+const appManifest = JSON.parse(fs.readFileSync(approvedAppManifestPath, "utf8"));
+if (appManifest.dependencies?.["server-only"] !== "0.0.1") {
+  fail("application_server_only_dependency_required");
+}
+for (const group of dependencyGroups.slice(1)) {
+  if (Object.hasOwn(appManifest[group] ?? {}, "server-only")) {
+    fail(`application_server_only_dependency_group_forbidden:${group}`);
   }
 }
 
-for (const file of walkFiles(path.join(repoRoot, "apps/witnessops-web/src"))) {
+const runtimeFiles = walkFiles(approvedSourceRoot)
+  .filter((file) => /\.(?:[cm]?[jt]sx?)$/.test(file))
+  .filter((file) => !/\.(?:test|spec)\.(?:[cm]?[jt]sx?)$/.test(file))
+  .filter((file) => !file.split(path.sep).includes("__tests__"));
+
+const projectionImporters = [];
+const loaderConsumers = [];
+for (const file of runtimeFiles) {
   const source = fs.readFileSync(file, "utf8");
-  if (source.includes("@witnessops/ask-authority") || source.includes("packages/ask-authority")) {
-    fail(`application_import_forbidden:${path.relative(repoRoot, file)}`);
+  const specifiers = moduleSpecifiers(source);
+  const authoritySpecifiers = specifiers.filter(
+    (specifier) => specifier.startsWith(authorityPackage)
+      || specifier.includes("packages/ask-authority"),
+  );
+  if (authoritySpecifiers.length > 0) {
+    if (
+      file !== approvedLoader
+      || authoritySpecifiers.length !== 1
+      || authoritySpecifiers[0] !== authorityProjection
+    ) {
+      fail(`application_authority_import_forbidden:${path.relative(repoRoot, file)}`);
+    }
+    projectionImporters.push(file);
+  }
+
+  if (file !== approvedLoader) {
+    const importsLoader = specifiers.some((specifier) =>
+      /(?:^|\/)authority-loader(?:\.[cm]?[jt]sx?)?$/.test(specifier)
+    );
+    if (importsLoader) loaderConsumers.push(file);
   }
 }
 
-process.stdout.write("ask-authority promotion validation passed\n");
+expectExact(
+  projectionImporters.map((file) => path.relative(repoRoot, file)),
+  [path.relative(repoRoot, approvedLoader)],
+  "application_projection_importers",
+);
+expectExact(
+  loaderConsumers.map((file) => path.relative(repoRoot, file)),
+  [],
+  "application_loader_consumers",
+);
+
+const loaderSource = fs.readFileSync(approvedLoader, "utf8");
+if (!loaderSource.startsWith('import "server-only";\n')) {
+  fail("application_loader_server_only_guard_required");
+}
+if ((loaderSource.match(/import\s+["']server-only["'];/g) ?? []).length !== 1) {
+  fail("application_loader_server_only_guard_count");
+}
+if (!loaderSource.includes("const require = createRequire(import.meta.url);")) {
+  fail("application_loader_node_only_resolution_required");
+}
+
+const approvedQueries = [
+  "getAuthority",
+  "getAuthoritySetIdentity",
+  "getPolicyRule",
+  "getQuestionClass",
+  "getRoute",
+  "getSource",
+  "getTemplate",
+  "getTemplateForQuestionClass",
+];
+const exportedQueries = [...loaderSource.matchAll(/export const (get[A-Za-z]+)\s*=/g)]
+  .map((match) => match[1])
+  .sort();
+expectExact(exportedQueries, approvedQueries, "application_loader_query_exports");
+
+const forbiddenLoaderPatterns = [
+  [/["']use client["']/, "client_directive"],
+  [/\b(?:getClaimRule|getSelectedSection|listAll|search|getByKind)\b/, "unapproved_query"],
+  [/\b(?:classes|rules|templates|sources|authorities|routes)\s*=/, "raw_collection"],
+  [/\b(?:process\.env|import\.meta\.env)\b/, "environment_selection"],
+  [/\b(?:fetch|WebSocket|EventSource|XMLHttpRequest)\b/, "browser_or_network_api"],
+  [/\bnode:(?:fs|http|https|net|tls|dgram|dns)(?:\/promises)?\b/, "filesystem_or_network_module"],
+  [/\b(?:window|document|navigator|localStorage|sessionStorage)\b/, "client_global"],
+];
+for (const [pattern, label] of forbiddenLoaderPatterns) {
+  if (pattern.test(loaderSource)) fail(`application_loader_forbidden:${label}`);
+}
+
+process.stdout.write("ask-authority governed application-consumption boundary validation passed\n");

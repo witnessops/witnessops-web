@@ -4,26 +4,27 @@
 
 ## Boundary
 
-This is a non-runtime, dependency-free, private workspace package. `private: true` prevents package publication; it does not make files private inside the public repository.
+This is a non-executable, private workspace package containing governed authority data and deterministic validation. `private: true` prevents package publication; it does not make files private inside the public repository.
 
 The package intentionally has:
 
 - exactly one Node-only data export: `@witnessops/ask-authority/v1/authority-set.json`;
 - no root, latest, wildcard, browser, import, require, or default export fallback;
 - no runtime entrypoint;
-- no application dependency;
+- exactly one approved application dependency declaration: `@witnessops/ask-authority: workspace:*` in `apps/witnessops-web`;
+- exactly one approved production projection importer: the server-only Ask WitnessOps authority loader;
 - no API, classifier, router, or frontend integration;
 - no model, retrieval, receipt-issuance, or storage behavior.
 
-Repository promotion establishes source custody only. It does not authorize application consumption or execution.
+The dependency and loader establish a bounded server-only consumption substrate. They do not authorize API integration, classification, policy execution, frontend consumption, or production activation.
 
 ## Derived runtime projection
 
-`runtime/v1/authority-set.json` is a deterministic, non-authoritative projection of the canonical V1 manifest and five authority layers. It is exported only through the exact Node-only subpath above and is not currently used by an application.
+`runtime/v1/authority-set.json` is a deterministic, non-authoritative projection of the canonical V1 manifest and five authority layers. It is exported only through the exact Node-only subpath above and may be imported only by the approved server-only loader.
 
 The projection must be regenerated from the canonical artifacts. It may not be edited independently or used to widen source authority, claims, policy, response wording, or runtime behavior.
 
-The export does not authorize application consumption. A separate server-only loader and client-boundary review must prove that the projection remains outside browser output before any application may depend on it.
+The approved loader and standalone client-boundary probe establish that the projection can remain in server output and outside browser output. Any runtime consumer of that loader still requires a separate authority lane.
 
 ## Layout
 
@@ -62,6 +63,6 @@ With Node 22 and pnpm 9.15.4 active:
 pnpm --filter @witnessops/ask-authority validate
 ```
 
-The validator checks strict schemas, canonical bytes, detached hashes, dependency closure, exact counts, references, exclusions, route bindings, response-template revision closure, and byte-for-byte regeneration of the derived runtime projection.
+The validator checks strict schemas, canonical bytes, detached hashes, dependency closure, exact counts, references, exclusions, route bindings, response-template revision closure, byte-for-byte regeneration of the derived runtime projection, and the exact admitted application dependency and server-only loader boundary.
 
 Validation does not establish answer correctness, application readiness, production readiness, security posture, or runtime activation.
