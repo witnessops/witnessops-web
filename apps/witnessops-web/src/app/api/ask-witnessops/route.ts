@@ -6,6 +6,7 @@ import {
   assembleAnswer,
   createAskRuntimeReceipt,
 } from "@/lib/server/ask-witnessops/authority-loader";
+import { writeReceipt } from "@/lib/server/ask-witnessops/ask-runtime-receipt-store";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 import { findDuplicateJsonObjectKey } from "@/lib/json-ambiguity";
 
@@ -111,10 +112,7 @@ export async function POST(request: Request) {
     const decision = executePolicy({ classification });
     const assembled = assembleAnswer({ policyDecision: decision });
 
-    // Ephemeral receipt creation (no persistence or custody).
-    // The receipt records the deterministic trace for later independent reconstruction.
-    // It does not alter classification, policy, assembly, or answer content.
-    // We use a response header to preserve the exact AssembledAnswer body shape.
+    // Durable custody: create receipt then persist it before claiming it is durable.
     const receipt = createAskRuntimeReceipt({
       normalizedQuestion: normalized.request.question,
       classification,
@@ -122,8 +120,20 @@ export async function POST(request: Request) {
       assembledAnswer: assembled,
     });
 
+    const writeResult = await writeReceipt(receipt);
+
     const response = NextResponse.json(assembled);
-    response.headers.set("X-Ask-Receipt-Id", receipt.receipt_id);
+
+    if (writeResult.ok) {
+      // Only advertise the ID as durable after successful atomic write.
+      response.headers.set("X-Ask-Receipt-Id", receipt.receipt_id);
+      response.headers.set("X-Ask-Receipt-Status", "durable");
+    } else {
+      // Explicit non-durable marker on write failure.
+      response.headers.set("X-Ask-Receipt-Status", "ephemeral");
+      // Do not set X-Ask-Receipt-Id on failure.
+    }
+
     return response;
   } catch {
     return invalidRequest("request body must be valid JSON.");

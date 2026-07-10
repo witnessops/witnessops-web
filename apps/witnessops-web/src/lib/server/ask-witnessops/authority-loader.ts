@@ -63,6 +63,9 @@ export {
 } from "./ask-runtime-receipt";
 export type { AskRuntimeReceipt, CreateAskRuntimeReceiptInput } from "./ask-runtime-receipt";
 
+// Durable custody surface (V1 file store)
+export { writeReceipt, readReceipt, getReceiptRoot } from "./ask-runtime-receipt-store";
+
 export { classifyQuestion };
 export { executePolicy };
 export type { PolicyDecision } from "./authority-policy-executor";
