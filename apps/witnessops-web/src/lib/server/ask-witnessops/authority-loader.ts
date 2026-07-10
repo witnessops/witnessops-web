@@ -56,6 +56,13 @@ export type { PresentationSourceRecord, GlobalPresentationRules, PresentationPro
 export { assembleAnswer };
 export type { AssembleAnswerInput, AssembledAnswer };
 
+// Runtime receipt contract surface
+export {
+  createAskRuntimeReceipt,
+  verifyAskRuntimeReceipt,
+} from "./ask-runtime-receipt";
+export type { AskRuntimeReceipt, CreateAskRuntimeReceiptInput } from "./ask-runtime-receipt";
+
 export { classifyQuestion };
 export { executePolicy };
 export type { PolicyDecision } from "./authority-policy-executor";
