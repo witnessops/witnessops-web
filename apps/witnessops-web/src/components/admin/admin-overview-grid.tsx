@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   AlertTriangle,
   CheckCircle,
@@ -63,6 +64,13 @@ function countEvidenceConflict(rows: AdmissionQueueRow[]): number {
   ).length;
 }
 
+type AttentionItem = {
+  key: string;
+  title: string;
+  detail: string;
+  href: string;
+};
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -74,46 +82,78 @@ interface AdminOverviewGridProps {
   customerRejected: number;
 }
 
-export function AdminOverviewGrid({ view, report, customerAccepted, customerRejected }: AdminOverviewGridProps) {
+export function AdminOverviewGrid({
+  view,
+  report,
+  customerAccepted,
+  customerRejected,
+}: AdminOverviewGridProps) {
   const staleAccepted = countStaleAccepted(view.rows);
   const awaitingResponse = countAwaitingResponse(view.rows);
   const evidenceConflict = countEvidenceConflict(view.rows);
 
-  const hasAlerts =
-    view.summary.reconciliationPending > 0 ||
-    view.summary.divergent > 0 ||
-    staleAccepted > 0 ||
-    awaitingResponse > 0 ||
-    evidenceConflict > 0;
+  const attentionItems: AttentionItem[] = [
+    view.summary.reconciliationPending > 0
+      ? {
+          key: "reconciliation-pending",
+          title: "Review pending reconciliation",
+          detail: `${view.summary.reconciliationPending} queue item${view.summary.reconciliationPending === 1 ? "" : "s"} need an ambiguity decision.`,
+          href: `/admin/queue?filter=${QUEUE_FILTER_KEYS.pending}`,
+        }
+      : null,
+    view.summary.divergent > 0
+      ? {
+          key: "divergent",
+          title: "Inspect divergent projections",
+          detail: `${view.summary.divergent} queue item${view.summary.divergent === 1 ? " has" : "s have"} conflicting evidence or projection state.`,
+          href: `/admin/queue?filter=${QUEUE_FILTER_KEYS.divergent}`,
+        }
+      : null,
+    staleAccepted > 0
+      ? {
+          key: "stale-accepted",
+          title: "Resolve stale accepted outcomes",
+          detail: `${staleAccepted} accepted provider outcome${staleAccepted === 1 ? " is" : "s are"} older than ${STALE_ACCEPTED_HOURS} hours and unresolved.`,
+          href: `/admin/queue?filter=${QUEUE_FILTER_KEYS.staleAccepted}`,
+        }
+      : null,
+    awaitingResponse > 0
+      ? {
+          key: "awaiting-response",
+          title: "Respond to admitted requests",
+          detail: `${awaitingResponse} admitted request${awaitingResponse === 1 ? " has" : "s have"} waited at least ${AWAITING_RESPONSE_HOURS} hours for a response.`,
+          href: "/admin/queue",
+        }
+      : null,
+    evidenceConflict > 0
+      ? {
+          key: "evidence-conflict",
+          title: "Inspect evidence conflicts",
+          detail: `${evidenceConflict} queue item${evidenceConflict === 1 ? " has" : "s have"} conflicting mailbox and provider outcomes.`,
+          href: "/admin/queue",
+        }
+      : null,
+  ].filter((item): item is AttentionItem => item !== null);
 
   return (
     <>
-      {/* ── Alert strip ── */}
-      {hasAlerts ? (
-        <div className={styles.alertStrip}>
-          <AlertTriangle size={12} aria-hidden />
-          <span>
-            {[
-              view.summary.reconciliationPending > 0
-                ? `${view.summary.reconciliationPending} reconciliation pending`
-                : null,
-              view.summary.divergent > 0
-                ? `${view.summary.divergent} divergent`
-                : null,
-              staleAccepted > 0
-                ? `${staleAccepted} stale accepted`
-                : null,
-              awaitingResponse > 0
-                ? `${awaitingResponse} awaiting response`
-                : null,
-              evidenceConflict > 0
-                ? `${evidenceConflict} evidence conflict`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </span>
-        </div>
+      {attentionItems.length > 0 ? (
+        <>
+          <div className={styles.sectionHeader}>Needs attention</div>
+          <div className={styles.reconciliationList}>
+            {attentionItems.map((item) => (
+              <div key={item.key} className={styles.reconciliationItem}>
+                <div className={styles.reconciliationHeadline}>{item.title}</div>
+                <div className={styles.reconciliationMeta}>
+                  <span>{item.detail}</span>
+                  <Link className={styles.inlineLink} href={item.href}>
+                    Open queue
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       ) : null}
 
       {/* ── KPI stat cards ── */}
