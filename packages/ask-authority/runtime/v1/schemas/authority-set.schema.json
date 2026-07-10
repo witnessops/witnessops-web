@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://witnessops.com/schemas/ask/runtime-authority-set.v1.schema.json",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "witnessops.ask.runtime-authority-set.v1"
+    },
+    "projection_id": {
+      "type": "string",
+      "const": "ASK_RUNTIME_AUTHORITY_SET_V1"
+    },
+    "projection_version": {
+      "type": "number",
+      "const": 1
+    },
+    "authority_set_id": {
+      "type": "string",
+      "const": "ASK_AUTHORITY_SET_V1"
+    },
+    "manifest_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "generation": {
+      "type": "object",
+      "properties": {
+        "procedure_id": {
+          "type": "string",
+          "const": "witnessops.ask.runtime-projection.jcs"
+        },
+        "procedure_version": {
+          "type": "number",
+          "const": 1
+        },
+        "generator_version": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "canonicalization": {
+          "type": "string",
+          "const": "RFC8785_JCS"
+        }
+      },
+      "required": [
+        "procedure_id",
+        "procedure_version",
+        "generator_version",
+        "canonicalization"
+      ],
+      "additionalProperties": false
+    },
+    "manifest": {
+      "type": "object"
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "enum": [
+              "QUESTION_CLASSES_V1",
+              "ASK_CONTEXT_PACK_V1",
+              "CLAIM_BOUNDARY_V1",
+              "POLICY_RULES_V1",
+              "RESPONSE_TEMPLATES_V1"
+            ]
+          },
+          "artifact_version": {
+            "type": "number",
+            "const": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "document": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "artifact_version",
+          "sha256",
+          "document"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "projection_id",
+    "projection_version",
+    "authority_set_id",
+    "manifest_sha256",
+    "generation",
+    "manifest",
+    "layers",
+    "invariants"
+  ],
+  "additionalProperties": false
+}

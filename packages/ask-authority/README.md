@@ -16,6 +16,12 @@ The package intentionally has:
 
 Repository promotion establishes source custody only. It does not authorize application consumption or execution.
 
+## Derived runtime projection
+
+`runtime/v1/authority-set.json` is a deterministic, non-authoritative projection of the canonical V1 manifest and five authority layers. It exists for governed future consumption but is not exported and is not currently used by an application.
+
+The projection must be regenerated from the canonical artifacts. It may not be edited independently or used to widen source authority, claims, policy, response wording, or runtime behavior.
+
 ## Layout
 
 ```text
@@ -33,8 +39,14 @@ tools/
 validators/
   schema-validator.mjs
   authority-validator.mjs
+  runtime-projection-validator.mjs
 scripts/
   validate.mjs
+  generate-runtime-projection.mjs
+runtime/v1/
+  authority-set.json
+  hashes/authority-set.json.sha256
+  schemas/authority-set.schema.json
 ```
 
 Noncanonical review renders and private creation or promotion receipts are deliberately excluded.
@@ -47,6 +59,6 @@ With Node 22 and pnpm 9.15.4 active:
 pnpm --filter @witnessops/ask-authority validate
 ```
 
-The validator checks strict schemas, canonical bytes, detached hashes, dependency closure, exact counts, references, exclusions, route bindings, and response-template revision closure.
+The validator checks strict schemas, canonical bytes, detached hashes, dependency closure, exact counts, references, exclusions, route bindings, response-template revision closure, and byte-for-byte regeneration of the derived runtime projection.
 
 Validation does not establish answer correctness, application readiness, production readiness, security posture, or runtime activation.

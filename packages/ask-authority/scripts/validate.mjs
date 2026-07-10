@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import crypto from "node:crypto";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -8,6 +10,20 @@ const repoRoot = path.resolve(packageRoot, "../..");
 const artifactRoot = path.join(packageRoot, "artifacts/v1");
 const schemaValidator = path.join(packageRoot, "validators/schema-validator.mjs");
 const authorityValidator = path.join(packageRoot, "validators/authority-validator.mjs");
+const runtimeProjectionValidator = path.join(
+  packageRoot,
+  "validators/runtime-projection-validator.mjs",
+);
+const runtimeProjectionGenerator = path.join(
+  packageRoot,
+  "scripts/generate-runtime-projection.mjs",
+);
+const runtimeRoot = path.join(packageRoot, "runtime/v1");
+const runtimeProjection = path.join(runtimeRoot, "authority-set.json");
+const runtimeProjectionSchema = path.join(
+  runtimeRoot,
+  "schemas/authority-set.schema.json",
+);
 
 const artifactBasenames = [
   "question-classes.v1.json",
@@ -30,6 +46,10 @@ const schemaBasenames = [
 function fail(message) {
   process.stderr.write(`${message}\n`);
   process.exit(1);
+}
+
+function sha256(bytes) {
+  return crypto.createHash("sha256").update(bytes).digest("hex");
 }
 
 function sortedNames(directory) {
@@ -91,8 +111,32 @@ expectExact(
 expectExact(sortedNames(path.join(packageRoot, "tools")), ["jcs.mjs"], "tool_inventory");
 expectExact(
   sortedNames(path.join(packageRoot, "validators")),
-  ["authority-validator.mjs", "schema-validator.mjs"],
+  [
+    "authority-validator.mjs",
+    "runtime-projection-validator.mjs",
+    "schema-validator.mjs",
+  ],
   "validator_inventory",
+);
+expectExact(
+  sortedNames(path.join(packageRoot, "scripts")),
+  ["generate-runtime-projection.mjs", "validate.mjs"],
+  "script_inventory",
+);
+expectExact(
+  sortedNames(runtimeRoot),
+  ["authority-set.json", "hashes", "schemas"],
+  "runtime_root_inventory",
+);
+expectExact(
+  sortedNames(path.join(runtimeRoot, "hashes")),
+  ["authority-set.json.sha256"],
+  "runtime_hash_inventory",
+);
+expectExact(
+  sortedNames(path.join(runtimeRoot, "schemas")),
+  ["authority-set.schema.json"],
+  "runtime_schema_inventory",
 );
 if (fs.existsSync(path.join(artifactRoot, "review"))) fail("review_renders_forbidden");
 
@@ -104,6 +148,61 @@ for (let index = 0; index < artifactBasenames.length; index += 1) {
   ]);
 }
 runNode([authorityValidator, artifactRoot, "--manifest"]);
+
+const canonicalHashesBefore = new Map(
+  artifactBasenames.map((basename) => [
+    basename,
+    sha256(fs.readFileSync(path.join(artifactRoot, basename))),
+  ]),
+);
+
+runNode([schemaValidator, runtimeProjectionSchema, runtimeProjection]);
+runNode([runtimeProjectionValidator, artifactRoot, runtimeProjection]);
+
+const temporaryRoot = fs.mkdtempSync(
+  path.join(os.tmpdir(), "witnessops-ask-runtime-projection-"),
+);
+try {
+  const regeneratedProjection = path.join(
+    temporaryRoot,
+    "runtime/v1/authority-set.json",
+  );
+  runNode([
+    runtimeProjectionGenerator,
+    "--source-dir",
+    artifactRoot,
+    "--output",
+    regeneratedProjection,
+  ]);
+
+  const committedBytes = fs.readFileSync(runtimeProjection);
+  const regeneratedBytes = fs.readFileSync(regeneratedProjection);
+  if (!committedBytes.equals(regeneratedBytes)) {
+    fail("runtime_projection_regeneration_mismatch");
+  }
+
+  const committedSidecar = fs.readFileSync(
+    path.join(runtimeRoot, "hashes/authority-set.json.sha256"),
+  );
+  const regeneratedSidecar = fs.readFileSync(
+    path.join(
+      path.dirname(regeneratedProjection),
+      "hashes/authority-set.json.sha256",
+    ),
+  );
+  if (!committedSidecar.equals(regeneratedSidecar)) {
+    fail("runtime_projection_sidecar_regeneration_mismatch");
+  }
+} finally {
+  fs.rmSync(temporaryRoot, { recursive: true, force: true });
+}
+
+for (const [basename, before] of canonicalHashesBefore) {
+  const after = sha256(fs.readFileSync(path.join(artifactRoot, basename)));
+  if (after !== before) fail(`canonical_source_changed:${basename}`);
+}
+
+process.stdout.write("ask-authority runtime projection validation passed\n");
 
 const appManifest = JSON.parse(
   fs.readFileSync(path.join(repoRoot, "apps/witnessops-web/package.json"), "utf8"),
