@@ -124,6 +124,9 @@ test("ask-witnessops API route is server-only and does not leak deterministic su
   // The route should only import the public loader surface, not core implementation
   assert.match(askRouteSource, /from ["'][^"']*ask-witnessops\/authority-loader["']/);
   assert.doesNotMatch(askRouteSource, /from ["'][^"']*ask-witnessops\/authority-loader-core["']/);
+
+  // Receipt reference is provided out-of-band via header to preserve exact answer content
+  assert.match(askRouteSource, /X-Ask-Receipt-Id/);
 });
 
 test("runtime receipt contract is exposed only through the server-only loader", () => {

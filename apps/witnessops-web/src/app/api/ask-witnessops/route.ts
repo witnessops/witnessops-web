@@ -4,6 +4,7 @@ import {
   classifyQuestion,
   executePolicy,
   assembleAnswer,
+  createAskRuntimeReceipt,
 } from "@/lib/server/ask-witnessops/authority-loader";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 import { findDuplicateJsonObjectKey } from "@/lib/json-ambiguity";
@@ -110,7 +111,20 @@ export async function POST(request: Request) {
     const decision = executePolicy({ classification });
     const assembled = assembleAnswer({ policyDecision: decision });
 
-    return NextResponse.json(assembled);
+    // Ephemeral receipt creation (no persistence or custody).
+    // The receipt records the deterministic trace for later independent reconstruction.
+    // It does not alter classification, policy, assembly, or answer content.
+    // We use a response header to preserve the exact AssembledAnswer body shape.
+    const receipt = createAskRuntimeReceipt({
+      normalizedQuestion: normalized.request.question,
+      classification,
+      policyDecision: decision,
+      assembledAnswer: assembled,
+    });
+
+    const response = NextResponse.json(assembled);
+    response.headers.set("X-Ask-Receipt-Id", receipt.receipt_id);
+    return response;
   } catch {
     return invalidRequest("request body must be valid JSON.");
   }
