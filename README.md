@@ -26,6 +26,13 @@ and sample proof-surface pages used to explain artifact inspection boundaries.
 - It does not prove production deployment, legal compliance, source-system truth, or complete AI governance coverage.
 - It does not use Azure Container Apps, `azd`, or root Bicep files as active deployment authority.
 
+## Product governance
+
+All user-facing workflows follow the
+[Usability-First Invisible-Proof Principle](./docs/product-decisions/WITNESSOPS_USABILITY_FIRST_INVISIBLE_PROOF_PRINCIPLE_V1.md):
+**easy in the foreground, reconstructable in the background.** The linked
+decision record is the canonical authority for this product rule.
+
 ## Deployment authority
 
 Deployment guidance lives in [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md).
