@@ -1,6 +1,6 @@
 # Ask WitnessOps authority set
 
-`@witnessops/ask-authority` holds the promoted Ask WitnessOps V1 authority artifacts and their deterministic validation tools.
+`@witnessops/ask-authority` holds the promoted Ask WitnessOps V1 authority artifacts, their derived runtime projection, and deterministic validation tools.
 
 ## Boundary
 
@@ -8,7 +8,8 @@ This is a non-runtime, dependency-free, private workspace package. `private: tru
 
 The package intentionally has:
 
-- no exports;
+- exactly one Node-only data export: `@witnessops/ask-authority/v1/authority-set.json`;
+- no root, latest, wildcard, browser, import, require, or default export fallback;
 - no runtime entrypoint;
 - no application dependency;
 - no API, classifier, router, or frontend integration;
@@ -18,9 +19,11 @@ Repository promotion establishes source custody only. It does not authorize appl
 
 ## Derived runtime projection
 
-`runtime/v1/authority-set.json` is a deterministic, non-authoritative projection of the canonical V1 manifest and five authority layers. It exists for governed future consumption but is not exported and is not currently used by an application.
+`runtime/v1/authority-set.json` is a deterministic, non-authoritative projection of the canonical V1 manifest and five authority layers. It is exported only through the exact Node-only subpath above and is not currently used by an application.
 
 The projection must be regenerated from the canonical artifacts. It may not be edited independently or used to widen source authority, claims, policy, response wording, or runtime behavior.
+
+The export does not authorize application consumption. A separate server-only loader and client-boundary review must prove that the projection remains outside browser output before any application may depend on it.
 
 ## Layout
 

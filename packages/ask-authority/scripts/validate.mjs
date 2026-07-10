@@ -14,6 +14,10 @@ const runtimeProjectionValidator = path.join(
   packageRoot,
   "validators/runtime-projection-validator.mjs",
 );
+const runtimeExportBoundaryValidator = path.join(
+  packageRoot,
+  "validators/runtime-export-boundary-validator.mjs",
+);
 const runtimeProjectionGenerator = path.join(
   packageRoot,
   "scripts/generate-runtime-projection.mjs",
@@ -88,10 +92,10 @@ function walkFiles(directory) {
 
 const packageManifest = JSON.parse(fs.readFileSync(path.join(packageRoot, "package.json"), "utf8"));
 if (packageManifest.private !== true) fail("package_must_remain_private");
-if (JSON.stringify(packageManifest.exports) !== "{}") fail("package_exports_must_remain_empty");
 for (const prohibitedField of ["main", "module", "browser", "bin"]) {
   if (Object.hasOwn(packageManifest, prohibitedField)) fail(`runtime_entrypoint_forbidden:${prohibitedField}`);
 }
+runNode([runtimeExportBoundaryValidator, packageRoot]);
 
 expectExact(
   sortedNames(artifactRoot),
@@ -113,6 +117,7 @@ expectExact(
   sortedNames(path.join(packageRoot, "validators")),
   [
     "authority-validator.mjs",
+    "runtime-export-boundary-validator.mjs",
     "runtime-projection-validator.mjs",
     "schema-validator.mjs",
   ],

@@ -4,7 +4,11 @@
   "private": true,
   "description": "Non-runtime governed Ask WitnessOps authority artifacts.",
   "type": "module",
-  "exports": {},
+  "exports": {
+    "./v1/authority-set.json": {
+      "node": "./runtime/v1/authority-set.json"
+    }
+  },
   "engines": {
     "node": ">=22.0.0 <23"
   },
