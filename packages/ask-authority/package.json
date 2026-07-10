@@ -1,0 +1,15 @@
+{
+  "name": "@witnessops/ask-authority",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Non-runtime governed Ask WitnessOps authority artifacts.",
+  "type": "module",
+  "exports": {},
+  "engines": {
+    "node": ">=22.0.0 <23"
+  },
+  "scripts": {
+    "validate": "node ./scripts/validate.mjs",
+    "test": "pnpm validate"
+  }
+}
