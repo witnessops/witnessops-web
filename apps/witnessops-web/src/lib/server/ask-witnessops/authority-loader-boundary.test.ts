@@ -18,6 +18,18 @@ const assemblerPath = path.join(
   sourceRoot,
   "lib/server/ask-witnessops/authority-answer-assembler.ts",
 );
+const policyExecutorPath = path.join(
+  sourceRoot,
+  "lib/server/ask-witnessops/authority-policy-executor.ts",
+);
+const verifierPath = path.join(
+  sourceRoot,
+  "lib/server/ask-witnessops/ask-runtime-receipt-verifier.ts",
+);
+const askRoutePath = path.join(
+  sourceRoot,
+  "app/api/ask-witnessops/route.ts",
+);
 
 function walkSource(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -42,10 +54,23 @@ test("authority projection is imported by the public server-only loader only", (
   assert.doesNotMatch(loader, /node:fs|process\.env|\bfetch\s*\(/);
 });
 
-test("no application runtime module consumes the public loader yet", () => {
+test("only authorized server-only modules consume the public loader", () => {
+  // Finite allowlist of authorized server-only consumers of the public loader surface.
+  // Authorized: assembler (presentation+template composition), policy-executor,
+  // verifier (for historical reconstruction), and the ask-witnessops API route
+  // (the single public intake point).
+  // The loader re-exports the deterministic pipeline plus receipt surfaces.
+  // Direct consumption by other routes, clients, frontend, or loader-core is rejected
+  // by sibling tests in this file.
   const runtimeFiles = walkSource(sourceRoot).filter(
     (file) =>
-      !/\.test\.tsx?$/.test(file) && file !== loaderPath && file !== corePath && file !== assemblerPath,
+      !/\.test\.tsx?$/.test(file) &&
+      file !== loaderPath &&
+      file !== corePath &&
+      file !== assemblerPath &&
+      file !== policyExecutorPath &&
+      file !== verifierPath &&
+      file !== askRoutePath,
   );
   const importers = runtimeFiles.filter((file) => {
     const source = readFileSync(file, "utf8");

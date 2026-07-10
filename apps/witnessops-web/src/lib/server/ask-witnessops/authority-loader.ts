@@ -66,6 +66,29 @@ export type { AskRuntimeReceipt, CreateAskRuntimeReceiptInput } from "./ask-runt
 // Durable custody surface (V1 file store)
 export { writeReceipt, readReceipt, getReceiptRoot } from "./ask-runtime-receipt-store";
 
+// Retrieval and verifier surfaces
+export {
+  retrieveAskRuntimeReceipt,
+} from "./ask-runtime-receipt-retriever";
+export type {
+  RetrieveReceiptInput,
+  RetrieveReceiptSuccess,
+  RetrieveReceiptError,
+} from "./ask-runtime-receipt-retriever";
+
+export {
+  verifyAskRuntimeReceiptReconstruction,
+} from "./ask-runtime-receipt-verifier";
+export type {
+  VerifyAskRuntimeReceiptInput,
+  VerificationOutcome,
+  VerificationFailureReason,
+} from "./ask-runtime-receipt-verifier";
+export type {
+  VerificationOutcome as ReconstructionVerificationOutcome,
+  VerificationFailureReason as ReconstructionFailureReason,
+} from "./ask-runtime-receipt-verifier";
+
 export { classifyQuestion };
 export { executePolicy };
 export type { PolicyDecision } from "./authority-policy-executor";
