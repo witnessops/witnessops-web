@@ -22,7 +22,7 @@
     "@witnessops/ui": "workspace:*",
     "framer-motion": "^12.36.0",
     "jose": "^6.2.2",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.2.0",
     "lucide-react": "^1.7.0",
     "next": "^15.5.18",
     "react": "^19.0.0",
