@@ -1,0 +1,369 @@
+{
+  "approval": {
+    "decision": "PASS_SOURCE_PRESENTATION_V1_APPROVED",
+    "implementation_authority": "NOT_AUTHORIZED",
+    "status": "APPROVED_FOR_STAGING_MATERIALIZATION"
+  },
+  "artifact_id": "SOURCE_PRESENTATION_V1",
+  "artifact_version": 1,
+  "change_authority": [
+    "PRODUCT_POLICY_AUTHORITY",
+    "GOVERNANCE_REVIEWER",
+    "CLAIM_BOUNDARY_REVIEWER"
+  ],
+  "dependencies": {
+    "ASK_CONTEXT_PACK_V1": {
+      "basename": "ask-context-pack.v1.json",
+      "sha256": "fc593a7d349011e4c89082efb4178423c9e3266b7183a25f0b4cdf5e227a93ca"
+    }
+  },
+  "invariants": [
+    "Presentation authority cannot expand knowledge authority.",
+    "A displayable source does not authorize every statement on that source.",
+    "Repository paths, source IDs, authority IDs, section IDs, hashes, and internal provenance remain hidden unless explicitly approved for presentation.",
+    "Deferred and rejected sources remain undisplayable.",
+    "No label or URL may be inferred by application code.",
+    "Source presentation remains separate from classification, policy execution, template selection, and API transport."
+  ],
+  "global_presentation_rules": {
+    "citation_order": [
+      "source.home.public-offer",
+      "source.why.public-boundary",
+      "source.catalog.public-index",
+      "source.fit-check.public-request",
+      "source.support.public-policy",
+      "source.security.public-page",
+      "source.docs.proof-model",
+      "source.docs.receipts",
+      "source.docs.verification"
+    ],
+    "max_displayed_sources_per_response": 5,
+    "duplicate_source_suppression": true,
+    "refusal_and_decline_presentation": "minimal_or_route_only",
+    "route_only_answers": "route_without_full_citation_list"
+  },
+  "sources": [
+    {
+      "source_id": "source.home.public-offer",
+      "presentation_record_version": 1,
+      "public_label": "Public Offer & Trust Boundary",
+      "canonical_href": "https://witnessops.com/",
+      "href_class": "same_site",
+      "display_permission": "display",
+      "section_display_policy": "selected_sections_only",
+      "permitted_question_classes": [
+        "fit_check",
+        "proof_packet",
+        "secret_or_evidence_intake",
+        "outside_approved_public_context"
+      ],
+      "required_qualifiers": [],
+      "forbidden_presentation": [
+        "full source text",
+        "internal repo paths"
+      ],
+      "supersedes": null,
+      "base_source": {
+        "url": "/",
+        "selected_section_ids": [
+          "home.offer.hero",
+          "home.offer.contract",
+          "home.offer.inspectable",
+          "home.offer.boundary",
+          "home.offer.final-cta"
+        ],
+        "supported_question_classes": [
+          "fit_check",
+          "proof_packet",
+          "secret_or_evidence_intake",
+          "outside_approved_public_context"
+        ]
+      }
+    },
+    {
+      "source_id": "source.catalog.public-index",
+      "presentation_record_version": 1,
+      "public_label": "Package Catalog",
+      "canonical_href": "https://witnessops.com/catalog",
+      "href_class": "same_site",
+      "display_permission": "display",
+      "section_display_policy": "selected_sections_only",
+      "permitted_question_classes": [
+        "launch_readiness",
+        "vendor_change",
+        "ai_agent_action",
+        "incident",
+        "access_authority",
+        "offline_inspection",
+        "workspace_access"
+      ],
+      "required_qualifiers": [],
+      "forbidden_presentation": [],
+      "supersedes": null,
+      "base_source": {
+        "url": "/catalog",
+        "selected_section_ids": [
+          "catalog.index.doubts",
+          "catalog.index.request-shapes",
+          "catalog.index.public-boundary",
+          "catalog.index.workspace"
+        ]
+      }
+    },
+    {
+      "source_id": "source.catalog.public-data",
+      "presentation_record_version": 1,
+      "public_label": "Catalog Data & Boundaries",
+      "canonical_href": "https://witnessops.com/catalog",
+      "href_class": "same_site",
+      "display_permission": "display_when_used",
+      "section_display_policy": "summary_only",
+      "permitted_question_classes": [
+        "fit_check",
+        "launch_readiness",
+        "vendor_change",
+        "ai_agent_action",
+        "incident",
+        "access_authority",
+        "offline_inspection",
+        "workspace_access",
+        "exploit_or_bypass_request"
+      ],
+      "required_qualifiers": [],
+      "forbidden_presentation": [
+        "raw SKU internal identifiers"
+      ],
+      "supersedes": null,
+      "base_source": {
+        "url": "/catalog",
+        "selected_section_ids": [
+          "catalog.data.global-boundaries",
+          "catalog.data.fulfillment",
+          "catalog.data.workflow-skus",
+          "catalog.data.offsec-skus"
+        ]
+      }
+    },
+    {
+      "source_id": "source.fit-check.public-request",
+      "presentation_record_version": 1,
+      "public_label": "Request a Fit Check",
+      "canonical_href": "https://witnessops.com/review/request",
+      "href_class": "same_site",
+      "display_permission": "display",
+      "section_display_policy": "selected_sections_only",
+      "permitted_question_classes": [
+        "fit_check",
+        "launch_readiness",
+        "vendor_change",
+        "ai_agent_action",
+        "incident",
+        "access_authority",
+        "offline_inspection",
+        "secret_or_evidence_intake"
+      ],
+      "required_qualifiers": [],
+      "forbidden_presentation": [],
+      "supersedes": null,
+      "base_source": {
+        "url": "/review/request",
+        "selected_section_ids": [
+          "fit-request.metadata",
+          "fit-request.intro",
+          "fit-request.next-steps",
+          "fit-request.first-message",
+          "fit-request.commercial-scope"
+        ]
+      }
+    },
+    {
+      "source_id": "source.why.public-boundary",
+      "presentation_record_version": 1,
+      "public_label": "Why WitnessOps",
+      "canonical_href": "https://witnessops.com/why-witnessops",
+      "href_class": "same_site",
+      "display_permission": "display",
+      "section_display_policy": "selected_sections_only",
+      "permitted_question_classes": [
+        "proof_packet",
+        "private_system_verification",
+        "unsupported_verification_claim",
+        "outside_approved_public_context"
+      ],
+      "required_qualifiers": [],
+      "forbidden_presentation": [],
+      "supersedes": null,
+      "base_source": {
+        "url": "/why-witnessops",
+        "selected_section_ids": [
+          "why.purpose",
+          "why.proof-boundary",
+          "why.boundary-list"
+        ]
+      }
+    },
+    {
+      "source_id": "source.support.public-policy",
+      "presentation_record_version": 1,
+      "public_label": "Support Policy",
+      "canonical_href": "https://witnessops.com/support",
+      "href_class": "same_site",
+      "display_permission": "display",
+      "section_display_policy": "selected_sections_only",
+      "permitted_question_classes": [
+        "support"
+      ],
+      "required_qualifiers": [],
+      "forbidden_presentation": [],
+      "supersedes": null,
+      "base_source": {
+        "url": "/support",
+        "selected_section_ids": [
+          "support.channels",
+          "support.response-target",
+          "support.security-separation",
+          "support.limits"
+        ]
+      }
+    },
+    {
+      "source_id": "source.security.public-page",
+      "presentation_record_version": 1,
+      "public_label": "Security",
+      "canonical_href": "https://witnessops.com/security",
+      "href_class": "same_site",
+      "display_permission": "display",
+      "section_display_policy": "selected_sections_only",
+      "permitted_question_classes": [
+        "security_disclosure",
+        "exploit_or_bypass_request"
+      ],
+      "required_qualifiers": [],
+      "forbidden_presentation": [],
+      "supersedes": null,
+      "base_source": {
+        "url": "/security",
+        "selected_section_ids": [
+          "security.reporting",
+          "security.testing",
+          "security.verification-continuity"
+        ]
+      }
+    },
+    {
+      "source_id": "source.security.repository-policy",
+      "presentation_record_version": 1,
+      "public_label": "Repository Security Policy",
+      "canonical_href": "https://witnessops.com/security",
+      "href_class": "same_site",
+      "display_permission": "display_when_used",
+      "section_display_policy": "never",
+      "permitted_question_classes": [
+        "security_disclosure",
+        "secret_or_evidence_intake",
+        "exploit_or_bypass_request",
+        "private_system_verification",
+        "private_receipt_or_infrastructure",
+        "outside_approved_public_context"
+      ],
+      "required_qualifiers": [],
+      "forbidden_presentation": [
+        "direct links to raw SECURITY.md in citations"
+      ],
+      "supersedes": null,
+      "base_source": {
+        "url": "Public repository policy",
+        "selected_section_ids": [
+          "repo-security.scope",
+          "repo-security.proof-boundary",
+          "repo-security.secret-exposure",
+          "repo-security.reporting",
+          "repo-security.acknowledgment",
+          "repo-security.out-of-scope"
+        ]
+      }
+    },
+    {
+      "source_id": "source.docs.proof-model",
+      "presentation_record_version": 1,
+      "public_label": "Proof Model",
+      "canonical_href": "https://witnessops.com/docs/how-it-works/proof-model",
+      "href_class": "same_site",
+      "display_permission": "display",
+      "section_display_policy": "selected_sections_only",
+      "permitted_question_classes": [
+        "proof_packet",
+        "receipt",
+        "ai_agent_action"
+      ],
+      "required_qualifiers": [],
+      "forbidden_presentation": [],
+      "supersedes": null,
+      "base_source": {
+        "url": "/docs/how-it-works/proof-model",
+        "selected_section_ids": [
+          "proof-model.sequence",
+          "proof-model.layers",
+          "proof-model.observed-inferred",
+          "proof-model.trust"
+        ]
+      }
+    },
+    {
+      "source_id": "source.docs.receipts",
+      "presentation_record_version": 1,
+      "public_label": "Receipts",
+      "canonical_href": "https://witnessops.com/docs/evidence/receipts",
+      "href_class": "same_site",
+      "display_permission": "display",
+      "section_display_policy": "selected_sections_only",
+      "permitted_question_classes": [
+        "receipt",
+        "verification_path",
+        "unsupported_verification_claim"
+      ],
+      "required_qualifiers": [],
+      "forbidden_presentation": [],
+      "supersedes": null,
+      "base_source": {
+        "url": "/docs/evidence/receipts",
+        "selected_section_ids": [
+          "receipts.definition",
+          "receipts.mechanism",
+          "receipts.proves",
+          "receipts.outside",
+          "receipts.strength"
+        ]
+      }
+    },
+    {
+      "source_id": "source.docs.verification",
+      "presentation_record_version": 1,
+      "public_label": "Verification",
+      "canonical_href": "https://witnessops.com/docs/how-it-works/verification",
+      "href_class": "same_site",
+      "display_permission": "display",
+      "section_display_policy": "selected_sections_only",
+      "permitted_question_classes": [
+        "verification_path",
+        "offline_inspection",
+        "private_system_verification",
+        "unsupported_verification_claim"
+      ],
+      "required_qualifiers": [],
+      "forbidden_presentation": [],
+      "supersedes": null,
+      "base_source": {
+        "url": "/docs/how-it-works/verification",
+        "selected_section_ids": [
+          "verification.modes",
+          "verification.minimum-artifacts",
+          "verification.procedure",
+          "verification.verdicts",
+          "verification.proven-trusted",
+          "verification.failures"
+        ]
+      }
+    }
+  ]
+}

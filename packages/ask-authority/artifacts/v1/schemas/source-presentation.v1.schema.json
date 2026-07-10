@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "required": ["approval", "artifact_id", "artifact_version", "change_authority", "dependencies", "invariants", "global_presentation_rules", "sources"],
+  "properties": {
+    "approval": { "type": "object" },
+    "artifact_id": { "const": "SOURCE_PRESENTATION_V1" },
+    "artifact_version": { "const": 1 },
+    "change_authority": { "type": "array" },
+    "dependencies": { "type": "object" },
+    "invariants": { "type": "array" },
+    "global_presentation_rules": { "type": "object" },
+    "sources": { "type": "array" }
+  },
+  "additionalProperties": false
+}

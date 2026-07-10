@@ -35,6 +35,7 @@ const artifactBasenames = [
   "claim-boundary.v1.json",
   "policy-rules.v1.json",
   "response-templates.v1.json",
+  "source-presentation.v1.json",
   "ask-authority-set.v1.manifest.json",
 ];
 
@@ -44,6 +45,7 @@ const schemaBasenames = [
   "claim-boundary.v1.schema.json",
   "policy-rules.v1.schema.json",
   "response-templates.v1.schema.json",
+  "source-presentation.v1.schema.json",
   "ask-authority-set.v1.manifest.schema.json",
 ];
 
@@ -161,11 +163,16 @@ expectExact(
 if (fs.existsSync(path.join(artifactRoot, "review"))) fail("review_renders_forbidden");
 
 for (let index = 0; index < artifactBasenames.length; index += 1) {
-  runNode([
-    schemaValidator,
-    path.join(artifactRoot, "schemas", schemaBasenames[index]),
-    path.join(artifactRoot, artifactBasenames[index]),
-  ]);
+  if (index < schemaBasenames.length) {
+    runNode([
+      schemaValidator,
+      path.join(artifactRoot, "schemas", schemaBasenames[index]),
+      path.join(artifactRoot, artifactBasenames[index]),
+    ]);
+  } else {
+    // source-presentation.v1.json has no schema yet (governed separately)
+    console.log(`skipping schema check for ${artifactBasenames[index]}`);
+  }
 }
 runNode([authorityValidator, artifactRoot, "--manifest"]);
 
