@@ -7,6 +7,9 @@
   "exports": {
     "./v1/authority-set.json": {
       "node": "./runtime/v1/authority-set.json"
+    },
+    "./v1/source-presentation-projection.json": {
+      "node": "./runtime/v1/source-presentation-projection.json"
     }
   },
   "engines": {

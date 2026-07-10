@@ -22,12 +22,17 @@ const runtimeProjectionGenerator = path.join(
   packageRoot,
   "scripts/generate-runtime-projection.mjs",
 );
+const sourcePresentationProjectionGenerator = path.join(
+  packageRoot,
+  "scripts/generate-source-presentation-projection.mjs",
+);
 const runtimeRoot = path.join(packageRoot, "runtime/v1");
 const runtimeProjection = path.join(runtimeRoot, "authority-set.json");
 const runtimeProjectionSchema = path.join(
   runtimeRoot,
   "schemas/authority-set.schema.json",
 );
+const sourcePresentationProjection = path.join(runtimeRoot, "source-presentation-projection.json");
 
 const artifactBasenames = [
   "question-classes.v1.json",
@@ -142,17 +147,17 @@ expectExact(
 );
 expectExact(
   sortedNames(path.join(packageRoot, "scripts")),
-  ["generate-runtime-projection.mjs", "validate.mjs"],
+  ["generate-runtime-projection.mjs", "generate-source-presentation-projection.mjs", "validate.mjs"],
   "script_inventory",
 );
 expectExact(
   sortedNames(runtimeRoot),
-  ["authority-set.json", "hashes", "schemas"],
+  ["authority-set.json", "hashes", "schemas", "source-presentation-projection.json"],
   "runtime_root_inventory",
 );
 expectExact(
   sortedNames(path.join(runtimeRoot, "hashes")),
-  ["authority-set.json.sha256"],
+  ["authority-set.json.sha256", "source-presentation-projection.json.sha256"],
   "runtime_hash_inventory",
 );
 expectExact(
@@ -220,6 +225,38 @@ try {
   if (!committedSidecar.equals(regeneratedSidecar)) {
     fail("runtime_projection_sidecar_regeneration_mismatch");
   }
+
+  // Presentation projection regeneration check (parallel, not part of 5-layer authority)
+  const regeneratedPresentationProjection = path.join(
+    temporaryRoot,
+    "runtime/v1/source-presentation-projection.json",
+  );
+  runNode([
+    sourcePresentationProjectionGenerator,
+    "--source-dir",
+    artifactRoot,
+    "--output",
+    regeneratedPresentationProjection,
+  ]);
+
+  const committedPresentationBytes = fs.readFileSync(sourcePresentationProjection);
+  const regeneratedPresentationBytes = fs.readFileSync(regeneratedPresentationProjection);
+  if (!committedPresentationBytes.equals(regeneratedPresentationBytes)) {
+    fail("source_presentation_projection_regeneration_mismatch");
+  }
+
+  const committedPresentationSidecar = fs.readFileSync(
+    path.join(runtimeRoot, "hashes/source-presentation-projection.json.sha256"),
+  );
+  const regeneratedPresentationSidecar = fs.readFileSync(
+    path.join(
+      path.dirname(regeneratedPresentationProjection),
+      "hashes/source-presentation-projection.json.sha256",
+    ),
+  );
+  if (!committedPresentationSidecar.equals(regeneratedPresentationSidecar)) {
+    fail("source_presentation_projection_sidecar_regeneration_mismatch");
+  }
 } finally {
   fs.rmSync(temporaryRoot, { recursive: true, force: true });
 }
@@ -239,8 +276,13 @@ const approvedLoader = path.join(
   approvedSourceRoot,
   "lib/server/ask-witnessops/authority-loader.ts",
 );
+const approvedPresentationLoader = path.join(
+  approvedSourceRoot,
+  "lib/server/ask-witnessops/authority-presentation-loader.ts",
+);
 const authorityPackage = "@witnessops/ask-authority";
 const authorityProjection = "@witnessops/ask-authority/v1/authority-set.json";
+const presentationProjectionSpecifier = "@witnessops/ask-authority/v1/source-presentation-projection.json";
 const dependencyGroups = [
   "dependencies",
   "devDependencies",
@@ -300,11 +342,17 @@ for (const file of runtimeFiles) {
       || specifier.includes("packages/ask-authority"),
   );
   if (authoritySpecifiers.length > 0) {
-    if (
-      file !== approvedLoader
-      || authoritySpecifiers.length !== 1
-      || authoritySpecifiers[0] !== authorityProjection
-    ) {
+    const isApprovedAuthority = (
+      file === approvedLoader &&
+      authoritySpecifiers.length === 1 &&
+      authoritySpecifiers[0] === authorityProjection
+    );
+    const isApprovedPresentation = (
+      file === approvedPresentationLoader &&
+      authoritySpecifiers.length === 1 &&
+      authoritySpecifiers[0] === presentationProjectionSpecifier
+    );
+    if (!isApprovedAuthority && !isApprovedPresentation) {
       fail(`application_authority_import_forbidden:${path.relative(repoRoot, file)}`);
     }
     projectionImporters.push(file);
@@ -319,13 +367,18 @@ for (const file of runtimeFiles) {
 }
 
 expectExact(
-  projectionImporters.map((file) => path.relative(repoRoot, file)),
-  [path.relative(repoRoot, approvedLoader)],
+  projectionImporters.map((file) => path.relative(repoRoot, file)).sort(),
+  [
+    path.relative(repoRoot, approvedLoader),
+    path.relative(repoRoot, approvedPresentationLoader),
+  ].sort(),
   "application_projection_importers",
 );
 expectExact(
-  loaderConsumers.map((file) => path.relative(repoRoot, file)),
-  [],
+  loaderConsumers.map((file) => path.relative(repoRoot, file)).sort(),
+  [
+    "apps/witnessops-web/src/lib/server/ask-witnessops/authority-policy-executor.ts",
+  ].sort(),
   "application_loader_consumers",
 );
 
@@ -343,7 +396,10 @@ if (!loaderSource.includes("const require = createRequire(import.meta.url);")) {
 const approvedQueries = [
   "getAuthority",
   "getAuthoritySetIdentity",
+  "getGlobalPresentationRules",
   "getPolicyRule",
+  "getPresentationForSource",
+  "getPresentationProjectionIdentity",
   "getQuestionClass",
   "getRoute",
   "getSource",

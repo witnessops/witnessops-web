@@ -10,9 +10,14 @@ const PACKAGE_NAME = "@witnessops/ask-authority";
 const APPROVED_SPECIFIER = `${PACKAGE_NAME}/v1/authority-set.json`;
 const APPROVED_TARGET = "./runtime/v1/authority-set.json";
 const APPROVED_SHA256 = "8c64e10fbb7e738dc314dfad5fb0df4f74e838600492f8e2c8be7af70a6bfb34";
+const PRESENTATION_SPECIFIER = `${PACKAGE_NAME}/v1/source-presentation-projection.json`;
+const PRESENTATION_TARGET = "./runtime/v1/source-presentation-projection.json";
 const EXPECTED_EXPORTS = {
   "./v1/authority-set.json": {
     node: APPROVED_TARGET,
+  },
+  "./v1/source-presentation-projection.json": {
+    node: PRESENTATION_TARGET,
   },
 };
 

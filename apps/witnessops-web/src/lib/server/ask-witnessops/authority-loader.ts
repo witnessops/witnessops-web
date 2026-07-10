@@ -16,6 +16,15 @@ export type {
   TemplateRecord,
 } from "./authority-loader-core";
 
+import {
+  getPresentationForSource as getPresentationForSourceImpl,
+  getGlobalPresentationRules as getGlobalPresentationRulesImpl,
+  getPresentationProjectionIdentity as getPresentationProjectionIdentityImpl,
+  type PresentationSourceRecord,
+  type GlobalPresentationRules,
+  type PresentationProjectionIdentity,
+} from "./authority-presentation-loader";
+
 const require = createRequire(import.meta.url);
 const authoritySet: unknown = require(
   "@witnessops/ask-authority/v1/authority-set.json",
@@ -30,6 +39,12 @@ export const getSource = loader.getSource;
 export const getAuthority = loader.getAuthority;
 export const getRoute = loader.getRoute;
 export const getAuthoritySetIdentity = loader.getAuthoritySetIdentity;
+
+// Presentation projection surface (output-only, separate from authority loader)
+export const getPresentationForSource = getPresentationForSourceImpl;
+export const getGlobalPresentationRules = getGlobalPresentationRulesImpl;
+export const getPresentationProjectionIdentity = getPresentationProjectionIdentityImpl;
+export type { PresentationSourceRecord, GlobalPresentationRules, PresentationProjectionIdentity };
 
 export { classifyQuestion };
 export { executePolicy };
