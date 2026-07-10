@@ -3,6 +3,7 @@ import "server-only";
 import { createRequire } from "node:module";
 
 import { buildAuthorityLoader } from "./authority-loader-core";
+import { classifyQuestion } from "./authority-classifier";
 
 export type {
   AuthorityRecord,
@@ -28,3 +29,5 @@ export const getSource = loader.getSource;
 export const getAuthority = loader.getAuthority;
 export const getRoute = loader.getRoute;
 export const getAuthoritySetIdentity = loader.getAuthoritySetIdentity;
+
+export { classifyQuestion };

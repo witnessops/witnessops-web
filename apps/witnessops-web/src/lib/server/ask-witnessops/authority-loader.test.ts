@@ -213,3 +213,30 @@ test("authority loader fails closed on receipt and interpolation activation", ()
     "enabled";
   expectInitFailure(interpolation, "runtime_interpolation_enabled:");
 });
+
+import { classifyQuestion } from "./authority-loader";
+
+test("classifier is exposed and produces the approved result shape", () => {
+  const result = classifyQuestion("Can I send logs for an incident review?");
+
+  assert.equal(result.schema, "witnessops.ask.classification-result.v1");
+  assert.equal(result.question_class_version, 1);
+  assert.equal(result.classifier_contract_id, "ASK_DETERMINISTIC_CLASSIFIER_V1");
+  assert.equal(result.classifier_contract_version, 1);
+  assert.equal(result.decision_basis, "deterministic_rule");
+  assert.equal(typeof result.fallback_used, "boolean");
+  assert.ok(Array.isArray(result.matched_rule_ids));
+});
+
+test("classifier routes safety signals to safety class (compound)", () => {
+  const result = classifyQuestion("Can I send logs for an incident review?");
+  // safety compound should win
+  assert.equal(result.question_class_id, "secret_or_evidence_intake");
+  assert.equal(result.fallback_used, false);
+});
+
+test("classifier falls back for unrelated input", () => {
+  const result = classifyQuestion("What is the weather today?");
+  assert.equal(result.question_class_id, "outside_approved_public_context");
+  assert.equal(result.fallback_used, true);
+});

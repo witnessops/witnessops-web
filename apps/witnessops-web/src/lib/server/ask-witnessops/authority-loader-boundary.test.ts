@@ -50,12 +50,18 @@ test("no application runtime module consumes the public loader yet", () => {
   assert.deepEqual(importers, []);
 });
 
-test("public loader runtime exports remain the approved eight queries", () => {
+test("classifier is exposed only through the server-only loader", () => {
   const loader = readFileSync(loaderPath, "utf8");
-  const exports = [...loader.matchAll(/export const (get[A-Za-z]+)\s*=/g)]
+  assert.match(loader, /export \{ classifyQuestion \}/);
+  assert.match(loader, /^import "server-only";/);
+});
+
+test("public loader runtime exports remain the approved eight queries plus classifier", () => {
+  const loader = readFileSync(loaderPath, "utf8");
+  const constExports = [...loader.matchAll(/export const (get[A-Za-z]+)\s*=/g)]
     .map((match) => match[1])
     .sort();
-  assert.deepEqual(exports, [
+  assert.deepEqual(constExports, [
     "getAuthority",
     "getAuthoritySetIdentity",
     "getPolicyRule",
@@ -65,6 +71,9 @@ test("public loader runtime exports remain the approved eight queries", () => {
     "getTemplate",
     "getTemplateForQuestionClass",
   ]);
+
+  // classifier is re-exported (not const)
+  assert.match(loader, /export \{ classifyQuestion \}/);
   assert.doesNotMatch(loader, /getClaimRule|getSelectedSection|listAll|search|getByKind/);
 });
 
