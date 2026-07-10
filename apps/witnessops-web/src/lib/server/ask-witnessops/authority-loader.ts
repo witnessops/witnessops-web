@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 
 import { buildAuthorityLoader } from "./authority-loader-core";
 import { classifyQuestion } from "./authority-classifier";
+import { executePolicy } from "./authority-policy-executor";
 
 export type {
   AuthorityRecord,
@@ -31,3 +32,5 @@ export const getRoute = loader.getRoute;
 export const getAuthoritySetIdentity = loader.getAuthoritySetIdentity;
 
 export { classifyQuestion };
+export { executePolicy };
+export type { PolicyDecision } from "./authority-policy-executor";

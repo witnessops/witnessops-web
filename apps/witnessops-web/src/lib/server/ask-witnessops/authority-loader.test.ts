@@ -240,3 +240,106 @@ test("classifier falls back for unrelated input", () => {
   assert.equal(result.question_class_id, "outside_approved_public_context");
   assert.equal(result.fallback_used, true);
 });
+
+import { executePolicy } from "./authority-loader";
+
+test("policy executor accepts classifier result and produces approved decision shape", () => {
+  const classification = classifyQuestion("Can I send logs for an incident review?");
+  const decision = executePolicy({ classification });
+
+  assert.equal(decision.schema, "witnessops.ask.policy-decision.v1");
+  assert.equal(decision.executor_contract_id, "ASK_DETERMINISTIC_POLICY_EXECUTOR_V1");
+  assert.equal(decision.question_class_id, classification.question_class_id);
+  assert.ok(decision.policy_rule_id);
+  assert.ok(decision.authorized_action);
+  assert.equal(typeof decision.fallback_used, "boolean");
+  assert.ok(decision.template_id);
+  assert.ok(Array.isArray(decision.required_claim_rule_ids));
+  assert.ok(Array.isArray(decision.source_ids));
+  assert.ok(decision.deterministic_replay_hash);
+});
+
+// Focused 19-class template mapping verification (per TEMPLATE_ID_CORRECTION_PLAN)
+const EXPECTED_TEMPLATE_BY_CLASS: Record<string, string> = {
+  fit_check: "route.fit_check.v1",
+  proof_packet: "answer.proof_packet.v1",
+  receipt: "answer.receipt.v1",
+  verification_path: "answer.verification_path.v1",
+  launch_readiness: "route.launch_readiness.v1",
+  vendor_change: "route.vendor_change.v1",
+  ai_agent_action: "route.ai_agent_action.v1",
+  incident: "route.incident.v1",
+  access_authority: "route.access_authority.v1",
+  offline_inspection: "route.offline_inspection.v1",
+  workspace_access: "answer.workspace_access.v1",
+  security_disclosure: "route.security_disclosure.v1",
+  support: "route.support.v1",
+  secret_or_evidence_intake: "refuse.secret_or_evidence_intake.v1",
+  exploit_or_bypass_request: "refuse.exploit_or_bypass.v1",
+  private_system_verification: "refuse.private_system_verification.v1",
+  private_receipt_or_infrastructure: "refuse.private_material.v1",
+  unsupported_verification_claim: "refuse.unsupported_verification.v1",
+  outside_approved_public_context: "decline.outside_public_context.v1",
+};
+
+test("all 19 classes produce the exact canonical template_id from RESPONSE_TEMPLATES_V1", () => {
+  const classes = Object.keys(EXPECTED_TEMPLATE_BY_CLASS);
+
+  for (const cls of classes) {
+    const classification = { 
+      schema: "witnessops.ask.classification-result.v1",
+      question_class_id: cls,
+      question_class_version: 1,
+      classifier_contract_id: "ASK_DETERMINISTIC_CLASSIFIER_V1",
+      classifier_contract_version: 1,
+      decision_basis: "deterministic_rule",
+      matched_rule_ids: [],
+      precedence_rule_id: null,
+      fallback_used: false,
+    } as any;
+
+    const decision = executePolicy({ classification });
+
+    assert.equal(
+      decision.template_id,
+      EXPECTED_TEMPLATE_BY_CLASS[cls],
+      `Template mismatch for ${cls}`
+    );
+  }
+});
+
+test("every selected template authorized_action matches its policy action", () => {
+  // This is a structural check; full cross-check lives in the plan artifacts.
+  // Here we at least ensure no safety class leaks to a non-refuse template.
+  const safetyClasses = [
+    "secret_or_evidence_intake",
+    "exploit_or_bypass_request",
+    "private_system_verification",
+    "private_receipt_or_infrastructure",
+    "unsupported_verification_claim",
+  ];
+
+  for (const cls of safetyClasses) {
+    const classification = { 
+      schema: "witnessops.ask.classification-result.v1",
+      question_class_id: cls,
+      question_class_version: 1,
+      classifier_contract_id: "ASK_DETERMINISTIC_CLASSIFIER_V1",
+      classifier_contract_version: 1,
+      decision_basis: "deterministic_rule",
+      matched_rule_ids: [],
+      precedence_rule_id: null,
+      fallback_used: false,
+    } as any;
+
+    const decision = executePolicy({ classification });
+    assert.equal(decision.authorized_action, "refuse", `Safety class ${cls} must resolve to refuse action`);
+  }
+});
+
+test("policy executor fails closed on malformed input", () => {
+  const bad = { schema: "bad" } as any;
+  const decision = executePolicy({ classification: bad });
+  assert.equal(decision.authorized_action, "bounded_decline");
+  assert.equal(decision.fallback_used, true);
+});

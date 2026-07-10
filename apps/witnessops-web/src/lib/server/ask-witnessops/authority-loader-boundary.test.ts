@@ -56,6 +56,13 @@ test("classifier is exposed only through the server-only loader", () => {
   assert.match(loader, /^import "server-only";/);
 });
 
+test("policy executor is exposed only through the server-only loader", () => {
+  const loader = readFileSync(loaderPath, "utf8");
+  assert.match(loader, /export \{ executePolicy \}/);
+  assert.match(loader, /^import "server-only";/);
+  assert.doesNotMatch(loader, /from\s+["'][^"']*policy-executor["']/); // only through loader re-export
+});
+
 test("public loader runtime exports remain the approved eight queries plus classifier", () => {
   const loader = readFileSync(loaderPath, "utf8");
   const constExports = [...loader.matchAll(/export const (get[A-Za-z]+)\s*=/g)]
@@ -72,8 +79,9 @@ test("public loader runtime exports remain the approved eight queries plus class
     "getTemplateForQuestionClass",
   ]);
 
-  // classifier is re-exported (not const)
+  // classifier and policy executor are re-exported (not const)
   assert.match(loader, /export \{ classifyQuestion \}/);
+  assert.match(loader, /export \{ executePolicy \}/);
   assert.doesNotMatch(loader, /getClaimRule|getSelectedSection|listAll|search|getByKind/);
 });
 
