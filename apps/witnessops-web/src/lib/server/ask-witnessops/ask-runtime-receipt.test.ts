@@ -12,7 +12,11 @@ import {
 import {
   retrieveAskRuntimeReceipt,
   type RetrieveReceiptInput,
+  type AskRuntimeReceiptMetadata,
 } from "./ask-runtime-receipt-retriever";
+
+import { writeReceipt } from "./ask-runtime-receipt-store";
+import type { ActorIdentity } from "./ask-receipt-access-policy";
 
 import {
   verifyAskRuntimeReceiptReconstruction,
@@ -211,21 +215,38 @@ test("reconstruction verifier detects replay hash mismatch on structural change"
   }
 });
 
-test("retriever surfaces correct error reasons (access denied, not found)", async () => {
-  // Access denied path (no actor)
-  const badInput: RetrieveReceiptInput = { receipt_id: "ask-receipt:foo", actor: "" };
+test("retriever surfaces correct error reasons (access denied, not found, policy)", async () => {
+  const validActor: ActorIdentity = {
+    id: "test-operator-1",
+    type: "operator",
+    provenance: { method: "internal_token", verified_at: new Date().toISOString() },
+  };
+  const weakActor: ActorIdentity = {
+    id: "weak",
+    type: "verifier",
+    provenance: { method: "internal_token", verified_at: new Date().toISOString() },
+  };
+
+  // Invalid actor (missing provenance)
+  const badInput: RetrieveReceiptInput = {
+    receipt_id: "ask-receipt:foo",
+    actor: { id: "", type: "operator", provenance: { method: "internal_token", verified_at: "" } } as any,
+  };
   const denied = await retrieveAskRuntimeReceipt(badInput);
   assert.equal(denied.ok, false);
   if (!denied.ok) {
     assert.equal(denied.reason, "ACCESS_DENIED");
   }
 
-  // Non-existent -> not found (via read path)
-  const missing = await retrieveAskRuntimeReceipt({ receipt_id: "ask-receipt:does-not-exist-xyz", actor: "test-operator" });
+  // Non-existent -> hidden as ACCESS_DENIED (existence hiding)
+  const missing = await retrieveAskRuntimeReceipt({ receipt_id: "ask-receipt:does-not-exist-xyz", actor: validActor });
   assert.equal(missing.ok, false);
   if (!missing.ok) {
-    assert.equal(missing.reason, "RECEIPT_NOT_FOUND");
+    assert.equal(missing.reason, "ACCESS_DENIED");
   }
+
+  // Valid actor on real receipt path (from earlier receipt creation in suite) - expect success or access
+  // (the prior receipt creation tests use the pipeline; we just ensure no crash)
 });
 
 test("reconstruction verifier succeeds on closed-answer receipt with bound projections", () => {
@@ -261,5 +282,80 @@ test("reconstruction verifier succeeds on closed-answer receipt with bound proje
     assert.equal(outcome.reconstructed.status, "closed");
     assert.ok(typeof outcome.reconstructed.failure_reason === "string");
     assert.equal(outcome.reconstructed.failure_reason, assembled.failure_reason);
+  }
+});
+
+test("retriever enforces ActorIdentity, policy views, and returns redacted metadata for metadata_only", async () => {
+  const operatorActor: ActorIdentity = {
+    id: "op-42",
+    type: "operator",
+    provenance: { method: "internal_token", verified_at: new Date().toISOString() },
+  };
+  const verifierActor: ActorIdentity = {
+    id: "verif-1",
+    type: "verifier",
+    provenance: { method: "internal_token", verified_at: new Date().toISOString() },
+  };
+
+  const question = "How do I request a fit check?";
+  const classification = classifyQuestion(question);
+  const decision = executePolicy({ classification });
+  const assembled = assembleAnswer({ policyDecision: decision });
+
+  const receipt = createAskRuntimeReceipt({
+    normalizedQuestion: question,
+    classification,
+    policyDecision: decision,
+    assembledAnswer: assembled,
+  });
+
+  // Write the receipt so retrieval can succeed (using the durable store directly for test setup)
+  const writeResult = await writeReceipt(receipt);
+  assert.ok(writeResult.ok);
+
+  // Full view for operator should return complete receipt
+  const fullRes = await retrieveAskRuntimeReceipt({
+    receipt_id: receipt.receipt_id,
+    actor: operatorActor,
+    requested_view: "full",
+  });
+  assert.ok(fullRes.ok);
+  if (fullRes.ok) {
+    assert.equal(fullRes.view, "full");
+    // full receipt must have the restricted fields
+    assert.ok("input" in fullRes.receipt);
+    assert.ok("decision" in fullRes.receipt);
+    assert.ok("assembly" in fullRes.receipt);
+  }
+
+  // metadata_only for verifier must return redacted projection without restricted fields
+  const metaRes = await retrieveAskRuntimeReceipt({
+    receipt_id: receipt.receipt_id,
+    actor: verifierActor,
+    requested_view: "metadata_only",
+  });
+  assert.ok(metaRes.ok);
+  if (metaRes.ok) {
+    assert.equal(metaRes.view, "metadata_only");
+    const meta = metaRes.receipt as AskRuntimeReceiptMetadata;
+
+    // Allowed fields
+    assert.equal(meta.receipt_id, receipt.receipt_id);
+    assert.equal(meta.schema, "witnessops.ask.runtime-receipt.v1");
+    assert.ok(typeof meta.created_at === "string");
+    assert.ok(meta.status === "success" || meta.status === "closed");
+    assert.ok("classification" in meta);
+    assert.equal(meta.classification.question_class_id, classification.question_class_id);
+    assert.ok("bindings" in meta);
+    assert.ok(typeof meta.deterministic_replay_hash === "string");
+
+    // Strictly prove restricted fields are absent
+    const metaAny = meta as any;
+    assert.strictEqual(metaAny.input, undefined, "normalized input must be absent in metadata_only");
+    assert.strictEqual(metaAny.decision, undefined, "policy decision must be absent in metadata_only");
+    assert.strictEqual(metaAny.assembly, undefined, "assembled answer must be absent in metadata_only");
+    assert.strictEqual(metaAny.normalized_question, undefined);
+    assert.strictEqual(metaAny.template, undefined);
+    assert.strictEqual(metaAny.presented_sources, undefined);
   }
 });

@@ -89,6 +89,23 @@ export type {
   VerificationFailureReason as ReconstructionFailureReason,
 } from "./ask-runtime-receipt-verifier";
 
+// Retrieval authority and audit surfaces (per CONTRACT_PLAN)
+export {
+  decideReceiptAccess,
+} from "./ask-receipt-access-policy";
+export type {
+  ActorIdentity,
+  AccessDecision,
+  AccessDenialReason,
+} from "./ask-receipt-access-policy";
+
+export {
+  writeAuditEvent,
+} from "./ask-receipt-audit";
+export type {
+  ReceiptAuditEvent,
+} from "./ask-receipt-audit";
+
 export { classifyQuestion };
 export { executePolicy };
 export type { PolicyDecision } from "./authority-policy-executor";
