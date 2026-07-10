@@ -30,7 +30,7 @@ and sample proof-surface pages used to explain artifact inspection boundaries.
 
 All user-facing workflows follow the
 [Usability-First Invisible-Proof Principle](./docs/product-decisions/WITNESSOPS_USABILITY_FIRST_INVISIBLE_PROOF_PRINCIPLE_V1.md):
-**easy in the foreground, reconstructable in the background.** The linked
+**Easy in the foreground. Reconstructable in the background.** The linked
 decision record is the canonical authority for this product rule.
 
 ## Deployment authority
