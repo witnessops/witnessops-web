@@ -112,3 +112,63 @@ test("assembler is exposed only through the server-only loader", () => {
   assert.match(loader, /^import "server-only";/);
   assert.doesNotMatch(loader, /from\s+["'][^"']*answer-assembler["']/); // only through loader re-export
 });
+
+test("ask-witnessops API route is server-only and does not leak deterministic surfaces directly", () => {
+  const askRoutePath = path.join(
+    sourceRoot,
+    "app/api/ask-witnessops/route.ts",
+  );
+  const askRouteSource = readFileSync(askRoutePath, "utf8");
+  assert.match(askRouteSource, /^import .* from "next\/server";/);
+  assert.doesNotMatch(askRouteSource, /["']use client["']/);
+  // The route should only import the public loader surface, not core implementation
+  assert.match(askRouteSource, /from ["'][^"']*ask-witnessops\/authority-loader["']/);
+  assert.doesNotMatch(askRouteSource, /from ["'][^"']*ask-witnessops\/authority-loader-core["']/);
+});
+
+test("ask pipeline produces deterministic AssembledAnswer for valid input (malformed, closed, and success paths)", async () => {
+  const { normalizeAskRequest } = await import(
+    "./ask-request-normalizer.ts"
+  );
+  const { classifyQuestion, executePolicy, assembleAnswer } = await import(
+    "./authority-loader.ts"
+  );
+
+  // Malformed input test (via normalizer)
+  const bad = normalizeAskRequest({ question: "" });
+  assert.equal(bad.ok, false);
+  if (!bad.ok) {
+    assert.equal(bad.failureClass, "FAILURE_INPUT_MALFORMED");
+  }
+
+  // Valid input → full pipeline
+  const norm = normalizeAskRequest({ question: "How do I request a fit check?" });
+  assert.equal(norm.ok, true);
+  if (norm.ok) {
+    const classification = classifyQuestion(norm.request.question);
+    const decision = executePolicy({ classification });
+    const assembled = assembleAnswer({ policyDecision: decision });
+
+    assert.equal(assembled.schema, "witnessops.ask.assembled-answer.v1");
+    assert.equal(assembled.status, "success");
+    assert.equal(typeof assembled.template.body, "string");
+    assert.ok(assembled.template.body.length > 0);
+    assert.ok(Array.isArray(assembled.presented_sources));
+    assert.ok(assembled.presented_sources.length <= 5);
+    assert.equal(assembled.deterministic_replay_hash.startsWith("replay:"), true);
+  }
+
+  // Closed result test (outside context should produce closed)
+  const outsideNorm = normalizeAskRequest({
+    question: "Tell me about your private internal systems.",
+  });
+  if (outsideNorm.ok) {
+    const c = classifyQuestion(outsideNorm.request.question);
+    const d = executePolicy({ classification: c });
+    const a = assembleAnswer({ policyDecision: d });
+    assert.equal(a.status, "closed");
+    assert.ok(typeof a.failure_reason === "string" && a.failure_reason.length > 0);
+    assert.equal(a.presented_sources.length, 0);
+  }
+});
+
