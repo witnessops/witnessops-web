@@ -3,6 +3,7 @@ import { buildAdmissionQueueView } from "@/lib/server/admission-queue";
 import { buildReconciliationReportFromView } from "@/lib/server/reconciliation-report";
 import { AdminOverviewGrid } from "../../../components/admin/admin-overview-grid";
 import { AdminEmptyState } from "../../../components/admin/admin-empty-state";
+import { AdminWizBrief } from "../../../components/admin/admin-wiz-brief";
 import { buildLifecycleByRunId } from "../../../components/admin/admin-admission-queue";
 
 export const metadata: Metadata = {
@@ -36,11 +37,21 @@ export default async function AdminOverviewPage() {
   }
 
   return (
-    <AdminOverviewGrid
-      view={view}
-      report={report}
-      customerAccepted={customerAccepted}
-      customerRejected={customerRejected}
-    />
+    <>
+      <AdminWizBrief
+        input={{
+          total: view.summary.total,
+          ready: view.summary.ready,
+          reconciliationPending: view.summary.reconciliationPending,
+          divergent: view.summary.divergent,
+        }}
+      />
+      <AdminOverviewGrid
+        view={view}
+        report={report}
+        customerAccepted={customerAccepted}
+        customerRejected={customerRejected}
+      />
+    </>
   );
 }
