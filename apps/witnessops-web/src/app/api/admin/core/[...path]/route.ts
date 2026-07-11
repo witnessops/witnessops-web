@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { PUBLIC_CONTACT_EMAIL } from "@/lib/public-contact";
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
+import { runGmailInboxSync } from "@/lib/server/admin-gmail-reconciliation";
 import { sendVerificationEmail } from "@/lib/server/send-verification-email";
 import {
   AdminCoreError,
@@ -26,6 +27,7 @@ import {
   listAuditEvents,
   listCustomers,
   listDeliveries,
+  listGmailSyncReceipts,
   listInboxItems,
   listProductContracts,
   listProofRuns,
@@ -111,6 +113,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     if (resource === "health") return NextResponse.json({ ok: true, health: getAdminCoreHealth() });
     if (resource === "search") return NextResponse.json({ ok: true, results: await searchCoreRecords(request.nextUrl.searchParams.get("q") ?? "") });
     if (resource === "audit") return NextResponse.json({ ok: true, events: await listAuditEvents(idValue) });
+    if (resource === "inbox" && idValue === "sync-runs") return NextResponse.json({ ok: true, receipts: await listGmailSyncReceipts() });
     if (resource === "inbox") return NextResponse.json({ ok: true, items: idValue ? [await getInboxItem(idValue)] : await listInboxItems() });
     if (resource === "review-requests") return NextResponse.json({ ok: true, items: idValue ? [await getReviewRequest(idValue)] : await listReviewRequests() });
     if (resource === "customers") return NextResponse.json({ ok: true, items: idValue ? [await getCustomer(idValue)] : await listCustomers() });
@@ -139,6 +142,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   try {
     const body = await jsonBody(request);
+    if (resource === "inbox" && idValue === "sync") {
+      const result = await runGmailInboxSync(actor, {
+        idempotencyKey: stringValue(body, "idempotencyKey", false) || undefined,
+      });
+      return NextResponse.json({ ok: true, receipt: result.receipt, idempotent: result.idempotent });
+    }
     if (resource === "inbox" && idValue === "import") {
       const result = await importGmailInboxItem({
         gmailMessageId: stringValue(body, "gmailMessageId"),

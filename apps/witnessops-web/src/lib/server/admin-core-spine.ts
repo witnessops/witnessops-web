@@ -296,6 +296,68 @@ export interface IntegrationAttemptRecord {
   error: string | null;
 }
 
+export interface GmailSyncLabelOperation {
+  messageId: string;
+  labelName: string;
+  labelId: string | null;
+  outcome: "applied" | "already_present" | "failed";
+  idempotencyKey: string;
+  error: string | null;
+}
+
+export interface GmailSyncFailure {
+  scope: "list" | "message" | "labels" | "label" | "store";
+  messageId: string | null;
+  error: string;
+  retryable: boolean;
+}
+
+export interface GmailSyncCounts {
+  threadsInspected: number;
+  messagesInspected: number;
+  inboxItemsCreated: number;
+  existingItemsUpdated: number;
+  noOp: number;
+  securityMessagesExcluded: number;
+  labelFailures: number;
+}
+
+export interface GmailSyncReceipt {
+  syncRunId: string;
+  account: string;
+  startedAt: string;
+  completedAt: string;
+  query: string;
+  status: "completed" | "partial" | "failed";
+  messageIdsInspected: string[];
+  threadIdsInspected: string[];
+  createdInboxItemIds: string[];
+  updatedInboxItemIds: string[];
+  skippedInboxItemIds: string[];
+  excludedSecurityMessageIds: string[];
+  excludedInboxItemIds: string[];
+  resultingInternalRecordIds: string[];
+  labelOperations: GmailSyncLabelOperation[];
+  failures: GmailSyncFailure[];
+  counts: GmailSyncCounts;
+  idempotencyKey: string;
+}
+
+export interface GmailSyncReconciliationInput {
+  syncRunId: string;
+  account: string;
+  startedAt: string;
+  completedAt: string;
+  query: string;
+  messages: GmailInboxImport[];
+  inspectedMessageIds?: string[];
+  inspectedThreadIds?: string[];
+  labelOperations: GmailSyncLabelOperation[];
+  failures: GmailSyncFailure[];
+  idempotencyKey: string;
+  status?: GmailSyncReceipt["status"];
+}
+
 export interface CoreState {
   schemaVersion: typeof ADMIN_CORE_SCHEMA_VERSION;
   inboxItems: InboxItemRecord[];
@@ -307,6 +369,7 @@ export interface CoreState {
   receipts: ReceiptRecord[];
   auditEvents: AuditEventRecord[];
   integrationAttempts: IntegrationAttemptRecord[];
+  gmailSyncReceipts: GmailSyncReceipt[];
   idempotency: Record<string, { recordType: string; recordId: string }>;
 }
 
@@ -394,6 +457,9 @@ function assertNonEmpty(value: string, field: string): string {
 
 function coreStoreFile(): string {
   const configured = process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR?.trim();
+  if (process.env.NODE_ENV === "production" && !configured) {
+    throw new Error("Admin core store directory requires WITNESSOPS_ADMIN_CORE_STORE_DIR in production.");
+  }
   const directory = configured || path.join(getAdmissionStoreDir(), "admin-core");
   return path.join(directory, "core-state.json");
 }
@@ -434,6 +500,7 @@ function emptyState(): CoreState {
     receipts: [],
     auditEvents: [],
     integrationAttempts: [],
+    gmailSyncReceipts: [],
     idempotency: {},
   };
 }
@@ -445,6 +512,7 @@ async function readState(): Promise<CoreState> {
     if (parsed.schemaVersion !== ADMIN_CORE_SCHEMA_VERSION) {
       throw new AdminCoreError("STORE_VERSION", "Admin core store version is unsupported.", 500);
     }
+    parsed.gmailSyncReceipts ??= [];
     return parsed;
   } catch (error) {
     if (error instanceof AdminCoreError) throw error;
@@ -613,6 +681,21 @@ export async function listAuditEvents(lineageId?: string): Promise<AuditEventRec
   return clone(lineageId ? events.filter((event) => event.lineageId === lineageId) : events);
 }
 
+export async function listGmailSyncReceipts(limit = 20): Promise<GmailSyncReceipt[]> {
+  const receipts = (await readState()).gmailSyncReceipts;
+  return clone([...receipts].sort((a, b) => b.completedAt.localeCompare(a.completedAt)).slice(0, limit));
+}
+
+export async function getGmailSyncReceipt(syncRunId: string): Promise<GmailSyncReceipt | null> {
+  const receipt = (await readState()).gmailSyncReceipts.find((candidate) => candidate.syncRunId === syncRunId);
+  return clone(receipt ?? null);
+}
+
+export async function getGmailSyncReceiptByIdempotency(idempotencyKey: string): Promise<GmailSyncReceipt | null> {
+  const receipt = (await readState()).gmailSyncReceipts.find((candidate) => candidate.idempotencyKey === idempotencyKey);
+  return clone(receipt ?? null);
+}
+
 export interface GmailInboxImport {
   gmailMessageId: string;
   gmailThreadId: string;
@@ -629,6 +712,257 @@ export interface GmailInboxImport {
     sizeBytes?: number | null;
     driveFileId?: string | null;
   }>;
+}
+
+function isSecurityGmailInput(input: GmailInboxImport): boolean {
+  return [input.sender, ...input.recipients].some((value) => value.toLowerCase().split(/[^a-z0-9@.+_-]+/).includes(SECURITY_DISCLOSURE_EMAIL));
+}
+
+function mergedGmailAttachments(
+  existing: GmailAttachmentMetadata[] | undefined,
+  incoming: GmailInboxImport["attachments"],
+): GmailAttachmentMetadata[] {
+  const prior = new Map((existing ?? []).map((attachment) => [attachment.attachmentId, attachment]));
+  return (incoming ?? []).map((attachment) => {
+    const previous = prior.get(attachment.attachmentId);
+    return {
+      attachmentId: assertNonEmpty(attachment.attachmentId, "attachmentId"),
+      filename: assertNonEmpty(attachment.filename, "attachment.filename"),
+      mimeType: assertNonEmpty(attachment.mimeType, "attachment.mimeType"),
+      sizeBytes: attachment.sizeBytes ?? null,
+      reviewed: previous?.reviewed ?? false,
+      classification: previous?.classification ?? null,
+      driveFileId: attachment.driveFileId ?? previous?.driveFileId ?? null,
+    };
+  });
+}
+
+function buildInboxItemFromGmail(
+  input: GmailInboxImport,
+  isSecurity: boolean,
+  now: string,
+): InboxItemRecord {
+  const messageId = assertNonEmpty(input.gmailMessageId, "gmailMessageId");
+  return {
+    id: id("inbox"),
+    state: isSecurity ? "security-routed" : "new",
+    source: "gmail",
+    gmailMessageId: messageId,
+    gmailThreadId: assertNonEmpty(input.gmailThreadId, "gmailThreadId"),
+    sender: assertNonEmpty(input.sender, "sender"),
+    recipients: [...input.recipients],
+    subject: assertNonEmpty(input.subject, "subject"),
+    receivedAt: assertNonEmpty(input.receivedAt, "receivedAt"),
+    excerpt: input.excerpt.trim(),
+    gmailLabels: [...(input.gmailLabels ?? [])],
+    attachments: mergedGmailAttachments([], input.attachments),
+    securityRouteReason: isSecurity ? "Contains security@witnessops.com route." : null,
+    reviewRequestId: null,
+    lineageId: id("lineage"),
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function updateInboxItemFromGmail(item: InboxItemRecord, input: GmailInboxImport, isSecurity: boolean, now: string): boolean {
+  const nextAttachments = mergedGmailAttachments(item.attachments, input.attachments);
+  const before = JSON.stringify({
+    sender: item.sender,
+    recipients: item.recipients,
+    subject: item.subject,
+    receivedAt: item.receivedAt,
+    excerpt: item.excerpt,
+    gmailLabels: item.gmailLabels,
+    attachments: item.attachments,
+    securityRouteReason: item.securityRouteReason,
+  });
+  item.sender = assertNonEmpty(input.sender, "sender");
+  item.recipients = [...input.recipients];
+  item.subject = assertNonEmpty(input.subject, "subject");
+  item.receivedAt = assertNonEmpty(input.receivedAt, "receivedAt");
+  item.excerpt = input.excerpt.trim();
+  item.gmailLabels = [...(input.gmailLabels ?? [])];
+  item.attachments = nextAttachments;
+  if (isSecurity && !item.reviewRequestId) {
+    item.state = "security-routed";
+    item.securityRouteReason = "Contains security@witnessops.com route.";
+  }
+  const after = JSON.stringify({
+    sender: item.sender,
+    recipients: item.recipients,
+    subject: item.subject,
+    receivedAt: item.receivedAt,
+    excerpt: item.excerpt,
+    gmailLabels: item.gmailLabels,
+    attachments: item.attachments,
+    securityRouteReason: item.securityRouteReason,
+  });
+  const changed = before !== after;
+  if (changed) item.updatedAt = now;
+  return changed;
+}
+
+function syncStatus(input: GmailSyncReconciliationInput): GmailSyncReceipt["status"] {
+  if (input.status) return input.status;
+  return input.failures.length > 0 || input.labelOperations.some((operation) => operation.outcome === "failed")
+    ? "partial"
+    : "completed";
+}
+
+export async function reconcileGmailInbox(
+  input: GmailSyncReconciliationInput,
+  actor: CoreActor,
+): Promise<{ receipt: GmailSyncReceipt; idempotent: boolean }> {
+  return mutateState((state) => {
+    const prior = state.gmailSyncReceipts.find((receipt) => receipt.idempotencyKey === input.idempotencyKey);
+    if (prior) return { receipt: clone(prior), idempotent: true };
+
+    const createdInboxItemIds: string[] = [];
+    const updatedInboxItemIds: string[] = [];
+    const skippedInboxItemIds: string[] = [];
+    const excludedSecurityMessageIds: string[] = [];
+    const excludedInboxItemIds: string[] = [];
+    const messageIdsInspected = new Set(input.inspectedMessageIds ?? []);
+    const threadIdsInspected = new Set(input.inspectedThreadIds ?? []);
+    const itemByMessageId = new Map<string, InboxItemRecord>();
+    const now = input.completedAt;
+
+    for (const message of input.messages) {
+      const messageId = assertNonEmpty(message.gmailMessageId, "gmailMessageId");
+      const threadId = assertNonEmpty(message.gmailThreadId, "gmailThreadId");
+      messageIdsInspected.add(messageId);
+      threadIdsInspected.add(threadId);
+      const isSecurity = isSecurityGmailInput(message);
+      let item = state.inboxItems.find((candidate) => candidate.gmailMessageId === messageId);
+      const wasNew = !item;
+      if (!item) {
+        item = buildInboxItemFromGmail(message, isSecurity, now);
+        state.inboxItems.push(item);
+      } else {
+        const changed = updateInboxItemFromGmail(item, message, isSecurity, now);
+        if (isSecurity) excludedSecurityMessageIds.push(messageId);
+        else if (changed) updatedInboxItemIds.push(item.id);
+        else skippedInboxItemIds.push(item.id);
+      }
+      itemByMessageId.set(messageId, item);
+      if (isSecurity) {
+        excludedSecurityMessageIds.push(...(wasNew ? [messageId] : []));
+        excludedInboxItemIds.push(item.id);
+      } else if (wasNew) {
+        createdInboxItemIds.push(item.id);
+      }
+      if (wasNew) {
+        appendIntegration(state, {
+          integration: "gmail",
+          operation: "sync_message_metadata",
+          idempotencyKey: `gmail-sync-message:${input.syncRunId}:${messageId}`,
+          status: "succeeded",
+          completedAt: now,
+          externalId: messageId,
+          error: null,
+        });
+        appendAudit(state, {
+          recordType: "inbox_item",
+          recordId: item.id,
+          action: isSecurity ? "security_route" : "sync_import",
+          actor: actor.actor,
+          previousState: null,
+          resultingState: item.state,
+          integrationResult: "gmail metadata retained by reference",
+          linkedExternalIds: [messageId, threadId],
+          failureDetails: null,
+          lineageId: item.lineageId,
+        });
+      } else if (!isSecurity && updatedInboxItemIds.includes(item.id)) {
+        appendAudit(state, {
+          recordType: "inbox_item",
+          recordId: item.id,
+          action: "sync_update_metadata",
+          actor: actor.actor,
+          previousState: item.state,
+          resultingState: item.state,
+          integrationResult: "gmail metadata refreshed by reference",
+          linkedExternalIds: [messageId, threadId],
+          failureDetails: null,
+          lineageId: item.lineageId,
+        });
+      }
+    }
+
+    for (const operation of input.labelOperations) {
+      const item = itemByMessageId.get(operation.messageId);
+      if (!item) continue;
+      if (operation.outcome !== "failed" && operation.labelId && !item.gmailLabels.includes(operation.labelId)) {
+        item.gmailLabels.push(operation.labelId);
+        item.updatedAt = now;
+      }
+      appendIntegration(state, {
+        integration: "gmail",
+        operation: "apply_lifecycle_label",
+        idempotencyKey: operation.idempotencyKey,
+        status: operation.outcome === "failed" ? "failed" : "succeeded",
+        completedAt: now,
+        externalId: operation.messageId,
+        error: operation.error,
+      });
+      appendAudit(state, {
+        recordType: "inbox_item",
+        recordId: item.id,
+        action: operation.outcome === "failed" ? "gmail_label_failed" : "gmail_label_applied",
+        actor: actor.actor,
+        previousState: item.state,
+        resultingState: item.state,
+        integrationResult: `${operation.outcome}:${operation.labelName}`,
+        linkedExternalIds: [operation.messageId, ...(operation.labelId ? [operation.labelId] : [])],
+        failureDetails: operation.error,
+        lineageId: item.lineageId,
+      });
+    }
+
+    const labelFailures = input.labelOperations.filter((operation) => operation.outcome === "failed").length;
+    const receipt: GmailSyncReceipt = {
+      syncRunId: assertNonEmpty(input.syncRunId, "syncRunId"),
+      account: assertNonEmpty(input.account, "account"),
+      startedAt: assertNonEmpty(input.startedAt, "startedAt"),
+      completedAt: assertNonEmpty(input.completedAt, "completedAt"),
+      query: assertNonEmpty(input.query, "query"),
+      status: syncStatus(input),
+      messageIdsInspected: [...messageIdsInspected],
+      threadIdsInspected: [...threadIdsInspected],
+      createdInboxItemIds,
+      updatedInboxItemIds,
+      skippedInboxItemIds,
+      excludedSecurityMessageIds: [...new Set(excludedSecurityMessageIds)],
+      excludedInboxItemIds: [...new Set(excludedInboxItemIds)],
+      resultingInternalRecordIds: [...new Set([...createdInboxItemIds, ...updatedInboxItemIds, ...skippedInboxItemIds, ...excludedInboxItemIds])],
+      labelOperations: clone(input.labelOperations),
+      failures: clone(input.failures),
+      counts: {
+        threadsInspected: threadIdsInspected.size,
+        messagesInspected: messageIdsInspected.size,
+        inboxItemsCreated: createdInboxItemIds.length,
+        existingItemsUpdated: updatedInboxItemIds.length,
+        noOp: skippedInboxItemIds.length,
+        securityMessagesExcluded: new Set(excludedSecurityMessageIds).size,
+        labelFailures,
+      },
+      idempotencyKey: assertNonEmpty(input.idempotencyKey, "idempotencyKey"),
+    };
+    state.gmailSyncReceipts.push(receipt);
+    return { receipt: clone(receipt), idempotent: false };
+  });
+}
+
+export async function recordGmailSyncFailure(
+  input: Omit<GmailSyncReconciliationInput, "messages" | "labelOperations"> & { messages?: GmailInboxImport[]; labelOperations?: GmailSyncLabelOperation[] },
+  actor: CoreActor,
+): Promise<{ receipt: GmailSyncReceipt; idempotent: boolean }> {
+  return reconcileGmailInbox({
+    ...input,
+    messages: input.messages ?? [],
+    labelOperations: input.labelOperations ?? [],
+    status: "failed",
+  }, actor);
 }
 
 export async function importGmailInboxItem(
@@ -1639,7 +1973,7 @@ export function getAdminCoreHealth(): Record<string, { state: HealthState; lastS
   const configured = (name: string) => Boolean(process.env[name]?.trim());
   const now = isoNow();
   return {
-    gmail: { state: configured("WITNESSOPS_GMAIL_API_BASE_URL") ? "unknown" : "disconnected", lastSuccessfulCheck: null, lastError: null, detail: configured("WITNESSOPS_GMAIL_API_BASE_URL") ? "Gmail adapter is configured but no live check has been recorded." : "Gmail adapter is not configured. Original Gmail content remains authoritative; the console stores message metadata and external IDs." },
+    gmail: { state: "unknown", lastSuccessfulCheck: null, lastError: null, detail: `Manual Gmail sync targets ${PUBLIC_CONTACT_EMAIL} through the gws CLI; no live check has been recorded. Original Gmail content remains authoritative; the console stores message metadata and external IDs.` },
     drive: { state: configured("WITNESSOPS_DRIVE_ROOT") || configured("GOOGLE_DRIVE_ROOT") ? "unknown" : "disconnected", lastSuccessfulCheck: null, lastError: null, detail: configured("WITNESSOPS_DRIVE_ROOT") || configured("GOOGLE_DRIVE_ROOT") ? "Drive adapter is configured but no live check has been recorded." : "Drive adapter is not configured. Drive file IDs are retained by reference; the console does not copy attachments automatically." },
     mailDelivery: { state: configured("WITNESSOPS_MAIL_PROVIDER") ? "unknown" : "disconnected", lastSuccessfulCheck: null, lastError: configured("WITNESSOPS_MAIL_PROVIDER") ? null : "WITNESSOPS_MAIL_PROVIDER is not configured.", detail: configured("WITNESSOPS_MAIL_PROVIDER") ? "Mail provider is configured but no live check has been recorded." : "Uses the existing WitnessOps mail sender when configured." },
     receiptVerifier: { state: "connected", lastSuccessfulCheck: now, lastError: null, detail: "Named verifier mechanism and result are required on every linked receipt." },

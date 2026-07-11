@@ -960,6 +960,8 @@
 .coreForm { display: flex; flex-direction: column; gap: 9px; padding: 14px; border: 1px solid var(--admin-border); background: var(--admin-card); }
 .coreFormGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
 .coreFormNote { color: var(--admin-text-faint); font-size: 9px; line-height: 1.6; margin: 0; }
+.coreSyncAction { display: flex; flex-direction: column; gap: 8px; }
+.coreSyncResult { display: flex; flex-wrap: wrap; gap: 8px 14px; color: var(--admin-text-secondary); font-size: 9px; line-height: 1.6; }
 .coreCheckbox { color: var(--admin-text-secondary); display: flex; align-items: center; gap: 7px; font-size: 10px; }
 .coreTimeline { display: flex; flex-direction: column; }
 .coreTimelineItem { border-top: 1px solid var(--admin-border); padding: 10px 0; }

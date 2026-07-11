@@ -94,6 +94,33 @@ export function GmailImportForm() {
   );
 }
 
+export function SyncInboxAction() {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ status: string; counts: Record<string, number>; failures: string[] } | null>(null);
+  const [error, setError] = useState("");
+  async function sync() {
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/core/inbox/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idempotencyKey: `gmail-sync:${crypto.randomUUID()}` }),
+      });
+      const payload = await response.json() as { ok?: boolean; error?: string; receipt?: { status: string; counts: Record<string, number>; failures: Array<{ error: string }> } };
+      if (!response.ok || !payload.ok || !payload.receipt) throw new Error(payload.error || "Inbox sync failed.");
+      setResult({ status: payload.receipt.status, counts: payload.receipt.counts, failures: payload.receipt.failures.map((failure) => failure.error) });
+      router.refresh();
+    } catch (syncError) {
+      setError(syncError instanceof Error ? syncError.message : "Inbox sync failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return <div className={styles.coreSyncAction}><button type="button" className={styles.rowAction} onClick={() => void sync()} disabled={busy}>{busy ? "Syncing Gmail…" : "Sync Inbox"}</button>{result ? <div className={styles.coreSyncResult}><span>Sync {result.status}</span><span>Threads inspected: {result.counts.threadsInspected}</span><span>Inbox items created: {result.counts.inboxItemsCreated}</span><span>Existing items updated: {result.counts.existingItemsUpdated}</span><span>Security messages excluded: {result.counts.securityMessagesExcluded}</span><span>No-op: {result.counts.noOp}</span><span>Label failures: {result.counts.labelFailures}</span>{result.failures.map((failure, index) => <span className={styles.queueWarning} key={`${index}-${failure}`}>{failure}</span>)}</div> : null}{error ? <div className={styles.queueActionError}>{error}</div> : null}</div>;
+}
+
 export function ProofRunOperatorForm({ proofRunId, initial }: { proofRunId: string; initial: { scopeComplete: boolean; outputReferences: string[]; evidenceReferences: string[]; knownGaps: string[]; verificationInstructions: string; customerWordingReviewed: boolean; unsupportedClaims: string[]; evidenceState: string } }) {
   const router = useRouter();
   const [message, setMessage] = useState("");
