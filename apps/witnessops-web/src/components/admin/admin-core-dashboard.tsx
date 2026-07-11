@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { getAdminCoreDashboard } from "@/lib/server/admin-core-spine";
+import { buildAdmissionQueueView } from "@/lib/server/admission-queue";
 import { CoreCard, CoreHealthGrid, CorePage, CoreState, CoreTable } from "./admin-core-view";
+import { AdminWizBrief } from "./admin-wiz-brief";
 import styles from "./admin.module.css";
 
 export async function AdminCoreDashboard() {
   const dashboard = await getAdminCoreDashboard();
+  const queue = await buildAdmissionQueueView().catch(() => null);
   return <CorePage title="Dashboard" eyebrow="Core operating spine">
+    {queue ? <AdminWizBrief input={{ total: queue.summary.total, ready: queue.summary.ready, reconciliationPending: queue.summary.reconciliationPending, divergent: queue.summary.divergent }} /> : null}
     <div className={styles.coreGrid}>
       {Object.entries({
         "Inbox to triage": dashboard.counts.inbox,

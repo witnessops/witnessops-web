@@ -1,8 +1,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { LayoutDashboard, Inbox, Settings, BookOpen, Users, Package, PlayCircle, Send, ReceiptText, Search, ClipboardList } from "lucide-react";
 import { AdminNavLink } from "./admin-nav-link";
+import { AdminWizSidebarIdentity } from "./admin-wiz-brief";
 import styles from "./admin.module.css";
 
 const navItems = [
@@ -17,16 +19,18 @@ const navItems = [
   { href: "/admin/settings", label: "Settings / Health", icon: Settings },
 ] as const;
 
-export function AdminSidebar() {
+export function AdminSidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <nav className={styles.sidebar} aria-label="Admin navigation">
+    <nav className={`${styles.sidebar}${mobileOpen ? ` ${styles.sidebarOpen}` : ""}`} aria-label="Admin navigation">
       <div className={styles.sidebarHeader}>
-        <span className={styles.sidebarTitle}>
-          <span className={styles.sidebarGlyph}>&#x2B21;</span> Admin
-        </span>
+        <a href="/admin" className={styles.sidebarBrand} aria-label="WitnessOps Admin Console">
+          <Image src="/brand/witnessops-mark-white.svg" alt="WitnessOps" width={28} height={20} priority />
+          <span>WITNESSOPS <small>HQ</small></span>
+        </a>
       </div>
+      <AdminWizSidebarIdentity />
       <div className={styles.sidebarNav}>
         <form className={styles.adminGlobalSearch} action="/admin/search">
           <Search size={13} aria-hidden />
@@ -44,6 +48,7 @@ export function AdminSidebar() {
               label={item.label}
               icon={item.icon}
               active={active}
+              onClick={onClose}
             />
           );
         })}
