@@ -44,8 +44,20 @@ function auditPath(auditId: string, root: string = DEFAULT_AUDIT_ROOT): string {
 }
 
 function computeContentHash(obj: unknown): string {
-  const canonical = JSON.stringify(obj, Object.keys(obj as object).sort());
+  const canonical = JSON.stringify(canonicalize(obj));
   return createHash("sha256").update(canonical).digest("hex");
+}
+
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (!value || typeof value !== "object") return value;
+
+  const record = value as Record<string, unknown>;
+  return Object.fromEntries(
+    Object.keys(record)
+      .sort()
+      .map((key) => [key, canonicalize(record[key])]),
+  );
 }
 
 function errorCode(error: unknown): unknown {

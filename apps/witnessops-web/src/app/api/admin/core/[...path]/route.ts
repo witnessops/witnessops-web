@@ -114,19 +114,43 @@ export async function GET(request: NextRequest, context: RouteContext) {
     if (resource === "search") return NextResponse.json({ ok: true, results: await searchCoreRecords(request.nextUrl.searchParams.get("q") ?? "") });
     if (resource === "audit") return NextResponse.json({ ok: true, events: await listAuditEvents(idValue) });
     if (resource === "inbox" && idValue === "sync-runs") return NextResponse.json({ ok: true, receipts: await listGmailSyncReceipts() });
-    if (resource === "inbox") return NextResponse.json({ ok: true, items: idValue ? [await getInboxItem(idValue)] : await listInboxItems() });
-    if (resource === "review-requests") return NextResponse.json({ ok: true, items: idValue ? [await getReviewRequest(idValue)] : await listReviewRequests() });
-    if (resource === "customers") return NextResponse.json({ ok: true, items: idValue ? [await getCustomer(idValue)] : await listCustomers() });
-    if (resource === "products") return NextResponse.json({ ok: true, items: idValue ? [await getProductContract(idValue)] : await listProductContracts() });
+    if (resource === "inbox") {
+      const item = idValue ? await getInboxItem(idValue) : null;
+      if (idValue && !item) throw new AdminCoreError("NOT_FOUND", "Inbox item not found.", 404);
+      return NextResponse.json({ ok: true, items: idValue ? [item] : await listInboxItems() });
+    }
+    if (resource === "review-requests") {
+      const reviewRequest = idValue ? await getReviewRequest(idValue) : null;
+      if (idValue && !reviewRequest) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
+      return NextResponse.json({ ok: true, items: idValue ? [reviewRequest] : await listReviewRequests() });
+    }
+    if (resource === "customers") {
+      const customer = idValue ? await getCustomer(idValue) : null;
+      if (idValue && !customer) throw new AdminCoreError("NOT_FOUND", "Customer not found.", 404);
+      return NextResponse.json({ ok: true, items: idValue ? [customer] : await listCustomers() });
+    }
+    if (resource === "products") {
+      const product = idValue ? await getProductContract(idValue) : null;
+      if (idValue && !product) throw new AdminCoreError("NOT_FOUND", "Product contract not found.", 404);
+      return NextResponse.json({ ok: true, items: idValue ? [product] : await listProductContracts() });
+    }
     if (resource === "proof-runs") {
       if (idValue && action === "readiness") return NextResponse.json({ ok: true, readiness: await buildProofReadiness(idValue) });
-      return NextResponse.json({ ok: true, items: idValue ? [await getProofRun(idValue)] : await listProofRuns() });
+      const proofRun = idValue ? await getProofRun(idValue) : null;
+      if (idValue && !proofRun) throw new AdminCoreError("NOT_FOUND", "Proof run not found.", 404);
+      return NextResponse.json({ ok: true, items: idValue ? [proofRun] : await listProofRuns() });
     }
     if (resource === "deliveries") {
       if (idValue && action === "readiness") return NextResponse.json({ ok: true, readiness: await buildDeliveryReadiness(idValue) });
-      return NextResponse.json({ ok: true, items: idValue ? [await getDelivery(idValue)] : await listDeliveries() });
+      const delivery = idValue ? await getDelivery(idValue) : null;
+      if (idValue && !delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+      return NextResponse.json({ ok: true, items: idValue ? [delivery] : await listDeliveries() });
     }
-    if (resource === "receipts") return NextResponse.json({ ok: true, items: idValue ? [await getReceiptRecord(idValue)] : await listReceiptRecords() });
+    if (resource === "receipts") {
+      const receipt = idValue ? await getReceiptRecord(idValue) : null;
+      if (idValue && !receipt) throw new AdminCoreError("NOT_FOUND", "Receipt not found.", 404);
+      return NextResponse.json({ ok: true, items: idValue ? [receipt] : await listReceiptRecords() });
+    }
     return NextResponse.json({ ok: false, error: "Unknown admin core resource." }, { status: 404 });
   } catch (error) {
     return responseError(error);

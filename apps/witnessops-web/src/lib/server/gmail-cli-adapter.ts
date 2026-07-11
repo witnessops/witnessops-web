@@ -6,7 +6,6 @@ import { SECURITY_DISCLOSURE_EMAIL, type GmailInboxImport, type InboxItemRecord,
 
 const execFileAsync = promisify(execFile);
 
-const DEFAULT_QUERY = `in:inbox to:${PUBLIC_CONTACT_EMAIL} -from:${PUBLIC_CONTACT_EMAIL}`;
 const DEFAULT_MAX_RESULTS = 100;
 const DEFAULT_PAGE_LIMIT = 10;
 
@@ -246,7 +245,8 @@ export function parseGmailMessageMetadata(raw: string): GmailInboxImport {
 }
 
 export function defaultGmailSyncQuery(): string {
-  return process.env.WITNESSOPS_GMAIL_SYNC_QUERY?.trim() || DEFAULT_QUERY;
+  return process.env.WITNESSOPS_GMAIL_SYNC_QUERY?.trim() ||
+    `in:inbox to:${gmailSyncAccount()} -from:${gmailSyncAccount()}`;
 }
 
 export function gmailSyncAccount(): string {
