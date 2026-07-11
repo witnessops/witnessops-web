@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Inbox, Settings, BarChart3, BookOpen } from "lucide-react";
 import { AdminNavLink } from "./admin-nav-link";
+import { AdminWizSidebarIdentity } from "./admin-wiz-brief";
 import styles from "./admin.module.css";
 
 const navItems = [
@@ -40,6 +41,7 @@ export function AdminSidebar() {
         })}
       </div>
       <div className={styles.sidebarFooter}>
+        <AdminWizSidebarIdentity />
         <a
           href="/docs"
           target="_blank"
