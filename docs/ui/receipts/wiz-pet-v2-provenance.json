@@ -1,0 +1,57 @@
+{
+  "petId": "wiz",
+  "displayName": "Wiz",
+  "spriteVersionNumber": 2,
+  "canonicalPackage": {
+    "petJson": "$CODEX_HOME/pets/wiz/pet.json",
+    "spritesheet": "$CODEX_HOME/pets/wiz/spritesheet.webp",
+    "localPetJson": "/Users/ops/.codex/pets/wiz/pet.json",
+    "localSpritesheet": "/Users/ops/.codex/pets/wiz/spritesheet.webp",
+    "spritesheetSha256": "23587605aaa22ae436e790b323dc33296b9a3901718d23b0902808d31ac910ab",
+    "layout": "8 columns x 11 rows; 192x208 cells; 1536x2288 RGBA WebP"
+  },
+  "qaReceipt": {
+    "localRunSummary": "/Users/ops/WitnessOps/var/tmp/hatch-pet-wiz-20260711/qa/run-summary.json",
+    "chromaDespillOk": true,
+    "packagedValidationOk": true,
+    "independentVisualQa": "pass",
+    "hardCardinalDirections": "pass",
+    "reviewWarnings": [
+      "Intermediate direction cues are intentionally recorded as warnings where horizontal or vertical gaze is soft.",
+      "Continuity metrics flagged 157.5->180 and 337.5->000 as larger loop-boundary transitions; visual QA accepted them as minor with no repair rows."
+    ]
+  },
+  "dashboardStateAssets": [
+    {
+      "state": "idle",
+      "path": "apps/witnessops-web/public/visuals/wiz/idle.webp",
+      "sourceCell": {"row": 0, "column": 0},
+      "sha256": "5a18381d434a6f3e7cae54c4c02631802323449e0d527f1c4042b5df2322e18e"
+    },
+    {
+      "state": "listening",
+      "path": "apps/witnessops-web/public/visuals/wiz/listening.webp",
+      "sourceCell": {"row": 0, "column": 1},
+      "sha256": "a8281a459a1649a25350cd0969b0d8526e0aa0e769938c1261ab8b0b79717a70"
+    },
+    {
+      "state": "thinking",
+      "path": "apps/witnessops-web/public/visuals/wiz/thinking.webp",
+      "sourceCell": {"row": 8, "column": 1},
+      "sha256": "085d8fae232ba925f6f3b5ee90b912dd6923856ef7de3ca9d7ea9cf572270e35"
+    },
+    {
+      "state": "recommending",
+      "path": "apps/witnessops-web/public/visuals/wiz/recommending.webp",
+      "sourceCell": {"row": 6, "column": 3},
+      "sha256": "8260811968be1f4ee3aa1455863f19f6e8839bea0de5f64cef506c9f072508cc"
+    },
+    {
+      "state": "boundary",
+      "path": "apps/witnessops-web/public/visuals/wiz/boundary.webp",
+      "sourceCell": {"row": 5, "column": 1},
+      "sha256": "d7b7ab760eeb8f15cd5b03aa6b0a4417e6f056db0b6b991256ba731a09b1d5b9"
+    }
+  ],
+  "contract": "Dashboard Wiz marks are deterministic crops from the canonical v2 pet. Do not redraw or regenerate the dashboard identity independently."
+}
