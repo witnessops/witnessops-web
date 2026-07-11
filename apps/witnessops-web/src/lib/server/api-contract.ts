@@ -289,6 +289,12 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     category: "operator",
     summary: "Operator authorizes or starts a handed-off control-plane run (WEB-021 / CP-005)",
   },
+  {
+    path: "/api/admin/core/[...path]",
+    methods: ["GET", "POST"],
+    category: "operator",
+    summary: "Core operating spine records, deterministic transitions, integration boundaries, and audit history",
+  },
 
   // -------------------------------------------------------------------------
   // provider-webhook — external sender, not user-triggered

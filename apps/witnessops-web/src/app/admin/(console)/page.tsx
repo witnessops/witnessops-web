@@ -4,13 +4,16 @@ import { buildReconciliationReportFromView } from "@/lib/server/reconciliation-r
 import { AdminOverviewGrid } from "../../../components/admin/admin-overview-grid";
 import { AdminEmptyState } from "../../../components/admin/admin-empty-state";
 import { buildLifecycleByRunId } from "../../../components/admin/admin-admission-queue";
+import { AdminCoreDashboard } from "../../../components/admin/admin-core-dashboard";
 
 export const metadata: Metadata = {
   title: "Admin — Overview",
   robots: { index: false, follow: false },
 };
+export const dynamic = "force-dynamic";
 
 export default async function AdminOverviewPage() {
+  const coreDashboard = <AdminCoreDashboard />;
   let view;
   let report;
 
@@ -20,7 +23,7 @@ export default async function AdminOverviewPage() {
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Unknown error loading queue data.";
-    return <AdminEmptyState variant="unavailable" detail={message} />;
+    return <>{coreDashboard}<AdminEmptyState variant="unavailable" detail={message} /></>;
   }
 
   let customerAccepted = 0;
@@ -35,12 +38,5 @@ export default async function AdminOverviewPage() {
     // Lifecycle data unavailable; customer acceptance counts remain 0.
   }
 
-  return (
-    <AdminOverviewGrid
-      view={view}
-      report={report}
-      customerAccepted={customerAccepted}
-      customerRejected={customerRejected}
-    />
-  );
+  return <><AdminCoreDashboard /><AdminOverviewGrid view={view} report={report} customerAccepted={customerAccepted} customerRejected={customerRejected} /></>;
 }

@@ -906,6 +906,79 @@
   margin: 24px 24px 24px 0;
 }
 
+/* ═══ Core Operating Spine ═══ */
+.adminGlobalSearch {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 6px 10px 10px;
+  padding: 7px 8px;
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-faint);
+}
+
+.adminGlobalSearch input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--admin-text-primary);
+  font: inherit;
+  font-size: 9px;
+}
+
+.adminGlobalSearch input::placeholder { color: var(--admin-text-faint); }
+
+.corePage { min-height: 100%; }
+.corePageHeader { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; padding: 20px; border-bottom: 1px solid var(--admin-border); }
+.coreEyebrow { color: var(--admin-text-faint); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+.coreTitle { margin: 7px 0 0; color: var(--admin-text-primary); font-size: 20px; font-weight: 400; }
+.coreHeaderActions, .coreActionWrap { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.coreActionMessage { color: var(--admin-success); font-size: 9px; line-height: 1.5; }
+.coreGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; padding: 16px 20px; }
+.coreCard { border: 1px solid var(--admin-border); background: var(--admin-card); padding: 14px; min-width: 0; }
+.coreCardLink { color: inherit; text-decoration: none; display: block; }
+.coreCardLink:hover .coreCard { border-color: var(--admin-accent); background: var(--admin-accent-subtle); }
+.coreCardTitle { color: var(--admin-text-faint); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+.coreCardValue { color: var(--admin-text-primary); font-size: 22px; }
+.coreDetail { color: var(--admin-text-secondary); font-size: 10px; line-height: 1.6; margin: 8px 0 0; }
+.coreState { border: 1px solid var(--admin-border); color: var(--admin-accent); display: inline-block; font-size: 9px; padding: 3px 7px; letter-spacing: .08em; text-transform: uppercase; }
+.coreTableWrap { overflow-x: auto; border-bottom: 1px solid var(--admin-border); }
+.coreTable { width: 100%; border-collapse: collapse; font-size: 10px; }
+.coreTable th { background: var(--admin-bg-alt); color: var(--admin-text-faint); font-size: 8px; font-weight: 400; letter-spacing: .1em; padding: 10px 14px; text-align: left; text-transform: uppercase; white-space: nowrap; }
+.coreTable td { border-top: 1px solid var(--admin-border); color: var(--admin-text-secondary); padding: 11px 14px; vertical-align: top; }
+.coreTable a { color: var(--admin-accent); text-decoration: none; }
+.coreTable a:hover { color: var(--admin-text-primary); }
+.coreMetaGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; padding: 16px 20px; }
+.coreMeta { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.coreMetaLabel { color: var(--admin-text-faint); font-size: 8px; letter-spacing: .1em; text-transform: uppercase; }
+.coreMetaValue { color: var(--admin-text-secondary); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.coreDetailSection { padding: 16px 20px; border-bottom: 1px solid var(--admin-border); }
+.coreDetailSectionTitle { color: var(--admin-text-faint); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+.coreText { color: var(--admin-text-secondary); font-size: 11px; line-height: 1.7; white-space: pre-wrap; }
+.coreForm { display: flex; flex-direction: column; gap: 9px; padding: 14px; border: 1px solid var(--admin-border); background: var(--admin-card); }
+.coreFormGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.coreFormNote { color: var(--admin-text-faint); font-size: 9px; line-height: 1.6; margin: 0; }
+.coreCheckbox { color: var(--admin-text-secondary); display: flex; align-items: center; gap: 7px; font-size: 10px; }
+.coreTimeline { display: flex; flex-direction: column; }
+.coreTimelineItem { border-top: 1px solid var(--admin-border); padding: 10px 0; }
+.coreTimelineItem:first-child { border-top: 0; padding-top: 0; }
+.coreTimelineTop { display: flex; justify-content: space-between; gap: 10px; color: var(--admin-text-primary); font-size: 10px; }
+.coreTimelineTop time { color: var(--admin-text-faint); font-size: 9px; }
+.coreTimelineDetail { color: var(--admin-text-secondary); font-size: 9px; line-height: 1.6; margin-top: 4px; }
+.coreHealthGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; padding: 16px 20px; }
+.coreHealthState { display: flex; align-items: center; gap: 7px; color: var(--admin-text-primary); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.coreHealthDot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+.coreHealthGood { background: var(--admin-success); box-shadow: 0 0 6px var(--admin-success); }
+.coreHealthBad { background: var(--admin-danger); box-shadow: 0 0 6px var(--admin-danger); }
+.coreHealthUnknown { background: var(--admin-warning); }
+.coreSection { border-bottom: 1px solid var(--admin-border); }
+.coreSectionHeader { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 12px 20px; background: var(--admin-bg-alt); }
+.coreSectionTitle { color: var(--admin-text-primary); font-size: 11px; }
+.coreSectionLink { color: var(--admin-accent); font-size: 9px; text-decoration: none; text-transform: uppercase; letter-spacing: .08em; }
+.coreSectionBody { padding: 0 20px 16px; }
+
 /* ═══ Mobile Sidebar ═══ */
 @media (max-width: 720px) {
   .sidebar {

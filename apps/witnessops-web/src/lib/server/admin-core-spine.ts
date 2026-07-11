@@ -1,0 +1,1651 @@
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+
+import { getWorkflowSkus } from "@witnessops/catalog";
+import { listReceipts } from "@/lib/receipts";
+import {
+  PUBLIC_CONTACT_EMAIL,
+  PUBLIC_CONTACT_PRIMARY_HREF,
+} from "@/lib/public-contact";
+import { getAdmissionStoreDir } from "./token-store";
+
+export const ADMIN_CORE_SCHEMA_VERSION = 1 as const;
+export const SECURITY_DISCLOSURE_EMAIL = "security@witnessops.com";
+export const ADMIN_CORE_NO_SECRETS_NOTE =
+  "Do not send passwords, private keys, API keys, recovery codes, session tokens, or other secrets.";
+
+export type InboxItemState =
+  | "new"
+  | "reviewed"
+  | "linked"
+  | "archived"
+  | "security-routed"
+  | "excluded";
+
+export type ReviewRequestState =
+  | "new"
+  | "triage"
+  | "needs_customer_information"
+  | "fit_review"
+  | "fit_confirmed"
+  | "approved_for_proof_run"
+  | "scheduled"
+  | "converted_to_proof_run"
+  | "declined"
+  | "closed";
+
+export type ProofRunState =
+  | "planned"
+  | "ready"
+  | "running"
+  | "blocked"
+  | "operator_review"
+  | "complete"
+  | "cancelled";
+
+export type EvidenceState =
+  | "not_started"
+  | "expected"
+  | "partial"
+  | "complete"
+  | "blocked"
+  | "excluded"
+  | "not_applicable";
+
+export type DeliveryState =
+  | "draft"
+  | "ready_for_operator_review"
+  | "sent"
+  | "acknowledged"
+  | "superseded"
+  | "failed";
+
+export type AttachmentClassification =
+  | "reference"
+  | "scope_material"
+  | "evidence_candidate"
+  | "excluded";
+
+export type HealthState = "connected" | "degraded" | "disconnected" | "unknown";
+
+export interface GmailAttachmentMetadata {
+  attachmentId: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number | null;
+  reviewed: boolean;
+  classification: AttachmentClassification | null;
+  driveFileId?: string | null;
+}
+
+export interface CoreLineage {
+  lineageId: string;
+  inboxItemId: string | null;
+  reviewRequestId: string | null;
+  customerId: string | null;
+  productContractVersionId: string | null;
+  proofRunId: string | null;
+  deliveryId: string | null;
+  receiptId: string | null;
+  driveFileIds: string[];
+}
+
+export interface InboxItemRecord {
+  id: string;
+  state: InboxItemState;
+  source: "gmail";
+  gmailMessageId: string;
+  gmailThreadId: string;
+  sender: string;
+  recipients: string[];
+  subject: string;
+  receivedAt: string;
+  excerpt: string;
+  gmailLabels: string[];
+  attachments: GmailAttachmentMetadata[];
+  securityRouteReason: string | null;
+  reviewRequestId: string | null;
+  lineageId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomerRecord {
+  id: string;
+  name: string;
+  email: string;
+  organization: string | null;
+  notes: string;
+  owner: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductContractVersionRecord {
+  id: string;
+  productId: string;
+  productName: string;
+  contractVersion: string;
+  status: "current" | "retired";
+  scope: string;
+  boundaries: string[];
+  expectedInputs: string[];
+  expectedOutputs: string[];
+  evidenceClasses: string[];
+  verificationPath: string;
+  deliveryRequirements: string[];
+  receiptRequirements: string[];
+  responsibleOperator: string | null;
+  commercialTerms: string | null;
+  sourceCatalogVersion: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewRequestRecord {
+  id: string;
+  state: ReviewRequestState;
+  lineageId: string;
+  inboxItemId: string;
+  customerId: string;
+  originatingGmailThreadId: string;
+  requestText: string;
+  proposedProductId: string | null;
+  scope: string;
+  workflowBoundary: string;
+  authorityBoundary: string;
+  desiredOutcome: string;
+  timing: string;
+  evidencePosture: string;
+  missingInformation: string[];
+  commercialStatus: string;
+  nextAction: string;
+  owner: string | null;
+  internalNotes: VersionedNote[];
+  customerReplyDrafts: CustomerReplyDraft[];
+  productContractVersionId: string | null;
+  proofRunId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VersionedNote {
+  noteId: string;
+  body: string;
+  author: string;
+  createdAt: string;
+  supersedesNoteId: string | null;
+}
+
+export interface CustomerReplyDraft {
+  draftId: string;
+  subject: string;
+  body: string;
+  author: string;
+  createdAt: string;
+  status: "draft" | "used" | "discarded";
+}
+
+export interface ProductContractSnapshot {
+  productId: string;
+  productName: string;
+  contractVersion: string;
+  scope: string;
+  boundaries: string[];
+  expectedInputs: string[];
+  expectedOutputs: string[];
+  evidenceClasses: string[];
+  verificationPath: string;
+  deliveryRequirements: string[];
+  receiptRequirements: string[];
+  responsibleOperator: string | null;
+  commercialTerms: string | null;
+}
+
+export interface ProofRunRecord {
+  id: string;
+  state: ProofRunState;
+  evidenceState: EvidenceState;
+  lineageId: string;
+  reviewRequestId: string;
+  customerId: string;
+  productContractVersionId: string;
+  productContractSnapshot: ProductContractSnapshot;
+  owner: string | null;
+  nextAction: string;
+  scopeComplete: boolean;
+  requiredOutputs: string[];
+  outputReferences: string[];
+  evidenceReferences: string[];
+  knownGaps: string[];
+  verificationInstructions: string;
+  customerWordingReviewed: boolean;
+  unsupportedClaims: string[];
+  driveFileIds: string[];
+  deliveryId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReceiptRecord {
+  id: string;
+  receiptId: string;
+  customerId: string;
+  proofRunId: string;
+  productContractVersionId: string;
+  claimScope: string;
+  structurallyValid: boolean;
+  evidenceReferences: string[];
+  verifierMechanism: string;
+  verifierResult: string;
+  limitations: string[];
+  archiveLocation: string;
+  supersedesReceiptId: string | null;
+  supersededByReceiptId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DeliveryRecord {
+  id: string;
+  state: DeliveryState;
+  lineageId: string;
+  proofRunId: string;
+  customerId: string;
+  receiptId: string | null;
+  subject: string;
+  body: string;
+  downloadLinks: string[];
+  verificationInstructions: string;
+  customerWordingReviewed: boolean;
+  unsupportedClaims: string[];
+  provider: string | null;
+  providerMessageId: string | null;
+  sentAt: string | null;
+  acknowledgedAt: string | null;
+  failure: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuditEventRecord {
+  eventId: string;
+  recordType: string;
+  recordId: string;
+  action: string;
+  actor: string;
+  timestamp: string;
+  previousState: string | null;
+  resultingState: string | null;
+  integrationResult: string | null;
+  linkedExternalIds: string[];
+  failureDetails: string | null;
+  lineageId: string | null;
+}
+
+export interface IntegrationAttemptRecord {
+  id: string;
+  integration: "gmail" | "drive" | "mail" | "receipt-verifier" | "receipt-archive";
+  operation: string;
+  idempotencyKey: string;
+  status: "started" | "succeeded" | "failed" | "retryable";
+  attemptedAt: string;
+  completedAt: string | null;
+  externalId: string | null;
+  error: string | null;
+}
+
+export interface CoreState {
+  schemaVersion: typeof ADMIN_CORE_SCHEMA_VERSION;
+  inboxItems: InboxItemRecord[];
+  customers: CustomerRecord[];
+  productContracts: ProductContractVersionRecord[];
+  reviewRequests: ReviewRequestRecord[];
+  proofRuns: ProofRunRecord[];
+  deliveries: DeliveryRecord[];
+  receipts: ReceiptRecord[];
+  auditEvents: AuditEventRecord[];
+  integrationAttempts: IntegrationAttemptRecord[];
+  idempotency: Record<string, { recordType: string; recordId: string }>;
+}
+
+export interface CoreActor {
+  actor: string;
+  role?: "Founder" | "Delegated Operator" | "Administrator";
+}
+
+export class AdminCoreError extends Error {
+  readonly code: string;
+  readonly status: number;
+  readonly details: unknown;
+
+  constructor(code: string, message: string, status = 400, details: unknown = null) {
+    super(message);
+    this.name = "AdminCoreError";
+    this.code = code;
+    this.status = status;
+    this.details = details;
+  }
+}
+
+const reviewTransitions: Record<ReviewRequestState, readonly ReviewRequestState[]> = {
+  new: ["triage", "declined"],
+  triage: ["needs_customer_information", "fit_review", "declined"],
+  needs_customer_information: ["triage", "declined"],
+  fit_review: ["fit_confirmed", "needs_customer_information", "declined"],
+  fit_confirmed: ["approved_for_proof_run", "declined"],
+  approved_for_proof_run: ["scheduled", "converted_to_proof_run", "declined"],
+  scheduled: ["converted_to_proof_run", "declined"],
+  converted_to_proof_run: ["closed"],
+  declined: ["closed"],
+  closed: [],
+};
+
+const proofTransitions: Record<ProofRunState, readonly ProofRunState[]> = {
+  planned: ["ready", "blocked", "cancelled"],
+  ready: ["running", "blocked", "cancelled"],
+  running: ["operator_review", "blocked", "cancelled"],
+  blocked: ["ready", "cancelled"],
+  operator_review: ["complete", "blocked", "cancelled"],
+  complete: [],
+  cancelled: [],
+};
+
+const deliveryTransitions: Record<DeliveryState, readonly DeliveryState[]> = {
+  draft: ["ready_for_operator_review", "failed"],
+  ready_for_operator_review: ["sent", "failed", "draft"],
+  sent: ["acknowledged", "superseded", "failed"],
+  acknowledged: ["superseded"],
+  superseded: [],
+  failed: ["draft", "ready_for_operator_review"],
+};
+
+function isoNow(): string {
+  return new Date().toISOString();
+}
+
+function clone<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function id(prefix: string): string {
+  return `${prefix}_${randomUUID().replaceAll("-", "")}`;
+}
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function extractEmail(value: string): string {
+  const bracketed = value.match(/<([^>]+)>/)?.[1];
+  return normalizeEmail(bracketed || value);
+}
+
+function normalizeSearch(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function assertNonEmpty(value: string, field: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) throw new AdminCoreError("INVALID_INPUT", `${field} is required.`);
+  return trimmed;
+}
+
+function coreStoreFile(): string {
+  const configured = process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR?.trim();
+  const directory = configured || path.join(getAdmissionStoreDir(), "admin-core");
+  return path.join(directory, "core-state.json");
+}
+
+function defaultProducts(): ProductContractVersionRecord[] {
+  const now = isoNow();
+  return getWorkflowSkus().map((sku) => ({
+    id: `pcv_${sku.id.toLowerCase()}_v1`,
+    productId: sku.id,
+    productName: sku.name,
+    contractVersion: "1.0.0",
+    status: "current" as const,
+    scope: sku.summary,
+    boundaries: [...sku.boundaries],
+    expectedInputs: ["Customer request and approved scope"],
+    expectedOutputs: [...sku.deliverables],
+    evidenceClasses: ["source references", "operator notes", "generated outputs"],
+    verificationPath: "Open the linked receipt and follow its named verifier instructions.",
+    deliveryRequirements: ["bounded scope", "required outputs", "reviewed customer wording"],
+    receiptRequirements: ["receipt ID", "claim scope", "verifier mechanism and result"],
+    responsibleOperator: null,
+    commercialTerms: sku.price.display,
+    sourceCatalogVersion: null,
+    createdAt: now,
+    updatedAt: now,
+  }));
+}
+
+function emptyState(): CoreState {
+  return {
+    schemaVersion: ADMIN_CORE_SCHEMA_VERSION,
+    inboxItems: [],
+    customers: [],
+    productContracts: defaultProducts(),
+    reviewRequests: [],
+    proofRuns: [],
+    deliveries: [],
+    receipts: [],
+    auditEvents: [],
+    integrationAttempts: [],
+    idempotency: {},
+  };
+}
+
+async function readState(): Promise<CoreState> {
+  try {
+    const raw = await readFile(coreStoreFile(), "utf8");
+    const parsed = JSON.parse(raw) as CoreState;
+    if (parsed.schemaVersion !== ADMIN_CORE_SCHEMA_VERSION) {
+      throw new AdminCoreError("STORE_VERSION", "Admin core store version is unsupported.", 500);
+    }
+    return parsed;
+  } catch (error) {
+    if (error instanceof AdminCoreError) throw error;
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return emptyState();
+    throw error;
+  }
+}
+
+async function writeState(state: CoreState): Promise<void> {
+  const file = coreStoreFile();
+  await mkdir(path.dirname(file), { recursive: true });
+  const temp = `${file}.${process.pid}.${randomUUID()}.tmp`;
+  await writeFile(temp, JSON.stringify(state, null, 2) + "\n", "utf8");
+  await rename(temp, file);
+}
+
+async function mutateState<T>(mutator: (state: CoreState) => T): Promise<T> {
+  const state = await readState();
+  const result = mutator(state);
+  await writeState(state);
+  return result;
+}
+
+function appendAudit(
+  state: CoreState,
+  input: Omit<AuditEventRecord, "eventId" | "timestamp">,
+): AuditEventRecord {
+  const event: AuditEventRecord = {
+    ...input,
+    eventId: id("audit"),
+    timestamp: isoNow(),
+  };
+  state.auditEvents.push(event);
+  return event;
+}
+
+function appendIntegration(
+  state: CoreState,
+  input: Omit<IntegrationAttemptRecord, "id" | "attemptedAt">,
+): IntegrationAttemptRecord {
+  const attempt: IntegrationAttemptRecord = {
+    ...input,
+    id: id("intg"),
+    attemptedAt: isoNow(),
+  };
+  state.integrationAttempts.push(attempt);
+  return attempt;
+}
+
+function requireRole(actor: CoreActor, action: "business-authority" | "administration"): void {
+  const role = actor.role ?? "Founder";
+  if (action === "business-authority" && role === "Administrator") {
+    throw new AdminCoreError(
+      "BUSINESS_AUTHORITY_REQUIRED",
+      "Administrator access does not grant authority to approve proof scope or customer-facing claims.",
+      403,
+    );
+  }
+}
+
+function requireTransition<T extends string>(
+  recordType: string,
+  current: T,
+  next: T,
+  transitions: Record<T, readonly T[]>,
+): void {
+  if (!transitions[current].includes(next)) {
+    throw new AdminCoreError(
+      "INVALID_TRANSITION",
+      `Cannot transition ${recordType} from ${current} to ${next}.`,
+      409,
+      { recordType, current, next },
+    );
+  }
+}
+
+function snapshotProduct(product: ProductContractVersionRecord): ProductContractSnapshot {
+  return {
+    productId: product.productId,
+    productName: product.productName,
+    contractVersion: product.contractVersion,
+    scope: product.scope,
+    boundaries: [...product.boundaries],
+    expectedInputs: [...product.expectedInputs],
+    expectedOutputs: [...product.expectedOutputs],
+    evidenceClasses: [...product.evidenceClasses],
+    verificationPath: product.verificationPath,
+    deliveryRequirements: [...product.deliveryRequirements],
+    receiptRequirements: [...product.receiptRequirements],
+    responsibleOperator: product.responsibleOperator,
+    commercialTerms: product.commercialTerms,
+  };
+}
+
+export function getAdminCoreStorePath(): string {
+  return coreStoreFile();
+}
+
+export async function resetAdminCoreStoreForTests(): Promise<void> {
+  await rm(coreStoreFile(), { force: true });
+}
+
+export async function getAdminCoreState(): Promise<CoreState> {
+  return clone(await readState());
+}
+
+export async function listInboxItems(): Promise<InboxItemRecord[]> {
+  return clone((await readState()).inboxItems.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+}
+
+export async function getInboxItem(idValue: string): Promise<InboxItemRecord | null> {
+  return clone((await readState()).inboxItems.find((item) => item.id === idValue) ?? null);
+}
+
+export async function listCustomers(): Promise<CustomerRecord[]> {
+  return clone((await readState()).customers.sort((a, b) => a.name.localeCompare(b.name)));
+}
+
+export async function getCustomer(idValue: string): Promise<CustomerRecord | null> {
+  return clone((await readState()).customers.find((item) => item.id === idValue) ?? null);
+}
+
+export async function listProductContracts(): Promise<ProductContractVersionRecord[]> {
+  return clone((await readState()).productContracts.sort((a, b) => a.productName.localeCompare(b.productName)));
+}
+
+export async function getProductContract(idValue: string): Promise<ProductContractVersionRecord | null> {
+  return clone((await readState()).productContracts.find((item) => item.id === idValue) ?? null);
+}
+
+export async function listReviewRequests(): Promise<ReviewRequestRecord[]> {
+  return clone((await readState()).reviewRequests.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+}
+
+export async function getReviewRequest(idValue: string): Promise<ReviewRequestRecord | null> {
+  return clone((await readState()).reviewRequests.find((item) => item.id === idValue) ?? null);
+}
+
+export async function listProofRuns(): Promise<ProofRunRecord[]> {
+  return clone((await readState()).proofRuns.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+}
+
+export async function getProofRun(idValue: string): Promise<ProofRunRecord | null> {
+  return clone((await readState()).proofRuns.find((item) => item.id === idValue) ?? null);
+}
+
+export async function listDeliveries(): Promise<DeliveryRecord[]> {
+  return clone((await readState()).deliveries.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+}
+
+export async function getDelivery(idValue: string): Promise<DeliveryRecord | null> {
+  return clone((await readState()).deliveries.find((item) => item.id === idValue) ?? null);
+}
+
+export async function listReceiptRecords(): Promise<ReceiptRecord[]> {
+  return clone((await readState()).receipts.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+}
+
+export async function getReceiptRecord(idValue: string): Promise<ReceiptRecord | null> {
+  const state = await readState();
+  return clone(state.receipts.find((item) => item.id === idValue || item.receiptId === idValue) ?? null);
+}
+
+export async function listAuditEvents(lineageId?: string): Promise<AuditEventRecord[]> {
+  const events = (await readState()).auditEvents;
+  return clone(lineageId ? events.filter((event) => event.lineageId === lineageId) : events);
+}
+
+export interface GmailInboxImport {
+  gmailMessageId: string;
+  gmailThreadId: string;
+  sender: string;
+  recipients: string[];
+  subject: string;
+  receivedAt: string;
+  excerpt: string;
+  gmailLabels?: string[];
+  attachments?: Array<{
+    attachmentId: string;
+    filename: string;
+    mimeType: string;
+    sizeBytes?: number | null;
+    driveFileId?: string | null;
+  }>;
+}
+
+export async function importGmailInboxItem(
+  input: GmailInboxImport,
+  actor: CoreActor,
+): Promise<{ item: InboxItemRecord; created: boolean }> {
+  const messageId = assertNonEmpty(input.gmailMessageId, "gmailMessageId");
+  const threadId = assertNonEmpty(input.gmailThreadId, "gmailThreadId");
+  const sender = assertNonEmpty(input.sender, "sender");
+  const subject = assertNonEmpty(input.subject, "subject");
+  return mutateState((state) => {
+    const existing = state.inboxItems.find((item) => item.gmailMessageId === messageId);
+    if (existing) return { item: clone(existing), created: false };
+
+    const allAddresses = [sender, ...(input.recipients ?? [])].map(normalizeEmail);
+    const isSecurity = allAddresses.includes(SECURITY_DISCLOSURE_EMAIL);
+    const lineageId = id("lineage");
+    const now = isoNow();
+    const item: InboxItemRecord = {
+      id: id("inbox"),
+      state: isSecurity ? "security-routed" : "new",
+      source: "gmail",
+      gmailMessageId: messageId,
+      gmailThreadId: threadId,
+      sender,
+      recipients: [...(input.recipients ?? [])],
+      subject,
+      receivedAt: assertNonEmpty(input.receivedAt, "receivedAt"),
+      excerpt: input.excerpt.trim(),
+      gmailLabels: [...(input.gmailLabels ?? [])],
+      attachments: (input.attachments ?? []).map((attachment) => ({
+        attachmentId: assertNonEmpty(attachment.attachmentId, "attachmentId"),
+        filename: assertNonEmpty(attachment.filename, "attachment.filename"),
+        mimeType: assertNonEmpty(attachment.mimeType, "attachment.mimeType"),
+        sizeBytes: attachment.sizeBytes ?? null,
+        reviewed: false,
+        classification: null,
+        driveFileId: attachment.driveFileId ?? null,
+      })),
+      securityRouteReason: isSecurity ? "Contains security@witnessops.com route." : null,
+      reviewRequestId: null,
+      lineageId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.inboxItems.push(item);
+    appendIntegration(state, {
+      integration: "gmail",
+      operation: "import_message_metadata",
+      idempotencyKey: `gmail-message:${messageId}`,
+      status: "succeeded",
+      completedAt: now,
+      externalId: messageId,
+      error: null,
+    });
+    appendAudit(state, {
+      recordType: "inbox_item",
+      recordId: item.id,
+      action: isSecurity ? "security_route" : "import",
+      actor: actor.actor,
+      previousState: null,
+      resultingState: item.state,
+      integrationResult: "gmail metadata retained by reference",
+      linkedExternalIds: [messageId, threadId],
+      failureDetails: null,
+      lineageId,
+    });
+    return { item: clone(item), created: true };
+  });
+}
+
+export async function classifyInboxAttachment(
+  inboxItemId: string,
+  attachmentId: string,
+  classification: AttachmentClassification,
+  actor: CoreActor,
+): Promise<InboxItemRecord> {
+  return mutateState((state) => {
+    const item = state.inboxItems.find((candidate) => candidate.id === inboxItemId);
+    if (!item) throw new AdminCoreError("NOT_FOUND", "Inbox item not found.", 404);
+    const attachment = item.attachments.find((candidate) => candidate.attachmentId === attachmentId);
+    if (!attachment) throw new AdminCoreError("NOT_FOUND", "Attachment not found.", 404);
+    attachment.classification = classification;
+    attachment.reviewed = true;
+    item.state = item.state === "new" ? "reviewed" : item.state;
+    item.updatedAt = isoNow();
+    appendAudit(state, {
+      recordType: "inbox_item",
+      recordId: item.id,
+      action: "classify_attachment",
+      actor: actor.actor,
+      previousState: null,
+      resultingState: item.state,
+      integrationResult: "attachment remains untrusted until explicitly classified",
+      linkedExternalIds: [attachmentId],
+      failureDetails: null,
+      lineageId: item.lineageId,
+    });
+    return clone(item);
+  });
+}
+
+export async function recordGmailLabelSync(
+  inboxItemId: string,
+  labels: string[],
+  result: { status: "succeeded" | "failed" | "retryable"; error?: string | null },
+  actor: CoreActor,
+): Promise<InboxItemRecord> {
+  return mutateState((state) => {
+    const item = state.inboxItems.find((candidate) => candidate.id === inboxItemId);
+    if (!item) throw new AdminCoreError("NOT_FOUND", "Inbox item not found.", 404);
+    const now = isoNow();
+    appendIntegration(state, {
+      integration: "gmail",
+      operation: "apply_labels",
+      idempotencyKey: `gmail-labels:${item.gmailMessageId}:${labels.join(",")}`,
+      status: result.status,
+      completedAt: now,
+      externalId: item.gmailMessageId,
+      error: result.error ?? null,
+    });
+    if (result.status === "succeeded") {
+      item.gmailLabels = [...labels];
+      item.updatedAt = now;
+    }
+    appendAudit(state, {
+      recordType: "inbox_item",
+      recordId: item.id,
+      action: "gmail_label_sync",
+      actor: actor.actor,
+      previousState: item.state,
+      resultingState: item.state,
+      integrationResult: result.status,
+      linkedExternalIds: [item.gmailMessageId],
+      failureDetails: result.error ?? null,
+      lineageId: item.lineageId,
+    });
+    return clone(item);
+  });
+}
+
+export interface ConvertInboxResult {
+  reviewRequest: ReviewRequestRecord;
+  customer: CustomerRecord;
+  created: boolean;
+}
+
+export async function convertInboxItemToReviewRequest(
+  inboxItemId: string,
+  actor: CoreActor,
+  idempotencyKey = `convert:${inboxItemId}`,
+): Promise<ConvertInboxResult> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const item = state.inboxItems.find((candidate) => candidate.id === inboxItemId);
+    if (!item) throw new AdminCoreError("NOT_FOUND", "Inbox item not found.", 404);
+    if (item.state === "security-routed") {
+      throw new AdminCoreError("SECURITY_ROUTE", "Security disclosure messages remain outside the review-request lifecycle.", 409);
+    }
+    if (item.reviewRequestId) {
+      const existing = state.reviewRequests.find((request) => request.id === item.reviewRequestId);
+      const customer = existing ? state.customers.find((candidate) => candidate.id === existing.customerId) : null;
+      if (!existing || !customer) throw new AdminCoreError("STORE_CORRUPT", "Linked review request is incomplete.", 500);
+      return { reviewRequest: clone(existing), customer: clone(customer), created: false };
+    }
+    const existingIdempotency = state.idempotency[idempotencyKey];
+    if (existingIdempotency) {
+      const existing = state.reviewRequests.find((request) => request.id === existingIdempotency.recordId);
+      const customer = existing ? state.customers.find((candidate) => candidate.id === existing.customerId) : null;
+      if (existing && customer) return { reviewRequest: clone(existing), customer: clone(customer), created: false };
+    }
+
+    const email = extractEmail(item.sender);
+    let customer = state.customers.find((candidate) => candidate.email === email);
+    const now = isoNow();
+    if (!customer) {
+      customer = {
+        id: id("cust"),
+        name: item.sender.split("<")[0]?.trim() || email,
+        email,
+        organization: null,
+        notes: "Created from Gmail-originated review request.",
+        owner: actor.actor,
+        createdAt: now,
+        updatedAt: now,
+      };
+      state.customers.push(customer);
+      appendAudit(state, {
+        recordType: "customer",
+        recordId: customer.id,
+        action: "create_minimal_customer",
+        actor: actor.actor,
+        previousState: null,
+        resultingState: "active",
+        integrationResult: null,
+        linkedExternalIds: [item.gmailMessageId],
+        failureDetails: null,
+        lineageId: item.lineageId,
+      });
+    }
+    const request: ReviewRequestRecord = {
+      id: id("rr"),
+      state: "new",
+      lineageId: item.lineageId,
+      inboxItemId: item.id,
+      customerId: customer.id,
+      originatingGmailThreadId: item.gmailThreadId,
+      requestText: item.excerpt || item.subject,
+      proposedProductId: null,
+      scope: "To be confirmed by operator.",
+      workflowBoundary: "WitnessOps performs only the bounded work approved in the product contract.",
+      authorityBoundary: "No execution authority is implied by receiving or reviewing this message.",
+      desiredOutcome: "Operator review and a bounded proof-backed delivery.",
+      timing: "Not specified.",
+      evidencePosture: "Attachments are unreviewed until classified; no attachment is automatically evidence.",
+      missingInformation: [],
+      commercialStatus: "unconfirmed",
+      nextAction: "Triage the request and confirm fit.",
+      owner: actor.actor,
+      internalNotes: [],
+      customerReplyDrafts: [],
+      productContractVersionId: null,
+      proofRunId: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.reviewRequests.push(request);
+    item.reviewRequestId = request.id;
+    item.state = "linked";
+    item.updatedAt = now;
+    state.idempotency[idempotencyKey] = { recordType: "review_request", recordId: request.id };
+    appendAudit(state, {
+      recordType: "review_request",
+      recordId: request.id,
+      action: "convert_inbox_item",
+      actor: actor.actor,
+      previousState: null,
+      resultingState: request.state,
+      integrationResult: null,
+      linkedExternalIds: [item.gmailMessageId, item.gmailThreadId],
+      failureDetails: null,
+      lineageId: item.lineageId,
+    });
+    appendAudit(state, {
+      recordType: "inbox_item",
+      recordId: item.id,
+      action: "link_review_request",
+      actor: actor.actor,
+      previousState: "new",
+      resultingState: item.state,
+      integrationResult: null,
+      linkedExternalIds: [request.id],
+      failureDetails: null,
+      lineageId: item.lineageId,
+    });
+    return { reviewRequest: clone(request), customer: clone(customer), created: true };
+  });
+}
+
+export async function transitionReviewRequest(
+  reviewRequestId: string,
+  nextState: ReviewRequestState,
+  actor: CoreActor,
+): Promise<ReviewRequestRecord> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const request = state.reviewRequests.find((candidate) => candidate.id === reviewRequestId);
+    if (!request) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
+    requireTransition("review_request", request.state, nextState, reviewTransitions);
+    const previous = request.state;
+    request.state = nextState;
+    request.updatedAt = isoNow();
+    request.nextAction = nextState === "fit_confirmed"
+      ? "Approve the selected immutable product contract version."
+      : nextState === "approved_for_proof_run"
+        ? "Create the pinned proof run."
+        : request.nextAction;
+    appendAudit(state, {
+      recordType: "review_request",
+      recordId: request.id,
+      action: "transition",
+      actor: actor.actor,
+      previousState: previous,
+      resultingState: nextState,
+      integrationResult: null,
+      linkedExternalIds: [request.originatingGmailThreadId],
+      failureDetails: null,
+      lineageId: request.lineageId,
+    });
+    return clone(request);
+  });
+}
+
+export async function approveReviewRequest(
+  reviewRequestId: string,
+  productContractVersionId: string,
+  actor: CoreActor,
+): Promise<ReviewRequestRecord> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const request = state.reviewRequests.find((candidate) => candidate.id === reviewRequestId);
+    if (!request) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
+    const product = state.productContracts.find((candidate) => candidate.id === productContractVersionId);
+    if (!product) throw new AdminCoreError("NOT_FOUND", "Product contract version not found.", 404);
+    requireTransition("review_request", request.state, "approved_for_proof_run", reviewTransitions);
+    const previous = request.state;
+    request.productContractVersionId = product.id;
+    request.state = "approved_for_proof_run";
+    request.nextAction = "Create the pinned proof run.";
+    request.updatedAt = isoNow();
+    appendAudit(state, {
+      recordType: "review_request",
+      recordId: request.id,
+      action: "approve_product_contract",
+      actor: actor.actor,
+      previousState: previous,
+      resultingState: request.state,
+      integrationResult: null,
+      linkedExternalIds: [product.id],
+      failureDetails: null,
+      lineageId: request.lineageId,
+    });
+    return clone(request);
+  });
+}
+
+export async function addReviewRequestNote(
+  reviewRequestId: string,
+  body: string,
+  actor: CoreActor,
+): Promise<ReviewRequestRecord> {
+  const noteBody = assertNonEmpty(body, "note");
+  return mutateState((state) => {
+    const request = state.reviewRequests.find((candidate) => candidate.id === reviewRequestId);
+    if (!request) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
+    const prior = request.internalNotes.at(-1);
+    const note: VersionedNote = {
+      noteId: id("note"),
+      body: noteBody,
+      author: actor.actor,
+      createdAt: isoNow(),
+      supersedesNoteId: prior?.noteId ?? null,
+    };
+    request.internalNotes.push(note);
+    request.updatedAt = note.createdAt;
+    appendAudit(state, {
+      recordType: "review_request",
+      recordId: request.id,
+      action: "append_internal_note",
+      actor: actor.actor,
+      previousState: null,
+      resultingState: request.state,
+      integrationResult: null,
+      linkedExternalIds: [note.noteId, ...(prior ? [prior.noteId] : [])],
+      failureDetails: null,
+      lineageId: request.lineageId,
+    });
+    return clone(request);
+  });
+}
+
+export async function updateCustomer(
+  customerId: string,
+  patch: Partial<Pick<CustomerRecord, "name" | "organization" | "notes" | "owner">>,
+  actor: CoreActor,
+): Promise<CustomerRecord> {
+  return mutateState((state) => {
+    const customer = state.customers.find((candidate) => candidate.id === customerId);
+    if (!customer) throw new AdminCoreError("NOT_FOUND", "Customer not found.", 404);
+    if (patch.name !== undefined) customer.name = assertNonEmpty(patch.name, "name");
+    if (patch.organization !== undefined) customer.organization = patch.organization?.trim() || null;
+    if (patch.notes !== undefined) customer.notes = patch.notes.trim();
+    if (patch.owner !== undefined) customer.owner = patch.owner?.trim() || null;
+    customer.updatedAt = isoNow();
+    appendAudit(state, {
+      recordType: "customer",
+      recordId: customer.id,
+      action: "update_minimal_record",
+      actor: actor.actor,
+      previousState: null,
+      resultingState: "active",
+      integrationResult: null,
+      linkedExternalIds: [],
+      failureDetails: null,
+      lineageId: null,
+    });
+    return clone(customer);
+  });
+}
+
+export async function createProductContractVersion(
+  input: Omit<ProductContractVersionRecord, "id" | "createdAt" | "updatedAt" | "status"> & { status?: ProductContractVersionRecord["status"] },
+  actor: CoreActor,
+): Promise<ProductContractVersionRecord> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const now = isoNow();
+    const product: ProductContractVersionRecord = {
+      ...input,
+      id: id("pcv"),
+      status: input.status ?? "current",
+      createdAt: now,
+      updatedAt: now,
+      boundaries: [...input.boundaries],
+      expectedInputs: [...input.expectedInputs],
+      expectedOutputs: [...input.expectedOutputs],
+      evidenceClasses: [...input.evidenceClasses],
+      deliveryRequirements: [...input.deliveryRequirements],
+      receiptRequirements: [...input.receiptRequirements],
+    };
+    state.productContracts.push(product);
+    appendAudit(state, {
+      recordType: "product_contract_version",
+      recordId: product.id,
+      action: "create_immutable_version",
+      actor: actor.actor,
+      previousState: null,
+      resultingState: product.status,
+      integrationResult: null,
+      linkedExternalIds: [product.productId],
+      failureDetails: null,
+      lineageId: null,
+    });
+    return clone(product);
+  });
+}
+
+export async function createProofRunForRequest(
+  reviewRequestId: string,
+  productContractVersionId: string,
+  actor: CoreActor,
+  idempotencyKey = `proof-run:${reviewRequestId}`,
+): Promise<ProofRunRecord> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const existingIdempotency = state.idempotency[idempotencyKey];
+    if (existingIdempotency) {
+      const existing = state.proofRuns.find((run) => run.id === existingIdempotency.recordId);
+      if (existing) return clone(existing);
+    }
+    const request = state.reviewRequests.find((candidate) => candidate.id === reviewRequestId);
+    if (!request) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
+    const product = state.productContracts.find((candidate) => candidate.id === productContractVersionId);
+    if (!product) throw new AdminCoreError("NOT_FOUND", "Product contract version not found.", 404);
+    if (request.state !== "approved_for_proof_run") {
+      throw new AdminCoreError("INVALID_TRANSITION", "A proof run requires review request state approved_for_proof_run.", 409);
+    }
+    if (request.proofRunId) {
+      const existing = state.proofRuns.find((run) => run.id === request.proofRunId);
+      if (existing) return clone(existing);
+    }
+    const now = isoNow();
+    const snapshot = snapshotProduct(product);
+    const proofRun: ProofRunRecord = {
+      id: id("proof"),
+      state: "planned",
+      evidenceState: "not_started",
+      lineageId: request.lineageId,
+      reviewRequestId: request.id,
+      customerId: request.customerId,
+      productContractVersionId: product.id,
+      productContractSnapshot: snapshot,
+      owner: actor.actor,
+      nextAction: "Confirm scope and mark the run ready.",
+      scopeComplete: false,
+      requiredOutputs: [...snapshot.expectedOutputs],
+      outputReferences: [],
+      evidenceReferences: [],
+      knownGaps: [],
+      verificationInstructions: snapshot.verificationPath,
+      customerWordingReviewed: false,
+      unsupportedClaims: [],
+      driveFileIds: [],
+      deliveryId: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.proofRuns.push(proofRun);
+    request.productContractVersionId = product.id;
+    request.proofRunId = proofRun.id;
+    request.state = "converted_to_proof_run";
+    request.updatedAt = now;
+    state.idempotency[idempotencyKey] = { recordType: "proof_run", recordId: proofRun.id };
+    appendAudit(state, {
+      recordType: "proof_run",
+      recordId: proofRun.id,
+      action: "create_with_pinned_product_contract",
+      actor: actor.actor,
+      previousState: null,
+      resultingState: proofRun.state,
+      integrationResult: null,
+      linkedExternalIds: [request.id, product.id],
+      failureDetails: null,
+      lineageId: request.lineageId,
+    });
+    appendAudit(state, {
+      recordType: "review_request",
+      recordId: request.id,
+      action: "convert_to_proof_run",
+      actor: actor.actor,
+      previousState: "approved_for_proof_run",
+      resultingState: request.state,
+      integrationResult: null,
+      linkedExternalIds: [proofRun.id, product.id],
+      failureDetails: null,
+      lineageId: request.lineageId,
+    });
+    return clone(proofRun);
+  });
+}
+
+export async function updateProofRun(
+  proofRunId: string,
+  patch: Partial<Pick<ProofRunRecord, "scopeComplete" | "outputReferences" | "evidenceReferences" | "knownGaps" | "verificationInstructions" | "customerWordingReviewed" | "unsupportedClaims" | "driveFileIds" | "owner" | "nextAction" | "evidenceState">>,
+  actor: CoreActor,
+): Promise<ProofRunRecord> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const run = state.proofRuns.find((candidate) => candidate.id === proofRunId);
+    if (!run) throw new AdminCoreError("NOT_FOUND", "Proof run not found.", 404);
+    Object.assign(run, Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)));
+    run.updatedAt = isoNow();
+    appendAudit(state, {
+      recordType: "proof_run",
+      recordId: run.id,
+      action: "update_execution_or_evidence",
+      actor: actor.actor,
+      previousState: run.state,
+      resultingState: run.state,
+      integrationResult: null,
+      linkedExternalIds: [...run.driveFileIds, ...run.evidenceReferences],
+      failureDetails: null,
+      lineageId: run.lineageId,
+    });
+    return clone(run);
+  });
+}
+
+export async function transitionProofRun(
+  proofRunId: string,
+  nextState: ProofRunState,
+  actor: CoreActor,
+): Promise<ProofRunRecord> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const run = state.proofRuns.find((candidate) => candidate.id === proofRunId);
+    if (!run) throw new AdminCoreError("NOT_FOUND", "Proof run not found.", 404);
+    requireTransition("proof_run", run.state, nextState, proofTransitions);
+    if (nextState === "complete") {
+      const readiness = buildProofReadinessCheck(run);
+      if (readiness.fail.length > 0 || readiness.unresolved.length > 0) {
+        throw new AdminCoreError("PROOF_NOT_READY", "Proof run cannot be marked complete while readiness checks fail or remain unresolved.", 409, readiness);
+      }
+    }
+    const previous = run.state;
+    run.state = nextState;
+    run.nextAction = nextState === "complete" ? "Prepare delivery and link the receipt." : run.nextAction;
+    run.updatedAt = isoNow();
+    appendAudit(state, {
+      recordType: "proof_run",
+      recordId: run.id,
+      action: "transition",
+      actor: actor.actor,
+      previousState: previous,
+      resultingState: nextState,
+      integrationResult: null,
+      linkedExternalIds: [run.productContractVersionId],
+      failureDetails: null,
+      lineageId: run.lineageId,
+    });
+    return clone(run);
+  });
+}
+
+export interface ReadinessCheck {
+  pass: Array<{ code: string; label: string }>;
+  fail: Array<{ code: string; label: string; detail: string }>;
+  unresolved: Array<{ code: string; label: string; detail: string }>;
+}
+
+export function buildProofReadinessCheck(run: ProofRunRecord): ReadinessCheck {
+  const result: ReadinessCheck = { pass: [], fail: [], unresolved: [] };
+  const check = (condition: boolean, code: string, label: string, detail: string) => {
+    if (condition) result.pass.push({ code, label });
+    else result.fail.push({ code, label, detail });
+  };
+  check(run.scopeComplete, "SCOPE_COMPLETE", "Scope is complete or explicitly bounded", "Mark scope complete or record a bounded exclusion before completion.");
+  check(run.requiredOutputs.every((output) => run.outputReferences.includes(output)), "OUTPUTS_PRESENT", "Required outputs exist", "Every required output needs a reference.");
+  check(run.evidenceState === "complete" || run.evidenceState === "not_applicable", "EVIDENCE_COMPLETE", "Evidence state is complete", "Evidence remains incomplete.");
+  if (run.knownGaps.length > 0) result.unresolved.push({ code: "KNOWN_GAPS", label: "Known gaps are recorded", detail: run.knownGaps.join("; ") });
+  else result.pass.push({ code: "NO_UNRECORDED_GAPS", label: "No known gaps remain unrecorded" });
+  check(run.verificationInstructions.trim().length > 0, "VERIFICATION_INSTRUCTIONS", "Verification instructions exist", "Add instructions a customer can follow.");
+  check(run.customerWordingReviewed, "CUSTOMER_WORDING_REVIEWED", "Customer-facing wording is reviewed", "Review the delivery wording before completion.");
+  check(run.unsupportedClaims.length === 0, "NO_UNSUPPORTED_CLAIMS", "No unsupported claims are presented as proven", "Remove or bound unsupported claims.");
+  return result;
+}
+
+export async function buildProofReadiness(proofRunId: string): Promise<ReadinessCheck> {
+  const run = await getProofRun(proofRunId);
+  if (!run) throw new AdminCoreError("NOT_FOUND", "Proof run not found.", 404);
+  return buildProofReadinessCheck(run);
+}
+
+export async function prepareDelivery(
+  proofRunId: string,
+  actor: CoreActor,
+): Promise<DeliveryRecord> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const run = state.proofRuns.find((candidate) => candidate.id === proofRunId);
+    if (!run) throw new AdminCoreError("NOT_FOUND", "Proof run not found.", 404);
+    if (run.deliveryId) {
+      const existing = state.deliveries.find((delivery) => delivery.id === run.deliveryId);
+      if (existing) return clone(existing);
+    }
+    const customer = state.customers.find((candidate) => candidate.id === run.customerId);
+    if (!customer) throw new AdminCoreError("STORE_CORRUPT", "Proof run customer is missing.", 500);
+    const now = isoNow();
+    const delivery: DeliveryRecord = {
+      id: id("delivery"),
+      state: "draft",
+      lineageId: run.lineageId,
+      proofRunId: run.id,
+      customerId: customer.id,
+      receiptId: null,
+      subject: `WitnessOps delivery — ${run.productContractSnapshot.productName}`,
+      body: "Delivery draft requires operator review.",
+      downloadLinks: [...run.outputReferences],
+      verificationInstructions: run.verificationInstructions,
+      customerWordingReviewed: run.customerWordingReviewed,
+      unsupportedClaims: [...run.unsupportedClaims],
+      provider: null,
+      providerMessageId: null,
+      sentAt: null,
+      acknowledgedAt: null,
+      failure: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.deliveries.push(delivery);
+    run.deliveryId = delivery.id;
+    run.updatedAt = now;
+    appendAudit(state, {
+      recordType: "delivery",
+      recordId: delivery.id,
+      action: "prepare_draft",
+      actor: actor.actor,
+      previousState: null,
+      resultingState: delivery.state,
+      integrationResult: null,
+      linkedExternalIds: [run.id, customer.id],
+      failureDetails: null,
+      lineageId: run.lineageId,
+    });
+    return clone(delivery);
+  });
+}
+
+export async function updateDeliveryDraft(
+  deliveryId: string,
+  patch: Partial<Pick<DeliveryRecord, "subject" | "body" | "downloadLinks" | "verificationInstructions" | "customerWordingReviewed" | "unsupportedClaims">>,
+  actor: CoreActor,
+): Promise<DeliveryRecord> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
+    if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    Object.assign(delivery, Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)));
+    delivery.updatedAt = isoNow();
+    appendAudit(state, {
+      recordType: "delivery",
+      recordId: delivery.id,
+      action: "update_draft",
+      actor: actor.actor,
+      previousState: delivery.state,
+      resultingState: delivery.state,
+      integrationResult: null,
+      linkedExternalIds: [delivery.proofRunId],
+      failureDetails: null,
+      lineageId: delivery.lineageId,
+    });
+    return clone(delivery);
+  });
+}
+
+export async function buildDeliveryReadiness(deliveryId: string): Promise<ReadinessCheck> {
+  const state = await readState();
+  const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
+  if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+  const run = state.proofRuns.find((candidate) => candidate.id === delivery.proofRunId);
+  const result: ReadinessCheck = { pass: [], fail: [], unresolved: [] };
+  if (!run) {
+    result.fail.push({ code: "PROOF_RUN_LINK", label: "Proof run is linked", detail: "The delivery has no proof run." });
+    return result;
+  }
+  const proof = buildProofReadinessCheck(run);
+  result.pass.push(...proof.pass);
+  result.fail.push(...proof.fail);
+  result.unresolved.push(...proof.unresolved);
+  const check = (condition: boolean, code: string, label: string, detail: string) => {
+    if (condition) result.pass.push({ code, label });
+    else result.fail.push({ code, label, detail });
+  };
+  check(Boolean(delivery.receiptId), "RECEIPT_LINKED", "Receipt is linked", "Link a durable receipt before delivery can be ready.");
+  const linkedReceipt = state.receipts.find((receipt) => receipt.receiptId === delivery.receiptId);
+  check(Boolean(linkedReceipt?.structurallyValid), "RECEIPT_STRUCTURAL_VALID", "Receipt is structurally valid", "The linked receipt must be structurally valid.");
+  check(delivery.verificationInstructions.trim().length > 0, "DELIVERY_VERIFICATION", "Verification instructions exist", "Add verification instructions.");
+  check(delivery.customerWordingReviewed, "DELIVERY_WORDING", "Customer-facing wording is reviewed", "Review the customer-facing wording.");
+  check(delivery.unsupportedClaims.length === 0, "DELIVERY_CLAIMS", "Delivery contains no unsupported claims", "Remove or bound unsupported claims.");
+  return result;
+}
+
+export async function transitionDelivery(
+  deliveryId: string,
+  nextState: DeliveryState,
+  actor: CoreActor,
+): Promise<DeliveryRecord> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
+    if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    requireTransition("delivery", delivery.state, nextState, deliveryTransitions);
+    if (nextState === "ready_for_operator_review") {
+      const readiness = buildDeliveryReadinessSync(state, delivery.id);
+      if (readiness.fail.length > 0 || readiness.unresolved.length > 0) {
+        throw new AdminCoreError("DELIVERY_NOT_READY", "Delivery readiness checks have not passed.", 409, readiness);
+      }
+    }
+    const previous = delivery.state;
+    delivery.state = nextState;
+    delivery.updatedAt = isoNow();
+    appendAudit(state, {
+      recordType: "delivery",
+      recordId: delivery.id,
+      action: "transition",
+      actor: actor.actor,
+      previousState: previous,
+      resultingState: nextState,
+      integrationResult: null,
+      linkedExternalIds: [delivery.proofRunId, ...(delivery.receiptId ? [delivery.receiptId] : [])],
+      failureDetails: null,
+      lineageId: delivery.lineageId,
+    });
+    return clone(delivery);
+  });
+}
+
+function buildDeliveryReadinessSync(state: CoreState, deliveryId: string): ReadinessCheck {
+  const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
+  if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+  const run = state.proofRuns.find((candidate) => candidate.id === delivery.proofRunId);
+  const result: ReadinessCheck = { pass: [], fail: [], unresolved: [] };
+  if (!run) {
+    result.fail.push({ code: "PROOF_RUN_LINK", label: "Proof run is linked", detail: "The delivery has no proof run." });
+    return result;
+  }
+  const proof = buildProofReadinessCheck(run);
+  result.pass.push(...proof.pass);
+  result.fail.push(...proof.fail);
+  result.unresolved.push(...proof.unresolved);
+  const check = (condition: boolean, code: string, label: string, detail: string) => {
+    if (condition) result.pass.push({ code, label });
+    else result.fail.push({ code, label, detail });
+  };
+  check(Boolean(delivery.receiptId), "RECEIPT_LINKED", "Receipt is linked", "Link a durable receipt before delivery can be ready.");
+  const linkedReceipt = state.receipts.find((receipt) => receipt.receiptId === delivery.receiptId);
+  check(Boolean(linkedReceipt?.structurallyValid), "RECEIPT_STRUCTURAL_VALID", "Receipt is structurally valid", "The linked receipt must be structurally valid.");
+  check(delivery.verificationInstructions.trim().length > 0, "DELIVERY_VERIFICATION", "Verification instructions exist", "Add verification instructions.");
+  check(delivery.customerWordingReviewed, "DELIVERY_WORDING", "Customer-facing wording is reviewed", "Review the customer-facing wording.");
+  check(delivery.unsupportedClaims.length === 0, "DELIVERY_CLAIMS", "Delivery contains no unsupported claims", "Remove or bound unsupported claims.");
+  return result;
+}
+
+export interface ReceiptLinkInput {
+  receiptId: string;
+  claimScope: string;
+  structurallyValid?: boolean;
+  evidenceReferences: string[];
+  verifierMechanism: string;
+  verifierResult: string;
+  limitations: string[];
+  archiveLocation: string;
+  supersedesReceiptId?: string | null;
+}
+
+export async function linkReceiptToDelivery(
+  deliveryId: string,
+  input: ReceiptLinkInput,
+  actor: CoreActor,
+): Promise<ReceiptRecord> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
+    if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    const run = state.proofRuns.find((candidate) => candidate.id === delivery.proofRunId);
+    if (!run) throw new AdminCoreError("STORE_CORRUPT", "Delivery proof run is missing.", 500);
+    const receiptId = assertNonEmpty(input.receiptId, "receiptId");
+    const mechanism = assertNonEmpty(input.verifierMechanism, "verifierMechanism");
+    const verifierResult = assertNonEmpty(input.verifierResult, "verifierResult");
+    const archiveLocation = assertNonEmpty(input.archiveLocation, "archiveLocation");
+    let receipt = state.receipts.find((candidate) => candidate.receiptId === receiptId);
+    if (!receipt) {
+      receipt = {
+        id: id("receipt"),
+        receiptId,
+        customerId: delivery.customerId,
+        proofRunId: run.id,
+        productContractVersionId: run.productContractVersionId,
+        claimScope: assertNonEmpty(input.claimScope, "claimScope"),
+        structurallyValid: input.structurallyValid ?? true,
+        evidenceReferences: [...input.evidenceReferences],
+        verifierMechanism: mechanism,
+        verifierResult,
+        limitations: [...input.limitations],
+        archiveLocation,
+        supersedesReceiptId: input.supersedesReceiptId ?? null,
+        supersededByReceiptId: null,
+        createdAt: isoNow(),
+        updatedAt: isoNow(),
+      };
+      state.receipts.push(receipt);
+      if (receipt.supersedesReceiptId) {
+        const prior = state.receipts.find((candidate) => candidate.receiptId === receipt?.supersedesReceiptId);
+        if (prior) prior.supersededByReceiptId = receipt.receiptId;
+      }
+      appendIntegration(state, {
+        integration: "receipt-archive",
+        operation: "link_receipt",
+        idempotencyKey: `receipt:${receiptId}`,
+        status: "succeeded",
+        completedAt: receipt.createdAt,
+        externalId: receiptId,
+        error: null,
+      });
+    }
+    delivery.receiptId = receipt.receiptId;
+    delivery.updatedAt = isoNow();
+    appendAudit(state, {
+      recordType: "receipt",
+      recordId: receipt.id,
+      action: "link_to_delivery",
+      actor: actor.actor,
+      previousState: null,
+      resultingState: "archived",
+      integrationResult: `verifier=${receipt.verifierMechanism}; result=${receipt.verifierResult}`,
+      linkedExternalIds: [receipt.receiptId, receipt.archiveLocation],
+      failureDetails: null,
+      lineageId: delivery.lineageId,
+    });
+    return clone(receipt);
+  });
+}
+
+export async function recordDeliverySent(
+  deliveryId: string,
+  result: { provider: string; providerMessageId: string | null; sentAt: string },
+  actor: CoreActor,
+  idempotencyKey = `delivery-send:${deliveryId}`,
+): Promise<DeliveryRecord> {
+  requireRole(actor, "business-authority");
+  return mutateState((state) => {
+    const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
+    if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    if (delivery.state === "sent" || delivery.state === "acknowledged") return clone(delivery);
+    requireTransition("delivery", delivery.state, "sent", deliveryTransitions);
+    const readiness = buildDeliveryReadinessSync(state, delivery.id);
+    if (readiness.fail.length > 0 || readiness.unresolved.length > 0) {
+      throw new AdminCoreError("DELIVERY_NOT_READY", "Delivery readiness checks have not passed.", 409, readiness);
+    }
+    const previous = delivery.state;
+    delivery.state = "sent";
+    delivery.provider = result.provider;
+    delivery.providerMessageId = result.providerMessageId;
+    delivery.sentAt = result.sentAt;
+    delivery.failure = null;
+    delivery.updatedAt = isoNow();
+    state.idempotency[idempotencyKey] = { recordType: "delivery", recordId: delivery.id };
+    appendIntegration(state, {
+      integration: "mail",
+      operation: "send_delivery",
+      idempotencyKey,
+      status: "succeeded",
+      completedAt: delivery.updatedAt,
+      externalId: result.providerMessageId,
+      error: null,
+    });
+    appendAudit(state, {
+      recordType: "delivery",
+      recordId: delivery.id,
+      action: "record_sent",
+      actor: actor.actor,
+      previousState: previous,
+      resultingState: delivery.state,
+      integrationResult: `${result.provider}:${result.providerMessageId ?? "no-provider-id"}`,
+      linkedExternalIds: [delivery.proofRunId, ...(delivery.receiptId ? [delivery.receiptId] : [])],
+      failureDetails: null,
+      lineageId: delivery.lineageId,
+    });
+    return clone(delivery);
+  });
+}
+
+export async function recordIntegrationFailure(
+  input: Omit<IntegrationAttemptRecord, "id" | "attemptedAt" | "status" | "completedAt"> & { status?: IntegrationAttemptRecord["status"] },
+  actor: CoreActor,
+  record?: { recordType: string; recordId: string; lineageId?: string | null },
+): Promise<IntegrationAttemptRecord> {
+  return mutateState((state) => {
+    const attempt = appendIntegration(state, {
+      ...input,
+      status: input.status ?? "failed",
+      completedAt: isoNow(),
+    });
+    appendAudit(state, {
+      recordType: record?.recordType ?? "integration",
+      recordId: record?.recordId ?? attempt.id,
+      action: "integration_failure",
+      actor: actor.actor,
+      previousState: null,
+      resultingState: null,
+      integrationResult: `${attempt.integration}:${attempt.operation}`,
+      linkedExternalIds: attempt.externalId ? [attempt.externalId] : [],
+      failureDetails: attempt.error,
+      lineageId: record?.lineageId ?? null,
+    });
+    return clone(attempt);
+  });
+}
+
+export interface SearchResult {
+  type: "customer" | "inbox" | "review-request" | "product" | "proof-run" | "delivery" | "receipt";
+  id: string;
+  label: string;
+  href: string;
+  matchedField: string;
+}
+
+export async function searchCoreRecords(query: string): Promise<SearchResult[]> {
+  const needle = normalizeSearch(query);
+  if (!needle) return [];
+  const state = await readState();
+  const results: SearchResult[] = [];
+  for (const customer of state.customers) {
+    const field = ["name", "email", "organization"].find((key) => normalizeSearch(String(customer[key as keyof CustomerRecord] ?? "")).includes(needle));
+    if (field) results.push({ type: "customer", id: customer.id, label: customer.name, href: `/admin/customers/${customer.id}`, matchedField: field });
+  }
+  for (const item of state.inboxItems) {
+    const field = ["id", "gmailMessageId", "gmailThreadId", "subject", "sender"].find((key) => normalizeSearch(String(item[key as keyof InboxItemRecord] ?? "")).includes(needle));
+    if (field) results.push({ type: "inbox", id: item.id, label: item.subject, href: `/admin/inbox/${item.id}`, matchedField: field });
+  }
+  for (const request of state.reviewRequests) {
+    const field = ["id", "originatingGmailThreadId", "requestText"].find((key) => normalizeSearch(String(request[key as keyof ReviewRequestRecord] ?? "")).includes(needle));
+    if (field) results.push({ type: "review-request", id: request.id, label: request.requestText, href: `/admin/review-requests/${request.id}`, matchedField: field });
+  }
+  for (const product of state.productContracts) {
+    const field = ["id", "productId", "productName", "contractVersion"].find((key) => normalizeSearch(String(product[key as keyof ProductContractVersionRecord] ?? "")).includes(needle));
+    if (field) results.push({ type: "product", id: product.id, label: product.productName, href: `/admin/products/${product.id}`, matchedField: field });
+  }
+  for (const run of state.proofRuns) {
+    const field = ["id", "reviewRequestId", "productContractVersionId"].find((key) => normalizeSearch(String(run[key as keyof ProofRunRecord] ?? "")).includes(needle));
+    if (field) results.push({ type: "proof-run", id: run.id, label: run.productContractSnapshot.productName, href: `/admin/proof-runs/${run.id}`, matchedField: field });
+  }
+  for (const delivery of state.deliveries) {
+    const field = ["id", "proofRunId", "receiptId"].find((key) => normalizeSearch(String(delivery[key as keyof DeliveryRecord] ?? "")).includes(needle));
+    if (field) results.push({ type: "delivery", id: delivery.id, label: delivery.subject, href: `/admin/deliveries/${delivery.id}`, matchedField: field });
+  }
+  for (const receipt of state.receipts) {
+    const field = ["id", "receiptId", "proofRunId", "productContractVersionId"].find((key) => normalizeSearch(String(receipt[key as keyof ReceiptRecord] ?? "")).includes(needle));
+    if (field) results.push({ type: "receipt", id: receipt.id, label: receipt.receiptId, href: `/admin/receipts/${receipt.id}`, matchedField: field });
+  }
+  for (const receipt of await listReceipts()) {
+    if (normalizeSearch(receipt.receiptId).includes(needle)) {
+      results.push({ type: "receipt", id: receipt.receiptId, label: receipt.receiptId, href: `/admin/receipts/${receipt.receiptId}`, matchedField: "receiptId" });
+    }
+  }
+  return results.slice(0, 100);
+}
+
+export async function getAdminCoreDashboard(): Promise<{
+  counts: Record<string, number>;
+  today: { inbox: number; review: number; proofs: number; deliveries: number };
+  recentProofRuns: ProofRunRecord[];
+  health: ReturnType<typeof getAdminCoreHealth>;
+}> {
+  const state = await readState();
+  const today = new Date().toISOString().slice(0, 10);
+  return {
+    counts: {
+      inbox: state.inboxItems.filter((item) => !["archived", "excluded", "security-routed"].includes(item.state)).length,
+      reviewRequests: state.reviewRequests.filter((request) => !["closed", "declined"].includes(request.state)).length,
+      waitingForCustomer: state.reviewRequests.filter((request) => request.state === "needs_customer_information").length,
+      needsReview: state.proofRuns.filter((run) => run.state === "operator_review").length,
+      readyToDeliver: state.deliveries.filter((delivery) => delivery.state === "ready_for_operator_review").length,
+      receipts: state.receipts.length,
+    },
+    today: {
+      inbox: state.inboxItems.filter((item) => item.createdAt.startsWith(today)).length,
+      review: state.reviewRequests.filter((request) => request.createdAt.startsWith(today)).length,
+      proofs: state.proofRuns.filter((run) => run.createdAt.startsWith(today)).length,
+      deliveries: state.deliveries.filter((delivery) => delivery.createdAt.startsWith(today)).length,
+    },
+    recentProofRuns: clone(state.proofRuns.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 5)),
+    health: getAdminCoreHealth(),
+  };
+}
+
+export function getAdminCoreHealth(): Record<string, { state: HealthState; lastSuccessfulCheck: string | null; lastError: string | null; detail: string }> {
+  const configured = (name: string) => Boolean(process.env[name]?.trim());
+  const now = isoNow();
+  return {
+    gmail: { state: configured("WITNESSOPS_GMAIL_API_BASE_URL") ? "unknown" : "disconnected", lastSuccessfulCheck: null, lastError: null, detail: configured("WITNESSOPS_GMAIL_API_BASE_URL") ? "Gmail adapter is configured but no live check has been recorded." : "Gmail adapter is not configured. Original Gmail content remains authoritative; the console stores message metadata and external IDs." },
+    drive: { state: configured("WITNESSOPS_DRIVE_ROOT") || configured("GOOGLE_DRIVE_ROOT") ? "unknown" : "disconnected", lastSuccessfulCheck: null, lastError: null, detail: configured("WITNESSOPS_DRIVE_ROOT") || configured("GOOGLE_DRIVE_ROOT") ? "Drive adapter is configured but no live check has been recorded." : "Drive adapter is not configured. Drive file IDs are retained by reference; the console does not copy attachments automatically." },
+    mailDelivery: { state: configured("WITNESSOPS_MAIL_PROVIDER") ? "unknown" : "disconnected", lastSuccessfulCheck: null, lastError: configured("WITNESSOPS_MAIL_PROVIDER") ? null : "WITNESSOPS_MAIL_PROVIDER is not configured.", detail: configured("WITNESSOPS_MAIL_PROVIDER") ? "Mail provider is configured but no live check has been recorded." : "Uses the existing WitnessOps mail sender when configured." },
+    receiptVerifier: { state: "connected", lastSuccessfulCheck: now, lastError: null, detail: "Named verifier mechanism and result are required on every linked receipt." },
+    receiptArchive: { state: "connected", lastSuccessfulCheck: now, lastError: null, detail: "Receipt archive links and supersession chains are retained in the operational record." },
+    publicContactRoute: { state: "connected", lastSuccessfulCheck: now, lastError: null, detail: `${PUBLIC_CONTACT_PRIMARY_HREF} is primary; ${PUBLIC_CONTACT_EMAIL} is fallback.` },
+    publicFallbackMailbox: { state: "connected", lastSuccessfulCheck: now, lastError: null, detail: PUBLIC_CONTACT_EMAIL },
+    securityDisclosureMailbox: { state: "connected", lastSuccessfulCheck: now, lastError: null, detail: SECURITY_DISCLOSURE_EMAIL + " remains outside review requests." },
+  };
+}
