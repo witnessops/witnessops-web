@@ -160,7 +160,6 @@ export async function retrieveAskRuntimeReceipt(
   const readResult: ReceiptReadResult | ReceiptReadError = await readReceipt(input.receipt_id);
 
   let decision: AccessDecision;
-  let view: 'full' | 'metadata_only' = 'metadata_only';
 
   if (!readResult.ok) {
     // Existence hiding: treat not-found as scope denied for most actors
@@ -220,7 +219,7 @@ export async function retrieveAskRuntimeReceipt(
     };
   }
 
-  view = decision.visible_view;
+  const view = decision.visible_view;
 
   // Predecessor note only
   if (readResult.receipt.predecessor_receipt_id) {

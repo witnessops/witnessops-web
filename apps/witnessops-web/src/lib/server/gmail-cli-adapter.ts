@@ -168,7 +168,7 @@ function readHeaders(payload: GmailPayloadPart | undefined): Map<string, string>
 function parseAddressList(value: string | undefined): string[] {
   if (!value) return [];
   return value
-    .split(/,(?=\s*(?:[^,<>]+\s*<)?[^,<>@\s]+@[^,<>\s>]+\s*>?)/)
+    .split(/,(?=\s*(?:[^,<>]+\s*<)?[^,<>@\s]+@[^,<>\s]+\s*>?)/)
     .map((candidate) => candidate.trim())
     .filter(Boolean);
 }
