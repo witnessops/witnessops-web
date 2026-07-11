@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
+import { PUBLIC_NO_SECRETS_NOTE } from "@/lib/public-contact";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
@@ -332,6 +333,9 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
         <span>Email follow-up</span>
         <span>{supportEmail}</span>
       </div>
+      <p className="px-5 pb-3 text-[10px] leading-4 text-text-muted">
+        {PUBLIC_NO_SECRETS_NOTE}
+      </p>
     </div>
   );
 }

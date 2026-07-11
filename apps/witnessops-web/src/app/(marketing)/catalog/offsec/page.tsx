@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CatalogSkuCard } from "@/components/catalog/catalog-sku-card";
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { getSkusByTrack } from "@witnessops/catalog";
 
 export const metadata: Metadata = {
@@ -38,6 +39,9 @@ export default function CatalogOffsecPage() {
         {offsec.map((sku) => (
           <CatalogSkuCard key={sku.id} sku={sku} />
         ))}
+      </div>
+      <div className="mt-10">
+        <PublicContactRoute />
       </div>
     </main>
   );

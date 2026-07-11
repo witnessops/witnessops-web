@@ -1,0 +1,36 @@
+.brief {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+  margin: 20px;
+  padding: 20px;
+  color: #f7f7f4;
+  background: #111418;
+  border: 1px solid #262b31;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(17, 20, 24, 0.12);
+}
+
+.avatarShell { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.onDuty { color: #aeb4bb; font-family: var(--font-sans); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.content { min-width: 0; }
+.identity { display: flex; align-items: baseline; gap: 9px; }
+.name { color: #fff; font-family: var(--font-sans); font-size: 18px; font-weight: 700; }
+.role { color: #aeb4bb; font-family: var(--font-sans); font-size: 11px; }
+.title { margin: 5px 0 0; color: #fff; font-family: var(--font-sans); font-size: 16px; }
+.headline { margin: 8px 0 0; color: #fff; font-family: var(--font-sans); font-size: 14px; font-weight: 600; }
+.detail { margin: 7px 0 0; color: #c0c6cc; font-family: var(--font-sans); font-size: 12px; line-height: 1.55; }
+.boundaryNote { margin: 9px 0 0; color: #8f979f; font-family: var(--font-sans); font-size: 11px; line-height: 1.45; }
+.action { display: inline-flex; min-width: 152px; justify-content: center; align-items: center; gap: 8px; padding: 11px 14px; color: #16191d; background: #fff; border-radius: 8px; font-family: var(--font-sans); font-size: 12px; font-weight: 700; text-decoration: none; }
+.action:hover { background: #fff3ec; }
+.sidebarIdentity { display: flex; align-items: center; gap: 8px; margin: 12px 12px 8px; padding: 8px; color: #f7f7f4; background: #14181d; border: 1px solid #2b3036; border-radius: 8px; text-decoration: none; }
+.sidebarIdentityText { display: flex; min-width: 0; flex-direction: column; gap: 2px; font-family: var(--font-sans); }
+.sidebarIdentityText strong { font-size: 12px; }
+.sidebarIdentityText span { color: #aeb4bb; font-size: 9px; }
+
+@media (max-width: 720px) {
+  .brief { grid-template-columns: 72px minmax(0, 1fr); gap: 12px; margin: 12px; padding: 14px; }
+  .avatarShell img { width: 64px; height: auto; }
+  .action { grid-column: 1 / -1; width: 100%; }
+}

@@ -51,6 +51,70 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/admin/customers/[id]",
+      "regex": "^/admin/customers/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/customers/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/admin/deliveries/[id]",
+      "regex": "^/admin/deliveries/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/deliveries/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/admin/inbox/[id]",
+      "regex": "^/admin/inbox/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/inbox/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/admin/products/[id]",
+      "regex": "^/admin/products/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/products/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/admin/proof-runs/[id]",
+      "regex": "^/admin/proof\\-runs/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/proof\\-runs/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/admin/receipts/[id]",
+      "regex": "^/admin/receipts/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/receipts/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/admin/review-requests/[id]",
+      "regex": "^/admin/review\\-requests/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/review\\-requests/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/admin/core/[...path]",
+      "regex": "^/api/admin/core/(.+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPpath": "nxtPpath"
+      },
+      "namedRegex": "^/api/admin/core/(?<nxtPpath>.+?)(?:/)?$"
+    },
+    {
       "page": "/api/admin/lifecycle/[runId]/authorize",
       "regex": "^/api/admin/lifecycle/([^/]+?)/authorize(?:/)?$",
       "routeKeys": {
@@ -197,10 +261,40 @@
       "namedRegex": "^/admin(?:/)?$"
     },
     {
+      "page": "/admin/customers",
+      "regex": "^/admin/customers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/customers(?:/)?$"
+    },
+    {
+      "page": "/admin/deliveries",
+      "regex": "^/admin/deliveries(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/deliveries(?:/)?$"
+    },
+    {
+      "page": "/admin/inbox",
+      "regex": "^/admin/inbox(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/inbox(?:/)?$"
+    },
+    {
       "page": "/admin/login",
       "regex": "^/admin/login(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/login(?:/)?$"
+    },
+    {
+      "page": "/admin/products",
+      "regex": "^/admin/products(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/products(?:/)?$"
+    },
+    {
+      "page": "/admin/proof-runs",
+      "regex": "^/admin/proof\\-runs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/proof\\-runs(?:/)?$"
     },
     {
       "page": "/admin/queue",
@@ -209,10 +303,34 @@
       "namedRegex": "^/admin/queue(?:/)?$"
     },
     {
+      "page": "/admin/receipts",
+      "regex": "^/admin/receipts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/receipts(?:/)?$"
+    },
+    {
       "page": "/admin/reports",
       "regex": "^/admin/reports(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/reports(?:/)?$"
+    },
+    {
+      "page": "/admin/review-requests",
+      "regex": "^/admin/review\\-requests(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/review\\-requests(?:/)?$"
+    },
+    {
+      "page": "/admin/search",
+      "regex": "^/admin/search(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/search(?:/)?$"
+    },
+    {
+      "page": "/admin/settings",
+      "regex": "^/admin/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/settings(?:/)?$"
     },
     {
       "page": "/admin/system",

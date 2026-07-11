@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 
 export const metadata: Metadata = {
   title: "Request verified",
@@ -182,6 +183,10 @@ export default function ReviewRequestConfirmedPage() {
             </div>
           </section>
         </aside>
+      </div>
+
+      <div className="mt-10">
+        <PublicContactRoute subject="fit-check" />
       </div>
     </main>
   );

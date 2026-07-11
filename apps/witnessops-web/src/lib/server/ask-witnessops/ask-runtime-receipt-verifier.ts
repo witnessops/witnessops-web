@@ -1,13 +1,5 @@
 import "server-only";
 
-import { createRequire } from "node:module";
-
-import type {
-  ClassificationResult,
-} from "./authority-classifier";
-import type {
-  PolicyDecision,
-} from "./authority-policy-executor";
 import type {
   AssembledAnswer,
 } from "./authority-answer-assembler";
@@ -62,8 +54,6 @@ export interface VerifyAskRuntimeReceiptInput {
   readonly responseTemplates: unknown;          // exact object for the recorded response_templates_sha256
 }
 
-const require = createRequire(import.meta.url);
-
 /**
  * Performs a full independent reconstruction and verification.
  *
@@ -96,8 +86,14 @@ export function verifyAskRuntimeReceiptReconstruction(
   const boundRespSha = receipt.bindings.response_templates_sha256;
 
   // Validate supplied presentation projection matches binding (self-describing).
-  const pres = presentationProjection as any;
-  const suppliedPresSha = pres?.source_presentation_sha256 ?? pres?.sourcePresentationSha256;
+  const pres = presentationProjection && typeof presentationProjection === "object"
+    ? presentationProjection as Record<string, unknown>
+    : {};
+  const suppliedPresSha = typeof pres.source_presentation_sha256 === "string"
+    ? pres.source_presentation_sha256
+    : typeof pres.sourcePresentationSha256 === "string"
+      ? pres.sourcePresentationSha256
+      : undefined;
   if (suppliedPresSha && suppliedPresSha !== boundPresSha) {
     return {
       ok: false,
@@ -114,11 +110,12 @@ export function verifyAskRuntimeReceiptReconstruction(
   try {
     liveAuth = getAuthoritySetIdentity();
     livePres = getPresentationProjectionIdentity();
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
     return {
       ok: false,
       reason: "CUSTODY_INTEGRITY_FAILURE",
-      details: `failed to read live projection identity: ${e?.message || String(e)}`,
+      details: `failed to read live projection identity: ${message}`,
     };
   }
 

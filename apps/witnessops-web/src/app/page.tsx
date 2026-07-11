@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { Hero } from "@/components/marketing/hero";
 import { renderHomeSections } from "@/components/marketing/home-section-registry";
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { loadHomeContent } from "@/lib/content";
 import { buildMetadata } from "@/lib/seo";
 
@@ -38,6 +39,10 @@ export default function HomePage() {
           ctas={home.final_cta.ctas}
         />
       )}
+
+      <div className="mx-auto max-w-[1200px] px-6 pb-16">
+        <PublicContactRoute />
+      </div>
     </main>
   );
 }

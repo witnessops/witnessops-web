@@ -50,7 +50,7 @@ export function assembleAnswer(input: AssembleAnswerInput): AssembledAnswer {
     return buildClosedAnswer(policyDecision || ({} as PolicyDecision), "INVALID_POLICY_DECISION");
   }
 
-  const templateRecord: any = getTemplate(policyDecision.template_id);
+  const templateRecord = getTemplate(policyDecision.template_id);
   if (!templateRecord || templateRecord.template_id !== policyDecision.template_id) {
     return buildClosedAnswer(policyDecision, "MISSING_TEMPLATE_BINDING");
   }
@@ -113,8 +113,10 @@ export function assembleAnswer(input: AssembleAnswerInput): AssembledAnswer {
     }
   }
 
-  const templateBody = templateRecord.body ?? "";
-  const sourceDisplay = templateRecord.source_display ?? null;
+  const templateBody = typeof templateRecord.body === "string" ? templateRecord.body : "";
+  const sourceDisplay = typeof templateRecord.source_display === "string"
+    ? templateRecord.source_display
+    : null;
 
   const assembled: AssembledAnswer = {
     schema: "witnessops.ask.assembled-answer.v1",

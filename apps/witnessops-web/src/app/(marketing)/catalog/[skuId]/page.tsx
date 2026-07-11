@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
 import { getSku, resolveSkuId, type CatalogSku } from "@witnessops/catalog";
 
@@ -298,6 +299,10 @@ export default async function CatalogSkuDetailPage({ params }: PageProps) {
         {secondary && !isExternal(secondary) ? (
           <CtaButton href={secondary} variant="secondary" label="Inspect sample" />
         ) : null}
+      </div>
+
+      <div className="mt-10">
+        <PublicContactRoute productName={sku.name} subject="fit-check" />
       </div>
     </main>
   );
