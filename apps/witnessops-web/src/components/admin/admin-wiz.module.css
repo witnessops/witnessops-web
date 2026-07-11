@@ -1,0 +1,202 @@
+.brief {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border-bottom: 1px solid var(--admin-border, #232738);
+  background:
+    radial-gradient(circle at 8% 50%, rgba(255, 138, 0, 0.12), transparent 30%),
+    var(--admin-bg-alt, #0b0d12);
+  box-shadow: inset 3px 0 0 var(--admin-accent, #ff8a00);
+}
+
+.brief[data-state="recommending"] {
+  box-shadow: inset 3px 0 0 var(--admin-success, #30e0d0);
+}
+
+.brief[data-state="boundary"] {
+  background:
+    radial-gradient(circle at 8% 50%, rgba(255, 77, 77, 0.12), transparent 30%),
+    var(--admin-bg-alt, #0b0d12);
+  box-shadow: inset 3px 0 0 var(--admin-danger, #ff4d4d);
+}
+
+.avatarShell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 112px;
+}
+
+.onDuty {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--admin-text-faint, #7f8798);
+}
+
+.onDuty::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--admin-success, #30e0d0);
+  box-shadow: 0 0 6px var(--admin-success, #30e0d0);
+}
+
+.content {
+  min-width: 0;
+}
+
+.identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--admin-accent, #ff8a00);
+}
+
+.role {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--admin-text-faint, #7f8798);
+}
+
+.title {
+  margin: 8px 0 0;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--admin-text-muted, #9aa2b2);
+}
+
+.headline {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--admin-text-primary, #f3f5f8);
+}
+
+.detail {
+  margin: 5px 0 0;
+  max-width: 72ch;
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--admin-text-secondary, #b7bdc9);
+}
+
+.boundaryNote {
+  margin: 8px 0 0;
+  font-size: 9px;
+  line-height: 1.5;
+  color: var(--admin-text-faint, #7f8798);
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 148px;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-accent, #ff8a00);
+  color: var(--admin-accent, #ff8a00);
+  background: var(--admin-accent-subtle, rgba(255, 138, 0, 0.08));
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.12s, color 0.12s;
+}
+
+.action:hover,
+.action:focus-visible {
+  background: var(--admin-accent, #ff8a00);
+  color: #080b11;
+  outline: none;
+}
+
+.brief[data-state="boundary"] .action {
+  border-color: var(--admin-danger, #ff4d4d);
+  color: var(--admin-danger, #ff4d4d);
+  background: var(--admin-danger-subtle, rgba(255, 77, 77, 0.08));
+}
+
+.brief[data-state="boundary"] .action:hover,
+.brief[data-state="boundary"] .action:focus-visible {
+  background: var(--admin-danger, #ff4d4d);
+  color: #080b11;
+}
+
+.sidebarIdentity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid var(--admin-border, #232738);
+  color: inherit;
+  text-decoration: none;
+  background: var(--admin-card, #11141b);
+}
+
+.sidebarIdentity:hover,
+.sidebarIdentity:focus-visible {
+  border-color: var(--admin-accent, #ff8a00);
+  outline: none;
+}
+
+.sidebarIdentityText {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebarIdentityText strong {
+  font-size: 11px;
+  color: var(--admin-accent, #ff8a00);
+}
+
+.sidebarIdentityText span {
+  overflow: hidden;
+  font-size: 8px;
+  letter-spacing: 0.05em;
+  color: var(--admin-text-faint, #7f8798);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .brief {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .avatarShell {
+    min-width: 84px;
+  }
+
+  .avatarShell svg {
+    width: 84px;
+    height: auto;
+  }
+
+  .action {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
