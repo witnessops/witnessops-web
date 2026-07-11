@@ -27,3 +27,20 @@ test("Wiz presentation cannot mutate lifecycle or send outbound mail", () => {
   assert.doesNotMatch(source, /fetch\(|sendVerificationEmail|method:\s*["']POST|transition|proof-run/);
   assert.match(source, /does not execute actions automatically/);
 });
+
+test("every Wiz action stays on the allowlisted Admin queue surface", () => {
+  const cases = [
+    { total: 4, ready: 1, reconciliationPending: 0, divergent: 1 },
+    { total: 4, ready: 1, reconciliationPending: 1, divergent: 0 },
+    { total: 4, ready: 1, reconciliationPending: 0, divergent: 0 },
+    { total: 0, ready: 0, reconciliationPending: 0, divergent: 0 },
+    { total: 1, ready: 0, reconciliationPending: 0, divergent: 0 },
+  ];
+  const allowed = new Set([
+    "/admin/queue",
+    "/admin/queue?filter=ready",
+    "/admin/queue?filter=pending",
+    "/admin/queue?filter=divergent",
+  ]);
+  for (const input of cases) assert.ok(allowed.has(buildAdminWizBrief(input).actionHref));
+});

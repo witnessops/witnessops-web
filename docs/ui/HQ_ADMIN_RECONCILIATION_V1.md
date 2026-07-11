@@ -52,6 +52,9 @@ No item was classified `REQUIRES_NEW_OPERATIONAL_CAPABILITY`.
   package-release action.
 - Wiz text is visibly marked as an operator brief and says that execution is
   not automatic.
+- Every Wiz action is covered by an allowlist test containing only `/admin/queue`,
+  `/admin/queue?filter=ready`, `/admin/queue?filter=pending`, and
+  `/admin/queue?filter=divergent`.
 - Public Ask WitnessOps remains separate from Admin authority.
 - Product contracts, statuses, receipt schemas, verifier behavior, Gmail,
   OIDC, Resend, DNS, Caddy, and public bilingual routes are unchanged.
@@ -82,6 +85,20 @@ Known clean-base limitations:
 - full typecheck/build: blocked by the same pre-existing Ask failures;
 - route parity: blocked by the clean-base frozen route/build manifest mismatch;
 - no production deployment was performed.
+
+### Base-versus-PR failure comparison
+
+The same application test command was run on the exact PR base commit
+`00b034d93b5f546061f2f35420d4edf05c7bf23a` in a separate detached worktree and
+on this PR commit `cf97082a4d5d6d13c64a05ab26f117ba281e8cb5`.
+
+- Base: `458/466` passed, `8` failed.
+- PR: `458/466` passed, `8` failed.
+- Failure-name sets: exact match; base-only failures: `0`; PR-only failures: `0`.
+
+The shared failures are the existing `WEB-008` route-contract failure and the
+seven Ask WitnessOps loader/runtime/pipeline failures. The reconciliation UI
+does not introduce or repair those failures.
 
 ## Rollback
 
