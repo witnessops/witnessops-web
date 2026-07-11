@@ -1,6 +1,20 @@
 ARG NODE22_RUNTIME_IMAGE=node:22-alpine
+ARG GWS_VERSION=0.22.5
+ARG GWS_TARGET=x86_64-unknown-linux-musl
+ARG GWS_SHA256=4db473dde4b1ab872e4ff35d769b0d4af1f1a6441a605e79d5cf8ada9c87e920
 FROM ${NODE22_RUNTIME_IMAGE} AS runtime
-RUN apk add --no-cache libc6-compat
+ARG GWS_VERSION
+ARG GWS_TARGET
+ARG GWS_SHA256
+RUN apk add --no-cache libc6-compat ca-certificates curl \
+  && curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+    "https://github.com/googleworkspace/cli/releases/download/v${GWS_VERSION}/google-workspace-cli-${GWS_TARGET}.tar.gz" \
+    --output /tmp/gws.tar.gz \
+  && echo "${GWS_SHA256}  /tmp/gws.tar.gz" | sha256sum -c - \
+  && tar -xzf /tmp/gws.tar.gz -C /tmp \
+  && install -m 0755 /tmp/gws /usr/local/bin/gws \
+  && rm -f /tmp/gws.tar.gz /tmp/gws \
+  && apk del curl
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
