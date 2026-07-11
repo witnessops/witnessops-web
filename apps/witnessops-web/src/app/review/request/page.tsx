@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
-import { getMailboxConfig } from "@/lib/mailboxes";
+import {
+  PUBLIC_CONTACT_EMAIL,
+  PUBLIC_CONTACT_SUBJECTS,
+  PUBLIC_NO_SECRETS_NOTE,
+  publicContactMailto,
+} from "@/lib/public-contact";
 
 export const metadata: Metadata = {
   title: "Request One Proof Run",
@@ -61,8 +66,6 @@ const sampleArtifacts = [
 ];
 
 export default function ReviewRequestPage() {
-  const mailboxes = getMailboxConfig();
-
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1040px] px-6 py-12 md:py-16">
       <section className="mb-8 max-w-[720px]">
@@ -93,17 +96,20 @@ export default function ReviewRequestPage() {
           for the first fit check.
         </p>
         <p className="mt-3 max-w-[640px] text-sm leading-relaxed text-text-muted">
-          Prefer email? Send the same non-secret fit check to{" "}
-          <a href={`mailto:${mailboxes.engage}`} className="text-brand-accent underline-offset-4 hover:underline">
-            {mailboxes.engage}
+          Fallback contact: send the same non-secret fit check to{" "}
+          <a
+            href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
+            className="text-brand-accent underline-offset-4 hover:underline"
+          >
+            {PUBLIC_CONTACT_EMAIL}
           </a>
-          .
+          . {PUBLIC_NO_SECRETS_NOTE}
         </p>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section className="border border-surface-border p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}>
-          <ContactForm contactEmail={mailboxes.engage} />
+          <ContactForm />
         </section>
 
         <aside className="space-y-4">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 
 export const metadata: Metadata = {
   title: "Sample Review Report",
@@ -341,6 +342,8 @@ export default function SampleReportPage() {
               and the artifacts assumed available in this sample boundary.
             </p>
           </section>
+
+          <PublicContactRoute />
         </div>
       </SectionShell>
     </main>

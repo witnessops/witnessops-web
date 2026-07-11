@@ -5,7 +5,12 @@ import { getCanonicalAlternates } from "@witnessops/config";
 import { MarkdownContent } from "@witnessops/ui/mdx";
 import { loadSupportIndex, loadSupportPage } from "@/lib/content";
 import { SupportIntake } from "@/components/support/support-intake";
-import { getMailboxConfig } from "@/lib/mailboxes";
+import {
+  PUBLIC_CONTACT_EMAIL,
+  PUBLIC_CONTACT_SUBJECTS,
+  PUBLIC_NO_SECRETS_NOTE,
+  publicContactMailto,
+} from "@/lib/public-contact";
 
 export function generateMetadata(): Metadata {
   const doc = loadSupportPage("support-policy");
@@ -36,7 +41,6 @@ interface SupportPageProps {
 }
 
 export default async function SupportPage({ searchParams }: SupportPageProps) {
-  const mailboxes = getMailboxConfig();
   const supportDocs = loadSupportIndex();
   const primaryDoc = loadSupportPage("support-policy") ?? supportDocs[0];
   const resolvedSearchParams = (await searchParams) ?? {};
@@ -137,17 +141,20 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
               also routes to email rather than the admin queue.
             </p>
             <a
-              href={`mailto:${mailboxes.support}`}
+              href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.general)}
               className="inline-flex items-center border border-surface-border px-4 py-2 text-text-muted transition-all hover:border-brand-accent/40 hover:text-text-primary"
               style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.08em" }}
             >
-              {mailboxes.support}
+              {PUBLIC_CONTACT_EMAIL}
             </a>
+            <p className="mt-3 text-xs leading-relaxed text-text-muted">
+              {PUBLIC_NO_SECRETS_NOTE}
+            </p>
           </div>
         </div>
 
         <div>
-          <SupportIntake supportEmail={mailboxes.support} />
+          <SupportIntake supportEmail={PUBLIC_CONTACT_EMAIL} />
         </div>
       </div>
     </main>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 
 export const metadata: Metadata = {
   title: "Named Sample Cases and Proof Bundles",
@@ -286,6 +287,8 @@ export default function SampleCasesIndexPage() {
               </Link>
             ))}
           </section>
+
+          <PublicContactRoute />
         </div>
       </SectionShell>
     </main>

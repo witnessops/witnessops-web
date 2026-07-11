@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CatalogSkuCard } from "@/components/catalog/catalog-sku-card";
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
 import { getSkusByTrack, loadCatalog } from "@witnessops/catalog";
 
@@ -265,6 +266,10 @@ export default function CatalogIndexPage() {
           ))}
         </div>
       </section>
+
+      <div className="mt-10">
+        <PublicContactRoute />
+      </div>
     </main>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CatalogSkuCard } from "@/components/catalog/catalog-sku-card";
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { getSkusByTrack, loadCatalog } from "@witnessops/catalog";
 
 export const metadata: Metadata = {
@@ -62,6 +63,9 @@ export default function CatalogOperatorPlatformPage() {
           Self-serve app signup: {catalog.not_enabled?.includes("public app traffic") ? "not live" : "request access"}
         </p>
       </footer>
+      <div className="mt-10">
+        <PublicContactRoute />
+      </div>
     </main>
   );
 }

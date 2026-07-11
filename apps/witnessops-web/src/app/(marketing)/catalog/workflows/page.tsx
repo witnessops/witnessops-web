@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CatalogSkuCard } from "@/components/catalog/catalog-sku-card";
 import { CtaButton } from "@/components/shared/cta-button";
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { getWorkflowSkus, loadCatalog } from "@witnessops/catalog";
 
 export const metadata: Metadata = {
@@ -46,6 +47,9 @@ export default function CatalogWorkflowsPage() {
       <p className="mt-8 text-xs text-text-muted">
         {catalog.not_enabled?.includes("live Stripe checkout") ? "Live checkout not enabled." : ""}
       </p>
+      <div className="mt-10">
+        <PublicContactRoute />
+      </div>
     </main>
   );
 }

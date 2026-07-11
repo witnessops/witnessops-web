@@ -5,6 +5,12 @@ import { useState } from "react";
 
 import type { EngageResponse, VerifyTokenResponse } from "@/lib/token-contract";
 import { formatVerificationCode } from "@/lib/verification-code-format";
+import {
+  PUBLIC_CONTACT_EMAIL,
+  PUBLIC_CONTACT_SUBJECTS,
+  PUBLIC_NO_SECRETS_NOTE,
+  publicContactMailto,
+} from "@/lib/public-contact";
 
 type FieldName =
   | "name"
@@ -46,11 +52,7 @@ function stringField(data: FormData, name: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export function ContactForm({
-  contactEmail,
-}: {
-  contactEmail: string;
-}) {
+export function ContactForm() {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "verifying" | "error">("idle");
@@ -340,14 +342,15 @@ export function ContactForm({
                 &middot;
               </span>
               <a
-                href={`mailto:${contactEmail}`}
+                href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
                 className="whitespace-nowrap underline decoration-surface-border underline-offset-2 transition-colors hover:text-text-primary"
                 style={{ color: "inherit" }}
               >
-                {contactEmail}
+                {PUBLIC_CONTACT_EMAIL}
               </a>
             </span>
           </div>
+          <p className="mt-2">{PUBLIC_NO_SECRETS_NOTE}</p>
         </div>
       </form>
     );
@@ -546,14 +549,15 @@ export function ContactForm({
               &middot;
             </span>
             <a
-              href={`mailto:${contactEmail}`}
+              href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
               className="whitespace-nowrap underline decoration-surface-border underline-offset-2 transition-colors hover:text-text-primary"
               style={{ color: "inherit" }}
             >
-              {contactEmail}
+              {PUBLIC_CONTACT_EMAIL}
             </a>
           </span>
         </div>
+        <p className="mt-2">{PUBLIC_NO_SECRETS_NOTE}</p>
       </div>
     </form>
   );

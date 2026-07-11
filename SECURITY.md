@@ -71,6 +71,8 @@ channels:
   repository —
   <https://github.com/witnessops/witnessops-web/security/advisories/new>
 
+Do not send passwords, private keys, API keys, recovery codes, session tokens, or other secrets.
+
 When reporting, please include:
 
 - A description of the issue and its potential impact

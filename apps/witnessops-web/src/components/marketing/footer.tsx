@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { getSurfaceUrl } from "@witnessops/config";
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 
 const LIBRARY_PRIMARY_HREFS = new Set([
   "/library",
@@ -193,6 +194,10 @@ export function Footer({
               );
             })}
           </div>
+        </div>
+
+        <div className="mt-8 max-w-xl">
+          <PublicContactRoute compact />
         </div>
 
         {/* Bottom row: legal + copyright */}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CtaButton } from "@/components/shared/cta-button";
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 
 export const metadata: Metadata = {
   title: "Proof Pack Review",
@@ -276,6 +277,10 @@ export default function ReviewPage() {
           is evidenced, what is declared, and what remains challengeable.
         </p>
       </section>
+
+      <div className="mt-10">
+        <PublicContactRoute subject="fit-check" />
+      </div>
     </main>
   );
 }
