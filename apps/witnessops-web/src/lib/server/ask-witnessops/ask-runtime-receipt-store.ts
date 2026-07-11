@@ -67,6 +67,16 @@ function computeContentHash(obj: unknown): string {
   return createHash("sha256").update(canonical).digest("hex");
 }
 
+function errorCode(error: unknown): unknown {
+  return error && typeof error === "object" && "code" in error
+    ? (error as { code?: unknown }).code
+    : undefined;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export async function writeReceipt(
   receipt: AskRuntimeReceipt,
   root: string = DEFAULT_RECEIPT_ROOT
@@ -82,7 +92,6 @@ export async function writeReceipt(
       return { ok: false, reason: "INVALID_RECEIPT_SCHEMA" };
     }
 
-    const expectedHash = receipt.deterministic_replay_hash;
     const computedHash = computeContentHash({
       ...receipt,
       deterministic_replay_hash: undefined, // exclude the hash field itself for content hash
@@ -113,18 +122,18 @@ export async function writeReceipt(
     // Atomic rename (will fail if target already exists — good for immutability)
     try {
       await fs.promises.rename(tempPath, targetPath);
-    } catch (renameErr: any) {
+    } catch (renameErr: unknown) {
       await fs.promises.unlink(tempPath).catch(() => {});
-      if (renameErr.code === "EEXIST") {
+      if (errorCode(renameErr) === "EEXIST") {
         return { ok: false, reason: "RECEIPT_ALREADY_EXISTS" };
       }
       throw renameErr;
     }
 
     return { ok: true, receiptId: receipt.receipt_id, path: targetPath };
-  } catch (err: any) {
+  } catch (err: unknown) {
     await fs.promises.unlink(tempPath).catch(() => {});
-    return { ok: false, reason: `WRITE_FAILED: ${err.message}` };
+    return { ok: false, reason: `WRITE_FAILED: ${errorMessage(err)}` };
   }
 }
 
@@ -159,11 +168,11 @@ export async function readReceipt(
       receipt: cleanReceipt as AskRuntimeReceipt,
       path: filePath,
     };
-  } catch (err: any) {
-    if (err.code === "ENOENT") {
+  } catch (err: unknown) {
+    if (errorCode(err) === "ENOENT") {
       return { ok: false, reason: "RECEIPT_NOT_FOUND" };
     }
-    return { ok: false, reason: `READ_FAILED: ${err.message}` };
+    return { ok: false, reason: `READ_FAILED: ${errorMessage(err)}` };
   }
 }
 

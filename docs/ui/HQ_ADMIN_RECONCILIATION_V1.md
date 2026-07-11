@@ -70,7 +70,7 @@ Local visual evidence was captured without copying live or synthetic records:
 
 Passed:
 
-- focused Wiz model and non-mutation tests: 4/4;
+- focused Admin boundary and Wiz tests: 6/6;
 - changed-file ESLint: passed;
 - local Admin desktop render: passed;
 - local Admin 390 px render: passed;
@@ -81,8 +81,11 @@ Passed:
 
 Known clean-base limitations:
 
-- full app suite: 458/466 passed; 8 pre-existing Ask WitnessOps failures;
-- full typecheck/build: blocked by the same pre-existing Ask failures;
+- full app suite: 459/467 passed; 8 documented baseline failures (7 Ask
+  WitnessOps boundary/runtime failures and the existing route-parity test);
+- bounded Ask type/lint hygiene follow-up: full typecheck, lint, and production
+  build now pass; the remaining application-test failures are unchanged in
+  scope and behavior;
 - route parity: blocked by the clean-base frozen route/build manifest mismatch;
 - no production deployment was performed.
 
@@ -93,12 +96,13 @@ The same application test command was run on the exact PR base commit
 on this PR commit `cf97082a4d5d6d13c64a05ab26f117ba281e8cb5`.
 
 - Base: `458/466` passed, `8` failed.
-- PR: `458/466` passed, `8` failed.
+- PR before the Ask hygiene follow-up: `458/466` passed, `8` failed.
 - Failure-name sets: exact match; base-only failures: `0`; PR-only failures: `0`.
 
 The shared failures are the existing `WEB-008` route-contract failure and the
 seven Ask WitnessOps loader/runtime/pipeline failures. The reconciliation UI
-does not introduce or repair those failures.
+does not introduce or change those workflow failures. The later Ask hygiene
+follow-up is limited to type/lint correctness and test-environment compatibility.
 
 ## Rollback
 

@@ -23,7 +23,9 @@ export type AccessDenialReason =
   | "ACTOR_UNKNOWN"
   | "RECEIPT_SCOPE_DENIED"
   | "RATE_LIMITED"
-  | "GOVERNANCE_DENIED";
+  | "GOVERNANCE_DENIED"
+  | "CUSTODY_INTEGRITY_FAILURE"
+  | "RETRIEVAL_FAILED";
 
 export type AccessDecision =
   | { allow: true; visible_view: 'full' | 'metadata_only' }

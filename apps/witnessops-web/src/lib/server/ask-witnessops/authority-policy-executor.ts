@@ -20,7 +20,6 @@ import {
 import {
   getQuestionClass,
   getPolicyRule,
-  getTemplateForQuestionClass,
   getAuthoritySetIdentity,
 } from "./authority-loader";
 
@@ -134,7 +133,7 @@ export function executePolicy(input: ExecutePolicyInput): PolicyDecision {
   // class itself is a safety/refusal class.
   let authorizedAction = policyRule.authorized_action;
   let fallbackUsed = classification.fallback_used || false;
-  let reasonCodes: string[] = [];
+  const reasonCodes: string[] = [];
 
   const safetyRefusalClasses = [
     "secret_or_evidence_intake",
@@ -149,7 +148,8 @@ export function executePolicy(input: ExecutePolicyInput): PolicyDecision {
     fallbackUsed = true;
     reasonCodes.push(REASON_CODES.REFUSAL);
   } else if (classification.fallback_used) {
-    authorizedAction = policyRule.fallback_action || "bounded_decline";
+    const fallbackAction = policyRule.fallback_action;
+    authorizedAction = typeof fallbackAction === "string" ? fallbackAction : "bounded_decline";
     fallbackUsed = true;
     reasonCodes.push(REASON_CODES.FALLBACK);
   }
@@ -219,7 +219,7 @@ function buildClosedDecision(
     claim_boundary_hash: identity.layers.claimBoundary.sha256,
     response_templates_hash: identity.layers.responseTemplates.sha256,
     deterministic_replay_hash: computeReplayHash(
-      { question_class_id: questionClassId } as any,
+      { question_class_id: questionClassId },
       policyRuleId,
       authorizedAction,
       templateId
@@ -229,7 +229,7 @@ function buildClosedDecision(
 }
 
 function computeReplayHash(
-  classification: any,
+  classification: Pick<ClassificationResult, "question_class_id">,
   policyRuleId: string,
   authorizedAction: string,
   templateId: string

@@ -123,9 +123,14 @@ export async function retrieveAskRuntimeReceipt(
   // Basic provenance validation via policy
   if (!input.actor || !input.actor.id) {
     const decision: AccessDecision = { allow: false, reason: "ACTOR_UNKNOWN" };
+    const invalidActor: ActorIdentity = {
+      id: "",
+      type: "operator",
+      provenance: { method: "internal_token", verified_at: "" },
+    };
     await emitAudit({
       event: "retrieval_denied",
-      actor: input.actor || ({} as any),
+      actor: input.actor || invalidActor,
       decision,
       details: "missing actor",
     }, auditId, retrievedAt);
@@ -162,9 +167,9 @@ export async function retrieveAskRuntimeReceipt(
     if (readResult.reason === "RECEIPT_NOT_FOUND") {
       decision = { allow: false, reason: "RECEIPT_SCOPE_DENIED", details: "not found or unauthorized" };
     } else if (readResult.reason === "CONTENT_HASH_MISMATCH" || readResult.reason === "INVALID_RECEIPT_SCHEMA") {
-      decision = { allow: false, reason: "CUSTODY_INTEGRITY_FAILURE" as any };
+      decision = { allow: false, reason: "CUSTODY_INTEGRITY_FAILURE" };
     } else {
-      decision = { allow: false, reason: "RETRIEVAL_FAILED" as any };
+      decision = { allow: false, reason: "RETRIEVAL_FAILED" };
     }
 
     await emitAudit({
@@ -175,7 +180,7 @@ export async function retrieveAskRuntimeReceipt(
       details: readResult.reason,
     }, auditId, retrievedAt);
 
-    const errorReason = (decision.reason === "RECEIPT_SCOPE_DENIED" || decision.reason === "ACTOR_UNAUTHORIZED")
+    const errorReason: RetrieveReceiptError["reason"] = (decision.reason === "RECEIPT_SCOPE_DENIED" || decision.reason === "ACTOR_UNAUTHORIZED")
       ? "ACCESS_DENIED"
       : (readResult.reason === "CONTENT_HASH_MISMATCH" || readResult.reason === "INVALID_RECEIPT_SCHEMA")
         ? "CUSTODY_INTEGRITY_FAILURE"
@@ -183,7 +188,7 @@ export async function retrieveAskRuntimeReceipt(
 
     return {
       ok: false,
-      reason: errorReason as any,
+      reason: errorReason,
       audit_id: auditId,
       details: readResult.reason,
     };

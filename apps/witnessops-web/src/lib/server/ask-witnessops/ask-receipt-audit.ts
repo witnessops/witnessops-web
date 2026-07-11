@@ -48,6 +48,16 @@ function computeContentHash(obj: unknown): string {
   return createHash("sha256").update(canonical).digest("hex");
 }
 
+function errorCode(error: unknown): unknown {
+  return error && typeof error === "object" && "code" in error
+    ? (error as { code?: unknown }).code
+    : undefined;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export async function writeAuditEvent(
   event: ReceiptAuditEvent,
   root: string = DEFAULT_AUDIT_ROOT
@@ -80,9 +90,9 @@ export async function writeAuditEvent(
 
     try {
       await fs.promises.rename(tempPath, targetPath);
-    } catch (renameErr: any) {
+    } catch (renameErr: unknown) {
       await fs.promises.unlink(tempPath).catch(() => {});
-      if (renameErr.code === "EEXIST") {
+      if (errorCode(renameErr) === "EEXIST") {
         return { ok: false, reason: "AUDIT_ALREADY_EXISTS" };
       }
       throw renameErr;
@@ -97,8 +107,8 @@ export async function writeAuditEvent(
     }));
 
     return { ok: true, path: targetPath };
-  } catch (err: any) {
+  } catch (err: unknown) {
     await fs.promises.unlink(tempPath).catch(() => {});
-    return { ok: false, reason: `AUDIT_WRITE_FAILED: ${err.message}` };
+    return { ok: false, reason: `AUDIT_WRITE_FAILED: ${errorMessage(err)}` };
   }
 }

@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import test from "node:test";
 
 import { buildAuthorityLoader } from "./authority-loader-core";
+import type { ClassificationResult } from "./authority-classifier";
 
 const require = createRequire(import.meta.url);
 const canonicalProjection = require(
@@ -296,7 +297,7 @@ test("all 19 classes produce the exact canonical template_id from RESPONSE_TEMPL
       matched_rule_ids: [],
       precedence_rule_id: null,
       fallback_used: false,
-    } as any;
+    } satisfies ClassificationResult;
 
     const decision = executePolicy({ classification });
 
@@ -330,7 +331,7 @@ test("every selected template authorized_action matches its policy action", () =
       matched_rule_ids: [],
       precedence_rule_id: null,
       fallback_used: false,
-    } as any;
+    } satisfies ClassificationResult;
 
     const decision = executePolicy({ classification });
     assert.equal(decision.authorized_action, "refuse", `Safety class ${cls} must resolve to refuse action`);
@@ -338,7 +339,7 @@ test("every selected template authorized_action matches its policy action", () =
 });
 
 test("policy executor fails closed on malformed input", () => {
-  const bad = { schema: "bad" } as any;
+  const bad = { schema: "bad" } as unknown as ClassificationResult;
   const decision = executePolicy({ classification: bad });
   assert.equal(decision.authorized_action, "bounded_decline");
   assert.equal(decision.fallback_used, true);

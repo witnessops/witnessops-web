@@ -164,10 +164,10 @@ test("runtime receipt contract is exposed only through the server-only loader", 
 
 test("ask pipeline produces deterministic AssembledAnswer for valid input (malformed, closed, and success paths)", async () => {
   const { normalizeAskRequest } = await import(
-    "./ask-request-normalizer.ts"
+    "./ask-request-normalizer"
   );
   const { classifyQuestion, executePolicy, assembleAnswer } = await import(
-    "./authority-loader.ts"
+    "./authority-loader"
   );
 
   // Malformed input test (via normalizer)
@@ -207,4 +207,3 @@ test("ask pipeline produces deterministic AssembledAnswer for valid input (malfo
     assert.equal(a.presented_sources.length, 0);
   }
 });
-

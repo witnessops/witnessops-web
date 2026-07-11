@@ -8,6 +8,7 @@ import {
   createAskRuntimeReceipt,
   verifyAskRuntimeReceipt,
 } from "./ask-runtime-receipt";
+import type { AskRuntimeReceipt } from "./ask-runtime-receipt";
 
 import {
   retrieveAskRuntimeReceipt,
@@ -21,7 +22,6 @@ import type { ActorIdentity } from "./ask-receipt-access-policy";
 import {
   verifyAskRuntimeReceiptReconstruction,
   type VerifyAskRuntimeReceiptInput,
-  type VerificationFailureReason,
 } from "./ask-runtime-receipt-verifier";
 
 test("runtime receipt captures full pipeline and supports replay verification", () => {
@@ -169,7 +169,7 @@ test("reconstruction verifier produces classification mismatch on tampered recei
       ...receipt.input,
       classification: { ...receipt.input.classification, question_class_id: "tampered" },
     },
-  } as any;
+  } as unknown as AskRuntimeReceipt;
 
   const outcome = verifyAskRuntimeReceiptReconstruction({
     receipt: tampered,
@@ -197,7 +197,7 @@ test("reconstruction verifier detects replay hash mismatch on structural change"
   });
 
   // Mutate the top level hash
-  receipt = { ...receipt, deterministic_replay_hash: "replay:deadbeef" } as any;
+  receipt = { ...receipt, deterministic_replay_hash: "replay:deadbeef" } as unknown as AskRuntimeReceipt;
 
   const authProj = { manifest_sha256: "c0abbb79d4b78eb5b1394466da433f8dd05e056bebed7cf0ee11e0ecb44d688f" };
   const presProj = { source_presentation_sha256: "a886b2183f925275ce42cfebbbf739dad98540919eb5f2ae300a5fc785399a8e" };
@@ -221,16 +221,10 @@ test("retriever surfaces correct error reasons (access denied, not found, policy
     type: "operator",
     provenance: { method: "internal_token", verified_at: new Date().toISOString() },
   };
-  const weakActor: ActorIdentity = {
-    id: "weak",
-    type: "verifier",
-    provenance: { method: "internal_token", verified_at: new Date().toISOString() },
-  };
-
   // Invalid actor (missing provenance)
   const badInput: RetrieveReceiptInput = {
     receipt_id: "ask-receipt:foo",
-    actor: { id: "", type: "operator", provenance: { method: "internal_token", verified_at: "" } } as any,
+    actor: { id: "", type: "operator", provenance: { method: "internal_token", verified_at: "" } },
   };
   const denied = await retrieveAskRuntimeReceipt(badInput);
   assert.equal(denied.ok, false);
@@ -350,12 +344,12 @@ test("retriever enforces ActorIdentity, policy views, and returns redacted metad
     assert.ok(typeof meta.deterministic_replay_hash === "string");
 
     // Strictly prove restricted fields are absent
-    const metaAny = meta as any;
-    assert.strictEqual(metaAny.input, undefined, "normalized input must be absent in metadata_only");
-    assert.strictEqual(metaAny.decision, undefined, "policy decision must be absent in metadata_only");
-    assert.strictEqual(metaAny.assembly, undefined, "assembled answer must be absent in metadata_only");
-    assert.strictEqual(metaAny.normalized_question, undefined);
-    assert.strictEqual(metaAny.template, undefined);
-    assert.strictEqual(metaAny.presented_sources, undefined);
+    const metaRecord = meta as unknown as Record<string, unknown>;
+    assert.strictEqual(metaRecord.input, undefined, "normalized input must be absent in metadata_only");
+    assert.strictEqual(metaRecord.decision, undefined, "policy decision must be absent in metadata_only");
+    assert.strictEqual(metaRecord.assembly, undefined, "assembled answer must be absent in metadata_only");
+    assert.strictEqual(metaRecord.normalized_question, undefined);
+    assert.strictEqual(metaRecord.template, undefined);
+    assert.strictEqual(metaRecord.presented_sources, undefined);
   }
 });
