@@ -163,6 +163,28 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/customer-security-review",
+    requiredMarkers: [
+      "Customer Security Review Sprint",
+      "Your enterprise customer sent a security questionnaire. We help you return a supported response in three working days.",
+      "From €1,600, confirmed after a non-secret fit check.",
+      "Answer matrix prepared for customer approval",
+      "Supported with qualification",
+      "Owner assertion",
+      "This sprint does not replace SOC 2, ISO 27001, penetration testing, legal advice, or any certification explicitly required by the customer.",
+      "Request a non-secret fit check",
+    ],
+    prohibitedMarkers: [
+      "verified compliance",
+      "certified compliance",
+      "guaranteed approval",
+      "security guaranteed",
+      "public evidence upload",
+      "SaaS signup",
+      "checkout",
+    ],
+  },
+  {
     path: "/access-change-proof-run",
     requiredMarkers: [
       "Bounded Access-Change Proof Run",
