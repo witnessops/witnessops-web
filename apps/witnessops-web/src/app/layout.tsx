@@ -5,7 +5,6 @@ import { Navbar } from "@/components/shared/navbar";
 import { loadHomeContent } from "@/lib/content";
 import { KonamiPenguin } from "@/components/shared/konami-penguin";
 import { RouteScrollReset } from "@/components/shared/route-scroll-reset";
-import { DocsAssistantWidget } from "@/components/docs-assistant/docs-assistant-widget";
 import "./globals.css";
 
 const surface = getSurface("witnessops");
@@ -101,7 +100,6 @@ export default function RootLayout({
         {children}
         <Footer {...content.footer} />
         <KonamiPenguin />
-        <DocsAssistantWidget />
       </body>
     </html>
   );
