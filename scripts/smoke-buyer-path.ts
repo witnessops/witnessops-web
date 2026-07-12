@@ -29,7 +29,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/",
     requiredMarkers: [
       "WitnessOps",
-      "One bounded action. One scoped proof pack.",
+      "Bounded proof runs for security and operations work",
       "Request one proof run",
       "Inspect sample package",
       "One action. One scoped package. Clear limits.",
@@ -185,7 +185,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pl",
     requiredMarkers: [
-      "Jasny zakres. Jasny wynik.",
+      "JASNO OKREŚLONY ZAKRES. SPRAWDZALNY WYNIK.",
       "Opowiedz nam, co się wydarzyło.",
       "Rozpocznij zgłoszenie",
       "Wybierz ofertę",
