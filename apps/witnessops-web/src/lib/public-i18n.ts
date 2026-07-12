@@ -76,18 +76,6 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     exclusions: ["Bez przechowywania lub przemieszczania środków.", "Bez kluczy, fraz seed, sald i połączeń z aktywnymi portfelami.", "Bez wniosków o wypłacalności, bezpieczeństwie, stanie prawnym lub zgodności.", "Bez napraw, chyba że zostaną osobno uzgodnione."],
     verification: "Dostawa wskazuje potwierdzenie i weryfikator offline, aby można było sprawdzić dopuszczone obserwacje i ograniczenia. Nie potwierdza pieczy, wypłacalności ani uprawnienia do transakcji.",
   },
-  "OFFSEC-ACCESS-REMOVED": {
-    name: "Potwierdzenie usunięcia dostępu",
-    situation: "Użytkownik, dostawca lub usługa nie powinni już mieć dostępu, a Ty potrzebujesz ograniczonego zapisu tego, co sprawdzono.",
-    result: "Otrzymasz podpisany pakiet przed i po zmianie, pokazujący wskazane ścieżki dostępu, zaobserwowany wynik oraz pozostały lub nierozstrzygnięty zakres.",
-    process: ["Potwierdzamy jedno zdarzenie usunięcia dostępu, środowisko, podmioty i ścieżki.", "Potwierdzamy podpisane upoważnienie i format oczyszczonego eksportu.", "Zestawiamy obserwacje przed i po bez zmiany dostępu.", "Omawiamy ustalenia i nierozstrzygnięte ścieżki z osobą decyzyjną.", "Dostarczamy raport, potwierdzenie, pakiet dowodowy i instrukcję weryfikacji offline."],
-    deliverables: ["zapis obserwacji dostępu przed i po", "findings.json", "report.md", "podpisane potwierdzenie i manifest dowodów", "pakiet ZIP do weryfikacji offline", "BUYER_WALKTHROUGH.md"],
-    inputs: ["Jedno wskazane środowisko i jedno zdarzenie usunięcia dostępu.", "Nieprzejrzyste identyfikatory podmiotów i jawnie wskazane ścieżki dostępu.", "Podpisane upoważnienie klienta i oczyszczone obserwacje przed i po.", "Bez danych uwierzytelniających, sekretów i surowych danych tożsamości."],
-    timing: "W ciągu dwóch dni roboczych od otrzymania zatwierdzonych eksportów i podpisanego upoważnienia.",
-    price: "500–1 500 €",
-    exclusions: ["Bez cofania dostępu i bez zmian w systemie.", "Bez sprawdzania danych uwierzytelniających i bez połączenia z systemem tożsamości.", "Bez twierdzenia, że usunięto każdą możliwą ścieżkę dostępu lub wykluczono naruszenie.", "Bez napraw, chyba że zostaną osobno uzgodnione."],
-    verification: "Potwierdzenie i weryfikator offline pokazują kompletność wskazanego porównania przed i po. Nie dowodzą usunięcia wszystkich ukrytych ścieżek ani braku naruszenia.",
-  },
   "OFFSEC-INCIDENT-READY": {
     name: "Przegląd gotowości na incydent",
     situation: "Chcesz wiedzieć, czy zespół jest przygotowany na jeden konkretnie nazwany incydent.",
@@ -116,7 +104,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
 
 const POLISH_TRANSLATED_PATHS = [
   /^\/$/,
-  /^\/catalog(?:\/(?:offsec-local-audit|offsec-launch-ready|offsec-custody-ops|offsec-access-removed|offsec-incident-ready|offsec-pilot))?$/,
+  /^\/catalog(?:\/(?:offsec-local-audit|offsec-launch-ready|offsec-custody-ops|offsec-incident-ready|offsec-pilot))?$/,
   /^\/review\/request(?:\/confirmed)?$/,
   /^\/why-witnessops$/,
   /^\/docs$/,

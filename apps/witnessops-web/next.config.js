@@ -28,6 +28,20 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/catalog/offsec-access-removed",
+        destination: "/catalog",
+        permanent: true,
+      },
+      {
+        source: "/pl/catalog/offsec-access-removed",
+        destination: "/pl/catalog",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

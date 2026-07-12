@@ -10,6 +10,18 @@
       "internal": true,
       "statusCode": 308,
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    },
+    {
+      "source": "/catalog/offsec-access-removed",
+      "destination": "/catalog",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/catalog/offsec-access-removed(?:/)?$"
+    },
+    {
+      "source": "/pl/catalog/offsec-access-removed",
+      "destination": "/pl/catalog",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/pl/catalog/offsec-access-removed(?:/)?$"
     }
   ],
   "headers": [
