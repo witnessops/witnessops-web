@@ -385,6 +385,12 @@
       "namedRegex": "^/contact(?:/)?$"
     },
     {
+      "page": "/customer-security-review",
+      "regex": "^/customer\\-security\\-review(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/customer\\-security\\-review(?:/)?$"
+    },
+    {
       "page": "/docs",
       "regex": "^/docs(?:/)?$",
       "routeKeys": {},
