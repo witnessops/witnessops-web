@@ -227,6 +227,22 @@
       "namedRegex": "^/package/(?<nxtPissuanceId>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/pl/catalog/[skuId]",
+      "regex": "^/pl/catalog/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPskuId": "nxtPskuId"
+      },
+      "namedRegex": "^/pl/catalog/(?<nxtPskuId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/pl/docs/[...slug]",
+      "regex": "^/pl/docs/(.+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/pl/docs/(?<nxtPslug>.+?)(?:/)?$"
+    },
+    {
       "page": "/support/[slug]",
       "regex": "^/support/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -421,6 +437,60 @@
       "regex": "^/operators(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/operators(?:/)?$"
+    },
+    {
+      "page": "/pl",
+      "regex": "^/pl(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl(?:/)?$"
+    },
+    {
+      "page": "/pl/catalog",
+      "regex": "^/pl/catalog(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/catalog(?:/)?$"
+    },
+    {
+      "page": "/pl/contact",
+      "regex": "^/pl/contact(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/contact(?:/)?$"
+    },
+    {
+      "page": "/pl/docs",
+      "regex": "^/pl/docs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/docs(?:/)?$"
+    },
+    {
+      "page": "/pl/review/request",
+      "regex": "^/pl/review/request(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/review/request(?:/)?$"
+    },
+    {
+      "page": "/pl/review/request/confirmed",
+      "regex": "^/pl/review/request/confirmed(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/review/request/confirmed(?:/)?$"
+    },
+    {
+      "page": "/pl/support",
+      "regex": "^/pl/support(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/support(?:/)?$"
+    },
+    {
+      "page": "/pl/verify",
+      "regex": "^/pl/verify(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/verify(?:/)?$"
+    },
+    {
+      "page": "/pl/why-witnessops",
+      "regex": "^/pl/why\\-witnessops(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/why\\-witnessops(?:/)?$"
     },
     {
       "page": "/pricing",

@@ -7,6 +7,7 @@ import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { listSignals } from "@witnessops/content/signals";
 import { getDocsSitemapEntries } from "@witnessops/content/sitemap";
 import { loadHomeContent, loadSupportIndex } from "@/lib/content";
+import { getPolishSkus } from "@/lib/public-i18n";
 
 const surface = getSurface("witnessops");
 const siteUrl =
@@ -84,6 +85,20 @@ const staticRoutes: StaticRoute[] = [
   { route: "/why-witnessops", sourcePath: "src/app/why-witnessops/page.tsx" },
 ];
 
+const polishRoutes: StaticRoute[] = [
+  { route: "/pl", sourcePath: "src/app/pl/page.tsx" },
+  { route: "/pl/catalog", sourcePath: "src/app/pl/catalog/page.tsx" },
+  ...getPolishSkus().map(({ id }) => ({
+    route: `/pl/catalog/${id.toLowerCase()}`,
+    sourcePath: "src/app/pl/catalog/[skuId]/page.tsx",
+  })),
+  { route: "/pl/review/request", sourcePath: "src/app/pl/review/request/page.tsx" },
+  { route: "/pl/docs", sourcePath: "src/app/pl/docs/page.tsx" },
+  { route: "/pl/support", sourcePath: "src/app/pl/support/page.tsx" },
+  { route: "/pl/verify", sourcePath: "src/app/pl/verify/page.tsx" },
+  { route: "/pl/why-witnessops", sourcePath: "src/app/pl/why-witnessops/page.tsx" },
+];
+
 export function getSourceLastModified(sourcePath: string) {
   try {
     return statSync(path.resolve(process.cwd(), sourcePath)).mtime;
@@ -129,7 +144,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const latestSignal = signals[0];
 
   return [
-    ...staticRoutes.map(({ route, sourcePath, lastModified }) => ({
+    ...[...staticRoutes, ...polishRoutes].map(({ route, sourcePath, lastModified }) => ({
       url: `${siteUrl}${route}`,
       lastModified:
         route === "/signals" && latestSignal
