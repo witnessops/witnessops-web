@@ -6,7 +6,7 @@ import { getSku } from "@witnessops/catalog";
 
 export const metadata: Metadata = {
   title: "Rozpocznij zgłoszenie",
-  description: "Opisz sytuację bez sekretów. Przed rozpoczęciem pracy potwierdzimy ofertę, zakres, cenę, termin i wymagany dostęp.",
+  description: "Opisz sytuację bez danych poufnych. Przed rozpoczęciem prac uzgodnimy ofertę, zakres, cenę, termin i wymagany dostęp.",
   alternates: { canonical: "/pl/review/request", languages: { en: "/review/request", pl: "/pl/review/request", "x-default": "/review/request" } },
 };
 
@@ -24,7 +24,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
       <header className="mb-8 max-w-[720px]">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">Zgłoszenie przeglądu</p>
         <h1 className="mt-3 text-4xl font-semibold uppercase tracking-[0.04em] text-text-primary md:text-5xl">Opowiedz, co się wydarzyło</h1>
-        <p className="mt-4 text-base leading-7 text-text-muted">To pierwsza rozmowa o dopasowaniu, a nie przekazanie dowodów. Opisz potrzebę i środowisko zwykłym językiem.</p>
+        <p className="mt-4 text-base leading-7 text-text-muted">To pierwsza rozmowa o dopasowaniu, a nie przekazanie dowodów. Opisz potrzebę i środowisko własnymi słowami.</p>
         {polishOffer ? <div className="mt-5 border border-brand-accent/30 bg-brand-accent/5 p-4 text-sm leading-6 text-text-secondary"><p className="font-semibold text-brand-accent">Wybrana oferta: {polishOffer.name}</p><p className="mt-2">Cena: {polishOffer.price}</p><p>Termin: {polishOffer.timing}</p></div> : null}
         <p className="mt-4 text-sm leading-7 text-text-muted">{POLISH_NO_SECRETS_NOTE}</p>
       </header>

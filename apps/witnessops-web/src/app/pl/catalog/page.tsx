@@ -5,7 +5,7 @@ import { getPolishSkus, POLISH_NO_SECRETS_NOTE, POLISH_OFFERS, polishOfferReques
 
 export const metadata: Metadata = {
   title: "Oferty WitnessOps",
-  description: "Wybierz ograniczony przegląd dla jednej konkretnej sytuacji operacyjnej.",
+  description: "Wybierz przegląd o ściśle określonym zakresie dla konkretnej sytuacji operacyjnej.",
   alternates: { canonical: "/pl/catalog", languages: { en: "/catalog", pl: "/pl/catalog", "x-default": "/catalog" } },
 };
 
@@ -15,7 +15,7 @@ export default function PolishCatalogPage() {
       <header className="mb-10 border-b border-surface-border pb-8">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">Oferty WitnessOps</p>
         <h1 className="mt-2 text-4xl font-semibold uppercase tracking-[0.04em] text-text-primary">Co się wydarzyło?</h1>
-        <p className="mt-5 max-w-3xl text-base leading-8 text-text-secondary">Wybierz sytuację. Każda oferta ma jasno określony zakres, wynik, cenę lub przedział cenowy, termin oraz wyłączenia.</p>
+        <p className="mt-5 max-w-3xl text-base leading-8 text-text-secondary">Wybierz sytuację. Każda oferta określa zakres, rezultat, cenę lub przedział cenowy, termin oraz wyłączenia.</p>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-text-muted">{POLISH_NO_SECRETS_NOTE}</p>
       </header>
       <section className="grid gap-4 md:grid-cols-2">

@@ -5,8 +5,8 @@ export const POLISH_DOCS_SECTIONS = [
     ],
   },
   {
-    id: "deliveries-verification", title: "DOSTAWA I WERYFIKACJA", description: "Dostawa, potwierdzenie i ograniczenia wyniku.", items: [
-      ["Co otrzymasz", "/pl/docs/what-you-receive"], ["Zweryfikuj dostawę", "/pl/verify"], ["Jak działają potwierdzenia", "/pl/docs/how-receipts-work"], ["Dowody i ograniczenia", "/pl/docs/evidence-and-limitations"], ["Historia potwierdzeń", "/pl/docs/receipt-history"], ["Słownik pojęć", "/pl/docs/glossary"],
+    id: "deliveries-verification", title: "DOSTAWA I WERYFIKACJA", description: "Dostawa, podpisany zapis wykonania i ograniczenia wyniku.", items: [
+      ["Co otrzymasz", "/pl/docs/what-you-receive"], ["Zweryfikuj dostawę", "/pl/verify"], ["Jak działają podpisane zapisy wykonania", "/pl/docs/how-receipts-work"], ["Dowody i ograniczenia", "/pl/docs/evidence-and-limitations"], ["Historia zapisów wykonania", "/pl/docs/receipt-history"], ["Słownik pojęć", "/pl/docs/glossary"],
     ],
   },
   {

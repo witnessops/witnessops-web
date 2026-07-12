@@ -6,7 +6,7 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "Dlaczego WitnessOps",
   description:
-    "Dowiedz się, dlaczego WitnessOps zaczyna od ograniczonego zakresu i dostarcza jasny wynik z dowodami, ograniczeniami oraz potwierdzeniem.",
+    "Dowiedz się, dlaczego WitnessOps zaczyna od ściśle określonego zakresu i dostarcza sprawdzalny wynik z dowodami oraz ograniczeniami.",
   alternates: {
     canonical: "/pl/why-witnessops",
     languages: {
@@ -27,12 +27,12 @@ const principles = [
     "Przed rozpoczęciem potwierdzamy system, upoważnienie, cenę, termin, potrzebny dostęp oraz wyłączenia.",
   ],
   [
-    "Jasny wynik",
+    "Sprawdzalny wynik",
     "Dostawa oddziela ustalenia poparte materiałem od niewiadomych, ograniczeń i elementów poza zakresem.",
   ],
   [
-    "Potwierdzenie do późniejszego sprawdzenia",
-    "Instrukcja wskazuje nazwany mechanizm sprawdzania i wyjaśnia, co potwierdza, a czego nie potwierdza.",
+    "Podpisany zapis wykonania do późniejszego sprawdzenia",
+    "Instrukcja wskazuje sposób weryfikacji i wyjaśnia, co wynik potwierdza, a czego nie potwierdza.",
   ],
 ] as const;
 
@@ -47,7 +47,7 @@ export default function PolishWhyWitnessOpsPage() {
           Nie musisz wierzyć w ogólne zapewnienie. Powinieneś móc zobaczyć, co zrobiono i gdzie kończy się wynik.
         </h1>
         <p className="mt-6 max-w-3xl text-base leading-8 text-text-secondary">
-          WitnessOps zamienia jedno uzgodnione zadanie w jasną dostawę: raport, wskazane materiały, ograniczenia, potwierdzenie i instrukcję sprawdzenia.
+          WitnessOps zamienia jedno uzgodnione zadanie w jasno określone rezultaty: raport, wskazane materiały, ograniczenia, podpisany zapis wykonania i instrukcję weryfikacji.
         </p>
       </header>
 

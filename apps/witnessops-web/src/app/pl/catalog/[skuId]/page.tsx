@@ -31,7 +31,7 @@ export default async function PolishOfferPage({ params }: PageProps) {
       <Link href="/pl/catalog" className="text-xs uppercase tracking-wider text-brand-accent hover:underline">← Wróć do ofert</Link>
       <header className="mt-4 border-b border-surface-border pb-8"><h1 className="text-3xl font-semibold text-text-primary">{copy.name}</h1><p className="mt-4 text-sm leading-7 text-text-secondary">{copy.situation}</p></header>
       <div className="mt-8">
-        <Section title="Twoja sytuacja"><p>{copy.situation}</p></Section>
+        <Section title="Sytuacja"><p>{copy.situation}</p></Section>
         <Section title="Rezultat"><p>{copy.result}</p></Section>
         <Section title="Co robi WitnessOps"><ol className="space-y-2">{copy.process.map((item, i) => <li key={item}><span className="mr-2 text-brand-accent">{i + 1}.</span>{item}</li>)}</ol></Section>
         <Section title="Co otrzymasz"><ul className="space-y-2">{copy.deliverables.map((item) => <li key={item}>— {item}</li>)}</ul></Section>
@@ -39,9 +39,9 @@ export default async function PolishOfferPage({ params }: PageProps) {
         <Section title="Termin"><p>{copy.timing}</p></Section>
         <Section title="Cena"><p>{copy.price}</p>{copy.priceDetail ? <p>{copy.priceDetail}</p> : null}</Section>
         <Section title="Czego oferta nie obejmuje"><ul className="space-y-2">{copy.exclusions.map((item) => <li key={item}>— {item}</li>)}</ul></Section>
-        <Section title="Jak działa potwierdzenie"><p>{copy.verification}</p></Section>
+        <Section title="Jak zweryfikować wynik"><p>{copy.verification}</p></Section>
       </div>
-      <section className="border border-surface-border bg-surface-card/30 p-5"><h2 className="font-semibold text-text-primary">Rozpocznij zgłoszenie</h2><p className="mt-2 text-sm leading-6 text-text-muted">Najpierw potwierdzimy dopasowanie, dokładny zakres, upoważnienie, cenę, termin i sposób postępowania z materiałami.</p><div className="mt-5"><CtaButton href={polishOfferRequestHref(id)} variant="primary" label="Rozpocznij zgłoszenie" /></div></section>
+      <section className="border border-surface-border bg-surface-card/30 p-5"><h2 className="font-semibold text-text-primary">Rozpocznij zgłoszenie</h2><p className="mt-2 text-sm leading-6 text-text-muted">Najpierw sprawdzimy, czy oferta odpowiada Twojej sytuacji, a następnie uzgodnimy zakres, upoważnienie, cenę, termin oraz sposób postępowania z materiałami.</p><div className="mt-5"><CtaButton href={polishOfferRequestHref(id)} variant="primary" label="Rozpocznij zgłoszenie" /></div></section>
       <div className="mt-10"><PublicContactRoute /></div>
     </main>
   );
