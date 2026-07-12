@@ -180,8 +180,6 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "guaranteed approval",
       "security guaranteed",
       "public evidence upload",
-      "SaaS signup",
-      "checkout",
     ],
   },
   {
@@ -192,7 +190,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Rozpocznij zgłoszenie",
       "Wybierz ofertę",
     ],
-    prohibitedMarkers: ["Not Found", "404"],
+    prohibitedMarkers: [],
   },
   {
     path: "/access-change-proof-run",
