@@ -185,6 +185,16 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/pl",
+    requiredMarkers: [
+      "Jasny zakres. Jasny wynik.",
+      "Opowiedz nam, co się wydarzyło.",
+      "Rozpocznij zgłoszenie",
+      "Wybierz ofertę",
+    ],
+    prohibitedMarkers: ["Not Found", "404"],
+  },
+  {
     path: "/access-change-proof-run",
     requiredMarkers: [
       "Bounded Access-Change Proof Run",
