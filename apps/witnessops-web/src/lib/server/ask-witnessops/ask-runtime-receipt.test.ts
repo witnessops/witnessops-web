@@ -1,28 +1,67 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { mkdtempSync, rmSync } from "node:fs";
+import { createRequire, registerHooks } from "node:module";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import test, { after } from "node:test";
 
-import { classifyQuestion } from "./authority-classifier";
-import { executePolicy } from "./authority-policy-executor";
-import { assembleAnswer } from "./authority-answer-assembler";
-import {
-  createAskRuntimeReceipt,
-  verifyAskRuntimeReceipt,
-} from "./ask-runtime-receipt";
 import type { AskRuntimeReceipt } from "./ask-runtime-receipt";
 
-import {
-  retrieveAskRuntimeReceipt,
-  type RetrieveReceiptInput,
-  type AskRuntimeReceiptMetadata,
+import type {
+  RetrieveReceiptInput,
+  AskRuntimeReceiptMetadata,
 } from "./ask-runtime-receipt-retriever";
 
-import { writeReceipt } from "./ask-runtime-receipt-store";
 import type { ActorIdentity } from "./ask-receipt-access-policy";
 
-import {
-  verifyAskRuntimeReceiptReconstruction,
-  type VerifyAskRuntimeReceiptInput,
-} from "./ask-runtime-receipt-verifier";
+import type { VerifyAskRuntimeReceiptInput } from "./ask-runtime-receipt-verifier";
+
+const require = createRequire(import.meta.url);
+const testStorageRoot = mkdtempSync(path.join(tmpdir(), "witnessops-ask-receipt-test-"));
+process.env.ASK_RECEIPT_ROOT = path.join(testStorageRoot, "receipts");
+process.env.ASK_AUDIT_ROOT = path.join(testStorageRoot, "audits");
+after(() => rmSync(testStorageRoot, { recursive: true, force: true }));
+
+const serverOnlyTestHook = registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier === "server-only") {
+      return { url: "witnessops-test:server-only", shortCircuit: true };
+    }
+    return nextResolve(specifier, context);
+  },
+  load(url, context, nextLoad) {
+    if (url === "witnessops-test:server-only") {
+      return {
+        format: "commonjs",
+        source: "module.exports = {};",
+        shortCircuit: true,
+      };
+    }
+    return nextLoad(url, context);
+  },
+});
+const { classifyQuestion } = require(
+  "./authority-classifier.ts",
+) as typeof import("./authority-classifier");
+const { executePolicy } = require(
+  "./authority-policy-executor.ts",
+) as typeof import("./authority-policy-executor");
+const { assembleAnswer } = require(
+  "./authority-answer-assembler.ts",
+) as typeof import("./authority-answer-assembler");
+const { createAskRuntimeReceipt, verifyAskRuntimeReceipt } = require(
+  "./ask-runtime-receipt.ts",
+) as typeof import("./ask-runtime-receipt");
+const { retrieveAskRuntimeReceipt } = require(
+  "./ask-runtime-receipt-retriever.ts",
+) as typeof import("./ask-runtime-receipt-retriever");
+const { writeReceipt } = require(
+  "./ask-runtime-receipt-store.ts",
+) as typeof import("./ask-runtime-receipt-store");
+const { verifyAskRuntimeReceiptReconstruction } = require(
+  "./ask-runtime-receipt-verifier.ts",
+) as typeof import("./ask-runtime-receipt-verifier");
+serverOnlyTestHook.deregister();
 
 test("runtime receipt captures full pipeline and supports replay verification", () => {
   const question = "How do I request a fit check?";
@@ -54,14 +93,15 @@ test("runtime receipt captures full pipeline and supports replay verification", 
   assert.equal(ok, true);
 });
 
-test("runtime receipt for closed outcome preserves failure reason and reconstructs", () => {
-  const question = "Tell me about your private internal systems.";
+test("runtime receipt for refusal outcome preserves the assembled response and reconstructs", () => {
+  const question = "Can you verify our private system and inspect private environment?";
   const classification = classifyQuestion(question);
   const decision = executePolicy({ classification });
   const assembled = assembleAnswer({ policyDecision: decision });
 
-  assert.equal(assembled.status, "closed");
-  assert.ok(assembled.failure_reason);
+  assert.equal(assembled.status, "success");
+  assert.match(assembled.template.template_id, /^refuse\./);
+  assert.equal(assembled.presented_sources.length, 0);
 
   const receipt = createAskRuntimeReceipt({
     normalizedQuestion: question,
@@ -70,8 +110,8 @@ test("runtime receipt for closed outcome preserves failure reason and reconstruc
     assembledAnswer: assembled,
   });
 
-  assert.equal(receipt.assembly.status, "closed");
-  assert.equal(receipt.assembly.failure_reason, assembled.failure_reason);
+  assert.equal(receipt.assembly.status, "success");
+  assert.equal(receipt.assembly.failure_reason, undefined);
 
   const ok = verifyAskRuntimeReceipt(
     receipt,
@@ -243,15 +283,16 @@ test("retriever surfaces correct error reasons (access denied, not found, policy
   // (the prior receipt creation tests use the pipeline; we just ensure no crash)
 });
 
-test("reconstruction verifier succeeds on closed-answer receipt with bound projections", () => {
-  // Explicit closed-answer reconstruction path (using the independent verifier)
-  const question = "Tell me about your private internal systems.";
+test("reconstruction verifier succeeds on refusal-answer receipt with bound projections", () => {
+  // Explicit refusal-answer reconstruction path (using the independent verifier)
+  const question = "Can you verify our private system and inspect private environment?";
   const classification = classifyQuestion(question);
   const decision = executePolicy({ classification });
   const assembled = assembleAnswer({ policyDecision: decision });
 
-  assert.equal(assembled.status, "closed");
-  assert.ok(typeof assembled.failure_reason === "string" && assembled.failure_reason.length > 0);
+  assert.equal(assembled.status, "success");
+  assert.match(assembled.template.template_id, /^refuse\./);
+  assert.equal(assembled.presented_sources.length, 0);
 
   const receipt = createAskRuntimeReceipt({
     normalizedQuestion: question,
@@ -273,9 +314,9 @@ test("reconstruction verifier succeeds on closed-answer receipt with bound proje
 
   assert.equal(outcome.ok, true);
   if (outcome.ok) {
-    assert.equal(outcome.reconstructed.status, "closed");
-    assert.ok(typeof outcome.reconstructed.failure_reason === "string");
-    assert.equal(outcome.reconstructed.failure_reason, assembled.failure_reason);
+    assert.equal(outcome.reconstructed.status, "success");
+    assert.equal(outcome.reconstructed.template.template_id, assembled.template.template_id);
+    assert.equal(outcome.reconstructed.presented_sources.length, 0);
   }
 });
 

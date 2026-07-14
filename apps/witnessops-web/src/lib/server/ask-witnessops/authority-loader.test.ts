@@ -1,11 +1,33 @@
 import assert from "node:assert/strict";
-import { createRequire } from "node:module";
+import { createRequire, registerHooks } from "node:module";
 import test from "node:test";
 
 import { buildAuthorityLoader } from "./authority-loader-core";
 import type { ClassificationResult } from "./authority-classifier";
 
 const require = createRequire(import.meta.url);
+const serverOnlyTestHook = registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier === "server-only") {
+      return { url: "witnessops-test:server-only", shortCircuit: true };
+    }
+    return nextResolve(specifier, context);
+  },
+  load(url, context, nextLoad) {
+    if (url === "witnessops-test:server-only") {
+      return {
+        format: "commonjs",
+        source: "module.exports = {};",
+        shortCircuit: true,
+      };
+    }
+    return nextLoad(url, context);
+  },
+});
+const { classifyQuestion, executePolicy } = require(
+  "./authority-loader.ts",
+) as typeof import("./authority-loader");
+serverOnlyTestHook.deregister();
 const canonicalProjection = require(
   "@witnessops/ask-authority/v1/authority-set.json",
 ) as unknown;
@@ -215,8 +237,6 @@ test("authority loader fails closed on receipt and interpolation activation", ()
   expectInitFailure(interpolation, "runtime_interpolation_enabled:");
 });
 
-import { classifyQuestion } from "./authority-loader";
-
 test("classifier is exposed and produces the approved result shape", () => {
   const result = classifyQuestion("Can I send logs for an incident review?");
 
@@ -230,7 +250,9 @@ test("classifier is exposed and produces the approved result shape", () => {
 });
 
 test("classifier routes safety signals to safety class (compound)", () => {
-  const result = classifyQuestion("Can I send logs for an incident review?");
+  const result = classifyQuestion(
+    "Can I send logs and upload evidence for an incident review?",
+  );
   // safety compound should win
   assert.equal(result.question_class_id, "secret_or_evidence_intake");
   assert.equal(result.fallback_used, false);
@@ -241,8 +263,6 @@ test("classifier falls back for unrelated input", () => {
   assert.equal(result.question_class_id, "outside_approved_public_context");
   assert.equal(result.fallback_used, true);
 });
-
-import { executePolicy } from "./authority-loader";
 
 test("policy executor accepts classifier result and produces approved decision shape", () => {
   const classification = classifyQuestion("Can I send logs for an incident review?");

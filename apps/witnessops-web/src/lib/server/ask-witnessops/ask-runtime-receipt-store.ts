@@ -92,10 +92,7 @@ export async function writeReceipt(
       return { ok: false, reason: "INVALID_RECEIPT_SCHEMA" };
     }
 
-    const computedHash = computeContentHash({
-      ...receipt,
-      deterministic_replay_hash: undefined, // exclude the hash field itself for content hash
-    });
+    const computedHash = computeContentHash(receipt);
 
     // For V1 we store the receipt as-is and also record a content hash for integrity
     const payload = {

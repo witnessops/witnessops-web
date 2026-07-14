@@ -1,8 +1,32 @@
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
+import { createRequire, registerHooks } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import test from "node:test";
+
+const require = createRequire(import.meta.url);
+
+function registerServerOnlyTestBoundary() {
+  return registerHooks({
+    resolve(specifier, context, nextResolve) {
+      if (specifier === "server-only") {
+        return { url: "witnessops-test:server-only", shortCircuit: true };
+      }
+      return nextResolve(specifier, context);
+    },
+    load(url, context, nextLoad) {
+      if (url === "witnessops-test:server-only") {
+        return {
+          format: "commonjs",
+          source: "module.exports = {};",
+          shortCircuit: true,
+        };
+      }
+      return nextLoad(url, context);
+    },
+  });
+}
 
 const appRoot = fileURLToPath(new URL("../../../../", import.meta.url));
 const sourceRoot = path.join(appRoot, "src");
@@ -89,10 +113,13 @@ test("policy executor is exposed only through the server-only loader", () => {
   const loader = readFileSync(loaderPath, "utf8");
   assert.match(loader, /export \{ executePolicy \}/);
   assert.match(loader, /^import "server-only";/);
-  assert.doesNotMatch(loader, /from\s+["'][^"']*policy-executor["']/); // only through loader re-export
+  assert.match(
+    loader,
+    /import \{ executePolicy \} from "\.\/authority-policy-executor";/,
+  );
 });
 
-test("public loader runtime exports remain the approved eight queries plus classifier and assembler", () => {
+test("public loader runtime exports remain the approved governed queries plus classifier and assembler", () => {
   const loader = readFileSync(loaderPath, "utf8");
   const constExports = [...loader.matchAll(/export const (get[A-Za-z]+)\s*=/g)]
     .map((match) => match[1])
@@ -100,7 +127,10 @@ test("public loader runtime exports remain the approved eight queries plus class
   assert.deepEqual(constExports, [
     "getAuthority",
     "getAuthoritySetIdentity",
+    "getGlobalPresentationRules",
     "getPolicyRule",
+    "getPresentationForSource",
+    "getPresentationProjectionIdentity",
     "getQuestionClass",
     "getRoute",
     "getSource",
@@ -135,7 +165,10 @@ test("assembler is exposed only through the server-only loader", () => {
   const loader = readFileSync(loaderPath, "utf8");
   assert.match(loader, /export \{ assembleAnswer \}/);
   assert.match(loader, /^import "server-only";/);
-  assert.doesNotMatch(loader, /from\s+["'][^"']*answer-assembler["']/); // only through loader re-export
+  assert.match(
+    loader,
+    /import \{[\s\S]*?assembleAnswer,[\s\S]*?\} from "\.\/authority-answer-assembler";/,
+  );
 });
 
 test("ask-witnessops API route is server-only and does not leak deterministic surfaces directly", () => {
@@ -156,19 +189,26 @@ test("ask-witnessops API route is server-only and does not leak deterministic su
 
 test("runtime receipt contract is exposed only through the server-only loader", () => {
   const loader = readFileSync(loaderPath, "utf8");
-  assert.match(loader, /export \{ createAskRuntimeReceipt \}/);
-  assert.match(loader, /export \{ verifyAskRuntimeReceipt \}/);
   assert.match(loader, /^import "server-only";/);
+
+  const hook = registerServerOnlyTestBoundary();
+  const runtimeLoader = require("./authority-loader.ts") as typeof import("./authority-loader");
+  hook.deregister();
+
+  assert.equal(typeof runtimeLoader.createAskRuntimeReceipt, "function");
+  assert.equal(typeof runtimeLoader.verifyAskRuntimeReceipt, "function");
 });
 
 
-test("ask pipeline produces deterministic AssembledAnswer for valid input (malformed, closed, and success paths)", async () => {
-  const { normalizeAskRequest } = await import(
-    "./ask-request-normalizer"
-  );
-  const { classifyQuestion, executePolicy, assembleAnswer } = await import(
-    "./authority-loader"
-  );
+test("ask pipeline produces deterministic AssembledAnswer for malformed, refusal, and success paths", async () => {
+  const hook = registerServerOnlyTestBoundary();
+  const { normalizeAskRequest } = require(
+    "./ask-request-normalizer.ts",
+  ) as typeof import("./ask-request-normalizer");
+  const { classifyQuestion, executePolicy, assembleAnswer } = require(
+    "./authority-loader.ts",
+  ) as typeof import("./authority-loader");
+  hook.deregister();
 
   // Malformed input test (via normalizer)
   const bad = normalizeAskRequest({ question: "" });
@@ -194,16 +234,16 @@ test("ask pipeline produces deterministic AssembledAnswer for valid input (malfo
     assert.equal(assembled.deterministic_replay_hash.startsWith("replay:"), true);
   }
 
-  // Closed result test (outside context should produce closed)
+  // Refusal result remains a usable assembled answer with no source list.
   const outsideNorm = normalizeAskRequest({
-    question: "Tell me about your private internal systems.",
+    question: "Can you verify our private system and inspect private environment?",
   });
   if (outsideNorm.ok) {
     const c = classifyQuestion(outsideNorm.request.question);
     const d = executePolicy({ classification: c });
     const a = assembleAnswer({ policyDecision: d });
-    assert.equal(a.status, "closed");
-    assert.ok(typeof a.failure_reason === "string" && a.failure_reason.length > 0);
+    assert.equal(a.status, "success");
+    assert.match(a.template.template_id, /^refuse\./);
     assert.equal(a.presented_sources.length, 0);
   }
 });
