@@ -1,4 +1,4 @@
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { access, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { checkHomepageHero, screenshotEmittedCheck } from "./checks";
@@ -29,14 +29,13 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
     });
 
     try {
-      await installAssetDelay(context, scenario);
       const page = await context.newPage();
       await installClsObserver(page);
       await page.goto("/", { waitUntil: "domcontentloaded" });
       await applyContentVariant(page, scenario);
       await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
-      await page.waitForTimeout(scenario.assetMode === "delayed" ? 1_400 : 350);
+      await page.waitForTimeout(350);
 
       const { checks, metrics } = await checkHomepageHero(
         page,
@@ -107,18 +106,66 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
   ).toEqual([]);
 });
 
-async function installAssetDelay(
-  context: BrowserContext,
-  scenario: HomepageHeroScenario,
-): Promise<void> {
-  if (scenario.assetMode !== "delayed") {
-    return;
+test("English and Polish homepages share one service-led buyer journey", async ({ browser }) => {
+  const expectedOrder = [
+    "customer-security-review-sprint",
+    "bounded-workflow-review",
+    "one-server-security-check",
+    "launch-readiness-check",
+    "key-access-custody-review",
+    "incident-readiness-review",
+  ];
+
+  for (const scenario of [
+    { path: "/", width: 1440, height: 1100, primary: "/catalog" },
+    { path: "/", width: 390, height: 844, primary: "/catalog" },
+    { path: "/pl", width: 1440, height: 1100, primary: "/pl/catalog" },
+    { path: "/pl", width: 390, height: 844, primary: "/pl/catalog" },
+  ]) {
+    const context = await browser.newContext({
+      viewport: { width: scenario.width, height: scenario.height },
+      reducedMotion: "reduce",
+    });
+    const page = await context.newPage();
+    const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
+    expect(response?.status()).toBe(200);
+
+    await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).toBeVisible();
+    await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute(
+      "href",
+      scenario.primary,
+    );
+    const serviceCards = page.locator("[data-home-service]");
+    await expect(serviceCards).toHaveCount(6);
+    expect(
+      await serviceCards.evaluateAll((cards) =>
+        cards.map((card) => card.getAttribute("data-home-service")),
+      ),
+    ).toEqual(expectedOrder);
+    await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż/);
+
+    const headings = await page.locator("main h2").allTextContents();
+    const normalized = headings.map((heading) => heading.trim());
+    const offersIndex = normalized.findIndex((heading) =>
+      /Six reviews|Sześć przeglądów/.test(heading),
+    );
+    const howIndex = normalized.findIndex((heading) =>
+      /How it works|Jak działa WitnessOps/.test(heading),
+    );
+    const whyIndex = normalized.findIndex((heading) =>
+      /Why WitnessOps|Dlaczego WitnessOps/.test(heading),
+    );
+    expect(offersIndex).toBeGreaterThanOrEqual(0);
+    expect(howIndex).toBeGreaterThan(offersIndex);
+    expect(whyIndex).toBeGreaterThan(howIndex);
+
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
+    await context.close();
   }
-  await context.route(/.*(asset-foundry|_next\/image).*/, async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 1_200));
-    await route.continue();
-  });
-}
+});
 
 async function installClsObserver(page: Page): Promise<void> {
   await page.addInitScript(() => {

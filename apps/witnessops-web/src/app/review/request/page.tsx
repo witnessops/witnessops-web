@@ -9,24 +9,24 @@ import {
 } from "@/lib/public-contact";
 
 export const metadata: Metadata = {
-  title: "Request One Proof Run",
+  title: "Tell Us What You Need Reviewed",
   description:
-    "Send a short, non-secret fit request for one bounded technical action. No proof run starts from this form, and no files, logs, screenshots, secrets, credentials, or customer evidence belong in the first message.",
+    "Send a short, non-secret fit request for a questionnaire, server, launch, incident, access change or bounded workflow. No review starts from this form.",
   alternates: {
     canonical: "/review/request",
   },
   openGraph: {
-    title: "Request One Proof Run | WitnessOps",
+    title: "Tell Us What You Need Reviewed | WitnessOps",
     description:
-      "Send a short, non-secret fit request for one bounded technical action. No proof run starts from this form, and no files, logs, screenshots, secrets, credentials, or customer evidence belong in the first message.",
+      "Send a short, non-secret fit request for a questionnaire, server, launch, incident, access change or bounded workflow. No review starts from this form.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Request One Proof Run | WitnessOps",
+    title: "Tell Us What You Need Reviewed | WitnessOps",
     description:
-      "Send a short, non-secret fit request for one bounded technical action. No proof run starts from this form, and no files, logs, screenshots, secrets, credentials, or customer evidence belong in the first message.",
+      "Send a short, non-secret fit request for a questionnaire, server, launch, incident, access change or bounded workflow. No review starts from this form.",
   },
 };
 
@@ -67,7 +67,8 @@ const sampleArtifacts = [
 
 export default function ReviewRequestPage() {
   return (
-    <main id="main-content" tabIndex={-1} className="mx-auto max-w-[1040px] px-6 py-12 md:py-16">
+    <main id="main-content" tabIndex={-1} className="buyer-page">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-16">
       <section className="mb-8 max-w-[720px]">
         <div
           className="mb-4"
@@ -80,20 +81,20 @@ export default function ReviewRequestPage() {
             color: "var(--color-brand-muted)",
           }}
         >
-          Proof Run Request
+          Review Request
         </div>
         <h1
-          className="mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary md:text-5xl"
+          className="mb-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Request one proof run
+          Tell us what you need reviewed
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
-          This is a fit check, not evidence intake. Name one code patch,
-          security finding, AI-agent action, access decision, or operational
-          handoff you want packaged. No files, logs, screenshots, exports,
-          credentials, private keys, MFA codes, or customer evidence are needed
-          for the first fit check.
+          This is a fit check, not evidence intake. Describe the questionnaire,
+          server, launch, incident, access change or bounded workflow you need
+          reviewed. No files, logs, screenshots, exports, credentials, private
+          keys, MFA codes or customer evidence are needed for the first fit
+          check.
         </p>
         <p className="mt-3 max-w-[640px] text-sm leading-relaxed text-text-muted">
           Fallback contact: send the same non-secret fit check to{" "}
@@ -108,7 +109,7 @@ export default function ReviewRequestPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="border border-surface-border p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}>
+        <section className="border border-surface-border p-4 sm:p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}>
           <ContactForm />
         </section>
 
@@ -275,6 +276,7 @@ export default function ReviewRequestPage() {
           ))}
         </div>
       </section>
+      </div>
     </main>
   );
 }

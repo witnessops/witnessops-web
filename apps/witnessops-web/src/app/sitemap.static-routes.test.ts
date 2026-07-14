@@ -13,6 +13,8 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/review/sample-cases",
   "/review/sample-cases/ai-agent-action-proof-run",
   "/customer-security-review",
+  "/pl/customer-security-review",
+  "/pl/library",
   "/review/sample-cases/approval-gated-containment",
   "/review/sample-cases/privileged-access-grant",
   "/access-change-proof-run",

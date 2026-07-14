@@ -88,6 +88,11 @@ const staticRoutes: StaticRoute[] = [
 const polishRoutes: StaticRoute[] = [
   { route: "/pl", sourcePath: "src/app/pl/page.tsx" },
   { route: "/pl/catalog", sourcePath: "src/app/pl/catalog/page.tsx" },
+  { route: "/pl/library", sourcePath: "src/app/pl/library/page.tsx" },
+  {
+    route: "/pl/customer-security-review",
+    sourcePath: "src/app/pl/customer-security-review/page.tsx",
+  },
   ...getPolishSkus().map(({ id }) => ({
     route: `/pl/catalog/${id.toLowerCase()}`,
     sourcePath: "src/app/pl/catalog/[skuId]/page.tsx",

@@ -8,11 +8,10 @@ export const POLISH_NO_SECRETS_NOTE =
 
 export const POLISH_PUBLIC_NAV = {
   links: [
-    { label: "Oferty", href: "/pl/catalog" },
+    { label: "Usługi", href: "/pl/catalog" },
+    { label: "Przegląd bezpieczeństwa klienta", href: "/pl/customer-security-review" },
+    { label: "Biblioteka", href: "/pl/library" },
     { label: "Dlaczego WitnessOps", href: "/pl/why-witnessops" },
-    { label: "Dokumentacja", href: "/pl/docs" },
-    { label: "Weryfikacja", href: "/pl/verify" },
-    { label: "Wsparcie", href: "/pl/support" },
   ],
   cta: { label: "Rozpocznij zgłoszenie", href: "/pl/review/request", variant: "primary" },
 } as const;
@@ -107,6 +106,8 @@ const POLISH_TRANSLATED_PATHS = [
   /^\/catalog(?:\/(?:offsec-local-audit|offsec-launch-ready|offsec-custody-ops|offsec-incident-ready|offsec-pilot))?$/,
   /^\/review\/request(?:\/confirmed)?$/,
   /^\/why-witnessops$/,
+  /^\/customer-security-review$/,
+  /^\/library$/,
   /^\/docs$/,
   /^\/verify$/,
   /^\/support$/,

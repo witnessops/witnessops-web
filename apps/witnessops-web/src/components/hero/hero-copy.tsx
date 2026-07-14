@@ -57,7 +57,7 @@ export function HeroCopy({
           label={secondaryCta.label}
           href={secondaryCta.href}
           variant={(secondaryCta.variant as "primary" | "secondary" | "ghost") ?? "secondary"}
-          className="min-h-[44px] border-white/[0.14] bg-white/[0.04] px-4 text-[13px] text-white/[0.85] shadow-none hover:border-white/20 hover:bg-white/[0.06] hover:shadow-none sm:px-6 sm:text-sm"
+          className="min-h-[44px] px-4 text-[13px] shadow-none hover:shadow-none sm:px-6 sm:text-sm"
         />
       </div>
 

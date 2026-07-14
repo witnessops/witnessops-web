@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { EngageResponse, VerifyTokenResponse } from "@/lib/token-contract";
 import { formatVerificationCode } from "@/lib/verification-code-format";
@@ -31,15 +31,19 @@ const labelStyle: React.CSSProperties = {
 };
 
 const inputClass =
-  "w-full border border-surface-border-strong bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none";
+  "min-h-12 w-full border border-surface-border-strong bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2";
 
 const textareaClass =
-  "w-full border border-surface-border-strong bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none";
+  "min-h-32 w-full border border-surface-border-strong bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 md:min-h-24";
+
+const buttonFocusClass =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2";
 
 const inputStyle: React.CSSProperties = {
   fontFamily: "var(--font-sans)",
   fontSize: 15,
   letterSpacing: 0,
+  scrollMarginTop: "calc(var(--app-navbar-height) + 16px)",
 };
 
 type VerificationStep = Pick<
@@ -52,16 +56,121 @@ function stringField(data: FormData, name: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export function ContactForm() {
+export function ContactForm({ locale = "en" }: { locale?: "en" | "pl" }) {
   const router = useRouter();
+  const invalidScrollScheduled = useRef(false);
+  const verificationHeadingRef = useRef<HTMLHeadingElement>(null);
+  const polish = locale === "pl";
+  const copy = polish
+    ? {
+        sendError: "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
+        verifyError: "Nie udało się potwierdzić kodu. Spróbuj ponownie.",
+        boundaryError: "Potwierdź granicę przed sprawdzeniem kodu.",
+        emailError: "Wpisz prawidłowy służbowy adres e-mail.",
+        requiredError: "To pole jest wymagane.",
+        verifying: "Sprawdzanie kodu...",
+        verificationSent: "Wiadomość weryfikacyjna została wysłana. Wpisz kod z wiadomości na tej stronie.",
+        mailboxVerification: "Weryfikacja skrzynki pocztowej",
+        enterCode: "Wpisz kod z wiadomości e-mail",
+        codeSent: "Wysłaliśmy kod na adres",
+        codeInstructions: "Pozostaw tę stronę otwartą i wpisz kod poniżej. Wiadomość zawiera tylko kod; link nie jest wymagany.",
+        mailboxBoundary: "Weryfikacja skrzynki nie rozpoczyna przeglądu. Dopasowanie, zakres, cena, termin i obsługa materiałów są najpierw potwierdzane e-mailem.",
+        verificationCode: "Kod weryfikacyjny",
+        codeExpiry: "Nie udostępniaj tego kodu. Kod wygasa:",
+        verificationConsent: "Rozumiem, że potwierdza to wyłącznie dostęp do skrzynki pocztowej. Przegląd nie rozpoczyna się na tym etapie. Nie wyślę danych poufnych, logów, zrzutów ekranu, eksportów kodu, danych uwierzytelniających, kluczy prywatnych, kodów MFA, danych klientów ani materiałów produkcyjnych, dopóki zakres i sposób obsługi materiałów nie zostaną uzgodnione.",
+        confirming: "Potwierdzanie...",
+        confirmMailbox: "Potwierdź skrzynkę",
+        newRequest: "Rozpocznij nowe zgłoszenie",
+        emailFollowup: "Dalszy kontakt e-mail",
+        sending: "Wysyłanie...",
+        requestSent: "Zgłoszenie wysłane. Wpisz kod z wiadomości e-mail na tej stronie.",
+        fitTitle: "Zacznij od krótkiej, niepoufnej oceny dopasowania.",
+        fitBody: "Opisz, co wymaga sprawdzenia, nie wklejaj materiałów. Bez plików i bez przesyłania dowodów. Ankiety, logi, zrzuty ekranu, eksporty, dane uwierzytelniające, klucze prywatne, kody MFA i materiały klienta przekaż dopiero po uzgodnieniu zakresu i sposobu ich obsługi.",
+        name: "Imię i nazwisko",
+        email: "Służbowy adres e-mail",
+        organization: "Firma lub zespół",
+        required: "(wymagane)",
+        optional: "(opcjonalnie)",
+        organizationPlaceholder: "Firma, zespół lub projekt",
+        workflow: "Co wymaga sprawdzenia?",
+        workflowPlaceholder: "Przykład: ankieta bezpieczeństwa, jeden serwer, planowane wdrożenie, zmiana dostępu, incydent lub jedno działanie techniczne.",
+        workflowHelp: "Opisz jedną potrzebę ogólnie. Nie wklejaj danych poufnych, eksportów kodu, pełnych logów, zrzutów ekranu, danych uwierzytelniających, kluczy prywatnych, kodów MFA ani materiałów klienta.",
+        actionPath: "Sytuacja i system objęty przeglądem",
+        actionPathPlaceholder: "Wskaż ogólnie sytuację, środowisko lub system, którego dotyczy zgłoszenie. Nie podawaj danych dostępowych ani materiałów źródłowych.",
+        approval: "Granica zakresu i zatwierdzenie",
+        approvalPlaceholder: "Co jest w zakresie, kto zatwierdził działanie, z jakiego upoważnienia skorzystał i gdzie zatwierdzenie się kończy.",
+        evidence: "Dostępne rodzaje materiałów",
+        evidencePlaceholder: "Nazwij tylko rodzaje materiałów: zgłoszenia, prompty, logi, commity, zatwierdzenia, wyniki lub artefakty weryfikatora.",
+        send: "Wyślij ocenę dopasowania",
+        submitBoundary: "Wysłanie formularza otwiera wyłącznie etap oceny dopasowania i ustalania zakresu. Przegląd nie rozpoczyna się, dopóki zakres, cena, termin i sposób obsługi materiałów nie zostaną uzgodnione.",
+        received: "Zgłoszenie odebrane. Wpisz na tej stronie kod wysłany na służbowy adres e-mail.",
+        noSecrets: "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, kodów odzyskiwania, tokenów sesji ani innych danych poufnych.",
+      }
+    : {
+        sendError: "Failed to send. Please try again.",
+        verifyError: "Verification failed. Please try again.",
+        boundaryError: "Confirm the boundary before verifying the code.",
+        emailError: "Enter a valid work email.",
+        requiredError: "This field is required.",
+        verifying: "Verifying code...",
+        verificationSent: "Verification email sent. Enter the email code on this page.",
+        mailboxVerification: "Mailbox verification",
+        enterCode: "Enter your email code",
+        codeSent: "We sent a code to",
+        codeInstructions: "Keep this page open, then type the code below. The email contains the code only; no link is required.",
+        mailboxBoundary: "Mailbox verification does not start a review. Fit, scope, price, timing and evidence handling are confirmed by email first.",
+        verificationCode: "Verification code",
+        codeExpiry: "Do not share this code. It expires at",
+        verificationConsent: "I understand this confirms mailbox access only. No review starts here, and I will not send secrets, logs, screenshots, source exports, credentials, private keys, MFA codes, customer records, or production evidence until scope and evidence handling are agreed.",
+        confirming: "Confirming...",
+        confirmMailbox: "Confirm mailbox",
+        newRequest: "Start a new request",
+        emailFollowup: "Email follow-up",
+        sending: "Sending...",
+        requestSent: "Request sent. Enter the email code on this page.",
+        fitTitle: "Start with a short, non-secret fit check.",
+        fitBody: "Describe what you need reviewed; do not paste source material. No files and no evidence upload. Save questionnaires, logs, screenshots, exports, credentials, private keys, MFA codes and customer evidence for the scoped intake after handling is agreed.",
+        name: "Your name",
+        email: "Work email",
+        organization: "Company or team",
+        required: "(required)",
+        optional: "(optional)",
+        organizationPlaceholder: "Company, team, or project",
+        workflow: "What do you need reviewed?",
+        workflowPlaceholder: "Example: a security questionnaire, one server, a planned launch, an access change, an incident scenario, or one technical action.",
+        workflowHelp: "Describe one review need at a high level. Do not paste secrets, source exports, full logs, screenshots, credentials, private keys, MFA codes, or customer evidence.",
+        actionPath: "Situation and affected system",
+        actionPathPlaceholder: "Name the situation, environment or affected system at a high level. Do not include access details or source material.",
+        approval: "Boundary and approval",
+        approvalPlaceholder: "What is in scope, who approved the action, what authority they used, and where approval stopped.",
+        evidence: "Evidence available",
+        evidencePlaceholder: "Name evidence types only: tickets, prompts, logs, commit records, approval records, outputs, verifier artifacts.",
+        send: "Send fit check",
+        submitBoundary: "Submitting this form only opens fit and scope review. No review starts until scope, price, timing and evidence handling are agreed.",
+        received: "Request received. Enter the code from your work email on this page.",
+        noSecrets: PUBLIC_NO_SECRETS_NOTE,
+      };
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "verifying" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState("Failed to send. Please try again.");
-  const [verifyErrorMessage, setVerifyErrorMessage] = useState("Verification failed. Please try again.");
+  const [errorMessage, setErrorMessage] = useState(copy.sendError);
+  const [verifyErrorMessage, setVerifyErrorMessage] = useState(copy.verifyError);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
   const [verificationStep, setVerificationStep] = useState<VerificationStep | null>(null);
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationBoundaryAccepted, setVerificationBoundaryAccepted] = useState(false);
+
+  useEffect(() => {
+    if (!verificationStep) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const heading = verificationHeadingRef.current;
+      if (!heading) return;
+      heading.scrollIntoView({ block: "start", behavior: "auto" });
+      heading.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [verificationStep]);
 
   function updateFieldError(name: FieldName, message: string) {
     setFieldErrors((current) => {
@@ -78,7 +187,7 @@ export function ContactForm() {
     e.preventDefault();
     setFieldErrors({});
     setStatus("sending");
-    setErrorMessage("Failed to send. Please try again.");
+    setErrorMessage(copy.sendError);
 
     const form = e.currentTarget;
     const data = new FormData(form);
@@ -87,9 +196,9 @@ export function ContactForm() {
     const approvalBoundary = stringField(data, "approvalBoundary");
     const evidenceAvailable = stringField(data, "evidenceAvailable");
     const proofRunScope = [
-      "Offer: Proof Pack Review",
-      `Technical action: ${workflow || "not provided"}`,
-      `Action path and touched system: ${agentPath || "not provided"}`,
+      "Request: WitnessOps review fit check",
+      `Review need: ${workflow || "not provided"}`,
+      `Situation and affected system: ${agentPath || "not provided"}`,
       `Boundary and approval: ${approvalBoundary || "not provided"}`,
       `Evidence available: ${evidenceAvailable || "not provided"}`,
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
@@ -112,15 +221,19 @@ export function ContactForm() {
       if (!res.ok) {
         const payload = await res.json().catch(() => ({ error: "Failed to send." }));
         if (typeof payload.error === "string" && payload.error.toLowerCase().includes("email")) {
-          updateFieldError("email", payload.error);
+          updateFieldError("email", copy.emailError);
         }
-        throw new Error(payload.error ?? "Failed to send.");
+        throw new Error(polish ? copy.sendError : (payload.error ?? copy.sendError));
       }
       const payload = (await res.json().catch(() => null)) as
         | Partial<EngageResponse>
         | null;
       if (!payload?.issuanceId || !payload.email || !payload.expiresAt) {
-        throw new Error("Verification was issued, but the response was incomplete.");
+        throw new Error(
+          polish
+            ? "Weryfikacja została rozpoczęta, ale odpowiedź była niepełna."
+            : "Verification was issued, but the response was incomplete.",
+        );
       }
       setVerificationStep({
         issuanceId: payload.issuanceId,
@@ -137,7 +250,7 @@ export function ContactForm() {
       setErrorMessage(
         error instanceof Error && error.message.length > 0
           ? error.message
-          : "Failed to send. Please try again.",
+          : copy.sendError,
       );
     }
   }
@@ -147,11 +260,11 @@ export function ContactForm() {
     if (!verificationStep) return;
 
     setVerifyStatus("verifying");
-    setVerifyErrorMessage("Verification failed. Please try again.");
+    setVerifyErrorMessage(copy.verifyError);
 
     try {
       if (!verificationBoundaryAccepted) {
-        throw new Error("Confirm the boundary before verifying the code.");
+        throw new Error(copy.boundaryError);
       }
 
       const response = await fetch("/api/verify-token", {
@@ -174,7 +287,7 @@ export function ContactForm() {
         !payload.email ||
         !payload.postVerifyPath
       ) {
-        throw new Error(payload?.error ?? "Verification failed.");
+        throw new Error(polish ? copy.verifyError : (payload?.error ?? "Verification failed."));
       }
 
       router.replace(payload.postVerifyPath);
@@ -183,7 +296,7 @@ export function ContactForm() {
       setVerifyErrorMessage(
         error instanceof Error && error.message.length > 0
           ? error.message
-          : "Verification failed. Please try again.",
+          : copy.verifyError,
       );
     }
   }
@@ -191,13 +304,33 @@ export function ContactForm() {
   function handleInvalid(
     e: React.InvalidEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
-    updateFieldError(e.currentTarget.name as FieldName, e.currentTarget.validationMessage);
+    const field = e.currentTarget;
+    if (!invalidScrollScheduled.current) {
+      invalidScrollScheduled.current = true;
+      window.requestAnimationFrame(() => {
+        field.scrollIntoView({ block: "start", behavior: "auto" });
+        field.focus({ preventScroll: true });
+        invalidScrollScheduled.current = false;
+      });
+    }
+    if (polish) {
+      field.setCustomValidity(
+        field.validity.typeMismatch ? copy.emailError : copy.requiredError,
+      );
+    }
+    updateFieldError(field.name as FieldName, field.validationMessage);
   }
 
   function handleFieldInput(
     e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
     const field = e.currentTarget;
+    field.setCustomValidity("");
+    if (polish && !field.validity.valid) {
+      field.setCustomValidity(
+        field.validity.typeMismatch ? copy.emailError : copy.requiredError,
+      );
+    }
     updateFieldError(field.name as FieldName, field.validity.valid ? "" : field.validationMessage);
   }
 
@@ -206,32 +339,35 @@ export function ContactForm() {
       <form onSubmit={handleVerifySubmit} className="space-y-5" aria-busy={verifyStatus === "verifying"}>
         <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
           {verifyStatus === "verifying"
-            ? "Verifying code..."
-            : "Verification email sent. Enter the email code on this page."}
+            ? copy.verifying
+            : copy.verificationSent}
         </div>
 
         <div className="border border-surface-border bg-surface-bg p-5">
-          <div className="mb-2" style={labelStyle}>Mailbox verification</div>
+          <div className="mb-2" style={labelStyle}>{copy.mailboxVerification}</div>
           <h2
+            ref={verificationHeadingRef}
+            tabIndex={-1}
             className="text-xl font-semibold uppercase leading-tight text-text-primary"
-            style={{ fontFamily: "var(--font-display)", letterSpacing: "0.04em" }}
+            style={{
+              fontFamily: "var(--font-display)",
+              letterSpacing: "0.04em",
+              scrollMarginTop: "calc(var(--app-navbar-height) + 16px)",
+            }}
           >
-            Enter your email code
+            {copy.enterCode}
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-text-muted">
-            We sent a code to {verificationStep.email}. Keep this page open,
-            then type the code below. The email contains the code only; no link
-            is required.
+            {copy.codeSent} {verificationStep.email}. {copy.codeInstructions}
           </p>
           <p className="mt-2 text-xs leading-relaxed text-text-muted">
-            Mailbox verification does not start a proof run. Fit, scope,
-            payment, and evidence handling are confirmed by email first.
+            {copy.mailboxBoundary}
           </p>
         </div>
 
         <div>
           <label htmlFor="verification-code" className="mb-2 block" style={labelStyle}>
-            Verification code
+            {copy.verificationCode} <span className="text-text-muted">{copy.required}</span>
           </label>
           <input
             id="verification-code"
@@ -239,7 +375,7 @@ export function ContactForm() {
             value={verificationCode}
             onChange={(event) => {
               setVerificationCode(formatVerificationCode(event.currentTarget.value));
-              setVerifyErrorMessage("Verification failed. Please try again.");
+              setVerifyErrorMessage(copy.verifyError);
               setVerifyStatus("idle");
             }}
             autoComplete="one-time-code"
@@ -253,7 +389,7 @@ export function ContactForm() {
             style={{ ...inputStyle, textAlign: "center", letterSpacing: "0.16em" }}
           />
           <p className="mt-2 text-xs leading-relaxed text-text-muted">
-            Do not share this code. It expires at {verificationStep.expiresAt}.
+            {copy.codeExpiry} {verificationStep.expiresAt}.
           </p>
         </div>
 
@@ -263,17 +399,12 @@ export function ContactForm() {
             checked={verificationBoundaryAccepted}
             onChange={(event) => {
               setVerificationBoundaryAccepted(event.currentTarget.checked);
-              setVerifyErrorMessage("Verification failed. Please try again.");
+              setVerifyErrorMessage(copy.verifyError);
               setVerifyStatus("idle");
             }}
             className="mt-1 h-4 w-4 shrink-0 accent-brand-accent"
           />
-          <span>
-            I understand this confirms mailbox access only. No proof run starts
-            here, and I will not send secrets, logs, screenshots, source
-            exports, credentials, private keys, MFA codes, customer records, or
-            production evidence until scope and evidence handling are agreed.
-          </span>
+          <span>{copy.verificationConsent}</span>
         </label>
 
         {verifyStatus === "error" && (
@@ -289,7 +420,7 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={verifyStatus === "verifying" || !verificationBoundaryAccepted}
-          className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98]"
+          className={`min-h-11 w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98] ${buttonFocusClass}`}
           style={{
             fontFamily: "var(--font-display)",
             fontSize: 13,
@@ -298,7 +429,7 @@ export function ContactForm() {
             textTransform: "uppercase",
           }}
         >
-          {verifyStatus === "verifying" ? "Confirming..." : "Confirm mailbox"}
+          {verifyStatus === "verifying" ? copy.confirming : copy.confirmMailbox}
         </button>
 
         <button
@@ -310,7 +441,7 @@ export function ContactForm() {
             setVerifyStatus("idle");
             setStatus("idle");
           }}
-          className="w-full border border-surface-border py-3 text-text-muted transition-colors hover:text-text-primary"
+          className={`min-h-11 w-full border border-surface-border py-3 text-text-muted transition-colors hover:text-text-primary ${buttonFocusClass}`}
           style={{
             fontFamily: "var(--font-display)",
             fontSize: 12,
@@ -319,7 +450,7 @@ export function ContactForm() {
             textTransform: "uppercase",
           }}
         >
-          Start a new request
+          {copy.newRequest}
         </button>
 
         <div
@@ -331,7 +462,7 @@ export function ContactForm() {
               className="whitespace-nowrap"
               style={{ color: "var(--color-brand-accent)" }}
             >
-              Email follow-up
+              {copy.emailFollowup}
             </span>
             <span className="inline-flex items-center whitespace-nowrap">
               <span
@@ -350,7 +481,7 @@ export function ContactForm() {
               </a>
             </span>
           </div>
-          <p className="mt-2">{PUBLIC_NO_SECRETS_NOTE}</p>
+          <p className="mt-2">{copy.noSecrets}</p>
         </div>
       </form>
     );
@@ -361,139 +492,145 @@ export function ContactForm() {
       <input type="hidden" name="intent" value="ai-agent-action-proof-run" />
       <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
         {status === "sending"
-          ? "Sending..."
+          ? copy.sending
           : status === "sent"
-            ? "Request sent. Enter the email code on this page."
+            ? copy.requestSent
             : ""}
       </div>
 
       <div className="border border-surface-border bg-surface-bg p-4">
         <div className="text-sm font-semibold text-text-primary">
-          Start with a short non-secret proof-pack fit check.
+          {copy.fitTitle}
         </div>
         <p className="mt-2 text-sm leading-relaxed text-text-muted">
-          This is a fit check, not evidence intake. Name the action, not the
-          evidence. No files. No evidence upload. Use plain language and save
-          tickets, logs, screenshots, exports, credentials, private keys, MFA
-          codes, and customer evidence for the scoped intake after handling is
-          agreed.
+          {copy.fitBody}
         </p>
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">
         <div>
-          <label htmlFor="name" className="mb-2 block" style={labelStyle}>Your name</label>
+          <label htmlFor="name" className="mb-2 block" style={labelStyle}>{copy.name} <span className="text-text-muted">{copy.required}</span></label>
           <input
             id="name" name="name" type="text" required
             aria-invalid={fieldErrors.name ? true : undefined}
+            aria-describedby={fieldErrors.name ? "name-error" : undefined}
+            aria-errormessage={fieldErrors.name ? "name-error" : undefined}
             onInvalid={handleInvalid} onInput={handleFieldInput}
             className={`${inputClass} ${fieldErrors.name ? "!border-signal-red" : ""}`}
             style={inputStyle}
-            placeholder="Your name"
+            placeholder={copy.name}
           />
-          {fieldErrors.name && <p className="mt-1 text-xs text-signal-red">{fieldErrors.name}</p>}
+          {fieldErrors.name && <p id="name-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.name}</p>}
         </div>
 
         <div>
-          <label htmlFor="email" className="mb-2 block" style={labelStyle}>Work email</label>
+          <label htmlFor="email" className="mb-2 block" style={labelStyle}>{copy.email} <span className="text-text-muted">{copy.required}</span></label>
           <input
             id="email" name="email" type="email" required
             aria-invalid={fieldErrors.email ? true : undefined}
+            aria-describedby={fieldErrors.email ? "email-error" : undefined}
+            aria-errormessage={fieldErrors.email ? "email-error" : undefined}
             onInvalid={handleInvalid} onInput={handleFieldInput}
             className={`${inputClass} ${fieldErrors.email ? "!border-signal-red" : ""}`}
             style={inputStyle}
             placeholder="buyer@company.com"
           />
-          {fieldErrors.email && <p className="mt-1 text-xs text-signal-red">{fieldErrors.email}</p>}
+          {fieldErrors.email && <p id="email-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.email}</p>}
         </div>
       </div>
 
       <div>
-        <label htmlFor="org" className="mb-2 block" style={labelStyle}>Company or team <span className="text-text-muted">(optional)</span></label>
+        <label htmlFor="org" className="mb-2 block" style={labelStyle}>{copy.organization} <span className="text-text-muted">{copy.optional}</span></label>
         <input
           id="org" name="org" type="text"
           aria-invalid={fieldErrors.org ? true : undefined}
           onInvalid={handleInvalid} onInput={handleFieldInput}
           className={`${inputClass} ${fieldErrors.org ? "!border-signal-red" : ""}`}
           style={inputStyle}
-          placeholder="Company, team, or project"
+          placeholder={copy.organizationPlaceholder}
         />
         {fieldErrors.org && <p className="mt-1 text-xs text-signal-red">{fieldErrors.org}</p>}
       </div>
 
       <div>
         <label htmlFor="workflow" className="mb-2 block" style={labelStyle}>
-          What technical action should we package?
+          {copy.workflow} <span className="text-text-muted">{copy.required}</span>
         </label>
         <textarea
           id="workflow" name="workflow" rows={3} required
-          aria-describedby="workflow-helper"
+          aria-describedby={fieldErrors.workflow ? "workflow-helper workflow-error" : "workflow-helper"}
+          aria-errormessage={fieldErrors.workflow ? "workflow-error" : undefined}
           className={`${textareaClass} ${fieldErrors.workflow ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder="Example: a code patch, security finding, AI-agent action, access change, operational handoff, or incident workflow."
+          placeholder={copy.workflowPlaceholder}
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.workflow ? true : undefined}
         />
         <p id="workflow-helper" className="mt-2 text-xs leading-relaxed text-text-muted">
-          One action only. Keep this high level. Do not paste secrets, source exports,
-          full logs, screenshots, credentials, private keys, MFA codes, or customer evidence.
+          {copy.workflowHelp}
         </p>
-        {fieldErrors.workflow && <p className="mt-1 text-xs text-signal-red">{fieldErrors.workflow}</p>}
+        {fieldErrors.workflow && <p id="workflow-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.workflow}</p>}
       </div>
 
       <div>
         <label htmlFor="agentPath" className="mb-2 block" style={labelStyle}>
-          Action path and touched system
+          {copy.actionPath} <span className="text-text-muted">{copy.required}</span>
         </label>
         <textarea
           id="agentPath" name="agentPath" rows={3} required
           className={`${textareaClass} ${fieldErrors.agentPath ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder="Example: GitHub issue -> Codex review -> patch branch -> preflight check. Name systems at a high level only."
+          placeholder={copy.actionPathPlaceholder}
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.agentPath ? true : undefined}
+          aria-describedby={fieldErrors.agentPath ? "agentPath-error" : undefined}
+          aria-errormessage={fieldErrors.agentPath ? "agentPath-error" : undefined}
         />
-        {fieldErrors.agentPath && <p className="mt-1 text-xs text-signal-red">{fieldErrors.agentPath}</p>}
+        {fieldErrors.agentPath && <p id="agentPath-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.agentPath}</p>}
       </div>
 
       <div>
         <label htmlFor="approvalBoundary" className="mb-2 block" style={labelStyle}>
-          Boundary and approval
+          {copy.approval} <span className="text-text-muted">{copy.required}</span>
         </label>
         <textarea
           id="approvalBoundary" name="approvalBoundary" rows={3} required
           className={`${textareaClass} ${fieldErrors.approvalBoundary ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder="What is in scope, who approved the action, what authority they used, and where approval stopped."
+          placeholder={copy.approvalPlaceholder}
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.approvalBoundary ? true : undefined}
+          aria-describedby={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
+          aria-errormessage={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
         />
-        {fieldErrors.approvalBoundary && <p className="mt-1 text-xs text-signal-red">{fieldErrors.approvalBoundary}</p>}
+        {fieldErrors.approvalBoundary && <p id="approvalBoundary-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.approvalBoundary}</p>}
       </div>
 
       <div>
         <label htmlFor="evidenceAvailable" className="mb-2 block" style={labelStyle}>
-          Evidence available
+          {copy.evidence} <span className="text-text-muted">{copy.required}</span>
         </label>
         <textarea
           id="evidenceAvailable" name="evidenceAvailable" rows={3} required
           className={`${textareaClass} ${fieldErrors.evidenceAvailable ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder="Name evidence types only: tickets, prompts, logs, commit records, approval records, outputs, verifier artifacts."
+          placeholder={copy.evidencePlaceholder}
           onInvalid={handleInvalid}
           onInput={handleFieldInput}
           aria-invalid={fieldErrors.evidenceAvailable ? true : undefined}
+          aria-describedby={fieldErrors.evidenceAvailable ? "evidenceAvailable-error" : undefined}
+          aria-errormessage={fieldErrors.evidenceAvailable ? "evidenceAvailable-error" : undefined}
         />
-        {fieldErrors.evidenceAvailable && <p className="mt-1 text-xs text-signal-red">{fieldErrors.evidenceAvailable}</p>}
+        {fieldErrors.evidenceAvailable && <p id="evidenceAvailable-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.evidenceAvailable}</p>}
       </div>
 
       <button
         type="submit"
         disabled={status === "sending"}
-        className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98]"
+        className={`min-h-11 w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98] ${buttonFocusClass}`}
         style={{
           fontFamily: "var(--font-display)",
           fontSize: 13,
@@ -502,12 +639,11 @@ export function ContactForm() {
           textTransform: "uppercase",
         }}
       >
-        {status === "sending" ? "Sending..." : "Send fit check"}
+        {status === "sending" ? copy.sending : copy.send}
       </button>
 
       <p className="text-xs leading-relaxed text-text-muted">
-        Submitting this form only opens package scoping. No proof run starts until
-        scope, fee, and evidence handling are agreed.
+        {copy.submitBoundary}
       </p>
 
       {status === "sent" && (
@@ -516,7 +652,7 @@ export function ContactForm() {
           style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-signal-green)" }}
           role="status"
         >
-          <span>&#10003;</span> Request received. Enter the code from your work email on this page.
+          <span>&#10003;</span> {copy.received}
         </div>
       )}
       {status === "error" && (
@@ -538,7 +674,7 @@ export function ContactForm() {
             className="whitespace-nowrap"
             style={{ color: "var(--color-brand-accent)" }}
           >
-            Email follow-up
+            {copy.emailFollowup}
           </span>
           <span className="inline-flex items-center whitespace-nowrap">
             <span
@@ -557,7 +693,7 @@ export function ContactForm() {
             </a>
           </span>
         </div>
-        <p className="mt-2">{PUBLIC_NO_SECRETS_NOTE}</p>
+        <p className="mt-2">{copy.noSecrets}</p>
       </div>
     </form>
   );

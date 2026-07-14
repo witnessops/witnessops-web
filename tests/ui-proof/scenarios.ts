@@ -1,6 +1,5 @@
 export type ScenarioSeverity = "critical" | "warning";
 export type ContentVariant = "default" | "long";
-export type AssetMode = "normal" | "delayed";
 export type ColorScheme = "light" | "dark";
 export type ReducedMotion = "reduce" | "no-preference";
 
@@ -14,7 +13,6 @@ export type HomepageHeroScenario = {
   reducedMotion: ReducedMotion;
   contentVariant: ContentVariant;
   deviceScaleFactor: number;
-  assetMode?: AssetMode;
   severity: ScenarioSeverity;
 };
 
@@ -47,13 +45,12 @@ export const homepageHeroScenarios: HomepageHeroScenario[] = [
     severity: "critical",
   },
   {
-    name: "mobile-430-dark-slow-asset",
+    name: "mobile-430-dark-long-copy",
     viewport: { width: 430, height: 932 },
     colorScheme: "dark",
     reducedMotion: "no-preference",
     contentVariant: "long",
     deviceScaleFactor: 3,
-    assetMode: "delayed",
     severity: "critical",
   },
   {

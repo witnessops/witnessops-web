@@ -10,6 +10,7 @@ interface CtaButtonProps {
   className?: string;
   onClick?: MouseEventHandler<HTMLAnchorElement>;
   uiProofId?: string;
+  ariaCurrent?: "page";
 }
 
 const variantStyles: Record<Variant, string> = {
@@ -28,6 +29,7 @@ export function CtaButton({
   className,
   onClick,
   uiProofId,
+  ariaCurrent,
 }: CtaButtonProps) {
   const base =
     "inline-flex items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
@@ -42,6 +44,7 @@ export function CtaButton({
         rel="noopener noreferrer"
         onClick={onClick}
         data-ui-proof-id={uiProofId}
+        aria-current={ariaCurrent}
       >
         {label}
       </a>
@@ -54,6 +57,7 @@ export function CtaButton({
       className={styles}
       onClick={onClick}
       data-ui-proof-id={uiProofId}
+      aria-current={ariaCurrent}
     >
       {label}
     </Link>

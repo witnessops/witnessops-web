@@ -5,17 +5,22 @@ import test from "node:test";
 import { getPolishSkus, POLISH_OFFERS } from "@/lib/public-i18n";
 
 const homePage = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+const buyerHomepage = readFileSync(
+  resolve(__dirname, "../../components/marketing/buyer-homepage.tsx"),
+  "utf-8",
+);
 
 test("Polish homepage uses the approved naturalized headline and terminology", () => {
-  assert.match(homePage, /JASNO OKREŚLONY ZAKRES\. SPRAWDZALNY WYNIK\./);
-  assert.match(homePage, /Wybierz sytuację, która najlepiej odpowiada Twojej potrzebie/);
-  assert.match(homePage, /Jasno określone rezultaty/);
-  assert.match(homePage, /wskazuje sposób weryfikacji/);
+  assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
+  assert.match(buyerHomepage, /Jasno określony zakres\. Sprawdzalny wynik\./);
+  assert.match(buyerHomepage, /Opowiedz nam, co wymaga sprawdzenia\./);
+  assert.match(buyerHomepage, /Sześć przeglądów dla pracy, która wymaga jasnego następnego kroku/);
+  assert.match(buyerHomepage, /Widoczny status materiału/);
   assert.doesNotMatch(homePage, /Jasny zakres\. Jasny wynik\./);
   assert.doesNotMatch(homePage, /Konkretna dostawa/);
 });
 
-test("active Polish offer names preserve the approved buyer terminology", () => {
+test("detailed Polish offer routes retain their established terminology", () => {
   assert.equal(
     POLISH_OFFERS["OFFSEC-LOCAL-AUDIT"]?.name,
     "Przegląd bezpieczeństwa pojedynczego serwera",

@@ -8,18 +8,26 @@ import {
   productContactSubject,
   publicContactMailto,
 } from "@/lib/public-contact";
+import {
+  POLISH_NO_SECRETS_NOTE,
+  type PublicLocale,
+} from "@/lib/public-i18n";
 
 interface PublicContactRouteProps {
   productName?: string;
   subject?: "general" | "fit-check";
   compact?: boolean;
+  locale?: PublicLocale;
 }
 
 export function PublicContactRoute({
   productName,
   subject = "general",
   compact = false,
+  locale = "en",
 }: PublicContactRouteProps) {
+  const polish = locale === "pl";
+  const primaryHref = polish ? "/pl/review/request" : PUBLIC_CONTACT_PRIMARY_HREF;
   const mailtoSubject = productName
     ? productContactSubject(productName)
     : subject === "fit-check"
@@ -39,19 +47,19 @@ export function PublicContactRoute({
         className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent"
         style={{ fontFamily: "var(--font-mono)" }}
       >
-        Tell us what happened
+        {polish ? "Opowiedz nam, co się wydarzyło" : "Tell us what happened"}
       </p>
       <p className="mt-2 text-sm leading-6 text-text-secondary">
-        Primary route:{" "}
+        {polish ? "Główna ścieżka:" : "Primary route:"}{" "}
         <Link
-          href={PUBLIC_CONTACT_PRIMARY_HREF}
+          href={primaryHref}
           className="text-brand-accent underline-offset-4 hover:underline"
         >
-          /review/request
+          {primaryHref}
         </Link>
       </p>
       <p className="mt-1 text-sm leading-6 text-text-secondary">
-        Fallback contact:{" "}
+        {polish ? "Kontakt zapasowy:" : "Fallback contact:"}{" "}
         <a
           href={publicContactMailto(mailtoSubject)}
           className="text-brand-accent underline-offset-4 hover:underline"
@@ -60,7 +68,7 @@ export function PublicContactRoute({
         </a>
       </p>
       <p className="mt-2 text-xs leading-5 text-text-muted">
-        {PUBLIC_NO_SECRETS_NOTE}
+        {polish ? POLISH_NO_SECRETS_NOTE : PUBLIC_NO_SECRETS_NOTE}
       </p>
     </section>
   );

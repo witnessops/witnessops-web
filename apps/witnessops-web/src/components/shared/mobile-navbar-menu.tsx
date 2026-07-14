@@ -1,32 +1,97 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { CtaButton } from "./cta-button";
 
 interface MobileNavbarMenuProps {
   links: { label: string; href: string }[];
   cta: { label: string; href: string; variant: string };
+  utilityLink?: { label: string; href: string };
+  currentPath: string;
+  openLabel: string;
+  closeLabel: string;
 }
 
-export function MobileNavbarMenu({ links, cta }: MobileNavbarMenuProps) {
+export function MobileNavbarMenu({
+  links,
+  cta,
+  utilityLink,
+  currentPath,
+  openLabel,
+  closeLabel,
+}: MobileNavbarMenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const menuId = "witnessops-mobile-menu";
 
   const closeMenu = () => setMenuOpen(false);
 
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const focusableElements = () =>
+      Array.from(
+        menuRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
+      );
+    const focusFrame = window.requestAnimationFrame(() => {
+      focusableElements()[0]?.focus();
+    });
+
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMenuOpen(false);
+        toggleRef.current?.focus();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const elements = focusableElements();
+      if (elements.length === 0) return;
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
+
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <button
+        ref={toggleRef}
         type="button"
-        className="inline-flex size-11 items-center justify-center rounded border border-surface-border bg-surface-card text-text-primary transition-colors hover:bg-surface-bg-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+        className="inline-flex size-11 items-center justify-center rounded border border-white/30 bg-black text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         aria-expanded={menuOpen}
         aria-controls={menuId}
-        aria-label={menuOpen ? "Close primary navigation" : "Open primary navigation"}
+        aria-label={menuOpen ? closeLabel : openLabel}
         onClick={() => setMenuOpen((open) => !open)}
       >
         <span className="sr-only">
-          {menuOpen ? "Close primary navigation" : "Open primary navigation"}
+          {menuOpen ? closeLabel : openLabel}
         </span>
         <span aria-hidden="true" className="flex flex-col gap-1.5">
           <span
@@ -48,8 +113,11 @@ export function MobileNavbarMenu({ links, cta }: MobileNavbarMenuProps) {
       </button>
 
       <div
+        ref={menuRef}
         id={menuId}
-        className={`absolute top-full right-0 left-0 overflow-hidden border-t border-surface-border bg-surface-bg transition-[max-height,opacity] duration-200 ${
+        aria-hidden={!menuOpen}
+        inert={!menuOpen}
+        className={`absolute top-full right-0 left-0 overflow-hidden border-t border-white/15 bg-black text-white transition-[max-height,opacity] duration-200 ${
           menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
@@ -58,17 +126,34 @@ export function MobileNavbarMenu({ links, cta }: MobileNavbarMenuProps) {
             <Link
               key={link.href}
               href={link.href}
-              className="rounded px-3 py-3 text-sm text-text-primary transition-colors hover:bg-surface-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+              aria-current={currentPath === link.href ? "page" : undefined}
+              className={`rounded px-3 py-3 text-sm transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                currentPath === link.href
+                  ? "bg-white/15 text-white"
+                  : "text-white/85"
+              }`}
               onClick={closeMenu}
             >
               {link.label}
             </Link>
           ))}
+          {utilityLink ? (
+            <Link
+              href={utilityLink.href}
+              className="rounded px-3 py-3 text-sm font-semibold text-white/70 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              onClick={closeMenu}
+            >
+              {utilityLink.label}
+            </Link>
+          ) : null}
           <CtaButton
             label={cta.label}
             href={cta.href}
             variant={(cta.variant as "primary" | "secondary" | "ghost") ?? "primary"}
-            className="mt-2 w-full"
+            className={`mt-2 w-full ${
+              currentPath === cta.href ? "ring-2 ring-white" : ""
+            }`}
+            ariaCurrent={currentPath === cta.href ? "page" : undefined}
             onClick={closeMenu}
           />
         </div>

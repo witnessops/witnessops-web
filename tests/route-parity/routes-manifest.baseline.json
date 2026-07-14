@@ -475,10 +475,22 @@
       "namedRegex": "^/pl/contact(?:/)?$"
     },
     {
+      "page": "/pl/customer-security-review",
+      "regex": "^/pl/customer\\-security\\-review(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/customer\\-security\\-review(?:/)?$"
+    },
+    {
       "page": "/pl/docs",
       "regex": "^/pl/docs(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/pl/docs(?:/)?$"
+    },
+    {
+      "page": "/pl/library",
+      "regex": "^/pl/library(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/library(?:/)?$"
     },
     {
       "page": "/pl/review/request",

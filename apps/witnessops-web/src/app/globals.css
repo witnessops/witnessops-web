@@ -164,6 +164,25 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Approved buyer-surface palette. Technical and operator routes retain the
+   existing token set; these pages alone use the light editorial treatment. */
+.buyer-page,
+main[data-page="home"] {
+  --color-brand-accent: #111111;
+  --color-surface-bg: #ffffff;
+  --color-surface-bg-alt: #f7f7f5;
+  --color-surface-inset: #f2f2ef;
+  --color-surface-card: #f7f7f5;
+  --color-surface-border: #d9d9d4;
+  --color-surface-border-strong: #a7a7a0;
+  --color-text-primary: #111111;
+  --color-text-secondary: #343434;
+  --color-text-muted: #62625e;
+  --color-text-inverse: #ffffff;
+  background: #ffffff;
+  color: #111111;
+}
+
 /* ═══ OFFSEC MARK ═══ */
 .witnessops-mark {
   transition: color 0.16s ease, text-shadow 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;

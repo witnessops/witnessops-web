@@ -117,5 +117,7 @@
   "/admin/(console)/settings/page": "app/admin/(console)/settings/page.js",
   "/admin/(console)/system/page": "app/admin/(console)/system/page.js",
   "/admin/(console)/review-requests/[id]/page": "app/admin/(console)/review-requests/[id]/page.js",
-  "/customer-security-review/page": "app/customer-security-review/page.js"
+  "/customer-security-review/page": "app/customer-security-review/page.js",
+  "/pl/customer-security-review/page": "app/pl/customer-security-review/page.js",
+  "/pl/library/page": "app/pl/library/page.js"
 }

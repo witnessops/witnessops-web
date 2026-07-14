@@ -38,7 +38,7 @@ const principles = [
 
 export default function PolishWhyWitnessOpsPage() {
   return (
-    <main id="main-content" tabIndex={-1} className="mx-auto max-w-5xl px-6 py-12 lg:py-20">
+    <main id="main-content" tabIndex={-1} className="buyer-page mx-auto max-w-5xl px-6 py-12 lg:py-20">
       <header className="max-w-4xl border-b border-surface-border pb-10">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
           Dlaczego WitnessOps

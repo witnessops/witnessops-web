@@ -11,20 +11,9 @@ export async function checkHomepageHero(
 ): Promise<{ checks: CheckResult[]; metrics: Metrics }> {
   const checks: CheckResult[] = [];
   checks.push(await selectorExists(page, "homepage-hero", severity));
-  checks.push(await selectorExists(page, "homepage-hero-underlay", severity));
   checks.push(await selectorExists(page, "homepage-hero-headline", severity));
   checks.push(await selectorExists(page, "homepage-hero-body", severity));
   checks.push(await selectorExists(page, "homepage-hero-primary-cta", severity));
-  checks.push(await selectorExists(page, "homepage-hero-media", severity));
-  checks.push(
-    await textIncludes(
-      page,
-      "homepage-hero-media",
-      "ai-agent-action-proof-run",
-      "hero media is bound to content-sourced proof-run excerpt",
-      severity,
-    ),
-  );
   checks.push(
     await selectorVisible(page, "homepage-hero-headline", "headline visible", severity),
   );
@@ -58,6 +47,32 @@ export async function checkHomepageHero(
     actual: ctaBox?.height ?? null,
   });
 
+  const heroBox = await page
+    .locator(uiProofSelector("homepage-hero"))
+    .first()
+    .boundingBox()
+    .catch(() => null);
+  checks.push({
+    name: "homepage hero has a rendered box",
+    status: Boolean(heroBox && heroBox.width > 0 && heroBox.height > 0) ? "pass" : "fail",
+    severity,
+    expected: "positive width and height",
+    actual: heroBox ? `${heroBox.width}x${heroBox.height}` : null,
+  });
+
+  const primaryCtaHref = await page
+    .locator(uiProofSelector("homepage-hero-primary-cta"))
+    .first()
+    .getAttribute("href")
+    .catch(() => null);
+  checks.push({
+    name: "primary CTA retains the services route",
+    status: primaryCtaHref === "/catalog" ? "pass" : "fail",
+    severity,
+    expected: "/catalog",
+    actual: primaryCtaHref,
+  });
+
   const scrollMetrics = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,
     clientWidth: document.documentElement.clientWidth,
@@ -69,19 +84,6 @@ export async function checkHomepageHero(
     severity,
     expected: "scrollWidth <= clientWidth + 1",
     actual: `${scrollMetrics.scrollWidth}/${scrollMetrics.clientWidth}`,
-  });
-
-  const pointerEvents = await page
-    .locator(uiProofSelector("homepage-hero-underlay"))
-    .first()
-    .evaluate((element) => window.getComputedStyle(element).pointerEvents)
-    .catch(() => null);
-  checks.push({
-    name: "underlay pointer-events is none",
-    status: pointerEvents === "none" ? "pass" : "fail",
-    severity,
-    expected: "none",
-    actual: pointerEvents,
   });
 
   const activeAnimationCount = await activeHeroAnimationCount(page);
@@ -153,28 +155,6 @@ async function selectorExists(
     severity,
     expected: ">= 1",
     actual: count,
-  };
-}
-
-async function textIncludes(
-  page: Page,
-  id: string,
-  expectedText: string,
-  label: string,
-  severity: ScenarioSeverity,
-): Promise<CheckResult> {
-  const text = await page
-    .locator(uiProofSelector(id))
-    .first()
-    .textContent()
-    .catch(() => null);
-
-  return {
-    name: label,
-    status: text?.includes(expectedText) ? "pass" : "fail",
-    severity,
-    expected: expectedText,
-    actual: text,
   };
 }
 

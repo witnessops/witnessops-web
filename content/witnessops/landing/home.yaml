@@ -9,13 +9,13 @@ status:
   last_reviewed: "2026-04-25"
 
 seo:
-  title: "Proof-Backed Security Work | WitnessOps"
-  description: "WitnessOps sells bounded proof and service packages for teams that need scoped evidence, receipt-backed results, and clear limits."
+  title: "Security and Operational Review Services | WitnessOps"
+  description: "Choose one of six bounded WitnessOps reviews. Start with a non-secret fit check, then confirm scope, price, timing, and evidence handling."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "Proof-backed security work for teams that need evidence, not promises."
-  og_description: "Request one scoped proof run. WitnessOps starts with a non-secret fit check, agrees scope and evidence handling, then delivers a receipt-backed package when the scope supports it."
+  og_title: "Tell us what needs to move forward."
+  og_description: "Six bounded security and operational reviews with clear scope, price, timing, evidence handling, and named limits."
   twitter_card: "summary_large_image"
 
 theme:
@@ -29,53 +29,33 @@ navbar:
     text: ""
     href: ""
   links:
-    - label: "Catalog"
+    - label: "Services"
       href: "/catalog"
-    - label: "Why WitnessOps"
-      href: "/why-witnessops"
-    - label: "Docs"
-      href: "/docs"
-    - label: "Verify"
-      href: "/verify"
+    - label: "Customer Security Review"
+      href: "/customer-security-review"
     - label: "Library"
       href: "/library"
-    - label: "Support"
-      href: "/support"
+    - label: "Why WitnessOps"
+      href: "/why-witnessops"
   cta:
-    label: "Request one proof run"
+    label: "Start a Review"
     href: "/review/request"
     variant: "primary"
 
 hero:
-  eyebrow: "Bounded proof runs for security and operations work"
-  title: "Proof-backed security work for teams that need evidence, not promises."
-  body: "Request one scoped proof run for a workflow, finding, patch, access change, or launch-readiness question. We start with a non-secret fit check, agree scope, fee, timing, and evidence handling, then deliver a receipt-backed package naming what was checked, what supports it, and what remains outside scope."
-  ai_note:
-    title: "What a proof run delivers"
-    body:
-      - "A scope map, evidence references, receipt artifacts where produced, named limits, and an inspection path."
-      - "If evidence is incomplete, the package says so."
-    microcopy: "First request only: no secrets, credentials, files, logs, screenshots, private keys, MFA codes, or customer evidence."
-  supporting_points:
-    - "Code patches"
-    - "Security findings"
-    - "AI-assisted review"
-    - "Access changes"
-    - "Receipt artifacts and limits"
+  eyebrow: "Security and operational reviews"
+  title: "Tell us what needs to move forward."
+  body: "We agree the situation, scope, result, price, timing and evidence handling before work starts. Then WitnessOps delivers the agreed review with evidence references, named limits and unresolved items."
+  supporting_points: []
   primary_cta:
-    label: "Request one proof run"
-    href: "/review/request"
+    label: "View services"
+    href: "/catalog"
     variant: "primary"
   secondary_cta:
-    label: "Inspect sample package"
-    href: "/review/sample-cases/ai-agent-action-proof-run"
+    label: "Start a review"
+    href: "/review/request"
     variant: "secondary"
-  proof_badges:
-    - "Scope"
-    - "Evidence"
-    - "Receipt"
-    - "Limits"
-    - "Inspection path"
+  proof_badges: []
   media:
     type: "code_excerpt"
     code:
@@ -212,6 +192,10 @@ footer:
   brand_line: "WitnessOps"
   subline: "Bounded proof packages for trust-sensitive technical work."
   links:
+    - label: "Services"
+      href: "/catalog"
+    - label: "Customer Security Review"
+      href: "/customer-security-review"
     - label: "Why WitnessOps"
       href: "/why-witnessops"
     - label: "Verify"
@@ -220,8 +204,8 @@ footer:
       href: "/docs"
     - label: "Library"
       href: "/library"
-    - label: "Support"
-      href: "/support"
+    - label: "Start a Review"
+      href: "/review/request"
   legal_links:
     - label: "Privacy"
       href: "/privacy"
