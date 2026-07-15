@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BuyerServiceDetail } from "@/components/marketing/buyer-service-detail";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
+import { buyerServiceByProductId } from "@/lib/buyer-services";
 import { POLISH_NO_SECRETS_NOTE, POLISH_OFFERS, polishOfferRequestHref, type CanonicalOffsecProductId } from "@/lib/public-i18n";
 import { getSku, resolveSkuId } from "@witnessops/catalog";
 
@@ -13,11 +15,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!resolved || !(resolved in POLISH_OFFERS)) return { title: "Nie znaleziono oferty" };
   const id = resolved as CanonicalOffsecProductId;
   const copy = POLISH_OFFERS[id];
-  return { title: copy.name, description: copy.situation, alternates: { canonical: `/pl/catalog/${id.toLowerCase()}`, languages: { en: `/catalog/${id.toLowerCase()}`, pl: `/pl/catalog/${id.toLowerCase()}`, "x-default": `/catalog/${id.toLowerCase()}` } } };
+  const buyerService = buyerServiceByProductId(id);
+  return { title: buyerService?.name.pl ?? copy.name, description: buyerService?.situation.pl ?? copy.situation, alternates: { canonical: `/pl/catalog/${id.toLowerCase()}`, languages: { en: `/catalog/${id.toLowerCase()}`, pl: `/pl/catalog/${id.toLowerCase()}`, "x-default": `/catalog/${id.toLowerCase()}` } } };
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return <section className="mb-8"><h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">{title}</h2><div className="mt-3 text-sm leading-7 text-text-secondary">{children}</div></section>;
+function Section({ title, children, buyer = false }: { title: string; children: React.ReactNode; buyer?: boolean }) {
+  return <section className={buyer ? "" : "mb-8"}><h2 className={buyer ? "text-xl font-semibold text-text-primary" : "text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"}>{title}</h2><div className="mt-3 text-sm leading-7 text-text-secondary">{children}</div></section>;
 }
 
 export default async function PolishOfferPage({ params }: PageProps) {
@@ -26,6 +29,55 @@ export default async function PolishOfferPage({ params }: PageProps) {
   const sku = getSku(id);
   if (!sku) notFound();
   const copy = POLISH_OFFERS[id];
+  const buyerService = buyerServiceByProductId(id);
+  if (buyerService) {
+    return (
+      <BuyerServiceDetail
+        locale="pl"
+        service={buyerService}
+        technicalId={id}
+        requestHref={polishOfferRequestHref(id)}
+      >
+        <div className="grid gap-9 lg:grid-cols-2 lg:gap-12">
+          <Section title="Co robi WitnessOps" buyer>
+            <ol className="space-y-3">
+              {copy.process.map((item, index) => (
+                <li key={item} className="flex gap-3">
+                  <span className="font-semibold text-brand-accent">{index + 1}.</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ol>
+          </Section>
+          <Section title="Co otrzymasz" buyer>
+            <ul className="grid gap-3">
+              {copy.deliverables.map((item) => (
+                <li key={item} className="border border-surface-border bg-surface-card/40 px-4 py-3">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </Section>
+          <Section title="Co musisz dostarczyć" buyer>
+            <ul className="space-y-3">
+              {copy.inputs.map((item) => <li key={item}>— {item}</li>)}
+            </ul>
+            <p className="mt-4 font-semibold text-text-primary">{POLISH_NO_SECRETS_NOTE}</p>
+          </Section>
+          <div className="grid gap-8">
+            <Section title="Czego oferta nie obejmuje" buyer>
+              <ul className="space-y-3">
+                {copy.exclusions.map((item) => <li key={item}>— {item}</li>)}
+              </ul>
+            </Section>
+            <Section title="Jak zweryfikować wynik" buyer>
+              <p>{copy.verification}</p>
+            </Section>
+          </div>
+        </div>
+      </BuyerServiceDetail>
+    );
+  }
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-6 py-10 lg:py-14">
       <Link href="/pl/catalog" className="text-xs uppercase tracking-wider text-brand-accent hover:underline">← Wróć do ofert</Link>

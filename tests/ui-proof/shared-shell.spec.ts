@@ -192,12 +192,48 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
     "closed mobile links stay out of the focus order",
   ).toBe(false);
 
+  const closedGeometry = await page.locator("main").evaluate((main) => {
+    const box = main.getBoundingClientRect();
+    return { top: box.top, left: box.left, width: box.width };
+  });
   await toggle.focus();
   await openMobileMenu(page);
   await expect(toggle).toHaveAttribute("aria-label", "Zamknij główną nawigację");
   await expect(firstMenuLink).toBeFocused();
   await expect(firstMenuLink).toHaveAttribute("aria-current", "page");
   expect(await page.evaluate(() => document.body.style.overflow)).toBe("hidden");
+
+  const menuVisuals = await page.evaluate(() => {
+    const current = document.querySelector<HTMLElement>(
+      '#witnessops-mobile-menu [aria-current="page"]',
+    );
+    const cta = document.querySelector<HTMLElement>(
+      '#witnessops-mobile-menu a[href="/pl/review/request"]',
+    );
+    return {
+      currentBackground: current ? getComputedStyle(current).backgroundColor : null,
+      currentBorder: current ? getComputedStyle(current).borderLeftWidth : null,
+      ctaBackground: cta ? getComputedStyle(cta).backgroundColor : null,
+      ctaColor: cta ? getComputedStyle(cta).color : null,
+    };
+  });
+  expect(menuVisuals.currentBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(menuVisuals.currentBorder).toBe("2px");
+  expect(menuVisuals.ctaBackground).toBe("rgb(255, 255, 255)");
+  expect(menuVisuals.ctaColor).toBe("rgb(0, 0, 0)");
+  const openGeometry = await page.locator("main").evaluate((main) => {
+    const box = main.getBoundingClientRect();
+    return {
+      top: box.top,
+      left: box.left,
+      width: box.width,
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    };
+  });
+  expect(Math.abs(openGeometry.top - closedGeometry.top)).toBeLessThanOrEqual(1);
+  expect(Math.abs(openGeometry.left - closedGeometry.left)).toBeLessThanOrEqual(1);
+  expect(Math.abs(openGeometry.width - closedGeometry.width)).toBeLessThanOrEqual(1);
+  expect(openGeometry.overflow).toBeLessThanOrEqual(1);
 
   const mobileTargets = page.locator("#witnessops-mobile-menu a:visible");
   for (let index = 0; index < (await mobileTargets.count()); index += 1) {

@@ -222,3 +222,13 @@ export function buyerRequestHref(locale: BuyerLocale): string {
 export function buyerCatalogHref(locale: BuyerLocale): string {
   return locale === "pl" ? "/pl/catalog" : "/catalog";
 }
+
+export function buyerServiceById(id: BuyerService["id"]): BuyerService {
+  const service = BUYER_SERVICES.find((candidate) => candidate.id === id);
+  if (!service) throw new Error(`Unknown buyer service: ${id}`);
+  return service;
+}
+
+export function buyerServiceByProductId(productId: string): BuyerService | undefined {
+  return BUYER_SERVICES.find((service) => service.productId === productId);
+}

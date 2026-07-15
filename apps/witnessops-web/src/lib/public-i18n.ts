@@ -1,4 +1,5 @@
 import { getSku, getSkusByTrack } from "@witnessops/catalog";
+import { buyerServiceByProductId } from "@/lib/buyer-services";
 
 export type PublicLocale = "en" | "pl";
 export type CanonicalOffsecProductId = string;
@@ -117,10 +118,11 @@ const POLISH_TRANSLATED_PATHS = [
 export function polishOfferRequestHref(productId: CanonicalOffsecProductId): string {
   const sku = getSku(productId);
   if (!sku) return "/pl/review/request";
+  const buyerService = buyerServiceByProductId(productId);
 
   const params = new URLSearchParams({
     productId: sku.id,
-    offer: sku.name,
+    offer: buyerService?.name.pl ?? sku.name,
   });
   return `/pl/review/request?${params.toString()}`;
 }

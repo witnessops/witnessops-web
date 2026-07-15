@@ -121,16 +121,16 @@ export function MobileNavbarMenu({
           menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="mx-auto flex max-w-content flex-col gap-2 px-6 py-4">
+        <div className="mx-auto flex max-w-content flex-col px-6 py-3">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               aria-current={currentPath === link.href ? "page" : undefined}
-              className={`rounded px-3 py-3 text-sm transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+              className={`inline-flex min-h-11 items-center border-l-2 px-3 py-2 text-sm transition-colors hover:border-white/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
                 currentPath === link.href
-                  ? "bg-white/15 text-white"
-                  : "text-white/85"
+                  ? "border-white bg-transparent font-semibold text-white"
+                  : "border-transparent bg-transparent text-white/75"
               }`}
               onClick={closeMenu}
             >
@@ -140,7 +140,7 @@ export function MobileNavbarMenu({
           {utilityLink ? (
             <Link
               href={utilityLink.href}
-              className="rounded px-3 py-3 text-sm font-semibold text-white/70 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="mt-1 inline-flex min-h-11 items-center border-t border-white/15 px-3 py-2 text-sm font-semibold text-white/70 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               onClick={closeMenu}
             >
               {utilityLink.label}
@@ -150,7 +150,7 @@ export function MobileNavbarMenu({
             label={cta.label}
             href={cta.href}
             variant={(cta.variant as "primary" | "secondary" | "ghost") ?? "primary"}
-            className={`mt-2 w-full ${
+            className={`mt-2 min-h-11 w-full !rounded-sm !bg-white !text-black !shadow-none hover:!bg-neutral-200 hover:!shadow-none focus-visible:!ring-white focus-visible:!ring-offset-black ${
               currentPath === cta.href ? "ring-2 ring-white" : ""
             }`}
             ariaCurrent={currentPath === cta.href ? "page" : undefined}

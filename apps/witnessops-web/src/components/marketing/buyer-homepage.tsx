@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
 import {
   BUYER_SERVICES,
@@ -92,7 +91,7 @@ export function BuyerHomepage({
         data-ui-proof-id="homepage-hero"
         className="border-b border-surface-border bg-surface-bg"
       >
-        <header className="mx-auto max-w-[1180px] px-6 py-14 sm:py-16 md:py-20">
+        <header className="mx-auto max-w-[1180px] px-6 py-14 sm:py-16 md:py-16">
           <div className="min-w-0 max-w-[680px]">
             <p className="kb-section-tag mb-4 md:mb-5">{heroCopy.eyebrow}</p>
             <h1
@@ -199,8 +198,6 @@ export function BuyerHomepage({
             ))}
           </div>
         </section>
-
-        <PublicContactRoute locale={locale} />
       </div>
     </main>
   );

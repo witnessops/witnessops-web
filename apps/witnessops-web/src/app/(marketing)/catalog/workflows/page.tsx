@@ -1,55 +1,51 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { CatalogSkuCard } from "@/components/catalog/catalog-sku-card";
-import { CtaButton } from "@/components/shared/cta-button";
-import { PublicContactRoute } from "@/components/marketing/public-contact-route";
-import { getWorkflowSkus, loadCatalog } from "@witnessops/catalog";
+
+import { BuyerServiceDetail } from "@/components/marketing/buyer-service-detail";
+import { buyerServiceById } from "@/lib/buyer-services";
+
+const service = buyerServiceById("bounded-workflow-review");
 
 export const metadata: Metadata = {
-  title: "Proof Packages",
-  description: "WitnessOps proof packages: fit check, scoped S/M/L proof runs, and same-scope re-runs.",
+  title: service.name.en,
+  description: service.situation.en,
   alternates: { canonical: "/catalog/workflows" },
 };
 
 export default function CatalogWorkflowsPage() {
-  const catalog = loadCatalog();
-  const workflows = getWorkflowSkus();
-
   return (
-    <main id="main-content" tabIndex={-1} className="docs-page-enter mx-auto max-w-5xl px-6 py-10 lg:py-14">
-      <header className="mb-10 border-b border-surface-border pb-8">
-        <Link href="/catalog" className="text-xs uppercase tracking-[0.16em] text-brand-accent hover:underline">
-          ← Catalog
-        </Link>
-        <h1 className="mt-4 text-3xl font-semibold uppercase tracking-[0.04em] text-text-primary lg:text-4xl" style={{ fontFamily: "var(--font-display)" }}>
-          Proof packages
-        </h1>
-        <p className="mt-4 max-w-2xl text-sm leading-7 text-text-secondary">
-          Convert one operational doubt into a scoped proof run: a named claim,
-          evidence references, receipt artifacts where produced, a verifier or
-          inspection path, and clear limits. Fee and timing are confirmed after
-          scope; list prices are anchors, not self-serve checkout.
-        </p>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-text-muted">
-          First request only: name the action and boundary. Do not send secrets,
-          logs, screenshots, credentials, raw exports, private keys, MFA codes,
-          or customer evidence until evidence handling is agreed.
-        </p>
-        <div className="mt-6">
-          <CtaButton href="/review/request" variant="primary" label="Request one proof run" />
-        </div>
-      </header>
-      <div className="grid gap-4 md:grid-cols-2">
-        {workflows.map((sku) => (
-          <CatalogSkuCard key={sku.id} sku={sku} />
-        ))}
+    <BuyerServiceDetail locale="en" service={service}>
+      <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+        <section>
+          <h2 className="text-xl font-semibold text-text-primary">Working boundary</h2>
+          <p className="mt-3 text-sm leading-7 text-text-secondary">
+            The review covers one agreed action, workflow or handoff. Scope, authority,
+            fee, timing and evidence handling are confirmed before work starts.
+          </p>
+        </section>
+        <section>
+          <h2 className="text-xl font-semibold text-text-primary">Inspection path</h2>
+          <p className="mt-3 text-sm leading-7 text-text-secondary">
+            The delivered package names the receipt artifact, verifier result where
+            produced, and the challenge or inspection path for the agreed evidence.
+            If a verifier does not apply, the package says so.
+          </p>
+        </section>
+        <section className="lg:col-span-2">
+          <h2 className="text-xl font-semibold text-text-primary">Not included</h2>
+          <ul className="mt-4 grid gap-3 text-sm leading-6 text-text-secondary sm:grid-cols-2">
+            {[
+              "Self-serve checkout",
+              "Compliance certification",
+              "Open-ended investigation",
+              "Customer evidence intake before scope and handling are agreed",
+            ].map((item) => (
+              <li key={item} className="border border-surface-border bg-surface-card/40 px-4 py-3">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
-      <p className="mt-8 text-xs text-text-muted">
-        {catalog.not_enabled?.includes("live Stripe checkout") ? "Live checkout not enabled." : ""}
-      </p>
-      <div className="mt-10">
-        <PublicContactRoute />
-      </div>
-    </main>
+    </BuyerServiceDetail>
   );
 }

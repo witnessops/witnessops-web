@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BuyerServiceDetail } from "@/components/marketing/buyer-service-detail";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
+import { buyerServiceByProductId } from "@/lib/buyer-services";
 import { getSku, resolveSkuId, type CatalogSku } from "@witnessops/catalog";
 
 type PageProps = { params: Promise<{ skuId: string }> };
@@ -179,9 +181,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const id = resolveSkuId(skuId);
   const sku = id ? getSku(id) : undefined;
   if (!sku) return { title: "SKU not found" };
+  const buyerService = buyerServiceByProductId(sku.id);
   return {
-    title: sku.name,
-    description: sku.summary,
+    title: buyerService?.name.en ?? sku.name,
+    description: buyerService?.situation.en ?? sku.summary,
     alternates: { canonical: `/catalog/${sku.id.toLowerCase()}` },
   };
 }
@@ -193,9 +196,60 @@ export default async function CatalogSkuDetailPage({ params }: PageProps) {
   const sku = getSku(id);
   if (!sku) notFound();
 
+  const buyerService = buyerServiceByProductId(sku.id);
+  const frame = detailFrame(sku);
+  if (buyerService) {
+    return (
+      <BuyerServiceDetail locale="en" service={buyerService} technicalId={sku.id}>
+        <div className="grid gap-9 lg:grid-cols-2 lg:gap-12">
+          <section>
+            <h2 className="text-xl font-semibold text-text-primary">Claim created</h2>
+            <p className="mt-3 text-sm leading-7 text-text-secondary">{frame.claim}</p>
+          </section>
+          <section>
+            <h2 className="text-xl font-semibold text-text-primary">Verification path</h2>
+            <p className="mt-3 text-sm leading-7 text-text-secondary">
+              {frame.verificationPath}
+            </p>
+          </section>
+          <section>
+            <h2 className="text-xl font-semibold text-text-primary">Evidence included</h2>
+            <ul className="mt-4 grid gap-3 text-sm text-text-secondary">
+              {sku.deliverables.map((deliverable) => (
+                <li
+                  key={deliverable}
+                  className="border border-surface-border bg-surface-card/40 px-4 py-3"
+                >
+                  {deliverable}
+                </li>
+              ))}
+            </ul>
+          </section>
+          <div className="grid gap-8">
+            <section>
+              <h2 className="text-xl font-semibold text-text-primary">Named boundaries</h2>
+              <ul className="mt-4 space-y-3 text-sm leading-6 text-text-secondary">
+                {sku.boundaries.map((boundary) => (
+                  <li key={boundary}>— {boundaryLabel(boundary)}</li>
+                ))}
+              </ul>
+            </section>
+            <section>
+              <h2 className="text-xl font-semibold text-text-primary">Not included</h2>
+              <ul className="mt-4 space-y-3 text-sm leading-6 text-text-secondary">
+                {frame.notIncluded.map((item) => (
+                  <li key={item}>— {item}</li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        </div>
+      </BuyerServiceDetail>
+    );
+  }
+
   const primary = sku.cta.primary;
   const secondary = sku.cta.secondary;
-  const frame = detailFrame(sku);
   const isExternal = (href: string) =>
     href.startsWith("http://") || href.startsWith("https://");
 
