@@ -51,12 +51,13 @@ type CuratedDocsLayer = {
 };
 
 /**
- * Primary docs chrome: hubs only (≤ ~20–24 links after tier-1 expansion).
+ * Primary docs chrome: hubs only (≤ ~20–24 links after tier-1/2 expansion).
  * Leaf pages stay published and searchable; they are not listed in the
  * primary sidebar. Use `layerChildPrefixes` only for layer context lookup,
  * not for expanding nav items.
  *
- * Session 3 tier-1 hubs: FAQ, Audiences, Evidence index, Governance.
+ * Session 3 tier-1: FAQ, Audiences, Evidence index, Governance.
+ * Session hub tier-2: proof-model, receipt-spec, scope-check, threat-model.
  */
 const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
   {
@@ -97,11 +98,21 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
       { kind: "doc", href: "/docs/how-it-works" },
       {
         kind: "doc",
+        href: "/docs/how-it-works/proof-model",
+        title: "Proof Model",
+      },
+      {
+        kind: "doc",
         href: "/docs/how-it-works/verification",
         title: "Verification",
       },
       { kind: "doc", href: "/docs/evidence", title: "Evidence" },
       { kind: "doc", href: "/docs/evidence/receipts", title: "Receipts" },
+      {
+        kind: "doc",
+        href: "/docs/evidence/receipt-spec",
+        title: "Receipt Spec",
+      },
     ],
   },
   {
@@ -126,6 +137,11 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
       },
       { kind: "doc", href: "/docs/governance", title: "Governance" },
       { kind: "doc", href: "/docs/decisions", title: "Decisions" },
+      {
+        kind: "doc",
+        href: "/docs/decisions/scope-check",
+        title: "Scope Check",
+      },
       { kind: "doc", href: "/docs/operations/runbooks", title: "Runbooks" },
       { kind: "doc", href: "/docs/scenarios", title: "Scenarios" },
       {
@@ -169,6 +185,11 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
         kind: "doc",
         href: "/docs/security-systems",
         title: "Security Systems",
+      },
+      {
+        kind: "doc",
+        href: "/docs/security-systems/threat-model",
+        title: "Threat Model",
       },
     ],
   },

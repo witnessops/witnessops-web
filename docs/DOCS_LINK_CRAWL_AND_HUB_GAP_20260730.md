@@ -66,11 +66,15 @@ anchored-replay, evidence-bundles, proof-model, standards
 
 **security-systems (6)** — hub has section + governed-execution; remaining architecture pages are gap
 
-### Suggested expansion tiers (for a later nav PR)
+### Expansion tiers
 
-1. **P1 hubs:** `/docs/faq`, `/docs/governance`, `/docs/evidence` (index), `/docs/audiences`  
-2. **P2 children under existing hubs:** how-it-works proof-model, evidence receipt-spec, decisions three children as expandable  
-3. **P3:** full security-education list, evidence-mapping, mesh/architecture deep pages  
+1. **P1 hubs (shipped Session 3):** `/docs/faq`, `/docs/governance`, `/docs/evidence` (index), `/docs/audiences`  
+2. **P2 children (shipped hub tier-2):**  
+   - `/docs/how-it-works/proof-model`  
+   - `/docs/evidence/receipt-spec`  
+   - `/docs/decisions/scope-check`  
+   - `/docs/security-systems/threat-model`  
+3. **P3 (still deferred):** full security-education list, evidence-mapping leaves, remaining decisions children, mesh/architecture deep pages  
 
 Keep hub small (≤ ~20–24 primary links) per existing hub-nav tests.
 

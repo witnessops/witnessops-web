@@ -30,6 +30,16 @@ test("primary docs sidebar is hub-only and stays small", async () => {
     assert.ok(hrefs.includes(hub), `tier-1 hub missing: ${hub}`);
   }
 
+  // Hub tier-2 high-visibility leaves
+  for (const hub of [
+    "/docs/how-it-works/proof-model",
+    "/docs/evidence/receipt-spec",
+    "/docs/decisions/scope-check",
+    "/docs/security-systems/threat-model",
+  ]) {
+    assert.ok(hrefs.includes(hub), `tier-2 hub missing: ${hub}`);
+  }
+
   // Security-education leaves must not flood primary nav
   const leafPollution = hrefs.filter(
     (href) =>

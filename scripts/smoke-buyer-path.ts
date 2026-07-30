@@ -72,7 +72,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Buyer path",
       "Start a review",
-      "View services",
+      "Verify a receipt",
     ],
   },
   {
@@ -93,7 +93,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Key, Access and Custody Review",
     ],
     prohibitedMarkers: [
-      "Start a review",
+      "Package one security workflow",
       "Access Removal Proof",
       "10-Server Security Pilot",
     ],
@@ -335,7 +335,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Request an access-change proof run",
       "What access change should we inspect?",
       "access-change-proof-run",
-      "Start a review",
+      "Package one security workflow",
       "Proof-Backed Security Workflow",
       "verified compliance",
       "certified compliance",
