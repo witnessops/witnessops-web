@@ -80,7 +80,17 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
       await expect(primary).toHaveText(
         scenario.path.startsWith("/pl") ? "Rozpocznij przegląd" : "Start a review",
       );
-      if (scenario.path === "/pl/catalog" && index === 1) {
+      // CSR card has Start + Learn more + locale one-pager PDF.
+      // Bounded workflow PL has Start only (no PL detail page).
+      if (index === 0) {
+        await expect(links).toHaveCount(3);
+        await expect(links.nth(2)).toHaveAttribute(
+          "href",
+          scenario.path.startsWith("/pl")
+            ? "/assets/one-pagers/csr-sprint-pl-a4.pdf"
+            : "/assets/one-pagers/csr-sprint-en-a4.pdf",
+        );
+      } else if (scenario.path === "/pl/catalog" && index === 1) {
         await expect(links).toHaveCount(1);
       } else {
         await expect(links).toHaveCount(2);

@@ -30,6 +30,7 @@ const localizedCopy = {
     offersBody:
       "The same active services, prices and timing terms are available in English and Polish.",
     viewAll: "View all services",
+    onePager: "One-pager (PDF)",
     howTitle: "How it works",
     howSteps: [
       ["Describe the situation", "Send a short, non-secret fit request in your own words."],
@@ -73,6 +74,7 @@ const localizedCopy = {
     offersBody:
       "Te same aktywne usługi, ceny i zasady terminów są dostępne po angielsku i po polsku.",
     viewAll: "Zobacz wszystkie usługi",
+    onePager: "One-pager (PDF)",
     howTitle: "Jak to działa",
     howSteps: [
       ["Opisz sytuację", "Wyślij krótki opis własnymi słowami, bez informacji poufnych."],
@@ -171,7 +173,9 @@ export function BuyerHomepage({
           </h2>
           <p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">{text.offersBody}</p>
           <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {BUYER_SERVICES.map((service) => (
+            {BUYER_SERVICES.map((service) => {
+              const onePager = service.onePagerHref?.[locale];
+              return (
               <article
                 key={service.id}
                 data-home-service={service.id}
@@ -186,8 +190,20 @@ export function BuyerHomepage({
                 <p className="mt-auto pt-5 text-sm font-semibold text-brand-accent">
                   {service.price[locale]}
                 </p>
+                {onePager ? (
+                  <a
+                    href={onePager}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-one-pager={service.id}
+                    className="mt-3 inline-flex min-h-11 w-fit items-center text-sm font-semibold text-text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                  >
+                    {text.onePager}
+                  </a>
+                ) : null}
               </article>
-            ))}
+              );
+            })}
           </div>
           <div className="mt-7">
             <Link

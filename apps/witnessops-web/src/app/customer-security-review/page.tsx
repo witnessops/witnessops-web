@@ -72,12 +72,23 @@ export default function CustomerSecurityReviewPage() {
               answers are supported by the supplied evidence, separates management assertions and
               open items, and returns a response package for your approval.
             </p>
-            <Link
-              href="/review/request"
-              className="mt-8 inline-flex min-h-12 items-center justify-center bg-black px-6 text-center text-sm font-semibold leading-5 text-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
-            >
-              Start a non-secret fit check
-            </Link>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/review/request"
+                className="inline-flex min-h-12 items-center justify-center bg-black px-6 text-center text-sm font-semibold leading-5 text-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+              >
+                Start a non-secret fit check
+              </Link>
+              <a
+                href="/assets/one-pagers/csr-sprint-en-a4.pdf"
+                target="_blank"
+                rel="noreferrer"
+                data-one-pager="customer-security-review-sprint"
+                className="inline-flex min-h-12 items-center justify-center border border-surface-border px-6 text-center text-sm font-semibold leading-5 text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+              >
+                One-pager (PDF)
+              </a>
+            </div>
             <p className="mt-3 max-w-xl text-sm leading-6 text-text-muted">
               Start with a general, non-secret description. Do not send files, credentials, logs,
               screenshots, private keys, API keys, MFA codes, recovery codes, session tokens or

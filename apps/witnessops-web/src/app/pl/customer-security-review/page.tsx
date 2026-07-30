@@ -47,12 +47,23 @@ export default function PolishCustomerSecurityReviewPage() {
               kierownictwa i otwarte kwestie, a następnie przekazuje pakiet odpowiedzi do
               zatwierdzenia.
             </p>
-            <Link
-              href="/pl/review/request"
-              className="mt-8 inline-flex min-h-12 items-center justify-center bg-black px-6 text-center text-sm font-semibold leading-5 text-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
-            >
-              Rozpocznij wstępną ocenę bez informacji poufnych
-            </Link>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/pl/review/request"
+                className="inline-flex min-h-12 items-center justify-center bg-black px-6 text-center text-sm font-semibold leading-5 text-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+              >
+                Rozpocznij wstępną ocenę bez informacji poufnych
+              </Link>
+              <a
+                href="/assets/one-pagers/csr-sprint-pl-a4.pdf"
+                target="_blank"
+                rel="noreferrer"
+                data-one-pager="customer-security-review-sprint"
+                className="inline-flex min-h-12 items-center justify-center border border-surface-border px-6 text-center text-sm font-semibold leading-5 text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+              >
+                One-pager (PDF)
+              </a>
+            </div>
             <p className="mt-3 max-w-xl text-sm leading-6 text-text-muted">
               Zacznij od ogólnego opisu bez informacji poufnych. Podczas wstępnej oceny nie wysyłaj
               plików, danych logowania, logów, zrzutów ekranu, kluczy prywatnych, kluczy API, kodów

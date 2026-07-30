@@ -24,6 +24,11 @@ export type BuyerService = {
   timing: LocalizedText;
   boundary: LocalizedText;
   detailHref: Partial<Record<BuyerLocale, string>>;
+  /**
+   * Optional public one-pager (PDF) per locale — e.g. CSR EN/PL sales sheets.
+   * Served from /public/assets/one-pagers/.
+   */
+  onePagerHref?: Partial<Record<BuyerLocale, string>>;
 };
 
 /**
@@ -68,6 +73,10 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     detailHref: {
       en: "/customer-security-review",
       pl: "/pl/customer-security-review",
+    },
+    onePagerHref: {
+      en: "/assets/one-pagers/csr-sprint-en-a4.pdf",
+      pl: "/assets/one-pagers/csr-sprint-pl-a4.pdf",
     },
   },
   {

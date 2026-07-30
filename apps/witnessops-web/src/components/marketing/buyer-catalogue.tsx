@@ -18,6 +18,7 @@ const copy = {
     boundary: "Boundary",
     primaryCta: "Start a review",
     secondaryCta: "Learn more",
+    onePagerCta: "One-pager (PDF)",
     principlesTitle: "Shared service principles",
     principles: [
       [
@@ -47,6 +48,7 @@ const copy = {
     boundary: "Ograniczenie",
     primaryCta: "Rozpocznij przegląd",
     secondaryCta: "Więcej informacji",
+    onePagerCta: "One-pager (PDF)",
     principlesTitle: "Wspólne zasady usług",
     principles: [
       [
@@ -89,6 +91,7 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
         >
           {BUYER_SERVICES.map((service) => {
             const detailHref = service.detailHref[locale];
+            const onePager = service.onePagerHref?.[locale];
             return (
               <article
                 key={service.id}
@@ -136,6 +139,17 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                     >
                       {text.secondaryCta}
                     </Link>
+                  ) : null}
+                  {onePager ? (
+                    <a
+                      href={onePager}
+                      target="_blank"
+                      rel="noreferrer"
+                      data-one-pager={service.id}
+                      className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                    >
+                      {text.onePagerCta}
+                    </a>
                   ) : null}
                 </div>
               </article>
