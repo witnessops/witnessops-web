@@ -31,10 +31,10 @@ After this page, you should understand:
 
 ### Fleet / mesh operators
 
-If you operate on the **WitnessOps mesh** (fleet VM, bastion, goal0-edge), start
-with the published operator bundle at
-[hacktheworld.zip/mesh-docs/](https://hacktheworld.zip/mesh-docs/) for hunt sync,
-DNS, and deploy truth. This docs site remains the **buyer and doctrine** layer.
+If you operate on the **WitnessOps mesh** (fleet VM, bastion, goal0-edge), use
+**internal** mesh operator documentation for hunt sync, DNS, and deploy truth.
+That material is not published on this public docs site. This site remains the
+**buyer and doctrine** layer.
 
 ### Read first (in order)
 
@@ -80,7 +80,7 @@ Operate with these assumptions kept explicit:
 - **Approval behavior** follows workflow and outside policy. Paused approvals do not auto-resolve.
 - **Runtime integrity** (host, keys, toolchain) is assumed. Host compromise breaks governance guarantees.
 - **Tool output quality** is not validated by receipt generation. Receipts can attest execution of incorrect tool output.
-- **Receipt guarantees** prove what ran and what was captured, not whether your conclusion is correct.
+- **Receipt checks** (when verified against trusted keys) prove what the system **recorded** as run and captured, not whether host reality matches the record or whether your conclusion is correct.
 
 See [Threat Model](/docs/security-systems/threat-model) for the full trust-boundary map.
 

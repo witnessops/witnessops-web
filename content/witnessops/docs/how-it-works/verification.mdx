@@ -53,31 +53,43 @@ Keep these modes separate before relying on a result.
 | Bundle-complete offline | Receipt, manifest, referenced artifact bytes, signatures, timestamp material, and trust material | The verifier can recompute artifact hashes, check manifest integrity, and evaluate declared proof layers that are actually present. |
 | Anchored replay | Bundle-complete material plus reviewer-supplied trust anchor | The package is tested against a continuity or identity anchor obtained outside the package. |
 
-A public `valid` result on `/verify` should be read as receipt-scoped. It does not prove the full runtime story, complete bundle custody, or artifact-byte integrity.
+A public `valid` result on `/verify` should be read as receipt-scoped. It does not prove the full runtime story, complete bundle custody, or artifact-byte integrity. The public adapter may present an internal `limited-pass` as `valid`.
 
 ## 4. Minimum artifact set
 
-At minimum, start with the receipt material and trusted key material. For public receipt-first mode, the receipt JSON is the submitted input. For bundle-complete mode, keep the referenced files available so their digests can be recomputed.
+At minimum, start with the receipt material and **trusted key material**. Independent checks require authentic keys or anchors; without them, signature results are not meaningful.
 
 | Artifact | Status | Why it matters |
 | --- | --- | --- |
 | Receipt JSON or exported proof bundle | required | Core proof statement and references |
 | Signing public key or trusted key source | required | You cannot check signature authenticity without it |
-| RFC 3161 timestamp token + chain | conditional | Required when the receipt claims trusted time |
+| RFC 3161 timestamp token + chain | conditional | Required when the receipt claims trusted time and you need full time proof |
 | Log checkpoint + inclusion proof | conditional | Required when the receipt claims append-only publication |
 
-## 5. Verification procedure (exact order)
+## 5. Procedures by mode (do not collapse)
 
-1. **Confirm the artifact set and mode.** Determine whether you have receipt-only material, a proof bundle, or anchored replay material.
-2. **For public receipt-first checks, inspect the receipt only.** Confirm the supported schema, proof stage, digest relationships, and declared receipt-level checks.
-3. **For bundle-complete checks, verify manifest integrity.** If `MANIFEST.json` exists, recompute the listed hashes before interpreting higher proof layers.
-4. **Verify the signature.** Check the signed payload against trusted key material.
-5. **Verify structure and bindings.** Confirm schema and digest references are internally consistent.
-6. **Verify the timestamp layer.** If present and the token is available, validate the RFC 3161 token and chain.
-7. **Verify the log inclusion layer.** If present, validate the inclusion proof and checkpoint signature.
-8. **Verify continuity links.** If prior-state links exist, confirm there is no chain break.
+### A. Public `/verify` only (receipt-first v1)
 
-Do not skip the order. Integrity and signature checks come before you interpret higher proof layers.
+This is the **default public product path**.
+
+1. Submit **supported receipt JSON** to `/verify` (or `/api/verify`).
+2. Confirm schema, proof stage, digest relationships, and other **receipt-level** checks the public adapter runs.
+3. Read `valid` as **receipt-scoped** (including when the adapter maps internal `limited-pass` → `valid`).
+4. Do **not** treat the result as artifact-byte revalidation, bundle completeness, or full offline proof.
+
+### B. Offline bundle-complete (optional; requires offline tooling)
+
+Use only when you have a full package **and** offline verifier tooling (not the public `/verify` upload path).
+
+1. Confirm receipt + manifest + referenced artifact bytes + signatures + any timestamp/inclusion material.
+2. Recompute listed hashes from artifact bytes; check manifest integrity.
+3. Verify the signature against trusted keys.
+4. Verify structure and bindings.
+5. If claiming trusted time, fully validate the RFC 3161 token and chain.
+6. If claiming log inclusion, validate inclusion proof and checkpoint signature.
+7. Verify continuity links when present.
+
+Integrity and signature checks come before higher-layer interpretation.
 
 ## 6. Expected results and interpretation
 

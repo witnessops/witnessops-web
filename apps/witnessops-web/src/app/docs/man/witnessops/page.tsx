@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseFrontmatterDocument } from "@witnessops/content";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const MAN_WITNESSOPS_PATH = path.resolve(
@@ -9,16 +11,18 @@ const MAN_WITNESSOPS_PATH = path.resolve(
   "../../content/witnessops/docs/man/witnessops.mdx",
 );
 
-const MAN_WITNESSOPS_PAGE = (() => {
+function loadManPage() {
   const source = fs.readFileSync(MAN_WITNESSOPS_PATH, "utf-8");
   const { frontmatter, body } = parseFrontmatterDocument(source);
-
   return {
-    title: frontmatter.title,
-    description: frontmatter.description,
+    title: frontmatter.title as string,
+    description: (frontmatter.description as string) ?? "",
+    draft: Boolean(frontmatter.draft),
     body,
   };
-})();
+}
+
+const MAN_WITNESSOPS_PAGE = loadManPage();
 
 export const metadata: Metadata = {
   title: MAN_WITNESSOPS_PAGE.title,
@@ -36,10 +40,19 @@ export const metadata: Metadata = {
     description: MAN_WITNESSOPS_PAGE.description,
     images: DEFAULT_TWITTER_IMAGES,
   },
-  robots: { index: false },
+  robots: { index: false, follow: false },
 };
 
+/** Exported for structural tests — draft pages must not be publicly served. */
+export function isManWitnessOpsPubliclyServed(draft: boolean = MAN_WITNESSOPS_PAGE.draft) {
+  return draft !== true;
+}
+
 export default function ManWitnessOps() {
+  if (MAN_WITNESSOPS_PAGE.draft) {
+    notFound();
+  }
+
   return (
     <main
       id="main-content"
@@ -55,7 +68,9 @@ export default function ManWitnessOps() {
           whiteSpace: "pre",
           overflowX: "auto",
         }}
-      >{MAN_WITNESSOPS_PAGE.body}</pre>
+      >
+        {MAN_WITNESSOPS_PAGE.body}
+      </pre>
     </main>
   );
 }

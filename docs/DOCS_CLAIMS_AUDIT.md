@@ -239,3 +239,21 @@ Checks chosen by auditor (not a re-run of the first pattern pass only):
 ### Second-sweep method note
 
 This sweep intentionally prioritized **link liveness**, **draft/publish plumbing**, and **live product naming**, which the first pass under-weighted relative to prose overclaim patterns.
+
+## Remediation status (P0 + P1 claims patch)
+
+| ID | Status | Fix summary |
+| --- | --- | --- |
+| M1 | Fixed | Buyer path → Proof Pack Review; drop Codex / invented offer title |
+| M2 | Fixed | Man draft; no “authoritative”; not primary reference |
+| M3 | Fixed | Public Commands: mesh = internal only, no public hunt entry |
+| M4 | Fixed | `hacktheworld.zip` removed from corpus |
+| M5 | Fixed | Man route `notFound()` when `draft: true` |
+| C1 | Fixed | Receipt v2: trusted-key + intact statement |
+| C2 | Fixed | Audience “recorded as run” wording |
+| C3 | Fixed | Governed execution: signed claim as recorded by runtime |
+| C4 | Fixed | Independent = given trusted keys/anchors |
+| C5 | Fixed | Verification procedures A (public) vs B (offline) |
+| C6 | Fixed | Timestamp row: full RFC 3161 only |
+| C7 | Fixed | Authoritative → current vocabulary / draft supplemental |
+| C8 | Fixed | Sample table “pinned public sample only” |

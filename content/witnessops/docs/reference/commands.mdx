@@ -17,7 +17,7 @@ This page is the command contract for operators running governed workflows and r
 - [Commands](/docs/reference/commands) (current page)
 - [Proof Artifact Classes](/docs/reference/proof-artifact-classes)
 - [Glossary](/docs/glossary)
-- [man witnessops(7)](/docs/man/witnessops)
+- man witnessops(7) — draft; not published as a primary public page
 
 ## 1. Problem this page solves
 
@@ -37,19 +37,15 @@ After this page:
 - approvers and reviewers can map command actions to `state.json`, `receipt.json`, and run artifacts
 - both lanes can separate command guarantees from broader policy or verification claims
 
-## Fleet and mesh operators (OffSec lane)
+## Fleet and mesh operators (not this public site)
 
-Public buyer docs describe the proof package path. **Fleet operators** on the
-WitnessOps mesh use a different entry surface:
-
-| Need | Where |
-| --- | --- |
-| Mesh operator docs (synced bundle) | [hacktheworld.zip/mesh-docs/](https://hacktheworld.zip/mesh-docs/) |
-| Hunt / verify CLI | `wops hunt route`, `wops hunt loop`, `wops hunt verify` (after `vm-tooling-env.sh`) |
-| OffSec lane sync + deploy | OffSec-Lane `sync-to-node.sh`, `docs/local-mesh/COMMAND-CATALOG.md` |
+Public buyer docs describe the proof-package path only. **Fleet / mesh operators**
+use internal OffSec mesh documentation and tooling that is **not published on this
+docs site** and is not part of the public product contract.
 
 The **runbook helper commands below** apply to the `witnessops-offsec` engagement
-layout (`ops/engagements/`). They are not the full fleet hunt loop.
+layout (`ops/engagements/`) when that layout is in use. They are not a public
+hunt loop and do not replace the buyer proof path on `/verify`.
 
 ## 3. Command surface and lifecycle order (runbook helpers)
 

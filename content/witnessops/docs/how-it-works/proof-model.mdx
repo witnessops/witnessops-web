@@ -15,7 +15,7 @@ The proof model explains how a governed action becomes evidence another person c
 
 Execution alone does not preserve trust. A step can run and succeed, but still be hard to challenge later if the proof artifacts are missing or weak.
 
-This page explains the exact proof path in WitnessOps from governed action to independent verification.
+This page explains the exact proof path in WitnessOps from governed action to independent verification **given trusted keys or anchors**.
 
 ## 2. What you should understand after reading
 
@@ -43,7 +43,7 @@ WitnessOps proof flow works in this strict order:
 | Layer | What is bound | What it proves |
 | --- | --- | --- |
 | Issuer signature | Structured receipt statement | Issuer-bound claim integrity |
-| Timestamp layer | Digest of signed receipt envelope | The claimed signed object existed before the declared time |
+| Timestamp layer | Digest of signed receipt envelope | Existence-before-time **only if** the RFC 3161 token and TSA chain fully verify (not structural field presence alone in receipt-first mode) |
 | Continuity or publication layer | Receipt sequence linkage and log or checkpoint references, when present | The claim is connected to an append-only continuity story |
 
 Execution creates events. The proof model decides which of those events stay challengeable later.
