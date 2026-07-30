@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
+import { CtaButton } from "@/components/shared/cta-button";
 
 export const metadata: Metadata = {
   title: "Customer Security Review Sprint",
@@ -63,7 +63,9 @@ export default function CustomerSecurityReviewPage() {
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <header className="grid gap-8 border-b border-surface-border pb-12 md:gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:items-end">
           <div>
-            <p className="text-sm font-semibold text-text-muted">Customer Security Review Sprint</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+              Customer Security Review Sprint
+            </p>
             <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
               Send us the security questionnaire holding up your deal.
             </h1>
@@ -73,22 +75,22 @@ export default function CustomerSecurityReviewPage() {
               open items, and returns a response package for your approval.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link
+              <CtaButton
                 href="/review/request"
-                className="inline-flex min-h-12 items-center justify-center bg-black px-6 text-center text-sm font-semibold leading-5 text-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
-              >
-                Start a non-secret fit check
-              </Link>
+                variant="primary"
+                label="Start a non-secret fit check"
+              />
               <a
                 href="/assets/one-pagers/csr-sprint-en-a4.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 type="application/pdf"
                 data-one-pager="customer-security-review-sprint"
-                className="inline-flex min-h-12 items-center justify-center border border-surface-border px-6 text-center text-sm font-semibold leading-5 text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                className="inline-flex min-h-12 items-center justify-center border border-surface-border px-6 text-center text-sm font-semibold leading-5 text-text-primary transition-colors hover:border-brand-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
               >
                 One-pager (PDF)
               </a>
+              <CtaButton href="/catalog" variant="secondary" label="View services" />
             </div>
             <p className="mt-3 max-w-xl text-sm leading-6 text-text-muted">
               Start with a general, non-secret description. Do not send files, credentials, logs,
@@ -97,17 +99,17 @@ export default function CustomerSecurityReviewPage() {
             </p>
           </div>
 
-          <aside className="bg-black p-6 text-white sm:p-7">
+          <aside className="border border-brand-accent/40 bg-brand-accent/5 p-6 sm:p-7">
             <div className="sm:grid sm:grid-cols-2 sm:gap-8 lg:block">
               <div>
-                <p className="text-sm font-semibold text-white/60">Commercial line</p>
-                <p className="mt-3 text-3xl font-semibold">From €1,600</p>
-                <p className="mt-2 text-sm leading-6 text-white/70">
+                <p className="text-sm font-semibold text-text-muted">Commercial line</p>
+                <p className="mt-3 text-3xl font-semibold text-text-primary">From €1,600</p>
+                <p className="mt-2 text-sm leading-6 text-text-secondary">
                   After a non-secret fit check. One questionnaire. One product scope.
                 </p>
               </div>
-              <div className="mt-6 border-t border-white/20 pt-5 sm:mt-0 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-8 lg:mt-6 lg:border-t lg:border-l-0 lg:pt-5 lg:pl-0">
-                <p className="text-sm leading-6 text-white/80">
+              <div className="mt-6 border-t border-surface-border pt-5 sm:mt-0 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-8 lg:mt-6 lg:border-t lg:border-l-0 lg:pt-5 lg:pl-0">
+                <p className="text-sm leading-6 text-text-secondary">
                   Approximately three working days after scope, owners, required inputs and evidence access are confirmed.
                 </p>
               </div>
@@ -154,8 +156,8 @@ export default function CustomerSecurityReviewPage() {
         </section>
 
         <section className="border-b border-surface-border py-12">
-          <div className="border-2 border-black">
-            <p className="bg-black px-5 py-3 text-sm font-semibold tracking-wide text-white">
+          <div className="border border-surface-border">
+            <p className="border-b border-surface-border bg-surface-card/50 px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent">
               SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE
             </p>
             <div className="grid gap-8 p-6 lg:grid-cols-[0.75fr_1.25fr] lg:p-8">
@@ -179,10 +181,10 @@ export default function CustomerSecurityReviewPage() {
               >
                 <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                   <thead>
-                    <tr className="border-b border-black">
-                      <th className="p-3 font-semibold">Question area</th>
-                      <th className="p-3 font-semibold">Status</th>
-                      <th className="p-3 font-semibold">Reference / limitation</th>
+                    <tr className="border-b border-surface-border">
+                      <th className="p-3 font-semibold text-text-primary">Question area</th>
+                      <th className="p-3 font-semibold text-text-primary">Status</th>
+                      <th className="p-3 font-semibold text-text-primary">Reference / limitation</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
@@ -38,7 +39,11 @@ const principles = [
 
 export default function PolishWhyWitnessOpsPage() {
   return (
-    <main id="main-content" tabIndex={-1} className="buyer-page mx-auto max-w-5xl px-6 py-12 lg:py-20">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="buyer-page mx-auto max-w-5xl px-6 py-12 lg:py-20"
+    >
       <header className="max-w-4xl border-b border-surface-border pb-10">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
           Dlaczego WitnessOps
@@ -47,10 +52,39 @@ export default function PolishWhyWitnessOpsPage() {
           Jasna praca. Materiały, które można prześledzić. Widoczne ograniczenia.
         </h1>
         <p className="mt-6 max-w-3xl text-base leading-8 text-text-secondary">
-          Praca związana z bezpieczeństwem i operacjami staje się trudna do oceny, gdy zakres,
-          materiały źródłowe i pozostałe braki są rozproszone między zgłoszeniami, zrzutami ekranu,
-          wiadomościami i pamięcią zespołu. WitnessOps zamienia jeden zdefiniowany problem w
-          praktyczny wynik, który może sprawdzić kolejna odpowiedzialna osoba.
+          Praca związana z bezpieczeństwem i operacjami staje się trudna do
+          oceny, gdy zakres, materiały źródłowe i pozostałe braki są rozproszone
+          między zgłoszeniami, zrzutami ekranu, wiadomościami i pamięcią
+          zespołu. WitnessOps zamienia jeden zdefiniowany problem w praktyczny
+          wynik, który może sprawdzić kolejna odpowiedzialna osoba.
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <CtaButton
+            href="/pl/review/request"
+            variant="primary"
+            label="Rozpocznij przegląd"
+          />
+          <CtaButton href="/pl/catalog" variant="secondary" label="Zobacz usługi" />
+          <CtaButton
+            href="/pl/customer-security-review"
+            variant="secondary"
+            label="Customer Security Review"
+          />
+        </div>
+        <p className="mt-4 text-sm">
+          <Link
+            href="/pl/verify"
+            className="font-semibold text-brand-accent underline-offset-4 hover:underline"
+          >
+            Zweryfikuj zapis
+          </Link>
+          <span className="text-text-muted"> · </span>
+          <Link
+            href="/pl/library"
+            className="font-semibold text-text-muted underline-offset-4 hover:text-text-primary hover:underline"
+          >
+            Biblioteka
+          </Link>
         </p>
       </header>
 
@@ -58,7 +92,10 @@ export default function PolishWhyWitnessOpsPage() {
         <h2 className="text-2xl font-semibold text-text-primary">Co nas wyróżnia</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {principles.map(([title, body]) => (
-            <article key={title} className="border border-surface-border bg-surface-card/30 p-5">
+            <article
+              key={title}
+              className="border border-surface-border bg-surface-card/30 p-5"
+            >
               <h3 className="font-semibold text-text-primary">{title}</h3>
               <p className="mt-2 text-sm leading-6 text-text-muted">{body}</p>
             </article>
@@ -67,19 +104,27 @@ export default function PolishWhyWitnessOpsPage() {
       </section>
 
       <section className="border-y border-surface-border py-8">
-        <h2 className="text-2xl font-semibold text-text-primary">Granica weryfikacji</h2>
+        <h2 className="text-2xl font-semibold text-text-primary">Ograniczenia</h2>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-text-muted">
-          WitnessOps opisuje wynik jako zweryfikowany tylko wtedy, gdy takie twierdzenie wspiera
-          nazwany mechanizm, na przykład podpisany receipt, manifest materiałów, wynik weryfikatora
-          lub proof bundle. Weryfikacja artefaktu nie oznacza automatycznie, że każde działanie
-          bazowe było poprawne, bezpieczne lub kompletne.
+          WitnessOps opisuje wynik jako zweryfikowany tylko wtedy, gdy takie
+          twierdzenie wspiera nazwany mechanizm, na przykład podpisany receipt,
+          manifest materiałów, wynik weryfikatora lub proof bundle. Weryfikacja
+          artefaktu nie oznacza automatycznie, że każde działanie bazowe było
+          poprawne, bezpieczne lub kompletne.
         </p>
-        <p className="mt-6 text-sm font-semibold text-text-primary">
-          Powiedz nam, co się wydarzyło. Zacznij od wstępnej oceny bez informacji poufnych.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <CtaButton href="/pl/review/request" variant="primary" label="Rozpocznij przegląd" />
-          <CtaButton href="/pl/catalog" variant="secondary" label="Zobacz usługi" />
+        <div className="mt-8 border border-surface-border bg-surface-card/30 p-6">
+          <p className="text-sm font-semibold text-text-primary">
+            Gotowy na przegląd o ustalonym zakresie? Zacznij od wstępnej oceny
+            bez informacji poufnych.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <CtaButton
+              href="/pl/review/request"
+              variant="primary"
+              label="Rozpocznij przegląd"
+            />
+            <CtaButton href="/pl/catalog" variant="secondary" label="Zobacz usługi" />
+          </div>
         </div>
       </section>
 
