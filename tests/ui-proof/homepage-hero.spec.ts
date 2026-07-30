@@ -155,7 +155,9 @@ test("English and Polish homepages share one service-led buyer journey", async (
     const headings = await page.locator("main h2").allTextContents();
     const normalized = headings.map((heading) => heading.trim());
     const offersIndex = normalized.findIndex((heading) =>
-      /Six reviews|Sześć przeglądów/.test(heading),
+      /Reviews for work that needs a clear next step|Przeglądy dla pracy/.test(
+        heading,
+      ),
     );
     const howIndex = normalized.findIndex((heading) =>
       /How it works|Jak działa WitnessOps/.test(heading),
