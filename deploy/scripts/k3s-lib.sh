@@ -145,14 +145,18 @@ USER nextjs
 EXPOSE 3000
 CMD [\"node\", \"apps/witnessops-web/server.js\"]
 DF
-    docker build -f deploy/Dockerfile.shared -t '${image}' .
-    docker image inspect '${image}' --format 'id={{.Id}}'
-    docker save '${image}' | k3s ctr images import -
+    # Keep build/import noise on stderr so callers capturing stdout only get the image ref.
+    docker build -f deploy/Dockerfile.shared -t '${image}' . >&2
+    docker image inspect '${image}' --format 'id={{.Id}}' >&2
+    docker save '${image}' | k3s ctr images import - >&2
     printf '%s\n' '${image}' > /tmp/witnessops-web-last-built-image.txt
     printf '%s\n' '${head}' > /tmp/witnessops-web-last-built-head.txt
+    # sole stdout line for local capture
+    printf '%s\n' '${image}'
   "
 
   log "built and imported ${image}"
+  # remote already printed the ref on its stdout; re-print for local callers
   printf '%s\n' "${image}"
 }
 
