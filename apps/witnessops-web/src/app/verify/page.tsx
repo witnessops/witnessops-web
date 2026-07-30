@@ -25,8 +25,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function VerifyPage() {
+function pickExampleReceipt(): string | null {
   const fixtures = listVerifyFixtures();
+  const preferred =
+    fixtures.find((fixture) => fixture.id === "pv-valid") ??
+    fixtures.find(
+      (fixture) =>
+        fixture.expected.kind === "verification" &&
+        fixture.expected.verdict === "valid",
+    ) ??
+    fixtures[0];
+  return preferred?.receiptInput ?? null;
+}
+
+export default function VerifyPage() {
+  const exampleReceipt = pickExampleReceipt();
 
   return (
     <main id="main-content" tabIndex={-1}>
@@ -49,7 +62,7 @@ export default function VerifyPage() {
         </p>
 
         <div className="mt-10" id="verify-console">
-          <VerifyConsole fixtures={fixtures} />
+          <VerifyConsole exampleReceipt={exampleReceipt} />
         </div>
 
         <details className="mt-10 border border-surface-border bg-surface-bg p-5">

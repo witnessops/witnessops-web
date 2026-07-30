@@ -30,6 +30,8 @@ test("verify console exposes one example path, not a fixture wall", () => {
   assert.match(consoleSrc, /Try an example/);
   assert.match(consoleSrc, /Upload receipt/);
   assert.match(consoleSrc, /Verify receipt/);
+  assert.match(consoleSrc, /exampleReceipt/);
+  assert.doesNotMatch(consoleSrc, /fixtures\.map/);
   assert.doesNotMatch(consoleSrc, /Valid PV receipt/);
   assert.doesNotMatch(consoleSrc, /Invalid QV receipt/);
   assert.doesNotMatch(consoleSrc, /fail closed/);

@@ -13,8 +13,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PolishVerifyPage() {
+function pickExampleReceipt(): string | null {
   const fixtures = listVerifyFixtures();
+  const preferred =
+    fixtures.find((fixture) => fixture.id === "pv-valid") ??
+    fixtures.find(
+      (fixture) =>
+        fixture.expected.kind === "verification" &&
+        fixture.expected.verdict === "valid",
+    ) ??
+    fixtures[0];
+  return preferred?.receiptInput ?? null;
+}
+
+export default function PolishVerifyPage() {
+  const exampleReceipt = pickExampleReceipt();
 
   return (
     <main
@@ -42,7 +55,7 @@ export default function PolishVerifyPage() {
       </header>
 
       <section className="mt-8" id="verify-console">
-        <VerifyConsole fixtures={fixtures} />
+        <VerifyConsole exampleReceipt={exampleReceipt} />
       </section>
 
       <details className="mt-10 border border-surface-border bg-surface-bg p-5">

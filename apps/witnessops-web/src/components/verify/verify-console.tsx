@@ -1,10 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type {
-  VerifyFixtureDefinition,
-  VerifyResponse,
-} from "@/lib/verify-contract";
+import { useState } from "react";
+import type { VerifyResponse } from "@/lib/verify-contract";
 import {
   extractReceiptMeta,
   type ReceiptMeta,
@@ -12,27 +9,11 @@ import {
 import { VerificationResult } from "@/components/verify/verification-result";
 
 interface VerifyConsoleProps {
-  fixtures: VerifyFixtureDefinition[];
+  /** Known-good sample receipt JSON for the single “Try an example” action. */
+  exampleReceipt?: string | null;
 }
 
-/** Prefer a clean known-good sample for the single “Try an example” action. */
-function pickExampleFixture(
-  fixtures: VerifyFixtureDefinition[],
-): VerifyFixtureDefinition | null {
-  return (
-    fixtures.find((fixture) => fixture.id === "pv-valid") ??
-    fixtures.find(
-      (fixture) =>
-        fixture.expected.kind === "verification" &&
-        fixture.expected.verdict === "valid",
-    ) ??
-    fixtures[0] ??
-    null
-  );
-}
-
-export function VerifyConsole({ fixtures }: VerifyConsoleProps) {
-  const example = useMemo(() => pickExampleFixture(fixtures), [fixtures]);
+export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
   const [receiptInput, setReceiptInput] = useState("");
   const [response, setResponse] = useState<VerifyResponse | null>(null);
   const [meta, setMeta] = useState<ReceiptMeta>({});
@@ -73,10 +54,10 @@ export function VerifyConsole({ fixtures }: VerifyConsoleProps) {
   }
 
   function handleTryExample() {
-    if (!example) {
+    if (!exampleReceipt) {
       return;
     }
-    setReceiptInput(example.receiptInput);
+    setReceiptInput(exampleReceipt);
     setResponse(null);
     setErrorHint(null);
     setMeta({});
@@ -119,7 +100,7 @@ export function VerifyConsole({ fixtures }: VerifyConsoleProps) {
                 onChange={handleUploadFile}
               />
             </label>
-            {example ? (
+            {exampleReceipt ? (
               <button
                 type="button"
                 onClick={handleTryExample}
