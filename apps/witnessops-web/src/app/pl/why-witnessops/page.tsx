@@ -7,7 +7,7 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "Dlaczego WitnessOps",
   description:
-    "Jasna praca. Materiały, które można prześledzić. Widoczne ograniczenia. WitnessOps zamienia jeden zdefiniowany problem w praktyczny wynik, który może sprawdzić kolejna odpowiedzialna osoba.",
+    "Ograniczona, niezależna weryfikacja jednej istotnej aktywności AI lub bezpieczeństwa: odtwórz, co było upoważnione, wykonane, zaobserwowane i nierozwiązane.",
   alternates: {
     canonical: "/pl/why-witnessops",
     languages: {
@@ -20,20 +20,20 @@ export const metadata: Metadata = {
 
 const principles = [
   [
-    "Zaczynamy od sytuacji",
-    "Kupujący opisuje problem zwykłym językiem. WitnessOps proponuje najmniejszy przegląd, który daje użyteczny wynik.",
+    "Jedna istotna aktywność",
+    "Zaczynamy od jednego przebiegu agenta, decyzji lub sytuacji bezpieczeństwa — nie od programu dla całego środowiska.",
+  ],
+  [
+    "Odtwarzamy przebieg",
+    "Ujawniamy, co było upoważnione, wykonane, zaobserwowane i nierozwiązane, z nazwanymi ograniczeniami.",
   ],
   [
     "Najpierw uzgadniamy zakres",
     "Zakres, upoważnienie, wynik, cena, termin, sposób postępowania z materiałami i wyłączenia są uzgadniane przed rozpoczęciem pracy.",
   ],
   [
-    "Status materiałów pozostaje widoczny",
-    "Obserwacje, oświadczenia kierownictwa, niepoparte twierdzenia, niewiadome i nierozwiązane kwestie pozostają rozdzielone.",
-  ],
-  [
-    "Zostawiamy praktyczne przekazanie",
-    "Końcowy pakiet jest uporządkowany tak, aby kolejna osoba mogła sprawdzić wynik, zrozumieć ograniczenia i zdecydować o następnym kroku.",
+    "Uzupełniamy continuous compliance",
+    "To inna praca niż mapowanie kontroli w stylu Vanta: weryfikujemy jedną ograniczoną aktywność, nie zastępujemy pakietu GRC funkcja w funkcję.",
   ],
 ] as const;
 
@@ -49,14 +49,18 @@ export default function PolishWhyWitnessOpsPage() {
           Dlaczego WitnessOps
         </p>
         <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-text-primary md:text-5xl">
-          Jasna praca. Materiały, które można prześledzić. Widoczne ograniczenia.
+          Zweryfikuj jedną istotną aktywność. Odtwórz, co się wydarzyło.
         </h1>
         <p className="mt-6 max-w-3xl text-base leading-8 text-text-secondary">
-          Praca związana z bezpieczeństwem i operacjami staje się trudna do
-          oceny, gdy zakres, materiały źródłowe i pozostałe braki są rozproszone
-          między zgłoszeniami, zrzutami ekranu, wiadomościami i pamięcią
-          zespołu. WitnessOps zamienia jeden zdefiniowany problem w praktyczny
-          wynik, który może sprawdzić kolejna odpowiedzialna osoba.
+          Kategoria robocza:{" "}
+          <strong className="font-semibold text-text-primary">
+            ograniczona, niezależna weryfikacja istotnej pracy AI i
+            bezpieczeństwa
+          </strong>
+          . Dla jednego przebiegu agenta, decyzji lub aktywności bezpieczeństwa
+          odtwarzamy, co było upoważnione, wykonane, zaobserwowane i
+          nierozwiązane — tak, by kolejna odpowiedzialna osoba mogła sprawdzić
+          wynik bez polegania wyłącznie na pamięci i zrzutach ekranu.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <CtaButton
@@ -110,7 +114,10 @@ export default function PolishWhyWitnessOpsPage() {
           twierdzenie wspiera nazwany mechanizm, na przykład podpisany receipt,
           manifest materiałów, wynik weryfikatora lub proof bundle. Weryfikacja
           artefaktu nie oznacza automatycznie, że każde działanie bazowe było
-          poprawne, bezpieczne lub kompletne.
+          poprawne, bezpieczne lub kompletne. Ta strona nie jest claimem prawnej
+          zgodności, not a production deployment claim, and not a complete AI
+          governance program. Nie jest też zapewnieniem dla całego środowiska i
+          nie zastępuje narzędzi continuous compliance ani GRC funkcja w funkcję.
         </p>
         <div className="mt-8 border border-surface-border bg-surface-card/30 p-6">
           <p className="text-sm font-semibold text-text-primary">

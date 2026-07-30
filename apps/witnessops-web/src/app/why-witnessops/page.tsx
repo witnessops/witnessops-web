@@ -7,12 +7,12 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "Why WitnessOps",
   description:
-    "Clear work. Evidence you can follow. Limits you can see. WitnessOps turns one defined security or operational problem into a practical result that another responsible person can inspect.",
+    "Bounded independent verification of consequential AI and security work. Reconstruct what was authorized, executed, observed and left unresolved for one defined activity.",
   alternates: getCanonicalAlternates("witnessops", "/why-witnessops"),
   openGraph: {
     title: "Why WitnessOps | WitnessOps",
     description:
-      "Clear work. Evidence you can follow. Limits you can see. WitnessOps turns one defined problem into a practical result with evidence references, named limits and unresolved items.",
+      "One consequential agent run, decision or security activity—reconstructed with clear scope, evidence status, named limits and unresolved items.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -20,26 +20,26 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Why WitnessOps | WitnessOps",
     description:
-      "Clear work. Evidence you can follow. Limits you can see. Bounded security and operational reviews with a practical handover.",
+      "Bounded independent verification for one consequential activity—not a whole-environment program.",
   },
 };
 
 const differences = [
   [
-    "Start with the situation",
-    "The buyer describes the problem in ordinary language. WitnessOps proposes the smallest useful review.",
+    "One consequential activity",
+    "Start from one agent run, decision or security situation—not a whole-environment program or continuous control inventory.",
+  ],
+  [
+    "Reconstruct the story",
+    "Make reconstructable what was authorized, executed, observed and left unresolved, with named limits.",
   ],
   [
     "Agree the boundary first",
     "Scope, authority, result, price, timing, evidence handling and exclusions are agreed before work starts.",
   ],
   [
-    "Keep evidence status visible",
-    "Observed material, management assertions, unsupported claims, unknowns and unresolved items remain distinct.",
-  ],
-  [
-    "Leave a practical handover",
-    "The final package is organised so the next person can inspect the result, understand the limits and decide what happens next.",
+    "Complement continuous compliance",
+    "This is a different job from Vanta-class control mapping: verify and hand over one bounded activity, not replace your GRC suite.",
   ],
 ] as const;
 
@@ -51,13 +51,18 @@ export default function WhyWitnessOpsPage() {
           Why WitnessOps
         </p>
         <h1 className="text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
-          Clear work. Evidence you can follow. Limits you can see.
+          Verify one consequential activity. Reconstruct what happened.
         </h1>
         <p className="mt-6 max-w-[40rem] text-base leading-8 text-text-secondary">
-          Security and operational work becomes hard to trust when scope, source
-          material and remaining gaps are scattered across tickets, screenshots
-          and memory. WitnessOps turns one defined problem into a practical
-          result that another responsible person can inspect.
+          Working category:{" "}
+          <strong className="font-semibold text-text-primary">
+            bounded independent verification of consequential AI and security
+            work
+          </strong>
+          . For one agent run, decision or security activity, reconstruct what
+          was authorized, executed, observed and left unresolved—so another
+          responsible person can inspect the result without trusting memory and
+          screenshots alone.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <CtaButton href="/review/request" variant="primary" label="Start a review" />
@@ -112,7 +117,9 @@ export default function WhyWitnessOpsPage() {
           when that named mechanism supports the claim. Verification of an
           artefact does not automatically prove that every underlying action was
           correct, safe or complete. This page is not a legal compliance claim,
-          production deployment claim, or complete AI governance program.
+          not a production deployment claim, and not a complete AI governance
+          program. It is not whole-environment assurance and does not replace
+          continuous compliance or GRC tooling feature-for-feature.
         </p>
         <div className="mt-10 border border-surface-border bg-surface-card/30 p-6">
           <p className="text-sm leading-relaxed text-text-muted">

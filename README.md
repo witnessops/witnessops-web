@@ -24,6 +24,7 @@ and sample proof-surface pages used to explain artifact inspection boundaries.
 - It does not store customer data as part of normal verification.
 - It does not recompute individual source artifact hashes for the external sample repo locally.
 - It does not prove production deployment, legal compliance, source-system truth, or complete AI governance coverage.
+- Public positioning category (working): bounded independent verification of consequential AI and security work—one activity reconstructed (authorized, executed, observed, unresolved); not a whole-environment or GRC replacement.
 - It does not use Azure Container Apps, `azd`, or root Bicep files as active deployment authority.
 
 ## Product governance

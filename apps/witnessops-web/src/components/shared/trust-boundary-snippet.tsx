@@ -11,7 +11,7 @@ const COPY: Record<TrustBoundaryVariant, { title: string; body: string[] }> = {
   default: {
     title: "Trust Boundary",
     body: [
-      "WitnessOps records governed actions, binds evidence, and enables independent verification.",
+      "WitnessOps supports bounded independent verification of consequential AI and security work: reconstruct what was authorized, executed, observed and left unresolved for one scoped activity.",
       "WitnessOps does not guarantee correctness of execution, completeness of findings, or trustworthiness of the issuer beyond the proof material presented.",
     ],
   },

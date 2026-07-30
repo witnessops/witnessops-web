@@ -51,8 +51,8 @@ const localizedCopy = {
     whyHref: "/why-witnessops",
     whyItems: [
       [
-        "Clear scope",
-        "The engagement states what is included, what is excluded and where authority stops.",
+        "One consequential activity",
+        "We bound one agent run, decision or security situation—authorized, executed, observed and left unresolved.",
       ],
       [
         "Evidence status stays visible",
@@ -104,8 +104,8 @@ const localizedCopy = {
     whyHref: "/pl/why-witnessops",
     whyItems: [
       [
-        "Jasny zakres",
-        "Ustalenia wskazują, co jest objęte pracą, czego nie obejmują i gdzie kończy się upoważnienie.",
+        "Jedna istotna aktywność",
+        "Ograniczamy jeden przebieg agenta, decyzję lub sytuację bezpieczeństwa: upoważnienie, wykonanie, obserwacje i nierozwiązane kwestie.",
       ],
       [
         "Widoczny status materiałów",

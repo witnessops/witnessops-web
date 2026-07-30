@@ -54,7 +54,8 @@ const PROHIBITED_PUBLIC_CLAIMS = [
   "guarantees compliance",
   "platform for AI governance",
   "complete AI governance program replacement",
-  "whole-environment assurance",
+  // Positive whole-environment claims only; negation "not whole-environment assurance" is allowed
+  "provides whole-environment assurance",
   "production deployment proof",
 ] as const;
 
