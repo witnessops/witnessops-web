@@ -198,7 +198,7 @@ footer:
       href: "/customer-security-review"
     - label: "Why WitnessOps"
       href: "/why-witnessops"
-    - label: "Verify"
+    - label: "Verify a receipt"
       href: "/verify"
     - label: "Docs"
       href: "/docs"

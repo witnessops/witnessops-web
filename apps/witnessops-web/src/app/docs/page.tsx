@@ -153,9 +153,9 @@ const entryPaths = [
       },
       {
         href: getSurfaceUrl("witnessops", "/verify"),
-        title: "Public Verifier",
+        title: "Verify a receipt",
         description:
-          "Run receipt-first checks against receipt JSON in the public surface.",
+          "Upload or paste receipt JSON and read a clear, receipt-scoped result.",
       },
     ],
   },

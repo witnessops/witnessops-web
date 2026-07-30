@@ -35,7 +35,7 @@ export default function PolishDocsPage() {
           <CtaButton
             href="/pl/verify"
             variant="secondary"
-            label="Zweryfikuj dostawę"
+            label="Zweryfikuj zapis"
           />
           <CtaButton
             href={EN_DOCS}

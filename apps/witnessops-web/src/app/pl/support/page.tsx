@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Wsparcie", description: "Wybierz wł
 const routes = [
   ["Chcę rozpocząć przegląd", "/pl/review/request", "Opisz sytuację bez danych poufnych i wybierz ofertę."],
   ["Mam istniejące zgłoszenie", "#contact", "Napisz z tego samego adresu służbowego i podaj identyfikator zgłoszenia."],
-  ["Potrzebuję pomocy ze sprawdzeniem dostawy", "/pl/verify", "Sprawdź podpisany zapis wykonania albo zadaj pytanie o wynik i ograniczenia."],
+  ["Potrzebuję pomocy ze sprawdzeniem dostawy", "/pl/verify", "Prześlij lub wklej JSON zapisu i odczytaj wynik — albo zadaj pytanie o ograniczenia."],
   ["Otrzymałem nieoczekiwaną wiadomość od WitnessOps", "#contact", "Nie otwieraj załączników. Prześlij wyłącznie niepoufne dane nagłówka wiadomości."],
 ] as const;
 

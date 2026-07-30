@@ -4,7 +4,7 @@ export function DocsPreview() {
   const docs = [
     { section: "SYSTEM", title: "How governed execution works", desc: "How WitnessOps wraps tooling in policy-gated, scope-enforced execution.", href: "/docs/security-systems/governed-execution" },
     { section: "RECEIPTS", title: "What a receipt contains", desc: "The canonical fields, execution hash, chain links, and signed record structure.", href: "/docs/evidence/receipt-spec" },
-    { section: "VERIFICATION", title: "How verification works", desc: "How to verify signatures, execution integrity, and proof artifacts independently.", href: "/docs/how-it-works/verification" },
+    { section: "VERIFICATION", title: "How verification works", desc: "Public /verify checks one receipt. Offline bundle checks and limits live in the docs.", href: "/docs/how-it-works/verification" },
     { section: "TRUST", title: "Trust boundaries", desc: "Where WitnessOps control ends, what it delegates, and what remains a trust assumption.", href: "/docs/security-systems/threat-model" },
   ];
 
@@ -64,7 +64,7 @@ export function DocsPreview() {
             className="inline-flex items-center border border-surface-border px-4 py-3 text-text-primary transition-all hover:border-brand-accent/40 hover:text-brand-accent"
             style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}
           >
-            Verify
+            Verify a receipt
           </Link>
         </div>
       </div>

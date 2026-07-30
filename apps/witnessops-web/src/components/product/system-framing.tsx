@@ -48,14 +48,14 @@ export function SystemFraming() {
           className="inline-flex items-center bg-brand-accent px-5 py-3 text-surface-bg transition-all hover:brightness-110 hover:shadow-[0_0_20px_rgba(255,107,53,0.25)]"
           style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}
         >
-          Try the Verifier
+          Verify a receipt
         </Link>
         <Link
           href="/docs/evidence/receipt-spec"
           className="inline-flex items-center border border-surface-border px-5 py-3 text-text-primary transition-all hover:border-brand-accent/40 hover:text-brand-accent"
           style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}
         >
-          See Sample Proof
+          Receipt specification
         </Link>
       </div>
 
@@ -63,7 +63,8 @@ export function SystemFraming() {
         className="max-w-[540px] text-sm leading-relaxed mb-10"
         style={{ color: "var(--color-text-muted)" }}
       >
-        No setup. No special access. Verify a real receipt in seconds.
+        Upload or paste receipt JSON. A valid result confirms the checks named in
+        the receipt — not that every underlying action was correct.
       </p>
 
       {/* Trust strip */}

@@ -52,11 +52,13 @@ authority without a separate explicit Azure reopening lane.
 
 ## Verify a receipt
 
-Open <https://witnessops.com/verify>, paste receipt JSON or upload a receipt `.json`, and read the result.
-Programmatic callers can post the same receipt to `/api/verify` and receive the
-same verification path and result shape.
+Open <https://witnessops.com/verify>, upload a receipt `.json` or paste the JSON, and
+read the result. A valid result confirms the checks named in the receipt; it does
+not prove that every underlying action was correct.
 
-`/verify` currently runs in receipt-first v1 mode. Proof-bundle uploads are documented in the docs, but they are not accepted by the public verifier surface.
+Programmatic callers can post the same receipt to `/api/verify` and receive the
+same verification path and result shape. Proof-bundle uploads are not accepted on
+the public surface — see the verification docs for offline package checks.
 
 ## Public proof-surface contract
 

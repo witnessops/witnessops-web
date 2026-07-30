@@ -48,10 +48,11 @@ const groups: LibraryGroup[] = [
   },
   {
     title: "Verification",
-    description: "Check published receipts, fixtures and first-party bundles.",
+    description: "Check a receipt you were given, then read what the result means.",
     links: [
-      { label: "Public verifier", href: "/verify", note: "Inspect the stated result and its declared boundary." },
-      { label: "Verification contract", href: "/docs/how-it-works/verification", note: "Understand what verification does and does not establish." },
+      { label: "Verify a receipt", href: "/verify", note: "Upload or paste receipt JSON and read a clear result." },
+      { label: "How verification works", href: "/docs/how-it-works/verification", note: "Technical detail on what a result does and does not establish." },
+      { label: "Sample cases", href: "/review/sample-cases", note: "Examples and illustrative materials live here, not on /verify." },
     ],
   },
   {

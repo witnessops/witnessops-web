@@ -53,7 +53,7 @@ Not inside governed runtime: a failed gate blocks the step. A tool may still be 
 
 ### Where does independent verification happen?
 
-Verification is performed on exported proof artifacts, including on `/verify` and `/api/verify`, using deterministic integrity and signature checks.
+Public receipt checks run at [/verify](/verify) (or `/api/verify` for the same path). Upload or paste supported receipt JSON; a valid result is receipt-scoped.
 
 **Scope limit:** verification checks declared proof layers; it does not rerun tools against live targets. See [How to Verify a Receipt](/docs/how-it-works/verification) and [Evidence Bundles](/docs/how-it-works/evidence-bundles).
 

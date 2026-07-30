@@ -43,33 +43,34 @@ export default function VerifyPage() {
 
   return (
     <main id="main-content" tabIndex={-1}>
-      <SectionShell narrow>
+      <SectionShell narrow className="pt-10 sm:pt-14">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
           Verify
         </p>
-        <h1 className="text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
+        <h1 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl lg:text-5xl">
           Verify a WitnessOps receipt
         </h1>
-        <p className="mt-5 max-w-[40rem] text-base leading-8 text-text-secondary">
+        <p className="mt-4 max-w-[36rem] text-base leading-7 text-text-secondary">
           Upload a receipt file or paste its JSON. The check confirms whether
           the receipt is structurally valid, whether its integrity checks pass,
           and what the result does—and does not—establish.
         </p>
-        <p className="mt-4 max-w-[40rem] text-sm leading-7 text-text-muted">
+
+        <div className="mt-8" id="verify-console">
+          <VerifyConsole exampleReceipt={exampleReceipt} />
+        </div>
+
+        <p className="mt-8 max-w-[36rem] text-sm leading-7 text-text-muted">
           {
             "A valid result confirms the checks named in the receipt. It does not prove that every underlying action was correct, and it does not prove the full runtime story."
           }
         </p>
 
-        <div className="mt-10" id="verify-console">
-          <VerifyConsole exampleReceipt={exampleReceipt} />
-        </div>
-
-        <details className="mt-10 border border-surface-border bg-surface-bg p-5">
-          <summary className="cursor-pointer text-sm font-semibold text-text-primary">
+        <details className="mt-6 border border-surface-border bg-surface-bg open:bg-surface-card/20">
+          <summary className="cursor-pointer px-5 py-4 text-sm font-semibold text-text-primary">
             What this result means
           </summary>
-          <div className="mt-4 space-y-3 text-sm leading-relaxed text-text-muted">
+          <div className="space-y-3 border-t border-surface-border px-5 py-4 text-sm leading-relaxed text-text-muted">
             <p>
               <strong className="text-text-secondary">Valid</strong> means the
               checks required for this receipt type passed. On this public
@@ -94,7 +95,7 @@ export default function VerifyPage() {
         </details>
 
         <nav
-          className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm"
+          className="mt-8 flex flex-wrap gap-x-5 gap-y-2 border-t border-surface-border pt-6 text-sm"
           aria-label="Related technical resources"
         >
           <Link

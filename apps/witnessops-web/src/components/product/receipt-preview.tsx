@@ -45,8 +45,8 @@ export function ReceiptPreview() {
         </div>
       </div>
       <p className="mt-4 text-xs leading-relaxed text-text-muted">
-        Receipts can be verified with the correct public key. Proof bundles
-        extend this into portable, offline verification.
+        Check a receipt on the public verifier. For deeper offline checks and
+        receipt field detail, use the technical docs.
       </p>
       <div className="mt-6">
         <Link
@@ -54,7 +54,7 @@ export function ReceiptPreview() {
           className="inline-flex items-center border border-surface-border px-4 py-3 text-text-primary transition-all hover:border-brand-accent/40 hover:text-brand-accent"
           style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}
         >
-          Verify a Receipt
+          Verify a receipt
         </Link>
       </div>
     </section>

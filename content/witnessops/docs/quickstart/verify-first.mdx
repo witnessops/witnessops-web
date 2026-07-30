@@ -9,19 +9,30 @@ draft: false
 
 # Verify First (Quickstart)
 
-Use this quickstart when you need a first-pass verification result without collapsing execution, proof, evidence, and interpretation into a single claim.
+**Public job:** open [/verify](/verify), upload or paste receipt JSON, and read the result.
+
+Use this quickstart when you need a first-pass receipt check without collapsing execution, proof, evidence, and interpretation into a single claim.
+
+## Start here (public tool)
+
+1. Go to [Verify a receipt](/verify).
+2. Upload a `.json` receipt or paste the JSON.
+3. Select **Verify receipt**.
+4. Read the verdict, checks passed, and limitations on the result.
+
+A valid public result confirms the checks named in that receipt. It does not prove that every underlying action was correct.
 
 ## Scope and bounded references
 
-- Run the public verification surface at [/verify](/verify) for receipt-first v1 checks.
-- For full verification semantics, read [Verification](/docs/how-it-works/verification).
-- For receipt context, read [Receipts](/docs/evidence/receipts).
-- For field-level requirements, read [Receipt Spec](/docs/evidence/receipt-spec).
-- For adversary and trust-boundary assumptions, read [Threat Model](/docs/security-systems/threat-model).
+- Public tool: [/verify](/verify) (receipt JSON only).
+- Full verification semantics: [How to Verify a Receipt](/docs/how-it-works/verification).
+- Receipt context: [Receipts](/docs/evidence/receipts).
+- Field-level requirements: [Receipt Spec](/docs/evidence/receipt-spec).
+- Trust-boundary assumptions: [Threat Model](/docs/security-systems/threat-model).
 
 ## Public verifier boundary
 
-**Default path (this quickstart):** use public `/verify` only — receipt-first v1 against supported receipt JSON. A public `valid` result means the receipt-scoped checks for that input passed (including when the adapter maps internal `limited-pass` → `valid`). It does not mean artifact bytes were recomputed, the proof bundle is complete, or every outside trust condition was established.
+**Default path (this quickstart):** use public `/verify` only against supported receipt JSON. A public `valid` result means the receipt-scoped checks for that input passed (including when the adapter maps internal `limited-pass` → `valid`). It does not mean artifact bytes were recomputed, the proof bundle is complete, or every outside trust condition was established.
 
 **Optional offline extension:** bundle-complete checks (manifest integrity, artifact-byte revalidation, full timestamp-token validation) require offline tooling and the full package. They are **not** what `/verify` performs. See [How to Verify a Receipt](/docs/how-it-works/verification) procedures A vs B.
 

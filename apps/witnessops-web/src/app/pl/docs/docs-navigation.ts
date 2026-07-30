@@ -27,7 +27,7 @@ export const POLISH_DOCS_SECTIONS = [
     description: "Dostawa, podpisany zapis wykonania i ograniczenia wyniku.",
     items: [
       ["Co otrzymasz", "/pl/docs/what-you-receive"],
-      ["Zweryfikuj dostawę", "/pl/verify"],
+      ["Zweryfikuj zapis", "/pl/verify"],
       ["Jak działają podpisane zapisy wykonania", "/pl/docs/how-receipts-work"],
       ["Dowody i ograniczenia", "/pl/docs/evidence-and-limitations"],
       ["Słownik pojęć", "/pl/docs/glossary"],

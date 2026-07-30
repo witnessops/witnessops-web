@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { VerifyResponse } from "@/lib/verify-contract";
 import {
   extractReceiptMeta,
@@ -19,6 +19,15 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
   const [meta, setMeta] = useState<ReceiptMeta>({});
   const [submitting, setSubmitting] = useState(false);
   const [errorHint, setErrorHint] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!response) {
+      return;
+    }
+    document
+      .getElementById("verify-result")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [response]);
 
   async function handleVerify() {
     const trimmed = receiptInput.trim();
@@ -78,20 +87,26 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
   }
 
   return (
-    <div className="space-y-8">
-      <section className="border border-surface-border bg-surface-bg p-5 sm:p-6">
+    <div className="space-y-6">
+      <section
+        className="border border-surface-border bg-surface-bg p-5 sm:p-6"
+        aria-labelledby="verify-input-heading"
+      >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-text-primary">
+            <h2
+              id="verify-input-heading"
+              className="text-base font-semibold text-text-primary sm:text-lg"
+            >
               Receipt input
             </h2>
             <p className="mt-1 text-sm text-text-muted">
-              Upload a <code className="text-text-secondary">.json</code> receipt
-              or paste the JSON below.
+              Upload a <code className="text-text-secondary">.json</code> file or
+              paste receipt JSON.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <label className="inline-flex cursor-pointer items-center border border-surface-border bg-surface-card px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent">
+            <label className="inline-flex min-h-11 cursor-pointer items-center border border-surface-border bg-surface-card px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent">
               Upload receipt
               <input
                 type="file"
@@ -104,7 +119,7 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
               <button
                 type="button"
                 onClick={handleTryExample}
-                className="inline-flex items-center border border-surface-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-muted transition-colors hover:border-brand-accent/50 hover:text-text-primary"
+                className="inline-flex min-h-11 items-center border border-surface-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-muted transition-colors hover:border-brand-accent/50 hover:text-text-primary"
               >
                 Try an example
               </button>
@@ -112,7 +127,7 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
           </div>
         </div>
 
-        <label className="mt-5 block">
+        <label className="mt-4 block">
           <span className="sr-only">Paste receipt JSON</span>
           <textarea
             value={receiptInput}
@@ -121,8 +136,8 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
               setErrorHint(null);
             }}
             spellCheck={false}
-            placeholder='{"receipt_id":"…", …}'
-            className="min-h-[12rem] w-full border border-surface-border bg-[#0a0e17] p-4 font-mono text-xs leading-6 text-text-secondary outline-none transition-colors placeholder:text-text-muted/50 focus:border-brand-accent sm:min-h-[14rem]"
+            placeholder='Paste receipt JSON here…'
+            className="min-h-[11rem] w-full resize-y border border-surface-border bg-[#0a0e17] p-4 font-mono text-xs leading-6 text-text-secondary outline-none transition-colors placeholder:text-text-muted/45 focus:border-brand-accent sm:min-h-[13rem]"
             aria-label="Paste receipt JSON"
           />
         </label>
@@ -133,16 +148,15 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
           </p>
         ) : null}
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-          <p className="max-w-md text-xs leading-relaxed text-text-muted">
-            Only receipt JSON is accepted here. Proof-bundle ZIPs and other
-            package formats are not verified on this page.
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="order-2 max-w-md text-xs leading-relaxed text-text-muted sm:order-1">
+            Receipt JSON only. Proof-bundle ZIPs are not accepted on this page.
           </p>
           <button
             type="button"
             onClick={handleVerify}
             disabled={submitting}
-            className="inline-flex items-center border border-brand-accent bg-brand-accent px-5 py-3 text-sm font-semibold text-brand-ink transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="order-1 inline-flex min-h-11 w-full items-center justify-center border border-brand-accent bg-brand-accent px-5 py-3 text-sm font-semibold text-brand-ink transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:order-2 sm:w-auto"
           >
             {submitting ? "Verifying…" : "Verify receipt"}
           </button>
@@ -150,7 +164,9 @@ export function VerifyConsole({ exampleReceipt = null }: VerifyConsoleProps) {
       </section>
 
       {response ? (
-        <VerificationResult response={response} receiptMeta={meta} />
+        <div id="verify-result" className="scroll-mt-24">
+          <VerificationResult response={response} receiptMeta={meta} />
+        </div>
       ) : null}
     </div>
   );

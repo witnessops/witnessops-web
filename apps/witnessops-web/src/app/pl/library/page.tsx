@@ -34,7 +34,7 @@ const groups: PolishLibraryGroup[] = [
     primary: true,
     links: [
       ["Przykład Sprintu kwestionariusza", "/pl/customer-security-review", "Fikcyjna nota, odwołania i ograniczenia pod wyraźnym oznaczeniem demonstracji."],
-      ["Weryfikacja", "/pl/verify", "Polskie objaśnienie publicznej ścieżki weryfikacji."],
+      ["Zweryfikuj zapis", "/pl/verify", "Prześlij lub wklej JSON zapisu i odczytaj wynik."],
     ],
   },
   {
@@ -44,8 +44,11 @@ const groups: PolishLibraryGroup[] = [
   },
   {
     title: "Weryfikacja",
-    description: "Dowiedz się, co publiczny wynik potwierdza, a czego nie potwierdza.",
-    links: [["Publiczna weryfikacja", "/pl/verify", "Polskie objaśnienie weryfikatora i granic wyniku."]],
+    description: "Sprawdź zapis, który otrzymałeś, i zobacz, co wynik potwierdza.",
+    links: [
+      ["Zweryfikuj zapis", "/pl/verify", "Prześlij lub wklej JSON zapisu i odczytaj wynik."],
+      ["Jak działa weryfikacja (EN)", "/docs/how-it-works/verification", "Szczegóły techniczne: co wynik ustala, a czego nie."],
+    ],
   },
   {
     title: "Materiały techniczne",
