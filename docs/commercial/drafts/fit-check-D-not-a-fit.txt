@@ -1,0 +1,15 @@
+Subject: Fit check — recommended next step
+
+Hi [Name],
+
+Thanks for the fit check. From what you described, we would not start a [CSR / One Server] engagement as written, because [one clear reason: multi-host / live IR / open-ended audit / needs secrets first / etc.].
+
+Possible next steps:
+- [Alternative WitnessOps situation card if any]
+- [Or] refine the boundary to one host / one questionnaire and re-send a non-secret description
+- [Or] we are not the right vendor for this request
+
+Happy to re-open when the situation is one bounded package.
+
+— [Your name]
+WitnessOps

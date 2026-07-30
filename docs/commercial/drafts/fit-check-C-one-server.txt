@@ -1,0 +1,34 @@
+Subject: One Server Security Check — fit check next steps
+
+Hi [Name],
+
+From your description, the One Server Security Check looks like the right shape:
+
+- One authorised Linux host
+- Read-only, allowlisted collection
+- Posture, findings, report, and (where agreed) a signed proof package
+- Another person can inspect the package without trusting the operator workspace
+
+Commercial line (public): €950 standard after a non-secret fit check.
+Timing (public): within two business days after the authorised collection window.
+
+To move to a scope agreement, send only non-secret:
+
+1. Host class (e.g. single production Linux VM — no IPs or credentials)
+2. Goal in one sentence (customer ask / launch / internal review)
+3. Decision owner and operator who will be present if live collection is needed
+4. Preferred collection window (timezone + rough dates — not credentials)
+5. Explicit exclusions you already know
+
+What we will not do: penetration test, exploitation, secret collection, compliance certification, or a host-security guarantee. A valid receipt means named verifier checks passed — not that the host is “secure.”
+
+Sample package (synthetic):
+https://witnessops.com/review/sample-cases/local-server-security-review
+
+Service page:
+https://witnessops.com/catalog/offsec-local-audit
+
+If that matches, we will send a short scope agreement (authority, host binding, price, timing, exclusions) before any collection.
+
+— [Your name]
+WitnessOps

@@ -1,0 +1,5 @@
+Labelled samples on witnessops.com are synthetic and for orientation only.
+They are not live customer evidence for your environment.
+
+Start with a non-secret fit check. Do not send passwords, private keys, API keys,
+recovery codes, session tokens, or other secrets until handling is agreed.

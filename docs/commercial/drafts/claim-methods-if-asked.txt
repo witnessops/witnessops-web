@@ -1,0 +1,3 @@
+WitnessOps maintains operator tooling (collectors, validators, feed checks,
+packaging). Those are methods inside a scoped engagement when useful — not
+separate products and not a claim that every tool was run on your estate.

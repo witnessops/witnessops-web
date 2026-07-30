@@ -1,0 +1,1 @@
+One authorised host, read-only package — not a pentest and not a security guarantee.

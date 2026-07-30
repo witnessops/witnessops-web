@@ -1,0 +1,9 @@
+This engagement produces a bounded, read-only picture of one authorised Linux
+host: posture, findings, report, and (where agreed) a signed proof package with
+an offline inspection path.
+
+It is not a penetration test, exploitation exercise, or compliance certification.
+A valid verifier result (when a named path exists) confirms the checks named for
+that package — not that the host is secure, uncompromised, or correctly
+administered. Secrets and credentials are never requested in the fit check;
+collection is only after authority and exclusions are agreed.

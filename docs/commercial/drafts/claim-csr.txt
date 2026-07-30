@@ -1,0 +1,8 @@
+This engagement produces a response package for one questionnaire and one product
+scope: proposed answers, evidence references, qualifications, open items, and a
+cover note for the customer’s approval.
+
+The customer owns final answers, approvals, and submission. WitnessOps does not
+certify compliance, invent evidence, or guarantee that a customer, auditor, or
+procurement team will accept the package. Formal certifications remain necessary
+where the reviewer requires them.

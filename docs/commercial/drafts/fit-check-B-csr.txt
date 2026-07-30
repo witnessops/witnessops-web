@@ -1,0 +1,34 @@
+Subject: CSR Sprint — fit check next steps
+
+Hi [Name],
+
+From your description, the Customer Security Review Sprint looks like the right shape:
+
+- One questionnaire
+- One product scope
+- Proposed answers + evidence index + open items + cover note for *your* approval
+- You own final answers and submission
+
+Commercial line (public): From €1,600 after a non-secret fit check.
+Timing (public): about three working days after scope, owners, inputs, and evidence access are confirmed.
+
+To move to a scope agreement, send only non-secret:
+
+1. Questionnaire type / source (e.g. customer portal, PDF name — no login)
+2. Product / service name in scope
+3. Decision owner and who will approve answers
+4. Deadline the customer set
+5. Whether evidence already exists in-house (yes/no — not the files yet)
+
+What we will not do: invent evidence, certify compliance, or guarantee the customer accepts the package.
+
+Sample package shape (synthetic, not your deal):
+https://witnessops.com/review/sample-cases/customer-security-review-sprint
+
+Service page:
+https://witnessops.com/customer-security-review
+
+If that matches, we will send a short scope agreement (price, timing, exclusions, handling) before any evidence is transferred.
+
+— [Your name]
+WitnessOps

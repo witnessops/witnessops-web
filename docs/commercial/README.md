@@ -7,6 +7,9 @@ Written for learning the offers while you sell and deliver them.
 
 ## Start here
 
+**This week’s run sheet:** [`THIS-WEEK.md`](./THIS-WEEK.md) + paste drafts in [`drafts/`](./drafts/).
+
+
 1. **[Offer learning guide](./00-offer-learning-guide.md)** — what each offer is, price, samples, disk paths  
 2. **[Artifact map](./08-artifact-map.md)** — every public + private sample location  
 3. **[Operator playbook](./07-operator-playbook-complete.md)** — end-to-end lifecycle  

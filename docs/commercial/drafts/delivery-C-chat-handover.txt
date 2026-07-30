@@ -1,0 +1,5 @@
+Package delivered for [CSR / One Server] — [ref].
+You own approval/submission (CSR) or inspection next steps (One Server).
+Limits: no compliance cert; no “secure host” guarantee; secrets never in fit-check threads.
+Walkthrough: [link or attach BUYER_WALKTHROUGH]
+Confirm receipt when you have it.

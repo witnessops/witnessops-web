@@ -1,0 +1,40 @@
+WitnessOps — 15 min demo cue card
+================================
+
+OPEN (0-2)
+  Bounded packages for one situation. Not infinite tools.
+  Ask: what decision is blocked? host / questionnaire / other?
+
+CATALOG (2-4)
+  https://witnessops.com/catalog
+  Six situations. Scripts = methods under a package.
+
+PRIMARY — One Server (4-8)  OR  CSR
+  Service: /catalog/offsec-local-audit
+  Sample:  /review/sample-cases/local-server-security-review
+  Suite:   /samples/offsec-local-audit/.../BUYER_WALKTHROUGH.md
+  MUST: one host, read-only, not pentest, valid ≠ secure, €950 after fit
+
+  CSR alt:
+  Service: /customer-security-review
+  Sample:  /review/sample-cases/customer-security-review-sprint
+  Matrix:  /samples/csr-sprint-synthetic/exports/answer_matrix.csv
+  MUST: they own submit, no compliance cert, from €1600 after fit
+
+OPTIONAL (8-11)
+  Launch sample only if technical. Skip tool zoo.
+
+VERIFY (11-13)
+  /verify — receipt-scoped; do not invent green checks
+
+CLOSE (13-15)
+  /review/request — non-secret fit check next
+  Confirm: product, owner, deadline, who sends today
+
+NEVER SAY
+  secure / compliant / audit-ready / guaranteed acceptance
+  KEV product / SBOM product / all our scripts
+  sample is your environment
+
+AFTER CALL
+  Fit-check draft within 24h from docs/commercial/drafts/

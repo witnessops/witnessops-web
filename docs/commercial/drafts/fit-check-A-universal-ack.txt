@@ -1,0 +1,24 @@
+Subject: WitnessOps — fit check received ([short situation])
+
+Hi [Name],
+
+Thanks — we received your non-secret fit check.
+
+Next step is only to confirm fit: situation, one bounded scope, decision owner, timing pressure, and whether a WitnessOps review is the right next action. We do not start collection, questionnaire work, or evidence intake until scope, authority, price, and handling are agreed.
+
+Please confirm or correct:
+
+1. Decision owner (name + role)
+2. One sentence situation (no secrets)
+3. Preferred product if known: CSR Sprint / One Server / not sure
+4. Hard deadline if any (date)
+5. Anything that must stay out of scope
+
+Do not send passwords, private keys, API keys, recovery codes, session tokens, MFA codes, full logs, or customer evidence in this thread.
+
+Useful links:
+- Services: https://witnessops.com/catalog
+- How we start: https://witnessops.com/review/request
+
+— [Your name]
+WitnessOps
