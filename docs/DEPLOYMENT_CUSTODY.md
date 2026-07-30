@@ -1,15 +1,16 @@
 # WitnessOps Web Deployment Custody
 
-Status: current production custody note for `witnessops.com`
-Last updated: 2026-07-09
+Status: current production + mesh-dev custody note for `witnessops.com`
+Last updated: 2026-07-29
 
-This document records how the public WitnessOps web surface is currently served,
-built, deployed, verified, and rolled back. It is documentation, not deploy
-approval. Any production change still needs an explicit apply lane.
+This document records how the public WitnessOps web surface (and the mesh-only
+dev twin) is served, built, deployed, verified, and rolled back. It is
+documentation, not deploy approval. Any production change still needs an
+explicit apply lane.
 
 ## Current Live Path
 
-Observed public path:
+### Public (prod)
 
 ```text
 witnessops.com / www.witnessops.com
@@ -20,167 +21,218 @@ witnessops.com / www.witnessops.com
 -> reverse_proxy 127.0.0.1:3000
 -> k3s namespace witnessops
 -> deployment witnessops-web
--> pod witnessops-web-6485748f9-qzsv5
--> docker.io/library/witnessops-web:customer-message-polish-20260709T092553Z
--> sha256:272acd8a77e49a4d23cd42b347ddf8e1e8d71bd975a1ea978865e845bd655f54
+-> container port 3000 (hostPort 127.0.0.1:3000)
+-> image docker.io/library/witnessops-web:main-<sha>-<UTC>
+-> PVC-backed intake / mail volumes
 ```
 
-The pod name and image tag are observations from the custody reconciliation
-lane. Treat them as evidence for that point in time, not permanent names.
+### Mesh-dev (private twin)
+
+```text
+operator laptop (WireGuard wg-edge-01)
+-> 10.44.0.2:3015
+-> ops-dev-01 hostNetwork
+-> k3s deployment witnessops-web-dev
+-> same shared image tag as prod when aligned
+-> emptyDir intake (isolated from prod PVC)
+```
+
+Pod names and exact image tags are observations that change every apply.
+Record the live tag in the apply receipt; do not treat sample tags in this file
+as permanent.
 
 ## Source
 
 Current source custody:
 
-- Repo: `witnessops-web`
-- Path: `/home/mob7a0efe/DEV/OffSec/working/sources/witnessops-web`
-- Branch: `main`
-- Public remote: `https://github.com/witnessops/witnessops-web.git`
+- Repo: `witnessops-web` (`https://github.com/witnessops/witnessops-web`)
+- Default branch: `main`
+- Operator checkouts may live on Mac (`~/WitnessOps/repos/witnessops-web`) or
+  other mesh nodes; build always rsyncs the checkout to `ops-dev-01` via
+  `deploy/scripts/k3s-lib.sh`.
 
-The working tree may contain multiple active lanes. Every apply lane must record
-the starting HEAD and dirty state before editing.
+Every apply lane must record starting HEAD and dirty state. Use
+`ALLOW_DIRTY=1` only when intentionally shipping uncommitted work, and note
+that in the receipt.
 
 ## Build
 
-Production-quality builds must use Node 22. If the fleet VM's local Node
-version is insufficient, use the approved Node 22 container path instead of
-upgrading the host runtime as part of a web lane.
+Production-quality builds use **Node 22** inside Docker on `ops-dev-01`.
 
-Current build guidance:
+Canonical path (in-repo):
 
-- Use the repo's Node 22 health/build commands when possible.
-- Use `deploy/Dockerfile.mesh` for the mesh image build path.
-- `goal0` may be used as build or transfer staging when a lane explicitly says
-  so, but the current runtime authority for `witnessops.com` is not goal0
-  Docker Compose.
+```bash
+# from monorepo root
+pnpm deploy:k3s:build              # image only
+pnpm deploy:k3s:both               # shared image → prod + mesh-dev + smoke
+# or
+ALLOW_DIRTY=1 DEPLOY_SSH=root@194.147.221.89 pnpm deploy:k3s:both
+```
+
+`k3s-lib.sh` `build_shared_image`:
+
+1. Optional dirty-tree gate (`ALLOW_DIRTY=1` to skip)
+2. rsync checkout → `/tmp/witnessops-web-build-<tag>/` on `DEPLOY_SSH`
+3. Docker build with public origin baked in
+4. `k3s ctr images import` on the node
+5. Prints full image ref on stdout
+
+Legacy `deploy/Dockerfile.mesh` remains as a reference Dockerfile; the dual-lane
+scripts generate `deploy/Dockerfile.shared` on the build host for the shared bake.
+
+`goal0` Docker Compose is **not** current runtime authority for `witnessops.com`.
 
 ## Image
 
-Builds for public web apply lanes should use an unambiguous timestamped tag:
+Tag form:
 
 ```text
-docker.io/library/witnessops-web:<purpose>-<UTC>
+docker.io/library/witnessops-web:main-<shortsha>-<UTC>
 ```
 
-The apply receipt must capture:
+Example: `docker.io/library/witnessops-web:main-9f23217-20260730T015507Z`
+
+Apply receipt must capture:
 
 - source HEAD
 - dirty state before and after
 - image tag
 - image ID
-- previous image tag or digest
+- previous image tag or digest (prod; and dev if replaced)
 - build command and result
+- which lanes received the image (`prod`, `dev`, or both)
 
 Do not rely on a mutable tag alone as rollback evidence.
 
 ## Transfer And Deploy
 
-Current deploy helper:
+Canonical helpers (repo root):
 
-```text
-/home/mob7a0efe/DEV/mesh-agent/k8s/deploy-witnessops-web.sh
-```
+| Command | Effect |
+| --- | --- |
+| `pnpm deploy:k3s:prod` | build if needed → set image on `witnessops-web` |
+| `pnpm deploy:k3s:dev` | build if needed → apply `dev-mesh-deployment.yaml` |
+| `pnpm deploy:k3s:both` | one build → both deploys → `smoke_pair` |
+| `pnpm deploy:k3s:smoke` | status + HTTP/CSS parity |
+| `pnpm deploy:k3s:dev:teardown` | delete mesh-dev only |
 
-The helper is the current execution path for deploying only the Kubernetes
-deployment named `witnessops-web` in namespace `witnessops`. Use it only from an
-explicit deploy/apply lane.
+SSH target: `DEPLOY_SSH` default `ops-dev-01` (mesh ProxyJump). Public fallback
+when mesh DNS/SSH is down: `DEPLOY_SSH=root@194.147.221.89`.
 
-The live runtime target is:
-
-```text
-ops-dev-01 k3s namespace witnessops deployment witnessops-web
-```
+Secrets: both deployments use `secretRef: witnessops-web-env` in namespace
+`witnessops`. Mesh-dev does **not** mount prod PVCs.
 
 ## Edge
 
-The public edge for apex and `www` is Caddy on `ops-dev-01`.
-
-Current edge mapping:
+Public edge for apex and `www` is Caddy on `ops-dev-01`:
 
 ```text
 witnessops.com, www.witnessops.com -> reverse_proxy 127.0.0.1:3000
 ```
 
+Mesh-dev must **not** be published on the public Caddy path without a separate
+exposure lane. Access is via WireGuard only (`10.44.0.2:3015`).
+
 Caddy changes require their own lane unless a web apply lane explicitly
-authorizes a narrow, named public-route gate adjustment. A web content deploy
-does not authorize Caddy reloads or broad proxy edits.
+authorizes a narrow, named public-route gate adjustment.
 
 ## DNS
 
 Cloudflare/DNS is separate authority and must not be changed by web deploy
-lanes. DNS record creation, deletion, proxy changes, TTL changes, and cleanup
-belong in separate DNS authority lanes.
+lanes.
 
 ## Product Boundary
 
 The public website deploy path does not mean SaaS, app, API, or OffSec product
-surfaces are launched. There is no SaaS/app/offsec readiness implied by a
-successful `witnessops-web` deploy.
-
-App signup, API exposure, OffSec portal readiness, private mesh routes, and
-customer evidence intake each require separate authority.
+surfaces are launched. Mesh-dev is an operator/dev twin, not a public staging
+hostname.
 
 ## Verification
 
-A public web apply lane should pass all of the following before being called
-complete:
+### Dual-lane smoke (every both-lane apply)
 
-- route sweep for `/`, `/catalog`, `/review/request`, `/why`,
-  `/why-witnessops`, `/docs`, `/verify`, `/library`, `/support`, `/privacy`,
-  `/terms`, and `/security`
-- public `HEAD /review/request` check
+```bash
+pnpm deploy:k3s:smoke
+# or
+bash deploy/scripts/smoke-prod-dev.sh
+```
+
+Expect:
+
+- `https://witnessops.com/` → HTTP 200
+- `http://10.44.0.2:3015/` → HTTP 200 (WG up)
+- matching primary CSS hash when images are aligned
+
+If mesh smoke fails: check `sudo wg-quick up wg-edge-01` and hub peer TCP rules
+on `wg0`.
+
+### Public apply completeness (prod content lanes)
+
+Also pass before calling a public content apply complete:
+
+- route sweep for buyer-facing routes (`/`, `/catalog`, `/review/request`,
+  `/why`, `/why-witnessops`, `/docs`, `/verify`, `/library`, `/support`,
+  `/privacy`, `/terms`, `/security`, and contact/engage as in scope)
 - forbidden href/src/action scan against buyer pages
-- cache-busted apex and `www` observer checks for changed public copy
-- explicit note that raw fixture text on `/verify` is not treated as a buyer
-  link/action target
+- cache-busted apex/www observer checks when copy changed
+- explicit note that raw fixture text on `/verify` is not a buyer link target
 
 Forbidden buyer targets include localhost, private IP URLs, app signup routes,
 staging hosts, admin hosts, private console URLs, and unfinished external
-product portals.
+product portals. Mesh-dev private URLs must not appear as buyer CTAs on prod.
 
 ## Receipts
 
 Every public web apply receipt must record:
 
 - lane name and authority class
-- host identity
-- repo path
+- host identity (`ops-dev-01`)
+- repo path and `DEPLOY_SSH`
 - start HEAD and end HEAD
-- dirty state before and after
+- dirty state / `ALLOW_DIRTY`
 - files changed
-- build commands and results
 - image tag and image ID
-- previous image or digest
-- deployment command and rollout result
-- public route sweep
-- forbidden href/src/action scan
-- public observer/cache-busted result when copy or routing changed
+- previous image (prod; dev if applicable)
+- which lanes updated
+- rollout result
+- dual-lane smoke result when both were targeted
+- public route sweep / forbidden scan when buyer surface changed
 - rollback path
-- DNS mutation statement
-- Caddy mutation statement
-- API/app/offsec exposure statement
+- DNS / Caddy / API-app-offsec exposure statements
 
 ## Rollback
 
-Preferred rollback:
+Preferred prod rollback:
 
 ```bash
 kubectl -n witnessops rollout undo deployment/witnessops-web
 ```
 
-Alternative rollback is to restore the previously recorded image tag or digest
-through an explicit deploy lane. If Caddy was changed in the same authorized
-lane, preserve and restore the prior Caddy config through that lane's rollback
-plan.
+Or redeploy a previously recorded image:
 
-Rollback triggers include route failures, buyer CTA regressions, failed rollout,
-unexpected API/app/offsec exposure, or private/localhost targets returning to
-the buyer path.
+```bash
+bash deploy/scripts/k3s-deploy-prod.sh docker.io/library/witnessops-web:<known-good-tag>
+```
+
+Mesh-dev:
+
+```bash
+bash deploy/scripts/k3s-deploy-dev.sh docker.io/library/witnessops-web:<known-good-tag>
+# or remove entirely
+pnpm deploy:k3s:dev:teardown
+```
+
+If Caddy was changed in the same authorized lane, restore prior Caddy config
+through that lane’s rollback plan.
 
 ## Historical Notes
 
 Older documentation describes goal0, Docker Compose, GHCR release images, and
 Servury/edge02 migration paths. Those paths are historical or legacy unless a
 future lane explicitly reactivates them. Do not delete those records merely
-because the current runtime path is k3s; keep the history but do not treat it as
-current production authority.
+because the current runtime path is dual-lane k3s; keep the history but do not
+treat it as current production authority.
+
+The previous external helper path
+`/home/mob7a0efe/DEV/mesh-agent/k8s/deploy-witnessops-web.sh` is superseded for
+agent/operator use by **in-repo** `deploy/scripts/k3s-*.sh`.

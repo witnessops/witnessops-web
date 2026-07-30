@@ -1,0 +1,106 @@
+# Mesh-only dev deployment for witnessops-web.
+# Binds exclusively to WireGuard address 10.44.0.2:3015 (hostNetwork).
+# Uses emptyDir so prod PVC intake data is never shared.
+#
+# Apply only via deploy/scripts/k3s-deploy-dev.sh (or k3s-deploy-both.sh)
+# after substituting IMAGE and optionally GIT_SHA labels.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: witnessops-web-dev
+  namespace: witnessops
+  labels:
+    app: witnessops-web-dev
+    lane: mesh-dev
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: witnessops-web-dev
+  template:
+    metadata:
+      labels:
+        app: witnessops-web-dev
+        lane: mesh-dev
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+        - name: witnessops-web
+          image: IMAGE_PLACEHOLDER
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: witnessops-web-env
+          env:
+            - name: PORT
+              value: "3015"
+            - name: HOSTNAME
+              value: "10.44.0.2"
+            - name: NODE_ENV
+              value: production
+            - name: WITNESSOPS_ADMIN_CORE_STORE_DIR
+              value: /data/intake-store/admin-core
+            - name: WITNESSOPS_ADMIN_ROLE
+              value: Founder
+            # Public marketing origin stays prod; verify base points at mesh for server-side paths.
+            - name: NEXT_PUBLIC_OS_SITE_URL
+              value: https://witnessops.com
+            - name: WITNESSOPS_VERIFY_BASE_URL
+              value: http://10.44.0.2:3015
+            - name: WITNESSOPS_INTAKE_STORE_DIR
+              value: /data/intake-store
+            - name: WITNESSOPS_TOKEN_STORE_DIR
+              value: /data/intake-store
+            - name: WITNESSOPS_INTAKE_EVENT_DIR
+              value: /data/intake-events
+            - name: WITNESSOPS_TOKEN_AUDIT_DIR
+              value: /data/intake-events
+            - name: WITNESSOPS_MAIL_OUTPUT_DIR
+              value: /data/mail-out
+          readinessProbe:
+            exec:
+              command:
+                - node
+                - -e
+                - fetch("http://10.44.0.2:3015/").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - node
+                - -e
+                - fetch("http://10.44.0.2:3015/").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 768Mi
+          volumeMounts:
+            - name: intake-store
+              mountPath: /data/intake-store
+            - name: intake-events
+              mountPath: /data/intake-events
+            - name: mail-out
+              mountPath: /data/mail-out
+      volumes:
+        - name: intake-store
+          emptyDir: {}
+        - name: intake-events
+          emptyDir: {}
+        - name: mail-out
+          emptyDir: {}

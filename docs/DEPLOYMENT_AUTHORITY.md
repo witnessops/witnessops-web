@@ -1,38 +1,77 @@
 # Deployment authority
 
-Status: `ops_dev_01_caddy_k3s_current`
-Last updated: 2026-07-09
+Status: `ops_dev_01_caddy_k3s_dual_lane`
+Last updated: 2026-07-29
 
 This document classifies deployment-related repository surfaces for
 `witnessops-web`. It is repo-local guidance and is not deploy approval, release
 approval, production verification, cloud inventory, rollback approval, or server
 administration authority.
 
-## Current production authority
+## Current production authority (dual-lane)
 
-Current public runtime path for `witnessops.com` and `www.witnessops.com`:
-
-```text
-DNS A 194.147.221.89
--> ops-dev-01
--> systemd caddy.service
--> /etc/caddy/Caddyfile
--> reverse_proxy 127.0.0.1:3000
--> k3s namespace witnessops
--> deployment witnessops-web
-```
-
-The current deployment custody map lives in
-[`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
-
-The current deploy helper is:
+Current public + mesh-dev runtime path on **ops-dev-01**:
 
 ```text
-/home/mob7a0efe/DEV/mesh-agent/k8s/deploy-witnessops-web.sh
+Public:
+  DNS A 194.147.221.89
+  -> ops-dev-01
+  -> systemd caddy.service
+  -> reverse_proxy 127.0.0.1:3000
+  -> k3s namespace witnessops
+  -> deployment witnessops-web
+  -> hostPort 127.0.0.1:3000
+
+Mesh-dev (not public; WireGuard only):
+  client on 10.44.0.0/24
+  -> 10.44.0.2:3015
+  -> k3s deployment witnessops-web-dev
+  -> hostNetwork bind HOSTNAME=10.44.0.2 PORT=3015
+  -> emptyDir volumes (no prod PVC)
 ```
 
-Use it only from an explicit apply/deploy lane targeting the
-`witnessops-web` deployment in namespace `witnessops`.
+Custody map: [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
+
+### Canonical deploy helpers (in this repo)
+
+| Script | Purpose |
+| --- | --- |
+| `deploy/scripts/k3s-build-shared.sh` | Build one shared image from HEAD; import into k3s; no deploy |
+| `deploy/scripts/k3s-deploy-prod.sh` | Build (optional) + deploy prod |
+| `deploy/scripts/k3s-deploy-dev.sh` | Build (optional) + deploy mesh-dev |
+| `deploy/scripts/k3s-deploy-both.sh` | Build once → prod + mesh-dev + smoke |
+| `deploy/scripts/smoke-prod-dev.sh` | HTTP 200 + CSS hash parity both lanes |
+| `deploy/scripts/k3s-status.sh` | kubectl image/ready + smoke |
+| `deploy/scripts/k3s-dev-teardown.sh` | Delete mesh-dev only |
+
+pnpm aliases (monorepo root): `deploy:k3s:build|prod|dev|both|smoke|status|dev:teardown`.
+
+Shared helpers: `deploy/scripts/k3s-lib.sh`. Manifest template for mesh-dev:
+`deploy/k8s/dev-mesh-deployment.yaml`.
+
+Do **not** use external mesh-agent helpers as the sole authority when this repo’s
+scripts cover the lane. Prefer in-repo scripts so agents and humans share one path.
+
+### Image contract
+
+- Tag form: `docker.io/library/witnessops-web:main-<shortsha>-<UTC>`
+- Shared bake always sets public origin (`NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`)
+  so prod and mesh-dev CSS/asset hashes match when the image tag matches.
+- Mesh-dev runtime env overrides only: `PORT=3015`, `HOSTNAME=10.44.0.2`,
+  `WITNESSOPS_VERIFY_BASE_URL=http://10.44.0.2:3015`.
+
+### Operator env
+
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `DEPLOY_SSH` | `ops-dev-01` | Mesh jump SSH. Fallback: `root@194.147.221.89` |
+| `ALLOW_DIRTY` | unset | Set `1` to build from dirty tree |
+| `MESH_DEV_URL` | `http://10.44.0.2:3015` | Local smoke target |
+| `PROD_URL` | `https://witnessops.com` | Public smoke target |
+
+WireGuard required for mesh-dev smoke and for default SSH host `ops-dev-01`
+(`ProxyJump wg-edge-01`). Hub must allow peer-to-peer TCP on `wg0` for
+`10.44.0.0/24`.
 
 ## Authority split
 
@@ -45,9 +84,9 @@ Public web content authority:
 
 Deploy authority:
 
-- timestamped image build with image ID captured
-- deploy helper targeting only k3s `witnessops-web`
-- rollout status and public route sweep
+- timestamped shared image build with image ID captured
+- in-repo k3s scripts targeting `witnessops-web` and/or `witnessops-web-dev`
+- rollout status and dual-lane smoke when both are in scope
 - rollback image or `kubectl rollout undo` captured in the receipt
 
 DNS/Cloudflare authority:
@@ -66,7 +105,9 @@ App/API exposure authority:
 
 - separate lane only
 - a public web deploy does not expose or launch unfinished APIs, admin panels,
-  private mesh routes, or customer evidence intake
+  or unfinished product portals to the public internet
+- mesh-dev is intentionally reachable only on the WireGuard mesh; do not publish
+  it via Caddy/DNS without a separate exposure lane
 
 OffSec/product surface authority:
 

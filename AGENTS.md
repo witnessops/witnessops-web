@@ -22,12 +22,43 @@ Release authority: internal/manual for now
 ## Deployment authority
 
 - Use [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md) before any deploy-adjacent work.
-- Current public web deploy authority is the k3s `witnessops-web` deployment on `ops-dev-01`, with Caddy reverse-proxying apex and `www` traffic to `127.0.0.1:3000`. See [`docs/DEPLOYMENT_CUSTODY.md`](./docs/DEPLOYMENT_CUSTODY.md).
-- DNS/Cloudflare, Caddy changes, API/app exposure, and OffSec/public product-surface exposure require separate explicit lanes.
+- Custody map: [`docs/DEPLOYMENT_CUSTODY.md`](./docs/DEPLOYMENT_CUSTODY.md).
+- **Active dual-lane path (ops-dev-01 k3s, namespace `witnessops`):**
+  - **prod** — deployment `witnessops-web` — public `https://witnessops.com` via Caddy → `127.0.0.1:3000` (hostPort).
+  - **mesh-dev** — deployment `witnessops-web-dev` — mesh-only `http://10.44.0.2:3015` (`hostNetwork`, emptyDir intake — never shares prod PVC).
+- Both lanes must run the **same shared image tag** for fair CSS/UI compare. Shared builds always bake `NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`; mesh-dev only overrides `PORT` / `HOSTNAME` / `WITNESSOPS_VERIFY_BASE_URL` at runtime.
+- **Repo deploy entrypoints** (prefer these over ad-hoc docker/kubectl):
+
+  | Goal | Command |
+  | --- | --- |
+  | Build shared image only | `pnpm deploy:k3s:build` |
+  | Deploy prod | `pnpm deploy:k3s:prod` |
+  | Deploy mesh-dev | `pnpm deploy:k3s:dev` |
+  | Build once → both lanes | `pnpm deploy:k3s:both` |
+  | Status + HTTP/CSS smoke | `pnpm deploy:k3s:smoke` or `pnpm deploy:k3s:status` |
+  | Remove mesh-dev only | `pnpm deploy:k3s:dev:teardown` |
+
+  Scripts live under `deploy/scripts/k3s-*.sh` and source `k3s-lib.sh`.
+- **Env for agents / local Mac:**
+  - `DEPLOY_SSH=ops-dev-01` (default; needs WireGuard mesh jump). Fallback: `DEPLOY_SSH=root@194.147.221.89`.
+  - Dirty tree: `ALLOW_DIRTY=1` (required if uncommitted work must ship; still record dirty state in receipts).
+  - Mesh smoke needs WG up: `sudo wg-quick up wg-edge-01`. Hub must allow peer TCP on `wg0` (`10.44.0.0/24`).
+- DNS/Cloudflare, Caddy rewrites, API/app exposure, and OffSec product-surface exposure require separate explicit lanes.
 - A public web deploy does not imply SaaS, app, API, or OffSec readiness.
-- Azure Container Apps is retired for this repo. Root `azure.yaml` and `infra/**` were archived under `docs/archive/azure-aca-retired-20260508/`.
+- **Do not use** legacy `deploy/scripts/deploy.sh` / GHCR / goal0 Compose as live authority (historical only; see INSTALL.md).
+- Azure Container Apps is retired. Root `azure.yaml` and `infra/**` were archived under `docs/archive/azure-aca-retired-20260508/`.
 - Do not run `az`, `azd`, Bicep deployment, Azure inventory, Azure cleanup, Azure rollback, or Azure restore work from this repo unless a separate explicit Azure reopening lane names the allowed cloud surfaces, commands, receipts, and stop boundary.
 - Do not treat archived Azure files as active deploy authority, rollback authority, or evidence that Azure resources exist.
+
+## Local vs mesh-dev vs prod (when working on web)
+
+| Mode | Use when | How |
+| --- | --- | --- |
+| Local dev server | UI/API iteration on laptop | `pnpm dev` (app filter) — never points public DNS at localhost |
+| mesh-dev (k3s) | Shared runtime parity, form/mail, “does it look like prod?” | `pnpm deploy:k3s:dev` or `pnpm deploy:k3s:both`; open `http://10.44.0.2:3015` over WG |
+| prod | Buyer-visible public site | `pnpm deploy:k3s:prod` or both; verify `https://witnessops.com` |
+
+Default for “deploy this so we can check on mesh and public”: **`pnpm deploy:k3s:both`** (one image, both lanes). After deploy: **`pnpm deploy:k3s:smoke`**.
 
 ## Root file hygiene
 
@@ -72,3 +103,4 @@ For security-sensitive changes, preserve these boundaries:
 - `pnpm health` — requires **Node 22** on the host (see `.nvmrc`) or run `pnpm health:node22`
 - route parity against the frozen baseline captured at slice start
 - buyer-path smoke when public buyer or proof-surface copy changes: `pnpm smoke:buyer-path:test`
+- after k3s apply: `pnpm deploy:k3s:smoke` (prod + mesh-dev HTTP/CSS when both are up)

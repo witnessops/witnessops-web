@@ -27,7 +27,14 @@
     "smoke:buyer-path:local": "node --import tsx ./scripts/smoke-buyer-path.ts --base-url http://127.0.0.1:3001",
     "smoke:buyer-path:test": "node --import tsx --test tests/public-smoke/smoke-buyer-path.test.ts",
     "docs:validate": "node --import tsx ./scripts/validate-docs.ts",
-    "signals:validate": "node --import tsx ./scripts/validate-signals.ts"
+    "signals:validate": "node --import tsx ./scripts/validate-signals.ts",
+    "deploy:k3s:build": "bash deploy/scripts/k3s-build-shared.sh",
+    "deploy:k3s:prod": "bash deploy/scripts/k3s-deploy-prod.sh",
+    "deploy:k3s:dev": "bash deploy/scripts/k3s-deploy-dev.sh",
+    "deploy:k3s:both": "bash deploy/scripts/k3s-deploy-both.sh",
+    "deploy:k3s:smoke": "bash deploy/scripts/smoke-prod-dev.sh",
+    "deploy:k3s:status": "bash deploy/scripts/k3s-status.sh",
+    "deploy:k3s:dev:teardown": "bash deploy/scripts/k3s-dev-teardown.sh"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

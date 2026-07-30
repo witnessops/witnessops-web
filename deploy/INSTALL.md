@@ -1,11 +1,13 @@
 # Installing witnessops-web on a host
 
-> Historical note: this Docker Compose / GHCR / goal0 install flow is not the
-> current production authority for `witnessops.com`. The current live custody
-> path is documented in [`../docs/DEPLOYMENT_CUSTODY.md`](../docs/DEPLOYMENT_CUSTODY.md):
-> ops-dev-01 Caddy -> k3s namespace `witnessops` -> deployment
-> `witnessops-web`. Keep this file as legacy installation reference unless a
-> future lane explicitly reactivates this flow.
+> **Current dual-lane path (use this):** ops-dev-01 k3s — prod
+> `witnessops-web` (Caddy → `127.0.0.1:3000`) + mesh-dev
+> `witnessops-web-dev` (`10.44.0.2:3015`). See
+> [`../docs/DEPLOYMENT_CUSTODY.md`](../docs/DEPLOYMENT_CUSTODY.md) and
+> in-repo scripts under `deploy/scripts/k3s-*.sh` (`pnpm deploy:k3s:both`).
+>
+> **Below:** historical Docker Compose / GHCR / goal0 install flow. Not live
+> authority unless a future lane reactivates it.
 
 This file records the historical installation method for the production web
 surface on **goal0-edge-01** (unified public host with OffSec product vhosts).

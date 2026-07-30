@@ -13,6 +13,23 @@ This repo has no active Azure deployment command surface.
 - Archived Azure material under `docs/archive/azure-aca-retired-20260508/` is historical reference only.
 - Any future Azure command requires a separate explicit Azure reopening lane with allowed cloud surfaces, validation commands, receipts, and stop boundary.
 
+### Active k3s dual-lane (ops-dev-01)
+
+Canonical entrypoints (also in root `AGENTS.md` / `docs/DEPLOYMENT_AUTHORITY.md`):
+
+| Script | Command |
+| --- | --- |
+| Build shared image | `pnpm deploy:k3s:build` |
+| Deploy prod only | `pnpm deploy:k3s:prod` |
+| Deploy mesh-dev only | `pnpm deploy:k3s:dev` |
+| Build once → both | `pnpm deploy:k3s:both` |
+| Status + smoke | `pnpm deploy:k3s:status` or `pnpm deploy:k3s:smoke` |
+| Teardown mesh-dev | `pnpm deploy:k3s:dev:teardown` |
+
+Env: `DEPLOY_SSH` (default `ops-dev-01`; fallback `root@194.147.221.89`), `ALLOW_DIRTY=1` for dirty trees.
+
+Legacy `deploy/scripts/deploy.sh` (GHCR / Compose) is not live authority.
+
 ## Health
 
 `pnpm health`

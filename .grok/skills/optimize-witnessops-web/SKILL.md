@@ -2,12 +2,12 @@
 name: optimize-witnessops-web
 description: >
   Investigate and apply performance or architecture optimizations for the witnessops-web
-  monorepo (Next.js 15, TypeScript, @witnessops/proof, goal0 mesh deploy). Use when the user
-  asks to optimize witnessops-web, choose a language for verify/UI/deploy, run pnpm health,
-  mesh deploy smoke, or runs /optimize-witnessops-web. Read docs/OPTIMIZATION-LANGUAGE.md
-  before proposing rewrites or new runtimes.
+  monorepo (Next.js 15, TypeScript, @witnessops/proof, ops-dev-01 dual-lane k3s deploy).
+  Use when the user asks to optimize witnessops-web, choose a language for verify/UI/deploy,
+  run pnpm health, mesh/prod deploy smoke, or runs /optimize-witnessops-web. Read
+  docs/OPTIMIZATION-LANGUAGE.md before proposing rewrites or new runtimes.
 metadata:
-  short-description: "Optimize witnessops-web (TS-first, mesh deploy)"
+  short-description: "Optimize witnessops-web (TS-first, dual-lane k3s)"
 ---
 
 # Optimize witnessops-web
@@ -40,7 +40,7 @@ Do not recommend a full language rewrite without user authorization and a writte
 - `/verify` and `/api/verify` accept **untrusted** receipt input; never overclaim verification.
 - `packages/proof` stays receipt-only unless a separate lane widens scope.
 - Mesh gate (`/api/mesh-gate`, `src/lib/mesh-gate.ts`) is **operator mesh hygiene** — not customer security proof.
-- Deploy: **goal0-edge-01** per `docs/DEPLOYMENT_AUTHORITY.md`; no Azure ACA from this repo.
+- Deploy: **ops-dev-01 k3s dual-lane** (prod + mesh-dev) per `docs/DEPLOYMENT_AUTHORITY.md`; no Azure ACA from this repo.
 
 ## Investigation workflow
 
@@ -79,30 +79,35 @@ pnpm smoke:buyer-path:test
 
 If `pnpm` is missing on a fleet VM, use the same commands from a host with Node 22 + corepack, or run tests via `node --import tsx` as in `package.json` scripts.
 
-## Mesh build and deploy (goal0)
+## Dual-lane build and deploy (ops-dev-01 k3s) — current
 
-Working copy on fleet VM often lives under `~/DEV/OffSec/working/sources/witnessops-web`.
+From monorepo root (prefer these over ad-hoc docker/kubectl):
 
-| Step | Reference |
-|------|-----------|
-| Docker mesh image | `deploy/Dockerfile.mesh` (Node 22, `pnpm build`, standalone) |
-| Lane README | `README-LANE.md` |
-| Bastion-driven mesh | `~/DEV/OffSec/scripts/run-witnessops-mesh-goal0.sh` |
-| Sync witnessops-web | `LANE_TOP=~/DEV/OffSec ./scripts/sync-to-node-via-bastion.sh` (explicit `witnessops-web` hop) |
-| goal0 deploy script | `/opt/offsec/scripts/deploy-witnessops-web-mesh.sh` (on goal0) |
+| Goal | Command |
+|------|---------|
+| Shared image + prod + mesh-dev | `pnpm deploy:k3s:both` |
+| Prod only | `pnpm deploy:k3s:prod` |
+| Mesh-dev only (`10.44.0.2:3015`) | `pnpm deploy:k3s:dev` |
+| Smoke (HTTP 200 + CSS match) | `pnpm deploy:k3s:smoke` |
+| Scripts | `deploy/scripts/k3s-*.sh`, lib `k3s-lib.sh` |
+| Mesh-dev manifest | `deploy/k8s/dev-mesh-deployment.yaml` |
 
-Smoke after deploy (examples):
+Env: `DEPLOY_SSH=ops-dev-01` or `root@194.147.221.89`; `ALLOW_DIRTY=1` if needed.
+
+Smoke after dual-lane deploy:
 
 ```bash
+pnpm deploy:k3s:smoke
 curl -sI https://witnessops.com/
-curl -sS https://witnessops.com/.well-known/mesh-receipt-index.json | head
+curl -sI http://10.44.0.2:3015/   # requires WireGuard
 curl -sS -X POST https://witnessops.com/api/mesh-gate -H 'content-type: application/json' -d '{}' | head
 ```
 
-Publish lanes (OffSec working tree, not always in this repo):
+### Historical / optional mesh paths
 
-- Shield sample: `~/DEV/OffSec/working/scripts/publish-shield-sample-witnessops.sh`
-- Mesh public: `~/DEV/OffSec/working/scripts/publish-mesh-public-witnessops.sh`
+Older goal0 Compose / OffSec bastion scripts may still exist on operator machines
+(`README-LANE.md`, `deploy/Dockerfile.mesh`, fleet `run-witnessops-mesh-goal0.sh`).
+They are **not** current production authority; use in-repo `pnpm deploy:k3s:*` first.
 
 ## Hot files (optimization touch map)
 
