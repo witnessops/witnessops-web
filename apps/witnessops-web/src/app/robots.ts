@@ -21,11 +21,12 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
   const isDocsHost = requestHost === docsHost;
   const activeSiteUrl = isDocsHost ? `https://${docsHost}` : siteUrl;
 
+  // Apex `/docs` permanently redirects to docsHost (middleware 308). English
+  // docs are indexed only on docs.witnessops.com (host-specific sitemap).
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: isDocsHost ? undefined : ["/docs", "/docs/"],
     },
     sitemap: `${activeSiteUrl}/sitemap.xml`,
   };

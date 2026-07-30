@@ -72,6 +72,13 @@ Release authority: internal/manual for now
 
 Default for “deploy this so we can check on mesh and public”: **`pnpm deploy:k3s:both`** (one image, both lanes). After deploy: **`pnpm deploy:k3s:smoke`**.
 
+## Public docs host contract
+
+- **Canonical English docs authority:** `https://docs.witnessops.com/` (middleware rewrite to `/docs…` internally; sitemap + robots on that host).
+- **Apex entry:** `https://witnessops.com/docs` and `/docs/*` **308** to `https://docs.witnessops.com/…` (path without `/docs` prefix). `www` included.
+- **Do not move** `/pl/docs` off apex in this contract (localized marketing surface).
+- Helpers: `apps/witnessops-web/src/lib/docs-host-routing.ts` (unit-tested).
+
 ## Root file hygiene
 
 - Treat project-root files as operator authority surfaces. Do not delete or rename root files unless the PR names the target files and proves they are stale.

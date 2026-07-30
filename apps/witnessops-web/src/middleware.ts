@@ -6,26 +6,16 @@ import {
   isLocalAdminRequest,
   verifyAdminSessionCookie,
 } from "@/lib/server/admin-session";
+import {
+  apexDocsRedirectLocation,
+  isApexMarketingHost,
+  normalizeHost,
+  stripDocsPrefix,
+} from "@/lib/docs-host-routing";
 
 const surface = getSurface("witnessops");
 const primaryHost = surface?.hostname;
 const docsHost = surface?.docsHost;
-
-function normalizeHost(host: string | null) {
-  return host?.split(":")[0].toLowerCase() ?? "";
-}
-
-function stripDocsPrefix(pathname: string) {
-  if (pathname === "/docs" || pathname === "/docs/") {
-    return "/";
-  }
-
-  if (pathname.startsWith("/docs/")) {
-    return pathname.slice("/docs".length);
-  }
-
-  return null;
-}
 
 function isWitnessOpsSupportPath(pathname: string) {
   return pathname === "/support" || pathname.startsWith("/support/");
@@ -80,6 +70,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(rewriteUrl);
   }
 
+  // Apex (and www): send English docs to the canonical docs host so human
+  // path, robots, sitemap, and rel=canonical share one authority.
+  if (isApexMarketingHost(host, primaryHost)) {
+    const location = apexDocsRedirectLocation(pathname, search, docsHost);
+    if (location) {
+      return NextResponse.redirect(location, 308);
+    }
+  }
+
   return NextResponse.next();
 }
 
@@ -88,3 +87,11 @@ export const config = {
     "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\..*).*)",
   ],
 };
+
+// Re-export pure helpers for tests that import from middleware historically.
+export {
+  apexDocsRedirectLocation,
+  isApexMarketingHost,
+  normalizeHost,
+  stripDocsPrefix,
+} from "@/lib/docs-host-routing";
