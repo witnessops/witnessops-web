@@ -4,6 +4,8 @@ Repository-local docs for `witnessops-web` live here when they describe repo ope
 
 ## Current docs
 
+- [`commercial/`](./commercial/README.md) — **P0 commercial delivery kit** (fit-check replies, delivery email, claim blurbs, 15-min demo script, CSR + One Server dry-run).
+- [`EMAIL-SIGNATURE-RESEND.md`](./EMAIL-SIGNATURE-RESEND.md) — Resend/Gmail signature paste rules.
 - [`CODEX_SECURITY_THREAT_MODEL.md`](./CODEX_SECURITY_THREAT_MODEL.md) — seed context for Codex Security review.
 - [`DEPLOYMENT_AUTHORITY.md`](./DEPLOYMENT_AUTHORITY.md) — repo-local deployment authority classification; Servury/edge02 is the active hosting lane and Azure ACA material is retired.
 - [`ROOT_SURFACE_INVENTORY.md`](./ROOT_SURFACE_INVENTORY.md) — root/subtree authority-file inventory and stale-file deletion gate.
