@@ -27,6 +27,34 @@ export const metadata: Metadata = {
 
 const sampleCases = [
   {
+    title: "Local server security review",
+    href: "/review/sample-cases/local-server-security-review",
+    situation: "A read-only local server security review was packaged for inspection.",
+    youSee:
+      "How posture and findings sit next to a receipt and hash manifest, and what /verify does and does not confirm for this sample.",
+    tags: ["Full sample package", "Synthetic host"],
+    emphasize: true,
+  },
+  {
+    title: "Launch readiness review",
+    href: "/review/sample-cases/launch-readiness-review",
+    situation:
+      "One launch host needs a before-and-after readiness picture against an approved baseline.",
+    youSee:
+      "Baseline/candidate relationship, drift notes, findings, proofpack ZIP, and named limits — not launch approval.",
+    tags: ["Full sample package", "OFFSEC-LAUNCH-READY"],
+    emphasize: true,
+  },
+  {
+    title: "Customer Security Review Sprint",
+    href: "/review/sample-cases/customer-security-review-sprint",
+    situation: "A security questionnaire is holding up a deal.",
+    youSee:
+      "Synthetic answer matrix shape, evidence references, open items, and ownership of final submission.",
+    tags: ["Synthetic demo", "CSR"],
+    emphasize: true,
+  },
+  {
     title: "AI agent change package",
     href: "/review/sample-cases/ai-agent-action-proof-run",
     situation: "An AI agent proposed and applied one bounded code or configuration change.",
@@ -36,13 +64,32 @@ const sampleCases = [
     emphasize: true,
   },
   {
-    title: "Local server security review",
-    href: "/review/sample-cases/local-server-security-review",
-    situation: "A read-only local server security review was packaged for inspection.",
+    title: "Custody / wallet-ops review",
+    href: "/review/sample-cases/custody-wallet-ops-review",
+    situation:
+      "A proof-backed review of custody or wallet-operations controls without keys or fund movement.",
     youSee:
-      "How posture and findings sit next to a receipt and hash manifest, and what /verify does and does not confirm for this sample.",
-    tags: ["Full sample package", "Synthetic host"],
-    emphasize: true,
+      "Sanitised posture, findings, proofpack, and hard boundaries — no solvency or custody-of-funds claim.",
+    tags: ["Full sample package", "OFFSEC-CUSTODY-OPS"],
+    emphasize: false,
+  },
+  {
+    title: "Incident readiness review",
+    href: "/review/sample-cases/incident-readiness-review",
+    situation: "A bounded readiness record for one named incident scenario and environment.",
+    youSee:
+      "Sanitised readiness observations, open decisions, and proofpack limits — not live IR command.",
+    tags: ["Full sample package", "OFFSEC-INCIDENT-READY"],
+    emphasize: false,
+  },
+  {
+    title: "Access removed proof (method sample)",
+    href: "/review/sample-cases/access-removed-proof",
+    situation: "One named access-removal event with sanitised before/after observations.",
+    youSee:
+      "Package shape and limits. Not a public product card and not universal access-elimination.",
+    tags: ["Method sample", "Not a product card"],
+    emphasize: false,
   },
   {
     title: "SBOM field checklist (method sample)",

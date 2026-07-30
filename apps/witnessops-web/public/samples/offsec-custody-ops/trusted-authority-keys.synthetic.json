@@ -1,0 +1,1 @@
+{"keys":[{"algorithm":"ed25519","encoding":"hex","public_key":"a042708125b97b9f20c63dff9b3a0786a7844b69bfdf0b515d54e5cad82dd9dd","public_key_id":"witnessops_custody_synthetic_authority_001","purposes":["witnessops_custody_ops_authority"],"status":"active"}],"registry_id":"synthetic_custody_authority_test_registry","schema":"witnessops.key_registry.snapshot.v1","version":1}

@@ -1,0 +1,31 @@
+{
+  "allowed_actions": [
+    "read_only_baseline_capture",
+    "read_only_candidate_collection"
+  ],
+  "authorization_id": "AUTH-LRR-SYNTHETIC-001",
+  "case_id": "CASE-LRR-SYNTHETIC-001",
+  "execution_mode": "operator_present_local",
+  "operator_id": "operator-synthetic-01",
+  "profile_id": "launch_readiness_linux_v1",
+  "prohibited_artifact_classes": [
+    "browser_cookies",
+    "clipboard",
+    "credentials",
+    "full_memory_dump",
+    "full_user_documents",
+    "oauth_tokens",
+    "password_manager_data",
+    "private_keys",
+    "process_command_lines",
+    "process_environment",
+    "screenshots"
+  ],
+  "schema": "witnessops.launch_readiness.scope.v1",
+  "target": {
+    "allowed_hostnames": [
+      "demo-host"
+    ],
+    "asset_id": "asset-demo-host-001"
+  }
+}

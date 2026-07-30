@@ -1,0 +1,26 @@
+{
+  "authority_source_validation": "digest and declared identity recorded; external authority signer identity not independently validated",
+  "authorization_id": "AUTH-LRR-SYNTHETIC-001",
+  "baseline_observed_at_utc": "2026-07-10T12:00:00Z",
+  "baseline_trust": "verified against externally supplied trust registry before comparison",
+  "candidate_observed_at_utc": "2026-07-11T12:00:00Z",
+  "collector": {
+    "name": "witnessops_launch_readiness",
+    "signature_status": "not_supplied",
+    "source_sha256": "2d5fa9eea32c397b70f8c07306cdf7518bbfeea04104f54e3c6f487956b33552",
+    "version": "1.0.0"
+  },
+  "execution": {
+    "deployment_changes": false,
+    "local_only": true,
+    "mode": "fixture",
+    "network_discovery": false,
+    "read_only": true
+  },
+  "input_classification": "synthetic_non_customer",
+  "observed_hostname": "demo-host",
+  "operator_id": "operator-synthetic-01",
+  "proof_run_id": "pr_lrr_20260711120000_df6bc5d205",
+  "schema": "witnessops.launch_readiness.run_record.v1",
+  "synthetic": true
+}

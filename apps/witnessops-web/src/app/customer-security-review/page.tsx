@@ -90,6 +90,11 @@ export default function CustomerSecurityReviewPage() {
               >
                 One-pager (PDF)
               </a>
+              <CtaButton
+                href="/review/sample-cases/customer-security-review-sprint"
+                variant="secondary"
+                label="Inspect CSR sample"
+              />
               <CtaButton href="/catalog" variant="secondary" label="View services" />
             </div>
             <p className="mt-3 max-w-xl text-sm leading-6 text-text-muted">

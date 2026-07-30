@@ -1,0 +1,142 @@
+{
+  "baseline_observed_at_utc": "2026-07-10T12:00:00Z",
+  "candidate_observed_at_utc": "2026-07-11T12:00:00Z",
+  "changes": [
+    {
+      "baseline": 2,
+      "candidate": 5,
+      "classification": "risk_increasing",
+      "field": "accounts.interactive_shell_count",
+      "rationale": "New interactive accounts require owner review."
+    },
+    {
+      "baseline": 1,
+      "candidate": 2,
+      "classification": "risk_increasing",
+      "field": "accounts.uid0_count",
+      "rationale": "An increase in UID 0 accounts raises attribution risk."
+    },
+    {
+      "baseline": true,
+      "candidate": false,
+      "classification": "risk_increasing",
+      "field": "clock.ntp_synchronized",
+      "rationale": "Loss of time synchronization weakens event ordering."
+    },
+    {
+      "baseline": {
+        "admitted": true,
+        "group": "root",
+        "mode": "0644",
+        "owner": "root",
+        "status": "observed"
+      },
+      "candidate": {
+        "admitted": false,
+        "group": "root",
+        "mode": "0666",
+        "owner": "root",
+        "status": "observed"
+      },
+      "classification": "risk_increasing",
+      "field": "critical_files./etc/passwd",
+      "rationale": "Critical-file metadata changed relative to the admitted baseline."
+    },
+    {
+      "baseline": "active",
+      "candidate": "inactive",
+      "classification": "risk_increasing",
+      "field": "firewall.status",
+      "rationale": "Moving away from an active host firewall is risk-increasing."
+    },
+    {
+      "baseline": true,
+      "candidate": false,
+      "classification": "risk_increasing",
+      "field": "hardening.apparmor_enabled",
+      "rationale": "Loss of AppArmor enforcement is risk-increasing where it was previously active."
+    },
+    {
+      "baseline": null,
+      "candidate": false,
+      "classification": "requires_review",
+      "field": "hardening.selinux_enforcing",
+      "rationale": "Loss of SELinux enforcement is risk-increasing where it was previously active."
+    },
+    {
+      "baseline": "1",
+      "candidate": null,
+      "classification": "requires_review",
+      "field": "hardening.sysctl.fs.protected_hardlinks",
+      "rationale": "The admitted hardening value changed and must be reconciled with the launch baseline."
+    },
+    {
+      "baseline": "1",
+      "candidate": null,
+      "classification": "requires_review",
+      "field": "hardening.sysctl.fs.protected_symlinks",
+      "rationale": "The admitted hardening value changed and must be reconciled with the launch baseline."
+    },
+    {
+      "baseline": "1",
+      "candidate": null,
+      "classification": "requires_review",
+      "field": "hardening.sysctl.kernel.dmesg_restrict",
+      "rationale": "The admitted hardening value changed and must be reconciled with the launch baseline."
+    },
+    {
+      "baseline": "2",
+      "candidate": null,
+      "classification": "requires_review",
+      "field": "hardening.sysctl.kernel.kptr_restrict",
+      "rationale": "The admitted hardening value changed and must be reconciled with the launch baseline."
+    },
+    {
+      "baseline": "1",
+      "candidate": null,
+      "classification": "requires_review",
+      "field": "hardening.sysctl.kernel.unprivileged_bpf_disabled",
+      "rationale": "The admitted hardening value changed and must be reconciled with the launch baseline."
+    },
+    {
+      "baseline": 1,
+      "candidate": 4,
+      "classification": "risk_increasing",
+      "field": "listeners.count",
+      "rationale": "Additional listeners require reachability and ownership review."
+    },
+    {
+      "baseline": 0,
+      "candidate": 1,
+      "classification": "risk_increasing",
+      "field": "services.failed_count",
+      "rationale": "Additional failed services can affect launch reliability."
+    },
+    {
+      "baseline": "no",
+      "candidate": "yes",
+      "classification": "risk_increasing",
+      "field": "ssh.password_authentication",
+      "rationale": "Enabling SSH password authentication is risk-increasing."
+    },
+    {
+      "baseline": "no",
+      "candidate": "yes",
+      "classification": "risk_increasing",
+      "field": "ssh.permit_root_login",
+      "rationale": "Enabling direct root login is risk-increasing."
+    }
+  ],
+  "claim_boundary": "deterministic comparison of admitted v1 posture fields only; not exploitability, launch approval, or proof of security",
+  "counts": {
+    "requires_review": 6,
+    "risk_increasing": 10,
+    "risk_reducing": 0
+  },
+  "owner_attention_required": true,
+  "schema": "witnessops.launch_readiness.drift.v1",
+  "target": {
+    "asset_id": "asset-demo-host-001",
+    "hostname": "demo-host"
+  }
+}

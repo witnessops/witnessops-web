@@ -1,0 +1,1 @@
+{"keys":[{"algorithm":"ed25519","encoding":"hex","public_key":"48c7c33288ae0525a8093e711fad984c62abb47dffcccf19edb003427ae20673","public_key_id":"witnessops_incident_synthetic_authority_001","purposes":["witnessops_incident_ready_authority"],"status":"active"}],"registry_id":"synthetic_incident_authority_test_registry","schema":"witnessops.key_registry.snapshot.v1","version":1}

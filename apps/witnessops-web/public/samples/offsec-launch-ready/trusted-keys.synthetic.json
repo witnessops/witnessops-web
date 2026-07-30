@@ -1,0 +1,19 @@
+{
+  "keys": [
+    {
+      "algorithm": "ed25519",
+      "encoding": "hex",
+      "public_key": "dd6edc6a175648a867760a8a05740fb75777f93e1c089b592d90b29420365425",
+      "public_key_id": "witnessops_lrr_synthetic_sample_001",
+      "purposes": [
+        "witnessops_launch_readiness_baseline",
+        "witnessops_launch_readiness_receipt",
+        "witnessops_launch_readiness_proofpack"
+      ],
+      "status": "active"
+    }
+  ],
+  "registry_id": "synthetic_test_registry",
+  "schema": "witnessops.key_registry.snapshot.v1",
+  "version": 1
+}

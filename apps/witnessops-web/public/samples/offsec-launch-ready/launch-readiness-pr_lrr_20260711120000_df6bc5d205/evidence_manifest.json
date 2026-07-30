@@ -1,0 +1,212 @@
+{
+  "artifacts": [
+    {
+      "artifact_class": "authority_record",
+      "artifact_id": "authority_record",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "evidence/authority.json",
+      "sensitivity": "low",
+      "sha256": "sha256:0b11d989f63bdfc411779e63835234ddecd593f512b4fef90c2197ca1bc49576",
+      "source_system": "operator_supplied_authority_record"
+    },
+    {
+      "artifact_class": "authority_decision",
+      "artifact_id": "admission_decision",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "evidence/admission-decision.json",
+      "sensitivity": "low",
+      "sha256": "sha256:4a23de77f906643a962f4ae85bd353e23a9ee3b7f2853742c0a26aeea7baa5d4",
+      "source_system": "witnessops_authority_gate"
+    },
+    {
+      "artifact_class": "scope_record",
+      "artifact_id": "scope_record",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "evidence/scope.json",
+      "sensitivity": "low",
+      "sha256": "sha256:d2b4dcbc1328e3945dfdaed94012a55ffb0c22e4b0f7b7bb806b8fee5a0803c8",
+      "source_system": "operator_supplied_authority_record"
+    },
+    {
+      "artifact_class": "run_record",
+      "artifact_id": "run_record",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "evidence/run_record.json",
+      "sensitivity": "low",
+      "sha256": "sha256:177d240ab505d68a2d83c7604a4cf53db8d15c3b6228a947983bd4f2cf8b1b38",
+      "source_system": "witnessops_launch_readiness_collector"
+    },
+    {
+      "artifact_class": "release_context",
+      "artifact_id": "launch_context",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "evidence/launch-context.json",
+      "sensitivity": "low",
+      "sha256": "sha256:ccf6e3d6a13545de1521091274a80bfd19ccdf9473527a9a2b1611788dbb0d8f",
+      "source_system": "operator_supplied_launch_context"
+    },
+    {
+      "artifact_class": "baseline_snapshot",
+      "artifact_id": "baseline_snapshot",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "evidence/baseline-snapshot.json",
+      "sensitivity": "medium",
+      "sha256": "sha256:21be5b78b1109a05c9dfadfbffaac6e0d6b8d83ac137c3927c1aee8e5ea1251b",
+      "source_system": "witnessops_launch_readiness_baseline"
+    },
+    {
+      "artifact_class": "host_observations",
+      "artifact_id": "candidate_observations",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "evidence/candidate-observations.json",
+      "sensitivity": "medium",
+      "sha256": "sha256:60d961132e21ea0a7479756b26515ce3c97fad20c041ad14ad8db5e685c0fba5",
+      "source_system": "witnessops_launch_readiness_collector"
+    },
+    {
+      "artifact_class": "collection_completeness",
+      "artifact_id": "review_completeness",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "evidence/review-completeness.json",
+      "sensitivity": "low",
+      "sha256": "sha256:7107fa2f6be5187cc12fbbed97fb5333b075ce2ce6d3fe2094064436dc4ac648",
+      "source_system": "witnessops_launch_readiness_rules_v1"
+    },
+    {
+      "artifact_class": "host_posture",
+      "artifact_id": "candidate_posture",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "posture.json",
+      "sensitivity": "medium",
+      "sha256": "sha256:a631d5d8053de6d38024a95257c4db0f2cd9ac76f658758b156c9c4a48dadf9c",
+      "source_system": "witnessops_launch_readiness_collector"
+    },
+    {
+      "artifact_class": "posture_findings",
+      "artifact_id": "posture_findings",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "findings.json",
+      "sensitivity": "medium",
+      "sha256": "sha256:4c60fc910ff593dab11d0a883052f7a45e6dc0b0345e60282c3d1cb2f12d72f5",
+      "source_system": "witnessops_launch_readiness_rules_v1"
+    },
+    {
+      "artifact_class": "posture_drift",
+      "artifact_id": "launch_drift",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "drift.json",
+      "sensitivity": "low",
+      "sha256": "sha256:5279c61958ac776e1f3487eb3c5763d2b091a79d1bcf07ad339287ee30a9bf00",
+      "source_system": "witnessops_launch_readiness_rules_v1"
+    },
+    {
+      "artifact_class": "review_summary",
+      "artifact_id": "review_summary",
+      "artifact_type": "launch_readiness_review",
+      "collector_method": "witnessops_launch_readiness_v1",
+      "path": "review-summary.json",
+      "sensitivity": "low",
+      "sha256": "sha256:817110b124d41a362833e118942e32f2a8a40112213e449891b8560b6ad9902a",
+      "source_system": "witnessops_launch_readiness_rules_v1"
+    }
+  ],
+  "authority": {
+    "authorization_id": "AUTH-LRR-SYNTHETIC-001",
+    "authorization_window": {
+      "end_utc": "2026-07-13T00:00:00Z",
+      "start_utc": "2026-07-10T00:00:00Z"
+    },
+    "case_id": "CASE-LRR-SYNTHETIC-001",
+    "collection_profile_id": "launch_readiness_linux_v1",
+    "operator_id": "operator-synthetic-01"
+  },
+  "baseline": {
+    "observed_at_utc": "2026-07-10T12:00:00Z",
+    "signature_key_id": "witnessops_lrr_synthetic_sample_001",
+    "snapshot_id": "snap_lrr_20260710120000_df4b7eff36"
+  },
+  "collection_profile": {
+    "profile_id": "launch_readiness_linux_v1",
+    "prohibited_classes": [
+      "browser_cookies",
+      "clipboard",
+      "credentials",
+      "full_memory_dump",
+      "full_user_documents",
+      "oauth_tokens",
+      "password_manager_data",
+      "private_keys",
+      "process_command_lines",
+      "process_environment",
+      "screenshots"
+    ]
+  },
+  "collector": {
+    "hash": "sha256:2d5fa9eea32c397b70f8c07306cdf7518bbfeea04104f54e3c6f487956b33552",
+    "name": "witnessops_launch_readiness",
+    "signature_key_id": "witnessops_lrr_synthetic_sample_001",
+    "signature_status": "not_supplied",
+    "version": "1.0.0"
+  },
+  "declared_exclusions": [
+    "processes",
+    "process_command_lines",
+    "process_environment",
+    "credentials",
+    "browser_data",
+    "tokens",
+    "private_keys",
+    "user_documents",
+    "event_logs",
+    "memory",
+    "network_discovery"
+  ],
+  "declared_side_effects": [
+    "local_process_execution",
+    "local_file_reads",
+    "local_output_file_creation"
+  ],
+  "host_clock": {
+    "notes": "candidate host reported ntp_synchronized=False; no independent time authority comparison was performed",
+    "observed_timezone": "UTC",
+    "trust_status": "unknown"
+  },
+  "launch_context": {
+    "decision_owner": "synthetic-release-owner",
+    "release_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "release_id": "release-synthetic-2026-07-12-01",
+    "target_launch_at_utc": "2026-07-12T12:00:00Z"
+  },
+  "launcher": {
+    "boundary": "no autonomous, remote, deployment, or launch-decision authority",
+    "identifier": "operator_present_local",
+    "type": "manual_terminal"
+  },
+  "manifest_version": "witnessops.evidence_manifest.v0",
+  "proof_run_id": "pr_lrr_20260711120000_df6bc5d205",
+  "source_systems": [
+    "operator_supplied_authority_record",
+    "operator_supplied_launch_context",
+    "witnessops_authority_gate",
+    "witnessops_launch_readiness_baseline",
+    "witnessops_launch_readiness_collector",
+    "witnessops_launch_readiness_rules_v1"
+  ],
+  "target": {
+    "asset_id": "asset-demo-host-001",
+    "claimed_hostname": "demo-host",
+    "os_family": "linux"
+  },
+  "workflow_class": "launch_readiness_two_snapshot_review"
+}

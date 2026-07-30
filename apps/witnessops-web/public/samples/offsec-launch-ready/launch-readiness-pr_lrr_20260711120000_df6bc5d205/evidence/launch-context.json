@@ -1,0 +1,20 @@
+{
+  "asset_id": "asset-demo-host-001",
+  "case_id": "CASE-LRR-SYNTHETIC-001",
+  "claim_boundary": "release identity and owner declaration only; not launch approval or security assurance",
+  "decision_owner": "synthetic-release-owner",
+  "declared_change_summary": "Synthetic candidate enables deliberately risky posture values for verifier and drift tests.",
+  "declared_exclusions": [
+    "cloud_control_plane_review",
+    "compliance_certification",
+    "exploit_testing",
+    "production_readiness_guarantee",
+    "secret_collection",
+    "source_code_review",
+    "unapproved_systems"
+  ],
+  "release_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "release_id": "release-synthetic-2026-07-12-01",
+  "schema": "witnessops.launch_readiness.context.v1",
+  "target_launch_at_utc": "2026-07-12T12:00:00Z"
+}

@@ -1,0 +1,80 @@
+{
+  "checks": {
+    "core.baseline_snapshot_trust": {
+      "detail": "baseline signature verified with an externally admitted trust-registry key",
+      "status": "passed"
+    },
+    "core.core_manifest": {
+      "detail": "19 core package files matched MANIFEST.sha256",
+      "status": "passed"
+    },
+    "core.embedded_core_verifier_result": {
+      "detail": "embedded producer core result matched fresh reconstruction",
+      "status": "passed"
+    },
+    "core.evidence_artifact_hashes_and_claim_refs": {
+      "detail": "12 evidence artifacts and all claim references matched",
+      "status": "passed"
+    },
+    "core.package_tree": {
+      "detail": "package tree contains only admitted directories and bounded regular files",
+      "status": "passed"
+    },
+    "core.receipt_compatibility_projection": {
+      "detail": "canonical and compatibility receipt bytes are identical",
+      "status": "passed"
+    },
+    "core.receipt_signature_and_manifest_binding": {
+      "detail": "receipt signature verified with an externally admitted trust-registry key",
+      "status": "passed"
+    },
+    "core.review_semantics_reconstruction": {
+      "detail": "authority, two snapshots, release binding, findings, drift, completeness, and owner signal reconstructed",
+      "status": "passed"
+    },
+    "core.signer_trust": {
+      "detail": "external trust registry required and compared",
+      "status": "passed"
+    },
+    "proofpack_detached_signature": {
+      "detail": "detached ZIP signature and external trust-registry admission passed",
+      "status": "passed"
+    },
+    "safe_zip_structure": {
+      "detail": "safely extracted 21 files totaling 62343 bytes",
+      "status": "passed"
+    },
+    "transport_receipt_signer_continuity": {
+      "detail": "detached ZIP signer and receipt signer key ids match",
+      "status": "passed"
+    },
+    "verification_inputs": {
+      "detail": "proofpack, signature, and trust registry are bounded regular files",
+      "status": "passed"
+    }
+  },
+  "failure_states": [],
+  "outcome": "pass",
+  "proof_boundary": "package integrity, trusted snapshot bindings, and deterministic v1 reconstruction only; not launch approval, production readiness, proof of security, compromise analysis, or compliance certification",
+  "proof_run_id": "pr_lrr_20260711120000_df6bc5d205",
+  "status": "valid",
+  "verification_inputs": {
+    "proofpack": {
+      "name": "proofpack-pr_lrr_20260711120000_df6bc5d205.zip",
+      "sha256": "faac013f62876eb4b29e6996fcbaa6a8caef4d932b41da913c801189e593997a",
+      "size_bytes": 20687
+    },
+    "signature": {
+      "name": "proofpack-pr_lrr_20260711120000_df6bc5d205.zip.sig.json",
+      "sha256": "c1f8c382ac8ad12ae84f8a295090ab6a075c176bb36fada5bba4e15bcecfd86d",
+      "size_bytes": 508
+    },
+    "trust_registry": {
+      "name": "trusted-keys.synthetic.json",
+      "sha256": "448149641c19b9c872a93bbb79f18034835a92939b69b1895df3778e86672dba",
+      "size_bytes": 545
+    }
+  },
+  "verifier_version": "witnessops.launch_readiness.verifier.v1",
+  "workflow_class": "launch_readiness_two_snapshot_review"
+}

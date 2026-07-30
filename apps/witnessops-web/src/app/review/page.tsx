@@ -274,12 +274,12 @@ export default function ReviewPage() {
             </p>
           </a>
           <a
-            href="/review/sample-cases"
-            className="block border border-surface-border bg-surface-card/40 p-4 transition-colors hover:border-brand-accent"
+            href="/review/sample-cases/launch-readiness-review"
+            className="block border border-brand-accent/40 bg-brand-accent/5 p-4 transition-colors hover:border-brand-accent"
           >
-            <h3 className="text-sm font-semibold text-text-primary">All examples</h3>
+            <h3 className="text-sm font-semibold text-text-primary">Launch readiness review</h3>
             <p className="mt-2 text-sm leading-6 text-text-secondary">
-              Access, containment, local server review, and more.
+              Baseline vs candidate, drift, and proofpack limits — not launch approval.
             </p>
           </a>
         </div>

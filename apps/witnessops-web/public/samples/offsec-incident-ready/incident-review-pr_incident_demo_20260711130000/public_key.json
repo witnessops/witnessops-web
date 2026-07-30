@@ -1,0 +1,1 @@
+{"algorithm":"ed25519","encoding":"hex","public_key":"16ddacdf894741c435e0f69e9b80934beb6adc2f6f22e320dec73d5c9811c6b5","public_key_id":"witnessops_incident_synthetic_sample_001","purpose":"witnessops_incident_ready_receipt_and_proofpack","schema":"witnessops.public_key.v1","trust_boundary":"package-provided public key is not a trust anchor"}

@@ -1,0 +1,128 @@
+{
+  "claim_boundary": "deterministic candidate posture findings only; not launch approval, exploitability analysis, proof of security, or compliance certification",
+  "counts": {
+    "critical": 0,
+    "high": 3,
+    "informational": 0,
+    "low": 2,
+    "medium": 3
+  },
+  "findings": [
+    {
+      "claim_limit": "File contents and distribution-specific policy were not assessed.",
+      "evidence_refs": [
+        "posture.sections.critical_files.files"
+      ],
+      "finding_id": "lrr_critical_file_metadata",
+      "observed_value": [
+        {
+          "admitted": false,
+          "group": "root",
+          "mode": "0666",
+          "owner": "root",
+          "path": "/etc/passwd",
+          "status": "observed"
+        }
+      ],
+      "recommendation": "Review ownership and permissions before changing them; preserve service-specific exceptions.",
+      "severity": "high",
+      "state": "observed",
+      "title": "Critical account or privilege file metadata fell outside the admitted baseline"
+    },
+    {
+      "claim_limit": "This does not prove that root login was used or externally reachable.",
+      "evidence_refs": [
+        "posture.sections.ssh.permit_root_login"
+      ],
+      "finding_id": "lrr_ssh_root_login",
+      "observed_value": "yes",
+      "recommendation": "Disable direct root SSH login and use attributable privilege elevation.",
+      "severity": "high",
+      "state": "observed",
+      "title": "SSH effective configuration permits direct root login"
+    },
+    {
+      "claim_limit": "Account names and authentication activity were not collected.",
+      "evidence_refs": [
+        "posture.sections.accounts.uid0_account_count"
+      ],
+      "finding_id": "lrr_uid0_multiple",
+      "observed_value": 2,
+      "recommendation": "Review whether every UID 0 account is required and separately attributable.",
+      "severity": "high",
+      "state": "observed",
+      "title": "More than one UID 0 account was observed"
+    },
+    {
+      "claim_limit": "A failed unit is not by itself evidence of compromise or business impact.",
+      "evidence_refs": [
+        "posture.sections.services.failed_units"
+      ],
+      "finding_id": "lrr_failed_services",
+      "observed_value": [
+        "backup.service"
+      ],
+      "recommendation": "Review each failed unit against the host's intended service inventory.",
+      "severity": "medium",
+      "state": "observed",
+      "title": "Failed system services were observed"
+    },
+    {
+      "claim_limit": "Upstream firewalls and actual reachability were not tested.",
+      "evidence_refs": [
+        "posture.sections.firewall.status"
+      ],
+      "finding_id": "lrr_host_firewall_inactive",
+      "observed_value": "inactive",
+      "recommendation": "Confirm the intended network-control boundary and enable a host firewall where required.",
+      "severity": "medium",
+      "state": "observed",
+      "title": "Host firewall was observed inactive"
+    },
+    {
+      "claim_limit": "This does not prove weak passwords, exposure, or successful authentication.",
+      "evidence_refs": [
+        "posture.sections.ssh.password_authentication"
+      ],
+      "finding_id": "lrr_ssh_password_auth",
+      "observed_value": "yes",
+      "recommendation": "Evaluate disabling password authentication after confirming an approved key-based recovery path.",
+      "severity": "medium",
+      "state": "observed",
+      "title": "SSH password authentication is enabled"
+    },
+    {
+      "claim_limit": "The collector did not compare the clock against an independent time authority.",
+      "evidence_refs": [
+        "posture.sections.clock.ntp_synchronized"
+      ],
+      "finding_id": "lrr_clock_unsynchronized",
+      "observed_value": false,
+      "recommendation": "Restore approved time synchronization and record the source used.",
+      "severity": "low",
+      "state": "observed",
+      "title": "Host clock reported not synchronized"
+    },
+    {
+      "claim_limit": "This is a posture observation, not proof that workload isolation is ineffective.",
+      "evidence_refs": [
+        "posture.sections.hardening"
+      ],
+      "finding_id": "lrr_mandatory_access_control",
+      "observed_value": {
+        "apparmor_enabled": false,
+        "selinux_enforcing": false
+      },
+      "recommendation": "Confirm the host's intended mandatory-access-control policy and platform support.",
+      "severity": "low",
+      "state": "observed",
+      "title": "No enforcing AppArmor or SELinux state was observed"
+    }
+  ],
+  "observed_at_utc": "2026-07-11T12:00:00Z",
+  "schema": "witnessops.launch_readiness.findings.v1",
+  "target": {
+    "asset_id": "asset-demo-host-001",
+    "hostname": "demo-host"
+  }
+}

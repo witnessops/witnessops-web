@@ -1,0 +1,189 @@
+{
+  "claim_boundary": "two-snapshot collection completeness only; not launch approval, security assurance, compromise analysis, or compliance certification",
+  "complete": true,
+  "failure_states": [],
+  "profile_id": "launch_readiness_linux_v1",
+  "schema": "witnessops.launch_readiness.review_completeness.v1",
+  "snapshots": [
+    {
+      "complete": true,
+      "phase": "baseline",
+      "required_sections": [
+        "accounts",
+        "clock",
+        "critical_files",
+        "firewall",
+        "hardening",
+        "host_identity",
+        "listeners",
+        "services",
+        "ssh"
+      ],
+      "section_results": [
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "accounts"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "clock"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "critical_files"
+        },
+        {
+          "admitted_complete_statuses": [
+            "active",
+            "inactive"
+          ],
+          "complete": true,
+          "observed_status": "active",
+          "section": "firewall"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "hardening"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "host_identity"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "listeners"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "services"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "ssh"
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "phase": "candidate",
+      "required_sections": [
+        "accounts",
+        "clock",
+        "critical_files",
+        "firewall",
+        "hardening",
+        "host_identity",
+        "listeners",
+        "services",
+        "ssh"
+      ],
+      "section_results": [
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "accounts"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "clock"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "critical_files"
+        },
+        {
+          "admitted_complete_statuses": [
+            "active",
+            "inactive"
+          ],
+          "complete": true,
+          "observed_status": "inactive",
+          "section": "firewall"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "hardening"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "host_identity"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "listeners"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "services"
+        },
+        {
+          "admitted_complete_statuses": [
+            "observed"
+          ],
+          "complete": true,
+          "observed_status": "observed",
+          "section": "ssh"
+        }
+      ]
+    }
+  ]
+}

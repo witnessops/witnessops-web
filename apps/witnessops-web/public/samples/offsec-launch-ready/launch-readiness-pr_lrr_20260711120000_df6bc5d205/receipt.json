@@ -1,0 +1,152 @@
+{
+  "claims": [
+    {
+      "claim": "artifact_hashes_present",
+      "evidence_refs": [
+        "run_record"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "authority_record_exists",
+      "evidence_refs": [
+        "authority_record"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "baseline_and_candidate_same_target",
+      "evidence_refs": [
+        "baseline_snapshot",
+        "candidate_posture"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "baseline_snapshot_externally_trusted",
+      "evidence_refs": [
+        "baseline_snapshot"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "collection_profile_bound",
+      "evidence_refs": [
+        "scope_record"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "collector_hash_recorded",
+      "evidence_refs": [
+        "run_record"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "collector_signature_recorded",
+      "evidence_refs": [
+        "run_record"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "drift_recomputed",
+      "evidence_refs": [
+        "baseline_snapshot",
+        "candidate_posture",
+        "launch_drift"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "host_clock_trust_declared",
+      "evidence_refs": [
+        "candidate_posture"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "known_side_effects_declared",
+      "evidence_refs": [
+        "candidate_observations"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "launch_artifact_digest_bound",
+      "evidence_refs": [
+        "launch_context"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "launcher_boundary_declared",
+      "evidence_refs": [
+        "run_record"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "manifest_contains_all_artifacts",
+      "evidence_refs": [
+        "run_record"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "operator_is_authorized",
+      "evidence_refs": [
+        "admission_decision",
+        "authority_record"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "package_is_offline_verifiable",
+      "evidence_refs": [
+        "run_record"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "prohibited_artifacts_absent",
+      "evidence_refs": [
+        "scope_record",
+        "candidate_observations"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "required_snapshot_sections_available",
+      "evidence_refs": [
+        "review_completeness",
+        "baseline_snapshot",
+        "candidate_posture"
+      ],
+      "status": "passed"
+    },
+    {
+      "claim": "target_host_in_scope",
+      "evidence_refs": [
+        "admission_decision",
+        "scope_record"
+      ],
+      "status": "passed"
+    }
+  ],
+  "manifest_hash": "sha256:73160fbd7f9e53c5390e760d0c61a38f8d4f9f4b037c5e82d9179c6f8bf93f84",
+  "proof_run_id": "pr_lrr_20260711120000_df6bc5d205",
+  "receipt_version": "witnessops.receipt.v0",
+  "result": {
+    "failure_states": [],
+    "outcome": "pass"
+  },
+  "signature": {
+    "algorithm": "ed25519",
+    "encoding": "hex",
+    "public_key_id": "witnessops_lrr_synthetic_sample_001",
+    "signature": "22b2b0940b3f93358a2b078410fd7df177362c6df48bc029b18460bbb82c67ea79b9026b35fad34ec82b0550ca3517df88f7b9d588dca77da390b0fe32a62708"
+  },
+  "workflow_class": "launch_readiness_two_snapshot_review"
+}

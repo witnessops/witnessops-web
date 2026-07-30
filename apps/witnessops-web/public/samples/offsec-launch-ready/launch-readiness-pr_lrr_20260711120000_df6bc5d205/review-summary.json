@@ -1,0 +1,12 @@
+{
+  "claim_boundary": "triage signal only; the named decision owner retains launch authority and risk acceptance",
+  "owner_decision_required": true,
+  "schema": "witnessops.launch_readiness.review_summary.v1",
+  "signals": {
+    "changes_requiring_review": 6,
+    "critical_or_high_posture_findings": 3,
+    "risk_increasing_changes": 10,
+    "snapshot_collection_complete": true
+  },
+  "state": "owner_attention_required"
+}

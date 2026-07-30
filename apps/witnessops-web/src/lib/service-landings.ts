@@ -59,6 +59,8 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "After a non-secret fit check. One questionnaire. One product scope.",
     primaryCta: "Start a non-secret fit check",
+    sampleHref: "/review/sample-cases/customer-security-review-sprint",
+    sampleLabel: "Inspect CSR sample",
   },
   "bounded-workflow-review": {
     headline: "One technical action that still needs a clear, checkable handover.",
@@ -177,6 +179,8 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Quoted after fit check within the public range for the agreed host and baseline.",
     primaryCta: "Start a non-secret fit check",
+    sampleHref: "/review/sample-cases/launch-readiness-review",
+    sampleLabel: "Inspect launch sample",
   },
   "key-access-custody-review": {
     headline: "Custody or wallet-ops controls — reviewed without keys, balances or fund movement.",
@@ -215,6 +219,8 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Quoted after fit check for the agreed custody or wallet-ops surface.",
     primaryCta: "Start a non-secret fit check",
+    sampleHref: "/review/sample-cases/custody-wallet-ops-review",
+    sampleLabel: "Inspect custody sample",
   },
   "incident-readiness-review": {
     headline: "One named incident scenario. A readiness package — not live incident command.",
@@ -253,6 +259,8 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Quoted after fit check for one defined scenario and environment.",
     primaryCta: "Start a non-secret fit check",
+    sampleHref: "/review/sample-cases/incident-readiness-review",
+    sampleLabel: "Inspect incident-readiness sample",
   },
 };
 
@@ -296,6 +304,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     commercialNote:
       "Po wstępnej ocenie bez informacji poufnych. Jeden kwestionariusz. Jeden zakres produktu.",
     primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    sampleHref: "/review/sample-cases/customer-security-review-sprint",
+    sampleLabel: "Zobacz przykład CSR",
   },
   "bounded-workflow-review": {
     headline: "Jedno działanie techniczne, które nadal wymaga jasnego przekazania.",
@@ -415,6 +425,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Wycena po wstępnej ocenie w publicznym zakresie dla uzgodnionego hosta i bazy.",
     primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    sampleHref: "/review/sample-cases/launch-readiness-review",
+    sampleLabel: "Zobacz przykład launch",
   },
   "key-access-custody-review": {
     headline: "Kontrole custody lub wallet-ops — bez kluczy, sald i ruchu środków.",
@@ -453,6 +465,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Wycena po wstępnej ocenie dla uzgodnionej powierzchni custody lub wallet-ops.",
     primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    sampleHref: "/review/sample-cases/custody-wallet-ops-review",
+    sampleLabel: "Zobacz przykład custody",
   },
   "incident-readiness-review": {
     headline: "Jeden nazwany scenariusz incydentu. Pakiet gotowości — nie żywe dowodzenie IR.",
@@ -491,6 +505,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote: "Wycena po wstępnej ocenie dla jednego zdefiniowanego scenariusza i środowiska.",
     primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    sampleHref: "/review/sample-cases/incident-readiness-review",
+    sampleLabel: "Zobacz przykład gotowości",
   },
 };
 

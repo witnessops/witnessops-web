@@ -1,0 +1,103 @@
+{
+  "command_evidence": {},
+  "data_classification": "synthetic_non_customer",
+  "declared_exclusions": [
+    "processes",
+    "process_command_lines",
+    "process_environment",
+    "credentials",
+    "browser_data",
+    "tokens",
+    "private_keys",
+    "user_documents",
+    "event_logs",
+    "memory",
+    "network_discovery"
+  ],
+  "declared_side_effects": [
+    "local_process_execution",
+    "local_file_reads",
+    "local_output_file_creation"
+  ],
+  "observed_at_utc": "2026-07-11T12:00:00Z",
+  "profile_id": "launch_readiness_linux_v1",
+  "schema": "witnessops.launch_readiness.observations.v1",
+  "sections": {
+    "accounts": {
+      "account_names_collected": false,
+      "interactive_shell_account_count": 5,
+      "status": "observed",
+      "total_account_count": 30,
+      "uid0_account_count": 2
+    },
+    "clock": {
+      "ntp_synchronized": false,
+      "status": "observed"
+    },
+    "critical_files": {
+      "file_contents_collected": false,
+      "files": [
+        {
+          "admitted": false,
+          "group": "root",
+          "mode": "0666",
+          "owner": "root",
+          "path": "/etc/passwd",
+          "status": "observed"
+        }
+      ],
+      "status": "observed"
+    },
+    "firewall": {
+      "provider": "ufw",
+      "status": "inactive"
+    },
+    "hardening": {
+      "apparmor_enabled": false,
+      "selinux_enforcing": false,
+      "status": "observed",
+      "sysctl": {}
+    },
+    "host_identity": {
+      "architecture": "x86_64",
+      "hostname": "demo-host",
+      "kernel": "6.12.0-fixture",
+      "machine_identity": {
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "source": "/etc/machine-id",
+        "status": "observed"
+      },
+      "os_release": {
+        "id": "debian",
+        "pretty_name": "Debian Fixture",
+        "version_id": "13"
+      },
+      "status": "observed"
+    },
+    "listeners": {
+      "listener_count": 4,
+      "process_identifiers_collected": false,
+      "status": "observed"
+    },
+    "services": {
+      "failed_unit_count": 1,
+      "failed_units": [
+        "backup.service"
+      ],
+      "status": "observed",
+      "truncated": false
+    },
+    "ssh": {
+      "effective_configuration": true,
+      "password_authentication": "yes",
+      "permit_root_login": "yes",
+      "pubkey_authentication": "yes",
+      "status": "observed"
+    }
+  },
+  "synthetic": true,
+  "target": {
+    "asset_id": "asset-demo-host-001",
+    "hostname": "demo-host"
+  }
+}

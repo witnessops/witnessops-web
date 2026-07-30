@@ -56,6 +56,31 @@ const staticRoutes: StaticRoute[] = [
     sourcePath: "src/app/review/sample-cases/ai-agent-action-proof-run/page.tsx",
   },
   {
+    route: "/review/sample-cases/local-server-security-review",
+    sourcePath: "src/app/review/sample-cases/local-server-security-review/page.tsx",
+  },
+  {
+    route: "/review/sample-cases/launch-readiness-review",
+    sourcePath: "src/app/review/sample-cases/launch-readiness-review/page.tsx",
+  },
+  {
+    route: "/review/sample-cases/custody-wallet-ops-review",
+    sourcePath: "src/app/review/sample-cases/custody-wallet-ops-review/page.tsx",
+  },
+  {
+    route: "/review/sample-cases/incident-readiness-review",
+    sourcePath: "src/app/review/sample-cases/incident-readiness-review/page.tsx",
+  },
+  {
+    route: "/review/sample-cases/customer-security-review-sprint",
+    sourcePath:
+      "src/app/review/sample-cases/customer-security-review-sprint/page.tsx",
+  },
+  {
+    route: "/review/sample-cases/access-removed-proof",
+    sourcePath: "src/app/review/sample-cases/access-removed-proof/page.tsx",
+  },
+  {
     route: "/review/sample-cases/sbom-cisa-2026-minimum-elements",
     sourcePath:
       "src/app/review/sample-cases/sbom-cisa-2026-minimum-elements/page.tsx",
