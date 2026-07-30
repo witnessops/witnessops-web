@@ -24,6 +24,8 @@ const localizedCopy = {
     },
     primaryCta: "View services",
     secondaryCta: "Start a review",
+    verifyCta: "Verify a receipt",
+    libraryCta: "Library",
     noSecrets:
       "Start with a general, non-secret description. Do not send files, credentials, logs, screenshots, private keys, API keys, MFA codes, recovery codes, session tokens or customer evidence during the fit check.",
     offersEyebrow: "Start with the situation",
@@ -31,6 +33,7 @@ const localizedCopy = {
     offersBody:
       "The same active services, prices and timing terms are available in English and Polish.",
     viewAll: "View all services",
+    openService: "View service",
     onePager: "One-pager (PDF)",
     howTitle: "How it works",
     howSteps: [
@@ -45,6 +48,7 @@ const localizedCopy = {
       ],
     ],
     whyTitle: "Why WitnessOps",
+    whyHref: "/why-witnessops",
     whyItems: [
       [
         "Clear scope",
@@ -59,6 +63,11 @@ const localizedCopy = {
         "The result is organised so another responsible person can inspect it and decide what happens next.",
       ],
     ],
+    closeTitle: "Ready for a bounded review?",
+    closeBody:
+      "Describe one situation without secrets. We confirm fit, scope, price and evidence handling before work starts.",
+    verifyHref: "/verify",
+    libraryHref: "/library",
   },
   pl: {
     hero: {
@@ -68,6 +77,8 @@ const localizedCopy = {
     },
     primaryCta: "Zobacz usługi",
     secondaryCta: "Rozpocznij przegląd",
+    verifyCta: "Zweryfikuj zapis",
+    libraryCta: "Biblioteka",
     noSecrets:
       "Zacznij od ogólnego opisu bez informacji poufnych. Podczas wstępnej oceny nie wysyłaj plików, danych logowania, logów, zrzutów ekranu, kluczy prywatnych, kluczy API, kodów MFA, kodów odzyskiwania, tokenów sesyjnych ani materiałów klienta.",
     offersEyebrow: "Zacznij od sytuacji",
@@ -75,6 +86,7 @@ const localizedCopy = {
     offersBody:
       "Te same aktywne usługi, ceny i zasady terminów są dostępne po angielsku i po polsku.",
     viewAll: "Zobacz wszystkie usługi",
+    openService: "Zobacz usługę",
     onePager: "One-pager (PDF)",
     howTitle: "Jak to działa",
     howSteps: [
@@ -89,6 +101,7 @@ const localizedCopy = {
       ],
     ],
     whyTitle: "Dlaczego WitnessOps",
+    whyHref: "/pl/why-witnessops",
     whyItems: [
       [
         "Jasny zakres",
@@ -103,6 +116,11 @@ const localizedCopy = {
         "Wynik jest uporządkowany tak, aby kolejna odpowiedzialna osoba mogła go sprawdzić i zdecydować o następnym kroku.",
       ],
     ],
+    closeTitle: "Gotowy na przegląd o ustalonym zakresie?",
+    closeBody:
+      "Opisz jedną sytuację bez informacji poufnych. Potwierdzamy dopasowanie, zakres, cenę i sposób postępowania z materiałami przed rozpoczęciem pracy.",
+    verifyHref: "/pl/verify",
+    libraryHref: "/pl/library",
   },
 } as const;
 
@@ -154,6 +172,20 @@ export function BuyerHomepage({
                 className="min-h-[44px] px-4 text-[13px] shadow-none hover:shadow-none sm:px-6 sm:text-sm"
               />
             </div>
+            <p className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              <Link
+                href={text.verifyHref}
+                className="font-semibold text-brand-accent underline-offset-4 hover:underline"
+              >
+                {text.verifyCta}
+              </Link>
+              <Link
+                href={text.libraryHref}
+                className="font-semibold text-text-muted underline-offset-4 hover:text-text-primary hover:underline"
+              >
+                {text.libraryCta}
+              </Link>
+            </p>
             <p className="mt-5 max-w-[58ch] text-[13px] leading-6 text-text-muted">
               {text.noSecrets}
             </p>
@@ -176,32 +208,49 @@ export function BuyerHomepage({
           <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {BUYER_SERVICES.map((service) => {
               const onePager = service.onePagerHref?.[locale];
+              const detailHref =
+                service.detailHref[locale] ??
+                service.detailHref.en ??
+                catalogHref;
               return (
-              <article
-                key={service.id}
-                data-home-service={service.id}
-                className="flex h-full flex-col border border-surface-border bg-surface-card/40 p-5"
-              >
-                <p className="text-sm leading-6 text-text-muted">
-                  {service.cardSituation[locale]}
-                </p>
-                <h3 className="mt-3 text-lg font-semibold text-text-primary">
-                  {service.name[locale]}
-                </h3>
-                <p className="mt-auto pt-5 text-sm font-semibold text-brand-accent">
-                  {service.price[locale]}
-                </p>
-                {onePager ? (
-                  <a
-                    href={onePager}
-                    {...ONE_PAGER_LINK_PROPS}
-                    data-one-pager={service.id}
-                    className="mt-3 inline-flex min-h-11 w-fit items-center text-sm font-semibold text-text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
-                  >
-                    {text.onePager}
-                  </a>
-                ) : null}
-              </article>
+                <article
+                  key={service.id}
+                  data-home-service={service.id}
+                  className="flex h-full flex-col border border-surface-border bg-surface-card/40 p-5 transition-colors hover:border-brand-accent/50"
+                >
+                  <p className="text-sm leading-6 text-text-muted">
+                    {service.cardSituation[locale]}
+                  </p>
+                  <h3 className="mt-3 text-lg font-semibold text-text-primary">
+                    <Link
+                      href={detailHref}
+                      className="hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                    >
+                      {service.name[locale]}
+                    </Link>
+                  </h3>
+                  <p className="mt-auto pt-5 text-sm font-semibold text-brand-accent">
+                    {service.price[locale]}
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <Link
+                      href={detailHref}
+                      className="inline-flex min-h-11 items-center text-sm font-semibold text-text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                    >
+                      {text.openService}
+                    </Link>
+                    {onePager ? (
+                      <a
+                        href={onePager}
+                        {...ONE_PAGER_LINK_PROPS}
+                        data-one-pager={service.id}
+                        className="inline-flex min-h-11 items-center text-sm font-semibold text-text-muted underline-offset-4 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                      >
+                        {text.onePager}
+                      </a>
+                    ) : null}
+                  </div>
+                </article>
               );
             })}
           </div>
@@ -233,9 +282,17 @@ export function BuyerHomepage({
         </section>
 
         <section className="py-12" aria-labelledby="home-why-heading">
-          <h2 id="home-why-heading" className="text-2xl font-semibold text-text-primary">
-            {text.whyTitle}
-          </h2>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h2 id="home-why-heading" className="text-2xl font-semibold text-text-primary">
+              {text.whyTitle}
+            </h2>
+            <Link
+              href={text.whyHref}
+              className="text-sm font-semibold text-brand-accent underline-offset-4 hover:underline"
+            >
+              {text.whyTitle} →
+            </Link>
+          </div>
           <div className="mt-6 grid gap-5 md:grid-cols-3">
             {text.whyItems.map(([title, body]) => (
               <article key={title}>
@@ -243,6 +300,25 @@ export function BuyerHomepage({
                 <p className="mt-2 text-sm leading-6 text-text-muted">{body}</p>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section
+          className="mb-12 border border-surface-border bg-surface-card/30 p-6 sm:p-8"
+          aria-labelledby="home-close-heading"
+        >
+          <h2
+            id="home-close-heading"
+            className="text-xl font-semibold text-text-primary sm:text-2xl"
+          >
+            {text.closeTitle}
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-text-muted sm:text-base">
+            {text.closeBody}
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <CtaButton href={requestHref} variant="primary" label={text.secondaryCta} />
+            <CtaButton href={catalogHref} variant="secondary" label={text.primaryCta} />
           </div>
         </section>
       </div>

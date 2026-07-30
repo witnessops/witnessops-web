@@ -27,35 +27,34 @@ export function SystemFraming() {
           lineHeight: 1.02,
         }}
       >
-        Portable proof for consequential claims.
+        Bounded reviews with clear handover.
       </h1>
 
       <p className="max-w-[540px] text-base leading-relaxed text-text-secondary mb-6">
-        WitnessOps runs governed workflows and produces signed receipts plus
-        reviewable evidence packages that customers, auditors, and counterparties
-        can inspect outside WitnessOps.
+        WitnessOps delivers bounded security and operational reviews with evidence
+        references, named limits, and a practical handover.
       </p>
 
       <div className="max-w-[540px] space-y-2 text-sm leading-relaxed mb-8" style={{ color: "var(--color-text-muted)" }}>
-        <p>Most consequential work is easy to claim. Hard to prove.</p>
-        <p>Signed receipts, typed lineage, and portable verification.</p>
-        <p>Closed models are acceptable. Closed proof is not.</p>
+        <p>Agree scope before work starts.</p>
+        <p>Keep observed evidence separate from assumptions.</p>
+        <p>Hand over a result another person can inspect.</p>
       </div>
 
       <div className="mb-8 flex flex-wrap gap-3">
         <Link
-          href="/verify"
+          href="/catalog"
           className="inline-flex items-center bg-brand-accent px-5 py-3 text-surface-bg transition-all hover:brightness-110 hover:shadow-[0_0_20px_rgba(255,107,53,0.25)]"
           style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}
         >
-          Verify a receipt
+          View services
         </Link>
         <Link
-          href="/docs/evidence/receipt-spec"
+          href="/verify"
           className="inline-flex items-center border border-surface-border px-5 py-3 text-text-primary transition-all hover:border-brand-accent/40 hover:text-brand-accent"
           style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}
         >
-          Receipt specification
+          Verify a receipt
         </Link>
       </div>
 
@@ -63,8 +62,7 @@ export function SystemFraming() {
         className="max-w-[540px] text-sm leading-relaxed mb-10"
         style={{ color: "var(--color-text-muted)" }}
       >
-        Upload or paste receipt JSON. A valid result confirms the checks named in
-        the receipt — not that every underlying action was correct.
+        Start with a non-secret fit check. Do not send secrets during first contact.
       </p>
 
       {/* Trust strip */}

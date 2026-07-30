@@ -126,7 +126,7 @@ sections:
         body: "Show what another reviewer can inspect, reject, or strengthen."
     internal_surfaces_disclosure: "Some operational surfaces remain internal, including policy authoring, receipt query, and operator administration."
     ctas:
-      - label: "Request one proof run"
+      - label: "Start a review"
         href: "/review/request"
         variant: "primary"
       - label: "Inspect sample package"
@@ -178,14 +178,14 @@ sections:
 
 final_cta:
   enabled: true
-  title: "Make one technical action reviewable."
-  body: "Bring one workflow, patch, finding, or access change for a non-secret fit check. If scope and evidence support it, get a bounded service package naming boundary, evidence references, receipt artifacts, limits, and inspection path."
+  title: "Ready for a bounded review?"
+  body: "Describe one situation without secrets. We confirm fit, scope, price and evidence handling before work starts."
   ctas:
-    - label: "Request one proof run"
+    - label: "Start a review"
       href: "/review/request"
       variant: "primary"
-    - label: "Inspect sample package"
-      href: "/review/sample-cases/ai-agent-action-proof-run"
+    - label: "View services"
+      href: "/catalog"
       variant: "ghost"
 
 footer:
