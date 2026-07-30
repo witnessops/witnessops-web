@@ -29,7 +29,7 @@ export default function CustodyWalletOpsSamplePage() {
       catalogHref="/catalog/offsec-custody-ops"
       sampleBase="/samples/offsec-custody-ops"
       packageDir="custody-review-pr_custody_demo_20260711130000"
-      proofpackName="proofpack-pr_custody_demo_20260711130000.zip"
+      proofpackName="proofpack-pr_custody_demo_20260711130000.proofpack"
       walkthrough={[
         [
           "Read the walkthrough",

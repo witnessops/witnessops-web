@@ -29,7 +29,7 @@ export default function LaunchReadinessSamplePage() {
       catalogHref="/catalog/offsec-launch-ready"
       sampleBase="/samples/offsec-launch-ready"
       packageDir="launch-readiness-pr_lrr_20260711120000_df6bc5d205"
-      proofpackName="proofpack-pr_lrr_20260711120000_df6bc5d205.zip"
+      proofpackName="proofpack-pr_lrr_20260711120000_df6bc5d205.proofpack"
       walkthrough={[
         [
           "Read the owner signal",

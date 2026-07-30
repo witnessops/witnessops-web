@@ -145,7 +145,7 @@ export function OffsecSuiteSample({
                 href={packHref}
                 className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-neutral-100"
               >
-                Download proofpack ZIP
+                Download proofpack
               </a>
               <a
                 href={`${packHref}.sha256`}
@@ -160,6 +160,10 @@ export function OffsecSuiteSample({
                 Signature envelope
               </a>
             </div>
+            <p className="mt-3 text-xs leading-6 text-text-muted">
+              Proofpack bytes are published as a <span className="font-mono">.proofpack</span> file
+              (ZIP-compatible contents). Prefer the listed package files for browser inspection.
+            </p>
           </div>
         </section>
 

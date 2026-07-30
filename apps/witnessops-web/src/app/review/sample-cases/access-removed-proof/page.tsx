@@ -29,7 +29,7 @@ export default function AccessRemovedProofSamplePage() {
       methodOnly
       sampleBase="/samples/offsec-access-removed"
       packageDir="access-removed-proof-pr_access_removed_demo_20260711130000"
-      proofpackName="proofpack-pr_access_removed_demo_20260711130000.zip"
+      proofpackName="proofpack-pr_access_removed_demo_20260711130000.proofpack"
       walkthrough={[
         [
           "Read the walkthrough",

@@ -29,7 +29,7 @@ export default function IncidentReadinessSamplePage() {
       catalogHref="/catalog/offsec-incident-ready"
       sampleBase="/samples/offsec-incident-ready"
       packageDir="incident-review-pr_incident_demo_20260711130000"
-      proofpackName="proofpack-pr_incident_demo_20260711130000.zip"
+      proofpackName="proofpack-pr_incident_demo_20260711130000.proofpack"
       walkthrough={[
         [
           "Read the walkthrough",
