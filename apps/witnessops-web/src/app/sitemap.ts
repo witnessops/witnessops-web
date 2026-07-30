@@ -56,6 +56,11 @@ const staticRoutes: StaticRoute[] = [
     sourcePath: "src/app/review/sample-cases/ai-agent-action-proof-run/page.tsx",
   },
   {
+    route: "/review/sample-cases/sbom-cisa-2026-minimum-elements",
+    sourcePath:
+      "src/app/review/sample-cases/sbom-cisa-2026-minimum-elements/page.tsx",
+  },
+  {
     route: "/review/sample-cases/approval-gated-containment",
     sourcePath: "src/app/review/sample-cases/approval-gated-containment/page.tsx",
   },

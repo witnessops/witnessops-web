@@ -414,11 +414,21 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/sample-cases",
     requiredMarkers: [
+      "Example reviews you can inspect",
+      "Sample cases",
+      "AI agent change package",
+      "SBOM minimum-elements check",
+      "Start a review",
+      "Verify a receipt",
+      "Not a legal compliance claim",
+    ],
+    prohibitedMarkers: [
       "Published sample cases and proof bundles",
       "Primary sample",
-      "AI Agent Action Proof Run",
-      "Inspect sample package",
-      "Start a review",
+      "proofpack fixture",
+      "Package lane",
+      "Request one proof run",
+      "Package one security workflow",
     ],
   },
   {

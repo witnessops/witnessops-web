@@ -12,6 +12,7 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/pricing",
   "/review/sample-cases",
   "/review/sample-cases/ai-agent-action-proof-run",
+  "/review/sample-cases/sbom-cisa-2026-minimum-elements",
   "/customer-security-review",
   "/pl/customer-security-review",
   "/pl/library",

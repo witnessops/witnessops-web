@@ -8,6 +8,7 @@ const banner = readFileSync(resolve(__dirname, "sample-case-banner.tsx"), "utf-8
 const samplePages = [
   "app/review/sample-cases/page.tsx",
   "app/review/sample-cases/ai-agent-action-proof-run/page.tsx",
+  "app/review/sample-cases/sbom-cisa-2026-minimum-elements/page.tsx",
   "app/review/sample-cases/approval-gated-containment/page.tsx",
   "app/review/sample-cases/privileged-access-grant/page.tsx",
   "app/review/sample-cases/offsec-shield-local-server-audit/page.tsx",

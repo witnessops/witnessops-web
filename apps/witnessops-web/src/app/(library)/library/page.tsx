@@ -68,6 +68,11 @@ const secondaryGroups = [
         note: "Public sample: scope, evidence references, and limits.",
       },
       {
+        label: "SBOM minimum-elements sample",
+        href: "/review/sample-cases/sbom-cisa-2026-minimum-elements",
+        note: "CISA 2026 baseline checklist on a synthetic SBOM — not a compliance claim.",
+      },
+      {
         label: "Illustrative sample report",
         href: "/review/sample-report",
         note: "Generic report shape for orientation only.",
