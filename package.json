@@ -34,7 +34,8 @@
     "deploy:k3s:both": "bash deploy/scripts/k3s-deploy-both.sh",
     "deploy:k3s:smoke": "bash deploy/scripts/smoke-prod-dev.sh",
     "deploy:k3s:status": "bash deploy/scripts/k3s-status.sh",
-    "deploy:k3s:dev:teardown": "bash deploy/scripts/k3s-dev-teardown.sh"
+    "deploy:k3s:dev:teardown": "bash deploy/scripts/k3s-dev-teardown.sh",
+    "deploy:k3s:test-parity": "bash deploy/scripts/test-k3s-parity.sh"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

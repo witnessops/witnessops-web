@@ -26,7 +26,18 @@ Release authority: internal/manual for now
 - **Active dual-lane path (ops-dev-01 k3s, namespace `witnessops`):**
   - **prod** — deployment `witnessops-web` — public `https://witnessops.com` via Caddy → `127.0.0.1:3000` (hostPort).
   - **mesh-dev** — deployment `witnessops-web-dev` — mesh-only `http://10.44.0.2:3015` (`hostNetwork`, emptyDir intake — never shares prod PVC).
-- Both lanes must run the **same shared image tag** for fair CSS/UI compare. Shared builds always bake `NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`; mesh-dev only overrides `PORT` / `HOSTNAME` / `WITNESSOPS_VERIFY_BASE_URL` at runtime.
+- Both lanes must run the **same shared image tag** for fair CSS/UI compare. Shared builds always bake `NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`.
+- **`pnpm deploy:k3s:smoke` enforces** (exit non-zero on failure):
+  1. **identical container image refs** on prod and mesh-dev (not CSS-only),
+  2. HTTP 200 on prod home and mesh-dev home,
+  3. matching primary CSS hash.
+  Unit tests for the image/CSS compare helpers: `pnpm deploy:k3s:test-parity`.
+- **Intentional non-parity (do not “fix” these):**
+  - mesh-dev bind: `hostNetwork` `HOSTNAME=10.44.0.2` `PORT=3015`
+  - mesh-dev `WITNESSOPS_VERIFY_BASE_URL=http://10.44.0.2:3015`
+  - mesh-dev **emptyDir** intake (never prod PVC)
+  - prod hostPort `127.0.0.1:3000` + Caddy public edge
+- **Secret/envFrom parity:** mesh-dev must include the same non-lane `secretRef`s as prod (`witnessops-web-env`, `witnessops-web-admin-oidc`). Lane-only env keys stay under the mesh-dev env block.
 - **Repo deploy entrypoints** (prefer these over ad-hoc docker/kubectl):
 
   | Goal | Command |
@@ -35,10 +46,11 @@ Release authority: internal/manual for now
   | Deploy prod | `pnpm deploy:k3s:prod` |
   | Deploy mesh-dev | `pnpm deploy:k3s:dev` |
   | Build once → both lanes | `pnpm deploy:k3s:both` |
-  | Status + HTTP/CSS smoke | `pnpm deploy:k3s:smoke` or `pnpm deploy:k3s:status` |
+  | Status + image/HTTP/CSS smoke | `pnpm deploy:k3s:smoke` or `pnpm deploy:k3s:status` |
+  | Parity unit tests | `pnpm deploy:k3s:test-parity` |
   | Remove mesh-dev only | `pnpm deploy:k3s:dev:teardown` |
 
-  Scripts live under `deploy/scripts/k3s-*.sh` and source `k3s-lib.sh`.
+  Scripts live under `deploy/scripts/k3s-*.sh` and source `k3s-lib.sh` / `k3s-parity.sh`.
 - **Env for agents / local Mac:**
   - `DEPLOY_SSH=ops-dev-01` (default; needs WireGuard mesh jump). Fallback: `DEPLOY_SSH=root@194.147.221.89`.
   - Dirty tree: `ALLOW_DIRTY=1` (required if uncommitted work must ship; still record dirty state in receipts).

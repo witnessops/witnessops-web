@@ -40,25 +40,37 @@ Custody map: [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
 | `deploy/scripts/k3s-deploy-prod.sh` | Build (optional) + deploy prod |
 | `deploy/scripts/k3s-deploy-dev.sh` | Build (optional) + deploy mesh-dev |
 | `deploy/scripts/k3s-deploy-both.sh` | Build once → prod + mesh-dev + smoke |
-| `deploy/scripts/smoke-prod-dev.sh` | HTTP 200 + CSS hash parity both lanes |
+| `deploy/scripts/smoke-prod-dev.sh` | Image ref + HTTP 200 + CSS hash parity |
 | `deploy/scripts/k3s-status.sh` | kubectl image/ready + smoke |
+| `deploy/scripts/k3s-parity.sh` | Pure image/CSS compare helpers (unit-tested) |
+| `deploy/scripts/test-k3s-parity.sh` | Unit tests for parity helpers |
 | `deploy/scripts/k3s-dev-teardown.sh` | Delete mesh-dev only |
 
-pnpm aliases (monorepo root): `deploy:k3s:build|prod|dev|both|smoke|status|dev:teardown`.
+pnpm aliases (monorepo root):
+`deploy:k3s:build|prod|dev|both|smoke|status|test-parity|dev:teardown`.
 
-Shared helpers: `deploy/scripts/k3s-lib.sh`. Manifest template for mesh-dev:
-`deploy/k8s/dev-mesh-deployment.yaml`.
+Shared helpers: `deploy/scripts/k3s-lib.sh` + `k3s-parity.sh`. Manifest template for
+mesh-dev: `deploy/k8s/dev-mesh-deployment.yaml`.
 
 Do **not** use external mesh-agent helpers as the sole authority when this repo’s
 scripts cover the lane. Prefer in-repo scripts so agents and humans share one path.
 
-### Image contract
+### Image contract and enforced parity
 
 - Tag form: `docker.io/library/witnessops-web:main-<shortsha>-<UTC>`
 - Shared bake always sets public origin (`NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`)
   so prod and mesh-dev CSS/asset hashes match when the image tag matches.
-- Mesh-dev runtime env overrides only: `PORT=3015`, `HOSTNAME=10.44.0.2`,
-  `WITNESSOPS_VERIFY_BASE_URL=http://10.44.0.2:3015`.
+- **`pnpm deploy:k3s:smoke` fails when prod image ≠ mesh-dev image**, even if CSS
+  happens to match. Also requires HTTP 200 on both homes and matching CSS.
+- Mesh-dev **secret refs** must match prod non-lane secrets:
+  `witnessops-web-env`, `witnessops-web-admin-oidc`.
+
+### Intentional non-parity (not drift)
+
+- Mesh-dev runtime env overrides: `PORT=3015`, `HOSTNAME=10.44.0.2`,
+  `WITNESSOPS_VERIFY_BASE_URL=http://10.44.0.2:3015`
+- Mesh-dev `hostNetwork` + emptyDir volumes (no prod PVC)
+- Prod hostPort `127.0.0.1:3000` + public Caddy edge
 
 ### Operator env
 

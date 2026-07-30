@@ -36,8 +36,13 @@ spec:
           image: IMAGE_PLACEHOLDER
           imagePullPolicy: IfNotPresent
           envFrom:
+            # Same non-lane secret refs as prod (witnessops-web).
+            # Lane-only differences stay under env: (PORT/HOSTNAME/VERIFY_BASE)
+            # and emptyDir volumes — never drop these secrets for "dev simplicity".
             - secretRef:
                 name: witnessops-web-env
+            - secretRef:
+                name: witnessops-web-admin-oidc
           env:
             - name: PORT
               value: "3015"

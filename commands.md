@@ -23,8 +23,13 @@ Canonical entrypoints (also in root `AGENTS.md` / `docs/DEPLOYMENT_AUTHORITY.md`
 | Deploy prod only | `pnpm deploy:k3s:prod` |
 | Deploy mesh-dev only | `pnpm deploy:k3s:dev` |
 | Build once → both | `pnpm deploy:k3s:both` |
-| Status + smoke | `pnpm deploy:k3s:status` or `pnpm deploy:k3s:smoke` |
+| Status + smoke (image+HTTP+CSS) | `pnpm deploy:k3s:status` or `pnpm deploy:k3s:smoke` |
+| Parity unit tests | `pnpm deploy:k3s:test-parity` |
 | Teardown mesh-dev | `pnpm deploy:k3s:dev:teardown` |
+
+Smoke fails when prod/mesh-dev **image refs differ** (not CSS-only). Intentional
+non-parity: mesh bind/emptyDir/PORT/HOSTNAME/VERIFY_BASE. Shared secrets:
+`witnessops-web-env` + `witnessops-web-admin-oidc`.
 
 Env: `DEPLOY_SSH` (default `ops-dev-01`; fallback `root@194.147.221.89`), `ALLOW_DIRTY=1` for dirty trees.
 

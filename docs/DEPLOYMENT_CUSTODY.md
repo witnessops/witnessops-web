@@ -155,13 +155,22 @@ hostname.
 pnpm deploy:k3s:smoke
 # or
 bash deploy/scripts/smoke-prod-dev.sh
+pnpm deploy:k3s:test-parity   # pure image/CSS helper unit tests
 ```
 
-Expect:
+Expect (all enforced; smoke exits non-zero on failure):
 
+- **identical container image refs** on `witnessops-web` and `witnessops-web-dev`
 - `https://witnessops.com/` → HTTP 200
 - `http://10.44.0.2:3015/` → HTTP 200 (WG up)
-- matching primary CSS hash when images are aligned
+- matching primary CSS hash
+
+Image-only drift fails even when CSS coincidentally matches (`k3s-parity.sh`).
+
+**Intentional non-parity (not smoke failures):** mesh `10.44.0.2:3015` bind,
+emptyDir intake, runtime `PORT`/`HOSTNAME`/`WITNESSOPS_VERIFY_BASE_URL`. Mesh-dev
+must still carry the same secret refs as prod (`witnessops-web-env`,
+`witnessops-web-admin-oidc`).
 
 If mesh smoke fails: check `sudo wg-quick up wg-edge-01` and hub peer TCP rules
 on `wg0`.

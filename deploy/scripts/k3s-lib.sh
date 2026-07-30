@@ -32,6 +32,10 @@ MESH_DEV_URL="${MESH_DEV_URL:-http://10.44.0.2:3015}"
 PROD_URL="${PROD_URL:-https://witnessops.com}"
 IMAGE_REPO="${IMAGE_REPO:-docker.io/library/witnessops-web}"
 
+# Pure image/CSS compare helpers (unit-tested via deploy/scripts/test-k3s-parity.sh).
+# shellcheck source=k3s-parity.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/k3s-parity.sh"
+
 log() { printf '\033[1;34m[k3s-deploy]\033[0m %s\n' "$*" >&2; }
 err() { printf '\033[1;31m[k3s-deploy:error]\033[0m %s\n' "$*" >&2; }
 die() { err "$*"; exit 1; }
@@ -167,24 +171,54 @@ deploy_prod_image() {
 deploy_dev_image() {
   local image="$1"
   local template="${K8S_DIR}/dev-mesh-deployment.yaml"
+  local rendered remote_yaml
   [[ -f "${template}" ]] || die "missing ${template}"
+  need rsync
 
   log "deploying DEV ${DEV_DEPLOY} -> ${image} (mesh ${MESH_DEV_URL})"
-  # shellcheck disable=SC2002
+  # Render locally (avoid quoting traps of embedding YAML inside remote ssh string).
+  rendered="$(mktemp "${TMPDIR:-/tmp}/witnessops-web-dev-deploy.XXXXXX.yaml")"
+  # shellcheck disable=SC2064
+  trap "rm -f '${rendered}'" RETURN
+  sed "s|IMAGE_PLACEHOLDER|${image}|g" "${template}" > "${rendered}"
+  grep -q "${image}" "${rendered}" || die "image substitution failed in ${rendered}"
+  remote_yaml="/tmp/witnessops-web-dev-deploy.yaml"
+  rsync -az -e "ssh -o BatchMode=yes -o ConnectTimeout=20" \
+    "${rendered}" "${DEPLOY_SSH}:${remote_yaml}"
   remote "set -euo pipefail
-    cat > /tmp/witnessops-web-dev-deploy.yaml <<'YAML'
-$(sed \"s|IMAGE_PLACEHOLDER|${image}|g\" \"${template}\")
-YAML
-    kubectl apply -f /tmp/witnessops-web-dev-deploy.yaml
+    kubectl apply -f '${remote_yaml}'
     kubectl -n '${DEPLOY_NS}' rollout status deployment/${DEV_DEPLOY} --timeout=180s
     kubectl -n '${DEPLOY_NS}' get deploy,pods -l app=${DEV_DEPLOY} -o wide
     ss -lntp | grep 3015 || true
   "
 }
 
+# Fetch container image refs for both lanes (stdout: two lines prod\ndev).
+lane_image_refs() {
+  remote "kubectl -n '${DEPLOY_NS}' get deploy '${PROD_DEPLOY}' -o jsonpath='{.spec.template.spec.containers[0].image}{\"\\n\"}'
+    kubectl -n '${DEPLOY_NS}' get deploy '${DEV_DEPLOY}' -o jsonpath='{.spec.template.spec.containers[0].image}{\"\\n\"}'"
+}
+
 smoke_pair() {
   need curl
-  local prod_code dev_code prod_css dev_css
+  local prod_code dev_code prod_css dev_css prod_image dev_image
+  local images_out
+
+  # 1) Image-ref equality (enforced — fails even when CSS coincidentally matches).
+  images_out="$(lane_image_refs 2>/dev/null || true)"
+  prod_image="$(printf '%s\n' "${images_out}" | sed -n '1p')"
+  dev_image="$(printf '%s\n' "${images_out}" | sed -n '2p')"
+  log "smoke image prod=${prod_image:-<missing>}"
+  log "smoke image dev=${dev_image:-<missing>}"
+  local image_rc=0
+  compare_image_refs "${prod_image}" "${dev_image}" || image_rc=$?
+  if [[ "${image_rc}" -ne 0 ]]; then
+    err "dual-lane image drift (exit ${image_rc}) — run pnpm deploy:k3s:both to realign"
+    return "${image_rc}"
+  fi
+  log "smoke images match"
+
+  # 2) HTTP + CSS parity on the buyer home path.
   prod_code="$(curl -sS -o /tmp/wo-prod.html -w '%{http_code}' --max-time 15 "${PROD_URL}/" || echo 000)"
   dev_code="$(curl -sS -o /tmp/wo-dev.html -w '%{http_code}' --max-time 15 "${MESH_DEV_URL}/" || echo 000)"
   prod_css="$(grep -oE 'css/[a-f0-9]+\.css' /tmp/wo-prod.html 2>/dev/null | head -1 || true)"
@@ -195,11 +229,11 @@ smoke_pair() {
 
   [[ "${prod_code}" == "200" ]] || die "prod smoke failed (${prod_code})"
   [[ "${dev_code}" == "200" ]] || die "dev smoke failed (${dev_code}) — is WireGuard up? try: sudo wg-quick up wg-edge-01"
-  if [[ -n "${prod_css}" && -n "${dev_css}" && "${prod_css}" != "${dev_css}" ]]; then
-    err "CSS mismatch prod=${prod_css} dev=${dev_css} (images may differ)"
+  if ! compare_css_refs "${prod_css}" "${dev_css}"; then
+    err "CSS mismatch prod=${prod_css} dev=${dev_css}"
     return 2
   fi
-  log "smoke OK (HTTP 200 both; CSS match)"
+  log "smoke OK (HTTP 200 both; image match; CSS match)"
 }
 
 print_status() {
