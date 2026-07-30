@@ -104,9 +104,9 @@ const entryPaths = [
       },
       {
         href: "/docs/getting-started/proof-run-buyer-path",
-        title: "2. Security Workflow Buyer Path",
+        title: "2. Buyer path",
         description:
-          "Use this buyer-facing route to inspect the package offer, sample, verifier, request, mailbox verification, and evidence-handling boundaries.",
+          "Catalogue, sample, verifier boundary, non-secret fit check, and what the request form starts.",
       },
       {
         href: "/docs/how-it-works",
@@ -220,9 +220,9 @@ const entryPaths = [
 const nextHandoff = [
   {
     href: "/docs/getting-started/proof-run-buyer-path",
-    title: "Buyer path: Security Workflow Buyer Path",
+    title: "Buyer path",
     description:
-      "Use this if you are evaluating the public package offer, sample, verifier, request surface, and evidence-handling boundary.",
+      "Use this if you are evaluating the catalogue, samples, verifier, and non-secret fit-check request.",
   },
   {
     href: "/docs/getting-started",
@@ -267,18 +267,18 @@ export default async function DocsIndexPage() {
 
         <p className="mt-4 max-w-[700px] text-sm leading-relaxed tracking-wide text-text-muted">
           Choose your next step: learn the model, verify a receipt, inspect sample
-          cases, or package one security workflow.
+          cases, or start a review.
         </p>
 
         <p className="mt-3 max-w-[700px] text-sm leading-relaxed tracking-wide text-text-muted">
           These docs explain how the system works and where the limits are. They
           do not claim complete runtime truth by default. If you are evaluating
-          the public offer as a buyer, begin with{" "}
+          the public offer as a buyer, begin with the{" "}
           <Link
             className="text-brand-accent hover:opacity-80"
             href={pub("/docs/getting-started/proof-run-buyer-path")}
           >
-            Security Workflow Buyer Path
+            Buyer path
           </Link>
           . For the general model, begin with{" "}
           <Link
@@ -314,7 +314,7 @@ export default async function DocsIndexPage() {
           <CtaButton
             href="/review/request"
             variant="secondary"
-            label="Package one security workflow"
+            label="Start a review"
           />
         </div>
       </header>
@@ -377,18 +377,18 @@ export default async function DocsIndexPage() {
             className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Buyer route: Security Workflow Buyer Path
+            Buyer path
           </h3>
           <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-text-muted">
-            Start here if you are evaluating the public package offer. It
-            separates the offer, sample, verifier, request form, mailbox
-            verification, and evidence-handling boundary.
+            Start here if you are evaluating the public catalogue and review
+            request. It separates services, sample, verifier, non-secret fit
+            check, mailbox verification, and evidence-handling boundary.
           </p>
           <Link
             href={pub("/docs/getting-started/proof-run-buyer-path")}
             className="mt-3 inline-flex items-center border border-surface-border px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent"
           >
-            Open Security Workflow Buyer Path
+            Open buyer path
           </Link>
         </div>
 

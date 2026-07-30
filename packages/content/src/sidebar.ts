@@ -73,7 +73,7 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
       {
         kind: "doc",
         href: "/docs/getting-started/proof-run-buyer-path",
-        title: "Security Workflow Buyer Path",
+        title: "Buyer path",
       },
       {
         kind: "doc",
