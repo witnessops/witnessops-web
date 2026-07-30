@@ -22,18 +22,37 @@ const FILE_FIXTURES = [
     expected: { kind: "verification", verdict: "invalid" },
   },
   {
-    id: "offsec-shield-valid",
-    label: "OffSec Shield receipt fixture (structural)",
+    id: "local-server-audit-valid",
+    label: "Local server audit receipt (structural)",
     description:
-      "Standalone offsecshield.receipt.v1 JSON fixture for /api/verify structural input checks; separate from the local server audit proofpack ZIP and does not revalidate artifact bytes.",
+      "Primary witnessops.local_server_audit.receipt.v1 JSON fixture for /api/verify structural checks; does not revalidate artifact bytes.",
+    fileName: "local-server-audit-valid.json",
+    provenance: "app",
+    expected: { kind: "verification", verdict: "valid" },
+  },
+  {
+    id: "local-server-audit-bad-binding",
+    label: "Local server audit receipt (bad authority binding)",
+    description:
+      "Local server audit receipt where authority_hash disagrees with artifacts[].",
+    fileName: "local-server-audit-bad-binding.json",
+    provenance: "app",
+    expected: { kind: "verification", verdict: "invalid" },
+  },
+  {
+    id: "offsec-shield-valid",
+    label: "Legacy local server audit receipt (dual-read)",
+    description:
+      "Legacy offsecshield.receipt.v1 fixture still accepted by dual-read structural verify; not a buyer-facing product title.",
     fileName: "offsec-shield-valid.json",
     provenance: "app",
     expected: { kind: "verification", verdict: "valid" },
   },
   {
     id: "offsec-shield-bad-binding",
-    label: "OffSec Shield receipt (bad authority binding)",
-    description: "Shield receipt where authority_hash disagrees with artifacts[].",
+    label: "Legacy local server audit receipt (bad binding)",
+    description:
+      "Legacy dual-read fixture where authority_hash disagrees with artifacts[].",
     fileName: "offsec-shield-bad-binding.json",
     provenance: "app",
     expected: { kind: "verification", verdict: "invalid" },

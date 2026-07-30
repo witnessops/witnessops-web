@@ -215,8 +215,8 @@ test("verify route distinguishes unsupported receipt inputs", async () => {
   assert.equal(payload.failureClass, "FAILURE_INPUT_UNSUPPORTED");
 });
 
-test("verify route accepts OffSec Shield receipt via R2 structural adapter", async () => {
-  const fixture = loadVerifyFixture("offsec-shield-valid");
+test("verify route accepts primary local-server-audit receipt structurally", async () => {
+  const fixture = loadVerifyFixture("local-server-audit-valid");
   assert.ok(fixture);
 
   const response = await POST(
@@ -236,10 +236,35 @@ test("verify route accepts OffSec Shield receipt via R2 structural adapter", asy
     proofStageClaimed?: string;
   };
   assert.equal(payload.ok, true);
-  assert.equal(payload.inputKind, "offsec-shield-receipt");
-  assert.equal(payload.adapter, "witnessops.verify.offsec_shield_receipt.v1");
+  assert.equal(payload.inputKind, "local-server-audit-receipt");
+  assert.equal(payload.adapter, "witnessops.verify.local_server_audit_receipt.v1");
   assert.equal(payload.verdict, "valid");
   assert.equal(payload.proofStageClaimed, "unknown");
+});
+
+test("verify route dual-reads legacy offsecshield receipt schema", async () => {
+  const fixture = loadVerifyFixture("offsec-shield-valid");
+  assert.ok(fixture);
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receipt: JSON.parse(fixture.receiptInput) }),
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    inputKind?: string;
+    adapter?: string;
+    verdict?: string;
+  };
+  assert.equal(payload.ok, true);
+  assert.equal(payload.inputKind, "local-server-audit-receipt");
+  assert.equal(payload.adapter, "witnessops.verify.local_server_audit_receipt.v1");
+  assert.equal(payload.verdict, "valid");
 });
 
 test("verify route accepts Swarm mesh export via R3 structural adapter", async () => {
@@ -267,8 +292,8 @@ test("verify route accepts Swarm mesh export via R3 structural adapter", async (
   assert.equal(payload.verdict, "valid");
 });
 
-test("verify route rejects Shield receipt with bad authority binding", async () => {
-  const fixture = loadVerifyFixture("offsec-shield-bad-binding");
+test("verify route rejects local-server-audit receipt with bad authority binding", async () => {
+  const fixture = loadVerifyFixture("local-server-audit-bad-binding");
   assert.ok(fixture);
 
   const response = await POST(
@@ -280,7 +305,8 @@ test("verify route rejects Shield receipt with bad authority binding", async () 
   );
 
   assert.equal(response.status, 200);
-  const payload = (await response.json()) as { ok: boolean; verdict?: string };
+  const payload = (await response.json()) as { ok: boolean; verdict?: string; inputKind?: string };
   assert.equal(payload.ok, true);
   assert.equal(payload.verdict, "invalid");
+  assert.equal(payload.inputKind, "local-server-audit-receipt");
 });

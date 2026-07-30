@@ -58,7 +58,7 @@
   "/review/request/confirmed/page": "app/review/request/confirmed/page.js",
   "/review/page": "app/review/page.js",
   "/review/request/page": "app/review/request/page.js",
-  "/review/sample-cases/offsec-shield-local-server-audit/page": "app/review/sample-cases/offsec-shield-local-server-audit/page.js",
+  "/review/sample-cases/local-server-security-review/page": "app/review/sample-cases/local-server-security-review/page.js",
   "/review/sample-cases/approval-gated-containment/page": "app/review/sample-cases/approval-gated-containment/page.js",
   "/review/sample-cases/ai-agent-action-proof-run/page": "app/review/sample-cases/ai-agent-action-proof-run/page.js",
   "/review/sample-cases/page": "app/review/sample-cases/page.js",

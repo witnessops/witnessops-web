@@ -18,15 +18,15 @@
     },
     {
       "file": "README.md",
-      "sha256": "c958ebba25a3b9103f1ea8885314cced3ee250eb6d471e1ad8a3a71cecb8b9ff"
+      "sha256": "319cbfbabcc12afa7f851607c4b9ee25e6ad34d28fefdd211d20e73c55a8c653"
     },
     {
       "file": "RECEIPT.json",
-      "sha256": "346720cc8270c189b0e88f78a50c4f9e0bb958a4b241fe2f369a36e368996b92"
+      "sha256": "3ccac6eb0233e907a6ea083536e1aaaee80e4f9383030936d4acf693794ffb12"
     },
     {
       "file": "VERIFY_NOTE.json",
-      "sha256": "638130e7401272d6af51b86111e5bb1e7ee052bbbc04cccf39d7359816817740"
+      "sha256": "5509b59109f9630cc18cc87f8480d3b5d9f19512a954ad50d832c36164285a90"
     },
     {
       "file": "evidence/authority.json",

@@ -9,7 +9,7 @@ Repository-local docs for `witnessops-web` live here when they describe repo ope
 - [`ROOT_SURFACE_INVENTORY.md`](./ROOT_SURFACE_INVENTORY.md) — root/subtree authority-file inventory and stale-file deletion gate.
 - [`OPTIMIZATION-LANGUAGE.md`](./OPTIMIZATION-LANGUAGE.md) — language/runtime strategy for optimizing witnessops-web (TS-first, mesh deploy).
 - [`NODE22-BUILDER.md`](./NODE22-BUILDER.md) — fleet VM vs goal0; run `pnpm health` on Node 22 (Docker or goal0).
-- [`R2-OFFSEC-SHIELD-VERIFY-ADAPTER.md`](./R2-OFFSEC-SHIELD-VERIFY-ADAPTER.md) — Shield structural standalone receipt JSON adapter for `/api/verify`; not proofpack ZIP verification and not verification of the public OffSec sample artifact bundle.
+- [`R2-LOCAL-SERVER-AUDIT-VERIFY-ADAPTER.md`](./R2-LOCAL-SERVER-AUDIT-VERIFY-ADAPTER.md) — Local-server-audit structural receipt adapter for `/api/verify` (primary WitnessOps schema + dual-read legacy offsecshield).
 
 ## Boundaries
 

@@ -57,10 +57,10 @@ Optimize with: bounded reads, early malformed rejection, keeping verify logic in
 - **Role:** CI/adoption for security-validator schemas — not in the Next request path.
 - **Optimization:** keep validators offline; do not duplicate in TS unless promoting a validator into `@witnessops/proof` with explicit scope.
 
-### 5. Integrations (OffSec Shield, mesh federation)
+### 5. Integrations (local-server-audit packages, mesh federation)
 
 - **WitnessOps web:** consume **static samples** and **public mesh receipts** (JSON under `public/`, `/.well-known/`).
-- **Heavy verify** for Shield proof-packs may stay in **Python** (`offsecshield.py verify`) on operator hosts; web shows samples and honest VERIFY_NOTE boundaries (R1 pattern).
+- **Heavy verify** for local-server-audit packages may stay on the **operator CLI** path for byte/MANIFEST checks; web structural verify dual-reads `witnessops.local_server_audit.receipt.v1` and legacy `offsecshield.receipt.v1`.
 - **Language choice for R2 adapter** (Shield → `/api/verify`): implement adapter in **TypeScript** next to existing verify adapter so one runtime serves the API.
 
 ## Languages considered and verdict

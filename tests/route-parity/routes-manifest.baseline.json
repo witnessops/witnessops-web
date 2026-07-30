@@ -589,7 +589,7 @@
       "namedRegex": "^/review/sample\\-cases/approval\\-gated\\-containment(?:/)?$"
     },
     {
-      "page": "/review/sample-cases/offsec-shield-local-server-audit",
+      "page": "/review/sample-cases/local-server-security-review",
       "regex": "^/review/sample\\-cases/offsec\\-shield\\-local\\-server\\-audit(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/review/sample\\-cases/offsec\\-shield\\-local\\-server\\-audit(?:/)?$"

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "Synthetic public sample of a local server security review package: posture, findings, receipt, and hash checks. Not a live customer audit or production verification result.",
   alternates: getCanonicalAlternates(
     "witnessops",
-    "/review/sample-cases/offsec-shield-local-server-audit",
+    "/review/sample-cases/local-server-security-review",
   ),
   openGraph: {
     title: "Sample — Local server security review | WitnessOps",
@@ -39,7 +39,7 @@ const statusChips = [
   },
 ];
 
-export default function OffSecShieldSamplePage() {
+export default function LocalServerSecurityReviewSamplePage() {
   const manifest = loadShieldSampleManifest();
 
   return (
@@ -64,7 +64,7 @@ export default function OffSecShieldSamplePage() {
               side. This sample shows the deliverable shape and honest limits.
             </p>
             <p className="max-w-[48rem] text-sm leading-7 text-text-muted">
-              Product name in the fixture path: OffSec Shield local server audit.
+              Stable sample storage id: offsec-shield-local-server-audit (public fixture path).
               This sample is not currently verified through WitnessOps /api/verify.
               Use{" "}
               <Link href="/verify" className="text-brand-accent underline">
@@ -161,7 +161,7 @@ export default function OffSecShieldSamplePage() {
                     </a>
                     <p className="mt-2 text-xs text-text-muted">
                       Optional portable proof-pack (fixture B drift demo). Verify
-                      with OffSecShield CLI offline.
+                      with the offline operator CLI for this package.
                     </p>
                   </li>
                 </ul>
@@ -192,7 +192,7 @@ export default function OffSecShieldSamplePage() {
           </section>
 
           <p className="text-xs text-text-muted">
-            Sample id: {shieldSampleId}. Regenerate via OffSec-Lane{" "}
+            Sample id: {shieldSampleId}. Regenerate via operator publish script{" "}
             <code className="font-mono">publish-shield-sample-witnessops.sh</code>.
           </p>
         </div>

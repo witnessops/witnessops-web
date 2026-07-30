@@ -92,9 +92,9 @@
       "surface": "witnessops.com"
     },
     {
-      "id": "offsec-shield-local-server-audit",
-      "title": "OffSec Shield local server audit",
-      "href": "/review/sample-cases/offsec-shield-local-server-audit",
+      "id": "local-server-security-review",
+      "title": "Local server security review",
+      "href": "/review/sample-cases/local-server-security-review",
       "surface": "witnessops.com"
     },
     {

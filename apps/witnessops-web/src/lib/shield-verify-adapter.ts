@@ -4,8 +4,23 @@ import type {
   VerifyVerdict,
 } from "@/lib/verify-contract";
 
-export const OFFSEC_SHIELD_RECEIPT_SCHEMA = "offsecshield.receipt.v1";
-export const SHIELD_ADAPTER_ID = "witnessops.verify.offsec_shield_receipt.v1";
+/** Primary WitnessOps wire token for local-server-audit structural receipts. */
+export const LOCAL_SERVER_AUDIT_RECEIPT_SCHEMA =
+  "witnessops.local_server_audit.receipt.v1";
+
+/** Legacy wire token still accepted for dual-read (emitters / older packages). */
+export const LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA = "offsecshield.receipt.v1";
+
+/** @deprecated Use LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA */
+export const OFFSEC_SHIELD_RECEIPT_SCHEMA = LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA;
+
+export const LOCAL_SERVER_AUDIT_ADAPTER_ID =
+  "witnessops.verify.local_server_audit_receipt.v1";
+
+/** @deprecated Prefer LOCAL_SERVER_AUDIT_ADAPTER_ID; dual-read responses use the primary adapter id. */
+export const SHIELD_ADAPTER_ID = LOCAL_SERVER_AUDIT_ADAPTER_ID;
+
+export const LOCAL_SERVER_AUDIT_INPUT_KIND = "local-server-audit-receipt" as const;
 
 const SHA256_HEX = /^[a-f0-9]{64}$/;
 
@@ -13,10 +28,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-export function isOffsecShieldReceipt(
+/**
+ * Detect local-server-audit receipts for structural verify.
+ * Accepts primary WitnessOps schema, legacy offsecshield schema, or run_receipt schema_id.
+ */
+export function isLocalServerAuditReceipt(
   receipt: Record<string, unknown>,
 ): boolean {
-  if (receipt.schema === OFFSEC_SHIELD_RECEIPT_SCHEMA) {
+  if (receipt.schema === LOCAL_SERVER_AUDIT_RECEIPT_SCHEMA) {
+    return true;
+  }
+  if (receipt.schema === LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA) {
     return true;
   }
   const schemaId = receipt.schema_id;
@@ -24,6 +46,13 @@ export function isOffsecShieldReceipt(
     typeof schemaId === "string" &&
     schemaId.includes("run_receipt.schema.json")
   );
+}
+
+/** @deprecated Use isLocalServerAuditReceipt */
+export function isOffsecShieldReceipt(
+  receipt: Record<string, unknown>,
+): boolean {
+  return isLocalServerAuditReceipt(receipt);
 }
 
 function artifactSha256(
@@ -52,11 +81,21 @@ function check(
   };
 }
 
+function schemaToken(receipt: Record<string, unknown>): string {
+  if (typeof receipt.schema === "string" && receipt.schema !== "") {
+    return receipt.schema;
+  }
+  if (typeof receipt.schema_id === "string") {
+    return receipt.schema_id;
+  }
+  return "(missing)";
+}
+
 /**
  * Structural / cross-field validation only. Does not read artifact bytes
- * (unlike offsecshield.py verify on a run directory).
+ * (offline byte/MANIFEST READY checks remain on the operator CLI path).
  */
-export function verifyOffsecShieldReceipt(
+export function verifyLocalServerAuditReceipt(
   receipt: Record<string, unknown>,
 ): VerifySuccessResponse {
   const checks: VerifyCheckView[] = [];
@@ -65,10 +104,18 @@ export function verifyOffsecShieldReceipt(
     checks.push(check(name, pass, detail));
   };
 
+  const recognized = isLocalServerAuditReceipt(receipt);
+  push(
+    "LSA_SCHEMA",
+    recognized,
+    `Expected ${LOCAL_SERVER_AUDIT_RECEIPT_SCHEMA}, legacy ${LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA}, or run_receipt schema_id. Observed: ${schemaToken(receipt)}.`,
+  );
+
+  // Keep SHIELD_* check names for binding failures so existing tests and callers stay stable.
   push(
     "SHIELD_SCHEMA",
-    isOffsecShieldReceipt(receipt),
-    `Expected ${OFFSEC_SHIELD_RECEIPT_SCHEMA} or run_receipt schema_id.`,
+    recognized,
+    `Dual-read detector matched local-server-audit structural receipt family.`,
   );
 
   const requiredStrings = [
@@ -79,7 +126,11 @@ export function verifyOffsecShieldReceipt(
   ] as const;
   for (const key of requiredStrings) {
     const ok = typeof receipt[key] === "string" && receipt[key] !== "";
-    push(`SHIELD_FIELD_${key.toUpperCase()}`, ok, `${key} must be a non-empty string.`);
+    push(
+      `SHIELD_FIELD_${key.toUpperCase()}`,
+      ok,
+      `${key} must be a non-empty string.`,
+    );
   }
 
   const artifacts = receipt.artifacts;
@@ -146,27 +197,36 @@ export function verifyOffsecShieldReceipt(
     push(
       "SHIELD_NO_FABRICATION",
       receipt.no_fabrication === true,
-      "no_fabrication should be true for Shield run receipts.",
+      "no_fabrication should be true for local-server-audit run receipts.",
     );
   }
 
   push(
     "SHIELD_OFFLINE_BYTES",
     true,
-    "Artifact bytes and MANIFEST.sha256 READY/MISMATCH/MISSING require offline offsecshield.py verify.",
+    "Artifact bytes and MANIFEST.sha256 READY/MISMATCH/MISSING require offline CLI verify on the operator host.",
   );
 
   const failed = checks.some((c) => c.status === "unverified");
   const verdict: VerifyVerdict = failed ? "invalid" : "valid";
 
+  const isLegacy =
+    receipt.schema === LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA ||
+    (receipt.schema !== LOCAL_SERVER_AUDIT_RECEIPT_SCHEMA &&
+      typeof receipt.schema_id === "string" &&
+      String(receipt.schema_id).includes("run_receipt.schema.json") &&
+      receipt.schema !== LOCAL_SERVER_AUDIT_RECEIPT_SCHEMA);
+
   const summary = failed
-    ? "OffSec Shield receipt failed structural checks on /api/verify (not PV/QV/WV)."
-    : "OffSec Shield receipt passed structural checks only; use offline CLI to verify bytes on disk.";
+    ? "Local server audit receipt failed structural checks on /api/verify (not PV/QV/WV)."
+    : isLegacy && receipt.schema !== LOCAL_SERVER_AUDIT_RECEIPT_SCHEMA
+      ? "Local server audit receipt (legacy dual-read) passed structural checks only; use offline CLI to verify bytes on disk."
+      : "Local server audit receipt passed structural checks only; use offline CLI to verify bytes on disk.";
 
   return {
     ok: true,
-    inputKind: "offsec-shield-receipt",
-    adapter: SHIELD_ADAPTER_ID,
+    inputKind: LOCAL_SERVER_AUDIT_INPUT_KIND,
+    adapter: LOCAL_SERVER_AUDIT_ADAPTER_ID,
     verdict,
     scope: "receipt-only",
     artifactRevalidation: "not_possible",
@@ -176,4 +236,11 @@ export function verifyOffsecShieldReceipt(
     checks,
     breaches: [],
   };
+}
+
+/** @deprecated Use verifyLocalServerAuditReceipt */
+export function verifyOffsecShieldReceipt(
+  receipt: Record<string, unknown>,
+): VerifySuccessResponse {
+  return verifyLocalServerAuditReceipt(receipt);
 }

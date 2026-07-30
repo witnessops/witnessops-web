@@ -48,7 +48,7 @@ const sampleCases = [
   },
   {
     title: "Local server security review",
-    href: "/review/sample-cases/offsec-shield-local-server-audit",
+    href: "/review/sample-cases/local-server-security-review",
     situation: "A read-only local server security review was packaged for inspection.",
     youSee:
       "How posture and findings sit next to a receipt and hash manifest, and what /verify does and does not confirm for this sample.",

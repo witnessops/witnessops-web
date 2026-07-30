@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-test("offsec shield sample page declares verify boundary and workflow CTA", () => {
+test("local server security review sample page declares verify boundary and workflow CTA", () => {
   const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
   assert.match(source, /Not verified through \/api\/verify; inspect manifest and sidecars/);
   assert.match(source, /Local server security review/);

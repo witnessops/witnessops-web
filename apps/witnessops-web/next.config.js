@@ -49,6 +49,16 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: "/review/sample-cases/offsec-shield-local-server-audit",
+        destination: "/review/sample-cases/local-server-security-review",
+        permanent: true,
+      },
+      {
+        source: "/review/sample-cases/offsec-shield-local-server-audit/:path*",
+        destination: "/review/sample-cases/local-server-security-review/:path*",
+        permanent: true,
+      },
+      {
         source: "/catalog/offsec-access-removed",
         destination: "/catalog",
         permanent: true,

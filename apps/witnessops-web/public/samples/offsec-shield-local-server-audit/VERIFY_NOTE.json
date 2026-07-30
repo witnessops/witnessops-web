@@ -1,10 +1,12 @@
 {
-  "schema": "witnessops.offsec_shield_verify_note.v1",
+  "schema": "witnessops.local_server_audit.verify_note.v1",
   "witnessops_api_verify_v1": "not_applicable",
-  "reason": "Receipt uses offsecshield.receipt.v1 / run_receipt schema, not PV/QV/WV proof-stage receipts.",
-  "offline_verify": "python3 tools/offsecshield.py verify <run_dir> (OffSecShield CLI)",
+  "reason": "Receipt uses witnessops.local_server_audit.receipt.v1 (legacy dual-read: offsecshield.receipt.v1 / run_receipt), not PV/QV/WV proof-stage receipts.",
+  "offline_verify": "Offline byte/MANIFEST checks remain on the operator CLI path for this sample package.",
   "schema_reconciliation": "See shield/SCHEMA_RECONCILIATION.md \u2014 R1 reference sample; R2 adapter TBD.",
   "sample_contract": "Public sample proofpack fixture; not a live customer audit, not a production verification result, and not evidence that any third-party system was tested.",
   "localhost_scope_note": "localhost and 127.0.0.1 values are synthetic fixture scope only.",
-  "safe_claim": "Demonstrates integrity manifest + honest hashes on a synthetic local-audit fixture without claiming WitnessOps /api/verify support."
+  "safe_claim": "Demonstrates integrity manifest + honest hashes on a synthetic local-audit fixture without claiming WitnessOps /api/verify support.",
+  "receipt_schema": "witnessops.local_server_audit.receipt.v1",
+  "legacy_receipt_schema": "offsecshield.receipt.v1"
 }

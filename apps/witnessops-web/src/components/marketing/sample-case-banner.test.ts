@@ -11,7 +11,7 @@ const samplePages = [
   "app/review/sample-cases/sbom-cisa-2026-minimum-elements/page.tsx",
   "app/review/sample-cases/approval-gated-containment/page.tsx",
   "app/review/sample-cases/privileged-access-grant/page.tsx",
-  "app/review/sample-cases/offsec-shield-local-server-audit/page.tsx",
+  "app/review/sample-cases/local-server-security-review/page.tsx",
   "app/review/sample-report/page.tsx",
 ] as const;
 

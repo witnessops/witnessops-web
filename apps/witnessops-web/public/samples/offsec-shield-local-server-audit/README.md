@@ -1,32 +1,23 @@
-# OffSec Shield — Local Server Audit (public sample)
+# Local server security review (public sample)
 
-Synthetic fixture host `demo-host` from OffSecShield `run.sh`. Not a live customer environment.
+Synthetic fixture host `demo-host`. Not a live customer environment.
 
-This is a public sample proofpack fixture. It demonstrates the structure of a
-receipt-backed audit package. It is not a live customer audit, not a production
-verification result, and not evidence that any third-party system was tested.
-Localhost and `127.0.0.1` values are synthetic fixture scope only.
+Buyer-facing title: **Local server security review**.
 
-## Files
+Primary wire schema: `witnessops.local_server_audit.receipt.v1`  
+Legacy dual-read: `offsecshield.receipt.v1` (still accepted by `/api/verify` structural adapter)
 
-- `RECEIPT.json` — run receipt (`offsecshield.receipt.v1`, aligned to `run_receipt.schema.json`)
-- `evidence_manifest.json` — shipped-shape manifest
-- `MANIFEST.sha256` — honest hash list
-- `evidence/` — authority, scope, posture, findings (read-only posture collect)
-- `VERIFY_NOTE.json` — WitnessOps verifier boundary for this sample receipt
-- `proofpack-demo-host-local-fixture-b.zip` — separate portable fixture bundle
+## Contents
 
-## Verify offline
+- `RECEIPT.json` — run receipt (primary WitnessOps local-server-audit schema)
+- `evidence_manifest.json`, `MANIFEST.sha256`, evidence/* — sample package material
+- `VERIFY_NOTE.json` — honest web vs offline verify boundary
+- `proofpack-demo-host-local-fixture-b.zip` — optional portable fixture bundle
 
-From OffSec-Lane shield tree:
+## Verify
 
-```bash
-python3 tools/offsecshield.py verify .
-```
+Use `/verify` for PV/QV/WV receipts and for structural checks on this receipt family.
 
-## WitnessOps
+This sample receipt is **not** a PV/QV/WV proof-stage receipt. Structural web verify does **not** revalidate artifact bytes on disk.
 
-Use `/verify` for PV/QV/WV receipts. This OffSecShield sample receipt is not
-verified by WitnessOps `/api/verify` unless a specific public verifier path is
-provided. Use `/api/mesh-gate` for operator mesh receipts (ADR 0008).
-This bundle is inspected via download links on `/review/sample-cases/offsec-shield-local-server-audit`.
+This bundle is inspected via download links on `/review/sample-cases/local-server-security-review` (legacy path redirects).

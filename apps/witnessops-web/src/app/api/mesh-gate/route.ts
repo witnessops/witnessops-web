@@ -19,7 +19,7 @@ export async function GET() {
     post: "Submit JSON body: offseclane.mesh_receipt_public.v1",
     index_published: index !== null,
     disclaimer:
-      "Does not replace /api/verify, bastion hunt verify, or OffSec Shield proof-packs.",
+      "Does not replace /api/verify, bastion hunt verify, or local-server-audit package offline verify.",
   });
 }
 

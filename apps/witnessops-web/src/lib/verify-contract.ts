@@ -26,14 +26,18 @@ export interface VerifyBreachView {
 
 export type VerifyInputKind =
   | "receipt"
+  | "local-server-audit-receipt"
+  /** @deprecated Dual-read responses use local-server-audit-receipt */
   | "offsec-shield-receipt"
   | "offsec-swarm-mesh-export";
 
 export interface VerifySuccessResponse {
   ok: true;
   inputKind: VerifyInputKind;
-  /** R2/R3 structural adapters (not PV/QV/WV). */
+  /** Structural adapters (not PV/QV/WV). */
   adapter?:
+    | "witnessops.verify.local_server_audit_receipt.v1"
+    /** @deprecated Alias retained for type compatibility; responses emit primary id */
     | "witnessops.verify.offsec_shield_receipt.v1"
     | "witnessops.verify.offsec_swarm_mesh_export.v1";
   verdict: VerifyVerdict;
