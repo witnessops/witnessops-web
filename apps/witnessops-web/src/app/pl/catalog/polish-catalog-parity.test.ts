@@ -18,15 +18,15 @@ const expectedOrder = [
   "launch-readiness-check",
   "key-access-custody-review",
   "incident-readiness-review",
-  "sbom-minimum-elements-check",
 ];
 
 test("English and Polish catalogue pages render one shared offer contract", () => {
   assert.match(englishPage, /BuyerCatalogue locale="en"/);
   assert.match(polishPage, /<BuyerCatalogue locale="pl" \/>/);
-  assert.equal(BUYER_SERVICES.length, 7);
+  assert.equal(BUYER_SERVICES.length, 6);
   assert.deepEqual(BUYER_SERVICES.map((service) => service.id), expectedOrder);
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "OFFSEC-PILOT"));
+  assert.ok(!BUYER_SERVICES.some((service) => service.productId === "SBOM-MIN-ELEMENTS"));
 });
 
 test("every public offer has one commercial contract and localized buyer copy", () => {

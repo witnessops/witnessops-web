@@ -36,22 +36,22 @@ const sampleCases = [
     emphasize: true,
   },
   {
-    title: "SBOM minimum-elements check",
-    href: "/review/sample-cases/sbom-cisa-2026-minimum-elements",
-    situation:
-      "You need a clear answer on whether an SBOM covers the CISA 2026 minimum elements for one named software unit.",
-    youSee:
-      "A synthetic SBOM, generation context, a present/partial checklist with named gaps, and package boundaries — not a compliance certificate.",
-    tags: ["CISA 2026 baseline", "Named gaps"],
-    emphasize: true,
-  },
-  {
     title: "Local server security review",
     href: "/review/sample-cases/local-server-security-review",
     situation: "A read-only local server security review was packaged for inspection.",
     youSee:
       "How posture and findings sit next to a receipt and hash manifest, and what /verify does and does not confirm for this sample.",
     tags: ["Full sample package", "Synthetic host"],
+    emphasize: true,
+  },
+  {
+    title: "SBOM field checklist (method sample)",
+    href: "/review/sample-cases/sbom-cisa-2026-minimum-elements",
+    situation:
+      "A labelled synthetic package shows how a field checklist can sit inside a delivery — not a public product card.",
+    youSee:
+      "Generation context, present/partial gaps, and limits. Not compliance certification and not a catalogue SKU promotion.",
+    tags: ["Method sample", "Not a product card"],
     emphasize: false,
   },
   {
@@ -132,9 +132,8 @@ export default function SampleCasesIndexPage() {
             your own environment.
           </p>
           <p className="mt-4 max-w-3xl text-base leading-7 text-text-muted">
-            Scripts and checks (SBOM fields, KEV signals, dependency lookups, receipts) show up
-            inside packages when scoped. They are methods — not a separate product card for every
-            tool.
+            Operator scripts and checks run inside a scoped package when useful. They are methods —
+            not a product card for every capability.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <CtaButton href="/review/request" variant="primary" label="Start a review" />

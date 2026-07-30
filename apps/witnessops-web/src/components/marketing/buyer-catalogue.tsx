@@ -35,21 +35,21 @@ const copy = {
         "The delivery names the evidence references, receipt or verifier where one exists, and the limitations that still apply.",
       ],
     ],
-    methodsTitle: "Methods under the package — not extra product cards",
+    methodsTitle: "Methods under the package — not infinite product cards",
     methodsIntro:
-      "Operator tooling (SBOM field checks, KEV cross-checks, dependency lookups, receipt packaging) can run inside a scoped engagement when useful. Each script is a method. The catalog card is the buyer situation and the handover package — not every binary we maintain.",
+      "WitnessOps maintains a large operator toolkit: collectors, validators, feed cross-checks, dependency lookups, receipt packaging and more. Those scripts are methods. The catalog only lists buyer situations with a handover package — not one card per capability.",
     methods: [
       [
-        "SBOM field checklist",
-        "Present / partial / missing / unknown against the CISA 2026 baseline for one named software unit — sold as a package when a buyer needs that answer.",
+        "Choose by situation",
+        "Pick the bounded problem you need to resolve. Scope, authority, price and exclusions are agreed before substantive work.",
       ],
       [
-        "KEV and exploit-urgency signals",
-        "CISA Known Exploited Vulnerabilities (and related lookups) can inform server, launch or readiness work. They are not a stand-alone “you are safe” product.",
+        "Tools stay inside the package",
+        "Whatever checks run for the engagement stay named in the deliverable with limits. A script is never sold as “you are safe.”",
       ],
       [
-        "Receipts and samples",
-        "Inspect labelled examples before you buy. Samples show how methods land in a package — they are not live customer evidence.",
+        "Inspect labelled examples",
+        "Samples show how methods land in a package. They are not live customer evidence or a product catalogue of every tool.",
       ],
     ],
     methodsCta: "Inspect example reviews",
@@ -84,21 +84,21 @@ const copy = {
         "Dostawa nazywa odwołania do materiałów, receipt lub weryfikator, jeśli istnieją, oraz ograniczenia, które nadal obowiązują.",
       ],
     ],
-    methodsTitle: "Metody w pakiecie — nie osobne karty produktu",
+    methodsTitle: "Metody w pakiecie — nie nieskończone karty produktu",
     methodsIntro:
-      "Narzędzia operatorskie (kontrola pól SBOM, przecięcie z KEV, zależności, pakowanie receipt) mogą działać w zakresie, gdy są przydatne. Skrypt to metoda. Karta katalogu to sytuacja kupującego i pakiet do przekazania — nie każdy binar, który utrzymujemy.",
+      "WitnessOps utrzymuje duży zestaw narzędzi operatorskich: kolektory, walidatory, cross-checki, zależności, pakowanie receipt i inne. Skrypty to metody. Katalog wymienia tylko sytuacje kupującego z pakietem do przekazania — nie jedną kartę na każdą zdolność.",
     methods: [
       [
-        "Lista kontrolna pól SBOM",
-        "Obecne / częściowe / brakujące / nieznane względem baseline CISA 2026 dla jednej jednostki — jako pakiet, gdy kupujący potrzebuje tej odpowiedzi.",
+        "Wybór według sytuacji",
+        "Wybierz ograniczony problem do rozwiązania. Zakres, upoważnienie, cenę i wyłączenia uzgadniamy przed właściwą pracą.",
       ],
       [
-        "Sygnały KEV i pilności exploitów",
-        "CISA Known Exploited Vulnerabilities (i powiązane lookupy) mogą wspierać przegląd serwera, launch lub gotowości. To nie osobny produkt „jesteście bezpieczni”.",
+        "Narzędzia zostają w pakiecie",
+        "Kontrole wykonane w zakresie są nazwane w dostawie z limitami. Skrypt nigdy nie jest sprzedawany jako „jesteście bezpieczni”.",
       ],
       [
-        "Receipts i przykłady",
-        "Przejrzyj oznaczone przykłady przed zakupem. Pokazują, jak metody lądują w pakiecie — nie są żywymi materiałami klienta.",
+        "Oznaczone przykłady",
+        "Przykłady pokazują, jak metody lądują w pakiecie. Nie są żywymi materiałami klienta ani katalogiem każdego narzędzia.",
       ],
     ],
     methodsCta: "Zobacz przykładowe przeglądy",

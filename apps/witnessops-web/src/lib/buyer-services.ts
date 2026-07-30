@@ -9,8 +9,7 @@ export type BuyerService = {
     | "one-server-security-check"
     | "launch-readiness-check"
     | "key-access-custody-review"
-    | "incident-readiness-review"
-    | "sbom-minimum-elements-check";
+    | "incident-readiness-review";
   productId?: string;
   commercialContract: {
     price: string;
@@ -33,7 +32,8 @@ export type BuyerService = {
 };
 
 /**
- * Canonical public catalogue — approved website copy 30 July 2026.
+ * Canonical public catalogue — situation cards only (v1.6 OffSec index aligned).
+ * Operator scripts and checks are methods under a package, not extra cards.
  * Order and names are fixed for EN/PL buyer surfaces.
  */
 export const BUYER_SERVICES: readonly BuyerService[] = [
@@ -132,16 +132,16 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "One Server Security Check",
     },
     cardSituation: {
-      en: "You need a bounded, read-only security check of one authorised Linux server.",
-      pl: "Potrzebujesz ograniczonego zakresowo, nieinwazyjnego przeglądu bezpieczeństwa jednego autoryzowanego serwera Linux.",
+      en: "You need a clear, read-only picture of one authorised Linux host.",
+      pl: "Potrzebujesz jasnego obrazu jednego autoryzowanego hosta Linux — tylko do odczytu.",
     },
     situation: {
-      en: "You need a clear, read-only security picture of one authorised Linux server.",
-      pl: "Potrzebujesz jasnego, nieinwazyjnego obrazu bezpieczeństwa jednego autoryzowanego serwera Linux.",
+      en: "You need a clear, read-only security picture of one authorised Linux host before a customer ask, hardening step, or internal review.",
+      pl: "Potrzebujesz jasnego, nieinwazyjnego obrazu bezpieczeństwa jednego autoryzowanego hosta Linux przed prośbą klienta, hardeningiem lub przeglądem wewnętrznym.",
     },
     result: {
-      en: "A report and, where agreed, a signed proof package showing what was checked, which evidence supports the result and what remains unresolved.",
-      pl: "Raport oraz, jeśli uzgodniono, podpisany pakiet pokazujący, co sprawdzono, jakie materiały wspierają wynik i co pozostaje nierozwiązane.",
+      en: "Posture, findings, report and, where agreed, a signed proof package with offline verification path — what was checked, what evidence supports it, what remains unresolved.",
+      pl: "Stan, ustalenia, raport oraz, jeśli uzgodniono, podpisany pakiet ze ścieżką weryfikacji offline — co sprawdzono, jakie materiały to wspierają i co pozostaje otwarte.",
     },
     price: {
       en: "€950 standard after a non-secret fit check",
@@ -152,8 +152,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "W ciągu dwóch dni roboczych po autoryzowanym oknie zbierania danych",
     },
     boundary: {
-      en: "One named server, authorised read-only collection, agreed checks and explicit exclusions. This is not a penetration test or certification.",
-      pl: "Jeden wskazany serwer, autoryzowane działania tylko do odczytu, uzgodnione kontrole i jawne wyłączenia. To nie jest test penetracyjny ani certyfikacja.",
+      en: "No exploitation, secret collection, compliance certification, or host-security guarantee. One named host, read-only, authorised collection only.",
+      pl: "Bez eksploatacji, zbierania sekretów, certyfikacji zgodności i gwarancji, że host jest bezpieczny. Jeden wskazany host, tylko do odczytu, wyłącznie po upoważnieniu.",
     },
     detailHref: {
       en: "/catalog/offsec-local-audit",
@@ -172,16 +172,16 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Launch Readiness Check",
     },
     cardSituation: {
-      en: "A release needs a bounded pre-launch check and a record of remaining decisions.",
-      pl: "Wydanie potrzebuje ograniczonego przeglądu przed uruchomieniem i zapisu pozostałych decyzji.",
+      en: "You need a before/after decision for one launch host and an approved baseline.",
+      pl: "Potrzebujesz decyzji before/after dla jednego hosta startu i zatwierdzonej bazy.",
     },
     situation: {
-      en: "A release needs a bounded pre-launch check and a record of remaining decisions.",
-      pl: "Wydanie potrzebuje ograniczonego przeglądu przed uruchomieniem i zapisu pozostałych decyzji.",
+      en: "You need a before-and-after readiness picture for one launch host against an approved baseline, including drift and open decisions.",
+      pl: "Potrzebujesz obrazu gotowości before/after dla jednego hosta startu względem zatwierdzonej bazy, z dryfem i otwartymi decyzjami.",
     },
     result: {
-      en: "A readiness report and, where agreed, a proof package showing what changed, what was checked and what still requires a decision.",
-      pl: "Raport gotowości oraz, jeśli uzgodniono, pakiet pokazujący, co się zmieniło, co sprawdzono i co nadal wymaga decyzji.",
+      en: "Baseline and candidate snapshots, drift notes, findings, readiness report and, where agreed, a signed proof package with offline verification.",
+      pl: "Migawki bazy i kandydata, notatki o dryfie, ustalenia, raport gotowości oraz, jeśli uzgodniono, podpisany pakiet ze weryfikacją offline.",
     },
     price: {
       en: "€2,500–€7,500",
@@ -192,8 +192,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Cztery dni robocze po zebraniu kandydata do wydania",
     },
     boundary: {
-      en: "This is a bounded readiness review, not a guarantee that the release is defect-free or safe in every environment.",
-      pl: "To ograniczony przegląd gotowości, a nie gwarancja, że wydanie jest wolne od wad lub bezpieczne w każdym środowisku.",
+      en: "No launch approval, security guarantee, remediation, or arbitrary cloud review. Bounded readiness package only.",
+      pl: "Bez zatwierdzenia launch, gwarancji bezpieczeństwa, remediacji ani dowolnego przeglądu chmury. Tylko ograniczony pakiet gotowości.",
     },
     detailHref: {
       en: "/catalog/offsec-launch-ready",
@@ -212,16 +212,16 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Key, Access and Custody Review",
     },
     cardSituation: {
-      en: "You need to review how key, access or custody controls are documented without exposing keys or funds.",
-      pl: "Chcesz ocenić, jak udokumentowano kontrole kluczy, dostępu uprzywilejowanego lub custody bez ujawniania kluczy ani środków.",
+      en: "You need a bounded review of custody or wallet-operations controls without touching funds.",
+      pl: "Potrzebujesz ograniczonego przeglądu kontroli custody lub wallet-ops bez dotykania środków.",
     },
     situation: {
-      en: "You need to review how key, privileged-access or custody controls are documented without exposing keys, recovery material or funds.",
-      pl: "Chcesz ocenić, jak udokumentowano kontrole kluczy, dostępu uprzywilejowanego lub custody bez ujawniania kluczy, materiałów odzyskiwania ani środków.",
+      en: "You need a proof-backed review of how custody or wallet-operations controls are documented, using sanitised observations only.",
+      pl: "Potrzebujesz przeglądu z pakietem, jak udokumentowano kontrole custody lub wallet-ops, wyłącznie na zanonimizowanych obserwacjach.",
     },
     result: {
-      en: "A posture report, evidence index and findings showing which control observations were supplied, which claims are supported and what remains outside scope or unresolved.",
-      pl: "Raport stanu, indeks materiałów i ustalenia pokazujące, które obserwacje kontrolne dostarczono, które twierdzenia mają wsparcie oraz co pozostaje poza zakresem lub nierozwiązane.",
+      en: "Sanitised posture, completeness notes, findings and, where agreed, a signed proof package — supported claims vs gaps, no keys or balances in the package.",
+      pl: "Zanonimizowany stan, notatki o kompletności, ustalenia oraz, jeśli uzgodniono, podpisany pakiet — obsługiwane twierdzenia vs luki, bez kluczy i sald w pakiecie.",
     },
     price: {
       en: "€3,000–€15,000",
@@ -232,8 +232,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
     },
     boundary: {
-      en: "WitnessOps does not take custody of funds or secrets and does not request private keys, seed phrases or recovery codes.",
-      pl: "WitnessOps nie przejmuje środków ani sekretów i nie prosi o klucze prywatne, frazy seed ani kody odzyskiwania.",
+      en: "No keys, seed phrases, balances, fund movement, taking custody, or solvency claim. Documentation and agreed non-secret observations only.",
+      pl: "Bez kluczy, fraz seed, sald, ruchu środków, przejmowania custody i twierdzeń o wypłacalności. Tylko dokumentacja i uzgodnione niepoufne obserwacje.",
     },
     detailHref: {
       en: "/catalog/offsec-custody-ops",
@@ -252,16 +252,16 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Incident Readiness Review",
     },
     cardSituation: {
-      en: "You need to check whether a team is prepared for one defined incident scenario.",
-      pl: "Chcesz sprawdzić przygotowanie zespołu do jednego określonego scenariusza incydentu.",
+      en: "You need a bounded readiness record for one named incident scenario and environment.",
+      pl: "Potrzebujesz ograniczonego zapisu gotowości dla jednego nazwanego scenariusza i środowiska.",
     },
     situation: {
-      en: "You need to check whether a team is prepared for one defined incident scenario.",
-      pl: "Chcesz sprawdzić przygotowanie zespołu do jednego określonego scenariusza incydentu.",
+      en: "You need a bounded readiness record for one named incident class and environment — preparation, unknowns and open decisions on the package.",
+      pl: "Potrzebujesz ograniczonego zapisu gotowości dla jednej nazwanej klasy incydentu i środowiska — przygotowanie, niewiadome i otwarte decyzje w pakiecie.",
     },
     result: {
-      en: "A readiness report separating observed preparation, management assertions, unknowns, exclusions and decisions that remain open.",
-      pl: "Raport gotowości rozdzielający zaobserwowane przygotowanie, oświadczenia kierownictwa, niewiadome, wyłączenia i otwarte decyzje.",
+      en: "Sanitised readiness observations, posture, findings and open gaps in a package another owner can inspect — not live incident command.",
+      pl: "Zanonimizowane obserwacje gotowości, stan, ustalenia i otwarte luki w pakiecie do wglądu innego właściciela — bez dowodzenia incydentem na żywo.",
     },
     price: {
       en: "€5,000–€25,000",
@@ -272,52 +272,12 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
     },
     boundary: {
-      en: "This is not emergency incident response, a 24/7 service or a guarantee of incident outcome.",
-      pl: "To nie jest awaryjna obsługa incydentu, usługa 24/7 ani gwarancja wyniku incydentu.",
+      en: "No hack-back, exploitation, destructive testing, live incident command, secret intake before handling is agreed, compromise claim, root-cause or attribution.",
+      pl: "Bez hack-back, eksploatacji, testów destrukcyjnych, żywego dowodzenia incydentem, przyjmowania sekretów przed uzgodnieniem postępowania, twierdzeń o kompromisie, przyczynie źródłowej lub atrybucji.",
     },
     detailHref: {
       en: "/catalog/offsec-incident-ready",
       pl: "/pl/catalog/offsec-incident-ready",
-    },
-  },
-  {
-    id: "sbom-minimum-elements-check",
-    productId: "SBOM-MIN-ELEMENTS",
-    commercialContract: {
-      price: "from_eur_1200_after_non_secret_fit_check",
-      timing: "confirmed_during_non_secret_fit_check",
-    },
-    name: {
-      en: "SBOM minimum-elements check",
-      pl: "SBOM minimum-elements check",
-    },
-    cardSituation: {
-      en: "You need a clear checklist against CISA 2026 SBOM minimum elements for one software unit.",
-      pl: "Potrzebujesz jasnej listy kontrolnej względem elementów minimalnych SBOM CISA 2026 dla jednej jednostki oprogramowania.",
-    },
-    situation: {
-      en: "You received or produced a software bill of materials and need a bounded answer: which CISA 2026 minimum elements appear present, partial, missing or unknown for one named software unit.",
-      pl: "Otrzymałeś lub wytworzyłeś SBOM i potrzebujesz ograniczonej odpowiedzi: które elementy minimalne CISA 2026 są obecne, częściowe, brakujące lub nieznane dla jednej wskazanej jednostki oprogramowania.",
-    },
-    result: {
-      en: "A checklist package with generation context, present/partial/missing statuses, named gaps, evidence references and clear limits — not a compliance certificate.",
-      pl: "Pakiet z listą kontrolną, kontekstem generacji, statusami obecne/częściowe/brakujące, nazwanymi lukami, odwołaniami do materiałów i jasnymi ograniczeniami — nie certyfikat zgodności.",
-    },
-    price: {
-      en: "From €1,200 after a non-secret fit check",
-      pl: "Od €1,200 po wstępnej ocenie bez informacji poufnych",
-    },
-    timing: {
-      en: "Confirmed during the non-secret fit check",
-      pl: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
-    },
-    boundary: {
-      en: "This is not CISA or federal compliance certification, not a vulnerability scan, and not a claim that the software is free of known exploits.",
-      pl: "To nie jest certyfikacja zgodności CISA ani federalna, nie skan podatności i nie twierdzenie, że oprogramowanie jest wolne od znanych exploitów.",
-    },
-    detailHref: {
-      en: "/catalog/sbom-min-elements",
-      pl: "/pl/catalog/sbom-min-elements",
     },
   },
 ] as const;

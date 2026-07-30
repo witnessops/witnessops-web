@@ -265,12 +265,12 @@ export default function ReviewPage() {
             </p>
           </a>
           <a
-            href="/review/sample-cases/sbom-cisa-2026-minimum-elements"
+            href="/review/sample-cases/local-server-security-review"
             className="block border border-brand-accent/40 bg-brand-accent/5 p-4 transition-colors hover:border-brand-accent"
           >
-            <h3 className="text-sm font-semibold text-text-primary">SBOM minimum-elements check</h3>
+            <h3 className="text-sm font-semibold text-text-primary">Local server security review</h3>
             <p className="mt-2 text-sm leading-6 text-text-secondary">
-              CISA 2026 baseline checklist on a synthetic SBOM.
+              Read-only host package with receipt path — labelled sample only.
             </p>
           </a>
           <a
