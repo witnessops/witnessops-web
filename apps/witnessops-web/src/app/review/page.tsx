@@ -146,7 +146,7 @@ export default function ReviewPage() {
         </div>
         <div className="mt-8 flex flex-wrap items-start gap-x-8 gap-y-6">
           <div>
-            <CtaButton href="/review/request" variant="primary" label="Request one proof run" />
+            <CtaButton href="/review/request" variant="primary" label="Start a review" />
             <p className="mt-2 max-w-[300px] text-xs leading-relaxed text-text-muted">
               Send the non-secret fit check first.
             </p>
@@ -258,7 +258,7 @@ export default function ReviewPage() {
           <CtaButton
             href="/review/request"
             variant="primary"
-            label="Request one proof run"
+            label="Start a review"
           />
         </div>
       </section>

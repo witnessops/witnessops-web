@@ -194,12 +194,14 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Do not submit",
       "No dashboard subscription. No vague audit promise.",
       "What the proof pack contains",
-      "Request one proof run",
+      "Start a review",
       "Inspect sample package",
     ],
     prohibitedMarkers: [
       "Request an AI Agent Action Proof Run",
       "One security workflow in. Proof package out.",
+      "Request one proof run",
+      "Package one security workflow",
     ],
   },
   {
