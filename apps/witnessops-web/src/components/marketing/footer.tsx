@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
-import { getSurfaceUrl } from "@witnessops/config";
+import { getDocsUrl, getSurfaceUrl } from "@witnessops/config";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { isPolishPath } from "@/lib/public-i18n";
+
+const DOCS_PUBLIC_HREF = getDocsUrl("witnessops", "/", { mode: "canonical" });
 
 const LIBRARY_PRIMARY_HREFS = new Set([
   "/library",
   "/docs",
+  DOCS_PUBLIC_HREF,
   "/review",
   "/review/request",
   "/review/sample-cases",
@@ -44,7 +47,7 @@ const LIBRARY_FOOTER: FooterProps & { motto: string } = {
     "Public entry points for docs, security-workflow review, verifier fixtures, explanatory sample cases, and the illustrative sample report.",
   links: [
     { label: "Library", href: "/library" },
-    { label: "Docs", href: "/docs" },
+    { label: "Docs", href: DOCS_PUBLIC_HREF },
     { label: "Review", href: "/review" },
     { label: "Package Security Workflow", href: "/review/request" },
     { label: "Sample cases", href: "/review/sample-cases" },

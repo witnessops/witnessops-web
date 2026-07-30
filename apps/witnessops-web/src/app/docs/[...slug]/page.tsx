@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound, permanentRedirect } from "next/navigation";
 import type { ComponentType } from "react";
 import { getDocsUrl, getSurfaceUrl } from "@witnessops/config";
@@ -20,6 +21,10 @@ import { EvidenceMappingGuardrails } from "@/components/docs/evidence-mapping-gu
 import { VerifyFirstVerifierFlow } from "@/components/docs/verify-first-verifier-flow";
 import { PageAnswer } from "@/components/docs/page-answer";
 import { TrustBoundarySnippet } from "@/components/shared/trust-boundary-snippet";
+import {
+  getPublicDocPath,
+  normalizeHost,
+} from "@/lib/docs-host-routing";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 /** Quick action frame data for pages that need it */
@@ -148,10 +153,16 @@ async function getAdjacentDocs(currentSlug: string[]) {
 
 export default async function DocPage({ params }: Props) {
   const { slug } = await params;
+  const headerStore = await headers();
+  const host = normalizeHost(
+    headerStore.get("x-forwarded-host") ?? headerStore.get("host"),
+  );
+  const pub = (slugParts: string[]) => getPublicDocPath(slugParts, { host });
+
   const redirectSlug = getLegacyDocRedirectSlug("witnessops", slug);
 
   if (redirectSlug) {
-    permanentRedirect(getDocHref(redirectSlug));
+    permanentRedirect(pub(redirectSlug));
   }
 
   const doc = await getDocPage("witnessops", slug);
@@ -165,6 +176,24 @@ export default async function DocPage({ params }: Props) {
   const { prev, next } = await getAdjacentDocs(doc.slug);
   const pageAnswer = doc.pageAnswer;
   const InjectedDocComponent = DOC_COMPONENT_INJECTIONS[doc.slug.join("/")];
+  const quickFrame = QUICK_ACTION_FRAMES[doc.slug.join("/")];
+  const quickFramePublic = quickFrame
+    ? {
+        ...quickFrame,
+        nextPath: {
+          ...quickFrame.nextPath,
+          href: quickFrame.nextPath.href.startsWith("/docs")
+            ? getPublicDocPath(
+                quickFrame.nextPath.href
+                  .replace(/^\/docs\/?/, "")
+                  .split("/")
+                  .filter(Boolean),
+                { host },
+              )
+            : quickFrame.nextPath.href,
+        },
+      }
+    : null;
 
   return (
     <main
@@ -219,9 +248,7 @@ export default async function DocPage({ params }: Props) {
       {InjectedDocComponent ? <InjectedDocComponent /> : null}
 
       {/* Quick Action Frame (auto-injected for decision/scenario pages) */}
-      {QUICK_ACTION_FRAMES[doc.slug.join("/")] && (
-        <QuickActionFrame {...QUICK_ACTION_FRAMES[doc.slug.join("/")]} />
-      )}
+      {quickFramePublic ? <QuickActionFrame {...quickFramePublic} /> : null}
 
       {/* KB-grade Prev / Next */}
       <nav
@@ -231,7 +258,7 @@ export default async function DocPage({ params }: Props) {
       >
         {prev ? (
           <Link
-            href={prev.slug.length === 0 ? "/docs" : `/docs/${prev.slug.join("/")}`}
+            href={pub(prev.slug)}
             className="kb-related-link"
             data-docs-event-type="previous_click"
           >
@@ -240,7 +267,7 @@ export default async function DocPage({ params }: Props) {
         ) : null}
         {next ? (
           <Link
-            href={`/docs/${next.slug.join("/")}`}
+            href={pub(next.slug)}
             className="kb-related-link"
             data-docs-event-type="next_click"
           >

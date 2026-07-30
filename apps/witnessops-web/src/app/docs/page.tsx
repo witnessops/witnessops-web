@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { getSurfaceUrl } from "@witnessops/config";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { getDocsSidebar } from "@witnessops/content/sidebar";
 import { CtaButton } from "@/components/shared/cta-button";
+import {
+  normalizeHost,
+  toPublicDocsHref,
+} from "@/lib/docs-host-routing";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const docsDescription =
@@ -235,6 +240,12 @@ const nextHandoff = [
 
 export default async function DocsIndexPage() {
   const sidebar = await getDocsSidebar("witnessops");
+  const headerStore = await headers();
+  const host = normalizeHost(
+    headerStore.get("x-forwarded-host") ?? headerStore.get("host"),
+  );
+  const docsHost = "docs.witnessops.com";
+  const pub = (href: string) => toPublicDocsHref(href, host, docsHost);
 
   return (
     <main
@@ -265,12 +276,15 @@ export default async function DocsIndexPage() {
           the public offer as a buyer, begin with{" "}
           <Link
             className="text-brand-accent hover:opacity-80"
-            href="/docs/getting-started/proof-run-buyer-path"
+            href={pub("/docs/getting-started/proof-run-buyer-path")}
           >
             Security Workflow Buyer Path
           </Link>
           . For the general model, begin with{" "}
-          <Link className="text-brand-accent hover:opacity-80" href="/docs/getting-started">
+          <Link
+            className="text-brand-accent hover:opacity-80"
+            href={pub("/docs/getting-started")}
+          >
             Getting Started
           </Link>
           .
@@ -278,17 +292,17 @@ export default async function DocsIndexPage() {
 
         <div className="mt-6 flex flex-wrap gap-3">
           <CtaButton
-            href="/docs/getting-started/proof-run-buyer-path"
+            href={pub("/docs/getting-started/proof-run-buyer-path")}
             variant="primary"
             label="Buyer path"
           />
           <CtaButton
-            href="/docs/getting-started"
+            href={pub("/docs/getting-started")}
             variant="secondary"
             label="Learn the model"
           />
           <CtaButton
-            href="/docs/how-it-works/verification"
+            href={pub("/docs/how-it-works/verification")}
             variant="secondary"
             label="Verify a receipt"
           />
@@ -371,7 +385,7 @@ export default async function DocsIndexPage() {
             verification, and evidence-handling boundary.
           </p>
           <Link
-            href="/docs/getting-started/proof-run-buyer-path"
+            href={pub("/docs/getting-started/proof-run-buyer-path")}
             className="mt-3 inline-flex items-center border border-surface-border px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent"
           >
             Open Security Workflow Buyer Path
@@ -391,7 +405,7 @@ export default async function DocsIndexPage() {
             separate concerns.
           </p>
           <Link
-            href="/docs/quickstart/verify-first"
+            href={pub("/docs/quickstart/verify-first")}
             className="mt-3 inline-flex items-center border border-surface-border px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent"
           >
             Open Verify First quickstart
@@ -417,7 +431,9 @@ export default async function DocsIndexPage() {
                 {path.items.map((item) => (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={
+                      item.href.startsWith("/docs") ? pub(item.href) : item.href
+                    }
                     className="block border-l-2 border-surface-border pl-3 transition-colors hover:border-brand-accent"
                   >
                     <div
@@ -472,12 +488,13 @@ export default async function DocsIndexPage() {
         </h2>
         <p className="mb-5 max-w-[640px] text-sm leading-relaxed text-text-muted">
           Primary navigation lists hubs only. Open a hub for deeper pages, or use
-          search for any topic (including security education and evidence mappings).
+          search (⌘K or “/”) to find every page—including security-education leaves
+          and evidence mappings that are not in the primary sidebar.
         </p>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sidebar.map((section) => {
-            const hubHref = section.items[0]?.href ?? "/docs";
+            const hubHref = pub(section.items[0]?.href ?? "/docs");
             return (
               <Link
                 key={section.id}
@@ -579,7 +596,7 @@ export default async function DocsIndexPage() {
           {nextHandoff.map((item, index) => (
             <Link
               key={item.href}
-              href={item.href}
+              href={pub(item.href)}
               className={`kb-hover-card kb-hover-row kb-hover-row--rail-top relative border p-5 ${index === 0 ? "border-brand-accent bg-brand-accent/10" : "border-surface-border bg-surface-bg"}`}
             >
               <h3

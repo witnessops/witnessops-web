@@ -182,3 +182,15 @@ Host coherence, hub-only chrome, buyer-critical 200s, and dual sitemap roles are
 ## Summary
 
 Public docs are **operationally healthy** after host coherence + hub-only nav: English lives on **docs.witnessops.com**, apex **308s** cleanly, primary chrome is **16 hubs**, buyer paths **200**. Remaining work is **href host-awareness**, **guess/legacy redirects**, and a **conscious PL stub policy**—not another full-tree expansion.
+
+## Remediation status (P1/P2 patch lane)
+
+| ID | Status | Fix |
+| --- | --- | --- |
+| P1.1 | Fixed | Host-aware public hrefs (`toPublicDocsHref` / layout maps short paths on docs host) |
+| P1.2 | Fixed | PL nav buyer-only + single EN technical CTA to docs host |
+| P1.3 | Fixed | Legacy `permanentRedirect` uses `getPublicDocPath` |
+| P2.4 | Fixed | `intro` → getting-started; `verify` → how-it-works/verification |
+| P2.5 | Fixed | Footer Docs → `getDocsUrl(..., { mode: "canonical" })` |
+| P2.6 | Fixed | Browse-by-area copy mentions ⌘K/search for leaves |
+| P2.7 | Fixed | `resolveWitnessOpsDocsRoot()` multi-candidate, not cwd-only |

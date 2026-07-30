@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { getDocCanonicalUrl } from "./canonical";
 import { parseFrontmatterDocument } from "./frontmatter";
 import { normalizeMarkdownBody } from "./markdown";
@@ -37,15 +38,44 @@ const LEGACY_DOC_REDIRECTS: Record<DocsSurface, Record<string, string[]>> = {
     "policy-gates": ["security-systems", "policy-gates"],
     "execution-chains": ["evidence", "execution-chains"],
     "receipt-spec": ["evidence", "receipt-spec"],
+    // Common guess paths (docs-host short URLs)
+    intro: ["getting-started"],
+    verify: ["how-it-works", "verification"],
   },
 };
 
-const DOCS_ROOTS: Record<DocsSurface, string> = {
-  witnessops: path.resolve(process.cwd(), "../../content/witnessops/docs"),
-};
+/** Resolve monorepo content/witnessops/docs independent of process.cwd(). */
+export function resolveWitnessOpsDocsRoot(): string {
+  const candidates: string[] = [];
+
+  try {
+    const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+    // packages/content/src → repo root
+    candidates.push(path.resolve(moduleDir, "../../../content/witnessops/docs"));
+  } catch {
+    // import.meta.url unavailable in some CJS transforms
+  }
+
+  candidates.push(
+    path.resolve(process.cwd(), "content/witnessops/docs"),
+    path.resolve(process.cwd(), "../../content/witnessops/docs"),
+    path.resolve(process.cwd(), "../../../content/witnessops/docs"),
+  );
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return candidates[0] ?? path.resolve(process.cwd(), "content/witnessops/docs");
+}
 
 function getDocsRoot(surface: DocsSurface) {
-  return DOCS_ROOTS[surface];
+  if (surface === "witnessops") {
+    return resolveWitnessOpsDocsRoot();
+  }
+  throw new Error(`Unknown docs surface: ${surface}`);
 }
 
 function normalizeSlug(slug: string[]) {

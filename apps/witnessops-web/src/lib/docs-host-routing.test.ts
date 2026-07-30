@@ -3,9 +3,13 @@ import test from "node:test";
 
 import {
   apexDocsRedirectLocation,
+  docsPathsMatch,
+  getPublicDocPath,
   isApexMarketingHost,
+  isDocsHost,
   normalizeHost,
   stripDocsPrefix,
+  toPublicDocsHref,
 } from "./docs-host-routing";
 
 test("stripDocsPrefix maps apex docs paths to docs-host paths", () => {
@@ -60,4 +64,38 @@ test("isApexMarketingHost includes www only for the apex domain", () => {
   assert.equal(isApexMarketingHost("docs.witnessops.com", "witnessops.com"), false);
   assert.equal(isApexMarketingHost("evilwitnessops.com", "witnessops.com"), false);
   assert.equal(normalizeHost("WitnessOps.com:443"), "witnessops.com");
+});
+
+test("toPublicDocsHref shortens only on docs host", () => {
+  assert.equal(
+    toPublicDocsHref("/docs/getting-started", "docs.witnessops.com"),
+    "/getting-started",
+  );
+  assert.equal(toPublicDocsHref("/docs", "docs.witnessops.com"), "/");
+  assert.equal(
+    toPublicDocsHref("/docs/getting-started", "witnessops.com"),
+    "/docs/getting-started",
+  );
+  assert.equal(
+    toPublicDocsHref("/docs/getting-started", "localhost:3001"),
+    "/docs/getting-started",
+  );
+  assert.equal(
+    toPublicDocsHref("https://docs.witnessops.com/", "docs.witnessops.com"),
+    "https://docs.witnessops.com/",
+  );
+});
+
+test("getPublicDocPath and docsPathsMatch bridge short vs /docs forms", () => {
+  assert.equal(
+    getPublicDocPath(["getting-started"], { host: "docs.witnessops.com" }),
+    "/getting-started",
+  );
+  assert.equal(
+    getPublicDocPath(["getting-started"], { host: "witnessops.com" }),
+    "/docs/getting-started",
+  );
+  assert.equal(isDocsHost("docs.witnessops.com"), true);
+  assert.ok(docsPathsMatch("/getting-started", "/docs/getting-started"));
+  assert.ok(docsPathsMatch("/docs", "/"));
 });

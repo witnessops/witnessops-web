@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { docsPathsMatch } from "@/lib/docs-host-routing";
+
 interface NavItem {
   title: string;
   href: string;
@@ -99,7 +101,9 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
     });
   }
 
-  function isActive(href: string) { return pathname === href; }
+  function isActive(href: string) {
+    return docsPathsMatch(pathname, href);
+  }
   function isSectionActive(section: NavSection) {
     return section.items.some((item) => isActive(item.href));
   }
