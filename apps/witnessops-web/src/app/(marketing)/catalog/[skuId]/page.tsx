@@ -238,51 +238,14 @@ export default async function CatalogSkuDetailPage({ params }: PageProps) {
   const frame = detailFrame(sku);
   if (buyerService) {
     return (
-      <BuyerServiceDetail locale="en" service={buyerService} technicalId={sku.id}>
-        <div className="grid gap-9 lg:grid-cols-2 lg:gap-12">
-          <section>
-            <h2 className="text-xl font-semibold text-text-primary">Claim created</h2>
-            <p className="mt-3 text-sm leading-7 text-text-secondary">{frame.claim}</p>
-          </section>
-          <section>
-            <h2 className="text-xl font-semibold text-text-primary">Verification path</h2>
-            <p className="mt-3 text-sm leading-7 text-text-secondary">
-              {frame.verificationPath}
-            </p>
-          </section>
-          <section>
-            <h2 className="text-xl font-semibold text-text-primary">Evidence included</h2>
-            <ul className="mt-4 grid gap-3 text-sm text-text-secondary">
-              {sku.deliverables.map((deliverable) => (
-                <li
-                  key={deliverable}
-                  className="border border-surface-border bg-surface-card/40 px-4 py-3"
-                >
-                  {deliverable}
-                </li>
-              ))}
-            </ul>
-          </section>
-          <div className="grid gap-8">
-            <section>
-              <h2 className="text-xl font-semibold text-text-primary">Named boundaries</h2>
-              <ul className="mt-4 space-y-3 text-sm leading-6 text-text-secondary">
-                {sku.boundaries.map((boundary) => (
-                  <li key={boundary}>— {boundaryLabel(boundary)}</li>
-                ))}
-              </ul>
-            </section>
-            <section>
-              <h2 className="text-xl font-semibold text-text-primary">Not included</h2>
-              <ul className="mt-4 space-y-3 text-sm leading-6 text-text-secondary">
-                {frame.notIncluded.map((item) => (
-                  <li key={item}>— {item}</li>
-                ))}
-              </ul>
-            </section>
-          </div>
-        </div>
-      </BuyerServiceDetail>
+      <BuyerServiceDetail
+        locale="en"
+        service={buyerService}
+        technicalId={sku.id}
+        claim={frame.claim}
+        verificationPath={frame.verificationPath}
+        notIncluded={frame.notIncluded}
+      />
     );
   }
 
@@ -292,109 +255,108 @@ export default async function CatalogSkuDetailPage({ params }: PageProps) {
     href.startsWith("http://") || href.startsWith("https://");
 
   return (
-    <main
-      id="main-content"
-      tabIndex={-1}
-      className="docs-page-enter mx-auto max-w-3xl px-6 py-10 lg:py-14"
-    >
-      <Link
-        href="/catalog"
-        className="text-xs uppercase tracking-[0.16em] text-brand-accent hover:underline"
-      >
-        ← Catalog
-      </Link>
-      <header className="mt-4 border-b border-surface-border pb-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
-          {sku.id}
-        </p>
-        <h1
-          className="mt-2 text-3xl font-semibold text-text-primary"
-          style={{ fontFamily: "var(--font-display)" }}
+    <main id="main-content" tabIndex={-1} className="buyer-page" data-page="catalog-sku-detail">
+      <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
+        <Link
+          href="/catalog"
+          className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline-offset-4 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
         >
-          {sku.name}
-        </h1>
-        <p className="mt-2 text-lg text-brand-accent">{sku.price.display}</p>
-        <p className="mt-4 text-sm leading-7 text-text-secondary">{sku.summary}</p>
-      </header>
+          ← Back to services
+        </Link>
 
-      <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-          Claim created
-        </h2>
-        <p className="mt-3 text-sm leading-7 text-text-secondary">{frame.claim}</p>
-      </section>
+        <header className="mt-8 grid gap-8 border-b border-surface-border pb-12 md:gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:items-end">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+              {sku.id}
+            </p>
+            <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
+              {sku.name}
+            </h1>
+            <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">{sku.summary}</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {primary ? (
+                isExternal(primary) ? (
+                  <a
+                    href={primary}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex min-h-12 items-center justify-center border border-brand-accent bg-brand-accent px-6 text-sm font-semibold text-white"
+                  >
+                    Get started
+                  </a>
+                ) : (
+                  <CtaButton href={primary} variant="primary" label="Get started" />
+                )
+              ) : null}
+              {secondary && !isExternal(secondary) ? (
+                <CtaButton href={secondary} variant="secondary" label="Inspect sample" />
+              ) : null}
+              <CtaButton href="/catalog" variant="secondary" label="View services" />
+            </div>
+          </div>
+          <aside className="border border-brand-accent/40 bg-brand-accent/5 p-6 sm:p-7">
+            <p className="text-sm font-semibold text-text-muted">Commercial line</p>
+            <p className="mt-3 text-3xl font-semibold text-text-primary">{sku.price.display}</p>
+            <p className="mt-5 border-t border-surface-border pt-5 text-sm leading-6 text-text-secondary">
+              {frame.nextStep}
+            </p>
+          </aside>
+        </header>
 
-      <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-          Evidence included
-        </h2>
-        <ul className="mt-3 grid gap-2 text-sm text-text-secondary">
-          {sku.deliverables.map((d) => (
-            <li key={d} className="border border-surface-border bg-surface-card/40 px-4 py-3">
-              {d}
-            </li>
-          ))}
-        </ul>
-      </section>
+        <section className="border-b border-surface-border py-12">
+          <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+            What is claimed
+          </h2>
+          <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">{frame.claim}</p>
+        </section>
 
-      <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-          Verification path
-        </h2>
-        <p className="mt-3 text-sm leading-7 text-text-secondary">{frame.verificationPath}</p>
-      </section>
+        <section className="grid gap-10 border-b border-surface-border py-12 md:grid-cols-2">
+          <div>
+            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+              What you receive
+            </h2>
+            <ul className="mt-6 space-y-4 text-base leading-7 text-text-secondary">
+              {sku.deliverables.map((item) => (
+                <li key={item} className="border-t border-surface-border pt-4">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+              How to inspect the result
+            </h2>
+            <p className="mt-6 border-t border-surface-border pt-4 text-base leading-7 text-text-secondary">
+              {frame.verificationPath}
+            </p>
+          </div>
+        </section>
 
-      <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-          Named boundary
-        </h2>
-        <ul className="mt-3 space-y-2 text-sm text-text-muted">
-          {sku.boundaries.map((b) => (
-            <li key={b}>— {boundaryLabel(b)}</li>
-          ))}
-        </ul>
-      </section>
+        <section className="border-b border-surface-border py-12">
+          <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">Boundaries</h2>
+          <ul className="mt-6 space-y-4 text-base leading-7 text-text-secondary">
+            {sku.boundaries.map((boundary) => (
+              <li key={boundary} className="border-t border-surface-border pt-4">
+                {boundaryLabel(boundary)}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-10">
+            <h3 className="text-xl font-semibold text-text-primary">Not included</h3>
+            <ul className="mt-4 space-y-3 text-base leading-7 text-text-secondary">
+              {frame.notIncluded.map((item) => (
+                <li key={item} className="border-t border-surface-border pt-3">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
 
-      <section className="mb-8">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-          What is not included
-        </h2>
-        <ul className="mt-3 space-y-2 text-sm text-text-muted">
-          {frame.notIncluded.map((item) => (
-            <li key={item}>— {item}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="mb-8 border border-surface-border bg-surface-card/30 p-5">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-          Next step
-        </h2>
-        <p className="mt-3 text-sm leading-7 text-text-secondary">{frame.nextStep}</p>
-      </section>
-
-      <div className="flex flex-wrap gap-3">
-        {primary ? (
-          isExternal(primary) ? (
-            <a
-              href={primary}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-10 items-center border border-surface-border px-5 text-xs font-semibold uppercase tracking-[0.14em]"
-            >
-              Primary CTA
-            </a>
-          ) : (
-            <CtaButton href={primary} variant="primary" label="Get started" />
-          )
-        ) : null}
-        {secondary && !isExternal(secondary) ? (
-          <CtaButton href={secondary} variant="secondary" label="Inspect sample" />
-        ) : null}
-      </div>
-
-      <div className="mt-10">
-        <PublicContactRoute productName={sku.name} subject="fit-check" />
+        <div className="border-t border-surface-border pt-10">
+          <PublicContactRoute productName={sku.name} subject="fit-check" />
+        </div>
       </div>
     </main>
   );

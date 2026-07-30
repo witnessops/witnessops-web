@@ -1,6 +1,5 @@
 import { CtaButton } from "@/components/shared/cta-button";
 import type { CatalogSku } from "@witnessops/catalog";
-import Link from "next/link";
 
 function statusLabel(status: string) {
   const map: Record<string, string> = {
@@ -107,7 +106,7 @@ export function CatalogSkuCard({ sku }: { sku: CatalogSku }) {
   const frame = buyerFrame(sku);
 
   return (
-    <article className="border border-surface-border bg-surface-card/40 p-5">
+    <article className="flex h-full flex-col bg-white p-7 md:p-9">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-accent">
           {statusLabel(sku.status)}
@@ -115,34 +114,31 @@ export function CatalogSkuCard({ sku }: { sku: CatalogSku }) {
         {publicAvailability ? (
           <span className="text-xs text-text-muted">{publicAvailability}</span>
         ) : null}
-        <span className="text-xs text-text-muted">{sku.price.display}</span>
       </div>
-      <h3 className="mt-3 text-base font-semibold text-text-primary">{sku.name}</h3>
-      <p className="mt-2 text-sm leading-7 text-text-secondary">{sku.summary}</p>
+      <h3 className="mt-4 text-2xl font-semibold tracking-[-0.02em] text-text-primary">{sku.name}</h3>
+      <p className="mt-4 text-base leading-7 text-text-secondary">{sku.summary}</p>
+      <dl className="mt-7 grid gap-4 border-t border-surface-border pt-5 text-sm sm:grid-cols-2">
+        <div>
+          <dt className="font-semibold text-text-primary">Price</dt>
+          <dd className="mt-1 leading-6 text-text-muted">{sku.price.display}</dd>
+        </div>
+        {frame ? (
+          <div>
+            <dt className="font-semibold text-text-primary">Boundary</dt>
+            <dd className="mt-1 leading-6 text-text-muted">{frame.boundary}</dd>
+          </div>
+        ) : null}
+      </dl>
       {frame ? (
-        <dl className="mt-4 space-y-2 text-sm leading-6 text-text-muted">
-          <div>
-            <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-text-muted">Buyer doubt</dt>
-            <dd>{frame.doubt}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-text-muted">Boundary</dt>
-            <dd>{frame.boundary}</dd>
-          </div>
-        </dl>
+        <p className="mt-4 text-sm leading-6 text-text-muted">{frame.doubt}</p>
       ) : null}
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Link
-          href={detailHref}
-          className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent hover:underline"
-        >
-          Details
-        </Link>
+      <div className="mt-auto flex flex-wrap gap-3 pt-6">
+        <CtaButton href={detailHref} variant="primary" label="Learn more" />
         {normalizedPrimaryCta ? (
           isMailto ? (
             <a
               href={normalizedPrimaryCta}
-              className="text-xs font-semibold uppercase tracking-[0.12em] text-text-muted hover:text-text-primary"
+              className="inline-flex min-h-12 items-center text-sm font-semibold text-text-secondary underline-offset-4 hover:underline"
             >
               {ctaLabel}
             </a>
@@ -151,7 +147,7 @@ export function CatalogSkuCard({ sku }: { sku: CatalogSku }) {
               href={normalizedPrimaryCta}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-semibold uppercase tracking-[0.12em] text-text-muted hover:text-text-primary"
+              className="inline-flex min-h-12 items-center text-sm font-semibold text-text-secondary underline-offset-4 hover:underline"
             >
               {ctaLabel}
             </a>

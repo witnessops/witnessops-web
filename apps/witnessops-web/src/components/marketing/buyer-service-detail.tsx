@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
 import {
+  ONE_PAGER_LINK_PROPS,
   buyerCatalogHref,
   buyerRequestHref,
   type BuyerLocale,
@@ -10,133 +12,254 @@ import {
 } from "@/lib/buyer-services";
 import { PUBLIC_NO_SECRETS_NOTE } from "@/lib/public-contact";
 import { POLISH_NO_SECRETS_NOTE } from "@/lib/public-i18n";
+import { getServiceLanding } from "@/lib/service-landings";
 
-const copy = {
+const ui = {
   en: {
-    eyebrow: "Services",
     back: "Back to services",
-    result: "What you receive",
-    price: "Price",
-    timing: "Timing",
-    start: "Start a review",
+    commercial: "Commercial line",
+    whoFor: "Who it is for",
+    receive: "What you receive",
+    how: "How it works",
+    claim: "What is claimed",
+    boundaries: "Boundaries",
+    notIncluded: "Not included",
+    verification: "How to inspect the result",
+    start: "Start a non-secret fit check",
+    viewServices: "View services",
+    onePager: "One-pager (PDF)",
     reference: "Service reference",
+    sampleFallback: "View example",
   },
   pl: {
-    eyebrow: "Usługi",
     back: "Wróć do usług",
-    result: "Co otrzymasz",
-    price: "Cena",
-    timing: "Termin",
-    start: "Rozpocznij przegląd",
+    commercial: "Warunki handlowe",
+    whoFor: "Dla kogo",
+    receive: "Co otrzymasz",
+    how: "Jak to działa",
+    claim: "Co obejmuje twierdzenie",
+    boundaries: "Granice",
+    notIncluded: "Czego oferta nie obejmuje",
+    verification: "Jak sprawdzić wynik",
+    start: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    viewServices: "Zobacz usługi",
+    onePager: "One-pager (PDF)",
     reference: "Identyfikator usługi",
+    sampleFallback: "Zobacz przykład",
   },
 } as const;
+
+/** Short commercial figure for the accent panel (CSR-style). */
+function commercialPriceLabel(price: string): string {
+  const cut = price.split(/\s+(?:after|po)\s+/i)[0]?.trim();
+  return cut || price;
+}
 
 export function BuyerServiceDetail({
   locale,
   service,
   technicalId,
   requestHref: requestHrefOverride,
+  claim,
+  notIncluded,
+  verificationPath,
   children,
 }: {
   locale: BuyerLocale;
   service: BuyerService;
   technicalId?: string;
   requestHref?: string;
+  /** Optional catalog claim sentence (shown once, CSR-clean). */
+  claim?: string;
+  /** Extra not-included lines from catalog frames. */
+  notIncluded?: string[];
+  verificationPath?: string;
   children?: ReactNode;
 }) {
-  const text = copy[locale];
+  const text = ui[locale];
+  const landing = getServiceLanding(service.id, locale);
   const requestHref = requestHrefOverride ?? buyerRequestHref(locale);
   const catalogueHref = buyerCatalogHref(locale);
+  const onePager = service.onePagerHref?.[locale] ?? service.onePagerHref?.en;
+  const primaryCta = landing.primaryCta ?? text.start;
+  const secretsNote = locale === "pl" ? POLISH_NO_SECRETS_NOTE : PUBLIC_NO_SECRETS_NOTE;
+  const priceDisplay = commercialPriceLabel(service.price[locale]);
 
   return (
     <main
       id="main-content"
       tabIndex={-1}
-      className="buyer-page bg-surface-bg"
+      className="buyer-page"
       data-page="buyer-service-detail"
       data-buyer-service-detail={service.id}
       data-price-contract={service.commercialContract.price}
       data-timing-contract={service.commercialContract.timing}
     >
-      <div className="mx-auto max-w-[1180px] px-6 py-10 md:py-14">
+      <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <Link
           href={catalogueHref}
-          className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline-offset-4 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+          className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline-offset-4 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
         >
           ← {text.back}
         </Link>
 
-        <header className="mt-7 grid gap-8 border-b border-surface-border pb-10 lg:grid-cols-[minmax(0,1.25fr)_minmax(300px,0.75fr)] lg:gap-12 lg:pb-14">
-          <div className="min-w-0">
+        <header className="mt-8 grid gap-8 border-b border-surface-border pb-12 md:gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:items-end">
+          <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-              {text.eyebrow}
-            </p>
-            <h1 className="mt-3 max-w-[18ch] text-[38px] font-semibold leading-[1.02] tracking-[-0.035em] text-text-primary text-balance sm:text-[44px] md:text-[52px]">
               {service.name[locale]}
+            </p>
+            <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
+              {landing.headline}
             </h1>
-            <p className="mt-5 max-w-[60ch] text-base leading-7 text-text-secondary md:text-lg md:leading-8">
+            <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">
               {service.situation[locale]}
             </p>
-            <div className="mt-7">
-              <CtaButton
-                href={requestHref}
-                variant="primary"
-                label={text.start}
-                className="min-h-11 rounded-sm px-5 shadow-none hover:shadow-none"
-              />
+            <div className="mt-8 flex flex-wrap gap-3">
+              <CtaButton href={requestHref} variant="primary" label={primaryCta} />
+              {onePager ? (
+                <a
+                  href={onePager}
+                  {...ONE_PAGER_LINK_PROPS}
+                  data-one-pager={service.id}
+                  className="inline-flex min-h-12 items-center justify-center border border-surface-border px-6 text-center text-sm font-semibold leading-5 text-text-primary transition-colors hover:border-brand-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                >
+                  {text.onePager}
+                </a>
+              ) : null}
+              {landing.sampleHref ? (
+                <CtaButton
+                  href={landing.sampleHref}
+                  variant="secondary"
+                  label={landing.sampleLabel ?? text.sampleFallback}
+                />
+              ) : null}
+              <CtaButton href={catalogueHref} variant="secondary" label={text.viewServices} />
             </div>
-            <p className="mt-4 max-w-[62ch] text-xs leading-5 text-text-muted">
-              {locale === "pl" ? POLISH_NO_SECRETS_NOTE : PUBLIC_NO_SECRETS_NOTE}
-            </p>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-text-muted">{secretsNote}</p>
           </div>
 
-          <aside className="self-start border border-surface-border bg-surface-card/50 p-5 sm:p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
-              {text.result}
-            </p>
-            <p className="mt-3 text-sm leading-7 text-text-secondary">
-              {service.result[locale]}
-            </p>
-            <dl className="mt-6 border-t border-surface-border pt-5">
+          <aside className="border border-brand-accent/40 bg-brand-accent/5 p-6 sm:p-7">
+            <div className="sm:grid sm:grid-cols-2 sm:gap-8 lg:block">
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                  {text.price}
-                </dt>
-                <dd className="mt-2 text-lg font-semibold text-text-primary">
-                  {service.price[locale]}
-                </dd>
+                <p className="text-sm font-semibold text-text-muted">{text.commercial}</p>
+                <p className="mt-3 text-3xl font-semibold text-text-primary">{priceDisplay}</p>
+                {landing.commercialNote ? (
+                  <p className="mt-2 text-sm leading-6 text-text-secondary">
+                    {landing.commercialNote}
+                  </p>
+                ) : null}
               </div>
-              <div className="mt-5">
-                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                  {text.timing}
-                </dt>
-                <dd className="mt-2 text-sm leading-6 text-text-secondary">
-                  {service.timing[locale]}
-                </dd>
+              <div className="mt-6 border-t border-surface-border pt-5 sm:mt-0 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-8 lg:mt-6 lg:border-t lg:border-l-0 lg:pt-5 lg:pl-0">
+                <p className="text-sm leading-6 text-text-secondary">{service.timing[locale]}</p>
+                {technicalId ? (
+                  <p className="mt-4 font-mono text-[11px] text-text-muted">
+                    {text.reference}: {technicalId}
+                  </p>
+                ) : null}
               </div>
-              {technicalId ? (
-                <div className="mt-5 border-t border-surface-border pt-4">
-                  <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                    {text.reference}
-                  </dt>
-                  <dd className="mt-2 font-mono text-xs text-text-muted">{technicalId}</dd>
-                </div>
-              ) : null}
-            </dl>
+            </div>
           </aside>
         </header>
 
-        {children ? <div className="py-10 md:py-14">{children}</div> : null}
-
-        <section className="border-t border-surface-border pt-8">
-          <CtaButton
-            href={requestHref}
-            variant="primary"
-            label={text.start}
-            className="min-h-11 rounded-sm px-5 shadow-none hover:shadow-none"
-          />
+        <section className="border-b border-surface-border py-12">
+          <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+            {text.whoFor}
+          </h2>
+          <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
+            {landing.whoFor}
+          </p>
         </section>
+
+        <section className="grid gap-10 border-b border-surface-border py-12 md:grid-cols-2 md:gap-8 lg:gap-10">
+          <div>
+            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+              {text.receive}
+            </h2>
+            <ul className="mt-6 space-y-4 text-base leading-7 text-text-secondary">
+              {landing.deliverables.map((item) => (
+                <li key={item} className="border-t border-surface-border pt-4">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+              {text.how}
+            </h2>
+            <ol className="mt-6 space-y-4">
+              {landing.steps.map(([title, body], index) => (
+                <li key={title} className="border-t border-surface-border pt-4">
+                  <p className="text-sm font-semibold text-text-primary">
+                    {index + 1}. {title}
+                  </p>
+                  <p className="mt-1 text-sm leading-7 text-text-secondary">{body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {claim ? (
+          <section className="border-b border-surface-border py-12">
+            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+              {text.claim}
+            </h2>
+            <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">{claim}</p>
+          </section>
+        ) : null}
+
+        {verificationPath ? (
+          <section className="border-b border-surface-border py-12">
+            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+              {text.verification}
+            </h2>
+            <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
+              {verificationPath}
+            </p>
+          </section>
+        ) : null}
+
+        {children ? (
+          <section className="border-b border-surface-border py-12">{children}</section>
+        ) : null}
+
+        <section className="border-b border-surface-border py-12">
+          <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+            {text.boundaries}
+          </h2>
+          <ul className="mt-6 space-y-4 text-base leading-7 text-text-secondary">
+            {landing.boundaries.map((item) => (
+              <li key={item} className="border-t border-surface-border pt-4">
+                {item}
+              </li>
+            ))}
+          </ul>
+          {notIncluded && notIncluded.length > 0 ? (
+            <div className="mt-10">
+              <h3 className="text-xl font-semibold text-text-primary">{text.notIncluded}</h3>
+              <ul className="mt-4 space-y-3 text-base leading-7 text-text-secondary">
+                {notIncluded.map((item) => (
+                  <li key={item} className="border-t border-surface-border pt-3">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+
+        <div className="border-t border-surface-border pt-10">
+          <div className="mb-8 flex flex-wrap gap-3">
+            <CtaButton href={requestHref} variant="primary" label={primaryCta} />
+            <CtaButton href={catalogueHref} variant="secondary" label={text.viewServices} />
+          </div>
+          <PublicContactRoute
+            subject="fit-check"
+            productName={service.name[locale]}
+            locale={locale}
+          />
+        </div>
       </div>
     </main>
   );
