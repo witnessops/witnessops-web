@@ -24,15 +24,20 @@ test("customer security review page keeps the approved commercial boundary", () 
 });
 
 test("customer security review page does not widen the public product boundary", () => {
+  // Secondary "View services" -> /catalog is intentional site chrome (navbar/footer).
+  // Keep the page from promoting the review hub alone or overclaim language.
   for (const forbidden of [
     "verified compliance",
     "certified compliance",
     "guaranteed approval",
     "security guaranteed",
     "href=\"/review\"",
-    "href=\"/catalog\"",
     "public evidence upload",
   ]) {
     assert.ok(!source.includes(forbidden), `Forbidden page content present: ${forbidden}`);
   }
+
+  assert.match(source, /href="\/catalog"/);
+  assert.match(source, /View services/);
+  assert.match(source, /href="\/review\/request"/);
 });
