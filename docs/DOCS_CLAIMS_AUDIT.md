@@ -189,3 +189,53 @@ These were reviewed and **not** filed as findings when the surrounding “does n
 - Fixing the copy (this document is audit-only).  
 - Private mesh doc accuracy beyond “should not be public-buyer primary.”  
 - Full legal review of education pages.
+
+---
+
+## Second sweep (2026-07-30) — independent checks
+
+Checks chosen by auditor (not a re-run of the first pattern pass only):
+
+1. **Draft frontmatter vs public serving**  
+2. **All external HTTPS links in MDX (HEAD/GET status)**  
+3. **Live HTML vs MDX phrase presence** for buyer path, verification, receipt-spec, commands, man  
+4. **`/review` keyword alignment** with buyer-path wording  
+5. **Sitemap inclusion of man pages**  
+6. **Catalog table misread risk** (definition vs “outside responsibility”)  
+7. **Commercial language** in docs  
+
+### Results
+
+| Check | Result |
+| --- | --- |
+| Draft MDX files | **2**: `man/index.mdx`, `man/witnessops.mdx` |
+| `listDocPages` filters `draft: true` | Yes — man not in dynamic slug list / **not in sitemap** (62 locs) |
+| Man still public | **Yes** — dedicated route `apps/.../docs/man/witnessops/page.tsx` reads MDX **ignoring draft**, serves **200**, `robots: noindex` |
+| External links in entire docs MDX | **Only 2** URLs |
+| `https://hacktheworld.zip/mesh-docs/` | **HTTP 403** (dead/private for public crawlers) — cited from `reference/commands.mdx` (+ mesh guidance in `audiences/new-operator.mdx`) |
+| `https://witnessops.com/support/support-policy` | **200** OK |
+| Buyer path live still has “Proof-Backed Security Workflow” + “Codex” | **Yes** (mdx + live docs page) |
+| Live `/review` | **No** “security workflow”, **No** “Codex”; H1 is proof-pack framing |
+| Affirmative “proves that” lines (still live) | 5 files (receipt-spec, lab-mode, how-it-works index, catalog *outside* column, governed-execution) |
+| Catalog “Proves that… met real-world objectives” | **Not a false claim** — it is under **“Outside catalog responsibility”** (negative). Leave as-is; optional reword to “Does not prove…” for skimmers. |
+| Commercial/SLA €/$ claims in docs MDX | **None** found (buyer path points to `/pricing` only) |
+| Absolute “impossible to compromise” product claims | **None**; education uses “impossible-travel” as a signal pattern (OK) |
+
+### New / reinforced findings
+
+| ID | Sev | Finding |
+| --- | --- | --- |
+| **M4** | **P0** | **Broken public external link:** `hacktheworld.zip/mesh-docs/` → **403**. Public Commands (and related mesh notes) send readers to an inaccessible URL. |
+| **M5** | **P1** | **`draft: true` does not unpublish man pages.** Special App Router page bypasses draft filter; content still claims “authoritative” while draft + noindex. Inconsistent product contract. |
+| **M1** | **P0** | **Reconfirmed:** buyer-path offer naming/tool list still disagrees with live `/review`. |
+| **C1–C3** | **P1** | **Reconfirmed live:** “proves that WitnessOps issued / controlled path / what ran” still on public HTML. |
+
+### Second-sweep fix order (additive)
+
+1. Remove or replace **hacktheworld** link (or gate behind “private mesh operators only” without a dead URL).  
+2. Honor `draft` on man route **or** undraft and drop “authoritative”; keep noindex if supplemental.  
+3. Same copy fixes as first-pass M1 + prove-language soften (C1–C5).
+
+### Second-sweep method note
+
+This sweep intentionally prioritized **link liveness**, **draft/publish plumbing**, and **live product naming**, which the first pass under-weighted relative to prose overclaim patterns.
