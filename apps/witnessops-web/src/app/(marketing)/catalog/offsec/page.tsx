@@ -5,8 +5,9 @@ import { PublicContactRoute } from "@/components/marketing/public-contact-route"
 import { getSkusByTrack } from "@witnessops/catalog";
 
 export const metadata: Metadata = {
-  title: "Security Proof Packages",
-  description: "Security proof packages requested through WitnessOps: local audits, launch readiness, custody review, and incident readiness.",
+  title: "Security review packages",
+  description:
+    "Bounded security reviews on authorised hosts: local server check, launch readiness, custody review, and incident readiness. Non-secret fit check first; not compliance certification.",
   alternates: { canonical: "/catalog/offsec" },
 };
 
@@ -20,19 +21,17 @@ export default function CatalogOffsecPage() {
           ← Catalog
         </Link>
         <h1 className="mt-4 text-3xl font-semibold uppercase tracking-[0.04em] text-text-primary lg:text-4xl" style={{ fontFamily: "var(--font-display)" }}>
-          Security proof packages
+          Security review packages
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-text-secondary">
-          Bounded local checks on authorized hosts. Reports, receipts, and signed proof-packs
-          you inspect offline. Security proof packages are available through
-          WitnessOps request while the public OffSec surface is being prepared;
-          there is no external portal or checkout in the buyer path.
+          Bounded checks on authorised hosts. Reports, receipts, and packages you
+          inspect offline. Requested through a non-secret fit check — there is no
+          external portal or self-serve checkout on the buyer path.
         </p>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-text-muted">
-          Security packages name what was checked, which evidence supports it,
-          which hosts or systems were authorized, and what remains outside
-          scope. They do not launch an OffSec portal, move funds, collect
-          secrets, or certify compliance.
+          Packages name what was checked, which evidence supports it, which hosts
+          or systems were authorised, and what remains outside scope. They do not
+          launch an OffSec portal, move funds, collect secrets, or certify compliance.
         </p>
       </header>
       <div className="grid gap-4 md:grid-cols-2">

@@ -9,7 +9,8 @@ export type BuyerService = {
     | "one-server-security-check"
     | "launch-readiness-check"
     | "key-access-custody-review"
-    | "incident-readiness-review";
+    | "incident-readiness-review"
+    | "sbom-minimum-elements-check";
   productId?: string;
   commercialContract: {
     price: string;
@@ -277,6 +278,46 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     detailHref: {
       en: "/catalog/offsec-incident-ready",
       pl: "/pl/catalog/offsec-incident-ready",
+    },
+  },
+  {
+    id: "sbom-minimum-elements-check",
+    productId: "SBOM-MIN-ELEMENTS",
+    commercialContract: {
+      price: "from_eur_1200_after_non_secret_fit_check",
+      timing: "confirmed_during_non_secret_fit_check",
+    },
+    name: {
+      en: "SBOM minimum-elements check",
+      pl: "SBOM minimum-elements check",
+    },
+    cardSituation: {
+      en: "You need a clear checklist against CISA 2026 SBOM minimum elements for one software unit.",
+      pl: "Potrzebujesz jasnej listy kontrolnej względem elementów minimalnych SBOM CISA 2026 dla jednej jednostki oprogramowania.",
+    },
+    situation: {
+      en: "You received or produced a software bill of materials and need a bounded answer: which CISA 2026 minimum elements appear present, partial, missing or unknown for one named software unit.",
+      pl: "Otrzymałeś lub wytworzyłeś SBOM i potrzebujesz ograniczonej odpowiedzi: które elementy minimalne CISA 2026 są obecne, częściowe, brakujące lub nieznane dla jednej wskazanej jednostki oprogramowania.",
+    },
+    result: {
+      en: "A checklist package with generation context, present/partial/missing statuses, named gaps, evidence references and clear limits — not a compliance certificate.",
+      pl: "Pakiet z listą kontrolną, kontekstem generacji, statusami obecne/częściowe/brakujące, nazwanymi lukami, odwołaniami do materiałów i jasnymi ograniczeniami — nie certyfikat zgodności.",
+    },
+    price: {
+      en: "From €1,200 after a non-secret fit check",
+      pl: "Od €1,200 po wstępnej ocenie bez informacji poufnych",
+    },
+    timing: {
+      en: "Confirmed during the non-secret fit check",
+      pl: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
+    },
+    boundary: {
+      en: "This is not CISA or federal compliance certification, not a vulnerability scan, and not a claim that the software is free of known exploits.",
+      pl: "To nie jest certyfikacja zgodności CISA ani federalna, nie skan podatności i nie twierdzenie, że oprogramowanie jest wolne od znanych exploitów.",
+    },
+    detailHref: {
+      en: "/catalog/sbom-min-elements",
+      pl: "/pl/catalog/sbom-min-elements",
     },
   },
 ] as const;

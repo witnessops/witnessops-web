@@ -63,43 +63,67 @@ function detailFrame(sku: CatalogSku): DetailFrame {
     },
     "OFFSEC-LOCAL-AUDIT": {
       claim:
-        "This package creates an authorized local host posture claim with findings, report, receipt, manifest, proofpack, and buyer walkthrough.",
+        "This review produces a bounded, read-only picture of one authorised Linux server: what was checked, which evidence supports the result, and what remains unresolved. It is not a penetration test or certification.",
       verificationPath:
-        "Use the included receipt, manifest, signed proofpack, and walkthrough to inspect the artifact set. WitnessOps /api/verify applies only when the delivered artifact names that verifier path.",
-      notIncluded: ["exploitation", "secret collection", "fund movement", "unapproved hosts", "compliance certification"],
-      nextStep: "Request scope for the authorized hosts and evidence handling before any collection occurs.",
+        "Inspect the delivered report, receipt, and hash manifest. Structural web verify may apply when the receipt uses a supported schema; offline byte checks stay on the operator path when named.",
+      notIncluded: [
+        "exploitation",
+        "secret collection",
+        "fund movement",
+        "unapproved hosts",
+        "compliance certification",
+      ],
+      nextStep: "Start a non-secret fit check for the authorised host and evidence handling before any collection.",
     },
     "OFFSEC-LAUNCH-READY": {
       claim:
-        "This package creates a launch-readiness security proof package naming checked posture, findings, drift, and limits.",
+        "This review produces a bounded pre-launch readiness package naming checked posture, findings, drift, and open decisions. It is not a guarantee that the release is defect-free or safe in every environment.",
       verificationPath:
-        "Use the delivered report, drift data, proofpack, and any named verifier path included in the packet. Do not infer a verifier that is not named.",
-      notIncluded: ["production readiness guarantee", "OffSec portal checkout", "secret collection", "unapproved systems", "compliance certification"],
-      nextStep: "Request a launch-readiness fit check with systems and boundaries named at a high level.",
+        "Use the delivered report, drift notes, and any named verifier path in the packet. Do not infer a verifier that is not named.",
+      notIncluded: [
+        "production readiness guarantee",
+        "self-serve portal checkout",
+        "secret collection",
+        "unapproved systems",
+        "compliance certification",
+      ],
+      nextStep: "Start a non-secret fit check with systems and boundaries named at a high level.",
     },
     "OFFSEC-CUSTODY-OPS": {
       claim:
-        "This package creates a read-only custody or wallet-ops posture claim with receipted deliverables.",
+        "This review produces a read-only picture of how key, access or custody controls are documented. WitnessOps does not take custody of funds or secrets.",
       verificationPath:
-        "Use the delivered posture, findings, report, and proofpack to inspect what was reviewed and what remains outside scope.",
-      notIncluded: ["custody of funds", "fund movement", "exchange service", "private key handling", "compliance certification"],
-      nextStep: "Request a fit check that names the custody posture question without sending keys or wallet evidence.",
+        "Use the delivered posture notes, findings, and report to inspect what was reviewed and what remains outside scope.",
+      notIncluded: [
+        "custody of funds",
+        "fund movement",
+        "exchange service",
+        "private key handling",
+        "compliance certification",
+      ],
+      nextStep: "Start a fit check that names the custody question without sending keys or wallet evidence.",
     },
     "OFFSEC-INCIDENT-READY": {
       claim:
-        "This package creates an incident-readiness claim that separates what is known, inferred, and still unknown.",
+        "This review produces a readiness report for one defined incident scenario, separating observed preparation, assertions, unknowns, and open decisions. It is not emergency incident response or a 24/7 service.",
       verificationPath:
-        "Use the readiness report, receipt trail, and proofpack to inspect the bounded evidence and gaps.",
-      notIncluded: ["hack-back", "destructive testing", "live incident command", "secret intake before handling is agreed"],
-      nextStep: "Request a non-secret incident-readiness fit check and name the high-level boundary.",
+        "Use the readiness report and named evidence references to inspect the bounded picture and gaps.",
+      notIncluded: [
+        "hack-back",
+        "destructive testing",
+        "live incident command",
+        "secret intake before handling is agreed",
+        "guarantee of incident outcome",
+      ],
+      nextStep: "Start a non-secret incident-readiness fit check and name the high-level boundary.",
     },
     "OFFSEC-PILOT": {
       claim:
-        "This package creates an entry proofpack set for a signed, time-boxed pilot scope.",
+        "This is a signed, time-boxed pilot for one bounded collection or review scope with inspectable outputs and named limits.",
       verificationPath:
-        "Use the proofpack set and buyer walkthrough to inspect the pilot outputs and limits.",
+        "Use the pilot deliverables and walkthrough to inspect outputs and limits.",
       notIncluded: ["open-ended retainer", "unsigned scope", "unapproved hosts", "production monitoring"],
-      nextStep: "Request a pilot fit check and keep the first message non-secret.",
+      nextStep: "Start a pilot fit check and keep the first message non-secret.",
     },
     "OFFSEC-RETAINER": {
       claim:
@@ -107,7 +131,7 @@ function detailFrame(sku: CatalogSku): DetailFrame {
       verificationPath:
         "Verification or inspection paths must be named in the agreed retainer scope before any claim is made.",
       notIncluded: ["EDR", "SIEM", "continuous monitoring", "unbounded collection", "automatic proof of security"],
-      nextStep: "Request a fit check if you need recurring bounded receipt trails.",
+      nextStep: "Start a fit check if you need recurring bounded review packages.",
     },
     "OFFSEC-PROOF-INFRA": {
       claim:
@@ -115,7 +139,21 @@ function detailFrame(sku: CatalogSku): DetailFrame {
       verificationPath:
         "The engagement would define the verifier integration and receipt authority gates before setup work starts.",
       notIncluded: ["managed proof run by default", "public marketplace", "app launch", "secret custody"],
-      nextStep: "Request an infrastructure fit check and name the pipeline question.",
+      nextStep: "Start an infrastructure fit check and name the pipeline question.",
+    },
+    "SBOM-MIN-ELEMENTS": {
+      claim:
+        "This review packages a checklist of CISA 2026 SBOM minimum elements for one named software unit: present, partial, missing, or unknown fields with named gaps. It is not a compliance certificate and not a vulnerability assessment.",
+      verificationPath:
+        "Inspect the SBOM artifact, generation context, checklist, evidence manifest, and sample-scoped receipt where produced. Structural package checks do not prove supplier honesty or exploitability.",
+      notIncluded: [
+        "CISA or federal compliance certification",
+        "vulnerability-free software claim",
+        "KEV absence",
+        "full AI-SBOM or multi-tenant SaaS coverage",
+        "live customer SBOM authenticity by default",
+      ],
+      nextStep: "Start a non-secret fit check and name the software unit and SBOM format you can share after scope is agreed.",
     },
   };
 

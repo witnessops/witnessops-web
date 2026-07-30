@@ -1,7 +1,7 @@
 {
   "schema": "witnessops.product_catalog.v1",
   "version": "1.0.0",
-  "updated_at": "2026-06-22T18:00:00Z",
+  "updated_at": "2026-07-30T12:00:00Z",
   "currency": "EUR",
   "safe_claim": "Run bounded local checks. Collect evidence. Produce reports and receipts that operators can inspect.",
   "authority": {
@@ -14,29 +14,37 @@
   },
   "tracks": {
     "offsec_proof": {
-      "title": "Security proof packages",
+      "title": "Security review packages",
       "billing": "invoice_or_crypto",
       "settlement": "pay.privex.io",
-      "surfaces": ["witnessops.com"]
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     "witnessops_workflow": {
       "title": "WitnessOps workflow packages",
       "billing": "invoice_or_payment_link",
       "quote_after_scope": true,
-      "surfaces": ["witnessops.com"]
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     "operator_saas": {
       "title": "Operator workspace access",
       "billing": "private_preview_request",
       "proof_runs_included": false,
-      "surfaces": ["witnessops.com"]
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     "offsec_training": {
       "title": "OffSec training courses",
       "billing": "invoice_or_crypto",
       "quote_after_scope": true,
       "settlement": "pay.privex.io",
-      "surfaces": ["witnessops.com"]
+      "surfaces": [
+        "witnessops.com"
+      ]
     }
   },
   "global_boundaries": {
@@ -108,6 +116,12 @@
       "title": "Privileged access grant",
       "href": "/review/sample-cases/privileged-access-grant",
       "surface": "witnessops.com"
+    },
+    {
+      "id": "sbom-cisa-2026-minimum-elements",
+      "title": "SBOM minimum-elements check",
+      "href": "/review/sample-cases/sbom-cisa-2026-minimum-elements",
+      "surface": "witnessops.com"
     }
   ],
   "skus": [
@@ -118,13 +132,21 @@
       "summary": "Bounded local checks on authorized servers. Posture evidence, report, receipt, and manifest you inspect.",
       "status": "ship_today",
       "availability": "witnessops_request",
-      "buyer_personas": ["founder", "operator", "creator"],
+      "buyer_personas": [
+        "founder",
+        "operator",
+        "creator"
+      ],
       "price": {
         "anchor_eur_min": 500,
         "anchor_eur_max": 1500,
-        "display": "€500–€1,500",
+        "display": "\u20ac500\u2013\u20ac1,500",
         "billing": "one_time",
-        "settlement": ["USDC", "BTC", "ETH"]
+        "settlement": [
+          "USDC",
+          "BTC",
+          "ETH"
+        ]
       },
       "deliverables": [
         "posture.json",
@@ -135,12 +157,18 @@
         "signed proofpack zip",
         "BUYER_WALKTHROUGH.md"
       ],
-      "boundaries": ["authorized_hosts_only", "read_only", "no_fund_movement"],
+      "boundaries": [
+        "authorized_hosts_only",
+        "read_only",
+        "no_fund_movement"
+      ],
       "cta": {
         "primary": "/review/request",
         "secondary": "https://witnessops.com/verify"
       },
-      "surfaces": ["witnessops.com"]
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-LAUNCH-READY",
@@ -149,13 +177,20 @@
       "summary": "Evidence collection and review for SaaS, Web3, and protocol teams. Findings, drift, and proof-pack.",
       "status": "ship_today",
       "availability": "witnessops_request",
-      "buyer_personas": ["saas_team", "web3", "protocol"],
+      "buyer_personas": [
+        "saas_team",
+        "web3",
+        "protocol"
+      ],
       "price": {
         "anchor_eur_min": 2500,
         "anchor_eur_max": 7500,
-        "display": "€2,500–€7,500",
+        "display": "\u20ac2,500\u2013\u20ac7,500",
         "billing": "one_time",
-        "settlement": ["USDC", "ETH"]
+        "settlement": [
+          "USDC",
+          "ETH"
+        ]
       },
       "deliverables": [
         "posture.json",
@@ -164,12 +199,17 @@
         "report.md",
         "signed proofpack zip"
       ],
-      "boundaries": ["authorized_hosts_only", "read_only"],
+      "boundaries": [
+        "authorized_hosts_only",
+        "read_only"
+      ],
       "cta": {
         "primary": "/review/request",
         "secondary": "/review/request"
       },
-      "surfaces": ["witnessops.com"]
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-CUSTODY-OPS",
@@ -178,18 +218,39 @@
       "summary": "Read-only posture on wallet ops and custody setups. Receipted deliverables. No fund movement.",
       "status": "ship_today",
       "availability": "witnessops_request",
-      "buyer_personas": ["dao", "treasury", "crypto_team"],
+      "buyer_personas": [
+        "dao",
+        "treasury",
+        "crypto_team"
+      ],
       "price": {
         "anchor_eur_min": 3000,
         "anchor_eur_max": 15000,
-        "display": "€3,000–€15,000",
+        "display": "\u20ac3,000\u2013\u20ac15,000",
         "billing": "one_time",
-        "settlement": ["USDC", "ETH", "BTC"]
+        "settlement": [
+          "USDC",
+          "ETH",
+          "BTC"
+        ]
       },
-      "deliverables": ["posture.json", "findings.json", "report.md", "signed proofpack zip"],
-      "boundaries": ["read_only", "no_fund_movement", "no_custody"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"]
+      "deliverables": [
+        "posture.json",
+        "findings.json",
+        "report.md",
+        "signed proofpack zip"
+      ],
+      "boundaries": [
+        "read_only",
+        "no_fund_movement",
+        "no_custody"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-INCIDENT-READY",
@@ -198,18 +259,33 @@
       "summary": "Assess, collect evidence, produce readiness report and receipt trail. Bounded, local-first.",
       "status": "ship_today",
       "availability": "witnessops_request",
-      "buyer_personas": ["exposed_company"],
+      "buyer_personas": [
+        "exposed_company"
+      ],
       "price": {
         "anchor_eur_min": 5000,
         "anchor_eur_max": 25000,
-        "display": "€5,000–€25,000",
+        "display": "\u20ac5,000\u2013\u20ac25,000",
         "billing": "one_time",
-        "settlement": ["USDC"]
+        "settlement": [
+          "USDC"
+        ]
       },
-      "deliverables": ["readiness report", "receipt trail", "signed proofpack zip"],
-      "boundaries": ["not_hack_back", "assess_rotate_preserve"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"]
+      "deliverables": [
+        "readiness report",
+        "receipt trail",
+        "signed proofpack zip"
+      ],
+      "boundaries": [
+        "not_hack_back",
+        "assess_rotate_preserve"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-PILOT",
@@ -218,16 +294,32 @@
       "summary": "Fixed-fee entry: 1 operator, ~10 hosts, 2 runs (baseline + drift), 1 proof-pack per host, 1 review session.",
       "status": "ship_today",
       "availability": "witnessops_request",
-      "buyer_personas": ["new_client"],
+      "buyer_personas": [
+        "new_client"
+      ],
       "price": {
         "display": "Fixed EUR-equivalent (quoted)",
         "billing": "one_time",
-        "settlement": ["USDC", "BTC", "ETH"]
+        "settlement": [
+          "USDC",
+          "BTC",
+          "ETH"
+        ]
       },
-      "deliverables": ["full pilot proofpack set", "BUYER_WALKTHROUGH.md"],
-      "boundaries": ["time_boxed_1_2_weeks", "signed_scope_required"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"]
+      "deliverables": [
+        "full pilot proofpack set",
+        "BUYER_WALKTHROUGH.md"
+      ],
+      "boundaries": [
+        "time_boxed_1_2_weeks",
+        "signed_scope_required"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-RETAINER",
@@ -236,18 +328,32 @@
       "summary": "Recurring bounded collections and reviews. All receipted.",
       "status": "future",
       "availability": "witnessops_request",
-      "buyer_personas": ["recurring_client"],
+      "buyer_personas": [
+        "recurring_client"
+      ],
       "price": {
         "anchor_eur_min": 500,
         "anchor_eur_max": 5000,
-        "display": "€500–€5,000/mo",
+        "display": "\u20ac500\u2013\u20ac5,000/mo",
         "billing": "recurring_month",
-        "settlement": ["USDC"]
+        "settlement": [
+          "USDC"
+        ]
       },
-      "deliverables": ["scheduled collections", "drift reports", "receipted reviews"],
-      "boundaries": ["bounded_collections_only"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"]
+      "deliverables": [
+        "scheduled collections",
+        "drift reports",
+        "receipted reviews"
+      ],
+      "boundaries": [
+        "bounded_collections_only"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-PROOF-INFRA",
@@ -256,17 +362,32 @@
       "summary": "Help set up your own receipted collection and verification pipeline (agent + shield tools).",
       "status": "future",
       "availability": "witnessops_request",
-      "buyer_personas": ["serious_operator"],
+      "buyer_personas": [
+        "serious_operator"
+      ],
       "price": {
         "anchor_eur_min": 10000,
-        "display": "€10,000+",
+        "display": "\u20ac10,000+",
         "billing": "one_time",
-        "settlement": ["USDC", "BTC"]
+        "settlement": [
+          "USDC",
+          "BTC"
+        ]
       },
-      "deliverables": ["pipeline setup", "verifier integration", "receipt authority gates"],
-      "boundaries": ["brings_witnessops_into_sale"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"]
+      "deliverables": [
+        "pipeline setup",
+        "verifier integration",
+        "receipt authority gates"
+      ],
+      "boundaries": [
+        "brings_witnessops_into_sale"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-TRAINING-VM-LAB",
@@ -275,11 +396,19 @@
       "summary": "Pre-provisioned lab VM with security training tools, WitnessOps local assistant tooling, and course material access.",
       "status": "future",
       "availability": "witnessops_request",
-      "buyer_personas": ["student", "operator_in_training", "team_lead"],
+      "buyer_personas": [
+        "student",
+        "operator_in_training",
+        "team_lead"
+      ],
       "price": {
         "display": "Quoted after scope (EUR-equivalent)",
         "billing": "one_time",
-        "settlement": ["USDC", "BTC", "ETH"]
+        "settlement": [
+          "USDC",
+          "BTC",
+          "ETH"
+        ]
       },
       "deliverables": [
         "isolated training VM",
@@ -300,7 +429,9 @@
         "primary": "/review/request",
         "secondary": "/review/request"
       },
-      "surfaces": ["witnessops.com"]
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-TRAINING-COURSE-FULL",
@@ -309,11 +440,19 @@
       "summary": "Structured modules using shield lab material: posture collection, receipt verify, drift detection, proof-pack assembly, and pilot walkthrough.",
       "status": "future",
       "availability": "witnessops_request",
-      "buyer_personas": ["student", "operator_in_training", "security_team"],
+      "buyer_personas": [
+        "student",
+        "operator_in_training",
+        "security_team"
+      ],
       "price": {
         "display": "Quoted after scope (EUR-equivalent)",
         "billing": "one_time",
-        "settlement": ["USDC", "BTC", "ETH"]
+        "settlement": [
+          "USDC",
+          "BTC",
+          "ETH"
+        ]
       },
       "deliverables": [
         "full module curriculum (5 labs)",
@@ -333,7 +472,9 @@
         "primary": "/review/request",
         "secondary": "/review/request"
       },
-      "surfaces": ["witnessops.com"]
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-TRAINING-MODULE-POSTURE",
@@ -342,16 +483,32 @@
       "summary": "Add-on module: run bounded local checks on an authorized training host and inspect posture evidence.",
       "status": "future",
       "availability": "witnessops_request",
-      "buyer_personas": ["student", "operator_in_training"],
+      "buyer_personas": [
+        "student",
+        "operator_in_training"
+      ],
       "price": {
         "display": "Quoted after scope",
         "billing": "one_time",
         "addon": true
       },
-      "deliverables": ["posture.json", "scope.json", "authority.json", "module completion receipt"],
-      "boundaries": ["requires_training_vm_or_bundle", "authorized_lab_hosts_only", "read_only"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"]
+      "deliverables": [
+        "posture.json",
+        "scope.json",
+        "authority.json",
+        "module completion receipt"
+      ],
+      "boundaries": [
+        "requires_training_vm_or_bundle",
+        "authorized_lab_hosts_only",
+        "read_only"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-TRAINING-MODULE-RECEIPT",
@@ -360,16 +517,30 @@
       "summary": "Add-on module: verify integrity and optional signatures on receipt trails with offsecshield verify.",
       "status": "future",
       "availability": "witnessops_request",
-      "buyer_personas": ["student", "operator_in_training"],
+      "buyer_personas": [
+        "student",
+        "operator_in_training"
+      ],
       "price": {
         "display": "Quoted after scope",
         "billing": "one_time",
         "addon": true
       },
-      "deliverables": ["RECEIPT.json", "MANIFEST.sha256", "module completion receipt"],
-      "boundaries": ["requires_training_vm_or_bundle", "authorized_lab_hosts_only"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"]
+      "deliverables": [
+        "RECEIPT.json",
+        "MANIFEST.sha256",
+        "module completion receipt"
+      ],
+      "boundaries": [
+        "requires_training_vm_or_bundle",
+        "authorized_lab_hosts_only"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-TRAINING-MODULE-DRIFT",
@@ -378,16 +549,32 @@
       "summary": "Add-on module: baseline + drift comparison using the two-run pilot pattern on lab hosts.",
       "status": "future",
       "availability": "witnessops_request",
-      "buyer_personas": ["student", "operator_in_training"],
+      "buyer_personas": [
+        "student",
+        "operator_in_training"
+      ],
       "price": {
         "display": "Quoted after scope",
         "billing": "one_time",
         "addon": true
       },
-      "deliverables": ["baseline posture.json", "drift.json", "findings.json", "module completion receipt"],
-      "boundaries": ["requires_training_vm_or_bundle", "authorized_lab_hosts_only", "read_only"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"]
+      "deliverables": [
+        "baseline posture.json",
+        "drift.json",
+        "findings.json",
+        "module completion receipt"
+      ],
+      "boundaries": [
+        "requires_training_vm_or_bundle",
+        "authorized_lab_hosts_only",
+        "read_only"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-TRAINING-MODULE-PROOF-PACK",
@@ -396,16 +583,31 @@
       "summary": "Add-on module: assemble and offline-verify a portable proof-pack from collected lab evidence.",
       "status": "future",
       "availability": "witnessops_request",
-      "buyer_personas": ["student", "operator_in_training"],
+      "buyer_personas": [
+        "student",
+        "operator_in_training"
+      ],
       "price": {
         "display": "Quoted after scope",
         "billing": "one_time",
         "addon": true
       },
-      "deliverables": ["signed proofpack zip", "report.md", "RECEIPT.sig.json", "module completion receipt"],
-      "boundaries": ["requires_training_vm_or_bundle", "authorized_lab_hosts_only"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"]
+      "deliverables": [
+        "signed proofpack zip",
+        "report.md",
+        "RECEIPT.sig.json",
+        "module completion receipt"
+      ],
+      "boundaries": [
+        "requires_training_vm_or_bundle",
+        "authorized_lab_hosts_only"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "OFFSEC-TRAINING-MODULE-PILOT",
@@ -414,16 +616,76 @@
       "summary": "Add-on capstone module: multi-host baseline + drift, proof-pack per host, and buyer walkthrough review.",
       "status": "future",
       "availability": "witnessops_request",
-      "buyer_personas": ["student", "operator_in_training", "team_lead"],
+      "buyer_personas": [
+        "student",
+        "operator_in_training",
+        "team_lead"
+      ],
       "price": {
         "display": "Quoted after scope",
         "billing": "one_time",
         "addon": true
       },
-      "deliverables": ["full pilot proofpack set", "BUYER_WALKTHROUGH.md", "module completion receipt"],
-      "boundaries": ["requires_training_vm_or_bundle", "authorized_lab_hosts_only", "time_boxed"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"]
+      "deliverables": [
+        "full pilot proofpack set",
+        "BUYER_WALKTHROUGH.md",
+        "module completion receipt"
+      ],
+      "boundaries": [
+        "requires_training_vm_or_bundle",
+        "authorized_lab_hosts_only",
+        "time_boxed"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
+    },
+    {
+      "id": "SBOM-MIN-ELEMENTS",
+      "track": "witnessops_workflow",
+      "name": "SBOM minimum-elements check",
+      "summary": "Bounded checklist of CISA 2026 SBOM minimum elements for one named software unit. Named gaps, not a compliance certificate.",
+      "status": "ship_today",
+      "availability": "witnessops_request",
+      "buyer_personas": [
+        "founder",
+        "security",
+        "product",
+        "procurement"
+      ],
+      "price": {
+        "anchor_eur_min": 1200,
+        "anchor_eur_max": 4500,
+        "display": "From \u20ac1,200",
+        "billing": "one_time",
+        "settlement": [
+          "invoice"
+        ]
+      },
+      "deliverables": [
+        "SBOM artifact in scope",
+        "generation context",
+        "CISA 2026 minimum-elements checklist",
+        "named gaps",
+        "evidence manifest",
+        "report or package summary"
+      ],
+      "boundaries": [
+        "not_cisa_certification",
+        "not_vulnerability_assessment",
+        "not_kev_absence",
+        "named_software_unit_only"
+      ],
+      "cta": {
+        "primary": "/review/request",
+        "secondary": "/review/sample-cases/sbom-cisa-2026-minimum-elements"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
     },
     {
       "id": "WORKFLOW-FIT",
@@ -432,19 +694,30 @@
       "summary": "Non-secret fit check, scope boundary, and go/no-go for one workflow.",
       "status": "ship_today",
       "availability": "private_preview_request_access",
-      "buyer_personas": ["any_workflow_buyer"],
+      "buyer_personas": [
+        "any_workflow_buyer"
+      ],
       "price": {
         "anchor_eur": 0,
-        "display": "€0",
+        "display": "\u20ac0",
         "billing": "one_time"
       },
-      "deliverables": ["scope boundary", "go/no-go", "fit assessment"],
-      "boundaries": ["no_proof_run_from_pricing", "non_secret_intake_only"],
+      "deliverables": [
+        "scope boundary",
+        "go/no-go",
+        "fit assessment"
+      ],
+      "boundaries": [
+        "no_proof_run_from_pricing",
+        "non_secret_intake_only"
+      ],
       "cta": {
         "primary": "/review/request",
         "secondary": "/review/sample-cases/ai-agent-action-proof-run"
       },
-      "surfaces": ["witnessops.com"],
+      "surfaces": [
+        "witnessops.com"
+      ],
       "stripe_sku_id": null
     },
     {
@@ -454,10 +727,13 @@
       "summary": "One bounded action, one evidence path, one proof pack.",
       "status": "quote_after_scope",
       "availability": "live",
-      "buyer_personas": ["operator", "saas_launch"],
+      "buyer_personas": [
+        "operator",
+        "saas_launch"
+      ],
       "price": {
         "anchor_eur": 1500,
-        "display": "from €1,500",
+        "display": "from \u20ac1,500",
         "billing": "one_time"
       },
       "deliverables": [
@@ -467,9 +743,16 @@
         "verifier_result",
         "challenge_path"
       ],
-      "boundaries": ["no_compliance_cert", "quote_after_scope"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"],
+      "boundaries": [
+        "no_compliance_cert",
+        "quote_after_scope"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ],
       "stripe_sku_id": "WORKFLOW-S"
     },
     {
@@ -479,10 +762,13 @@
       "summary": "Launch-readiness scale workflow with scope map and receipt plus verifier result.",
       "status": "quote_after_scope",
       "availability": "live",
-      "buyer_personas": ["saas_launch", "web3"],
+      "buyer_personas": [
+        "saas_launch",
+        "web3"
+      ],
       "price": {
         "anchor_eur": 5000,
-        "display": "from €5,000",
+        "display": "from \u20ac5,000",
         "billing": "one_time"
       },
       "deliverables": [
@@ -493,9 +779,16 @@
         "verifier_result",
         "challenge_path"
       ],
-      "boundaries": ["no_compliance_cert", "quote_after_scope"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"],
+      "boundaries": [
+        "no_compliance_cert",
+        "quote_after_scope"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ],
       "stripe_sku_id": "WORKFLOW-M"
     },
     {
@@ -505,10 +798,14 @@
       "summary": "Multi-boundary workflow at incident or custody scale with challenge path.",
       "status": "quote_after_scope",
       "availability": "live",
-      "buyer_personas": ["incident", "custody", "enterprise"],
+      "buyer_personas": [
+        "incident",
+        "custody",
+        "enterprise"
+      ],
       "price": {
         "anchor_eur": 12000,
-        "display": "from €12,000",
+        "display": "from \u20ac12,000",
         "billing": "one_time"
       },
       "deliverables": [
@@ -519,9 +816,16 @@
         "challenge_path",
         "named_limits"
       ],
-      "boundaries": ["no_compliance_cert", "quote_after_scope"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"],
+      "boundaries": [
+        "no_compliance_cert",
+        "quote_after_scope"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ],
       "stripe_sku_id": "WORKFLOW-L"
     },
     {
@@ -531,16 +835,28 @@
       "summary": "Same scope, new evidence snapshot, and drift note.",
       "status": "quote_after_scope",
       "availability": "live",
-      "buyer_personas": ["existing_client"],
+      "buyer_personas": [
+        "existing_client"
+      ],
       "price": {
         "anchor_eur": 750,
-        "display": "from €750",
+        "display": "from \u20ac750",
         "billing": "one_time"
       },
-      "deliverables": ["drift_note", "new_evidence_snapshot", "receipt"],
-      "boundaries": ["same_scope_only"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"],
+      "deliverables": [
+        "drift_note",
+        "new_evidence_snapshot",
+        "receipt"
+      ],
+      "boundaries": [
+        "same_scope_only"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ],
       "stripe_sku_id": "WORKFLOW-RERUN"
     },
     {
@@ -550,17 +866,34 @@
       "summary": "Inert read-only operator shell demo. One seat, one engagement.",
       "status": "demo_only",
       "availability": "live",
-      "buyer_personas": ["evaluator"],
+      "buyer_personas": [
+        "evaluator"
+      ],
       "price": {
         "anchor_eur_month": 0,
-        "display": "€0/mo",
+        "display": "\u20ac0/mo",
         "billing": "recurring_month"
       },
-      "limits": { "seats": 1, "active_engagements": 1, "buyer_share_links_month": 0 },
-      "deliverables": ["engagement picker", "buyer proof dashboard (read-only)"],
-      "boundaries": ["no_auth", "no_billing", "no_proof_runs_included"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"],
+      "limits": {
+        "seats": 1,
+        "active_engagements": 1,
+        "buyer_share_links_month": 0
+      },
+      "deliverables": [
+        "engagement picker",
+        "buyer proof dashboard (read-only)"
+      ],
+      "boundaries": [
+        "no_auth",
+        "no_billing",
+        "no_proof_runs_included"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ],
       "stripe_sku_id": null
     },
     {
@@ -570,22 +903,35 @@
       "summary": "Operator workspace with seats, engagements, and buyer share links.",
       "status": "prep_only",
       "availability": "private_preview_request_access",
-      "buyer_personas": ["small_team"],
+      "buyer_personas": [
+        "small_team"
+      ],
       "price": {
         "anchor_eur_month": 99,
-        "display": "€99/mo",
+        "display": "\u20ac99/mo",
         "billing": "recurring_month"
       },
-      "limits": { "seats": 3, "active_engagements": 10, "buyer_share_links_month": 5 },
+      "limits": {
+        "seats": 3,
+        "active_engagements": 10,
+        "buyer_share_links_month": 5
+      },
       "deliverables": [
         "engagement workspace",
         "buyer share links",
         "evidence dashboards",
         "team seats"
       ],
-      "boundaries": ["no_proof_runs_included", "read_only_var"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"],
+      "boundaries": [
+        "no_proof_runs_included",
+        "read_only_var"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ],
       "stripe_sku_id": "SAAS-OPERATOR"
     },
     {
@@ -595,17 +941,33 @@
       "summary": "Team-scale operator workspace with unlimited buyer share links.",
       "status": "prep_only",
       "availability": "private_preview_request_access",
-      "buyer_personas": ["security_team"],
+      "buyer_personas": [
+        "security_team"
+      ],
       "price": {
         "anchor_eur_month": 399,
-        "display": "€399/mo",
+        "display": "\u20ac399/mo",
         "billing": "recurring_month"
       },
-      "limits": { "seats": 10, "active_engagements": 50, "buyer_share_links_month": null },
-      "deliverables": ["engagement workspace", "buyer share links", "team seats"],
-      "boundaries": ["no_proof_runs_included"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"],
+      "limits": {
+        "seats": 10,
+        "active_engagements": 50,
+        "buyer_share_links_month": null
+      },
+      "deliverables": [
+        "engagement workspace",
+        "buyer share links",
+        "team seats"
+      ],
+      "boundaries": [
+        "no_proof_runs_included"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ],
       "stripe_sku_id": "SAAS-TEAM"
     },
     {
@@ -615,10 +977,13 @@
       "summary": "Fleet-scale operator workspace. Sales-assisted.",
       "status": "prep_only",
       "availability": "private_preview_request_access",
-      "buyer_personas": ["fleet", "integrator"],
+      "buyer_personas": [
+        "fleet",
+        "integrator"
+      ],
       "price": {
         "anchor_eur_month": 999,
-        "display": "€999/mo",
+        "display": "\u20ac999/mo",
         "billing": "recurring_month"
       },
       "limits": {
@@ -627,10 +992,21 @@
         "buyer_share_links_month": null,
         "sales_assisted": true
       },
-      "deliverables": ["unlimited engagements", "fleet seats", "buyer share links"],
-      "boundaries": ["no_proof_runs_included", "sales_assisted"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"],
+      "deliverables": [
+        "unlimited engagements",
+        "fleet seats",
+        "buyer share links"
+      ],
+      "boundaries": [
+        "no_proof_runs_included",
+        "sales_assisted"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ],
       "stripe_sku_id": "SAAS-FLEET"
     },
     {
@@ -640,17 +1016,27 @@
       "summary": "Add-on: 10 additional operator seats.",
       "status": "prep_only",
       "availability": "private_preview_request_access",
-      "buyer_personas": ["growing_team"],
+      "buyer_personas": [
+        "growing_team"
+      ],
       "price": {
         "anchor_eur_month": 49,
-        "display": "€49/mo",
+        "display": "\u20ac49/mo",
         "billing": "recurring_month",
         "addon": true
       },
-      "deliverables": ["10 additional seats"],
-      "boundaries": ["requires_active_saas_tier"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"],
+      "deliverables": [
+        "10 additional seats"
+      ],
+      "boundaries": [
+        "requires_active_saas_tier"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ],
       "stripe_sku_id": "ADDON-SEATS-10"
     },
     {
@@ -660,17 +1046,29 @@
       "summary": "Add-on: private-preview read-only integration access for approved operator environments.",
       "status": "prep_only",
       "availability": "private_preview_request_access",
-      "buyer_personas": ["fleet", "integrator"],
+      "buyer_personas": [
+        "fleet",
+        "integrator"
+      ],
       "price": {
         "anchor_eur_month": 29,
-        "display": "€29/mo",
+        "display": "\u20ac29/mo",
         "billing": "recurring_month",
         "addon": true
       },
-      "deliverables": ["read-only integration access"],
-      "boundaries": ["mesh_bind_only", "read_only"],
-      "cta": { "primary": "/review/request" },
-      "surfaces": ["witnessops.com"],
+      "deliverables": [
+        "read-only integration access"
+      ],
+      "boundaries": [
+        "mesh_bind_only",
+        "read_only"
+      ],
+      "cta": {
+        "primary": "/review/request"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ],
       "stripe_sku_id": "ADDON-GOAL0-READER"
     }
   ],

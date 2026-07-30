@@ -13,7 +13,7 @@ const copy = {
     eyebrow: "WitnessOps reviews",
     title: "Start with the situation you need to resolve.",
     intro:
-      "Choose one bounded problem. We agree the authority, inputs, scope, result, price, timing and evidence handling before review work begins.",
+      "Choose one bounded problem. We agree the authority, inputs, scope, result, price, timing and evidence handling before review work begins. Start with a non-secret fit check. These reviews do not grant compliance certification.",
     price: "Price",
     timing: "Timing",
     boundary: "Boundary",

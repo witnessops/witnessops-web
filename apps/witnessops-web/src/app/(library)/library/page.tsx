@@ -86,7 +86,7 @@ const secondaryGroups = [
       {
         label: "All services",
         href: "/catalog",
-        note: "Full six-service catalogue and boundaries.",
+        note: "Full public catalogue and boundaries.",
       },
       {
         label: "Workflow reviews",

@@ -29,7 +29,7 @@ const localizedCopy = {
     noSecrets:
       "Start with a general, non-secret description. Do not send files, credentials, logs, screenshots, private keys, API keys, MFA codes, recovery codes, session tokens or customer evidence during the fit check.",
     offersEyebrow: "Start with the situation",
-    offersTitle: "Six reviews for work that needs a clear next step",
+    offersTitle: "Reviews for work that needs a clear next step",
     offersBody:
       "The same active services, prices and timing terms are available in English and Polish.",
     viewAll: "View all services",
@@ -82,7 +82,7 @@ const localizedCopy = {
     noSecrets:
       "Zacznij od ogólnego opisu bez informacji poufnych. Podczas wstępnej oceny nie wysyłaj plików, danych logowania, logów, zrzutów ekranu, kluczy prywatnych, kluczy API, kodów MFA, kodów odzyskiwania, tokenów sesyjnych ani materiałów klienta.",
     offersEyebrow: "Zacznij od sytuacji",
-    offersTitle: "Sześć przeglądów dla pracy, która potrzebuje jasnego następnego kroku",
+    offersTitle: "Przeglądy dla pracy, która potrzebuje jasnego następnego kroku",
     offersBody:
       "Te same aktywne usługi, ceny i zasady terminów są dostępne po angielsku i po polsku.",
     viewAll: "Zobacz wszystkie usługi",

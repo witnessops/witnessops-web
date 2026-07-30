@@ -82,10 +82,10 @@ test("applyHtmlSignature renders safe HTML body and selected signature", () => {
   assert.match(signed, /color-scheme:light;supported-color-schemes:light/);
   assert.match(signed, /border-top:1px solid #cfc9bd/);
   assert.match(signed, /border-top:1px solid #e4e0d8/);
-  assert.match(signed, /I ship as - VaultSovereign/);
-  assert.match(signed, /sovereign/);
-  assert.match(signed, /human/);
-  assert.match(signed, /Agents act\. WitnessOps proves\./);
+  assert.match(signed, /Karol Stefanski/);
+  assert.match(signed, /Founder/);
+  assert.match(signed, /WitnessOps/);
+  assert.match(signed, /Proof beats memory\./);
   assert.match(signed, /href="mailto:ks@witnessops.com"/);
   assert.equal(applyHtmlSignature("Hello\n", "none"), textToEmailHtml("Hello\n"));
 
@@ -301,9 +301,9 @@ test("resend provider sends signed text and signature policy tags", async () => 
     html: string;
     tags: Array<{ name: string; value: string }>;
   };
-  assert.match(body.text, /Signed receipts for consequential AI-agent/);
+  assert.match(body.text, /Proof beats memory\./);
   assert.match(body.html, /data-witnessops-signature-profile="security_buyer"/);
-  assert.match(body.html, /Signed receipts for consequential AI-agent/);
+  assert.match(body.html, /Proof beats memory\./);
   assert.deepEqual(body.tags, [
     {
       name: "witnessops_delivery_attempt_id",
