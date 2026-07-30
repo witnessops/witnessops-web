@@ -28,8 +28,8 @@ export const metadata: Metadata = {
 };
 
 const statusChips = [
-  { label: "Artifact class", value: "Explanatory sample case" },
-  { label: "Class", value: "Workflow type" },
+  { label: "Type", value: "Explanatory example only" },
+  { label: "Situation", value: "Containment after approval" },
   { label: "Status", value: "Not live" },
 ];
 
@@ -176,10 +176,14 @@ export default function ApprovalGatedContainmentSampleCasePage() {
               Approval-gated containment review
             </h1>
             <p className="text-base leading-8 text-text-secondary">
-              This is a named published explanatory sample case showing how
-              WitnessOps would review a containment path that requires recorded approval before
-              execution. It is a stable explanatory route, not a live customer
-              artifact and not a claim of completed verification for your environment.
+              Situation: a containment action must not run until approval is
+              recorded. This explanatory example shows how WitnessOps would review
+              the gate, the action, target-state evidence, and what a portable
+              inspection path should include afterwards.
+            </p>
+            <p className="text-sm leading-7 text-text-muted">
+              Explanatory example only — not a downloadable full package and not a
+              live customer artifact or completed verification for your environment.
             </p>
             <div className="flex flex-wrap gap-2 pt-1">
               {statusChips.map((chip) => (
@@ -195,7 +199,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
             <div className="flex flex-wrap gap-3 pt-2">
               <CtaButton href="/review/request" variant="primary" label="Start a review" />
               <CtaButton href="/review/sample-report" variant="secondary" label="Compare with sample report" />
-              <CtaButton href="/review/sample-cases" variant="secondary" label="Browse all named sample cases" />
+              <CtaButton href="/review/sample-cases" variant="secondary" label="Browse all examples" />
             </div>
           </section>
 

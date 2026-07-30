@@ -13,26 +13,26 @@ import {
 } from "./shield-sample-contract";
 
 export const metadata: Metadata = {
-  title: "Sample — OffSec Shield Local Server Audit",
+  title: "Sample — Local server security review",
   description:
-    "Synthetic public OffSec Shield sample proofpack fixture with demo-host posture, evidence manifest, receipt, and offline manifest inspection boundaries.",
+    "Synthetic public sample of a local server security review package: posture, findings, receipt, and hash checks. Not a live customer audit or production verification result.",
   alternates: getCanonicalAlternates(
     "witnessops",
     "/review/sample-cases/offsec-shield-local-server-audit",
   ),
   openGraph: {
-    title: "Sample — OffSec Shield Local Server Audit | WitnessOps",
+    title: "Sample — Local server security review | WitnessOps",
     description:
-      "Inspect a synthetic OffSecAgent + OffSecShield local-audit deliverable and how it relates to WitnessOps verification boundaries.",
+      "Inspect a synthetic local server security review package and its honest verification limits.",
     siteName: "WitnessOps",
     type: "website",
   },
 };
 
 const statusChips = [
-  { label: "Offer class", value: "OffSec Local Server Audit" },
-  { label: "Artifact class", value: "Shield fixture proof bundle" },
-  { label: "Host", value: "Synthetic demo-host (fixture)" },
+  { label: "Type", value: "Full sample package" },
+  { label: "Situation", value: "Read-only local server review" },
+  { label: "Host", value: "Synthetic demo host" },
   {
     label: "WitnessOps /verify",
     value: "Not verified through /api/verify; inspect manifest and sidecars",
@@ -46,27 +46,32 @@ export default function OffSecShieldSamplePage() {
     <main id="main-content" tabIndex={-1}>
       <SectionShell narrow>
 
-        <SampleCaseBanner />
+        <SampleCaseBanner
+          title="Local server security review"
+          note="Synthetic public sample package for a read-only local server review. It is not a live customer audit, not a production verification result, and not evidence that any third-party system was tested."
+        />
         <div className="space-y-8">
           <section className="space-y-5 border-b border-surface-border pb-8">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-              OffSec + WitnessOps wiring (R1)
+              Sample case
             </p>
             <h1 className="text-4xl font-bold tracking-tight text-text-primary">
-              OffSec Shield — local server audit sample
+              Local server security review
             </h1>
             <p className="text-base leading-8 text-text-secondary">
-              OffSec collects read-only posture and ships a receipt-backed audit
-              package fixture. WitnessOps proves named workflows on{" "}
+              Situation: a read-only review of a local server was packaged so a
+              buyer can see posture, findings, a receipt, and hash checks side by
+              side. This sample shows the deliverable shape and honest limits.
+            </p>
+            <p className="max-w-[48rem] text-sm leading-7 text-text-muted">
+              Product name in the fixture path: OffSec Shield local server audit.
+              This sample is not currently verified through WitnessOps /api/verify.
+              Use{" "}
               <Link href="/verify" className="text-brand-accent underline">
                 /verify
               </Link>{" "}
-              for supported PV/QV/WV receipt stages. This sample shows the
-              Shield deliverable shape and honest limits. This sample is not currently verified through WitnessOps /api/verify.
-            </p>
-            <p className="max-w-[48rem] text-sm leading-7 text-text-muted">
-              This is a synthetic public sample proofpack fixture. It demonstrates
-              the structure of a receipt-backed audit package. It is not a live customer audit, not a production verification result, and not evidence that any third-party system was tested.
+              for supported receipt types; for this sample, inspect the included
+              manifest and sidecars instead.
             </p>
             <div className="flex flex-wrap gap-2">
               {statusChips.map((chip) => (
@@ -82,13 +87,13 @@ export default function OffSecShieldSamplePage() {
               ))}
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
-              <CtaButton href="/verify" variant="secondary" label="Read /verify boundary" />
-              <CtaButton
-                href="/docs/security-systems/mesh-federation-and-vmesh"
-                variant="secondary"
-                label="Mesh vs verify boundaries"
-              />
               <CtaButton href="/review/request" variant="primary" label="Start a review" />
+              <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
+              <CtaButton
+                href="/review/sample-cases"
+                variant="secondary"
+                label="Browse all examples"
+              />
             </div>
           </section>
 

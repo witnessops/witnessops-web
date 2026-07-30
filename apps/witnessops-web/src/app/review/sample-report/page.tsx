@@ -26,8 +26,8 @@ export const metadata: Metadata = {
 };
 
 const statusChips = [
-  { label: "Artifact class", value: "Illustrative sample report" },
-  { label: "Form", value: "Generic dossier" },
+  { label: "Type", value: "Illustrative sample report" },
+  { label: "Form", value: "Generic report shape" },
   { label: "Status", value: "Not live" },
 ];
 
@@ -145,9 +145,10 @@ export default function SampleReportPage() {
               See what a bounded review looks like
             </h1>
             <p className="text-base leading-8 text-text-secondary">
-              This page is an illustrative sample of dossier structure and
-              judgment style. It is not a live customer report and not a claim
-              of completed verification for your system.
+              Situation: you want to see how a bounded review is written before
+              requesting one. This page is an illustrative report shape and
+              judgment style only. It is not a live customer report and not a
+              claim of completed verification for your system.
             </p>
             <div className="flex flex-wrap gap-2 pt-1">
               {statusChips.map((chip) => (
@@ -161,8 +162,8 @@ export default function SampleReportPage() {
               ))}
             </div>
             <div className="flex flex-wrap gap-3 pt-2">
-              <CtaButton href="/review/sample-cases" variant="secondary" label="Browse named sample cases" />
               <CtaButton href="/review/request" variant="primary" label="Start a review" />
+              <CtaButton href="/review/sample-cases" variant="secondary" label="Browse all examples" />
             </div>
           </section>
 

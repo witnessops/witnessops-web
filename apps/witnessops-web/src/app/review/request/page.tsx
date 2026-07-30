@@ -178,7 +178,7 @@ export default function ReviewRequestPage() {
             </div>
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
               <p>Fee, timing, and evidence handling are confirmed by email after the first fit check.</p>
-              <p>No proof run starts from this form.</p>
+              <p>No work starts from this form. No proof run starts from this form.</p>
               <p>No customer evidence is accepted until scope is agreed.</p>
             </div>
           </section>

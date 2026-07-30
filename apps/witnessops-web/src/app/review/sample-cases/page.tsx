@@ -49,10 +49,10 @@ const sampleCases = [
   {
     title: "Local server security review",
     href: "/review/sample-cases/offsec-shield-local-server-audit",
-    situation: "A read-only local server audit was packaged as a receipt-backed deliverable.",
+    situation: "A read-only local server security review was packaged for inspection.",
     youSee:
       "How posture and findings sit next to a receipt and hash manifest, and what /verify does and does not confirm for this sample.",
-    tags: ["Security review shape", "Synthetic host"],
+    tags: ["Full sample package", "Synthetic host"],
     emphasize: false,
   },
   {
@@ -61,7 +61,7 @@ const sampleCases = [
     situation: "Someone requested time-bounded administrative access for one task.",
     youSee:
       "How approval, provisioning, and entitlement evidence should connect — and where replay often stays weak.",
-    tags: ["Access path", "Explanatory sample"],
+    tags: ["Access path", "Explanatory example only"],
     emphasize: false,
   },
   {
@@ -70,7 +70,7 @@ const sampleCases = [
     situation: "A containment action must not run until approval is recorded.",
     youSee:
       "Gate enforcement, target-state evidence, and what a portable inspection path should include after the event.",
-    tags: ["Control path", "Explanatory sample"],
+    tags: ["Control path", "Explanatory example only"],
     emphasize: false,
   },
 ] as const;

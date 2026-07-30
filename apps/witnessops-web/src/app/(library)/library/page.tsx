@@ -15,7 +15,7 @@ const primaryPaths = [
     title: "Examples",
     description:
       "Inspect labelled sample cases and report shapes before you request work.",
-    cta: "View sample cases",
+    cta: "View examples",
   },
   {
     href: "/verify",
@@ -58,9 +58,9 @@ const secondaryGroups = [
     description: "Samples and illustrations — not live customer artifacts.",
     links: [
       {
-        label: "Named sample cases",
+        label: "Example reviews",
         href: "/review/sample-cases",
-        note: "Explanatory workflow classes with explicit boundaries.",
+        note: "Situation-led samples with inspectable limits.",
       },
       {
         label: "AI-agent action sample",

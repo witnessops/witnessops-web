@@ -65,6 +65,27 @@ const secondaryGroups = [
     ],
   },
   {
+    title: "Przykłady (EN)",
+    description: "Oznaczone przykłady przeglądów — nie dane klientów.",
+    links: [
+      [
+        "Przykłady przeglądów",
+        "/review/sample-cases",
+        "Sytuacje, materiały i granice — treść przykładowa po angielsku.",
+      ],
+      [
+        "Pakiet zmiany agenta AI",
+        "/review/sample-cases/ai-agent-action-proof-run",
+        "Pełny pakiet przykładowy po angielsku.",
+      ],
+      [
+        "Kontrola elementów SBOM (CISA 2026)",
+        "/review/sample-cases/sbom-cisa-2026-minimum-elements",
+        "Lista kontrolna na syntetycznym SBOM — nie certyfikat.",
+      ],
+    ],
+  },
+  {
     title: "Weryfikacja i dokumentacja",
     description: "Narzędzie publiczne oraz szczegóły techniczne.",
     links: [

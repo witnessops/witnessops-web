@@ -28,7 +28,12 @@ const waitLinks = [
   {
     href: "/library",
     label: "Library",
-    body: "Browse public docs, sample cases, proof bundles, and proof presentation material.",
+    body: "Browse public entry points, examples, and documentation.",
+  },
+  {
+    href: "/review/sample-cases",
+    label: "Example reviews",
+    body: "Inspect labelled sample reviews before work starts.",
   },
   {
     href: "/review",
@@ -54,7 +59,7 @@ export default function ReviewRequestConfirmedPage() {
           <div
             className={`mb-4 ${verificationLight.label} ${verificationLight.trust}`}
           >
-            Proof run request
+            Review request
           </div>
           <h1
             className={`mb-4 text-4xl font-semibold uppercase leading-none tracking-[0.04em] md:text-5xl ${verificationLight.title}`}
@@ -63,7 +68,7 @@ export default function ReviewRequestConfirmedPage() {
             Request verified
           </h1>
           <p className={`max-w-[620px] text-base leading-relaxed ${verificationLight.body}`}>
-            Your mailbox is verified for this proof-run fit request. The request
+            Your mailbox is verified for this non-secret fit request. The request
             summary has been routed for operator review.
           </p>
         </section>
@@ -72,7 +77,7 @@ export default function ReviewRequestConfirmedPage() {
           <section className={`p-6 md:p-8 ${verificationLight.card}`}>
             <div className={`space-y-5 text-sm leading-relaxed ${verificationLight.body}`}>
               <p className={`text-base ${verificationLight.title}`}>
-                No proof run has started yet.
+                No work has started yet. No proof run has started yet.
               </p>
               <p>
                 WitnessOps has the non-secret request summary and will reply by

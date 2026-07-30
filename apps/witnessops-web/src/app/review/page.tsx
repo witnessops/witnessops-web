@@ -243,28 +243,61 @@ export default function ReviewPage() {
         id="sample-bundle"
         className="mb-10 scroll-mt-24 border-b border-surface-border pb-8"
       >
-        <div className="kb-section-tag">Sample bundle</div>
+        <div className="kb-section-tag">Examples</div>
         <h2
           className="mt-2 text-2xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-3xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Inspect a public sample package
+          Inspect public example reviews
         </h2>
         <p className="mt-4 max-w-[760px] text-sm leading-relaxed text-text-muted">
-          The public sample shows how another party can inspect the action
-          boundary, evidence references, receipt path, limits, and next step
-          after a bounded review.
+          See how a bounded review is packaged before you request work: situation,
+          evidence references, limits, and what another party can re-check.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <CtaButton
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <a
             href={sampleBundleHref}
-            variant="secondary"
-            label="Inspect sample package"
-          />
+            className="block border border-brand-accent/40 bg-brand-accent/5 p-4 transition-colors hover:border-brand-accent"
+          >
+            <h3 className="text-sm font-semibold text-text-primary">AI agent change package</h3>
+            <p className="mt-2 text-sm leading-6 text-text-secondary">
+              Full sample package for one approved agent change.
+            </p>
+          </a>
+          <a
+            href="/review/sample-cases/sbom-cisa-2026-minimum-elements"
+            className="block border border-brand-accent/40 bg-brand-accent/5 p-4 transition-colors hover:border-brand-accent"
+          >
+            <h3 className="text-sm font-semibold text-text-primary">SBOM minimum-elements check</h3>
+            <p className="mt-2 text-sm leading-6 text-text-secondary">
+              CISA 2026 baseline checklist on a synthetic SBOM.
+            </p>
+          </a>
+          <a
+            href="/review/sample-cases"
+            className="block border border-surface-border bg-surface-card/40 p-4 transition-colors hover:border-brand-accent"
+          >
+            <h3 className="text-sm font-semibold text-text-primary">All examples</h3>
+            <p className="mt-2 text-sm leading-6 text-text-secondary">
+              Access, containment, local server review, and more.
+            </p>
+          </a>
+        </div>
+        <div className="mt-6 flex flex-wrap gap-3">
           <CtaButton
             href="/review/request"
             variant="primary"
             label="Start a review"
+          />
+          <CtaButton
+            href="/review/sample-cases"
+            variant="secondary"
+            label="Browse all examples"
+          />
+          <CtaButton
+            href={sampleBundleHref}
+            variant="secondary"
+            label="Inspect sample package"
           />
         </div>
       </section>

@@ -26,32 +26,32 @@ import {
 } from "./sample-artifact-contract";
 
 export const metadata: Metadata = {
-  title: "Sample Proof Run - AI Agent Action",
+  title: "Sample — AI agent change package",
   description:
-    "Inspect the public AI Agent Action Proof Run sample bundle: authority map, action boundary, evidence manifest, receipt, verifier result, challenge path, and manifest digest.",
+    "Public sample of one AI agent change: who approved it, what was allowed, what evidence was captured, and how another party can re-check the package. Not live customer evidence.",
   alternates: getCanonicalAlternates(
     "witnessops",
     "/review/sample-cases/ai-agent-action-proof-run",
   ),
   openGraph: {
-    title: "Sample Proof Run - AI Agent Action | WitnessOps",
+    title: "Sample — AI agent change package | WitnessOps",
     description:
-      "Inspect the public AI Agent Action Proof Run sample bundle and see what another party can check after an agent acts.",
+      "Inspect a public sample package for one AI agent change: authority, scope, evidence, receipt, and limits.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sample Proof Run - AI Agent Action | WitnessOps",
+    title: "Sample — AI agent change package | WitnessOps",
     description:
-      "Inspect the public AI Agent Action Proof Run sample bundle and see what another party can check after an agent acts.",
+      "Inspect a public sample package for one AI agent change: authority, scope, evidence, receipt, and limits.",
   },
 };
 
 const statusChips = [
-  { label: "Offer", value: "AI Agent Action Proof Run" },
-  { label: "Artifact class", value: "Public sample bundle" },
-  { label: "Status", value: "Receipt shape and verifier path" },
+  { label: "Type", value: "Full sample package" },
+  { label: "Status", value: "Not live" },
+  { label: "Situation", value: "AI agent change after approval" },
   { label: "Sample commit", value: sampleCommitShort },
 ];
 
@@ -233,20 +233,27 @@ export default function AiAgentActionProofRunSamplePage() {
     <main id="main-content" tabIndex={-1}>
       <SectionShell narrow>
 
-        <SampleCaseBanner />
+        <SampleCaseBanner
+          title="AI agent change package"
+          note="Full sample package on GitHub. Shows how a third party inspects one AI agent change after human approval. Not live customer evidence, production deployment, or AI governance certification."
+        />
         <div className="space-y-8">
           <section className="space-y-5 border-b border-surface-border pb-8">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-              Sample proof run
+              Sample case
             </p>
             <h1 className="text-4xl font-bold tracking-tight text-text-primary">
-              AI Agent Action Proof Run
+              AI agent change package
             </h1>
             <p className="text-base leading-8 text-text-secondary">
-              This sample shows how another party checks a proof bundle after an
-              AI agent acts. Inspect the action boundary, evidence manifest,
-              receipt, verifier result, challenge path, and digest manifest
-              before packaging a security workflow for your own case.
+              Situation: an AI agent proposed and applied one bounded code or
+              configuration change after human approval. Use this public package
+              to see who authorized it, what was allowed, what evidence was
+              captured, and how another party can re-check the files.
+            </p>
+            <p className="text-sm leading-7 text-text-muted">
+              Package title in the repository: AI Agent Action Proof Run. This
+              page is the buyer-facing walkthrough of that sample.
             </p>
             <div className="flex flex-wrap gap-2 pt-1">
               {statusChips.map((chip) => (
@@ -268,12 +275,17 @@ export default function AiAgentActionProofRunSamplePage() {
               <CtaButton
                 href={sampleBaseUrl}
                 variant="secondary"
-                label="Open GitHub sample bundle"
+                label="Open sample package"
               />
               <CtaButton
                 href={buyerWalkthroughHref}
                 variant="secondary"
                 label="Read buyer walkthrough"
+              />
+              <CtaButton
+                href="/review/sample-cases"
+                variant="secondary"
+                label="Browse all examples"
               />
             </div>
           </section>
