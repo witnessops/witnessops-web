@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.witnessops.example/customer-security-review-questionnaire-v1.json",
+  "title": "WitnessOps Synthetic Customer Security Review Questionnaire",
+  "type": "object",
+  "required": [
+    "pack_id",
+    "schema_version",
+    "synthetic_banner",
+    "scenario_id",
+    "records"
+  ],
+  "properties": {
+    "pack_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "witnessops.customer_security_review.synthetic_pack.v1"
+    },
+    "synthetic_banner": {
+      "const": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    "scenario_id": {
+      "type": "string"
+    },
+    "records": {
+      "type": "array",
+      "minItems": 40,
+      "maxItems": 60,
+      "items": {
+        "type": "object",
+        "required": [
+          "question_id",
+          "section",
+          "question_text",
+          "answer_text",
+          "evidence_status",
+          "evidence_references",
+          "claim_scope",
+          "customer_approval_state",
+          "synthetic_banner"
+        ],
+        "properties": {
+          "question_id": {
+            "type": "string",
+            "pattern": "^Q[0-9]{3}$"
+          },
+          "section": {
+            "type": "string",
+            "minLength": 1
+          },
+          "question_text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "answer_text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_status": {
+            "enum": [
+              "supported",
+              "supported_with_qualification",
+              "owner_assertion",
+              "open",
+              "not_applicable"
+            ]
+          },
+          "evidence_references": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^EVD-[0-9]{3}$"
+            },
+            "uniqueItems": true
+          },
+          "qualification": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fictional_owner_assertion": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "assertion_date": {
+                "type": "string",
+                "format": "date"
+              }
+            }
+          },
+          "open_item": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "open_item_id": {
+                "type": "string",
+                "pattern": "^OPEN-[0-9]{3}$"
+              },
+              "title": {
+                "type": "string"
+              },
+              "state": {
+                "const": "unresolved"
+              },
+              "owner": {
+                "type": "string"
+              },
+              "target_date": {
+                "type": "string",
+                "format": "date"
+              }
+            }
+          },
+          "not_applicable_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "claim_scope": {
+            "type": "string"
+          },
+          "customer_approval_state": {
+            "enum": [
+              "not_prepared",
+              "prepared_for_customer_approval",
+              "approved",
+              "approved_with_exceptions"
+            ]
+          },
+          "synthetic_banner": {
+            "const": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,966 @@
+{
+  "pack_id": "WO-CSR-SYNTH-DATA-V1-CL-001",
+  "schema_version": "witnessops.customer_security_review.synthetic_pack.v1",
+  "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE",
+  "scenario_id": "SYN-CSR-2026-CL-001",
+  "fixed_scenario_timestamp": "2026-07-01T09:00:00Z",
+  "approval_state_enum": [
+    "not_prepared",
+    "prepared_for_customer_approval",
+    "approved",
+    "approved_with_exceptions"
+  ],
+  "evidence_status_enum": [
+    "supported",
+    "supported_with_qualification",
+    "owner_assertion",
+    "open",
+    "not_applicable"
+  ],
+  "record_count": 50,
+  "records": [
+    {
+      "question_id": "Q001",
+      "section": "Governance and security program",
+      "question_text": "Do you maintain a documented information security program?",
+      "answer_text": "Yes. Cinderline maintains a documented security program covering the DocWeave AI hosted production scope, with named control owners and annual review.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q002",
+      "section": "Governance and security program",
+      "question_text": "Is responsibility for information security formally assigned?",
+      "answer_text": "Yes. The Security & Platform Lead owns day-to-day security coordination, with executive accountability held by the Founder & CTO.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q003",
+      "section": "Governance and security program",
+      "question_text": "How often are security policies reviewed?",
+      "answer_text": "Core security procedures are reviewed at least annually and after a material product, regulatory, or incident-driven change.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q004",
+      "section": "Governance and security program",
+      "question_text": "Do you perform formal information security risk assessments?",
+      "answer_text": "Cinderline completed a scoped risk review for the hosted product and records treatment owners for identified risks.",
+      "evidence_status": "supported_with_qualification",
+      "evidence_status_display": "Supported with qualification",
+      "evidence_references": [
+        "EVD-001",
+        "EVD-009"
+      ],
+      "qualification": "The review is an internal, product-scoped assessment and is not represented as an enterprise-wide independent risk audit.",
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q005",
+      "section": "Governance and security program",
+      "question_text": "Do you currently hold SOC 2, ISO 27001, or an equivalent certification?",
+      "answer_text": "No. Cinderline does not currently hold SOC 2, ISO 27001, or an equivalent certification.",
+      "evidence_status": "owner_assertion",
+      "evidence_status_display": "Owner assertion",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": {
+        "name": "Mara Venn",
+        "role": "Founder & CTO",
+        "assertion_date": "2026-07-02"
+      },
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q006",
+      "section": "Access control",
+      "question_text": "Are individual workforce accounts required for access to company systems?",
+      "answer_text": "Yes. Workforce and administrative access uses individually assigned accounts; routine shared user accounts are prohibited.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-002"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q007",
+      "section": "Access control",
+      "question_text": "Is multi-factor authentication required for privileged access?",
+      "answer_text": "Yes. Multi-factor authentication is required for privileged administrative access to the hosted production scope.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-002"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q008",
+      "section": "Access control",
+      "question_text": "Is access granted according to role and least privilege?",
+      "answer_text": "Yes. Access is assigned by role, limited to approved job responsibilities, and reviewed when responsibilities change.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-002"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q009",
+      "section": "Access control",
+      "question_text": "Are user and privileged access rights reviewed periodically?",
+      "answer_text": "Yes. Production and privileged access is reviewed quarterly, with the latest fictional review recorded on 2026-06-25.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-002",
+        "EVD-009"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q010",
+      "section": "Access control",
+      "question_text": "Is access removed promptly when personnel leave or change roles?",
+      "answer_text": "Yes. Joiner, mover, and leaver steps require role-change review and same-day disabling for confirmed departures.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-002"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q011",
+      "section": "Access control",
+      "question_text": "Is production administrative access logged?",
+      "answer_text": "Yes. Administrative access events are logged and retained according to the production logging schedule.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-002",
+        "EVD-004"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q012",
+      "section": "Access control",
+      "question_text": "Can enterprise customers use single sign-on with the product?",
+      "answer_text": "Yes. SAML-based single sign-on can be enabled for enterprise customer tenants through a controlled configuration process.",
+      "evidence_status": "owner_assertion",
+      "evidence_status_display": "Owner assertion",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": {
+        "name": "Ren Okafor",
+        "role": "Engineering Lead",
+        "assertion_date": "2026-07-02"
+      },
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q013",
+      "section": "Data protection and privacy",
+      "question_text": "Is customer data encrypted in transit?",
+      "answer_text": "Yes. Customer-facing and service-to-service traffic carrying customer data uses encrypted transport.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001",
+        "EVD-007"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q014",
+      "section": "Data protection and privacy",
+      "question_text": "Is customer data encrypted at rest?",
+      "answer_text": "Yes. Stored customer content and production backups are encrypted at rest within the hosted production scope.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001",
+        "EVD-005",
+        "EVD-007"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q015",
+      "section": "Data protection and privacy",
+      "question_text": "Can customer data residency be restricted to a defined region?",
+      "answer_text": "The fictional standard production scope is hosted in one designated European region.",
+      "evidence_status": "supported_with_qualification",
+      "evidence_status_display": "Supported with qualification",
+      "evidence_references": [
+        "EVD-006",
+        "EVD-007"
+      ],
+      "qualification": "A contractual residency commitment and any alternate-region requirement must be confirmed during the fit check.",
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q016",
+      "section": "Data protection and privacy",
+      "question_text": "Is customer data retention documented?",
+      "answer_text": "Yes. Customer content is retained for the active service period and enters a documented deletion workflow after account termination or an approved deletion request.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-007"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q017",
+      "section": "Data protection and privacy",
+      "question_text": "Can customer data be deleted on request?",
+      "answer_text": "Yes. Authorized deletion requests are mapped to the production data stores and backup-expiry process described in the data-flow record.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-005",
+        "EVD-007"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q018",
+      "section": "Data protection and privacy",
+      "question_text": "Does the product store or process payment-card data?",
+      "answer_text": "Not applicable. DocWeave AI does not store or process payment-card data within the reviewed product scope.",
+      "evidence_status": "not_applicable",
+      "evidence_status_display": "Not applicable, with reason",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": "Payment processing is outside the reviewed product scope and no cardholder-data flow is present.",
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q019",
+      "section": "Data protection and privacy",
+      "question_text": "Is production customer data prohibited from routine use in development and test environments?",
+      "answer_text": "Routine development and test work uses synthetic or masked data rather than production customer content.",
+      "evidence_status": "supported_with_qualification",
+      "evidence_status_display": "Supported with qualification",
+      "evidence_references": [
+        "EVD-007"
+      ],
+      "qualification": "A time-bounded support investigation may use a customer-provided sample only after explicit authorization and scoped handling instructions.",
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q020",
+      "section": "Secure development",
+      "question_text": "Do you maintain a documented secure development lifecycle?",
+      "answer_text": "Yes. The development workflow includes planning, peer review, automated checks, controlled release, and post-release observation.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001",
+        "EVD-003"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q021",
+      "section": "Secure development",
+      "question_text": "Are code changes peer reviewed before production release?",
+      "answer_text": "Yes. Production-bound changes require review by another authorized engineer before merge and release.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-003",
+        "EVD-009"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q022",
+      "section": "Secure development",
+      "question_text": "Are software dependencies scanned for known vulnerabilities?",
+      "answer_text": "Yes. Application dependency checks run in the main release workflow and findings are triaged by severity and exposure.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-003",
+        "EVD-009"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q023",
+      "section": "Secure development",
+      "question_text": "Do you scan source repositories for exposed secrets?",
+      "answer_text": "Automated secret-pattern checks run on the principal application repositories.",
+      "evidence_status": "supported_with_qualification",
+      "evidence_status_display": "Supported with qualification",
+      "evidence_references": [
+        "EVD-003",
+        "EVD-009"
+      ],
+      "qualification": "The control is documented for the principal application repositories; auxiliary experimental repositories are not included in this claim.",
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q024",
+      "section": "Secure development",
+      "question_text": "Are vulnerability remediation timelines defined?",
+      "answer_text": "Cinderline uses severity-based remediation targets and records exceptions with an owner and review date.",
+      "evidence_status": "supported_with_qualification",
+      "evidence_status_display": "Supported with qualification",
+      "evidence_references": [
+        "EVD-003",
+        "EVD-009"
+      ],
+      "qualification": "These are internal operating targets, not customer-facing contractual service levels.",
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q025",
+      "section": "Secure development",
+      "question_text": "Has the product completed an independent penetration test within the last twelve months?",
+      "answer_text": "No completed independent penetration-test report is available for the current product scope.",
+      "evidence_status": "open",
+      "evidence_status_display": "Open",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": {
+        "open_item_id": "OPEN-001",
+        "title": "Complete independent penetration test",
+        "state": "unresolved",
+        "owner": "Ilya North",
+        "target_date": "2026-09-30"
+      },
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q026",
+      "section": "Secure development",
+      "question_text": "Are production changes formally approved and traceable?",
+      "answer_text": "Yes. Production releases are tied to an approved change record, source revision, release actor, and deployment result.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-003"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q027",
+      "section": "Secure development",
+      "question_text": "Are software releases delivered to customers on physical media?",
+      "answer_text": "Not applicable. DocWeave AI is delivered as a hosted service and has no physical-media release process.",
+      "evidence_status": "not_applicable",
+      "evidence_status_display": "Not applicable, with reason",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": "The reviewed product is a hosted SaaS service with no customer software distributed on physical media.",
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q028",
+      "section": "Infrastructure and operations",
+      "question_text": "Is the production hosting architecture documented?",
+      "answer_text": "Yes. The reviewed scope identifies the hosted application, managed data services, model runtime, monitoring, and messaging dependencies.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001",
+        "EVD-006",
+        "EVD-007"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q029",
+      "section": "Infrastructure and operations",
+      "question_text": "Is operating-system and platform patching managed?",
+      "answer_text": "Yes. Managed-service updates are tracked through the vendor boundary, and Cinderline-owned runtime components follow a documented patch review process.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001",
+        "EVD-009"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q030",
+      "section": "Infrastructure and operations",
+      "question_text": "Are availability and security-relevant events monitored?",
+      "answer_text": "Yes. Application health, service errors, administrative events, and selected security signals are monitored for the hosted production scope.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001",
+        "EVD-006"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q031",
+      "section": "Infrastructure and operations",
+      "question_text": "Are production backups performed?",
+      "answer_text": "Yes. Production data is backed up on a scheduled basis with encryption and retention controls.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-005"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q032",
+      "section": "Infrastructure and operations",
+      "question_text": "Are backup restorations tested?",
+      "answer_text": "A sampled restoration test was completed successfully against a synthetic recovery dataset.",
+      "evidence_status": "supported_with_qualification",
+      "evidence_status_display": "Supported with qualification",
+      "evidence_references": [
+        "EVD-005",
+        "EVD-009"
+      ],
+      "qualification": "The recorded check demonstrates a sampled data restoration and is not represented as a full disaster-recovery exercise.",
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q033",
+      "section": "Infrastructure and operations",
+      "question_text": "Do you operate your own physical data centres?",
+      "answer_text": "Not applicable. Cinderline does not operate physical data centres for the reviewed hosted product scope.",
+      "evidence_status": "not_applicable",
+      "evidence_status_display": "Not applicable, with reason",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": "Physical facilities are operated by the fictional hosted-compute provider, not by Cinderline.",
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q034",
+      "section": "Incident response",
+      "question_text": "Do you maintain a documented incident-response procedure?",
+      "answer_text": "Yes. The procedure defines intake, severity classification, ownership, escalation, containment, recovery, and post-incident review.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001",
+        "EVD-004"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q035",
+      "section": "Incident response",
+      "question_text": "Have you had a reportable customer-data security incident in the previous twelve months?",
+      "answer_text": "The fictional company records no reportable customer-data security incident in the twelve months ending 2026-07-01.",
+      "evidence_status": "owner_assertion",
+      "evidence_status_display": "Owner assertion",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": {
+        "name": "Ilya North",
+        "role": "Security & Platform Lead",
+        "assertion_date": "2026-07-02"
+      },
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q036",
+      "section": "Incident response",
+      "question_text": "Does the incident process include customer-notification assessment?",
+      "answer_text": "Yes. The incident lead must assess contractual, regulatory, and customer-notification requirements with the accountable executive and advisers.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-004"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q037",
+      "section": "Incident response",
+      "question_text": "Has the incident-response procedure been exercised in the last twelve months?",
+      "answer_text": "A full tabletop exercise has not yet been completed for the current procedure revision.",
+      "evidence_status": "open",
+      "evidence_status_display": "Open",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": {
+        "open_item_id": "OPEN-002",
+        "title": "Run incident-response tabletop exercise",
+        "state": "unresolved",
+        "owner": "Ilya North",
+        "target_date": "2026-08-31"
+      },
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q038",
+      "section": "Incident response",
+      "question_text": "How long are security-relevant production logs retained?",
+      "answer_text": "Selected security-relevant logs are retained for 90 days in active search and up to 365 days in restricted archive storage.",
+      "evidence_status": "supported_with_qualification",
+      "evidence_status_display": "Supported with qualification",
+      "evidence_references": [
+        "EVD-004"
+      ],
+      "qualification": "Retention varies by log source; the stated periods apply to the sources listed in the incident-response procedure.",
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q039",
+      "section": "Business continuity",
+      "question_text": "Do you maintain a business-continuity and recovery plan?",
+      "answer_text": "Yes. Cinderline maintains a scoped continuity plan for restoration of the hosted product and essential customer communication.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001",
+        "EVD-005"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q040",
+      "section": "Business continuity",
+      "question_text": "Are recovery-time and recovery-point objectives defined?",
+      "answer_text": "The fictional operating targets are a 12-hour recovery-time objective and a 4-hour recovery-point objective for the principal production data service.",
+      "evidence_status": "supported_with_qualification",
+      "evidence_status_display": "Supported with qualification",
+      "evidence_references": [
+        "EVD-005"
+      ],
+      "qualification": "These are internal planning targets and are not represented as contractual service commitments.",
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q041",
+      "section": "Business continuity",
+      "question_text": "Has a full continuity exercise been completed in the last twelve months?",
+      "answer_text": "A sampled restoration has been completed, but a full continuity exercise covering all dependencies has not yet been completed.",
+      "evidence_status": "open",
+      "evidence_status_display": "Open",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": {
+        "open_item_id": "OPEN-003",
+        "title": "Complete end-to-end continuity exercise",
+        "state": "unresolved",
+        "owner": "Theo Vale",
+        "target_date": "2026-10-15"
+      },
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q042",
+      "section": "Business continuity",
+      "question_text": "Do you maintain a permanently staffed secondary office for continuity?",
+      "answer_text": "Not applicable. The fictional company operates a remote-capable model and does not rely on a permanently staffed secondary office.",
+      "evidence_status": "not_applicable",
+      "evidence_status_display": "Not applicable, with reason",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": "Continuity is based on remote-capable work and alternate communication channels rather than a second staffed office.",
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q043",
+      "section": "Vendor and subprocessor risk",
+      "question_text": "Do you maintain an inventory of critical vendors supporting the service?",
+      "answer_text": "Yes. The critical vendor register identifies service purpose, owner, review tier, data role, and current review date.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-006"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q044",
+      "section": "Vendor and subprocessor risk",
+      "question_text": "Is vendor security due diligence performed before onboarding?",
+      "answer_text": "Critical and data-processing vendors receive documented due diligence before approval and are re-reviewed according to tier.",
+      "evidence_status": "supported_with_qualification",
+      "evidence_status_display": "Supported with qualification",
+      "evidence_references": [
+        "EVD-006"
+      ],
+      "qualification": "The formal review applies to critical and data-processing vendors; low-risk commodity suppliers use a lighter documented check.",
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q045",
+      "section": "Vendor and subprocessor risk",
+      "question_text": "Is a customer-facing subprocessor list currently available?",
+      "answer_text": "The underlying vendor and data-role inventory exists, but the customer-facing subprocessor publication is still being prepared.",
+      "evidence_status": "open",
+      "evidence_status_display": "Open",
+      "evidence_references": [
+        "EVD-006"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": {
+        "open_item_id": "OPEN-004",
+        "title": "Approve customer-facing subprocessor list",
+        "state": "unresolved",
+        "owner": "Mara Venn",
+        "target_date": "2026-07-31"
+      },
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q046",
+      "section": "Personnel security and training",
+      "question_text": "Are background checks performed for personnel in sensitive roles where legally permitted?",
+      "answer_text": "Cinderline states that background screening is completed for designated sensitive roles where permitted and appropriate.",
+      "evidence_status": "owner_assertion",
+      "evidence_status_display": "Owner assertion",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": {
+        "name": "Elin Park",
+        "role": "People Operations Lead",
+        "assertion_date": "2026-07-02"
+      },
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q047",
+      "section": "Personnel security and training",
+      "question_text": "Have all personnel completed security-awareness training?",
+      "answer_text": "Thirty-three of thirty-five fictional personnel have completed the current annual security-awareness module.",
+      "evidence_status": "open",
+      "evidence_status_display": "Open",
+      "evidence_references": [
+        "EVD-008"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": {
+        "open_item_id": "OPEN-005",
+        "title": "Complete training for two recent starters",
+        "state": "unresolved",
+        "owner": "Elin Park",
+        "target_date": "2026-07-18"
+      },
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q048",
+      "section": "Personnel security and training",
+      "question_text": "Do temporary contractors administer the reviewed production environment?",
+      "answer_text": "Not applicable. No temporary contractors administer the reviewed production environment in this fictional scenario.",
+      "evidence_status": "not_applicable",
+      "evidence_status_display": "Not applicable, with reason",
+      "evidence_references": [],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": "Production administration is limited to named fictional employees in the reviewed scope.",
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q049",
+      "section": "AI governance",
+      "question_text": "Is customer content used to train a shared or general-purpose model?",
+      "answer_text": "No. Customer content in the reviewed scope is processed to provide the contracted workflow and is not used to train a shared or general-purpose model.",
+      "evidence_status": "supported",
+      "evidence_status_display": "Supported",
+      "evidence_references": [
+        "EVD-001",
+        "EVD-007"
+      ],
+      "qualification": null,
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    },
+    {
+      "question_id": "Q050",
+      "section": "AI governance",
+      "question_text": "Are AI-generated classifications subject to human review or correction?",
+      "answer_text": "The product supports confidence thresholds, reviewer queues, and user correction of generated classifications.",
+      "evidence_status": "supported_with_qualification",
+      "evidence_status_display": "Supported with qualification",
+      "evidence_references": [
+        "EVD-001"
+      ],
+      "qualification": "Human review is configurable by workflow and is not asserted to occur for every generated classification.",
+      "fictional_owner_assertion": null,
+      "open_item": null,
+      "not_applicable_reason": null,
+      "claim_scope": "DocWeave AI hosted production scope",
+      "customer_approval_state": "approved_with_exceptions",
+      "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+    }
+  ]
+}

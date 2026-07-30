@@ -1,0 +1,161 @@
+{
+  "pack_id": "WO-CSR-SYNTH-DATA-V1-CL-001",
+  "schema_version": "witnessops.customer_security_review.synthetic_pack.v1",
+  "synthetic_scenario_identifier": "SYN-CSR-2026-CL-001",
+  "fixed_scenario_timestamp": "2026-07-01T09:00:00Z",
+  "required_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE",
+  "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+  "canonical_answer_count": 50,
+  "evidence_count": 9,
+  "open_item_count": 5,
+  "receipt_reference": "receipts/authoring_receipt.json",
+  "files": [
+    {
+      "relative_filename": "README.md",
+      "artifact_role": "package_readme",
+      "sha256": "6b70bed6d960225f05f76bcf8fe0ded56101bc9f5922a3d06f4d754e0ee9d783",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": false
+    },
+    {
+      "relative_filename": "canonical/approval_record.json",
+      "artifact_role": "fictional_customer_approval",
+      "sha256": "ba0fc44f99af27e4510e53882f4374ccbb1e2c79f03fdba083c1ee4f07a3b4db",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": false
+    },
+    {
+      "relative_filename": "canonical/evidence_inventory.json",
+      "artifact_role": "canonical_evidence_inventory",
+      "sha256": "42f781e301ba3c3244fb18241dcbeead568c3628e3096aff8db3aa0c7653c3e8",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": false
+    },
+    {
+      "relative_filename": "canonical/questionnaire.json",
+      "artifact_role": "canonical_answer_data",
+      "sha256": "fc5a2b686827b697ed820bb3ee073675c7424abe761970799ed0f9fe30295ebf",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": false
+    },
+    {
+      "relative_filename": "canonical/scenario.json",
+      "artifact_role": "canonical_scenario",
+      "sha256": "210222109c7d0d74dcb141ca4184de19a90b338bfbb1c308cb6812a4583881b7",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": false
+    },
+    {
+      "relative_filename": "canonical/validation_rules.json",
+      "artifact_role": "fail_closed_validation_rules",
+      "sha256": "ab50641425b7bdfb8f8465dfd2aee4499bd0326953be1a44ce58af43b216af5d",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": false
+    },
+    {
+      "relative_filename": "evidence/EVD-001_security_overview.md",
+      "artifact_role": "synthetic_evidence_document",
+      "sha256": "a6676621bc36c48a485f7c7ac2de7a262de76bc7053ba6541580a21a4d5b33a3",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "evidence/EVD-002_access_control_procedure.md",
+      "artifact_role": "synthetic_evidence_document",
+      "sha256": "9680acc66f7f05bc30f958a449316a5da282f087335a020283100a7cb6c200a9",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "evidence/EVD-003_secure_development_summary.md",
+      "artifact_role": "synthetic_evidence_document",
+      "sha256": "814435315e45628a2d50b69e666e89d2a2394b80f89f294f77b0c3e221b9a1d9",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "evidence/EVD-004_incident_response_procedure.md",
+      "artifact_role": "synthetic_evidence_document",
+      "sha256": "27539a4b3d495da83ac75d7c9e8ee8e92e1dfb52d96afc9c7bc4d710b796daca",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "evidence/EVD-005_backup_continuity_summary.md",
+      "artifact_role": "synthetic_evidence_document",
+      "sha256": "88f96cdd6896af0061892fac7f07c208b1b3adea57b1346e9ecf9f960e137fa9",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "evidence/EVD-006_vendor_register.md",
+      "artifact_role": "synthetic_evidence_document",
+      "sha256": "53d0f2769ffe32980543da0e86d2e32b6164b24e7040069645f26e4c98498e19",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "evidence/EVD-007_data_flow_description.md",
+      "artifact_role": "synthetic_evidence_document",
+      "sha256": "73e12f94d521c96e44b8c00dd4472158a6dde590c0fadb6a98c8811d860751de",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "evidence/EVD-008_training_personnel_record.md",
+      "artifact_role": "synthetic_evidence_document",
+      "sha256": "43c5600bb5db4721a7191c4918784d49295d746ea1d8ce57b0cf76da55be82de",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "evidence/EVD-009_test_review_record.md",
+      "artifact_role": "synthetic_evidence_document",
+      "sha256": "53ccb4708c1e8a5b2007e1c0ebadfb60057f2bbdc5ff5e721dedc470510716db",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "exports/answer_matrix.csv",
+      "artifact_role": "flat_answer_matrix",
+      "sha256": "2ac9b5464492a1aa95ebe99cd0e9f96242b61ffa2d8226446c58fe6c87a2e486",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "exports/answer_matrix.xlsx",
+      "artifact_role": "answer_matrix_spreadsheet",
+      "sha256": "6e026a678c778ed293eda83c57ee6c0a01036606aa70c885aebcc20c8619d102",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "exports/claim_status_open_item_map.csv",
+      "artifact_role": "flat_open_item_map",
+      "sha256": "ed0daa7a6db24275e9d6865d9345b061fd1c548d211048ba7bc4b0b87461e364",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "exports/evidence_index.csv",
+      "artifact_role": "flat_evidence_index",
+      "sha256": "6924067f181fcdfc84972c04a18e1d8c6638d2e14d0a35306e19f91450613b17",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": true
+    },
+    {
+      "relative_filename": "schema/evidence.schema.json",
+      "artifact_role": "evidence_schema",
+      "sha256": "9e39236526b25201d8d07128613dc7024791d62431b47fd875e6a6b48697ca2b",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": false
+    },
+    {
+      "relative_filename": "schema/questionnaire.schema.json",
+      "artifact_role": "questionnaire_schema",
+      "sha256": "667e9809c863765256327cd0f0ee05b4baf2a933a241ef050fe9b3357ec9fd08",
+      "generation_source": "witnessops.synthetic_customer_security_review.data_generator.v1",
+      "included_in_customer_pack": false
+    }
+  ]
+}

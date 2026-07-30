@@ -1,0 +1,72 @@
+{
+  "checks": {
+    "core.core_manifest": {
+      "detail": "15 core package files matched MANIFEST.sha256",
+      "status": "passed"
+    },
+    "core.embedded_core_verifier_result": {
+      "detail": "embedded producer core result matched fresh reconstruction",
+      "status": "passed"
+    },
+    "core.evidence_artifact_hashes_and_claim_refs": {
+      "detail": "8 evidence artifacts and all claim references matched",
+      "status": "passed"
+    },
+    "core.package_tree": {
+      "detail": "package tree contains no symlinks",
+      "status": "passed"
+    },
+    "core.receipt_compatibility_projection": {
+      "detail": "canonical and compatibility receipt bytes are identical",
+      "status": "passed"
+    },
+    "core.receipt_signature_and_manifest_binding": {
+      "detail": "receipt signature verified with an externally admitted trust-registry key",
+      "status": "passed"
+    },
+    "core.signer_trust": {
+      "detail": "external trust registry required and compared",
+      "status": "passed"
+    },
+    "proofpack_detached_signature": {
+      "detail": "detached ZIP signature and external trust-registry admission passed",
+      "status": "passed"
+    },
+    "safe_zip_structure": {
+      "detail": "safely extracted 17 files totaling 30457 bytes",
+      "status": "passed"
+    },
+    "transport_receipt_signer_continuity": {
+      "detail": "detached ZIP signer and receipt signer key ids match",
+      "status": "passed"
+    },
+    "verification_inputs": {
+      "detail": "proofpack, signature, and trust registry are bounded regular files",
+      "status": "passed"
+    }
+  },
+  "failure_states": [],
+  "outcome": "pass",
+  "proof_boundary": "package integrity and declared bindings only; no host security, compromise, completeness, or compliance conclusion",
+  "proof_run_id": "pr_lsa_20260710120000_198fd7aceb",
+  "status": "valid",
+  "verification_inputs": {
+    "proofpack": {
+      "name": "proofpack-pr_lsa_20260710120000_198fd7aceb.zip",
+      "sha256": "496656b4c873183887f2eee169021aca745a0f1cd57732faf169a02e86522a32",
+      "size_bytes": 13095
+    },
+    "signature": {
+      "name": "proofpack-pr_lsa_20260710120000_198fd7aceb.zip.sig.json",
+      "sha256": "4ebca9d05707b785efab1a5788079a8986325b85aa50d054d5d7f2f50277e8f5",
+      "size_bytes": 508
+    },
+    "trust_registry": {
+      "name": "trusted-keys.synthetic.json",
+      "sha256": "34bb460bf0b38fc40be0c85138cf699c8bcca256dd908687e4912ab8365367ca",
+      "size_bytes": 499
+    }
+  },
+  "verifier_version": "witnessops.local_server_audit.verifier.v1",
+  "workflow_class": "host_triage_evidence_collection"
+}

@@ -1,0 +1,73 @@
+{
+  "pack_id": "WO-CSR-SYNTH-DATA-V1-CL-001",
+  "schema_version": "witnessops.customer_security_review.synthetic_pack.v1",
+  "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE",
+  "rules": [
+    {
+      "rule_id": "VAL-001",
+      "description": "Every answer has exactly one closed evidence status.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-002",
+      "description": "Supported answers contain at least one structurally resolvable evidence_id.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-003",
+      "description": "Supported-with-qualification answers contain evidence and a visible qualification.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-004",
+      "description": "Owner assertions contain a named fictional owner and a closed customer approval state.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-005",
+      "description": "Open answers contain an unresolved open item and are not represented as resolved.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-006",
+      "description": "Not-applicable answers contain a reason.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-007",
+      "description": "Every evidence reference resolves by evidence_id to an inventory record and existing relative file.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-008",
+      "description": "Every outward-facing artifact visibly contains the synthetic banner.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-009",
+      "description": "The term verified is not used without a named mechanism and bounded scope.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-010",
+      "description": "Manifest hashes match the listed files.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-011",
+      "description": "Outputs contain no secret-like data, customer data, real infrastructure details, or private absolute paths.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-012",
+      "description": "The authoring receipt claims only checks actually executed.",
+      "fail_closed": true
+    },
+    {
+      "rule_id": "VAL-013",
+      "description": "A future PDF must contain the same ordered question_id set as the spreadsheet.",
+      "fail_closed": true,
+      "future_output": true
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "algorithm": "ed25519",
+  "encoding": "hex",
+  "public_key": "816f84ea2dd92fa041e18f8e7f87062350c0d3cb7f7ad50780c0f6cf42e79737",
+  "public_key_id": "witnessops_lsa_synthetic_test_001",
+  "purpose": "witnessops_local_server_audit_receipt_and_proofpack",
+  "schema": "witnessops.public_key.v1",
+  "trust_boundary": "package-provided public key is not a trust anchor"
+}

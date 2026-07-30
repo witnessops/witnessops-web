@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.witnessops.example/customer-security-review-evidence-v1.json",
+  "title": "WitnessOps Synthetic Evidence Inventory",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "required": [
+      "evidence_id",
+      "filename",
+      "title",
+      "document_date",
+      "fictional_owner",
+      "scope",
+      "evidence_role",
+      "synthetic_content_marker",
+      "referenced_questionnaire_ids"
+    ],
+    "properties": {
+      "evidence_id": {
+        "type": "string",
+        "pattern": "^EVD-[0-9]{3}$"
+      },
+      "filename": {
+        "type": "string",
+        "pattern": "^EVD-[0-9]{3}_.+\\.md$"
+      },
+      "title": {
+        "type": "string"
+      },
+      "document_date": {
+        "type": "string",
+        "format": "date"
+      },
+      "fictional_owner": {
+        "type": "string"
+      },
+      "scope": {
+        "type": "string"
+      },
+      "evidence_role": {
+        "type": "string"
+      },
+      "synthetic_content_marker": {
+        "const": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"
+      },
+      "referenced_questionnaire_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^Q[0-9]{3}$"
+        },
+        "uniqueItems": true
+      }
+    }
+  }
+}

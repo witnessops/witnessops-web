@@ -1,0 +1,23 @@
+{
+  "authority_source_validation": "digest_and_declared_identity_recorded; external signer identity not independently validated",
+  "authorization_id": "AUTH-LSA-SYNTHETIC-001",
+  "collector": {
+    "name": "witnessops_local_server_audit",
+    "signature_status": "not_supplied",
+    "source_sha256": "d953680b98523eeaafac1a9865b7c005333130f0e0e44929de1bd7a26e5cff72",
+    "version": "1.0.0"
+  },
+  "execution": {
+    "local_only": true,
+    "mode": "fixture",
+    "network_discovery": false,
+    "read_only": true
+  },
+  "input_classification": "synthetic_non_customer",
+  "observed_at_utc": "2026-07-10T12:00:00Z",
+  "observed_hostname": "demo-host",
+  "operator_id": "operator-synthetic-01",
+  "proof_run_id": "pr_lsa_20260710120000_198fd7aceb",
+  "schema": "witnessops.local_server_audit.run_record.v1",
+  "synthetic": true
+}

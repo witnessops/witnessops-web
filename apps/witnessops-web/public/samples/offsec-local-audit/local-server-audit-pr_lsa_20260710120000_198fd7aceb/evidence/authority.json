@@ -1,0 +1,40 @@
+{
+  "allowed_actions": [
+    "read_only_posture_collection"
+  ],
+  "authority_source": {
+    "approved_at_utc": "2026-07-09T12:00:00Z",
+    "artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "authority_identity": "synthetic-buyer-authority",
+    "kind": "signed_scope_document_digest"
+  },
+  "authorization_id": "AUTH-LSA-SYNTHETIC-001",
+  "authorization_window": {
+    "ends_at_utc": "2026-07-11T00:00:00Z",
+    "starts_at_utc": "2026-07-10T00:00:00Z"
+  },
+  "case_id": "CASE-LSA-SYNTHETIC-001",
+  "execution_mode": "operator_present_local",
+  "operator_id": "operator-synthetic-01",
+  "profile_id": "linux_baseline_v1",
+  "prohibited_artifact_classes": [
+    "browser_cookies",
+    "clipboard",
+    "credentials",
+    "full_memory_dump",
+    "full_user_documents",
+    "oauth_tokens",
+    "password_manager_data",
+    "private_keys",
+    "process_command_lines",
+    "process_environment",
+    "screenshots"
+  ],
+  "schema": "witnessops.local_server_audit.authority.v1",
+  "target": {
+    "allowed_hostnames": [
+      "demo-host"
+    ],
+    "asset_id": "asset-demo-host-001"
+  }
+}

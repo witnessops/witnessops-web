@@ -1,0 +1,67 @@
+{
+  "pack_id": "WO-CSR-SYNTH-DATA-V1-CL-001",
+  "schema_version": "witnessops.customer_security_review.synthetic_pack.v1",
+  "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE",
+  "scenario_id": "SYN-CSR-2026-CL-001",
+  "fixed_scenario_timestamp": "2026-07-01T09:00:00Z",
+  "supplier": {
+    "legal_name": "Cinderline Systems Ltd.",
+    "trading_name": "Cinderline",
+    "domain": "cinderline.example",
+    "headcount": 35,
+    "business_type": "B2B AI SaaS",
+    "product_name": "DocWeave AI",
+    "product_description": "Hosted document classification and workflow automation for business teams.",
+    "product_scope": "One hosted production environment serving the DocWeave AI application and its supporting services."
+  },
+  "review_trigger": {
+    "event": "A fictional enterprise prospect issued a security questionnaire and evidence list.",
+    "due_date": "2026-07-15",
+    "deadline_basis": "Within ten business days of receipt.",
+    "certification_hard_gate": false
+  },
+  "fictional_people": [
+    {
+      "name": "Mara Venn",
+      "role": "Founder & CTO"
+    },
+    {
+      "name": "Ilya North",
+      "role": "Security & Platform Lead"
+    },
+    {
+      "name": "Ren Okafor",
+      "role": "Engineering Lead"
+    },
+    {
+      "name": "Elin Park",
+      "role": "People Operations Lead"
+    },
+    {
+      "name": "Theo Vale",
+      "role": "Operations Lead"
+    }
+  ],
+  "fictional_vendors": [
+    {
+      "name": "SkyFoundry Compute Services",
+      "role": "Hosted compute and managed database"
+    },
+    {
+      "name": "VectorSpring Model Runtime",
+      "role": "Model inference service"
+    },
+    {
+      "name": "TraceHarbor Monitoring",
+      "role": "Application and infrastructure monitoring"
+    },
+    {
+      "name": "MailBurrow Messaging",
+      "role": "Transactional email delivery"
+    },
+    {
+      "name": "CobaltDesk Support",
+      "role": "Customer support workflow"
+    }
+  ]
+}

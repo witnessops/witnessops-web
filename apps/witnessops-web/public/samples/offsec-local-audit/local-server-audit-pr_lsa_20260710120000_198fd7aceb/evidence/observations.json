@@ -1,0 +1,172 @@
+{
+  "command_evidence": {
+    "clock": {
+      "argv": [
+        "timedatectl",
+        "show",
+        "-p",
+        "NTPSynchronized",
+        "--value"
+      ],
+      "returncode": 0,
+      "status": "captured",
+      "stderr": "",
+      "stdout": "yes\n"
+    },
+    "firewall": {
+      "attempts": [
+        {
+          "argv": [
+            "ufw",
+            "status"
+          ],
+          "returncode": 0,
+          "status": "captured",
+          "stderr": "",
+          "stdout": "Status: active\n"
+        }
+      ]
+    },
+    "hardening": {
+      "commands": []
+    },
+    "listeners": {
+      "argv": [
+        "ss",
+        "-H",
+        "-lntu"
+      ],
+      "returncode": 0,
+      "status": "captured",
+      "stderr": "",
+      "stdout": "tcp LISTEN 0 128 127.0.0.1:22 0.0.0.0:*\n"
+    },
+    "services": {
+      "argv": [
+        "systemctl",
+        "--failed",
+        "--no-legend",
+        "--plain"
+      ],
+      "returncode": 0,
+      "status": "captured",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ssh": {
+      "argv": [
+        "sshd",
+        "-T"
+      ],
+      "returncode": 0,
+      "status": "captured",
+      "stderr": "",
+      "stdout": "permitrootlogin no\npasswordauthentication no\npubkeyauthentication yes\n"
+    }
+  },
+  "data_classification": "synthetic_non_customer",
+  "declared_exclusions": [
+    "processes",
+    "process_command_lines",
+    "process_environment",
+    "credentials",
+    "browser_data",
+    "tokens",
+    "private_keys",
+    "user_documents",
+    "event_logs",
+    "memory",
+    "network_discovery"
+  ],
+  "declared_side_effects": [
+    "local_process_execution",
+    "local_file_reads",
+    "local_output_file_creation"
+  ],
+  "observed_at_utc": "2026-07-10T12:00:00Z",
+  "profile_id": "linux_baseline_v1",
+  "schema": "witnessops.local_server_audit.observations.v1",
+  "sections": {
+    "accounts": {
+      "account_names_collected": false,
+      "collector_method": "fixture",
+      "interactive_shell_account_count": 2,
+      "status": "observed",
+      "total_account_count": 24,
+      "uid0_account_count": 1
+    },
+    "clock": {
+      "ntp_synchronized": true,
+      "status": "observed"
+    },
+    "critical_files": {
+      "file_contents_collected": false,
+      "files": [
+        {
+          "admitted": true,
+          "group": "root",
+          "mode": "0644",
+          "owner": "root",
+          "path": "/etc/passwd",
+          "status": "observed"
+        }
+      ],
+      "status": "observed"
+    },
+    "firewall": {
+      "provider": "ufw",
+      "status": "active"
+    },
+    "hardening": {
+      "apparmor_enabled": true,
+      "selinux_enforcing": null,
+      "status": "observed",
+      "sysctl": {
+        "fs.protected_hardlinks": "1",
+        "fs.protected_symlinks": "1",
+        "kernel.dmesg_restrict": "1",
+        "kernel.kptr_restrict": "2",
+        "kernel.unprivileged_bpf_disabled": "1"
+      }
+    },
+    "host_identity": {
+      "architecture": "x86_64",
+      "hostname": "demo-host",
+      "kernel": "6.12.0-fixture",
+      "machine_identity": {
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "source": "/etc/machine-id",
+        "status": "observed"
+      },
+      "os_release": {
+        "id": "debian",
+        "pretty_name": "Debian Fixture",
+        "version_id": "13"
+      },
+      "status": "observed"
+    },
+    "listeners": {
+      "listener_count": 1,
+      "process_identifiers_collected": false,
+      "status": "observed"
+    },
+    "services": {
+      "failed_unit_count": 0,
+      "failed_units": [],
+      "status": "observed",
+      "truncated": false
+    },
+    "ssh": {
+      "effective_configuration": true,
+      "password_authentication": "no",
+      "permit_root_login": "no",
+      "pubkey_authentication": "yes",
+      "status": "observed"
+    }
+  },
+  "synthetic": true,
+  "target": {
+    "asset_id": "asset-demo-host-001",
+    "hostname": "demo-host"
+  }
+}

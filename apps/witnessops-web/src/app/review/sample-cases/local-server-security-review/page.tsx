@@ -171,29 +171,73 @@ export default function LocalServerSecurityReviewSamplePage() {
 
           <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
+              Full suite product sample (OFFSEC-LOCAL-AUDIT)
+            </h2>
+            <p className="text-sm leading-7 text-text-secondary">
+              Complete synthetic product package from the OffSec suite: buyer walkthrough,
+              report, findings, receipt, and downloadable proofpack. Run id{" "}
+              <code className="font-mono text-xs">pr_lsa_20260710120000_198fd7aceb</code>.
+            </p>
+            <ul className="mt-4 space-y-3">
+              {[
+                "local-server-audit-pr_lsa_20260710120000_198fd7aceb/BUYER_WALKTHROUGH.md",
+                "local-server-audit-pr_lsa_20260710120000_198fd7aceb/report.md",
+                "local-server-audit-pr_lsa_20260710120000_198fd7aceb/findings.json",
+                "local-server-audit-pr_lsa_20260710120000_198fd7aceb/posture.json",
+                "local-server-audit-pr_lsa_20260710120000_198fd7aceb/receipt.json",
+                "local-server-audit-pr_lsa_20260710120000_198fd7aceb/evidence_manifest.json",
+                "proofpack-pr_lsa_20260710120000_198fd7aceb.proofpack",
+                "proofpack-pr_lsa_20260710120000_198fd7aceb.proofpack.sha256",
+                "proofpack-pr_lsa_20260710120000_198fd7aceb.proofpack.sig.json",
+              ].map((file) => (
+                <li
+                  key={file}
+                  className="rounded-xl border border-surface-border bg-surface-bg p-4"
+                >
+                  <a
+                    href={`/samples/offsec-local-audit/${file}`}
+                    className="break-all font-mono text-sm font-semibold text-brand-accent hover:underline"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {file}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs leading-6 text-text-muted">
+              Offline product verifier path (suite):{" "}
+              <code className="font-mono">witnessops-local-audit verify</code> with the
+              proofpack, detached signature, and a trust registry obtained separately.{" "}
+              <code className="font-mono">valid</code> is not a host-security grade.
+            </p>
+          </section>
+
+          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Proof boundary
             </h2>
             <ul className="list-disc space-y-2 pl-6 text-sm leading-7 text-text-secondary">
               <li>
                 Integrity checks use Shield <code>MANIFEST.sha256</code> semantics
-                (READY / MISMATCH / MISSING).
+                (READY / MISMATCH / MISSING) on the web fixture family.
               </li>
               <li>
                 Does not prove regulatory compliance, EDR coverage, or that your
                 production hosts match this fixture.
               </li>
               <li>
-                This sample is not currently verified through WitnessOps /api/verify.
-                Use the included manifest and sidecars to inspect
-                fixture structure. A public verifier path must be named before
-                any verification claim is made.
+                Web fixture receipt is structural; full suite sample uses offline product
+                verify. A public verifier path must be named before any verification claim
+                is made. Neither sample is live customer evidence.
               </li>
             </ul>
           </section>
 
           <p className="text-xs text-text-muted">
-            Sample id: {shieldSampleId}. Regenerate via operator publish script{" "}
-            <code className="font-mono">publish-shield-sample-witnessops.sh</code>.
+            Web fixture id: {shieldSampleId}. Suite sample id:{" "}
+            <code className="font-mono">offsec-local-audit</code> /{" "}
+            <code className="font-mono">pr_lsa_20260710120000_198fd7aceb</code>.
           </p>
         </div>
       </SectionShell>

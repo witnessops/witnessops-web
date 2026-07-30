@@ -1,0 +1,159 @@
+{
+  "artifacts": [
+    {
+      "artifact_class": "authority_record",
+      "artifact_id": "authority_record",
+      "artifact_type": "local_server_audit",
+      "collector_method": "witnessops_local_server_audit_v1",
+      "path": "evidence/authority.json",
+      "sensitivity": "low",
+      "sha256": "sha256:9d5a6772a93472e399e09917dcece2121b6b33b740c0a9bf4a99ec498e062766",
+      "source_system": "operator_supplied_authority_record"
+    },
+    {
+      "artifact_class": "authority_decision",
+      "artifact_id": "admission_decision",
+      "artifact_type": "local_server_audit",
+      "collector_method": "witnessops_local_server_audit_v1",
+      "path": "evidence/admission-decision.json",
+      "sensitivity": "low",
+      "sha256": "sha256:16ef734bb84c21188c14db042eb60eff7244f6f2e8b4b826cd7a3f7645a1dcbb",
+      "source_system": "witnessops_authority_gate"
+    },
+    {
+      "artifact_class": "scope_record",
+      "artifact_id": "scope_record",
+      "artifact_type": "local_server_audit",
+      "collector_method": "witnessops_local_server_audit_v1",
+      "path": "evidence/scope.json",
+      "sensitivity": "low",
+      "sha256": "sha256:a3e356d608f4258f1b1a36b21eb06f62cf63856f61161463714814bc9a95a7c3",
+      "source_system": "operator_supplied_authority_record"
+    },
+    {
+      "artifact_class": "run_record",
+      "artifact_id": "run_record",
+      "artifact_type": "local_server_audit",
+      "collector_method": "witnessops_local_server_audit_v1",
+      "path": "evidence/run_record.json",
+      "sensitivity": "low",
+      "sha256": "sha256:f0a25e27624b9f3084e9a5d1392045a4ff1cdb41a15fa95ab98be8d1c5819925",
+      "source_system": "witnessops_local_server_audit_collector"
+    },
+    {
+      "artifact_class": "host_observations",
+      "artifact_id": "host_observations",
+      "artifact_type": "local_server_audit",
+      "collector_method": "witnessops_local_server_audit_v1",
+      "path": "evidence/observations.json",
+      "sensitivity": "medium",
+      "sha256": "sha256:e359418a0a7211b01d584d121bb1d0cc32288a7e5907871383ad73ca7b5c931d",
+      "source_system": "witnessops_local_server_audit_collector"
+    },
+    {
+      "artifact_class": "collection_completeness",
+      "artifact_id": "collection_completeness",
+      "artifact_type": "local_server_audit",
+      "collector_method": "witnessops_local_server_audit_v1",
+      "path": "evidence/collection-completeness.json",
+      "sensitivity": "low",
+      "sha256": "sha256:24b90784aba3c0cb72df3d6c1f23807d9233dd39072ea9fca0e4a18fd7b05a9c",
+      "source_system": "witnessops_local_server_audit_rules_v1"
+    },
+    {
+      "artifact_class": "host_posture",
+      "artifact_id": "host_posture",
+      "artifact_type": "local_server_audit",
+      "collector_method": "witnessops_local_server_audit_v1",
+      "path": "posture.json",
+      "sensitivity": "medium",
+      "sha256": "sha256:250386d77d62dccb443f22bcac27e8a6382c03257305f2b5ba4451769b0cd23c",
+      "source_system": "witnessops_local_server_audit_collector"
+    },
+    {
+      "artifact_class": "posture_findings",
+      "artifact_id": "posture_findings",
+      "artifact_type": "local_server_audit",
+      "collector_method": "witnessops_local_server_audit_v1",
+      "path": "findings.json",
+      "sensitivity": "medium",
+      "sha256": "sha256:dc940d2f503ce084417451d6d7d8c031a6f160ac6ba8ccfacef85a5dd193bb61",
+      "source_system": "witnessops_local_server_audit_rules_v1"
+    }
+  ],
+  "authority": {
+    "authorization_id": "AUTH-LSA-SYNTHETIC-001",
+    "authorization_window": {
+      "end_utc": "2026-07-11T00:00:00Z",
+      "start_utc": "2026-07-10T00:00:00Z"
+    },
+    "case_id": "CASE-LSA-SYNTHETIC-001",
+    "collection_profile_id": "linux_baseline_v1",
+    "operator_id": "operator-synthetic-01"
+  },
+  "collection_profile": {
+    "profile_id": "linux_baseline_v1",
+    "prohibited_classes": [
+      "browser_cookies",
+      "clipboard",
+      "credentials",
+      "full_memory_dump",
+      "full_user_documents",
+      "oauth_tokens",
+      "password_manager_data",
+      "private_keys",
+      "process_command_lines",
+      "process_environment",
+      "screenshots"
+    ]
+  },
+  "collector": {
+    "hash": "sha256:d953680b98523eeaafac1a9865b7c005333130f0e0e44929de1bd7a26e5cff72",
+    "name": "witnessops_local_server_audit",
+    "signature_key_id": "witnessops_lsa_synthetic_test_001",
+    "signature_status": "not_supplied",
+    "version": "1.0.0"
+  },
+  "declared_exclusions": [
+    "processes",
+    "process_command_lines",
+    "process_environment",
+    "credentials",
+    "browser_data",
+    "tokens",
+    "private_keys",
+    "user_documents",
+    "event_logs",
+    "memory",
+    "network_discovery"
+  ],
+  "declared_side_effects": [
+    "local_process_execution",
+    "local_file_reads",
+    "local_output_file_creation"
+  ],
+  "host_clock": {
+    "notes": "host reported ntp_synchronized=True; no independent time authority comparison was performed",
+    "observed_timezone": "UTC",
+    "trust_status": "unknown"
+  },
+  "launcher": {
+    "boundary": "no autonomous or remote launch authority",
+    "identifier": "operator_present_local",
+    "type": "manual_terminal"
+  },
+  "manifest_version": "witnessops.evidence_manifest.v0",
+  "proof_run_id": "pr_lsa_20260710120000_198fd7aceb",
+  "source_systems": [
+    "operator_supplied_authority_record",
+    "witnessops_authority_gate",
+    "witnessops_local_server_audit_collector",
+    "witnessops_local_server_audit_rules_v1"
+  ],
+  "target": {
+    "asset_id": "asset-demo-host-001",
+    "claimed_hostname": "demo-host",
+    "os_family": "linux"
+  },
+  "workflow_class": "host_triage_evidence_collection"
+}

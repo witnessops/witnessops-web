@@ -1,0 +1,17 @@
+{
+  "claim_boundary": "deterministic posture findings only; no secure, compromised, or compliant conclusion",
+  "counts": {
+    "critical": 0,
+    "high": 0,
+    "informational": 0,
+    "low": 0,
+    "medium": 0
+  },
+  "findings": [],
+  "observed_at_utc": "2026-07-10T12:00:00Z",
+  "schema": "witnessops.local_server_audit.findings.v1",
+  "target": {
+    "asset_id": "asset-demo-host-001",
+    "hostname": "demo-host"
+  }
+}

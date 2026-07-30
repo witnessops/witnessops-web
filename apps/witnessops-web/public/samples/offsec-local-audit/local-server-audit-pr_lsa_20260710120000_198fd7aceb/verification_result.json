@@ -1,0 +1,35 @@
+{
+  "checks": {
+    "core_manifest": {
+      "detail": "15 core package files matched MANIFEST.sha256",
+      "status": "passed"
+    },
+    "evidence_artifact_hashes_and_claim_refs": {
+      "detail": "8 evidence artifacts and all claim references matched",
+      "status": "passed"
+    },
+    "package_tree": {
+      "detail": "package tree contains no symlinks",
+      "status": "passed"
+    },
+    "receipt_compatibility_projection": {
+      "detail": "canonical and compatibility receipt bytes are identical",
+      "status": "passed"
+    },
+    "receipt_signature_and_manifest_binding": {
+      "detail": "receipt signature verified with package key; signer authority not established",
+      "status": "passed"
+    },
+    "signer_trust": {
+      "detail": "producer core reconstruction does not establish signer authority",
+      "status": "skipped"
+    }
+  },
+  "failure_states": [],
+  "outcome": "pass",
+  "proof_boundary": "package integrity and declared bindings only; no host security, compromise, completeness, or compliance conclusion",
+  "proof_run_id": "pr_lsa_20260710120000_198fd7aceb",
+  "status": "valid",
+  "verifier_version": "witnessops.local_server_audit.verifier.v1",
+  "workflow_class": "host_triage_evidence_collection"
+}

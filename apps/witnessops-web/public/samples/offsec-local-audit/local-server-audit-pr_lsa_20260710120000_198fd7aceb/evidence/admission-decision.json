@@ -1,0 +1,20 @@
+{
+  "authorization_id": "AUTH-LSA-SYNTHETIC-001",
+  "boundary": "admission decision only; it does not validate the honesty of the external authority source",
+  "case_id": "CASE-LSA-SYNTHETIC-001",
+  "checks": {
+    "authority_shape": "passed",
+    "authorization_window": "passed",
+    "operator_match": "passed",
+    "profile_binding": "passed",
+    "prohibited_classes_bound": "passed",
+    "read_only_action_binding": "passed",
+    "target_hostname_match": "passed"
+  },
+  "decision": "ADMIT",
+  "evaluated_at_utc": "2026-07-10T12:00:00Z",
+  "observed_hostname": "demo-host",
+  "operator_id": "operator-synthetic-01",
+  "reasons": [],
+  "schema": "witnessops.local_server_audit.admission_decision.v1"
+}

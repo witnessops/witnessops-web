@@ -1,0 +1,27 @@
+{
+  "pack_id": "WO-CSR-SYNTH-DATA-V1-CL-001",
+  "schema_version": "witnessops.customer_security_review.synthetic_pack.v1",
+  "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE",
+  "scenario_id": "SYN-CSR-2026-CL-001",
+  "pre_approval_label": "Answer matrix prepared for customer approval",
+  "post_approval_label": "Customer-approved answer matrix",
+  "approval_state": "approved_with_exceptions",
+  "fictional_approver": {
+    "name": "Mara Venn",
+    "role": "Founder & CTO"
+  },
+  "approval_timestamp": "2026-07-03T15:30:00Z",
+  "approved_scope": "DocWeave AI hosted production scope",
+  "approved_question_range": {
+    "start": "Q001",
+    "end": "Q050"
+  },
+  "exceptions_or_open_items": [
+    "OPEN-001",
+    "OPEN-002",
+    "OPEN-003",
+    "OPEN-004",
+    "OPEN-005"
+  ],
+  "approval_statement": "The matrix is approved for fictional outward-facing use within the stated scope and with all qualifications and open items preserved."
+}

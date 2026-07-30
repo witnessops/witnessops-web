@@ -1,0 +1,48 @@
+{
+  "receipt_id": "RCPT-WO-CSR-SYNTH-DATA-V1-001",
+  "pack_id": "WO-CSR-SYNTH-DATA-V1-CL-001",
+  "schema_version": "witnessops.customer_security_review.synthetic_pack.v1",
+  "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE",
+  "scenario_id": "SYN-CSR-2026-CL-001",
+  "actual_execution_timestamp": "2026-07-12T10:35:03.538237+00:00",
+  "fixed_scenario_timestamp": "2026-07-01T09:00:00Z",
+  "result": "PASS_SYNTHETIC_CUSTOMER_SECURITY_REVIEW_CANONICAL_DATA_V1_CREATED",
+  "checked": [
+    "Canonical question count and ordered question IDs",
+    "Closed evidence-status and approval-state membership",
+    "Evidence-reference presence for supported claims",
+    "Visible qualification for qualified claims",
+    "Named fictional owner for owner assertions",
+    "Unresolved-state preservation for open items",
+    "Reason presence for not-applicable answers",
+    "Structural evidence_id resolution",
+    "Evidence file existence",
+    "Cross-reference resolution between evidence inventory and questionnaire",
+    "Synthetic banner presence in CSV exports, evidence documents, and workbook sheets",
+    "Common secret-like token patterns",
+    "Private absolute path strings",
+    "Unbounded use of the term verified",
+    "Workbook common formula-error scan",
+    "SHA-256 integrity for every file listed in the manifest"
+  ],
+  "not_checked": [
+    "Live systems",
+    "Actual control operation",
+    "Certification status",
+    "Legal sufficiency",
+    "Real customer approval",
+    "Production security",
+    "Independent truth of fictional evidence",
+    "PDF rendering or PDF-to-spreadsheet parity",
+    "Public-site behavior",
+    "Repository state",
+    "Deployment state"
+  ],
+  "manifest_reference": "manifest.json",
+  "manifest_sha256": "18685d3f10a733427132354fd7550f8240729fb9e1517a5f1b3df961df722725",
+  "manifest_file_integrity_failures": [],
+  "validation_report_reference": "validation/validation_report.json",
+  "presentation_corrections": [
+    "Rendered the fixed scenario clock as explicit UTC-labelled text to prevent spreadsheet date coercion."
+  ]
+}

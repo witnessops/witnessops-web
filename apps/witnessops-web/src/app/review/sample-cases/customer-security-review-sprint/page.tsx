@@ -152,6 +152,40 @@ export default function CustomerSecurityReviewSamplePage() {
         </section>
 
         <section className="border-b border-surface-border py-12">
+          <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+            Full synthetic package files
+          </h2>
+          <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
+            Complete synthetic CSR package for orientation: questionnaire, evidence stubs,
+            answer matrix exports, and validation. Not live customer evidence.
+          </p>
+          <ul className="mt-6 space-y-3 text-sm leading-7 text-text-secondary">
+            {[
+              "README.md",
+              "manifest.json",
+              "canonical/questionnaire.json",
+              "canonical/evidence_inventory.json",
+              "exports/answer_matrix.csv",
+              "exports/evidence_index.csv",
+              "exports/claim_status_open_item_map.csv",
+              "evidence/EVD-001_security_overview.md",
+              "validation/validation_report.json",
+            ].map((file) => (
+              <li key={file} className="border-t border-surface-border pt-3 font-mono text-xs sm:text-sm">
+                <a
+                  href={`/samples/csr-sprint-synthetic/${file}`}
+                  className="text-brand-accent underline-offset-4 hover:underline"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {file}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="border-b border-surface-border py-12">
           <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">Boundaries</h2>
           <ul className="mt-6 space-y-4 text-base leading-7 text-text-secondary">
             {boundaries.map((item) => (

@@ -1,0 +1,136 @@
+{
+  "pack_id": "WO-CSR-SYNTH-DATA-V1-CL-001",
+  "schema_version": "witnessops.customer_security_review.synthetic_pack.v1",
+  "synthetic_banner": "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE",
+  "scenario_id": "SYN-CSR-2026-CL-001",
+  "validation_scope": "Canonical data, structural evidence resolution, CSV exports, workbook structure, banner presence, prohibited wording, secret-like patterns, and private-path checks.",
+  "checks": [
+    {
+      "check_id": "CHK-001",
+      "description": "Question count is between 40 and 60.",
+      "result": "PASS",
+      "details": 50
+    },
+    {
+      "check_id": "CHK-002",
+      "description": "Question IDs are unique and ordered.",
+      "result": "PASS",
+      "details": null
+    },
+    {
+      "check_id": "CHK-003",
+      "description": "Every record uses one closed evidence status.",
+      "result": "PASS",
+      "details": null
+    },
+    {
+      "check_id": "CHK-004",
+      "description": "Every record uses one closed approval state.",
+      "result": "PASS",
+      "details": null
+    },
+    {
+      "check_id": "CHK-005",
+      "description": "Supported answers contain evidence references.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-006",
+      "description": "Qualified answers contain evidence and visible qualification.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-007",
+      "description": "Owner assertions contain a named fictional owner and closed approval state.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-008",
+      "description": "Open answers preserve an unresolved item and do not present it as resolved.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-009",
+      "description": "Not-applicable answers contain a reason.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-010",
+      "description": "Every evidence_id resolves structurally to an inventory record.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-011",
+      "description": "Every inventory record resolves to an existing relative evidence file.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-012",
+      "description": "Evidence inventory question references resolve to canonical question IDs.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-013",
+      "description": "Synthetic banner is present in every outward-facing artifact and workbook sheet.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-014",
+      "description": "No unbounded use of the word verified appears.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-015",
+      "description": "No secret-like token patterns appear.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-016",
+      "description": "No private absolute paths appear in package content.",
+      "result": "PASS",
+      "details": []
+    },
+    {
+      "check_id": "CHK-017",
+      "description": "All five evidence statuses are represented.",
+      "result": "PASS",
+      "details": {
+        "supported": 26,
+        "supported_with_qualification": 10,
+        "owner_assertion": 4,
+        "not_applicable": 5,
+        "open": 5
+      }
+    },
+    {
+      "check_id": "CHK-018",
+      "description": "Workbook formula scan contains no common formula errors.",
+      "result": "PASS",
+      "details": null
+    }
+  ],
+  "summary": {
+    "result": "PASS",
+    "passed": 18,
+    "failed": 0,
+    "status_counts": {
+      "supported": 26,
+      "supported_with_qualification": 10,
+      "owner_assertion": 4,
+      "not_applicable": 5,
+      "open": 5
+    },
+    "open_item_count": 5
+  }
+}

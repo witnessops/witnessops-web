@@ -1,0 +1,9 @@
+{
+  "excluded_paths": [
+    "MANIFEST.sha256",
+    "verification_result.json"
+  ],
+  "exclusion_reason": "MANIFEST.sha256 cannot list itself; verification_result.json records reconstruction after the core manifest is frozen; final ZIP signature binds both",
+  "hash_algorithm": "sha256",
+  "schema": "witnessops.local_server_audit.manifest_policy.v1"
+}

@@ -33,17 +33,20 @@ Run this **before** the first real paid package for each product. Use synthetic 
 ### Public anchors
 
 - [ ] Service: https://witnessops.com/catalog/offsec-local-audit  
-- [ ] Sample: https://witnessops.com/review/sample-cases/local-server-security-review  
-- [ ] Sample package files open (receipt / findings / walkthrough)  
-- [ ] `.proofpack` downloads (200) when linked  
+- [ ] Sample page: https://witnessops.com/review/sample-cases/local-server-security-review  
+- [ ] Web fixture: `/samples/offsec-shield-local-server-audit/RECEIPT.json`  
+- [ ] Suite package walkthrough: `/samples/offsec-local-audit/local-server-audit-pr_lsa_20260710120000_198fd7aceb/BUYER_WALKTHROUGH.md`  
+- [ ] Suite `report.md` + `findings.json` open  
+- [ ] Suite `.proofpack` downloads (200)  
 
-### Operator dry-run (synthetic only)
+### Operator dry-run (synthetic + private study)
 
-- [ ] Read sample `BUYER_WALKTHROUGH` / walkthrough section  
-- [ ] Confirm offline verify story is explainable without promising `/api/verify` for every suite receipt  
+- [ ] Read suite `BUYER_WALKTHROUGH`  
+- [ ] Open private `~/Desktop/witnessops-ops-dev-01-report.html` and explain **valid + partial** in your own words (do not publish)  
+- [ ] Confirm offline verify story without over-promising `/api/verify` for every receipt family  
 - [ ] Confirm authority requirements for a **live** run: decision owner, host binding, window, read-only profile, exclusions  
 - [ ] Confirm live path never requests secrets in fit check  
-- [ ] Confirm delivery will restate: not pentest; valid ≠ secure  
+- [ ] Confirm delivery will restate: not pentest; valid ≠ secure; partial ≠ “failed security test”  
 
 ### Live readiness (when first real host is offered)
 
@@ -64,12 +67,15 @@ Run this **before** the first real paid package for each product. Use synthetic 
 ### Public anchors
 
 - [ ] Service: https://witnessops.com/customer-security-review  
-- [ ] Sample: https://witnessops.com/review/sample-cases/customer-security-review-sprint  
+- [ ] Sample page: https://witnessops.com/review/sample-cases/customer-security-review-sprint  
 - [ ] Synthetic matrix visible; “not customer evidence” banner present  
+- [ ] Full package: `/samples/csr-sprint-synthetic/exports/answer_matrix.csv` opens  
+- [ ] Evidence stub example: `/samples/csr-sprint-synthetic/evidence/EVD-001_security_overview.md`  
 - [ ] One-pager PDF opens if used in sales  
 
 ### Operator dry-run (synthetic only)
 
+- [ ] Open answer matrix + evidence inventory and explain status columns  
 - [ ] Can explain deliverables: matrix, evidence index, qualifications, open items, cover note  
 - [ ] Can explain customer owns final submission  
 - [ ] Can explain no inventing evidence / no compliance cert  
