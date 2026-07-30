@@ -1,21 +1,19 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { VerifyConsole } from "@/components/verify/verify-console";
 import { SectionShell } from "@/components/shared/section-shell";
-import { CtaButton } from "@/components/shared/cta-button";
-import { TrustBoundarySnippet } from "@/components/shared/trust-boundary-snippet";
-import { publicProofBundles } from "@/lib/public-proof-bundles";
 import { listVerifyFixtures } from "@/lib/verify-fixtures";
 
 export const metadata: Metadata = {
   title: "Verify a Receipt",
   description:
-    "Check what a published receipt can show, what it cannot show, and where the trust limits still are.",
+    "Upload or paste a WitnessOps receipt to check structural validity, integrity, and what the result does and does not establish.",
   alternates: getCanonicalAlternates("witnessops", "/verify"),
   openGraph: {
     title: "Verify a Receipt | WitnessOps",
     description:
-      "Check what a published receipt can show, what it cannot show, and where the trust limits still are.",
+      "Upload or paste a WitnessOps receipt to check structural validity, integrity, and what the result does and does not establish.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -23,388 +21,94 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Verify a Receipt | WitnessOps",
     description:
-      "Check what a published receipt can show, what it cannot show, and where the trust limits still are.",
+      "Upload or paste a WitnessOps receipt to check structural validity, integrity, and what the result does and does not establish.",
   },
 };
-
-const statusChips = [
-  { label: "Sample class", value: "Verifier fixtures" },
-  { label: "Mode", value: "Public verifier" },
-  { label: "Scope", value: "Receipt-first v1" },
-];
-
-const verificationScope = [
-  {
-    title: "What this can show",
-    body: "The public verifier checks supported receipt JSON in receipt-first mode: schema, stage, signature fields, timestamp references, and receipt-level consistency checks.",
-  },
-  {
-    title: "What this cannot show",
-    body: "It does not prove that every action was correct, that every decision was right, or that you now know the full story of an incident.",
-  },
-  {
-    title: "Verifier mode",
-    body: "This public surface runs in receipt-first v1 mode. Proof-bundle uploads and unsupported receipt classes fail closed.",
-  },
-];
-
-const artifactStateRows = [
-  {
-    title: "Verifier fixtures",
-    status: "sample fixture",
-    mechanism:
-      "Receipt JSON examples loaded into the receipt-first console to show clean pass, named failure, malformed input, and fail-closed behavior.",
-    boundary:
-      "Fixtures are not live customer artifacts and do not prove production workflow truth or bundle completeness.",
-  },
-  {
-    title: "Receipt-first console",
-    status: "public verifier surface",
-    mechanism:
-      "Browser input is sent to /api/verify for receipt-level checks in receipt-first v1 mode.",
-    boundary:
-      "A valid result is receipt-scoped. It does not prove artifact-byte revalidation, source-system honesty, or the full runtime story.",
-  },
-  {
-    title: "Published first-party proof bundles",
-    status: "published first-party bundle",
-    mechanism:
-      "Downloadable ZIP bundles include bounded first-party WitnessOps proof materials such as receipt, signer registry, source artifacts, hashes, and verifier-facing instructions.",
-    boundary:
-      "These bundles prove bounded WitnessOps-owned statements only. They are not live customer proof artifacts unless explicitly labeled otherwise.",
-  },
-];
-
-const firstRunSteps = [
-  {
-    title: "1. Try a known-good sample",
-    expected: "Expected outcome: valid for a known-good receipt.",
-    why: "This shows the verifier can reproduce a clean receipt pass path.",
-  },
-  {
-    title: "2. Try a known-bad sample",
-    expected: "Expected outcome: invalid or input rejected with a named breach or failure.",
-    why: "This shows that failure is visible and explained, not hidden.",
-  },
-  {
-    title: "3. Try your own receipt",
-    expected: "Expected outcome: a receipt-scoped result with clear trust limits.",
-    why: "This applies the same rules to your real artifact.",
-  },
-];
-
-const resultSemantics = [
-  {
-    label: "Valid",
-    detail:
-      "The required checks for the declared receipt scope passed. On /verify v1, this is receipt-scoped and does not prove artifact-byte revalidation or bundle completeness.",
-  },
-  {
-    label: "Invalid",
-    detail: "One or more proof-bearing receipt checks failed.",
-  },
-  {
-    label: "Indeterminate",
-    detail: "The receipt may be coherent, but a required outside trust condition could not be established locally.",
-  },
-];
 
 export default function VerifyPage() {
   const fixtures = listVerifyFixtures();
 
   return (
     <main id="main-content" tabIndex={-1}>
-      <SectionShell>
-        <div className="grid gap-8 lg:grid-cols-[1.14fr,0.86fr] lg:items-start">
-          <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-              Verify
-            </p>
-            <h1 className="text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
-              Check a published receipt.
-            </h1>
-            <p className="mt-5 max-w-[48rem] text-base leading-8 text-text-secondary">
-              Use this page to see what a published receipt can show now, what it
-              cannot show, and what to inspect next.
-            </p>
-            <p className="mt-4 max-w-[48rem] text-base leading-8 text-text-secondary">
-              This verifier checks receipt JSON in receipt-first v1 mode. It does
-              not currently accept proof-bundle uploads, and it does not claim to
-              prove the full runtime story.
-            </p>
-            <p className="mt-4 max-w-[48rem] text-sm leading-7 text-text-muted">
-              If a check passes, read the trust limits before relying on the
-              result. If it fails, read the named breach or failure before
-              trusting any claim built on top of it.
-            </p>
-            <p className="mt-4 max-w-[48rem] text-sm leading-7 text-text-muted">
-              The sample buttons below load verifier fixtures: public sample
-              receipts used to show clean pass, named failure, and fail-closed
-              behavior. They are not live customer artifacts.
-            </p>
+      <SectionShell narrow>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+          Verify
+        </p>
+        <h1 className="text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
+          Verify a WitnessOps receipt
+        </h1>
+        <p className="mt-5 max-w-[40rem] text-base leading-8 text-text-secondary">
+          Upload a receipt file or paste its JSON. The check confirms whether
+          the receipt is structurally valid, whether its integrity checks pass,
+          and what the result does—and does not—establish.
+        </p>
+        <p className="mt-4 max-w-[40rem] text-sm leading-7 text-text-muted">
+          {
+            "A valid result confirms the checks named in the receipt. It does not prove that every underlying action was correct, and it does not prove the full runtime story."
+          }
+        </p>
 
-            <div className="mt-6 flex flex-wrap gap-2">
-              {statusChips.map((chip) => (
-                <div
-                  key={chip.label}
-                  className="rounded-full border border-surface-border bg-surface-bg px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-text-muted"
-                >
-                  <span className="font-semibold text-text-primary">{chip.label}:</span>{" "}
-                  {chip.value}
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <CtaButton href="#verify-console" variant="primary" label="Try a sample receipt" />
-              <CtaButton href="/docs/how-it-works/verification" variant="secondary" label="How verification works" />
-            </div>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {verificationScope.map((item) => (
-                <div key={item.title} className="border border-surface-border bg-surface-bg p-4">
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary">
-                    {item.title}
-                  </h2>
-                  <p className="mt-2 text-sm leading-relaxed text-text-muted">
-                    {item.body}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 border border-surface-border bg-surface-bg p-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-                Data handling boundary
-              </div>
-              <p className="mt-3 max-w-[48rem] text-sm leading-relaxed text-text-secondary">
-                Browser input is sent to <code>/api/verify</code> for receipt-level
-                checks in receipt-first v1 mode. Make sure that matches your
-                handling rules before you submit a production artifact.
-              </p>
-            </div>
-
-            <TrustBoundarySnippet variant="verification" className="mt-8" />
-          </div>
-
-          <div className="space-y-4 border border-surface-border bg-surface-bg p-5">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-              First run
-            </div>
-            <div className="space-y-4">
-              {firstRunSteps.map((step) => (
-                <div key={step.title} className="border border-surface-border bg-surface-card p-4">
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary">
-                    {step.title}
-                  </h2>
-                  <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-                    {step.expected}
-                  </p>
-                  <p className="mt-1 text-sm leading-relaxed text-text-muted">
-                    {step.why}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="mt-10" id="verify-console">
+          <VerifyConsole fixtures={fixtures} />
         </div>
-      </SectionShell>
 
-      <SectionShell className="pt-0">
-        <div className="border border-surface-border bg-surface-bg p-6">
-          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-            Result verdicts
-          </div>
-          <div className="grid gap-3 md:grid-cols-3">
-            {resultSemantics.map((state) => (
-              <div key={state.label} className="border border-surface-border bg-surface-card p-4">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary">
-                  {state.label}
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-text-muted">
-                  {state.detail}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </SectionShell>
-
-      <SectionShell className="pt-0">
-        <div className="border border-surface-border bg-surface-bg p-6">
-          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-            Artifact state matrix
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {artifactStateRows.map((row) => (
-              <div key={row.title} className="border border-surface-border bg-surface-card p-4">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary">
-                  {row.title}
-                </h2>
-                <dl className="mt-4 space-y-3 text-sm leading-relaxed text-text-muted">
-                  <div>
-                    <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-accent">
-                      Status
-                    </dt>
-                    <dd className="mt-1">{row.status}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-accent">
-                      Mechanism
-                    </dt>
-                    <dd className="mt-1">{row.mechanism}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-accent">
-                      Boundary
-                    </dt>
-                    <dd className="mt-1">{row.boundary}</dd>
-                  </div>
-                </dl>
-              </div>
-            ))}
-          </div>
-        </div>
-      </SectionShell>
-
-      {publicProofBundles.length > 0 ? (
-        <SectionShell className="pt-0" narrow>
-          <div className="mb-5">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-              Published first-party proof bundles
-            </div>
-            <h2 className="text-2xl font-semibold text-text-primary">
-              Downloadable proof bundles
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-text-muted">
-              Each downloadable ZIP is presented for offline verification with
-              its included receipt, signer registry, source artifacts, and
-              verifier-facing instructions. These bundles prove bounded
-              WitnessOps-owned statements only. They are not live customer proof
-              artifacts unless explicitly labeled otherwise. The public receipt
-              console below remains receipt-first v1.
+        <details className="mt-10 border border-surface-border bg-surface-bg p-5">
+          <summary className="cursor-pointer text-sm font-semibold text-text-primary">
+            What this result means
+          </summary>
+          <div className="mt-4 space-y-3 text-sm leading-relaxed text-text-muted">
+            <p>
+              <strong className="text-text-secondary">Valid</strong> means the
+              checks required for this receipt type passed. On this public
+              surface, that is receipt-scoped only.
+            </p>
+            <p>
+              <strong className="text-text-secondary">Invalid</strong> means one
+              or more of those checks failed. Read the named failure before
+              relying on any claim built on the receipt.
+            </p>
+            <p>
+              <strong className="text-text-secondary">Incomplete</strong> means
+              the receipt may be coherent, but a required trust condition could
+              not be established here.
+            </p>
+            <p>
+              This page does not revalidate full proof bundles or claim production
+              deployment truth. For mechanism detail, use the technical docs
+              linked below.
             </p>
           </div>
-          <div className="space-y-4">
-            {publicProofBundles.map((bundle) => (
-              <article key={bundle.id} className="border border-surface-border bg-surface-bg p-6">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-                      Published first-party proof bundle
-                    </div>
-                    <h3 className="mt-2 text-xl font-semibold text-text-primary">
-                      {bundle.title}
-                    </h3>
-                  </div>
-                  <div className="border border-surface-border bg-surface-card px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">
-                    {bundle.status}
-                  </div>
-                </div>
-                <dl className="mt-5 grid gap-3 text-sm md:grid-cols-2">
-                  <div className="border border-surface-border bg-surface-card p-4">
-                    <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                      Run ID
-                    </dt>
-                    <dd className="mt-2 font-mono text-xs text-text-primary">
-                      {bundle.runId}
-                    </dd>
-                  </div>
-                  <div className="border border-surface-border bg-surface-card p-4">
-                    <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                      Workflow
-                    </dt>
-                    <dd className="mt-2 font-mono text-xs text-text-primary">
-                      {bundle.workflow}
-                    </dd>
-                  </div>
-                  <div className="border border-surface-border bg-surface-card p-4">
-                    <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                      Target
-                    </dt>
-                    <dd className="mt-2 font-mono text-xs text-text-primary">
-                      {bundle.target}
-                    </dd>
-                  </div>
-                  <div className="border border-surface-border bg-surface-card p-4">
-                    <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                      Verifier result
-                    </dt>
-                    <dd className="mt-2 font-mono text-xs text-text-primary">
-                      {bundle.verifierResult}
-                    </dd>
-                  </div>
-                  <div className="border border-surface-border bg-surface-card p-4 md:col-span-2">
-                    <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
-                      ZIP SHA-256
-                    </dt>
-                    <dd className="mt-2 break-all font-mono text-xs text-text-primary">
-                      {bundle.manifestSha256}
-                    </dd>
-                  </div>
-                </dl>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <CtaButton
-                    href={bundle.artifactPath}
-                    variant="primary"
-                    label="Download proof bundle"
-                  />
-                  <CtaButton
-                    href="/docs/how-it-works/evidence-bundles"
-                    variant="secondary"
-                    label="Evidence bundle docs"
-                  />
-                </div>
-              </article>
-            ))}
-          </div>
-        </SectionShell>
-      ) : null}
+        </details>
 
-      <SectionShell className="pt-0" id="verify-console">
-        <VerifyConsole fixtures={fixtures} />
-      </SectionShell>
-
-      <SectionShell className="pt-0" narrow>
-        <div className="border border-surface-border bg-surface-bg p-6">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-            Read next
-          </div>
-          <h2 className="text-2xl font-semibold text-text-primary">
-            Keep going with the verification docs.
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-text-muted">
-            Use the docs below to inspect receipt structure, verification scope,
-            and trust limits in more detail.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <CtaButton
-              href="/docs/quickstart/verify-first"
-              variant="primary"
-              label="Verify First Quickstart"
-            />
-            <CtaButton
-              href="/docs/how-it-works/verification"
-              variant="secondary"
-              label="Verification Docs"
-            />
-            <CtaButton
-              href="/docs/evidence/receipts"
-              variant="secondary"
-              label="Receipt Basics"
-            />
-            <CtaButton
-              href="/docs/evidence/receipt-spec"
-              variant="secondary"
-              label="Receipt Spec"
-            />
-            <CtaButton
-              href="/docs/security-systems/threat-model"
-              variant="secondary"
-              label="Trust Limits"
-            />
-          </div>
-        </div>
+        <nav
+          className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm"
+          aria-label="Related technical resources"
+        >
+          <Link
+            href="/docs/how-it-works/verification"
+            className="text-brand-accent underline-offset-4 hover:underline"
+          >
+            How verification works
+          </Link>
+          <Link
+            href="/docs/evidence/receipts"
+            className="text-brand-accent underline-offset-4 hover:underline"
+          >
+            Receipts
+          </Link>
+          <Link
+            href="/docs/evidence/receipt-spec"
+            className="text-brand-accent underline-offset-4 hover:underline"
+          >
+            Receipt specification
+          </Link>
+          <Link
+            href="/library"
+            className="text-brand-accent underline-offset-4 hover:underline"
+          >
+            Library &amp; sample materials
+          </Link>
+        </nav>
       </SectionShell>
     </main>
   );
