@@ -139,7 +139,8 @@ RUN addgroup -g 1001 -S nodejs && adduser -S -u 1001 -G nodejs nextjs
 COPY --from=builder /app/apps/witnessops-web/.next/standalone ./
 COPY --from=builder /app/apps/witnessops-web/.next/static ./apps/witnessops-web/.next/static
 COPY --from=builder /app/apps/witnessops-web/public ./apps/witnessops-web/public
-RUN mkdir -p apps/witnessops-web/.next/cache \\
+RUN chmod -R a+rX apps/witnessops-web/public \\
+  && mkdir -p apps/witnessops-web/.next/cache \\
   && chown -R nextjs:nodejs apps/witnessops-web/.next/cache apps/witnessops-web/.next/server/app
 USER nextjs
 EXPOSE 3000
