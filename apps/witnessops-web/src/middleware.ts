@@ -7,19 +7,13 @@ import {
   verifyAdminSessionCookie,
 } from "@/lib/server/admin-session";
 import {
-  apexDocsRedirectLocation,
-  isApexMarketingHost,
+  legacyDocsHostRedirectLocation,
   normalizeHost,
-  stripDocsPrefix,
 } from "@/lib/docs-host-routing";
 
 const surface = getSurface("witnessops");
-const primaryHost = surface?.hostname;
-const docsHost = surface?.docsHost;
-
-function isWitnessOpsSupportPath(pathname: string) {
-  return pathname === "/support" || pathname.startsWith("/support/");
-}
+const primaryHost = surface?.hostname ?? "witnessops.com";
+const docsHost = surface?.docsHost ?? "docs.witnessops.com";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -39,46 +33,22 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Host-based docs routing
-  if (!primaryHost || !docsHost) {
-    return NextResponse.next();
-  }
-
   const host = normalizeHost(
     request.headers.get("x-forwarded-host") ?? request.headers.get("host"),
   );
   const { search } = request.nextUrl;
 
-  if (host === docsHost) {
-    if (isWitnessOpsSupportPath(pathname)) {
-      return NextResponse.redirect(
-        `https://${primaryHost}${pathname}${search}`,
-        308,
-      );
-    }
-
-    if (pathname === "/docs" || pathname.startsWith("/docs/")) {
-      const canonicalPath = stripDocsPrefix(pathname) ?? "/";
-      return NextResponse.redirect(
-        `https://${docsHost}${canonicalPath}${search}`,
-        308,
-      );
-    }
-
-    const rewriteUrl = request.nextUrl.clone();
-    rewriteUrl.pathname = pathname === "/" ? "/docs" : `/docs${pathname}`;
-    return NextResponse.rewrite(rewriteUrl);
+  // Legacy docs subdomain: permanent redirect to apex /docs (how-to path).
+  if (host && host === normalizeHost(docsHost)) {
+    const location = legacyDocsHostRedirectLocation(
+      pathname,
+      search,
+      primaryHost,
+    );
+    return NextResponse.redirect(location, 308);
   }
 
-  // Apex (and www): send English docs to the canonical docs host so human
-  // path, robots, sitemap, and rel=canonical share one authority.
-  if (isApexMarketingHost(host, primaryHost)) {
-    const location = apexDocsRedirectLocation(pathname, search, docsHost);
-    if (location) {
-      return NextResponse.redirect(location, 308);
-    }
-  }
-
+  // Apex (and www): serve /docs in-app. No redirect to docs.witnessops.com.
   return NextResponse.next();
 }
 
@@ -92,6 +62,7 @@ export const config = {
 export {
   apexDocsRedirectLocation,
   isApexMarketingHost,
+  legacyDocsHostRedirectLocation,
   normalizeHost,
   stripDocsPrefix,
 } from "@/lib/docs-host-routing";

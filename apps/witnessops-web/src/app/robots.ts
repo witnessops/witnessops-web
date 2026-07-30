@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next";
-import { headers } from "next/headers";
 import { getSurface } from "@witnessops/config";
 
 const surface = getSurface("witnessops");
@@ -8,26 +7,14 @@ const siteUrl =
   surface?.canonicalUrl ??
   "https://witnessops.com";
 
-function normalizeHost(host: string | null) {
-  return host?.split(":")[0].toLowerCase() ?? "";
-}
-
-export default async function robots(): Promise<MetadataRoute.Robots> {
-  const headerStore = await headers();
-  const requestHost = normalizeHost(
-    headerStore.get("x-forwarded-host") ?? headerStore.get("host"),
-  );
-  const docsHost = surface?.docsHost ?? "docs.witnessops.com";
-  const isDocsHost = requestHost === docsHost;
-  const activeSiteUrl = isDocsHost ? `https://${docsHost}` : siteUrl;
-
-  // Apex `/docs` permanently redirects to docsHost (middleware 308). English
-  // docs are indexed only on docs.witnessops.com (host-specific sitemap).
+export default function robots(): MetadataRoute.Robots {
+  // Single site: English docs live under witnessops.com/docs.
+  // Legacy docs.witnessops.com 308s to apex via middleware.
   return {
     rules: {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: `${activeSiteUrl}/sitemap.xml`,
+    sitemap: `${siteUrl}/sitemap.xml`,
   };
 }

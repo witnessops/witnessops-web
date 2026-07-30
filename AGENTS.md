@@ -74,10 +74,10 @@ Default for “deploy this so we can check on mesh and public”: **`pnpm deploy
 
 ## Public docs host contract
 
-- **Canonical English docs authority:** `https://docs.witnessops.com/` (middleware rewrite to `/docs…` internally; sitemap + robots on that host).
-- **Apex entry:** `https://witnessops.com/docs` and `/docs/*` **308** to `https://docs.witnessops.com/…` (path without `/docs` prefix). `www` included.
-- **Do not move** `/pl/docs` off apex in this contract (localized marketing surface).
-- Helpers: `apps/witnessops-web/src/lib/docs-host-routing.ts` (unit-tested).
+- **Canonical English docs (how-to):** `https://witnessops.com/docs` and `/docs/*` on the apex app (same k3s deployment as the marketing site).
+- **Legacy host:** `https://docs.witnessops.com/*` **308** permanently to `https://witnessops.com/docs…` (short legacy paths become `/docs` + path). Keep DNS/TLS for the legacy host so redirects work.
+- **Polish docs:** `/pl/docs` stays on apex as the localized marketing surface.
+- Helpers: `apps/witnessops-web/src/lib/docs-host-routing.ts` (unit-tested). `getDocsUrl` returns apex `/docs` URLs.
 
 ## Root file hygiene
 

@@ -7,12 +7,13 @@ import {
   getPublicDocPath,
   isApexMarketingHost,
   isDocsHost,
+  legacyDocsHostRedirectLocation,
   normalizeHost,
   stripDocsPrefix,
   toPublicDocsHref,
 } from "./docs-host-routing";
 
-test("stripDocsPrefix maps apex docs paths to docs-host paths", () => {
+test("stripDocsPrefix maps /docs paths for legacy tools", () => {
   assert.equal(stripDocsPrefix("/docs"), "/");
   assert.equal(stripDocsPrefix("/docs/"), "/");
   assert.equal(stripDocsPrefix("/docs/getting-started"), "/getting-started");
@@ -23,38 +24,39 @@ test("stripDocsPrefix maps apex docs paths to docs-host paths", () => {
   assert.equal(stripDocsPrefix("/library"), null);
 });
 
-test("apexDocsRedirectLocation builds docs.witnessops.com locations", () => {
+test("apex no longer redirects /docs away from the marketing host", () => {
+  assert.equal(apexDocsRedirectLocation("/docs", "", "docs.witnessops.com"), null);
   assert.equal(
-    apexDocsRedirectLocation("/docs", "", "docs.witnessops.com"),
-    "https://docs.witnessops.com/",
+    apexDocsRedirectLocation("/docs/getting-started", "?x=1", "docs.witnessops.com"),
+    null,
+  );
+  assert.equal(apexDocsRedirectLocation("/pl/docs", "", "docs.witnessops.com"), null);
+});
+
+test("legacy docs host redirects to apex /docs how-to paths", () => {
+  assert.equal(
+    legacyDocsHostRedirectLocation("/", "", "witnessops.com"),
+    "https://witnessops.com/docs",
   );
   assert.equal(
-    apexDocsRedirectLocation(
-      "/docs/getting-started",
-      "?x=1",
-      "docs.witnessops.com",
-    ),
-    "https://docs.witnessops.com/getting-started?x=1",
+    legacyDocsHostRedirectLocation("/getting-started", "?x=1", "witnessops.com"),
+    "https://witnessops.com/docs/getting-started?x=1",
   );
   assert.equal(
-    apexDocsRedirectLocation(
-      "/docs/getting-started/proof-run-buyer-path",
+    legacyDocsHostRedirectLocation(
+      "/getting-started/proof-run-buyer-path",
       "",
-      "docs.witnessops.com",
+      "witnessops.com",
     ),
-    "https://docs.witnessops.com/getting-started/proof-run-buyer-path",
+    "https://witnessops.com/docs/getting-started/proof-run-buyer-path",
   );
   assert.equal(
-    apexDocsRedirectLocation("/pl/docs", "", "docs.witnessops.com"),
-    null,
+    legacyDocsHostRedirectLocation("/docs/how-it-works", "", "witnessops.com"),
+    "https://witnessops.com/docs/how-it-works",
   );
   assert.equal(
-    apexDocsRedirectLocation("/pl/docs/getting-started", "", "docs.witnessops.com"),
-    null,
-  );
-  assert.equal(
-    apexDocsRedirectLocation("/library", "", "docs.witnessops.com"),
-    null,
+    legacyDocsHostRedirectLocation("/support", "", "witnessops.com"),
+    "https://witnessops.com/support",
   );
 });
 
@@ -66,36 +68,29 @@ test("isApexMarketingHost includes www only for the apex domain", () => {
   assert.equal(normalizeHost("WitnessOps.com:443"), "witnessops.com");
 });
 
-test("toPublicDocsHref shortens only on docs host", () => {
+test("toPublicDocsHref keeps /docs prefix on all hosts", () => {
   assert.equal(
     toPublicDocsHref("/docs/getting-started", "docs.witnessops.com"),
-    "/getting-started",
+    "/docs/getting-started",
   );
-  assert.equal(toPublicDocsHref("/docs", "docs.witnessops.com"), "/");
+  assert.equal(toPublicDocsHref("/docs", "docs.witnessops.com"), "/docs");
   assert.equal(
     toPublicDocsHref("/docs/getting-started", "witnessops.com"),
     "/docs/getting-started",
   );
-  assert.equal(
-    toPublicDocsHref("/docs/getting-started", "localhost:3001"),
-    "/docs/getting-started",
-  );
-  assert.equal(
-    toPublicDocsHref("https://docs.witnessops.com/", "docs.witnessops.com"),
-    "https://docs.witnessops.com/",
-  );
 });
 
-test("getPublicDocPath and docsPathsMatch bridge short vs /docs forms", () => {
+test("getPublicDocPath and docsPathsMatch use /docs how-to paths", () => {
   assert.equal(
     getPublicDocPath(["getting-started"], { host: "docs.witnessops.com" }),
-    "/getting-started",
+    "/docs/getting-started",
   );
   assert.equal(
     getPublicDocPath(["getting-started"], { host: "witnessops.com" }),
     "/docs/getting-started",
   );
   assert.equal(isDocsHost("docs.witnessops.com"), true);
+  assert.ok(docsPathsMatch("/docs/getting-started", "/docs/getting-started"));
   assert.ok(docsPathsMatch("/getting-started", "/docs/getting-started"));
   assert.ok(docsPathsMatch("/docs", "/"));
 });

@@ -140,6 +140,8 @@ export const surfaceRegistry = [
     hostname: "witnessops.com",
     canonicalUrl: "https://witnessops.com",
     localPort: 3001,
+    // Legacy host only: middleware 308 → https://witnessops.com/docs…
+    // Canonical English docs path is apex /docs (see getDocsUrl).
     docsHost: "docs.witnessops.com",
     contentRoot: "content/witnessops/landing",
   },
@@ -208,24 +210,14 @@ export function getCanonicalSurfaceUrl(surfaceId: SurfaceId, pathname = "/") {
   return getSurfaceUrl(surfaceId, pathname, { mode: "canonical" });
 }
 
+/**
+ * Docs live on the same origin as the surface under `/docs`.
+ * `docsHost` (if set) is legacy-only for 308 redirects from the old subdomain.
+ */
 export function getDocsOrigin(
   surfaceId: DocsSurfaceId,
   options: { mode?: SurfaceUrlMode } = {},
 ) {
-  const surface = getSurface(surfaceId);
-
-  if (!surface) {
-    throw new Error(`Unknown surface: ${surfaceId}`);
-  }
-
-  if (!surface.docsHost) {
-    throw new Error(`Surface does not define a docs host: ${surfaceId}`);
-  }
-
-  if (options.mode === "canonical" || !shouldUseLocalSurfaceOrigins()) {
-    return `https://${surface.docsHost}`;
-  }
-
   return getSurfaceOrigin(surfaceId, options);
 }
 
@@ -234,11 +226,9 @@ export function getDocsUrl(
   pathname = "/",
   options: { mode?: SurfaceUrlMode } = {},
 ) {
-  const docsPath =
-    options.mode === "canonical" || !shouldUseLocalSurfaceOrigins()
-      ? normalizePathname(pathname)
-      : toLocalDocsPathname(pathname);
-
+  void options;
+  // Always use the apex /docs path (how-to), never the legacy docs subdomain.
+  const docsPath = toLocalDocsPathname(pathname);
   return new URL(docsPath, getDocsOrigin(surfaceId, options)).toString();
 }
 
@@ -439,7 +429,7 @@ export function getWitnessOpsFooterContract(
     ],
     strip: [
       { label: "witnessops.com", href: getSurfaceUrl("witnessops") },
-      { label: "docs.witnessops.com", href: getDocsUrl("witnessops") },
+      { label: "Docs", href: getDocsUrl("witnessops") },
     ],
   };
 }

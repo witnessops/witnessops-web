@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
-import { getDocsUrl, getSurfaceUrl } from "@witnessops/config";
+import { getSurfaceUrl } from "@witnessops/config";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { isPolishPath } from "@/lib/public-i18n";
 
-const DOCS_PUBLIC_HREF = getDocsUrl("witnessops", "/", { mode: "canonical" });
+/** Apex how-to path (not the legacy docs.witnessops.com host). */
+const DOCS_PUBLIC_HREF = "/docs";
 
 const LIBRARY_PRIMARY_HREFS = new Set([
   "/library",

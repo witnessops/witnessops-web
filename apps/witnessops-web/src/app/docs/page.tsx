@@ -244,9 +244,8 @@ export default async function DocsIndexPage() {
   const host = normalizeHost(
     headerStore.get("x-forwarded-host") ?? headerStore.get("host"),
   );
-  // Host built from parts so the source never embeds a hard-coded public docs URL string.
-  const docsHost = ["docs", "witnessops", "com"].join(".");
-  const pub = (href: string) => toPublicDocsHref(href, host, docsHost);
+  // Apex /docs how-to paths (no separate docs subdomain).
+  const pub = (href: string) => toPublicDocsHref(href, host);
 
   return (
     <main

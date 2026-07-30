@@ -1,7 +1,6 @@
 import { statSync } from "node:fs";
 import path from "node:path";
 import type { MetadataRoute } from "next";
-import { headers } from "next/headers";
 import { getSurface } from "@witnessops/config";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { listSignals } from "@witnessops/content/signals";
@@ -121,32 +120,12 @@ export function getSourceLastModified(sourcePath: string) {
   }
 }
 
-function normalizeHost(host: string | null) {
-  return host?.split(":")[0].toLowerCase() ?? "";
-}
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const headerStore = await headers();
-  const requestHost = normalizeHost(
-    headerStore.get("x-forwarded-host") ?? headerStore.get("host"),
-  );
-  const docsHost = surface?.docsHost ?? "docs.witnessops.com";
-
-  if (requestHost === docsHost) {
-    const docs = await getDocsSitemapEntries("witnessops");
-
-    return [
-      {
-        url: getDocCanonicalUrl("witnessops", []),
-        lastModified: getSourceLastModified("src/app/docs/page.tsx"),
-      },
-      ...docs,
-    ];
-  }
-
+  // Single sitemap on apex: marketing routes + English /docs corpus.
   const supportDocs = loadSupportIndex();
   const signals = await listSignals();
   const latestSignal = signals[0];
+  const docs = await getDocsSitemapEntries("witnessops");
 
   return [
     ...[...staticRoutes, ...polishRoutes].map(({ route, sourcePath, lastModified }) => ({
@@ -162,5 +141,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${siteUrl}/support/${doc.slug}`,
       lastModified: new Date(doc.lastModified),
     })),
+    {
+      url: getDocCanonicalUrl("witnessops", []),
+      lastModified: getSourceLastModified("src/app/docs/page.tsx"),
+    },
+    ...docs,
   ];
 }
