@@ -164,7 +164,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
 
             {/* Knowledge search */}
             <div className="mt-5">
-              <label htmlFor="si-search" style={label}>Search knowledge base first</label>
+              <label htmlFor="si-search" style={label}>Search docs first</label>
               <input
                 ref={searchRef}
                 id="si-search"
@@ -202,6 +202,23 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
             >
               Still need help? Email support
             </button>
+            <p className="mt-3 text-xs leading-6 text-text-muted">
+              For a new bounded review, use{" "}
+              <Link
+                href="/review/request"
+                className="font-semibold text-brand-accent underline-offset-4 hover:underline"
+              >
+                Start a review
+              </Link>
+              . Vulnerabilities go to{" "}
+              <a
+                href="mailto:security@witnessops.com?subject=Private%20vulnerability%20report"
+                className="font-semibold text-brand-accent underline-offset-4 hover:underline"
+              >
+                security@witnessops.com
+              </a>
+              .
+            </p>
           </div>
         )}
 
@@ -258,7 +275,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                   <option value="scope">Scope or policy gate</option>
                   <option value="evidence">Evidence or artifact</option>
                   <option value="access">Access or authentication</option>
-                  <option value="security">Security concern</option>
+                  <option value="security">Security concern (not a vulnerability report)</option>
                   <option value="other">Other</option>
                 </select>
                 <SelectChevron />

@@ -124,12 +124,17 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/support",
     requiredMarkers: [
+      "Get help or start a review",
       "Ready for a bounded review?",
       "Start a review",
       "Support is for product help, access issues, and verifier questions.",
+      "Choose the right path",
+      "Verify a receipt",
     ],
     prohibitedMarkers: [
       "Request an AI Agent Action Proof Run",
+      "Request one proof run",
+      "Package one security workflow",
     ],
   },
   {
