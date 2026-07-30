@@ -40,6 +40,9 @@ const FOOTER_MONO_STYLE = {
   letterSpacing: "0.06em",
 };
 
+/** Same motto on every footer surface (EN + PL chrome). No locale variant. */
+const FOOTER_MOTTO = "Proof beats memory.";
+
 interface FooterProps {
   brand_line: string;
   subline: string;
@@ -104,7 +107,7 @@ const LIBRARY_FOOTER_EN: FooterContent = {
   ],
   build_label: "",
   copyright: "© WitnessOps",
-  motto: "Respect the boundary. Bring receipts.",
+  motto: FOOTER_MOTTO,
 };
 
 const LIBRARY_FOOTER_PL: FooterContent = {
@@ -127,7 +130,7 @@ const LIBRARY_FOOTER_PL: FooterContent = {
   ],
   build_label: "",
   copyright: "© WitnessOps",
-  motto: "Respect the boundary. Bring receipts.",
+  motto: FOOTER_MOTTO,
 };
 
 const POLISH_FOOTER: FooterContent = {
@@ -153,7 +156,7 @@ const POLISH_FOOTER: FooterContent = {
   ],
   build_label: "",
   copyright: "© WitnessOps",
-  motto: "Respect the boundary. Bring receipts.",
+  motto: FOOTER_MOTTO,
 };
 
 function resolveFooterHref(href: string): string {
@@ -194,7 +197,7 @@ export function Footer({
       legal_links,
       build_label: isPublicBuildLabel(build_label) ? build_label : "",
       copyright,
-      motto: "Respect the boundary. Bring receipts.",
+      motto: FOOTER_MOTTO,
     };
   }, [
     brand_line,
@@ -374,8 +377,9 @@ export function Footer({
         </div>
 
         <div
-          className="mt-5 text-center text-xs leading-5 text-text-secondary sm:mt-6"
+          className="mt-5 text-center text-[11px] font-medium leading-5 tracking-[0.08em] text-text-muted sm:mt-6"
           style={FOOTER_MONO_STYLE}
+          data-footer-motto="proof-beats-memory"
         >
           {content.motto}
         </div>

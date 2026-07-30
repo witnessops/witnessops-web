@@ -13,12 +13,15 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.match(source, /text-text-secondary/);
   assert.match(source, /text-xs leading-5 text-text-secondary/);
   assert.match(source, /max-w-\[320px\] text-sm leading-relaxed text-text-secondary/);
-  assert.match(source, /mt-5 text-center text-xs leading-5 text-text-secondary sm:mt-6/);
+  assert.match(source, /data-footer-motto="proof-beats-memory"/);
+  assert.match(source, /Proof beats memory\./);
+  assert.match(source, /FOOTER_MOTTO/);
+  assert.doesNotMatch(source, /Respect the boundary\. Bring receipts\./);
 
   assert.doesNotMatch(
     source,
-    /fontSize:\s*(?:9|10|11)|text-\[(?:9|10|11)px\]/,
-    "Footer text should not regress to ultra-small text sizes.",
+    /fontSize:\s*(?:9|10)|text-\[(?:9|10)px\]/,
+    "Footer body text should not regress to ultra-small text sizes.",
   );
   assert.doesNotMatch(
     source,
@@ -56,7 +59,8 @@ test("footer provides Polish homepage labels without changing route contracts", 
     'label: "Prywatność", href: "/privacy"',
     'label: "Warunki", href: "/terms"',
     'label: "Bezpieczeństwo", href: "/security"',
-    'motto: "Respect the boundary. Bring receipts."',
+    'motto: FOOTER_MOTTO',
+    "Proof beats memory.",
     "Operacje poparte dowodami",
   ]) {
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
