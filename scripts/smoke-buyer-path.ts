@@ -104,16 +104,19 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/library",
     requiredMarkers: [
-      "Clear routes into services, examples and technical detail.",
+      "Public entry points",
       "Start here",
-      "Buyer guides",
-      "Example deliverables",
-      "Service explanations",
-      "Verification",
-      "Technical references",
+      "Browse services",
+      "Verify a receipt",
+      "Start a review",
+      "Buyer path",
+      "not a live customer artifact",
     ],
     prohibitedMarkers: [
       "The public artifact classes here are sample or intake surfaces",
+      "Public verifier",
+      "Security workflow buyer path",
+      "Package one security workflow",
     ],
   },
   {
@@ -276,14 +279,15 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/pl/library",
     requiredMarkers: [
       "Biblioteka",
+      "Publiczne punkty wejścia",
       "Zacznij tutaj",
-      "Przewodniki dla kupujących",
-      "Przykładowe rezultaty",
-      "Objaśnienia usług",
-      "Weryfikacja",
-      "Materiały techniczne",
+      "Przeglądaj usługi",
+      "Zweryfikuj zapis",
+      "Rozpocznij przegląd",
     ],
-    prohibitedMarkers: [],
+    prohibitedMarkers: [
+      "Package one security workflow",
+    ],
   },
   {
     path: "/access-change-proof-run",
