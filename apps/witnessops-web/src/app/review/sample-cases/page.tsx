@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
+import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 
 export const metadata: Metadata = {
@@ -108,6 +109,8 @@ export default function SampleCasesIndexPage() {
   return (
     <main id="main-content" tabIndex={-1}>
       <SectionShell narrow>
+
+        <SampleCaseBanner />
         <div className="space-y-8">
           <section className="space-y-5 border-b border-surface-border pb-8">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
@@ -124,8 +127,7 @@ export default function SampleCasesIndexPage() {
               manifest after an agent acts.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <CtaButton href="/review/request" variant="primary" label="Start a review" />
-              <CtaButton href="/review" variant="secondary" label="Read package offer" />
+              <CtaButton href="/review" variant="secondary" label="Read review overview" />
             </div>
           </section>
 

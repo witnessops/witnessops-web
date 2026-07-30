@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 const nextSteps = [
-  "WitnessOps reviews whether the technical action is bounded enough for one scoped proof pack.",
+  "WitnessOps reviews whether the technical action is bounded enough for one scoped review package.",
   "We confirm the system boundary, action path, likely evidence sources, possible verifier path, and obvious gaps.",
   "We reply by email with fit, scope, fee, and next action.",
 ];

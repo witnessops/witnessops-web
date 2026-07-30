@@ -187,15 +187,16 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review",
     requiredMarkers: [
-      "Proof Pack Review",
-      "One bounded technical action. One scoped proof pack.",
+      "Bounded review",
+      "One bounded technical action. One scoped review package.",
       "For",
       "You get",
       "Do not submit",
       "No dashboard subscription. No vague audit promise.",
-      "What the proof pack contains",
+      "What the review package contains",
       "Start a review",
       "Inspect sample package",
+      "Verify a receipt",
     ],
     prohibitedMarkers: [
       "Request an AI Agent Action Proof Run",
@@ -336,7 +337,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Evidence available",
       "Do not submit secrets",
       "Send fit check",
-      "What the proof pack contains",
+      "What a bounded review package can include",
       "Not a production deployment claim.",
       "Not a legal compliance claim.",
       "Not a complete AI governance program.",

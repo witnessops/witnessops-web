@@ -50,7 +50,7 @@ const proofOutputs = [
 ];
 
 const nextSteps = [
-  "We check whether the technical action is bounded enough for one proof pack.",
+  "We check whether the technical action is bounded enough for one review package.",
   "We confirm the system boundary, action path, likely evidence sources, and obvious gaps.",
   "We reply with fit, scope, fee, and next action before any source materials are accepted.",
 ];
@@ -254,7 +254,7 @@ export default function ReviewRequestPage() {
             color: "var(--color-text-muted)",
           }}
         >
-          What the proof pack contains
+          What a bounded review package can include
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {proofOutputs.map((item, index) => (

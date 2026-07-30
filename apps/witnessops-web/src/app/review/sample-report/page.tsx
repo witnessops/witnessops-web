@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
+import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 
 export const metadata: Metadata = {
@@ -133,6 +134,8 @@ export default function SampleReportPage() {
   return (
     <main id="main-content" tabIndex={-1}>
       <SectionShell narrow>
+
+        <SampleCaseBanner />
         <div className="space-y-8">
           <section className="space-y-4 border-b border-surface-border pb-8">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">

@@ -3,24 +3,24 @@ import { CtaButton } from "@/components/shared/cta-button";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 
 export const metadata: Metadata = {
-  title: "Proof Pack Review",
+  title: "Bounded Review",
   description:
-    "WitnessOps reviews one bounded technical action and, when scoped evidence is available, packages evidence references, receipt artifacts, verifier path, named limits, and a challenge path.",
+    "WitnessOps reviews one bounded technical action and, when scoped evidence is available, returns evidence references, receipt artifacts where produced, named limits, and a clear next step.",
   alternates: {
     canonical: "/review",
   },
   openGraph: {
-    title: "Proof Pack Review | WitnessOps",
+    title: "Bounded Review | WitnessOps",
     description:
-      "WitnessOps reviews one bounded technical action and, when scoped evidence is available, packages evidence references, receipt artifacts, verifier path, named limits, and a challenge path.",
+      "WitnessOps reviews one bounded technical action and, when scoped evidence is available, returns evidence references, receipt artifacts where produced, named limits, and a clear next step.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Proof Pack Review | WitnessOps",
+    title: "Bounded Review | WitnessOps",
     description:
-      "WitnessOps reviews one bounded technical action and, when scoped evidence is available, packages evidence references, receipt artifacts, verifier path, named limits, and a challenge path.",
+      "WitnessOps reviews one bounded technical action and, when scoped evidence is available, returns evidence references, receipt artifacts where produced, named limits, and a clear next step.",
   },
 };
 
@@ -72,7 +72,7 @@ const buyerFit = [
   {
     label: "You get",
     value:
-      "A bounded proof pack naming scope, evidence, receipt, verifier path, limits, and the next gate.",
+      "A bounded review package naming scope, evidence, receipt path where produced, limits, and the next gate.",
   },
   {
     label: "Do not submit",
@@ -97,12 +97,12 @@ export default function ReviewPage() {
       className="docs-page-enter mx-auto max-w-5xl px-6 py-10 lg:py-14"
     >
       <header className="mb-12 border-b border-surface-border pb-8">
-        <div className="kb-section-tag">Proof Pack Review</div>
+        <div className="kb-section-tag">Bounded review</div>
         <h1
           className="mt-2 max-w-3xl text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          One bounded technical action. One scoped proof pack.
+          One bounded technical action. One scoped review package.
         </h1>
         <p className="mt-5 max-w-[760px] text-base leading-8 text-text-secondary">
           Use WitnessOps when a code patch, security finding, AI-agent action,
@@ -111,8 +111,8 @@ export default function ReviewPage() {
         </p>
         <p className="mt-4 max-w-[760px] text-sm leading-7 text-text-muted">
           This is not certification, production validation, or a whole-system
-          audit. It is one bounded package with stated evidence, limits, and a
-          challenge path.
+          audit. It is one bounded review with stated evidence, limits, and a
+          path for inspection.
         </p>
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="border border-surface-border bg-surface-card/50 p-5">
@@ -154,7 +154,13 @@ export default function ReviewPage() {
           <div>
             <CtaButton href={sampleBundleHref} variant="secondary" label="Inspect sample package" />
             <p className="mt-2 max-w-[300px] text-xs leading-relaxed text-text-muted">
-              Inspect the receipt shape and verifier path first.
+              See a public sample before you request work.
+            </p>
+          </div>
+          <div>
+            <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
+            <p className="mt-2 max-w-[300px] text-xs leading-relaxed text-text-muted">
+              Check receipt JSON you already have.
             </p>
           </div>
         </div>
@@ -195,7 +201,7 @@ export default function ReviewPage() {
           className="mt-2 text-2xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-3xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          What the proof pack contains
+          What the review package contains
         </h2>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {proofOutputs.map((item, index) => (
@@ -242,12 +248,12 @@ export default function ReviewPage() {
           className="mt-2 text-2xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-3xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Inspect the public proof-package shape
+          Inspect a public sample package
         </h2>
         <p className="mt-4 max-w-[760px] text-sm leading-relaxed text-text-muted">
-          The public sample shows how another party checks the action boundary,
-          evidence manifest, receipt, verifier result, challenge path, and
-          digest manifest after a governed action.
+          The public sample shows how another party can inspect the action
+          boundary, evidence references, receipt path, limits, and next step
+          after a bounded review.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <CtaButton
