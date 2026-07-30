@@ -70,9 +70,12 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/docs",
     requiredMarkers: [
+      "Documentation",
       "Buyer path",
       "Start a review",
       "Verify a receipt",
+      "Browse by area",
+      "do not claim complete runtime truth",
     ],
   },
   {

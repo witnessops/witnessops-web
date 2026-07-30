@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
-import { getSurfaceUrl } from "@witnessops/config";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { getDocsSidebar } from "@witnessops/content/sidebar";
 import { CtaButton } from "@/components/shared/cta-button";
@@ -12,7 +11,7 @@ import {
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 
 const docsDescription =
-  "Start here for WitnessOps execution, evidence, verification, and trust limits.";
+  "Start here for WitnessOps: buyer path, how the model works, and how to verify a receipt.";
 
 export const metadata: Metadata = {
   title: "Docs — WitnessOps",
@@ -35,208 +34,53 @@ export const metadata: Metadata = {
   },
 };
 
-const pageContract = [
-  {
-    label: "Problem",
-    title: "Why this page exists",
-    description:
-      "Consequential work often leaves behind scattered evidence. This page shows where to start and what to read next.",
-  },
-  {
-    label: "Outcome",
-    title: "What you should know after reading",
-    description:
-      "You should know where to start, what the main model is, and where the trust limits still are.",
-  },
-  {
-    label: "Mechanism",
-    title: "How the model works in one line",
-    description:
-      "A workflow is approved, run, recorded, and published so another person can check the result later.",
-  },
-];
-
-const trustAssumptions = [
-  "Receipts can show that governed execution was recorded with integrity, but they do not prove every finding is correct.",
-  "Approval records can show that an approval was captured, but they do not prove the approver made the right call.",
-  "Independent verification still depends on correct public-key distribution and timestamp continuity.",
-  "The public verifier currently runs receipt-first checks. A valid public result does not prove bundle completeness or artifact-byte revalidation.",
-];
-
-const coreConcepts = [
-  {
-    label: "Controlled",
-    title: "Governed execution",
-    description:
-      "Consequential workflows run through explicit scope, policy, and approval controls.",
-  },
-  {
-    label: "Provable",
-    title: "Signed receipts",
-    description:
-      "Each governed action leaves a signed record of what ran, under what authority, and when.",
-  },
-  {
-    label: "Bounded",
-    title: "Portable verification",
-    description:
-      "Evidence is designed so other people can check it outside the system that produced it.",
-  },
-  {
-    label: "Explicit",
-    title: "Trust limits",
-    description:
-      "Each page says what WitnessOps controls, what it delegates, and what still needs trust.",
-  },
-];
-
-const entryPaths = [
-  {
-    title: "Start sequence",
-    description:
-      "Use this order first so you understand the model, the buyer path, the proof path, and the trust limits before going deeper.",
-    items: [
-      {
-        href: "/docs/getting-started",
-        title: "1. Getting Started",
-        description:
-          "Start here for the first walkthrough of the model and the proof path.",
-      },
-      {
-        href: "/docs/getting-started/proof-run-buyer-path",
-        title: "2. Buyer path",
-        description:
-          "Catalogue, sample, verifier boundary, non-secret fit check, and what the request form starts.",
-      },
-      {
-        href: "/docs/how-it-works",
-        title: "3. How It Works",
-        description:
-          "See the path from policy-gated execution to signed evidence.",
-      },
-      {
-        href: "/docs/security-systems/governed-execution",
-        title: "4. Governed Execution",
-        description:
-          "Inspect scope, approval, control, and receipt emission.",
-      },
-      {
-        href: "/docs/how-it-works/verification",
-        title: "5. Verification",
-        description:
-          "Learn how to check receipts and proof bundles outside WitnessOps.",
-      },
-    ],
-  },
-  {
-    title: "Proof and evidence",
-    description:
-      "Read these pages to inspect artifact shape, cryptographic fields, continuity, and verification rules.",
-    items: [
-      {
-        href: "/docs/evidence/receipts",
-        title: "Receipts",
-        description:
-          "What a receipt can demonstrate and what it cannot establish by itself.",
-      },
-      {
-        href: "/docs/evidence/receipt-spec",
-        title: "Receipt Specification",
-        description:
-          "The core technical fields, chain references, and signature structure.",
-      },
-      {
-        href: "/docs/security-systems/threat-model",
-        title: "Threat Model and Trust Boundaries",
-        description:
-          "The limits, delegated controls, and dispute model.",
-      },
-      {
-        href: getSurfaceUrl("witnessops", "/verify"),
-        title: "Verify a receipt",
-        description:
-          "Upload or paste receipt JSON and read a clear, receipt-scoped result.",
-      },
-    ],
-  },
-  {
-    title: "Authority and approval",
-    description:
-      "Read these when you need to know whether execution authority was valid before work ran.",
-    items: [
-      {
-        href: "/docs/governance/authorization-model",
-        title: "Authorization Model",
-        description:
-          "Approval boundaries, operator roles, and exception handling.",
-      },
-      {
-        href: "/docs/security-systems/policy-gates",
-        title: "Policy Gates",
-        description:
-          "What must pass before execution can proceed and what fails closed.",
-      },
-      {
-        href: "/docs/operations/runbooks",
-        title: "Runbooks",
-        description:
-          "How workflows define scope, gates, evidence outputs, and runtime order.",
-      },
-    ],
-  },
-  {
-    title: "Security education and response",
-    description:
-      "Use these pages to teach operators how to move from suspicious activity to evidence-backed response decisions.",
-    items: [
-      {
-        href: "/docs/security-education",
-        title: "Operational Security Scenarios",
-        description:
-          "Learn the attack-chain, observable-signal, response-decision, and control-boundary pattern.",
-      },
-      {
-        href: "/docs/security-education/phishing",
-        title: "Why Phishing Works",
-        description:
-          "Map phishing reports to delivery, interaction, credential capture, session, and post-access stages.",
-      },
-      {
-        href: "/docs/security-education/real-phishing-example",
-        title: "A Real Phishing Email",
-        description:
-          "Walk a representative lure through observed evidence, inference boundaries, and response gates.",
-      },
-      {
-        href: "/docs/scenarios/phishing-investigation",
-        title: "Phishing Investigation",
-        description:
-          "Run the governed scenario path when the evidence supports containment or escalation.",
-      },
-    ],
-  },
-];
-
-const nextHandoff = [
+const primaryPaths = [
   {
     href: "/docs/getting-started/proof-run-buyer-path",
     title: "Buyer path",
     description:
-      "Use this if you are evaluating the catalogue, samples, verifier, and non-secret fit-check request.",
+      "Catalogue, sample, non-secret fit check, and what a review request starts.",
+    cta: "Open buyer path",
   },
   {
     href: "/docs/getting-started",
-    title: "Next page: Getting Started",
+    title: "How the model works",
     description:
-      "Start here first. It is the first full walkthrough page.",
+      "Governed execution, receipts, and what proof can and cannot show.",
+    cta: "Learn the model",
   },
   {
-    href: "/docs/how-it-works",
-    title: "Then: How It Works",
+    href: "/verify",
+    title: "Verify a receipt",
     description:
-      "Move from overview to mechanism before going deeper.",
+      "Upload or paste receipt JSON and read a clear, receipt-scoped result.",
+    cta: "Open verifier",
+    externalToDocs: true,
   },
-];
+] as const;
+
+const quickLinks = [
+  {
+    href: "/docs/how-it-works/verification",
+    title: "Verification docs",
+    description: "Public tool vs offline package checks.",
+  },
+  {
+    href: "/docs/evidence/receipts",
+    title: "Receipts",
+    description: "What a receipt demonstrates on its own.",
+  },
+  {
+    href: "/docs/faq",
+    title: "FAQ",
+    description: "Short answers and common boundaries.",
+  },
+  {
+    href: "/docs/security-systems/threat-model",
+    title: "Threat model",
+    description: "Trust limits and dispute boundaries.",
+  },
+] as const;
 
 export default async function DocsIndexPage() {
   const sidebar = await getDocsSidebar("witnessops");
@@ -244,7 +88,6 @@ export default async function DocsIndexPage() {
   const host = normalizeHost(
     headerStore.get("x-forwarded-host") ?? headerStore.get("host"),
   );
-  // Apex /docs how-to paths (no separate docs subdomain).
   const pub = (href: string) => toPublicDocsHref(href, host);
 
   return (
@@ -259,58 +102,29 @@ export default async function DocsIndexPage() {
         <div className="kb-section-tag">Docs</div>
 
         <h1
-          className="mt-2 text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary lg:text-5xl"
+          className="mt-2 max-w-[18ch] text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary lg:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Docs for the model, proof path, and review surfaces.
+          Documentation
         </h1>
 
-        <p className="mt-4 max-w-[700px] text-sm leading-relaxed tracking-wide text-text-muted">
-          Choose your next step: learn the model, verify a receipt, inspect sample
-          cases, or start a review.
+        <p className="mt-5 max-w-[36rem] text-base leading-7 text-text-secondary">
+          How WitnessOps works, how to evaluate a review, and how to check a
+          receipt you were given.
         </p>
 
-        <p className="mt-3 max-w-[700px] text-sm leading-relaxed tracking-wide text-text-muted">
-          These docs explain how the system works and where the limits are. They
-          do not claim complete runtime truth by default. If you are evaluating
-          the public offer as a buyer, begin with the{" "}
-          <Link
-            className="text-brand-accent hover:opacity-80"
-            href={pub("/docs/getting-started/proof-run-buyer-path")}
-          >
-            Buyer path
-          </Link>
-          . For the general model, begin with{" "}
-          <Link
-            className="text-brand-accent hover:opacity-80"
-            href={pub("/docs/getting-started")}
-          >
-            Getting Started
-          </Link>
-          .
+        <p className="mt-3 max-w-[36rem] text-sm leading-7 text-text-muted">
+          These docs explain the model and its limits. They do not claim complete
+          runtime truth by default.
         </p>
 
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-7 flex flex-wrap gap-3">
           <CtaButton
             href={pub("/docs/getting-started/proof-run-buyer-path")}
             variant="primary"
             label="Buyer path"
           />
-          <CtaButton
-            href={pub("/docs/getting-started")}
-            variant="secondary"
-            label="Learn the model"
-          />
-          <CtaButton
-            href={pub("/docs/how-it-works/verification")}
-            variant="secondary"
-            label="Verify a receipt"
-          />
-          <CtaButton
-            href="/review/sample-cases"
-            variant="secondary"
-            label="Inspect sample cases"
-          />
+          <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
           <CtaButton
             href="/review/request"
             variant="secondary"
@@ -319,177 +133,86 @@ export default async function DocsIndexPage() {
         </div>
       </header>
 
-      <section className="mb-12">
+      <section className="mb-12" aria-labelledby="docs-start-heading">
         <h2
+          id="docs-start-heading"
           className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Page contract
+          Start here
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
 
-        <div className="grid gap-0 border border-surface-border md:grid-cols-3">
-          {pageContract.map((item, index) => (
-            <div
-              key={item.label}
-              className={`p-5 ${index < pageContract.length - 1 ? "border-b border-surface-border md:border-b-0 md:border-r md:border-surface-border" : ""}`}
-            >
-              <div
-                className="mb-2"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 9,
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                  color: "var(--color-brand-accent)",
-                }}
-              >
-                {item.label}
-              </div>
-              <h3
-                className="mb-2 text-sm font-semibold uppercase text-text-primary"
-                style={{ fontFamily: "var(--font-display)", letterSpacing: "0.06em" }}
-              >
-                {item.title}
-              </h3>
-              <p
-                className="text-text-muted"
-                style={{ fontFamily: "var(--font-mono)", fontSize: 11, lineHeight: 1.7 }}
-              >
-                {item.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mb-12">
-        <h2
-          className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Where to begin
-          <span className="h-px flex-1 bg-surface-border" />
-        </h2>
-
-        <div className="mb-5 border border-brand-accent/40 bg-brand-accent/5 p-4">
-          <h3
-            className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Buyer path
-          </h3>
-          <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-text-muted">
-            Start here if you are evaluating the public catalogue and review
-            request. It separates services, sample, verifier, non-secret fit
-            check, mailbox verification, and evidence-handling boundary.
-          </p>
-          <Link
-            href={pub("/docs/getting-started/proof-run-buyer-path")}
-            className="mt-3 inline-flex items-center border border-surface-border px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent"
-          >
-            Open buyer path
-          </Link>
-        </div>
-
-        <div className="mb-5 border border-surface-border bg-surface-bg p-4">
-          <h3
-            className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Verify First quickstart
-          </h3>
-          <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-text-muted">
-            Start with a bounded verification pass: inspect the receipt, run the
-            verifier, and keep execution, evidence, and interpretation as
-            separate concerns.
-          </p>
-          <Link
-            href={pub("/docs/quickstart/verify-first")}
-            className="mt-3 inline-flex items-center border border-surface-border px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent"
-          >
-            Open Verify First quickstart
-          </Link>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          {entryPaths.map((path) => (
-            <div
-              key={path.title}
-              className="border border-surface-border bg-surface-bg p-5"
+        <div className="grid gap-4 md:grid-cols-3">
+          {primaryPaths.map((path, index) => (
+            <Link
+              key={path.href}
+              href={
+                "externalToDocs" in path && path.externalToDocs
+                  ? path.href
+                  : pub(path.href)
+              }
+              className={`block border p-5 transition-colors hover:border-brand-accent ${
+                index === 0
+                  ? "border-brand-accent/50 bg-brand-accent/5"
+                  : "border-surface-border bg-surface-bg"
+              }`}
             >
               <h3
-                className="mb-2 text-sm font-semibold uppercase tracking-[0.08em] text-text-primary"
+                className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 {path.title}
               </h3>
-              <p className="mb-4 text-sm leading-relaxed text-text-muted">
+              <p className="mt-2 text-sm leading-relaxed text-text-muted">
                 {path.description}
               </p>
-              <div className="space-y-4">
-                {path.items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={
-                      item.href.startsWith("/docs") ? pub(item.href) : item.href
-                    }
-                    className="block border-l-2 border-surface-border pl-3 transition-colors hover:border-brand-accent"
-                  >
-                    <div
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: 10,
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                        color: "var(--color-text-primary)",
-                      }}
-                    >
-                      {item.title}
-                    </div>
-                    <p className="mt-1 text-sm leading-relaxed text-text-muted">
-                      {item.description}
-                    </p>
-                  </Link>
-                ))}
-              </div>
-            </div>
+              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.1em] text-brand-accent">
+                {path.cta} →
+              </p>
+            </Link>
           ))}
         </div>
       </section>
 
-      <section className="mb-12">
+      <section className="mb-12" aria-labelledby="docs-quick-heading">
         <h2
+          id="docs-quick-heading"
           className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Trust assumptions still in play
+          Often needed
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
-
-        <div className="border border-surface-border bg-surface-bg p-5">
-          <ul className="space-y-3 text-sm leading-relaxed text-text-muted">
-            {trustAssumptions.map((assumption) => (
-              <li key={assumption} className="border-l-2 border-surface-border pl-3">
-                {assumption}
-              </li>
-            ))}
-          </ul>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {quickLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={pub(link.href)}
+              className="block border border-surface-border bg-surface-bg px-4 py-4 transition-colors hover:border-brand-accent"
+            >
+              <div className="text-sm font-semibold text-text-primary">
+                {link.title}
+              </div>
+              <p className="mt-1 text-sm text-text-muted">{link.description}</p>
+            </Link>
+          ))}
         </div>
       </section>
 
-      <section className="mb-12">
+      <section className="mb-12" aria-labelledby="docs-browse-heading">
         <h2
+          id="docs-browse-heading"
           className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
           Browse by area
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
-        <p className="mb-5 max-w-[640px] text-sm leading-relaxed text-text-muted">
-          Primary navigation lists hubs only. Open a hub for deeper pages, or use
-          search (⌘K or “/”) to find every page—including security-education leaves
-          and evidence mappings that are not in the primary sidebar.
+        <p className="mb-5 max-w-[36rem] text-sm leading-relaxed text-text-muted">
+          The sidebar stays small on purpose. Open a hub for deeper pages, or use
+          search (⌘K) for education leaves and other pages not listed in primary
+          nav.
         </p>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -528,89 +251,30 @@ export default async function DocsIndexPage() {
         </div>
       </section>
 
-      <section className="mb-12">
-        <h2
-          className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Core concepts
-          <span className="h-px flex-1 bg-surface-border" />
-        </h2>
-
-        <div className="grid gap-0 border border-surface-border md:grid-cols-2">
-          {coreConcepts.map((card, i) => (
-            <div
-              key={card.label}
-              className={`p-5 ${i < 2 ? "border-b border-surface-border" : ""} ${i % 2 === 0 ? "md:border-r md:border-surface-border" : ""}`}
-            >
-              <div
-                className="mb-2"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 9,
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                  color: "var(--color-brand-accent)",
-                }}
-              >
-                {card.label}
-              </div>
-              <h3
-                className="mb-2 text-sm font-semibold text-text-primary"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {card.title}
-              </h3>
-              <p
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 11,
-                  lineHeight: 1.7,
-                  color: "var(--color-text-muted)",
-                }}
-              >
-                {card.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
       <section
-        data-docs-nav-surface="index-handoff"
-        data-docs-event-type="next_click"
+        className="mb-4 border border-surface-border bg-surface-bg p-5"
+        aria-labelledby="docs-limits-heading"
       >
         <h2
-          className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-          style={{ fontFamily: "var(--font-display)" }}
+          id="docs-limits-heading"
+          className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent"
         >
-          Next page handoff
-          <span className="h-px flex-1 bg-surface-border" />
+          Limits
         </h2>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          {nextHandoff.map((item, index) => (
-            <Link
-              key={item.href}
-              href={pub(item.href)}
-              className={`kb-hover-card kb-hover-row kb-hover-row--rail-top relative border p-5 ${index === 0 ? "border-brand-accent bg-brand-accent/10" : "border-surface-border bg-surface-bg"}`}
-            >
-              <h3
-                className="mb-2 text-sm font-semibold uppercase text-text-primary"
-                style={{ fontFamily: "var(--font-display)", letterSpacing: "0.06em" }}
-              >
-                {item.title}
-              </h3>
-              <p className="text-sm leading-relaxed text-text-muted">
-                {item.description}
-              </p>
-            </Link>
-          ))}
-        </div>
+        <ul className="mt-3 space-y-2 text-sm leading-relaxed text-text-muted">
+          <li>
+            A valid public receipt result confirms the checks named in that
+            receipt. It does not prove every underlying action was correct.
+          </li>
+          <li>
+            Independent verification still depends on trusted keys and the
+            materials you actually have.
+          </li>
+          <li>
+            These docs do not claim complete runtime truth or production
+            deployment by themselves.
+          </li>
+        </ul>
       </section>
     </main>
   );
