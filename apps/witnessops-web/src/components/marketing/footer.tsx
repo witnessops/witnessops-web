@@ -12,13 +12,16 @@ const DOCS_PUBLIC_HREF = getDocsUrl("witnessops", "/", { mode: "canonical" });
 
 const LIBRARY_PRIMARY_HREFS = new Set([
   "/library",
+  "/pl/library",
   "/docs",
   DOCS_PUBLIC_HREF,
   "/review",
   "/review/request",
+  "/pl/review/request",
   "/review/sample-cases",
   "/review/sample-report",
   "/verify",
+  "/pl/verify",
 ]);
 const LIBRARY_QUIET_HREFS = new Set<string>();
 const GITHUB_PROFILE_HREF = "https://github.com/witnessops";
@@ -42,7 +45,36 @@ interface FooterProps {
   copyright: string;
 }
 
-const LIBRARY_FOOTER: FooterProps & { motto: string } = {
+type FooterContent = FooterProps & { motto: string };
+
+/** Library surface: /library and /pl/library (not commercial PL buyer chrome). */
+export function isLibraryPath(pathname: string): boolean {
+  return (
+    pathname === "/library" ||
+    pathname.startsWith("/library/") ||
+    pathname === "/pl/library" ||
+    pathname.startsWith("/pl/library/")
+  );
+}
+
+function isPublicBuildLabel(label: string): boolean {
+  const t = label.trim();
+  if (!t) return false;
+  // Operator residue — never show on public footer.
+  if (/^build:\s*static$/i.test(t)) return false;
+  if (/^wersja:\s*static$/i.test(t)) return false;
+  return true;
+}
+
+/** Rewrite apex /docs paths to the canonical docs host for one footer strategy. */
+function resolveDocsHref(href: string): string {
+  if (href === "/docs" || href === "/pl/docs" || href.startsWith("/docs/")) {
+    return DOCS_PUBLIC_HREF;
+  }
+  return href;
+}
+
+const LIBRARY_FOOTER_EN: FooterContent = {
   brand_line: "WitnessOps",
   subline:
     "Public entry points for docs, reviews, verifier fixtures, explanatory sample cases, and the illustrative sample report.",
@@ -60,12 +92,35 @@ const LIBRARY_FOOTER: FooterProps & { motto: string } = {
     { label: "Terms", href: "/terms" },
     { label: "Security", href: "/security" },
   ],
-  build_label: "Build: STATIC",
+  build_label: "",
   copyright: "© WitnessOps",
   motto: "Respect the boundary. Bring receipts.",
 };
 
-const POLISH_FOOTER: FooterProps & { motto: string } = {
+const LIBRARY_FOOTER_PL: FooterContent = {
+  brand_line: "WitnessOps",
+  subline:
+    "Publiczne punkty wejścia do dokumentacji, przeglądów, fixture weryfikatora, przykładowych przypadków i ilustracyjnego raportu.",
+  links: [
+    { label: "Biblioteka", href: "/pl/library" },
+    { label: "Dokumentacja", href: DOCS_PUBLIC_HREF },
+    { label: "Przegląd", href: "/review" },
+    { label: "Rozpocznij przegląd", href: "/pl/review/request" },
+    { label: "Przykładowe przypadki", href: "/review/sample-cases" },
+    { label: "Przykładowy raport", href: "/review/sample-report" },
+    { label: "Weryfikacja", href: "/pl/verify" },
+  ],
+  legal_links: [
+    { label: "Prywatność", href: "/privacy" },
+    { label: "Warunki", href: "/terms" },
+    { label: "Bezpieczeństwo", href: "/security" },
+  ],
+  build_label: "",
+  copyright: "© WitnessOps",
+  motto: "Respect the boundary. Bring receipts.",
+};
+
+const POLISH_FOOTER: FooterContent = {
   brand_line: "WitnessOps",
   subline:
     "Ograniczone zakresowo przeglądy bezpieczeństwa i operacji z odwołaniami do materiałów, jasno wskazanymi ograniczeniami i praktycznym przekazaniem wyniku.",
@@ -77,7 +132,7 @@ const POLISH_FOOTER: FooterProps & { motto: string } = {
     },
     { label: "Dlaczego WitnessOps", href: "/pl/why-witnessops" },
     { label: "Weryfikacja", href: "/pl/verify" },
-    { label: "Dokumentacja", href: "/pl/docs" },
+    { label: "Dokumentacja", href: DOCS_PUBLIC_HREF },
     { label: "Biblioteka", href: "/pl/library" },
     { label: "Rozpocznij przegląd", href: "/pl/review/request" },
   ],
@@ -86,14 +141,15 @@ const POLISH_FOOTER: FooterProps & { motto: string } = {
     { label: "Warunki", href: "/terms" },
     { label: "Bezpieczeństwo", href: "/security" },
   ],
-  build_label: "Wersja: STATIC",
+  build_label: "",
   copyright: "© WitnessOps",
   motto: "Respect the boundary. Bring receipts.",
 };
 
 function resolveFooterHref(href: string): string {
-  if (!href.startsWith("/")) return href;
-  return getSurfaceUrl("witnessops", href);
+  const docsResolved = resolveDocsHref(href);
+  if (!docsResolved.startsWith("/")) return docsResolved;
+  return getSurfaceUrl("witnessops", docsResolved);
 }
 
 export function Footer({
@@ -105,49 +161,57 @@ export function Footer({
   copyright,
 }: FooterProps) {
   const pathname = usePathname();
-  const isPolishSurface = isPolishPath(pathname || "/");
+  const path = pathname || "/";
+  const isPolishSurface = isPolishPath(path);
+  const librarySurface = isLibraryPath(path);
 
-  const LIBRARY_ROUTES = ["/library"];
-  const isLibrarySurface =
-    LIBRARY_ROUTES.some((r) =>
-      r === "/" ? pathname === "/" : (pathname?.startsWith(r) ?? false),
-    );
-
-  const content = useMemo(
-    () =>
-      isLibrarySurface
-        ? LIBRARY_FOOTER
-        : isPolishSurface
-          ? POLISH_FOOTER
-        : {
-            brand_line,
-            subline,
-            links,
-            legal_links,
-            build_label,
-            copyright,
-            motto: "Respect the boundary. Bring receipts.",
-          },
-    [
+  const content = useMemo((): FooterContent => {
+    if (librarySurface) {
+      return isPolishSurface ? LIBRARY_FOOTER_PL : LIBRARY_FOOTER_EN;
+    }
+    if (isPolishSurface) {
+      return POLISH_FOOTER;
+    }
+    // Buyer EN: rewrite Docs to canonical host; suppress STATIC build label.
+    return {
       brand_line,
       subline,
-      links,
+      links: links.map((link) =>
+        link.href === "/docs" || link.href.startsWith("/docs/")
+          ? { ...link, href: DOCS_PUBLIC_HREF }
+          : link,
+      ),
       legal_links,
-      build_label,
+      build_label: isPublicBuildLabel(build_label) ? build_label : "",
       copyright,
-      isLibrarySurface,
-      isPolishSurface,
-    ],
-  );
+      motto: "Respect the boundary. Bring receipts.",
+    };
+  }, [
+    brand_line,
+    subline,
+    links,
+    legal_links,
+    build_label,
+    copyright,
+    librarySurface,
+    isPolishSurface,
+  ]);
 
-  const statusLabel = isLibrarySurface
-    ? "Public entry points"
+  const statusLabel = librarySurface
+    ? isPolishSurface
+      ? "Publiczne punkty wejścia"
+      : "Public entry points"
     : isPolishSurface
       ? "Operacje poparte dowodami"
       : "Proof-backed operations";
 
   function toHref(href: string) {
-    return isLibrarySurface ? href : resolveFooterHref(href);
+    if (librarySurface) {
+      // Library may use absolute docs host; leave absolute URLs as-is.
+      if (href.startsWith("https://") || href.startsWith("http://")) return href;
+      return resolveDocsHref(href);
+    }
+    return resolveFooterHref(href);
   }
 
   function isExternalHref(href: string) {
@@ -155,7 +219,7 @@ export function Footer({
   }
 
   function getRootLinkClassName(href: string) {
-    if (!isLibrarySurface) {
+    if (!librarySurface) {
       return FOOTER_LINK_CLASS;
     }
 
@@ -169,33 +233,30 @@ export function Footer({
   function getRootLinkStyle(href: string) {
     const baseStyle = FOOTER_MONO_STYLE;
 
-    if (
-      !isLibrarySurface ||
-      !LIBRARY_QUIET_HREFS.has(href)
-    ) {
+    if (!librarySurface || !LIBRARY_QUIET_HREFS.has(href)) {
       return baseStyle;
     }
 
     return { ...baseStyle, color: "var(--color-text-secondary)", opacity: 0.92 };
   }
 
+  const showBuild = isPublicBuildLabel(content.build_label);
+
   return (
     <footer
       className="border-t border-surface-border bg-surface-bg"
       data-brand-footer="approved-2026-07-30"
+      data-footer-surface={librarySurface ? "library" : isPolishSurface ? "pl-buyer" : "en-buyer"}
     >
       <div className="mx-auto max-w-[1200px] px-6 py-10 sm:py-12">
-
-        {/* Top row: brand lockup + links */}
         <div className="flex flex-col gap-7 md:flex-row md:items-start md:justify-between md:gap-8">
-
-          {/* Brand lockup: geometric mark + wordmark (P1) */}
           <div data-footer-brand-lockup>
             <div className="mb-2 flex min-h-11 items-center gap-3">
               <WitnessOpsMark
                 variant="mark"
                 size="md"
                 tone="white"
+                decorative
                 className="shrink-0"
               />
               <p
@@ -209,7 +270,7 @@ export function Footer({
               className="mb-2 flex items-center gap-2 text-xs leading-5 text-text-secondary"
               style={FOOTER_MONO_STYLE}
             >
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-signal-green shadow-[0_0_6px_var(--color-signal-green)]" />
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-signal-green" />
               {statusLabel}
             </span>
             <p className="max-w-[320px] text-sm leading-relaxed text-text-secondary">
@@ -217,7 +278,6 @@ export function Footer({
             </p>
           </div>
 
-          {/* Links */}
           <div className="flex flex-wrap gap-x-5 gap-y-0 sm:gap-x-6">
             {content.links.map((link) => {
               const href = toHref(link.href);
@@ -225,7 +285,7 @@ export function Footer({
               const style = getRootLinkStyle(link.href);
               return isExternalHref(href) ? (
                 <a
-                  key={link.href}
+                  key={`${link.label}:${link.href}`}
                   href={href}
                   target="_blank"
                   rel="noreferrer"
@@ -236,7 +296,7 @@ export function Footer({
                 </a>
               ) : (
                 <Link
-                  key={link.href}
+                  key={`${link.label}:${link.href}`}
                   href={href}
                   className={className}
                   style={style}
@@ -252,14 +312,13 @@ export function Footer({
           <PublicContactRoute compact locale={isPolishSurface ? "pl" : "en"} />
         </div>
 
-        {/* Bottom row: legal + copyright */}
         <div className="mt-7 flex flex-col items-start justify-between gap-4 border-t border-surface-border pt-5 sm:mt-8 sm:gap-3 sm:pt-6 md:flex-row md:items-center">
           <div className="flex flex-wrap gap-x-4 gap-y-0">
             {content.legal_links.map((link) => {
               const href = toHref(link.href);
               return isExternalHref(href) ? (
                 <a
-                  key={link.href}
+                  key={`${link.label}:${link.href}`}
                   href={href}
                   target="_blank"
                   rel="noreferrer"
@@ -270,7 +329,7 @@ export function Footer({
                 </a>
               ) : (
                 <Link
-                  key={link.href}
+                  key={`${link.label}:${link.href}`}
                   href={href}
                   className={FOOTER_LEGAL_LINK_CLASS}
                   style={FOOTER_MONO_STYLE}
@@ -294,13 +353,16 @@ export function Footer({
             className="flex items-center gap-3 text-xs leading-5 text-text-secondary"
             style={FOOTER_MONO_STYLE}
           >
-            <span>{content.build_label}</span>
-            <span className="text-text-muted">·</span>
+            {showBuild ? (
+              <>
+                <span>{content.build_label}</span>
+                <span className="text-text-muted">·</span>
+              </>
+            ) : null}
             <span>{content.copyright}</span>
           </div>
         </div>
 
-        {/* Motto */}
         <div
           className="mt-5 text-center text-xs leading-5 text-text-secondary sm:mt-6"
           style={FOOTER_MONO_STYLE}

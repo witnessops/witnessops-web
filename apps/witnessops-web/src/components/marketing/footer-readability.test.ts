@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
+import { isLibraryPath } from "./footer";
+
 test("footer keeps readable text contrast and sizing", () => {
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
 
@@ -31,10 +33,12 @@ test("footer brand lockup uses the approved geometric mark without decorative ef
   assert.match(source, /WitnessOpsMark/);
   assert.match(source, /variant="mark"/);
   assert.match(source, /tone="white"/);
+  assert.match(source, /decorative/);
   assert.match(source, /data-footer-brand-lockup/);
   assert.match(source, /data-brand-footer="approved-2026-07-30"/);
   assert.match(source, /min-h-11/);
   assert.doesNotMatch(source, /Package Security Workflow/);
+  assert.doesNotMatch(source, /shadow-\[0_0_6px/);
   assert.doesNotMatch(
     source,
     /drop-shadow|neon|bevel|glowing/i,
@@ -57,4 +61,27 @@ test("footer provides Polish homepage labels without changing route contracts", 
   ]) {
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
   }
+});
+
+test("library surface includes English and Polish library paths", () => {
+  assert.equal(isLibraryPath("/library"), true);
+  assert.equal(isLibraryPath("/library/extra"), true);
+  assert.equal(isLibraryPath("/pl/library"), true);
+  assert.equal(isLibraryPath("/pl/library/"), true);
+  assert.equal(isLibraryPath("/pl"), false);
+  assert.equal(isLibraryPath("/catalog"), false);
+  assert.equal(isLibraryPath("/pl/catalog"), false);
+});
+
+test("footer suppresses Build STATIC and ships PL library island", () => {
+  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
+
+  assert.match(source, /LIBRARY_FOOTER_PL/);
+  assert.match(source, /Publiczne punkty wejścia/);
+  assert.match(source, /isPublicBuildLabel/);
+  assert.doesNotMatch(
+    source,
+    /build_label:\s*"Build: STATIC"|build_label:\s*"Wersja: STATIC"/,
+  );
+  assert.match(source, /DOCS_PUBLIC_HREF/);
 });

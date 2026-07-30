@@ -47,7 +47,7 @@ export function PublicContactRoute({
         className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent"
         style={{ fontFamily: "var(--font-mono)" }}
       >
-        {polish ? "Opowiedz nam, co się wydarzyło" : "Tell us what happened"}
+        {polish ? "Rozpocznij przegląd" : "Start a review"}
       </p>
       <p className="mt-2 text-sm leading-6 text-text-secondary">
         {polish ? "Główna ścieżka:" : "Primary route:"}{" "}

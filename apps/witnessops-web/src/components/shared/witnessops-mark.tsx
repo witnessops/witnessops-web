@@ -17,6 +17,11 @@ interface WitnessOpsMarkProps {
   tone?: MarkTone;
   /** Reserved for compatibility (no visual pulse in current flat style) */
   pulse?: boolean;
+  /**
+   * When true (and geometric), mark is decorative: aria-hidden, no accessible name.
+   * Use when adjacent wordmark text already names WitnessOps.
+   */
+  decorative?: boolean;
   /** Extra className */
   className?: string;
 }
@@ -47,10 +52,12 @@ function GeometricMark({
   height,
   fill,
   className = "",
+  decorative = false,
 }: {
   height: number;
   fill: string;
   className?: string;
+  decorative?: boolean;
 }) {
   // viewBox 746×427 — width scales with height to preserve aspect
   const width = Math.round((height * 746) / 427);
@@ -60,12 +67,13 @@ function GeometricMark({
       width={width}
       height={height}
       viewBox="0 0 746 427"
-      role="img"
-      aria-label="WitnessOps"
+      role={decorative ? "presentation" : "img"}
+      aria-hidden={decorative ? true : undefined}
+      aria-label={decorative ? undefined : "WitnessOps"}
       className={className}
       style={{ display: "block", flexShrink: 0 }}
     >
-      <title>WitnessOps</title>
+      {decorative ? null : <title>WitnessOps</title>}
       <g fill={fill} shapeRendering="geometricPrecision">
         <polygon points="0,0 269,427 372,266 474,427 746,1 663,2 474,298 373,137 270,299 83,1" />
         <polygon points="216,0 320,170 358,110 330,65 330,61 418,62 389,111 427,170 531,1" />
@@ -79,6 +87,7 @@ export function WitnessOpsMark({
   size = "md",
   tone = "white",
   pulse: _pulse = false,
+  decorative = false,
   className = "",
 }: WitnessOpsMarkProps) {
   const s = SIZES[size];
@@ -89,6 +98,7 @@ export function WitnessOpsMark({
       <span
         className={`witnessops-mark witnessops-mark--geometric ${className}`}
         suppressHydrationWarning
+        aria-hidden={decorative ? true : undefined}
         style={{
           display: "inline-flex",
           alignItems: "center",
@@ -98,7 +108,7 @@ export function WitnessOpsMark({
           flexShrink: 0,
         }}
       >
-        <GeometricMark height={s.markH} fill={TONE_FILL[tone]} />
+        <GeometricMark height={s.markH} fill={TONE_FILL[tone]} decorative={decorative} />
       </span>
     );
   }
