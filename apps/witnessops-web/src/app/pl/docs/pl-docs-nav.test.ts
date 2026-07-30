@@ -14,8 +14,18 @@ test("PL docs nav is buyer-oriented without a deep technical stub tree", () => {
   );
   assert.match(
     technical!.items[0]!.href,
-    /docs\.witnessops\.com|^https:\/\//,
-    "EN technical entry should point at docs host",
+    /^https:\/\/witnessops\.com\/docs\/?$|^\/docs\/?$/,
+    "EN technical entry should point at apex /docs (not legacy docs.witnessops.com)",
+  );
+  assert.doesNotMatch(
+    technical!.items[0]!.href,
+    /docs\.witnessops\.com/,
+    "EN technical entry must not use the legacy docs subdomain",
+  );
+  assert.doesNotMatch(
+    technical!.description,
+    /docs\.witnessops\.com/,
+    "technical section description must not advertise the legacy docs host",
   );
 
   const stubTechnicalLeaves = all.filter(

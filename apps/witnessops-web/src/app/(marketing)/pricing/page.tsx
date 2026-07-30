@@ -75,7 +75,7 @@ const nextSteps = [
     title: "Package workflow",
     body: "Submit one non-secret GitHub, Codex, AI, access, offsec, or remediation workflow for the first fit check.",
     href: "/review/request",
-    label: "Package one security workflow",
+    label: "Start a review",
   },
 ];
 
@@ -108,7 +108,7 @@ export default function PricingPage() {
           </p>
         </div>
         <div className="mt-8 flex flex-wrap gap-3">
-          <CtaButton href="/review/request" variant="primary" label="Package one security workflow" />
+          <CtaButton href="/review/request" variant="primary" label="Start a review" />
           <CtaButton href="/review/sample-cases/ai-agent-action-proof-run" variant="secondary" label="Inspect sample package" />
         </div>
       </header>

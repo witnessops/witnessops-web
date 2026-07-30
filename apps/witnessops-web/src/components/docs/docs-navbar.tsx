@@ -17,6 +17,8 @@ interface DocEntry {
 interface DocsNavbarProps {
   docs: DocEntry[];
   verifyFirstHref?: string;
+  /** Override utility chrome (e.g. PL docs must not show EN /docs hubs). */
+  utilityLinks?: { label: string; href: string }[];
 }
 
 const CORE_UTILITY_LINKS = [
@@ -33,10 +35,17 @@ function isUtilityLinkActive(pathname: string | null, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function DocsNavbar({ docs, verifyFirstHref }: DocsNavbarProps) {
+export function DocsNavbar({
+  docs,
+  verifyFirstHref,
+  utilityLinks: utilityLinksProp,
+}: DocsNavbarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const pathname = usePathname();
   const utilityLinks = useMemo(() => {
+    if (utilityLinksProp) {
+      return utilityLinksProp;
+    }
     if (!verifyFirstHref) {
       return CORE_UTILITY_LINKS;
     }
@@ -46,7 +55,7 @@ export function DocsNavbar({ docs, verifyFirstHref }: DocsNavbarProps) {
       { label: "Verify First", href: verifyFirstHref },
       ...CORE_UTILITY_LINKS.slice(1),
     ];
-  }, [verifyFirstHref]);
+  }, [verifyFirstHref, utilityLinksProp]);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {

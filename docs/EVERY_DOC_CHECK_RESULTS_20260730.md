@@ -130,11 +130,11 @@ No P1 claim fixes required in B4.
 
 ---
 
-## Next (optional Session 3+)
+## Session 3 (approved)
 
-1. Hub expansion tier 1 (faq, governance, evidence index, audiences)  
-2. Support/marketing residual “Package one security workflow” cleanup (outside docs)  
-3. Spot re-crawl after any further copy edits  
+1. **PL docs wrong URL** — removed `docs.witnessops.com` copy; EN technical links use apex `/docs` / `witnessops.com/docs`; PL footer + utility nav stay on `/pl/docs` (no rewrite to EN `/docs`).  
+2. **Hub tier 1** — primary sidebar adds `/docs/faq`, `/docs/audiences`, `/docs/evidence`, `/docs/governance` (≤24 links).  
+3. **Residual CTA** — support, pricing, sample-cases/report: **Package one security workflow** → **Start a review**.  
 
 ---
 
@@ -147,5 +147,6 @@ No P1 claim fixes required in B4.
 - [x] Full human score B3–B5  
 - [x] Open P0 = 0; open P1 fixed or closed  
 - [x] Dual-lane deploy of Session 2 P1 — image `main-d5d8879-20260730T050719Z`, smoke OK, pushed `main`  
+- [x] Session 3 PL URL + hub tier-1 + residual CTA (this ship)  
 
 END

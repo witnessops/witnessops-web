@@ -15,7 +15,7 @@ test("offsec shield sample page declares verify boundary and workflow CTA", () =
   assert.doesNotMatch(source, /Structural only \([A-Z][0-9] adapter/);
   assert.doesNotMatch(source, /structural checks only/);
   assert.doesNotMatch(source, /POST[\s\S]*RECEIPT\.json[\s\S]*\/api\/verify/);
-  assert.match(source, /label=\"Package one security workflow\"/);
+  assert.match(source, /label=\"Start a review\"/);
   assert.match(source, /offsec-shield-local-server-audit/);
 });
 

@@ -260,7 +260,7 @@ export default function AiAgentActionProofRunSamplePage() {
               <CtaButton
                 href="/review/request"
                 variant="primary"
-                label="Package one security workflow"
+                label="Start a review"
               />
               <CtaButton
                 href={sampleBaseUrl}
@@ -547,7 +547,7 @@ export default function AiAgentActionProofRunSamplePage() {
               <CtaButton
                 href="/review/request"
                 variant="primary"
-                label="Package one security workflow"
+                label="Start a review"
               />
               <Link
                 href="/review"

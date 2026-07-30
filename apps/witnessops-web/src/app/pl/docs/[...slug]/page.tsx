@@ -32,7 +32,7 @@ export default async function PolishDocsFallback({ params }: Props) {
         </strong>{" "}
         Pełna ścieżka kupującego jest dostępna po polsku. Źródłowa dokumentacja
         modelu, weryfikatora i specyfikacji pozostaje po angielsku na{" "}
-        <span className="whitespace-nowrap">docs.witnessops.com</span>.
+        <span className="whitespace-nowrap">witnessops.com/docs</span>.
       </div>
       <p className="mt-4 text-sm leading-6 text-text-muted">
         Nie tłumaczymy automatycznie umów produktowych, identyfikatorów, poleceń

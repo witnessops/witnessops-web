@@ -8,14 +8,17 @@ import { PublicContactRoute } from "@/components/marketing/public-contact-route"
 import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { isPolishPath } from "@/lib/public-i18n";
 
-/** Apex how-to path (not the legacy docs.witnessops.com host). */
+/** Apex English how-to path (not the legacy docs.witnessops.com host). */
 const DOCS_PUBLIC_HREF = "/docs";
+/** Polish buyer docs island on the same apex origin. */
+const DOCS_PL_HREF = "/pl/docs";
 
 const LIBRARY_PRIMARY_HREFS = new Set([
   "/library",
   "/pl/library",
   "/docs",
   DOCS_PUBLIC_HREF,
+  DOCS_PL_HREF,
   "/review",
   "/review/request",
   "/pl/review/request",
@@ -67,10 +70,16 @@ function isPublicBuildLabel(label: string): boolean {
   return true;
 }
 
-/** Rewrite apex /docs paths to the canonical docs host for one footer strategy. */
+/**
+ * Normalize docs links: EN stays `/docs…`, PL stays `/pl/docs…`.
+ * Never rewrite Polish docs onto English `/docs`, and never use the legacy host.
+ */
 function resolveDocsHref(href: string): string {
-  if (href === "/docs" || href === "/pl/docs" || href.startsWith("/docs/")) {
-    return DOCS_PUBLIC_HREF;
+  if (href === "/pl/docs" || href.startsWith("/pl/docs/")) {
+    return href === "/pl/docs/" ? DOCS_PL_HREF : href;
+  }
+  if (href === "/docs" || href.startsWith("/docs/")) {
+    return href === "/docs/" ? DOCS_PUBLIC_HREF : href;
   }
   return href;
 }
@@ -104,7 +113,7 @@ const LIBRARY_FOOTER_PL: FooterContent = {
     "Publiczne punkty wejścia do dokumentacji, przeglądów, fixture weryfikatora, przykładowych przypadków i ilustracyjnego raportu.",
   links: [
     { label: "Biblioteka", href: "/pl/library" },
-    { label: "Dokumentacja", href: DOCS_PUBLIC_HREF },
+    { label: "Dokumentacja", href: DOCS_PL_HREF },
     { label: "Przegląd", href: "/review" },
     { label: "Rozpocznij przegląd", href: "/pl/review/request" },
     { label: "Przykładowe przypadki", href: "/review/sample-cases" },
@@ -133,7 +142,7 @@ const POLISH_FOOTER: FooterContent = {
     },
     { label: "Dlaczego WitnessOps", href: "/pl/why-witnessops" },
     { label: "Weryfikacja", href: "/pl/verify" },
-    { label: "Dokumentacja", href: DOCS_PUBLIC_HREF },
+    { label: "Dokumentacja", href: DOCS_PL_HREF },
     { label: "Biblioteka", href: "/pl/library" },
     { label: "Rozpocznij przegląd", href: "/pl/review/request" },
   ],

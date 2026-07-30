@@ -9,13 +9,26 @@ test("primary docs sidebar is hub-only and stays small", async () => {
   const hrefs = items.map((item) => item.href);
 
   assert.ok(sidebar.length <= 6, `expected ≤6 sections, got ${sidebar.length}`);
-  assert.ok(items.length <= 18, `expected ≤18 primary links, got ${items.length}`);
+  assert.ok(
+    items.length <= 24,
+    `expected ≤24 primary links (tier-1 hub), got ${items.length}`,
+  );
 
   // Buyer path stays one click from primary chrome
   assert.ok(
     hrefs.includes("/docs/getting-started/proof-run-buyer-path"),
     "buyer path hub missing",
   );
+
+  // Session 3 tier-1 hubs
+  for (const hub of [
+    "/docs/faq",
+    "/docs/governance",
+    "/docs/evidence",
+    "/docs/audiences",
+  ]) {
+    assert.ok(hrefs.includes(hub), `tier-1 hub missing: ${hub}`);
+  }
 
   // Security-education leaves must not flood primary nav
   const leafPollution = hrefs.filter(

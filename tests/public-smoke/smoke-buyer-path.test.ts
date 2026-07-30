@@ -82,7 +82,7 @@ test("access-change smoke contract does not fail on global request nav", () => {
     route,
     "https://witnessops.com",
     200,
-    'Bounded Access-Change Proof Run <a href="/review/request">Package one security workflow</a>',
+    'Bounded Access-Change Proof Run <a href="/review/request">Start a review</a>',
   );
 
   assert.equal(result.ok, true);
@@ -107,7 +107,7 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
       return {
         status: 200,
         async text() {
-          return "For Package one security workflow";
+          return "For Start a review";
         },
       };
     },

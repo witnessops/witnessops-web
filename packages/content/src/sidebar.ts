@@ -51,21 +51,24 @@ type CuratedDocsLayer = {
 };
 
 /**
- * Primary docs chrome: hubs only (≤ ~16 links).
+ * Primary docs chrome: hubs only (≤ ~20–24 links after tier-1 expansion).
  * Leaf pages stay published and searchable; they are not listed in the
  * primary sidebar. Use `layerChildPrefixes` only for layer context lookup,
  * not for expanding nav items.
+ *
+ * Session 3 tier-1 hubs: FAQ, Audiences, Evidence index, Governance.
  */
 const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
   {
     id: "start",
     title: "Start",
     description:
-      "Where to begin: model walkthrough, buyer path, and verify-first.",
+      "Where to begin: model walkthrough, buyer path, verify-first, and roles.",
     layerChildPrefixes: [
       "/docs/getting-started",
       "/docs/audiences",
       "/docs/quickstart",
+      "/docs/faq",
     ],
     items: [
       { kind: "link", href: "/docs", title: "Docs Home" },
@@ -80,6 +83,8 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
         href: "/docs/quickstart/verify-first",
         title: "Verify First",
       },
+      { kind: "doc", href: "/docs/audiences", title: "Audiences" },
+      { kind: "doc", href: "/docs/faq", title: "FAQ" },
     ],
   },
   {
@@ -95,6 +100,7 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
         href: "/docs/how-it-works/verification",
         title: "Verification",
       },
+      { kind: "doc", href: "/docs/evidence", title: "Evidence" },
       { kind: "doc", href: "/docs/evidence/receipts", title: "Receipts" },
     ],
   },
@@ -102,7 +108,7 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
     id: "operate",
     title: "Operate",
     description:
-      "Running governed work: execution, decisions, runbooks, scenarios.",
+      "Running governed work: execution, governance, decisions, runbooks, scenarios.",
     layerChildPrefixes: [
       "/docs/security-systems/governed-execution",
       "/docs/security-systems/policy-gates",
@@ -118,6 +124,7 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
         href: "/docs/security-systems/governed-execution",
         title: "Governed Execution",
       },
+      { kind: "doc", href: "/docs/governance", title: "Governance" },
       { kind: "doc", href: "/docs/decisions", title: "Decisions" },
       { kind: "doc", href: "/docs/operations/runbooks", title: "Runbooks" },
       { kind: "doc", href: "/docs/scenarios", title: "Scenarios" },

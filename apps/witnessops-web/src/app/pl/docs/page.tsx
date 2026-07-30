@@ -59,7 +59,7 @@ export default function PolishDocsPage() {
           <p className="mt-2 text-sm leading-6 text-text-muted">
             Poznaj strukturę podpisanego zapisu wykonania, wskazany sposób
             weryfikacji i granice każdego wyniku. Szczegóły techniczne: EN na
-            docs.witnessops.com.
+            witnessops.com/docs.
           </p>
         </article>
       </section>

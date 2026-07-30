@@ -84,4 +84,11 @@ test("footer suppresses Build STATIC and ships PL library island", () => {
     /build_label:\s*"Build: STATIC"|build_label:\s*"Wersja: STATIC"/,
   );
   assert.match(source, /DOCS_PUBLIC_HREF/);
+  assert.match(source, /DOCS_PL_HREF/);
+  assert.match(source, /href: DOCS_PL_HREF/);
+  assert.doesNotMatch(
+    source,
+    /href === "\/pl\/docs".*return DOCS_PUBLIC_HREF|return DOCS_PUBLIC_HREF.*\/pl\/docs/,
+    "Polish /pl/docs must not rewrite to English /docs",
+  );
 });

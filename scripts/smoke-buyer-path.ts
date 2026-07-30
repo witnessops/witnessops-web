@@ -93,7 +93,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Key, Access and Custody Review",
     ],
     prohibitedMarkers: [
-      "Package one security workflow",
+      "Start a review",
       "Access Removal Proof",
       "10-Server Security Pilot",
     ],
@@ -116,8 +116,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/support",
     requiredMarkers: [
-      "Need a security workflow packaged?",
-      "Package one security workflow",
+      "Ready for a bounded review?",
+      "Start a review",
       "Support is for product help, access issues, and verifier questions.",
     ],
     prohibitedMarkers: [
@@ -154,7 +154,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Primary public lane",
       "Unit of sale",
       "Commercial step",
-      "Package one security workflow",
+      "Start a review",
       "No proof run starts from this page.",
       "No customer evidence is accepted through pricing.",
       "No legal compliance claim is made here.",
@@ -329,7 +329,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Request an access-change proof run",
       "What access change should we inspect?",
       "access-change-proof-run",
-      "Package one security workflow",
+      "Start a review",
       "Proof-Backed Security Workflow",
       "verified compliance",
       "certified compliance",
@@ -395,7 +395,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Primary sample",
       "AI Agent Action Proof Run",
       "Inspect sample package",
-      "Package one security workflow",
+      "Start a review",
     ],
   },
   {
@@ -413,7 +413,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Evidence inspected",
       "Replayability judgment",
       "Boundary note",
-      "Package one security workflow",
+      "Start a review",
     ],
     prohibitedMarkers: [
       "Request Proof Run",
@@ -439,7 +439,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Evidence inspected",
       "Replayability judgment",
       "Boundary note",
-      "Package one security workflow",
+      "Start a review",
     ],
     prohibitedMarkers: [
       "Request Proof Run",
@@ -465,7 +465,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Evidence inspected",
       "Replayability judgment",
       "Boundary note",
-      "Package one security workflow",
+      "Start a review",
     ],
     prohibitedMarkers: [
       "Request Proof Run",
@@ -503,7 +503,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "work email",
       "optional company or team",
       "workflow/tool path and touched system",
-      "Package one security workflow",
+      "Start a review",
       "MANIFEST.sha256",
       "SHA-256:",
     ],

@@ -14,7 +14,7 @@ test("secondary sample cases use normalized security-workflow CTA labels", () =>
 
     assert.match(
       source,
-      /label=\"Package one security workflow\"/,
+      /label=\"Start a review\"/,
       `${page} should link to the request path with normalized CTA copy`,
     );
     assert.doesNotMatch(

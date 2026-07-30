@@ -1,11 +1,11 @@
 import { getDocsUrl } from "@witnessops/config";
 
-/** Always the public EN docs host (not local-dev origin). */
+/** English technical how-to corpus on apex `/docs` (not the legacy docs subdomain). */
 const EN_TECHNICAL_DOCS_HREF = getDocsUrl("witnessops", "/", { mode: "canonical" });
 
 /**
  * Polish docs chrome: buyer-oriented path only.
- * Full technical corpus stays English on docs.witnessops.com (not a deep PL stub tree).
+ * Full technical corpus stays English at witnessops.com/docs (not a deep PL stub tree).
  */
 export const POLISH_DOCS_SECTIONS = [
   {
@@ -53,7 +53,7 @@ export const POLISH_DOCS_SECTIONS = [
     id: "technical-en",
     title: "DOKUMENTACJA TECHNICZNA",
     description:
-      "Pełna dokumentacja techniczna (EN) na docs.witnessops.com — nie jest to kopia PL stubów.",
+      "Pełna dokumentacja techniczna (EN) na witnessops.com/docs — nie jest to kopia PL stubów.",
     items: [
       ["Dokumentacja techniczna (EN)", EN_TECHNICAL_DOCS_HREF],
     ],

@@ -55,7 +55,7 @@ const supportSurfaces = [
     description:
       "The fit-check path for one real GitHub, Codex, AI-agent, access, offsec, or remediation workflow you want packaged.",
     href: "/review/request",
-    label: "Package one security workflow",
+    label: "Start a review",
   },
 ];
 
@@ -124,7 +124,7 @@ export default function SampleCasesIndexPage() {
               manifest after an agent acts.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <CtaButton href="/review/request" variant="primary" label="Package one security workflow" />
+              <CtaButton href="/review/request" variant="primary" label="Start a review" />
               <CtaButton href="/review" variant="secondary" label="Read package offer" />
             </div>
           </section>
@@ -150,7 +150,7 @@ export default function SampleCasesIndexPage() {
                   <CtaButton
                     href="/review/request"
                     variant="secondary"
-                    label="Package one security workflow"
+                    label="Start a review"
                   />
                 </div>
               </div>

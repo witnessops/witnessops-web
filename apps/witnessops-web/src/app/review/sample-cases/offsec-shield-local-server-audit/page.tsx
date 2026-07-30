@@ -85,7 +85,7 @@ export default function OffSecShieldSamplePage() {
                 variant="secondary"
                 label="Mesh vs verify boundaries"
               />
-              <CtaButton href="/review/request" variant="primary" label="Package one security workflow" />
+              <CtaButton href="/review/request" variant="primary" label="Start a review" />
             </div>
           </section>
 
