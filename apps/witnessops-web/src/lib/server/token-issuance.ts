@@ -126,13 +126,22 @@ function renderOperatorNotificationHtml(args: {
 }): string {
   const requestLabel = getProofRunRequestLabel(args.intake.submission.intent);
   const scope = args.intake.submission.scope ?? "not provided";
+  const C = {
+    bg: "#f7f5f1",
+    surface: "#ffffff",
+    surfaceAlt: "#faf9f7",
+    border: "#e4e0d8",
+    text: "#121212",
+    textSecondary: "#3f3c38",
+    accent: "#f27a3d",
+  } as const;
   return [
-    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;background:#000000;color:#faf7f2;font-family:Arial,Helvetica,sans-serif">',
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;background:${C.bg};color:${C.text};font-family:Arial,Helvetica,sans-serif">`,
     '<tr><td style="padding:24px">',
-    '<p style="margin:0 0 8px 0;color:#f27a3d;font-size:12px;letter-spacing:1.8px;text-transform:uppercase">Verified request</p>',
-    `<h1 style="margin:0 0 16px 0;color:#faf7f2;font-size:22px;line-height:28px">${escapeHtml(`WitnessOps ${requestLabel}`)}</h1>`,
-    '<p style="margin:0 0 20px 0;color:#d0ccc4;font-size:14px;line-height:21px">Reply to this email to continue fit, scope, fee, and evidence-handling discussion with the requester.</p>',
-    '<div style="border:1px solid #2e2e36;padding:16px;background:#141419">',
+    `<p style="margin:0 0 8px 0;color:${C.accent};font-size:12px;letter-spacing:1.8px;text-transform:uppercase">Verified request</p>`,
+    `<h1 style="margin:0 0 16px 0;color:${C.text};font-size:22px;line-height:28px">${escapeHtml(`WitnessOps ${requestLabel}`)}</h1>`,
+    `<p style="margin:0 0 20px 0;color:${C.textSecondary};font-size:14px;line-height:21px">Reply to this email to continue fit, scope, fee, and evidence-handling discussion with the requester.</p>`,
+    `<div style="border:1px solid ${C.border};padding:16px;background:${C.surface}">`,
     renderHtmlField("Requester", args.intake.submission.name),
     renderHtmlField("Work email", args.issuance.email),
     renderHtmlField("Company or team", args.intake.submission.org),
@@ -141,10 +150,10 @@ function renderOperatorNotificationHtml(args: {
     renderHtmlField("Issuance ID", args.issuance.issuanceId),
     renderHtmlField("Thread ID", args.intake.threadId ?? "not assigned"),
     "</div>",
-    '<h2 style="margin:22px 0 8px 0;color:#faf7f2;font-size:15px;line-height:20px">Submitted request summary</h2>',
-    `<pre style="white-space:pre-wrap;margin:0;padding:14px;border:1px solid #2e2e36;background:#0b0b0d;color:#d0ccc4;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px">${escapeHtml(scope)}</pre>`,
-    '<h2 style="margin:22px 0 8px 0;color:#faf7f2;font-size:15px;line-height:20px">Operator boundary</h2>',
-    '<p style="margin:0;color:#d0ccc4;font-size:13px;line-height:20px">No proof run has started. No customer evidence has been accepted. Do not request or accept secrets, credentials, private keys, MFA codes, source exports, full logs, screenshots, customer records, or production evidence until scope and evidence handling are agreed.</p>',
+    `<h2 style="margin:22px 0 8px 0;color:${C.text};font-size:15px;line-height:20px">Submitted request summary</h2>`,
+    `<pre style="white-space:pre-wrap;margin:0;padding:14px;border:1px solid ${C.border};background:${C.surfaceAlt};color:${C.textSecondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px">${escapeHtml(scope)}</pre>`,
+    `<h2 style="margin:22px 0 8px 0;color:${C.text};font-size:15px;line-height:20px">Operator boundary</h2>`,
+    `<p style="margin:0;color:${C.textSecondary};font-size:13px;line-height:20px">No proof run has started. No customer evidence has been accepted. Do not request or accept secrets, credentials, private keys, MFA codes, source exports, full logs, screenshots, customer records, or production evidence until scope and evidence handling are agreed.</p>`,
     "</td></tr>",
     "</table>",
   ].join("");

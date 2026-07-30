@@ -56,7 +56,7 @@ test("applyTextSignature appends the selected plain-text signature", () => {
 test("applyHtmlSignature renders safe HTML body and selected signature", () => {
   assert.equal(
     textToEmailHtml("Hello <operator>\nVisit https://witnessops.com"),
-    '<p style="margin:0 0 12px 0">Hello &lt;operator&gt;<br>Visit <a href="https://witnessops.com" style="color:#64a8ac;-webkit-text-fill-color:#64a8ac;text-decoration:none">https://witnessops.com</a></p>',
+    '<p style="margin:0 0 12px 0">Hello &lt;operator&gt;<br>Visit <a href="https://witnessops.com" style="color:#2f7d82;-webkit-text-fill-color:#2f7d82;text-decoration:none">https://witnessops.com</a></p>',
   );
 
   const signed = applyHtmlSignature("Hello\n", "founder_default");
@@ -67,21 +67,21 @@ test("applyHtmlSignature renders safe HTML body and selected signature", () => {
   );
   assert.match(signed, /<table data-witnessops-signature-profile="founder_default"/);
   assert.match(signed, /role="presentation"/);
-  assert.match(signed, /background-color:#000000/);
-  assert.match(signed, /background-color:#141419/);
+  assert.match(signed, /background-color:#f7f5f1/);
+  assert.match(signed, /background-color:#ffffff/);
   assert.match(signed, /background-color:#f27a3d/);
-  assert.match(signed, /background-image:linear-gradient\(#000000,#000000\)/);
-  assert.match(signed, /background-image:linear-gradient\(#141419,#141419\)/);
+  assert.match(signed, /background-image:linear-gradient\(#f7f5f1,#f7f5f1\)/);
+  assert.match(signed, /background-image:linear-gradient\(#ffffff,#ffffff\)/);
   assert.match(signed, /background-image:linear-gradient\(#f27a3d,#f27a3d\)/);
-  assert.match(signed, /color:#faf7f2/);
-  assert.match(signed, /color:#d0ccc4/);
-  assert.match(signed, /color:#64a8ac/);
-  assert.match(signed, /-webkit-text-fill-color:#faf7f2/);
-  assert.match(signed, /-webkit-text-fill-color:#d0ccc4/);
-  assert.match(signed, /-webkit-text-fill-color:#64a8ac/);
-  assert.match(signed, /color-scheme:dark;supported-color-schemes:dark/);
-  assert.match(signed, /border-top:1px solid #4a4a55/);
-  assert.match(signed, /border-top:1px solid #2e2e36/);
+  assert.match(signed, /color:#121212/);
+  assert.match(signed, /color:#3f3c38/);
+  assert.match(signed, /color:#2f7d82/);
+  assert.match(signed, /-webkit-text-fill-color:#121212/);
+  assert.match(signed, /-webkit-text-fill-color:#3f3c38/);
+  assert.match(signed, /-webkit-text-fill-color:#2f7d82/);
+  assert.match(signed, /color-scheme:light;supported-color-schemes:light/);
+  assert.match(signed, /border-top:1px solid #cfc9bd/);
+  assert.match(signed, /border-top:1px solid #e4e0d8/);
   assert.match(signed, /I ship as - VaultSovereign/);
   assert.match(signed, /sovereign/);
   assert.match(signed, /human/);
@@ -91,9 +91,9 @@ test("applyHtmlSignature renders safe HTML body and selected signature", () => {
 
   const wrapped = wrapEmailHtmlDocument(signed);
   assert.match(wrapped, /^<!doctype html>/);
-  assert.match(wrapped, /<meta name="color-scheme" content="dark">/);
-  assert.match(wrapped, /<meta name="supported-color-schemes" content="dark">/);
-  assert.match(wrapped, /<body bgcolor="#000000"/);
+  assert.match(wrapped, /<meta name="color-scheme" content="light">/);
+  assert.match(wrapped, /<meta name="supported-color-schemes" content="light">/);
+  assert.match(wrapped, /<body bgcolor="#f7f5f1"/);
 });
 
 test("resolveSignatureProfile applies explicit class and deterministic routing rules", () => {

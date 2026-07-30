@@ -1,3 +1,10 @@
+import {
+  EMAIL_LIGHT_COLOR_SCHEME,
+  EMAIL_THEME_LIGHT,
+  emailBackgroundStyle,
+  emailTextStyle,
+} from "./email-theme-light";
+
 export type EmailSignatureProfile =
   | "none"
   | "ops_minimal"
@@ -60,20 +67,21 @@ type HtmlSignatureConfig = {
   proofColor?: string;
 };
 
+/** HTML email chrome uses the shared light paper theme. */
 const WO_EMAIL_COLORS = {
-  bg: "#000000",
-  surface: "#141419",
-  surfaceHover: "#1d1d24",
-  text: "#faf7f2",
-  textSecondary: "#d0ccc4",
-  textMuted: "#8a8680",
-  accent: "#f27a3d",
-  trust: "#64a8ac",
-  border: "#2e2e36",
-  borderStrong: "#4a4a55",
-  success: "#6bc498",
-  warning: "#e3b060",
-  danger: "#e07570",
+  bg: EMAIL_THEME_LIGHT.bg,
+  surface: EMAIL_THEME_LIGHT.surface,
+  surfaceHover: EMAIL_THEME_LIGHT.surfaceHover,
+  text: EMAIL_THEME_LIGHT.text,
+  textSecondary: EMAIL_THEME_LIGHT.textSecondary,
+  textMuted: EMAIL_THEME_LIGHT.textMuted,
+  accent: EMAIL_THEME_LIGHT.accent,
+  trust: EMAIL_THEME_LIGHT.trust,
+  border: EMAIL_THEME_LIGHT.border,
+  borderStrong: EMAIL_THEME_LIGHT.borderStrong,
+  success: EMAIL_THEME_LIGHT.success,
+  warning: EMAIL_THEME_LIGHT.warning,
+  danger: EMAIL_THEME_LIGHT.danger,
 } as const;
 
 const HTML_SIGNATURES: Record<
@@ -140,15 +148,14 @@ const SIGNATURE_MUTED_COLOR = WO_EMAIL_COLORS.textMuted;
 const SIGNATURE_LINK_COLOR = WO_EMAIL_COLORS.trust;
 const SIGNATURE_RULE_COLOR = WO_EMAIL_COLORS.border;
 const SIGNATURE_STRONG_RULE_COLOR = WO_EMAIL_COLORS.borderStrong;
-const SIGNATURE_DARK_COLOR_SCHEME =
-  "color-scheme:dark;supported-color-schemes:dark;forced-color-adjust:none";
+const SIGNATURE_LIGHT_COLOR_SCHEME = EMAIL_LIGHT_COLOR_SCHEME;
 
 function textColorStyle(color: string): string {
-  return `color:${color};-webkit-text-fill-color:${color}`;
+  return emailTextStyle(color);
 }
 
 function solidBackgroundStyle(color: string): string {
-  return `background-color:${color};background:${color};background-image:linear-gradient(${color},${color})`;
+  return emailBackgroundStyle(color);
 }
 
 function escapeHtml(value: string): string {
@@ -220,11 +227,11 @@ export function getHtmlSignature(profile: EmailSignatureProfile): string {
   const config = HTML_SIGNATURES[profile];
   const proofColor = config.proofColor ?? WO_EMAIL_COLORS.accent;
   return [
-    `<table data-witnessops-signature-profile="${profile}" role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="${WO_EMAIL_COLORS.bg}" style="margin-top:20px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:${SIGNATURE_FONT_STACK};${textColorStyle(SIGNATURE_TEXT_COLOR)};${solidBackgroundStyle(WO_EMAIL_COLORS.bg)};${SIGNATURE_DARK_COLOR_SCHEME};width:100%;max-width:560px">`,
+    `<table data-witnessops-signature-profile="${profile}" role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="${WO_EMAIL_COLORS.bg}" style="margin-top:20px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:${SIGNATURE_FONT_STACK};${textColorStyle(SIGNATURE_TEXT_COLOR)};${solidBackgroundStyle(WO_EMAIL_COLORS.bg)};${SIGNATURE_LIGHT_COLOR_SCHEME};width:100%;max-width:560px">`,
     "<tr>",
     `<td width="5" bgcolor="${config.accentColor}" style="width:5px;${solidBackgroundStyle(config.accentColor)};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-left:1px solid ${SIGNATURE_STRONG_RULE_COLOR};font-size:1px;line-height:1px">&nbsp;</td>`,
-    `<td bgcolor="${WO_EMAIL_COLORS.surface}" style="${solidBackgroundStyle(WO_EMAIL_COLORS.surface)};${SIGNATURE_DARK_COLOR_SCHEME};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-right:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};padding:13px 15px 14px 14px">`,
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="${WO_EMAIL_COLORS.surface}" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;${solidBackgroundStyle(WO_EMAIL_COLORS.surface)};${SIGNATURE_DARK_COLOR_SCHEME}">`,
+    `<td bgcolor="${WO_EMAIL_COLORS.surface}" style="${solidBackgroundStyle(WO_EMAIL_COLORS.surface)};${SIGNATURE_LIGHT_COLOR_SCHEME};border-top:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-right:1px solid ${SIGNATURE_STRONG_RULE_COLOR};border-bottom:1px solid ${SIGNATURE_STRONG_RULE_COLOR};padding:13px 15px 14px 14px">`,
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="${WO_EMAIL_COLORS.surface}" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;${solidBackgroundStyle(WO_EMAIL_COLORS.surface)};${SIGNATURE_LIGHT_COLOR_SCHEME}">`,
     "<tr>",
     `<td style="font-family:${SIGNATURE_FONT_STACK};font-size:15px;line-height:20px;font-weight:700;${textColorStyle(SIGNATURE_TEXT_COLOR)};padding:0">${escapeHtml(config.name)}</td>`,
     "</tr>",
@@ -279,15 +286,15 @@ export function wrapEmailHtmlDocument(content: string): string {
     '<html lang="en">',
     "<head>",
     '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">',
-    '<meta name="color-scheme" content="dark">',
-    '<meta name="supported-color-schemes" content="dark">',
+    '<meta name="color-scheme" content="light">',
+    '<meta name="supported-color-schemes" content="light">',
     "<style>",
-    `:root{color-scheme:dark;supported-color-schemes:dark;}`,
+    `:root{color-scheme:light;supported-color-schemes:light;}`,
     `body{margin:0;padding:0;${solidBackgroundStyle(WO_EMAIL_COLORS.bg)};${textColorStyle(SIGNATURE_TEXT_COLOR)};}`,
     `a{${textColorStyle(SIGNATURE_LINK_COLOR)};}`,
     "</style>",
     "</head>",
-    `<body bgcolor="${WO_EMAIL_COLORS.bg}" style="margin:0;padding:0;${solidBackgroundStyle(WO_EMAIL_COLORS.bg)};${textColorStyle(SIGNATURE_TEXT_COLOR)};${SIGNATURE_DARK_COLOR_SCHEME}">`,
+    `<body bgcolor="${WO_EMAIL_COLORS.bg}" style="margin:0;padding:0;${solidBackgroundStyle(WO_EMAIL_COLORS.bg)};${textColorStyle(SIGNATURE_TEXT_COLOR)};${SIGNATURE_LIGHT_COLOR_SCHEME}">`,
     trimmed,
     "</body>",
     "</html>",

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { verificationLight } from "@/components/shared/verification-light-shell";
 import type { EngageResponse, VerifyTokenResponse } from "@/lib/token-contract";
 import { formatVerificationCode } from "@/lib/verification-code-format";
 import {
@@ -336,154 +337,137 @@ export function ContactForm({ locale = "en" }: { locale?: "en" | "pl" }) {
 
   if (verificationStep) {
     return (
-      <form onSubmit={handleVerifySubmit} className="space-y-5" aria-busy={verifyStatus === "verifying"}>
-        <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
-          {verifyStatus === "verifying"
-            ? copy.verifying
-            : copy.verificationSent}
-        </div>
-
-        <div className="border border-surface-border bg-surface-bg p-5">
-          <div className="mb-2" style={labelStyle}>{copy.mailboxVerification}</div>
-          <h2
-            ref={verificationHeadingRef}
-            tabIndex={-1}
-            className="text-xl font-semibold uppercase leading-tight text-text-primary"
-            style={{
-              fontFamily: "var(--font-display)",
-              letterSpacing: "0.04em",
-              scrollMarginTop: "calc(var(--app-navbar-height) + 16px)",
-            }}
-          >
-            {copy.enterCode}
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-text-muted">
-            {copy.codeSent} {verificationStep.email}. {copy.codeInstructions}
-          </p>
-          <p className="mt-2 text-xs leading-relaxed text-text-muted">
-            {copy.mailboxBoundary}
-          </p>
-        </div>
-
-        <div>
-          <label htmlFor="verification-code" className="mb-2 block" style={labelStyle}>
-            {copy.verificationCode} <span className="text-text-muted">{copy.required}</span>
-          </label>
-          <input
-            id="verification-code"
-            name="verification-code"
-            value={verificationCode}
-            onChange={(event) => {
-              setVerificationCode(formatVerificationCode(event.currentTarget.value));
-              setVerifyErrorMessage(copy.verifyError);
-              setVerifyStatus("idle");
-            }}
-            autoComplete="one-time-code"
-            autoCapitalize="characters"
-            spellCheck={false}
-            inputMode="text"
-            required
-            maxLength={80}
-            placeholder="ABCD-EFGH-JKLM"
-            className={inputClass}
-            style={{ ...inputStyle, textAlign: "center", letterSpacing: "0.16em" }}
-          />
-          <p className="mt-2 text-xs leading-relaxed text-text-muted">
-            {copy.codeExpiry} {verificationStep.expiresAt}.
-          </p>
-        </div>
-
-        <label className="flex gap-3 border border-surface-border bg-surface-bg p-4 text-sm leading-relaxed text-text-muted">
-          <input
-            type="checkbox"
-            checked={verificationBoundaryAccepted}
-            onChange={(event) => {
-              setVerificationBoundaryAccepted(event.currentTarget.checked);
-              setVerifyErrorMessage(copy.verifyError);
-              setVerifyStatus("idle");
-            }}
-            className="mt-1 h-4 w-4 shrink-0 accent-brand-accent"
-          />
-          <span>{copy.verificationConsent}</span>
-        </label>
-
-        {verifyStatus === "error" && (
-          <div
-            className="flex items-center gap-2 py-3"
-            style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-signal-red)" }}
-            role="alert"
-          >
-            {verifyErrorMessage}
+      <div className="-m-4 rounded border border-[#cfc9bd] bg-[#f7f5f1] p-4 text-[#121212] sm:-m-6 sm:p-6 md:-m-8 md:p-8">
+        <form
+          onSubmit={handleVerifySubmit}
+          className="space-y-5"
+          aria-busy={verifyStatus === "verifying"}
+        >
+          <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
+            {verifyStatus === "verifying"
+              ? copy.verifying
+              : copy.verificationSent}
           </div>
-        )}
 
-        <button
-          type="submit"
-          disabled={verifyStatus === "verifying" || !verificationBoundaryAccepted}
-          className={`min-h-11 w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98] ${buttonFocusClass}`}
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-          }}
-        >
-          {verifyStatus === "verifying" ? copy.confirming : copy.confirmMailbox}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setVerificationStep(null);
-            setVerificationCode("");
-            setVerificationBoundaryAccepted(false);
-            setVerifyStatus("idle");
-            setStatus("idle");
-          }}
-          className={`min-h-11 w-full border border-surface-border py-3 text-text-muted transition-colors hover:text-text-primary ${buttonFocusClass}`}
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 12,
-            fontWeight: 600,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-          }}
-        >
-          {copy.newRequest}
-        </button>
-
-        <div
-          className="pt-4 border-t border-surface-border"
-          style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--color-brand-muted)", letterSpacing: "0.06em" }}
-        >
-          <div className="flex flex-wrap items-center gap-y-1">
-            <span
-              className="whitespace-nowrap"
-              style={{ color: "var(--color-brand-accent)" }}
+          <div className={`p-5 ${verificationLight.card}`}>
+            <div className={`mb-2 ${verificationLight.label} ${verificationLight.trust}`}>
+              {copy.mailboxVerification}
+            </div>
+            <h2
+              ref={verificationHeadingRef}
+              tabIndex={-1}
+              className={`text-xl font-semibold uppercase leading-tight ${verificationLight.title}`}
+              style={{
+                fontFamily: "var(--font-display)",
+                letterSpacing: "0.04em",
+                scrollMarginTop: "calc(var(--app-navbar-height) + 16px)",
+              }}
             >
-              {copy.emailFollowup}
-            </span>
-            <span className="inline-flex items-center whitespace-nowrap">
-              <span
-                className="mx-2"
-                style={{ color: "var(--color-surface-border)" }}
-                aria-hidden="true"
-              >
-                &middot;
-              </span>
-              <a
-                href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
-                className="whitespace-nowrap underline decoration-surface-border underline-offset-2 transition-colors hover:text-text-primary"
-                style={{ color: "inherit" }}
-              >
-                {PUBLIC_CONTACT_EMAIL}
-              </a>
-            </span>
+              {copy.enterCode}
+            </h2>
+            <p className={`mt-3 text-sm leading-relaxed ${verificationLight.body}`}>
+              {copy.codeSent} {verificationStep.email}. {copy.codeInstructions}
+            </p>
+            <p className={`mt-2 text-xs leading-relaxed ${verificationLight.muted}`}>
+              {copy.mailboxBoundary}
+            </p>
           </div>
-          <p className="mt-2">{copy.noSecrets}</p>
-        </div>
-      </form>
+
+          <div>
+            <label htmlFor="verification-code" className={`mb-2 block ${verificationLight.label}`}>
+              {copy.verificationCode}{" "}
+              <span className={verificationLight.muted}>{copy.required}</span>
+            </label>
+            <input
+              id="verification-code"
+              name="verification-code"
+              value={verificationCode}
+              onChange={(event) => {
+                setVerificationCode(formatVerificationCode(event.currentTarget.value));
+                setVerifyErrorMessage(copy.verifyError);
+                setVerifyStatus("idle");
+              }}
+              autoComplete="one-time-code"
+              autoCapitalize="characters"
+              spellCheck={false}
+              inputMode="text"
+              required
+              maxLength={80}
+              placeholder="ABCD-EFGH-JKLM"
+              className={verificationLight.input}
+            />
+            <p className={`mt-2 text-xs leading-relaxed ${verificationLight.muted}`}>
+              {copy.codeExpiry} {verificationStep.expiresAt}.
+            </p>
+          </div>
+
+          <label className={`flex gap-3 p-4 text-sm leading-relaxed ${verificationLight.cardMuted} ${verificationLight.body}`}>
+            <input
+              type="checkbox"
+              checked={verificationBoundaryAccepted}
+              onChange={(event) => {
+                setVerificationBoundaryAccepted(event.currentTarget.checked);
+                setVerifyErrorMessage(copy.verifyError);
+                setVerifyStatus("idle");
+              }}
+              className="mt-1 h-4 w-4 shrink-0 accent-[#f27a3d]"
+            />
+            <span>{copy.verificationConsent}</span>
+          </label>
+
+          {verifyStatus === "error" && (
+            <div className={verificationLight.error} role="alert">
+              {verifyErrorMessage}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={verifyStatus === "verifying" || !verificationBoundaryAccepted}
+            className={`min-h-11 ${verificationLight.button} ${buttonFocusClass}`}
+          >
+            {verifyStatus === "verifying" ? copy.confirming : copy.confirmMailbox}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setVerificationStep(null);
+              setVerificationCode("");
+              setVerificationBoundaryAccepted(false);
+              setVerifyStatus("idle");
+              setStatus("idle");
+            }}
+            className={`min-h-11 ${verificationLight.buttonSecondary} ${buttonFocusClass}`}
+          >
+            {copy.newRequest}
+          </button>
+
+          <div
+            className={`border-t border-[#e4e0d8] pt-4 ${verificationLight.muted}`}
+            style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em" }}
+          >
+            <div className="flex flex-wrap items-center gap-y-1">
+              <span className={`whitespace-nowrap ${verificationLight.accent}`}>
+                {copy.emailFollowup}
+              </span>
+              <span className="inline-flex items-center whitespace-nowrap">
+                <span className="mx-2 text-[#cfc9bd]" aria-hidden="true">
+                  &middot;
+                </span>
+                <a
+                  href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
+                  className="whitespace-nowrap underline decoration-[#cfc9bd] underline-offset-2 transition-colors hover:text-[#121212]"
+                  style={{ color: "inherit" }}
+                >
+                  {PUBLIC_CONTACT_EMAIL}
+                </a>
+              </span>
+            </div>
+            <p className="mt-2">{copy.noSecrets}</p>
+          </div>
+        </form>
+      </div>
     );
   }
 

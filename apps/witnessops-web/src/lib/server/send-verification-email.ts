@@ -101,7 +101,7 @@ function appendHtmlSignature(
   }
 
   const centeredSignature = [
-    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#000000" style="width:100%;border-collapse:collapse;background-color:#000000;background:#000000;background-image:linear-gradient(#000000,#000000)">',
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#f7f5f1" style="width:100%;border-collapse:collapse;background-color:#f7f5f1;background:#f7f5f1;background-image:linear-gradient(#f7f5f1,#f7f5f1)">`,
     "<tr>",
     '<td align="center" style="padding:0 16px 24px 16px">',
     signature,

@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 
+import {
+  VerificationLightShell,
+  verificationLight,
+} from "@/components/shared/verification-light-shell";
 import { VerifyTokenForm } from "./verify-token-form";
 
 export const metadata: Metadata = {
@@ -25,24 +29,24 @@ export default async function VerifyTokenPage({ searchParams }: Props) {
   const hasVerificationContext = Boolean(issuanceId && email);
 
   return (
-    <main className="min-h-screen bg-black text-zinc-100">
+    <VerificationLightShell>
       <div className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-4 py-12">
-        <div className="mb-2 font-mono text-xs uppercase tracking-widest text-zinc-500">
-          WitnessOps Mailbox Verification
+        <div className={`mb-2 ${verificationLight.label} ${verificationLight.trust}`}>
+          WitnessOps mailbox verification
         </div>
-        <h1 className="text-2xl font-semibold text-zinc-100">
+        <h1 className={`text-2xl font-semibold ${verificationLight.title}`}>
           Enter verification code
         </h1>
-        <p className="mt-3 text-sm leading-6 text-zinc-400">
+        <p className={`mt-3 text-sm leading-6 ${verificationLight.body}`}>
           Type the code from the WitnessOps email. Continue only if you
           requested this verification message.
         </p>
-        <p className="mt-3 text-sm leading-6 text-zinc-500">
+        <p className={`mt-3 text-sm leading-6 ${verificationLight.muted}`}>
           This confirms mailbox access only. It does not start a proof run,
           accept customer evidence, confirm scope, or approve evidence handling.
         </p>
 
-        <div className="mt-8 rounded border border-zinc-800 bg-zinc-950 p-4">
+        <div className={`mt-8 rounded p-4 ${verificationLight.card}`}>
           {hasVerificationContext ? (
             <VerifyTokenForm
               issuanceId={issuanceId}
@@ -50,13 +54,13 @@ export default async function VerifyTokenPage({ searchParams }: Props) {
               initialCode={token}
             />
           ) : (
-            <div className="text-sm text-red-300">
+            <div className={verificationLight.error}>
               This verification page is missing the request context. Open the
               verification page from the email and type the code shown there.
             </div>
           )}
         </div>
       </div>
-    </main>
+    </VerificationLightShell>
   );
 }

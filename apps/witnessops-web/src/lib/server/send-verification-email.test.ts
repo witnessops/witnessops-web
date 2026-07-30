@@ -109,11 +109,11 @@ test("sendVerificationEmail sends via Microsoft 365 Graph with app-only auth", a
   assert.match(sendBody.message.body.content, /^<!doctype html>/);
   assert.match(
     sendBody.message.body.content,
-    /<meta name="color-scheme" content="dark">/,
+    /<meta name="color-scheme" content="light">/,
   );
   assert.match(
     sendBody.message.body.content,
-    /background-image:linear-gradient\(#141419,#141419\)/,
+    /background-image:linear-gradient\(#ffffff,#ffffff\)/,
   );
   assert.match(sendBody.message.body.content, /Token: abc123/);
   assert.match(
