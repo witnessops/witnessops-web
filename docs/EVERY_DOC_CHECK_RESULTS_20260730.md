@@ -146,6 +146,6 @@ No P1 claim fixes required in B4.
 - [x] B6 man draft status confirmed  
 - [x] Full human score B3–B5  
 - [x] Open P0 = 0; open P1 fixed or closed  
-- [ ] Dual-lane deploy of Session 2 P1 (this ship)  
+- [x] Dual-lane deploy of Session 2 P1 — image `main-d5d8879-20260730T050719Z`, smoke OK, pushed `main`  
 
 END
