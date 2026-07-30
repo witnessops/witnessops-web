@@ -55,6 +55,26 @@ test("ask witnessops same-site source links normalize to site-relative paths", (
   assert.equal(askWitnessOpsSourceTarget(source), "same_site");
 });
 
+test("ask witnessops same-site href rejects lookalike hosts (no substring trap)", () => {
+  const evil = {
+    source_id: "source.evil",
+    public_label: "Evil",
+    canonical_href: "https://witnessops.com.evil.example/phish",
+    href_class: "same_site" as const,
+  };
+
+  // Must not collapse to a path-only same-site link.
+  assert.equal(askWitnessOpsSourceHref(evil), evil.canonical_href);
+
+  const www = {
+    source_id: "source.www",
+    public_label: "WWW",
+    canonical_href: "https://www.witnessops.com/docs/intro",
+    href_class: "same_site" as const,
+  };
+  assert.equal(askWitnessOpsSourceHref(www), "/docs/intro");
+});
+
 test("ask witnessops route labels map known buyer paths", () => {
   assert.equal(askWitnessOpsRouteLabel("route.fit-check"), "Request a fit check");
   assert.equal(askWitnessOpsRouteLabel("route.support"), "Open support");

@@ -42,10 +42,25 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
   return "";
 }
 
+const SAME_SITE_HOSTS = new Set(["witnessops.com", "www.witnessops.com"]);
+
+/**
+ * Prefer path-only links for same-site public sources.
+ * Hostname is validated via URL parse (not substring match) so
+ * https://witnessops.com.evil.example cannot pass as same-site.
+ */
 export function askWitnessOpsSourceHref(source: AskWitnessOpsPresentedSource): string {
-  if (source.href_class === "same_site" && source.canonical_href.startsWith("https://witnessops.com")) {
+  if (source.href_class !== "same_site") {
+    return source.canonical_href;
+  }
+
+  try {
     const url = new URL(source.canonical_href);
-    return `${url.pathname}${url.search}${url.hash}`;
+    if (url.protocol === "https:" && SAME_SITE_HOSTS.has(url.hostname)) {
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+  } catch {
+    // Invalid absolute URL — fall through and return the original href.
   }
 
   return source.canonical_href;

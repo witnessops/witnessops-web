@@ -33,7 +33,11 @@ function getAudioSrc(baseSrc: string | undefined): string | undefined {
 
 function stripMarkdown(md: string): string {
   return md
+    // Remove HTML comments; also strip residual comment markers so an
+    // incomplete <!-- cannot survive multi-pass sanitization (CodeQL).
     .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<!--/g, "")
+    .replace(/-->/g, "")
     .replace(/```[\s\S]*?```/g, "")
     .replace(/`([^`]+)`/g, "$1")
     .replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, "$1")

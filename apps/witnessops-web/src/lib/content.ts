@@ -61,7 +61,8 @@ function parseFrontmatter(source: string): {
 }
 
 function stripLeadingTitle(body: string): string {
-  return body.replace(/^#\s+.+?(?:\r?\n){1,2}/, "").trim();
+  // Linear pattern only — avoid ReDoS from reluctant .+? over large inputs.
+  return body.replace(/^#[ \t]+[^\r\n]+(?:\r?\n){1,2}/, "").trim();
 }
 
 function toDocument(

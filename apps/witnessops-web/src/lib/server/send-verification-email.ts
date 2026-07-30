@@ -321,6 +321,10 @@ async function requestM365AccessToken(config: {
         .replace(/\s+/g, ""),
       "base64",
     );
+    // Azure AD client-assertion JWT `x5t` is defined as Base64url(SHA-1(DER cert))
+    // by Microsoft identity platform / RFC 7515. This is a protocol thumbprint,
+    // not application-level message authentication. Do not "upgrade" to SHA-256
+    // without switching to the `x5t#S256` claim and confirming tenant support.
     const thumbprint = createHash("sha1").update(certDer).digest("base64url");
     const now = Math.floor(Date.now() / 1000);
     const encodedHeader = Buffer.from(
