@@ -75,10 +75,12 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "/pl/customer-security-review",
     },
     onePagerHref: {
+      // Open inline in a new tab (Content-Disposition: inline via next.config headers).
       en: "/assets/one-pagers/csr-sprint-en-a4.pdf",
       pl: "/assets/one-pagers/csr-sprint-pl-a4.pdf",
     },
   },
+
   {
     id: "bounded-workflow-review",
     commercialContract: {
@@ -296,3 +298,11 @@ export function buyerServiceById(id: BuyerService["id"]): BuyerService {
 export function buyerServiceByProductId(productId: string): BuyerService | undefined {
   return BUYER_SERVICES.find((service) => service.productId === productId);
 }
+
+/** Anchor props so one-pager PDFs open in a new tab for viewing, not as a forced download. */
+export const ONE_PAGER_LINK_PROPS = {
+  target: "_blank" as const,
+  rel: "noopener noreferrer",
+  type: "application/pdf",
+} as const;
+

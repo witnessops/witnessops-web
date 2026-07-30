@@ -82,7 +82,8 @@ export default function CustomerSecurityReviewPage() {
               <a
                 href="/assets/one-pagers/csr-sprint-en-a4.pdf"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
+                type="application/pdf"
                 data-one-pager="customer-security-review-sprint"
                 className="inline-flex min-h-12 items-center justify-center border border-surface-border px-6 text-center text-sm font-semibold leading-5 text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
               >

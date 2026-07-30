@@ -26,6 +26,24 @@ const nextConfig = {
         source: "/:path*",
         headers: securityHeaders,
       },
+      // Sales one-pagers: open in the browser (new tab), do not force download.
+      {
+        source: "/assets/one-pagers/:file*",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/pdf",
+          },
+          {
+            key: "Content-Disposition",
+            value: "inline",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+        ],
+      },
     ];
   },
   async redirects() {

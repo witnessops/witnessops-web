@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CtaButton } from "@/components/shared/cta-button";
 import {
   BUYER_SERVICES,
+  ONE_PAGER_LINK_PROPS,
   buyerCatalogHref,
   buyerRequestHref,
   type BuyerLocale,
@@ -193,8 +194,7 @@ export function BuyerHomepage({
                 {onePager ? (
                   <a
                     href={onePager}
-                    target="_blank"
-                    rel="noreferrer"
+                    {...ONE_PAGER_LINK_PROPS}
                     data-one-pager={service.id}
                     className="mt-3 inline-flex min-h-11 w-fit items-center text-sm font-semibold text-text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
                   >

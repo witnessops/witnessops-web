@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import {
   BUYER_SERVICES,
+  ONE_PAGER_LINK_PROPS,
   buyerRequestHref,
   type BuyerLocale,
 } from "@/lib/buyer-services";
@@ -143,8 +144,7 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                   {onePager ? (
                     <a
                       href={onePager}
-                      target="_blank"
-                      rel="noreferrer"
+                      {...ONE_PAGER_LINK_PROPS}
                       data-one-pager={service.id}
                       className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
                     >
