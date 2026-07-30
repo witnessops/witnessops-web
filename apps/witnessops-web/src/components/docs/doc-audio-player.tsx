@@ -31,13 +31,14 @@ function getAudioSrc(baseSrc: string | undefined): string | undefined {
   return baseSrc.replace("/audio/docs/", "/audio/docs/ana/");
 }
 
+/**
+ * Speech-only plain text. Never rendered as HTML.
+ * Angle brackets are removed by split/join so no HTML comment/tag residue can
+ * remain (avoids incomplete multi-character comment/tag filter findings).
+ */
 function stripMarkdown(md: string): string {
-  return md
-    // Remove HTML comments; also strip residual comment markers so an
-    // incomplete <!-- cannot survive multi-pass sanitization (CodeQL).
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<!--/g, "")
-    .replace(/-->/g, "")
+  const withoutAngles = md.split("<").join(" ").split(">").join(" ");
+  return withoutAngles
     .replace(/```[\s\S]*?```/g, "")
     .replace(/`([^`]+)`/g, "$1")
     .replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, "$1")

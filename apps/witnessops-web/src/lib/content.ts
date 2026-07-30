@@ -61,8 +61,24 @@ function parseFrontmatter(source: string): {
 }
 
 function stripLeadingTitle(body: string): string {
-  // Linear pattern only — avoid ReDoS from reluctant .+? over large inputs.
-  return body.replace(/^#[ \t]+[^\r\n]+(?:\r?\n){1,2}/, "").trim();
+  // Keep in sync with packages/content normalizeMarkdownBody (no ReDoS regex).
+  const normalized = body.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  if (!normalized.startsWith("#") || normalized.startsWith("##")) {
+    return normalized.trim();
+  }
+  const afterHash = normalized.charAt(1);
+  if (afterHash !== " " && afterHash !== "\t") {
+    return normalized.trim();
+  }
+  const nl = normalized.indexOf("\n");
+  if (nl === -1) {
+    return "";
+  }
+  let rest = normalized.slice(nl + 1);
+  if (rest.startsWith("\n")) {
+    rest = rest.slice(1);
+  }
+  return rest.trim();
 }
 
 function toDocument(
