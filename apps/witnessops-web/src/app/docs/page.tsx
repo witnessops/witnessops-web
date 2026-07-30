@@ -467,60 +467,47 @@ export default async function DocsIndexPage() {
           className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Documentation layers
+          Browse by area
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
+        <p className="mb-5 max-w-[640px] text-sm leading-relaxed text-text-muted">
+          Primary navigation lists hubs only. Open a hub for deeper pages, or use
+          search for any topic (including security education and evidence mappings).
+        </p>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {sidebar.map((section) => (
-            <div key={section.id} className="border-l-2 border-surface-border pl-4">
-              <h3
-                className="mb-3"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 10,
-                  letterSpacing: "0.16em",
-                  textTransform: "uppercase",
-                  color: "var(--color-text-muted)",
-                  fontWeight: 600,
-                }}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {sidebar.map((section) => {
+            const hubHref = section.items[0]?.href ?? "/docs";
+            return (
+              <Link
+                key={section.id}
+                href={hubHref}
+                className="block border border-surface-border bg-surface-bg p-5 transition-colors hover:border-brand-accent"
               >
-                {section.title}
-              </h3>
-              <p
-                className="mb-3"
-                style={{
-                  fontSize: 11,
-                  lineHeight: 1.6,
-                  color: "var(--color-text-muted)",
-                }}
-              >
-                {section.description}
-              </p>
-              <div className="space-y-1">
-                {section.items.map((item, idx) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-center gap-2 text-text-muted transition-colors hover:text-brand-accent"
-                    style={{ fontSize: 12, fontFamily: "var(--font-mono)" }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 9,
-                        color: "var(--color-brand-muted)",
-                        fontVariantNumeric: "tabular-nums",
-                        minWidth: 16,
-                      }}
-                    >
-                      {String(idx + 1).padStart(2, "0")}
-                    </span>
-                    {item.title}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
+                <h3
+                  className="mb-2 text-sm font-semibold uppercase tracking-[0.08em] text-text-primary"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {section.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-text-muted">
+                  {section.description}
+                </p>
+                <p
+                  className="mt-3 text-text-muted"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {section.items.length} hub
+                  {section.items.length === 1 ? "" : "s"} in nav
+                </p>
+              </Link>
+            );
+          })}
         </div>
       </section>
 

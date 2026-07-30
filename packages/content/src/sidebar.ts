@@ -1,4 +1,3 @@
-import { getSurfaceUrl } from "@witnessops/config";
 import {
   getDocHref,
   getDocSectionDescriptor,
@@ -44,122 +43,126 @@ type CuratedDocsLayer = {
   title: string;
   description: string;
   items: CuratedNavItem[];
-  generatedChildLeafParents?: string[];
+  /**
+   * Path prefixes used only for layer membership (page chrome context).
+   * Not expanded into primary sidebar items.
+   */
+  layerChildPrefixes?: string[];
 };
 
+/**
+ * Primary docs chrome: hubs only (≤ ~16 links).
+ * Leaf pages stay published and searchable; they are not listed in the
+ * primary sidebar. Use `layerChildPrefixes` only for layer context lookup,
+ * not for expanding nav items.
+ */
 const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
   {
-    id: "getting-started",
-    title: "Getting Started",
+    id: "start",
+    title: "Start",
     description:
-      "What WitnessOps is, why it exists, and where each audience should begin.",
+      "Where to begin: model walkthrough, buyer path, and verify-first.",
+    layerChildPrefixes: [
+      "/docs/getting-started",
+      "/docs/audiences",
+      "/docs/quickstart",
+    ],
     items: [
       { kind: "link", href: "/docs", title: "Docs Home" },
       { kind: "doc", href: "/docs/getting-started" },
-      { kind: "doc", href: "/docs/getting-started/proof-run-buyer-path" },
       {
-        kind: "link",
-        href: getSurfaceUrl("witnessops", "/why-witnessops"),
-        title: "Why WitnessOps",
+        kind: "doc",
+        href: "/docs/getting-started/proof-run-buyer-path",
+        title: "Security Workflow Buyer Path",
       },
-      { kind: "doc", href: "/docs/audiences", title: "Audience Guides" },
-      { kind: "doc", href: "/docs/audiences/new-operator" },
-      { kind: "doc", href: "/docs/audiences/manager-approver" },
-      { kind: "doc", href: "/docs/audiences/defender" },
-      { kind: "doc", href: "/docs/audiences/integration-author" },
-      { kind: "doc", href: "/docs/faq" },
+      {
+        kind: "doc",
+        href: "/docs/quickstart/verify-first",
+        title: "Verify First",
+      },
     ],
   },
   {
-    id: "how-it-works",
-    title: "How It Works",
+    id: "model",
+    title: "Model",
     description:
-      "The proof story: what gets signed, what gets bundled, and how a third party verifies it.",
+      "How proof works: mechanism, verification, and what receipts show.",
+    layerChildPrefixes: ["/docs/how-it-works", "/docs/evidence"],
     items: [
       { kind: "doc", href: "/docs/how-it-works" },
-      { kind: "doc", href: "/docs/how-it-works/proof-model" },
-      { kind: "doc", href: "/docs/how-it-works/evidence-bundles" },
-      { kind: "doc", href: "/docs/how-it-works/verification" },
-      { kind: "doc", href: "/docs/how-it-works/anchored-replay" },
-      { kind: "doc", href: "/docs/how-it-works/standards" },
-    ],
-  },
-  {
-    id: "governed-execution",
-    title: "Governed Execution",
-    description:
-      "How policy gates, scope enforcement, approvals, evidence capture, and receipts fit into a governed path.",
-    items: [
-      { kind: "doc", href: "/docs/security-systems/governed-execution" },
-      { kind: "doc", href: "/docs/security-systems/policy-gates" },
-      { kind: "doc", href: "/docs/governance" },
-      { kind: "doc", href: "/docs/governance/authorization-model" },
-      { kind: "doc", href: "/docs/governance/lab-mode-and-scope-bypass" },
-      { kind: "doc", href: "/docs/evidence" },
+      {
+        kind: "doc",
+        href: "/docs/how-it-works/verification",
+        title: "Verification",
+      },
       { kind: "doc", href: "/docs/evidence/receipts", title: "Receipts" },
-      { kind: "doc", href: "/docs/evidence/execution-chains" },
-      { kind: "doc", href: "/docs/evidence/sensitive-artifact-handling" },
     ],
   },
   {
-    id: "tasks",
-    title: "Tasks",
+    id: "operate",
+    title: "Operate",
     description:
-      "Task-oriented guides for running operations, making decisions, and closing governed workflows safely.",
-    generatedChildLeafParents: ["/docs/security-education"],
+      "Running governed work: execution, decisions, runbooks, scenarios.",
+    layerChildPrefixes: [
+      "/docs/security-systems/governed-execution",
+      "/docs/security-systems/policy-gates",
+      "/docs/governance",
+      "/docs/operations",
+      "/docs/decisions",
+      "/docs/scenarios",
+      "/docs/security-education",
+    ],
     items: [
-      { kind: "doc", href: "/docs/operations" },
-      { kind: "doc", href: "/docs/operations/runbooks" },
-      { kind: "doc", href: "/docs/decisions" },
-      { kind: "doc", href: "/docs/decisions/scope-check" },
-      { kind: "doc", href: "/docs/decisions/escalation" },
-      { kind: "doc", href: "/docs/decisions/evidence-required" },
-      { kind: "doc", href: "/docs/scenarios" },
-      { kind: "doc", href: "/docs/scenarios/phishing-investigation" },
-      { kind: "doc", href: "/docs/security-education" },
-      { kind: "doc", href: "/docs/security-education/what-if-you-clicked" },
+      {
+        kind: "doc",
+        href: "/docs/security-systems/governed-execution",
+        title: "Governed Execution",
+      },
+      { kind: "doc", href: "/docs/decisions", title: "Decisions" },
+      { kind: "doc", href: "/docs/operations/runbooks", title: "Runbooks" },
+      { kind: "doc", href: "/docs/scenarios", title: "Scenarios" },
+      {
+        kind: "doc",
+        href: "/docs/security-education",
+        title: "Security Education",
+      },
     ],
   },
   {
     id: "reference",
     title: "Reference",
     description:
-      "Schemas, receipt fields, commands, policy rules, and external mappings used across the system.",
+      "Commands, catalog, glossary, and external evidence mappings.",
+    layerChildPrefixes: [
+      "/docs/reference",
+      "/docs/integrations",
+      "/docs/evidence-mapping",
+      "/docs/glossary",
+      "/docs/man",
+      "/docs/evidence/receipt-spec",
+    ],
     items: [
       { kind: "doc", href: "/docs/reference" },
-      { kind: "doc", href: "/docs/reference/commands" },
-      {
-        kind: "link",
-        href: "/docs/man/witnessops",
-        title: "man witnessops(7) (non-indexed)",
-      },
+      { kind: "doc", href: "/docs/glossary" },
       {
         kind: "doc",
-        href: "/docs/reference/proof-artifact-classes",
-        title: "Proof Artifact Classes",
+        href: "/docs/integrations/witnessops-catalog",
+        title: "WitnessOps Catalog",
       },
-      { kind: "doc", href: "/docs/integrations" },
-      { kind: "doc", href: "/docs/integrations/witnessops-catalog" },
-      { kind: "doc", href: "/docs/evidence/receipt-spec" },
-      { kind: "doc", href: "/docs/glossary" },
-      { kind: "doc", href: "/docs/evidence-mapping" },
-      { kind: "doc", href: "/docs/evidence-mapping/nist-csf-2-0" },
-      { kind: "doc", href: "/docs/evidence-mapping/dora" },
-      { kind: "doc", href: "/docs/evidence-mapping/eu-ai-act" },
     ],
   },
   {
     id: "architecture",
     title: "Architecture",
     description:
-      "System-level pages that explain how governance, execution, evidence, and verification boundaries fit together.",
+      "System-level boundaries: stack, mesh, threat model, practices.",
+    layerChildPrefixes: ["/docs/security-systems"],
     items: [
-      { kind: "doc", href: "/docs/security-systems" },
-      { kind: "doc", href: "/docs/security-systems/witnessops-architecture" },
-      { kind: "doc", href: "/docs/security-systems/three-layer-stack" },
-      { kind: "doc", href: "/docs/security-systems/mesh-federation-and-vmesh" },
-      { kind: "doc", href: "/docs/security-systems/threat-model" },
-      { kind: "doc", href: "/docs/security-systems/security-practices" },
+      {
+        kind: "doc",
+        href: "/docs/security-systems",
+        title: "Security Systems",
+      },
     ],
   },
 ];
@@ -172,95 +175,9 @@ function compareItems(left: DocsNavItem, right: DocsNavItem) {
   return left.title.localeCompare(right.title);
 }
 
-function compareDocsForGeneratedNav(left: DocPage, right: DocPage) {
-  const leftOrder = left.order ?? Number.MAX_SAFE_INTEGER;
-  const rightOrder = right.order ?? Number.MAX_SAFE_INTEGER;
-
-  if (leftOrder !== rightOrder) {
-    return leftOrder - rightOrder;
-  }
-
-  return (left.navLabel ?? left.title).localeCompare(right.navLabel ?? right.title);
-}
-
-function buildNonLeafSlugKeys(docs: DocPage[]) {
-  const nonLeafSlugKeys = new Set<string>();
-
-  for (const doc of docs) {
-    for (let depth = 1; depth < doc.slug.length; depth += 1) {
-      nonLeafSlugKeys.add(doc.slug.slice(0, depth).join("/"));
-    }
-  }
-
-  return nonLeafSlugKeys;
-}
-
-function isDirectChildSlug(slug: string[], parentSlug: string[]) {
-  if (slug.length !== parentSlug.length + 1) {
-    return false;
-  }
-
-  return parentSlug.every((segment, index) => slug[index] === segment);
-}
-
-function getGeneratedChildLeafItems({
-  section,
-  docs,
-  docsByHref,
-  existingHrefs,
-  nonLeafSlugKeys,
-}: {
-  section: CuratedDocsLayer;
-  docs: DocPage[];
-  docsByHref: Map<string, DocPage>;
-  existingHrefs: Set<string>;
-  nonLeafSlugKeys: Set<string>;
-}): DocsNavItem[] {
-  const generatedItems: DocsNavItem[] = [];
-
-  for (const parentHref of section.generatedChildLeafParents ?? []) {
-    if (!existingHrefs.has(parentHref)) {
-      continue;
-    }
-
-    const parentDoc = docsByHref.get(parentHref);
-    if (!parentDoc) {
-      continue;
-    }
-
-    const childLeafDocs = docs
-      .filter((doc) => {
-        if (!isDirectChildSlug(doc.slug, parentDoc.slug)) {
-          return false;
-        }
-
-        if (nonLeafSlugKeys.has(doc.slug.join("/"))) {
-          return false;
-        }
-
-        const href = getDocHref(doc.slug);
-        return !existingHrefs.has(href);
-      })
-      .sort(compareDocsForGeneratedNav);
-
-    for (const doc of childLeafDocs) {
-      const href = getDocHref(doc.slug);
-      existingHrefs.add(href);
-      generatedItems.push({
-        title: doc.navLabel ?? doc.title,
-        href,
-        order: generatedItems.length + 1,
-      });
-    }
-  }
-
-  return generatedItems;
-}
-
 async function getCuratedOffsecSidebar(): Promise<DocsNavSection[]> {
   const docs = await listDocPages("witnessops");
   const docsByHref = new Map(docs.map((doc) => [getDocHref(doc.slug), doc]));
-  const nonLeafSlugKeys = buildNonLeafSlugKeys(docs);
 
   return OFFSEC_DOCS_LAYERS.map((section) => {
     const curatedItems = section.items
@@ -286,23 +203,11 @@ async function getCuratedOffsecSidebar(): Promise<DocsNavSection[]> {
       })
       .filter((item): item is DocsNavItem => item !== null);
 
-    const existingHrefs = new Set(curatedItems.map((item) => item.href));
-    const generatedItems = getGeneratedChildLeafItems({
-      section,
-      docs,
-      docsByHref,
-      existingHrefs,
-      nonLeafSlugKeys,
-    }).map((item, index) => ({
-      ...item,
-      order: curatedItems.length + index + 1,
-    }));
-
     return {
       id: section.id,
       title: section.title,
       description: section.description,
-      items: [...curatedItems, ...generatedItems],
+      items: curatedItems,
     };
   });
 }
@@ -320,8 +225,8 @@ export function getDocsLayerForHref(
       return true;
     }
 
-    return (candidate.generatedChildLeafParents ?? []).some((parentHref) =>
-      href.startsWith(`${parentHref}/`),
+    return (candidate.layerChildPrefixes ?? []).some(
+      (prefix) => href === prefix || href.startsWith(`${prefix}/`),
     );
   });
 
