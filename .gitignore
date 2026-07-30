@@ -35,3 +35,6 @@ ops/receipts/
 # Bicep compiled output (build artifact)
 infra/main.json
 infra/modules/*.json
+
+# Local agent/deploy scratch (do not ship)
+var/
