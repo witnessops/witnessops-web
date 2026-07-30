@@ -12,7 +12,7 @@
     "@witnessops/config": "workspace:*"
   },
   "peerDependencies": {
-    "next": ">=15.0.0"
+    "next": ">=15.5.21"
   },
   "scripts": {
     "test": "node --import tsx --test ./src/receipt/merkle.test.ts ./src/receipt/verify-receipt.test.ts ./src/receipt/tier1-freeze-v2_1/emit-v0.test.ts ./src/receipt/tier1-freeze-v2_1/verify.test.ts"
