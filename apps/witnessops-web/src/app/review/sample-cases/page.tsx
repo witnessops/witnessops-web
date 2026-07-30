@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
-import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
@@ -93,15 +92,13 @@ const howToUse = [
 const nextSteps = [
   {
     title: "Verify a receipt",
-    description:
-      "Upload or paste receipt JSON and read a clear, receipt-scoped result.",
+    description: "Upload or paste receipt JSON and read a clear, receipt-scoped result.",
     href: "/verify",
     label: "Open verifier",
   },
   {
     title: "Illustrative sample report",
-    description:
-      "A generic report shape for orientation — not a live customer report.",
+    description: "A generic report shape for orientation — not a live customer report.",
     href: "/review/sample-report",
     label: "Open sample report",
   },
@@ -116,46 +113,46 @@ const nextSteps = [
 
 export default function SampleCasesIndexPage() {
   return (
-    <main id="main-content" tabIndex={-1} className="buyer-page">
-      <SectionShell narrow>
+    <main id="main-content" tabIndex={-1} className="buyer-page" data-page="sample-cases-index">
+      <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <SampleCaseBanner
           note="These pages are labelled samples and illustrations for orientation only. They are not live customer artifacts, production verification results, or certifications."
         />
 
-        <header className="max-w-3xl border-b border-surface-border pb-10">
+        <header className="mt-8 max-w-4xl border-b border-surface-border pb-12">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
             Examples
           </p>
-          <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-[-0.03em] text-text-primary md:text-5xl">
+          <h1 className="mt-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
             Example reviews you can inspect
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-text-secondary">
-            See how WitnessOps packages a bounded review: the situation, what was
-            checked, which evidence is referenced, and what remains unproven.
-            Use these before you request work for your own environment.
+          <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">
+            See how WitnessOps packages a bounded review: the situation, what was checked, which
+            evidence is referenced, and what remains unproven. Use these before you request work for
+            your own environment.
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
+          <p className="mt-4 max-w-3xl text-base leading-7 text-text-muted">
+            Scripts and checks (SBOM fields, KEV signals, dependency lookups, receipts) show up
+            inside packages when scoped. They are methods — not a separate product card for every
+            tool.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
             <CtaButton href="/review/request" variant="primary" label="Start a review" />
             <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
             <CtaButton href="/catalog" variant="secondary" label="View services" />
           </div>
         </header>
 
-        <section className="mt-10" aria-labelledby="sample-cases-how-heading">
+        <section className="border-b border-surface-border py-12" aria-labelledby="sample-cases-how-heading">
           <h2
             id="sample-cases-how-heading"
-            className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-            style={{ fontFamily: "var(--font-display)" }}
+            className="text-3xl font-semibold tracking-[-0.02em] text-text-primary"
           >
             How to use these pages
-            <span className="h-px flex-1 bg-surface-border" />
           </h2>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="mt-8 grid gap-8 md:grid-cols-3">
             {howToUse.map(([title, body]) => (
-              <article
-                key={title}
-                className="border border-surface-border bg-surface-bg p-5"
-              >
+              <article key={title} className="border-t border-surface-border pt-4">
                 <h3 className="font-semibold text-text-primary">{title}</h3>
                 <p className="mt-2 text-sm leading-6 text-text-secondary">{body}</p>
               </article>
@@ -163,105 +160,92 @@ export default function SampleCasesIndexPage() {
           </div>
         </section>
 
-        <section className="mt-12" aria-labelledby="sample-cases-list-heading">
+        <section className="border-b border-surface-border py-12" aria-labelledby="sample-cases-list-heading">
           <h2
             id="sample-cases-list-heading"
-            className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-            style={{ fontFamily: "var(--font-display)" }}
+            className="text-3xl font-semibold tracking-[-0.02em] text-text-primary"
           >
             Sample cases
-            <span className="h-px flex-1 bg-surface-border" />
           </h2>
-          <div className="space-y-4">
+          <div className="mt-8 grid gap-px border border-surface-border bg-surface-border">
             {sampleCases.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`block border p-6 transition-colors hover:border-brand-accent ${
-                  item.emphasize
-                    ? "border-brand-accent/50 bg-brand-accent/5"
-                    : "border-surface-border bg-surface-card/40"
+                className={`block bg-white p-7 transition-colors hover:bg-brand-accent/5 md:p-9 ${
+                  item.emphasize ? "ring-1 ring-inset ring-brand-accent/40" : ""
                 }`}
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-xl font-semibold text-text-primary">
+                  <h3 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
                     {item.title}
                   </h3>
                   {item.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-surface-border bg-surface-bg px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted"
+                      className="border border-surface-border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted"
                     >
                       {tag}
                     </span>
                   ))}
                 </div>
-                <p className="mt-3 text-sm font-semibold uppercase tracking-[0.12em] text-text-muted">
-                  Situation
-                </p>
-                <p className="mt-1 text-base leading-7 text-text-secondary">
-                  {item.situation}
-                </p>
-                <p className="mt-4 text-sm font-semibold uppercase tracking-[0.12em] text-text-muted">
-                  What you can inspect
-                </p>
-                <p className="mt-1 text-base leading-7 text-text-secondary">
-                  {item.youSee}
-                </p>
-                <p className="mt-5 text-sm font-semibold text-brand-accent">
-                  Open example →
-                </p>
+                <p className="mt-4 text-sm font-semibold text-text-muted">Situation</p>
+                <p className="mt-1 text-base leading-7 text-text-secondary">{item.situation}</p>
+                <p className="mt-4 text-sm font-semibold text-text-muted">What you can inspect</p>
+                <p className="mt-1 text-base leading-7 text-text-secondary">{item.youSee}</p>
+                <p className="mt-6 text-sm font-semibold text-brand-accent">Open example →</p>
               </Link>
             ))}
           </div>
         </section>
 
-        <section className="mt-12 border border-surface-border bg-surface-bg p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
+        <section className="border-b border-surface-border py-12">
+          <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
             Limits that always apply
           </h2>
-          <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-7 text-text-secondary marker:text-brand-accent">
-            <li>Not live customer evidence or a claim of completed verification for your environment.</li>
-            <li>Not a legal compliance claim, certification, or audit opinion.</li>
-            <li>Not a production deployment claim or complete AI governance program.</li>
-            <li>
-              A valid public receipt result confirms the checks named in that receipt — not that every underlying action was correct.
+          <ul className="mt-6 space-y-4 text-base leading-7 text-text-secondary">
+            <li className="border-t border-surface-border pt-4">
+              Not live customer evidence or a claim of completed verification for your environment.
+            </li>
+            <li className="border-t border-surface-border pt-4">
+              Not a legal compliance claim, certification, or audit opinion.
+            </li>
+            <li className="border-t border-surface-border pt-4">
+              Not a production deployment claim or complete AI governance program.
+            </li>
+            <li className="border-t border-surface-border pt-4">
+              A valid public receipt result confirms the checks named in that receipt — not that
+              every underlying action was correct.
             </li>
           </ul>
         </section>
 
-        <section className="mt-12" aria-labelledby="sample-cases-next-heading">
+        <section className="border-b border-surface-border py-12" aria-labelledby="sample-cases-next-heading">
           <h2
             id="sample-cases-next-heading"
-            className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-            style={{ fontFamily: "var(--font-display)" }}
+            className="text-3xl font-semibold tracking-[-0.02em] text-text-primary"
           >
             Next steps
-            <span className="h-px flex-1 bg-surface-border" />
           </h2>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="mt-8 grid gap-px border border-surface-border bg-surface-border md:grid-cols-3">
             {nextSteps.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="block border border-surface-border bg-surface-bg p-5 transition-colors hover:border-brand-accent"
+                className="block bg-white p-7 transition-colors hover:bg-brand-accent/5 md:p-9"
               >
-                <h3 className="font-semibold text-text-primary">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-text-secondary">
-                  {item.description}
-                </p>
-                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent">
-                  {item.label}
-                </p>
+                <h3 className="text-xl font-semibold text-text-primary">{item.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-text-secondary">{item.description}</p>
+                <p className="mt-5 text-sm font-semibold text-brand-accent">{item.label} →</p>
               </Link>
             ))}
           </div>
         </section>
 
-        <div className="mt-12">
+        <div className="border-t border-surface-border pt-10">
           <PublicContactRoute />
         </div>
-      </SectionShell>
+      </div>
     </main>
   );
 }

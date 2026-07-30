@@ -35,6 +35,25 @@ const copy = {
         "The delivery names the evidence references, receipt or verifier where one exists, and the limitations that still apply.",
       ],
     ],
+    methodsTitle: "Methods under the package — not extra product cards",
+    methodsIntro:
+      "Operator tooling (SBOM field checks, KEV cross-checks, dependency lookups, receipt packaging) can run inside a scoped engagement when useful. Each script is a method. The catalog card is the buyer situation and the handover package — not every binary we maintain.",
+    methods: [
+      [
+        "SBOM field checklist",
+        "Present / partial / missing / unknown against the CISA 2026 baseline for one named software unit — sold as a package when a buyer needs that answer.",
+      ],
+      [
+        "KEV and exploit-urgency signals",
+        "CISA Known Exploited Vulnerabilities (and related lookups) can inform server, launch or readiness work. They are not a stand-alone “you are safe” product.",
+      ],
+      [
+        "Receipts and samples",
+        "Inspect labelled examples before you buy. Samples show how methods land in a package — they are not live customer evidence.",
+      ],
+    ],
+    methodsCta: "Inspect example reviews",
+    methodsHref: "/review/sample-cases",
     unsureTitle: "Not sure which review fits?",
     unsureBody:
       "Describe the situation without files, secrets, credentials, logs, screenshots or customer evidence. The first step only checks fit.",
@@ -43,7 +62,7 @@ const copy = {
     eyebrow: "Przeglądy WitnessOps",
     title: "Zacznij od sytuacji, którą trzeba rozwiązać.",
     intro:
-      "Wybierz jeden ograniczony problem. Przed rozpoczęciem pracy uzgadniamy upoważnienie, materiały wejściowe, zakres, wynik, cenę, termin i sposób postępowania z materiałami.",
+      "Wybierz jeden ograniczony problem. Przed rozpoczęciem pracy uzgadniamy upoważnienie, materiały wejściowe, zakres, wynik, cenę, termin i sposób postępowania z materiałami. Te przeglądy nie przyznają certyfikacji zgodności.",
     price: "Cena",
     timing: "Termin",
     boundary: "Ograniczenie",
@@ -65,6 +84,25 @@ const copy = {
         "Dostawa nazywa odwołania do materiałów, receipt lub weryfikator, jeśli istnieją, oraz ograniczenia, które nadal obowiązują.",
       ],
     ],
+    methodsTitle: "Metody w pakiecie — nie osobne karty produktu",
+    methodsIntro:
+      "Narzędzia operatorskie (kontrola pól SBOM, przecięcie z KEV, zależności, pakowanie receipt) mogą działać w zakresie, gdy są przydatne. Skrypt to metoda. Karta katalogu to sytuacja kupującego i pakiet do przekazania — nie każdy binar, który utrzymujemy.",
+    methods: [
+      [
+        "Lista kontrolna pól SBOM",
+        "Obecne / częściowe / brakujące / nieznane względem baseline CISA 2026 dla jednej jednostki — jako pakiet, gdy kupujący potrzebuje tej odpowiedzi.",
+      ],
+      [
+        "Sygnały KEV i pilności exploitów",
+        "CISA Known Exploited Vulnerabilities (i powiązane lookupy) mogą wspierać przegląd serwera, launch lub gotowości. To nie osobny produkt „jesteście bezpieczni”.",
+      ],
+      [
+        "Receipts i przykłady",
+        "Przejrzyj oznaczone przykłady przed zakupem. Pokazują, jak metody lądują w pakiecie — nie są żywymi materiałami klienta.",
+      ],
+    ],
+    methodsCta: "Zobacz przykładowe przeglądy",
+    methodsHref: "/review/sample-cases",
     unsureTitle: "Nie wiesz, który przegląd wybrać?",
     unsureBody:
       "Opisz sytuację bez plików, sekretów, danych logowania, logów, zrzutów ekranu ani materiałów klienta. Pierwszy krok służy wyłącznie ocenie dopasowania.",
@@ -78,9 +116,11 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
-        <header className="max-w-4xl border-b border-surface-border pb-10">
-          <p className="text-sm font-semibold text-text-muted">{text.eyebrow}</p>
-          <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-[-0.03em] text-text-primary md:text-5xl lg:text-6xl">
+        <header className="max-w-4xl border-b border-surface-border pb-12">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+            {text.eyebrow}
+          </p>
+          <h1 className="mt-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
             {text.title}
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">{text.intro}</p>
@@ -102,7 +142,7 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                 className="flex h-full flex-col bg-white p-7 md:p-9"
               >
                 <p className="text-sm leading-6 text-text-muted">
-                  {service.situation[locale]}
+                  {service.cardSituation[locale]}
                 </p>
                 <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] text-text-primary">
                   {service.name[locale]}
@@ -157,17 +197,48 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
           })}
         </section>
 
-        <section className="mt-12 border border-surface-border p-7 md:p-10" aria-labelledby="shared-principles">
-          <h2 id="shared-principles" className="text-2xl font-semibold text-text-primary">
+        <section className="mt-12 border-b border-surface-border py-12" aria-labelledby="shared-principles">
+          <h2
+            id="shared-principles"
+            className="text-3xl font-semibold tracking-[-0.02em] text-text-primary"
+          >
             {text.principlesTitle}
           </h2>
-          <div className="mt-6 grid gap-5 md:grid-cols-3">
+          <div className="mt-8 grid gap-8 md:grid-cols-3">
             {text.principles.map(([title, body]) => (
-              <article key={title}>
+              <article key={title} className="border-t border-surface-border pt-4">
                 <h3 className="font-semibold text-text-primary">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-text-muted">{body}</p>
+                <p className="mt-2 text-sm leading-6 text-text-secondary">{body}</p>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section className="border-b border-surface-border py-12" aria-labelledby="methods-not-cards">
+          <h2
+            id="methods-not-cards"
+            className="text-3xl font-semibold tracking-[-0.02em] text-text-primary"
+          >
+            {text.methodsTitle}
+          </h2>
+          <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
+            {text.methodsIntro}
+          </p>
+          <div className="mt-8 grid gap-8 md:grid-cols-3">
+            {text.methods.map(([title, body]) => (
+              <article key={title} className="border-t border-surface-border pt-4">
+                <h3 className="font-semibold text-text-primary">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-text-secondary">{body}</p>
+              </article>
+            ))}
+          </div>
+          <div className="mt-8">
+            <Link
+              href={text.methodsHref}
+              className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+            >
+              {text.methodsCta}
+            </Link>
           </div>
         </section>
 
