@@ -51,8 +51,11 @@ const ui = {
 
 /** Short commercial figure for the accent panel (CSR-style). */
 function commercialPriceLabel(price: string): string {
-  const cut = price.split(/\s+(?:after|po)\s+/i)[0]?.trim();
-  return cut || price;
+  // Drop parenthetical FX notes: "… (ok. €950)"
+  const withoutParen = price.replace(/\s*\([^)]*\)\s*/g, " ").trim();
+  const cut = withoutParen.split(/\s+(?:after|po|—)\s+/i)[0]?.trim();
+  // Prefer leading "From/Od … zł/€…" or "Standardowo … zł"
+  return cut || withoutParen || price;
 }
 
 export function BuyerServiceDetail({

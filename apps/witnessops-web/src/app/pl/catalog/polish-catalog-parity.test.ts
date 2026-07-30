@@ -58,14 +58,14 @@ test("approved server and launch commercial promises are represented once", () =
   );
   assert.equal(
     server?.price.pl,
-    "Standardowo €950 po wstępnej ocenie bez informacji poufnych",
+    "Standardowo 4 100 zł po wstępnej ocenie bez informacji poufnych (ok. €950)",
   );
   assert.equal(
     server?.timing.pl,
     "W ciągu dwóch dni roboczych po autoryzowanym oknie zbierania danych",
   );
   assert.equal(launch?.price.en, "€2,500–€7,500");
-  assert.equal(launch?.price.pl, "€2,500–€7,500");
+  assert.equal(launch?.price.pl, "11 000–32 000 zł (ok. €2 500–€7 500)");
   assert.equal(launch?.timing.en, "Four business days after candidate collection");
   assert.equal(
     launch?.timing.pl,

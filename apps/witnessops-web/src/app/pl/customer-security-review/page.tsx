@@ -77,10 +77,11 @@ export default function PolishCustomerSecurityReviewPage() {
             <div className="sm:grid sm:grid-cols-2 sm:gap-8 lg:block">
               <div>
                 <p className="text-sm font-semibold text-text-muted">Cena i termin</p>
-                <p className="mt-3 text-3xl font-semibold text-text-primary">Od €1,600</p>
+                <p className="mt-3 text-3xl font-semibold text-text-primary">Od 7 000 zł</p>
                 <p className="mt-2 text-sm leading-6 text-text-secondary">
-                  Po wstępnej ocenie bez informacji poufnych. Jeden kwestionariusz. Jeden zakres
-                  produktu.
+                  Ok. €1 600. Po wstępnej ocenie bez informacji poufnych. Jeden kwestionariusz.
+                  Jeden zakres produktu. Kwota w zł orientacyjna; oferta i faktura po fit check
+                  (EUR lub ustalony zł).
                 </p>
               </div>
               <div className="mt-6 border-t border-surface-border pt-5 sm:mt-0 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-8 lg:mt-6 lg:border-t lg:border-l-0 lg:pt-5 lg:pl-0">

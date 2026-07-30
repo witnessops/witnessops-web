@@ -12,7 +12,7 @@ const polish = readFileSync(
 test("English and Polish Sprint pages preserve equivalent commercial boundaries", () => {
   for (const [enMarker, plMarker] of [
     ["one questionnaire and one product scope", "jeden kwestionariusz i jeden zakres produktu"],
-    ["From €1,600", "Od €1,600"],
+    ["From €1,600", "Od 7 000 zł"],
     ["three working days", "trzech dni roboczych"],
     [
       "The customer owns the final answers, approvals and submission.",

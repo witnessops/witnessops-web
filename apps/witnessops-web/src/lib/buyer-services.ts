@@ -61,7 +61,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     },
     price: {
       en: "From €1,600 after a non-secret fit check",
-      pl: "Od €1,600 po wstępnej ocenie bez informacji poufnych",
+      pl: "Od 7 000 zł po wstępnej ocenie bez informacji poufnych (ok. €1 600)",
     },
     timing: {
       en: "Approximately three working days after scope, owners, required inputs and evidence access are confirmed",
@@ -106,7 +106,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     },
     price: {
       en: "From €1,500",
-      pl: "Od €1,500",
+      pl: "Od 6 500 zł (ok. €1 500)",
     },
     timing: {
       en: "Confirmed during the non-secret fit check",
@@ -145,7 +145,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     },
     price: {
       en: "€950 standard after a non-secret fit check",
-      pl: "Standardowo €950 po wstępnej ocenie bez informacji poufnych",
+      pl: "Standardowo 4 100 zł po wstępnej ocenie bez informacji poufnych (ok. €950)",
     },
     timing: {
       en: "Within two business days after the authorised collection window",
@@ -185,7 +185,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     },
     price: {
       en: "€2,500–€7,500",
-      pl: "€2,500–€7,500",
+      pl: "11 000–32 000 zł (ok. €2 500–€7 500)",
     },
     timing: {
       en: "Four business days after candidate collection",
@@ -225,7 +225,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     },
     price: {
       en: "€3,000–€15,000",
-      pl: "€3,000–€15,000",
+      pl: "13 000–65 000 zł (ok. €3 000–€15 000)",
     },
     timing: {
       en: "Confirmed during the non-secret fit check",
@@ -265,7 +265,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     },
     price: {
       en: "€5,000–€25,000",
-      pl: "€5,000–€25,000",
+      pl: "22 000–108 000 zł (ok. €5 000–€25 000)",
     },
     timing: {
       en: "Confirmed during the non-secret fit check",

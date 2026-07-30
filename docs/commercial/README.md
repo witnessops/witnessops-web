@@ -29,6 +29,7 @@ Then use the paste templates below.
 | 06 | [Scope agreement skeleton](./06-scope-agreement-skeleton.md) | After fit; before work |
 | 07 | [Operator playbook complete](./07-operator-playbook-complete.md) | Full delivery path |
 | 08 | [Artifact map](./08-artifact-map.md) | Find samples on site + disk |
+| 09 | [Pricing investigation + PLN](./09-pricing-investigation.md) | Market context, zł table, policy |
 
 ## Public anchors
 
