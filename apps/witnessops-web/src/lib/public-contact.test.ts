@@ -17,7 +17,7 @@ test("public contact route uses the canonical request path and fallback email", 
   assert.equal(PUBLIC_CONTACT_SUBJECTS.fitCheck, "WitnessOps fit check");
   assert.equal(
     PUBLIC_NO_SECRETS_NOTE,
-    "Do not send passwords, private keys, API keys, recovery codes, session tokens, or other secrets.",
+    "Do not send passwords, private keys, API keys, recovery codes, session tokens or other secrets.",
   );
   assert.equal(
     publicContactMailto(PUBLIC_CONTACT_SUBJECTS.general),

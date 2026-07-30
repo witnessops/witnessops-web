@@ -1,7 +1,7 @@
 export const witnessops = {
   name: "WITNESSOPS",
   domain: "witnessops.com",
-  tagline: "Proof-backed security systems.",
+  tagline: "Proof-backed operations",
   proofMark: "\u03C6",
   copyright: "\u00A9 WITNESSOPS Foundation",
 

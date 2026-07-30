@@ -6,12 +6,12 @@ import { CtaButton } from "@/components/shared/cta-button";
 export const metadata: Metadata = {
   title: "Why WitnessOps",
   description:
-    "WitnessOps helps teams turn consequential work into signed receipts and reviewable evidence packages that customers, auditors, and partners can inspect after the work is done.",
+    "Clear work. Evidence you can follow. Limits you can see. WitnessOps turns one defined security or operational problem into a practical result that another responsible person can inspect.",
   alternates: getCanonicalAlternates("witnessops", "/why-witnessops"),
   openGraph: {
     title: "Why WitnessOps | WitnessOps",
     description:
-      "WitnessOps helps teams turn consequential work into signed receipts and reviewable evidence packages that customers, auditors, and partners can inspect after the work is done.",
+      "Clear work. Evidence you can follow. Limits you can see. WitnessOps turns one defined problem into a practical result with evidence references, named limits and unresolved items.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -19,16 +19,28 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Why WitnessOps | WitnessOps",
     description:
-      "WitnessOps helps teams turn consequential work into signed receipts and reviewable evidence packages that customers, auditors, and partners can inspect after the work is done.",
+      "Clear work. Evidence you can follow. Limits you can see. Bounded security and operational reviews with a practical handover.",
   },
 };
 
-const boundaryPoints = [
-  "This page explains why the security-workflow package model exists. It is not itself a verifier result.",
-  "A proof claim requires a named receipt, evidence manifest, verifier result, or proof bundle.",
-  "This is not a legal compliance claim, production deployment claim, or complete AI governance program.",
-  "Execution, evidence, and verification stay separate so the proof path can be inspected after the work changes hands.",
-];
+const differences = [
+  [
+    "Start with the situation",
+    "The buyer describes the problem in ordinary language. WitnessOps proposes the smallest useful review.",
+  ],
+  [
+    "Agree the boundary first",
+    "Scope, authority, result, price, timing, evidence handling and exclusions are agreed before work starts.",
+  ],
+  [
+    "Keep evidence status visible",
+    "Observed material, management assertions, unsupported claims, unknowns and unresolved items remain distinct.",
+  ],
+  [
+    "Leave a practical handover",
+    "The final package is organised so the next person can inspect the result, understand the limits and decide what happens next.",
+  ],
+] as const;
 
 export default function WhyWitnessOpsPage() {
   return (
@@ -38,85 +50,47 @@ export default function WhyWitnessOpsPage() {
           Why WitnessOps
         </p>
         <h1 className="text-4xl font-bold tracking-tight text-text-primary">
-          Why consequential work needs proof people can check.
+          Clear work. Evidence you can follow. Limits you can see.
         </h1>
-        <div className="mt-8 space-y-6 text-base leading-8 text-text-secondary">
-          <p>
-            Most consequential work becomes hard to trust once it leaves the team that
-            ran it. Reports, screenshots, and logs can show that something
-            happened, but they usually do not make the work easy to check later.
-          </p>
-          <p>
-            WitnessOps is built to leave a better handoff behind. It records what
-            was approved, what ran, and what evidence was kept, then packages
-            that into signed receipts and reviewable evidence packages other people
-            can inspect for themselves.
-          </p>
-          <p>
-            The goal is simple: when the work changes hands, the next person
-            should not have to rely on memory, loose screenshots, or a vendor
-            summary to understand what happened.
-          </p>
-          <p>That is why the public path stays focused on a few clear actions:</p>
-          <ul className="list-disc pl-6 space-y-2">
-            <li>Package one proof-backed security workflow.</li>
-            <li>See what was in scope, what evidence exists, and what remains unproven.</li>
-            <li>Inspect the public AI-agent sample bundle, verifier fixtures, explanatory sample cases, and the illustrative sample report.</li>
-            <li>Read the trust limits in plain language.</li>
-          </ul>
-          <p>
-            The system behind this may be complex. The explanation should not be.
-            That is why WitnessOps keeps execution, evidence, and verification as
-            separate concerns and says clearly where trust still sits with us.
-          </p>
-        </div>
+        <p className="mt-8 text-base leading-8 text-text-secondary">
+          Security and operational work becomes difficult to trust when the scope, source material
+          and remaining gaps are scattered across tickets, screenshots, messages and memory.
+          WitnessOps turns one defined problem into a practical result that another responsible
+          person can inspect.
+        </p>
+      </SectionShell>
 
+      <SectionShell narrow spacing="compact" className="border-t border-surface-border">
+        <h2 className="text-2xl font-semibold tracking-tight text-text-primary">What is different</h2>
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {differences.map(([title, body]) => (
+            <article key={title} className="border border-surface-border bg-surface-bg p-5">
+              <h3 className="font-semibold text-text-primary">{title}</h3>
+              <p className="mt-2 text-sm leading-7 text-text-secondary">{body}</p>
+            </article>
+          ))}
+        </div>
+      </SectionShell>
+
+      <SectionShell narrow spacing="compact" className="border-t border-surface-border">
+        <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
+          Verification boundary
+        </h2>
+        <p className="mt-4 text-base leading-8 text-text-secondary">
+          A proof claim requires a named receipt, evidence manifest, verifier result, or proof
+          bundle. WitnessOps only describes a result as verified when that named mechanism supports
+          the claim. Verification of an artefact does not automatically prove that every underlying
+          action was correct, safe or complete. This page is not a legal compliance claim, production
+          deployment claim, or complete AI governance program.
+        </p>
         <div className="mt-10 border-t border-surface-border pt-8">
           <p className="mb-4 text-sm leading-relaxed text-text-muted">
-            Keep going with the package offer or inspect a verifier fixture first.
+            Tell us what happened. Start with a non-secret fit check.
           </p>
           <div className="flex flex-wrap gap-3">
-            <CtaButton href="/review" variant="primary" label="Read package offer" />
-            <CtaButton href="/verify" variant="secondary" label="Verify receipts and bundles" />
+            <CtaButton href="/review/request" variant="primary" label="Start a review" />
+            <CtaButton href="/catalog" variant="secondary" label="View services" />
           </div>
-        </div>
-      </SectionShell>
-      <SectionShell narrow spacing="compact" className="border-t border-surface-border">
-        <div className="space-y-5 text-base leading-8 text-text-secondary">
-          <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
-            For consequential security workflows
-          </h2>
-          <p>
-            GitHub reviews, Codex Security findings, AI-agent actions, access
-            changes, offsec handoffs, and remediation lanes all create the same
-            pressure: someone needs to know what happened without trusting a
-            loose summary.
-          </p>
-          <p>
-            WitnessOps helps make one bounded security workflow more reviewable.
-            It does not replace production deployment, legal compliance, or a
-            complete AI governance program.
-          </p>
-          <ul className="list-disc space-y-2 pl-6">
-            <li>record the workflow scope and authority boundary</li>
-            <li>show what changed or was reviewed within scope</li>
-            <li>preserve evidence for later review</li>
-            <li>name where trust assumptions still remain</li>
-          </ul>
-        </div>
-      </SectionShell>
-      <SectionShell narrow spacing="compact" className="border-t border-surface-border">
-        <div className="space-y-5">
-          <h2 className="text-2xl font-semibold tracking-tight text-text-primary">
-            Boundary
-          </h2>
-          <ul className="grid gap-3 text-sm leading-7 text-text-secondary md:grid-cols-2">
-            {boundaryPoints.map((point) => (
-              <li key={point} className="border border-surface-border bg-surface-bg p-4">
-                {point}
-              </li>
-            ))}
-          </ul>
         </div>
       </SectionShell>
     </main>

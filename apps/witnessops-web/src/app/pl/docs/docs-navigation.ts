@@ -17,7 +17,7 @@ export const POLISH_DOCS_SECTIONS = [
       ["Zrozum usługę", "/pl/docs/understand-the-service"],
       ["Jak działa WitnessOps", "/pl/docs/how-witnessops-works"],
       ["Wybierz ofertę", "/pl/catalog"],
-      ["Rozpocznij zgłoszenie", "/pl/review/request"],
+      ["Rozpocznij przegląd", "/pl/review/request"],
       ["Najczęstsze pytania", "/pl/docs/faq"],
     ],
   },

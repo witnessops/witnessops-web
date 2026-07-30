@@ -19,7 +19,7 @@ const BUYER_NAV_LINKS = [
 ];
 
 const BUYER_NAV_CTA = {
-  label: "Start a Review",
+  label: "Start a review",
   href: "/review/request",
   variant: "primary",
 };
@@ -120,7 +120,7 @@ export function Navbar({ announcement }: NavbarProps) {
             href={logoHref}
             className="flex min-h-11 shrink-0 items-center gap-2 rounded text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
-            <WitnessOpsMark variant="hex" size="sm" className="max-md:scale-[0.93]" />
+            <WitnessOpsMark variant="mark" size="sm" tone="white" className="max-md:scale-[0.93]" />
             <span
               className="max-[420px]:hidden text-[11px] font-semibold uppercase tracking-[0.14em] leading-none text-white"
               style={{ fontFamily: "var(--font-display)" }}

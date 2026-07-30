@@ -9,30 +9,62 @@ import {
 
 const copy = {
   en: {
-    eyebrow: "Services",
-    title: "Start with the situation you need to move forward.",
+    eyebrow: "WitnessOps reviews",
+    title: "Start with the situation you need to resolve.",
     intro:
-      "Every WitnessOps engagement starts with a non-secret fit check. We confirm the boundary, result, price, timing and evidence handling before work starts.",
+      "Choose one bounded problem. We agree the authority, inputs, scope, result, price, timing and evidence handling before review work begins.",
     price: "Price",
     timing: "Timing",
+    boundary: "Boundary",
     primaryCta: "Start a review",
     secondaryCta: "Learn more",
+    principlesTitle: "Shared service principles",
+    principles: [
+      [
+        "One bounded scope",
+        "The engagement names what is included, what is excluded and where authority stops.",
+      ],
+      [
+        "No secrets first",
+        "The fit check uses plain-language, sanitised information only.",
+      ],
+      [
+        "A checkable result",
+        "The delivery names the evidence references, receipt or verifier where one exists, and the limitations that still apply.",
+      ],
+    ],
     unsureTitle: "Not sure which review fits?",
     unsureBody:
       "Describe the situation without files, secrets, credentials, logs, screenshots or customer evidence. The first step only checks fit.",
   },
   pl: {
-    eyebrow: "Usługi",
-    title: "Zacznij od sytuacji, którą chcesz rozwiązać.",
+    eyebrow: "Przeglądy WitnessOps",
+    title: "Zacznij od sytuacji, którą trzeba rozwiązać.",
     intro:
-      "Każda współpraca z WitnessOps zaczyna się od niepoufnej oceny dopasowania. Przed rozpoczęciem prac potwierdzamy zakres, rezultat, cenę, termin oraz sposób postępowania z materiałem dowodowym.",
+      "Wybierz jeden ograniczony problem. Przed rozpoczęciem pracy uzgadniamy upoważnienie, materiały wejściowe, zakres, wynik, cenę, termin i sposób postępowania z materiałami.",
     price: "Cena",
     timing: "Termin",
-    primaryCta: "Rozpocznij zgłoszenie",
-    secondaryCta: "Poznaj ofertę",
+    boundary: "Ograniczenie",
+    primaryCta: "Rozpocznij przegląd",
+    secondaryCta: "Więcej informacji",
+    principlesTitle: "Wspólne zasady usług",
+    principles: [
+      [
+        "Jeden ograniczony zakres",
+        "Ustalenia wskazują, co jest objęte pracą, czego nie obejmują i gdzie kończy się upoważnienie.",
+      ],
+      [
+        "Najpierw bez informacji poufnych",
+        "Wstępna ocena korzysta wyłącznie z zanonimizowanych informacji w zwykłym języku.",
+      ],
+      [
+        "Wynik, który można sprawdzić",
+        "Dostawa nazywa odwołania do materiałów, receipt lub weryfikator, jeśli istnieją, oraz ograniczenia, które nadal obowiązują.",
+      ],
+    ],
     unsureTitle: "Nie wiesz, który przegląd wybrać?",
     unsureBody:
-      "Opisz sytuację bez załączników, danych dostępowych, logów, zrzutów ekranu ani materiałów klienta. Pierwszy krok służy wyłącznie ocenie dopasowania.",
+      "Opisz sytuację bez plików, sekretów, danych logowania, logów, zrzutów ekranu ani materiałów klienta. Pierwszy krok służy wyłącznie ocenie dopasowania.",
   },
 } as const;
 
@@ -48,9 +80,7 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
           <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-[-0.03em] text-text-primary md:text-5xl lg:text-6xl">
             {text.title}
           </h1>
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">
-            {text.intro}
-          </p>
+          <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">{text.intro}</p>
         </header>
 
         <section
@@ -79,14 +109,16 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                 <dl className="mt-7 grid gap-4 border-t border-surface-border pt-5 text-sm sm:grid-cols-2">
                   <div>
                     <dt className="font-semibold text-text-primary">{text.price}</dt>
-                    <dd className="mt-1 leading-6 text-text-muted">
-                      {service.price[locale]}
-                    </dd>
+                    <dd className="mt-1 leading-6 text-text-muted">{service.price[locale]}</dd>
                   </div>
                   <div>
                     <dt className="font-semibold text-text-primary">{text.timing}</dt>
+                    <dd className="mt-1 leading-6 text-text-muted">{service.timing[locale]}</dd>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <dt className="font-semibold text-text-primary">{text.boundary}</dt>
                     <dd className="mt-1 leading-6 text-text-muted">
-                      {service.timing[locale]}
+                      {service.boundary[locale]}
                     </dd>
                   </div>
                 </dl>
@@ -111,12 +143,24 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
           })}
         </section>
 
+        <section className="mt-12 border border-surface-border p-7 md:p-10" aria-labelledby="shared-principles">
+          <h2 id="shared-principles" className="text-2xl font-semibold text-text-primary">
+            {text.principlesTitle}
+          </h2>
+          <div className="mt-6 grid gap-5 md:grid-cols-3">
+            {text.principles.map(([title, body]) => (
+              <article key={title}>
+                <h3 className="font-semibold text-text-primary">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-text-muted">{body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="mt-12 flex flex-col gap-5 bg-black p-7 text-white md:flex-row md:items-center md:justify-between md:p-10">
           <div>
             <h2 className="text-2xl font-semibold">{text.unsureTitle}</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-7 text-white/70">
-              {text.unsureBody}
-            </p>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-white/70">{text.unsureBody}</p>
           </div>
           <Link
             href={requestHref}

@@ -11,12 +11,14 @@ const polish = readFileSync(
 
 test("English and Polish Sprint pages preserve equivalent commercial boundaries", () => {
   for (const [enMarker, plMarker] of [
-    ["one questionnaire and one", "kwestionariusza i jednego produktu"],
-    ["From €1,600", "Od 1 600 €"],
+    ["one questionnaire and one product scope", "jeden kwestionariusz i jeden zakres produktu"],
+    ["From €1,600", "Od €1,600"],
     ["three working days", "trzech dni roboczych"],
-    ["customer owns every outward-facing answer", "Klient odpowiada za każdą odpowiedź przekazywaną na zewnątrz"],
-    ["Do not send the questionnaire, files", "Nie wysyłaj"],
-    ["SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE", "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE"],
+    [
+      "The customer owns the final answers, approvals and submission.",
+      "Klient odpowiada za końcowe odpowiedzi, zatwierdzenia i wysyłkę.",
+    ],
+    ["Start a non-secret fit check", "Rozpocznij wstępną ocenę bez informacji poufnych"],
   ]) {
     assert.ok(english.includes(enMarker), `Missing English parity marker: ${enMarker}`);
     assert.ok(polish.includes(plMarker), `Missing Polish parity marker: ${plMarker}`);

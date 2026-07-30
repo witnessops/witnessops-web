@@ -38,7 +38,7 @@ navbar:
     - label: "Why WitnessOps"
       href: "/why-witnessops"
   cta:
-    label: "Start a Review"
+    label: "Start a review"
     href: "/review/request"
     variant: "primary"
 
@@ -190,7 +190,7 @@ final_cta:
 
 footer:
   brand_line: "WitnessOps"
-  subline: "Bounded proof packages for trust-sensitive technical work."
+  subline: "Bounded security and operational reviews with evidence references, clear limits and a practical handover."
   links:
     - label: "Services"
       href: "/catalog"
@@ -204,7 +204,7 @@ footer:
       href: "/docs"
     - label: "Library"
       href: "/library"
-    - label: "Start a Review"
+    - label: "Start a review"
       href: "/review/request"
   legal_links:
     - label: "Privacy"

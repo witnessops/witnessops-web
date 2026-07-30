@@ -53,20 +53,34 @@ test("approved server and launch commercial promises are represented once", () =
   assert.equal(server?.price.en, "€950 standard after a non-secret fit check");
   assert.equal(
     server?.timing.en,
-    "Within two business days after the authorized collection window closes",
+    "Within two business days after the authorised collection window",
   );
-  assert.equal(server?.price.pl, "950 € — cena standardowa po niepoufnej ocenie dopasowania");
+  assert.equal(
+    server?.price.pl,
+    "Standardowo €950 po wstępnej ocenie bez informacji poufnych",
+  );
   assert.equal(
     server?.timing.pl,
-    "W ciągu dwóch dni roboczych od zakończenia autoryzowanego okna zbierania danych.",
+    "W ciągu dwóch dni roboczych po autoryzowanym oknie zbierania danych",
   );
   assert.equal(launch?.price.en, "€2,500–€7,500");
-  assert.equal(launch?.price.pl, "2 500–7 500 €");
-  assert.equal(launch?.timing.en, "Four business days after candidate evidence collection");
+  assert.equal(launch?.price.pl, "€2,500–€7,500");
+  assert.equal(launch?.timing.en, "Four business days after candidate collection");
   assert.equal(
     launch?.timing.pl,
-    "Cztery dni robocze od zebrania materiałów dotyczących wersji kandydującej.",
+    "Cztery dni robocze po zebraniu kandydata do wydania",
   );
+});
+
+test("each public offer carries a localized commercial boundary", () => {
+  for (const service of BUYER_SERVICES) {
+    for (const locale of ["en", "pl"] as const) {
+      assert.ok(
+        service.boundary[locale].length > 0,
+        `${service.id} ${locale} boundary`,
+      );
+    }
+  }
 });
 
 test("secondary details are exposed only for localized pages that exist", () => {

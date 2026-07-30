@@ -24,51 +24,81 @@ const localizedCopy = {
     primaryCta: "View services",
     secondaryCta: "Start a review",
     noSecrets:
-      "Start with a general, non-secret description. Do not send files, credentials, logs, screenshots, private keys, MFA codes or customer evidence during the fit check.",
+      "Start with a general, non-secret description. Do not send files, credentials, logs, screenshots, private keys, API keys, MFA codes, recovery codes, session tokens or customer evidence during the fit check.",
     offersEyebrow: "Start with the situation",
     offersTitle: "Six reviews for work that needs a clear next step",
     offersBody:
-      "The same active services, prices and timing contracts are available in English and Polish.",
+      "The same active services, prices and timing terms are available in English and Polish.",
     viewAll: "View all services",
     howTitle: "How it works",
     howSteps: [
       ["Describe the situation", "Send a short, non-secret fit request in your own words."],
-      ["Agree the boundary", "We confirm the review, scope, authority, price, timing and evidence handling."],
-      ["Receive the result", "We deliver the agreed report or package with evidence references, named limits and unresolved items."],
+      [
+        "Agree the boundary",
+        "We confirm the review, scope, authority, price, timing and evidence handling.",
+      ],
+      [
+        "Receive the result",
+        "We deliver the agreed report or package with evidence references, named limits and unresolved items.",
+      ],
     ],
     whyTitle: "Why WitnessOps",
     whyItems: [
-      ["Clear scope", "The engagement states what is included, what is excluded and where authority stops."],
-      ["Evidence status stays visible", "Observed material, unsupported claims, unknowns and unresolved items are kept distinct."],
-      ["A practical handover", "The result is organized so another responsible person can inspect it and decide what happens next."],
+      [
+        "Clear scope",
+        "The engagement states what is included, what is excluded and where authority stops.",
+      ],
+      [
+        "Evidence status stays visible",
+        "Observed material, management assertions, unsupported claims, unknowns and unresolved items are kept distinct.",
+      ],
+      [
+        "A practical handover",
+        "The result is organised so another responsible person can inspect it and decide what happens next.",
+      ],
     ],
   },
   pl: {
     hero: {
-      eyebrow: "Jasno określony zakres. Sprawdzalny wynik.",
-      title: "Opowiedz nam, co wymaga sprawdzenia.",
-      body: "Przed rozpoczęciem prac uzgadniamy sytuację, zakres, rezultat, cenę, termin oraz sposób postępowania z materiałem dowodowym. Następnie WitnessOps realizuje uzgodniony przegląd i przekazuje wynik z odniesieniami do dowodów, nazwanymi ograniczeniami i sprawami nierozstrzygniętymi.",
+      eyebrow: "Przeglądy bezpieczeństwa i operacji",
+      title: "Powiedz nam, co trzeba odblokować.",
+      body: "Przed rozpoczęciem pracy uzgadniamy sytuację, zakres, wynik, cenę, termin i sposób postępowania z materiałami. Następnie WitnessOps realizuje uzgodniony przegląd i przekazuje wynik z odwołaniami do materiałów, jasno nazwanymi ograniczeniami i nierozwiązanymi kwestiami.",
     },
     primaryCta: "Zobacz usługi",
-    secondaryCta: "Rozpocznij zgłoszenie",
+    secondaryCta: "Rozpocznij przegląd",
     noSecrets:
-      "Zacznij od ogólnego, niepoufnego opisu. Podczas oceny dopasowania nie wysyłaj plików, danych dostępowych, logów, zrzutów ekranu, kluczy prywatnych, kodów MFA ani materiałów klienta.",
+      "Zacznij od ogólnego opisu bez informacji poufnych. Podczas wstępnej oceny nie wysyłaj plików, danych logowania, logów, zrzutów ekranu, kluczy prywatnych, kluczy API, kodów MFA, kodów odzyskiwania, tokenów sesyjnych ani materiałów klienta.",
     offersEyebrow: "Zacznij od sytuacji",
-    offersTitle: "Sześć przeglądów dla pracy, która wymaga jasnego następnego kroku",
+    offersTitle: "Sześć przeglądów dla pracy, która potrzebuje jasnego następnego kroku",
     offersBody:
-      "Te same aktywne usługi, ceny i zasady dotyczące terminów są dostępne po angielsku i po polsku.",
+      "Te same aktywne usługi, ceny i zasady terminów są dostępne po angielsku i po polsku.",
     viewAll: "Zobacz wszystkie usługi",
-    howTitle: "Jak działa WitnessOps",
+    howTitle: "Jak to działa",
     howSteps: [
-      ["Opisz sytuację", "Wyślij krótkie, niepoufne zgłoszenie własnymi słowami."],
-      ["Uzgodnij granice", "Potwierdzamy usługę, zakres, upoważnienie, cenę, termin i sposób postępowania z materiałem."],
-      ["Odbierz wynik", "Przekazujemy uzgodniony raport lub pakiet z odniesieniami do dowodów, nazwanymi ograniczeniami i sprawami nierozstrzygniętymi."],
+      ["Opisz sytuację", "Wyślij krótki opis własnymi słowami, bez informacji poufnych."],
+      [
+        "Uzgodnij zakres",
+        "Potwierdzamy usługę, zakres, upoważnienie, cenę, termin i sposób postępowania z materiałami.",
+      ],
+      [
+        "Odbierz wynik",
+        "Przekazujemy uzgodniony raport lub pakiet z odwołaniami do materiałów, ograniczeniami i nierozwiązanymi kwestiami.",
+      ],
     ],
     whyTitle: "Dlaczego WitnessOps",
     whyItems: [
-      ["Jasny zakres", "Ustalenia wskazują, co obejmuje praca, co pozostaje poza zakresem i gdzie kończy się upoważnienie."],
-      ["Widoczny status materiału", "Obserwacje, twierdzenia bez wsparcia, niewiadome i sprawy nierozstrzygnięte pozostają rozdzielone."],
-      ["Praktyczne przekazanie", "Wynik jest uporządkowany tak, aby kolejna osoba odpowiedzialna mogła go sprawdzić i podjąć decyzję."],
+      [
+        "Jasny zakres",
+        "Ustalenia wskazują, co jest objęte pracą, czego nie obejmują i gdzie kończy się upoważnienie.",
+      ],
+      [
+        "Widoczny status materiałów",
+        "Obserwacje, oświadczenia kierownictwa, niepoparte twierdzenia, niewiadome i nierozwiązane kwestie pozostają rozdzielone.",
+      ],
+      [
+        "Praktyczne przekazanie",
+        "Wynik jest uporządkowany tak, aby kolejna odpowiedzialna osoba mogła go sprawdzić i zdecydować o następnym kroku.",
+      ],
     ],
   },
 } as const;
@@ -133,12 +163,13 @@ export function BuyerHomepage({
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
             {text.offersEyebrow}
           </p>
-          <h2 id="home-services-heading" className="mt-2 max-w-3xl text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+          <h2
+            id="home-services-heading"
+            className="mt-2 max-w-3xl text-3xl font-semibold tracking-[-0.02em] text-text-primary"
+          >
             {text.offersTitle}
           </h2>
-          <p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">
-            {text.offersBody}
-          </p>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">{text.offersBody}</p>
           <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {BUYER_SERVICES.map((service) => (
               <article
@@ -147,7 +178,7 @@ export function BuyerHomepage({
                 className="flex h-full flex-col border border-surface-border bg-surface-card/40 p-5"
               >
                 <p className="text-sm leading-6 text-text-muted">
-                  {service.situation[locale]}
+                  {service.cardSituation[locale]}
                 </p>
                 <h3 className="mt-3 text-lg font-semibold text-text-primary">
                   {service.name[locale]}

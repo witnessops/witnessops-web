@@ -25,17 +25,35 @@ test("footer keeps readable text contrast and sizing", () => {
   );
 });
 
+test("footer brand lockup uses the approved geometric mark without decorative effects", () => {
+  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
+
+  assert.match(source, /WitnessOpsMark/);
+  assert.match(source, /variant="mark"/);
+  assert.match(source, /tone="white"/);
+  assert.match(source, /data-footer-brand-lockup/);
+  assert.match(source, /data-brand-footer="approved-2026-07-30"/);
+  assert.match(source, /min-h-11/);
+  assert.doesNotMatch(source, /Package Security Workflow/);
+  assert.doesNotMatch(
+    source,
+    /drop-shadow|neon|bevel|glowing/i,
+    "Footer mark must stay flat and inspectable.",
+  );
+});
+
 test("footer provides Polish homepage labels without changing route contracts", () => {
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
 
   for (const marker of [
     'label: "Usługi", href: "/pl/catalog"',
     'href: "/pl/customer-security-review"',
-    'label: "Rozpocznij zgłoszenie", href: "/pl/review/request"',
+    'label: "Rozpocznij przegląd", href: "/pl/review/request"',
     'label: "Prywatność", href: "/privacy"',
     'label: "Warunki", href: "/terms"',
     'label: "Bezpieczeństwo", href: "/security"',
-    'motto: "Szanuj granice. Przedstaw potwierdzenia."',
+    'motto: "Respect the boundary. Bring receipts."',
+    "Operacje poparte dowodami",
   ]) {
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
   }

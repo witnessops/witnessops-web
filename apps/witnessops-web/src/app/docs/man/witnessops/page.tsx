@@ -43,11 +43,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** Exported for structural tests — draft pages must not be publicly served. */
-export function isManWitnessOpsPubliclyServed(draft: boolean = MAN_WITNESSOPS_PAGE.draft) {
-  return draft !== true;
-}
-
 export default function ManWitnessOps() {
   if (MAN_WITNESSOPS_PAGE.draft) {
     notFound();

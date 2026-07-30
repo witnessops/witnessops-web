@@ -5,7 +5,7 @@ import { PublicContactRoute } from "@/components/marketing/public-contact-route"
 export const metadata: Metadata = {
   title: "Customer Security Review Sprint",
   description:
-    "A bounded response package for one enterprise security questionnaire and one product scope, prepared in three working days after prerequisites are confirmed.",
+    "WitnessOps takes one questionnaire and one product scope, identifies which proposed answers are supported by the supplied evidence, separates management assertions and open items, and returns a response package for your approval.",
   alternates: {
     canonical: "/customer-security-review",
     languages: {
@@ -17,24 +17,39 @@ export const metadata: Metadata = {
 };
 
 const deliverables = [
-  "Answer matrix prepared for customer approval",
-  "Evidence index with dates, owners, scope and supported questions",
-  "Claim-status and open-item map",
-  "Customer cover note explaining scope, limitations and ownership",
+  "proposed answer matrix",
+  "evidence index",
+  "qualifications and unsupported-claim list",
+  "open-item and owner list",
+  "claim map where useful",
+  "cover note for the customer or internal approver",
 ];
 
-const evidenceStatuses = [
-  "Supported",
-  "Supported with qualification",
-  "Owner assertion",
-  "Open",
-  "Not applicable, with reason",
-];
+const steps = [
+  [
+    "Fit check",
+    "Confirm the questionnaire, product scope, deadline, owners and handling constraints without sending secrets.",
+  ],
+  [
+    "Scope agreement",
+    "Confirm authority, inputs, price, timing, exclusions and evidence handling.",
+  ],
+  [
+    "Review",
+    "Map supplied material to questions, draft supportable answers and separate assertions, gaps and unknowns.",
+  ],
+  [
+    "Approval package",
+    "Return the package for the customer’s review and final submission.",
+  ],
+] as const;
 
-const deliveryBoundary =
-  "Delivery within three working days after the questionnaire, product scope, responsible owners and required evidence access are confirmed.";
-const certificationBoundary =
-  "This sprint does not replace SOC 2, ISO 27001, penetration testing, legal advice, or any certification explicitly required by the customer.";
+const boundaries = [
+  "The customer owns the final answers, approvals and submission.",
+  "WitnessOps does not certify compliance or guarantee that a customer, auditor or procurement team will accept the package.",
+  "WitnessOps does not invent evidence or turn an unsupported claim into a supported one.",
+  "Formal certifications and reports remain necessary where the reviewer requires them.",
+];
 
 const syntheticRows = [
   ["Encryption in transit", "Supported", "Architecture standard, section 4"],
@@ -53,61 +68,76 @@ export default function CustomerSecurityReviewPage() {
               Send us the security questionnaire holding up your deal.
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">
-              We prepare a supported response for one questionnaire and one
-              product scope, keeping qualifications, missing evidence and
-              unresolved items visible for customer approval.
+              WitnessOps takes one questionnaire and one product scope, identifies which proposed
+              answers are supported by the supplied evidence, separates management assertions and
+              open items, and returns a response package for your approval.
             </p>
             <Link
               href="/review/request"
               className="mt-8 inline-flex min-h-12 items-center justify-center bg-black px-6 text-center text-sm font-semibold leading-5 text-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
             >
-              Send the questionnaire for a bounded fit check.
+              Start a non-secret fit check
             </Link>
             <p className="mt-3 max-w-xl text-sm leading-6 text-text-muted">
-              First contact is non-secret. Do not send the questionnaire, files,
-              logs, screenshots, credentials or customer evidence in the initial message.
+              Start with a general, non-secret description. Do not send files, credentials, logs,
+              screenshots, private keys, API keys, MFA codes, recovery codes, session tokens or
+              customer evidence during the fit check.
             </p>
           </div>
 
           <aside className="bg-black p-6 text-white sm:p-7">
             <div className="sm:grid sm:grid-cols-2 sm:gap-8 lg:block">
               <div>
-                <p className="text-sm font-semibold text-white/60">Commercial boundary</p>
+                <p className="text-sm font-semibold text-white/60">Commercial line</p>
                 <p className="mt-3 text-3xl font-semibold">From €1,600</p>
                 <p className="mt-2 text-sm leading-6 text-white/70">
-                  Confirmed after a non-secret fit check. One questionnaire. One product scope.
+                  After a non-secret fit check. One questionnaire. One product scope.
                 </p>
               </div>
               <div className="mt-6 border-t border-white/20 pt-5 sm:mt-0 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-8 lg:mt-6 lg:border-t lg:border-l-0 lg:pt-5 lg:pl-0">
-                <p className="text-sm leading-6 text-white/80">{deliveryBoundary}</p>
-                <p className="mt-3 text-xs leading-5 text-white/55">
-                  The delivery clock does not begin while documents or owners are still being located.
+                <p className="text-sm leading-6 text-white/80">
+                  Approximately three working days after scope, owners, required inputs and evidence access are confirmed.
                 </p>
               </div>
             </div>
           </aside>
         </header>
 
+        <section className="border-b border-surface-border py-12">
+          <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">Who it is for</h2>
+          <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
+            B2B software, SaaS, AI and technical-service companies facing a live customer security
+            questionnaire, vendor-security review or evidence request.
+          </p>
+        </section>
+
         <section className="grid gap-10 border-b border-surface-border py-12 md:grid-cols-2 md:gap-8 lg:gap-10">
           <div>
-            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">What you receive</h2>
+            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+              What you receive
+            </h2>
             <ul className="mt-6 space-y-4 text-base leading-7 text-text-secondary">
               {deliverables.map((item) => (
-                <li key={item} className="border-t border-surface-border pt-4">{item}</li>
+                <li key={item} className="border-t border-surface-border pt-4">
+                  {item}
+                </li>
               ))}
             </ul>
           </div>
           <div>
-            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">How every answer is classified</h2>
-            <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-              {evidenceStatuses.map((status) => (
-                <li key={status} className="border border-surface-border bg-surface-bg-alt p-4 text-sm text-text-secondary">{status}</li>
+            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+              How the sprint works
+            </h2>
+            <ol className="mt-6 space-y-4">
+              {steps.map(([title, body], index) => (
+                <li key={title} className="border-t border-surface-border pt-4">
+                  <p className="text-sm font-semibold text-text-primary">
+                    {index + 1}. {title}
+                  </p>
+                  <p className="mt-1 text-sm leading-7 text-text-secondary">{body}</p>
+                </li>
               ))}
-            </ul>
-            <p className="mt-5 text-sm leading-7 text-text-muted">
-              Missing evidence stays missing. We do not invent support, remove
-              qualifications or turn an owner assertion into a verified fact.
-            </p>
+            </ol>
           </div>
         </section>
 
@@ -120,9 +150,8 @@ export default function CustomerSecurityReviewPage() {
               <div>
                 <h2 className="text-2xl font-semibold text-text-primary">Example cover note</h2>
                 <p className="mt-3 text-sm leading-7 text-text-secondary">
-                  This fictional response covers one example product and the
-                  evidence references listed below. Open items require the named
-                  owner before the response is sent.
+                  This fictional response covers one example product and the evidence references
+                  listed below. Open items require the named owner before the response is sent.
                 </p>
                 <h3 className="mt-6 font-semibold text-text-primary">Example evidence references</h3>
                 <ul className="mt-3 space-y-2 text-sm text-text-muted">
@@ -130,10 +159,6 @@ export default function CustomerSecurityReviewPage() {
                   <li>Access review procedure — product scope</li>
                   <li>Incident response policy — owner-confirmed</li>
                 </ul>
-                <p className="mt-6 text-sm leading-7 text-text-muted">
-                  Scope and limitation: no live-system testing, certification or
-                  independent recomputation is represented by this demonstration.
-                </p>
               </div>
               <div
                 className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
@@ -163,17 +188,15 @@ export default function CustomerSecurityReviewPage() {
           </div>
         </section>
 
-        <section className="grid gap-8 py-12 lg:grid-cols-2">
-          <div>
-            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">What this Sprint does not replace</h2>
-            <p className="mt-4 text-sm leading-7 text-text-secondary">
-              {certificationBoundary}
-            </p>
-          </div>
-          <div className="space-y-3 text-sm leading-7 text-text-secondary">
-            <p>There is no guarantee of enterprise approval or deal closure. The customer owns every outward-facing answer.</p>
-            <p>No public evidence intake, live-system verification, SaaS signup, checkout, marketplace or self-service provisioning is part of this offer.</p>
-          </div>
+        <section className="py-12">
+          <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">Boundaries</h2>
+          <ul className="mt-6 space-y-4 text-base leading-7 text-text-secondary">
+            {boundaries.map((item) => (
+              <li key={item} className="border-t border-surface-border pt-4">
+                {item}
+              </li>
+            ))}
+          </ul>
         </section>
 
         <div className="border-t border-surface-border pt-10">

@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { BuyerHomepage } from "@/components/marketing/buyer-homepage";
 
 export const metadata: Metadata = {
-  title: "WitnessOps — przeglądy bezpieczeństwa i działania operacyjnego",
+  title: "Przeglądy bezpieczeństwa i operacji | WitnessOps",
   description:
-    "Wybierz jedną z sześciu usług WitnessOps. Najpierw potwierdzamy dopasowanie, zakres, cenę, termin i sposób postępowania z materiałem.",
+    "Powiedz nam, co trzeba odblokować. Przed rozpoczęciem pracy uzgadniamy sytuację, zakres, wynik, cenę, termin i sposób postępowania z materiałami.",
   alternates: {
     canonical: "/pl",
     languages: { en: "/", pl: "/pl", "x-default": "/" },

@@ -5,16 +5,16 @@ export type PublicLocale = "en" | "pl";
 export type CanonicalOffsecProductId = string;
 
 export const POLISH_NO_SECRETS_NOTE =
-  "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, kodów odzyskiwania, tokenów sesji ani innych sekretów.";
+  "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, kodów odzyskiwania, tokenów sesyjnych ani innych sekretów.";
 
 export const POLISH_PUBLIC_NAV = {
   links: [
     { label: "Usługi", href: "/pl/catalog" },
-    { label: "Przegląd bezpieczeństwa klienta", href: "/pl/customer-security-review" },
+    { label: "Customer Security Review", href: "/pl/customer-security-review" },
     { label: "Biblioteka", href: "/pl/library" },
     { label: "Dlaczego WitnessOps", href: "/pl/why-witnessops" },
   ],
-  cta: { label: "Rozpocznij zgłoszenie", href: "/pl/review/request", variant: "primary" },
+  cta: { label: "Rozpocznij przegląd", href: "/pl/review/request", variant: "primary" },
 } as const;
 
 export type PolishOfferCopy = {

@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { getDocsUrl, getSurfaceUrl } from "@witnessops/config";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
+import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { isPolishPath } from "@/lib/public-i18n";
 
 const DOCS_PUBLIC_HREF = getDocsUrl("witnessops", "/", { mode: "canonical" });
@@ -44,12 +45,12 @@ interface FooterProps {
 const LIBRARY_FOOTER: FooterProps & { motto: string } = {
   brand_line: "WitnessOps",
   subline:
-    "Public entry points for docs, security-workflow review, verifier fixtures, explanatory sample cases, and the illustrative sample report.",
+    "Public entry points for docs, reviews, verifier fixtures, explanatory sample cases, and the illustrative sample report.",
   links: [
     { label: "Library", href: "/library" },
     { label: "Docs", href: DOCS_PUBLIC_HREF },
     { label: "Review", href: "/review" },
-    { label: "Package Security Workflow", href: "/review/request" },
+    { label: "Start a review", href: "/review/request" },
     { label: "Sample cases", href: "/review/sample-cases" },
     { label: "Sample report", href: "/review/sample-report" },
     { label: "Verify", href: "/verify" },
@@ -61,24 +62,24 @@ const LIBRARY_FOOTER: FooterProps & { motto: string } = {
   ],
   build_label: "Build: STATIC",
   copyright: "© WitnessOps",
-  motto: "Make boundaries legible. Bring receipts.",
+  motto: "Respect the boundary. Bring receipts.",
 };
 
 const POLISH_FOOTER: FooterProps & { motto: string } = {
   brand_line: "WitnessOps",
   subline:
-    "Pakiety dowodowe o jasno określonym zakresie dla działań technicznych wymagających zaufania.",
+    "Ograniczone zakresowo przeglądy bezpieczeństwa i operacji z odwołaniami do materiałów, jasno wskazanymi ograniczeniami i praktycznym przekazaniem wyniku.",
   links: [
     { label: "Usługi", href: "/pl/catalog" },
     {
-      label: "Przegląd bezpieczeństwa klienta",
+      label: "Customer Security Review",
       href: "/pl/customer-security-review",
     },
     { label: "Dlaczego WitnessOps", href: "/pl/why-witnessops" },
     { label: "Weryfikacja", href: "/pl/verify" },
     { label: "Dokumentacja", href: "/pl/docs" },
     { label: "Biblioteka", href: "/pl/library" },
-    { label: "Rozpocznij zgłoszenie", href: "/pl/review/request" },
+    { label: "Rozpocznij przegląd", href: "/pl/review/request" },
   ],
   legal_links: [
     { label: "Prywatność", href: "/privacy" },
@@ -87,7 +88,7 @@ const POLISH_FOOTER: FooterProps & { motto: string } = {
   ],
   build_label: "Wersja: STATIC",
   copyright: "© WitnessOps",
-  motto: "Szanuj granice. Przedstaw potwierdzenia.",
+  motto: "Respect the boundary. Bring receipts.",
 };
 
 function resolveFooterHref(href: string): string {
@@ -142,7 +143,7 @@ export function Footer({
   const statusLabel = isLibrarySurface
     ? "Public entry points"
     : isPolishSurface
-      ? "Operacje oparte na dowodach"
+      ? "Operacje poparte dowodami"
       : "Proof-backed operations";
 
   function toHref(href: string) {
@@ -179,20 +180,31 @@ export function Footer({
   }
 
   return (
-    <footer className="border-t border-surface-border bg-surface-bg">
+    <footer
+      className="border-t border-surface-border bg-surface-bg"
+      data-brand-footer="approved-2026-07-30"
+    >
       <div className="mx-auto max-w-[1200px] px-6 py-10 sm:py-12">
 
         {/* Top row: brand lockup + links */}
         <div className="flex flex-col gap-7 md:flex-row md:items-start md:justify-between md:gap-8">
 
-          {/* Brand lockup */}
-          <div>
-            <p
-              className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-text-primary"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              {content.brand_line}
-            </p>
+          {/* Brand lockup: geometric mark + wordmark (P1) */}
+          <div data-footer-brand-lockup>
+            <div className="mb-2 flex min-h-11 items-center gap-3">
+              <WitnessOpsMark
+                variant="mark"
+                size="md"
+                tone="white"
+                className="shrink-0"
+              />
+              <p
+                className="text-sm font-semibold uppercase tracking-[0.12em] text-text-primary"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                {content.brand_line}
+              </p>
+            </div>
             <span
               className="mb-2 flex items-center gap-2 text-xs leading-5 text-text-secondary"
               style={FOOTER_MONO_STYLE}

@@ -13,32 +13,36 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: {
-    default: "WITNESSOPS — Bounded Proof Packs for Technical Trust",
-    template: "%s | WITNESSOPS",
+    default: "WitnessOps — Security and operational reviews",
+    template: "%s | WitnessOps",
   },
   description:
-    "WITNESSOPS helps package scoped technical actions when boundaries, available evidence, receipt artifacts, named limits, and inspection paths can be stated.",
+    "Bounded security and operational reviews with evidence references, clear limits and a practical handover. Start with a non-secret fit check.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_OS_SITE_URL ??
       surface?.canonicalUrl ??
       "https://witnessops.com",
   ),
   openGraph: {
-    title: "WITNESSOPS — Bounded Proof Packs for Technical Trust",
+    title: "WitnessOps — Security and operational reviews",
     description:
-      "WITNESSOPS helps package scoped technical actions when boundaries, available evidence, receipt artifacts, named limits, and inspection paths can be stated.",
-    siteName: "WITNESSOPS",
+      "Bounded security and operational reviews with evidence references, clear limits and a practical handover.",
+    siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "WITNESSOPS — Bounded Proof Packs for Technical Trust",
+    title: "WitnessOps — Security and operational reviews",
     description:
-      "WITNESSOPS helps package scoped technical actions when boundaries, available evidence, receipt artifacts, named limits, and inspection paths can be stated.",
+      "Bounded security and operational reviews with evidence references, clear limits and a practical handover.",
   },
   robots: {
     index: true,
     follow: true,
+  },
+  icons: {
+    icon: [{ url: "/brand/favicon-32.png", sizes: "32x32", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 

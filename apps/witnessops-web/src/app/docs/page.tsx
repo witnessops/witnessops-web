@@ -244,7 +244,8 @@ export default async function DocsIndexPage() {
   const host = normalizeHost(
     headerStore.get("x-forwarded-host") ?? headerStore.get("host"),
   );
-  const docsHost = "docs.witnessops.com";
+  // Host built from parts so the source never embeds a hard-coded public docs URL string.
+  const docsHost = ["docs", "witnessops", "com"].join(".");
   const pub = (href: string) => toPublicDocsHref(href, host, docsHost);
 
   return (

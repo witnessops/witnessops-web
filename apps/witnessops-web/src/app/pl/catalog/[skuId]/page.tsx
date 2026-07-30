@@ -93,7 +93,7 @@ export default async function PolishOfferPage({ params }: PageProps) {
         <Section title="Czego oferta nie obejmuje"><ul className="space-y-2">{copy.exclusions.map((item) => <li key={item}>— {item}</li>)}</ul></Section>
         <Section title="Jak zweryfikować wynik"><p>{copy.verification}</p></Section>
       </div>
-      <section className="border border-surface-border bg-surface-card/30 p-5"><h2 className="font-semibold text-text-primary">Rozpocznij zgłoszenie</h2><p className="mt-2 text-sm leading-6 text-text-muted">Najpierw sprawdzimy, czy oferta odpowiada Twojej sytuacji, a następnie uzgodnimy zakres, upoważnienie, cenę, termin oraz sposób postępowania z materiałami.</p><div className="mt-5"><CtaButton href={polishOfferRequestHref(id)} variant="primary" label="Rozpocznij zgłoszenie" /></div></section>
+      <section className="border border-surface-border bg-surface-card/30 p-5"><h2 className="font-semibold text-text-primary">Rozpocznij przegląd</h2><p className="mt-2 text-sm leading-6 text-text-muted">Najpierw sprawdzimy, czy oferta odpowiada Twojej sytuacji, a następnie uzgodnimy zakres, upoważnienie, cenę, termin oraz sposób postępowania z materiałami.</p><div className="mt-5"><CtaButton href={polishOfferRequestHref(id)} variant="primary" label="Rozpocznij przegląd" /></div></section>
       <div className="mt-10"><PublicContactRoute /></div>
     </main>
   );

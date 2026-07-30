@@ -27,7 +27,7 @@ const copy = {
     result: "Co otrzymasz",
     price: "Cena",
     timing: "Termin",
-    start: "Rozpocznij zgłoszenie",
+    start: "Rozpocznij przegląd",
     reference: "Identyfikator usługi",
   },
 } as const;

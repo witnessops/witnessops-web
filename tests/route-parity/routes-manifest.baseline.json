@@ -367,6 +367,12 @@
       "namedRegex": "^/admin/system(?:/)?$"
     },
     {
+      "page": "/apple-icon.png",
+      "regex": "^/apple\\-icon\\.png(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/apple\\-icon\\.png(?:/)?$"
+    },
+    {
       "page": "/catalog",
       "regex": "^/catalog(?:/)?$",
       "routeKeys": {},
@@ -433,10 +439,10 @@
       "namedRegex": "^/governed\\-execution(?:/)?$"
     },
     {
-      "page": "/icon.svg",
-      "regex": "^/icon\\.svg(?:/)?$",
+      "page": "/icon.png",
+      "regex": "^/icon\\.png(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/icon\\.svg(?:/)?$"
+      "namedRegex": "^/icon\\.png(?:/)?$"
     },
     {
       "page": "/library",

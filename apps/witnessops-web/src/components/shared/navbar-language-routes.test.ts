@@ -12,7 +12,7 @@ test("primary buyer navigation contains the approved English destinations", () =
     'label: "Customer Security Review", href: "/customer-security-review"',
     'label: "Library", href: "/library"',
     'label: "Why WitnessOps", href: "/why-witnessops"',
-    'label: "Start a Review"',
+    'label: "Start a review"',
   ]) {
     assert.ok(navbar.includes(marker), `Missing approved navigation marker: ${marker}`);
   }

@@ -52,21 +52,22 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
     ).toEqual([
       {
         price: "from_eur_1600_after_non_secret_fit_check",
-        timing: "three_working_days_after_scope_owners_and_evidence_access_confirmed",
+        timing:
+          "approx_three_working_days_after_scope_owners_inputs_and_evidence_access_confirmed",
       },
-      { price: "from_eur_1500", timing: "confirmed_after_non_secret_fit_check" },
+      { price: "from_eur_1500", timing: "confirmed_during_non_secret_fit_check" },
       {
         price: "eur_950_standard_after_fit_check",
-        timing: "within_two_business_days_after_authorized_collection_window",
+        timing: "within_two_business_days_after_authorised_collection_window",
       },
       {
         price: "eur_2500_to_7500",
-        timing: "four_business_days_after_candidate_evidence_collection",
+        timing: "four_business_days_after_candidate_collection",
       },
       { price: "eur_3000_to_15000", timing: "confirmed_during_non_secret_fit_check" },
       { price: "eur_5000_to_25000", timing: "confirmed_during_non_secret_fit_check" },
     ]);
-    await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż/);
+    await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż|Access Removal/);
 
     for (let index = 0; index < 6; index += 1) {
       const card = serviceCards.nth(index);
@@ -77,7 +78,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         scenario.path.startsWith("/pl") ? "/pl/review/request" : "/review/request",
       );
       await expect(primary).toHaveText(
-        scenario.path.startsWith("/pl") ? "Rozpocznij zgłoszenie" : "Start a review",
+        scenario.path.startsWith("/pl") ? "Rozpocznij przegląd" : "Start a review",
       );
       if (scenario.path === "/pl/catalog" && index === 1) {
         await expect(links).toHaveCount(1);

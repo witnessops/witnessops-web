@@ -26,7 +26,13 @@ export function AdminSidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; on
     <nav className={`${styles.sidebar}${mobileOpen ? ` ${styles.sidebarOpen}` : ""}`} aria-label="Admin navigation">
       <div className={styles.sidebarHeader}>
         <a href="/admin" className={styles.sidebarBrand} aria-label="WitnessOps Admin Console">
-          <Image src="/brand/witnessops-mark-white.svg" alt="WitnessOps" width={28} height={20} priority />
+          <Image
+            src="/brand/witnessops-mark-white.svg"
+            alt="WitnessOps"
+            width={32}
+            height={18}
+            priority
+          />
           <span>WITNESSOPS <small>HQ</small></span>
         </a>
       </div>

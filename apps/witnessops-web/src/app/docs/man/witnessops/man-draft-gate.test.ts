@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-import { isManWitnessOpsPubliclyServed } from "./page";
+import { isManWitnessOpsPubliclyServed } from "./man-public-gate";
 
 test("man witnessops route gates draft frontmatter with notFound", () => {
   const page = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");

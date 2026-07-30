@@ -6,7 +6,7 @@ const offers = [
     service: "bounded-workflow-review",
     name: "Bounded Workflow Review",
     price: "From €1,500",
-    timing: "Timing confirmed after the non-secret fit check",
+    timing: "Confirmed during the non-secret fit check",
     request: "/review/request",
   },
   {
@@ -14,7 +14,7 @@ const offers = [
     service: "one-server-security-check",
     name: "One Server Security Check",
     price: "€950 standard after a non-secret fit check",
-    timing: "Within two business days after the authorized collection window closes",
+    timing: "Within two business days after the authorised collection window",
     request: "/review/request",
   },
   {
@@ -22,7 +22,7 @@ const offers = [
     service: "launch-readiness-check",
     name: "Launch Readiness Check",
     price: "€2,500–€7,500",
-    timing: "Four business days after candidate evidence collection",
+    timing: "Four business days after candidate collection",
     request: "/review/request",
   },
   {
@@ -30,7 +30,7 @@ const offers = [
     service: "key-access-custody-review",
     name: "Key, Access and Custody Review",
     price: "€3,000–€15,000",
-    timing: "Timing confirmed during the non-secret fit check",
+    timing: "Confirmed during the non-secret fit check",
     request: "/review/request",
   },
   {
@@ -38,39 +38,39 @@ const offers = [
     service: "incident-readiness-review",
     name: "Incident Readiness Review",
     price: "€5,000–€25,000",
-    timing: "Timing confirmed during the non-secret fit check",
+    timing: "Confirmed during the non-secret fit check",
     request: "/review/request",
   },
   {
     path: "/pl/catalog/offsec-local-audit",
     service: "one-server-security-check",
-    name: "Przegląd bezpieczeństwa jednego serwera",
-    price: "950 € — cena standardowa po niepoufnej ocenie dopasowania",
-    timing: "W ciągu dwóch dni roboczych od zakończenia autoryzowanego okna zbierania danych.",
+    name: "One Server Security Check",
+    price: "Standardowo €950 po wstępnej ocenie bez informacji poufnych",
+    timing: "W ciągu dwóch dni roboczych po autoryzowanym oknie zbierania danych",
     request: "/pl/review/request",
   },
   {
     path: "/pl/catalog/offsec-launch-ready",
     service: "launch-readiness-check",
-    name: "Ocena gotowości do wdrożenia",
-    price: "2 500–7 500 €",
-    timing: "Cztery dni robocze od zebrania materiałów dotyczących wersji kandydującej.",
+    name: "Launch Readiness Check",
+    price: "€2,500–€7,500",
+    timing: "Cztery dni robocze po zebraniu kandydata do wydania",
     request: "/pl/review/request",
   },
   {
     path: "/pl/catalog/offsec-custody-ops",
     service: "key-access-custody-review",
-    name: "Przegląd zarządzania kluczami, dostępem i pieczą",
-    price: "3 000–15 000 €",
-    timing: "Termin potwierdzamy podczas niepoufnej oceny dopasowania.",
+    name: "Key, Access and Custody Review",
+    price: "€3,000–€15,000",
+    timing: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
     request: "/pl/review/request",
   },
   {
     path: "/pl/catalog/offsec-incident-ready",
     service: "incident-readiness-review",
-    name: "Przegląd gotowości na wypadek incydentu",
-    price: "5 000–25 000 €",
-    timing: "Termin potwierdzamy podczas niepoufnej oceny dopasowania.",
+    name: "Incident Readiness Review",
+    price: "€5,000–€25,000",
+    timing: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
     request: "/pl/review/request",
   },
 ] as const;
@@ -112,7 +112,7 @@ test("reachable offer details use the canonical buyer contract and visual system
       expect(metrics.overflow).toBeLessThanOrEqual(1);
 
       const requestLinks = main.getByRole("link", {
-        name: offer.path.startsWith("/pl") ? "Rozpocznij zgłoszenie" : "Start a review",
+        name: offer.path.startsWith("/pl") ? "Rozpocznij przegląd" : "Start a review",
       });
       await expect(requestLinks).toHaveCount(2);
       for (let index = 0; index < 2; index += 1) {
@@ -137,13 +137,13 @@ test("reachable offer details use the canonical buyer contract and visual system
 test("Polish offer handoff keeps the canonical contract on the request page", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/pl/catalog/offsec-custody-ops", { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: "Rozpocznij zgłoszenie" }).first().click();
+  await page.getByRole("link", { name: "Rozpocznij przegląd" }).first().click();
   await expect(page).toHaveURL(/\/pl\/review\/request\?/);
   const selectedOffer = page.getByText(/Wybrana oferta:/).locator("..");
-  await expect(selectedOffer).toContainText("Przegląd zarządzania kluczami, dostępem i pieczą");
-  await expect(selectedOffer).toContainText("3 000–15 000 €");
+  await expect(selectedOffer).toContainText("Key, Access and Custody Review");
+  await expect(selectedOffer).toContainText("€3,000–€15,000");
   await expect(selectedOffer).toContainText(
-    "Termin potwierdzamy podczas niepoufnej oceny dopasowania.",
+    "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
   );
   await expect(selectedOffer).not.toContainText("Custody / Wallet-Ops Review");
 });

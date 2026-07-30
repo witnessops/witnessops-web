@@ -83,7 +83,8 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     path: "/api/ask-witnessops",
     methods: ["POST"],
     category: "public-utility",
-    summary: "Deterministic Ask WitnessOps endpoint with durable receipt custody",
+    summary: "Deterministic Ask WitnessOps question endpoint with durable receipt custody",
+    note: "Accepts bounded JSON questions, returns the assembled answer, and reports durable or ephemeral receipt status through response headers.",
   },
   {
     path: "/api/contact",
@@ -98,13 +99,6 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     category: "public-utility",
     summary: "Docs assistant ask endpoint with disabled-by-default staging gates",
     note: "Returns 503 until explicitly enabled; enabled runtime is staging-gated, source-bounded, and public-intake rate limited.",
-  },
-  {
-    path: "/api/ask-witnessops",
-    methods: ["POST"],
-    category: "public-utility",
-    summary: "Deterministic Ask WitnessOps question endpoint",
-    note: "Accepts bounded JSON questions, returns the assembled answer, and reports durable or ephemeral receipt status through response headers.",
   },
   {
     path: "/api/support",
