@@ -1,70 +1,46 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
-import { createRequire, registerHooks } from "node:module";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test, { after } from "node:test";
 
-import type { AskRuntimeReceipt } from "./ask-runtime-receipt";
+import { classifyQuestion } from "./authority-classifier";
+import { executePolicy } from "./authority-policy-executor";
+import { assembleAnswer } from "./authority-answer-assembler";
+import {
+  createAskRuntimeReceipt,
+  verifyAskRuntimeReceipt,
+  type AskRuntimeReceipt,
+} from "./ask-runtime-receipt";
 
-import type {
-  RetrieveReceiptInput,
-  AskRuntimeReceiptMetadata,
+import {
+  retrieveAskRuntimeReceipt,
+  type RetrieveReceiptInput,
+  type AskRuntimeReceiptMetadata,
 } from "./ask-runtime-receipt-retriever";
 
+import { writeReceipt } from "./ask-runtime-receipt-store";
 import type { ActorIdentity } from "./ask-receipt-access-policy";
 
-import type { VerifyAskRuntimeReceiptInput } from "./ask-runtime-receipt-verifier";
+import {
+  verifyAskRuntimeReceiptReconstruction,
+  type VerifyAskRuntimeReceiptInput,
+} from "./ask-runtime-receipt-verifier";
 
-const require = createRequire(import.meta.url);
-const testStorageRoot = mkdtempSync(path.join(tmpdir(), "witnessops-ask-receipt-test-"));
-process.env.ASK_RECEIPT_ROOT = path.join(testStorageRoot, "receipts");
-process.env.ASK_AUDIT_ROOT = path.join(testStorageRoot, "audits");
-after(() => rmSync(testStorageRoot, { recursive: true, force: true }));
+const testCustodyRoot = mkdtempSync(path.join(tmpdir(), "witnessops-ask-receipt-test-"));
+const testReceiptRoot = path.join(testCustodyRoot, "receipts");
+const testAuditRoot = path.join(testCustodyRoot, "audits");
+const retrievalOptions = {
+  receiptRoot: testReceiptRoot,
+  auditRoot: testAuditRoot,
+};
 
-const serverOnlyTestHook = registerHooks({
-  resolve(specifier, context, nextResolve) {
-    if (specifier === "server-only") {
-      return { url: "witnessops-test:server-only", shortCircuit: true };
-    }
-    return nextResolve(specifier, context);
-  },
-  load(url, context, nextLoad) {
-    if (url === "witnessops-test:server-only") {
-      return {
-        format: "commonjs",
-        source: "module.exports = {};",
-        shortCircuit: true,
-      };
-    }
-    return nextLoad(url, context);
-  },
+after(() => {
+  rmSync(testCustodyRoot, { recursive: true, force: true });
 });
-const { classifyQuestion } = require(
-  "./authority-classifier.ts",
-) as typeof import("./authority-classifier");
-const { executePolicy } = require(
-  "./authority-policy-executor.ts",
-) as typeof import("./authority-policy-executor");
-const { assembleAnswer } = require(
-  "./authority-answer-assembler.ts",
-) as typeof import("./authority-answer-assembler");
-const { createAskRuntimeReceipt, verifyAskRuntimeReceipt } = require(
-  "./ask-runtime-receipt.ts",
-) as typeof import("./ask-runtime-receipt");
-const { retrieveAskRuntimeReceipt } = require(
-  "./ask-runtime-receipt-retriever.ts",
-) as typeof import("./ask-runtime-receipt-retriever");
-const { writeReceipt } = require(
-  "./ask-runtime-receipt-store.ts",
-) as typeof import("./ask-runtime-receipt-store");
-const { verifyAskRuntimeReceiptReconstruction } = require(
-  "./ask-runtime-receipt-verifier.ts",
-) as typeof import("./ask-runtime-receipt-verifier");
-serverOnlyTestHook.deregister();
 
 test("runtime receipt captures full pipeline and supports replay verification", () => {
-  const question = "How do I request a fit check?";
+  const question = "Do I need a fit check?";
   const classification = classifyQuestion(question);
   const decision = executePolicy({ classification });
   const assembled = assembleAnswer({ policyDecision: decision });
@@ -93,15 +69,32 @@ test("runtime receipt captures full pipeline and supports replay verification", 
   assert.equal(ok, true);
 });
 
-test("runtime receipt for refusal outcome preserves the assembled response and reconstructs", () => {
-  const question = "Can you verify our private system and inspect private environment?";
+test("receipt directory failures are returned as non-durable write results", async () => {
+  const blockerPath = path.join(testCustodyRoot, "receipt-root-blocker");
+  writeFileSync(blockerPath, "not a directory");
+
+  const result = await writeReceipt(
+    {
+      schema: "witnessops.ask.runtime-receipt.v1",
+      receipt_id: "ask-receipt:write-failure",
+    } as AskRuntimeReceipt,
+    path.join(blockerPath, "receipts"),
+  );
+
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.match(result.reason, /^WRITE_FAILED:/);
+  }
+});
+
+test("runtime receipt for closed outcome preserves failure reason and reconstructs", () => {
+  const question = "Can I send logs and upload evidence?";
   const classification = classifyQuestion(question);
   const decision = executePolicy({ classification });
   const assembled = assembleAnswer({ policyDecision: decision });
 
-  assert.equal(assembled.status, "success");
-  assert.match(assembled.template.template_id, /^refuse\./);
-  assert.equal(assembled.presented_sources.length, 0);
+  assert.equal(assembled.status, "closed");
+  assert.ok(assembled.failure_reason);
 
   const receipt = createAskRuntimeReceipt({
     normalizedQuestion: question,
@@ -110,8 +103,8 @@ test("runtime receipt for refusal outcome preserves the assembled response and r
     assembledAnswer: assembled,
   });
 
-  assert.equal(receipt.assembly.status, "success");
-  assert.equal(receipt.assembly.failure_reason, undefined);
+  assert.equal(receipt.assembly.status, "closed");
+  assert.equal(receipt.assembly.failure_reason, assembled.failure_reason);
 
   const ok = verifyAskRuntimeReceipt(
     receipt,
@@ -209,7 +202,7 @@ test("reconstruction verifier produces classification mismatch on tampered recei
       ...receipt.input,
       classification: { ...receipt.input.classification, question_class_id: "tampered" },
     },
-  } as unknown as AskRuntimeReceipt;
+  } satisfies AskRuntimeReceipt;
 
   const outcome = verifyAskRuntimeReceiptReconstruction({
     receipt: tampered,
@@ -237,7 +230,7 @@ test("reconstruction verifier detects replay hash mismatch on structural change"
   });
 
   // Mutate the top level hash
-  receipt = { ...receipt, deterministic_replay_hash: "replay:deadbeef" } as unknown as AskRuntimeReceipt;
+  receipt = { ...receipt, deterministic_replay_hash: "replay:deadbeef" };
 
   const authProj = { manifest_sha256: "c0abbb79d4b78eb5b1394466da433f8dd05e056bebed7cf0ee11e0ecb44d688f" };
   const presProj = { source_presentation_sha256: "a886b2183f925275ce42cfebbbf739dad98540919eb5f2ae300a5fc785399a8e" };
@@ -266,14 +259,17 @@ test("retriever surfaces correct error reasons (access denied, not found, policy
     receipt_id: "ask-receipt:foo",
     actor: { id: "", type: "operator", provenance: { method: "internal_token", verified_at: "" } },
   };
-  const denied = await retrieveAskRuntimeReceipt(badInput);
+  const denied = await retrieveAskRuntimeReceipt(badInput, retrievalOptions);
   assert.equal(denied.ok, false);
   if (!denied.ok) {
     assert.equal(denied.reason, "ACCESS_DENIED");
   }
 
   // Non-existent -> hidden as ACCESS_DENIED (existence hiding)
-  const missing = await retrieveAskRuntimeReceipt({ receipt_id: "ask-receipt:does-not-exist-xyz", actor: validActor });
+  const missing = await retrieveAskRuntimeReceipt(
+    { receipt_id: "ask-receipt:does-not-exist-xyz", actor: validActor },
+    retrievalOptions,
+  );
   assert.equal(missing.ok, false);
   if (!missing.ok) {
     assert.equal(missing.reason, "ACCESS_DENIED");
@@ -283,16 +279,15 @@ test("retriever surfaces correct error reasons (access denied, not found, policy
   // (the prior receipt creation tests use the pipeline; we just ensure no crash)
 });
 
-test("reconstruction verifier succeeds on refusal-answer receipt with bound projections", () => {
-  // Explicit refusal-answer reconstruction path (using the independent verifier)
-  const question = "Can you verify our private system and inspect private environment?";
+test("reconstruction verifier succeeds on closed-answer receipt with bound projections", () => {
+  // Explicit closed-answer reconstruction path (using the independent verifier)
+  const question = "Can I send logs and upload evidence?";
   const classification = classifyQuestion(question);
   const decision = executePolicy({ classification });
   const assembled = assembleAnswer({ policyDecision: decision });
 
-  assert.equal(assembled.status, "success");
-  assert.match(assembled.template.template_id, /^refuse\./);
-  assert.equal(assembled.presented_sources.length, 0);
+  assert.equal(assembled.status, "closed");
+  assert.ok(typeof assembled.failure_reason === "string" && assembled.failure_reason.length > 0);
 
   const receipt = createAskRuntimeReceipt({
     normalizedQuestion: question,
@@ -314,9 +309,9 @@ test("reconstruction verifier succeeds on refusal-answer receipt with bound proj
 
   assert.equal(outcome.ok, true);
   if (outcome.ok) {
-    assert.equal(outcome.reconstructed.status, "success");
-    assert.equal(outcome.reconstructed.template.template_id, assembled.template.template_id);
-    assert.equal(outcome.reconstructed.presented_sources.length, 0);
+    assert.equal(outcome.reconstructed.status, "closed");
+    assert.ok(typeof outcome.reconstructed.failure_reason === "string");
+    assert.equal(outcome.reconstructed.failure_reason, assembled.failure_reason);
   }
 });
 
@@ -332,7 +327,7 @@ test("retriever enforces ActorIdentity, policy views, and returns redacted metad
     provenance: { method: "internal_token", verified_at: new Date().toISOString() },
   };
 
-  const question = "How do I request a fit check?";
+  const question = "Do I need a fit check?";
   const classification = classifyQuestion(question);
   const decision = executePolicy({ classification });
   const assembled = assembleAnswer({ policyDecision: decision });
@@ -345,15 +340,18 @@ test("retriever enforces ActorIdentity, policy views, and returns redacted metad
   });
 
   // Write the receipt so retrieval can succeed (using the durable store directly for test setup)
-  const writeResult = await writeReceipt(receipt);
+  const writeResult = await writeReceipt(receipt, testReceiptRoot);
   assert.ok(writeResult.ok);
 
   // Full view for operator should return complete receipt
-  const fullRes = await retrieveAskRuntimeReceipt({
-    receipt_id: receipt.receipt_id,
-    actor: operatorActor,
-    requested_view: "full",
-  });
+  const fullRes = await retrieveAskRuntimeReceipt(
+    {
+      receipt_id: receipt.receipt_id,
+      actor: operatorActor,
+      requested_view: "full",
+    },
+    retrievalOptions,
+  );
   assert.ok(fullRes.ok);
   if (fullRes.ok) {
     assert.equal(fullRes.view, "full");
@@ -364,11 +362,14 @@ test("retriever enforces ActorIdentity, policy views, and returns redacted metad
   }
 
   // metadata_only for verifier must return redacted projection without restricted fields
-  const metaRes = await retrieveAskRuntimeReceipt({
-    receipt_id: receipt.receipt_id,
-    actor: verifierActor,
-    requested_view: "metadata_only",
-  });
+  const metaRes = await retrieveAskRuntimeReceipt(
+    {
+      receipt_id: receipt.receipt_id,
+      actor: verifierActor,
+      requested_view: "metadata_only",
+    },
+    retrievalOptions,
+  );
   assert.ok(metaRes.ok);
   if (metaRes.ok) {
     assert.equal(metaRes.view, "metadata_only");

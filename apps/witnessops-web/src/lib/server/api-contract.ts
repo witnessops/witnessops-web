@@ -80,6 +80,12 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
   // public-utility
   // -------------------------------------------------------------------------
   {
+    path: "/api/ask-witnessops",
+    methods: ["POST"],
+    category: "public-utility",
+    summary: "Deterministic Ask WitnessOps endpoint with durable receipt custody",
+  },
+  {
     path: "/api/contact",
     methods: ["POST"],
     category: "public-utility",

@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 import { normalizeAskRequest } from "@/lib/server/ask-witnessops/ask-request-normalizer";
-import {
-  classifyQuestion,
-  executePolicy,
-  assembleAnswer,
-  createAskRuntimeReceipt,
-} from "@/lib/server/ask-witnessops/authority-loader";
+import { classifyQuestion } from "@/lib/server/ask-witnessops/authority-classifier";
+import { executePolicy } from "@/lib/server/ask-witnessops/authority-policy-executor";
+import { assembleAnswer } from "@/lib/server/ask-witnessops/authority-answer-assembler";
+import { createAskRuntimeReceipt } from "@/lib/server/ask-witnessops/ask-runtime-receipt";
 import { writeReceipt } from "@/lib/server/ask-witnessops/ask-runtime-receipt-store";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 import { findDuplicateJsonObjectKey } from "@/lib/json-ambiguity";

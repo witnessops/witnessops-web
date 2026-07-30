@@ -10,7 +10,7 @@
     "validate:ask-authority-loader": "node ./scripts/validate-ask-authority-loader-standalone.mjs",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "TSX_TSCONFIG_PATH=tsconfig.test.json node --import tsx --test 'src/**/*.test.ts' 'src/**/*.test.tsx'",
+    "test": "TSX_TSCONFIG_PATH=tsconfig.test.json node --import ./scripts/register-server-only-test-stub.mjs --import tsx --test 'src/**/*.test.ts' 'src/**/*.test.tsx'",
     "test:evidence": "tsx --tsconfig ./tsconfig.json --test 'src/lib/server/*.test.ts' 'src/app/api/provider-events/**/*.test.ts'"
   },
   "dependencies": {

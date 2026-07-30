@@ -20,7 +20,7 @@ export interface ReceiptAuditEvent {
   readonly audit_id: string;
   readonly timestamp: string;
   readonly event: "receipt_retrieved" | "retrieval_denied" | "retrieval_failed";
-  readonly actor: ActorIdentity;
+  readonly actor: ActorIdentity | null;
   readonly receipt_id?: string;
   readonly receipt_class_id?: string;
   readonly decision: AccessDecision;
@@ -60,10 +60,9 @@ function canonicalize(value: unknown): unknown {
   );
 }
 
-function errorCode(error: unknown): unknown {
-  return error && typeof error === "object" && "code" in error
-    ? (error as { code?: unknown }).code
-    : undefined;
+function errorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== "object" || !("code" in error)) return undefined;
+  return typeof error.code === "string" ? error.code : undefined;
 }
 
 function errorMessage(error: unknown): string {
@@ -94,7 +93,7 @@ export async function writeAuditEvent(
 
     // Verify
     const written = await fs.promises.readFile(tempPath, "utf8");
-    const writtenObj = JSON.parse(written);
+    const writtenObj = JSON.parse(written) as { _content_hash?: unknown };
     if (writtenObj._content_hash !== payload._content_hash) {
       await fs.promises.unlink(tempPath).catch(() => {});
       return { ok: false, reason: "WRITE_VERIFICATION_FAILED" };
@@ -102,12 +101,12 @@ export async function writeAuditEvent(
 
     try {
       await fs.promises.rename(tempPath, targetPath);
-    } catch (renameErr: unknown) {
+    } catch (renameError: unknown) {
       await fs.promises.unlink(tempPath).catch(() => {});
-      if (errorCode(renameErr) === "EEXIST") {
+      if (errorCode(renameError) === "EEXIST") {
         return { ok: false, reason: "AUDIT_ALREADY_EXISTS" };
       }
-      throw renameErr;
+      throw renameError;
     }
 
     // Also emit for operational visibility (not custody)
@@ -119,8 +118,8 @@ export async function writeAuditEvent(
     }));
 
     return { ok: true, path: targetPath };
-  } catch (err: unknown) {
+  } catch (error: unknown) {
     await fs.promises.unlink(tempPath).catch(() => {});
-    return { ok: false, reason: `AUDIT_WRITE_FAILED: ${errorMessage(err)}` };
+    return { ok: false, reason: `AUDIT_WRITE_FAILED: ${errorMessage(error)}` };
   }
 }

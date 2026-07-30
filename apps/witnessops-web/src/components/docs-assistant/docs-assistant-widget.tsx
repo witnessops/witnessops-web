@@ -3,19 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
-import { DocsAssistantBoundaryMeta } from "./docs-assistant-boundary-meta";
-import { DocsAssistantLoadingStatus } from "./docs-assistant-loading-status";
-import { DocsAssistantSourceLinks } from "./docs-assistant-source-links";
 import {
-  answerText,
-  docsAssistantRequestErrorDetails,
-  type DocsAssistantUiAnswer,
-} from "./docs-assistant-response";
+  askWitnessOpsAnswerText,
+  fetchAskWitnessOps,
+  type AskWitnessOpsUiAnswer,
+} from "./ask-witnessops-response";
+import { AskWitnessOpsReceiptMeta } from "./ask-witnessops-receipt-meta";
+import { AskWitnessOpsRouteCta } from "./ask-witnessops-route-cta";
+import { AskWitnessOpsSourceLinks } from "./ask-witnessops-source-links";
+import { DocsAssistantLoadingStatus } from "./docs-assistant-loading-status";
 
 interface AnswerState {
   content: string;
-  citations?: DocsAssistantUiAnswer["citations"];
-  answer?: DocsAssistantUiAnswer;
+  answer?: AskWitnessOpsUiAnswer;
   error?: boolean;
 }
 
@@ -44,29 +44,22 @@ export function DocsAssistantWidget() {
     setAnswer(null);
 
     try {
-      const res = await fetch("/api/docs-assistant/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: trimmed }),
-      });
-      if (!res.ok) {
-        const error = await docsAssistantRequestErrorDetails(res);
-        setAnswer({
-          content: error.message,
-          error: true,
-          answer: error.answer,
-        });
-        setQuestion("");
-        return;
-      }
-      const data = (await res.json()) as DocsAssistantUiAnswer;
+      const data = await fetchAskWitnessOps(trimmed);
       setAnswer({
-        content: answerText(data),
-        citations: data.citations,
+        content: askWitnessOpsAnswerText(data),
         answer: data,
       });
       setQuestion("");
     } catch (err) {
+      if (err instanceof Error && err.message.startsWith("Ask WitnessOps request failed")) {
+        setAnswer({
+          content: err.message,
+          error: true,
+        });
+        setQuestion("");
+        return;
+      }
+
       setAnswer({
         content: err instanceof Error ? err.message : "Something went wrong.",
         error: true,
@@ -100,7 +93,6 @@ export function DocsAssistantWidget() {
           className="flex w-[calc(100vw-2rem)] max-w-[320px] flex-col overflow-hidden rounded border border-surface-border bg-surface-bg shadow-xl max-[420px]:w-full max-[420px]:max-w-none"
           style={{ height: "min(440px, calc(100vh - 8rem))" }}
         >
-          {/* Header */}
           <div className="flex shrink-0 items-center justify-between border-b border-surface-border px-4 py-3">
             <div>
               <span
@@ -122,7 +114,6 @@ export function DocsAssistantWidget() {
             </button>
           </div>
 
-          {/* Body */}
           <div className="flex min-h-0 flex-1 flex-col p-4">
             <div className="flex-1 overflow-y-auto">
               {!answer && !loading && (
@@ -132,9 +123,7 @@ export function DocsAssistantWidget() {
                 </p>
               )}
 
-              {loading && (
-                <DocsAssistantLoadingStatus compact />
-              )}
+              {loading && <DocsAssistantLoadingStatus compact />}
 
               {answer && (
                 <div>
@@ -146,15 +135,19 @@ export function DocsAssistantWidget() {
                     {answer.content}
                   </p>
 
-                  <DocsAssistantSourceLinks
-                    answer={answer.answer}
-                    citations={answer.citations}
-                    compact
-                  />
-                  <DocsAssistantBoundaryMeta
-                    answer={answer.answer}
-                    compact
-                  />
+                  {answer.answer && (
+                    <>
+                      <AskWitnessOpsRouteCta answer={answer.answer} compact />
+                      <AskWitnessOpsSourceLinks
+                        answer={answer.answer}
+                        compact
+                      />
+                      <AskWitnessOpsReceiptMeta
+                        answer={answer.answer}
+                        compact
+                      />
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -164,7 +157,6 @@ export function DocsAssistantWidget() {
               screenshots, customer evidence, or raw exports.
             </p>
 
-            {/* Input */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -196,7 +188,6 @@ export function DocsAssistantWidget() {
         </div>
       )}
 
-      {/* Toggle button */}
       <button
         onClick={handleToggle}
         className="flex h-10 items-center gap-2 rounded border border-surface-border bg-surface-bg px-4 text-xs font-semibold uppercase tracking-wider text-text-primary shadow-lg transition-colors hover:border-brand-accent hover:text-brand-accent max-[420px]:w-10 max-[420px]:justify-center max-[420px]:px-0"

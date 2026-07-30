@@ -2,20 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { DocsAssistantBoundaryMeta } from "./docs-assistant-boundary-meta";
-import { DocsAssistantLoadingStatus } from "./docs-assistant-loading-status";
-import { DocsAssistantSourceLinks } from "./docs-assistant-source-links";
 import {
-  answerText,
-  docsAssistantRequestErrorDetails,
-  type DocsAssistantUiAnswer,
-} from "./docs-assistant-response";
+  askWitnessOpsAnswerText,
+  fetchAskWitnessOps,
+  type AskWitnessOpsUiAnswer,
+} from "./ask-witnessops-response";
+import { AskWitnessOpsReceiptMeta } from "./ask-witnessops-receipt-meta";
+import { AskWitnessOpsRouteCta } from "./ask-witnessops-route-cta";
+import { AskWitnessOpsSourceLinks } from "./ask-witnessops-source-links";
+import { DocsAssistantLoadingStatus } from "./docs-assistant-loading-status";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
-  citations?: DocsAssistantUiAnswer["citations"];
-  answer?: DocsAssistantUiAnswer;
+  answer?: AskWitnessOpsUiAnswer;
   error?: boolean;
 }
 
@@ -47,31 +47,12 @@ export function DocsAssistantPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/docs-assistant/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: trimmed }),
-      });
-      if (!res.ok) {
-        const error = await docsAssistantRequestErrorDetails(res);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: error.message,
-            error: true,
-            answer: error.answer,
-          },
-        ]);
-        return;
-      }
-      const data = (await res.json()) as DocsAssistantUiAnswer;
+      const data = await fetchAskWitnessOps(trimmed);
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: answerText(data),
-          citations: data.citations,
+          content: askWitnessOpsAnswerText(data),
           answer: data,
         },
       ]);
@@ -118,7 +99,6 @@ export function DocsAssistantPage() {
         </p>
       </header>
 
-      {/* Message list */}
       <div className="overflow-visible md:min-h-0 md:flex-1 md:overflow-y-auto">
         {isEmpty ? (
           <div className="flex flex-col items-center justify-center gap-4 px-4 py-6 text-center md:h-full md:gap-6 md:py-0">
@@ -156,11 +136,13 @@ export function DocsAssistantPage() {
                     >
                       {msg.content}
                     </p>
-                    <DocsAssistantSourceLinks
-                      answer={msg.answer}
-                      citations={msg.citations}
-                    />
-                    <DocsAssistantBoundaryMeta answer={msg.answer} />
+                    {msg.answer && (
+                      <>
+                        <AskWitnessOpsRouteCta answer={msg.answer} />
+                        <AskWitnessOpsSourceLinks answer={msg.answer} />
+                        <AskWitnessOpsReceiptMeta answer={msg.answer} />
+                      </>
+                    )}
                   </div>
                 </div>
               ),
@@ -176,7 +158,6 @@ export function DocsAssistantPage() {
         )}
       </div>
 
-      {/* Input */}
       <div className="border-t border-surface-border pt-4">
         <form
           onSubmit={(e) => {

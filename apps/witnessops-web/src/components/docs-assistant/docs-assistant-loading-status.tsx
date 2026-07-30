@@ -26,7 +26,7 @@ export function DocsAssistantLoadingStatus({ compact = false }: Props) {
     <div
       role="status"
       aria-live="polite"
-      aria-label="Searching public WitnessOps material"
+      aria-label="Assembling bounded public answer"
       aria-atomic="true"
       className={`inline-flex items-center gap-2 rounded border border-surface-border bg-surface-bg text-text-muted ${
         compact ? "px-2 py-1 text-[11px]" : "px-2.5 py-1.5 text-xs"
@@ -38,7 +38,7 @@ export function DocsAssistantLoadingStatus({ compact = false }: Props) {
         <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-accent" />
       </span>
       <span className="inline-flex items-baseline" aria-hidden="true">
-        <span>Searching public WitnessOps material</span>
+        <span>Assembling bounded public answer</span>
         <span className="ml-0.5 inline-grid w-[4ch] grid-cols-4 text-brand-accent">
           {DOTS.map((dot) => (
             <span

@@ -27,9 +27,13 @@ test("Ask WitnessOps surfaces carry the bounded public-copy contract", () => {
     assert.match(content, new RegExp(warning));
     assert.match(content, new RegExp(footer));
     assert.match(content, new RegExp(placeholder.replaceAll(".", "\\.")));
-    assert.match(content, /\/api\/docs-assistant\/ask/);
+    assert.match(content, /fetchAskWitnessOps/);
+    assert.doesNotMatch(content, /\/api\/docs-assistant\/ask/);
     assert.doesNotMatch(content, /Ask anything about WitnessOps/i);
   }
+
+  const client = source("ask-witnessops-response.ts");
+  assert.match(client, /\/api\/ask-witnessops/);
 });
 
 test("Ask WitnessOps offers the five buyer and proof quick prompts", () => {
@@ -50,10 +54,11 @@ test("Ask WitnessOps offers the five buyer and proof quick prompts", () => {
   }
 });
 
-test("Ask WitnessOps loading copy names only public material", () => {
+test("Ask WitnessOps loading copy reflects deterministic assembly", () => {
   const content = source("docs-assistant-loading-status.tsx");
-  assert.match(content, /Searching public WitnessOps material/);
+  assert.match(content, /Assembling bounded public answer/);
   assert.doesNotMatch(content, /Searching docs/);
+  assert.doesNotMatch(content, /Searching public WitnessOps material/);
 });
 
 test("Ask WitnessOps full page uses mobile document flow and desktop scrolling", () => {

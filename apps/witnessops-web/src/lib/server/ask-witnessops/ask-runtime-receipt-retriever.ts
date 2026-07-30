@@ -42,6 +42,11 @@ export interface RetrieveReceiptInput {
   readonly requested_view?: 'full' | 'metadata_only';
 }
 
+export interface ReceiptRetrievalOptions {
+  readonly receiptRoot?: string;
+  readonly auditRoot?: string;
+}
+
 export interface RetrieveReceiptSuccess {
   readonly ok: true;
   readonly receipt: AskRuntimeReceipt | AskRuntimeReceiptMetadata;
@@ -99,7 +104,8 @@ function checkRateLimit(actorId: string): boolean {
 async function emitAudit(
   event: Omit<ReceiptAuditEvent, 'schema' | 'audit_id' | 'timestamp'>,
   auditId: string,
-  retrievedAt: string
+  retrievedAt: string,
+  auditRoot?: string,
 ): Promise<void> {
   const fullEvent: ReceiptAuditEvent = {
     schema: "witnessops.ask.receipt-audit.v1",
@@ -108,13 +114,14 @@ async function emitAudit(
     ...event,
   };
   // Fire and forget for audit write; errors are logged but do not fail the retrieval path
-  await writeAuditEvent(fullEvent).catch((e) => {
+  await writeAuditEvent(fullEvent, auditRoot).catch((e) => {
     console.log(JSON.stringify({ event: "ask_audit_write_failed", error: String(e) }));
   });
 }
 
 export async function retrieveAskRuntimeReceipt(
-  input: RetrieveReceiptInput
+  input: RetrieveReceiptInput,
+  options: ReceiptRetrievalOptions = {},
 ): Promise<RetrieveReceiptSuccess | RetrieveReceiptError> {
   const auditId = generateAuditId();
   const retrievedAt = new Date().toISOString();
@@ -123,17 +130,12 @@ export async function retrieveAskRuntimeReceipt(
   // Basic provenance validation via policy
   if (!input.actor || !input.actor.id) {
     const decision: AccessDecision = { allow: false, reason: "ACTOR_UNKNOWN" };
-    const invalidActor: ActorIdentity = {
-      id: "",
-      type: "operator",
-      provenance: { method: "internal_token", verified_at: "" },
-    };
     await emitAudit({
       event: "retrieval_denied",
-      actor: input.actor || invalidActor,
+      actor: input.actor ?? null,
       decision,
       details: "missing actor",
-    }, auditId, retrievedAt);
+    }, auditId, retrievedAt, options.auditRoot);
     return {
       ok: false,
       reason: "ACCESS_DENIED",
@@ -148,7 +150,7 @@ export async function retrieveAskRuntimeReceipt(
       event: "retrieval_denied",
       actor: input.actor,
       decision,
-    }, auditId, retrievedAt);
+    }, auditId, retrievedAt, options.auditRoot);
     return {
       ok: false,
       reason: "ACCESS_DENIED",
@@ -157,7 +159,10 @@ export async function retrieveAskRuntimeReceipt(
     };
   }
 
-  const readResult: ReceiptReadResult | ReceiptReadError = await readReceipt(input.receipt_id);
+  const readResult: ReceiptReadResult | ReceiptReadError = await readReceipt(
+    input.receipt_id,
+    options.receiptRoot,
+  );
 
   let decision: AccessDecision;
 
@@ -177,9 +182,10 @@ export async function retrieveAskRuntimeReceipt(
       receipt_id: input.receipt_id,
       decision,
       details: readResult.reason,
-    }, auditId, retrievedAt);
+    }, auditId, retrievedAt, options.auditRoot);
 
-    const errorReason: RetrieveReceiptError["reason"] = (decision.reason === "RECEIPT_SCOPE_DENIED" || decision.reason === "ACTOR_UNAUTHORIZED")
+    const errorReason: RetrieveReceiptError["reason"] =
+      (decision.reason === "RECEIPT_SCOPE_DENIED" || decision.reason === "ACTOR_UNAUTHORIZED")
       ? "ACCESS_DENIED"
       : (readResult.reason === "CONTENT_HASH_MISMATCH" || readResult.reason === "INVALID_RECEIPT_SCHEMA")
         ? "CUSTODY_INTEGRITY_FAILURE"
@@ -209,7 +215,7 @@ export async function retrieveAskRuntimeReceipt(
       receipt_id: input.receipt_id,
       receipt_class_id: metadata.question_class_id,
       decision,
-    }, auditId, retrievedAt);
+    }, auditId, retrievedAt, options.auditRoot);
 
     return {
       ok: false,
@@ -234,7 +240,7 @@ export async function retrieveAskRuntimeReceipt(
     receipt_class_id: metadata.question_class_id,
     decision,
     retrieval_view: view,
-  }, auditId, retrievedAt);
+  }, auditId, retrievedAt, options.auditRoot);
 
   if (view === 'full') {
     return {

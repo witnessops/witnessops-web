@@ -1,19 +1,17 @@
 import "server-only";
 
+import { classifyQuestion } from "./authority-classifier";
+import {
+  executePolicy,
+  getRuntimeProjectionBindings,
+} from "./authority-policy-executor";
+import { assembleAnswer } from "./authority-answer-assembler";
 import type {
   AssembledAnswer,
 } from "./authority-answer-assembler";
 import type {
   AskRuntimeReceipt,
 } from "./ask-runtime-receipt";
-
-import {
-  classifyQuestion,
-  executePolicy,
-  assembleAnswer,
-  getAuthoritySetIdentity,
-  getPresentationProjectionIdentity,
-} from "./authority-loader";
 
 /**
  * WITNESSOPS_ASK_RUNTIME_RECEIPT_VERIFIER_V1
@@ -86,14 +84,11 @@ export function verifyAskRuntimeReceiptReconstruction(
   const boundRespSha = receipt.bindings.response_templates_sha256;
 
   // Validate supplied presentation projection matches binding (self-describing).
-  const pres = presentationProjection && typeof presentationProjection === "object"
-    ? presentationProjection as Record<string, unknown>
-    : {};
-  const suppliedPresSha = typeof pres.source_presentation_sha256 === "string"
-    ? pres.source_presentation_sha256
-    : typeof pres.sourcePresentationSha256 === "string"
-      ? pres.sourcePresentationSha256
-      : undefined;
+  const pres = presentationProjection as {
+    source_presentation_sha256?: unknown;
+    sourcePresentationSha256?: unknown;
+  };
+  const suppliedPresSha = pres?.source_presentation_sha256 ?? pres?.sourcePresentationSha256;
   if (suppliedPresSha && suppliedPresSha !== boundPresSha) {
     return {
       ok: false,
@@ -108,14 +103,14 @@ export function verifyAskRuntimeReceiptReconstruction(
   let liveAuth;
   let livePres;
   try {
-    liveAuth = getAuthoritySetIdentity();
-    livePres = getPresentationProjectionIdentity();
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
+    const liveBindings = getRuntimeProjectionBindings();
+    liveAuth = liveBindings.authority;
+    livePres = liveBindings.presentation;
+  } catch (error: unknown) {
     return {
       ok: false,
       reason: "CUSTODY_INTEGRITY_FAILURE",
-      details: `failed to read live projection identity: ${message}`,
+      details: `failed to read live projection identity: ${errorMessage(error)}`,
     };
   }
 
@@ -185,6 +180,10 @@ export function verifyAskRuntimeReceiptReconstruction(
   // SUCCESS: bound projections loaded+validated, all stages re-run, canonical
   // outputs matched byte-for-byte via canonical form, replay hash valid.
   return { ok: true, reconstructed: reAssembly };
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function canonicalEqual(a: unknown, b: unknown): boolean {

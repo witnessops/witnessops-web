@@ -2,50 +2,30 @@
 
 import { useState } from "react";
 
-import { DocsAssistantBoundaryMeta } from "./docs-assistant-boundary-meta";
-import { DocsAssistantSourceLinks } from "./docs-assistant-source-links";
 import {
-  answerText,
-  docsAssistantRequestErrorDetails,
-  type DocsAssistantUiAnswer,
-} from "./docs-assistant-response";
+  askWitnessOpsAnswerText,
+  fetchAskWitnessOps,
+  type AskWitnessOpsUiAnswer,
+} from "./ask-witnessops-response";
+import { AskWitnessOpsReceiptMeta } from "./ask-witnessops-receipt-meta";
+import { AskWitnessOpsRouteCta } from "./ask-witnessops-route-cta";
+import { AskWitnessOpsSourceLinks } from "./ask-witnessops-source-links";
 
-interface Props {
-  pageContext?: string;
-}
-
-export function DocsAssistantInline({ pageContext }: Props) {
+export function DocsAssistantInline() {
   const [question, setQuestion] = useState("");
-  const [response, setResponse] = useState<DocsAssistantUiAnswer | null>(null);
+  const [response, setResponse] = useState<AskWitnessOpsUiAnswer | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [errorAnswer, setErrorAnswer] =
-    useState<DocsAssistantUiAnswer | null>(null);
 
   async function handleAsk() {
     const trimmed = question.trim();
     if (!trimmed || loading) return;
     setLoading(true);
     setError(null);
-    setErrorAnswer(null);
     setResponse(null);
 
-    const query = pageContext ? `${trimmed} (page: ${pageContext})` : trimmed;
-
     try {
-      const res = await fetch("/api/docs-assistant/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: query }),
-      });
-      if (!res.ok) {
-        const requestError = await docsAssistantRequestErrorDetails(res);
-        setError(requestError.message);
-        setErrorAnswer(requestError.answer ?? null);
-        setQuestion("");
-        return;
-      }
-      setResponse((await res.json()) as DocsAssistantUiAnswer);
+      setResponse(await fetchAskWitnessOps(trimmed));
       setQuestion("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -105,19 +85,18 @@ export function DocsAssistantInline({ pageContext }: Props) {
       {error && (
         <div className="mt-3">
           <p className="text-sm text-red-400">{error}</p>
-          <DocsAssistantBoundaryMeta answer={errorAnswer ?? undefined} />
         </div>
       )}
 
       {response && (
         <div className="mt-4 border-l-2 border-surface-border pl-4">
           <p className="whitespace-pre-line text-sm leading-relaxed text-text-primary">
-            {answerText(response)}
+            {askWitnessOpsAnswerText(response)}
           </p>
 
-          <DocsAssistantSourceLinks answer={response} />
-
-          <DocsAssistantBoundaryMeta answer={response} />
+          <AskWitnessOpsRouteCta answer={response} />
+          <AskWitnessOpsSourceLinks answer={response} />
+          <AskWitnessOpsReceiptMeta answer={response} />
         </div>
       )}
     </div>

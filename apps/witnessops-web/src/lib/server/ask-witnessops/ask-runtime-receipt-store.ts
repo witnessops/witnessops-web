@@ -67,10 +67,9 @@ function computeContentHash(obj: unknown): string {
   return createHash("sha256").update(canonical).digest("hex");
 }
 
-function errorCode(error: unknown): unknown {
-  return error && typeof error === "object" && "code" in error
-    ? (error as { code?: unknown }).code
-    : undefined;
+function errorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== "object" || !("code" in error)) return undefined;
+  return typeof error.code === "string" ? error.code : undefined;
 }
 
 function errorMessage(error: unknown): string {
@@ -81,12 +80,12 @@ export async function writeReceipt(
   receipt: AskRuntimeReceipt,
   root: string = DEFAULT_RECEIPT_ROOT
 ): Promise<ReceiptWriteResult | ReceiptWriteError> {
-  ensureDir(root);
-
   const targetPath = receiptPath(receipt.receipt_id, root);
   const tempPath = `${targetPath}.tmp.${process.pid}.${Date.now()}`;
 
   try {
+    ensureDir(root);
+
     // Verify the receipt has the expected schema and required fields
     if (receipt.schema !== "witnessops.ask.runtime-receipt.v1") {
       return { ok: false, reason: "INVALID_RECEIPT_SCHEMA" };
@@ -110,7 +109,7 @@ export async function writeReceipt(
 
     // Verify what we just wrote
     const written = await fs.promises.readFile(tempPath, "utf8");
-    const writtenObj = JSON.parse(written);
+    const writtenObj = JSON.parse(written) as { _content_hash?: unknown };
     if (writtenObj._content_hash !== computedHash) {
       await fs.promises.unlink(tempPath).catch(() => {});
       return { ok: false, reason: "WRITE_VERIFICATION_FAILED" };
@@ -119,18 +118,18 @@ export async function writeReceipt(
     // Atomic rename (will fail if target already exists — good for immutability)
     try {
       await fs.promises.rename(tempPath, targetPath);
-    } catch (renameErr: unknown) {
+    } catch (renameError: unknown) {
       await fs.promises.unlink(tempPath).catch(() => {});
-      if (errorCode(renameErr) === "EEXIST") {
+      if (errorCode(renameError) === "EEXIST") {
         return { ok: false, reason: "RECEIPT_ALREADY_EXISTS" };
       }
-      throw renameErr;
+      throw renameError;
     }
 
     return { ok: true, receiptId: receipt.receipt_id, path: targetPath };
-  } catch (err: unknown) {
+  } catch (error: unknown) {
     await fs.promises.unlink(tempPath).catch(() => {});
-    return { ok: false, reason: `WRITE_FAILED: ${errorMessage(err)}` };
+    return { ok: false, reason: `WRITE_FAILED: ${errorMessage(error)}` };
   }
 }
 
@@ -165,11 +164,11 @@ export async function readReceipt(
       receipt: cleanReceipt as AskRuntimeReceipt,
       path: filePath,
     };
-  } catch (err: unknown) {
-    if (errorCode(err) === "ENOENT") {
+  } catch (error: unknown) {
+    if (errorCode(error) === "ENOENT") {
       return { ok: false, reason: "RECEIPT_NOT_FOUND" };
     }
-    return { ok: false, reason: `READ_FAILED: ${errorMessage(err)}` };
+    return { ok: false, reason: `READ_FAILED: ${errorMessage(error)}` };
   }
 }
 

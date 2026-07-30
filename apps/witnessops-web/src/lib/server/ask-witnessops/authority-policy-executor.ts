@@ -13,15 +13,44 @@ import "server-only";
  * artifacts in the runtime projection.
  */
 
-import {
-  ClassificationResult,
-} from "./authority-classifier";
+import type { ClassificationResult } from "./authority-classifier";
 
 import {
+  getTemplate,
+  getTemplateForQuestionClass,
   getQuestionClass,
   getPolicyRule,
+  getRoute,
   getAuthoritySetIdentity,
+  getPresentationForSource,
+  getGlobalPresentationRules,
+  getPresentationProjectionIdentity,
+  type AuthoritySetIdentity,
+  type GlobalPresentationRules,
+  type PresentationProjectionIdentity,
+  type PresentationSourceRecord,
 } from "./authority-loader";
+
+export interface AnswerAssemblyAuthorityContext {
+  readonly template: {
+    readonly template_id: string;
+    readonly body: string;
+    readonly source_display: string | null;
+  } | null;
+  readonly presentationRecords: readonly PresentationSourceRecord[];
+  readonly globalRules: GlobalPresentationRules;
+  readonly presentationIdentity: PresentationProjectionIdentity;
+}
+
+export interface RuntimeProjectionBindings {
+  readonly authority: AuthoritySetIdentity;
+  readonly presentation: PresentationProjectionIdentity;
+}
+
+export interface PolicyRouteBinding {
+  readonly route_id: string;
+  readonly href: string;
+}
 
 export interface PolicyDecision {
   readonly schema: "witnessops.ask.policy-decision.v1";
@@ -34,6 +63,7 @@ export interface PolicyDecision {
   readonly template_id: string;
   readonly required_claim_rule_ids: readonly string[];
   readonly source_ids: readonly string[];
+  readonly route: PolicyRouteBinding | null;
   readonly authority_projection_hash: string;
   readonly policy_rules_hash: string;
   readonly claim_boundary_hash: string;
@@ -41,6 +71,12 @@ export interface PolicyDecision {
   readonly deterministic_replay_hash: string;
   readonly reason_codes: readonly string[];
 }
+
+const ROUTE_BY_AUTHORIZED_ACTION: Record<string, string> = {
+  route_fit_check: "route.fit-check",
+  route_support: "route.support",
+  route_security_disclosure: "route.security-disclosure",
+};
 
 // Explicit 19-class template selection table (deterministic)
 // For classes with multiple candidates for an action, we use a stable default.
@@ -148,21 +184,27 @@ export function executePolicy(input: ExecutePolicyInput): PolicyDecision {
     fallbackUsed = true;
     reasonCodes.push(REASON_CODES.REFUSAL);
   } else if (classification.fallback_used) {
-    const fallbackAction = policyRule.fallback_action;
-    authorizedAction = typeof fallbackAction === "string" ? fallbackAction : "bounded_decline";
+    authorizedAction =
+      typeof policyRule.fallback_action === "string"
+        ? policyRule.fallback_action
+        : "bounded_decline";
     fallbackUsed = true;
     reasonCodes.push(REASON_CODES.FALLBACK);
   }
 
-  // Select template using the explicit deterministic table
   const templateId = TEMPLATE_SELECTION[questionClassId] || "decline.outside_public_context.v1";
+  const templateRecord =
+    getTemplate(templateId) ?? getTemplateForQuestionClass(questionClassId);
 
-  // For this implementation we derive minimal claim rule ids from the policy
-  // structure we know exists in the artifacts (always_required).
-  // In a fuller implementation this would come from live claim validation.
-  const requiredClaimRuleIds: string[] = [];
-  // We leave source_ids empty for now (internal only, provided by caller context if needed)
-  const sourceIds: string[] = [];
+  const requiredClaimRuleIds = Array.isArray(policyRule.always_required_claim_rules)
+    ? [...(policyRule.always_required_claim_rules as string[])]
+    : [];
+
+  const sourceIds = Array.isArray(templateRecord?.source_ids)
+    ? [...(templateRecord.source_ids as string[])]
+    : [];
+
+  const routeBinding = resolveRouteBinding(authorizedAction);
 
   const identity = getAuthoritySetIdentity();
 
@@ -177,6 +219,7 @@ export function executePolicy(input: ExecutePolicyInput): PolicyDecision {
     template_id: templateId,
     required_claim_rule_ids: requiredClaimRuleIds,
     source_ids: sourceIds,
+    route: routeBinding,
     authority_projection_hash: identity.projectionSha256,
     policy_rules_hash: identity.layers.policyRules.sha256,
     claim_boundary_hash: identity.layers.claimBoundary.sha256,
@@ -191,6 +234,17 @@ export function executePolicy(input: ExecutePolicyInput): PolicyDecision {
   };
 
   return decision;
+}
+
+function resolveRouteBinding(authorizedAction: string): PolicyRouteBinding | null {
+  const routeId = ROUTE_BY_AUTHORIZED_ACTION[authorizedAction];
+  if (!routeId) return null;
+  const route = getRoute(routeId);
+  if (!route) return null;
+  return {
+    route_id: route.route_id,
+    href: route.href,
+  };
 }
 
 function buildClosedDecision(
@@ -214,6 +268,7 @@ function buildClosedDecision(
     template_id: templateId,
     required_claim_rule_ids: [],
     source_ids: sourceIds,
+    route: resolveRouteBinding(authorizedAction),
     authority_projection_hash: identity.projectionSha256,
     policy_rules_hash: identity.layers.policyRules.sha256,
     claim_boundary_hash: identity.layers.claimBoundary.sha256,
@@ -247,4 +302,38 @@ function computeReplayHash(
     hash = (hash * 31 + input.charCodeAt(i)) | 0;
   }
   return "replay:" + Math.abs(hash).toString(16);
+}
+
+export function loadAnswerAssemblyAuthority(
+  templateId: string,
+  sourceIds: readonly string[],
+): AnswerAssemblyAuthorityContext {
+  const templateRecord = getTemplate(templateId);
+  const template = templateRecord
+    ? {
+        template_id: templateRecord.template_id,
+        body: typeof templateRecord.body === "string" ? templateRecord.body : "",
+        source_display:
+          typeof templateRecord.source_display === "string"
+            ? templateRecord.source_display
+            : null,
+      }
+    : null;
+
+  return {
+    template,
+    presentationRecords: sourceIds.flatMap((sourceId) => {
+      const record = getPresentationForSource(sourceId);
+      return record ? [record] : [];
+    }),
+    globalRules: getGlobalPresentationRules(),
+    presentationIdentity: getPresentationProjectionIdentity(),
+  };
+}
+
+export function getRuntimeProjectionBindings(): RuntimeProjectionBindings {
+  return {
+    authority: getAuthoritySetIdentity(),
+    presentation: getPresentationProjectionIdentity(),
+  };
 }

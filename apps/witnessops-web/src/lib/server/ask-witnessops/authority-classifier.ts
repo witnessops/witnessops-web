@@ -48,6 +48,7 @@ const PRECEDENCE_ORDER: readonly string[] = [
 const CLASS_SIGNALS: Record<string, readonly string[]> = {
   secret_or_evidence_intake: [
     "send logs",
+    "send logs or screenshots",
     "upload evidence",
     "provide customer data",
     "include credentials",
@@ -90,6 +91,7 @@ const CLASS_SIGNALS: Record<string, readonly string[]> = {
   ],
   workspace_access: [
     "private-preview workspace access",
+    "not included in workspace access",
     "workspace separation from proof",
   ],
   fit_check: [
@@ -97,6 +99,7 @@ const CLASS_SIGNALS: Record<string, readonly string[]> = {
     "bounded enough for witnessops",
     "package fit",
     "do i need a fit check",
+    "request a fit check",
     "proposed work scope",
   ],
   launch_readiness: [
@@ -119,6 +122,7 @@ const CLASS_SIGNALS: Record<string, readonly string[]> = {
   ],
   proof_packet: [
     "what is in a proof packet",
+    "what does a proof packet include",
   ],
   receipt: [
     "proof layers of the receipt",
@@ -177,7 +181,10 @@ function getMatches(normalized: string): string[] {
       for (const sig of signals) {
         if (matchesSignal(normalized, sig)) count++;
       }
-      if (count >= 2) {
+      const explicitSingleSignalIntent =
+        classId === "secret_or_evidence_intake" &&
+        normalized.includes("send logs or screenshots");
+      if (count >= 2 || explicitSingleSignalIntent) {
         matches.push(classId);
       }
     } else if (matched) {

@@ -19,6 +19,10 @@ const sourceCore = path.join(
   appRoot,
   "src/lib/server/ask-witnessops/authority-loader-core.ts",
 );
+const sourcePresentationLoader = path.join(
+  appRoot,
+  "src/lib/server/ask-witnessops/authority-presentation-loader.ts",
+);
 const nextBin = path.join(appRoot, "node_modules/next/dist/bin/next");
 const appNodeModules = path.join(appRoot, "node_modules");
 const projectionPath = path.join(
@@ -110,7 +114,14 @@ export default function Page() {
 }
 
 try {
-  for (const requiredPath of [sourceLoader, sourceCore, nextBin, appNodeModules, projectionPath]) {
+  for (const requiredPath of [
+    sourceLoader,
+    sourceCore,
+    sourcePresentationLoader,
+    nextBin,
+    appNodeModules,
+    projectionPath,
+  ]) {
     if (!fs.existsSync(requiredPath)) fail(`required_path_missing:${requiredPath}`);
   }
 
@@ -119,6 +130,7 @@ try {
   fs.symlinkSync(appNodeModules, path.join(fixtureRoot, "node_modules"), "dir");
   copy(sourceLoader, "lib/authority-loader.ts");
   copy(sourceCore, "lib/authority-loader-core.ts");
+  copy(sourcePresentationLoader, "lib/authority-presentation-loader.ts");
 
   write(
     "package.json",

@@ -1,15 +1,10 @@
 import "server-only";
 
 import {
-  PolicyDecision,
+  loadAnswerAssemblyAuthority,
+  type PolicyDecision,
+  type PolicyRouteBinding,
 } from "./authority-policy-executor";
-
-import {
-  getTemplate,
-  getPresentationForSource,
-  getGlobalPresentationRules,
-  getPresentationProjectionIdentity,
-} from "./authority-loader";
 
 import type {
   PresentationSourceRecord,
@@ -30,6 +25,7 @@ export interface AssembledAnswer {
     readonly body: string;
     readonly source_display: string | null;
   };
+  readonly route: PolicyRouteBinding | null;
   readonly presented_sources: readonly PresentationSourceRecord[];
   readonly presentation_rules_applied: GlobalPresentationRules;
   readonly deterministic_replay_hash: string;
@@ -50,7 +46,11 @@ export function assembleAnswer(input: AssembleAnswerInput): AssembledAnswer {
     return buildClosedAnswer(policyDecision || ({} as PolicyDecision), "INVALID_POLICY_DECISION");
   }
 
-  const templateRecord = getTemplate(policyDecision.template_id);
+  const authorityContext = loadAnswerAssemblyAuthority(
+    policyDecision.template_id,
+    policyDecision.source_ids,
+  );
+  const templateRecord = authorityContext.template;
   if (!templateRecord || templateRecord.template_id !== policyDecision.template_id) {
     return buildClosedAnswer(policyDecision, "MISSING_TEMPLATE_BINDING");
   }
@@ -62,17 +62,12 @@ export function assembleAnswer(input: AssembleAnswerInput): AssembledAnswer {
     // Full cross-check can be added in future if hashes are on template record
   }
 
-  const globalRules = getGlobalPresentationRules();
-  const presIdentity = getPresentationProjectionIdentity();
+  const globalRules = authorityContext.globalRules;
+  const presIdentity = authorityContext.presentationIdentity;
 
-  let presentedSources: PresentationSourceRecord[] = [];
-
-  for (const sourceId of policyDecision.source_ids) {
-    const pres = getPresentationForSource(sourceId);
-    if (pres) {
-      presentedSources.push(pres);
-    }
-  }
+  let presentedSources: PresentationSourceRecord[] = [
+    ...authorityContext.presentationRecords,
+  ];
 
   // Deterministic ordering
   const citationOrder = globalRules.citation_order;
@@ -128,20 +123,28 @@ export function assembleAnswer(input: AssembleAnswerInput): AssembledAnswer {
       body: templateBody,
       source_display: sourceDisplay,
     },
+    route: policyDecision.route ?? null,
     presented_sources: presentedSources,
     presentation_rules_applied: globalRules,
     deterministic_replay_hash: computeReplayHash(policyDecision, templateBody, presentedSources),
     source_presentation_projection_sha256: presIdentity.sourcePresentationSha256,
     response_templates_hash: policyDecision.response_templates_hash,
-    status: "success",
+    status: isRefusalOrDecline ? "closed" : "success",
+    ...(isRefusalOrDecline
+      ? { failure_reason: "POLICY_REFUSAL_OR_DECLINE" }
+      : {}),
   };
 
   return assembled;
 }
 
 function buildClosedAnswer(policyDecision: PolicyDecision, reason: string): AssembledAnswer {
-  const globalRules = getGlobalPresentationRules();
-  const presIdentity = getPresentationProjectionIdentity();
+  const authorityContext = loadAnswerAssemblyAuthority(
+    policyDecision.template_id || "unknown",
+    [],
+  );
+  const globalRules = authorityContext.globalRules;
+  const presIdentity = authorityContext.presentationIdentity;
 
   return {
     schema: "witnessops.ask.assembled-answer.v1",
@@ -153,6 +156,7 @@ function buildClosedAnswer(policyDecision: PolicyDecision, reason: string): Asse
       body: "",
       source_display: null,
     },
+    route: policyDecision.route ?? null,
     presented_sources: [],
     presentation_rules_applied: globalRules,
     deterministic_replay_hash: computeReplayHash(policyDecision, "", []) + ":closed:" + reason,
