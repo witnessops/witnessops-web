@@ -17,9 +17,7 @@ import type {
 import { findDuplicateJsonObjectKey } from "./json-ambiguity";
 import {
   isLocalServerAuditReceipt,
-  isOffsecShieldReceipt,
   verifyLocalServerAuditReceipt,
-  verifyOffsecShieldReceipt,
 } from "./shield-verify-adapter";
 import {
   isSwarmMeshExport,
@@ -249,7 +247,7 @@ export function verifyReceiptPayload(payload: unknown): VerifyResponse {
     return malformed("Receipt payload must decode to a JSON object.");
   }
 
-  if (isLocalServerAuditReceipt(parsedReceipt) || isOffsecShieldReceipt(parsedReceipt)) {
+  if (isLocalServerAuditReceipt(parsedReceipt)) {
     return verifyLocalServerAuditReceipt(parsedReceipt);
   }
 
