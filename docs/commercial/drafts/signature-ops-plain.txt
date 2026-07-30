@@ -1,9 +1,6 @@
 WitnessOps
 Security and operational reviews
-
 engage@mail.witnessops.com
-https://witnessops.com/review/request
-
+https://witnessops.com
 Proof beats memory.
-
 Do not send passwords, private keys, API keys, recovery codes, session tokens or other secrets.

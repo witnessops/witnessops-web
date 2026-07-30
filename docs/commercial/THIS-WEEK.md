@@ -60,8 +60,10 @@ Product: **CSR Sprint** *or* **One Server** (not both at once for the first real
 ### 4. Human dry-run (30 min) — *you*
 
 - [ ] Walk checklist `05-dry-run-checklist.md` in browser
-- [ ] Fill one blank scope skeleton `06` as if for a fictional “Acme” deal
-- [ ] Paste claim blurb from `03` into that draft
+- [ ] Read worked example **One Server**: `worked-examples/acme-one-server-full.md` (already filled)
+- [ ] Read worked example **CSR**: `worked-examples/acme-csr-full.md` (already filled)
+- [ ] Optional: rewrite one reply in your own voice without changing limits
+- [ ] Add your first *real* row to `engagement-ledger.md` when inbound appears (examples already there)
 
 ### 5. Real inbound — *when it arrives*
 
