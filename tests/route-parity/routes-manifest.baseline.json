@@ -487,6 +487,12 @@
       "namedRegex": "^/mcp(?:/)?$"
     },
     {
+      "page": "/mcp/directory",
+      "regex": "^/mcp/directory(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/mcp/directory(?:/)?$"
+    },
+    {
       "page": "/og/home",
       "regex": "^/og/home(?:/)?$",
       "routeKeys": {},
