@@ -12,6 +12,18 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     },
     {
+      "source": "/review/sample-cases/offsec-shield-local-server-audit",
+      "destination": "/review/sample-cases/local-server-security-review",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/review/sample-cases/offsec-shield-local-server-audit(?:/)?$"
+    },
+    {
+      "source": "/review/sample-cases/offsec-shield-local-server-audit/:path*",
+      "destination": "/review/sample-cases/local-server-security-review/:path*",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/review/sample-cases/offsec-shield-local-server-audit(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
       "source": "/catalog/offsec-access-removed",
       "destination": "/catalog",
       "statusCode": 308,
@@ -54,6 +66,24 @@
         }
       ],
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
+      "source": "/assets/one-pagers/:file*",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/pdf"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "inline"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ],
+      "regex": "^/assets/one-pagers(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
     }
   ],
   "rewrites": {
@@ -577,6 +607,12 @@
       "namedRegex": "^/review/sample\\-cases(?:/)?$"
     },
     {
+      "page": "/review/sample-cases/access-removed-proof",
+      "regex": "^/review/sample\\-cases/access\\-removed\\-proof(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/access\\-removed\\-proof(?:/)?$"
+    },
+    {
       "page": "/review/sample-cases/ai-agent-action-proof-run",
       "regex": "^/review/sample\\-cases/ai\\-agent\\-action\\-proof\\-run(?:/)?$",
       "routeKeys": {},
@@ -589,16 +625,46 @@
       "namedRegex": "^/review/sample\\-cases/approval\\-gated\\-containment(?:/)?$"
     },
     {
-      "page": "/review/sample-cases/local-server-security-review",
-      "regex": "^/review/sample\\-cases/offsec\\-shield\\-local\\-server\\-audit(?:/)?$",
+      "page": "/review/sample-cases/custody-wallet-ops-review",
+      "regex": "^/review/sample\\-cases/custody\\-wallet\\-ops\\-review(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/review/sample\\-cases/offsec\\-shield\\-local\\-server\\-audit(?:/)?$"
+      "namedRegex": "^/review/sample\\-cases/custody\\-wallet\\-ops\\-review(?:/)?$"
+    },
+    {
+      "page": "/review/sample-cases/customer-security-review-sprint",
+      "regex": "^/review/sample\\-cases/customer\\-security\\-review\\-sprint(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/customer\\-security\\-review\\-sprint(?:/)?$"
+    },
+    {
+      "page": "/review/sample-cases/incident-readiness-review",
+      "regex": "^/review/sample\\-cases/incident\\-readiness\\-review(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/incident\\-readiness\\-review(?:/)?$"
+    },
+    {
+      "page": "/review/sample-cases/launch-readiness-review",
+      "regex": "^/review/sample\\-cases/launch\\-readiness\\-review(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/launch\\-readiness\\-review(?:/)?$"
+    },
+    {
+      "page": "/review/sample-cases/local-server-security-review",
+      "regex": "^/review/sample\\-cases/local\\-server\\-security\\-review(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/local\\-server\\-security\\-review(?:/)?$"
     },
     {
       "page": "/review/sample-cases/privileged-access-grant",
       "regex": "^/review/sample\\-cases/privileged\\-access\\-grant(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/review/sample\\-cases/privileged\\-access\\-grant(?:/)?$"
+    },
+    {
+      "page": "/review/sample-cases/sbom-cisa-2026-minimum-elements",
+      "regex": "^/review/sample\\-cases/sbom\\-cisa\\-2026\\-minimum\\-elements(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/sbom\\-cisa\\-2026\\-minimum\\-elements(?:/)?$"
     },
     {
       "page": "/review/sample-report",
