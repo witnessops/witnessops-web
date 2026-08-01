@@ -11,6 +11,8 @@ and sample proof-surface pages used to explain artifact inspection boundaries.
 - Shows the public WitnessOps pages.
 - Lets anyone check receipt JSON through `/verify`.
 - Exposes the same receipt-first verification path through `/api/verify` for programmatic use.
+- Exposes public WitnessOps documentation and bounded guidance to ChatGPT and
+  other MCP clients through the stateless Streamable HTTP `/mcp` endpoint.
 - Returns deterministic verification results for the same receipt input.
 - Provides buyer-facing proof-run, sample-case, docs, support, pricing, library, and legal/security surfaces.
 - Presents the AI Agent Action Proof Run sample with pinned artifact links, manifest provenance, visible artifact digests, and buyer-path smoke coverage.
@@ -60,6 +62,20 @@ not prove that every underlying action was correct.
 Programmatic callers can post the same receipt to `/api/verify` and receive the
 same verification path and result shape. Proof-bundle uploads are not accepted on
 the public surface — see the verification docs for offline package checks.
+
+## ChatGPT / MCP app
+
+The production app endpoint is designed to be `https://witnessops.com/mcp`.
+It exposes three public, read-only tools:
+
+- `search` — find public WitnessOps documentation.
+- `fetch` — retrieve a selected document with its canonical citation URL.
+- `ask_witnessops` — return bounded deterministic guidance without claiming
+  that a private system, customer evidence, or receipt was verified.
+
+Run locally with `pnpm dev`, then connect MCP Inspector to
+`http://127.0.0.1:3001/mcp`. Production exposure and ChatGPT app connection
+remain separate explicit apply steps under the deployment authority contract.
 
 ## Public proof-surface contract
 

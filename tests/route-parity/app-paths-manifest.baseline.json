@@ -41,6 +41,7 @@
   "/api/provider-events/response-outcome/route": "app/api/provider-events/response-outcome/route.js",
   "/api/verify-token/route": "app/api/verify-token/route.js",
   "/api/verify/route": "app/api/verify/route.js",
+  "/mcp/route": "app/mcp/route.js",
   "/execution/[receiptId]/page": "app/execution/[receiptId]/page.js",
   "/execution/page": "app/execution/page.js",
   "/privacy/page": "app/privacy/page.js",

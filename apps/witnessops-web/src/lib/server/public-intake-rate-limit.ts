@@ -7,6 +7,7 @@ import {
 } from "@witnessops/config/rate-limit";
 
 const PUBLIC_INTAKE_RATE_LIMIT_NAMESPACE = "public-intake";
+type PublicIntakeRateLimitConfig = Parameters<typeof checkRateLimit>[2];
 
 scheduleRateLimitCleanup(VERIFY_RATE_LIMIT_CONFIG.windowMs);
 
@@ -20,6 +21,7 @@ export function buildPublicIntakeRateLimitKey(
 export function enforcePublicIntakeRateLimit(
   request: Request,
   routeNamespace: string,
+  config: PublicIntakeRateLimitConfig = VERIFY_RATE_LIMIT_CONFIG,
 ): NextResponse | null {
   const clientIp = getClientIp(request);
   if (clientIp === "unknown") {
@@ -29,7 +31,7 @@ export function enforcePublicIntakeRateLimit(
   const result = checkRateLimit(
     PUBLIC_INTAKE_RATE_LIMIT_NAMESPACE,
     `${routeNamespace}:${clientIp}`,
-    VERIFY_RATE_LIMIT_CONFIG,
+    config,
   );
 
   if (result.allowed) {

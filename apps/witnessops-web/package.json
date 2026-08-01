@@ -14,6 +14,7 @@
     "test:evidence": "tsx --tsconfig ./tsconfig.json --test 'src/lib/server/*.test.ts' 'src/app/api/provider-events/**/*.test.ts'"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@witnessops/ask-authority": "workspace:*",
     "@witnessops/catalog": "workspace:*",
     "@witnessops/config": "workspace:*",
