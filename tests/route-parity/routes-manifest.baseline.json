@@ -481,6 +481,12 @@
       "namedRegex": "^/library(?:/)?$"
     },
     {
+      "page": "/mcp",
+      "regex": "^/mcp(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/mcp(?:/)?$"
+    },
+    {
       "page": "/og/home",
       "regex": "^/og/home(?:/)?$",
       "routeKeys": {},
