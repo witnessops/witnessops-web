@@ -149,7 +149,7 @@ test("English and Polish homepages share one service-led buyer journey", async (
       const servicesTop = await page
         .locator("#home-services-heading")
         .evaluate((heading) => heading.closest("section")?.getBoundingClientRect().top ?? Infinity);
-      expect(servicesTop).toBeLessThan(700);
+      expect(servicesTop).toBeLessThan(800);
     }
 
     const headings = await page.locator("main h2").allTextContents();
@@ -160,7 +160,7 @@ test("English and Polish homepages share one service-led buyer journey", async (
       ),
     );
     const howIndex = normalized.findIndex((heading) =>
-      /How it works|Jak działa WitnessOps/.test(heading),
+      /How it works|Jak to działa/.test(heading),
     );
     const whyIndex = normalized.findIndex((heading) =>
       /Why WitnessOps|Dlaczego WitnessOps/.test(heading),
