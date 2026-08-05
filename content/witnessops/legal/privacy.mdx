@@ -10,7 +10,7 @@ trust_boundary_variant: "legal"
 
 # Privacy Policy
 
-Last updated: March 2026
+Last updated: August 2026
 
 ## Site scope
 
@@ -24,6 +24,8 @@ If you contact WitnessOps, we receive the information you choose to provide, inc
 
 Operational systems may also generate minimal server and delivery logs required to maintain availability and security.
 
+Public rate-limited routes may hold a short-lived, instance-local request counter keyed by client IP. The counter stops affecting access after its request window and is removed by periodic cleanup or process restart.
+
 ## How data is used
 
 Submitted information is used strictly for:
@@ -31,6 +33,7 @@ Submitted information is used strictly for:
 - responding to inquiries and support requests
 - handling vulnerability disclosures
 - operating and securing the service
+- limiting abusive or unusually high request volumes
 
 WitnessOps does not treat published verification artifacts as private or confidential submissions.
 
@@ -54,3 +57,5 @@ Submitted information is retained only as long as necessary for:
 - operational integrity
 - security
 - legal obligations
+
+Short-lived abuse-control counters are retained only for the active rate-limit window and periodic cleanup interval.

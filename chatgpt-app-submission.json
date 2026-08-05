@@ -1,0 +1,104 @@
+{
+  "$schema": "https://developers.openai.com/plugins/schemas/chatgpt-app-submission.v1.json",
+  "schema_version": 1,
+  "app_info": {
+    "display_name": "WitnessOps Public Directory",
+    "subtitle": "Find receipt documentation",
+    "description": "Find public WitnessOps documentation about evidence, receipts, receipt fields, and verification. Search the curated directory, then retrieve a selected document's full text and canonical WitnessOps URL. This read-only app does not verify private systems or customer evidence.",
+    "category": "EDUCATION"
+  },
+  "tools": {
+    "search": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Reads a fixed allowlist of public WitnessOps documents and returns matching IDs, titles, and canonical URLs without modifying documents, user records, or external state.",
+        "open_world_justification": "Does not publish, send, submit, or otherwise change public internet state or third-party systems.",
+        "destructive_justification": "Cannot delete, overwrite, revoke access, or perform any irreversible action."
+      }
+    },
+    "fetch": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Reads one document from the fixed public allowlist by ID and returns its text and canonical URL without modifying documents, user records, or external state.",
+        "open_world_justification": "Does not publish, send, submit, or otherwise change public internet state or third-party systems.",
+        "destructive_justification": "Cannot delete, overwrite, revoke access, or perform any irreversible action."
+      }
+    }
+  },
+  "test_cases": [
+    {
+      "description": "Search for the public documentation that explains receipt verification.",
+      "user_prompt": "Find WitnessOps documentation that explains how to verify a receipt.",
+      "file_attachment_urls": null,
+      "tools_triggered": "search",
+      "expected_output": "Returns matching allowlisted documents, including How to Verify a Receipt, with document IDs, titles, and canonical WitnessOps URLs.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Fetch the verification document by its public directory ID.",
+      "user_prompt": "Fetch the WitnessOps public directory document with ID docs:how-it-works/verification.",
+      "file_attachment_urls": null,
+      "tools_triggered": "fetch",
+      "expected_output": "Returns the selected document's ID, title, full text, and canonical URL.",
+      "expected_output_url": "https://witnessops.com/docs/how-it-works/verification"
+    },
+    {
+      "description": "Search for the public receipt specification.",
+      "user_prompt": "Find the WitnessOps receipt specification.",
+      "file_attachment_urls": null,
+      "tools_triggered": "search",
+      "expected_output": "Returns Receipt Specification with its public directory ID, title, and canonical WitnessOps URL.",
+      "expected_output_url": "https://witnessops.com/docs/evidence/receipt-spec"
+    },
+    {
+      "description": "Find public definitions of evidence and receipts.",
+      "user_prompt": "Find public WitnessOps documentation that defines evidence and explains what a receipt proves.",
+      "file_attachment_urls": null,
+      "tools_triggered": "search",
+      "expected_output": "Returns only matching allowlisted public documents, including Evidence and Receipts, as IDs, titles, and canonical URLs.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Return an empty result for a query with no match in the curated corpus.",
+      "user_prompt": "Search the WitnessOps public directory for origami gardening.",
+      "file_attachment_urls": null,
+      "tools_triggered": "search",
+      "expected_output": "Returns an empty results array without guessing or expanding beyond the curated corpus.",
+      "expected_output_url": null
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "description": "Do not trigger for commercial pricing or offer selection.",
+      "user_prompt": "What does WitnessOps cost, and which consulting package is right for my company?",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked because pricing, offers, and commercial qualification are outside the public directory.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Do not trigger for private-system onboarding or verification.",
+      "user_prompt": "Connect to my private WitnessOps deployment, onboard a customer, and verify their receipt.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked because it cannot access private systems, onboard customers, or verify private receipts.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Do not trigger for an unrelated weather request.",
+      "user_prompt": "What will the weather be in Phoenix tomorrow?",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked because weather is outside its documentation-search scope.",
+      "expected_output_url": null
+    }
+  ]
+}
