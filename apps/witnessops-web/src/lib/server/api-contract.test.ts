@@ -221,6 +221,23 @@ test("WEB-008: every declared endpoint carries a non-empty summary", () => {
   );
 });
 
+test("admin authentication contract is Google Workspace-only", () => {
+  const adminAuthPaths = DECLARED_API_ENDPOINTS.filter((endpoint) =>
+    [
+      "/api/admin/auth",
+      "/api/admin/oidc/start",
+      "/api/admin/oidc/callback",
+      "/api/admin/google/start",
+      "/api/admin/google/callback",
+    ].includes(endpoint.path),
+  ).map((endpoint) => [endpoint.path, endpoint.methods]);
+
+  assert.deepEqual(adminAuthPaths, [
+    ["/api/admin/google/start", ["GET"]],
+    ["/api/admin/google/callback", ["POST"]],
+  ]);
+});
+
 test("WEB-008: declared categories are within the closed enum", () => {
   // The TypeScript type already enforces this at compile time, but
   // a runtime check defends against `as EndpointCategory` casts in

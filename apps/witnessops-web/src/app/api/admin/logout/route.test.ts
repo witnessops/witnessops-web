@@ -5,9 +5,9 @@ import { NextRequest } from "next/server";
 
 import { POST } from "./route";
 
-test("logout clears the admin session and every OIDC transaction", async () => {
+test("logout clears the Google admin session and uses the canonical origin", async () => {
   const response = await POST(
-    new NextRequest("https://witnessops.com/api/admin/logout?ignored=value", {
+    new NextRequest("https://0.0.0.0:3000/api/admin/logout?ignored=value", {
       method: "POST",
     }),
   );
@@ -24,7 +24,6 @@ test("logout clears the admin session and every OIDC transaction", async () => {
     cookies.map((cookie) => cookie.name).sort(),
     [
       "witnessops-admin-google-oidc-transaction",
-      "witnessops-admin-oidc-state",
       "witnessops-admin-session",
     ],
   );

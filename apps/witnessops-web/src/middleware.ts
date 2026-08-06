@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getSurface } from "@witnessops/config";
+import { buildAdminPublicUrl } from "@/lib/admin-auth-origin";
 
 import {
   isLocalAdminRequest,
@@ -26,9 +27,7 @@ export async function middleware(request: NextRequest) {
       )?.value;
 
       if (!sessionCookie || !(await verifyAdminSessionCookie(sessionCookie))) {
-        const loginUrl = request.nextUrl.clone();
-        loginUrl.pathname = "/admin/login";
-        loginUrl.search = "";
+        const loginUrl = buildAdminPublicUrl("/admin/login", request);
         loginUrl.searchParams.set("returnTo", pathname);
         return NextResponse.redirect(loginUrl);
       }

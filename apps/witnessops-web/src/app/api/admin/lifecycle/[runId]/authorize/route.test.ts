@@ -152,11 +152,14 @@ test("admin authorize route preserves named oidc actor context", async () => {
   globalThis.fetch = async (_input, init) => {
     const headers = init?.headers as Record<string, string>;
     assert.ok(headers["X-WitnessOps-Service-Assertion"]);
-    assert.equal(headers["X-WitnessOps-Actor"], "entra:alice@example.com");
+    assert.equal(
+      headers["X-WitnessOps-Actor"],
+      "oidc:https://accounts.google.com#google-subject-authorize",
+    );
     assert.equal(headers["X-WitnessOps-Actor-Auth-Source"], "oidc_session");
     assert.equal(
       headers["X-WitnessOps-Actor-Session-Hash"],
-      "abcd1234efgh5678",
+      "abcd1234abcd5678",
     );
     return new Response(
       JSON.stringify({
@@ -174,11 +177,17 @@ test("admin authorize route preserves named oidc actor context", async () => {
     );
   };
 
+  const issuedAt = Date.now();
   const sessionCookie = await createAdminSessionCookie({
-    actor: "entra:alice@example.com",
+    version: 2,
+    identityProvider: "google",
+    issuer: "https://accounts.google.com",
+    subject: "google-subject-authorize",
+    actor: "oidc:https://accounts.google.com#google-subject-authorize",
     actorAuthSource: "oidc_session",
-    actorSessionHash: "abcd1234efgh5678",
-    exp: Date.now() + 60_000,
+    actorSessionHash: "abcd1234abcd5678",
+    iat: issuedAt,
+    exp: issuedAt + 60_000,
   });
 
   const response = await POST(
@@ -197,7 +206,10 @@ test("admin authorize route preserves named oidc actor context", async () => {
     actorAuthSource: string;
     actorSessionHash: string | null;
   };
-  assert.equal(payload.actor, "entra:alice@example.com");
+  assert.equal(
+    payload.actor,
+    "oidc:https://accounts.google.com#google-subject-authorize",
+  );
   assert.equal(payload.actorAuthSource, "oidc_session");
-  assert.equal(payload.actorSessionHash, "abcd1234efgh5678");
+  assert.equal(payload.actorSessionHash, "abcd1234abcd5678");
 });

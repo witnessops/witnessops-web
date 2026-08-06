@@ -1,121 +1,101 @@
 # Google Workspace Admin Authentication
 
-This handoff covers the operator-owned Google Workspace OIDC configuration for
-the WitnessOps admin console. It does not authorize a deployment, secret
-change, Google Cloud change, or production rollout by itself.
+The WitnessOps admin console accepts Google Workspace OIDC as its only
+production authentication method. Microsoft OIDC and legacy-key routes are not
+part of the active application surface.
 
 ## Google Cloud configuration
 
-Configure one OAuth web application with the following settings:
+Configure one OAuth web application:
 
 - Application name: `WitnessOps Admin Console`
-- Audience: Workspace-internal is recommended when the organization supports
-  it. An external audience does not replace the server-side Workspace-domain
-  and operator-email checks.
-- Production redirect URI:
+- Audience: Workspace-internal, when the organization supports it
+- Authorized redirect URI:
   `https://witnessops.com/api/admin/google/callback`
-- Local redirect URI:
-  `http://localhost:3001/api/admin/google/callback`
-- Local support is limited to that exact loopback host in nonproduction. Do not
-  register or use a LAN, mesh, preview, forwarded, or wildcard local redirect.
-- Scopes: `openid`, `email`, and `profile` only.
+- Scopes: `openid`, `email`, and `profile` only
+- Response mode: `form_post`
 
-This integration does not use the Google Admin SDK, domain-wide delegation,
-Google Groups, group membership, service-account impersonation, refresh-token
+The callback is POST-only so the authorization code and state do not enter the
+request URL or ordinary edge access logs. Plain-HTTP local Google callback is
+not supported because the cross-site transaction cookie requires
+`SameSite=None; Secure`.
+
+The integration does not use Google Admin SDK, domain-wide delegation, Google
+Groups, group membership, service-account impersonation, refresh tokens,
 offline access, or broader Google API scopes.
 
 ## Runtime configuration and custody
 
-The server reads exactly these five values as one all-or-nothing configuration
-set; a missing, blank, partial, malformed, or duplicate-bearing set fails
-closed:
+The server requires the existing admin signing secret plus all five Google
+values:
 
+- `WITNESSOPS_ADMIN_SECRET`
 - `WITNESSOPS_GOOGLE_OIDC_CLIENT_ID`
 - `WITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET`
 - `WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI`
 - `WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN`
 - `WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST`
 
-`WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST` is a comma-separated list of the
-individual operator email addresses allowed to enter the admin console. The
-Workspace domain and explicit email allowlist are both enforced; neither one
-replaces the other.
+The Google configuration is all-or-nothing. Missing, blank, partial, malformed,
+or duplicate-bearing configuration fails closed. The redirect URI must exactly
+match the production URI above. The allowlist is a comma-separated list of
+individual operator email addresses; Workspace-domain membership alone does
+not authorize access.
 
-Keep the client secret and all other server-only values in the existing
-Kubernetes secret custody named `witnessops-web-admin-oidc`. Do not place real
-values in Git, build arguments, browser-visible environment variables, command
-transcripts, screenshots, or validation receipts.
+Keep these server-only values in the established Kubernetes secret custody.
+Do not place real values in Git, build arguments, browser-visible variables,
+screenshots, logs, or test fixtures. `WITNESSOPS_ADMIN_SECRET` signs the Google
+transaction and the versioned Google admin session; it is not a legacy login
+credential.
 
-The checked-in production manifest at `deploy/k8s/deployment.yaml` currently
-does not reference `witnessops-web-admin-oidc`; the mesh-dev manifest does.
-That source observation does not prove the live production wiring. Before any
-rollout, an operator acting under deployment authority must verify the secret
-reference on both live deployments without reading or recording secret values.
-Do not correct the manifest or live workload as part of an authentication-only
-source lane.
+Google authenticates identity. The existing `WITNESSOPS_ADMIN_ROLE` remains an
+environment-wide authorization setting, so all allowlisted operators receive
+the same effective WitnessOps role. This change does not derive or elevate a
+role from Google claims.
 
-## Verification procedure
+## Operator verification
 
-Perform these checks only after the Google application, secret custody, source
-change, and deployment have each received their required authority:
-
-1. Confirm the Google application name, audience, exact redirect URIs, and
-   three scopes against the settings above. Confirm that no Admin SDK,
-   delegation, group, offline-access, or broader scope is enabled.
-2. Inspect only Kubernetes deployment metadata and confirm that both
-   `witnessops-web` and `witnessops-web-dev` reference
-   `witnessops-web-admin-oidc`. Do not print, decode, or copy the Secret data.
-3. Confirm all five environment-variable names are present together in the
-   authorized secret custody. Verify presence only; do not put their values in
-   the test record. A partial set is not a supported rollout state.
-4. Before deployment, run the repository's focused mocked-provider tests and
-   retain only their pass/fail result. They must prove exact Google issuer and
-   single-client audience checks, signed-token and expiry rejection, required
-   stable `sub`, state, nonce, PKCE, verified email, Workspace domain, explicit
-   email allowlist, bounded provider errors, and one-time code handling. Do not
-   use live tokens or record claims for these negative cases.
-5. In a clean unauthenticated browser, request `/admin` and confirm it redirects
-   to `/admin/login`. Confirm the login page names Google Workspace as the
-   primary path and does not expose configuration details.
-6. Start sign-in from the login page. Confirm the browser is sent to Google's
-   authorization endpoint with the configured client identifier, the exact
-   callback URI, `openid email profile`, and non-empty state and nonce values.
-   Confirm no client secret appears in the URL or browser storage.
-7. Complete sign-in with an already-authorized Workspace operator. Confirm the
-   callback returns to `/admin`, or to a requested relative `/admin` descendant,
-   establishes the existing secure admin session identified by Google's exact
-   issuer and stable `sub`, and does not expose the authorization code, ID
-   token, state, nonce, or raw provider errors in the rendered page, URL, logs,
-   or receipt. Confirm external, protocol-relative, backslash-bearing,
-   control-character, and non-admin return paths fall back to `/admin`.
-8. In separately authorized negative checks, confirm that a non-Workspace
-   account, a mismatched Workspace domain, an email absent from the explicit
-   allowlist, a missing or unverified email claim, and invalid state or nonce
-   each fail without issuing an admin session.
-9. Confirm an unauthenticated protected admin API still returns `401`, an
-   authenticated Google OIDC session retains the existing `oidc_session`
-   boundary, and logout expires the admin session plus the Google and Microsoft
-   transaction cookies using their established paths and cookie attributes,
-   then returns to the login page.
-10. Repeat the authorized happy-path and negative boundary checks on each
-   deployed lane. Record only status, redirect destination, cookie attributes,
-   and bounded outcome labels; never record credentials, cookies, tokens,
-   claims, or full operator addresses.
-
-The verification is incomplete if the live secret reference, callback, denied
-identity cases, protected-route boundary, and logout behavior have not all been
-observed through the stated mechanisms.
+1. Confirm the application name, internal audience, exact production redirect
+   URI, and the three scopes above in Google Cloud. Confirm no broader scope,
+   offline access, Admin SDK, delegation, or group lookup is enabled.
+2. Confirm both live deployments reference the established admin OIDC secret
+   by name and that all six required variable names are present. Verify names
+   only; do not print or decode values.
+3. Run the mocked-provider authentication suite and the full Node 22
+   `pnpm health` check on the exact combined tree being deployed.
+4. Confirm unauthenticated `/admin` redirects to the canonical
+   `https://witnessops.com/admin/login` URL and the page exposes only Google
+   Workspace sign-in.
+5. Start sign-in and confirm Google receives the exact callback URI,
+   `openid email profile`, `response_mode=form_post`, state, nonce, and PKCE
+   S256. Confirm no client secret or authorization code appears in a URL.
+6. Complete one sign-in using an already-authorized allowlisted Workspace
+   operator. Confirm the callback POST returns to `/admin` or a sanitized
+   relative `/admin` descendant and creates a versioned session bound to the
+   exact Google issuer and stable `sub`.
+7. Confirm an external return URL, wrong issuer, wrong audience, bad signature,
+   missing or bad state/nonce, unverified email, wrong Workspace domain, and
+   non-allowlisted email all fail without a partial session.
+8. Confirm protected routes reject a previously signed Microsoft or legacy-key
+   session. Confirm logout clears the admin session and Google transaction
+   cookie and returns to the canonical login URL.
+9. Inspect edge and application logs using sanitized metadata only. New real
+   callbacks must be POST requests with no query string, and neither layer may
+   log request bodies, cookies, codes, tokens, state, nonce, or email claims.
+10. Repeat the same checks on each authorized deployment lane. Browser-level
+    success remains unverified until the full Google round trip is completed by
+    a human operator.
 
 ## Rollback
 
-Rollback is an operator-authorized source and deployment action, not a browser
-workaround. Restore Microsoft as the primary login path through the approved UI
-and source rollback, then validate its existing callback and session boundary.
-Leave Microsoft credentials, the legacy-key material, and the admin session
-signing secret intact. Do not rotate the session secret as routine rollback.
+Rollback uses the recorded pre-cutover image or source commit, followed by its
+full authentication test and deployment smoke. Retain the prior Microsoft and
+legacy credential material in secret custody, inactive and unreferenced, until
+the Google-only path has completed human production verification. Do not
+rotate `WITNESSOPS_ADMIN_SECRET` as part of routine rollback.
 
-Remove or disable the five Google configuration values only under explicit
-operator and secret-custody authority, after the Microsoft primary path is
-restored and verified. Do not delete shared Kubernetes secret custody, mutate
-legacy authentication, or revoke unrelated Google Workspace access as part of
-this rollback.
+After Google-only verification and separate secret-custody approval, remove
+`WITNESSOPS_ADMIN_KEY_HASH` and all `WITNESSOPS_ADMIN_OIDC_*` values from active
+runtime custody. Once those credentials are retired, image-only rollback is
+insufficient; the approved fallback credentials must also be restored before
+the prior image can authenticate.

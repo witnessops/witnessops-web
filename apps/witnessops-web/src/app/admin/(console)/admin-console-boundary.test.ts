@@ -19,3 +19,16 @@ test("admin console layout remains noindex and admin-console only", () => {
   assert.doesNotMatch(combinedSource, /ContactForm|SupportIntake|Request one proof run|Package one security workflow|\/review\/request/);
   assert.doesNotMatch(combinedSource, /verified compliance|certified compliance|audit-ready|guarantees compliance/i);
 });
+
+test("admin system exposes Google logout without legacy key material", () => {
+  const systemPage = readFileSync(resolve(__dirname, "system/page.tsx"), "utf-8");
+  const authInfo = readFileSync(
+    resolve(__dirname, "../../../components/admin/admin-auth-info.tsx"),
+    "utf-8",
+  );
+  const combinedSource = `${systemPage}\n${authInfo}`;
+
+  assert.match(combinedSource, /End Google Workspace Session/);
+  assert.match(combinedSource, /action="\/api\/admin\/logout" method="post"/);
+  assert.doesNotMatch(combinedSource, /keyHash|Key hash|payload\.hash/);
+});

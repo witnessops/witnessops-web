@@ -147,24 +147,18 @@ test("Google OIDC config rejects malformed and duplicate allowlist entries", asy
   }
 });
 
-test("Google OIDC config accepts only the fixed callback path on secure origins", async (t) => {
-  const validRedirects = [
+test("Google OIDC config accepts only the canonical production callback", async (t) => {
+  clearGoogleEnvironment();
+  setValidGoogleEnvironment();
+  assert.equal(
+    readGoogleAdminOidcConfig()?.redirectUri,
     "https://witnessops.com/api/admin/google/callback",
-    "http://localhost:3001/api/admin/google/callback",
-    "http://127.0.0.1:3001/api/admin/google/callback",
-    "http://[::1]:3001/api/admin/google/callback",
-  ];
-  for (const redirectUri of validRedirects) {
-    await t.test(`accepts ${redirectUri}`, () => {
-      clearGoogleEnvironment();
-      setValidGoogleEnvironment();
-      process.env.WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI = redirectUri;
-      assert.equal(readGoogleAdminOidcConfig()?.redirectUri, redirectUri);
-    });
-  }
+  );
 
   const invalidRedirects = [
     "http://witnessops.com/api/admin/google/callback",
+    "http://localhost:3001/api/admin/google/callback",
+    "https://staging.witnessops.com/api/admin/google/callback",
     "https://witnessops.com/api/admin/google/callback/",
     "https://witnessops.com/api/admin/google/callback?next=/admin",
     "https://witnessops.com/api/admin/google/callback#fragment",
@@ -265,7 +259,7 @@ test("Google authorization URL uses nonce, Workspace hint, and PKCE S256", async
   assert.equal(url.searchParams.get("client_id"), config.clientId);
   assert.equal(url.searchParams.get("response_type"), "code");
   assert.equal(url.searchParams.get("redirect_uri"), config.redirectUri);
-  assert.equal(url.searchParams.get("response_mode"), "query");
+  assert.equal(url.searchParams.get("response_mode"), "form_post");
   assert.equal(url.searchParams.get("scope"), "openid email profile");
   assert.equal(url.searchParams.get("state"), transaction.state);
   assert.equal(url.searchParams.get("nonce"), transaction.nonce);

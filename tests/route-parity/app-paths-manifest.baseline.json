@@ -1,10 +1,7 @@
 {
-  "/api/admin/auth/route": "app/api/admin/auth/route.js",
   "/api/admin/google/callback/route": "app/api/admin/google/callback/route.js",
   "/api/admin/google/start/route": "app/api/admin/google/start/route.js",
   "/api/admin/logout/route": "app/api/admin/logout/route.js",
-  "/api/admin/oidc/callback/route": "app/api/admin/oidc/callback/route.js",
-  "/api/admin/oidc/start/route": "app/api/admin/oidc/start/route.js",
   "/api/contact/route": "app/api/contact/route.js",
   "/_not-found/page": "app/_not-found/page.js",
   "/api/intake/route": "app/api/intake/route.js",
