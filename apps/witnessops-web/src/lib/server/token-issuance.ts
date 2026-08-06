@@ -591,19 +591,6 @@ async function ensureOperatorNotificationSent(args: {
   return updated;
 }
 
-async function preserveAdmissionAcrossNotificationFailure(args: {
-  intake: IntakeRecord;
-  issuance: TokenIssuanceRecord;
-  source: string;
-  occurredAt: string;
-}): Promise<IntakeRecord> {
-  try {
-    return await ensureOperatorNotificationSent(args);
-  } catch {
-    return (await getIntakeById(args.intake.intakeId)) ?? args.intake;
-  }
-}
-
 function toVerificationResponse(args: {
   intake: IntakeRecord;
   issuance: TokenIssuanceRecord;
@@ -1095,7 +1082,7 @@ async function verifyIssuedTokenUnlocked(
         originalIssuance.consumedAt ??
         replayedAt,
     });
-    const notifiedIntake = await preserveAdmissionAcrossNotificationFailure({
+    const notifiedIntake = await ensureOperatorNotificationSent({
       intake: admitted.intake,
       issuance: admitted.issuance,
       source: "api/verify-token",
@@ -1170,7 +1157,7 @@ async function verifyIssuedTokenUnlocked(
     source: "api/verify-token",
     occurredAt: verifiedAt,
   });
-  const notifiedIntake = await preserveAdmissionAcrossNotificationFailure({
+  const notifiedIntake = await ensureOperatorNotificationSent({
     intake: admitted.intake,
     issuance: admitted.issuance,
     source: "api/verify-token",

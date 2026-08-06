@@ -345,6 +345,9 @@ function issuanceLockPath(issuanceId: string): string {
   if (resolved !== path.join(base, safeName)) {
     throw new Error("Invalid issuance lock path");
   }
+  if (!resolved.startsWith(base + path.sep)) {
+    throw new Error("Invalid issuance lock path");
+  }
   return resolved;
 }
 
