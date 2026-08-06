@@ -69,6 +69,10 @@ function normalizeText(value: string | null | undefined): string | null {
   return normalized ? normalized : null;
 }
 
+function normalizeHeaderText(value: string | null | undefined): string | null {
+  return normalizeText(value)?.replace(/[\r\n]+/g, " ").trim() || null;
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -86,9 +90,9 @@ function renderHtmlField(label: string, value: string | null | undefined): strin
 }
 
 function operatorNotificationSubject(intake: IntakeRecord): string {
-  const org = normalizeText(intake.submission.org);
-  const name = normalizeText(intake.submission.name);
-  const identity = org ?? name ?? intake.email;
+  const org = normalizeHeaderText(intake.submission.org);
+  const name = normalizeHeaderText(intake.submission.name);
+  const identity = org ?? name ?? normalizeHeaderText(intake.email) ?? "requester";
   if (intake.channel === "support") {
     return `Verified support request: ${identity}`;
   }

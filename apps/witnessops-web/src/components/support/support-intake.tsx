@@ -458,7 +458,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
               <h2
                 ref={verificationHeadingRef}
                 tabIndex={-1}
-                className="text-lg font-semibold text-text-primary outline-none"
+                className="text-lg font-semibold text-text-primary"
                 style={{ fontFamily: "var(--font-display)", letterSpacing: "0.04em" }}
               >
                 Verify your email

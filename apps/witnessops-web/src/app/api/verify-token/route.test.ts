@@ -84,13 +84,13 @@ async function issueSupportToken(baseDir: string) {
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
 
-async function issueAccessChangeToken(baseDir: string) {
+async function issueAccessChangeToken(baseDir: string, name = "K. Witness") {
   applyTestEnv(baseDir);
   const response = await reviewRequest(
     new Request("https://witnessops.com/api/review/request", {
       method: "POST",
       body: JSON.stringify({
-        name: "K. Witness",
+        name,
         email: "security@witnessops.com",
         intent: "access-change-proof-run",
         scope: "Access change: contractor production access revoked.",
@@ -451,6 +451,40 @@ test("verify-token route sends a reply-ready operator notification for package r
     .map((line) => JSON.parse(line) as { event_type: string })
     .filter((event) => event.event_type === "INTAKE_OPERATOR_NOTIFICATION_SENT");
   assert.equal(operatorEvents.length, 1);
+});
+
+test("operator notification subject strips requester-controlled line breaks", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-operator-notify-"));
+  const issued = await issueAccessChangeToken(
+    baseDir,
+    "K. Witness\r\nBcc: injected@example.com",
+  );
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(response.status, 200);
+
+  const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
+  const mailRaws = await Promise.all(
+    mailFiles.map((file) =>
+      readFile(path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, file), "utf8"),
+    ),
+  );
+  const operatorMailRaw = mailRaws.find((raw) =>
+    /^To: engage@mail\.witnessops\.com$/m.test(raw),
+  );
+  assert.ok(operatorMailRaw);
+  const headerBlock = operatorMailRaw.split("\n\n", 1)[0]!;
+  assert.match(
+    headerBlock,
+    /^Subject: .*K\. Witness Bcc: injected@example\.com$/m,
+  );
+  assert.doesNotMatch(headerBlock, /^Bcc: injected@example\.com$/m);
 });
 
 test("verify-token route returns support confirmation path for support issuances", async () => {
