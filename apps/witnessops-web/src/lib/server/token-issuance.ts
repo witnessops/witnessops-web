@@ -36,6 +36,7 @@ import {
   saveIssuance,
   updateIntake,
   updateIssuance,
+  withIssuanceLock,
   type AssessmentStatus,
   type IntakeRecord,
   type IntakeSubmissionRecord,
@@ -432,29 +433,128 @@ async function ensureOperatorNotificationSent(args: {
     return args.intake;
   }
 
-  if (args.intake.operatorNotification) {
-    return args.intake;
+  const currentIntake =
+    (await getIntakeById(args.intake.intakeId)) ?? args.intake;
+  if (currentIntake.operatorNotification) {
+    return currentIntake;
   }
 
   const mailbox = getChannelMailbox(args.intake.channel);
   const sender = getChannelVerificationMailbox(args.intake.channel);
-  const deliveryAttemptId = `opnotif_${randomUUID().replace(/-/g, "")}`;
   const subject = operatorNotificationSubject(args.intake);
-  const delivery = await sendVerificationEmail({
-    to: mailbox,
-    from: sender,
-    replyTo: args.issuance.email,
-    subject,
-    text: renderOperatorNotificationText(args),
-    html: renderOperatorNotificationHtml(args),
-    deliveryAttemptId,
-    messageClass: "internal_notification",
-    signatureProfile: "none",
-  });
+  if (currentIntake.operatorNotificationAttempt) {
+    if (currentIntake.operatorNotificationAttempt.status !== "reserved") {
+      return currentIntake;
+    }
 
-  const updated = await updateIntake(args.intake.intakeId, (current) => ({
+    const reconciliationAt = nowIso();
+    const reconciliationRequired = await updateIntake(
+      currentIntake.intakeId,
+      (current) => ({
+        ...current,
+        updatedAt: reconciliationAt,
+        operatorNotificationAttempt: current.operatorNotificationAttempt
+          ? {
+              ...current.operatorNotificationAttempt,
+              status: "needs_reconciliation",
+              updatedAt: reconciliationAt,
+            }
+          : undefined,
+      }),
+    );
+    await appendIntakeEvent({
+      event_type: "INTAKE_OPERATOR_NOTIFICATION_RECONCILIATION_REQUIRED",
+      occurred_at: reconciliationAt,
+      channel: reconciliationRequired.channel,
+      intake_id: reconciliationRequired.intakeId,
+      issuance_id: args.issuance.issuanceId,
+      thread_id: reconciliationRequired.threadId,
+      previous_state: reconciliationRequired.state,
+      next_state: reconciliationRequired.state,
+      source: args.source,
+      payload: {
+        deliveryAttemptId:
+          reconciliationRequired.operatorNotificationAttempt
+            ?.deliveryAttemptId,
+        mailbox,
+      },
+    });
+    return reconciliationRequired;
+  }
+
+  const deliveryAttemptId = `opnotif_${randomUUID().replace(/-/g, "")}`;
+  const reservedAt = nowIso();
+  const reservedIntake = await updateIntake(
+    currentIntake.intakeId,
+    (current) => ({
+      ...current,
+      updatedAt: reservedAt,
+      operatorNotificationAttempt: {
+        deliveryAttemptId,
+        subject,
+        mailbox,
+        replyTo: args.issuance.email,
+        status: "reserved",
+        reservedAt,
+        updatedAt: reservedAt,
+      },
+    }),
+  );
+
+  let delivery;
+  try {
+    delivery = await sendVerificationEmail({
+      to: mailbox,
+      from: sender,
+      replyTo: args.issuance.email,
+      subject,
+      text: renderOperatorNotificationText(args),
+      html: renderOperatorNotificationHtml(args),
+      deliveryAttemptId,
+      messageClass: "internal_notification",
+      signatureProfile: "none",
+    });
+  } catch {
+    const failedAt = nowIso();
+    const failedIntake = await updateIntake(
+      reservedIntake.intakeId,
+      (current) => ({
+        ...current,
+        updatedAt: failedAt,
+        operatorNotificationAttempt: current.operatorNotificationAttempt
+          ? {
+              ...current.operatorNotificationAttempt,
+              status: "failed",
+              updatedAt: failedAt,
+            }
+          : undefined,
+      }),
+    );
+    await appendIntakeEvent({
+      event_type: "INTAKE_OPERATOR_NOTIFICATION_FAILED",
+      occurred_at: failedAt,
+      channel: failedIntake.channel,
+      intake_id: failedIntake.intakeId,
+      issuance_id: args.issuance.issuanceId,
+      thread_id: failedIntake.threadId,
+      previous_state: failedIntake.state,
+      next_state: failedIntake.state,
+      source: args.source,
+      payload: { deliveryAttemptId, mailbox },
+    });
+    return failedIntake;
+  }
+
+  const updated = await updateIntake(reservedIntake.intakeId, (current) => ({
     ...current,
     updatedAt: args.occurredAt,
+    operatorNotificationAttempt: current.operatorNotificationAttempt
+      ? {
+          ...current.operatorNotificationAttempt,
+          status: "sent",
+          updatedAt: delivery.deliveredAt,
+        }
+      : undefined,
     operatorNotification: {
       deliveryAttemptId,
       subject,
@@ -485,6 +585,19 @@ async function ensureOperatorNotificationSent(args: {
   });
 
   return updated;
+}
+
+async function preserveAdmissionAcrossNotificationFailure(args: {
+  intake: IntakeRecord;
+  issuance: TokenIssuanceRecord;
+  source: string;
+  occurredAt: string;
+}): Promise<IntakeRecord> {
+  try {
+    return await ensureOperatorNotificationSent(args);
+  } catch {
+    return (await getIntakeById(args.intake.intakeId)) ?? args.intake;
+  }
 }
 
 function toVerificationResponse(args: {
@@ -936,7 +1049,7 @@ export async function approveScopeAndStartRecon(
   };
 }
 
-export async function verifyIssuedToken(
+async function verifyIssuedTokenUnlocked(
   request: VerifyTokenRequest,
 ): Promise<VerifyTokenResponse> {
   const record = await getIssuanceById(request.issuanceId);
@@ -978,7 +1091,7 @@ export async function verifyIssuedToken(
         originalIssuance.consumedAt ??
         replayedAt,
     });
-    const notifiedIntake = await ensureOperatorNotificationSent({
+    const notifiedIntake = await preserveAdmissionAcrossNotificationFailure({
       intake: admitted.intake,
       issuance: admitted.issuance,
       source: "api/verify-token",
@@ -1053,7 +1166,7 @@ export async function verifyIssuedToken(
     source: "api/verify-token",
     occurredAt: verifiedAt,
   });
-  const notifiedIntake = await ensureOperatorNotificationSent({
+  const notifiedIntake = await preserveAdmissionAcrossNotificationFailure({
     intake: admitted.intake,
     issuance: admitted.issuance,
     source: "api/verify-token",
@@ -1067,4 +1180,12 @@ export async function verifyIssuedToken(
     assessmentRunId: admitted.issuance.assessmentRunId ?? null,
     assessmentStatus: admitted.issuance.assessmentStatus ?? "unavailable",
   });
+}
+
+export async function verifyIssuedToken(
+  request: VerifyTokenRequest,
+): Promise<VerifyTokenResponse> {
+  return withIssuanceLock(request.issuanceId, () =>
+    verifyIssuedTokenUnlocked(request),
+  );
 }

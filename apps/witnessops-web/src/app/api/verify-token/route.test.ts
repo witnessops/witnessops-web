@@ -535,6 +535,110 @@ test("verify-token route returns support confirmation path for support issuances
   assert.equal(supportOperatorEvents.length, 1);
 });
 
+test("verify-token preserves admitted support success when operator notification fails", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-support-verify-"));
+  const issued = await issueSupportToken(baseDir);
+  process.env.WITNESSOPS_MAIL_PROVIDER = "invalid";
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as {
+    intakeId: string;
+    status: string;
+    admissionState: string;
+  };
+  assert.equal(payload.status, "verified");
+  assert.equal(payload.admissionState, "admitted");
+  assert.equal(
+    (await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length,
+    1,
+  );
+
+  const intake = await getIntakeById(payload.intakeId);
+  assert.equal(intake?.operatorNotification, undefined);
+  assert.equal(intake?.operatorNotificationAttempt?.status, "failed");
+
+  const eventLogRaw = await readFile(
+    path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),
+    "utf8",
+  );
+  const failureEvents = eventLogRaw
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as { event_type: string })
+    .filter(
+      (event) => event.event_type === "INTAKE_OPERATOR_NOTIFICATION_FAILED",
+    );
+  assert.equal(failureEvents.length, 1);
+
+  const replay = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(replay.status, 200);
+  assert.equal(
+    (await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length,
+    1,
+  );
+});
+
+test("concurrent support verification sends exactly one operator notification", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-support-verify-"));
+  const issued = await issueSupportToken(baseDir);
+
+  const verify = () =>
+    POST(
+      new Request("https://witnessops.com/api/verify-token", {
+        method: "POST",
+        body: JSON.stringify(issued),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+  const responses = await Promise.all([verify(), verify()]);
+
+  assert.deepEqual(
+    responses.map((response) => response.status),
+    [200, 200],
+  );
+  const payloads = await Promise.all(
+    responses.map(
+      async (response) => (await response.json()) as { intakeId: string },
+    ),
+  );
+  assert.equal(payloads[0]?.intakeId, payloads[1]?.intakeId);
+  assert.equal(
+    (await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length,
+    2,
+  );
+
+  const storedIntake = await getIntakeById(payloads[0]!.intakeId);
+  assert.equal(storedIntake?.operatorNotificationAttempt?.status, "sent");
+  assert.ok(storedIntake?.operatorNotification);
+
+  const eventLogRaw = await readFile(
+    path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),
+    "utf8",
+  );
+  const sentEvents = eventLogRaw
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as { event_type: string })
+    .filter(
+      (event) => event.event_type === "INTAKE_OPERATOR_NOTIFICATION_SENT",
+    );
+  assert.equal(sentEvents.length, 1);
+});
+
 test("verify-token route does not start assessment before explicit approval", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
   applyTestEnv(baseDir);
