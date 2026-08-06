@@ -202,6 +202,9 @@ test("sanitizeAdminReturnTo keeps only local admin destinations", () => {
     "/admin\\evil",
     "/admin/%5cevil",
     "/admin/../public",
+    "/admin/%2e%2e/public",
+    "/admin/%252e%252e/public",
+    "/admin/..%2fpublic",
     "/admin/queue\nnext",
     `/admin/${"a".repeat(1024)}`,
   ]) {

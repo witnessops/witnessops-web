@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { sanitizeAdminReturnTo } from "../../../lib/admin-return-path";
 
 test("admin login keeps all three auth methods ordered and explicitly labelled", () => {
   const page = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
@@ -47,6 +48,43 @@ test("admin login exposes landmarks, labels, focus, loading, and bounded feedbac
   assert.match(page, /disabled={isPending}/);
   assert.match(page, /navigateAfterStatusAnnouncement/);
   assert.match(page, /PROVIDER_NAVIGATION_DELAY_MS = 100/);
+  assert.match(
+    page,
+    /setReturnTo\(sanitizeAdminReturnTo\(params\.get\("returnTo"\)\)\)/,
+  );
+  assert.doesNotMatch(page, /function safeAdminReturnPath/);
+  assert.match(
+    page,
+    /body > \.skip-link,\s*body > nav,\s*body > footer \{ display: none !important; \}/,
+  );
+  assert.match(page, /<footer className="auth-footer">/);
+  assert.doesNotMatch(page, /body > \.auth-footer/);
+});
+
+test("admin login return paths remain inside the normalized admin subtree", () => {
+  assert.equal(sanitizeAdminReturnTo("/admin"), "/admin");
+  assert.equal(
+    sanitizeAdminReturnTo("/admin/queue?state=open#current"),
+    "/admin/queue?state=open#current",
+  );
+  assert.equal(
+    sanitizeAdminReturnTo("/admin/queue/../products"),
+    "/admin/products",
+  );
+
+  for (const unsafe of [
+    "/admin/../public",
+    "/admin/%2e%2e/public",
+    "/admin/%252e%252e/public",
+    "/admin/..%2fpublic",
+    "/admin/%5c..%5cpublic",
+    "//evil.example/admin",
+    "https://evil.example/admin",
+    "/admin/%",
+    "/admin/%0aqueue",
+  ]) {
+    assert.equal(sanitizeAdminReturnTo(unsafe), "/admin");
+  }
 });
 
 test("admin login maps callback errors to generic copy without echoing query input", () => {

@@ -4,6 +4,9 @@ import {
   jwtVerify,
   type JWTPayload,
 } from "jose";
+import { sanitizeAdminReturnTo } from "@/lib/admin-return-path";
+
+export { sanitizeAdminReturnTo } from "@/lib/admin-return-path";
 
 export const GOOGLE_OIDC_ISSUER = "https://accounts.google.com";
 export const GOOGLE_OIDC_TRANSACTION_COOKIE_NAME =
@@ -272,44 +275,6 @@ export function readGoogleAdminOidcConfig(): GoogleAdminOidcConfig | null {
     workspaceDomain,
     adminEmailAllowlist,
   };
-}
-
-export function sanitizeAdminReturnTo(value: unknown): string {
-  if (
-    typeof value !== "string" ||
-    value.length > 1024 ||
-    !value.startsWith("/") ||
-    value.startsWith("//") ||
-    value.includes("\\") ||
-    CONTROL_CHARACTER_PATTERN.test(value)
-  ) {
-    return "/admin";
-  }
-
-  let decoded: string;
-  try {
-    decoded = decodeURIComponent(value);
-  } catch {
-    return "/admin";
-  }
-  if (decoded.includes("\\") || CONTROL_CHARACTER_PATTERN.test(decoded)) {
-    return "/admin";
-  }
-
-  try {
-    const base = new URL("https://admin-return.invalid");
-    const parsed = new URL(value, base);
-    if (
-      parsed.origin !== base.origin ||
-      (parsed.pathname !== "/admin" &&
-        !parsed.pathname.startsWith("/admin/"))
-    ) {
-      return "/admin";
-    }
-    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
-  } catch {
-    return "/admin";
-  }
 }
 
 function encodeBase64Url(bytes: Uint8Array): string {

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { sanitizeAdminReturnTo } from "@/lib/admin-return-path";
 
 type AuthMethod = "google" | "microsoft" | "legacy";
 type MessageKind = "error" | "status" | "success";
@@ -17,24 +18,6 @@ function navigateAfterStatusAnnouncement(destination: string): void {
   window.setTimeout(() => {
     window.location.assign(destination);
   }, PROVIDER_NAVIGATION_DELAY_MS);
-}
-
-function safeAdminReturnPath(value: string | null): string {
-  if (
-    !value ||
-    value.length > 1_024 ||
-    !value.startsWith("/admin") ||
-    value.startsWith("//") ||
-    value.includes("\\") ||
-    /[\u0000-\u001f\u007f]/.test(value)
-  ) {
-    return "/admin";
-  }
-
-  const boundary = value.charAt("/admin".length);
-  return boundary === "" || boundary === "/" || boundary === "?"
-    ? value
-    : "/admin";
 }
 
 function callbackMessage(errorCode: string | null): AuthMessage | null {
@@ -70,7 +53,7 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setReturnTo(safeAdminReturnPath(params.get("returnTo")));
+    setReturnTo(sanitizeAdminReturnTo(params.get("returnTo")));
     setMessage(callbackMessage(params.get("error")));
   }, []);
 
@@ -165,6 +148,10 @@ export default function AdminLoginPage() {
     <>
       <style>{`
         body { overflow: hidden !important; }
+        body > .skip-link,
+        body > nav,
+        body > footer { display: none !important; }
+
         .admin-skip-link {
           position: fixed;
           left: 16px;
