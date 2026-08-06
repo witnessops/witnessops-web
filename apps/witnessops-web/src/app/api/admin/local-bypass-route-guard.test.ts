@@ -184,8 +184,13 @@ test("spoofed forwarded localhost does not bypass admin page middleware", async 
   mutableEnv.NODE_ENV = "development";
   process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS = "1";
 
-  const response = await middleware(spoofedAdminRequest("/admin/queue"));
+  const response = await middleware(
+    spoofedAdminRequest("/admin/queue?customer=private-value"),
+  );
 
   assert.equal(response.status, 307);
-  assert.equal(new URL(response.headers.get("location")!).pathname, "/admin/login");
+  const location = new URL(response.headers.get("location")!);
+  assert.equal(location.pathname, "/admin/login");
+  assert.equal(location.searchParams.get("returnTo"), "/admin/queue");
+  assert.equal(location.searchParams.has("customer"), false);
 });

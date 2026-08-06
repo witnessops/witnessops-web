@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSessionCookie } from "@/lib/server/admin-session";
-import { readAdminOidcConfig } from "@/lib/server/admin-oidc";
 
 async function sha256Hex(input: string): Promise<string> {
   const encoded = new TextEncoder().encode(input);
@@ -11,13 +10,6 @@ async function sha256Hex(input: string): Promise<string> {
 }
 
 export async function POST(request: NextRequest) {
-  if (readAdminOidcConfig()) {
-    return NextResponse.json(
-      { error: "Admin OIDC is configured; use the OIDC login entry." },
-      { status: 409 },
-    );
-  }
-
   const expectedHash = process.env.WITNESSOPS_ADMIN_KEY_HASH;
   const secret = process.env.WITNESSOPS_ADMIN_SECRET;
 

@@ -28,6 +28,8 @@ export async function middleware(request: NextRequest) {
       if (!sessionCookie || !(await verifyAdminSessionCookie(sessionCookie))) {
         const loginUrl = request.nextUrl.clone();
         loginUrl.pathname = "/admin/login";
+        loginUrl.search = "";
+        loginUrl.searchParams.set("returnTo", pathname);
         return NextResponse.redirect(loginUrl);
       }
     }
