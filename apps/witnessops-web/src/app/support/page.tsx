@@ -41,10 +41,6 @@ export function generateMetadata(): Metadata {
   };
 }
 
-interface SupportPageProps {
-  searchParams?: Promise<{ verified?: string; threadId?: string }>;
-}
-
 const situationLanes = [
   {
     href: "/review/request",
@@ -55,7 +51,7 @@ const situationLanes = [
   {
     href: "#contact",
     title: "Product help or access",
-    body: "Questions about the product, access, mailbox verification, or how to use a public surface. Email follow-up only — not a review queue.",
+    body: "Questions about the product, access, mailbox verification, or how to use a public surface. Verified requests enter the operator action queue.",
     emphasize: false,
   },
   {
@@ -73,10 +69,9 @@ const situationLanes = [
   },
 ] as const;
 
-export default async function SupportPage({ searchParams }: SupportPageProps) {
+export default function SupportPage() {
   const supportDocs = loadSupportIndex();
   const primaryDoc = loadSupportPage("support-policy") ?? supportDocs[0];
-  const resolvedSearchParams = (await searchParams) ?? {};
 
   if (!primaryDoc) {
     notFound();
@@ -108,15 +103,6 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
             <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
             <CtaButton href="#contact" variant="secondary" label="Email support" />
           </div>
-          {resolvedSearchParams.verified === "1" && (
-            <div className="mt-6 border border-signal-green/30 bg-signal-green/5 px-4 py-3 text-sm text-signal-green">
-              Mailbox verified for support email follow-up
-              {resolvedSearchParams.threadId
-                ? ` as ${resolvedSearchParams.threadId}`
-                : ""}
-              .
-            </div>
-          )}
         </header>
 
         <section className="mt-10" aria-labelledby="support-lanes-heading">
@@ -219,8 +205,9 @@ export default async function SupportPage({ searchParams }: SupportPageProps) {
                 Prefer direct email?
               </p>
               <p className="mt-3 text-sm leading-7 text-text-secondary">
-                You can email the support mailbox directly. The form on this page
-                also routes to email rather than the admin queue.
+                The form durably records your request and enters it into the
+                operator queue after mailbox verification. You can also email the
+                support mailbox directly as a fallback.
               </p>
               <a
                 href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.general)}

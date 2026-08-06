@@ -14,7 +14,8 @@ function applyTestEnv(baseDir: string): void {
   process.env.WITNESSOPS_TOKEN_FROM_EMAIL = "support@witnessops.com";
   process.env.WITNESSOPS_VERIFY_BASE_URL = "https://witnessops.com";
   process.env.WITNESSOPS_MAIL_PROVIDER = "file";
-  process.env.WITNESSOPS_MAILBOX_SUPPORT = "support@witnessops.com";
+  process.env.WITNESSOPS_MAILBOX_SUPPORT = "engage@mail.witnessops.com";
+  process.env.WITNESSOPS_MAILBOX_NOREPLY = "noreply@send.witnessops.com";
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_MAIL_OUTPUT_DIR = path.join(baseDir, "mail-out");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
@@ -87,7 +88,7 @@ test("support route issues mailbox verification and persists support intake meta
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
     "utf8",
   );
-  assert.match(mailRaw, /^From:\s+support@witnessops\.com$/m);
+  assert.match(mailRaw, /^From:\s+noreply@send\.witnessops\.com$/m);
   assert.match(mailRaw, /^Verification Code:\s+.+$/m);
 
   const eventLogRaw = await readFile(
@@ -133,4 +134,29 @@ test("support route redacts upstream issuance errors", async () => {
   const payload = (await response.json()) as { ok?: boolean; error: string };
   assert.equal(payload.ok, false);
   assert.equal(payload.error, "Unable to issue verification token.");
+
+  const intakeFiles = await readdir(
+    path.join(process.env.WITNESSOPS_TOKEN_STORE_DIR!, "intakes"),
+  );
+  assert.equal(intakeFiles.length, 1);
+  const retainedIntake = await readFile(
+    path.join(
+      process.env.WITNESSOPS_TOKEN_STORE_DIR!,
+      "intakes",
+      intakeFiles[0]!,
+    ),
+    "utf8",
+  );
+  assert.match(retainedIntake, /"state":\s*"submitted"/);
+  assert.match(retainedIntake, /"channel":\s*"support"/);
+
+  const eventLogRaw = await readFile(
+    path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),
+    "utf8",
+  );
+  const events = eventLogRaw.trim().split("\n").map((line) => JSON.parse(line));
+  assert.deepEqual(
+    events.map((event) => event.event_type),
+    ["INTAKE_SUBMITTED"],
+  );
 });
