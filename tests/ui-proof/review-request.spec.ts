@@ -115,7 +115,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
 
     if (scenario.locale === "pl") {
       const contactHandoff = page.locator("main [data-public-contact-route]");
-      await expect(contactHandoff).toContainText("Opowiedz nam, co się wydarzyło");
+      await expect(contactHandoff).toContainText("Rozpocznij przegląd");
       await expect(contactHandoff.locator("a").first()).toHaveAttribute("href", "/pl/review/request");
       await expect(contactHandoff).toContainText("engage@mail.witnessops.com");
     }

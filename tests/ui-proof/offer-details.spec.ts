@@ -189,6 +189,8 @@ test("External Exposure Assessment synthetic sample is buyer-safe and responsive
     "evidence-register.json",
     "handover-agenda.md",
     "focused-retest-result.md",
+    "synthetic-rehearsal-checklist.md",
+    "synthetic-timesheet.md",
     "CLAIM_BOUNDARY.md",
     "evidence-manifest.json",
     "verifier-result.json",
@@ -218,7 +220,7 @@ test("External Exposure Assessment synthetic sample is buyer-safe and responsive
       "Synthetic worked example — not customer evidence.",
     );
     await expect(main).toContainText(
-      "It does not prove that observations are complete",
+      "Neither result proves that observations are complete",
     );
     await expect(main).not.toContainText("assessment of WitnessOps");
 
