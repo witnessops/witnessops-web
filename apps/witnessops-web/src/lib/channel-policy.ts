@@ -32,7 +32,7 @@ const CHANNEL_POLICIES: Record<ChannelName, ChannelPolicy> = {
   support: {
     channel: "support",
     mailboxKey: "support",
-    verificationMailboxKey: "support",
+    verificationMailboxKey: "noreply",
     inboundAllowed: true,
     requiresVerifiedMailbox: true,
     requiresBusinessEmail: false,

@@ -19,7 +19,8 @@ function applyTestEnv(baseDir: string): void {
   process.env.WITNESSOPS_TOKEN_FROM_EMAIL = "support@witnessops.com";
   process.env.WITNESSOPS_VERIFY_BASE_URL = "https://witnessops.com";
   process.env.WITNESSOPS_MAIL_PROVIDER = "file";
-  process.env.WITNESSOPS_MAILBOX_SUPPORT = "support@witnessops.com";
+  process.env.WITNESSOPS_MAILBOX_SUPPORT = "engage@mail.witnessops.com";
+  process.env.WITNESSOPS_MAILBOX_NOREPLY = "noreply@send.witnessops.com";
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_MAIL_OUTPUT_DIR = path.join(baseDir, "mail-out");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
@@ -121,7 +122,7 @@ test("admin respond route sends the first external reply and records responded",
   assert.equal(payload.provider, "file");
   assert.ok(payload.providerMessageId);
   assert.ok(payload.deliveryAttemptId.startsWith("rsp_"));
-  assert.equal(payload.mailbox, "support@witnessops.com");
+  assert.equal(payload.mailbox, "engage@mail.witnessops.com");
   assert.ok(payload.threadId?.startsWith("thr_"));
 
   const intakeRaw = await readFile(
@@ -146,7 +147,7 @@ test("admin respond route sends the first external reply and records responded",
   assert.match(eventLogRaw, /"event_type":"INTAKE_RESPONDED"/);
 
   const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
-  assert.equal(mailFiles.length, 2);
+  assert.equal(mailFiles.length, 3);
   const responseMail = await Promise.all(
     mailFiles.map((file) =>
       readFile(
@@ -198,7 +199,7 @@ test("admin respond route is idempotent after the first responded event", async 
   assert.ok(payload.deliveryAttemptId.startsWith("rsp_"));
 
   const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
-  assert.equal(mailFiles.length, 2);
+  assert.equal(mailFiles.length, 3);
 
   const eventLogRaw = await readFile(
     path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),

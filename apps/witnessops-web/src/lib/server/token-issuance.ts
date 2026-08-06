@@ -36,6 +36,7 @@ import {
   saveIssuance,
   updateIntake,
   updateIssuance,
+  withIssuanceLock,
   type AssessmentStatus,
   type IntakeRecord,
   type IntakeSubmissionRecord,
@@ -68,6 +69,10 @@ function normalizeText(value: string | null | undefined): string | null {
   return normalized ? normalized : null;
 }
 
+function normalizeHeaderText(value: string | null | undefined): string | null {
+  return normalizeText(value)?.replace(/[\r\n]+/g, " ").trim() || null;
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -85,10 +90,13 @@ function renderHtmlField(label: string, value: string | null | undefined): strin
 }
 
 function operatorNotificationSubject(intake: IntakeRecord): string {
+  const org = normalizeHeaderText(intake.submission.org);
+  const name = normalizeHeaderText(intake.submission.name);
+  const identity = org ?? name ?? normalizeHeaderText(intake.email) ?? "requester";
+  if (intake.channel === "support") {
+    return `Verified support request: ${identity}`;
+  }
   const requestLabel = getProofRunRequestLabel(intake.submission.intent);
-  const org = normalizeText(intake.submission.org);
-  const name = normalizeText(intake.submission.name);
-  const identity = org ?? name ?? intake.email;
   return `Verified ${requestLabel}: ${identity}`;
 }
 
@@ -96,6 +104,27 @@ function renderOperatorNotificationText(args: {
   intake: IntakeRecord;
   issuance: TokenIssuanceRecord;
 }): string {
+  if (args.intake.channel === "support") {
+    return [
+      "Verified WitnessOps support request",
+      "",
+      "Reply to this email to acknowledge and continue with the verified requester.",
+      "",
+      renderTextField("Requester email", args.issuance.email),
+      renderTextField("Category", args.intake.submission.category),
+      renderTextField("Severity", args.intake.submission.severity),
+      `Intake ID: ${args.intake.intakeId}`,
+      `Issuance ID: ${args.issuance.issuanceId}`,
+      `Thread ID: ${args.intake.threadId ?? "not assigned"}`,
+      "",
+      "Support request:",
+      args.intake.submission.message ?? "not provided",
+      "",
+      "Handling boundary:",
+      "Do not request secrets, credentials, private keys, MFA codes, or unnecessary customer records by email.",
+    ].join("\n");
+  }
+
   const requestLabel = getProofRunRequestLabel(args.intake.submission.intent);
   return [
     `Verified WitnessOps ${requestLabel}`,
@@ -125,6 +154,39 @@ function renderOperatorNotificationHtml(args: {
   intake: IntakeRecord;
   issuance: TokenIssuanceRecord;
 }): string {
+  if (args.intake.channel === "support") {
+    const C = {
+      bg: "#f7f5f1",
+      surface: "#ffffff",
+      surfaceAlt: "#faf9f7",
+      border: "#e4e0d8",
+      text: "#121212",
+      textSecondary: "#3f3c38",
+      accent: "#f27a3d",
+    } as const;
+    return [
+      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;background:${C.bg};color:${C.text};font-family:Arial,Helvetica,sans-serif">`,
+      '<tr><td style="padding:24px">',
+      `<p style="margin:0 0 8px 0;color:${C.accent};font-size:12px;letter-spacing:1.8px;text-transform:uppercase">Verified request</p>`,
+      `<h1 style="margin:0 0 16px 0;color:${C.text};font-size:22px;line-height:28px">WitnessOps support request</h1>`,
+      `<p style="margin:0 0 20px 0;color:${C.textSecondary};font-size:14px;line-height:21px">Reply to this email to acknowledge and continue with the verified requester.</p>`,
+      `<div style="border:1px solid ${C.border};padding:16px;background:${C.surface}">`,
+      renderHtmlField("Requester email", args.issuance.email),
+      renderHtmlField("Category", args.intake.submission.category),
+      renderHtmlField("Severity", args.intake.submission.severity),
+      renderHtmlField("Intake ID", args.intake.intakeId),
+      renderHtmlField("Issuance ID", args.issuance.issuanceId),
+      renderHtmlField("Thread ID", args.intake.threadId ?? "not assigned"),
+      "</div>",
+      `<h2 style="margin:22px 0 8px 0;color:${C.text};font-size:15px;line-height:20px">Support request</h2>`,
+      `<pre style="white-space:pre-wrap;margin:0;padding:14px;border:1px solid ${C.border};background:${C.surfaceAlt};color:${C.textSecondary};font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px">${escapeHtml(args.intake.submission.message ?? "not provided")}</pre>`,
+      `<h2 style="margin:22px 0 8px 0;color:${C.text};font-size:15px;line-height:20px">Handling boundary</h2>`,
+      `<p style="margin:0;color:${C.textSecondary};font-size:13px;line-height:20px">Do not request secrets, credentials, private keys, MFA codes, or unnecessary customer records by email.</p>`,
+      "</td></tr>",
+      "</table>",
+    ].join("");
+  }
+
   const requestLabel = getProofRunRequestLabel(args.intake.submission.intent);
   const scope = args.intake.submission.scope ?? "not provided";
   const C = {
@@ -367,36 +429,136 @@ async function ensureOperatorNotificationSent(args: {
   source: string;
   occurredAt: string;
 }): Promise<IntakeRecord> {
-  if (
-    args.intake.channel !== "engage" ||
-    !isManualProofRunIntent(args.intake.submission.intent)
-  ) {
+  const eligible =
+    args.intake.channel === "support" ||
+    (args.intake.channel === "engage" &&
+      isManualProofRunIntent(args.intake.submission.intent));
+  if (!eligible) {
     return args.intake;
   }
 
-  if (args.intake.operatorNotification) {
-    return args.intake;
+  const currentIntake =
+    (await getIntakeById(args.intake.intakeId)) ?? args.intake;
+  if (currentIntake.operatorNotification) {
+    return currentIntake;
   }
 
   const mailbox = getChannelMailbox(args.intake.channel);
   const sender = getChannelVerificationMailbox(args.intake.channel);
-  const deliveryAttemptId = `opnotif_${randomUUID().replace(/-/g, "")}`;
   const subject = operatorNotificationSubject(args.intake);
-  const delivery = await sendVerificationEmail({
-    to: mailbox,
-    from: sender,
-    replyTo: args.issuance.email,
-    subject,
-    text: renderOperatorNotificationText(args),
-    html: renderOperatorNotificationHtml(args),
-    deliveryAttemptId,
-    messageClass: "internal_notification",
-    signatureProfile: "none",
-  });
+  if (currentIntake.operatorNotificationAttempt) {
+    if (currentIntake.operatorNotificationAttempt.status !== "reserved") {
+      return currentIntake;
+    }
 
-  const updated = await updateIntake(args.intake.intakeId, (current) => ({
+    const reconciliationAt = nowIso();
+    const reconciliationRequired = await updateIntake(
+      currentIntake.intakeId,
+      (current) => ({
+        ...current,
+        updatedAt: reconciliationAt,
+        operatorNotificationAttempt: current.operatorNotificationAttempt
+          ? {
+              ...current.operatorNotificationAttempt,
+              status: "needs_reconciliation",
+              updatedAt: reconciliationAt,
+            }
+          : undefined,
+      }),
+    );
+    await appendIntakeEvent({
+      event_type: "INTAKE_OPERATOR_NOTIFICATION_RECONCILIATION_REQUIRED",
+      occurred_at: reconciliationAt,
+      channel: reconciliationRequired.channel,
+      intake_id: reconciliationRequired.intakeId,
+      issuance_id: args.issuance.issuanceId,
+      thread_id: reconciliationRequired.threadId,
+      previous_state: reconciliationRequired.state,
+      next_state: reconciliationRequired.state,
+      source: args.source,
+      payload: {
+        deliveryAttemptId:
+          reconciliationRequired.operatorNotificationAttempt
+            ?.deliveryAttemptId,
+        mailbox,
+      },
+    });
+    return reconciliationRequired;
+  }
+
+  const deliveryAttemptId = `opnotif_${randomUUID().replace(/-/g, "")}`;
+  const reservedAt = nowIso();
+  const reservedIntake = await updateIntake(
+    currentIntake.intakeId,
+    (current) => ({
+      ...current,
+      updatedAt: reservedAt,
+      operatorNotificationAttempt: {
+        deliveryAttemptId,
+        subject,
+        mailbox,
+        replyTo: args.issuance.email,
+        status: "reserved",
+        reservedAt,
+        updatedAt: reservedAt,
+      },
+    }),
+  );
+
+  let delivery;
+  try {
+    delivery = await sendVerificationEmail({
+      to: mailbox,
+      from: sender,
+      replyTo: args.issuance.email,
+      subject,
+      text: renderOperatorNotificationText(args),
+      html: renderOperatorNotificationHtml(args),
+      deliveryAttemptId,
+      messageClass: "internal_notification",
+      signatureProfile: "none",
+    });
+  } catch {
+    const failedAt = nowIso();
+    const failedIntake = await updateIntake(
+      reservedIntake.intakeId,
+      (current) => ({
+        ...current,
+        updatedAt: failedAt,
+        operatorNotificationAttempt: current.operatorNotificationAttempt
+          ? {
+              ...current.operatorNotificationAttempt,
+              status: "failed",
+              updatedAt: failedAt,
+            }
+          : undefined,
+      }),
+    );
+    await appendIntakeEvent({
+      event_type: "INTAKE_OPERATOR_NOTIFICATION_FAILED",
+      occurred_at: failedAt,
+      channel: failedIntake.channel,
+      intake_id: failedIntake.intakeId,
+      issuance_id: args.issuance.issuanceId,
+      thread_id: failedIntake.threadId,
+      previous_state: failedIntake.state,
+      next_state: failedIntake.state,
+      source: args.source,
+      payload: { deliveryAttemptId, mailbox },
+    });
+    return failedIntake;
+  }
+
+  const updated = await updateIntake(reservedIntake.intakeId, (current) => ({
     ...current,
     updatedAt: args.occurredAt,
+    operatorNotificationAttempt: current.operatorNotificationAttempt
+      ? {
+          ...current.operatorNotificationAttempt,
+          status: "sent",
+          updatedAt: delivery.deliveredAt,
+        }
+      : undefined,
     operatorNotification: {
       deliveryAttemptId,
       subject,
@@ -878,7 +1040,7 @@ export async function approveScopeAndStartRecon(
   };
 }
 
-export async function verifyIssuedToken(
+async function verifyIssuedTokenUnlocked(
   request: VerifyTokenRequest,
 ): Promise<VerifyTokenResponse> {
   const record = await getIssuanceById(request.issuanceId);
@@ -1009,4 +1171,12 @@ export async function verifyIssuedToken(
     assessmentRunId: admitted.issuance.assessmentRunId ?? null,
     assessmentStatus: admitted.issuance.assessmentStatus ?? "unavailable",
   });
+}
+
+export async function verifyIssuedToken(
+  request: VerifyTokenRequest,
+): Promise<VerifyTokenResponse> {
+  return withIssuanceLock(request.issuanceId, () =>
+    verifyIssuedTokenUnlocked(request),
+  );
 }

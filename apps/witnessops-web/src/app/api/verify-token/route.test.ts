@@ -25,7 +25,9 @@ function applyTestEnv(baseDir: string): void {
   process.env.WITNESSOPS_TOKEN_FROM_EMAIL = "engage@witnessops.com";
   process.env.WITNESSOPS_VERIFY_BASE_URL = "https://witnessops.com";
   process.env.WITNESSOPS_MAIL_PROVIDER = "file";
-  process.env.WITNESSOPS_MAILBOX_ENGAGE = "engage@witnessops.com";
+  process.env.WITNESSOPS_MAILBOX_ENGAGE = "engage@mail.witnessops.com";
+  process.env.WITNESSOPS_MAILBOX_SUPPORT = "engage@mail.witnessops.com";
+  process.env.WITNESSOPS_MAILBOX_NOREPLY = "noreply@send.witnessops.com";
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_MAIL_OUTPUT_DIR = path.join(baseDir, "mail-out");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
@@ -82,13 +84,13 @@ async function issueSupportToken(baseDir: string) {
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
 
-async function issueAccessChangeToken(baseDir: string) {
+async function issueAccessChangeToken(baseDir: string, name = "K. Witness") {
   applyTestEnv(baseDir);
   const response = await reviewRequest(
     new Request("https://witnessops.com/api/review/request", {
       method: "POST",
       body: JSON.stringify({
-        name: "K. Witness",
+        name,
         email: "security@witnessops.com",
         intent: "access-change-proof-run",
         scope: "Access change: contractor production access revoked.",
@@ -405,11 +407,11 @@ test("verify-token route sends a reply-ready operator notification for package r
     ),
   );
   const operatorMailRaw = mailRaws.find((raw) =>
-    /^To: engage@witnessops\.com$/m.test(raw),
+    /^To: engage@mail\.witnessops\.com$/m.test(raw),
   );
 
   assert.ok(operatorMailRaw);
-  assert.match(operatorMailRaw, /^From: witnessopsno-reply@witnessops\.com$/m);
+  assert.match(operatorMailRaw, /^From: noreply@send\.witnessops\.com$/m);
   assert.match(operatorMailRaw, /^Reply-To: security@witnessops\.com$/m);
   assert.match(
     operatorMailRaw,
@@ -423,7 +425,7 @@ test("verify-token route sends a reply-ready operator notification for package r
   assert.match(operatorMailRaw, /No customer evidence has been accepted\./);
 
   const intake = await getIntakeById(issued.intakeId);
-  assert.equal(intake?.operatorNotification?.mailbox, "engage@witnessops.com");
+  assert.equal(intake?.operatorNotification?.mailbox, "engage@mail.witnessops.com");
   assert.equal(intake?.operatorNotification?.replyTo, "security@witnessops.com");
 
   const replay = await POST(
@@ -439,6 +441,50 @@ test("verify-token route sends a reply-ready operator notification for package r
   );
   assert.equal(replay.status, 200);
   assert.equal((await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length, 2);
+  const eventLogRaw = await readFile(
+    path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),
+    "utf8",
+  );
+  const operatorEvents = eventLogRaw
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as { event_type: string })
+    .filter((event) => event.event_type === "INTAKE_OPERATOR_NOTIFICATION_SENT");
+  assert.equal(operatorEvents.length, 1);
+});
+
+test("operator notification subject strips requester-controlled line breaks", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-operator-notify-"));
+  const issued = await issueAccessChangeToken(
+    baseDir,
+    "K. Witness\r\nBcc: injected@example.com",
+  );
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(response.status, 200);
+
+  const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
+  const mailRaws = await Promise.all(
+    mailFiles.map((file) =>
+      readFile(path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, file), "utf8"),
+    ),
+  );
+  const operatorMailRaw = mailRaws.find((raw) =>
+    /^To: engage@mail\.witnessops\.com$/m.test(raw),
+  );
+  assert.ok(operatorMailRaw);
+  const headerBlock = operatorMailRaw.split("\n\n", 1)[0]!;
+  assert.match(
+    headerBlock,
+    /^Subject: .*K\. Witness Bcc: injected@example\.com$/m,
+  );
+  assert.doesNotMatch(headerBlock, /^Bcc: injected@example\.com$/m);
 });
 
 test("verify-token route returns support confirmation path for support issuances", async () => {
@@ -470,6 +516,161 @@ test("verify-token route returns support confirmation path for support issuances
     threadId: payload.threadId!,
   });
   assert.equal(payload.postVerifyPath, `/support?${expected.toString()}`);
+
+  const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
+  assert.equal(mailFiles.length, 2);
+  const mailRaws = await Promise.all(
+    mailFiles.map((file) =>
+      readFile(path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, file), "utf8"),
+    ),
+  );
+  const operatorMailRaw = mailRaws.find((raw) =>
+    /^To: engage@mail\.witnessops\.com$/m.test(raw),
+  );
+  assert.ok(operatorMailRaw);
+  assert.match(operatorMailRaw, /^From: noreply@send\.witnessops\.com$/m);
+  assert.match(operatorMailRaw, /^Reply-To: operator@gmail\.com$/m);
+  assert.match(
+    operatorMailRaw,
+    /^Subject: Verified support request: operator@gmail\.com$/m,
+  );
+  assert.match(operatorMailRaw, /Category: receipt/);
+  assert.match(operatorMailRaw, /Severity: general/);
+  assert.match(operatorMailRaw, /Need help verifying a receipt\./);
+
+  const intake = await getIntakeById(payload.intakeId);
+  assert.equal(intake?.operatorNotification?.mailbox, "engage@mail.witnessops.com");
+  assert.equal(intake?.operatorNotification?.replyTo, "operator@gmail.com");
+  assert.equal(intake?.operatorNotification?.provider, "file");
+  assert.ok(intake?.operatorNotification?.providerMessageId);
+
+  const replay = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(replay.status, 200);
+  assert.equal((await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length, 2);
+  const supportEventLogRaw = await readFile(
+    path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),
+    "utf8",
+  );
+  const supportOperatorEvents = supportEventLogRaw
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as { event_type: string; channel: string })
+    .filter(
+      (event) =>
+        event.event_type === "INTAKE_OPERATOR_NOTIFICATION_SENT" &&
+        event.channel === "support",
+    );
+  assert.equal(supportOperatorEvents.length, 1);
+});
+
+test("verify-token preserves admitted support success when operator notification fails", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-support-verify-"));
+  const issued = await issueSupportToken(baseDir);
+  process.env.WITNESSOPS_MAIL_PROVIDER = "invalid";
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as {
+    intakeId: string;
+    status: string;
+    admissionState: string;
+  };
+  assert.equal(payload.status, "verified");
+  assert.equal(payload.admissionState, "admitted");
+  assert.equal(
+    (await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length,
+    1,
+  );
+
+  const intake = await getIntakeById(payload.intakeId);
+  assert.equal(intake?.operatorNotification, undefined);
+  assert.equal(intake?.operatorNotificationAttempt?.status, "failed");
+
+  const eventLogRaw = await readFile(
+    path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),
+    "utf8",
+  );
+  const failureEvents = eventLogRaw
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as { event_type: string })
+    .filter(
+      (event) => event.event_type === "INTAKE_OPERATOR_NOTIFICATION_FAILED",
+    );
+  assert.equal(failureEvents.length, 1);
+
+  const replay = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(replay.status, 200);
+  assert.equal(
+    (await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length,
+    1,
+  );
+});
+
+test("concurrent support verification sends exactly one operator notification", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-support-verify-"));
+  const issued = await issueSupportToken(baseDir);
+
+  const verify = () =>
+    POST(
+      new Request("https://witnessops.com/api/verify-token", {
+        method: "POST",
+        body: JSON.stringify(issued),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+  const responses = await Promise.all([verify(), verify()]);
+
+  assert.deepEqual(
+    responses.map((response) => response.status),
+    [200, 200],
+  );
+  const payloads = await Promise.all(
+    responses.map(
+      async (response) => (await response.json()) as { intakeId: string },
+    ),
+  );
+  assert.equal(payloads[0]?.intakeId, payloads[1]?.intakeId);
+  assert.equal(
+    (await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length,
+    2,
+  );
+
+  const storedIntake = await getIntakeById(payloads[0]!.intakeId);
+  assert.equal(storedIntake?.operatorNotificationAttempt?.status, "sent");
+  assert.ok(storedIntake?.operatorNotification);
+
+  const eventLogRaw = await readFile(
+    path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),
+    "utf8",
+  );
+  const sentEvents = eventLogRaw
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as { event_type: string })
+    .filter(
+      (event) => event.event_type === "INTAKE_OPERATOR_NOTIFICATION_SENT",
+    );
+  assert.equal(sentEvents.length, 1);
 });
 
 test("verify-token route does not start assessment before explicit approval", async () => {

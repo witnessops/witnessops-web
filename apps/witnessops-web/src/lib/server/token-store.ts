@@ -4,8 +4,10 @@ import {
   readdir,
   rename,
   rm,
+  stat,
   writeFile,
 } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 
 import type { ChannelName } from "@/lib/channel-policy";
@@ -95,6 +97,16 @@ export interface IntakeOperatorNotificationRecord {
   deliveredAt: string;
 }
 
+export interface IntakeOperatorNotificationAttemptRecord {
+  deliveryAttemptId: string;
+  subject: string;
+  mailbox: string;
+  replyTo: string;
+  status: "reserved" | "sent" | "failed" | "needs_reconciliation";
+  reservedAt: string;
+  updatedAt: string;
+}
+
 export interface IntakeResponseProviderOutcomeRecord {
   status: IntakeResponseProviderOutcomeStatus;
   observedAt: string;
@@ -138,6 +150,7 @@ export interface IntakeRecord {
   responseMailboxReceipt?: IntakeMailboxReceiptRecord;
   reconciliation?: IntakeReconciliationRecord;
   operatorNotification?: IntakeOperatorNotificationRecord;
+  operatorNotificationAttempt?: IntakeOperatorNotificationAttemptRecord;
   /**
    * Operator-side action recorded against this intake (WEB-004).
    * Surfaces explicit reject and clarification-request outcomes that
@@ -324,11 +337,86 @@ function issuancePath(issuanceId: string): string {
   return safeRecordPath(issuanceId, "issuance", "issuances");
 }
 
+function issuanceLockPath(issuanceId: string): string {
+  assertSafeRecordId(issuanceId, "issuance");
+  const base = path.resolve(getAdmissionStoreDir(), "locks");
+  const safeName = `issuance-${path.basename(issuanceId)}.lock`;
+  const resolved = path.resolve(base, safeName);
+  if (resolved !== path.join(base, safeName)) {
+    throw new Error("Invalid issuance lock path");
+  }
+  if (!resolved.startsWith(base + path.sep)) {
+    throw new Error("Invalid issuance lock path");
+  }
+  return resolved;
+}
+
 async function ensureStoreDirs(): Promise<void> {
   await Promise.all([
     mkdir(path.join(getAdmissionStoreDir(), "intakes"), { recursive: true }),
     mkdir(path.join(getAdmissionStoreDir(), "issuances"), { recursive: true }),
+    mkdir(path.join(getAdmissionStoreDir(), "locks"), { recursive: true }),
   ]);
+}
+
+const LOCK_WAIT_MS = 25;
+const LOCK_TIMEOUT_MS = 30_000;
+const LOCK_STALE_MS = 10 * 60_000;
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function withIssuanceLock<T>(
+  issuanceId: string,
+  action: () => Promise<T>,
+): Promise<T> {
+  await ensureStoreDirs();
+  const lockPath = issuanceLockPath(issuanceId);
+  const lockToken = `${process.pid}:${randomUUID()}`;
+  const deadline = Date.now() + LOCK_TIMEOUT_MS;
+
+  while (true) {
+    try {
+      await writeFile(lockPath, lockToken, { encoding: "utf8", flag: "wx" });
+      break;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+        throw error;
+      }
+
+      try {
+        const lockStat = await stat(lockPath);
+        if (Date.now() - lockStat.mtimeMs > LOCK_STALE_MS) {
+          await rm(lockPath, { force: true });
+          continue;
+        }
+      } catch (statError) {
+        if ((statError as NodeJS.ErrnoException).code === "ENOENT") {
+          continue;
+        }
+        throw statError;
+      }
+
+      if (Date.now() >= deadline) {
+        throw new Error(`Timed out waiting for issuance lock: ${issuanceId}`);
+      }
+      await wait(LOCK_WAIT_MS);
+    }
+  }
+
+  try {
+    return await action();
+  } finally {
+    try {
+      if ((await readFile(lockPath, "utf8")) === lockToken) {
+        await rm(lockPath, { force: true });
+      }
+    } catch {
+      // Do not replace a completed verification result with a lock-cleanup
+      // error. Any orphaned lock is recovered by the stale-lock path above.
+    }
+  }
 }
 
 async function writeJsonAtomic(

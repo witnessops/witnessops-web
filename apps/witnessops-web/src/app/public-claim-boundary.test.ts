@@ -89,7 +89,7 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "does not invent evidence",
   "do not launch an OffSec portal",
   "certify compliance",
-  "does not write an admin queue entry",
+  "enters the operator queue only after verification",
   "not a 24/7 guarantee",
   "does not promise 24/7 live support",
   "security reports do not go through the normal support channel",

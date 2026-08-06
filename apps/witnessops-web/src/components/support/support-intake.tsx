@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { PUBLIC_NO_SECRETS_NOTE } from "@/lib/public-contact";
+import {
+  supportResponseSchema,
+  verifyTokenResponseSchema,
+  type SupportResponse,
+} from "@/lib/token-contract";
+import { formatVerificationCode } from "@/lib/verification-code-format";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
@@ -29,6 +35,21 @@ const inputFont: React.CSSProperties = {
   fontSize: 13,
   letterSpacing: "0.03em",
 };
+
+function verificationErrorMessage(value: unknown): string {
+  const message =
+    value && typeof value === "object" && "error" in value &&
+    typeof value.error === "string"
+      ? value.error.toLowerCase()
+      : "";
+  if (message.includes("expired")) {
+    return "This verification code has expired. Start over to request a new code.";
+  }
+  if (message.includes("mismatch")) {
+    return "That verification code did not match. Check the email and try again.";
+  }
+  return "Verification failed. Check the code and try again.";
+}
 
 function SelectChevron() {
   return (
@@ -72,12 +93,48 @@ const KB_ENTRIES = [
 ];
 
 export function SupportIntake({ supportEmail }: { supportEmail: string }) {
-  const [status, setStatus] = useState<"idle" | "search" | "form" | "sending" | "sent" | "error">("idle");
+  const [status, setStatus] = useState<
+    | "idle"
+    | "form"
+    | "sending"
+    | "verification_sent"
+    | "verifying"
+    | "verified"
+    | "submission_error"
+    | "verification_error"
+  >("idle");
   const [email, setEmail] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<typeof KB_ENTRIES>([]);
+  const [supportResponse, setSupportResponse] = useState<SupportResponse | null>(null);
+  const [verificationCode, setVerificationCode] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const verificationHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("verified") !== "1") return;
+
+    const intakeId = params.get("intakeId");
+    const stored = window.sessionStorage.getItem("witnessops-support-verified");
+    if (!intakeId || !stored) return;
+
+    try {
+      const confirmation = JSON.parse(stored) as { intakeId?: string };
+      if (confirmation.intakeId === intakeId) {
+        setStatus("verified");
+      }
+    } catch {
+      window.sessionStorage.removeItem("witnessops-support-verified");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (status === "verification_sent" || status === "verification_error") {
+      verificationHeadingRef.current?.focus();
+    }
+  }, [status]);
 
   // Search KB as user types
   useEffect(() => {
@@ -115,13 +172,75 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Unknown error" }));
-        throw new Error(err.error ?? "Failed to submit");
+        throw new Error(
+          res.status >= 500
+            ? "The verification email could not be sent. Your request may be stored for reconciliation, but it is not yet in the operator queue. Retry or email support directly."
+            : (err.error ?? "Failed to submit"),
+        );
       }
 
-      setStatus("sent");
+      const payload = supportResponseSchema.safeParse(
+        await res.json().catch(() => null),
+      );
+      if (!payload.success) {
+        throw new Error(
+          "Your request may have been stored, but the verification response was incomplete. Email support with the time of submission so it can be reconciled.",
+        );
+      }
+
+      setSupportResponse(payload.data);
+      setEmail(payload.data.email);
+      setVerificationCode("");
+      setStatus("verification_sent");
     } catch (err) {
-      setStatus("error");
+      setStatus("submission_error");
       setErrorMsg(err instanceof Error ? err.message : "Failed to submit.");
+    }
+  }
+
+  async function handleVerification(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!supportResponse) return;
+
+    setStatus("verifying");
+    setErrorMsg("");
+
+    try {
+      const response = await fetch("/api/verify-token", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          issuanceId: supportResponse.issuanceId,
+          email: supportResponse.email,
+          token: verificationCode,
+        }),
+      });
+      const rawPayload = await response.json().catch(() => null);
+      const payload = verifyTokenResponseSchema.safeParse(rawPayload);
+
+      if (
+        !response.ok ||
+        !payload.success ||
+        payload.data.channel !== "support" ||
+        payload.data.status !== "verified" ||
+        payload.data.admissionState !== "admitted"
+      ) {
+        throw new Error(verificationErrorMessage(rawPayload));
+      }
+
+      window.sessionStorage.setItem(
+        "witnessops-support-verified",
+        JSON.stringify({ intakeId: payload.data.intakeId }),
+      );
+      window.location.assign(payload.data.postVerifyPath);
+    } catch (err) {
+      setStatus("verification_error");
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Verification failed. Check the code and try again.",
+      );
     }
   }
 
@@ -138,10 +257,10 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
         <span style={{
           ...mono, fontSize: 8, letterSpacing: "0.12em", textTransform: "uppercase", padding: "2px 8px",
           border: "1px solid",
-          borderColor: status === "sent" ? "rgba(0,212,126,0.3)" : status === "error" ? "rgba(239,68,68,0.3)" : "var(--color-surface-border)",
-          color: status === "sent" ? "var(--color-signal-green)" : status === "error" ? "var(--color-signal-red)" : "var(--color-brand-muted)",
+          borderColor: status === "verified" ? "rgba(0,212,126,0.3)" : status.endsWith("_error") ? "rgba(239,68,68,0.3)" : "var(--color-surface-border)",
+          color: status === "verified" ? "var(--color-signal-green)" : status.endsWith("_error") ? "var(--color-signal-red)" : "var(--color-brand-muted)",
         }}>
-          {status === "sent" ? "SENT" : status === "error" ? "ERROR" : "EMAIL SUPPORT"}
+          {status === "verified" ? "VERIFIED" : status.endsWith("_error") ? "ERROR" : status === "verification_sent" || status === "verifying" ? "VERIFY EMAIL" : "EMAIL SUPPORT"}
         </span>
       </div>
 
@@ -223,7 +342,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
         )}
 
         {/* ── STEP 2: Ticket form ── */}
-        {(status === "form" || status === "sending" || status === "error") && (
+        {(status === "form" || status === "sending" || status === "submission_error") && (
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email locked */}
             <div className="flex items-center justify-between border-b border-surface-border pb-2">
@@ -320,23 +439,107 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
               {status === "sending" ? "Submitting..." : "Send Request"}
             </button>
 
-            {status === "error" && (
-              <div className="py-2 text-center" style={{ ...mono, fontSize: 11, color: "var(--color-signal-amber)", letterSpacing: "0.04em" }}>
+            {status === "submission_error" && (
+              <div role="alert" className="border-l-2 border-brand-accent px-3 py-2 text-left" style={{ ...mono, fontSize: 11, color: "var(--color-text-primary)", letterSpacing: "0.04em" }}>
                 {errorMsg}
               </div>
             )}
           </form>
         )}
 
-        {/* ── SENT ── */}
-        {status === "sent" && (
+        {/* ── VERIFICATION ── */}
+        {supportResponse && (status === "verification_sent" || status === "verifying" || status === "verification_error") && (
+          <form
+            onSubmit={handleVerification}
+            className="space-y-5"
+            aria-busy={status === "verifying"}
+          >
+            <div role="status" aria-live="polite" aria-atomic="true">
+              <h2
+                ref={verificationHeadingRef}
+                tabIndex={-1}
+                className="text-lg font-semibold text-text-primary"
+                style={{ fontFamily: "var(--font-display)", letterSpacing: "0.04em" }}
+              >
+                Verify your email
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-text-secondary">
+                Your request is durably stored as <span style={mono}>{supportResponse.intakeId}</span>. We sent a verification code to {supportResponse.email}. It will enter the operator queue only after the code is verified.
+              </p>
+              <p className="mt-2 text-xs leading-5 text-text-muted">
+                The code expires at {new Date(supportResponse.expiresAt).toLocaleString()}.
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="si-verification-code" style={label}>Verification code</label>
+              <input
+                id="si-verification-code"
+                name="verification-code"
+                value={verificationCode}
+                onChange={(event) => {
+                  setVerificationCode(formatVerificationCode(event.currentTarget.value));
+                  if (status === "verification_error") {
+                    setStatus("verification_sent");
+                    setErrorMsg("");
+                  }
+                }}
+                className={inputClass}
+                style={inputFont}
+                autoComplete="one-time-code"
+                autoCapitalize="characters"
+                spellCheck={false}
+                inputMode="text"
+                required
+                maxLength={80}
+                placeholder="ABCD-EFGH-JKLM"
+              />
+              <p className="mt-2 text-xs leading-5 text-text-muted">
+                Enter the code exactly as shown in the email. Do not share it.
+              </p>
+            </div>
+
+            {status === "verification_error" && (
+              <div role="alert" className="border-l-2 border-brand-accent px-3 py-2" style={{ ...mono, fontSize: 11, color: "var(--color-text-primary)", letterSpacing: "0.04em" }}>
+                {errorMsg}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={status === "verifying" || !verificationCode.trim()}
+              className="w-full py-3 text-text-inverse bg-brand-accent disabled:opacity-50 transition-all hover:brightness-110 hover:shadow-[0_0_24px_rgba(255,107,53,0.3)] active:scale-[0.98]"
+              style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" }}
+            >
+              {status === "verifying" ? "Verifying..." : "Verify code"}
+            </button>
+            {status === "verification_error" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSupportResponse(null);
+                  setVerificationCode("");
+                  setErrorMsg("");
+                  setStatus("form");
+                }}
+                className="w-full py-2 text-text-muted transition-colors hover:text-text-primary"
+                style={{ ...mono, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase" }}
+              >
+                Start over with a new code
+              </button>
+            )}
+          </form>
+        )}
+
+        {/* ── VERIFIED ── */}
+        {status === "verified" && (
           <div className="py-10 text-center">
             <div style={{ fontSize: 20, color: "var(--color-signal-green)", marginBottom: 12 }}>✓</div>
             <p style={{ ...mono, fontSize: 12, color: "var(--color-signal-green)", letterSpacing: "0.06em", marginBottom: 8 }}>
-              Support request sent.
+              Support request verified.
             </p>
             <p style={{ ...mono, fontSize: 10, color: "var(--color-brand-muted)", letterSpacing: "0.04em" }}>
-              We will continue by email from the support mailbox.
+              It is now admitted to the WitnessOps operator queue. We will continue by email.
             </p>
           </div>
         )}
