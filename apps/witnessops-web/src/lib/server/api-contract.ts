@@ -237,6 +237,18 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     summary: "Complete admin OIDC callback and establish session",
   },
   {
+    path: "/api/admin/google/start",
+    methods: ["GET"],
+    category: "operator",
+    summary: "Start Google Workspace admin OIDC sign-in",
+  },
+  {
+    path: "/api/admin/google/callback",
+    methods: ["GET"],
+    category: "operator",
+    summary: "Complete Google Workspace admin OIDC callback and establish session",
+  },
+  {
     path: "/api/admin/intake/respond",
     methods: ["POST"],
     category: "operator",

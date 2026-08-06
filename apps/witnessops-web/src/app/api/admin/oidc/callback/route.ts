@@ -7,11 +7,20 @@ import {
   verifyAdminOidcStateCookie,
 } from "@/lib/server/admin-oidc";
 
-function redirectToLogin(request: NextRequest, error: string) {
-  const url = request.nextUrl.clone();
-  url.pathname = "/admin/login";
-  url.searchParams.set("error", error);
-  return NextResponse.redirect(url, 303);
+function redirectToLogin(request: NextRequest, diagnosticCode: string) {
+  console.warn(`[admin-microsoft-oidc] ${diagnosticCode}`);
+  const url = new URL("/admin/login", request.url);
+  url.searchParams.set("error", "microsoft_auth_failed");
+  const response = NextResponse.redirect(url, 303);
+  response.headers.set("Cache-Control", "no-store");
+  response.cookies.set(ADMIN_OIDC_STATE_COOKIE_NAME, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  return response;
 }
 
 export async function GET(request: NextRequest) {
@@ -20,12 +29,12 @@ export async function GET(request: NextRequest) {
   const stateCookie = request.cookies.get(ADMIN_OIDC_STATE_COOKIE_NAME)?.value;
 
   if (!state || !code || !stateCookie) {
-    return redirectToLogin(request, "oidc_missing_callback_state");
+    return redirectToLogin(request, "callback_state_missing");
   }
 
   const parsedState = await verifyAdminOidcStateCookie(stateCookie);
   if (!parsedState || parsedState.state !== state) {
-    return redirectToLogin(request, "oidc_invalid_state");
+    return redirectToLogin(request, "callback_state_invalid");
   }
 
   try {
@@ -57,18 +66,7 @@ export async function GET(request: NextRequest) {
       maxAge: 0,
     });
     return response;
-  } catch (error) {
-    const response = redirectToLogin(
-      request,
-      error instanceof Error ? error.message : "oidc_auth_failed",
-    );
-    response.cookies.set(ADMIN_OIDC_STATE_COOKIE_NAME, "", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 0,
-    });
-    return response;
+  } catch {
+    return redirectToLogin(request, "callback_failed");
   }
 }

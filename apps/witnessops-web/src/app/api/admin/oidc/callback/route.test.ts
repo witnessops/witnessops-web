@@ -22,9 +22,11 @@ const originals = Object.fromEntries(
 ) as Record<(typeof trackedEnv)[number], string | undefined>;
 
 const originalFetch = globalThis.fetch;
+const originalWarn = console.warn;
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+  console.warn = originalWarn;
   for (const name of trackedEnv) {
     const value = originals[name];
     if (value === undefined) {
@@ -33,6 +35,51 @@ test.afterEach(() => {
       process.env[name] = value;
     }
   }
+});
+
+test("admin oidc callback bounds provider failures and clears transaction state", async () => {
+  process.env.WITNESSOPS_ADMIN_SECRET = "admin-secret";
+  process.env.WITNESSOPS_ADMIN_OIDC_TENANT_ID = "tenant-123";
+  process.env.WITNESSOPS_ADMIN_OIDC_CLIENT_ID = "client-123";
+  process.env.WITNESSOPS_ADMIN_OIDC_CLIENT_SECRET = "secret-123";
+  process.env.WITNESSOPS_ADMIN_OIDC_REDIRECT_URI =
+    "https://witnessops.com/api/admin/oidc/callback";
+  process.env.WITNESSOPS_ADMIN_OIDC_ALLOWED_EMAILS_JSON =
+    '["alice@example.com"]';
+
+  const { state, cookieValue } = await createAdminOidcStateCookie();
+  globalThis.fetch = async () =>
+    new Response("PRIVATE_PROVIDER_FAILURE_DETAIL", { status: 400 });
+  const diagnostics: string[] = [];
+  console.warn = (message?: unknown) => diagnostics.push(String(message));
+
+  const response = await GET(
+    new NextRequest(
+      `https://witnessops.com/api/admin/oidc/callback?state=${encodeURIComponent(state)}&code=PRIVATE_AUTHORIZATION_CODE`,
+      {
+        headers: {
+          cookie: `witnessops-admin-oidc-state=${cookieValue}`,
+        },
+      },
+    ),
+  );
+
+  assert.equal(response.status, 303);
+  const location = response.headers.get("location") ?? "";
+  assert.equal(
+    location,
+    "https://witnessops.com/admin/login?error=microsoft_auth_failed",
+  );
+  assert.doesNotMatch(
+    location,
+    /PRIVATE_PROVIDER_FAILURE_DETAIL|PRIVATE_AUTHORIZATION_CODE|state=/,
+  );
+  assert.deepEqual(diagnostics, ["[admin-microsoft-oidc] callback_failed"]);
+  assert.equal(
+    response.cookies.get("witnessops-admin-oidc-state")?.value,
+    "",
+  );
+  assert.equal(response.cookies.has("witnessops-admin-session"), false);
 });
 
 test("admin oidc callback creates an oidc-backed admin session", async () => {
