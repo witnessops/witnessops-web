@@ -23,12 +23,12 @@ const sampleFiles = [
 ] as const;
 
 export const metadata: Metadata = {
-  title: "Synthetic sample — External Exposure Assessment",
+  title: "Synthetic sample — Public Exposure Review",
   description:
-    "Inspect a synthetic External Exposure Assessment package with bounded scope, findings, evidence references, a focused retest, hashes, and explicit claim limitations. Not customer evidence.",
+    "Inspect a synthetic Public Exposure Review package with bounded scope, findings, evidence references, a focused retest, hashes, and explicit claim limitations. Not customer evidence.",
   alternates: { canonical: samplePath },
   openGraph: {
-    title: "Synthetic sample — External Exposure Assessment | WitnessOps",
+    title: "Synthetic sample — Public Exposure Review | WitnessOps",
     description:
       "Inspect a synthetic outside-in assessment package and its evidence, retest, integrity, and claim boundaries.",
     siteName: "WitnessOps",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Synthetic sample — External Exposure Assessment | WitnessOps",
+    title: "Synthetic sample — Public Exposure Review | WitnessOps",
     description:
       "Inspect a synthetic outside-in assessment package and its evidence, retest, integrity, and claim boundaries.",
   },
@@ -81,7 +81,7 @@ export default function ExternalExposureAssessmentSamplePage() {
     >
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <SampleCaseBanner
-          title="External Exposure Assessment"
+          title="Public Exposure Review"
           note="Synthetic worked example — not customer evidence. Local fixture observations only; no public company or customer was assessed."
         />
 
@@ -90,7 +90,7 @@ export default function ExternalExposureAssessmentSamplePage() {
             Synthetic sample
           </p>
           <h1 className="mt-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
-            External Exposure Assessment
+            Public Exposure Review
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">
             A concise, buyer-safe example of the authority summary, exposure map,
@@ -101,7 +101,7 @@ export default function ExternalExposureAssessmentSamplePage() {
             <CtaButton
               href={buyerOfferRequestHref("en", "OFFSEC-EXTERNAL-EXPOSURE")}
               variant="primary"
-              label="Check pilot fit"
+              label="Order the review"
             />
             <CtaButton
               href="/catalog/offsec-external-exposure"

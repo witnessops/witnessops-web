@@ -16,6 +16,10 @@ const catalogue = readFileSync(
   resolve(__dirname, "../../../../components/marketing/buyer-catalogue.tsx"),
   "utf8",
 );
+const homepage = readFileSync(
+  resolve(__dirname, "../../../../components/marketing/buyer-homepage.tsx"),
+  "utf8",
+);
 
 const expectedFiles = [
   "README.md",
@@ -33,7 +37,8 @@ const expectedFiles = [
   "MANIFEST.sha256",
 ] as const;
 
-test("External Exposure sample surface expects only the sanitized buyer-safe files", () => {
+test("Public Exposure Review sample surface expects only the sanitized buyer-safe files", () => {
+  assert.match(page, /Public Exposure Review/);
   assert.match(page, /\/samples\/offsec-external-exposure/);
   for (const file of expectedFiles) {
     assert.match(page, new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
@@ -41,16 +46,17 @@ test("External Exposure sample surface expects only the sanitized buyer-safe fil
   assert.doesNotMatch(page, /proofpack|receipt\.json|sig\.json/i);
 });
 
-test("External Exposure sample preserves the synthetic and integrity boundaries", () => {
+test("Public Exposure Review sample preserves the synthetic and integrity boundaries", () => {
   assert.match(page, /Synthetic worked example — not customer evidence\./);
   assert.match(page, /Neither result proves that\s+observations are complete/);
   assert.match(page, /does not prove.*system is secure/is);
   assert.match(page, /OFFSEC-EXTERNAL-EXPOSURE/);
 });
 
-test("sample is linked only from the offer detail, catalogue, and pricing entry", () => {
+test("sample is linked from the homepage, offer detail, catalogue, and pricing entry", () => {
   const route = "/review/sample-cases/external-exposure-assessment";
   assert.match(serviceLandings, new RegExp(route));
   assert.match(pricing, new RegExp(route));
   assert.match(catalogue, new RegExp(route));
+  assert.match(homepage, new RegExp(route));
 });

@@ -145,9 +145,9 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Start a non-secret fit check",
   },
   "external-exposure-assessment": {
-    headline: "One authorised public domain. A bounded outside-in exposure picture.",
+    headline: "Know what one public domain exposes—before someone else tells you.",
     whoFor:
-      "EU and UK technology teams preparing for a launch, customer review, infrastructure change, diligence step, or deeper penetration test without an internal offensive-security owner.",
+      "Technology teams preparing for a launch, enterprise customer, audit, infrastructure change, or deeper penetration test without a clear outside-in exposure picture.",
     scopeLimits: [
       "one authorised registrable root domain or one tightly bounded public application",
       "up to 10 confirmed first-party hostnames",
@@ -167,10 +167,10 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "45-minute handover and one focused retest within 30 days",
     ],
     steps: [
-      ["Fit check", "Confirm the decision, accepting party, target boundary, authority, deadline, and whether a vulnerability assessment is acceptable — without sending secrets."],
-      ["Scope freeze", "Confirm ownership, first-party hosts and IPs, approved checks, collection window, source IPs, stop contact, exclusions, and evidence handling."],
-      ["Assessment", "Perform the admitted passive and low-impact checks, then manually validate, deduplicate, prioritise, and link findings to evidence."],
-      ["Handover and retest", "Deliver the reports and inspection package, then retest the agreed reported findings once within 30 days."],
+      ["Order", "Submit one public domain, a work email, and your authority to request the review. Do not send secrets or production evidence."],
+      ["Scope acceptance", "WitnessOps accepts or rejects the boundary asynchronously, confirms capacity, and records payment. No sales call is required."],
+      ["Review", "Perform only the accepted passive and low-impact checks, then manually validate, deduplicate, prioritise, and link findings to evidence."],
+      ["Delivery and retest", "Deliver the reports and inspection package within three working days after every start condition is complete, then retest the agreed reported findings once within 30 days."],
     ],
     boundaries: [
       "No exploitation, authenticated application testing, password testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, customer-data collection, or data exfiltration.",
@@ -179,8 +179,8 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Targets outside the confirmed first-party scope remain untouched. Third-party or shared infrastructure requires separate written authority.",
     ],
     commercialNote:
-      "Limited paid pilot for the first three accepted engagements. Intended standard price after validation: €2,500 ex VAT. Additional or late retest: €550 ex VAT.",
-    primaryCta: "Check pilot fit",
+      "Fixed price for the named boundary. No sales call required. Payment is confirmed after scope acceptance; an additional or late retest is €550 ex VAT.",
+    primaryCta: "Order the review",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Inspect synthetic sample",
   },
@@ -431,9 +431,9 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
   },
   "external-exposure-assessment": {
-    headline: "Jedna autoryzowana domena publiczna. Ograniczony obraz ekspozycji z zewnątrz.",
+    headline: "Sprawdź, co ujawnia jedna domena publiczna — zanim wskaże to ktoś inny.",
     whoFor:
-      "Zespoły technologiczne z UE i Wielkiej Brytanii przed uruchomieniem, przeglądem klienta, zmianą infrastruktury, etapem due diligence lub głębszym testem penetracyjnym, bez własnego specjalisty offensive security.",
+      "Zespoły technologiczne przed uruchomieniem, klientem enterprise, audytem, zmianą infrastruktury lub głębszym testem penetracyjnym, które nie mają jasnego obrazu ekspozycji z zewnątrz.",
     scopeLimits: [
       "jedna autoryzowana domena rejestrowalna lub jedna ściśle ograniczona aplikacja publiczna",
       "do 10 potwierdzonych hostname'ów first-party",
@@ -453,10 +453,10 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "45-minutowe przekazanie i jeden ukierunkowany retest w ciągu 30 dni",
     ],
     steps: [
-      ["Wstępna ocena", "Potwierdź decyzję, odbiorcę wyniku, granicę celu, upoważnienie, termin i to, czy ocena podatności jest akceptowana — bez wysyłania sekretów."],
-      ["Zamrożenie zakresu", "Potwierdź własność, hosty i adresy IP first-party, zatwierdzone kontrole, okno zbierania, adresy źródłowe, kontakt stop i obsługę materiałów."],
-      ["Ocena", "Wykonaj dopuszczone kontrole pasywne i niskiego ryzyka, a następnie ręcznie zweryfikuj, usuń duplikaty, ustal priorytety i połącz ustalenia z materiałami."],
-      ["Przekazanie i retest", "Dostarcz raporty i pakiet do sprawdzenia, a następnie raz przetestuj uzgodnione zgłoszone ustalenia w ciągu 30 dni."],
+      ["Zamówienie", "Podaj jedną domenę publiczną, służbowy adres e-mail i podstawę upoważnienia. Nie wysyłaj sekretów ani materiałów produkcyjnych."],
+      ["Akceptacja zakresu", "WitnessOps asynchronicznie akceptuje albo odrzuca granicę, potwierdza dostępność i zapisuje płatność. Rozmowa sprzedażowa nie jest wymagana."],
+      ["Przegląd", "Wykonujemy wyłącznie zaakceptowane kontrole pasywne i niskiego ryzyka, a następnie ręcznie weryfikujemy, usuwamy duplikaty, ustalamy priorytety i łączymy ustalenia z materiałami."],
+      ["Dostawa i retest", "Przekazujemy raporty i pakiet do sprawdzenia w ciągu trzech dni roboczych od spełnienia wszystkich warunków startu, a następnie jeden raz ponownie testujemy uzgodnione ustalenia w ciągu 30 dni."],
     ],
     boundaries: [
       "Bez eksploatacji, uwierzytelnionych testów aplikacji, testowania haseł, brute force, zbierania poświadczeń, socjotechniki, odmowy usługi, działań destrukcyjnych, utrzymywania dostępu, malware, zbierania danych klientów i eksfiltracji danych.",
@@ -465,8 +465,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Cele poza potwierdzonym zakresem first-party pozostają nietknięte. Infrastruktura strony trzeciej lub współdzielona wymaga osobnego pisemnego upoważnienia.",
     ],
     commercialNote:
-      "Ograniczony płatny pilotaż dla pierwszych trzech zaakceptowanych zleceń. Planowana cena standardowa po walidacji: €2 500 bez VAT. Dodatkowy lub późny retest: €550 bez VAT.",
-    primaryCta: "Sprawdź dopasowanie pilotażu",
+      "Stała cena dla wskazanej granicy. Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu; dodatkowy lub późny retest kosztuje €550 bez VAT.",
+    primaryCta: "Zamów przegląd",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Zobacz syntetyczny przykład",
   },

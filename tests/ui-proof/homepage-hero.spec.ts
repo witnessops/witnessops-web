@@ -117,10 +117,30 @@ test("English and Polish homepages share one service-led buyer journey", async (
   ];
 
   for (const scenario of [
-    { path: "/", width: 1440, height: 1100, primary: "/catalog" },
-    { path: "/", width: 390, height: 844, primary: "/catalog" },
-    { path: "/pl", width: 1440, height: 1100, primary: "/pl/catalog" },
-    { path: "/pl", width: 390, height: 844, primary: "/pl/catalog" },
+    {
+      path: "/",
+      width: 1440,
+      height: 1100,
+      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+    },
+    {
+      path: "/",
+      width: 390,
+      height: 844,
+      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+    },
+    {
+      path: "/pl",
+      width: 1440,
+      height: 1100,
+      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Przegl%C4%85d+publicznej+ekspozycji",
+    },
+    {
+      path: "/pl",
+      width: 390,
+      height: 844,
+      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Przegl%C4%85d+publicznej+ekspozycji",
+    },
   ]) {
     const context = await browser.newContext({
       viewport: { width: scenario.width, height: scenario.height },
@@ -156,7 +176,7 @@ test("English and Polish homepages share one service-led buyer journey", async (
     const headings = await page.locator("main h2").allTextContents();
     const normalized = headings.map((heading) => heading.trim());
     const offersIndex = normalized.findIndex((heading) =>
-      /Reviews for work that needs a clear next step|Przeglądy dla pracy/.test(
+      /Need a different review|Potrzebujesz innego przeglądu/.test(
         heading,
       ),
     );

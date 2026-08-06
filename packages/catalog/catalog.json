@@ -173,8 +173,8 @@
     {
       "id": "OFFSEC-EXTERNAL-EXPOSURE",
       "track": "offsec_proof",
-      "name": "External Exposure Assessment",
-      "summary": "A bounded, authorised outside-in vulnerability assessment for one public domain, with evidence-linked findings, explicit unknowns, and an inspectable handover package.",
+      "name": "Public Exposure Review",
+      "summary": "A fixed-scope, manually reviewed outside-in assessment for one authorised public domain, with evidence-linked findings, explicit unknowns, and an inspectable handover package.",
       "status": "ship_today",
       "availability": "witnessops_request",
       "buyer_personas": [
@@ -185,7 +185,7 @@
       "price": {
         "anchor_eur_min": 1900,
         "anchor_eur_max": 1900,
-        "display": "€1,900 ex VAT — first three accepted engagements",
+        "display": "€1,900 ex VAT — fixed scope",
         "billing": "one_time"
       },
       "deliverables": [

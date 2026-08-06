@@ -51,10 +51,35 @@ const proofOutputs = [
   },
 ];
 
+const publicExposureOutputs = [
+  {
+    title: "Exposure map",
+    summary: "Confirmed public services and assets inside the accepted first-party boundary.",
+  },
+  {
+    title: "Evidence-linked findings",
+    summary: "Prioritised observations with affected targets and inspectable evidence references.",
+  },
+  {
+    title: "Remediation priorities",
+    summary: "Practical fix-now and fix-next recommendations for the reported findings.",
+  },
+  {
+    title: "Limits and unknowns",
+    summary: "What was not tested, not established, stopped, excluded, or left for deeper work.",
+  },
+];
+
 const nextSteps = [
   "We check whether the technical action is bounded enough for one review package.",
   "We confirm the system boundary, action path, likely evidence sources, and obvious gaps.",
   "We reply with fit, scope, fee, and next action before any source materials are accepted.",
+];
+
+const publicExposureNextSteps = [
+  "We check the named public domain, your authority, first-party boundary, exclusions, and operator capacity.",
+  "We accept or reject the scope asynchronously. No sales call is required.",
+  "After payment, accepted SOW, authority, required inputs, and the collection window are complete, the three-working-day delivery clock starts.",
 ];
 
 const sampleArtifacts = [
@@ -67,6 +92,14 @@ const sampleArtifacts = [
   "MANIFEST.sha256",
 ];
 
+const publicExposureArtifacts = [
+  "exposure-map.json",
+  "findings.json",
+  "evidence-register.json",
+  "evidence-manifest.json",
+  "MANIFEST.sha256",
+];
+
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
 
 export default async function ReviewRequestPage({ searchParams }: Props) {
@@ -76,6 +109,10 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
   const productId = one(params.productId);
   const sku = productId ? getSku(productId) : undefined;
   const selectedOffer = productId ? buyerServiceByProductId(productId) : undefined;
+  const publicExposureOrder = productId === "OFFSEC-EXTERNAL-EXPOSURE";
+  const activeNextSteps = publicExposureOrder ? publicExposureNextSteps : nextSteps;
+  const activeOutputs = publicExposureOrder ? publicExposureOutputs : proofOutputs;
+  const activeArtifacts = publicExposureOrder ? publicExposureArtifacts : sampleArtifacts.slice(0, 5);
 
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
@@ -92,20 +129,18 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             color: "var(--color-brand-muted)",
           }}
         >
-          Review Request
+          {publicExposureOrder ? "Public Exposure Review" : "Review Request"}
         </div>
         <h1
           className="mb-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Tell us what you need reviewed
+          {publicExposureOrder ? "Order one Public Exposure Review" : "Tell us what you need reviewed"}
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
-          This is a fit check, not evidence intake. Describe the questionnaire,
-          server, launch, incident, access change or bounded workflow you need
-          reviewed. No files, logs, screenshots, exports, credentials, private
-          keys, MFA codes or customer evidence are needed for the first fit
-          check.
+          {publicExposureOrder
+            ? "Submit one public domain and your authority to request the review. WitnessOps accepts or rejects the fixed scope asynchronously. No sales call is required, and this form does not authorize testing or start the delivery clock."
+            : "This is a fit check, not evidence intake. Describe the questionnaire, server, launch, incident, access change or bounded workflow you need reviewed. No files, logs, screenshots, exports, credentials, private keys, MFA codes or customer evidence are needed for the first fit check."}
         </p>
         <p className="mt-3 max-w-[640px] text-sm leading-relaxed text-text-muted">
           Fallback contact: send the same non-secret fit check to{" "}
@@ -129,7 +164,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="border border-surface-border p-4 sm:p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}>
+        <section className="self-start border border-surface-border p-4 sm:p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}>
           <ContactForm intent={sku?.id ?? "review"} />
         </section>
 
@@ -159,7 +194,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
               What happens next
             </div>
             <ol className="space-y-3 text-sm leading-relaxed text-text-muted">
-              {nextSteps.map((item, index) => (
+              {activeNextSteps.map((item, index) => (
                 <li key={item} className="grid grid-cols-[28px_1fr] gap-3">
                   <span style={{ fontFamily: "var(--font-mono)", color: "var(--color-brand-accent)" }}>
                     {String(index + 1).padStart(2, "0")}
@@ -207,8 +242,12 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
               Commercial scope
             </div>
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
-              <p>Fee, timing, and evidence handling are confirmed by email after the first fit check.</p>
-              <p>No work starts from this form. No proof run starts from this form.</p>
+              <p>
+                {publicExposureOrder
+                  ? "Fixed price: €1,900 ex VAT. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance."
+                  : "Fee, timing, and evidence handling are confirmed by email after the first fit check."}
+              </p>
+              <p>No work starts from this form. No proof run or target-facing check starts from this form.</p>
               <p>No customer evidence is accepted until scope is agreed.</p>
             </div>
           </section>
@@ -228,7 +267,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
               Typical bundle
             </div>
             <ul className="mb-4 grid gap-2 text-xs leading-relaxed text-text-muted" style={{ fontFamily: "var(--font-mono)" }}>
-              {sampleArtifacts.slice(0, 5).map((artifact) => (
+              {activeArtifacts.map((artifact) => (
                 <li key={artifact} className="flex items-center gap-2">
                   <span style={{ color: "var(--color-signal-green)", fontSize: 9 }}>&#10003;</span>
                   <span>{artifact}</span>
@@ -236,10 +275,12 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
               ))}
             </ul>
             <Link
-              href="/review/sample-cases/ai-agent-action-proof-run"
+              href={publicExposureOrder
+                ? "/review/sample-cases/external-exposure-assessment"
+                : "/review/sample-cases/ai-agent-action-proof-run"}
               className="text-sm text-brand-accent underline-offset-4 hover:underline"
             >
-              Inspect sample package
+              {publicExposureOrder ? "Inspect Public Exposure Review sample" : "Inspect sample package"}
             </Link>
           </section>
 
@@ -258,9 +299,19 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
               Boundary kept clear
             </div>
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
-              <p>Not a production deployment claim.</p>
-              <p>Not a legal compliance claim.</p>
-              <p>Not a complete AI governance program.</p>
+              {publicExposureOrder ? (
+                <>
+                  <p>Controlled external exposure review, not an open-ended penetration test.</p>
+                  <p>No exploitation, credential testing, destructive activity, or persistence.</p>
+                  <p>Not a certification, attestation, completeness claim, or security guarantee.</p>
+                </>
+              ) : (
+                <>
+                  <p>Not a production deployment claim.</p>
+                  <p>Not a legal compliance claim.</p>
+                  <p>Not a complete AI governance program.</p>
+                </>
+              )}
             </div>
           </section>
 
@@ -284,10 +335,12 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             color: "var(--color-text-muted)",
           }}
         >
-          What a bounded review package can include
+          {publicExposureOrder
+            ? "What the Public Exposure Review delivers"
+            : "What a bounded review package can include"}
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          {proofOutputs.map((item, index) => (
+          {activeOutputs.map((item, index) => (
             <div key={item.title} className="grid gap-2 border border-surface-border bg-surface-bg p-4 sm:grid-cols-[40px_1fr]">
               <div
                 style={{

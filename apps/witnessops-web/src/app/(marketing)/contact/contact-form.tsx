@@ -68,7 +68,8 @@ export function ContactForm({
   const invalidScrollScheduled = useRef(false);
   const verificationHeadingRef = useRef<HTMLHeadingElement>(null);
   const polish = locale === "pl";
-  const copy = polish
+  const externalExposureOrder = intent === "OFFSEC-EXTERNAL-EXPOSURE";
+  const baseCopy = polish
     ? {
         sendError: "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
         verifyError: "Nie udało się potwierdzić kodu. Spróbuj ponownie.",
@@ -157,6 +158,45 @@ export function ContactForm({
         received: "Request received. Enter the code from your work email on this page.",
         noSecrets: PUBLIC_NO_SECRETS_NOTE,
       };
+  const copy = externalExposureOrder
+    ? {
+        ...baseCopy,
+        mailboxBoundary: polish
+          ? "Weryfikacja skrzynki nie rozpoczyna przeglądu. Najpierw asynchronicznie potwierdzamy zakres, upoważnienie, dostępność, cenę i warunki startu terminu dostawy."
+          : "Mailbox verification does not start the review. Scope, authority, capacity, price, and delivery-clock conditions are accepted asynchronously first.",
+        fitTitle: polish
+          ? "Zamów jeden przegląd publicznej ekspozycji."
+          : "Order one Public Exposure Review.",
+        fitBody: polish
+          ? "Podaj jedną domenę publiczną i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu."
+          : "Provide one public domain and your authority to request the review. No sales call is required. This form begins scope acceptance; it does not authorize testing or start the three-day delivery clock.",
+        workflow: polish ? "Domena publiczna do przeglądu" : "Public domain to review",
+        workflowPlaceholder: polish
+          ? "example.com — jedna domena rejestrowalna lub jedna ściśle ograniczona aplikacja publiczna"
+          : "example.com — one registrable root domain or one tightly bounded public application",
+        workflowHelp: polish
+          ? "Podaj wyłącznie publiczną nazwę domeny. Nie wklejaj sekretów, logów, zrzutów ekranu ani danych dostępowych."
+          : "Provide only the public domain identity. Do not paste secrets, logs, screenshots, credentials, or production evidence.",
+        actionPath: polish ? "Dlaczego teraz?" : "Why now?",
+        actionPathPlaceholder: polish
+          ? "Na przykład: uruchomienie, klient enterprise, audyt lub zmiana infrastruktury."
+          : "For example: launch, enterprise customer, audit, or infrastructure change.",
+        approval: polish ? "Podstawa upoważnienia" : "Authority to request this review",
+        approvalPlaceholder: polish
+          ? "Wskaż, że jesteś właścicielem domeny lub masz pisemne upoważnienie do zamówienia uzgodnionych kontroli."
+          : "State that you own the domain or have written authority to commission the agreed checks.",
+        evidence: polish
+          ? "Znane granice first-party lub dostawców współdzielonych"
+          : "Known first-party or shared-provider boundaries",
+        evidencePlaceholder: polish
+          ? "Opcjonalnie: znane hosty first-party, CDN, hosting współdzielony lub cele, których nie wolno dotykać."
+          : "Optional: known first-party hosts, CDN, shared hosting, or targets that must not be touched.",
+        send: polish ? "Wyślij zamówienie do akceptacji zakresu" : "Submit order for scope acceptance",
+        submitBoundary: polish
+          ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, stałego zakresu, wymaganych danych wejściowych i okna zbierania."
+          : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, fixed scope, required inputs, and the collection window are confirmed.",
+      }
+    : baseCopy;
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "verifying" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState(copy.sendError);
@@ -203,15 +243,19 @@ export function ContactForm({
     const approvalBoundary = stringField(data, "approvalBoundary");
     const evidenceAvailable = stringField(data, "evidenceAvailable");
     const proofRunScope = [
-      "Request: WitnessOps review fit check",
+      externalExposureOrder
+        ? "Request: Public Exposure Review order"
+        : "Request: WitnessOps review fit check",
       `Selected product / intent: ${intent}`,
       `Request locale: ${locale}`,
-      `Review need: ${workflow || "not provided"}`,
-      `Situation and affected system: ${agentPath || "not provided"}`,
-      `Boundary and approval: ${approvalBoundary || "not provided"}`,
-      `Evidence available: ${evidenceAvailable || "not provided"}`,
+      `${externalExposureOrder ? "Public domain" : "Review need"}: ${workflow || "not provided"}`,
+      `${externalExposureOrder ? "Trigger and timing" : "Situation and affected system"}: ${agentPath || "not provided"}`,
+      `${externalExposureOrder ? "Authority statement" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
+      `${externalExposureOrder ? "Known first-party or shared-provider boundaries" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
-      "Follow-up needed: fit, action boundary, authority boundary, likely evidence sources, possible proof pack contents, verifier path, challenge path, fee, and evidence handling",
+      externalExposureOrder
+        ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
+        : "Follow-up needed: fit, action boundary, authority boundary, likely evidence sources, possible proof pack contents, verifier path, challenge path, fee, and evidence handling",
     ].join("\n");
 
     try {
@@ -568,10 +612,10 @@ export function ContactForm({
 
       <div>
         <label htmlFor="agentPath" className="mb-2 block" style={labelStyle}>
-          {copy.actionPath} <span className="text-text-muted">{copy.required}</span>
+          {copy.actionPath} <span className="text-text-muted">{externalExposureOrder ? copy.optional : copy.required}</span>
         </label>
         <textarea
-          id="agentPath" name="agentPath" rows={3} required
+          id="agentPath" name="agentPath" rows={3} required={!externalExposureOrder}
           className={`${textareaClass} ${fieldErrors.agentPath ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
           placeholder={copy.actionPathPlaceholder}
@@ -604,10 +648,10 @@ export function ContactForm({
 
       <div>
         <label htmlFor="evidenceAvailable" className="mb-2 block" style={labelStyle}>
-          {copy.evidence} <span className="text-text-muted">{copy.required}</span>
+          {copy.evidence} <span className="text-text-muted">{externalExposureOrder ? copy.optional : copy.required}</span>
         </label>
         <textarea
-          id="evidenceAvailable" name="evidenceAvailable" rows={3} required
+          id="evidenceAvailable" name="evidenceAvailable" rows={3} required={!externalExposureOrder}
           className={`${textareaClass} ${fieldErrors.evidenceAvailable ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
           placeholder={copy.evidencePlaceholder}

@@ -1,4 +1,4 @@
-# External Exposure Assessment — non-secret fit check
+# Public Exposure Review — non-secret order and fit check
 
 Use this before requesting files, logs, screenshots, target inventories, credentials, or production evidence. The fit check does not authorize testing and does not start an engagement.
 
@@ -7,7 +7,7 @@ Use this before requesting files, logs, screenshots, target inventories, credent
 Copy the block below into the review form, email, or a 15-minute call.
 
 ```text
-External Exposure Assessment — non-secret fit check
+Public Exposure Review — non-secret order and fit check
 
 1. Your name, role, organisation, and work email:
 
@@ -48,7 +48,7 @@ customer records, private network details, vulnerability evidence, or production
 
 ## Operator routing
 
-### Fit for the €1,900 pilot
+### Fit for the €1,900 fixed-scope review
 
 All of the following should be true:
 
@@ -58,7 +58,7 @@ All of the following should be true:
 - Passive discovery and named low-impact checks are acceptable.
 - A decision owner can approve scope and stop conditions.
 - An engineering owner can act on findings.
-- The deadline allows 5–7 business days after scope freeze and the approved check window.
+- The deadline allows three working days after payment or a written fee waiver, accepted SOW, authority, scope freeze, required inputs, and the approved collection window are all confirmed.
 
 ### Custom scope or referral
 
@@ -77,21 +77,26 @@ All of the following should be true:
 ## Fit-check response
 
 ```text
-Subject: External Exposure Assessment — fit check result
+Subject: Public Exposure Review — scope result
 
 Hi [Name],
 
-Based on the non-secret information provided, this is [a fit for the fixed pilot /
+Based on the non-secret information provided, this is [a fit for the fixed-scope review /
 a custom-scope request / not a fit] because [one specific boundary reason].
 
 [If fit]
-The pilot covers one authorised public domain or bounded application, within the
+The review covers one authorised public domain or bounded application, within the
 10-hostname / 3-IP / 20-endpoint caps, using passive discovery and explicitly approved
-low-impact checks. The fee is €1,900 excluding VAT, delivery is 5–7 business days after
-authority and scope freeze, and one focused retest within 30 days is included.
+low-impact checks. The fixed fee is €1,900 excluding VAT. Delivery is due within three
+working days after payment or a written fee waiver, accepted SOW, authority, scope,
+required inputs, and the collection window are all confirmed. One focused retest within
+30 days is included.
 
 Next we will send the fixed-scope statement of work and target/check schedule. Do not
 send evidence or access details until that document and the handling route are agreed.
+
+No sales call is required. This message does not authorize testing or start the delivery
+clock.
 
 This is an external vulnerability assessment, not a penetration test, accreditation,
 compliance certification, or security guarantee.
