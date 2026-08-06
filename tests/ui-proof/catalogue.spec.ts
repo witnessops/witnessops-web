@@ -13,6 +13,7 @@ const expectedServiceOrder = [
   "customer-security-review-sprint",
   "bounded-workflow-review",
   "one-server-security-check",
+  "external-exposure-assessment",
   "launch-readiness-check",
   "key-access-custody-review",
   "incident-readiness-review",
@@ -36,7 +37,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
     await expect(page.locator("main h1")).toBeVisible();
 
     const serviceCards = page.locator("[data-buyer-service]");
-    await expect(serviceCards).toHaveCount(6);
+    await expect(serviceCards).toHaveCount(7);
     expect(
       await serviceCards.evaluateAll((cards) =>
         cards.map((card) => card.getAttribute("data-buyer-service")),
@@ -61,6 +62,10 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         timing: "within_two_business_days_after_authorised_collection_window",
       },
       {
+        price: "pilot_eur_1900_ex_vat_first_three_accepted_engagements",
+        timing: "five_to_seven_business_days_after_authority_scope_inputs_and_check_window",
+      },
+      {
         price: "eur_2500_to_7500",
         timing: "four_business_days_after_candidate_collection",
       },
@@ -69,14 +74,20 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
     ]);
     await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż|Access Removal/);
 
-    for (let index = 0; index < 6; index += 1) {
+    for (let index = 0; index < 7; index += 1) {
       const card = serviceCards.nth(index);
       const links = card.locator("a");
       const primary = links.first();
-      await expect(primary).toHaveAttribute(
-        "href",
-        scenario.path.startsWith("/pl") ? "/pl/review/request" : "/review/request",
-      );
+      const primaryHref = await primary.getAttribute("href");
+      const requestPath = scenario.path.startsWith("/pl")
+        ? "/pl/review/request"
+        : "/review/request";
+      expect(primaryHref).toMatch(new RegExp(`^${requestPath}`));
+      if (expectedServiceOrder[index] === "external-exposure-assessment") {
+        expect(
+          new URL(primaryHref ?? "", "http://witnessops.test").searchParams.get("productId"),
+        ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
+      }
       await expect(primary).toHaveText(
         scenario.path.startsWith("/pl") ? "Rozpocznij przegląd" : "Start a review",
       );

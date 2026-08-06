@@ -206,7 +206,7 @@ export function BuyerHomepage({
           </h2>
           <p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">{text.offersBody}</p>
           <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {BUYER_SERVICES.map((service) => {
+            {BUYER_SERVICES.filter((service) => service.homepageFeatured !== false).map((service) => {
               const onePager = service.onePagerHref?.[locale];
               const detailHref =
                 service.detailHref[locale] ??

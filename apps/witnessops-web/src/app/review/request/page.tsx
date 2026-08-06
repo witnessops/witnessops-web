@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
+import { buyerServiceByProductId } from "@/lib/buyer-services";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
   PUBLIC_NO_SECRETS_NOTE,
   publicContactMailto,
 } from "@/lib/public-contact";
+import { getSku } from "@witnessops/catalog";
 
 export const metadata: Metadata = {
   title: "Tell Us What You Need Reviewed",
@@ -65,7 +67,16 @@ const sampleArtifacts = [
   "MANIFEST.sha256",
 ];
 
-export default function ReviewRequestPage() {
+type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
+
+export default async function ReviewRequestPage({ searchParams }: Props) {
+  const params = (await searchParams) ?? {};
+  const one = (value: string | string[] | undefined) =>
+    Array.isArray(value) ? value[0] : value;
+  const productId = one(params.productId);
+  const sku = productId ? getSku(productId) : undefined;
+  const selectedOffer = productId ? buyerServiceByProductId(productId) : undefined;
+
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-16">
@@ -106,14 +117,33 @@ export default function ReviewRequestPage() {
           </a>
           . {PUBLIC_NO_SECRETS_NOTE}
         </p>
+        {selectedOffer ? (
+          <div className="mt-5 border border-brand-accent/30 bg-brand-accent/5 p-4 text-sm leading-6 text-text-secondary">
+            <p className="font-semibold text-brand-accent">
+              Selected offer: {selectedOffer.name.en}
+            </p>
+            <p className="mt-2">Price: {selectedOffer.price.en}</p>
+            <p>Timing: {selectedOffer.timing.en}</p>
+          </div>
+        ) : null}
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section className="border border-surface-border p-4 sm:p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}>
-          <ContactForm />
+          <ContactForm intent={sku?.id ?? "review"} />
         </section>
 
         <aside className="space-y-4">
+          {selectedOffer ? (
+            <section className="border border-surface-border bg-surface-bg p-5">
+              <div className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-text-muted">
+                Selected situation
+              </div>
+              <p className="text-sm leading-relaxed text-text-muted">
+                {selectedOffer.situation.en}
+              </p>
+            </section>
+          ) : null}
           <section className="border border-surface-border bg-surface-bg p-5">
             <div
               className="mb-3"

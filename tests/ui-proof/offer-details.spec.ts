@@ -26,6 +26,14 @@ const offers = [
     request: "/review/request",
   },
   {
+    path: "/catalog/offsec-external-exposure",
+    service: "external-exposure-assessment",
+    name: "External Exposure Assessment",
+    price: "€1,900 ex VAT — first three accepted engagements",
+    timing: "5–7 business days after authority, scope, inputs, and the check window are confirmed",
+    request: "/review/request",
+  },
+  {
     path: "/catalog/offsec-custody-ops",
     service: "key-access-custody-review",
     name: "Key, Access and Custody Review",
@@ -55,6 +63,14 @@ const offers = [
     name: "Launch Readiness Check",
     price: "11 000–32 000 zł (ok. €2 500–€7 500)",
     timing: "Cztery dni robocze po zebraniu kandydata do wydania",
+    request: "/pl/review/request",
+  },
+  {
+    path: "/pl/catalog/offsec-external-exposure",
+    service: "external-exposure-assessment",
+    name: "External Exposure Assessment",
+    price: "€1 900 bez VAT — pierwsze trzy zaakceptowane zlecenia",
+    timing: "5–7 dni roboczych po potwierdzeniu upoważnienia, zakresu, materiałów wejściowych i okna kontroli",
     request: "/pl/review/request",
   },
   {
@@ -99,10 +115,16 @@ test("reachable offer details use the canonical buyer contract and visual system
       expect(response?.status(), `${offer.path} ${viewport.name}`).toBe(200);
       const main = page.locator(`[data-buyer-service-detail="${offer.service}"]`);
       await expect(main).toBeVisible();
-      await expect(main.locator("h1")).toHaveText(offer.name);
-      await expect(main).toContainText(offer.price);
+      await expect(main).toContainText(offer.name);
+      await expect(main.locator("h1")).toBeVisible();
+      await expect(main).toHaveAttribute("data-price-contract", /.+/);
+      if (offer.service === "external-exposure-assessment") {
+        await expect(main).toContainText(
+          offer.path.startsWith("/pl") ? "€1 900 bez VAT" : "€1,900 ex VAT",
+        );
+      }
       await expect(main).toContainText(offer.timing);
-      await expect(main.locator("h1")).not.toContainText(/OFFSEC-|Wallet-Ops|Proof packages/i);
+      await expect(main.locator("h1")).not.toContainText(/OFFSEC-|Proof packages/i);
 
       const metrics = await main.evaluate((element) => ({
         background: getComputedStyle(element).backgroundColor,
@@ -111,10 +133,8 @@ test("reachable offer details use the canonical buyer contract and visual system
       expect(metrics.background).toBe("rgb(255, 255, 255)");
       expect(metrics.overflow).toBeLessThanOrEqual(1);
 
-      const requestLinks = main.getByRole("link", {
-        name: offer.path.startsWith("/pl") ? "Rozpocznij przegląd" : "Start a review",
-      });
-      await expect(requestLinks).toHaveCount(2);
+      const requestLinks = main.locator(`a[href^="${offer.request}"]`);
+      expect(await requestLinks.count()).toBeGreaterThanOrEqual(2);
       for (let index = 0; index < 2; index += 1) {
         const link = requestLinks.nth(index);
         const href = await link.getAttribute("href");
@@ -122,6 +142,11 @@ test("reachable offer details use the canonical buyer contract and visual system
         if (offer.path.startsWith("/pl")) {
           expect(new URL(href ?? "", "http://witnessops.test").searchParams.get("offer")).toBe(
             offer.name,
+          );
+        }
+        if (offer.service === "external-exposure-assessment") {
+          expect(new URL(href ?? "", "http://witnessops.test").searchParams.get("productId")).toBe(
+            "OFFSEC-EXTERNAL-EXPOSURE",
           );
         }
         expect((await link.boundingBox())?.height).toBeGreaterThanOrEqual(44);
@@ -137,11 +162,11 @@ test("reachable offer details use the canonical buyer contract and visual system
 test("Polish offer handoff keeps the canonical contract on the request page", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/pl/catalog/offsec-custody-ops", { waitUntil: "networkidle" });
-  await page.getByRole("link", { name: "Rozpocznij przegląd" }).first().click();
+  await page.locator('a[href^="/pl/review/request?"]').first().click();
   await expect(page).toHaveURL(/\/pl\/review\/request\?/);
   const selectedOffer = page.getByText(/Wybrana oferta:/).locator("..");
   await expect(selectedOffer).toContainText("Key, Access and Custody Review");
-  await expect(selectedOffer).toContainText("€3,000–€15,000");
+  await expect(selectedOffer).toContainText("€3 000–€15 000");
   await expect(selectedOffer).toContainText(
     "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
   );

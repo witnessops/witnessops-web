@@ -1,7 +1,7 @@
 {
   "schema": "witnessops.product_catalog.v1",
-  "version": "1.0.0",
-  "updated_at": "2026-07-30T12:00:00Z",
+  "version": "1.1.0",
+  "updated_at": "2026-08-06T04:00:00Z",
   "currency": "EUR",
   "safe_claim": "Run bounded local checks. Collect evidence. Produce reports and receipts that operators can inspect.",
   "authority": {
@@ -165,6 +165,53 @@
       "cta": {
         "primary": "/review/request",
         "secondary": "https://witnessops.com/verify"
+      },
+      "surfaces": [
+        "witnessops.com"
+      ]
+    },
+    {
+      "id": "OFFSEC-EXTERNAL-EXPOSURE",
+      "track": "offsec_proof",
+      "name": "External Exposure Assessment",
+      "summary": "A bounded, authorised outside-in vulnerability assessment for one public domain, with evidence-linked findings, explicit unknowns, and an inspectable handover package.",
+      "status": "ship_today",
+      "availability": "witnessops_request",
+      "buyer_personas": [
+        "founder",
+        "saas_team",
+        "operator"
+      ],
+      "price": {
+        "anchor_eur_min": 1900,
+        "anchor_eur_max": 1900,
+        "display": "€1,900 ex VAT — first three accepted engagements",
+        "billing": "one_time"
+      },
+      "deliverables": [
+        "authority and fixed-scope record",
+        "external exposure map",
+        "evidence-linked findings",
+        "executive report and technical appendix",
+        "evidence manifest and artifact hashes",
+        "signed receipt and offline verifier where supported",
+        "buyer handover and one focused retest within 30 days"
+      ],
+      "boundaries": [
+        "authorized_targets_only",
+        "unauthenticated_outside_in",
+        "no_exploitation",
+        "no_security_guarantee"
+      ],
+      "limits": {
+        "root_domains": 1,
+        "confirmed_hostnames": 10,
+        "public_ips": 3,
+        "service_endpoints": 20
+      },
+      "cta": {
+        "primary": "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
+        "secondary": "/catalog/offsec-external-exposure"
       },
       "surfaces": [
         "witnessops.com"

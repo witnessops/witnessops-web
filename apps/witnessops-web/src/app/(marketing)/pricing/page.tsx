@@ -1,222 +1,124 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+
 import { CtaButton } from "@/components/shared/cta-button";
-import { getWorkflowSkus } from "@witnessops/catalog";
+import {
+  BUYER_SERVICES,
+  buyerOfferRequestHref,
+  buyerRequestHref,
+} from "@/lib/buyer-services";
 
 export const metadata: Metadata = {
-  title: "Pricing and Commercial Scope | WitnessOps",
+  title: "Security Review Pricing | WitnessOps",
   description:
-    "Commercial scope for WitnessOps proof-backed security workflows: one bounded workflow, no proof run starts from pricing, and fee/timing are confirmed after fit and evidence handling are agreed.",
-  alternates: {
-    canonical: "/pricing",
-  },
+    "Published prices and commercial boundaries for bounded WitnessOps security reviews, including the External Exposure Assessment paid pilot.",
+  alternates: { canonical: "/pricing" },
   openGraph: {
-    title: "Pricing and Commercial Scope | WitnessOps",
+    title: "Security Review Pricing | WitnessOps",
     description:
-      "Commercial scope for WitnessOps proof-backed security workflows: one bounded workflow, no proof run starts from pricing, and fee/timing are confirmed after fit and evidence handling are agreed.",
+      "Published prices and commercial boundaries for bounded WitnessOps security reviews.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pricing and Commercial Scope | WitnessOps",
+    title: "Security Review Pricing | WitnessOps",
     description:
-      "Commercial scope for WitnessOps proof-backed security workflows: one bounded workflow, no proof run starts from pricing, and fee/timing are confirmed after fit and evidence handling are agreed.",
+      "Published prices and commercial boundaries for bounded WitnessOps security reviews.",
   },
 };
 
-const commercialScope = [
-  {
-    label: "Primary public lane",
-    value: "Proof-Backed Security Workflow",
-  },
-  {
-    label: "Unit of sale",
-    value: "One bounded security workflow packaged into scope, evidence, receipt, verifier result, limits, and challenge path.",
-  },
-  {
-    label: "Commercial step",
-    value: "Fit, scope, fee, timing, and evidence handling are confirmed by email before any source materials are accepted.",
-  },
-];
-
-const includedOutputs = [
-  "scope map",
-  "security decision record",
-  "evidence package",
-  "receipt and verifier result",
-  "challenge path",
-  "named limits and unresolved gaps",
-];
-
 const boundaries = [
-  "No proof run starts from this page.",
-  "No customer evidence is accepted through pricing.",
-  "No legal compliance claim is made here.",
-  "No production deployment claim is made here.",
-  "No complete AI governance program is promised here.",
-  "Access-change scoping is handled through Support first.",
-];
-
-const nextSteps = [
-  {
-    title: "Inspect the sample",
-    body: "Inspect the public AI-agent sample package before submitting your own security workflow.",
-    href: "/review/sample-cases/ai-agent-action-proof-run",
-    label: "Inspect sample package",
-  },
-  {
-    title: "Read package offer",
-    body: "See what the package returns, what fits, and what remains outside the claim boundary.",
-    href: "/review",
-    label: "Read package offer",
-  },
-  {
-    title: "Package workflow",
-    body: "Submit one non-secret GitHub, Codex, AI, access, offsec, or remediation workflow for the first fit check.",
-    href: "/review/request",
-    label: "Start a review",
-  },
+  "No review starts from this page or from payment alone.",
+  "The first message is a non-secret fit check; authority, scope, fee, timing, and evidence handling are agreed before work begins.",
+  "Published figures are fixed prices or starting ranges for the named boundary, excluding VAT where stated.",
+  "A report, receipt, or verifier does not prove that a system is secure, complete, compliant, or free of vulnerabilities.",
 ];
 
 export default function PricingPage() {
-  const workflowSkus = getWorkflowSkus().filter((s) => s.id !== "WORKFLOW-FIT");
-
   return (
-    <main
-      id="main-content"
-      tabIndex={-1}
-      className="docs-page-enter mx-auto max-w-5xl px-6 py-10 lg:py-14"
-    >
-      <header className="mb-12 border-b border-surface-border pb-8">
-        <div className="kb-section-tag">Pricing and commercial scope</div>
-        <h1
-          className="mt-2 max-w-4xl text-3xl font-semibold uppercase leading-tight tracking-[0.04em] text-text-primary lg:text-5xl"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Price the package after the workflow is bounded.
-        </h1>
-        <div className="mt-6 max-w-[760px] space-y-4 text-base leading-8 text-text-secondary">
-          <p>
-            WitnessOps sells a bounded security-workflow package, not an open-ended
-            dashboard, retainer, or broad assurance claim. The first commercial
-            step is a fit check for one workflow and one evidence path.
+    <main id="main-content" tabIndex={-1} className="buyer-page">
+      <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
+        <header className="border-b border-surface-border pb-12">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+            Pricing
           </p>
-          <p>
-            Fee, timing, and evidence handling are confirmed after the workflow,
-            authority boundary, action path, and expected evidence are scoped.
+          <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
+            Clear prices for bounded security reviews.
+          </h1>
+          <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">
+            Choose the situation that matches your decision. Every engagement starts
+            with a short, non-secret fit check so the authorised boundary and the
+            accepting party’s requirement are clear before any work or evidence intake.
           </p>
-        </div>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <CtaButton href="/review/request" variant="primary" label="Start a review" />
-          <CtaButton href="/review/sample-cases/ai-agent-action-proof-run" variant="secondary" label="Inspect sample package" />
-        </div>
-      </header>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <CtaButton href={buyerRequestHref("en")} variant="primary" label="Start a fit check" />
+            <CtaButton href="/catalog" variant="secondary" label="View full catalogue" />
+          </div>
+        </header>
 
-      <section className="mb-10 border-b border-surface-border pb-8">
-        <h2
-          className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Workflow price anchors
-        </h2>
-        <p className="mt-3 text-sm leading-7 text-text-muted">
-          Anchors from the{" "}
-          <Link href="/catalog/workflows" className="text-brand-accent hover:underline">
-            product catalog
-          </Link>
-          . Confirmed after scope — not self-serve checkout.
-        </p>
-        <ul className="mt-4 grid gap-2 text-sm text-text-secondary md:grid-cols-2">
-          {workflowSkus.map((sku) => (
-            <li key={sku.id} className="border border-surface-border bg-surface-card/40 p-4">
-              <span className="font-semibold text-text-primary">{sku.name}</span>
-              <span className="ml-2 text-brand-accent">{sku.price.display}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="mb-10 border-b border-surface-border pb-8">
-        <h2
-          className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Commercial contract
-        </h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {commercialScope.map((item) => (
-            <div key={item.label} className="border border-surface-border bg-surface-card/40 p-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
-                {item.label}
-              </div>
-              <p className="mt-3 text-sm leading-7 text-text-secondary">
-                {item.value}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mb-10 grid gap-8 border-b border-surface-border pb-8 lg:grid-cols-[0.8fr_1.2fr]">
-        <div>
-          <h2
-            className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            What a workflow package returns
+        <section className="py-12" aria-labelledby="pricing-services-heading">
+          <h2 id="pricing-services-heading" className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+            Public service lines
           </h2>
-          <p className="mt-4 text-sm leading-7 text-text-muted">
-            The output is an inspectable evidence package with named verification
-            limits, not a broad compliance certification.
-          </p>
-        </div>
-        <ul className="grid gap-3 text-sm leading-7 text-text-secondary md:grid-cols-2">
-          {includedOutputs.map((item) => (
-            <li key={item} className="border border-surface-border bg-surface-card/40 p-4">
-              {item}
-            </li>
-          ))}
-        </ul>
-      </section>
+          <div className="mt-7 grid gap-5 md:grid-cols-2">
+            {BUYER_SERVICES.map((service) => {
+              const detailHref = service.detailHref.en ?? "/catalog";
+              const pilot = service.id === "external-exposure-assessment";
+              return (
+                <article
+                  key={service.id}
+                  data-pricing-service={service.id}
+                  className={`flex h-full flex-col border p-6 ${pilot ? "border-brand-accent/60 bg-brand-accent/5" : "border-surface-border bg-surface-card/40"}`}
+                >
+                  {pilot ? (
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
+                      Limited paid pilot
+                    </p>
+                  ) : null}
+                  <h3 className={`${pilot ? "mt-3" : ""} text-xl font-semibold text-text-primary`}>
+                    <Link href={detailHref} className="hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+                      {service.name.en}
+                    </Link>
+                  </h3>
+                  <p className="mt-3 text-sm leading-7 text-text-secondary">{service.situation.en}</p>
+                  <p className="mt-5 text-lg font-semibold text-brand-accent">{service.price.en}</p>
+                  <p className="mt-2 text-sm leading-6 text-text-muted">{service.timing.en}</p>
+                  {pilot ? (
+                    <p className="mt-3 text-sm leading-6 text-text-muted">
+                      Intended standard price after validation: €2,500 ex VAT. One focused retest within 30 days is included; an additional or late retest is €550 ex VAT.
+                    </p>
+                  ) : null}
+                  <p className="mt-4 border-t border-surface-border pt-4 text-sm leading-6 text-text-muted">
+                    {service.boundary.en}
+                  </p>
+                  <div className="mt-auto flex flex-wrap gap-3 pt-6">
+                    <CtaButton href={detailHref} variant="secondary" label="View scope" />
+                    <CtaButton
+                      href={service.productId ? buyerOfferRequestHref("en", service.productId) : buyerRequestHref("en")}
+                      variant="primary"
+                      label={pilot ? "Check pilot fit" : "Start fit check"}
+                    />
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
 
-      <section className="mb-10 border-b border-surface-border pb-8">
-        <h2
-          className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Boundary
-        </h2>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {boundaries.map((item) => (
-            <div key={item} className="border border-surface-border bg-surface-bg p-4 text-sm leading-7 text-text-secondary">
-              {item}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2
-          className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Next step
-        </h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {nextSteps.map((item) => (
-            <div key={item.href} className="border border-surface-border bg-surface-card/40 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.08em] text-text-primary">
-                {item.title}
-              </h3>
-              <p className="mt-3 text-sm leading-7 text-text-muted">{item.body}</p>
-              <div className="mt-5">
-                <CtaButton href={item.href} variant="secondary" label={item.label} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+        <section className="border-t border-surface-border py-12">
+          <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+            Commercial boundary
+          </h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            {boundaries.map((item) => (
+              <p key={item} className="border border-surface-border bg-surface-bg p-5 text-sm leading-7 text-text-secondary">
+                {item}
+              </p>
+            ))}
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

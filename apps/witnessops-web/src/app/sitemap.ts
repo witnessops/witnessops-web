@@ -38,6 +38,10 @@ const staticRoutes: StaticRoute[] = [
     sourcePath: "src/app/(marketing)/catalog/offsec/page.tsx",
   },
   {
+    route: "/catalog/offsec-external-exposure",
+    sourcePath: "src/app/(marketing)/catalog/[skuId]/page.tsx",
+  },
+  {
     route: "/catalog/operator-platform",
     sourcePath: "src/app/(marketing)/catalog/operator-platform/page.tsx",
   },
