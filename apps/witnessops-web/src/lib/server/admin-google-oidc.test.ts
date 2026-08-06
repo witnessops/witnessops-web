@@ -100,6 +100,24 @@ test("Google OIDC config normalizes the domain and email allowlist", () => {
   ]);
 });
 
+test("Google OIDC config rejects Unicode before case normalization", () => {
+  clearGoogleEnvironment();
+  setValidGoogleEnvironment();
+  process.env.WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN = "examKle.com";
+  assert.throws(
+    () => readGoogleAdminOidcConfig(),
+    (error) => assertGoogleOidcError(error, "config_invalid"),
+  );
+
+  setValidGoogleEnvironment();
+  process.env.WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST =
+    "aliKe@example.com";
+  assert.throws(
+    () => readGoogleAdminOidcConfig(),
+    (error) => assertGoogleOidcError(error, "config_invalid"),
+  );
+});
+
 test("Google OIDC config rejects non-Google and control-bearing credentials", () => {
   clearGoogleEnvironment();
   setValidGoogleEnvironment();
@@ -449,6 +467,35 @@ test("Google code verification enforces verified Workspace claims and allowlist"
 
   currentIdToken = await signIdentity({ audience: "wrong-client-id" });
   await expectVerificationError("id_token_audience_invalid");
+
+  currentIdToken = await signIdentity({
+    claims: { azp: "different-client.apps.googleusercontent.com" },
+  });
+  await expectVerificationError("id_token_audience_invalid");
+
+  currentIdToken = await signIdentity({ claims: { azp: 123 } });
+  await expectVerificationError("id_token_audience_invalid");
+
+  currentIdToken = await signIdentity({ claims: { azp: "" } });
+  await expectVerificationError("id_token_audience_invalid");
+
+  currentIdToken = await signIdentity({
+    claims: { azp: "google-client-id.apps.googleusercontent.com" },
+  });
+  assert.equal(
+    (await verifyGoogleOidcCode("authorization-code", transaction)).email,
+    "alice@example.com",
+  );
+
+  currentIdToken = await signIdentity({
+    claims: { email: "aliKe@example.com" },
+  });
+  await expectVerificationError("identity_invalid");
+
+  currentIdToken = await signIdentity({
+    claims: { hd: "examKle.com" },
+  });
+  await expectVerificationError("workspace_domain_mismatch");
 
   currentIdToken = await signIdentity({
     audience: [

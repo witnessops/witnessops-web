@@ -16,5 +16,7 @@ fi
 
 deploy_prod_image "${IMAGE}"
 log "prod URL ${PROD_URL}"
-curl -sS -o /dev/null -w "prod_home=%{http_code}\n" --max-time 15 "${PROD_URL}/" || die "prod smoke failed"
+PROD_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "${PROD_URL}/" || true)"
+[[ "${PROD_CODE}" == "200" ]] || die "prod smoke failed (${PROD_CODE:-request error})"
+log "prod_home=${PROD_CODE}"
 log "done ${IMAGE}"

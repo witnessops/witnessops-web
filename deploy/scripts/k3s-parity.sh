@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pure dual-lane parity helpers (no cluster mutation).
+# Pure dual-lane parity and deploy-contract helpers (no cluster mutation).
 # Source this file, or invoke as a CLI for unit tests / dry checks:
 #
 #   ./k3s-parity.sh compare-images <prod_image> <dev_image>
@@ -61,6 +61,75 @@ compare_css_refs() {
   if [[ "${a}" != "${b}" ]]; then
     printf 'css mismatch: prod=%s dev=%s\n' "${a}" "${b}" >&2
     return 2
+  fi
+  return 0
+}
+
+# Exact runtime contract for the application container. Order matters because
+# later envFrom sources take precedence over earlier sources for duplicate keys.
+expected_admin_runtime_envfrom_contract() {
+  printf '%s\n' \
+    'container:witnessops-web' \
+    'secret:witnessops-web-env|prefix=|optional=false' \
+    'secret:witnessops-web-admin-oidc|prefix=|optional=false'
+}
+
+# Returns 0 for an exact ordered match, 2 for drift, and 1 when either side is
+# missing. Callers must not sort either contract before comparison.
+compare_runtime_envfrom_contract() {
+  local expected actual
+  expected="${1:-}"
+  actual="${2:-}"
+  if [[ -z "${expected}" || -z "${actual}" ]]; then
+    printf 'runtime envFrom contract missing\n' >&2
+    return 1
+  fi
+  if [[ "${expected}" != "${actual}" ]]; then
+    printf 'runtime envFrom contract mismatch\n' >&2
+    return 2
+  fi
+  return 0
+}
+
+# Names only. Secret values are never decoded, emitted, or logged by the deploy
+# preflight.
+required_admin_oidc_key_names() {
+  printf '%s\n' \
+    'WITNESSOPS_ADMIN_SECRET' \
+    'WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST' \
+    'WITNESSOPS_GOOGLE_OIDC_CLIENT_ID' \
+    'WITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET' \
+    'WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI' \
+    'WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN'
+}
+
+# Accepts one or more newline-delimited key-name lists. Extra keys are allowed
+# so deliberately dormant fallback credentials do not block a Google deploy.
+validate_admin_oidc_key_names() {
+  local supplied required_key missing
+  supplied="$(printf '%s\n' "$@")"
+  missing=0
+
+  while IFS= read -r required_key; do
+    [[ -n "${required_key}" ]] || continue
+    if ! grep -Fqx -- "${required_key}" <<<"${supplied}"; then
+      printf 'admin OIDC secret is missing required key: %s\n' "${required_key}" >&2
+      missing=1
+    fi
+  done < <(required_admin_oidc_key_names)
+
+  [[ "${missing}" -eq 0 ]] || return 2
+  return 0
+}
+
+# Keep interpolated image references out of shell and JSON control syntax.
+validate_container_image_ref() {
+  local image
+  image="${1:-}"
+  if [[ -z "${image}" || ${#image} -gt 512 \
+    || ! "${image}" =~ ^[[:alnum:]][[:alnum:]._/\@:+-]*$ ]]; then
+    printf 'invalid container image reference\n' >&2
+    return 1
   fi
   return 0
 }

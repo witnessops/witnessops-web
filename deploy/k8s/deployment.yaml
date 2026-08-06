@@ -33,6 +33,8 @@ spec:
           envFrom:
             - secretRef:
                 name: witnessops-web-env
+            - secretRef:
+                name: witnessops-web-admin-oidc
           volumeMounts:
             - name: intake-store
               mountPath: /data/intake-store
