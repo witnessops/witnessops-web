@@ -3,7 +3,7 @@
 Operator-facing materials so the live catalog + samples convert into real engagements.
 Written for learning the offers while you sell and deliver them.
 
-**Operate this week:** Customer Security Review Sprint + One Server Security Check only.
+**Operate this week:** Customer Security Review Sprint + One Server Security Check remain the public-catalogue lanes. The External Exposure Assessment is a manual first-three-customer validation lane; do not add it to the public catalogue until its success gates are met.
 
 ## Start here
 
@@ -30,6 +30,8 @@ Then use the paste templates below.
 | 07 | [Operator playbook complete](./07-operator-playbook-complete.md) | Full delivery path |
 | 08 | [Artifact map](./08-artifact-map.md) | Find samples on site + disk |
 | 09 | [Pricing investigation + PLN](./09-pricing-investigation.md) | Market context, zł table, policy |
+| 10 | [External Exposure Assessment pilot offer](./10-external-exposure-assessment-pilot-offer.md) | One-page buyer offer for the first three paid pilots |
+| 11 | [External Exposure Assessment fit check](./11-external-exposure-assessment-fit-check.md) | Non-secret intake and fit/custom/referral routing |
 
 ## Public anchors
 
@@ -64,4 +66,4 @@ Then use the paste templates below.
 
 ## Hold list
 
-No Pilot/Access-removed product cards, no KEV/SBOM SKUs, no new public samples unless a live deal requires them.
+No public External Exposure Assessment, Pilot/Access-removed product cards, no KEV/SBOM SKUs, and no new public samples unless a separately approved public-catalogue change is justified. Validate the External Exposure Assessment manually first.
