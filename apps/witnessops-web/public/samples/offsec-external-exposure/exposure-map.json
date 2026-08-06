@@ -1,0 +1,25 @@
+{
+  "label": "Synthetic worked example — not customer evidence.",
+  "product_id": "OFFSEC-EXTERNAL-EXPOSURE",
+  "exposure_map": [
+    {
+      "id": "A-01",
+      "identity": "http://127.0.0.1:18765/",
+      "attribution": "synthetic first-party fixture",
+      "observation": "HTTP endpoint reachable on explicit port 18765",
+      "evidence_refs": [
+        "E-001",
+        "E-002"
+      ]
+    },
+    {
+      "id": "A-02",
+      "identity": "http://127.0.0.1:18765/metadata",
+      "attribution": "synthetic first-party fixture",
+      "observation": "Synthetic metadata route returned an HTTP response",
+      "evidence_refs": [
+        "E-003"
+      ]
+    }
+  ]
+}

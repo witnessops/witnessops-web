@@ -21,9 +21,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const id = resolved as CanonicalOffsecProductId;
   const copy = POLISH_OFFERS[id];
   const buyerService = buyerServiceByProductId(id);
+  const title = buyerService?.name.pl ?? copy.name;
+  const description = buyerService?.situation.pl ?? copy.situation;
   return {
-    title: buyerService?.name.pl ?? copy.name,
-    description: buyerService?.situation.pl ?? copy.situation,
+    title,
+    description,
     alternates: {
       canonical: `/pl/catalog/${id.toLowerCase()}`,
       languages: {
@@ -31,6 +33,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         pl: `/pl/catalog/${id.toLowerCase()}`,
         "x-default": `/catalog/${id.toLowerCase()}`,
       },
+    },
+    openGraph: {
+      title: `${title} | WitnessOps`,
+      description,
+      siteName: "WitnessOps",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | WitnessOps`,
+      description,
     },
   };
 }

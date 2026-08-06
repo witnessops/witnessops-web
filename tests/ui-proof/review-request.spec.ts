@@ -115,7 +115,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
 
     if (scenario.locale === "pl") {
       const contactHandoff = page.locator("main [data-public-contact-route]");
-      await expect(contactHandoff).toContainText("Opowiedz nam, co się wydarzyło");
+      await expect(contactHandoff).toContainText("Rozpocznij przegląd");
       await expect(contactHandoff.locator("a").first()).toHaveAttribute("href", "/pl/review/request");
       await expect(contactHandoff).toContainText("engage@mail.witnessops.com");
     }
@@ -143,11 +143,14 @@ test("review request routes remain responsive, accessible, and usable", async ({
     expect(Object.keys(submittedPayload ?? {}).sort()).toEqual([
       "email",
       "intent",
+      "locale",
       "name",
       "org",
       "scope",
     ]);
-    expect(submittedPayload?.intent).toBe("ai-agent-action-proof-run");
+    expect(submittedPayload?.intent).toBe("review");
+    expect(submittedPayload?.locale).toBe(scenario.locale);
+    expect(submittedPayload?.scope).toContain(`Request locale: ${scenario.locale}`);
     expect(submittedPayload?.scope).toContain("First-message boundary: no files, secrets");
 
     const verificationHeading = scenario.locale === "pl"
@@ -183,6 +186,70 @@ test("review request routes remain responsive, accessible, and usable", async ({
 
     expect(consoleErrors).toEqual([]);
     expect(pageErrors).toEqual([]);
+    await context.close();
+  }
+});
+
+test("External Exposure Assessment request preserves SKU, locale, and fit boundary", async ({ browser }) => {
+  for (const scenario of [
+    { locale: "en", path: "/review/request" },
+    { locale: "pl", path: "/pl/review/request" },
+  ] as const) {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+    });
+    const page = await context.newPage();
+    let submittedPayload: Record<string, unknown> | null = null;
+
+    await page.route("**/api/review/request", async (route) => {
+      submittedPayload = route.request().postDataJSON() as Record<string, unknown>;
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({
+          issuanceId: `iss_external_${scenario.locale}`,
+          email: "buyer@example.com",
+          expiresAt: "2026-08-06T22:00:00.000Z",
+        }),
+      });
+    });
+
+    const query = new URLSearchParams({
+      productId: "OFFSEC-EXTERNAL-EXPOSURE",
+      offer: "External Exposure Assessment",
+    });
+    await page.goto(`${scenario.path}?${query.toString()}`, {
+      waitUntil: "networkidle",
+    });
+
+    await expect(
+      page.getByText(
+        scenario.locale === "pl" ? /Wybrana oferta:/ : /Selected offer:/,
+      ),
+    ).toBeVisible();
+    const form = page.locator("main form");
+    await expect(form.locator('input[name="intent"]')).toHaveValue(
+      "OFFSEC-EXTERNAL-EXPOSURE",
+    );
+
+    await form.locator("#name").fill("Synthetic Buyer");
+    await form.locator("#email").fill("buyer@example.com");
+    await form.locator("#workflow").fill("A bounded external exposure fit check");
+    await form.locator("#agentPath").fill("One synthetic public application boundary");
+    await form.locator("#approvalBoundary").fill("Authority will be confirmed before work");
+    await form.locator("#evidenceAvailable").fill("Evidence types only; no files supplied");
+    await form.locator('button[type="submit"]').click();
+
+    expect(submittedPayload?.intent).toBe("OFFSEC-EXTERNAL-EXPOSURE");
+    expect(submittedPayload?.locale).toBe(scenario.locale);
+    expect(submittedPayload?.scope).toContain(
+      "Selected product / intent: OFFSEC-EXTERNAL-EXPOSURE",
+    );
+    expect(submittedPayload?.scope).toContain(`Request locale: ${scenario.locale}`);
+    expect(submittedPayload?.scope).toContain(
+      "First-message boundary: no files, secrets",
+    );
+
     await context.close();
   }
 });

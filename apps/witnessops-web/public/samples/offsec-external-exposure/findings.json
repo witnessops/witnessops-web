@@ -1,0 +1,45 @@
+{
+  "label": "Synthetic worked example — not customer evidence.",
+  "product_id": "OFFSEC-EXTERNAL-EXPOSURE",
+  "findings": [
+    {
+      "id": "F-001",
+      "title": "Synthetic server identifier is exposed",
+      "priority": "low",
+      "target": "http://127.0.0.1:18765/",
+      "observed_condition": "The fixture returned the deliberate Server header synthetic-fixture/1.0.",
+      "evidence_refs": [
+        "E-001"
+      ],
+      "impact": "A real service identifier could aid fingerprinting; this fixture value is intentionally synthetic.",
+      "remediation": "Minimize unnecessary server-identifying headers where operationally practical.",
+      "retest": "Repeat the same header-only observation against T-01."
+    },
+    {
+      "id": "F-002",
+      "title": "Synthetic transport policy header is absent",
+      "priority": "medium",
+      "target": "http://127.0.0.1:18765/",
+      "observed_condition": "The approved response did not contain Strict-Transport-Security.",
+      "evidence_refs": [
+        "E-001"
+      ],
+      "impact": "On a real HTTPS service this could reduce browser transport enforcement; the fixture intentionally uses HTTP.",
+      "remediation": "For a real HTTPS service, evaluate HSTS after confirming subdomain and preload implications.",
+      "retest": "Observe the same response headers only; do not reopen discovery."
+    },
+    {
+      "id": "F-003",
+      "title": "Synthetic public metadata marker is exposed",
+      "priority": "informational",
+      "target": "http://127.0.0.1:18765/metadata",
+      "observed_condition": "The fixture returned the deliberate X-Synthetic-Exposure header.",
+      "evidence_refs": [
+        "E-003"
+      ],
+      "impact": "This is a demonstration marker and has no customer impact.",
+      "remediation": "Remove demonstration-only public metadata in a real deployment.",
+      "retest": "Repeat the same header-only observation against T-02."
+    }
+  ]
+}

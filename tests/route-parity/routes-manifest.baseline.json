@@ -649,6 +649,12 @@
       "namedRegex": "^/review/sample\\-cases/customer\\-security\\-review\\-sprint(?:/)?$"
     },
     {
+      "page": "/review/sample-cases/external-exposure-assessment",
+      "regex": "^/review/sample\\-cases/external\\-exposure\\-assessment(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/external\\-exposure\\-assessment(?:/)?$"
+    },
+    {
       "page": "/review/sample-cases/incident-readiness-review",
       "regex": "^/review/sample\\-cases/incident\\-readiness\\-review(?:/)?$",
       "routeKeys": {},

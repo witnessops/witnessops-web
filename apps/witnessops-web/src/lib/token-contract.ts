@@ -79,6 +79,7 @@ export const engageRequestSchema = z.object({
   name: shortTextSchema,
   org: shortTextSchema,
   intent: shortTextSchema,
+  locale: z.enum(["en", "pl"]).optional(),
   scope: longTextSchema,
 });
 

@@ -204,6 +204,8 @@ export function ContactForm({
     const evidenceAvailable = stringField(data, "evidenceAvailable");
     const proofRunScope = [
       "Request: WitnessOps review fit check",
+      `Selected product / intent: ${intent}`,
+      `Request locale: ${locale}`,
       `Review need: ${workflow || "not provided"}`,
       `Situation and affected system: ${agentPath || "not provided"}`,
       `Boundary and approval: ${approvalBoundary || "not provided"}`,
@@ -221,6 +223,7 @@ export function ContactForm({
           org: data.get("org"),
           email: data.get("email"),
           intent,
+          locale,
           scope: proofRunScope,
         }),
       });
@@ -479,7 +482,7 @@ export function ContactForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" aria-busy={status === "sending"}>
-      <input type="hidden" name="intent" value="ai-agent-action-proof-run" />
+      <input type="hidden" name="intent" value={intent} />
       <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
         {status === "sending"
           ? copy.sending

@@ -63,7 +63,8 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
       },
       {
         price: "pilot_eur_1900_ex_vat_first_three_accepted_engagements",
-        timing: "five_to_seven_business_days_after_authority_scope_inputs_and_check_window",
+        timing:
+          "five_to_seven_business_days_after_authority_scope_freeze_required_inputs_and_approved_collection_window_confirmed",
       },
       {
         price: "eur_2500_to_7500",
@@ -103,6 +104,12 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         );
       } else if (scenario.path === "/pl/catalog" && index === 1) {
         await expect(links).toHaveCount(1);
+      } else if (expectedServiceOrder[index] === "external-exposure-assessment") {
+        await expect(links).toHaveCount(3);
+        await expect(links.nth(2)).toHaveAttribute(
+          "href",
+          "/review/sample-cases/external-exposure-assessment",
+        );
       } else {
         await expect(links).toHaveCount(2);
       }
@@ -142,4 +149,35 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
     expect(pageErrors).toEqual([]);
     await context.close();
   }
+});
+
+test("External Exposure Assessment pricing entry preserves sample and intake links", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const response = await page.goto("/pricing", { waitUntil: "networkidle" });
+  expect(response?.status()).toBe(200);
+
+  const card = page.locator(
+    '[data-pricing-service="external-exposure-assessment"]',
+  );
+  await expect(card).toContainText("€1,900 ex VAT");
+  await expect(card).toContainText(
+    "Intended standard price after validation: €2,500 ex VAT.",
+  );
+  await expect(
+    card.locator('a[href="/review/sample-cases/external-exposure-assessment"]'),
+  ).toHaveText("Inspect synthetic sample");
+
+  const fitHref = await card
+    .getByRole("link", { name: "Check pilot fit" })
+    .getAttribute("href");
+  expect(
+    new URL(fitHref ?? "", "http://witnessops.test").searchParams.get(
+      "productId",
+    ),
+  ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
 });

@@ -50,6 +50,7 @@ export interface IntakeSubmissionRecord {
   name?: string | null;
   org?: string | null;
   intent?: string | null;
+  locale?: "en" | "pl" | null;
   scope?: string | null;
   subject?: string | null;
   category?: string | null;

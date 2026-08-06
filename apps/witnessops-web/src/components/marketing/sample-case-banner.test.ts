@@ -12,6 +12,7 @@ const samplePages = [
   "app/review/sample-cases/approval-gated-containment/page.tsx",
   "app/review/sample-cases/privileged-access-grant/page.tsx",
   "app/review/sample-cases/local-server-security-review/page.tsx",
+  "app/review/sample-cases/external-exposure-assessment/page.tsx",
   "app/review/sample-cases/launch-readiness-review/page.tsx",
   "app/review/sample-cases/custody-wallet-ops-review/page.tsx",
   "app/review/sample-cases/incident-readiness-review/page.tsx",

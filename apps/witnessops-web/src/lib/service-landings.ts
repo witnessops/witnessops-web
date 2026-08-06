@@ -149,11 +149,11 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     whoFor:
       "EU and UK technology teams preparing for a launch, customer review, infrastructure change, diligence step, or deeper penetration test without an internal offensive-security owner.",
     scopeLimits: [
-      "one authorised registrable root domain or one tightly bounded public application hostname",
+      "one authorised registrable root domain or one tightly bounded public application",
       "up to 10 confirmed first-party hostnames",
       "up to 3 customer-attributed public IP addresses",
-      "up to 20 public service endpoints",
-      "passive discovery plus explicitly approved low-impact DNS, TLS, HTTP(S), service-identification, and exposure checks",
+      "up to 20 confirmed public service endpoints",
+      "passive discovery plus explicitly approved low-impact DNS, TLS, HTTP(S), service-identification, and allowlisted exposure checks",
       "unauthenticated, outside-in perspective only",
     ],
     deliverables: [
@@ -168,12 +168,12 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     steps: [
       ["Fit check", "Confirm the decision, accepting party, target boundary, authority, deadline, and whether a vulnerability assessment is acceptable — without sending secrets."],
-      ["Scope freeze", "Confirm ownership, first-party hosts and IPs, approved checks, window, source IPs, stop contact, exclusions, and evidence handling."],
+      ["Scope freeze", "Confirm ownership, first-party hosts and IPs, approved checks, collection window, source IPs, stop contact, exclusions, and evidence handling."],
       ["Assessment", "Perform the admitted passive and low-impact checks, then manually validate, deduplicate, prioritise, and link findings to evidence."],
       ["Handover and retest", "Deliver the reports and inspection package, then retest the agreed reported findings once within 30 days."],
     ],
     boundaries: [
-      "No exploitation, authenticated application testing, password testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, or data exfiltration.",
+      "No exploitation, authenticated application testing, password testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, customer-data collection, or data exfiltration.",
       "No source-code, mobile, smart-contract, cloud-account, internal-network, or open-ended subdomain or IP-range review.",
       "This is not a penetration test, compliance certification, security attestation, or guarantee that the system is secure, complete, compliant, or free of vulnerabilities.",
       "Targets outside the confirmed first-party scope remain untouched. Third-party or shared infrastructure requires separate written authority.",
@@ -181,6 +181,8 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     commercialNote:
       "Limited paid pilot for the first three accepted engagements. Intended standard price after validation: €2,500 ex VAT. Additional or late retest: €550 ex VAT.",
     primaryCta: "Check pilot fit",
+    sampleHref: "/review/sample-cases/external-exposure-assessment",
+    sampleLabel: "Inspect synthetic sample",
   },
   "launch-readiness-check": {
     headline: "One launch host. A before-and-after readiness package against an approved baseline.",
@@ -433,11 +435,11 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     whoFor:
       "Zespoły technologiczne z UE i Wielkiej Brytanii przed uruchomieniem, przeglądem klienta, zmianą infrastruktury, etapem due diligence lub głębszym testem penetracyjnym, bez własnego specjalisty offensive security.",
     scopeLimits: [
-      "jedna autoryzowana domena rejestrowalna lub jeden ściśle ograniczony publiczny hostname aplikacji",
+      "jedna autoryzowana domena rejestrowalna lub jedna ściśle ograniczona aplikacja publiczna",
       "do 10 potwierdzonych hostname'ów first-party",
       "do 3 publicznych adresów IP przypisanych klientowi",
-      "do 20 publicznych endpointów usług",
-      "pasywne wykrywanie oraz jawnie zatwierdzone, niskiego ryzyka kontrole DNS, TLS, HTTP(S), identyfikacji usług i ekspozycji",
+      "do 20 potwierdzonych publicznych endpointów usług",
+      "pasywne wykrywanie oraz jawnie zatwierdzone, niskiego ryzyka kontrole DNS, TLS, HTTP(S), identyfikacji usług i ekspozycji z listy dozwolonej",
       "wyłącznie nieuwierzytelniona perspektywa z zewnątrz",
     ],
     deliverables: [
@@ -452,12 +454,12 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     steps: [
       ["Wstępna ocena", "Potwierdź decyzję, odbiorcę wyniku, granicę celu, upoważnienie, termin i to, czy ocena podatności jest akceptowana — bez wysyłania sekretów."],
-      ["Zamrożenie zakresu", "Potwierdź własność, hosty i adresy IP first-party, zatwierdzone kontrole, okno, adresy źródłowe, kontakt stop i obsługę materiałów."],
+      ["Zamrożenie zakresu", "Potwierdź własność, hosty i adresy IP first-party, zatwierdzone kontrole, okno zbierania, adresy źródłowe, kontakt stop i obsługę materiałów."],
       ["Ocena", "Wykonaj dopuszczone kontrole pasywne i niskiego ryzyka, a następnie ręcznie zweryfikuj, usuń duplikaty, ustal priorytety i połącz ustalenia z materiałami."],
       ["Przekazanie i retest", "Dostarcz raporty i pakiet do sprawdzenia, a następnie raz przetestuj uzgodnione zgłoszone ustalenia w ciągu 30 dni."],
     ],
     boundaries: [
-      "Bez eksploatacji, uwierzytelnionych testów aplikacji, testowania haseł, brute force, zbierania poświadczeń, socjotechniki, odmowy usługi, działań destrukcyjnych, utrzymywania dostępu, malware i eksfiltracji danych.",
+      "Bez eksploatacji, uwierzytelnionych testów aplikacji, testowania haseł, brute force, zbierania poświadczeń, socjotechniki, odmowy usługi, działań destrukcyjnych, utrzymywania dostępu, malware, zbierania danych klientów i eksfiltracji danych.",
       "Bez przeglądu kodu źródłowego, aplikacji mobilnych, smart contractów, kont chmurowych, sieci wewnętrznej ani otwartego wykrywania subdomen lub zakresów IP.",
       "To nie jest test penetracyjny, certyfikacja zgodności, atest bezpieczeństwa ani gwarancja, że system jest bezpieczny, kompletny, zgodny lub wolny od podatności.",
       "Cele poza potwierdzonym zakresem first-party pozostają nietknięte. Infrastruktura strony trzeciej lub współdzielona wymaga osobnego pisemnego upoważnienia.",
@@ -465,6 +467,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     commercialNote:
       "Ograniczony płatny pilotaż dla pierwszych trzech zaakceptowanych zleceń. Planowana cena standardowa po walidacji: €2 500 bez VAT. Dodatkowy lub późny retest: €550 bez VAT.",
     primaryCta: "Sprawdź dopasowanie pilotażu",
+    sampleHref: "/review/sample-cases/external-exposure-assessment",
+    sampleLabel: "Zobacz syntetyczny przykład",
   },
   "launch-readiness-check": {
     headline: "Jeden host startu. Pakiet gotowości before/after względem zatwierdzonej bazy.",

@@ -4,6 +4,9 @@ export const AI_AGENT_ACTION_PROOF_RUN_INTENT =
 export const ACCESS_CHANGE_PROOF_RUN_INTENT =
   "access-change-proof-run" as const;
 
+export const EXTERNAL_EXPOSURE_ASSESSMENT_INTENT =
+  "OFFSEC-EXTERNAL-EXPOSURE" as const;
+
 export const PROOF_RUN_POST_VERIFY_PATH = "/review/request/confirmed" as const;
 
 // Backward-compatible export for the existing access-change offer while the
@@ -21,7 +24,8 @@ export function isManualProofRunIntent(
 ): boolean {
   return (
     isAiAgentActionProofRunIntent(intent) ||
-    intent?.trim() === ACCESS_CHANGE_PROOF_RUN_INTENT
+    intent?.trim() === ACCESS_CHANGE_PROOF_RUN_INTENT ||
+    intent?.trim() === EXTERNAL_EXPOSURE_ASSESSMENT_INTENT
   );
 }
 
@@ -37,7 +41,12 @@ export function isAccessChangeProofRunIntent(
 export function getProofRunRequestLabel(
   intent: string | null | undefined,
 ): string {
-  return intent?.trim() === ACCESS_CHANGE_PROOF_RUN_INTENT
-    ? "access-change package request"
-    : "security-workflow package request";
+  const normalized = intent?.trim();
+  if (normalized === ACCESS_CHANGE_PROOF_RUN_INTENT) {
+    return "access-change package request";
+  }
+  if (normalized === EXTERNAL_EXPOSURE_ASSESSMENT_INTENT) {
+    return "External Exposure Assessment fit request";
+  }
+  return "security-workflow package request";
 }

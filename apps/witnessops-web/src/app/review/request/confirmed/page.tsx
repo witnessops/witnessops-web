@@ -10,6 +10,14 @@ export const metadata: Metadata = {
   title: "Request verified",
   description:
     "Mailbox verification is complete for a WitnessOps proof-run fit request.",
+  alternates: {
+    canonical: "/review/request/confirmed",
+    languages: {
+      en: "/review/request/confirmed",
+      pl: "/pl/review/request/confirmed",
+      "x-default": "/review/request/confirmed",
+    },
+  },
   robots: { index: false, follow: false },
 };
 

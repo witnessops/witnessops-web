@@ -110,6 +110,36 @@ async function issueAccessChangeToken(baseDir: string) {
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
 
+async function issueExternalExposureToken(baseDir: string, locale: "en" | "pl") {
+  applyTestEnv(baseDir);
+  const response = await reviewRequest(
+    new Request("https://witnessops.com/api/review/request", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Synthetic Buyer",
+        email: "security@witnessops.com",
+        intent: "OFFSEC-EXTERNAL-EXPOSURE",
+        locale,
+        scope:
+          `Request: WitnessOps review fit check\nSelected product / intent: OFFSEC-EXTERNAL-EXPOSURE\nRequest locale: ${locale}`,
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  const issuance = (await response.json()) as {
+    issuanceId: string;
+    email: string;
+  };
+  const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
+  const mailRaw = await readFile(
+    path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
+    "utf8",
+  );
+  const token = mailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
+  assert.ok(token);
+  return { issuanceId: issuance.issuanceId, email: issuance.email, token };
+}
+
 function assertClaimantSessionSet(response: Response): string {
   const setCookie = response.headers.get("set-cookie") ?? "";
   assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
@@ -267,6 +297,51 @@ test("verify-token route returns access-change confirmation path without assessm
   assert.equal(secondPayload.assessmentStatus, "unavailable");
   assert.equal(secondPayload.postVerifyPath, "/review/request/confirmed");
   assert.equal(fetchCalls.length, 0);
+});
+
+test("External Exposure Assessment stays on the locale-specific manual fit path", async () => {
+  for (const locale of ["en", "pl"] as const) {
+    const baseDir = await mkdtemp(
+      path.join(os.tmpdir(), `witnessops-external-exposure-${locale}-`),
+    );
+    const fetchCalls: string[] = [];
+    global.fetch = (async (input: string | URL | Request) => {
+      fetchCalls.push(input instanceof Request ? input.url : input.toString());
+      return new Response(
+        JSON.stringify({ run_id: "run_unexpected", status: "pending" }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }) as typeof fetch;
+    process.env.GES_SERVER_URL = "https://assessment.internal";
+    process.env.GES_ASSESSMENT_KEY = "test-assessment-key";
+
+    const issued = await issueExternalExposureToken(baseDir, locale);
+    const response = await POST(
+      new Request("https://witnessops.com/api/verify-token", {
+        method: "POST",
+        body: JSON.stringify(issued),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as {
+      assessmentRunId: string | null;
+      assessmentStatus: string;
+      postVerifyPath: string;
+    };
+    assert.equal(payload.assessmentRunId, null);
+    assert.equal(payload.assessmentStatus, "unavailable");
+    assert.equal(
+      payload.postVerifyPath,
+      locale === "pl"
+        ? "/pl/review/request/confirmed"
+        : "/review/request/confirmed",
+    );
+    assert.equal(fetchCalls.length, 0);
+
+    await clearTokenStore();
+  }
 });
 
 test("verify-token route sends a reply-ready operator notification for package requests", async () => {

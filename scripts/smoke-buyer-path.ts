@@ -64,6 +64,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Four business days after candidate collection",
       "Key, Access and Custody Review",
       "Incident Readiness Review",
+      "Synthetic sample",
       "Start a review",
       "Shared service principles",
     ],
@@ -175,6 +176,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Intended standard price after validation: €2,500 ex VAT.",
       "Commercial boundary",
       "No review starts from this page or from payment alone.",
+      "Inspect synthetic sample",
       "Start a fit check",
     ],
     prohibitedMarkers: [
@@ -458,6 +460,27 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "audit opinion provided",
       "proves compliance",
       "guarantees compliance",
+    ],
+  },
+  {
+    path: "/review/sample-cases/external-exposure-assessment",
+    requiredMarkers: [
+      "Synthetic worked example — not customer evidence.",
+      "External Exposure Assessment",
+      "OFFSEC-EXTERNAL-EXPOSURE",
+      "Sample package files",
+      "findings.json",
+      "evidence-manifest.json",
+      "verifier-result.json",
+      "package integrity",
+      "does not prove that a target is secure",
+      "Check pilot fit",
+    ],
+    prohibitedMarkers: [
+      "assessment of WitnessOps",
+      "penetration test certificate",
+      "verified compliance",
+      "the target is secure",
     ],
   },
   {

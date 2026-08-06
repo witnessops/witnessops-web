@@ -24,6 +24,7 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/app/review/sample-cases/ai-agent-action-proof-run/page.tsx",
   "src/app/review/sample-cases/sbom-cisa-2026-minimum-elements/page.tsx",
   "src/app/review/sample-cases/local-server-security-review/page.tsx",
+  "src/app/review/sample-cases/external-exposure-assessment/page.tsx",
   "src/app/review/sample-cases/launch-readiness-review/page.tsx",
   "src/app/review/sample-cases/custody-wallet-ops-review/page.tsx",
   "src/app/review/sample-cases/incident-readiness-review/page.tsx",

@@ -137,6 +137,10 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
             const serviceRequestHref = service.productId
               ? buyerOfferRequestHref(locale, service.productId)
               : requestHref;
+            const externalExposureSample =
+              service.id === "external-exposure-assessment"
+                ? "/review/sample-cases/external-exposure-assessment"
+                : undefined;
             return (
               <article
                 key={service.id}
@@ -183,6 +187,14 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                       className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
                     >
                       {text.secondaryCta}
+                    </Link>
+                  ) : null}
+                  {externalExposureSample ? (
+                    <Link
+                      href={externalExposureSample}
+                      className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                    >
+                      {locale === "pl" ? "Syntetyczny przykład" : "Synthetic sample"}
                     </Link>
                   ) : null}
                   {onePager ? (

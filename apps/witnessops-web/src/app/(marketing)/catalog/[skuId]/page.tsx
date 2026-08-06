@@ -84,6 +84,7 @@ function detailFrame(sku: CatalogSku): DetailFrame {
         "exploitation or credential attacks",
         "authenticated application testing",
         "destructive or denial-of-service testing",
+        "customer-data collection",
         "internal, cloud-account, source-code, mobile, or smart-contract review",
         "open-ended asset discovery",
         "compliance certification or a security guarantee",
@@ -236,10 +237,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const sku = id ? getSku(id) : undefined;
   if (!sku) return { title: "SKU not found" };
   const buyerService = buyerServiceByProductId(sku.id);
+  const title = buyerService?.name.en ?? sku.name;
+  const description = buyerService?.situation.en ?? sku.summary;
+  const canonical = buyerService?.detailHref.en ?? `/catalog/${sku.id.toLowerCase()}`;
+  const polish = buyerService?.detailHref.pl;
   return {
-    title: buyerService?.name.en ?? sku.name,
-    description: buyerService?.situation.en ?? sku.summary,
-    alternates: { canonical: `/catalog/${sku.id.toLowerCase()}` },
+    title,
+    description,
+    alternates: {
+      canonical,
+      ...(polish
+        ? {
+            languages: {
+              en: canonical,
+              pl: polish,
+              "x-default": canonical,
+            },
+          }
+        : {}),
+    },
+    openGraph: {
+      title: `${title} | WitnessOps`,
+      description,
+      siteName: "WitnessOps",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | WitnessOps`,
+      description,
+    },
   };
 }
 

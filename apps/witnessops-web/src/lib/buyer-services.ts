@@ -168,7 +168,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     homepageFeatured: false,
     commercialContract: {
       price: "pilot_eur_1900_ex_vat_first_three_accepted_engagements",
-      timing: "five_to_seven_business_days_after_authority_scope_inputs_and_check_window",
+      timing:
+        "five_to_seven_business_days_after_authority_scope_freeze_required_inputs_and_approved_collection_window_confirmed",
     },
     name: {
       en: "External Exposure Assessment",
@@ -191,8 +192,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "€1 900 bez VAT — pierwsze trzy zaakceptowane zlecenia",
     },
     timing: {
-      en: "5–7 business days after authority, scope, inputs, and the check window are confirmed",
-      pl: "5–7 dni roboczych po potwierdzeniu upoważnienia, zakresu, materiałów wejściowych i okna kontroli",
+      en: "5–7 business days after authority, scope freeze, required inputs, and the approved collection window are confirmed",
+      pl: "5–7 dni roboczych po potwierdzeniu upoważnienia, zamrożenia zakresu, wymaganych materiałów wejściowych i zatwierdzonego okna zbierania",
     },
     boundary: {
       en: "No exploitation, credentials, destructive testing, certification, or security guarantee. Unauthenticated outside-in checks only, within the agreed fixed scope.",

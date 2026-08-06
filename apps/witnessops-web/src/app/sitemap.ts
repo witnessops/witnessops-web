@@ -64,6 +64,11 @@ const staticRoutes: StaticRoute[] = [
     sourcePath: "src/app/review/sample-cases/local-server-security-review/page.tsx",
   },
   {
+    route: "/review/sample-cases/external-exposure-assessment",
+    sourcePath:
+      "src/app/review/sample-cases/external-exposure-assessment/page.tsx",
+  },
+  {
     route: "/review/sample-cases/launch-readiness-review",
     sourcePath: "src/app/review/sample-cases/launch-readiness-review/page.tsx",
   },

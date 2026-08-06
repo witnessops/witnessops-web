@@ -62,6 +62,7 @@
   "/review/page": "app/review/page.js",
   "/review/request/page": "app/review/request/page.js",
   "/review/sample-cases/custody-wallet-ops-review/page": "app/review/sample-cases/custody-wallet-ops-review/page.js",
+  "/review/sample-cases/external-exposure-assessment/page": "app/review/sample-cases/external-exposure-assessment/page.js",
   "/review/sample-cases/incident-readiness-review/page": "app/review/sample-cases/incident-readiness-review/page.js",
   "/review/sample-cases/launch-readiness-review/page": "app/review/sample-cases/launch-readiness-review/page.js",
   "/review/sample-cases/approval-gated-containment/page": "app/review/sample-cases/approval-gated-containment/page.js",

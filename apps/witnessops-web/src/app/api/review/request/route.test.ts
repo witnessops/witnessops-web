@@ -99,6 +99,34 @@ test("review request route issues a security-workflow package verification email
   assert.match(mailRaw, /data-witnessops-signature-profile="ops_minimal"/);
 });
 
+test("review request route preserves External Exposure Assessment SKU and locale", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
+  applyTestEnv(baseDir);
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/review/request", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Synthetic Buyer",
+        email: "security@witnessops.com",
+        intent: "OFFSEC-EXTERNAL-EXPOSURE",
+        locale: "pl",
+        scope:
+          "Request: WitnessOps review fit check\nSelected product / intent: OFFSEC-EXTERNAL-EXPOSURE\nRequest locale: pl\nFirst-message boundary: no files, secrets, credentials, logs, screenshots, or customer evidence.",
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(response.status, 201);
+  const payload = (await response.json()) as { intakeId: string };
+  const intake = await getIntakeById(payload.intakeId);
+
+  assert.equal(intake?.submission.intent, "OFFSEC-EXTERNAL-EXPOSURE");
+  assert.equal(intake?.submission.locale, "pl");
+  assert.match(intake?.submission.scope ?? "", /First-message boundary: no files, secrets/);
+});
+
 test("review request route redacts upstream issuance errors", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
   applyTestEnv(baseDir);
