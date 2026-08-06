@@ -20,8 +20,12 @@ fi
 log "shared IMAGE=${IMAGE}"
 
 deploy_dev_image "${IMAGE}"
-curl -sS -o /dev/null -w "dev_support=%{http_code}\n" --max-time 15 "${MESH_DEV_URL}/support" \
-  || die "dev support smoke failed — production was not changed"
+DEV_SUPPORT_STATUS="$(
+  curl -sS -o /dev/null -w "%{http_code}" --max-time 15 "${MESH_DEV_URL}/support" || true
+)"
+[[ "${DEV_SUPPORT_STATUS}" == "200" ]] \
+  || die "dev support smoke returned HTTP ${DEV_SUPPORT_STATUS:-000} — production was not changed"
+log "dev /support smoke OK (HTTP ${DEV_SUPPORT_STATUS})"
 deploy_prod_image "${IMAGE}"
 print_status
 smoke_pair
