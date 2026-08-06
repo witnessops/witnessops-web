@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { buildAdminPublicUrl } from "@/lib/admin-auth-origin";
 import {
   GOOGLE_OIDC_TRANSACTION_COOKIE_NAME,
   GoogleAdminOidcError,
@@ -8,28 +9,13 @@ import {
   readGoogleAdminOidcConfig,
 } from "@/lib/server/admin-google-oidc";
 
-function usesSecureCookies(request: NextRequest): boolean {
-  if (process.env.NODE_ENV === "production") {
-    return true;
-  }
-
-  const hostname = request.nextUrl.hostname.toLowerCase();
-  const isLoopback =
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname === "[::1]" ||
-    hostname === "::1";
-  return request.nextUrl.protocol !== "http:" || !isLoopback;
-}
-
 function clearTransactionCookie(
   response: NextResponse,
-  request: NextRequest,
 ): void {
   response.cookies.set(GOOGLE_OIDC_TRANSACTION_COOKIE_NAME, "", {
     httpOnly: true,
-    secure: usesSecureCookies(request),
-    sameSite: "lax",
+    secure: true,
+    sameSite: "none",
     path: "/api/admin/google",
     maxAge: 0,
   });
@@ -40,11 +26,11 @@ function unavailableResponse(
   diagnosticCode: string,
 ): NextResponse {
   console.warn(`[admin-google-oidc] ${diagnosticCode}`);
-  const loginUrl = new URL("/admin/login", request.url);
+  const loginUrl = buildAdminPublicUrl("/admin/login", request);
   loginUrl.searchParams.set("error", "google_auth_unavailable");
   const response = NextResponse.redirect(loginUrl, 303);
   response.headers.set("Cache-Control", "no-store");
-  clearTransactionCookie(response, request);
+  clearTransactionCookie(response);
   return response;
 }
 
@@ -70,8 +56,8 @@ export async function GET(request: NextRequest) {
       transaction.cookieValue,
       {
         httpOnly: true,
-        secure: usesSecureCookies(request),
-        sameSite: "lax",
+        secure: true,
+        sameSite: "none",
         path: "/api/admin/google",
         maxAge: 600,
       },

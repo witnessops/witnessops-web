@@ -45,15 +45,7 @@ async function resolveAdminActor(): Promise<string | null> {
   if (sessionCookie) {
     const payload = await verifyAdminSessionCookie(sessionCookie);
     if (payload) {
-      if (
-        payload.actorAuthSource === "oidc_session" &&
-        typeof payload.actor === "string"
-      ) {
-        return payload.actor;
-      }
-      if (typeof payload.hash === "string") {
-        return `admin:${payload.hash}`;
-      }
+      return payload.actor;
     }
   }
 

@@ -3,10 +3,14 @@ import type { NextRequest } from "next/server";
 import type { AdminActorAuthSource } from "@/lib/token-contract";
 
 interface AdminSessionPayload {
-  hash?: string;
-  actor?: string;
-  actorAuthSource?: AdminActorAuthSource;
-  actorSessionHash?: string | null;
+  version: 2;
+  identityProvider: "google";
+  issuer: "https://accounts.google.com";
+  subject: string;
+  actor: string;
+  actorAuthSource: "oidc_session";
+  actorSessionHash: string;
+  iat: number;
   exp: number;
 }
 
@@ -19,6 +23,9 @@ export interface VerifiedAdminSession {
 
 const LOCAL_DEV_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 export const ADMIN_SESSION_COOKIE_NAME = "witnessops-admin-session";
+const GOOGLE_OIDC_ISSUER = "https://accounts.google.com";
+const GOOGLE_ADMIN_ACTOR_PREFIX = `oidc:${GOOGLE_OIDC_ISSUER}#`;
+const SESSION_HASH_PATTERN = /^[a-f0-9]{16}$/;
 
 function localAdminBypassEnabled(): boolean {
   return process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS === "1";
@@ -58,9 +65,7 @@ export async function createAdminSessionCookie(
 
 function normalizeHost(host: string | null): string {
   const candidate = host?.trim() ?? "";
-  if (!candidate) {
-    return "";
-  }
+  if (!candidate) return "";
   if (
     candidate.includes(",") ||
     candidate.includes("@") ||
@@ -77,27 +82,14 @@ function normalizeHost(host: string | null): string {
   }
 }
 
-function isLocalHost(host: string | null): boolean {
-  return LOCAL_DEV_HOSTS.has(normalizeHost(host));
-}
-
 export function isLocalAdminRequest(request: Request | NextRequest): boolean {
-  if (process.env.NODE_ENV === "production") {
+  if (
+    process.env.NODE_ENV === "production" ||
+    !localAdminBypassEnabled()
+  ) {
     return false;
   }
-
-  if (!localAdminBypassEnabled()) {
-    return false;
-  }
-
-  // Do not trust x-forwarded-host for local admin bypass. Forwarded headers
-  // can be client-controlled unless set by a trusted proxy.
-  const host = request.headers.get("host");
-
-  // Host is still not proof of local transport. This bypass is only acceptable
-  // when the dev server is bound to loopback or otherwise inaccessible from
-  // untrusted networks.
-  return isLocalHost(host);
+  return LOCAL_DEV_HOSTS.has(normalizeHost(request.headers.get("host")));
 }
 
 export async function verifyAdminSessionCookie(
@@ -122,32 +114,46 @@ export async function verifyAdminSessionCookie(
     const payload = JSON.parse(
       atob(payloadB64),
     ) as Partial<AdminSessionPayload>;
-    if (typeof payload.exp !== "number" || payload.exp < Date.now()) {
+    const now = Date.now();
+    if (
+      payload.version !== 2 ||
+      typeof payload.iat !== "number" ||
+      !Number.isSafeInteger(payload.iat) ||
+      typeof payload.exp !== "number" ||
+      !Number.isSafeInteger(payload.exp) ||
+      payload.iat > now + 60_000 ||
+      payload.exp <= now ||
+      payload.exp <= payload.iat ||
+      payload.exp - payload.iat > 8 * 60 * 60 * 1000
+    ) {
       return null;
     }
 
     if (
-      payload.actorAuthSource === "oidc_session" &&
-      typeof payload.actor === "string" &&
-      payload.actor.length > 0
+      payload.issuer !== GOOGLE_OIDC_ISSUER ||
+      payload.identityProvider !== "google" ||
+      payload.actorAuthSource !== "oidc_session" ||
+      typeof payload.subject !== "string" ||
+      !payload.subject ||
+      payload.subject.length > 255 ||
+      !/^[\x20-\x7e]+$/.test(payload.subject) ||
+      typeof payload.actor !== "string" ||
+      payload.actor !== `${GOOGLE_ADMIN_ACTOR_PREFIX}${payload.subject}` ||
+      typeof payload.actorSessionHash !== "string" ||
+      !SESSION_HASH_PATTERN.test(payload.actorSessionHash)
     ) {
-      return {
-        actor: payload.actor,
-        actorAuthSource: "oidc_session",
-        actorSessionHash:
-          typeof payload.actorSessionHash === "string"
-            ? payload.actorSessionHash
-            : null,
-        exp: payload.exp,
-      };
-    }
-
-    if (typeof payload.hash !== "string" || payload.hash.length === 0) {
       return null;
     }
 
     return {
-      hash: payload.hash,
+      version: 2,
+      identityProvider: "google",
+      issuer: GOOGLE_OIDC_ISSUER,
+      subject: payload.subject,
+      actor: payload.actor,
+      actorAuthSource: "oidc_session",
+      actorSessionHash: payload.actorSessionHash,
+      iat: payload.iat,
       exp: payload.exp,
     };
   } catch {
@@ -177,29 +183,10 @@ export async function getVerifiedAdminSession(
     return null;
   }
 
-  if (
-    payload.actorAuthSource === "oidc_session" &&
-    typeof payload.actor === "string"
-  ) {
-    return {
-      actor: payload.actor,
-      actorAuthSource: "oidc_session",
-      actorSessionHash:
-        typeof payload.actorSessionHash === "string"
-          ? payload.actorSessionHash
-          : null,
-      isLocalBypass: false,
-    };
-  }
-
-  if (typeof payload.hash !== "string") {
-    return null;
-  }
-
   return {
-    actor: `admin:${payload.hash}`,
-    actorAuthSource: "session_cookie",
-    actorSessionHash: payload.hash,
+    actor: payload.actor,
+    actorAuthSource: "oidc_session",
+    actorSessionHash: payload.actorSessionHash,
     isLocalBypass: false,
   };
 }

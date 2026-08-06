@@ -14,7 +14,7 @@ import {
   verifyAdminSessionCookie,
 } from "@/lib/server/admin-session";
 
-import { GET } from "./route";
+import { POST } from "./route";
 
 const trackedEnv = [
   "WITNESSOPS_ADMIN_SECRET",
@@ -60,7 +60,7 @@ function configureGoogle(): void {
 function callbackRequest(
   state: string,
   transactionCookie: string,
-  query: string,
+  formFields: string,
   existingSession?: string,
 ): NextRequest {
   const cookies = [
@@ -69,9 +69,18 @@ function callbackRequest(
       ? [`${ADMIN_SESSION_COOKIE_NAME}=${existingSession}`]
       : []),
   ];
+  const body = new URLSearchParams(formFields);
+  body.set("state", state);
   return new NextRequest(
-    `https://witnessops.com/api/admin/google/callback?state=${encodeURIComponent(state)}&${query}`,
-    { headers: { cookie: cookies.join("; ") } },
+    "https://0.0.0.0:3000/api/admin/google/callback",
+    {
+      method: "POST",
+      body,
+      headers: {
+        cookie: cookies.join("; "),
+        "content-type": "application/x-www-form-urlencoded",
+      },
+    },
   );
 }
 
@@ -118,7 +127,7 @@ test("Google callback verifies identity, rotates the session, and returns safely
     throw new Error("Unexpected mocked endpoint");
   };
 
-  const response = await GET(
+  const response = await POST(
     callbackRequest(
       transaction.state,
       transaction.cookieValue,
@@ -141,6 +150,9 @@ test("Google callback verifies identity, rotates the session, and returns safely
     "oidc:https://accounts.google.com#google-subject-callback",
   );
   assert.equal(verified?.actorAuthSource, "oidc_session");
+  assert.equal(verified?.identityProvider, "google");
+  assert.equal(verified?.issuer, GOOGLE_OIDC_ISSUER);
+  assert.equal(verified?.subject, "google-subject-callback");
   assert.match(verified?.actorSessionHash ?? "", /^[a-f0-9]{16}$/);
 
   const encodedPayload = sessionCookie.slice(0, sessionCookie.lastIndexOf("."));
@@ -156,7 +168,8 @@ test("Google callback verifies identity, rotates the session, and returns safely
   const setCookie = response.headers.get("set-cookie") ?? "";
   assert.match(setCookie, /HttpOnly/i);
   assert.match(setCookie, /Secure/i);
-  assert.match(setCookie, /SameSite=strict/i);
+  assert.match(setCookie, /SameSite=lax/i);
+  assert.match(setCookie, /SameSite=none/i);
   assert.match(setCookie, /Max-Age=28800/i);
 });
 
@@ -166,7 +179,7 @@ test("Google callback validates provider denial without exposing provider detail
   const diagnostics: string[] = [];
   console.warn = (message?: unknown) => diagnostics.push(String(message));
 
-  const response = await GET(
+  const response = await POST(
     callbackRequest(
       transaction.state,
       transaction.cookieValue,
@@ -202,9 +215,16 @@ test("Google callback rejects missing, mismatched, tampered, and expired state",
     {
       name: "missing cookie",
       request: () =>
-        new NextRequest(
-          `https://witnessops.com/api/admin/google/callback?state=${transaction.state}&code=placeholder`,
-        ),
+        new NextRequest("https://0.0.0.0:3000/api/admin/google/callback", {
+          method: "POST",
+          body: new URLSearchParams({
+            state: transaction.state,
+            code: "placeholder",
+          }),
+          headers: {
+            "content-type": "application/x-www-form-urlencoded",
+          },
+        }),
     },
     {
       name: "mismatched state",
@@ -236,7 +256,7 @@ test("Google callback rejects missing, mismatched, tampered, and expired state",
   try {
     for (const routeCase of cases) {
       Date.now = originalDateNow;
-      const response = await GET(routeCase.request());
+      const response = await POST(routeCase.request());
       assert.equal(response.status, 303, routeCase.name);
       assert.equal(
         response.headers.get("location"),
@@ -310,7 +330,7 @@ test("Google callback rejects a reused or expired authorization code", async () 
   };
   console.warn = () => undefined;
 
-  const first = await GET(
+  const first = await POST(
     callbackRequest(
       transaction.state,
       transaction.cookieValue,
@@ -319,7 +339,7 @@ test("Google callback rejects a reused or expired authorization code", async () 
   );
   assert.ok(first.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value);
 
-  const replay = await GET(
+  const replay = await POST(
     callbackRequest(
       transaction.state,
       transaction.cookieValue,
@@ -347,7 +367,7 @@ test("Google callback fails closed without required server configuration", async
     throw new Error("must not be called");
   };
 
-  const response = await GET(
+  const response = await POST(
     callbackRequest(
       transaction.state,
       transaction.cookieValue,
@@ -362,4 +382,58 @@ test("Google callback fails closed without required server configuration", async
     response.headers.get("location"),
     "https://witnessops.com/admin/login?error=google_auth_failed",
   );
+});
+
+test("Google callback accepts only bounded form-post input", async () => {
+  configureGoogle();
+  const transaction = await createGoogleOidcTransaction("/admin");
+  console.warn = () => undefined;
+  let fetchCalled = false;
+  globalThis.fetch = async () => {
+    fetchCalled = true;
+    throw new Error("must not be called");
+  };
+
+  const cases = [
+    new NextRequest("https://0.0.0.0:3000/api/admin/google/callback", {
+      method: "POST",
+      body: JSON.stringify({ state: transaction.state, code: "unused" }),
+      headers: {
+        cookie: `${GOOGLE_OIDC_TRANSACTION_COOKIE_NAME}=${transaction.cookieValue}`,
+        "content-type": "application/json",
+      },
+    }),
+    new NextRequest("https://0.0.0.0:3000/api/admin/google/callback", {
+      method: "POST",
+      body: `state=${transaction.state}&state=${transaction.state}&code=unused`,
+      headers: {
+        cookie: `${GOOGLE_OIDC_TRANSACTION_COOKIE_NAME}=${transaction.cookieValue}`,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+    }),
+    new NextRequest("https://0.0.0.0:3000/api/admin/google/callback", {
+      method: "POST",
+      body: "state=unused",
+      headers: {
+        cookie: `${GOOGLE_OIDC_TRANSACTION_COOKIE_NAME}=${transaction.cookieValue}`,
+        "content-type": "application/x-www-form-urlencoded",
+        "content-length": String(16 * 1024 + 1),
+      },
+    }),
+  ];
+
+  for (const request of cases) {
+    const response = await POST(request);
+    assert.equal(response.status, 303);
+    assert.equal(
+      response.headers.get("location"),
+      "https://witnessops.com/admin/login?error=google_auth_failed",
+    );
+    assert.equal(response.cookies.has(ADMIN_SESSION_COOKIE_NAME), false);
+    assert.equal(
+      response.cookies.get(GOOGLE_OIDC_TRANSACTION_COOKIE_NAME)?.value,
+      "",
+    );
+  }
+  assert.equal(fetchCalled, false);
 });

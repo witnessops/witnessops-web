@@ -213,28 +213,10 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
   // operator — admin session required
   // -------------------------------------------------------------------------
   {
-    path: "/api/admin/auth",
-    methods: ["POST"],
-    category: "operator",
-    summary: "Admin login",
-  },
-  {
     path: "/api/admin/logout",
     methods: ["POST"],
     category: "operator",
     summary: "Admin logout",
-  },
-  {
-    path: "/api/admin/oidc/start",
-    methods: ["GET"],
-    category: "operator",
-    summary: "Start admin OIDC sign-in with Entra",
-  },
-  {
-    path: "/api/admin/oidc/callback",
-    methods: ["GET"],
-    category: "operator",
-    summary: "Complete admin OIDC callback and establish session",
   },
   {
     path: "/api/admin/google/start",
@@ -244,7 +226,7 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
   },
   {
     path: "/api/admin/google/callback",
-    methods: ["GET"],
+    methods: ["POST"],
     category: "operator",
     summary: "Complete Google Workspace admin OIDC callback and establish session",
   },

@@ -18,7 +18,8 @@ const GOOGLE_OIDC_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const GOOGLE_OIDC_JWKS_ENDPOINT = new URL(
   "https://www.googleapis.com/oauth2/v3/certs",
 );
-const GOOGLE_OIDC_CALLBACK_PATH = "/api/admin/google/callback";
+const GOOGLE_OIDC_REDIRECT_URI =
+  "https://witnessops.com/api/admin/google/callback";
 const GOOGLE_OIDC_TRANSACTION_TTL_MS = 10 * 60 * 1000;
 const GOOGLE_OIDC_TIMEOUT_MS = 8_000;
 const GOOGLE_OIDC_PROVIDER = "google" as const;
@@ -132,7 +133,6 @@ const GOOGLE_CONFIG_ENV_NAMES = [
   "WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST",
 ] as const;
 
-const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/;
 const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/;
 
@@ -193,28 +193,7 @@ function normalizeEmail(value: string): string | null {
 }
 
 function validateRedirectUri(value: string): string | null {
-  let url: URL;
-  try {
-    url = new URL(value);
-  } catch {
-    return null;
-  }
-
-  if (
-    url.pathname !== GOOGLE_OIDC_CALLBACK_PATH ||
-    url.username ||
-    url.password ||
-    url.search ||
-    url.hash
-  ) {
-    return null;
-  }
-
-  const isHttps = url.protocol === "https:";
-  const isLoopbackHttp =
-    url.protocol === "http:" && LOOPBACK_HOSTS.has(url.hostname.toLowerCase());
-
-  return isHttps || isLoopbackHttp ? url.toString() : null;
+  return value === GOOGLE_OIDC_REDIRECT_URI ? value : null;
 }
 
 export function readGoogleAdminOidcConfig(): GoogleAdminOidcConfig | null {
@@ -516,7 +495,7 @@ export function buildGoogleOidcAuthorizationUrl(
   url.searchParams.set("client_id", config.clientId);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("redirect_uri", config.redirectUri);
-  url.searchParams.set("response_mode", "query");
+  url.searchParams.set("response_mode", "form_post");
   url.searchParams.set("scope", "openid email profile");
   url.searchParams.set("state", transaction.state);
   url.searchParams.set("nonce", transaction.nonce);

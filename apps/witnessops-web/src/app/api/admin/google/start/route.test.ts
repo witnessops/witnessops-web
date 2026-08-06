@@ -58,7 +58,7 @@ test("Google start creates a state, nonce, and PKCE-bound authorization request"
   assert.equal(location.origin, "https://accounts.google.com");
   assert.equal(location.pathname, "/o/oauth2/v2/auth");
   assert.equal(location.searchParams.get("response_type"), "code");
-  assert.equal(location.searchParams.get("response_mode"), "query");
+  assert.equal(location.searchParams.get("response_mode"), "form_post");
   assert.equal(location.searchParams.get("scope"), "openid email profile");
   assert.equal(location.searchParams.get("hd"), "workspace.example");
   assert.equal(location.searchParams.get("code_challenge_method"), "S256");
@@ -75,7 +75,7 @@ test("Google start creates a state, nonce, and PKCE-bound authorization request"
   assert.match(setCookie, /witnessops-admin-google-oidc-transaction=/);
   assert.match(setCookie, /HttpOnly/i);
   assert.match(setCookie, /Secure/i);
-  assert.match(setCookie, /SameSite=lax/i);
+  assert.match(setCookie, /SameSite=none/i);
   assert.match(setCookie, /Path=\/api\/admin\/google/i);
   assert.equal(response.headers.get("cache-control"), "no-store");
 });
@@ -88,7 +88,7 @@ test("Google start fails closed with a generic login error when configuration is
   console.warn = (message?: unknown) => diagnostics.push(String(message));
 
   const response = await GET(
-    new NextRequest("https://witnessops.com/api/admin/google/start"),
+    new NextRequest("https://0.0.0.0:3000/api/admin/google/start"),
   );
 
   assert.equal(response.status, 303);
@@ -109,7 +109,7 @@ test("Google start fails closed on partial configuration", async () => {
   console.warn = () => undefined;
 
   const response = await GET(
-    new NextRequest("https://witnessops.com/api/admin/google/start"),
+    new NextRequest("https://0.0.0.0:3000/api/admin/google/start"),
   );
 
   assert.equal(response.status, 303);
