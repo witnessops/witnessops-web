@@ -301,7 +301,7 @@ test("verify-token route returns access-change confirmation path without assessm
   assert.equal(fetchCalls.length, 0);
 });
 
-test("External Exposure Assessment stays on the locale-specific manual fit path", async () => {
+test("Public Exposure Review stays on the locale-specific manual order path", async () => {
   for (const locale of ["en", "pl"] as const) {
     const baseDir = await mkdtemp(
       path.join(os.tmpdir(), `witnessops-external-exposure-${locale}-`),

@@ -11,7 +11,7 @@ import {
 export const metadata: Metadata = {
   title: "Security Review Pricing | WitnessOps",
   description:
-    "Published prices and commercial boundaries for bounded WitnessOps security reviews, including the External Exposure Assessment paid pilot.",
+    "Published prices and commercial boundaries for bounded WitnessOps security reviews, including the fixed-scope Public Exposure Review.",
   alternates: { canonical: "/pricing" },
   openGraph: {
     title: "Security Review Pricing | WitnessOps",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const boundaries = [
   "No review starts from this page or from payment alone.",
-  "The first message is a non-secret fit check; authority, scope, fee, timing, and evidence handling are agreed before work begins.",
+  "A Public Exposure Review can be ordered without a sales call; authority, scope, fee treatment, timing, capacity, and evidence handling are still accepted before work begins.",
   "Published figures are fixed prices or starting ranges for the named boundary, excluding VAT where stated.",
   "A report, receipt, or verifier does not prove that a system is secure, complete, compliant, or free of vulnerabilities.",
 ];
@@ -64,19 +64,19 @@ export default function PricingPage() {
           <div className="mt-7 grid gap-5 md:grid-cols-2">
             {BUYER_SERVICES.map((service) => {
               const detailHref = service.detailHref.en ?? "/catalog";
-              const pilot = service.id === "external-exposure-assessment";
+              const featured = service.id === "external-exposure-assessment";
               return (
                 <article
                   key={service.id}
                   data-pricing-service={service.id}
-                  className={`flex h-full flex-col border p-6 ${pilot ? "border-brand-accent/60 bg-brand-accent/5" : "border-surface-border bg-surface-card/40"}`}
+                  className={`flex h-full flex-col border p-6 ${featured ? "border-brand-accent/60 bg-brand-accent/5" : "border-surface-border bg-surface-card/40"}`}
                 >
-                  {pilot ? (
+                  {featured ? (
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
-                      Limited paid pilot
+                      Primary fixed-scope offer
                     </p>
                   ) : null}
-                  <h3 className={`${pilot ? "mt-3" : ""} text-xl font-semibold text-text-primary`}>
+                  <h3 className={`${featured ? "mt-3" : ""} text-xl font-semibold text-text-primary`}>
                     <Link href={detailHref} className="hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
                       {service.name.en}
                     </Link>
@@ -84,9 +84,9 @@ export default function PricingPage() {
                   <p className="mt-3 text-sm leading-7 text-text-secondary">{service.situation.en}</p>
                   <p className="mt-5 text-lg font-semibold text-brand-accent">{service.price.en}</p>
                   <p className="mt-2 text-sm leading-6 text-text-muted">{service.timing.en}</p>
-                  {pilot ? (
+                  {featured ? (
                     <p className="mt-3 text-sm leading-6 text-text-muted">
-                      Intended standard price after validation: €2,500 ex VAT. One focused retest within 30 days is included; an additional or late retest is €550 ex VAT.
+                      No sales call required. One focused retest within 30 days is included; an additional or late retest is €550 ex VAT.
                     </p>
                   ) : null}
                   <p className="mt-4 border-t border-surface-border pt-4 text-sm leading-6 text-text-muted">
@@ -94,7 +94,7 @@ export default function PricingPage() {
                   </p>
                   <div className="mt-auto flex flex-wrap gap-3 pt-6">
                     <CtaButton href={detailHref} variant="secondary" label="View scope" />
-                    {pilot ? (
+                    {featured ? (
                       <CtaButton
                         href="/review/sample-cases/external-exposure-assessment"
                         variant="secondary"
@@ -104,7 +104,7 @@ export default function PricingPage() {
                     <CtaButton
                       href={service.productId ? buyerOfferRequestHref("en", service.productId) : buyerRequestHref("en")}
                       variant="primary"
-                      label={pilot ? "Check pilot fit" : "Start fit check"}
+                      label={featured ? "Order the review" : "Start fit check"}
                     />
                   </div>
                 </article>

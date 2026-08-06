@@ -165,35 +165,35 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
   {
     id: "external-exposure-assessment",
     productId: "OFFSEC-EXTERNAL-EXPOSURE",
-    homepageFeatured: false,
+    homepageFeatured: true,
     commercialContract: {
-      price: "pilot_eur_1900_ex_vat_first_three_accepted_engagements",
+      price: "eur_1900_ex_vat_fixed_scope",
       timing:
-        "five_to_seven_business_days_after_authority_scope_freeze_required_inputs_and_approved_collection_window_confirmed",
+        "three_business_days_after_payment_accepted_sow_authority_scope_required_inputs_and_collection_window_confirmed",
     },
     name: {
-      en: "External Exposure Assessment",
-      pl: "External Exposure Assessment",
+      en: "Public Exposure Review",
+      pl: "Przegląd publicznej ekspozycji",
     },
     cardSituation: {
-      en: "You need a bounded outside-in picture of what one authorised public domain exposes.",
-      pl: "Potrzebujesz ograniczonego obrazu z zewnątrz tego, co ujawnia jedna autoryzowana domena publiczna.",
+      en: "See what one authorised public domain exposes before a customer, auditor, or attacker tells you.",
+      pl: "Zobacz, co ujawnia jedna autoryzowana domena publiczna, zanim wskaże to klient, audytor lub atakujący.",
     },
     situation: {
-      en: "You need a bounded, authorised outside-in assessment of one public-facing domain before a launch, customer review, infrastructure change, or deeper penetration test.",
-      pl: "Potrzebujesz ograniczonej, autoryzowanej oceny z zewnątrz jednej domeny publicznej przed uruchomieniem, przeglądem klienta, zmianą infrastruktury lub głębszym testem penetracyjnym.",
+      en: "You need a clear, manually reviewed picture of what one authorised public-facing domain exposes before a launch, customer review, audit, or infrastructure change.",
+      pl: "Potrzebujesz jasnego, ręcznie zweryfikowanego obrazu tego, co ujawnia jedna autoryzowana domena publiczna przed uruchomieniem, przeglądem klienta, audytem lub zmianą infrastruktury.",
     },
     result: {
       en: "An exposure map, prioritised evidence-linked findings, remediation guidance, explicit unknowns, and a handover package another responsible owner can inspect.",
       pl: "Mapa ekspozycji, priorytetyzowane ustalenia powiązane z materiałami, zalecenia naprawcze, jawne niewiadome i pakiet, który może sprawdzić kolejny odpowiedzialny właściciel.",
     },
     price: {
-      en: "€1,900 ex VAT — first three accepted engagements",
-      pl: "€1 900 bez VAT — pierwsze trzy zaakceptowane zlecenia",
+      en: "€1,900 ex VAT — fixed scope",
+      pl: "€1 900 bez VAT — stały zakres",
     },
     timing: {
-      en: "5–7 business days after authority, scope freeze, required inputs, and the approved collection window are confirmed",
-      pl: "5–7 dni roboczych po potwierdzeniu upoważnienia, zamrożenia zakresu, wymaganych materiałów wejściowych i zatwierdzonego okna zbierania",
+      en: "Within 3 working days after payment, accepted scope, authority, required inputs, and the collection window are confirmed",
+      pl: "W ciągu 3 dni roboczych po potwierdzeniu płatności, zaakceptowanego zakresu, upoważnienia, wymaganych danych wejściowych i okna zbierania",
     },
     boundary: {
       en: "No exploitation, credentials, destructive testing, certification, or security guarantee. Unauthenticated outside-in checks only, within the agreed fixed scope.",

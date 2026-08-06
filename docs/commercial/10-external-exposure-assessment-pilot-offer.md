@@ -1,16 +1,16 @@
-# External Exposure Assessment — paid pilot offer
+# Public Exposure Review — fixed-scope offer
 
-**Status:** manual first-three-customer validation offer. Not a public catalogue SKU yet.
+**Status:** public fixed-scope offer under the existing `OFFSEC-EXTERNAL-EXPOSURE` SKU. Acceptance remains subject to scope, authority, and operator capacity.
 
 ## Buyer one-page
 
 ### Know what one public domain exposes before it becomes someone else’s surprise
 
-The **External Exposure Assessment** is a bounded external vulnerability review for one authorised public domain. WitnessOps combines passive discovery with explicitly approved, low-impact checks, then delivers evidence-linked findings, named unknowns, and a handover package another owner can inspect.
+The **Public Exposure Review** is a controlled external exposure review for one authorised public domain. WitnessOps combines passive discovery with explicitly approved, low-impact checks, then delivers evidence-linked findings, named unknowns, and a handover package another owner can inspect.
 
 Buy it when a launch, infrastructure change, pre-pentest cleanup, investor or board review, or customer security request creates a real deadline. If the receiving party requires an accredited penetration test, exploitation, or a formal attestation, this is not the right service.
 
-### Fixed pilot scope
+### Fixed scope
 
 - One authorised registrable root domain **or** one tightly bounded public application hostname.
 - Up to 10 discovered first-party hostnames, each confirmed before target-facing checks.
@@ -38,12 +38,15 @@ The signed target schedule controls the actual scope. The caps are maximums, not
 
 No exploitation, authenticated application testing, password testing, brute force, credential or secret collection, social engineering, denial of service, destructive activity, persistence, malware, data exfiltration, source-code review, mobile testing, smart-contract review, cloud-account review, internal-network testing, open-ended estate discovery, compliance certification, or security guarantee.
 
-### Pilot commercial line
+### Commercial line
 
-- **Pilot fee:** €1,900 excluding VAT for each of the first three accepted engagements.
-- **Intended standard fee after validation:** €2,500 excluding VAT for the same bounded scope.
-- **Delivery:** 5–7 business days after written authority, scope freeze, required inputs, and the approved check window are confirmed.
+- **Fixed fee:** €1,900 excluding VAT for the named package boundary.
+- **Ordering:** no sales call required. The order request begins asynchronous scope acceptance; it does not authorize testing.
+- **Availability:** subject to written scope acceptance and confirmed operator capacity.
+- **Delivery:** within three working days after payment or a written fee waiver, accepted SOW, written authority, scope freeze, required inputs, and the approved collection window are all confirmed.
 - **Retest:** first focused retest within 30 days included; additional or late retest €550 excluding VAT.
+
+Customer-caused approval, target-attribution, scheduling, outage, or scope-change delays pause the delivery clock. A private invitation-only design-partner engagement may receive a written fee waiver. The waiver does not alter the public price and does not require a positive testimonial, public quote, name, logo, or case study.
 
 If WitnessOps cannot complete the agreed checks within the signed scope and window for reasons within its control, the customer may choose a corrected delivery plan or a refund for the unperformed portion. The service does not guarantee security, completeness, compliance, third-party acceptance, or absence of vulnerabilities.
 
@@ -57,8 +60,8 @@ Use: <https://witnessops.com/review/request>
 
 ## Operator validation boundary — do not include in buyer copy
 
-- **Known:** the offer has a fixed scope, explicit non-claims, and an authorization-gated delivery path.
-- **Inferred:** €1,900 is a defensible paid-pilot price and €2,500 is a defensible intended standard price relative to adjacent human-delivered external assessments.
+- **Known:** the offer has a fixed scope, a public €1,900 ex-VAT price, explicit non-claims, and an authorization-gated delivery path.
+- **Inferred:** the bounded package can be completed inside the three-business-day clock when every start condition is complete and the caps hold.
 - **Assumed:** a normal engagement can be delivered in 14 operator hours or fewer when the caps hold.
-- **Missing:** direct WitnessOps willingness-to-pay, actual delivery hours, buyer use of the handover, and demand for the receipt/offline verifier.
-- **Promote to standard:** only after at least two of three pilots pay, use the handover, remain within the delivery-hour boundary, and would buy or refer at €2,500 without a material scope misunderstanding.
+- **Missing:** an actual WitnessOps delivery under this contract, measured delivery hours, candid buyer feedback, buyer use of the handover, and willingness to pay €1,900 for the same boundary.
+- **First validation:** complete one invitation-only design-partner delivery under the same scope, clock, evidence, and retest terms. Record the fee waiver privately, ask for candid feedback after delivery, and request publication permission separately if the buyer is willing.

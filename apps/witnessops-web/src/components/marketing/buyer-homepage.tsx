@@ -5,7 +5,7 @@ import {
   BUYER_SERVICES,
   ONE_PAGER_LINK_PROPS,
   buyerCatalogHref,
-  buyerRequestHref,
+  buyerOfferRequestHref,
   type BuyerLocale,
 } from "@/lib/buyer-services";
 
@@ -18,107 +18,125 @@ type HeroCopy = {
 const localizedCopy = {
   en: {
     hero: {
-      eyebrow: "Security and operational reviews",
-      title: "Tell us what needs to move forward.",
-      body: "We agree the situation, scope, result, price, timing and evidence handling before work starts. Then WitnessOps delivers the agreed review with evidence references, named limits and unresolved items.",
+      eyebrow: "Public Exposure Review",
+      title: "See what your public system exposes.",
+      body: "Before a customer, auditor, or attacker finds it first. One authorised public-facing domain. Three working days. €1,900 ex VAT.",
     },
-    primaryCta: "View services",
-    secondaryCta: "Start a review",
+    primaryCta: "Order a Public Exposure Review",
+    secondaryCta: "View a synthetic sample",
     verifyCta: "Verify a receipt",
     libraryCta: "Library",
-    noSecrets:
-      "Start with a general, non-secret description. Do not send files, credentials, logs, screenshots, private keys, API keys, MFA codes, recovery codes, session tokens or customer evidence during the fit check.",
-    offersEyebrow: "Start with the situation",
-    offersTitle: "Reviews for work that needs a clear next step",
+    noSecrets: "Manually reviewed. No exploitation. Evidence-linked findings. Explicit limits. No sales call required.",
+    visual: {
+      label: "Illustrative delivery flow",
+      boundary: "Public boundary",
+      target: "example.com",
+      checks: "Bounded checks",
+      checkItems: ["DNS", "TLS", "HTTP", "Services"],
+      result: "Decision package",
+      resultItems: ["Fix now", "Fix next", "Unknowns"],
+      footer: "Evidence linked · Limits stated · One focused retest",
+    },
+    offersEyebrow: "Other bounded proof work",
+    offersTitle: "Need a different review?",
     offersBody:
-      "The same active services, prices and timing terms are available in English and Polish.",
+      "The broader WitnessOps catalogue remains available for launches, workflows, access, custody, incidents, servers, and customer security reviews.",
     viewAll: "View all services",
     openService: "View service",
     onePager: "One-pager (PDF)",
     howTitle: "How it works",
     howSteps: [
-      ["Describe the situation", "Send a short, non-secret fit request in your own words."],
+      ["Submit one domain", "Provide a work email, one public domain, and your authority to request the review."],
       [
-        "Agree the boundary",
-        "We confirm the review, scope, authority, price, timing and evidence handling.",
+        "Scope is accepted",
+        "WitnessOps confirms the boundary, capacity, and payment asynchronously. No sales call is required.",
       ],
       [
-        "Receive the result",
-        "We deliver the agreed report or package with evidence references, named limits and unresolved items.",
+        "Receive the review",
+        "The evidence-linked report is delivered within three working days after every start condition is complete.",
       ],
     ],
     whyTitle: "Why WitnessOps",
     whyHref: "/why-witnessops",
     whyItems: [
       [
-        "One consequential activity",
-        "We bound one agent run, decision or security situation—authorized, executed, observed and left unresolved.",
+        "One explicit public boundary",
+        "One authorised domain, agreed checks, named exclusions, and stop conditions before target-facing work begins.",
       ],
       [
-        "Evidence status stays visible",
-        "Observed material, management assertions, unsupported claims, unknowns and unresolved items are kept distinct.",
+        "Evidence behind each result",
+        "Findings link to inspectable observations while unknowns, unsupported claims, and work not performed stay visible.",
       ],
       [
         "A practical handover",
         "The result is organised so another responsible person can inspect it and decide what happens next.",
       ],
     ],
-    closeTitle: "Ready for a bounded review?",
+    closeTitle: "Check one domain. See the evidence.",
     closeBody:
-      "Describe one situation without secrets. We confirm fit, scope, price and evidence handling before work starts.",
+      "Order without a sales call. WitnessOps accepts or rejects the scope before the delivery clock starts.",
     verifyHref: "/verify",
     libraryHref: "/library",
   },
   pl: {
     hero: {
-      eyebrow: "Przeglądy bezpieczeństwa i operacji",
-      title: "Powiedz nam, co trzeba odblokować.",
-      body: "Przed rozpoczęciem pracy uzgadniamy sytuację, zakres, wynik, cenę, termin i sposób postępowania z materiałami. Następnie WitnessOps realizuje uzgodniony przegląd i przekazuje wynik z odwołaniami do materiałów, jasno nazwanymi ograniczeniami i nierozwiązanymi kwestiami.",
+      eyebrow: "Przegląd publicznej ekspozycji",
+      title: "Sprawdź, co ujawnia Twój system publiczny.",
+      body: "Zanim wskaże to klient, audytor lub atakujący. Jedna autoryzowana domena publiczna. Trzy dni robocze. €1 900 bez VAT.",
     },
-    primaryCta: "Zobacz usługi",
-    secondaryCta: "Rozpocznij przegląd",
+    primaryCta: "Zamów przegląd publicznej ekspozycji",
+    secondaryCta: "Zobacz syntetyczny przykład",
     verifyCta: "Zweryfikuj zapis",
     libraryCta: "Biblioteka",
-    noSecrets:
-      "Zacznij od ogólnego opisu bez informacji poufnych. Podczas wstępnej oceny nie wysyłaj plików, danych logowania, logów, zrzutów ekranu, kluczy prywatnych, kluczy API, kodów MFA, kodów odzyskiwania, tokenów sesyjnych ani materiałów klienta.",
-    offersEyebrow: "Zacznij od sytuacji",
-    offersTitle: "Przeglądy dla pracy, która potrzebuje jasnego następnego kroku",
+    noSecrets: "Ręcznie zweryfikowane. Bez eksploatacji. Ustalenia powiązane z materiałami. Jawne ograniczenia. Bez rozmowy sprzedażowej.",
+    visual: {
+      label: "Ilustracyjny przebieg dostawy",
+      boundary: "Granica publiczna",
+      target: "example.com",
+      checks: "Ograniczone kontrole",
+      checkItems: ["DNS", "TLS", "HTTP", "Usługi"],
+      result: "Pakiet decyzyjny",
+      resultItems: ["Napraw teraz", "Napraw później", "Niewiadome"],
+      footer: "Materiały powiązane · Jawne granice · Jeden retest",
+    },
+    offersEyebrow: "Inne ograniczone prace dowodowe",
+    offersTitle: "Potrzebujesz innego przeglądu?",
     offersBody:
-      "Te same aktywne usługi, ceny i zasady terminów są dostępne po angielsku i po polsku.",
+      "Szerszy katalog WitnessOps obejmuje uruchomienia, przepływy pracy, dostęp, custody, incydenty, serwery i przeglądy bezpieczeństwa klientów.",
     viewAll: "Zobacz wszystkie usługi",
     openService: "Zobacz usługę",
     onePager: "One-pager (PDF)",
     howTitle: "Jak to działa",
     howSteps: [
-      ["Opisz sytuację", "Wyślij krótki opis własnymi słowami, bez informacji poufnych."],
+      ["Podaj jedną domenę", "Podaj służbowy e-mail, jedną domenę publiczną i podstawę upoważnienia."],
       [
-        "Uzgodnij zakres",
-        "Potwierdzamy usługę, zakres, upoważnienie, cenę, termin i sposób postępowania z materiałami.",
+        "Akceptacja zakresu",
+        "WitnessOps asynchronicznie potwierdza granicę, dostępność i płatność. Rozmowa sprzedażowa nie jest wymagana.",
       ],
       [
-        "Odbierz wynik",
-        "Przekazujemy uzgodniony raport lub pakiet z odwołaniami do materiałów, ograniczeniami i nierozwiązanymi kwestiami.",
+        "Odbierz przegląd",
+        "Raport z ustaleniami powiązanymi z materiałami otrzymasz w ciągu trzech dni roboczych od spełnienia wszystkich warunków startu.",
       ],
     ],
     whyTitle: "Dlaczego WitnessOps",
     whyHref: "/pl/why-witnessops",
     whyItems: [
       [
-        "Jedna istotna aktywność",
-        "Ograniczamy jeden przebieg agenta, decyzję lub sytuację bezpieczeństwa: upoważnienie, wykonanie, obserwacje i nierozwiązane kwestie.",
+        "Jedna jawna granica publiczna",
+        "Jedna autoryzowana domena, uzgodnione kontrole, nazwane wyłączenia i warunki zatrzymania przed rozpoczęciem pracy wobec celu.",
       ],
       [
-        "Widoczny status materiałów",
-        "Obserwacje, oświadczenia kierownictwa, niepoparte twierdzenia, niewiadome i nierozwiązane kwestie pozostają rozdzielone.",
+        "Materiały za każdym wynikiem",
+        "Ustalenia prowadzą do sprawdzalnych obserwacji, a niewiadome, niepoparte twierdzenia i niewykonana praca pozostają widoczne.",
       ],
       [
         "Praktyczne przekazanie",
         "Wynik jest uporządkowany tak, aby kolejna odpowiedzialna osoba mogła go sprawdzić i zdecydować o następnym kroku.",
       ],
     ],
-    closeTitle: "Gotowy na przegląd o ustalonym zakresie?",
+    closeTitle: "Sprawdź jedną domenę. Zobacz materiały.",
     closeBody:
-      "Opisz jedną sytuację bez informacji poufnych. Potwierdzamy dopasowanie, zakres, cenę i sposób postępowania z materiałami przed rozpoczęciem pracy.",
+      "Zamów bez rozmowy sprzedażowej. WitnessOps akceptuje albo odrzuca zakres przed uruchomieniem terminu dostawy.",
     verifyHref: "/pl/verify",
     libraryHref: "/pl/library",
   },
@@ -134,7 +152,8 @@ export function BuyerHomepage({
   const text = localizedCopy[locale];
   const heroCopy = hero ?? text.hero;
   const catalogHref = buyerCatalogHref(locale);
-  const requestHref = buyerRequestHref(locale);
+  const orderHref = buyerOfferRequestHref(locale, "OFFSEC-EXTERNAL-EXPOSURE");
+  const sampleHref = "/review/sample-cases/external-exposure-assessment";
 
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page bg-surface-bg" data-page="home">
@@ -142,7 +161,7 @@ export function BuyerHomepage({
         data-ui-proof-id="homepage-hero"
         className="border-b border-surface-border bg-surface-bg"
       >
-        <header className="mx-auto max-w-[1180px] px-6 py-14 sm:py-16 md:py-16">
+        <header className="mx-auto grid max-w-[1180px] gap-10 px-6 py-14 sm:py-16 md:py-16 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:gap-16">
           <div className="min-w-0 max-w-[680px]">
             <p className="kb-section-tag mb-4 md:mb-5">{heroCopy.eyebrow}</p>
             <h1
@@ -160,13 +179,13 @@ export function BuyerHomepage({
             <div className="mt-7 flex flex-wrap items-center gap-3 sm:gap-4">
               <CtaButton
                 uiProofId="homepage-hero-primary-cta"
-                href={catalogHref}
+                href={orderHref}
                 variant="primary"
                 label={text.primaryCta}
                 className="min-h-[44px] px-4 text-[13px] font-semibold sm:px-6 sm:text-sm"
               />
               <CtaButton
-                href={requestHref}
+                href={sampleHref}
                 variant="secondary"
                 label={text.secondaryCta}
                 className="min-h-[44px] px-4 text-[13px] shadow-none hover:shadow-none sm:px-6 sm:text-sm"
@@ -190,6 +209,62 @@ export function BuyerHomepage({
               {text.noSecrets}
             </p>
           </div>
+          <aside
+            aria-label={text.visual.label}
+            className="relative overflow-hidden border border-surface-border bg-surface-card/50 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.06)] sm:p-6"
+          >
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-20 -top-24 h-52 w-52 rounded-full bg-brand-accent/10 blur-3xl"
+            />
+            <p className="relative text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-accent">
+              {text.visual.label}
+            </p>
+            <div className="relative mt-5 space-y-3">
+              <div className="border border-surface-border bg-surface-bg p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                  01 · {text.visual.boundary}
+                </p>
+                <p className="mt-2 font-mono text-sm font-semibold text-text-primary">
+                  {text.visual.target}
+                </p>
+              </div>
+              <div className="ml-5 border border-brand-accent/40 bg-brand-accent/5 p-4 sm:ml-8">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-accent">
+                  02 · {text.visual.checks}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {text.visual.checkItems.map((item) => (
+                    <span
+                      key={item}
+                      className="border border-surface-border bg-surface-bg px-2.5 py-1 font-mono text-[11px] text-text-secondary"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="ml-10 border border-surface-border bg-surface-bg p-4 sm:ml-16">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                  03 · {text.visual.result}
+                </p>
+                <ul className="mt-3 grid gap-2 text-xs text-text-secondary sm:grid-cols-3">
+                  {text.visual.resultItems.map((item, index) => (
+                    <li key={item} className="flex items-center gap-2">
+                      <span
+                        aria-hidden="true"
+                        className={`h-1.5 w-1.5 rounded-full ${index === 0 ? "bg-signal-red" : index === 1 ? "bg-signal-amber" : "bg-brand-accent"}`}
+                      />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <p className="relative mt-5 border-t border-surface-border pt-4 font-mono text-[10px] leading-5 text-text-muted">
+              {text.visual.footer}
+            </p>
+          </aside>
         </header>
       </section>
 
@@ -206,7 +281,11 @@ export function BuyerHomepage({
           </h2>
           <p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">{text.offersBody}</p>
           <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {BUYER_SERVICES.filter((service) => service.homepageFeatured !== false).map((service) => {
+            {BUYER_SERVICES.filter(
+              (service) =>
+                service.id !== "external-exposure-assessment" &&
+                service.homepageFeatured !== false,
+            ).map((service) => {
               const onePager = service.onePagerHref?.[locale];
               const detailHref =
                 service.detailHref[locale] ??
@@ -317,8 +396,8 @@ export function BuyerHomepage({
             {text.closeBody}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <CtaButton href={requestHref} variant="primary" label={text.secondaryCta} />
-            <CtaButton href={catalogHref} variant="secondary" label={text.primaryCta} />
+            <CtaButton href={orderHref} variant="primary" label={text.primaryCta} />
+            <CtaButton href={catalogHref} variant="secondary" label={text.viewAll} />
           </div>
         </section>
       </div>
