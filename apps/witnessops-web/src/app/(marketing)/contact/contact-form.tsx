@@ -57,7 +57,13 @@ function stringField(data: FormData, name: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export function ContactForm({ locale = "en" }: { locale?: "en" | "pl" }) {
+export function ContactForm({
+  locale = "en",
+  intent = "review",
+}: {
+  locale?: "en" | "pl";
+  intent?: string;
+}) {
   const router = useRouter();
   const invalidScrollScheduled = useRef(false);
   const verificationHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -214,7 +220,7 @@ export function ContactForm({ locale = "en" }: { locale?: "en" | "pl" }) {
           name: data.get("name"),
           org: data.get("org"),
           email: data.get("email"),
-          intent: "ai-agent-action-proof-run",
+          intent,
           scope: proofRunScope,
         }),
       });

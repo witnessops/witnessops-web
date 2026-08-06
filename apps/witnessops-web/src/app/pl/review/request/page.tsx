@@ -40,7 +40,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         <p className="mt-4 text-sm leading-7 text-text-muted">{POLISH_NO_SECRETS_NOTE}</p>
       </header>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="border border-surface-border p-4 sm:p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}><ContactForm locale="pl" /></section>
+        <section className="border border-surface-border p-4 sm:p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}><ContactForm locale="pl" intent={sku?.id ?? "review"} /></section>
         <aside className="space-y-4">
           <section className="border border-surface-border bg-surface-bg p-5"><h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">Co dalej</h2><ol className="mt-4 space-y-3 text-sm leading-6 text-text-muted"><li>1. Potwierdzimy, która oferta pasuje.</li><li>2. Uzgodnimy zakres, upoważnienie, dostęp, cenę i termin.</li><li>3. Odpowiemy przed przyjęciem materiałów źródłowych.</li></ol></section>
           <section className="border border-surface-border bg-surface-bg p-5"><h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">Ważna granica</h2><p className="mt-3 text-sm leading-6 text-text-muted">Samo zgłoszenie nie rozpoczyna pracy. Nie przyjmujemy materiałów klienta, dopóki nie uzgodnimy zakresu i sposobu ich obsługi.</p></section>

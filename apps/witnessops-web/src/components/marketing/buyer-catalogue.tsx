@@ -4,6 +4,7 @@ import { PublicContactRoute } from "@/components/marketing/public-contact-route"
 import {
   BUYER_SERVICES,
   ONE_PAGER_LINK_PROPS,
+  buyerOfferRequestHref,
   buyerRequestHref,
   type BuyerLocale,
 } from "@/lib/buyer-services";
@@ -133,6 +134,9 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
           {BUYER_SERVICES.map((service) => {
             const detailHref = service.detailHref[locale];
             const onePager = service.onePagerHref?.[locale];
+            const serviceRequestHref = service.productId
+              ? buyerOfferRequestHref(locale, service.productId)
+              : requestHref;
             return (
               <article
                 key={service.id}
@@ -168,7 +172,7 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                 </dl>
                 <div className="mt-auto flex flex-wrap gap-3 pt-7">
                   <Link
-                    href={requestHref}
+                    href={serviceRequestHref}
                     className="inline-flex min-h-11 items-center bg-black px-5 text-sm font-semibold text-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
                   >
                     {text.primaryCta}

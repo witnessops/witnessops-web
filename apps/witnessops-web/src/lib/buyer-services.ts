@@ -7,10 +7,12 @@ export type BuyerService = {
     | "customer-security-review-sprint"
     | "bounded-workflow-review"
     | "one-server-security-check"
+    | "external-exposure-assessment"
     | "launch-readiness-check"
     | "key-access-custody-review"
     | "incident-readiness-review";
   productId?: string;
+  homepageFeatured?: boolean;
   commercialContract: {
     price: string;
     timing: string;
@@ -161,6 +163,47 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     },
   },
   {
+    id: "external-exposure-assessment",
+    productId: "OFFSEC-EXTERNAL-EXPOSURE",
+    homepageFeatured: false,
+    commercialContract: {
+      price: "pilot_eur_1900_ex_vat_first_three_accepted_engagements",
+      timing: "five_to_seven_business_days_after_authority_scope_inputs_and_check_window",
+    },
+    name: {
+      en: "External Exposure Assessment",
+      pl: "External Exposure Assessment",
+    },
+    cardSituation: {
+      en: "You need a bounded outside-in picture of what one authorised public domain exposes.",
+      pl: "Potrzebujesz ograniczonego obrazu z zewnątrz tego, co ujawnia jedna autoryzowana domena publiczna.",
+    },
+    situation: {
+      en: "You need a bounded, authorised outside-in assessment of one public-facing domain before a launch, customer review, infrastructure change, or deeper penetration test.",
+      pl: "Potrzebujesz ograniczonej, autoryzowanej oceny z zewnątrz jednej domeny publicznej przed uruchomieniem, przeglądem klienta, zmianą infrastruktury lub głębszym testem penetracyjnym.",
+    },
+    result: {
+      en: "An exposure map, prioritised evidence-linked findings, remediation guidance, explicit unknowns, and a handover package another responsible owner can inspect.",
+      pl: "Mapa ekspozycji, priorytetyzowane ustalenia powiązane z materiałami, zalecenia naprawcze, jawne niewiadome i pakiet, który może sprawdzić kolejny odpowiedzialny właściciel.",
+    },
+    price: {
+      en: "€1,900 ex VAT — first three accepted engagements",
+      pl: "€1 900 bez VAT — pierwsze trzy zaakceptowane zlecenia",
+    },
+    timing: {
+      en: "5–7 business days after authority, scope, inputs, and the check window are confirmed",
+      pl: "5–7 dni roboczych po potwierdzeniu upoważnienia, zakresu, materiałów wejściowych i okna kontroli",
+    },
+    boundary: {
+      en: "No exploitation, credentials, destructive testing, certification, or security guarantee. Unauthenticated outside-in checks only, within the agreed fixed scope.",
+      pl: "Bez eksploatacji, danych uwierzytelniających, testów destrukcyjnych, certyfikacji i gwarancji bezpieczeństwa. Wyłącznie nieuwierzytelnione kontrole z zewnątrz w uzgodnionym stałym zakresie.",
+    },
+    detailHref: {
+      en: "/catalog/offsec-external-exposure",
+      pl: "/pl/catalog/offsec-external-exposure",
+    },
+  },
+  {
     id: "launch-readiness-check",
     productId: "OFFSEC-LAUNCH-READY",
     commercialContract: {
@@ -286,6 +329,13 @@ export function buyerRequestHref(locale: BuyerLocale): string {
   return locale === "pl" ? "/pl/review/request" : "/review/request";
 }
 
+export function buyerOfferRequestHref(locale: BuyerLocale, productId: string): string {
+  const service = buyerServiceByProductId(productId);
+  const params = new URLSearchParams({ productId });
+  if (service) params.set("offer", service.name[locale]);
+  return `${buyerRequestHref(locale)}?${params.toString()}`;
+}
+
 export function buyerCatalogHref(locale: BuyerLocale): string {
   return locale === "pl" ? "/pl/catalog" : "/catalog";
 }
@@ -306,4 +356,3 @@ export const ONE_PAGER_LINK_PROPS = {
   rel: "noopener noreferrer",
   type: "application/pdf",
 } as const;
-

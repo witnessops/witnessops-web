@@ -143,6 +143,7 @@ test("English and Polish homepages share one service-led buyer journey", async (
       ),
     ).toEqual(expectedOrder);
     await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż/);
+    await expect(page.locator('[data-home-service="external-exposure-assessment"]')).toHaveCount(0);
     await expect(page.locator("[data-public-contact-route]")).toHaveCount(1);
 
     if (scenario.width === 1440) {

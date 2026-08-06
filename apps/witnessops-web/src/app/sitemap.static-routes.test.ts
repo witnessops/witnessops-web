@@ -8,6 +8,7 @@ import { getSourceLastModified } from "./sitemap";
 const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/catalog",
   "/catalog/workflows",
+  "/catalog/offsec-external-exposure",
   "/library",
   "/pricing",
   "/review/sample-cases",

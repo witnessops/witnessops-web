@@ -6,6 +6,7 @@ import { CtaButton } from "@/components/shared/cta-button";
 import {
   ONE_PAGER_LINK_PROPS,
   buyerCatalogHref,
+  buyerOfferRequestHref,
   buyerRequestHref,
   type BuyerLocale,
   type BuyerService,
@@ -20,6 +21,7 @@ const ui = {
     commercial: "Commercial line",
     whoFor: "Who it is for",
     receive: "What you receive",
+    fixedScope: "Fixed scope",
     how: "How it works",
     claim: "What is claimed",
     boundaries: "Boundaries",
@@ -36,6 +38,7 @@ const ui = {
     commercial: "Warunki handlowe",
     whoFor: "Dla kogo",
     receive: "Co otrzymasz",
+    fixedScope: "Stały zakres",
     how: "Jak to działa",
     claim: "Co obejmuje twierdzenie",
     boundaries: "Granice",
@@ -81,7 +84,11 @@ export function BuyerServiceDetail({
 }) {
   const text = ui[locale];
   const landing = getServiceLanding(service.id, locale);
-  const requestHref = requestHrefOverride ?? buyerRequestHref(locale);
+  const requestHref =
+    requestHrefOverride ??
+    (service.productId
+      ? buyerOfferRequestHref(locale, service.productId)
+      : buyerRequestHref(locale));
   const catalogueHref = buyerCatalogHref(locale);
   const onePager = service.onePagerHref?.[locale] ?? service.onePagerHref?.en;
   const primaryCta = landing.primaryCta ?? text.start;
@@ -172,6 +179,21 @@ export function BuyerServiceDetail({
             {landing.whoFor}
           </p>
         </section>
+
+        {landing.scopeLimits ? (
+          <section className="border-b border-surface-border py-12">
+            <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
+              {text.fixedScope}
+            </h2>
+            <ul className="mt-6 grid gap-4 text-base leading-7 text-text-secondary md:grid-cols-2">
+              {landing.scopeLimits.map((item) => (
+                <li key={item} className="border border-surface-border bg-surface-card/40 p-4">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <section className="grid gap-10 border-b border-surface-border py-12 md:grid-cols-2 md:gap-8 lg:gap-10">
           <div>

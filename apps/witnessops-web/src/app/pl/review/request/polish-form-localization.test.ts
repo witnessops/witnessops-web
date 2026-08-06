@@ -10,7 +10,7 @@ const form = readFileSync(
 );
 
 test("Polish review request selects the native Polish form copy", () => {
-  assert.ok(page.includes('<ContactForm locale="pl" />'));
+  assert.ok(page.includes('<ContactForm locale="pl" intent={sku?.id ?? "review"} />'));
   for (const marker of [
     "Imię i nazwisko",
     "Służbowy adres e-mail",
