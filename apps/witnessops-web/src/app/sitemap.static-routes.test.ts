@@ -14,6 +14,7 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/review/sample-cases",
   "/review/sample-cases/ai-agent-action-proof-run",
   "/review/sample-cases/local-server-security-review",
+  "/review/sample-cases/external-exposure-assessment",
   "/review/sample-cases/launch-readiness-review",
   "/review/sample-cases/custody-wallet-ops-review",
   "/review/sample-cases/incident-readiness-review",

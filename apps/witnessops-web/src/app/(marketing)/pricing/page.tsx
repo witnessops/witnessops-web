@@ -94,6 +94,13 @@ export default function PricingPage() {
                   </p>
                   <div className="mt-auto flex flex-wrap gap-3 pt-6">
                     <CtaButton href={detailHref} variant="secondary" label="View scope" />
+                    {pilot ? (
+                      <CtaButton
+                        href="/review/sample-cases/external-exposure-assessment"
+                        variant="secondary"
+                        label="Inspect synthetic sample"
+                      />
+                    ) : null}
                     <CtaButton
                       href={service.productId ? buyerOfferRequestHref("en", service.productId) : buyerRequestHref("en")}
                       variant="primary"

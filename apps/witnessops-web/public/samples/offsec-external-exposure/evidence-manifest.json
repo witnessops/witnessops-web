@@ -1,0 +1,1946 @@
+{
+  "label": "Synthetic worked example — not customer evidence.",
+  "initial_runbook_manifest": {
+    "run_id": "runbook-external-exposure-assessment-20260806-084609",
+    "generated_ts": "2026-08-06T06:47:17Z",
+    "digest_algorithms": [
+      "sha256",
+      "blake3"
+    ],
+    "primary_digest_algorithm": "blake3",
+    "artifacts": [
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/engagement-preflight/attempt-01.log",
+        "step_id": "engagement-preflight",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "08b32bfc70dae3670ca5dafb7d90e0d21f87c3307c62b88f5ad376df2d4bf7b5",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "08b32bfc70dae3670ca5dafb7d90e0d21f87c3307c62b88f5ad376df2d4bf7b5"
+          }
+        ],
+        "size_bytes": 652,
+        "mtime_epoch": 1785998770,
+        "evidence_tags": [
+          "engagement",
+          "preflight"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/engagement-preflight/attempt-01.rc",
+        "step_id": "engagement-preflight",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998770,
+        "evidence_tags": [
+          "engagement",
+          "preflight"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/authority-preflight/attempt-01.log",
+        "step_id": "authority-preflight",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "e2aed3ddc006a72429dc494982971f777bb20f06496d6e0498ec93fe01349fe8",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "e2aed3ddc006a72429dc494982971f777bb20f06496d6e0498ec93fe01349fe8"
+          }
+        ],
+        "size_bytes": 522,
+        "mtime_epoch": 1785998772,
+        "evidence_tags": [
+          "authority",
+          "offer-contract"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/authority-preflight/attempt-01.rc",
+        "step_id": "authority-preflight",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998772,
+        "evidence_tags": [
+          "authority",
+          "offer-contract"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/scope-and-roe-validation/attempt-01.log",
+        "step_id": "scope-and-roe-validation",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "64d5286e120b0e54cf92998e848338491f8ac9b519946f9fb7174e2310df0d33",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "64d5286e120b0e54cf92998e848338491f8ac9b519946f9fb7174e2310df0d33"
+          }
+        ],
+        "size_bytes": 241,
+        "mtime_epoch": 1785998774,
+        "evidence_tags": [
+          "scope",
+          "roe"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/scope-and-roe-validation/attempt-01.rc",
+        "step_id": "scope-and-roe-validation",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998774,
+        "evidence_tags": [
+          "scope",
+          "roe"
+        ]
+      },
+      {
+        "path": "recon/dns/20260806-084615_subfinder.live",
+        "step_id": "passive-first-collection",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "size_bytes": 0,
+        "mtime_epoch": 1785998775,
+        "evidence_tags": [
+          "passive",
+          "discovery",
+          "no-active-scope-expansion"
+        ]
+      },
+      {
+        "path": "recon/dns/20260806-084615_subfinder.txt",
+        "step_id": "passive-first-collection",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "5ff7fb9c6532f331d7e49e122385abcb4ed2af761b7b5312ec06d31f310992a6",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "5ff7fb9c6532f331d7e49e122385abcb4ed2af761b7b5312ec06d31f310992a6"
+          }
+        ],
+        "size_bytes": 31,
+        "mtime_epoch": 1785998775,
+        "evidence_tags": [
+          "passive",
+          "discovery",
+          "no-active-scope-expansion"
+        ]
+      },
+      {
+        "path": "recon/dns/20260806-084615_subfinder_summary.md",
+        "step_id": "passive-first-collection",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "3b4d71d35c2b93d0aee1f6ae32a16438982447eef990ae921743f9ffffa8a1eb",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "3b4d71d35c2b93d0aee1f6ae32a16438982447eef990ae921743f9ffffa8a1eb"
+          }
+        ],
+        "size_bytes": 857,
+        "mtime_epoch": 1785998775,
+        "evidence_tags": [
+          "passive",
+          "discovery",
+          "no-active-scope-expansion"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/passive-first-collection/attempt-01.log",
+        "step_id": "passive-first-collection",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "79d1afe579016f985d091f71f8908a24c2ea498057687739c11373afa1baa939",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "79d1afe579016f985d091f71f8908a24c2ea498057687739c11373afa1baa939"
+          }
+        ],
+        "size_bytes": 856,
+        "mtime_epoch": 1785998775,
+        "evidence_tags": [
+          "passive",
+          "discovery",
+          "no-active-scope-expansion"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/passive-first-collection/attempt-01.rc",
+        "step_id": "passive-first-collection",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998775,
+        "evidence_tags": [
+          "passive",
+          "discovery",
+          "no-active-scope-expansion"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/frozen/SHA256SUMS",
+        "step_id": "manual-attribution-review",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "035da53544c2f19f03f0ddedc371b0118c2a25c1478bd3157bc3007bf59f8917",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "035da53544c2f19f03f0ddedc371b0118c2a25c1478bd3157bc3007bf59f8917"
+          }
+        ],
+        "size_bytes": 182,
+        "mtime_epoch": 1785998777,
+        "evidence_tags": [
+          "manual-review",
+          "attribution",
+          "scope-freeze"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/frozen/approved-check-schedule.json",
+        "step_id": "manual-attribution-review",
+        "artifact_type": "json",
+        "status": "new",
+        "sha256": "e4af8ca61192b71bb5d3877a4e33d3d85d86ff2f050096425a2ba3f4abe10ff2",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "e4af8ca61192b71bb5d3877a4e33d3d85d86ff2f050096425a2ba3f4abe10ff2"
+          }
+        ],
+        "size_bytes": 978,
+        "mtime_epoch": 1785998777,
+        "evidence_tags": [
+          "manual-review",
+          "attribution",
+          "scope-freeze"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/frozen/target-schedule.json",
+        "step_id": "manual-attribution-review",
+        "artifact_type": "json",
+        "status": "new",
+        "sha256": "78663253e939cb642694b1108c5cd41ec5a6c22799e03226e5dc1b15c159c15d",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "78663253e939cb642694b1108c5cd41ec5a6c22799e03226e5dc1b15c159c15d"
+          }
+        ],
+        "size_bytes": 754,
+        "mtime_epoch": 1785998777,
+        "evidence_tags": [
+          "manual-review",
+          "attribution",
+          "scope-freeze"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/manual-attribution-review/attempt-01.log",
+        "step_id": "manual-attribution-review",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "338a8908d4bed7c0b519e28a6e8666c138d6271ce3eeb5e3fba2eb38db2774be",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "338a8908d4bed7c0b519e28a6e8666c138d6271ce3eeb5e3fba2eb38db2774be"
+          }
+        ],
+        "size_bytes": 495,
+        "mtime_epoch": 1785998777,
+        "evidence_tags": [
+          "manual-review",
+          "attribution",
+          "scope-freeze"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/manual-attribution-review/attempt-01.rc",
+        "step_id": "manual-attribution-review",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998777,
+        "evidence_tags": [
+          "manual-review",
+          "attribution",
+          "scope-freeze"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/approval-checkpoint/attempt-01.log",
+        "step_id": "approval-checkpoint",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "593ab72b3acbb772f1320c387f9867eebbbd50245f1f7544616226b137b24c5d",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "593ab72b3acbb772f1320c387f9867eebbbd50245f1f7544616226b137b24c5d"
+          }
+        ],
+        "size_bytes": 270,
+        "mtime_epoch": 1785998782,
+        "evidence_tags": [
+          "approval-boundary",
+          "active"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/approval-checkpoint/attempt-01.rc",
+        "step_id": "approval-checkpoint",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998782,
+        "evidence_tags": [
+          "approval-boundary",
+          "active"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/approved-low-impact-checks/attempt-01.log",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "8d6f3a7fbf94e3a22177dbaf42bd5f4341aa85cbadf7cef9138cba362cd78a1a",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "8d6f3a7fbf94e3a22177dbaf42bd5f4341aa85cbadf7cef9138cba362cd78a1a"
+          }
+        ],
+        "size_bytes": 1152,
+        "mtime_epoch": 1785998790,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/approved-low-impact-checks/attempt-01.rc",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998790,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/SHA256SUMS",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "d89984f87d78b5e06f7a2f4307447137690ecbedcb88a19ca2838cc66cfe56d0",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "d89984f87d78b5e06f7a2f4307447137690ecbedcb88a19ca2838cc66cfe56d0"
+          }
+        ],
+        "size_bytes": 1059,
+        "mtime_epoch": 1785998790,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-01/bounded-web-deferred.txt",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "643734839078d679fede46ca9b2612d52b5b626b665de624d16e330a8f378b51",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "643734839078d679fede46ca9b2612d52b5b626b665de624d16e330a8f378b51"
+          }
+        ],
+        "size_bytes": 57,
+        "mtime_epoch": 1785998789,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-01/dns.stderr",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "size_bytes": 0,
+        "mtime_epoch": 1785998786,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-01/dns.txt",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "2b54c308091a113a97d3c290565ea71724f7de759bd7c4ef16c96abc2dbc5ac6",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "2b54c308091a113a97d3c290565ea71724f7de759bd7c4ef16c96abc2dbc5ac6"
+          }
+        ],
+        "size_bytes": 70,
+        "mtime_epoch": 1785998786,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-01/http-headers.txt",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "710a68b96583139f49c28b5b865dad0e670e88652cb94bddb14560e9dcf515bc",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "710a68b96583139f49c28b5b865dad0e670e88652cb94bddb14560e9dcf515bc"
+          }
+        ],
+        "size_bytes": 211,
+        "mtime_epoch": 1785998788,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-01/http-result.tsv",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "be20ad28483448784207fb601e9703bb55fce41de7385d4fe87acaf859d3be6d",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "be20ad28483448784207fb601e9703bb55fce41de7385d4fe87acaf859d3be6d"
+          }
+        ],
+        "size_bytes": 40,
+        "mtime_epoch": 1785998788,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-01/http.stderr",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "size_bytes": 0,
+        "mtime_epoch": 1785998787,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-01/service-identification.txt",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "716ced089869938e79bf6e4b276ffcfd50cb9c1bae8f7454156fb1eb05f6dec5",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "716ced089869938e79bf6e4b276ffcfd50cb9c1bae8f7454156fb1eb05f6dec5"
+          }
+        ],
+        "size_bytes": 180,
+        "mtime_epoch": 1785998789,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-01/summary.md",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "d86b30d335d367d0c36c928da5de2cd34cac5f33c597dc6e80619302aaf96961",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "d86b30d335d367d0c36c928da5de2cd34cac5f33c597dc6e80619302aaf96961"
+          }
+        ],
+        "size_bytes": 246,
+        "mtime_epoch": 1785998789,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-02/http-headers.txt",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "4d3d6cc26e1ccec0fa6ccdd3a353481ed5e014bce2ff90bcfbc5197f96979781",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "4d3d6cc26e1ccec0fa6ccdd3a353481ed5e014bce2ff90bcfbc5197f96979781"
+          }
+        ],
+        "size_bytes": 217,
+        "mtime_epoch": 1785998789,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-02/http-result.tsv",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "8dd3d0d05d87720ceb01dca5a24ade238ab8e06364612266316293f45d668943",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "8dd3d0d05d87720ceb01dca5a24ade238ab8e06364612266316293f45d668943"
+          }
+        ],
+        "size_bytes": 54,
+        "mtime_epoch": 1785998789,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-02/http.stderr",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "size_bytes": 0,
+        "mtime_epoch": 1785998789,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-02/summary.md",
+        "step_id": "approved-low-impact-checks",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "61e6604cc2d5a0c75d49b58a5cb6dfadef0aa81b845b412c901a25f7cf7926e1",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "61e6604cc2d5a0c75d49b58a5cb6dfadef0aa81b845b412c901a25f7cf7926e1"
+          }
+        ],
+        "size_bytes": 254,
+        "mtime_epoch": 1785998790,
+        "evidence_tags": [
+          "dns",
+          "tls",
+          "http",
+          "service-identification",
+          "approved-schedule"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/allowlisted-bounded-web/attempt-01.log",
+        "step_id": "allowlisted-bounded-web",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "5272ae5ed28379053fc1d1c2b655f73029b3aad423e142967163e0ebab3f89b0",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "5272ae5ed28379053fc1d1c2b655f73029b3aad423e142967163e0ebab3f89b0"
+          }
+        ],
+        "size_bytes": 1294,
+        "mtime_epoch": 1785998796,
+        "evidence_tags": [
+          "bounded-web",
+          "nuclei",
+          "allowlisted-templates",
+          "no-oast"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/allowlisted-bounded-web/attempt-01.rc",
+        "step_id": "allowlisted-bounded-web",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998796,
+        "evidence_tags": [
+          "bounded-web",
+          "nuclei",
+          "allowlisted-templates",
+          "no-oast"
+        ]
+      },
+      {
+        "path": "scans/web/20260806-084635-354118000_127.0.0.1_nuclei_bounded-web.json",
+        "step_id": "allowlisted-bounded-web",
+        "artifact_type": "json",
+        "status": "new",
+        "sha256": "68126724d5fb9cd9aced57f34bb4a2c0ab21270bf9c865f0b37df527cb59290a",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "68126724d5fb9cd9aced57f34bb4a2c0ab21270bf9c865f0b37df527cb59290a"
+          }
+        ],
+        "size_bytes": 118,
+        "mtime_epoch": 1785998795,
+        "evidence_tags": [
+          "bounded-web",
+          "nuclei",
+          "allowlisted-templates",
+          "no-oast"
+        ]
+      },
+      {
+        "path": "scans/web/20260806-084635-354118000_127.0.0.1_nuclei_bounded-web.live",
+        "step_id": "allowlisted-bounded-web",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "a4f2a171ad5526e557e3248c46666157ceaa02e32787984bd44037c27824dbd7",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "a4f2a171ad5526e557e3248c46666157ceaa02e32787984bd44037c27824dbd7"
+          }
+        ],
+        "size_bytes": 69,
+        "mtime_epoch": 1785998795,
+        "evidence_tags": [
+          "bounded-web",
+          "nuclei",
+          "allowlisted-templates",
+          "no-oast"
+        ]
+      },
+      {
+        "path": "scans/web/20260806-084635-354118000_127.0.0.1_nuclei_bounded-web_summary.md",
+        "step_id": "allowlisted-bounded-web",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "33062fe25bb84e24515de92c4b61375a2beb74e391e06a047805a79b1ee8bbf9",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "33062fe25bb84e24515de92c4b61375a2beb74e391e06a047805a79b1ee8bbf9"
+          }
+        ],
+        "size_bytes": 1713,
+        "mtime_epoch": 1785998795,
+        "evidence_tags": [
+          "bounded-web",
+          "nuclei",
+          "allowlisted-templates",
+          "no-oast"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/manual-validation-deduplication/attempt-01.log",
+        "step_id": "manual-validation-deduplication",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "fc7cd362015fdae33ce4e8c5f436c0d05b81a432f32b9b4f8b7458351c131cda",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "fc7cd362015fdae33ce4e8c5f436c0d05b81a432f32b9b4f8b7458351c131cda"
+          }
+        ],
+        "size_bytes": 486,
+        "mtime_epoch": 1785998800,
+        "evidence_tags": [
+          "manual-validation",
+          "deduplication"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/manual-validation-deduplication/attempt-01.rc",
+        "step_id": "manual-validation-deduplication",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998800,
+        "evidence_tags": [
+          "manual-validation",
+          "deduplication"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/finding-evidence-linkage/attempt-01.log",
+        "step_id": "finding-evidence-linkage",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "923642dc502d17a549f0b36e0c937d9d88b8ac1fc6106cfca37f5d4d45e23c6d",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "923642dc502d17a549f0b36e0c937d9d88b8ac1fc6106cfca37f5d4d45e23c6d"
+          }
+        ],
+        "size_bytes": 500,
+        "mtime_epoch": 1785998804,
+        "evidence_tags": [
+          "findings",
+          "evidence-linkage"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/finding-evidence-linkage/attempt-01.rc",
+        "step_id": "finding-evidence-linkage",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998804,
+        "evidence_tags": [
+          "findings",
+          "evidence-linkage"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/report-generation/attempt-01.log",
+        "step_id": "report-generation",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "38cb05bb09704dc1c1f08f30ba169943ec7d4789c0c3d614bd9a166dcdf5af23",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "38cb05bb09704dc1c1f08f30ba169943ec7d4789c0c3d614bd9a166dcdf5af23"
+          }
+        ],
+        "size_bytes": 678,
+        "mtime_epoch": 1785998809,
+        "evidence_tags": [
+          "executive-report",
+          "technical-appendix",
+          "evidence-register"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/report-generation/attempt-01.rc",
+        "step_id": "report-generation",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998809,
+        "evidence_tags": [
+          "executive-report",
+          "technical-appendix",
+          "evidence-register"
+        ]
+      },
+      {
+        "path": "report/final/evidence-register.json",
+        "step_id": "report-generation",
+        "artifact_type": "json",
+        "status": "new",
+        "sha256": "60449c6f233485ee14e1caa8cdb941de27c862f18ffe7717eb706131a7be7283",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "60449c6f233485ee14e1caa8cdb941de27c862f18ffe7717eb706131a7be7283"
+          }
+        ],
+        "size_bytes": 993,
+        "mtime_epoch": 1785998809,
+        "evidence_tags": [
+          "executive-report",
+          "technical-appendix",
+          "evidence-register"
+        ]
+      },
+      {
+        "path": "report/final/exposure-map.json",
+        "step_id": "report-generation",
+        "artifact_type": "json",
+        "status": "new",
+        "sha256": "3cb92ebd9716bac6dbab11c4468cfa4b08c4486814964ccd31918ce1c260617d",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "3cb92ebd9716bac6dbab11c4468cfa4b08c4486814964ccd31918ce1c260617d"
+          }
+        ],
+        "size_bytes": 670,
+        "mtime_epoch": 1785998809,
+        "evidence_tags": [
+          "executive-report",
+          "technical-appendix",
+          "evidence-register"
+        ]
+      },
+      {
+        "path": "report/final/external-exposure-assessment.md",
+        "step_id": "report-generation",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "a30139edde8d5ee6c10605db8f9d2a9006c34c31498ee60bda4f567987eec21f",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "a30139edde8d5ee6c10605db8f9d2a9006c34c31498ee60bda4f567987eec21f"
+          }
+        ],
+        "size_bytes": 4864,
+        "mtime_epoch": 1785998809,
+        "evidence_tags": [
+          "executive-report",
+          "technical-appendix",
+          "evidence-register"
+        ]
+      },
+      {
+        "path": "report/final/findings.json",
+        "step_id": "report-generation",
+        "artifact_type": "json",
+        "status": "new",
+        "sha256": "7efe7d6e9a89ee5268a2e11d472249cdcb82966113d1bb8d4ea06d81625344be",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "7efe7d6e9a89ee5268a2e11d472249cdcb82966113d1bb8d4ea06d81625344be"
+          }
+        ],
+        "size_bytes": 1947,
+        "mtime_epoch": 1785998809,
+        "evidence_tags": [
+          "executive-report",
+          "technical-appendix",
+          "evidence-register"
+        ]
+      },
+      {
+        "path": "report/final/handover-agenda.md",
+        "step_id": "report-generation",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "1ead3612e6607cafa5537bca92b605611e8cff7b0b60e3b5a0022113cc42ed6e",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "1ead3612e6607cafa5537bca92b605611e8cff7b0b60e3b5a0022113cc42ed6e"
+          }
+        ],
+        "size_bytes": 688,
+        "mtime_epoch": 1785998809,
+        "evidence_tags": [
+          "executive-report",
+          "technical-appendix",
+          "evidence-register"
+        ]
+      },
+      {
+        "path": "report/final/synthetic-rehearsal-checklist.md",
+        "step_id": "report-generation",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "94d655f6aa77a64cf57ad71a1725acbb981d3dc2b72d2af7968ab3ba392aaaec",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "94d655f6aa77a64cf57ad71a1725acbb981d3dc2b72d2af7968ab3ba392aaaec"
+          }
+        ],
+        "size_bytes": 863,
+        "mtime_epoch": 1785998809,
+        "evidence_tags": [
+          "executive-report",
+          "technical-appendix",
+          "evidence-register"
+        ]
+      },
+      {
+        "path": "report/final/synthetic-timesheet.md",
+        "step_id": "report-generation",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "6f35b1131d5e294c20d00b8caff80e2cd642c0f8774d60be59e118f038896502",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "6f35b1131d5e294c20d00b8caff80e2cd642c0f8774d60be59e118f038896502"
+          }
+        ],
+        "size_bytes": 692,
+        "mtime_epoch": 1785998809,
+        "evidence_tags": [
+          "executive-report",
+          "technical-appendix",
+          "evidence-register"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/handover-preparation/attempt-01.log",
+        "step_id": "handover-preparation",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "d47d0d8d70e78a7c87d29430b939e1643230d462287845f4019569cd0f0a6466",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "d47d0d8d70e78a7c87d29430b939e1643230d462287845f4019569cd0f0a6466"
+          }
+        ],
+        "size_bytes": 492,
+        "mtime_epoch": 1785998813,
+        "evidence_tags": [
+          "handover",
+          "claim-boundary"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/handover-preparation/attempt-01.rc",
+        "step_id": "handover-preparation",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998813,
+        "evidence_tags": [
+          "handover",
+          "claim-boundary"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/engagement-summary/attempt-01.log",
+        "step_id": "engagement-summary",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "8f7d90cc83b74de16d10ef774ded17cb9eb46134248338eaac0b44e4d677e0e6",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "8f7d90cc83b74de16d10ef774ded17cb9eb46134248338eaac0b44e4d677e0e6"
+          }
+        ],
+        "size_bytes": 598,
+        "mtime_epoch": 1785998818,
+        "evidence_tags": [
+          "summary",
+          "reporting"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/engagement-summary/attempt-01.rc",
+        "step_id": "engagement-summary",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998818,
+        "evidence_tags": [
+          "summary",
+          "reporting"
+        ]
+      },
+      {
+        "path": "report/engagement-summary-20260806-084658.md",
+        "step_id": "engagement-summary",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "4fdb1cd6e316e61a37f82c1ec833e461f61b5055c02127268432d52db4c711ac",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "4fdb1cd6e316e61a37f82c1ec833e461f61b5055c02127268432d52db4c711ac"
+          }
+        ],
+        "size_bytes": 954,
+        "mtime_epoch": 1785998818,
+        "evidence_tags": [
+          "summary",
+          "reporting"
+        ]
+      },
+      {
+        "path": "report/summary.md",
+        "step_id": "engagement-summary",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "4fdb1cd6e316e61a37f82c1ec833e461f61b5055c02127268432d52db4c711ac",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "4fdb1cd6e316e61a37f82c1ec833e461f61b5055c02127268432d52db4c711ac"
+          }
+        ],
+        "size_bytes": 954,
+        "mtime_epoch": 1785998818,
+        "evidence_tags": [
+          "summary",
+          "reporting"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/frozen/SHA256SUMS",
+        "step_id": "closure-record",
+        "artifact_type": "file",
+        "status": "changed",
+        "sha256": "b3fec7d24dbf18a0b3ba9373e6d2e68895158268aedc64874d3a8b23f6970f66",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "b3fec7d24dbf18a0b3ba9373e6d2e68895158268aedc64874d3a8b23f6970f66"
+          }
+        ],
+        "size_bytes": 271,
+        "mtime_epoch": 1785998823,
+        "evidence_tags": [
+          "closure",
+          "partial-status-preservation"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/frozen/reported-findings.json",
+        "step_id": "closure-record",
+        "artifact_type": "json",
+        "status": "new",
+        "sha256": "7efe7d6e9a89ee5268a2e11d472249cdcb82966113d1bb8d4ea06d81625344be",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "7efe7d6e9a89ee5268a2e11d472249cdcb82966113d1bb8d4ea06d81625344be"
+          }
+        ],
+        "size_bytes": 1947,
+        "mtime_epoch": 1785998823,
+        "evidence_tags": [
+          "closure",
+          "partial-status-preservation"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/closure-record/attempt-01.log",
+        "step_id": "closure-record",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "14a43adb857f2f1a30a89e697ef901d750c3a16f736bcc25ed184b4c9607b40a",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "14a43adb857f2f1a30a89e697ef901d750c3a16f736bcc25ed184b4c9607b40a"
+          }
+        ],
+        "size_bytes": 483,
+        "mtime_epoch": 1785998823,
+        "evidence_tags": [
+          "closure",
+          "partial-status-preservation"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/closure-record/attempt-01.rc",
+        "step_id": "closure-record",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998823,
+        "evidence_tags": [
+          "closure",
+          "partial-status-preservation"
+        ]
+      },
+      {
+        "path": "report/final/closure.json",
+        "step_id": "closure-record",
+        "artifact_type": "json",
+        "status": "new",
+        "sha256": "13a308d94d217228886485b41909ece665d396908416f3b3614d6111708ea848",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "13a308d94d217228886485b41909ece665d396908416f3b3614d6111708ea848"
+          }
+        ],
+        "size_bytes": 389,
+        "mtime_epoch": 1785998823,
+        "evidence_tags": [
+          "closure",
+          "partial-status-preservation"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/archive-check/attempt-01.log",
+        "step_id": "archive-check",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "c40054ca3dc13392c69488287c1ae6586bcfd3b12a914f21ea7845fc37eaf2cf",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "c40054ca3dc13392c69488287c1ae6586bcfd3b12a914f21ea7845fc37eaf2cf"
+          }
+        ],
+        "size_bytes": 933,
+        "mtime_epoch": 1785998828,
+        "evidence_tags": [
+          "archive",
+          "sha256"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-20260806-084609/steps/archive-check/attempt-01.rc",
+        "step_id": "archive-check",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998828,
+        "evidence_tags": [
+          "archive",
+          "sha256"
+        ]
+      },
+      {
+        "path": "report/evidence/archive/synthetic-external-exposure_20260806-084708.tar.gz",
+        "step_id": "archive-check",
+        "artifact_type": "archive",
+        "status": "new",
+        "sha256": "875d4a0e1152361586c7906c519767a3cddcd125d111a15b5e19d2b8edead627",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "875d4a0e1152361586c7906c519767a3cddcd125d111a15b5e19d2b8edead627"
+          }
+        ],
+        "size_bytes": 86778,
+        "mtime_epoch": 1785998828,
+        "evidence_tags": [
+          "archive",
+          "sha256"
+        ]
+      },
+      {
+        "path": "report/evidence/archive/synthetic-external-exposure_20260806-084708.tar.gz.manifest.txt",
+        "step_id": "archive-check",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "8b8b8b7fc71cbf2fc359a5ea702f3c0c9343268cd5baad76dab592e8c46f41cd",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "8b8b8b7fc71cbf2fc359a5ea702f3c0c9343268cd5baad76dab592e8c46f41cd"
+          }
+        ],
+        "size_bytes": 34179,
+        "mtime_epoch": 1785998828,
+        "evidence_tags": [
+          "archive",
+          "sha256"
+        ]
+      },
+      {
+        "path": "report/evidence/archive/synthetic-external-exposure_20260806-084708.tar.gz.sha256",
+        "step_id": "archive-check",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "79e8cb900ed2acadc8ed6c739a35b35a41d4585179a74dcbccfd5a7e9bdded6e",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "79e8cb900ed2acadc8ed6c739a35b35a41d4585179a74dcbccfd5a7e9bdded6e"
+          }
+        ],
+        "size_bytes": 181,
+        "mtime_epoch": 1785998828,
+        "evidence_tags": [
+          "archive",
+          "sha256"
+        ]
+      }
+    ]
+  },
+  "focused_retest_runbook_manifest": {
+    "run_id": "runbook-external-exposure-assessment-retest-20260806-084735",
+    "generated_ts": "2026-08-06T06:48:26Z",
+    "digest_algorithms": [
+      "sha256",
+      "blake3"
+    ],
+    "primary_digest_algorithm": "blake3",
+    "artifacts": [
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/engagement-preflight/attempt-01.log",
+        "step_id": "engagement-preflight",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "cb72b4c9941d680f2d8cca74840aedfe439fdc409dd80aa6967d453438453585",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "cb72b4c9941d680f2d8cca74840aedfe439fdc409dd80aa6967d453438453585"
+          }
+        ],
+        "size_bytes": 652,
+        "mtime_epoch": 1785998858,
+        "evidence_tags": [
+          "engagement",
+          "retest"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/engagement-preflight/attempt-01.rc",
+        "step_id": "engagement-preflight",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998858,
+        "evidence_tags": [
+          "engagement",
+          "retest"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/frozen/SHA256SUMS",
+        "step_id": "retest-preflight",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "7205f477afb4dcea3d7b77ffd3a08437db98f51ccebaa2b8cc0326f4c10f6e5b",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "7205f477afb4dcea3d7b77ffd3a08437db98f51ccebaa2b8cc0326f4c10f6e5b"
+          }
+        ],
+        "size_bytes": 271,
+        "mtime_epoch": 1785998865,
+        "evidence_tags": [
+          "retest-boundary",
+          "original-findings-only"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/frozen/approved-check-schedule.json",
+        "step_id": "retest-preflight",
+        "artifact_type": "json",
+        "status": "new",
+        "sha256": "cb6d6deefbfbc6c6554fe3e6a171f84887a6eee8b53a256d64c0f5cb13c5e941",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "cb6d6deefbfbc6c6554fe3e6a171f84887a6eee8b53a256d64c0f5cb13c5e941"
+          }
+        ],
+        "size_bytes": 705,
+        "mtime_epoch": 1785998865,
+        "evidence_tags": [
+          "retest-boundary",
+          "original-findings-only"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/frozen/reported-findings.json",
+        "step_id": "retest-preflight",
+        "artifact_type": "json",
+        "status": "new",
+        "sha256": "7efe7d6e9a89ee5268a2e11d472249cdcb82966113d1bb8d4ea06d81625344be",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "7efe7d6e9a89ee5268a2e11d472249cdcb82966113d1bb8d4ea06d81625344be"
+          }
+        ],
+        "size_bytes": 1947,
+        "mtime_epoch": 1785998865,
+        "evidence_tags": [
+          "retest-boundary",
+          "original-findings-only"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/frozen/target-schedule.json",
+        "step_id": "retest-preflight",
+        "artifact_type": "json",
+        "status": "new",
+        "sha256": "78663253e939cb642694b1108c5cd41ec5a6c22799e03226e5dc1b15c159c15d",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "78663253e939cb642694b1108c5cd41ec5a6c22799e03226e5dc1b15c159c15d"
+          }
+        ],
+        "size_bytes": 754,
+        "mtime_epoch": 1785998865,
+        "evidence_tags": [
+          "retest-boundary",
+          "original-findings-only"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/retest-preflight/attempt-01.log",
+        "step_id": "retest-preflight",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "4ceb96de252af7882aece371df609481aaa5bc8b8a5e75f59296564e9879403b",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "4ceb96de252af7882aece371df609481aaa5bc8b8a5e75f59296564e9879403b"
+          }
+        ],
+        "size_bytes": 552,
+        "mtime_epoch": 1785998865,
+        "evidence_tags": [
+          "retest-boundary",
+          "original-findings-only"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/retest-preflight/attempt-01.rc",
+        "step_id": "retest-preflight",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998865,
+        "evidence_tags": [
+          "retest-boundary",
+          "original-findings-only"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/scope-validation/attempt-01.log",
+        "step_id": "scope-validation",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "1e0200afb5b7cb6a495328bef3ffaf5f17f13b292b6bb1a05d1ee2f49bfd70a3",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "1e0200afb5b7cb6a495328bef3ffaf5f17f13b292b6bb1a05d1ee2f49bfd70a3"
+          }
+        ],
+        "size_bytes": 241,
+        "mtime_epoch": 1785998870,
+        "evidence_tags": [
+          "scope",
+          "exact-target-identity"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/scope-validation/attempt-01.rc",
+        "step_id": "scope-validation",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998870,
+        "evidence_tags": [
+          "scope",
+          "exact-target-identity"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/approval-checkpoint/attempt-01.log",
+        "step_id": "approval-checkpoint",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "34f34784b29f365f28416daba0a7f094d3a6a378896cf5aee3393bb95ae3451e",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "34f34784b29f365f28416daba0a7f094d3a6a378896cf5aee3393bb95ae3451e"
+          }
+        ],
+        "size_bytes": 254,
+        "mtime_epoch": 1785998877,
+        "evidence_tags": [
+          "approval-boundary",
+          "retest"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/approval-checkpoint/attempt-01.rc",
+        "step_id": "approval-checkpoint",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998877,
+        "evidence_tags": [
+          "approval-boundary",
+          "retest"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/approved-focused-retest/attempt-01.log",
+        "step_id": "approved-focused-retest",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "22f01a29275d59a26500644ca683c3324f4e5038ac833bc128f52e01b930843c",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "22f01a29275d59a26500644ca683c3324f4e5038ac833bc128f52e01b930843c"
+          }
+        ],
+        "size_bytes": 1142,
+        "mtime_epoch": 1785998884,
+        "evidence_tags": [
+          "focused-retest",
+          "no-discovery",
+          "no-new-targets"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/approved-focused-retest/attempt-01.rc",
+        "step_id": "approved-focused-retest",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998884,
+        "evidence_tags": [
+          "focused-retest",
+          "no-discovery",
+          "no-new-targets"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/retest/runbook-external-exposure-assessment-retest-20260806-084735/SHA256SUMS",
+        "step_id": "approved-focused-retest",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "87048ac19674e1f73d644e8208696b91b306d033569eefce84f056775d97df0e",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "87048ac19674e1f73d644e8208696b91b306d033569eefce84f056775d97df0e"
+          }
+        ],
+        "size_bytes": 348,
+        "mtime_epoch": 1785998884,
+        "evidence_tags": [
+          "focused-retest",
+          "no-discovery",
+          "no-new-targets"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/retest/runbook-external-exposure-assessment-retest-20260806-084735/T-01/http-headers.txt",
+        "step_id": "approved-focused-retest",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "fe221e5ddc93998a08c587d9ec5e33fb8540bacc67387f3a8dd4d6838ff2fb0f",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "fe221e5ddc93998a08c587d9ec5e33fb8540bacc67387f3a8dd4d6838ff2fb0f"
+          }
+        ],
+        "size_bytes": 211,
+        "mtime_epoch": 1785998884,
+        "evidence_tags": [
+          "focused-retest",
+          "no-discovery",
+          "no-new-targets"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/retest/runbook-external-exposure-assessment-retest-20260806-084735/T-01/http-result.tsv",
+        "step_id": "approved-focused-retest",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "be20ad28483448784207fb601e9703bb55fce41de7385d4fe87acaf859d3be6d",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "be20ad28483448784207fb601e9703bb55fce41de7385d4fe87acaf859d3be6d"
+          }
+        ],
+        "size_bytes": 40,
+        "mtime_epoch": 1785998884,
+        "evidence_tags": [
+          "focused-retest",
+          "no-discovery",
+          "no-new-targets"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/retest/runbook-external-exposure-assessment-retest-20260806-084735/T-01/http.stderr",
+        "step_id": "approved-focused-retest",
+        "artifact_type": "file",
+        "status": "new",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "size_bytes": 0,
+        "mtime_epoch": 1785998883,
+        "evidence_tags": [
+          "focused-retest",
+          "no-discovery",
+          "no-new-targets"
+        ]
+      },
+      {
+        "path": "scans/external-exposure/retest/runbook-external-exposure-assessment-retest-20260806-084735/T-01/summary.md",
+        "step_id": "approved-focused-retest",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "cf95fc801545346d2e3fd0e8e3d5f6dd3101cdbe8b5d9475633ca00c748eba31",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "cf95fc801545346d2e3fd0e8e3d5f6dd3101cdbe8b5d9475633ca00c748eba31"
+          }
+        ],
+        "size_bytes": 245,
+        "mtime_epoch": 1785998884,
+        "evidence_tags": [
+          "focused-retest",
+          "no-discovery",
+          "no-new-targets"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/retest-result/attempt-01.log",
+        "step_id": "retest-result",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "1a61dac04a3cc235cdd167a6fe56096bb14903a6000e89b8dd262bb5b2cb88bf",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "1a61dac04a3cc235cdd167a6fe56096bb14903a6000e89b8dd262bb5b2cb88bf"
+          }
+        ],
+        "size_bytes": 460,
+        "mtime_epoch": 1785998890,
+        "evidence_tags": [
+          "retest-result",
+          "evidence-linkage"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/retest-result/attempt-01.rc",
+        "step_id": "retest-result",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998890,
+        "evidence_tags": [
+          "retest-result",
+          "evidence-linkage"
+        ]
+      },
+      {
+        "path": "report/final/focused-retest-result.md",
+        "step_id": "retest-result",
+        "artifact_type": "markdown",
+        "status": "new",
+        "sha256": "507f212aee6909735e4e9c641cd5420defa59c5960374191e6348ea41eb8b06c",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "507f212aee6909735e4e9c641cd5420defa59c5960374191e6348ea41eb8b06c"
+          }
+        ],
+        "size_bytes": 476,
+        "mtime_epoch": 1785998890,
+        "evidence_tags": [
+          "retest-result",
+          "evidence-linkage"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/closure-record/attempt-01.log",
+        "step_id": "closure-record",
+        "artifact_type": "step_log",
+        "status": "new",
+        "sha256": "5b1d95e9177fe9886d4557ba5f5a770763aa6a49b91fb54469c32e402ba76236",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "5b1d95e9177fe9886d4557ba5f5a770763aa6a49b91fb54469c32e402ba76236"
+          }
+        ],
+        "size_bytes": 489,
+        "mtime_epoch": 1785998897,
+        "evidence_tags": [
+          "closure",
+          "retest"
+        ]
+      },
+      {
+        "path": "report/drafts/runbook-external-exposure-assessment-retest-20260806-084735/steps/closure-record/attempt-01.rc",
+        "step_id": "closure-record",
+        "artifact_type": "step_rc",
+        "status": "new",
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        ],
+        "size_bytes": 2,
+        "mtime_epoch": 1785998897,
+        "evidence_tags": [
+          "closure",
+          "retest"
+        ]
+      },
+      {
+        "path": "report/final/closure.json",
+        "step_id": "closure-record",
+        "artifact_type": "json",
+        "status": "changed",
+        "sha256": "742813fc686ed1cd54d479be73bab1dc3a7453c0f482fd53bb1301ef5222e05d",
+        "blake3": null,
+        "digests": [
+          {
+            "algorithm": "sha256",
+            "value": "742813fc686ed1cd54d479be73bab1dc3a7453c0f482fd53bb1301ef5222e05d"
+          }
+        ],
+        "size_bytes": 388,
+        "mtime_epoch": 1785998897,
+        "evidence_tags": [
+          "closure",
+          "retest"
+        ]
+      }
+    ]
+  }
+}

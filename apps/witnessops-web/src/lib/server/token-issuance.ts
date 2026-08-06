@@ -106,6 +106,7 @@ function renderOperatorNotificationText(args: {
     renderTextField("Work email", args.issuance.email),
     renderTextField("Company or team", args.intake.submission.org),
     renderTextField("Intent", args.intake.submission.intent),
+    renderTextField("Locale", args.intake.submission.locale),
     `Intake ID: ${args.intake.intakeId}`,
     `Issuance ID: ${args.issuance.issuanceId}`,
     `Thread ID: ${args.intake.threadId ?? "not assigned"}`,
@@ -146,6 +147,7 @@ function renderOperatorNotificationHtml(args: {
     renderHtmlField("Work email", args.issuance.email),
     renderHtmlField("Company or team", args.intake.submission.org),
     renderHtmlField("Intent", args.intake.submission.intent),
+    renderHtmlField("Locale", args.intake.submission.locale),
     renderHtmlField("Intake ID", args.intake.intakeId),
     renderHtmlField("Issuance ID", args.issuance.issuanceId),
     renderHtmlField("Thread ID", args.intake.threadId ?? "not assigned"),
@@ -166,6 +168,12 @@ function normalizeSubmission(
     name: normalizeText(submission?.name),
     org: normalizeText(submission?.org),
     intent: normalizeText(submission?.intent),
+    locale:
+      submission?.locale === "pl"
+        ? "pl"
+        : submission?.locale === "en"
+          ? "en"
+          : null,
     scope: normalizeText(submission?.scope),
     subject: normalizeText(submission?.subject),
     category: normalizeText(submission?.category),
@@ -461,7 +469,9 @@ function buildPostVerifyPath(
   }
 
   if (isAccessChangeProofRunIntent(intake.submission.intent)) {
-    return ACCESS_CHANGE_POST_VERIFY_PATH;
+    return intake.submission.locale === "pl"
+      ? "/pl/review/request/confirmed"
+      : ACCESS_CHANGE_POST_VERIFY_PATH;
   }
 
   const search = new URLSearchParams({ email: issuance.email });

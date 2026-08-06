@@ -1,0 +1,78 @@
+{
+  "label": "Synthetic worked example — not customer evidence.",
+  "named_verifier": "scripts/witnessops_verify_receipt.py",
+  "verification": {
+    "checked_at_utc": "2026-08-06T06:48:27.939098Z",
+    "checks": {
+      "bridge_spec_supported": {
+        "detail": "bridge spec supported",
+        "failure_state": null,
+        "status": "pass"
+      },
+      "evidence_manifest_hash_matches": {
+        "detail": "evidence manifest hash matched",
+        "failure_state": null,
+        "status": "pass"
+      },
+      "execution_state_hash_matches": {
+        "detail": "execution state hash matched",
+        "failure_state": null,
+        "status": "pass"
+      },
+      "hash_manifest_entries_match_artifacts": {
+        "detail": "all four exact source hash-manifest artifacts matched; declared hashes matched for 26 included artifact(s)",
+        "failure_state": null,
+        "status": "pass"
+      },
+      "normalized_record_hash_matches": {
+        "detail": "normalized record hash matched",
+        "failure_state": null,
+        "status": "pass"
+      },
+      "required_authority_artifacts_present": {
+        "detail": "6 authority, approval, and lineage artifact(s) exist and match signed hashes",
+        "failure_state": null,
+        "status": "pass"
+      },
+      "schema_valid": {
+        "detail": "receipt shape accepted by verifier",
+        "failure_state": null,
+        "status": "pass"
+      },
+      "signature_present": {
+        "detail": "signature file supplied",
+        "failure_state": null,
+        "status": "pass"
+      },
+      "signature_valid": {
+        "detail": "signature verified against trusted signer",
+        "failure_state": null,
+        "status": "pass"
+      },
+      "signer_known": {
+        "detail": "signer found in trusted registry",
+        "failure_state": null,
+        "status": "pass"
+      },
+      "source_receipt_hash_matches": {
+        "detail": "source receipt hash matched",
+        "failure_state": null,
+        "status": "pass"
+      }
+    },
+    "contract_version": "witnessops.validation.v1",
+    "failure_detail": null,
+    "failure_state": null,
+    "receipt_id": "wops-runbook-external-exposure-assessment-retest-20260806-084735",
+    "result": "valid",
+    "run_id": "runbook-external-exposure-assessment-retest-20260806-084735",
+    "verifier_identity": {
+      "canonical_schema_sha256": "306d938a74a650071e136614b7b2f1aa964c43d2de30d8ee81c20b70252bcd2c",
+      "name": "scripts/witnessops_verify_receipt.py",
+      "sha256": "3a87af0aef7205dd3087cf232df4de9311d779a4a67f015673bc2e68677ec7b5",
+      "trust_boundary": "verifier and signer registry must be pinned through an independent channel",
+      "trust_registry_sha256": "2e74cc50cd6f01a76eb3799efb408a884916a0e34fe97fe3d2a7f7bc534398d3"
+    }
+  },
+  "boundary": "valid verifies supplied signature, trust set, structure, and hashes; not system security"
+}

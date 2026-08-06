@@ -1,0 +1,24 @@
+{
+  "label": "Synthetic worked example — not customer evidence.",
+  "product_id": "OFFSEC-EXTERNAL-EXPOSURE",
+  "evidence": [
+    {
+      "id": "E-001",
+      "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-01/http-headers.txt",
+      "purpose": "Supports F-001 and F-002",
+      "sha256": "710a68b96583139f49c28b5b865dad0e670e88652cb94bddb14560e9dcf515bc"
+    },
+    {
+      "id": "E-002",
+      "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-01/service-identification.txt",
+      "purpose": "Supports A-01 reachability",
+      "sha256": "716ced089869938e79bf6e4b276ffcfd50cb9c1bae8f7454156fb1eb05f6dec5"
+    },
+    {
+      "id": "E-003",
+      "path": "scans/external-exposure/initial/runbook-external-exposure-assessment-20260806-084609/T-02/http-headers.txt",
+      "purpose": "Supports F-003",
+      "sha256": "4d3d6cc26e1ccec0fa6ccdd3a353481ed5e014bce2ff90bcfbc5197f96979781"
+    }
+  ]
+}

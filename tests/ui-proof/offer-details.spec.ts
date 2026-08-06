@@ -30,7 +30,7 @@ const offers = [
     service: "external-exposure-assessment",
     name: "External Exposure Assessment",
     price: "€1,900 ex VAT — first three accepted engagements",
-    timing: "5–7 business days after authority, scope, inputs, and the check window are confirmed",
+    timing: "5–7 business days after authority, scope freeze, required inputs, and the approved collection window are confirmed",
     request: "/review/request",
   },
   {
@@ -70,7 +70,7 @@ const offers = [
     service: "external-exposure-assessment",
     name: "External Exposure Assessment",
     price: "€1 900 bez VAT — pierwsze trzy zaakceptowane zlecenia",
-    timing: "5–7 dni roboczych po potwierdzeniu upoważnienia, zakresu, materiałów wejściowych i okna kontroli",
+    timing: "5–7 dni roboczych po potwierdzeniu upoważnienia, zamrożenia zakresu, wymaganych materiałów wejściowych i zatwierdzonego okna zbierania",
     request: "/pl/review/request",
   },
   {
@@ -122,6 +122,27 @@ test("reachable offer details use the canonical buyer contract and visual system
         await expect(main).toContainText(
           offer.path.startsWith("/pl") ? "€1 900 bez VAT" : "€1,900 ex VAT",
         );
+        const sampleLink = main.locator(
+          'a[href="/review/sample-cases/external-exposure-assessment"]',
+        );
+        await expect(sampleLink).toHaveCount(1);
+        await expect(sampleLink).toHaveText(
+          offer.path.startsWith("/pl")
+            ? "Zobacz syntetyczny przykład"
+            : "Inspect synthetic sample",
+        );
+        await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+          "content",
+          /External Exposure Assessment \| WitnessOps/,
+        );
+        await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(
+          "href",
+          /\/catalog\/offsec-external-exposure$/,
+        );
+        await expect(page.locator('link[rel="alternate"][hreflang="pl"]')).toHaveAttribute(
+          "href",
+          /\/pl\/catalog\/offsec-external-exposure$/,
+        );
       }
       await expect(main).toContainText(offer.timing);
       await expect(main.locator("h1")).not.toContainText(/OFFSEC-|Proof packages/i);
@@ -156,6 +177,73 @@ test("reachable offer details use the canonical buyer contract and visual system
       expect(pageErrors).toEqual([]);
       await context.close();
     }
+  }
+});
+
+test("External Exposure Assessment synthetic sample is buyer-safe and responsive", async ({ browser }) => {
+  const expectedFiles = [
+    "README.md",
+    "external-exposure-assessment.md",
+    "exposure-map.json",
+    "findings.json",
+    "evidence-register.json",
+    "handover-agenda.md",
+    "focused-retest-result.md",
+    "CLAIM_BOUNDARY.md",
+    "evidence-manifest.json",
+    "verifier-result.json",
+    "MANIFEST.sha256",
+  ];
+
+  for (const viewport of viewports) {
+    const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
+    const page = await context.newPage();
+    const consoleErrors: string[] = [];
+    const pageErrors: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") consoleErrors.push(message.text());
+    });
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+
+    const response = await page.goto(
+      "/review/sample-cases/external-exposure-assessment",
+      { waitUntil: "networkidle" },
+    );
+    expect(response?.status()).toBe(200);
+    const main = page.locator(
+      '[data-page="external-exposure-assessment-sample"]',
+    );
+    await expect(main.locator("h1")).toHaveText("External Exposure Assessment");
+    await expect(main).toContainText(
+      "Synthetic worked example — not customer evidence.",
+    );
+    await expect(main).toContainText(
+      "It does not prove that observations are complete",
+    );
+    await expect(main).not.toContainText("assessment of WitnessOps");
+
+    for (const file of expectedFiles) {
+      await expect(
+        main.locator(`a[href="/samples/offsec-external-exposure/${file}"]`),
+      ).toHaveCount(1);
+    }
+
+    const fitLink = main.locator('a[href^="/review/request?"]').first();
+    const fitHref = await fitLink.getAttribute("href");
+    expect(
+      new URL(fitHref ?? "", "http://witnessops.test").searchParams.get(
+        "productId",
+      ),
+    ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
+    expect((await fitLink.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
+    expect(consoleErrors).toEqual([]);
+    expect(pageErrors).toEqual([]);
+    await context.close();
   }
 });
 
