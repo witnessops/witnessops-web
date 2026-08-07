@@ -161,6 +161,16 @@ test("public claim surfaces preserve at least one explicit boundary marker", () 
   assert.deepEqual(failures, []);
 });
 
+test("homepage synthetic preview preserves English and Polish customer-evidence boundaries", () => {
+  const source = readFileSync(
+    resolve(webRoot, "src/components/marketing/homepage-synthetic-preview.ts"),
+    "utf8",
+  );
+
+  assert.match(source, /Synthetic worked example — not customer evidence\./);
+  assert.match(source, /Syntetyczny przykład roboczy — nie są to materiały klienta\./);
+});
+
 test("claim-boundary guard scans only public presentation sources", () => {
   assert.ok(
     PUBLIC_CLAIM_SOURCES.every(
