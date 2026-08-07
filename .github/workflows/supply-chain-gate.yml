@@ -36,22 +36,6 @@ on:
         description: Number of exact resolved package/version pairs
         value: ${{ jobs.gate.outputs.package_count }}
   pull_request:
-    paths:
-      - "**/package.json"
-      - "**/pnpm-lock.yaml"
-      - "**/package-lock.json"
-      - "**/yarn.lock"
-      - "**/bun.lock"
-      - "**/bun.lockb"
-      - "**/.npmrc"
-      - "**/.pnpmfile.cjs"
-      - "**/.yarnrc"
-      - "**/.yarnrc.yml"
-      - "**/bunfig.toml"
-      - "**/pnpm-workspace.yaml"
-      - "security/supply-chain/**"
-      - "tools/supply-chain-gate/**"
-      - ".github/workflows/supply-chain-gate.yml"
   schedule:
     - cron: "17 5 * * *"
   workflow_dispatch: {}

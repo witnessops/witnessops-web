@@ -102,6 +102,13 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertRegex(self.build_image, r"(?m)^  pull_request:\s*$")
         self.assertIn("    if: github.event_name != 'pull_request'\n", publish)
 
+    def test_required_gate_runs_for_every_pull_request(self) -> None:
+        self.assertRegex(self.gate, r"(?m)^  pull_request:\s*$")
+        pull_request_trigger = self.gate.split("\n  pull_request:\n", 1)[1].split(
+            "\n  schedule:\n", 1
+        )[0]
+        self.assertNotIn("paths:", pull_request_trigger)
+
     def test_third_party_actions_are_pinned_to_full_commit_shas(self) -> None:
         for workflow in (self.gate, self.build_image, self.release):
             for reference in re.findall(r"(?m)^\s*uses:\s+([^\s#]+)", workflow):
