@@ -94,7 +94,7 @@ jobs:
             base_ref=""
           fi
           if [ -n "${base_ref}" ] && ! git cat-file -e "${base_ref}^{commit}" 2>/dev/null; then
-            echo "::warning::comparison base ${base_ref} is unavailable"
+            echo "::error::comparison base ${base_ref} is unavailable; the gate will fail closed and record evidence"
           fi
           echo "base_ref=${base_ref}" >> "${GITHUB_OUTPUT}"
 

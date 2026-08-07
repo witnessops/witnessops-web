@@ -793,7 +793,7 @@ def base_graph(repo: Path, base_ref: str | None, lockfiles: Sequence[Path]) -> s
         return set()
     pairs: set[Pair] = set()
     for lockfile in lockfiles:
-        relative = lockfile.relative_to(repo).as_posix()
+        relative = repository_relative_path(repo, lockfile, "lockfile")
         data = git_blob(repo, base_ref, relative)
         if data is None:
             continue
@@ -820,6 +820,13 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
 def resolve_under(root: Path, value: str) -> Path:
     path = Path(value)
     return path if path.is_absolute() else root / path
+
+
+def repository_relative_path(root: Path, path: Path, label: str) -> str:
+    try:
+        return path.resolve().relative_to(root).as_posix()
+    except ValueError as exc:
+        raise GateError(f"{label} must be inside repository root: {path}") from exc
 
 
 def display_path(path: Path, root: Path) -> str:
@@ -876,7 +883,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         for lockfile in lockfiles:
             if not lockfile.is_file():
                 raise GateError(f"missing lockfile: {lockfile}")
-            relative = lockfile.relative_to(repo).as_posix()
+            relative = repository_relative_path(repo, lockfile, "lockfile")
             try:
                 pairs = parse_lockfile_bytes(relative, lockfile.read_bytes())
             except CoverageError as exc:

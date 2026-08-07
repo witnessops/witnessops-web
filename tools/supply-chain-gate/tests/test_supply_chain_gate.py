@@ -72,6 +72,7 @@ class SupplyChainGateTests(unittest.TestCase):
         registry_fixture: str | None = None,
         ioc_file: Path | None = None,
         reviews_file: Path | None = None,
+        lockfile: str | Path = "pnpm-lock.yaml",
     ) -> tuple[subprocess.CompletedProcess[str], dict]:
         output = repository.root / "out"
         command = [
@@ -80,7 +81,7 @@ class SupplyChainGateTests(unittest.TestCase):
             "--repo-root",
             str(repository.root),
             "--lockfile",
-            "pnpm-lock.yaml",
+            str(lockfile),
             "--ioc-file",
             str(ioc_file or IOC_FILE),
             "--lifecycle-reviews",
@@ -105,6 +106,18 @@ class SupplyChainGateTests(unittest.TestCase):
         self.assertRegex(completed.stdout, r"^PASS packages=1 graph_sha256=[0-9a-f]{64}\n$")
         self.assertEqual(result["status"], "PASS")
         self.assertEqual(result["graph"]["package_count"], 1)
+
+    def test_external_lockfile_fails_closed_with_structured_evidence(self) -> None:
+        repository = self.repository("clean-pnpm-lock.yaml", {"safe-package": "1.0.0"})
+        with tempfile.TemporaryDirectory(prefix="witnessops-external-lockfile-") as temporary:
+            external_lockfile = Path(temporary) / "pnpm-lock.yaml"
+            shutil.copyfile(FIXTURES / "clean-pnpm-lock.yaml", external_lockfile)
+            completed, result = self.invoke(repository, lockfile=external_lockfile)
+            self.assertEqual(completed.returncode, 1)
+            self.assertEqual(result["status"], "BLOCKED")
+            self.assertIn("lockfile must be inside repository root", result["blocked_reasons"][0])
+            with self.assertRaisesRegex(GATE.GateError, "lockfile must be inside repository root"):
+                GATE.base_graph(repository.root, "HEAD", [external_lockfile])
 
     def test_campaign_versions_block_without_installing(self) -> None:
         for fixture, package, version in (

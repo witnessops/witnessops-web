@@ -15,7 +15,7 @@ def job_section(workflow: str, job_name: str) -> str:
     if start < 0:
         raise AssertionError(f"missing job {job_name}")
     remainder = workflow[start + len(marker) :]
-    next_job = re.search(r"\n  [a-zA-Z_][a-zA-Z0-9_]*:\n", remainder)
+    next_job = re.search(r"\n  [a-zA-Z_][a-zA-Z0-9_-]*:\n", remainder)
     end = len(workflow) if next_job is None else start + len(marker) + next_job.start()
     return workflow[start:end]
 
@@ -43,6 +43,13 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertNotRegex(section, r"(?m)^\s+contents:\s+write\s*$")
                 self.assertNotRegex(section, r"(?m)^\s+environment:\s*")
                 self.assertNotIn("${{ secrets.", section)
+
+    def test_job_section_supports_hyphenated_job_ids(self) -> None:
+        workflow = "jobs:\n  build:\n    permissions: read\n  publish-prod:\n    permissions: write\n"
+        section = job_section(workflow, "build")
+        self.assertIn("permissions: read", section)
+        self.assertNotIn("publish-prod", section)
+        self.assertNotIn("permissions: write", section)
 
     def test_frozen_install_is_gated_and_absent_from_privileged_jobs(self) -> None:
         for workflow in (self.build_image, self.release):
@@ -136,6 +143,8 @@ class WorkflowContractTests(unittest.TestCase):
             health.index('python3 "$ROOT/tools/supply-chain-gate/supply_chain_gate.py"'),
             health.index('"$CONTAINER_CMD" run --rm'),
         )
+        self.assertIn('merge-base HEAD origin/main', health)
+        self.assertNotIn('GATE_ARGS+=(--base-ref HEAD)', health)
 
 
 if __name__ == "__main__":
