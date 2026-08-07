@@ -9,6 +9,7 @@ import {
   type BuyerLocale,
 } from "@/lib/buyer-services";
 import styles from "./buyer-homepage.module.css";
+import { HOMEPAGE_SYNTHETIC_PREVIEW } from "./homepage-synthetic-preview";
 
 type HeroCopy = {
   eyebrow: string;
@@ -29,16 +30,6 @@ const localizedCopy = {
     verifyCta: "Verify a receipt",
     libraryCta: "Library",
     noSecrets: "Manually reviewed. No exploitation. Evidence-linked findings. Explicit limits. No sales call required.",
-    visual: {
-      label: "Illustrative delivery flow",
-      boundary: "Public boundary",
-      target: "example.com",
-      checks: "Bounded checks",
-      checkItems: ["DNS", "TLS", "HTTP", "Services"],
-      result: "Decision package",
-      resultItems: ["Fix now", "Fix next", "Unknowns"],
-      footer: "Evidence linked · Limits stated · One focused retest",
-    },
     offersEyebrow: "Other bounded proof work",
     offersTitle: "Need a different review?",
     offersBody:
@@ -92,16 +83,6 @@ const localizedCopy = {
     verifyCta: "Zweryfikuj zapis",
     libraryCta: "Biblioteka",
     noSecrets: "Ręcznie zweryfikowane. Bez eksploatacji. Ustalenia powiązane z materiałami. Jawne ograniczenia. Bez rozmowy sprzedażowej.",
-    visual: {
-      label: "Ilustracyjny przebieg dostawy",
-      boundary: "Granica publiczna",
-      target: "example.com",
-      checks: "Ograniczone kontrole",
-      checkItems: ["DNS", "TLS", "HTTP", "Usługi"],
-      result: "Pakiet decyzyjny",
-      resultItems: ["Napraw teraz", "Napraw później", "Niewiadome"],
-      footer: "Materiały powiązane · Jawne granice · Jeden retest",
-    },
     offersEyebrow: "Inne ograniczone prace dowodowe",
     offersTitle: "Potrzebujesz innego przeglądu?",
     offersBody:
@@ -153,10 +134,13 @@ export function BuyerHomepage({
   hero?: HeroCopy;
 }) {
   const text = localizedCopy[locale];
+  const preview = HOMEPAGE_SYNTHETIC_PREVIEW.localized[locale];
   const heroCopy = hero ?? text.hero;
   const catalogHref = buyerCatalogHref(locale);
   const orderHref = buyerOfferRequestHref(locale, "OFFSEC-EXTERNAL-EXPOSURE");
-  const sampleHref = "/review/sample-cases/external-exposure-assessment";
+  const sampleHref = HOMEPAGE_SYNTHETIC_PREVIEW.sampleHref;
+  const evidenceHash = HOMEPAGE_SYNTHETIC_PREVIEW.evidenceSha256;
+  const abbreviatedEvidenceHash = `${evidenceHash.slice(0, 12)}…${evidenceHash.slice(-8)}`;
   const secondaryServices = BUYER_SERVICES.filter(
     (service) =>
       service.id !== "external-exposure-assessment" &&
@@ -204,34 +188,73 @@ export function BuyerHomepage({
             <p className={styles.assuranceLine}>{text.noSecrets}</p>
           </div>
 
-          <aside aria-label={text.visual.label} className={styles.evidencePanel}>
+          <aside
+            aria-label={preview.panelLabel}
+            className={styles.evidencePanel}
+            data-home-synthetic-preview={HOMEPAGE_SYNTHETIC_PREVIEW.findingId}
+          >
             <div className={styles.evidenceHeader}>
-              <p>{text.visual.label}</p>
-              <p>{text.visual.footer}</p>
+              <p>{preview.panelLabel}</p>
+              <p className={styles.findingMeta}>
+                <span>{HOMEPAGE_SYNTHETIC_PREVIEW.findingId}</span>
+                <span>{preview.priority}</span>
+              </p>
             </div>
-            <ol className={styles.evidenceFlow}>
-              <li className={styles.evidenceStep}>
-                <span className={styles.stepNumber}>01</span>
-                <div>
-                  <p className={styles.stepLabel}>{text.visual.boundary}</p>
-                  <p className={styles.stepValue}>{text.visual.target}</p>
+            <div className={styles.findingBody}>
+              <h2 className={styles.findingTitle}>{preview.title}</h2>
+              <div className={styles.findingGrid}>
+                <div className={`${styles.findingField} ${styles.findingObserved}`}>
+                  <p className={styles.findingLabel}>{preview.observedLabel}</p>
+                  <p className={styles.findingValue}>{preview.observed}</p>
                 </div>
-              </li>
-              <li className={styles.evidenceStep}>
-                <span className={styles.stepNumber}>02</span>
-                <div>
-                  <p className={styles.stepLabel}>{text.visual.checks}</p>
-                  <p className={styles.stepValue}>{text.visual.checkItems.join(" · ")}</p>
+                <div
+                  className={`${styles.findingField} ${styles.findingEvidence}`}
+                  data-home-evidence={HOMEPAGE_SYNTHETIC_PREVIEW.evidenceId}
+                >
+                  <p className={styles.findingLabel}>{preview.evidenceLabel}</p>
+                  <p className={styles.evidenceReference}>
+                    <span>{HOMEPAGE_SYNTHETIC_PREVIEW.evidenceId}</span>
+                    <span aria-hidden="true">→</span>
+                    <span>{HOMEPAGE_SYNTHETIC_PREVIEW.evidenceArtifact}</span>
+                  </p>
+                  <p className={styles.evidenceHash}>
+                    {preview.evidenceRecorded}{" "}
+                    <code aria-label={`SHA-256 ${evidenceHash}`} title={evidenceHash}>
+                      {abbreviatedEvidenceHash}
+                    </code>
+                  </p>
                 </div>
-              </li>
-              <li className={styles.evidenceStep}>
-                <span className={styles.stepNumber}>03</span>
-                <div>
-                  <p className={styles.stepLabel}>{text.visual.result}</p>
-                  <p className={styles.stepValue}>{text.visual.resultItems.join(" · ")}</p>
+                <div className={`${styles.findingField} ${styles.findingWhy}`}>
+                  <p className={styles.findingLabel}>{preview.whyLabel}</p>
+                  <p className={styles.findingValue}>{preview.impact}</p>
                 </div>
-              </li>
-            </ol>
+                <div className={`${styles.findingField} ${styles.findingAction}`}>
+                  <p className={styles.findingLabel}>{preview.nextActionLabel}</p>
+                  <p className={styles.findingValue}>{preview.remediation}</p>
+                </div>
+                <div className={`${styles.findingField} ${styles.findingRetest}`}>
+                  <p className={styles.findingLabel}>{preview.retestLabel}</p>
+                  <p className={styles.findingValue}>{preview.retest}</p>
+                </div>
+              </div>
+            </div>
+            <div className={styles.findingFooter}>
+              <div>
+                <p className={styles.packageLabel}>{preview.packageLabel}</p>
+                <p className={styles.packageItems}>
+                  {HOMEPAGE_SYNTHETIC_PREVIEW.packageArtifacts
+                    .map((artifact) => artifact.label[locale])
+                    .join(" · ")}
+                </p>
+              </div>
+              <Link
+                href={sampleHref}
+                className={styles.sampleAction}
+                data-home-sample-action="finding-preview"
+              >
+                {preview.sampleAction}
+              </Link>
+            </div>
           </aside>
         </header>
       </section>

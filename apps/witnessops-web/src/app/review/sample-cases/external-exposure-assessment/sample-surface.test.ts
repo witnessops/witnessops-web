@@ -20,6 +20,13 @@ const homepage = readFileSync(
   resolve(__dirname, "../../../../components/marketing/buyer-homepage.tsx"),
   "utf8",
 );
+const homepagePreview = readFileSync(
+  resolve(
+    __dirname,
+    "../../../../components/marketing/homepage-synthetic-preview.ts",
+  ),
+  "utf8",
+);
 
 const expectedFiles = [
   "README.md",
@@ -58,5 +65,5 @@ test("sample is linked from the homepage, offer detail, catalogue, and pricing e
   assert.match(serviceLandings, new RegExp(route));
   assert.match(pricing, new RegExp(route));
   assert.match(catalogue, new RegExp(route));
-  assert.match(homepage, new RegExp(route));
+  assert.match(`${homepage}\n${homepagePreview}`, new RegExp(route));
 });
