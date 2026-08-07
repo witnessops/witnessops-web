@@ -169,6 +169,34 @@ class SupplyChainGateTests(unittest.TestCase):
         self.assertEqual(result["dependency_change"]["status"], "BLOCKED")
         self.assertEqual(result["dependency_change"]["semantic_manifest_changes"], ["package.json"])
 
+    def test_same_version_resolution_change_blocks_and_rechecks_lifecycle(self) -> None:
+        repository = self.repository("clean-pnpm-lock.yaml", {"safe-package": "1.0.0"})
+        lockfile = repository.root / "pnpm-lock.yaml"
+        lockfile.write_text(
+            lockfile.read_text(encoding="utf-8").replace(
+                "sha512-inert-fixture", "sha512-substituted-fixture"
+            ),
+            encoding="utf-8",
+        )
+        completed, result = self.invoke(
+            repository,
+            base_ref="HEAD",
+            osv_fixture="osv-vulnerable.json",
+            registry_fixture="registry-metadata.json",
+        )
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(
+            result["dependency_change"]["resolution_changes"][0]["package"], "safe-package"
+        )
+        self.assertIn(
+            "lockfile resolution changed without version change: safe-package@1.0.0",
+            result["blocked_reasons"],
+        )
+        self.assertEqual(result["lifecycle_review"]["records"][0]["package"], "safe-package")
+        self.assertTrue(result["matches"]["osv_advisories"][0]["introduced_by_change"])
+        self.assertTrue(result["matches"]["osv_advisories"][0]["blocking"])
+
     def test_formatting_only_manifest_change_does_not_require_lockfile(self) -> None:
         repository = self.repository("clean-pnpm-lock.yaml", {"safe-package": "1.0.0"})
         (repository.root / "package.json").write_text(
@@ -297,15 +325,37 @@ class SupplyChainGateTests(unittest.TestCase):
                 "lockfileVersion": 3,
                 "packages": {
                     "": {"name": "fixture"},
-                    "node_modules/safe-package": {"version": "1.0.0"},
+                    "node_modules/safe-package": {
+                        "version": "1.0.0",
+                        "resolved": "https://registry.npmjs.org/safe-package/-/safe-package-1.0.0.tgz",
+                        "integrity": "sha512-inert",
+                    },
                     "node_modules/@scope/tool": {"version": "2.0.0"},
                 },
             }
         ).encode()
-        yarn_lock = b'safe-package@^1.0.0:\n  version "1.0.0"\n\n"@scope/tool@^2.0.0":\n  version "2.0.0"\n'
+        yarn_lock = (
+            b'safe-package@^1.0.0:\n  version "1.0.0"\n'
+            b'  resolved "https://registry.yarnpkg.com/safe-package/-/safe-package-1.0.0.tgz#inert"\n'
+            b'  integrity sha512-inert\n\n"@scope/tool@^2.0.0":\n  version "2.0.0"\n'
+        )
         expected = {("safe-package", "1.0.0"), ("@scope/tool", "2.0.0")}
         self.assertEqual(GATE.parse_package_lock(package_lock), expected)
         self.assertEqual(GATE.parse_yarn_lock(yarn_lock), expected)
+        package_resolutions = GATE.parse_package_lock_resolution_map(package_lock)
+        yarn_resolutions = GATE.parse_yarn_resolution_map(yarn_lock)
+        self.assertNotEqual(
+            package_resolutions[("safe-package", "1.0.0")],
+            GATE.parse_package_lock_resolution_map(package_lock.replace(b"sha512-inert", b"sha512-other"))[
+                ("safe-package", "1.0.0")
+            ],
+        )
+        self.assertNotEqual(
+            yarn_resolutions[("safe-package", "1.0.0")],
+            GATE.parse_yarn_resolution_map(yarn_lock.replace(b"sha512-inert", b"sha512-other"))[
+                ("safe-package", "1.0.0")
+            ],
+        )
 
     def test_pnpm_parser_ignores_nested_peer_metadata(self) -> None:
         lockfile = b"""lockfileVersion: '9.0'
@@ -320,6 +370,12 @@ snapshots: {}
         self.assertEqual(
             GATE.parse_pnpm_lock(lockfile),
             {("@scope/tool", "2.0.0"), ("safe-package", "1.0.0")},
+        )
+        self.assertNotEqual(
+            GATE.parse_pnpm_resolution_map(lockfile)[("safe-package", "1.0.0")],
+            GATE.parse_pnpm_resolution_map(lockfile.replace(b"sha512-inert", b"sha512-other"))[
+                ("safe-package", "1.0.0")
+            ],
         )
 
 

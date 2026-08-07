@@ -23,8 +23,9 @@ Result states:
 
 - `PASS`: all required local and network checks completed with no blocking match;
 - `BLOCKED`: an exact malicious-package match, dependency/lock policy violation,
-  newly introduced affected OSV record, unreviewed lifecycle script, or exact
-  lifecycle tuple already recorded as `BLOCKED` was found;
+  same-version lockfile source/integrity change, newly introduced affected OSV
+  record, unreviewed lifecycle script, or exact lifecycle tuple already recorded
+  as `BLOCKED` was found;
 - `COVERAGE DEGRADED`: required external data was unavailable or unverifiable.
 
 The detailed result and canonical package graph are written under

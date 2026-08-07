@@ -98,6 +98,7 @@ MAX_OSV_RESPONSE_BYTES = 32 * 1024 * 1024
 MAX_NPM_METADATA_BYTES = 4 * 1024 * 1024
 
 Pair = tuple[str, str]
+ResolutionMap = dict[Pair, tuple[str, ...]]
 
 
 class GateError(RuntimeError):
@@ -129,6 +130,32 @@ def canonical_json_bytes(value: Any) -> bytes:
 def canonical_graph_bytes(pairs: Iterable[Pair]) -> bytes:
     rows = [f"{name}\t{version}\n" for name, version in sorted(set(pairs))]
     return "".join(rows).encode("utf-8")
+
+
+def resolution_fingerprint(fields: Mapping[str, str]) -> str:
+    normalized = {key: fields[key] for key in sorted(fields) if fields[key]}
+    return sha256_bytes(canonical_json_bytes(normalized))
+
+
+def freeze_resolution_map(
+    pairs: Iterable[Pair], records: Mapping[Pair, set[str]]
+) -> ResolutionMap:
+    empty = resolution_fingerprint({})
+    return {
+        pair: tuple(sorted(records.get(pair, {empty})))
+        for pair in sorted(set(pairs))
+    }
+
+
+def resolution_set_sha256(fingerprints: Sequence[str]) -> str:
+    return sha256_bytes(canonical_json_bytes(sorted(set(fingerprints))))
+
+
+def add_resolution_record(
+    records: dict[Pair, set[str]], pair: Pair | None, fields: Mapping[str, str]
+) -> None:
+    if pair is not None:
+        records.setdefault(pair, set()).add(resolution_fingerprint(fields))
 
 
 def is_registry_version(version: str) -> bool:
@@ -314,6 +341,183 @@ def parse_lockfile_bytes(path: str | Path, data: bytes) -> set[Pair]:
         return parse_yarn_lock(data, str(path))
     if name in {"bun.lock", "bun.lockb"}:
         raise CoverageError(f"{path}: Bun lockfile parsing is not implemented")
+    raise GateError(f"unsupported lockfile: {path}")
+
+
+def parse_inline_resolution(raw: str) -> dict[str, str]:
+    value = raw.strip()
+    if not (value.startswith("{") and value.endswith("}")):
+        return {}
+    fields: dict[str, str] = {}
+    content = value[1:-1]
+    for key in ("integrity", "tarball"):
+        match = re.search(
+            rf"(?:^|,)\s*{key}\s*:\s*(\"(?:\\.|[^\"])*\"|'(?:''|[^'])*'|[^,}}]+)",
+            content,
+        )
+        if match:
+            fields[key] = decode_yaml_scalar(match.group(1))
+    return fields
+
+
+def parse_pnpm_resolution_map(data: bytes, label: str = "pnpm-lock.yaml") -> ResolutionMap:
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise GateError(f"{label}: lockfile is not UTF-8") from exc
+
+    pairs = parse_pnpm_lock(data, label)
+    records: dict[Pair, set[str]] = {}
+    section = ""
+    current_pair: Pair | None = None
+    fields: dict[str, str] = {}
+    in_resolution = False
+
+    def flush() -> None:
+        nonlocal current_pair, fields, in_resolution
+        add_resolution_record(records, current_pair, fields)
+        current_pair, fields, in_resolution = None, {}, False
+
+    for line in text.splitlines():
+        top = re.match(r"^([A-Za-z][A-Za-z0-9_-]*):\s*$", line)
+        if top:
+            flush()
+            section = top.group(1)
+            continue
+        if section != "packages":
+            continue
+        entry = re.match(r"^  (\S.*):\s*$", line)
+        if entry:
+            flush()
+            current_pair = split_package_key(decode_yaml_scalar(entry.group(1)))
+            continue
+        if current_pair is None:
+            continue
+        resolution = re.match(r"^    resolution:\s*(.*)$", line)
+        if resolution:
+            fields.update(parse_inline_resolution(resolution.group(1)))
+            in_resolution = not bool(resolution.group(1).strip())
+            continue
+        if in_resolution:
+            nested = re.match(r"^      (integrity|tarball):\s*(.+?)\s*$", line)
+            if nested:
+                fields[nested.group(1)] = decode_yaml_scalar(nested.group(2))
+            elif line and len(line) - len(line.lstrip()) <= 4:
+                in_resolution = False
+    flush()
+    return freeze_resolution_map(pairs, records)
+
+
+def parse_package_lock_resolution_map(
+    data: bytes, label: str = "package-lock.json"
+) -> ResolutionMap:
+    try:
+        parsed = json.loads(data)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise GateError(f"{label}: invalid JSON") from exc
+    if not isinstance(parsed, dict):
+        raise GateError(f"{label}: root must be an object")
+
+    pairs = parse_package_lock(data, label)
+    records: dict[Pair, set[str]] = {}
+
+    def fields_for(record: Mapping[str, Any]) -> dict[str, str]:
+        return {
+            key: value
+            for key in ("resolved", "integrity")
+            if isinstance((value := record.get(key)), str)
+        }
+
+    packages = parsed.get("packages")
+    if isinstance(packages, dict):
+        for install_path, record in packages.items():
+            if not install_path or not isinstance(record, dict):
+                continue
+            name = record.get("name") or package_name_from_node_modules_path(str(install_path))
+            version = record.get("version")
+            pair = (
+                (name, version)
+                if isinstance(name, str)
+                and isinstance(version, str)
+                and is_registry_version(version)
+                else None
+            )
+            add_resolution_record(records, pair, fields_for(record))
+
+    def walk(dependencies: Any) -> None:
+        if not isinstance(dependencies, dict):
+            return
+        for name, record in dependencies.items():
+            if not isinstance(name, str) or not isinstance(record, dict):
+                continue
+            version = record.get("version")
+            pair = (
+                (name, version)
+                if isinstance(version, str) and is_registry_version(version)
+                else None
+            )
+            add_resolution_record(records, pair, fields_for(record))
+            walk(record.get("dependencies"))
+
+    walk(parsed.get("dependencies"))
+    return freeze_resolution_map(pairs, records)
+
+
+def parse_yarn_resolution_map(data: bytes, label: str = "yarn.lock") -> ResolutionMap:
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise GateError(f"{label}: lockfile is not UTF-8") from exc
+
+    pairs = parse_yarn_lock(data, label)
+    records: dict[Pair, set[str]] = {}
+    selectors: list[str] = []
+    version: str | None = None
+    fields: dict[str, str] = {}
+
+    def flush() -> None:
+        nonlocal selectors, version, fields
+        if version:
+            name = yarn_selector_name(fields.get("resolution", ""))
+            if not name and selectors:
+                name = yarn_selector_name(selectors[0])
+            pair = (name, version) if name and is_registry_version(version) else None
+            add_resolution_record(records, pair, fields)
+        selectors, version, fields = [], None, {}
+
+    for line in text.splitlines():
+        if line and not line[0].isspace() and line.rstrip().endswith(":"):
+            flush()
+            header = line.rstrip()[:-1]
+            if header == "__metadata":
+                continue
+            selectors = [part.strip() for part in re.split(r",\s*", header)]
+            continue
+        if not selectors:
+            continue
+        match_version = re.match(r"^\s+version(?::|\s+)\s*[\"']?([^\"'\s]+)", line)
+        if match_version:
+            version = match_version.group(1)
+            continue
+        match_field = re.match(
+            r"^\s+(resolved|resolution|integrity|checksum)(?::|\s+)\s*(.+?)\s*$", line
+        )
+        if match_field:
+            fields[match_field.group(1)] = decode_yaml_scalar(match_field.group(2))
+    flush()
+    return freeze_resolution_map(pairs, records)
+
+
+def parse_lockfile_resolution_map(path: str | Path, data: bytes) -> ResolutionMap:
+    name = Path(path).name
+    if name == "pnpm-lock.yaml":
+        return parse_pnpm_resolution_map(data, str(path))
+    if name == "package-lock.json":
+        return parse_package_lock_resolution_map(data, str(path))
+    if name == "yarn.lock":
+        return parse_yarn_resolution_map(data, str(path))
+    if name in {"bun.lock", "bun.lockb"}:
+        raise CoverageError(f"{path}: Bun lockfile resolution parsing is not implemented")
     raise GateError(f"unsupported lockfile: {path}")
 
 
@@ -758,6 +962,7 @@ def assess_manifest_lock_change(
     return {
         "semantic_manifest_changes": manifest_changes,
         "lockfile_changes": lock_changes,
+        "resolution_changes": [],
         "status": "BLOCKED" if blocked else "PASS",
         "reason": "dependency declarations changed without a lockfile change" if blocked else "",
     }
@@ -769,6 +974,7 @@ def evaluate_git_change(repo: Path, base_ref: str | None) -> tuple[dict[str, Any
             "base_ref": "",
             "semantic_manifest_changes": [],
             "lockfile_changes": [],
+            "resolution_changes": [],
             "status": "NOT_APPLICABLE",
             "reason": "no comparison base supplied",
         }, set()
@@ -799,6 +1005,39 @@ def base_graph(repo: Path, base_ref: str | None, lockfiles: Sequence[Path]) -> s
             continue
         pairs.update(parse_lockfile_bytes(relative, data))
     return pairs
+
+
+def compare_lockfile_resolutions(
+    repo: Path, base_ref: str | None, lockfiles: Sequence[Path]
+) -> tuple[list[dict[str, str]], set[Pair]]:
+    if not base_ref:
+        return [], set()
+    changes: list[dict[str, str]] = []
+    changed_pairs: set[Pair] = set()
+    for lockfile in lockfiles:
+        relative = repository_relative_path(repo, lockfile, "lockfile")
+        base_data = git_blob(repo, base_ref, relative)
+        if base_data is None:
+            continue
+        current_data = lockfile.read_bytes()
+        base_resolutions = parse_lockfile_resolution_map(relative, base_data)
+        current_resolutions = parse_lockfile_resolution_map(relative, current_data)
+        for pair in sorted(base_resolutions.keys() & current_resolutions.keys()):
+            before = base_resolutions[pair]
+            after = current_resolutions[pair]
+            if before == after:
+                continue
+            changed_pairs.add(pair)
+            changes.append(
+                {
+                    "lockfile": relative,
+                    "package": pair[0],
+                    "version": pair[1],
+                    "base_resolution_sha256": resolution_set_sha256(before),
+                    "current_resolution_sha256": resolution_set_sha256(after),
+                }
+            )
+    return changes, changed_pairs
 
 
 def parse_args(argv: Sequence[str]) -> argparse.Namespace:
@@ -866,6 +1105,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "base_ref": args.base_ref or "",
         "semantic_manifest_changes": [],
         "lockfile_changes": [],
+        "resolution_changes": [],
         "status": "UNKNOWN",
         "reason": "not evaluated",
     }
@@ -911,12 +1151,23 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.base_ref:
             try:
                 new_pairs = sorted(graph - base_graph(repo, args.base_ref, lockfiles))
+                resolution_changes, resolution_changed_pairs = compare_lockfile_resolutions(
+                    repo, args.base_ref, lockfiles
+                )
+                dependency_change["resolution_changes"] = resolution_changes
+                for pair in sorted(resolution_changed_pairs):
+                    blocked_reasons.append(
+                        "lockfile resolution changed without version change: "
+                        f"{pair[0]}@{pair[1]}"
+                    )
             except CoverageError as exc:
                 new_pairs = []
+                resolution_changed_pairs = set()
                 degraded_reasons.append(f"base lockfile coverage unavailable: {exc}")
         else:
             new_pairs = []
-        new_pair_set = set(new_pairs)
+            resolution_changed_pairs = set()
+        introduced_pair_set = set(new_pairs) | resolution_changed_pairs
 
         ioc_path = resolve_under(repo, args.ioc_file)
         try:
@@ -971,7 +1222,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 for advisory in osv_results.get(pair, []):
                     advisory_id = advisory["id"]
                     classification = "malicious_package" if advisory_id.startswith("MAL-") else "vulnerability"
-                    blocking = classification == "malicious_package" or pair in new_pair_set
+                    blocking = classification == "malicious_package" or pair in introduced_pair_set
                     advisory_matches.append(
                         {
                             "package": pair[0],
@@ -980,7 +1231,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                             "modified": advisory.get("modified", ""),
                             "source": args.osv_url if not args.osv_snapshot else str(args.osv_snapshot),
                             "classification": classification,
-                            "introduced_by_change": pair in new_pair_set,
+                            "introduced_by_change": pair in introduced_pair_set,
                             "blocking": blocking,
                         }
                     )
@@ -1013,7 +1264,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             for key, review in reviews.items()
             if review["outcome"] == "BLOCKED" and (key[0], key[1]) in graph
         }
-        lifecycle_pairs = sorted(set(new_pairs) | rejected_review_pairs)
+        lifecycle_pairs = sorted(introduced_pair_set | rejected_review_pairs)
         if lifecycle_pairs:
             snapshot_metadata: dict[Pair, dict[str, Any]] | None = None
             snapshot_sources: dict[Pair, str] | None = None
