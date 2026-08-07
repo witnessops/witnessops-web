@@ -25,7 +25,8 @@ Result states:
 - `BLOCKED`: an exact malicious-package match, dependency/lock policy violation,
   same-version lockfile source/integrity change, newly introduced affected OSV
   record, unreviewed lifecycle script, or exact lifecycle tuple already recorded
-  as `BLOCKED` was found;
+  as `BLOCKED` was found. Git, remote-tarball, file, link, patch, and other
+  non-registry dependency sources are unsupported and fail closed;
 - `COVERAGE DEGRADED`: required external data was unavailable or unverifiable.
 
 The detailed result and canonical package graph are written under

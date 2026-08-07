@@ -96,6 +96,27 @@ SUSPICIOUS_SCRIPT_PATTERNS = {
 }
 MAX_OSV_RESPONSE_BYTES = 32 * 1024 * 1024
 MAX_NPM_METADATA_BYTES = 4 * 1024 * 1024
+REGISTRY_VERSION_PATTERN = re.compile(
+    r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+    r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
+    r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
+)
+TRUSTED_REGISTRY_TARBALL_HOSTS = frozenset({"registry.npmjs.org", "registry.yarnpkg.com"})
+UNSUPPORTED_DEPENDENCY_PREFIXES = (
+    "file:",
+    "git:",
+    "git+",
+    "git@",
+    "github:",
+    "gitlab:",
+    "bitbucket:",
+    "http:",
+    "https:",
+    "link:",
+    "patch:",
+    "portal:",
+    "ssh:",
+)
 
 Pair = tuple[str, str]
 ResolutionMap = dict[Pair, tuple[str, ...]]
@@ -159,9 +180,82 @@ def add_resolution_record(
 
 
 def is_registry_version(version: str) -> bool:
-    lowered = version.lower()
-    return bool(version) and not lowered.startswith(
-        ("file:", "git:", "git+", "github:", "http:", "https:", "link:", "workspace:")
+    return bool(REGISTRY_VERSION_PATTERN.fullmatch(version))
+
+
+def source_sha256(value: str) -> str:
+    return sha256_bytes(value.encode("utf-8", errors="surrogatepass"))
+
+
+def unsupported_source(label: str, value: str) -> GateError:
+    return GateError(
+        f"{label}: unsupported non-registry package source "
+        f"(source_sha256={source_sha256(value)})"
+    )
+
+
+def validate_registry_tarball_source(value: str, label: str) -> None:
+    parsed = urllib.parse.urlparse(value)
+    if parsed.scheme.lower() in {"http", "https"} and (
+        parsed.hostname or ""
+    ).lower() in TRUSTED_REGISTRY_TARBALL_HOSTS:
+        return
+    raise unsupported_source(label, value)
+
+
+def dependency_spec_is_unsupported(value: str) -> bool:
+    spec = value.strip()
+    lowered = spec.lower()
+    if lowered.startswith(("workspace:", "catalog:", "npm:")):
+        return False
+    if lowered.startswith(UNSUPPORTED_DEPENDENCY_PREFIXES):
+        return True
+    if spec.startswith(("./", "../", "/", "\\\\")):
+        return True
+    # npm and pnpm accept owner/repository as a hosted-git shorthand.
+    return "/" in spec
+
+
+def unsupported_dependency_sources(repo: Path) -> list[dict[str, str]]:
+    records: list[dict[str, str]] = []
+    for manifest in discover_files(repo, {"package.json"}):
+        relative = repository_relative_path(repo, manifest, "manifest")
+        try:
+            parsed = json.loads(manifest.read_bytes())
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise GateError(f"{relative}: invalid package.json") from exc
+        if not isinstance(parsed, dict):
+            raise GateError(f"{relative}: package.json root must be an object")
+        for field in (
+            "dependencies",
+            "devDependencies",
+            "optionalDependencies",
+            "peerDependencies",
+        ):
+            dependencies = parsed.get(field, {})
+            if dependencies is None:
+                continue
+            if not isinstance(dependencies, dict):
+                raise GateError(f"{relative}: {field} must be an object")
+            for package, spec in dependencies.items():
+                if not isinstance(package, str) or not isinstance(spec, str):
+                    raise GateError(f"{relative}: {field} contains a non-string dependency")
+                if dependency_spec_is_unsupported(spec):
+                    records.append(
+                        {
+                            "manifest": relative,
+                            "dependency_field": field,
+                            "package": package,
+                            "specifier_sha256": source_sha256(spec),
+                        }
+                    )
+    return sorted(
+        records,
+        key=lambda item: (
+            item["manifest"],
+            item["dependency_field"],
+            item["package"],
+        ),
     )
 
 
@@ -223,12 +317,15 @@ def parse_pnpm_lock(data: bytes, label: str = "pnpm-lock.yaml") -> set[Pair]:
         entry = re.match(r"^  (\S.*):\s*$", line)
         if not entry:
             continue
-        pair = split_package_key(decode_yaml_scalar(entry.group(1)))
-        if pair:
-            pairs.add(pair)
+        package_key = decode_yaml_scalar(entry.group(1))
+        pair = split_package_key(package_key)
+        if pair is None:
+            raise unsupported_source(f"{label}: pnpm package entry", package_key)
+        pairs.add(pair)
 
     if not saw_packages:
         raise GateError(f"{label}: missing packages section")
+    validate_pnpm_resolution_sources(data, label)
     return pairs
 
 
@@ -241,6 +338,17 @@ def package_name_from_node_modules_path(path: str) -> str | None:
         parts = tail.split("/")
         return "/".join(parts[:2]) if len(parts) >= 2 else None
     return tail.split("/", 1)[0]
+
+
+def validate_package_lock_record_source(record: Mapping[str, Any], label: str) -> None:
+    if record.get("link") is True:
+        return
+    version = record.get("version")
+    if isinstance(version, str) and not is_registry_version(version):
+        raise unsupported_source(label, version)
+    resolved = record.get("resolved")
+    if isinstance(resolved, str):
+        validate_registry_tarball_source(resolved, label)
 
 
 def parse_package_lock(data: bytes, label: str = "package-lock.json") -> set[Pair]:
@@ -257,6 +365,7 @@ def parse_package_lock(data: bytes, label: str = "package-lock.json") -> set[Pai
         for install_path, record in packages.items():
             if not install_path or not isinstance(record, dict):
                 continue
+            validate_package_lock_record_source(record, f"{label}: {install_path}")
             name = record.get("name") or package_name_from_node_modules_path(str(install_path))
             version = record.get("version")
             if isinstance(name, str) and isinstance(version, str) and is_registry_version(version):
@@ -268,6 +377,7 @@ def parse_package_lock(data: bytes, label: str = "package-lock.json") -> set[Pai
         for name, record in dependencies.items():
             if not isinstance(name, str) or not isinstance(record, dict):
                 continue
+            validate_package_lock_record_source(record, f"{label}: dependency {name}")
             version = record.get("version")
             if isinstance(version, str) and is_registry_version(version):
                 pairs.add((name, version))
@@ -287,6 +397,24 @@ def yarn_selector_name(selector: str) -> str | None:
     if separator <= 0 or (value.startswith("@") and separator <= value.find("/")):
         return None
     return value[:separator]
+
+
+def validate_yarn_selector_source(selector: str, label: str) -> None:
+    value = selector.strip().strip('"').strip("'")
+    name = yarn_selector_name(value)
+    if not name:
+        raise unsupported_source(f"{label}: Yarn selector", value)
+    spec = value[len(name) + 1 :]
+    if spec.lower().startswith("workspace:"):
+        return
+    if dependency_spec_is_unsupported(spec):
+        raise unsupported_source(f"{label}: Yarn selector for {name}", spec)
+
+
+def validate_yarn_resolution_source(value: str, label: str) -> None:
+    if re.fullmatch(r"(?:@[^/@\s]+/[^/@\s]+|[^/@\s]+)@npm:.+", value):
+        return
+    validate_registry_tarball_source(value, label)
 
 
 def parse_yarn_lock(data: bytes, label: str = "yarn.lock") -> set[Pair]:
@@ -317,6 +445,8 @@ def parse_yarn_lock(data: bytes, label: str = "yarn.lock") -> set[Pair]:
             if header == "__metadata":
                 continue
             selectors = [part.strip() for part in re.split(r",\s*", header)]
+            for selector in selectors:
+                validate_yarn_selector_source(selector, label)
             continue
         if not selectors:
             continue
@@ -327,6 +457,11 @@ def parse_yarn_lock(data: bytes, label: str = "yarn.lock") -> set[Pair]:
         match_resolution = re.match(r"^\s+resolution(?::|\s+)\s*[\"']?([^\"']+)", line)
         if match_resolution:
             resolution = match_resolution.group(1).strip()
+            validate_yarn_resolution_source(resolution, label)
+            continue
+        match_resolved = re.match(r"^\s+resolved(?::|\s+)\s*[\"']?([^\"']+)", line)
+        if match_resolved:
+            validate_registry_tarball_source(match_resolved.group(1).strip(), label)
     flush()
     return pairs
 
@@ -350,14 +485,63 @@ def parse_inline_resolution(raw: str) -> dict[str, str]:
         return {}
     fields: dict[str, str] = {}
     content = value[1:-1]
-    for key in ("integrity", "tarball"):
+    for key in ("integrity", "tarball", "type", "repo", "commit", "path"):
         match = re.search(
-            rf"(?:^|,)\s*{key}\s*:\s*(\"(?:\\.|[^\"])*\"|'(?:''|[^'])*'|[^,}}]+)",
+            rf"(?:^|,)\s*['\"]?{key}['\"]?\s*:\s*"
+            rf"(\"(?:\\.|[^\"])*\"|'(?:''|[^'])*'|[^,}}]+)",
             content,
         )
         if match:
             fields[key] = decode_yaml_scalar(match.group(1))
     return fields
+
+
+def validate_pnpm_resolution_fields(fields: Mapping[str, str], label: str) -> None:
+    unsupported = {key: fields[key] for key in ("type", "repo", "commit", "path") if key in fields}
+    if unsupported:
+        raise unsupported_source(label, canonical_json_bytes(unsupported).decode("utf-8"))
+    tarball = fields.get("tarball")
+    if tarball:
+        validate_registry_tarball_source(tarball, label)
+
+
+def validate_pnpm_resolution_sources(data: bytes, label: str) -> None:
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise GateError(f"{label}: lockfile is not UTF-8") from exc
+
+    section = ""
+    in_resolution = False
+    for line in text.splitlines():
+        top = re.match(r"^([A-Za-z][A-Za-z0-9_-]*):\s*$", line)
+        if top:
+            section = top.group(1)
+            in_resolution = False
+            continue
+        if section != "packages":
+            continue
+        if re.match(r"^  \S.*:\s*$", line):
+            in_resolution = False
+            continue
+        resolution = re.match(r"^    resolution:\s*(.*)$", line)
+        if resolution:
+            fields = parse_inline_resolution(resolution.group(1))
+            validate_pnpm_resolution_fields(fields, f"{label}: pnpm resolution")
+            in_resolution = not bool(resolution.group(1).strip())
+            continue
+        if in_resolution:
+            nested = re.match(
+                r"^      ['\"]?(integrity|tarball|type|repo|commit|path)['\"]?:\s*(.+?)\s*$",
+                line,
+            )
+            if nested:
+                validate_pnpm_resolution_fields(
+                    {nested.group(1): decode_yaml_scalar(nested.group(2))},
+                    f"{label}: pnpm resolution",
+                )
+            elif line and len(line) - len(line.lstrip()) <= 4:
+                in_resolution = False
 
 
 def parse_pnpm_resolution_map(data: bytes, label: str = "pnpm-lock.yaml") -> ResolutionMap:
@@ -399,7 +583,10 @@ def parse_pnpm_resolution_map(data: bytes, label: str = "pnpm-lock.yaml") -> Res
             in_resolution = not bool(resolution.group(1).strip())
             continue
         if in_resolution:
-            nested = re.match(r"^      (integrity|tarball):\s*(.+?)\s*$", line)
+            nested = re.match(
+                r"^      ['\"]?(integrity|tarball|type|repo|commit|path)['\"]?:\s*(.+?)\s*$",
+                line,
+            )
             if nested:
                 fields[nested.group(1)] = decode_yaml_scalar(nested.group(2))
             elif line and len(line) - len(line.lstrip()) <= 4:
@@ -963,6 +1150,7 @@ def assess_manifest_lock_change(
         "semantic_manifest_changes": manifest_changes,
         "lockfile_changes": lock_changes,
         "resolution_changes": [],
+        "unsupported_sources": [],
         "status": "BLOCKED" if blocked else "PASS",
         "reason": "dependency declarations changed without a lockfile change" if blocked else "",
     }
@@ -975,6 +1163,7 @@ def evaluate_git_change(repo: Path, base_ref: str | None) -> tuple[dict[str, Any
             "semantic_manifest_changes": [],
             "lockfile_changes": [],
             "resolution_changes": [],
+            "unsupported_sources": [],
             "status": "NOT_APPLICABLE",
             "reason": "no comparison base supplied",
         }, set()
@@ -1106,14 +1295,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         "semantic_manifest_changes": [],
         "lockfile_changes": [],
         "resolution_changes": [],
+        "unsupported_sources": [],
         "status": "UNKNOWN",
         "reason": "not evaluated",
     }
     graph: set[Pair] = set()
     commit_sha = "UNKNOWN"
+    unsupported_sources: list[dict[str, str]] = []
 
     try:
         commit_sha = run_git(repo, ["rev-parse", "HEAD"]).strip()
+        unsupported_sources = unsupported_dependency_sources(repo)
+        dependency_change["unsupported_sources"] = unsupported_sources
+        for record in unsupported_sources:
+            blocked_reasons.append(
+                "unsupported non-registry package source: "
+                f"{record['package']} in {record['manifest']} {record['dependency_field']} "
+                f"(specifier_sha256={record['specifier_sha256']})"
+            )
         if args.lockfile:
             lockfiles = [resolve_under(repo, value) for value in args.lockfile]
         else:
@@ -1145,6 +1344,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         graph_sha256 = sha256_bytes(graph_bytes)
 
         dependency_change, _ = evaluate_git_change(repo, args.base_ref)
+        dependency_change["unsupported_sources"] = unsupported_sources
         if dependency_change["status"] == "BLOCKED":
             blocked_reasons.append(str(dependency_change["reason"]))
 

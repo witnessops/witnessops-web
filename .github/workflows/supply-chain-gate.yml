@@ -156,6 +156,9 @@ jobs:
               summary.write(
                   f"- Same-version resolution changes: `{len(result['dependency_change'].get('resolution_changes', []))}`\n"
               )
+              summary.write(
+                  f"- Unsupported non-registry sources: `{len(result['dependency_change'].get('unsupported_sources', []))}`\n"
+              )
               summary.write(f"- Emergency IOC matches: `{len(result['matches']['emergency_iocs'])}`\n")
               summary.write(
                   f"- Blocking OSV records: `{sum(1 for item in result['matches']['osv_advisories'] if item.get('blocking'))}`\n"

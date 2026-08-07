@@ -119,6 +119,39 @@ class SupplyChainGateTests(unittest.TestCase):
             with self.assertRaisesRegex(GATE.GateError, "lockfile must be inside repository root"):
                 GATE.base_graph(repository.root, "HEAD", [external_lockfile])
 
+    def test_non_registry_package_source_fails_closed_without_exposing_url(self) -> None:
+        repository = self.repository(
+            "nonregistry-pnpm-lock.yaml", {"risky-package": "https://example.invalid/pkg.tgz"}
+        )
+        completed, result = self.invoke(repository)
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertIn("unsupported non-registry package source", result["blocked_reasons"][0])
+        self.assertNotIn("example.invalid", json.dumps(result))
+        self.assertNotIn("example.invalid", completed.stderr)
+        with self.assertRaisesRegex(GATE.GateError, "unsupported non-registry package source"):
+            GATE.parse_pnpm_lock((repository.root / "pnpm-lock.yaml").read_bytes())
+        semver_key_with_external_tarball = b"""lockfileVersion: '9.0'
+packages:
+  risky-package@1.0.0:
+    resolution: {'tarball': https://example.invalid/pkg.tgz, integrity: sha512-inert}
+snapshots: {}
+"""
+        with self.assertRaisesRegex(GATE.GateError, "unsupported non-registry package source"):
+            GATE.parse_pnpm_lock(semver_key_with_external_tarball)
+        for spec in (
+            "git+https://example.invalid/repo.git#commit",
+            "github:example/repo#commit",
+            "https://example.invalid/pkg.tgz",
+            "../local-package",
+            "example/repo#commit",
+        ):
+            with self.subTest(spec=spec):
+                self.assertTrue(GATE.dependency_spec_is_unsupported(spec))
+        for spec in ("^1.2.3", "latest", "npm:@scope/package@1.2.3", "workspace:*", "catalog:"):
+            with self.subTest(spec=spec):
+                self.assertFalse(GATE.dependency_spec_is_unsupported(spec))
+
     def test_campaign_versions_block_without_installing(self) -> None:
         for fixture, package, version in (
             ("keyv-pnpm-lock.yaml", "keyv", "6.0.0"),
@@ -356,6 +389,20 @@ class SupplyChainGateTests(unittest.TestCase):
                 ("safe-package", "1.0.0")
             ],
         )
+
+        untrusted_package_lock = package_lock.replace(
+            b"https://registry.npmjs.org/safe-package/-/safe-package-1.0.0.tgz",
+            b"https://example.invalid/safe-package.tgz",
+        )
+        with self.assertRaisesRegex(GATE.GateError, "unsupported non-registry package source"):
+            GATE.parse_package_lock(untrusted_package_lock)
+
+        untrusted_yarn_lock = yarn_lock.replace(
+            b"https://registry.yarnpkg.com/safe-package/-/safe-package-1.0.0.tgz#inert",
+            b"https://example.invalid/safe-package.tgz#inert",
+        )
+        with self.assertRaisesRegex(GATE.GateError, "unsupported non-registry package source"):
+            GATE.parse_yarn_lock(untrusted_yarn_lock)
 
     def test_pnpm_parser_ignores_nested_peer_metadata(self) -> None:
         lockfile = b"""lockfileVersion: '9.0'

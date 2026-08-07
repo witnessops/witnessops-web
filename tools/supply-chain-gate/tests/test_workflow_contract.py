@@ -139,6 +139,8 @@ class WorkflowContractTests(unittest.TestCase):
         k3s = (REPO_ROOT / "deploy" / "scripts" / "k3s-lib.sh").read_text(encoding="utf-8")
         health = (REPO_ROOT / "scripts" / "health-on-node22.sh").read_text(encoding="utf-8")
         self.assertLess(k3s.index("  run_supply_chain_gate\n"), k3s.index("  rsync -az --delete"))
+        self.assertIn('merge-base HEAD origin/main', k3s)
+        self.assertNotIn('base_ref="HEAD"', k3s)
         self.assertLess(
             health.index('python3 "$ROOT/tools/supply-chain-gate/supply_chain_gate.py"'),
             health.index('"$CONTAINER_CMD" run --rm'),

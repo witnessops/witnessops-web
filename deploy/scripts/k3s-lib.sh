@@ -80,9 +80,7 @@ run_supply_chain_gate() {
 
   evidence_dir="$(mktemp -d "${TMPDIR:-/tmp}/witnessops-supply-chain-gate.XXXXXX")"
   base_ref="${SUPPLY_CHAIN_BASE_REF:-}"
-  if [[ -z "${base_ref}" ]] && [[ -n "$(git -C "${REPO_ROOT}" status --porcelain)" ]]; then
-    base_ref="HEAD"
-  elif [[ -z "${base_ref}" ]] && git -C "${REPO_ROOT}" rev-parse --verify "origin/main^{commit}" >/dev/null 2>&1; then
+  if [[ -z "${base_ref}" ]] && git -C "${REPO_ROOT}" rev-parse --verify "origin/main^{commit}" >/dev/null 2>&1; then
     base_ref="$(git -C "${REPO_ROOT}" merge-base HEAD origin/main)"
   elif [[ -z "${base_ref}" ]] && git -C "${REPO_ROOT}" rev-parse --verify "HEAD^" >/dev/null 2>&1; then
     base_ref="HEAD^"
