@@ -166,11 +166,18 @@ test("English and Polish homepages share one service-led buyer journey", async (
     await expect(page.locator('[data-home-service="external-exposure-assessment"]')).toHaveCount(0);
     await expect(page.locator("[data-public-contact-route]")).toHaveCount(1);
 
+    const syntheticPreview = page.locator('[data-home-synthetic-preview="F-002"]');
+    await expect(syntheticPreview).toBeVisible();
+    await expect(syntheticPreview.locator('[data-home-evidence="E-001"]')).toBeVisible();
+    await expect(
+      syntheticPreview.locator('[data-home-sample-action="finding-preview"]'),
+    ).toHaveCount(1);
+
     if (scenario.width === 1440) {
       const servicesTop = await page
         .locator("#home-services-heading")
         .evaluate((heading) => heading.closest("section")?.getBoundingClientRect().top ?? Infinity);
-      expect(servicesTop).toBeLessThan(800);
+      expect(servicesTop).toBeLessThan(scenario.height);
     }
 
     const headings = await page.locator("main h2").allTextContents();
