@@ -2,6 +2,19 @@ name: Build witnessops-web image
 
 on:
   workflow_dispatch: {}
+  pull_request:
+    paths:
+      - "apps/witnessops-web/**"
+      - "content/**"
+      - "packages/**"
+      - ".dockerignore"
+      - ".github/workflows/build-image.yml"
+      - ".github/workflows/supply-chain-gate.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "security/supply-chain/**"
+      - "tools/supply-chain-gate/**"
   push:
     branches: ["main"]
     paths:
@@ -33,7 +46,7 @@ jobs:
     name: Supply Chain Gate
     uses: ./.github/workflows/supply-chain-gate.yml
     with:
-      base_ref: ${{ github.event.before || 'HEAD^' }}
+      base_ref: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
     permissions:
       contents: read
 
@@ -190,6 +203,7 @@ jobs:
             artifacts/build-output/witnessops-web-image.tar.sha256
 
   publish:
+    if: github.event_name != 'pull_request'
     name: Publish, SBOM, and keyless-sign verified image
     needs: [supply_chain_gate, build, verify_artifact]
     runs-on: ubuntu-latest

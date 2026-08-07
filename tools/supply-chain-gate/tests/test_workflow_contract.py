@@ -97,6 +97,11 @@ class WorkflowContractTests(unittest.TestCase):
             self.assertIn("docker buildx build", build)
             self.assertIn("type=docker,dest=", build)
 
+    def test_pull_requests_can_validate_artifacts_without_publish_authority(self) -> None:
+        publish = job_section(self.build_image, "publish")
+        self.assertRegex(self.build_image, r"(?m)^  pull_request:\s*$")
+        self.assertIn("    if: github.event_name != 'pull_request'\n", publish)
+
     def test_third_party_actions_are_pinned_to_full_commit_shas(self) -> None:
         for workflow in (self.gate, self.build_image, self.release):
             for reference in re.findall(r"(?m)^\s*uses:\s+([^\s#]+)", workflow):
