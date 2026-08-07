@@ -1,0 +1,22 @@
+{
+  "records": [
+    {
+      "package": "safe-package",
+      "version": "1.0.0",
+      "metadata": {
+        "name": "safe-package",
+        "version": "1.0.0",
+        "scripts": {}
+      }
+    },
+    {
+      "package": "risky-package",
+      "version": "1.0.0",
+      "metadata": {
+        "name": "risky-package",
+        "version": "1.0.0",
+        "scripts": {"preinstall": "node setup.mjs"}
+      }
+    }
+  ]
+}

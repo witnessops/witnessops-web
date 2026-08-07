@@ -1,0 +1,13 @@
+lockfileVersion: '9.0'
+
+patchedDependencies:
+  safe-package@1.0.0:
+    hash: inert-patch-hash
+    path: patches/inert-safe-package.patch
+
+packages:
+  safe-package@1.0.0(patch_hash=inert-patch-hash):
+    resolution: {integrity: sha512-inert-fixture}
+
+snapshots:
+  safe-package@1.0.0(patch_hash=inert-patch-hash): {}

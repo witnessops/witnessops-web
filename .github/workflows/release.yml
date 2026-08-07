@@ -1,14 +1,8 @@
 name: Release witnessops-web
 
-# Cut a versioned, signed release by pushing a SemVer tag:
-#
-#   git tag v0.1.0 && git push origin v0.1.0
-#
-# This builds the standalone image, pushes it to GHCR tagged :vX.Y.Z, :X.Y.Z,
-# and :stable (plus the immutable digest), generates an SBOM, keyless-signs with
-# cosign, and publishes a GitHub Release carrying the build receipt and the
-# exact deploy command. Deploy is a separate, operator-run step (see
-# deploy/INSTALL.md); this workflow never touches the server.
+# Cut a versioned, signed release by pushing a SemVer tag. Dependency install
+# and image packaging run without package-write or OIDC authority; a separate
+# read-only job verifies the image, then the privileged job only publishes and signs it.
 
 on:
   workflow_dispatch:
@@ -21,9 +15,7 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+"
 
 permissions:
-  contents: write
-  id-token: write
-  packages: write
+  contents: read
 
 concurrency:
   group: witnessops-web-release-${{ github.ref }}
@@ -34,13 +26,15 @@ env:
   RECEIPT_DIR: artifacts/release
 
 jobs:
-  release:
-    name: Build, sign, and publish release
+  resolve_version:
+    name: Resolve release version
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      semver: ${{ steps.version.outputs.semver }}
+      base_ref: ${{ steps.version.outputs.base_ref }}
     steps:
       - name: Resolve version
         id: version
@@ -57,12 +51,34 @@ jobs:
           {
             echo "version=${version}"
             echo "semver=${version#v}"
+            echo "base_ref=${version}^"
           } >> "${GITHUB_OUTPUT}"
 
-      - name: Check out repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+  supply_chain_gate:
+    name: Supply Chain Gate
+    needs: resolve_version
+    uses: ./.github/workflows/supply-chain-gate.yml
+    with:
+      checkout_ref: ${{ needs.resolve_version.outputs.version }}
+      base_ref: ${{ needs.resolve_version.outputs.base_ref }}
+    permissions:
+      contents: read
+
+  build:
+    name: Low-authority dependency install and release build
+    needs: [resolve_version, supply_chain_gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    outputs:
+      standalone_output_sha256: ${{ steps.archive.outputs.sha256 }}
+      image_archive_sha256: ${{ steps.image_archive.outputs.sha256 }}
+    steps:
+      - name: Check out release tag without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
-          ref: ${{ steps.version.outputs.version }}
+          ref: ${{ needs.resolve_version.outputs.version }}
           fetch-depth: 0
           fetch-tags: true
           persist-credentials: false
@@ -78,33 +94,182 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Install dependencies
+      - name: Install reviewed dependencies from the frozen lockfile
         run: pnpm install --frozen-lockfile
 
       - name: Verify package version matches tag
         run: |
           pkg_version="$(node -p "require('./apps/witnessops-web/package.json').version")"
-          if [[ "${pkg_version}" != "${{ steps.version.outputs.semver }}" ]]; then
-            echo "::error::apps/witnessops-web/package.json version (${pkg_version}) does not match tag (${{ steps.version.outputs.semver }}). Bump it in the release PR before tagging."
+          if [[ "${pkg_version}" != "${{ needs.resolve_version.outputs.semver }}" ]]; then
+            echo "::error::apps/witnessops-web/package.json version (${pkg_version}) does not match tag (${{ needs.resolve_version.outputs.semver }}). Bump it in the release PR before tagging."
             exit 1
           fi
 
       - name: Build witnessops-web standalone output
         run: pnpm --filter witnessops-web build
 
+      - name: Hash and archive standalone release output
+        id: archive
+        run: |
+          mkdir -p artifacts/build-output
+          tar -czf artifacts/build-output/witnessops-web-standalone.tar.gz \
+            apps/witnessops-web/.next/standalone \
+            apps/witnessops-web/.next/static \
+            apps/witnessops-web/public
+          build_output_sha256="$(sha256sum artifacts/build-output/witnessops-web-standalone.tar.gz | awk '{ print $1 }')"
+          echo "sha256=${build_output_sha256}" >> "${GITHUB_OUTPUT}"
+          printf '%s  %s\n' \
+            "${build_output_sha256}" \
+            "witnessops-web-standalone.tar.gz" \
+            > artifacts/build-output/witnessops-web-standalone.tar.gz.sha256
+
+      - name: Package the release image without registry or OIDC authority
+        id: image_archive
+        run: |
+          local_image_tag="witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}"
+          docker buildx create --name witnessops-web-low-authority-release-builder --driver docker-container --use
+          docker buildx inspect --bootstrap
+          docker buildx build \
+            --file "${DOCKERFILE_PATH}" \
+            --tag "${local_image_tag}" \
+            --output "type=docker,dest=artifacts/build-output/witnessops-web-image.tar" \
+            --metadata-file artifacts/build-output/image-build-metadata.json \
+            .
+          image_archive_sha256="$(sha256sum artifacts/build-output/witnessops-web-image.tar | awk '{ print $1 }')"
+          echo "sha256=${image_archive_sha256}" >> "${GITHUB_OUTPUT}"
+          printf '%s  %s\n' \
+            "${image_archive_sha256}" \
+            "witnessops-web-image.tar" \
+            > artifacts/build-output/witnessops-web-image.tar.sha256
+
+      - name: Transfer hashed low-authority outputs to the verifier job
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: witnessops-web-release-low-authority-build
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            artifacts/build-output/image-build-metadata.json
+            artifacts/build-output/witnessops-web-image.tar
+            artifacts/build-output/witnessops-web-image.tar.sha256
+            artifacts/build-output/witnessops-web-standalone.tar.gz
+            artifacts/build-output/witnessops-web-standalone.tar.gz.sha256
+
+  verify_artifact:
+    name: Verify exact release image without publish authority
+    needs: [resolve_version, supply_chain_gate, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      verified_image_archive_sha256: ${{ steps.verify.outputs.image_archive_sha256 }}
+    steps:
+      - name: Download exact low-authority release artifact
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: witnessops-web-release-low-authority-build
+          path: artifacts/build-output
+
+      - name: Verify release hashes and static Docker archive structure
+        id: verify
+        env:
+          EXPECTED_IMAGE_ARCHIVE_SHA256: ${{ needs.build.outputs.image_archive_sha256 }}
+          EXPECTED_STANDALONE_OUTPUT_SHA256: ${{ needs.build.outputs.standalone_output_sha256 }}
+          EXPECTED_LOCAL_IMAGE_TAG: witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}
+        run: |
+          printf '%s  %s\n' \
+            "${EXPECTED_IMAGE_ARCHIVE_SHA256}" \
+            "artifacts/build-output/witnessops-web-image.tar" \
+            | sha256sum -c -
+          printf '%s  %s\n' \
+            "${EXPECTED_STANDALONE_OUTPUT_SHA256}" \
+            "artifacts/build-output/witnessops-web-standalone.tar.gz" \
+            | sha256sum -c -
+          python3 - <<'PY'
+          import json
+          import os
+          import tarfile
+          from pathlib import PurePosixPath
+
+          archive = "artifacts/build-output/witnessops-web-image.tar"
+          expected_tag = os.environ["EXPECTED_LOCAL_IMAGE_TAG"]
+          with tarfile.open(archive, mode="r:") as image_tar:
+              members = image_tar.getmembers()
+              for member in members:
+                  path = PurePosixPath(member.name)
+                  if path.is_absolute() or ".." in path.parts:
+                      raise SystemExit(f"unsafe Docker archive member: {member.name}")
+                  if not (member.isfile() or member.isdir()):
+                      raise SystemExit(f"unexpected Docker archive member type: {member.name}")
+              manifest_member = image_tar.getmember("manifest.json")
+              manifest_file = image_tar.extractfile(manifest_member)
+              if manifest_file is None:
+                  raise SystemExit("manifest.json is unreadable")
+              manifest = json.load(manifest_file)
+          if len(manifest) != 1 or expected_tag not in manifest[0].get("RepoTags", []):
+              raise SystemExit("Docker archive does not contain the expected single image tag")
+          PY
+          echo "image_archive_sha256=${EXPECTED_IMAGE_ARCHIVE_SHA256}" >> "${GITHUB_OUTPUT}"
+
+      - name: Promote only the verified release image artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: witnessops-web-release-verified-image
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            artifacts/build-output/image-build-metadata.json
+            artifacts/build-output/witnessops-web-image.tar
+            artifacts/build-output/witnessops-web-image.tar.sha256
+
+  publish:
+    name: Publish and sign verified release image
+    needs: [resolve_version, supply_chain_gate, build, verify_artifact]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Download exact verified release image artifact
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: witnessops-web-release-verified-image
+          path: artifacts/verified-image
+
+      - name: Recheck verified release image hash and load without execution
+        env:
+          VERIFIED_IMAGE_ARCHIVE_SHA256: ${{ needs.verify_artifact.outputs.verified_image_archive_sha256 }}
+        run: |
+          printf '%s  %s\n' \
+            "${VERIFIED_IMAGE_ARCHIVE_SHA256}" \
+            "artifacts/verified-image/witnessops-web-image.tar" \
+            | sha256sum -c -
+          docker load --input artifacts/verified-image/witnessops-web-image.tar
+          docker image inspect "witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}" > /dev/null
+
       - name: Set image metadata
         id: image
+        env:
+          SOURCE_COMMIT_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
         run: |
           mkdir -p "${RECEIPT_DIR}"
           image_name="ghcr.io/${GITHUB_REPOSITORY,,}"
-          version="${{ steps.version.outputs.version }}"
-          semver="${{ steps.version.outputs.semver }}"
+          version="${{ needs.resolve_version.outputs.version }}"
+          semver="${{ needs.resolve_version.outputs.semver }}"
           {
             echo "image_name=${image_name}"
             echo "tag_version=${image_name}:${version}"
             echo "tag_semver=${image_name}:${semver}"
             echo "tag_stable=${image_name}:stable"
-            echo "tag_sha=${image_name}:${GITHUB_SHA}"
+            echo "tag_sha=${image_name}:${SOURCE_COMMIT_SHA}"
           } >> "${GITHUB_OUTPUT}"
 
       - name: Log in to GHCR with GitHub token
@@ -115,37 +280,40 @@ jobs:
             --username "${GITHUB_ACTOR}" \
             --password-stdin
 
-      - name: Set up Docker Buildx
+      - name: Publish the exact verified image without building or running it
         run: |
-          docker buildx create --name witnessops-web-release-builder --driver docker-container --use
-          docker buildx inspect --bootstrap
-
-      - name: Build and push image
-        run: |
-          docker buildx build \
-            --file "${DOCKERFILE_PATH}" \
-            --tag "${{ steps.image.outputs.tag_version }}" \
-            --tag "${{ steps.image.outputs.tag_semver }}" \
-            --tag "${{ steps.image.outputs.tag_stable }}" \
-            --tag "${{ steps.image.outputs.tag_sha }}" \
-            --push \
-            --metadata-file "${RECEIPT_DIR}/image-metadata.json" \
-            .
+          source_image="witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}"
+          docker tag "${source_image}" "${{ steps.image.outputs.tag_version }}"
+          docker tag "${source_image}" "${{ steps.image.outputs.tag_semver }}"
+          docker tag "${source_image}" "${{ steps.image.outputs.tag_stable }}"
+          docker tag "${source_image}" "${{ steps.image.outputs.tag_sha }}"
+          docker push "${{ steps.image.outputs.tag_version }}" 2>&1 \
+            | tee "${RECEIPT_DIR}/image-push.txt"
+          docker push "${{ steps.image.outputs.tag_semver }}"
+          docker push "${{ steps.image.outputs.tag_stable }}"
+          docker push "${{ steps.image.outputs.tag_sha }}"
 
       - name: Record image digest
         id: digest
         run: |
-          digest="$(node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));const d=m["containerimage.digest"];if(!d){process.exit(1);}console.log(d);' "${RECEIPT_DIR}/image-metadata.json")"
+          digest="$(sed -nE 's/^.*digest: (sha256:[0-9a-f]{64}).*$/\1/p' "${RECEIPT_DIR}/image-push.txt" | tail -n 1)"
+          if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::docker push did not report an immutable image digest"
+            exit 1
+          fi
           image_ref="${{ steps.image.outputs.image_name }}@${digest}"
           {
             echo "digest=${digest}"
             echo "image_ref=${image_ref}"
           } >> "${GITHUB_OUTPUT}"
+          node -e 'const fs=require("fs");fs.writeFileSync(process.argv[1], JSON.stringify({"containerimage.digest":process.argv[2]}, null, 2) + "\n")' \
+            "${RECEIPT_DIR}/image-metadata.json" \
+            "${digest}"
           printf '%s\n' "${digest}" > "${RECEIPT_DIR}/image-digest.txt"
           printf '%s\n' "${image_ref}" > "${RECEIPT_DIR}/image-ref.txt"
 
       - name: Generate image SBOM
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           image: ${{ steps.digest.outputs.image_ref }}
           format: spdx-json
@@ -176,36 +344,78 @@ jobs:
         run: |
           cosign verify \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-            --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release\\.yml@refs/tags/.+$" \
+            --certificate-identity "https://github.com/${GITHUB_WORKFLOW_REF}" \
             "${{ steps.digest.outputs.image_ref }}" \
             > "${RECEIPT_DIR}/cosign-verify.json"
 
       - name: Write release receipt
         env:
+          STANDALONE_OUTPUT_SHA256: ${{ needs.build.outputs.standalone_output_sha256 }}
+          IMAGE_ARCHIVE_SHA256: ${{ needs.build.outputs.image_archive_sha256 }}
+          VERIFIED_IMAGE_ARCHIVE_SHA256: ${{ needs.verify_artifact.outputs.verified_image_archive_sha256 }}
           IMAGE_REF: ${{ steps.digest.outputs.image_ref }}
           IMAGE_DIGEST: ${{ steps.digest.outputs.digest }}
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ needs.resolve_version.outputs.version }}
           SBOM_SHA256: ${{ steps.sbom.outputs.sha256 }}
+          SUPPLY_CHAIN_STATUS: ${{ needs.supply_chain_gate.outputs.status }}
+          SUPPLY_CHAIN_COMMIT_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          SUPPLY_CHAIN_PACKAGE_MANAGER: ${{ needs.supply_chain_gate.outputs.package_manager }}
+          SUPPLY_CHAIN_LIFECYCLE_STATUS: ${{ needs.supply_chain_gate.outputs.lifecycle_status }}
+          SUPPLY_CHAIN_GRAPH_SHA256: ${{ needs.supply_chain_gate.outputs.graph_sha256 }}
+          SUPPLY_CHAIN_LOCKFILE_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}
+          SUPPLY_CHAIN_PACKAGE_COUNT: ${{ needs.supply_chain_gate.outputs.package_count }}
         run: |
           node <<'NODE'
           const fs = require("fs");
           const dir = process.env.RECEIPT_DIR;
-          const identityRegexp = `^https://github.com/${process.env.GITHUB_REPOSITORY}/.github/workflows/release\\.yml@refs/tags/.+$`;
+          const identity = `https://github.com/${process.env.GITHUB_WORKFLOW_REF}`;
           const receipt = {
             schema_version: "witnessops.release-receipt.v1",
             repo: process.env.GITHUB_REPOSITORY,
             version: process.env.VERSION,
             run_id: process.env.GITHUB_RUN_ID,
-            commit_sha: process.env.GITHUB_SHA,
+            commit_sha: process.env.SUPPLY_CHAIN_COMMIT_SHA,
+            supply_chain_gate: {
+              status: process.env.SUPPLY_CHAIN_STATUS,
+              package_manager: process.env.SUPPLY_CHAIN_PACKAGE_MANAGER,
+              lifecycle_review: process.env.SUPPLY_CHAIN_LIFECYCLE_STATUS,
+              package_count: Number(process.env.SUPPLY_CHAIN_PACKAGE_COUNT),
+              lockfile_sha256: process.env.SUPPLY_CHAIN_LOCKFILE_SHA256,
+              package_graph_sha256: process.env.SUPPLY_CHAIN_GRAPH_SHA256,
+            },
+            build: {
+              authority: "contents-read-no-secrets-no-oidc-no-package-write",
+              dependency_install: "pnpm install --frozen-lockfile",
+              result: "PASS",
+              standalone_artifact_sha256: process.env.STANDALONE_OUTPUT_SHA256,
+              image_archive_sha256: process.env.IMAGE_ARCHIVE_SHA256,
+              source_checkout: {
+                fetch_depth: 0,
+                fetch_tags: true,
+                persist_credentials: false,
+              },
+            },
+            artifact_verification: {
+              authority: "contents-read-no-secrets-no-oidc-no-package-write",
+              result: "PASS",
+              verified_image_archive_sha256: process.env.VERIFIED_IMAGE_ARCHIVE_SHA256,
+            },
+            publish: {
+              dependency_install: "NONE",
+              source_checkout: "NONE",
+              image_build: "NONE",
+              image_execution: "NONE",
+              authority: "contents-write-packages-write-id-token-write",
+            },
             image: { ref: process.env.IMAGE_REF, digest: process.env.IMAGE_DIGEST },
             sbom: { path: "sbom.spdx.json", format: "spdx-json", sha256: process.env.SBOM_SHA256 },
             signing: {
               method: "sigstore-cosign-keyless-github-oidc",
               oidc_issuer: "https://token.actions.githubusercontent.com",
-              certificate_identity_regexp: identityRegexp,
+              certificate_identity: identity,
             },
             deploy_command: `./scripts/deploy.sh ${process.env.VERSION}`,
-            verifier_command: `cosign verify --certificate-oidc-issuer "https://token.actions.githubusercontent.com" --certificate-identity-regexp '${identityRegexp}' "${process.env.IMAGE_REF}"`,
+            verifier_command: `cosign verify --certificate-oidc-issuer "https://token.actions.githubusercontent.com" --certificate-identity "${identity}" "${process.env.IMAGE_REF}"`,
           };
           fs.writeFileSync(`${dir}/receipt.json`, JSON.stringify(receipt, null, 2) + "\n");
           NODE
@@ -213,7 +423,7 @@ jobs:
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ needs.resolve_version.outputs.version }}
           IMAGE_REF: ${{ steps.digest.outputs.image_ref }}
           IMAGE_DIGEST: ${{ steps.digest.outputs.digest }}
           TAG_VERSION: ${{ steps.image.outputs.tag_version }}
@@ -227,6 +437,7 @@ jobs:
           - **Tags:** \`${TAG_VERSION}\`, \`:stable\`
           - **Digest:** \`${IMAGE_DIGEST}\`
           - **SBOM:** attached to the image (spdx-json) and to this release
+          - **Supply Chain Gate:** PASS; exact hashes are in the release receipt
 
           ### Deploy (on the host, from \`deploy/\`)
 
@@ -239,7 +450,7 @@ jobs:
           \`\`\`bash
           cosign verify \\
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \\
-            --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release\\.yml@refs/tags/.+\$" \\
+            --certificate-identity "https://github.com/${GITHUB_WORKFLOW_REF}" \\
             "${IMAGE_REF}"
           \`\`\`
           EOF
@@ -253,7 +464,7 @@ jobs:
             "${RECEIPT_DIR}/image-digest.txt#image-digest.txt"
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: witnessops-web-release-receipt
           retention-days: 90
@@ -263,6 +474,7 @@ jobs:
             artifacts/release/image-digest.txt
             artifacts/release/image-ref.txt
             artifacts/release/image-metadata.json
+            artifacts/release/image-push.txt
             artifacts/release/cosign-verify.json
             artifacts/release/sbom.spdx.json
             artifacts/release/sbom.spdx.json.sha256

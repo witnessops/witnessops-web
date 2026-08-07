@@ -1,0 +1,7 @@
+lockfileVersion: '9.0'
+
+packages:
+  risky-package@https://example.invalid/pkg.tgz:
+    resolution: {tarball: https://example.invalid/pkg.tgz}
+
+snapshots: {}

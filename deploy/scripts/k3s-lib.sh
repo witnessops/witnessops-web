@@ -73,6 +73,32 @@ image_ref() {
   printf '%s:%s' "${IMAGE_REPO}" "$1"
 }
 
+run_supply_chain_gate() {
+  need python3
+  local evidence_dir base_ref
+  local -a gate_args
+
+  evidence_dir="$(mktemp -d "${TMPDIR:-/tmp}/witnessops-supply-chain-gate.XXXXXX")"
+  base_ref="${SUPPLY_CHAIN_BASE_REF:-}"
+  if [[ -z "${base_ref}" ]] && git -C "${REPO_ROOT}" rev-parse --verify "origin/main^{commit}" >/dev/null 2>&1; then
+    base_ref="$(git -C "${REPO_ROOT}" merge-base HEAD origin/main)"
+  elif [[ -z "${base_ref}" ]] && git -C "${REPO_ROOT}" rev-parse --verify "HEAD^" >/dev/null 2>&1; then
+    base_ref="HEAD^"
+  fi
+
+  gate_args=(
+    --repo-root "${REPO_ROOT}"
+    --lockfile pnpm-lock.yaml
+    --output-dir "${evidence_dir}"
+  )
+  if [[ -n "${base_ref}" ]]; then
+    gate_args+=(--base-ref "${base_ref}")
+  fi
+
+  log "running Supply Chain Gate before remote build (evidence ${evidence_dir})"
+  python3 "${REPO_ROOT}/tools/supply-chain-gate/supply_chain_gate.py" "${gate_args[@]}"
+}
+
 build_shared_image() {
   local tag="$1"
   local image remote_dir head
@@ -86,6 +112,7 @@ build_shared_image() {
 
   log "building shared image ${image} from HEAD ${head}"
   require_clean_or_confirm
+  run_supply_chain_gate
 
   rsync -az --delete \
     --exclude node_modules \

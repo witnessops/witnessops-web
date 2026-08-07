@@ -2,6 +2,19 @@ name: Build witnessops-web image
 
 on:
   workflow_dispatch: {}
+  pull_request:
+    paths:
+      - "apps/witnessops-web/**"
+      - "content/**"
+      - "packages/**"
+      - ".dockerignore"
+      - ".github/workflows/build-image.yml"
+      - ".github/workflows/supply-chain-gate.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "security/supply-chain/**"
+      - "tools/supply-chain-gate/**"
   push:
     branches: ["main"]
     paths:
@@ -10,14 +23,15 @@ on:
       - "packages/**"
       - ".dockerignore"
       - ".github/workflows/build-image.yml"
+      - ".github/workflows/supply-chain-gate.yml"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
+      - "security/supply-chain/**"
+      - "tools/supply-chain-gate/**"
 
 permissions:
   contents: read
-  id-token: write
-  packages: write
 
 concurrency:
   group: witnessops-web-build-image-${{ github.ref }}
@@ -28,16 +42,27 @@ env:
   RECEIPT_DIR: artifacts/build-image
 
 jobs:
-  build-image:
-    name: Build, SBOM, and keyless-sign image
+  supply_chain_gate:
+    name: Supply Chain Gate
+    uses: ./.github/workflows/supply-chain-gate.yml
+    with:
+      base_ref: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+    permissions:
+      contents: read
+
+  build:
+    name: Low-authority dependency install and build
+    needs: supply_chain_gate
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    outputs:
+      standalone_output_sha256: ${{ steps.archive.outputs.sha256 }}
+      image_archive_sha256: ${{ steps.image_archive.outputs.sha256 }}
     steps:
-      - name: Check out repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - name: Check out repository without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -54,18 +79,166 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Install dependencies
+      - name: Install reviewed dependencies from the frozen lockfile
         run: pnpm install --frozen-lockfile
 
       - name: Build witnessops-web standalone output
         run: pnpm --filter witnessops-web build
+
+      - name: Hash and archive standalone build output
+        id: archive
+        run: |
+          mkdir -p artifacts/build-output
+          tar -czf artifacts/build-output/witnessops-web-standalone.tar.gz \
+            apps/witnessops-web/.next/standalone \
+            apps/witnessops-web/.next/static \
+            apps/witnessops-web/public
+          build_output_sha256="$(sha256sum artifacts/build-output/witnessops-web-standalone.tar.gz | awk '{ print $1 }')"
+          echo "sha256=${build_output_sha256}" >> "${GITHUB_OUTPUT}"
+          printf '%s  %s\n' \
+            "${build_output_sha256}" \
+            "witnessops-web-standalone.tar.gz" \
+            > artifacts/build-output/witnessops-web-standalone.tar.gz.sha256
+
+      - name: Package the image without registry or OIDC authority
+        id: image_archive
+        run: |
+          local_image_tag="witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}"
+          docker buildx create --name witnessops-web-low-authority-builder --driver docker-container --use
+          docker buildx inspect --bootstrap
+          docker buildx build \
+            --file "${DOCKERFILE_PATH}" \
+            --tag "${local_image_tag}" \
+            --output "type=docker,dest=artifacts/build-output/witnessops-web-image.tar" \
+            --metadata-file artifacts/build-output/image-build-metadata.json \
+            .
+          image_archive_sha256="$(sha256sum artifacts/build-output/witnessops-web-image.tar | awk '{ print $1 }')"
+          echo "sha256=${image_archive_sha256}" >> "${GITHUB_OUTPUT}"
+          printf '%s  %s\n' \
+            "${image_archive_sha256}" \
+            "witnessops-web-image.tar" \
+            > artifacts/build-output/witnessops-web-image.tar.sha256
+
+      - name: Transfer hashed low-authority outputs to the verifier job
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: witnessops-web-low-authority-build
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            artifacts/build-output/image-build-metadata.json
+            artifacts/build-output/witnessops-web-image.tar
+            artifacts/build-output/witnessops-web-image.tar.sha256
+            artifacts/build-output/witnessops-web-standalone.tar.gz
+            artifacts/build-output/witnessops-web-standalone.tar.gz.sha256
+
+  verify_artifact:
+    name: Verify exact image artifact without publish authority
+    needs: [supply_chain_gate, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      verified_image_archive_sha256: ${{ steps.verify.outputs.image_archive_sha256 }}
+    steps:
+      - name: Download exact low-authority build artifact
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: witnessops-web-low-authority-build
+          path: artifacts/build-output
+
+      - name: Verify hash and static Docker archive structure
+        id: verify
+        env:
+          EXPECTED_IMAGE_ARCHIVE_SHA256: ${{ needs.build.outputs.image_archive_sha256 }}
+          EXPECTED_STANDALONE_OUTPUT_SHA256: ${{ needs.build.outputs.standalone_output_sha256 }}
+          EXPECTED_LOCAL_IMAGE_TAG: witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}
+        run: |
+          printf '%s  %s\n' \
+            "${EXPECTED_IMAGE_ARCHIVE_SHA256}" \
+            "artifacts/build-output/witnessops-web-image.tar" \
+            | sha256sum -c -
+          printf '%s  %s\n' \
+            "${EXPECTED_STANDALONE_OUTPUT_SHA256}" \
+            "artifacts/build-output/witnessops-web-standalone.tar.gz" \
+            | sha256sum -c -
+          python3 - <<'PY'
+          import json
+          import os
+          import tarfile
+          from pathlib import PurePosixPath
+
+          archive = "artifacts/build-output/witnessops-web-image.tar"
+          expected_tag = os.environ["EXPECTED_LOCAL_IMAGE_TAG"]
+          with tarfile.open(archive, mode="r:") as image_tar:
+              members = image_tar.getmembers()
+              for member in members:
+                  path = PurePosixPath(member.name)
+                  if path.is_absolute() or ".." in path.parts:
+                      raise SystemExit(f"unsafe Docker archive member: {member.name}")
+                  if not (member.isfile() or member.isdir()):
+                      raise SystemExit(f"unexpected Docker archive member type: {member.name}")
+              manifest_member = image_tar.getmember("manifest.json")
+              manifest_file = image_tar.extractfile(manifest_member)
+              if manifest_file is None:
+                  raise SystemExit("manifest.json is unreadable")
+              manifest = json.load(manifest_file)
+          if len(manifest) != 1 or expected_tag not in manifest[0].get("RepoTags", []):
+              raise SystemExit("Docker archive does not contain the expected single image tag")
+          PY
+          echo "image_archive_sha256=${EXPECTED_IMAGE_ARCHIVE_SHA256}" >> "${GITHUB_OUTPUT}"
+
+      - name: Promote only the verified image artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: witnessops-web-verified-image
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            artifacts/build-output/image-build-metadata.json
+            artifacts/build-output/witnessops-web-image.tar
+            artifacts/build-output/witnessops-web-image.tar.sha256
+
+  publish:
+    if: github.event_name != 'pull_request'
+    name: Publish, SBOM, and keyless-sign verified image
+    needs: [supply_chain_gate, build, verify_artifact]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Download exact verified image artifact
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: witnessops-web-verified-image
+          path: artifacts/verified-image
+
+      - name: Recheck verified image hash and load without execution
+        env:
+          VERIFIED_IMAGE_ARCHIVE_SHA256: ${{ needs.verify_artifact.outputs.verified_image_archive_sha256 }}
+        run: |
+          printf '%s  %s\n' \
+            "${VERIFIED_IMAGE_ARCHIVE_SHA256}" \
+            "artifacts/verified-image/witnessops-web-image.tar" \
+            | sha256sum -c -
+          docker load --input artifacts/verified-image/witnessops-web-image.tar
+          docker image inspect "witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}" > /dev/null
 
       - name: Set image metadata
         id: image
         run: |
           mkdir -p "${RECEIPT_DIR}"
           image_name="ghcr.io/${GITHUB_REPOSITORY,,}"
-          image_tag="${image_name}:${GITHUB_SHA}"
+          image_tag="${image_name}:${{ needs.supply_chain_gate.outputs.commit_sha }}"
           {
             echo "image_name=${image_name}"
             echo "image_tag=${image_tag}"
@@ -81,34 +254,34 @@ jobs:
             --username "${GITHUB_ACTOR}" \
             --password-stdin
 
-      - name: Set up Docker Buildx
+      - name: Publish the exact verified image without building or running it
         run: |
-          docker buildx create --name witnessops-web-builder --driver docker-container --use
-          docker buildx inspect --bootstrap
-
-      - name: Build and push image
-        run: |
-          docker buildx build \
-            --file "${DOCKERFILE_PATH}" \
-            --tag "${{ steps.image.outputs.image_tag }}" \
-            --push \
-            --metadata-file "${RECEIPT_DIR}/image-metadata.json" \
-            .
+          source_image="witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}"
+          docker tag "${source_image}" "${{ steps.image.outputs.image_tag }}"
+          docker push "${{ steps.image.outputs.image_tag }}" 2>&1 \
+            | tee "${RECEIPT_DIR}/image-push.txt"
 
       - name: Record image digest
         id: digest
         run: |
-          digest="$(node -e 'const fs = require("fs"); const metadata = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); const digest = metadata["containerimage.digest"]; if (!digest) { process.exit(1); } console.log(digest);' "${RECEIPT_DIR}/image-metadata.json")"
+          digest="$(sed -nE 's/^.*digest: (sha256:[0-9a-f]{64}).*$/\1/p' "${RECEIPT_DIR}/image-push.txt" | tail -n 1)"
+          if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::docker push did not report an immutable image digest"
+            exit 1
+          fi
           image_ref="${{ steps.image.outputs.image_name }}@${digest}"
           {
             echo "digest=${digest}"
             echo "image_ref=${image_ref}"
           } >> "${GITHUB_OUTPUT}"
+          node -e 'const fs=require("fs");fs.writeFileSync(process.argv[1], JSON.stringify({"containerimage.digest":process.argv[2]}, null, 2) + "\n")' \
+            "${RECEIPT_DIR}/image-metadata.json" \
+            "${digest}"
           printf '%s\n' "${digest}" > "${RECEIPT_DIR}/image-digest.txt"
           printf '%s\n' "${image_ref}" > "${RECEIPT_DIR}/image-ref.txt"
 
       - name: Generate image SBOM
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           image: ${{ steps.digest.outputs.image_ref }}
           format: spdx-json
@@ -145,10 +318,20 @@ jobs:
 
       - name: Write receipt and verifier commands
         env:
+          STANDALONE_OUTPUT_SHA256: ${{ needs.build.outputs.standalone_output_sha256 }}
+          IMAGE_ARCHIVE_SHA256: ${{ needs.build.outputs.image_archive_sha256 }}
+          VERIFIED_IMAGE_ARCHIVE_SHA256: ${{ needs.verify_artifact.outputs.verified_image_archive_sha256 }}
           IMAGE_REF: ${{ steps.digest.outputs.image_ref }}
           IMAGE_TAG: ${{ steps.image.outputs.image_tag }}
           IMAGE_DIGEST: ${{ steps.digest.outputs.digest }}
           SBOM_SHA256: ${{ steps.sbom.outputs.sha256 }}
+          SUPPLY_CHAIN_STATUS: ${{ needs.supply_chain_gate.outputs.status }}
+          SUPPLY_CHAIN_COMMIT_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          SUPPLY_CHAIN_PACKAGE_MANAGER: ${{ needs.supply_chain_gate.outputs.package_manager }}
+          SUPPLY_CHAIN_LIFECYCLE_STATUS: ${{ needs.supply_chain_gate.outputs.lifecycle_status }}
+          SUPPLY_CHAIN_GRAPH_SHA256: ${{ needs.supply_chain_gate.outputs.graph_sha256 }}
+          SUPPLY_CHAIN_LOCKFILE_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}
+          SUPPLY_CHAIN_PACKAGE_COUNT: ${{ needs.supply_chain_gate.outputs.package_count }}
         run: |
           node <<'NODE'
           const fs = require("fs");
@@ -170,12 +353,39 @@ jobs:
             run_attempt: process.env.GITHUB_RUN_ATTEMPT,
             actor: process.env.GITHUB_ACTOR,
             ref: process.env.GITHUB_REF,
-            commit_sha: process.env.GITHUB_SHA,
+            commit_sha: process.env.SUPPLY_CHAIN_COMMIT_SHA,
             dockerfile: process.env.DOCKERFILE_PATH,
-            source_checkout: {
-              fetch_depth: 0,
-              fetch_tags: true,
-              persist_credentials: false,
+            supply_chain_gate: {
+              status: process.env.SUPPLY_CHAIN_STATUS,
+              package_manager: process.env.SUPPLY_CHAIN_PACKAGE_MANAGER,
+              lifecycle_review: process.env.SUPPLY_CHAIN_LIFECYCLE_STATUS,
+              package_count: Number(process.env.SUPPLY_CHAIN_PACKAGE_COUNT),
+              lockfile_sha256: process.env.SUPPLY_CHAIN_LOCKFILE_SHA256,
+              package_graph_sha256: process.env.SUPPLY_CHAIN_GRAPH_SHA256,
+            },
+            build: {
+              authority: "contents-read-no-secrets-no-oidc-no-package-write",
+              dependency_install: "pnpm install --frozen-lockfile",
+              result: "PASS",
+              standalone_artifact_sha256: process.env.STANDALONE_OUTPUT_SHA256,
+              image_archive_sha256: process.env.IMAGE_ARCHIVE_SHA256,
+              source_checkout: {
+                fetch_depth: 0,
+                fetch_tags: true,
+                persist_credentials: false,
+              },
+            },
+            artifact_verification: {
+              authority: "contents-read-no-secrets-no-oidc-no-package-write",
+              result: "PASS",
+              verified_image_archive_sha256: process.env.VERIFIED_IMAGE_ARCHIVE_SHA256,
+            },
+            publish: {
+              dependency_install: "NONE",
+              source_checkout: "NONE",
+              image_build: "NONE",
+              image_execution: "NONE",
+              authority: "contents-read-packages-write-id-token-write",
             },
             image: {
               tag: process.env.IMAGE_TAG,
@@ -207,14 +417,23 @@ jobs:
 
       - name: Summarize receipt
         env:
+          STANDALONE_OUTPUT_SHA256: ${{ needs.build.outputs.standalone_output_sha256 }}
+          VERIFIED_IMAGE_ARCHIVE_SHA256: ${{ needs.verify_artifact.outputs.verified_image_archive_sha256 }}
           IMAGE_REF: ${{ steps.digest.outputs.image_ref }}
           IMAGE_TAG: ${{ steps.image.outputs.image_tag }}
           IMAGE_DIGEST: ${{ steps.digest.outputs.digest }}
           SBOM_SHA256: ${{ steps.sbom.outputs.sha256 }}
+          SUPPLY_CHAIN_GRAPH_SHA256: ${{ needs.supply_chain_gate.outputs.graph_sha256 }}
+          SUPPLY_CHAIN_LOCKFILE_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}
         run: |
           {
             echo "## Build Image Receipt"
             echo ""
+            echo "- Supply Chain Gate: \`PASS\`"
+            echo "- Lockfile SHA-256: \`${SUPPLY_CHAIN_LOCKFILE_SHA256}\`"
+            echo "- Package graph SHA-256: \`${SUPPLY_CHAIN_GRAPH_SHA256}\`"
+            echo "- Standalone output SHA-256: \`${STANDALONE_OUTPUT_SHA256}\`"
+            echo "- Verified image archive SHA-256: \`${VERIFIED_IMAGE_ARCHIVE_SHA256}\`"
             echo "- Image tag: \`${IMAGE_TAG}\`"
             echo "- Image ref: \`${IMAGE_REF}\`"
             echo "- Image digest: \`${IMAGE_DIGEST}\`"
@@ -234,7 +453,7 @@ jobs:
           } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Upload image receipt artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: witnessops-web-build-image-receipt
           retention-days: 30
@@ -243,6 +462,7 @@ jobs:
             artifacts/build-image/cosign-verify.json
             artifacts/build-image/image-digest.txt
             artifacts/build-image/image-metadata.json
+            artifacts/build-image/image-push.txt
             artifacts/build-image/image-ref.txt
             artifacts/build-image/image-tag.txt
             artifacts/build-image/receipt.json

@@ -1,0 +1,10 @@
+{
+  "retrieved_at": "2026-08-06T00:00:00Z",
+  "records": [
+    {"package": "safe-package", "version": "1.0.0", "advisories": []},
+    {"package": "keyv", "version": "6.0.0", "advisories": []},
+    {"package": "flat-cache", "version": "6.1.24", "advisories": []},
+    {"package": "file-entry-cache", "version": "11.1.6", "advisories": []},
+    {"package": "risky-package", "version": "1.0.0", "advisories": []}
+  ]
+}

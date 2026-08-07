@@ -1,0 +1,8 @@
+lockfileVersion: '9.0'
+
+packages:
+  flat-cache@6.1.24:
+    resolution: {integrity: sha512-inert-fixture}
+
+snapshots:
+  flat-cache@6.1.24: {}

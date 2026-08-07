@@ -15,6 +15,30 @@ command -v "$CONTAINER_CMD" >/dev/null || {
   exit 1
 }
 
+command -v python3 >/dev/null || {
+  echo "health-on-node22: need python3 for the Supply Chain Gate" >&2
+  exit 1
+}
+
+GATE_EVIDENCE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/witnessops-supply-chain-gate.XXXXXX")"
+GATE_ARGS=(
+  --repo-root "$ROOT"
+  --lockfile pnpm-lock.yaml
+  --output-dir "$GATE_EVIDENCE_DIR"
+)
+GATE_BASE_REF="${SUPPLY_CHAIN_BASE_REF:-}"
+if [[ -z "$GATE_BASE_REF" ]] && git -C "$ROOT" rev-parse --verify "origin/main^{commit}" >/dev/null 2>&1; then
+  GATE_BASE_REF="$(git -C "$ROOT" merge-base HEAD origin/main)"
+elif [[ -z "$GATE_BASE_REF" ]] && git -C "$ROOT" rev-parse --verify "HEAD^" >/dev/null 2>&1; then
+  GATE_BASE_REF="HEAD^"
+fi
+if [[ -n "$GATE_BASE_REF" ]]; then
+  GATE_ARGS+=(--base-ref "$GATE_BASE_REF")
+fi
+
+echo "[health-on-node22] Supply Chain Gate evidence=$GATE_EVIDENCE_DIR"
+python3 "$ROOT/tools/supply-chain-gate/supply_chain_gate.py" "${GATE_ARGS[@]}"
+
 echo "[health-on-node22] image=$IMAGE repo=$ROOT"
 "$CONTAINER_CMD" run --rm \
   -v "$ROOT:/app:rw" \
