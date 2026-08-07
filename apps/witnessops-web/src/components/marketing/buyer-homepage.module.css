@@ -32,8 +32,8 @@
 
 .eyebrow,
 .evidenceHeader,
-.stepNumber,
-.stepLabel,
+.findingLabel,
+.packageLabel,
 .editorialNumber {
   font-family: var(--font-mono);
   text-transform: uppercase;
@@ -182,46 +182,144 @@
   color: var(--evidence-accent);
 }
 
-.evidenceFlow {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.findingMeta {
+  display: flex;
+  gap: 0.8rem;
+  color: var(--evidence-ink);
+}
+
+.findingMeta span + span {
+  color: var(--evidence-accent);
+}
+
+.findingBody {
+  padding: 1.5rem 1.15rem 0;
+}
+
+.findingTitle {
+  max-width: 34ch;
   margin: 0;
-  padding: 0;
-  list-style: none;
+  color: var(--evidence-ink);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
 }
 
-.evidenceStep {
+.findingGrid {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.9rem;
-  min-width: 0;
-  min-height: 96px;
-  padding: 1.3rem 1.15rem;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  margin-top: 1.5rem;
 }
 
-.evidenceStep + .evidenceStep {
+.findingField {
+  min-width: 0;
+  padding-block: 1rem 1.15rem;
+  border-top: 1px solid var(--evidence-rule);
+}
+
+.findingObserved,
+.findingEvidence,
+.findingWhy,
+.findingAction,
+.findingRetest {
+  grid-column: span 2;
+}
+
+.findingObserved {
+  padding-right: 1.5rem;
+}
+
+.findingEvidence,
+.findingWhy,
+.findingAction,
+.findingRetest {
+  padding-left: 1.5rem;
   border-left: 1px solid var(--evidence-rule);
 }
 
-.stepNumber {
-  color: var(--evidence-accent);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
+.findingAction,
+.findingWhy {
+  padding-right: 1.5rem;
 }
 
-.stepLabel {
+.findingLabel,
+.packageLabel {
   margin: 0;
   color: var(--evidence-muted);
   font-size: 0.62rem;
   letter-spacing: 0.12em;
 }
 
-.stepValue {
-  margin: 0.85rem 0 0;
+.findingValue,
+.packageItems,
+.evidenceHash {
+  margin: 0.65rem 0 0;
+  color: var(--evidence-ink);
+  font-size: 0.78rem;
+  line-height: 1.62;
+}
+
+.evidenceReference {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.65rem 0 0;
   color: var(--evidence-ink);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  line-height: 1.65;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.evidenceReference span:first-child {
+  color: var(--evidence-accent);
+}
+
+.evidenceHash {
+  color: var(--evidence-muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+}
+
+.evidenceHash code {
+  color: var(--evidence-ink);
+}
+
+.findingFooter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1rem 1.15rem;
+  border-top: 1px solid var(--evidence-rule);
+}
+
+.packageLabel {
+  color: var(--evidence-accent);
+}
+
+.packageItems {
+  color: var(--evidence-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.sampleAction {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--evidence-ink);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-decoration-color: var(--evidence-rule);
+  text-underline-offset: 0.3rem;
+}
+
+.sampleAction:hover {
+  text-decoration-color: currentColor;
 }
 
 .servicesSection,
@@ -452,6 +550,7 @@
   }
 
   .evidenceHeader,
+  .findingFooter,
   .sectionIntro,
   .closingSection {
     grid-template-columns: 1fr;
@@ -460,6 +559,24 @@
   .evidenceHeader {
     display: grid;
     gap: 0.4rem;
+  }
+
+  .findingFooter {
+    gap: 0.7rem;
+  }
+
+  .findingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .findingObserved,
+  .findingEvidence,
+  .findingWhy,
+  .findingAction,
+  .findingRetest {
+    grid-column: 1;
+    padding-inline: 0;
+    border-left: 0;
   }
 
   .serviceList {
@@ -496,18 +613,8 @@
     margin-bottom: 2rem;
   }
 
-  .evidenceFlow,
   .editorialGrid {
     grid-template-columns: 1fr;
-  }
-
-  .evidenceStep {
-    min-height: 0;
-  }
-
-  .evidenceStep + .evidenceStep {
-    border-top: 1px solid var(--evidence-rule);
-    border-left: 0;
   }
 
   .serviceRow {

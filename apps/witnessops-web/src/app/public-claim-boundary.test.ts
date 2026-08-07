@@ -13,6 +13,7 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/app/(marketing)/catalog/[skuId]/page.tsx",
   "src/app/(marketing)/catalog/workflows/page.tsx",
   "src/components/marketing/buyer-catalogue.tsx",
+  "src/components/marketing/homepage-synthetic-preview.ts",
   "src/lib/buyer-services.ts",
   "src/app/access-change-proof-run/page.tsx",
   "src/app/proof-backed-security-systems/page.tsx",
@@ -68,6 +69,7 @@ const REQUIRED_BOUNDARY_MARKERS = [
   "does not prove production deployment",
   "does not prove the full runtime story",
   "not live customer proof artifacts",
+  "not customer evidence",
   "not a live customer artifact",
   "not a live customer report",
   "not a live customer audit",
@@ -108,6 +110,7 @@ const REQUIRED_BOUNDARY_MARKERS = [
 const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "src/lib/buyer-services.ts",
   "src/components/marketing/buyer-catalogue.tsx",
+  "src/components/marketing/homepage-synthetic-preview.ts",
   "src/components/marketing/offsec-suite-sample.tsx",
   "../../content/witnessops/legal/privacy.mdx",
   "../../content/witnessops/legal/security.mdx",
@@ -156,6 +159,16 @@ test("public claim surfaces preserve at least one explicit boundary marker", () 
   }
 
   assert.deepEqual(failures, []);
+});
+
+test("homepage synthetic preview preserves English and Polish customer-evidence boundaries", () => {
+  const source = readFileSync(
+    resolve(webRoot, "src/components/marketing/homepage-synthetic-preview.ts"),
+    "utf8",
+  );
+
+  assert.match(source, /Synthetic worked example — not customer evidence\./);
+  assert.match(source, /Syntetyczny przykład roboczy — nie są to materiały klienta\./);
 });
 
 test("claim-boundary guard scans only public presentation sources", () => {
