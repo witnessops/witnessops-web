@@ -77,7 +77,7 @@ function detailFrame(sku: CatalogSku): DetailFrame {
     },
     "OFFSEC-EXTERNAL-EXPOSURE": {
       claim:
-        "This review produces a bounded outside-in picture of one authorised public domain: what was checked, which observations support the findings, and what remains unknown. It is not a penetration test, certification, or proof that the system is secure.",
+        "This review produces a bounded outside-in picture of one authorised public-facing system: what was checked, which observations support the findings, and what remains unknown. It is not a penetration test, certification, or proof that the system is secure.",
       verificationPath:
         "Inspect the delivered scope record, reports, evidence manifest, artifact hashes, and — where the supported path is produced — the signed receipt and offline verifier. Package integrity does not prove security or completeness.",
       notIncluded: [
@@ -90,7 +90,7 @@ function detailFrame(sku: CatalogSku): DetailFrame {
         "compliance certification or a security guarantee",
       ],
       nextStep:
-        "Order the fixed-scope review by naming one public domain and your authority. No sales call is required, and no target-facing work begins until the scope is accepted.",
+        "Request the fixed-scope review by naming one public target and your authority. No sales call is required, and no target-facing work begins until the scope is accepted.",
     },
     "OFFSEC-LAUNCH-READY": {
       claim:

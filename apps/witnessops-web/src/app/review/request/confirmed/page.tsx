@@ -141,7 +141,7 @@ export default function ReviewRequestConfirmedPage() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="block border border-[#e4e0d8] bg-[#faf9f7] p-3 transition hover:border-[#f27a3d]"
+                    className="block border border-[#e4e0d8] bg-[#faf9f7] p-3 transition hover:border-brand-accent"
                   >
                     <span className={`block text-sm font-semibold ${verificationLight.title}`}>
                       {item.label}

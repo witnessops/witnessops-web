@@ -77,29 +77,29 @@ export function Navbar({ announcement }: NavbarProps) {
 
   function getDesktopCtaClassName(variant: string) {
     const baseClassName =
-      "hidden min-h-11 items-center whitespace-nowrap rounded-sm px-4 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white lg:inline-flex";
+      "hidden min-h-11 items-center whitespace-nowrap rounded-sm px-4 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg lg:inline-flex";
 
     if (variant === "secondary") {
       return `${baseClassName} border border-surface-border bg-transparent text-text-primary hover:border-brand-accent/40 hover:bg-surface-card`;
     }
 
     if (variant === "ghost") {
-      return `${baseClassName} text-text-muted hover:bg-white/[0.03] hover:text-text-primary`;
+      return `${baseClassName} text-text-muted hover:bg-surface-bg-alt hover:text-text-primary`;
     }
 
-    return `${baseClassName} bg-white text-black hover:bg-neutral-200 active:bg-neutral-300`;
+    return `${baseClassName} bg-text-primary text-surface-bg hover:bg-[#2b2b25] active:bg-[#37372f]`;
   }
 
   const desktopCtaClassName = `${getDesktopCtaClassName(effectiveCta.variant)} ${
     currentPath === effectiveCta.href
-      ? "ring-2 ring-brand-accent ring-offset-2 ring-offset-black"
+      ? "ring-2 ring-brand-accent ring-offset-2 ring-offset-surface-bg"
       : ""
   }`;
 
   return (
     <>
       {effectiveAnnouncement.enabled && (
-        <div className="bg-brand-accent/10 border-b border-brand-accent/20">
+        <div className="public-shell border-b border-brand-accent/20 bg-brand-accent/10">
           <div className="mx-auto max-w-content px-6">
             <a
               href={effectiveAnnouncement.href}
@@ -113,22 +113,22 @@ export function Navbar({ announcement }: NavbarProps) {
       )}
       <nav
         ref={navRef}
-        className="sticky top-0 z-50 border-b border-white/15 bg-black text-white"
+        className="public-shell sticky top-0 z-50 border-b border-surface-border bg-surface-bg text-text-primary"
       >
         <div className="mx-auto flex max-w-content items-center justify-between px-6 py-4">
           <Link
             href={logoHref}
-            className="flex min-h-11 shrink-0 items-center gap-2 rounded text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="flex min-h-11 shrink-0 items-center gap-2 rounded text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
           >
             <WitnessOpsMark
               variant="mark"
               size="sm"
-              tone="white"
+              tone="black"
               decorative
               className="max-md:scale-[0.93]"
             />
             <span
-              className="max-[420px]:hidden text-[11px] font-semibold uppercase tracking-[0.14em] leading-none text-white"
+              className="max-[420px]:hidden text-[11px] font-semibold uppercase tracking-[0.14em] leading-none text-text-primary"
               style={{ fontFamily: "var(--font-display)" }}
             >
               {brandLabel}
@@ -144,7 +144,7 @@ export function Navbar({ announcement }: NavbarProps) {
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-11 items-center whitespace-nowrap rounded px-2 text-[0.78rem] font-medium text-white/75 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    className="inline-flex min-h-11 items-center whitespace-nowrap rounded px-2 text-[0.78rem] font-medium text-text-secondary transition-colors hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
                   >
                     {link.label}
                   </a>
@@ -153,10 +153,10 @@ export function Navbar({ announcement }: NavbarProps) {
                     key={link.href}
                     href={link.href}
                     aria-current={currentPath === link.href ? "page" : undefined}
-                    className={`inline-flex min-h-11 items-center whitespace-nowrap rounded px-2 text-[0.78rem] font-medium transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                    className={`inline-flex min-h-11 items-center whitespace-nowrap rounded px-2 text-[0.78rem] font-medium transition-colors hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent ${
                       currentPath === link.href
-                        ? "bg-white/15 text-white"
-                        : "text-white/75"
+                        ? "bg-surface-inset text-text-primary"
+                        : "text-text-secondary"
                     }`}
                   >
                     {link.label}
@@ -166,7 +166,7 @@ export function Navbar({ announcement }: NavbarProps) {
               <Link
                 href={languageLink.href}
                 hrefLang={polish ? "en" : "pl"}
-                className="inline-flex min-h-11 items-center rounded border border-white/30 px-2 text-[11px] font-semibold text-white/80 hover:border-white hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="inline-flex min-h-11 items-center rounded border border-surface-border-strong px-2 text-[11px] font-semibold text-text-secondary hover:border-brand-accent hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
               >
                 {languageLink.label}
               </Link>

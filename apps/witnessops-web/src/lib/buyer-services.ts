@@ -176,15 +176,15 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Przegląd publicznej ekspozycji",
     },
     cardSituation: {
-      en: "See what one authorised public domain exposes before a customer, auditor, or attacker tells you.",
+      en: "See what one public-facing system exposes from the internet.",
       pl: "Zobacz, co ujawnia jedna autoryzowana domena publiczna, zanim wskaże to klient, audytor lub atakujący.",
     },
     situation: {
-      en: "You need a clear, manually reviewed picture of what one authorised public-facing domain exposes before a launch, customer review, audit, or infrastructure change.",
+      en: "A manually reviewed outside-in security review of one authorised public-facing system.",
       pl: "Potrzebujesz jasnego, ręcznie zweryfikowanego obrazu tego, co ujawnia jedna autoryzowana domena publiczna przed uruchomieniem, przeglądem klienta, audytem lub zmianą infrastruktury.",
     },
     result: {
-      en: "An exposure map, prioritised evidence-linked findings, remediation guidance, explicit unknowns, and a handover package another responsible owner can inspect.",
+      en: "Manually reviewed, evidence-linked findings with practical remediation guidance.",
       pl: "Mapa ekspozycji, priorytetyzowane ustalenia powiązane z materiałami, zalecenia naprawcze, jawne niewiadome i pakiet, który może sprawdzić kolejny odpowiedzialny właściciel.",
     },
     price: {

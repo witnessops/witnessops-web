@@ -10,12 +10,12 @@ status:
 
 seo:
   title: "Public Exposure Review | WitnessOps"
-  description: "See what one authorised public domain exposes. Manually reviewed, evidence-linked findings within three working days for €1,900 ex VAT."
+  description: "See what one public-facing system exposes from the internet. Manually reviewed findings, evidence attached, and a practical fix list."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "See what your public system exposes."
-  og_description: "One authorised public-facing domain. Three working days. €1,900 ex VAT. No sales call required."
+  og_title: "See what your public-facing system exposes from the internet."
+  og_description: "Manually reviewed findings, evidence attached, and a practical fix list. €1,900 ex VAT · 3 working days · fixed scope."
   twitter_card: "summary_large_image"
 
 theme:
@@ -44,11 +44,11 @@ navbar:
 
 hero:
   eyebrow: "Public Exposure Review"
-  title: "See what your public system exposes."
-  body: "Before a customer, auditor, or attacker finds it first. One authorised public-facing domain. Three working days. €1,900 ex VAT."
+  title: "See what your public-facing system exposes from the internet."
+  body: "Manually reviewed findings, evidence attached, and a practical fix list."
   supporting_points: []
   primary_cta:
-    label: "Order a Public Exposure Review"
+    label: "Request your review"
     href: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE"
     variant: "primary"
   secondary_cta:

@@ -135,11 +135,11 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           className="mb-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {publicExposureOrder ? "Order one Public Exposure Review" : "Tell us what you need reviewed"}
+          {publicExposureOrder ? "Request your Public Exposure Review" : "Tell us what you need reviewed"}
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
           {publicExposureOrder
-            ? "Submit one public domain and your authority to request the review. WitnessOps accepts or rejects the fixed scope asynchronously. No sales call is required, and this form does not authorize testing or start the delivery clock."
+            ? "Tell us what public-facing system you want reviewed. We’ll confirm the exact boundary and authority before any testing begins."
             : "This is a fit check, not evidence intake. Describe the questionnaire, server, launch, incident, access change or bounded workflow you need reviewed. No files, logs, screenshots, exports, credentials, private keys, MFA codes or customer evidence are needed for the first fit check."}
         </p>
         <p className="mt-3 max-w-[640px] text-sm leading-relaxed text-text-muted">

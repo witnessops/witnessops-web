@@ -12,6 +12,7 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.match(source, /FOOTER_LEGAL_LINK_CLASS/);
   assert.match(source, /text-text-secondary/);
   assert.match(source, /text-xs leading-5 text-text-secondary/);
+  assert.match(source, /rounded-full bg-signal-green/);
   assert.match(source, /max-w-\[320px\] text-sm leading-relaxed text-text-secondary/);
   assert.match(source, /data-footer-motto="proof-beats-memory"/);
   assert.match(source, /Proof beats memory\./);
@@ -35,7 +36,8 @@ test("footer brand lockup uses the approved geometric mark without decorative ef
 
   assert.match(source, /WitnessOpsMark/);
   assert.match(source, /variant="mark"/);
-  assert.match(source, /tone="white"/);
+  assert.match(source, /tone="black"/);
+  assert.match(source, /className="public-shell border-t/);
   assert.match(source, /decorative/);
   assert.match(source, /data-footer-brand-lockup/);
   assert.match(source, /data-brand-footer="approved-2026-07-30"/);
