@@ -64,8 +64,16 @@ test("homepage preview links to the full sample and names only published package
   }
 
   const homepageSource = readFileSync(resolve(__dirname, "buyer-homepage.tsx"), "utf8");
-  assert.match(homepageSource, /data-home-sample-action="finding-preview"/);
-  assert.match(homepageSource, /href=\{sampleHref\}/);
+  const actionMarker = 'data-home-sample-action="finding-preview"';
+  const actionMarkerIndex = homepageSource.indexOf(actionMarker);
+  assert.notEqual(actionMarkerIndex, -1);
+  const actionStart = homepageSource.lastIndexOf("<Link", actionMarkerIndex);
+  const actionEnd = homepageSource.indexOf("</Link>", actionMarkerIndex);
+  assert.notEqual(actionStart, -1);
+  assert.notEqual(actionEnd, -1);
+  const previewActionSource = homepageSource.slice(actionStart, actionEnd + "</Link>".length);
+  assert.match(previewActionSource, /href=\{sampleHref\}/);
+  assert.match(previewActionSource, /data-home-sample-action="finding-preview"/);
   assert.match(homepageSource, /data-home-synthetic-preview/);
   assert.match(homepageSource, /data-home-evidence/);
 });

@@ -65,5 +65,6 @@ test("sample is linked from the homepage, offer detail, catalogue, and pricing e
   assert.match(serviceLandings, new RegExp(route));
   assert.match(pricing, new RegExp(route));
   assert.match(catalogue, new RegExp(route));
-  assert.match(`${homepage}\n${homepagePreview}`, new RegExp(route));
+  assert.match(homepage, /HOMEPAGE_SYNTHETIC_PREVIEW\.sampleHref/);
+  assert.match(homepagePreview, new RegExp(route));
 });
