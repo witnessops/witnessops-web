@@ -67,10 +67,12 @@ test("Public Exposure Review preserves fixed caps and allowed check classes", ()
 
   const landing = getServiceLanding("external-exposure-assessment", "en");
   const scope = landing.scopeLimits?.join("\n") ?? "";
-  assert.match(scope, /one authorised registrable root domain or one tightly bounded public application/i);
-  assert.match(scope, /up to 10 confirmed first-party hostnames/i);
-  assert.match(scope, /up to 3 customer-attributed public IP addresses/i);
-  assert.match(scope, /up to 20 confirmed public service endpoints/i);
+  assert.match(scope, /one authorised public-facing system/i);
+  assert.match(scope, /up to 10 first-party hostnames/i);
+  assert.match(scope, /3 customer-attributed public IP addresses/i);
+  assert.match(scope, /20 public service endpoints/i);
+  assert.match(scope, /won’t test them without explicit authorisation/i);
+  assert.match(scope, /Cloud accounts, IAM, private networks, and provider infrastructure are not reviewed/i);
   assert.match(scope, /passive discovery/i);
   assert.match(scope, /allowlisted exposure checks/i);
   assert.match(scope, /unauthenticated, outside-in/i);

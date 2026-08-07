@@ -174,7 +174,7 @@
       "id": "OFFSEC-EXTERNAL-EXPOSURE",
       "track": "offsec_proof",
       "name": "Public Exposure Review",
-      "summary": "A fixed-scope, manually reviewed outside-in assessment for one authorised public domain, with evidence-linked findings, explicit unknowns, and an inspectable handover package.",
+      "summary": "A fixed-scope, manually reviewed outside-in security review of one authorised public-facing system, with evidence-linked findings, explicit unknowns, and an inspectable handover package.",
       "status": "ship_today",
       "availability": "witnessops_request",
       "buyer_personas": [

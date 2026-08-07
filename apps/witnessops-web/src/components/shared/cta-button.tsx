@@ -32,7 +32,7 @@ export function CtaButton({
   ariaCurrent,
 }: CtaButtonProps) {
   const base =
-    "inline-flex items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
+    "public-cta-button inline-flex items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
   const styles = `${base} ${variantStyles[variant]}${className ? ` ${className}` : ""}`;
 
   if (href.startsWith("http")) {

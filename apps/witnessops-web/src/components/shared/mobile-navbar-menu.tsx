@@ -84,7 +84,7 @@ export function MobileNavbarMenu({
       <button
         ref={toggleRef}
         type="button"
-        className="inline-flex size-11 items-center justify-center rounded border border-white/30 bg-black text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        className="inline-flex size-11 items-center justify-center rounded border border-surface-border-strong bg-surface-bg text-text-primary transition-colors hover:bg-surface-bg-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
         aria-expanded={menuOpen}
         aria-controls={menuId}
         aria-label={menuOpen ? closeLabel : openLabel}
@@ -117,7 +117,7 @@ export function MobileNavbarMenu({
         id={menuId}
         aria-hidden={!menuOpen}
         inert={!menuOpen}
-        className={`absolute top-full right-0 left-0 overflow-hidden border-t border-white/15 bg-black text-white transition-[max-height,opacity] duration-200 ${
+        className={`public-shell absolute top-full right-0 left-0 overflow-hidden border-t border-surface-border bg-surface-bg text-text-primary transition-[max-height,opacity] duration-200 ${
           menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
@@ -127,10 +127,10 @@ export function MobileNavbarMenu({
               key={link.href}
               href={link.href}
               aria-current={currentPath === link.href ? "page" : undefined}
-              className={`inline-flex min-h-11 items-center border-l-2 px-3 py-2 text-sm transition-colors hover:border-white/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+              className={`inline-flex min-h-11 items-center border-l-2 px-3 py-2 text-sm transition-colors hover:border-brand-accent/60 hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent ${
                 currentPath === link.href
-                  ? "border-white bg-transparent font-semibold text-white"
-                  : "border-transparent bg-transparent text-white/75"
+                  ? "border-brand-accent bg-surface-inset font-semibold text-text-primary"
+                  : "border-transparent bg-transparent text-text-secondary"
               }`}
               onClick={closeMenu}
             >
@@ -140,7 +140,7 @@ export function MobileNavbarMenu({
           {utilityLink ? (
             <Link
               href={utilityLink.href}
-              className="mt-1 inline-flex min-h-11 items-center border-t border-white/15 px-3 py-2 text-sm font-semibold text-white/70 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="mt-1 inline-flex min-h-11 items-center border-t border-surface-border px-3 py-2 text-sm font-semibold text-text-secondary hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
               onClick={closeMenu}
             >
               {utilityLink.label}
@@ -150,8 +150,8 @@ export function MobileNavbarMenu({
             label={cta.label}
             href={cta.href}
             variant={(cta.variant as "primary" | "secondary" | "ghost") ?? "primary"}
-            className={`mt-2 min-h-11 w-full !rounded-sm !bg-white !text-black !shadow-none hover:!bg-neutral-200 hover:!shadow-none focus-visible:!ring-white focus-visible:!ring-offset-black ${
-              currentPath === cta.href ? "ring-2 ring-white" : ""
+            className={`mt-2 min-h-11 w-full !rounded-sm !bg-text-primary !text-surface-bg !shadow-none hover:!bg-[#2b2b25] hover:!shadow-none focus-visible:!ring-brand-accent focus-visible:!ring-offset-surface-bg ${
+              currentPath === cta.href ? "ring-2 ring-brand-accent" : ""
             }`}
             ariaCurrent={currentPath === cta.href ? "page" : undefined}
             onClick={closeMenu}

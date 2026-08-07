@@ -166,17 +166,17 @@ export function ContactForm({
           : "Mailbox verification does not start the review. Scope, authority, capacity, price, and delivery-clock conditions are accepted asynchronously first.",
         fitTitle: polish
           ? "Zamów jeden przegląd publicznej ekspozycji."
-          : "Order one Public Exposure Review.",
+          : "Request your Public Exposure Review.",
         fitBody: polish
           ? "Podaj jedną domenę publiczną i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu."
-          : "Provide one public domain and your authority to request the review. No sales call is required. This form begins scope acceptance; it does not authorize testing or start the three-day delivery clock.",
-        workflow: polish ? "Domena publiczna do przeglądu" : "Public domain to review",
+          : "Tell us what public-facing system you want reviewed. We’ll confirm the exact boundary and authority before any testing begins.",
+        workflow: polish ? "Domena publiczna do przeglądu" : "Public target",
         workflowPlaceholder: polish
           ? "example.com — jedna domena rejestrowalna lub jedna ściśle ograniczona aplikacja publiczna"
-          : "example.com — one registrable root domain or one tightly bounded public application",
+          : "example.com or api.example.com",
         workflowHelp: polish
           ? "Podaj wyłącznie publiczną nazwę domeny. Nie wklejaj sekretów, logów, zrzutów ekranu ani danych dostępowych."
-          : "Provide only the public domain identity. Do not paste secrets, logs, screenshots, credentials, or production evidence.",
+          : "Domain, hostname, public IP, API, application, or public cloud endpoint. No credentials or secrets.",
         actionPath: polish ? "Dlaczego teraz?" : "Why now?",
         actionPathPlaceholder: polish
           ? "Na przykład: uruchomienie, klient enterprise, audyt lub zmiana infrastruktury."
@@ -187,11 +187,11 @@ export function ContactForm({
           : "State that you own the domain or have written authority to commission the agreed checks.",
         evidence: polish
           ? "Znane granice first-party lub dostawców współdzielonych"
-          : "Known first-party or shared-provider boundaries",
+          : "Related endpoints or exclusions",
         evidencePlaceholder: polish
           ? "Opcjonalnie: znane hosty first-party, CDN, hosting współdzielony lub cele, których nie wolno dotykać."
-          : "Optional: known first-party hosts, CDN, shared hosting, or targets that must not be touched.",
-        send: polish ? "Wyślij zamówienie do akceptacji zakresu" : "Submit order for scope acceptance",
+          : "If the system uses several related public endpoints, list them here. We’ll confirm exactly what’s included before the review starts.",
+        send: polish ? "Wyślij zamówienie do akceptacji zakresu" : "Request your review",
         submitBoundary: polish
           ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, stałego zakresu, wymaganych danych wejściowych i okna zbierania."
           : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, fixed scope, required inputs, and the collection window are confirmed.",
@@ -248,10 +248,10 @@ export function ContactForm({
         : "Request: WitnessOps review fit check",
       `Selected product / intent: ${intent}`,
       `Request locale: ${locale}`,
-      `${externalExposureOrder ? "Public domain" : "Review need"}: ${workflow || "not provided"}`,
+      `${externalExposureOrder ? "Boundary seed / public target" : "Review need"}: ${workflow || "not provided"}`,
       `${externalExposureOrder ? "Trigger and timing" : "Situation and affected system"}: ${agentPath || "not provided"}`,
       `${externalExposureOrder ? "Authority statement" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
-      `${externalExposureOrder ? "Known first-party or shared-provider boundaries" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
+      `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
       externalExposureOrder
         ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
@@ -463,7 +463,7 @@ export function ContactForm({
                 setVerifyErrorMessage(copy.verifyError);
                 setVerifyStatus("idle");
               }}
-              className="mt-1 h-4 w-4 shrink-0 accent-[#f27a3d]"
+              className="mt-1 h-4 w-4 shrink-0 accent-[#171713]"
             />
             <span>{copy.verificationConsent}</span>
           </label>

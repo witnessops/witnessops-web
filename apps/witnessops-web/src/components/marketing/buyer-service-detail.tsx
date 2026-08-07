@@ -94,6 +94,10 @@ export function BuyerServiceDetail({
   const primaryCta = landing.primaryCta ?? text.start;
   const secretsNote = locale === "pl" ? POLISH_NO_SECRETS_NOTE : PUBLIC_NO_SECRETS_NOTE;
   const priceDisplay = commercialPriceLabel(service.price[locale]);
+  const scopeHeading =
+    locale === "en" && service.id === "external-exposure-assessment"
+      ? "What we review"
+      : text.fixedScope;
 
   return (
     <main
@@ -183,7 +187,7 @@ export function BuyerServiceDetail({
         {landing.scopeLimits ? (
           <section className="border-b border-surface-border py-12">
             <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
-              {text.fixedScope}
+              {scopeHeading}
             </h2>
             <ul className="mt-6 grid gap-4 text-base leading-7 text-text-secondary md:grid-cols-2">
               {landing.scopeLimits.map((item) => (

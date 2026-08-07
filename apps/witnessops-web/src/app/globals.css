@@ -164,23 +164,39 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Approved buyer-surface palette. Technical and operator routes retain the
-   existing token set; these pages alone use the light editorial treatment. */
+/* Public editorial palette. Buyer pages and the shared public shell use the
+   same paper, ink, black accent, and rule colors. Technical/operator surfaces keep
+   the dark root token set unless they opt into this class. */
+.public-shell,
 .buyer-page,
 main[data-page="home"] {
-  --color-brand-accent: #111111;
-  --color-surface-bg: #ffffff;
-  --color-surface-bg-alt: #f7f7f5;
-  --color-surface-inset: #f2f2ef;
-  --color-surface-card: #f7f7f5;
-  --color-surface-border: #d9d9d4;
-  --color-surface-border-strong: #a7a7a0;
-  --color-text-primary: #111111;
-  --color-text-secondary: #343434;
-  --color-text-muted: #62625e;
-  --color-text-inverse: #ffffff;
-  background: #ffffff;
-  color: #111111;
+  --color-brand-primary: #171713;
+  --color-brand-primary-hover: #2b2b25;
+  --color-brand-secondary: #ebe5da;
+  --color-brand-accent: #171713;
+  --color-brand-accent-subtle: rgba(23, 23, 19, 0.08);
+  --color-brand-muted: #555149;
+  --color-surface-bg: #f4f0e7;
+  --color-surface-bg-alt: #eee8de;
+  --color-surface-inset: #e7dfd3;
+  --color-surface-card: #faf7f1;
+  --color-surface-card-hover: #ebe5da;
+  --color-surface-border: #c9c1b4;
+  --color-surface-border-hover: #9e9487;
+  --color-surface-border-strong: #817a6f;
+  --color-text-primary: #171713;
+  --color-text-secondary: #555149;
+  --color-text-muted: #716b61;
+  --color-text-inverse: #f4f0e7;
+  background: var(--color-surface-bg);
+  color: var(--color-text-primary);
+}
+
+/* Buyer CTAs inherit the public black action token. Suppress the legacy
+   copper glow without changing the shared component on technical surfaces. */
+.buyer-page .public-cta-button:hover,
+.buyer-page .public-cta-button:active {
+  box-shadow: none;
 }
 
 /* ═══ OFFSEC MARK ═══ */
@@ -653,7 +669,7 @@ main[data-page="home"] {
 
 /* ═══ INSTITUTIONAL HOVER AFFORDANCES ═══
    Shared rail/card hover pattern. Row surfaces get a top or left
-   copper rail that draws in on hover; cards get border + bg lift.
+   black rail that draws in on hover; cards get border + bg lift.
    Motion is honored: prefers-reduced-motion snaps to final state.
 */
 .kb-hover-row {

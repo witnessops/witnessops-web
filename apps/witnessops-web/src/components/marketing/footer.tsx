@@ -257,7 +257,7 @@ export function Footer({
 
   return (
     <footer
-      className="border-t border-surface-border bg-surface-bg"
+      className="public-shell border-t border-surface-border bg-surface-bg"
       data-brand-footer="approved-2026-07-30"
       data-footer-surface={librarySurface ? "library" : isPolishSurface ? "pl-buyer" : "en-buyer"}
     >
@@ -268,7 +268,7 @@ export function Footer({
               <WitnessOpsMark
                 variant="mark"
                 size="md"
-                tone="white"
+                tone="black"
                 decorative
                 className="shrink-0"
               />
