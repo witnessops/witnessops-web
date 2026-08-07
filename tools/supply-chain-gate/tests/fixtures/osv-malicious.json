@@ -1,0 +1,10 @@
+{
+  "retrieved_at": "2026-08-06T00:00:00Z",
+  "records": [
+    {
+      "package": "safe-package",
+      "version": "1.0.0",
+      "advisories": [{"id": "MAL-inert-test-only", "modified": "2026-08-06T00:00:00Z"}]
+    }
+  ]
+}

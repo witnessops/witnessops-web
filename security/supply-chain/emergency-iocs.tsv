@@ -1,0 +1,5 @@
+# Exact package/version overrides for active campaigns that may not yet be present in advisory feeds.
+package	version	source	recorded_at	review_after	note
+keyv	6.0.0	https://socket.dev/supply-chain-attacks/keyv-and-cacheable-compromise	2026-08-06		August 2026 keyv/cacheable campaign
+flat-cache	6.1.24	https://socket.dev/supply-chain-attacks/keyv-and-cacheable-compromise	2026-08-06		August 2026 keyv/cacheable campaign
+file-entry-cache	11.1.6	https://socket.dev/supply-chain-attacks/keyv-and-cacheable-compromise	2026-08-06		August 2026 keyv/cacheable campaign

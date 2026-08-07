@@ -1,0 +1,221 @@
+name: WitnessOps Supply Chain Gate
+
+on:
+  workflow_call:
+    inputs:
+      checkout_ref:
+        description: Optional ref or tag to inspect instead of the caller ref
+        required: false
+        type: string
+        default: ""
+      base_ref:
+        description: Optional base commit for dependency and lifecycle change review
+        required: false
+        type: string
+        default: ""
+    outputs:
+      status:
+        description: PASS, BLOCKED, or COVERAGE DEGRADED
+        value: ${{ jobs.gate.outputs.status }}
+      commit_sha:
+        description: Commit inspected by the gate
+        value: ${{ jobs.gate.outputs.commit_sha }}
+      package_manager:
+        description: Package-manager name and version declared by the repository
+        value: ${{ jobs.gate.outputs.package_manager }}
+      lifecycle_status:
+        description: PASS, BLOCKED, COVERAGE DEGRADED, or NOT APPLICABLE
+        value: ${{ jobs.gate.outputs.lifecycle_status }}
+      graph_sha256:
+        description: Canonical resolved package graph SHA-256
+        value: ${{ jobs.gate.outputs.graph_sha256 }}
+      lockfile_sha256:
+        description: Authoritative lockfile SHA-256
+        value: ${{ jobs.gate.outputs.lockfile_sha256 }}
+      package_count:
+        description: Number of exact resolved package/version pairs
+        value: ${{ jobs.gate.outputs.package_count }}
+  pull_request:
+    paths:
+      - "**/package.json"
+      - "**/pnpm-lock.yaml"
+      - "**/package-lock.json"
+      - "**/yarn.lock"
+      - "**/bun.lock"
+      - "**/bun.lockb"
+      - "**/.npmrc"
+      - "**/.pnpmfile.cjs"
+      - "**/.yarnrc"
+      - "**/.yarnrc.yml"
+      - "**/bunfig.toml"
+      - "**/pnpm-workspace.yaml"
+      - "security/supply-chain/**"
+      - "tools/supply-chain-gate/**"
+      - ".github/workflows/supply-chain-gate.yml"
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: witnessops-supply-chain-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Exact dependency and lifecycle gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      status: ${{ steps.result.outputs.status }}
+      commit_sha: ${{ steps.result.outputs.commit_sha }}
+      package_manager: ${{ steps.result.outputs.package_manager }}
+      lifecycle_status: ${{ steps.result.outputs.lifecycle_status }}
+      graph_sha256: ${{ steps.result.outputs.graph_sha256 }}
+      lockfile_sha256: ${{ steps.result.outputs.lockfile_sha256 }}
+      package_count: ${{ steps.result.outputs.package_count }}
+    steps:
+      - name: Check out repository without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ inputs.checkout_ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Show bounded runtime
+        run: python3 --version
+
+      - name: Run inert Supply Chain Gate tests
+        run: python3 -m unittest discover -s tools/supply-chain-gate/tests -p 'test_*.py' -v
+
+      - name: Resolve dependency comparison base
+        id: base
+        env:
+          EXPLICIT_BASE: ${{ inputs.base_ref }}
+          PULL_REQUEST_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          base_ref="${EXPLICIT_BASE}"
+          if [ -z "${base_ref}" ] && [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            base_ref="${PULL_REQUEST_BASE}"
+          fi
+          if [ -z "${base_ref}" ] && [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            base_ref="${PUSH_BEFORE}"
+          fi
+          if printf '%s' "${base_ref}" | grep -Eq '^0+$'; then
+            base_ref=""
+          fi
+          if [ -n "${base_ref}" ] && ! git cat-file -e "${base_ref}^{commit}" 2>/dev/null; then
+            echo "::warning::comparison base ${base_ref} is unavailable"
+          fi
+          echo "base_ref=${base_ref}" >> "${GITHUB_OUTPUT}"
+
+      - name: Compare lockfile graph with current intelligence
+        id: checker
+        env:
+          BASE_REF: ${{ steps.base.outputs.base_ref }}
+        run: |
+          args=(
+            --repo-root .
+            --lockfile pnpm-lock.yaml
+            --output-dir artifacts/supply-chain-gate
+          )
+          if [ -n "${BASE_REF}" ]; then
+            args+=(--base-ref "${BASE_REF}")
+          fi
+          set +e
+          python3 tools/supply-chain-gate/supply_chain_gate.py "${args[@]}"
+          checker_exit=$?
+          set -e
+          echo "exit_code=${checker_exit}" >> "${GITHUB_OUTPUT}"
+
+      - name: Read and summarize gate evidence
+        id: result
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("artifacts/supply-chain-gate/gate-result.json")
+          if not path.is_file():
+              raise SystemExit("gate-result.json was not produced")
+          result = json.loads(path.read_text(encoding="utf-8"))
+          lockfiles = result.get("lockfiles", [])
+          first_lock_sha = lockfiles[0].get("sha256", "") if lockfiles else ""
+          outputs = {
+              "status": result["status"],
+              "commit_sha": result["commit_sha"],
+              "package_manager": result["package_manager"],
+              "lifecycle_status": result["lifecycle_review"]["status"],
+              "graph_sha256": result["graph"]["sha256"],
+              "lockfile_sha256": first_lock_sha,
+              "package_count": str(result["graph"]["package_count"]),
+          }
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              for key, value in outputs.items():
+                  output.write(f"{key}={value}\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("## Supply Chain Gate\n\n")
+              summary.write(f"- Status: `{result['status']}`\n")
+              summary.write(f"- Commit: `{result['commit_sha']}`\n")
+              summary.write(f"- Package manager: `{result['package_manager']}`\n")
+              summary.write(f"- Packages: `{result['graph']['package_count']}`\n")
+              summary.write(f"- Graph SHA-256: `{result['graph']['sha256']}`\n")
+              summary.write(f"- Lockfile SHA-256: `{first_lock_sha}`\n")
+              summary.write(f"- New packages: `{len(result.get('new_packages', []))}`\n")
+              summary.write(f"- Emergency IOC matches: `{len(result['matches']['emergency_iocs'])}`\n")
+              summary.write(
+                  f"- Blocking OSV records: `{sum(1 for item in result['matches']['osv_advisories'] if item.get('blocking'))}`\n"
+              )
+              summary.write(f"- Lifecycle review: `{result['lifecycle_review']['status']}`\n")
+          PY
+
+      - name: Review newly introduced dependencies with GitHub Advisory Database
+        id: dependency_review
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+
+      - name: Upload gate evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: witnessops-supply-chain-gate
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            artifacts/supply-chain-gate/gate-result.json
+            artifacts/supply-chain-gate/package-graph.tsv
+
+      - name: Enforce gate result
+        if: always()
+        env:
+          CHECKER_EXIT: ${{ steps.checker.outputs.exit_code }}
+          GATE_STATUS: ${{ steps.result.outputs.status }}
+        run: |
+          case "${GATE_STATUS}" in
+            PASS)
+              test "${CHECKER_EXIT}" = "0"
+              ;;
+            BLOCKED)
+              echo "Supply Chain Gate blocked this dependency graph."
+              exit 1
+              ;;
+            "COVERAGE DEGRADED")
+              if [ "${GITHUB_EVENT_NAME}" = "schedule" ]; then
+                echo "::warning::Supply Chain Gate coverage is degraded; scheduled monitoring is non-blocking."
+              else
+                echo "Supply Chain Gate coverage is degraded and this caller fails closed."
+                exit 1
+              fi
+              ;;
+            *)
+              echo "Supply Chain Gate produced no valid result."
+              exit 1
+              ;;
+          esac
