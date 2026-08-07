@@ -152,6 +152,45 @@ snapshots: {}
             with self.subTest(spec=spec):
                 self.assertFalse(GATE.dependency_spec_is_unsupported(spec))
 
+    def test_pnpm_patched_dependencies_fail_closed(self) -> None:
+        repository = self.repository("patched-pnpm-lock.yaml", {"safe-package": "1.0.0"})
+        completed, result = self.invoke(repository)
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertIn("pnpm patched dependencies are unsupported", result["blocked_reasons"][0])
+        self.assertNotIn("inert-safe-package.patch", json.dumps(result))
+        with self.assertRaisesRegex(GATE.GateError, "pnpm patched dependencies are unsupported"):
+            GATE.parse_pnpm_lock((repository.root / "pnpm-lock.yaml").read_bytes())
+        patch_suffix_without_top_level_map = b"""lockfileVersion: '9.0'
+packages:
+  safe-package@1.0.0(patch_hash=inert-patch-hash):
+    resolution: {integrity: sha512-inert-fixture}
+snapshots: {}
+"""
+        with self.assertRaisesRegex(GATE.GateError, "pnpm patched dependencies are unsupported"):
+            GATE.parse_pnpm_lock(patch_suffix_without_top_level_map)
+
+        manifest_repository = self.repository(
+            "clean-pnpm-lock.yaml", {"safe-package": "1.0.0"}
+        )
+        manifest = json.loads((manifest_repository.root / "package.json").read_text(encoding="utf-8"))
+        manifest["pnpm"] = {
+            "patchedDependencies": {
+                "safe-package@1.0.0": "patches/inert-safe-package.patch"
+            }
+        }
+        (manifest_repository.root / "package.json").write_text(
+            json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+        )
+        completed, result = self.invoke(manifest_repository)
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(
+            result["dependency_change"]["unsupported_sources"][0]["dependency_field"],
+            "pnpm.patchedDependencies",
+        )
+        self.assertNotIn("inert-safe-package.patch", json.dumps(result))
+
     def test_campaign_versions_block_without_installing(self) -> None:
         for fixture, package, version in (
             ("keyv-pnpm-lock.yaml", "keyv", "6.0.0"),

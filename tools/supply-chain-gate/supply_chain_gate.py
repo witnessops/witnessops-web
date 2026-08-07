@@ -194,6 +194,13 @@ def unsupported_source(label: str, value: str) -> GateError:
     )
 
 
+def unsupported_pnpm_patch(label: str, value: str) -> GateError:
+    return GateError(
+        f"{label}: pnpm patched dependencies are unsupported "
+        f"(evidence_sha256={source_sha256(value)})"
+    )
+
+
 def validate_registry_tarball_source(value: str, label: str) -> None:
     parsed = urllib.parse.urlparse(value)
     if parsed.scheme.lower() in {"http", "https"} and (
@@ -249,6 +256,29 @@ def unsupported_dependency_sources(repo: Path) -> list[dict[str, str]]:
                             "specifier_sha256": source_sha256(spec),
                         }
                     )
+        pnpm = parsed.get("pnpm", {})
+        if pnpm is None:
+            pnpm = {}
+        if not isinstance(pnpm, dict):
+            raise GateError(f"{relative}: pnpm must be an object")
+        patched_dependencies = pnpm.get("patchedDependencies", {})
+        if patched_dependencies is None:
+            patched_dependencies = {}
+        if not isinstance(patched_dependencies, dict):
+            raise GateError(f"{relative}: pnpm.patchedDependencies must be an object")
+        for package, patch_path in patched_dependencies.items():
+            if not isinstance(package, str) or not isinstance(patch_path, str):
+                raise GateError(
+                    f"{relative}: pnpm.patchedDependencies contains a non-string entry"
+                )
+            records.append(
+                {
+                    "manifest": relative,
+                    "dependency_field": "pnpm.patchedDependencies",
+                    "package": package,
+                    "specifier_sha256": source_sha256(patch_path),
+                }
+            )
     return sorted(
         records,
         key=lambda item: (
@@ -302,6 +332,12 @@ def parse_pnpm_lock(data: bytes, label: str = "pnpm-lock.yaml") -> set[Pair]:
         text = data.decode("utf-8")
     except UnicodeDecodeError as exc:
         raise GateError(f"{label}: lockfile is not UTF-8") from exc
+
+    if any(
+        re.match(r"^['\"]?patchedDependencies['\"]?\s*:", line)
+        for line in text.splitlines()
+    ) or "patch_hash=" in text:
+        raise unsupported_pnpm_patch(label, text)
 
     section = ""
     pairs: set[Pair] = set()

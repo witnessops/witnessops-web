@@ -26,7 +26,9 @@ Result states:
   same-version lockfile source/integrity change, newly introduced affected OSV
   record, unreviewed lifecycle script, or exact lifecycle tuple already recorded
   as `BLOCKED` was found. Git, remote-tarball, file, link, patch, and other
-  non-registry dependency sources are unsupported and fail closed;
+  non-registry dependency sources are unsupported and fail closed. pnpm
+  `patchedDependencies` are also unsupported until patch bytes are included in
+  the reviewed identity;
 - `COVERAGE DEGRADED`: required external data was unavailable or unverifiable.
 
 The detailed result and canonical package graph are written under
