@@ -1,7 +1,7 @@
 # Deployment authority
 
 Status: `ops_dev_01_caddy_k3s_dual_lane`
-Last updated: 2026-07-29
+Last updated: 2026-08-06
 
 This document classifies deployment-related repository surfaces for
 `witnessops-web`. It is repo-local guidance and is not deploy approval, release
@@ -37,13 +37,13 @@ Custody map: [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
 | Script | Purpose |
 | --- | --- |
 | `deploy/scripts/k3s-build-shared.sh` | Build one shared image from HEAD; import into k3s; no deploy |
-| `deploy/scripts/k3s-deploy-prod.sh` | Build (optional) + deploy prod |
-| `deploy/scripts/k3s-deploy-dev.sh` | Build (optional) + deploy mesh-dev |
-| `deploy/scripts/k3s-deploy-both.sh` | Build once → prod + mesh-dev + smoke |
-| `deploy/scripts/smoke-prod-dev.sh` | Image ref + HTTP 200 + CSS hash parity |
-| `deploy/scripts/k3s-status.sh` | kubectl image/ready + smoke |
-| `deploy/scripts/k3s-parity.sh` | Pure image/CSS compare helpers (unit-tested) |
-| `deploy/scripts/test-k3s-parity.sh` | Unit tests for parity helpers |
+| `deploy/scripts/k3s-deploy-prod.sh` | Build (optional) + preflight Secrets + atomically reconcile prod image and exact ordered `envFrom` |
+| `deploy/scripts/k3s-deploy-dev.sh` | Build (optional) + validate image + apply mesh-dev manifest with exact ordered `envFrom` |
+| `deploy/scripts/k3s-deploy-both.sh` | Build once → prod + mesh-dev + exact-contract smoke |
+| `deploy/scripts/smoke-prod-dev.sh` | Exact runtime `envFrom` + image ref + HTTP 200 + CSS hash parity |
+| `deploy/scripts/k3s-status.sh` | kubectl image/ready + exact-contract smoke |
+| `deploy/scripts/k3s-parity.sh` | Pure image/CSS, ordered `envFrom`, OIDC key-name, and image-ref validation helpers |
+| `deploy/scripts/test-k3s-parity.sh` | Unit tests for parity, Secret preflight, and deploy reconciliation |
 | `deploy/scripts/k3s-dev-teardown.sh` | Delete mesh-dev only |
 
 pnpm aliases (monorepo root):
@@ -61,9 +61,22 @@ scripts cover the lane. Prefer in-repo scripts so agents and humans share one pa
 - Shared bake always sets public origin (`NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`)
   so prod and mesh-dev CSS/asset hashes match when the image tag matches.
 - **`pnpm deploy:k3s:smoke` fails when prod image ≠ mesh-dev image**, even if CSS
-  happens to match. Also requires HTTP 200 on both homes and matching CSS.
-- Mesh-dev **secret refs** must match prod non-lane secrets:
-  `witnessops-web-env`, `witnessops-web-admin-oidc`.
+  happens to match. It also requires HTTP 200 on both homes, matching CSS, and
+  the exact ordered application-container `envFrom` contract on both lanes.
+- That exact `envFrom` contract is `witnessops-web-env`, then
+  `witnessops-web-admin-oidc`, each as a `secretRef` with an empty prefix and
+  `optional=false`. Source, order, prefix, or `optional` drift fails smoke.
+- The production deploy helper reconciles the image and exact `envFrom`
+  contract atomically after a fail-closed Secret preflight. The OIDC Secret must
+  contain `WITNESSOPS_ADMIN_SECRET` plus the five
+  `WITNESSOPS_GOOGLE_*` key names used by Google admin authentication. Only key
+  names are emitted for preflight; values are never decoded, emitted, or logged.
+- Extra dormant Microsoft OIDC or legacy-key credential entries are deliberately
+  untouched. Removing them requires separate custody-cleanup authorization.
+
+The legacy `deploy/k8s/apply.sh` helper runs the OIDC key-name preflight before
+any cluster mutation. Its namespace and `witnessops-web-admin-oidc` Secret must
+therefore be preprovisioned; the helper does not create or update that Secret.
 
 ### Intentional non-parity (not drift)
 
@@ -99,7 +112,8 @@ Deploy authority:
 - timestamped shared image build with image ID captured
 - in-repo k3s scripts targeting `witnessops-web` and/or `witnessops-web-dev`
 - rollout status and dual-lane smoke when both are in scope
-- rollback image or `kubectl rollout undo` captured in the receipt
+- known-good rollback image redeployed through the prod reconciler, with exact
+  `envFrom` reconciliation and smoke captured in the receipt
 
 DNS/Cloudflare authority:
 

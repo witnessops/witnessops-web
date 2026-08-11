@@ -19,6 +19,8 @@ fi
 
 deploy_dev_image "${IMAGE}"
 log "dev URL ${MESH_DEV_URL}"
-curl -sS -o /dev/null -w "dev_home=%{http_code}\n" --max-time 15 "${MESH_DEV_URL}/" \
-  || die "dev smoke failed — ensure WG is up (sudo wg-quick up wg-edge-01) and hub mesh-peer rule is present"
+DEV_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "${MESH_DEV_URL}/" || true)"
+[[ "${DEV_CODE}" == "200" ]] \
+  || die "dev smoke failed (${DEV_CODE:-request error}) — ensure WG is up (sudo wg-quick up wg-edge-01) and hub mesh-peer rule is present"
+log "dev_home=${DEV_CODE}"
 log "done ${IMAGE}"

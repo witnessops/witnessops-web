@@ -1,7 +1,7 @@
 # WitnessOps Web Deployment Custody
 
 Status: current production + mesh-dev custody note for `witnessops.com`
-Last updated: 2026-07-29
+Last updated: 2026-08-06
 
 This document records how the public WitnessOps web surface (and the mesh-only
 dev twin) is served, built, deployed, verified, and rolled back. It is
@@ -110,17 +110,48 @@ Canonical helpers (repo root):
 
 | Command | Effect |
 | --- | --- |
-| `pnpm deploy:k3s:prod` | build if needed → set image on `witnessops-web` |
-| `pnpm deploy:k3s:dev` | build if needed → apply `dev-mesh-deployment.yaml` |
+| `pnpm deploy:k3s:prod` | build if needed → preflight Secrets → atomically reconcile image and ordered `envFrom` on `witnessops-web` |
+| `pnpm deploy:k3s:dev` | build if needed → validate the image → apply `dev-mesh-deployment.yaml` with the exact ordered `envFrom` contract |
 | `pnpm deploy:k3s:both` | one build → both deploys → `smoke_pair` |
-| `pnpm deploy:k3s:smoke` | status + HTTP/CSS parity |
+| `pnpm deploy:k3s:smoke` | exact runtime `envFrom` + image + HTTP 200 + CSS parity |
 | `pnpm deploy:k3s:dev:teardown` | delete mesh-dev only |
 
 SSH target: `DEPLOY_SSH` default `ops-dev-01` (mesh ProxyJump). Public fallback
 when mesh DNS/SSH is down: `DEPLOY_SSH=root@194.147.221.89`.
 
-Secrets: both deployments use `secretRef: witnessops-web-env` in namespace
-`witnessops`. Mesh-dev does **not** mount prod PVCs.
+Secrets: the application container in both deployments uses exactly these
+ordered `secretRef` sources in namespace `witnessops`, each with an empty
+prefix and `optional=false`:
+
+1. `witnessops-web-env`
+2. `witnessops-web-admin-oidc`
+
+The OIDC Secret must contain these six required key names:
+
+1. `WITNESSOPS_ADMIN_SECRET`
+2. `WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST`
+3. `WITNESSOPS_GOOGLE_OIDC_CLIENT_ID`
+4. `WITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET`
+5. `WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI`
+6. `WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN`
+
+The production helper fails before mutation when either Secret is unavailable
+or the OIDC Secret lacks any required key name. Preflight emits only Secret key
+names for validation; Secret values are never decoded, emitted, or logged. Its
+atomic patch replaces undeclared `envFrom` drift, including source order,
+prefix, and `optional` drift, with the exact contract while updating the image.
+The mesh-dev manifest carries the same exact contract. Mesh-dev does **not**
+mount prod PVCs.
+
+Dormant Microsoft OIDC and legacy-key credential entries may remain in the
+custodied OIDC Secret as extra keys; this lane neither uses nor removes them.
+Their retirement requires a separately authorized custody-cleanup pass.
+
+The legacy `deploy/k8s/apply.sh` path also preflights the six OIDC key names
+before its first cluster mutation. Because that preflight occurs first, the
+`witnessops` namespace and `witnessops-web-admin-oidc` Secret must already be
+provisioned before invoking the legacy helper. That helper does not create or
+update the OIDC Secret.
 
 ## Edge
 
@@ -155,17 +186,20 @@ hostname.
 pnpm deploy:k3s:smoke
 # or
 bash deploy/scripts/smoke-prod-dev.sh
-pnpm deploy:k3s:test-parity   # pure image/CSS helper unit tests
+pnpm deploy:k3s:test-parity   # image/CSS, envFrom, Secret-preflight, and deploy-reconciliation tests
 ```
 
 Expect (all enforced; smoke exits non-zero on failure):
 
 - **identical container image refs** on `witnessops-web` and `witnessops-web-dev`
+- exact ordered runtime `envFrom` contract on both deployments, including an
+  empty prefix and `optional=false` on both Secret refs
 - `https://witnessops.com/` → HTTP 200
 - `http://10.44.0.2:3015/` → HTTP 200 (WG up)
 - matching primary CSS hash
 
-Image-only drift fails even when CSS coincidentally matches (`k3s-parity.sh`).
+Image or runtime `envFrom` drift (source, order, prefix, or `optional`) fails
+even when CSS coincidentally matches (`k3s-parity.sh`).
 
 **Intentional non-parity (not smoke failures):** mesh `10.44.0.2:3015` bind,
 emptyDir intake, runtime `PORT`/`HOSTNAME`/`WITNESSOPS_VERIFY_BASE_URL`. Mesh-dev
@@ -206,27 +240,31 @@ Every public web apply receipt must record:
 - rollout result
 - dual-lane smoke result when both were targeted
 - public route sweep / forbidden scan when buyer surface changed
-- rollback path
+- rollback image and exact `envFrom` reconciliation path
 - DNS / Caddy / API-app-offsec exposure statements
 
 ## Rollback
 
-Preferred prod rollback:
-
-```bash
-kubectl -n witnessops rollout undo deployment/witnessops-web
-```
-
-Or redeploy a previously recorded image:
+Preferred prod rollback is to redeploy a previously recorded, known-good image
+through the production reconciler so the exact ordered `envFrom` contract is
+restored at the same time:
 
 ```bash
 bash deploy/scripts/k3s-deploy-prod.sh docker.io/library/witnessops-web:<known-good-tag>
+pnpm deploy:k3s:smoke
 ```
+
+Emergency `kubectl -n witnessops rollout undo deployment/witnessops-web` may
+restore an older pod template with stale `envFrom`. If it is used, immediately
+redeploy the resulting known-good image through `k3s-deploy-prod.sh` and run
+`pnpm deploy:k3s:smoke`; do not treat rollout status alone as rollback
+completion.
 
 Mesh-dev:
 
 ```bash
 bash deploy/scripts/k3s-deploy-dev.sh docker.io/library/witnessops-web:<known-good-tag>
+pnpm deploy:k3s:smoke
 # or remove entirely
 pnpm deploy:k3s:dev:teardown
 ```

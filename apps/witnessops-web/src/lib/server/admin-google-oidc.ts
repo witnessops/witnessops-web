@@ -135,12 +135,16 @@ const GOOGLE_CONFIG_ENV_NAMES = [
 
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/;
 const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/;
+const NON_ASCII_PATTERN = /[^\x00-\x7f]/;
 
 function configInvalid(): never {
   throw new GoogleAdminOidcError("config_invalid");
 }
 
 function normalizeDomain(value: string): string | null {
+  if (NON_ASCII_PATTERN.test(value)) {
+    return null;
+  }
   const domain = value.trim().toLowerCase();
   if (!domain || domain.length > 253 || domain.endsWith(".")) {
     return null;
@@ -162,6 +166,9 @@ function normalizeDomain(value: string): string | null {
 }
 
 function normalizeEmail(value: string): string | null {
+  if (NON_ASCII_PATTERN.test(value)) {
+    return null;
+  }
   const email = value.trim().toLowerCase();
   if (!email || email.length > 254 || CONTROL_CHARACTER_PATTERN.test(email)) {
     return null;
@@ -611,6 +618,12 @@ export async function verifyGoogleOidcCode(
   }
 
   if (payload.aud !== config.clientId) {
+    throw new GoogleAdminOidcError("id_token_audience_invalid");
+  }
+  if (
+    payload.azp !== undefined &&
+    (typeof payload.azp !== "string" || payload.azp !== config.clientId)
+  ) {
     throw new GoogleAdminOidcError("id_token_audience_invalid");
   }
 

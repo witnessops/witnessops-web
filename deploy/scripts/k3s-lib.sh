@@ -31,6 +31,8 @@ DEV_DEPLOY="${DEV_DEPLOY:-witnessops-web-dev}"
 MESH_DEV_URL="${MESH_DEV_URL:-http://10.44.0.2:3015}"
 PROD_URL="${PROD_URL:-https://witnessops.com}"
 IMAGE_REPO="${IMAGE_REPO:-docker.io/library/witnessops-web}"
+BASE_ENV_SECRET='witnessops-web-env'
+ADMIN_OIDC_SECRET='witnessops-web-admin-oidc'
 
 # Pure image/CSS compare helpers (unit-tested via deploy/scripts/test-k3s-parity.sh).
 # shellcheck source=k3s-parity.sh
@@ -187,20 +189,75 @@ DF
   printf '%s\n' "${image}"
 }
 
+prod_deployment_json_patch() {
+  local image
+  image="${1:-}"
+  validate_container_image_ref "${image}" || return 1
+  printf '%s' '[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"witnessops-web"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"witnessops-web-env"}},{"secretRef":{"name":"witnessops-web-admin-oidc"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"'
+  printf '%s' "${image}"
+  printf '%s' '"}]'
+}
+
+preflight_remote_admin_secrets() {
+  local oidc_key_names
+
+  if ! remote "kubectl -n '${DEPLOY_NS}' get secret '${BASE_ENV_SECRET}' -o name >/dev/null"; then
+    die "required runtime secret is unavailable: ${BASE_ENV_SECRET}"
+  fi
+
+  oidc_key_names="$(remote "kubectl -n '${DEPLOY_NS}' get secret '${ADMIN_OIDC_SECRET}' -o go-template='{{range \$key, \$_ := .data}}{{printf \"%s\\n\" \$key}}{{end}}'")" \
+    || die "required admin OIDC secret is unavailable: ${ADMIN_OIDC_SECRET}"
+
+  if ! validate_admin_oidc_key_names "${oidc_key_names}"; then
+    die "admin OIDC secret preflight failed (key names only)"
+  fi
+}
+
+deployment_envfrom_contract() {
+  local deployment
+  deployment="${1:-}"
+  [[ -n "${deployment}" ]] || return 1
+  remote "kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o go-template='{{range .spec.template.spec.containers}}{{printf \"container:%s\\n\" .name}}{{range .envFrom}}{{if .secretRef}}{{printf \"secret:%s|prefix=\" .secretRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{with .secretRef.optional}}{{.}}{{else}}false{{end}}{{printf \"\\n\"}}{{else if .configMapRef}}{{printf \"configmap:%s|prefix=\" .configMapRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{with .configMapRef.optional}}{{.}}{{else}}false{{end}}{{printf \"\\n\"}}{{else}}{{printf \"unknown:|prefix=|optional=false\\n\"}}{{end}}{{end}}{{end}}'"
+}
+
+assert_remote_deployment_envfrom() {
+  local deployment expected actual rc
+  deployment="${1:-}"
+  expected="$(expected_admin_runtime_envfrom_contract)"
+  actual="$(deployment_envfrom_contract "${deployment}")" \
+    || die "could not inspect runtime envFrom contract for ${deployment}"
+  rc=0
+  compare_runtime_envfrom_contract "${expected}" "${actual}" || rc=$?
+  if [[ "${rc}" -ne 0 ]]; then
+    die "runtime envFrom drift for ${deployment} (exit ${rc})"
+  fi
+  log "runtime envFrom contract matches for ${deployment}"
+}
+
 deploy_prod_image() {
-  local image="$1"
+  local image patch
+  image="${1:-}"
+  patch="$(prod_deployment_json_patch "${image}")" \
+    || die "refusing invalid production image reference"
+
+  preflight_remote_admin_secrets
   log "deploying PROD ${PROD_DEPLOY} -> ${image}"
   remote "set -euo pipefail
     kubectl -n '${DEPLOY_NS}' get deploy '${PROD_DEPLOY}' -o jsonpath='{.spec.template.spec.containers[0].image}' > /tmp/witnessops-web-prev-image.txt
     echo PREV_PROD=\$(cat /tmp/witnessops-web-prev-image.txt)
-    kubectl -n '${DEPLOY_NS}' set image deployment/${PROD_DEPLOY} witnessops-web='${image}'
+    kubectl -n '${DEPLOY_NS}' patch deployment/${PROD_DEPLOY} --type=json --patch='${patch}'
     kubectl -n '${DEPLOY_NS}' rollout status deployment/${PROD_DEPLOY} --timeout=180s
     kubectl -n '${DEPLOY_NS}' get deploy ${PROD_DEPLOY} -o wide
   "
+  assert_remote_deployment_envfrom "${PROD_DEPLOY}"
 }
 
 deploy_dev_image() {
-  local image="$1"
+  local image
+  image="${1:-}"
+  validate_container_image_ref "${image}" \
+    || die "refusing invalid development image reference"
+
   local template="${K8S_DIR}/dev-mesh-deployment.yaml"
   local rendered remote_yaml
   [[ -f "${template}" ]] || die "missing ${template}"
@@ -222,6 +279,7 @@ deploy_dev_image() {
     kubectl -n '${DEPLOY_NS}' get deploy,pods -l app=${DEV_DEPLOY} -o wide
     ss -lntp | grep 3015 || true
   "
+  assert_remote_deployment_envfrom "${DEV_DEPLOY}"
 }
 
 # Fetch container image refs for both lanes (stdout: two lines prod\ndev).
@@ -235,7 +293,11 @@ smoke_pair() {
   local prod_code dev_code prod_css dev_css prod_image dev_image
   local images_out
 
-  # 1) Image-ref equality (enforced — fails even when CSS coincidentally matches).
+  # 1) Exact ordered runtime secret-ref contract for both lanes.
+  assert_remote_deployment_envfrom "${PROD_DEPLOY}"
+  assert_remote_deployment_envfrom "${DEV_DEPLOY}"
+
+  # 2) Image-ref equality (enforced — fails even when CSS coincidentally matches).
   images_out="$(lane_image_refs 2>/dev/null || true)"
   prod_image="$(printf '%s\n' "${images_out}" | sed -n '1p')"
   dev_image="$(printf '%s\n' "${images_out}" | sed -n '2p')"
@@ -249,7 +311,7 @@ smoke_pair() {
   fi
   log "smoke images match"
 
-  # 2) HTTP + CSS parity on the buyer home path.
+  # 3) HTTP + CSS parity on the buyer home path.
   prod_code="$(curl -sS -o /tmp/wo-prod.html -w '%{http_code}' --max-time 15 "${PROD_URL}/" || echo 000)"
   dev_code="$(curl -sS -o /tmp/wo-dev.html -w '%{http_code}' --max-time 15 "${MESH_DEV_URL}/" || echo 000)"
   prod_css="$(grep -oE 'css/[a-f0-9]+\.css' /tmp/wo-prod.html 2>/dev/null | head -1 || true)"
@@ -264,7 +326,7 @@ smoke_pair() {
     err "CSS mismatch prod=${prod_css} dev=${dev_css}"
     return 2
   fi
-  log "smoke OK (HTTP 200 both; image match; CSS match)"
+  log "smoke OK (runtime envFrom, HTTP 200, image, and CSS match)"
 }
 
 print_status() {
