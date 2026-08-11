@@ -190,7 +190,7 @@ deployment_envfrom_contract() {
   local deployment
   deployment="${1:-}"
   [[ -n "${deployment}" ]] || return 1
-  remote "kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o go-template='{{range .spec.template.spec.containers}}{{printf \"container:%s\\n\" .name}}{{range .envFrom}}{{if .secretRef}}{{printf \"secret:%s|prefix=\" .secretRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{if .secretRef.optional}}{{printf \"true\\n\"}}{{else}}{{printf \"false\\n\"}}{{end}}{{else if .configMapRef}}{{printf \"configmap:%s|prefix=\" .configMapRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{if .configMapRef.optional}}{{printf \"true\\n\"}}{{else}}{{printf \"false\\n\"}}{{end}}{{else}}{{printf \"unknown:|prefix=|optional=false\\n\"}}{{end}}{{end}}{{end}}'"
+  remote "kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o go-template='{{range .spec.template.spec.containers}}{{printf \"container:%s\\n\" .name}}{{range .envFrom}}{{if .secretRef}}{{printf \"secret:%s|prefix=\" .secretRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{with .secretRef.optional}}{{.}}{{else}}false{{end}}{{printf \"\\n\"}}{{else if .configMapRef}}{{printf \"configmap:%s|prefix=\" .configMapRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{with .configMapRef.optional}}{{.}}{{else}}false{{end}}{{printf \"\\n\"}}{{else}}{{printf \"unknown:|prefix=|optional=false\\n\"}}{{end}}{{end}}{{end}}'"
 }
 
 assert_remote_deployment_envfrom() {
