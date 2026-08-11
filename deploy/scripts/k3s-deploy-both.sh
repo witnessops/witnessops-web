@@ -19,6 +19,11 @@ if [[ -z "${IMAGE}" ]]; then
 fi
 log "shared IMAGE=${IMAGE}"
 
+# A dual-lane deploy must fail before either lane mutates if the shared runtime
+# Secrets are unavailable or the admin OIDC Secret is incomplete. The prod
+# deploy retains its own preflight for safe standalone use.
+preflight_remote_admin_secrets
+
 deploy_dev_image "${IMAGE}"
 DEV_SUPPORT_STATUS="$(
   curl -sS -o /dev/null -w "%{http_code}" --max-time 15 "${MESH_DEV_URL}/support" || true
