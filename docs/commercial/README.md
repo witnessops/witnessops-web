@@ -3,7 +3,7 @@
 Operator-facing materials so the live catalog + samples convert into real engagements.
 Written for learning the offers while you sell and deliver them.
 
-**Operate this week:** Public Exposure Review is the primary fixed-scope homepage route under the existing `OFFSEC-EXTERNAL-EXPOSURE` SKU. Customer Security Review Sprint and One Server Security Check remain available in the broader catalogue. One invitation-only design-partner delivery may receive a private written fee waiver to validate delivery; do not advertise the offer as free.
+**Operate this week:** External Exposure Assessment is the primary fixed-scope homepage route under the existing `OFFSEC-EXTERNAL-EXPOSURE` SKU. Customer Security Review Sprint and One Server Security Check remain available in the broader catalogue. One invitation-only design-partner delivery may receive a private written fee waiver to validate delivery; do not advertise the offer as free.
 
 ## Start here
 
@@ -30,8 +30,8 @@ Then use the paste templates below.
 | 07 | [Operator playbook complete](./07-operator-playbook-complete.md) | Full delivery path |
 | 08 | [Artifact map](./08-artifact-map.md) | Find samples on site + disk |
 | 09 | [Pricing investigation + PLN](./09-pricing-investigation.md) | Market context, zł table, policy |
-| 10 | [Public Exposure Review offer](./10-external-exposure-assessment-pilot-offer.md) | One-page fixed-scope buyer offer and validation boundary |
-| 11 | [Public Exposure Review order and fit check](./11-external-exposure-assessment-fit-check.md) | Non-secret intake and fit/custom/referral routing |
+| 10 | [External Exposure Assessment offer](./10-external-exposure-assessment-pilot-offer.md) | One-page fixed-scope buyer offer and validation boundary |
+| 11 | [External Exposure Assessment order and fit check](./11-external-exposure-assessment-fit-check.md) | Non-secret intake and fit/custom/referral routing |
 
 ## Public anchors
 
@@ -45,8 +45,8 @@ Then use the paste templates below.
 | One Server sample page | https://witnessops.com/review/sample-cases/local-server-security-review |
 | One Server web fixture | https://witnessops.com/samples/offsec-shield-local-server-audit/ |
 | One Server suite sample | https://witnessops.com/samples/offsec-local-audit/ |
-| Public Exposure Review | https://witnessops.com/catalog/offsec-external-exposure |
-| Public Exposure Review sample | https://witnessops.com/review/sample-cases/external-exposure-assessment |
+| External Exposure Assessment | https://witnessops.com/catalog/offsec-external-exposure |
+| External Exposure Assessment sample | https://witnessops.com/review/sample-cases/external-exposure-assessment |
 | Fit check | https://witnessops.com/review/request |
 | All samples | https://witnessops.com/review/sample-cases |
 
@@ -68,4 +68,4 @@ Then use the paste templates below.
 
 ## Hold list
 
-No public design-partner discount, free-offer language, unsupported testimonial, Pilot/Access-removed product cards, KEV/SBOM SKUs, or new public samples unless separately approved. Keep the Public Exposure Review fee waiver and validation record private; publish a quote, company name, logo, or case study only with separate post-delivery permission.
+No public design-partner discount, free-offer language, unsupported testimonial, Pilot/Access-removed product cards, KEV/SBOM SKUs, or new public samples unless separately approved. Keep the External Exposure Assessment fee waiver and validation record private; publish a quote, company name, logo, or case study only with separate post-delivery permission.

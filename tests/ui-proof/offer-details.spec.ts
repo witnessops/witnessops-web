@@ -29,8 +29,8 @@ const offers = [
     path: "/catalog/offsec-external-exposure",
     service: "external-exposure-assessment",
     name: "External Exposure Assessment",
-    price: "€1,900 ex VAT — first three accepted engagements",
-    timing: "5–7 business days after authority, scope freeze, required inputs, and the approved collection window are confirmed",
+    price: "€1,500 paid pilot — one public-facing domain/application",
+    timing: "Within 3 working days after payment, accepted scope, authority, required inputs, and the collection window are confirmed",
     request: "/review/request",
   },
   {
@@ -68,9 +68,9 @@ const offers = [
   {
     path: "/pl/catalog/offsec-external-exposure",
     service: "external-exposure-assessment",
-    name: "External Exposure Assessment",
-    price: "€1 900 bez VAT — pierwsze trzy zaakceptowane zlecenia",
-    timing: "5–7 dni roboczych po potwierdzeniu upoważnienia, zamrożenia zakresu, wymaganych materiałów wejściowych i zatwierdzonego okna zbierania",
+    name: "Ocena ekspozycji zewnętrznej",
+    price: "Płatny pilotaż €1 500 — jedna publiczna domena/aplikacja",
+    timing: "W ciągu 3 dni roboczych po potwierdzeniu płatności, zaakceptowanego zakresu, upoważnienia, wymaganych danych wejściowych i okna zbierania",
     request: "/pl/review/request",
   },
   {
@@ -120,7 +120,7 @@ test("reachable offer details use the canonical buyer contract and visual system
       await expect(main).toHaveAttribute("data-price-contract", /.+/);
       if (offer.service === "external-exposure-assessment") {
         await expect(main).toContainText(
-          offer.path.startsWith("/pl") ? "€1 900 bez VAT" : "€1,900 ex VAT",
+          offer.path.startsWith("/pl") ? "Płatny pilotaż €1 500" : "€1,500 paid pilot",
         );
         const sampleLink = main.locator(
           'a[href="/review/sample-cases/external-exposure-assessment"]',
@@ -133,7 +133,9 @@ test("reachable offer details use the canonical buyer contract and visual system
         );
         await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
           "content",
-          /External Exposure Assessment \| WitnessOps/,
+          offer.path.startsWith("/pl")
+            ? /Ocena ekspozycji zewnętrznej \| WitnessOps/
+            : /External Exposure Assessment \| WitnessOps/,
         );
         await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(
           "href",
