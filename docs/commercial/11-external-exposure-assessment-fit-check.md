@@ -1,4 +1,4 @@
-# Public Exposure Review — non-secret order and fit check
+# External Exposure Assessment — non-secret order and fit check
 
 Use this before requesting files, logs, screenshots, target inventories, credentials, or production evidence. The fit check does not authorize testing and does not start an engagement.
 
@@ -7,7 +7,7 @@ Use this before requesting files, logs, screenshots, target inventories, credent
 Copy the block below into the review form, email, or a 15-minute call.
 
 ```text
-Public Exposure Review — non-secret order and fit check
+External Exposure Assessment — non-secret order and fit check
 
 1. Your name, role, organisation, and work email:
 
@@ -48,7 +48,7 @@ customer records, private network details, vulnerability evidence, or production
 
 ## Operator routing
 
-### Fit for the €1,900 fixed-scope review
+### Fit for the €1,500 paid pilot
 
 All of the following should be true:
 
@@ -77,7 +77,7 @@ All of the following should be true:
 ## Fit-check response
 
 ```text
-Subject: Public Exposure Review — scope result
+Subject: External Exposure Assessment — scope result
 
 Hi [Name],
 
@@ -87,7 +87,7 @@ a custom-scope request / not a fit] because [one specific boundary reason].
 [If fit]
 The review covers one authorised public domain or bounded application, within the
 10-hostname / 3-IP / 20-endpoint caps, using passive discovery and explicitly approved
-low-impact checks. The fixed fee is €1,900 excluding VAT. Delivery is due within three
+low-impact checks. The paid-pilot fee is €1,500 excluding VAT. Delivery is due within three
 working days after payment or a written fee waiver, accepted SOW, authority, scope,
 required inputs, and the collection window are all confirmed. One focused retest within
 30 days is included.

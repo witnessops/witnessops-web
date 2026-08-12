@@ -1,4 +1,4 @@
-# Public Exposure Review — fixed-scope offer
+# External Exposure Assessment — paid pilot
 
 **Status:** public fixed-scope offer under the existing `OFFSEC-EXTERNAL-EXPOSURE` SKU. Acceptance remains subject to scope, authority, and operator capacity.
 
@@ -6,7 +6,7 @@
 
 ### Know what one public domain exposes before it becomes someone else’s surprise
 
-The **Public Exposure Review** is a controlled external exposure review for one authorised public domain. WitnessOps combines passive discovery with explicitly approved, low-impact checks, then delivers evidence-linked findings, named unknowns, and a handover package another owner can inspect.
+The **External Exposure Assessment** is a controlled outside-in review for one authorised public-facing domain or application. WitnessOps combines passive discovery with explicitly approved, low-impact checks, then delivers evidence-linked findings, named unknowns, and a handover package another owner can inspect.
 
 Buy it when a launch, infrastructure change, pre-pentest cleanup, investor or board review, or customer security request creates a real deadline. If the receiving party requires an accredited penetration test, exploitation, or a formal attestation, this is not the right service.
 
@@ -40,7 +40,7 @@ No exploitation, authenticated application testing, password testing, brute forc
 
 ### Commercial line
 
-- **Fixed fee:** €1,900 excluding VAT for the named package boundary.
+- **Fixed fee:** €1,500 paid pilot excluding VAT for the named package boundary.
 - **Ordering:** no sales call required. The order request begins asynchronous scope acceptance; it does not authorize testing.
 - **Availability:** subject to written scope acceptance and confirmed operator capacity.
 - **Delivery:** within three working days after payment or a written fee waiver, accepted SOW, written authority, scope freeze, required inputs, and the approved collection window are all confirmed.
@@ -60,8 +60,8 @@ Use: <https://witnessops.com/review/request>
 
 ## Operator validation boundary — do not include in buyer copy
 
-- **Known:** the offer has a fixed scope, a public €1,900 ex-VAT price, explicit non-claims, and an authorization-gated delivery path.
+- **Known:** the offer has a fixed scope, a public €1,500 paid-pilot price excluding VAT, explicit non-claims, and an authorization-gated delivery path.
 - **Inferred:** the bounded package can be completed inside the three-business-day clock when every start condition is complete and the caps hold.
 - **Assumed:** a normal engagement can be delivered in 14 operator hours or fewer when the caps hold.
-- **Missing:** an actual WitnessOps delivery under this contract, measured delivery hours, candid buyer feedback, buyer use of the handover, and willingness to pay €1,900 for the same boundary.
+- **Missing:** an actual WitnessOps delivery under this contract, measured delivery hours, candid buyer feedback, buyer use of the handover, and willingness to pay €1,500 for the same boundary.
 - **First validation:** complete one invitation-only design-partner delivery under the same scope, clock, evidence, and retest terms. Record the fee waiver privately, ask for candid feedback after delivery, and request publication permission separately if the buyer is willing.

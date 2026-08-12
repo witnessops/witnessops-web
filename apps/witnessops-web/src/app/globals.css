@@ -164,31 +164,31 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Public editorial palette. Buyer pages and their shared navbar/footer use the
-   same paper, ink, black accent, and rule colors. On dark public pages the shell
-   intentionally falls back to the root black token set instead of forcing paper. */
+/* Public black-and-white palette. Buyer pages and their shared navbar/footer use
+   the same white, ink, and neutral-rule system. On dark public pages the shell
+   intentionally falls back to the root black token set instead of forcing white. */
 .buyer-page,
 main[data-page="home"],
 body:has(.buyer-page) .public-shell,
 body:has(main[data-page="home"]) .public-shell {
-  --color-brand-primary: #171713;
-  --color-brand-primary-hover: #2b2b25;
-  --color-brand-secondary: #ebe5da;
-  --color-brand-accent: #171713;
-  --color-brand-accent-subtle: rgba(23, 23, 19, 0.08);
-  --color-brand-muted: #555149;
-  --color-surface-bg: #f4f0e7;
-  --color-surface-bg-alt: #eee8de;
-  --color-surface-inset: #e7dfd3;
-  --color-surface-card: #faf7f1;
-  --color-surface-card-hover: #ebe5da;
-  --color-surface-border: #c9c1b4;
-  --color-surface-border-hover: #9e9487;
-  --color-surface-border-strong: #817a6f;
-  --color-text-primary: #171713;
-  --color-text-secondary: #555149;
-  --color-text-muted: #716b61;
-  --color-text-inverse: #f4f0e7;
+  --color-brand-primary: #050505;
+  --color-brand-primary-hover: #242424;
+  --color-brand-secondary: #f3f3f3;
+  --color-brand-accent: #050505;
+  --color-brand-accent-subtle: rgba(5, 5, 5, 0.07);
+  --color-brand-muted: #3d3d3d;
+  --color-surface-bg: #ffffff;
+  --color-surface-bg-alt: #f6f6f6;
+  --color-surface-inset: #eeeeee;
+  --color-surface-card: #ffffff;
+  --color-surface-card-hover: #f3f3f3;
+  --color-surface-border: #d5d5d5;
+  --color-surface-border-hover: #9a9a9a;
+  --color-surface-border-strong: #737373;
+  --color-text-primary: #050505;
+  --color-text-secondary: #363636;
+  --color-text-muted: #5f5f5f;
+  --color-text-inverse: #ffffff;
   background: var(--color-surface-bg);
   color: var(--color-text-primary);
 }

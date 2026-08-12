@@ -5,6 +5,11 @@ import {
   retractClaimantEngagement,
 } from "@/lib/server/claimant-actions";
 import { isClaimantSessionAuthorized } from "@/lib/server/claimant-session";
+import {
+  PUBLIC_JSON_BODY_LIMIT_BYTES,
+  readBoundedRequestJson,
+  RequestBodyTooLargeError,
+} from "@/lib/server/bounded-request-body";
 
 export const runtime = "nodejs";
 
@@ -21,8 +26,14 @@ export async function POST(request: Request, { params }: RouteContext) {
 
   let body: { email?: unknown; reason?: unknown };
   try {
-    body = (await request.json()) as typeof body;
-  } catch {
+    body = (await readBoundedRequestJson(
+      request,
+      PUBLIC_JSON_BODY_LIMIT_BYTES,
+    )) as typeof body;
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return invalid("Request body is too large.", 413);
+    }
     return invalid("Invalid request body.", 400);
   }
 

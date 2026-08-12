@@ -19,7 +19,7 @@ import {
   getIssuanceById,
   type TokenIssuanceRecord,
 } from "./token-store";
-import { CLAIMANT_SESSION_COOKIE_NAME } from "./claimant-session";
+import { claimantSessionCookieName } from "./claimant-session";
 
 import { POST as engage } from "../../app/api/engage/route";
 import { POST as verifyToken } from "../../app/api/verify-token/route";
@@ -88,7 +88,7 @@ async function issueVerifiedToken(baseDir: string) {
 
   assert.equal(verified.status, 200);
   const setCookie = verified.headers.get("set-cookie") ?? "";
-  assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
+  assert.match(setCookie, new RegExp(`^${claimantSessionCookieName(issuance.issuanceId)}=`));
   return {
     issuanceId: issuance.issuanceId,
     email: issuance.email,
@@ -148,6 +148,23 @@ test("claimantActionBlocksApproval: disagree blocks", () => {
   } as TokenIssuanceRecord);
   assert.equal(r.blocked, true);
   assert.equal(r.kind, "disagree");
+});
+
+test("approval and every claimant transition use the same issuance lock", async () => {
+  const claimantSource = await readFile(
+    new URL("./claimant-actions.ts", import.meta.url),
+    "utf8",
+  );
+  const approvalSource = await readFile(
+    new URL("./token-issuance.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(claimantSource, /withIssuanceLock\(input\.issuanceId/);
+  assert.match(
+    approvalSource,
+    /withIssuanceLock\(input\.issuanceId[\s\S]*approveScopeAndStartReconUnlocked/,
+  );
 });
 
 // ---------------------------------------------------------------------------

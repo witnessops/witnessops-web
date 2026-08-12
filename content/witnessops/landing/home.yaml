@@ -9,13 +9,13 @@ status:
   last_reviewed: "2026-08-06"
 
 seo:
-  title: "Public Exposure Review | WitnessOps"
-  description: "See what one public-facing system exposes from the internet. Manually reviewed findings, evidence attached, and a practical fix list."
+  title: "External Exposure Assessment | WitnessOps"
+  description: "See what the internet sees. A paid pilot for one public-facing domain or application, delivered in three working days."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "See what your public-facing system exposes from the internet."
-  og_description: "Manually reviewed findings, evidence attached, and a practical fix list. €1,900 ex VAT · 3 working days · fixed scope."
+  og_title: "See what the internet sees."
+  og_description: "External Exposure Assessment. €1,500 paid pilot · 3 working days · 1 public-facing domain/application."
   twitter_card: "summary_large_image"
 
 theme:
@@ -43,16 +43,16 @@ navbar:
     variant: "primary"
 
 hero:
-  eyebrow: "Public Exposure Review"
-  title: "See what your public-facing system exposes from the internet."
-  body: "Manually reviewed findings, evidence attached, and a practical fix list."
+  eyebrow: "External Exposure Assessment"
+  title: "See what the internet sees."
+  body: "For SaaS teams facing an enterprise security request, a recent launch or infrastructure change, or an upcoming pentest."
   supporting_points: []
   primary_cta:
-    label: "Request your review"
+    label: "Start a review"
     href: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE"
     variant: "primary"
   secondary_cta:
-    label: "View a synthetic sample"
+    label: "View sample"
     href: "/review/sample-cases/external-exposure-assessment"
     variant: "secondary"
   proof_badges: []

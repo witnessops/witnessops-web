@@ -10,7 +10,10 @@ import {
   getIssuanceById,
   updateIssuance,
 } from "@/lib/server/token-store";
-import { CLAIMANT_SESSION_COOKIE_NAME } from "@/lib/server/claimant-session";
+import {
+  CLAIMANT_SESSION_MAX_AGE_SECONDS,
+  claimantSessionCookieName,
+} from "@/lib/server/claimant-session";
 
 import { POST as engage } from "../engage/route";
 import { POST as reviewRequest } from "../review/request/route";
@@ -142,11 +145,14 @@ async function issueExternalExposureToken(baseDir: string, locale: "en" | "pl") 
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
 
-function assertClaimantSessionSet(response: Response): string {
+function assertClaimantSessionSet(response: Response, issuanceId?: string): string {
   const setCookie = response.headers.get("set-cookie") ?? "";
-  assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
+  if (issuanceId) {
+    assert.match(setCookie, new RegExp(`^${claimantSessionCookieName(issuanceId)}=`));
+  }
   assert.match(setCookie, /HttpOnly/);
   assert.match(setCookie, /SameSite=strict/i);
+  assert.match(setCookie, new RegExp(`Max-Age=${CLAIMANT_SESSION_MAX_AGE_SECONDS}`));
   return setCookie.split(";")[0]!;
 }
 
@@ -185,7 +191,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   );
 
   assert.equal(first.status, 200);
-  assertClaimantSessionSet(first);
+  assertClaimantSessionSet(first, issued.issuanceId);
   const firstPayload = (await first.json()) as {
     channel: string;
     intakeId: string;
@@ -220,7 +226,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   );
 
   assert.equal(second.status, 200);
-  assertClaimantSessionSet(second);
+  assertClaimantSessionSet(second, issued.issuanceId);
   const secondPayload = (await second.json()) as {
     issuanceId: string;
     email: string;
@@ -242,6 +248,39 @@ test("verify-token route allows repeat verification for the same issuance and to
     secondPayload.postVerifyPath,
     `/assessment/${encodeURIComponent(secondPayload.issuanceId)}?email=${encodeURIComponent(secondPayload.email)}`,
   );
+});
+
+test("verify-token route rejects verified-token replay after the original expiry", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
+  const issued = await issueToken(baseDir);
+
+  const first = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(first.status, 200);
+  assertClaimantSessionSet(first, issued.issuanceId);
+
+  await updateIssuance(issued.issuanceId, (record) => ({
+    ...record,
+    expiresAt: "2000-01-01T00:00:00.000Z",
+  }));
+
+  const replay = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(replay.status, 400);
+  assert.equal(replay.headers.get("set-cookie"), null);
+  const payload = (await replay.json()) as { error?: string };
+  assert.match(payload.error ?? "", /expired/i);
 });
 
 test("verify-token route returns access-change confirmation path without assessment attachment on replay", async () => {
@@ -301,7 +340,7 @@ test("verify-token route returns access-change confirmation path without assessm
   assert.equal(fetchCalls.length, 0);
 });
 
-test("Public Exposure Review stays on the locale-specific manual order path", async () => {
+test("External Exposure Assessment stays on the locale-specific manual order path", async () => {
   for (const locale of ["en", "pl"] as const) {
     const baseDir = await mkdtemp(
       path.join(os.tmpdir(), `witnessops-external-exposure-${locale}-`),

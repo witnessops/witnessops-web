@@ -179,8 +179,9 @@ function toVerdict(result: "pass" | "fail" | "limited-pass"): VerifyVerdict {
     case "fail":
       return "invalid";
     case "pass":
-    case "limited-pass":
       return "valid";
+    case "limited-pass":
+      return "indeterminate";
   }
 }
 
@@ -193,6 +194,10 @@ function buildSummary(response: {
 }): string {
   if (response.verdict === "valid") {
     return `${response.proofStageClaimed} receipt verified in ${response.scope} mode; artifact revalidation was ${response.artifactRevalidation.replaceAll("_", " ")}.`;
+  }
+
+  if (response.verdict === "indeterminate") {
+    return `${response.proofStageClaimed} receipt checks passed in ${response.scope} mode, but artifact revalidation was ${response.artifactRevalidation.replaceAll("_", " ")}; verification remains incomplete.`;
   }
 
   if (response.breaches.length > 0) {

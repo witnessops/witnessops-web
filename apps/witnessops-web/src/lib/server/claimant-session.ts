@@ -1,7 +1,9 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
-export const CLAIMANT_SESSION_COOKIE_NAME = "witnessops_claimant_session";
-export const CLAIMANT_SESSION_MAX_AGE_SECONDS = 4 * 60 * 60;
+export const CLAIMANT_SESSION_COOKIE_PREFIX = "witnessops_claimant_session";
+export const LEGACY_CLAIMANT_SESSION_COOKIE_NAME =
+  CLAIMANT_SESSION_COOKIE_PREFIX;
+export const CLAIMANT_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
 interface ClaimantSessionPayload {
   v: 1;
@@ -17,6 +19,11 @@ interface ClaimantSessionSubject {
 
 function normaliseEmail(value: string): string {
   return value.trim().toLowerCase();
+}
+
+export function claimantSessionCookieName(issuanceId: string): string {
+  const suffix = createHash("sha256").update(issuanceId).digest("hex").slice(0, 16);
+  return `${CLAIMANT_SESSION_COOKIE_PREFIX}_${suffix}`;
 }
 
 function readSecret(): string {
@@ -129,9 +136,21 @@ export function isClaimantSessionAuthorized(
   request: Request,
   expected: ClaimantSessionSubject,
 ): boolean {
-  const cookieValue = readCookie(
-    request.headers.get("cookie"),
-    CLAIMANT_SESSION_COOKIE_NAME,
+  const cookieHeader = request.headers.get("cookie");
+  const scopedCookie = readCookie(
+    cookieHeader,
+    claimantSessionCookieName(expected.issuanceId),
   );
-  return verifyClaimantSessionCookie(cookieValue, expected);
+  if (verifyClaimantSessionCookie(scopedCookie, expected)) {
+    return true;
+  }
+
+  // Migration fallback for still-valid four-hour cookies issued before
+  // claimant sessions became issuance-specific. Their signed payload remains
+  // bound to the expected issuance, email and original expiry.
+  const legacyCookie = readCookie(
+    cookieHeader,
+    LEGACY_CLAIMANT_SESSION_COOKIE_NAME,
+  );
+  return verifyClaimantSessionCookie(legacyCookie, expected);
 }

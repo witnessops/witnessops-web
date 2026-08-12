@@ -608,6 +608,36 @@ function collectBreaches(result: VerificationResult): Breach[] {
   return breaches;
 }
 
+const RECEIPT_ONLY_EXECUTED_CHECKS = new Set([
+  "schema_parse",
+  "canonicalization_recognized",
+  "manifest_structure",
+  "local_signature",
+  "blake3_is_primary",
+  "ed25519_signature_verifies",
+  "witness_count_minimum",
+  "witness_signature_verifies",
+  "witness_subject_matches",
+]);
+
+function markIncompleteReceiptOnlyChecks(
+  result: VerificationResult,
+): VerificationResult {
+  const checks = Object.fromEntries(
+    Object.entries(result.checks).map(([key, value]) => [
+      key,
+      value.status === "pass" && !RECEIPT_ONLY_EXECUTED_CHECKS.has(value.name)
+        ? {
+            ...value,
+            status: "skip" as const,
+            detail: `Receipt-declared or artifact-dependent check; not independently verified. ${value.detail ?? value.name}`,
+          }
+        : value,
+    ]),
+  );
+  return { ...result, checks } as VerificationResult;
+}
+
 /**
  * Structured verification verdict with explicit mode, evidence completeness,
  * and machine-readable breach codes.
@@ -649,9 +679,10 @@ export function verifyReceiptVerdict(
     verification_mode: mode,
     artifact_revalidation: artifactRevalidation,
     proof_stage_claimed: claimed,
-    proof_stage_verified: detail.overall === "fail" ? "unknown" : claimed,
+    proof_stage_verified:
+      detail.overall === "fail" || mode === "receipt-only" ? "unknown" : claimed,
     result,
     breaches,
-    detail,
+    detail: mode === "receipt-only" ? markIncompleteReceiptOnlyChecks(detail) : detail,
   };
 }

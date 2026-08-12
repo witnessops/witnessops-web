@@ -62,9 +62,9 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         timing: "within_two_business_days_after_authorised_collection_window",
       },
       {
-        price: "pilot_eur_1900_ex_vat_first_three_accepted_engagements",
+        price: "eur_1500_paid_pilot_one_public_facing_domain_or_application",
         timing:
-          "five_to_seven_business_days_after_authority_scope_freeze_required_inputs_and_approved_collection_window_confirmed",
+          "three_business_days_after_payment_accepted_sow_authority_scope_required_inputs_and_collection_window_confirmed",
       },
       {
         price: "eur_2500_to_7500",
@@ -159,16 +159,16 @@ test("External Exposure Assessment pricing entry preserves sample and intake lin
   const card = page.locator(
     '[data-pricing-service="external-exposure-assessment"]',
   );
-  await expect(card).toContainText("€1,900 ex VAT");
   await expect(card).toContainText(
-    "Intended standard price after validation: €2,500 ex VAT.",
+    "€1,500 paid pilot — one public-facing domain/application",
   );
+  await expect(card).toContainText("One focused retest within 30 days is included");
   await expect(
     card.locator('a[href="/review/sample-cases/external-exposure-assessment"]'),
   ).toHaveText("Inspect synthetic sample");
 
   const fitHref = await card
-    .getByRole("link", { name: "Check pilot fit" })
+    .getByRole("link", { name: "Order the review" })
     .getAttribute("href");
   expect(
     new URL(fitHref ?? "", "http://witnessops.test").searchParams.get(

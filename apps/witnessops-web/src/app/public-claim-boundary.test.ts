@@ -167,8 +167,8 @@ test("homepage synthetic preview preserves English and Polish customer-evidence 
     "utf8",
   );
 
-  assert.match(source, /Synthetic worked example — not customer evidence\./);
-  assert.match(source, /Syntetyczny przykład roboczy — nie są to materiały klienta\./);
+  assert.match(source, /Synthetic example — not customer evidence/);
+  assert.match(source, /Syntetyczny przykład — nie są to materiały klienta/);
 });
 
 test("claim-boundary guard scans only public presentation sources", () => {

@@ -4,6 +4,7 @@ import { supportRequestSchema } from "@/lib/token-contract";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 import { publicIssuanceErrorResponse } from "@/lib/server/public-issuance-error";
 import { createVerificationIssuance } from "@/lib/server/token-issuance";
+import { PUBLIC_JSON_BODY_LIMIT_BYTES, readBoundedRequestJson, RequestBodyTooLargeError } from "@/lib/server/bounded-request-body";
 
 export async function POST(request: Request) {
   const rateLimitResponse = enforcePublicIntakeRateLimit(request, "support-message");
@@ -13,8 +14,11 @@ export async function POST(request: Request) {
 
   let raw: unknown;
   try {
-    raw = await request.json();
-  } catch {
+    raw = await readBoundedRequestJson(request, PUBLIC_JSON_BODY_LIMIT_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ ok: false, error: "Request body is too large." }, { status: 413 });
+    }
     return NextResponse.json(
       { ok: false, error: "Invalid request body." },
       { status: 400 },

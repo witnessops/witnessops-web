@@ -306,6 +306,55 @@ test("provider outcome route rejects unauthorized event sources", async () => {
   assert.equal(response.status, 401);
 });
 
+test("provider outcome route rejects an oversized declared body before authentication", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-provider-outcome-"),
+  );
+  applyTestEnv(baseDir);
+
+  const response = await POST(
+    new NextRequest(
+      "http://localhost:3001/api/provider-events/response-outcome",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": String(64 * 1024 + 1),
+        },
+        body: "{}",
+      },
+    ),
+  );
+
+  assert.equal(response.status, 413);
+});
+
+test("provider outcome route stops an oversized streamed body before authentication", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-provider-outcome-"),
+  );
+  applyTestEnv(baseDir);
+
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new Uint8Array(40 * 1024));
+      controller.enqueue(new Uint8Array(40 * 1024));
+      controller.close();
+    },
+  });
+  const request = new NextRequest(
+    "http://localhost:3001/api/provider-events/response-outcome",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    },
+  );
+
+  const response = await POST(request);
+  assert.equal(response.status, 413);
+});
+
 test("provider outcome route verifies and adapts Resend webhook events", async () => {
   const baseDir = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-provider-outcome-"),

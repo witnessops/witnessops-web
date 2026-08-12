@@ -11,7 +11,7 @@ test("assessment route remains noindex, private, and claimant-session gated", ()
   assert.match(source, /getIssuanceById\(issuanceId\)/);
   assert.match(source, /record\.email !== email/);
   assert.match(source, /verifyClaimantSessionCookie/);
-  assert.match(source, /CLAIMANT_SESSION_COOKIE_NAME/);
+  assert.match(source, /claimantSessionCookieName/);
   assert.match(source, /notFound\(\)/);
   assert.match(source, /Explicit scope approval is required before governed recon starts/);
   assert.match(source, /This page is session-private/);

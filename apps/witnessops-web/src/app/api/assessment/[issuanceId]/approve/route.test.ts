@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { clearTokenStore } from "@/lib/server/token-store";
-import { CLAIMANT_SESSION_COOKIE_NAME } from "@/lib/server/claimant-session";
+import { claimantSessionCookieName } from "@/lib/server/claimant-session";
 
 import { POST as engage } from "../../../engage/route";
 import { POST as verifyToken } from "../../../verify-token/route";
@@ -64,7 +64,7 @@ async function issueVerifiedToken(baseDir: string) {
 
   assert.equal(verified.status, 200);
   const setCookie = verified.headers.get("set-cookie") ?? "";
-  assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
+  assert.match(setCookie, new RegExp(`^${claimantSessionCookieName(issuance.issuanceId)}=`));
   return {
     issuanceId: issuance.issuanceId,
     email: issuance.email,

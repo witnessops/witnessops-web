@@ -6,11 +6,12 @@ import {
   verifyTokenResponseSchema,
 } from "@/lib/token-contract";
 import {
-  CLAIMANT_SESSION_COOKIE_NAME,
+  claimantSessionCookieName,
   claimantSessionCookieOptions,
   createClaimantSessionCookieValue,
 } from "@/lib/server/claimant-session";
 import { verifyIssuedToken } from "@/lib/server/token-issuance";
+import { PUBLIC_JSON_BODY_LIMIT_BYTES, readBoundedRequestJson, RequestBodyTooLargeError } from "@/lib/server/bounded-request-body";
 
 export const runtime = "nodejs";
 
@@ -46,11 +47,13 @@ async function handleVerification(
 
 export async function POST(request: Request) {
   try {
-    const result = await handleVerification(await request.json());
+    const result = await handleVerification(
+      await readBoundedRequestJson(request, PUBLIC_JSON_BODY_LIMIT_BYTES),
+    );
     if (result instanceof NextResponse) return result;
     const response = NextResponse.json(result);
     response.cookies.set(
-      CLAIMANT_SESSION_COOKIE_NAME,
+      claimantSessionCookieName(result.issuanceId),
       createClaimantSessionCookieValue({
         issuanceId: result.issuanceId,
         email: result.email,
@@ -58,7 +61,10 @@ export async function POST(request: Request) {
       claimantSessionCookieOptions(request.url),
     );
     return response;
-  } catch {
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return invalidRequest("Request body is too large.", 413);
+    }
     return invalidRequest("Invalid request body.");
   }
 }

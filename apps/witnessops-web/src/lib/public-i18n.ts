@@ -52,7 +52,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     verification: "Dostawa zawiera podpisany zapis wykonania i instrukcję weryfikacji, dzięki którym inna osoba może sprawdzić, czy pakiet się nie zmienił, oraz zobaczyć, co wynik wspiera, a czego nie wspiera.",
   },
   "OFFSEC-EXTERNAL-EXPOSURE": {
-    name: "Przegląd publicznej ekspozycji",
+    name: "Ocena ekspozycji zewnętrznej",
     situation: "Potrzebujesz jasnego, ręcznie zweryfikowanego obrazu tego, co ujawnia jedna autoryzowana domena publiczna przed uruchomieniem, przeglądem klienta, audytem lub zmianą infrastruktury.",
     result: "Otrzymasz mapę ekspozycji, priorytetyzowane ustalenia powiązane z materiałami, zalecenia naprawcze, jawne niewiadome i pakiet do przekazania kolejnemu właścicielowi.",
     process: [
@@ -65,7 +65,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     deliverables: ["zapis upoważnienia i stałego zakresu", "mapa ekspozycji zewnętrznej", "ustalenia powiązane z materiałami", "raport wykonawczy i załącznik techniczny", "manifest i hashe artefaktów", "podpisany receipt i weryfikator offline, gdy wspierane", "45-minutowe przekazanie", "jeden retest w ciągu 30 dni"],
     inputs: ["Jedna autoryzowana domena rejestrowalna lub jedna ściśle ograniczona aplikacja publiczna.", "Potwierdzenie własności lub pisemne upoważnienie, lista znanych hostów i adresów IP first-party.", "Zatwierdzone kontrole, okno zbierania, kontakt stop i ograniczenia dostawców zewnętrznych.", "Cel, termin i dokładne wymaganie strony odbierającej wynik — bez sekretów i materiałów produkcyjnych."],
     timing: "W ciągu 3 dni roboczych po potwierdzeniu płatności, zaakceptowanego zakresu, upoważnienia, wymaganych danych wejściowych i okna zbierania.",
-    price: "€1 900 bez VAT — stały zakres",
+    price: "Płatny pilotaż €1 500 — jedna publiczna domena/aplikacja",
     priceDetail: "Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu. Dodatkowy lub późny retest: €550 bez VAT.",
     exclusions: ["Bez eksploatacji, testowania haseł, brute force, poświadczeń, socjotechniki, odmowy usługi i działań destrukcyjnych.", "Bez uwierzytelnionych testów aplikacji, zbierania danych klientów, kodu źródłowego, aplikacji mobilnych, smart contractów, kont chmurowych i sieci wewnętrznej.", "Bez otwartego wykrywania subdomen lub zakresów IP i bez dotykania niepotwierdzonej infrastruktury strony trzeciej.", "Bez certyfikacji, atestu lub gwarancji bezpieczeństwa, kompletności, zgodności albo braku podatności."],
     verification: "Pakiet wskazuje sprawdzony zakres, materiały wspierające ustalenia, jawne niewiadome oraz — gdy wspierana ścieżka zostanie wytworzona — podpisany receipt i weryfikator offline. Nie dowodzi, że system jest bezpieczny ani wolny od podatności.",

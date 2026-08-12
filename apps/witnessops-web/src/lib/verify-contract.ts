@@ -65,6 +65,6 @@ export interface VerifyFixtureDefinition {
   receiptInput: string;
   provenance: "proof" | "app";
   expected:
-    | { kind: "verification"; verdict: Exclude<VerifyVerdict, "indeterminate"> }
+    | { kind: "verification"; verdict: VerifyVerdict }
     | { kind: "failure"; failureClass: VerifyFailureClass };
 }

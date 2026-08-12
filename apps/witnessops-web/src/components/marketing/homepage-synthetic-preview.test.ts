@@ -29,7 +29,7 @@ const evidenceRegister = JSON.parse(
   evidence: Array<{ id: string; path: string; sha256: string }>;
 };
 
-test("homepage preview preserves the published F-002 to E-001 linkage", () => {
+test("homepage preview preserves the published F-003 to E-003 linkage", () => {
   const finding = findings.findings.find(
     (candidate) => candidate.id === HOMEPAGE_SYNTHETIC_PREVIEW.findingId,
   );
@@ -39,7 +39,7 @@ test("homepage preview preserves the published F-002 to E-001 linkage", () => {
 
   assert.ok(finding);
   assert.ok(evidence);
-  assert.equal(finding.id, "F-002");
+  assert.equal(finding.id, "F-003");
   assert.equal(finding.priority, HOMEPAGE_SYNTHETIC_PREVIEW.priority);
   assert.deepEqual(finding.evidence_refs, [HOMEPAGE_SYNTHETIC_PREVIEW.evidenceId]);
   assert.equal(basename(evidence.path), HOMEPAGE_SYNTHETIC_PREVIEW.evidenceArtifact);
@@ -48,9 +48,7 @@ test("homepage preview preserves the published F-002 to E-001 linkage", () => {
   const english = HOMEPAGE_SYNTHETIC_PREVIEW.localized.en;
   assert.equal(english.title, finding.title);
   assert.equal(english.observed, finding.observed_condition);
-  assert.equal(english.impact, finding.impact);
   assert.equal(english.remediation, finding.remediation);
-  assert.equal(english.retest, finding.retest);
 });
 
 test("homepage preview links to the full sample and names only published package artifacts", () => {

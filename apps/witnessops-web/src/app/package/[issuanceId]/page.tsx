@@ -10,6 +10,7 @@
  */
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 
 import { getIssuanceById } from "@/lib/server/token-store";
 import {
@@ -18,6 +19,10 @@ import {
   getCustomerAcceptanceReceipt,
 } from "@/lib/server/control-plane-client";
 import { buildCustomerProofPackageView } from "@/lib/server/customer-proof-package";
+import {
+  claimantSessionCookieName,
+  verifyClaimantSessionCookie,
+} from "@/lib/server/claimant-session";
 import { CustomerProofPackage } from "@/components/customer-proof-package";
 import { CustomerDispositionForm } from "./customer-disposition-form";
 
@@ -43,6 +48,17 @@ export default async function CustomerPackagePage({
 
   const record = await getIssuanceById(issuanceId);
   if (!record || record.email !== email) {
+    notFound();
+  }
+
+  const cookieStore = await cookies();
+  const claimantSession = cookieStore.get(claimantSessionCookieName(issuanceId))?.value;
+  if (
+    !verifyClaimantSessionCookie(claimantSession, {
+      issuanceId,
+      email,
+    })
+  ) {
     notFound();
   }
 

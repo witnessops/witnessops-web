@@ -874,7 +874,7 @@ interface ScopeApprovalResult extends ScopeApprovalResponse {
   status: "approved" | "already_approved";
 }
 
-export async function approveScopeAndStartRecon(
+async function approveScopeAndStartReconUnlocked(
   input: ScopeApprovalInput,
 ): Promise<ScopeApprovalResult> {
   const record = await getIssuanceById(input.issuanceId);
@@ -1040,6 +1040,14 @@ export async function approveScopeAndStartRecon(
   };
 }
 
+export async function approveScopeAndStartRecon(
+  input: ScopeApprovalInput,
+): Promise<ScopeApprovalResult> {
+  return withIssuanceLock(input.issuanceId, () =>
+    approveScopeAndStartReconUnlocked(input),
+  );
+}
+
 async function verifyIssuedTokenUnlocked(
   request: VerifyTokenRequest,
 ): Promise<VerifyTokenResponse> {
@@ -1057,6 +1065,23 @@ async function verifyIssuedTokenUnlocked(
 
   if (!tokenDigestMatches(request.token, originalIssuance.tokenDigest)) {
     throw new Error("Token mismatch");
+  }
+
+  if (isExpired(originalIssuance.expiresAt)) {
+    if (
+      originalIssuance.status === "issued" &&
+      originalIntake.state !== "expired"
+    ) {
+      await transitionIntakeState({
+        intake: originalIntake,
+        nextState: "expired",
+        eventType: "INTAKE_EXPIRED",
+        source: "api/verify-token",
+        occurredAt: nowIso(),
+        issuanceId: originalIssuance.issuanceId,
+      });
+    }
+    throw new Error("Issuance has expired");
   }
 
   if (originalIssuance.status === "verified") {
@@ -1108,20 +1133,6 @@ async function verifyIssuedTokenUnlocked(
 
   if (originalIssuance.status !== "issued") {
     throw new Error("Issuance has already been consumed");
-  }
-
-  if (isExpired(originalIssuance.expiresAt)) {
-    if (originalIntake.state !== "expired") {
-      await transitionIntakeState({
-        intake: originalIntake,
-        nextState: "expired",
-        eventType: "INTAKE_EXPIRED",
-        source: "api/verify-token",
-        occurredAt: nowIso(),
-        issuanceId: originalIssuance.issuanceId,
-      });
-    }
-    throw new Error("Issuance has expired");
   }
 
   const verifiedAt = nowIso();

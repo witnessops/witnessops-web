@@ -25,6 +25,7 @@ import {
   getIssuanceById,
   updateIntake,
   updateIssuance,
+  withIssuanceLock,
   type TokenIssuanceRecord,
 } from "./token-store";
 
@@ -118,7 +119,7 @@ function requireReason(reason: string): string {
  *
  * Approval is NOT blocked after an amend. The claimant may still proceed.
  */
-export async function amendClaimantScope(
+async function amendClaimantScopeUnlocked(
   input: ClaimantActionInput,
 ): Promise<ClaimantActionResult> {
   const { issuance, intakeId } = await loadAndAuthorise(input);
@@ -172,11 +173,17 @@ export async function amendClaimantScope(
   };
 }
 
+export async function amendClaimantScope(
+  input: ClaimantActionInput,
+): Promise<ClaimantActionResult> {
+  return withClaimantActionLock(input, () => amendClaimantScopeUnlocked(input));
+}
+
 /**
  * Claimant retracts the engagement. Terminal exit signal — approval is
  * blocked thereafter (WEB-003 does not ship a re-open path).
  */
-export async function retractClaimantEngagement(
+async function retractClaimantEngagementUnlocked(
   input: ClaimantActionInput,
 ): Promise<ClaimantActionResult> {
   const { issuance, intakeId } = await loadAndAuthorise(input);
@@ -202,11 +209,19 @@ export async function retractClaimantEngagement(
   };
 }
 
+export async function retractClaimantEngagement(
+  input: ClaimantActionInput,
+): Promise<ClaimantActionResult> {
+  return withClaimantActionLock(input, () =>
+    retractClaimantEngagementUnlocked(input),
+  );
+}
+
 /**
  * Claimant records a scope disagreement. Approval is blocked until the
  * disagreement is cleared (WEB-003 does not ship the clearing path).
  */
-export async function disagreeWithClaimantScope(
+async function disagreeWithClaimantScopeUnlocked(
   input: ClaimantActionInput,
 ): Promise<ClaimantActionResult> {
   const { issuance, intakeId } = await loadAndAuthorise(input);
@@ -232,6 +247,14 @@ export async function disagreeWithClaimantScope(
   };
 }
 
+export async function disagreeWithClaimantScope(
+  input: ClaimantActionInput,
+): Promise<ClaimantActionResult> {
+  return withClaimantActionLock(input, () =>
+    disagreeWithClaimantScopeUnlocked(input),
+  );
+}
+
 /**
  * Claimant clears their own terminal exit (WEB-005).
  *
@@ -243,7 +266,7 @@ export async function disagreeWithClaimantScope(
  * event ledger; this function only appends a complementary
  * `intake.reopen.claimant_action_cleared` event for the audit trail.
  */
-export async function reopenClaimantExit(
+async function reopenClaimantExitUnlocked(
   input: ClaimantActionInput,
 ): Promise<ClaimantActionResult> {
   const { issuance, intakeId } = await loadAndAuthorise(input);
@@ -321,6 +344,22 @@ export async function reopenClaimantExit(
     },
     blocksApproval: false,
   };
+}
+
+export async function reopenClaimantExit(
+  input: ClaimantActionInput,
+): Promise<ClaimantActionResult> {
+  return withClaimantActionLock(input, () => reopenClaimantExitUnlocked(input));
+}
+
+function withClaimantActionLock<T>(
+  input: ClaimantActionInput,
+  action: () => Promise<T>,
+): Promise<T> {
+  if (!input.issuanceId) {
+    throw new ClaimantActionError("issuanceId is required.", 400);
+  }
+  return withIssuanceLock(input.issuanceId, action);
 }
 
 /**

@@ -12,7 +12,7 @@ afterEach(() => {
   _resetAllStores();
 });
 
-test("verify route returns valid for a canonical valid receipt fixture", async () => {
+test("verify route keeps receipt-only success indeterminate without artifact revalidation", async () => {
   const fixture = loadVerifyFixture("pv-valid");
   assert.ok(fixture);
 
@@ -32,7 +32,7 @@ test("verify route returns valid for a canonical valid receipt fixture", async (
     scope?: string;
   };
   assert.equal(payload.ok, true);
-  assert.equal(payload.verdict, "valid");
+  assert.equal(payload.verdict, "indeterminate");
   assert.equal(payload.proofStageClaimed, "PV");
   assert.equal(payload.scope, "receipt-only");
 });
@@ -238,7 +238,7 @@ test("verify route accepts primary local-server-audit receipt structurally", asy
   assert.equal(payload.ok, true);
   assert.equal(payload.inputKind, "local-server-audit-receipt");
   assert.equal(payload.adapter, "witnessops.verify.local_server_audit_receipt.v1");
-  assert.equal(payload.verdict, "valid");
+  assert.equal(payload.verdict, "indeterminate");
   assert.equal(payload.proofStageClaimed, "unknown");
 });
 
@@ -264,7 +264,7 @@ test("verify route dual-reads legacy offsecshield receipt schema", async () => {
   assert.equal(payload.ok, true);
   assert.equal(payload.inputKind, "local-server-audit-receipt");
   assert.equal(payload.adapter, "witnessops.verify.local_server_audit_receipt.v1");
-  assert.equal(payload.verdict, "valid");
+  assert.equal(payload.verdict, "indeterminate");
 });
 
 test("verify route accepts Swarm mesh export via R3 structural adapter", async () => {
@@ -289,7 +289,7 @@ test("verify route accepts Swarm mesh export via R3 structural adapter", async (
   assert.equal(payload.ok, true);
   assert.equal(payload.inputKind, "offsec-swarm-mesh-export");
   assert.equal(payload.adapter, "witnessops.verify.offsec_swarm_mesh_export.v1");
-  assert.equal(payload.verdict, "valid");
+  assert.equal(payload.verdict, "indeterminate");
 });
 
 test("verify route rejects local-server-audit receipt with bad authority binding", async () => {

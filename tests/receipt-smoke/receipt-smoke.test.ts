@@ -4,16 +4,25 @@ import test from "node:test";
 import { loadVerifyFixture } from "../../apps/witnessops-web/src/lib/verify-fixtures";
 import { verifyReceiptPayload } from "../../apps/witnessops-web/src/lib/verify-adapter";
 
-test("receipt-only verification accepts a canonical valid receipt fixture", () => {
+test("receipt-only verification remains indeterminate without artifact revalidation", () => {
   const fixture = loadVerifyFixture("pv-valid");
   assert.ok(fixture);
   const result = verifyReceiptPayload({ receipt: fixture.receiptInput });
 
   assert.equal(result.ok, true);
   if (result.ok) {
-    assert.equal(result.verdict, "valid");
+    assert.equal(result.verdict, "indeterminate");
     assert.equal(result.proofStageClaimed, "PV");
     assert.equal(result.scope, "receipt-only");
+    assert.equal(
+      result.checks.find((check) => check.name === "schema_parse")?.status,
+      "verified",
+    );
+    assert.equal(
+      result.checks.find((check) => check.name === "artifact_hashes_match")
+        ?.status,
+      "not_applicable",
+    );
   }
 });
 

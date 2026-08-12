@@ -20,7 +20,7 @@ import {
   type TokenIssuanceRecord,
   updateIntake,
 } from "./token-store";
-import { CLAIMANT_SESSION_COOKIE_NAME } from "./claimant-session";
+import { claimantSessionCookieName } from "./claimant-session";
 
 import { POST as engage } from "../../app/api/engage/route";
 import { POST as verifyToken } from "../../app/api/verify-token/route";
@@ -87,7 +87,7 @@ async function issueVerifiedToken(baseDir: string) {
 
   assert.equal(verified.status, 200);
   const setCookie = verified.headers.get("set-cookie") ?? "";
-  assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
+  assert.match(setCookie, new RegExp(`^${claimantSessionCookieName(issuance.issuanceId)}=`));
 
   // intakeId is on the issuance record after verification
   const record = await getIssuanceById(issuance.issuanceId);
@@ -108,6 +108,21 @@ function jsonHeaders(sessionCookie: string): HeadersInit {
 
 afterEach(async () => {
   await clearTokenStore();
+});
+
+test("operator reject and rescind serialize on the issuance lock", async () => {
+  const source = await readFile(
+    new URL("./operator-actions.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(
+    source,
+    /withIssuanceLock\(intake\.latestIssuanceId,[\s\S]*rejectIntakeAsOperatorUnlocked/,
+  );
+  assert.match(
+    source,
+    /withIssuanceLock\(intake\.latestIssuanceId,[\s\S]*rescindOperatorRejectionUnlocked/,
+  );
 });
 
 // ---------------------------------------------------------------------------

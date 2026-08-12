@@ -166,7 +166,7 @@ export function ContactForm({
           : "Mailbox verification does not start the review. Scope, authority, capacity, price, and delivery-clock conditions are accepted asynchronously first.",
         fitTitle: polish
           ? "Zamów jeden przegląd publicznej ekspozycji."
-          : "Request your Public Exposure Review.",
+          : "Start your External Exposure Assessment.",
         fitBody: polish
           ? "Podaj jedną domenę publiczną i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu."
           : "Tell us what public-facing system you want reviewed. We’ll confirm the exact boundary and authority before any testing begins.",
@@ -191,7 +191,7 @@ export function ContactForm({
         evidencePlaceholder: polish
           ? "Opcjonalnie: znane hosty first-party, CDN, hosting współdzielony lub cele, których nie wolno dotykać."
           : "If the system uses several related public endpoints, list them here. We’ll confirm exactly what’s included before the review starts.",
-        send: polish ? "Wyślij zamówienie do akceptacji zakresu" : "Request your review",
+        send: polish ? "Wyślij zgłoszenie do akceptacji zakresu" : "Start a review",
         submitBoundary: polish
           ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, stałego zakresu, wymaganych danych wejściowych i okna zbierania."
           : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, fixed scope, required inputs, and the collection window are confirmed.",
@@ -244,7 +244,7 @@ export function ContactForm({
     const evidenceAvailable = stringField(data, "evidenceAvailable");
     const proofRunScope = [
       externalExposureOrder
-        ? "Request: Public Exposure Review order"
+        ? "Request: External Exposure Assessment"
         : "Request: WitnessOps review fit check",
       `Selected product / intent: ${intent}`,
       `Request locale: ${locale}`,

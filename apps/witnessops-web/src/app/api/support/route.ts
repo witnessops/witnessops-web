@@ -6,6 +6,7 @@ import {
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 import { publicIssuanceErrorResponse } from "@/lib/server/public-issuance-error";
 import { createVerificationIssuance } from "@/lib/server/token-issuance";
+import { PUBLIC_JSON_BODY_LIMIT_BYTES, readBoundedRequestJson, RequestBodyTooLargeError } from "@/lib/server/bounded-request-body";
 
 export async function POST(request: Request) {
   try {
@@ -14,7 +15,9 @@ export async function POST(request: Request) {
       return rateLimitResponse;
     }
 
-    const parsed = supportRequestSchema.safeParse(await request.json());
+    const parsed = supportRequestSchema.safeParse(
+      await readBoundedRequestJson(request, PUBLIC_JSON_BODY_LIMIT_BYTES),
+    );
     if (!parsed.success) {
       return NextResponse.json(
         { error: "email, category, severity, and message are required." },
@@ -40,6 +43,9 @@ export async function POST(request: Request) {
       status: 202,
     });
   } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ error: "Request body is too large." }, { status: 413 });
+    }
     return publicIssuanceErrorResponse("api/support", error);
   }
 }

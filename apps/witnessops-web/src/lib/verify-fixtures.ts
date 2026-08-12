@@ -7,10 +7,10 @@ const FILE_FIXTURES = [
     id: "pv-valid",
     label: "Valid PV receipt",
     description:
-      "Canonical pass in receipt-only mode using the proof-owned PV fixture.",
+      "Canonical receipt-only validation using the proof-owned PV fixture; the verdict remains indeterminate because artifact bytes are not revalidated.",
     fileName: "pv-valid.json",
     provenance: "proof",
-    expected: { kind: "verification", verdict: "valid" },
+    expected: { kind: "verification", verdict: "indeterminate" },
   },
   {
     id: "qv-bad-imprint",

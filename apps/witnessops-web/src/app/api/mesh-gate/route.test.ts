@@ -53,3 +53,19 @@ test("mesh-gate POST rejects tampered content_sha256", async () => {
   assert.equal(body.ok, false);
   assert.equal(body.verdict, "mesh_gate_invalid");
 });
+
+test("mesh-gate POST rejects invalid UTF-8 as a controlled client error", async () => {
+  const response = await POST(
+    new Request("https://witnessops.com/api/mesh-gate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: new Uint8Array([0xc3, 0x28]),
+    }),
+  );
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    verdict: "mesh_gate_invalid",
+    errors: ["body must be valid UTF-8"],
+  });
+});
