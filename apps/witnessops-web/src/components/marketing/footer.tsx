@@ -165,6 +165,10 @@ function resolveFooterHref(href: string): string {
   return getSurfaceUrl("witnessops", docsResolved);
 }
 
+export function isExternalFooterHref(href: string): boolean {
+  return href.startsWith("https://") || href.startsWith("http://");
+}
+
 export function Footer({
   brand_line,
   subline,
@@ -225,10 +229,6 @@ export function Footer({
       return resolveDocsHref(href);
     }
     return resolveFooterHref(href);
-  }
-
-  function isExternalHref(href: string) {
-    return href.startsWith("https://") || href.startsWith("http://");
   }
 
   function getRootLinkClassName(href: string) {
@@ -308,7 +308,7 @@ export function Footer({
                 const href = toHref(link.href);
                 const className = getRootLinkClassName(link.href);
                 const style = getRootLinkStyle(link.href);
-                return isExternalHref(href) ? (
+                return isExternalFooterHref(link.href) ? (
                   <a
                     key={`${link.label}:${link.href}`}
                     href={href}
@@ -342,7 +342,7 @@ export function Footer({
           <div className="flex flex-wrap gap-x-4 gap-y-0">
             {content.legal_links.map((link) => {
               const href = toHref(link.href);
-              return isExternalHref(href) ? (
+              return isExternalFooterHref(link.href) ? (
                 <a
                   key={`${link.label}:${link.href}`}
                   href={href}

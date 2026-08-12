@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-import { isLibraryPath } from "./footer";
+import { isExternalFooterHref, isLibraryPath } from "./footer";
 
 test("footer keeps readable text contrast and sizing", () => {
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
@@ -91,6 +91,12 @@ test("library surface includes English and Polish library paths", () => {
   assert.equal(isLibraryPath("/pl"), false);
   assert.equal(isLibraryPath("/catalog"), false);
   assert.equal(isLibraryPath("/pl/catalog"), false);
+});
+
+test("footer classifies the source route before same-site URL resolution", () => {
+  assert.equal(isExternalFooterHref("/privacy"), false);
+  assert.equal(isExternalFooterHref("/review/request"), false);
+  assert.equal(isExternalFooterHref("https://github.com/witnessops"), true);
 });
 
 test("footer suppresses Build STATIC and ships PL library island", () => {
