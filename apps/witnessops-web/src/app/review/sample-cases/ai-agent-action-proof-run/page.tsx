@@ -228,6 +228,14 @@ const proofRunOutputs = [
   "one challenge path",
 ];
 
+const pageSections = [
+  { href: "#sample-lineage", label: "Sample lineage" },
+  { href: "#manifest-provenance", label: "Manifest and coverage" },
+  { href: "#buyer-walkthrough", label: "Buyer walkthrough" },
+  { href: "#artifact-set", label: "Artifact set" },
+  { href: "#proof-boundary", label: "Proof boundary" },
+] as const;
+
 export default function AiAgentActionProofRunSamplePage() {
   return (
     <main id="main-content" tabIndex={-1}>
@@ -236,6 +244,7 @@ export default function AiAgentActionProofRunSamplePage() {
         <SampleCaseBanner
           title="AI agent change package"
           note="Full sample package on GitHub. Shows how a third party inspects one AI agent change after human approval. Not live customer evidence, production deployment, or AI governance certification."
+          showActions={false}
         />
         <div className="space-y-8">
           <section className="space-y-5 border-b border-surface-border pb-8">
@@ -290,13 +299,40 @@ export default function AiAgentActionProofRunSamplePage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <nav
+            aria-label="On this page"
+            className="border-y border-surface-border py-5"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+              On this page
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+              {pageSections.map((section) => (
+                <li key={section.href}>
+                  <a
+                    href={section.href}
+                    className="font-medium text-text-secondary underline decoration-surface-border underline-offset-4 transition-colors hover:text-text-primary hover:decoration-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+                  >
+                    {section.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <section
+            id="sample-lineage"
+            className="scroll-mt-28 rounded-2xl border border-surface-border bg-surface-card/40 p-6"
+          >
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Sample lineage
             </h2>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               {lineageRows.map((row) => (
-                <div key={row.label} className="rounded-xl border border-surface-border bg-surface-bg p-4">
+                <div
+                  key={row.label}
+                  className="min-w-0 rounded-xl border border-surface-border bg-surface-bg p-4"
+                >
                   <div className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
                     {row.label}
                   </div>
@@ -308,13 +344,19 @@ export default function AiAgentActionProofRunSamplePage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section
+            id="manifest-provenance"
+            className="scroll-mt-28 rounded-2xl border border-surface-border bg-surface-card/40 p-6"
+          >
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Manifest provenance
             </h2>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               {manifestProvenanceRows.map((row) => (
-                <div key={row.label} className="rounded-xl border border-surface-border bg-surface-bg p-4">
+                <div
+                  key={row.label}
+                  className="min-w-0 rounded-xl border border-surface-border bg-surface-bg p-4"
+                >
                   <div className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
                     {row.label}
                   </div>
@@ -345,7 +387,10 @@ export default function AiAgentActionProofRunSamplePage() {
             </p>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               {manifestCoverageRows.map((row) => (
-                <div key={row.label} className="rounded-xl border border-surface-border bg-surface-bg p-4">
+                <div
+                  key={row.label}
+                  className="min-w-0 rounded-xl border border-surface-border bg-surface-bg p-4"
+                >
                   <div className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
                     {row.label}
                   </div>
@@ -357,7 +402,10 @@ export default function AiAgentActionProofRunSamplePage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section
+            id="buyer-walkthrough"
+            className="scroll-mt-28 rounded-2xl border border-surface-border bg-surface-card/40 p-6"
+          >
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Three-minute buyer walkthrough
             </h2>
@@ -494,7 +542,10 @@ export default function AiAgentActionProofRunSamplePage() {
             </div>
           </section>
 
-          <section className="space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6">
+          <section
+            id="artifact-set"
+            className="scroll-mt-28 space-y-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6"
+          >
             <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
               Artifact set
             </h2>
@@ -524,7 +575,10 @@ export default function AiAgentActionProofRunSamplePage() {
             </div>
           </section>
 
-          <section className="grid gap-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6 md:grid-cols-[0.7fr_1.3fr]">
+          <section
+            id="proof-boundary"
+            className="scroll-mt-28 grid gap-4 rounded-2xl border border-surface-border bg-surface-card/40 p-6 md:grid-cols-[0.7fr_1.3fr]"
+          >
             <div>
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
                 Proof-run shape

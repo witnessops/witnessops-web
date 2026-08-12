@@ -193,3 +193,37 @@ test("AI sample page renders from the artifact contract", () => {
     "Sample page must not link to mutable main for artifact inspection.",
   );
 });
+
+test("AI sample page keeps the boundary while removing the repeated banner actions", () => {
+  const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+
+  assert.match(source, /<SampleCaseBanner/);
+  assert.match(source, /showActions={false}/);
+  assert.match(source, /label="Start a review"/);
+  assert.match(source, /label="Open sample package"/);
+});
+
+test("AI sample page provides stable section navigation", () => {
+  const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+
+  assert.match(source, /aria-label="On this page"/);
+  for (const section of [
+    "sample-lineage",
+    "manifest-provenance",
+    "buyer-walkthrough",
+    "artifact-set",
+    "proof-boundary",
+  ]) {
+    assert.match(source, new RegExp(`href: "#${section}"`));
+    assert.match(source, new RegExp(`id="${section}"`));
+  }
+});
+
+test("AI sample provenance cards allow long values to reflow", () => {
+  const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+  const reflowCards = source.match(
+    /className="min-w-0 rounded-xl border border-surface-border bg-surface-bg p-4"/g,
+  );
+
+  assert.equal(reflowCards?.length, 3);
+});

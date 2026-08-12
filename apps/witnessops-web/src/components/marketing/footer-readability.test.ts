@@ -36,7 +36,8 @@ test("footer brand lockup uses the approved geometric mark without decorative ef
 
   assert.match(source, /WitnessOpsMark/);
   assert.match(source, /variant="mark"/);
-  assert.match(source, /tone="black"/);
+  assert.match(source, /tone="current"/);
+  assert.match(source, /className="shrink-0 text-text-primary"/);
   assert.match(source, /className="public-shell border-t/);
   assert.match(source, /decorative/);
   assert.match(source, /data-footer-brand-lockup/);

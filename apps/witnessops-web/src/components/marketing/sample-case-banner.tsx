@@ -6,13 +6,19 @@ type SampleCaseBannerProps = {
   title?: string;
   /** Extra one-line context for this sample */
   note?: string;
+  /** Hide shared actions when the page provides its own nearby action group. */
+  showActions?: boolean;
 };
 
 /**
  * Shared header for published sample / illustrative surfaces.
- * Keeps CTAs and the "not live customer" boundary consistent.
+ * Keeps the "not live customer" boundary and default CTAs consistent.
  */
-export function SampleCaseBanner({ title, note }: SampleCaseBannerProps) {
+export function SampleCaseBanner({
+  title,
+  note,
+  showActions = true,
+}: SampleCaseBannerProps) {
   return (
     <div
       className="mb-8 border border-brand-accent/35 bg-brand-accent/5 p-5"
@@ -28,16 +34,26 @@ export function SampleCaseBanner({ title, note }: SampleCaseBannerProps) {
         {note ??
           "This page is an explanatory sample or illustration for orientation only. It is not a live customer artifact, production verification result, or certification."}
       </p>
-      <div className="mt-4 flex flex-wrap gap-3">
-        <CtaButton href="/review/request" variant="primary" label="Start a review" />
-        <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
-        <Link
-          href="/library"
-          className="inline-flex min-h-11 items-center text-sm font-semibold text-text-muted underline-offset-4 hover:text-text-primary hover:underline"
-        >
-          Library
-        </Link>
-      </div>
+      {showActions ? (
+        <div className="mt-4 flex flex-wrap gap-3">
+          <CtaButton
+            href="/review/request"
+            variant="primary"
+            label="Start a review"
+          />
+          <CtaButton
+            href="/verify"
+            variant="secondary"
+            label="Verify a receipt"
+          />
+          <Link
+            href="/library"
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-text-muted underline-offset-4 hover:text-text-primary hover:underline"
+          >
+            Library
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

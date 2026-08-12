@@ -164,12 +164,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Public editorial palette. Buyer pages and the shared public shell use the
-   same paper, ink, black accent, and rule colors. Technical/operator surfaces keep
-   the dark root token set unless they opt into this class. */
-.public-shell,
+/* Public editorial palette. Buyer pages and their shared navbar/footer use the
+   same paper, ink, black accent, and rule colors. On dark public pages the shell
+   intentionally falls back to the root black token set instead of forcing paper. */
 .buyer-page,
-main[data-page="home"] {
+main[data-page="home"],
+body:has(.buyer-page) .public-shell,
+body:has(main[data-page="home"]) .public-shell {
   --color-brand-primary: #171713;
   --color-brand-primary-hover: #2b2b25;
   --color-brand-secondary: #ebe5da;

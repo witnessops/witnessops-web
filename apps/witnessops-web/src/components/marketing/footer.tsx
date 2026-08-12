@@ -268,9 +268,9 @@ export function Footer({
               <WitnessOpsMark
                 variant="mark"
                 size="md"
-                tone="black"
+                tone="current"
                 decorative
-                className="shrink-0"
+                className="shrink-0 text-text-primary"
               />
               <p
                 className="text-sm font-semibold uppercase tracking-[0.12em] text-text-primary"
