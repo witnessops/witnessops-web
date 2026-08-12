@@ -30,11 +30,11 @@ const LIBRARY_PRIMARY_HREFS = new Set([
 const LIBRARY_QUIET_HREFS = new Set<string>();
 const GITHUB_PROFILE_HREF = "https://github.com/witnessops";
 const FOOTER_LINK_CLASS =
-  "inline-flex min-h-11 items-center rounded-sm text-xs font-medium leading-5 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent";
+  "inline-flex min-h-11 items-center rounded-sm text-sm font-medium leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
 const FOOTER_LOW_EMPHASIS_LINK_CLASS =
-  "inline-flex min-h-11 items-center rounded-sm text-xs leading-5 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent";
+  "inline-flex min-h-11 items-center rounded-sm text-sm leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
 const FOOTER_LEGAL_LINK_CLASS =
-  "inline-flex min-h-11 items-center rounded-sm text-xs leading-5 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent";
+  "inline-flex min-h-11 items-center rounded-sm text-xs leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
 const FOOTER_MONO_STYLE = {
   fontFamily: "var(--font-mono)",
   letterSpacing: "0.06em",
@@ -165,6 +165,10 @@ function resolveFooterHref(href: string): string {
   return getSurfaceUrl("witnessops", docsResolved);
 }
 
+export function isExternalFooterHref(href: string): boolean {
+  return href.startsWith("https://") || href.startsWith("http://");
+}
+
 export function Footer({
   brand_line,
   subline,
@@ -227,10 +231,6 @@ export function Footer({
     return resolveFooterHref(href);
   }
 
-  function isExternalHref(href: string) {
-    return href.startsWith("https://") || href.startsWith("http://");
-  }
-
   function getRootLinkClassName(href: string) {
     if (!librarySurface) {
       return FOOTER_LINK_CLASS;
@@ -254,17 +254,22 @@ export function Footer({
   }
 
   const showBuild = isPublicBuildLabel(content.build_label);
+  const navigationLinks = content.links.filter(
+    (link) =>
+      link.href !== "/review/request" && link.href !== "/pl/review/request",
+  );
+  const navigationLabel = isPolishSurface ? "Przejdź do" : "Explore";
 
   return (
     <footer
-      className="public-shell border-t border-surface-border bg-surface-bg"
+      className="public-shell public-footer border-t border-surface-border-strong bg-surface-bg"
       data-brand-footer="approved-2026-07-30"
       data-footer-surface={librarySurface ? "library" : isPolishSurface ? "pl-buyer" : "en-buyer"}
     >
-      <div className="mx-auto max-w-[1200px] px-6 py-10 sm:py-12">
-        <div className="flex flex-col gap-7 md:flex-row md:items-start md:justify-between md:gap-8">
+      <div className="mx-auto max-w-[1200px] px-6 py-6 sm:py-8 lg:py-10">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.95fr)_minmax(260px,0.75fr)] lg:gap-10">
           <div data-footer-brand-lockup>
-            <div className="mb-2 flex min-h-11 items-center gap-3">
+            <div className="mb-2 flex items-center gap-3">
               <WitnessOpsMark
                 variant="mark"
                 size="md"
@@ -283,7 +288,7 @@ export function Footer({
               className="mb-2 flex items-center gap-2 text-xs leading-5 text-text-secondary"
               style={FOOTER_MONO_STYLE}
             >
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-signal-green" />
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-text-muted" />
               {statusLabel}
             </span>
             <p className="max-w-[320px] text-sm leading-relaxed text-text-secondary">
@@ -291,45 +296,53 @@ export function Footer({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-x-5 gap-y-0 sm:gap-x-6">
-            {content.links.map((link) => {
-              const href = toHref(link.href);
-              const className = getRootLinkClassName(link.href);
-              const style = getRootLinkStyle(link.href);
-              return isExternalHref(href) ? (
-                <a
-                  key={`${link.label}:${link.href}`}
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={className}
-                  style={style}
-                >
-                  {link.label}
-                </a>
-              ) : (
-                <Link
-                  key={`${link.label}:${link.href}`}
-                  href={href}
-                  className={className}
-                  style={style}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
+          <nav aria-label={navigationLabel}>
+            <p
+              className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-text-primary"
+              style={FOOTER_MONO_STYLE}
+            >
+              {navigationLabel}
+            </p>
+            <div className="grid grid-cols-2 gap-x-5 gap-y-0">
+              {navigationLinks.map((link) => {
+                const href = toHref(link.href);
+                const className = getRootLinkClassName(link.href);
+                const style = getRootLinkStyle(link.href);
+                return isExternalFooterHref(link.href) ? (
+                  <a
+                    key={`${link.label}:${link.href}`}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={className}
+                    style={style}
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={`${link.label}:${link.href}`}
+                    href={href}
+                    className={className}
+                    style={style}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+
+          <div className="min-w-0">
+            <PublicContactRoute compact locale={isPolishSurface ? "pl" : "en"} />
           </div>
         </div>
 
-        <div className="mt-8 max-w-xl [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:rounded-sm [&_a:focus-visible]:outline-none [&_a:focus-visible]:ring-2 [&_a:focus-visible]:ring-brand-accent">
-          <PublicContactRoute compact locale={isPolishSurface ? "pl" : "en"} />
-        </div>
-
-        <div className="mt-7 flex flex-col items-start justify-between gap-4 border-t border-surface-border pt-5 sm:mt-8 sm:gap-3 sm:pt-6 md:flex-row md:items-center">
+        <div className="mt-6 flex flex-col items-start justify-between gap-3 border-t border-surface-border pt-5 sm:pt-6 md:flex-row md:items-center lg:mt-8">
           <div className="flex flex-wrap gap-x-4 gap-y-0">
             {content.legal_links.map((link) => {
               const href = toHref(link.href);
-              return isExternalHref(href) ? (
+              return isExternalFooterHref(link.href) ? (
                 <a
                   key={`${link.label}:${link.href}`}
                   href={href}
@@ -377,7 +390,7 @@ export function Footer({
         </div>
 
         <div
-          className="mt-5 text-center text-[11px] font-medium leading-5 tracking-[0.08em] text-text-muted sm:mt-6"
+          className="mt-4 text-center text-xs font-medium leading-5 tracking-[0.08em] text-text-muted sm:mt-5"
           style={FOOTER_MONO_STYLE}
           data-footer-motto="proof-beats-memory"
         >

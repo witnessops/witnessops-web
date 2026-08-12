@@ -3,20 +3,33 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-import { isLibraryPath } from "./footer";
+import { isExternalFooterHref, isLibraryPath } from "./footer";
 
 test("footer keeps readable text contrast and sizing", () => {
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
+  const globals = readFileSync(
+    resolve(__dirname, "../../app/globals.css"),
+    "utf-8",
+  );
 
   assert.match(source, /FOOTER_LINK_CLASS/);
   assert.match(source, /FOOTER_LEGAL_LINK_CLASS/);
   assert.match(source, /text-text-secondary/);
   assert.match(source, /text-xs leading-5 text-text-secondary/);
-  assert.match(source, /rounded-full bg-signal-green/);
+  assert.match(source, /rounded-full bg-text-muted/);
   assert.match(source, /max-w-\[320px\] text-sm leading-relaxed text-text-secondary/);
   assert.match(source, /data-footer-motto="proof-beats-memory"/);
   assert.match(source, /Proof beats memory\./);
   assert.match(source, /FOOTER_MOTTO/);
+  assert.match(source, /public-footer/);
+  assert.match(source, /grid-cols-2/);
+  assert.match(source, /text-xs font-medium/);
+  assert.match(globals, /footer\.public-shell\.public-footer\[data-brand-footer\]/);
+  assert.match(globals, /--color-surface-bg: #050505/);
+  assert.match(globals, /--color-text-primary: #fafaf7/);
+  assert.match(globals, /--color-text-secondary: #d0ccc4/);
+  assert.match(globals, /--color-text-muted: #a7a39b/);
+  assert.doesNotMatch(source, /bg-signal-green/);
   assert.doesNotMatch(source, /Respect the boundary\. Bring receipts\./);
 
   assert.doesNotMatch(
@@ -38,7 +51,7 @@ test("footer brand lockup uses the approved geometric mark without decorative ef
   assert.match(source, /variant="mark"/);
   assert.match(source, /tone="current"/);
   assert.match(source, /className="shrink-0 text-text-primary"/);
-  assert.match(source, /className="public-shell border-t/);
+  assert.match(source, /className="public-shell public-footer border-t/);
   assert.match(source, /decorative/);
   assert.match(source, /data-footer-brand-lockup/);
   assert.match(source, /data-brand-footer="approved-2026-07-30"/);
@@ -78,6 +91,12 @@ test("library surface includes English and Polish library paths", () => {
   assert.equal(isLibraryPath("/pl"), false);
   assert.equal(isLibraryPath("/catalog"), false);
   assert.equal(isLibraryPath("/pl/catalog"), false);
+});
+
+test("footer classifies the source route before same-site URL resolution", () => {
+  assert.equal(isExternalFooterHref("/privacy"), false);
+  assert.equal(isExternalFooterHref("/review/request"), false);
+  assert.equal(isExternalFooterHref("https://github.com/witnessops"), true);
 });
 
 test("footer suppresses Build STATIC and ships PL library island", () => {
