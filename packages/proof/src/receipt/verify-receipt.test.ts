@@ -225,10 +225,9 @@ describe("structured verdict — verifyReceiptVerdict", () => {
     assert.equal(verdict.proof_stage_verified, "unknown");
     assert.equal(verdict.result, "limited-pass");
     assert.equal(verdict.breaches.length, 0);
-    assert.equal(
-      Object.values(verdict.detail.checks).some((check) => check.status === "pass"),
-      false,
-    );
+    assert.equal(verdict.detail.checks.schema_parse.status, "pass");
+    assert.equal(verdict.detail.checks.artifact_hashes_match.status, "skip");
+    assert.equal(verdict.detail.checks.record_digest_recomputes.status, "skip");
   });
 
   it("QV valid returns limited-pass with no breaches", () => {
@@ -237,10 +236,9 @@ describe("structured verdict — verifyReceiptVerdict", () => {
     assert.equal(verdict.proof_stage_verified, "unknown");
     assert.equal(verdict.result, "limited-pass");
     assert.equal(verdict.breaches.length, 0);
-    assert.equal(
-      Object.values(verdict.detail.checks).some((check) => check.status === "pass"),
-      false,
-    );
+    assert.equal(verdict.detail.checks.ed25519_signature_verifies.status, "pass");
+    assert.equal(verdict.detail.checks.rfc3161_imprint_matches.status, "skip");
+    assert.equal(verdict.detail.checks.merkle_root_verifies.status, "skip");
   });
 
   it("WV valid returns limited-pass with no breaches", () => {
@@ -249,10 +247,9 @@ describe("structured verdict — verifyReceiptVerdict", () => {
     assert.equal(verdict.proof_stage_verified, "unknown");
     assert.equal(verdict.result, "limited-pass");
     assert.equal(verdict.breaches.length, 0);
-    assert.equal(
-      Object.values(verdict.detail.checks).some((check) => check.status === "pass"),
-      false,
-    );
+    assert.equal(verdict.detail.checks.witness_signature_verifies.status, "pass");
+    assert.equal(verdict.detail.checks.witness_subject_matches.status, "pass");
+    assert.equal(verdict.detail.checks.witness_identity_trusted.status, "skip");
   });
 
   it("QV bad imprint returns fail with ANCHOR_RFC3161_IMPRINT_MISMATCH breach", () => {

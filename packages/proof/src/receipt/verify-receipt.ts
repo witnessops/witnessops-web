@@ -608,17 +608,29 @@ function collectBreaches(result: VerificationResult): Breach[] {
   return breaches;
 }
 
-function markReceiptOnlyChecksAsStructural(
+const RECEIPT_ONLY_EXECUTED_CHECKS = new Set([
+  "schema_parse",
+  "canonicalization_recognized",
+  "manifest_structure",
+  "local_signature",
+  "blake3_is_primary",
+  "ed25519_signature_verifies",
+  "witness_count_minimum",
+  "witness_signature_verifies",
+  "witness_subject_matches",
+]);
+
+function markIncompleteReceiptOnlyChecks(
   result: VerificationResult,
 ): VerificationResult {
   const checks = Object.fromEntries(
     Object.entries(result.checks).map(([key, value]) => [
       key,
-      value.status === "pass"
+      value.status === "pass" && !RECEIPT_ONLY_EXECUTED_CHECKS.has(value.name)
         ? {
             ...value,
             status: "skip" as const,
-            detail: `Structural consistency only; not independently verified. ${value.detail ?? value.name}`,
+            detail: `Receipt-declared or artifact-dependent check; not independently verified. ${value.detail ?? value.name}`,
           }
         : value,
     ]),
@@ -671,6 +683,6 @@ export function verifyReceiptVerdict(
       detail.overall === "fail" || mode === "receipt-only" ? "unknown" : claimed,
     result,
     breaches,
-    detail: mode === "receipt-only" ? markReceiptOnlyChecksAsStructural(detail) : detail,
+    detail: mode === "receipt-only" ? markIncompleteReceiptOnlyChecks(detail) : detail,
   };
 }

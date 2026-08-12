@@ -1,6 +1,8 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 export const CLAIMANT_SESSION_COOKIE_PREFIX = "witnessops_claimant_session";
+export const LEGACY_CLAIMANT_SESSION_COOKIE_NAME =
+  CLAIMANT_SESSION_COOKIE_PREFIX;
 export const CLAIMANT_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
 interface ClaimantSessionPayload {
@@ -134,9 +136,21 @@ export function isClaimantSessionAuthorized(
   request: Request,
   expected: ClaimantSessionSubject,
 ): boolean {
-  const cookieValue = readCookie(
-    request.headers.get("cookie"),
+  const cookieHeader = request.headers.get("cookie");
+  const scopedCookie = readCookie(
+    cookieHeader,
     claimantSessionCookieName(expected.issuanceId),
   );
-  return verifyClaimantSessionCookie(cookieValue, expected);
+  if (verifyClaimantSessionCookie(scopedCookie, expected)) {
+    return true;
+  }
+
+  // Migration fallback for still-valid four-hour cookies issued before
+  // claimant sessions became issuance-specific. Their signed payload remains
+  // bound to the expected issuance, email and original expiry.
+  const legacyCookie = readCookie(
+    cookieHeader,
+    LEGACY_CLAIMANT_SESSION_COOKIE_NAME,
+  );
+  return verifyClaimantSessionCookie(legacyCookie, expected);
 }

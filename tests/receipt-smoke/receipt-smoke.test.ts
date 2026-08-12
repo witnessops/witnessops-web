@@ -14,6 +14,15 @@ test("receipt-only verification remains indeterminate without artifact revalidat
     assert.equal(result.verdict, "indeterminate");
     assert.equal(result.proofStageClaimed, "PV");
     assert.equal(result.scope, "receipt-only");
+    assert.equal(
+      result.checks.find((check) => check.name === "schema_parse")?.status,
+      "verified",
+    );
+    assert.equal(
+      result.checks.find((check) => check.name === "artifact_hashes_match")
+        ?.status,
+      "not_applicable",
+    );
   }
 });
 

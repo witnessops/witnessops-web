@@ -159,16 +159,10 @@ function toCheckStatus(status: VerificationCheck["status"]): VerifyCheckStatus {
   }
 }
 
-function toCheckView(
-  check: VerificationCheck,
-  receiptOnlyIncomplete: boolean,
-): VerifyCheckView {
+function toCheckView(check: VerificationCheck): VerifyCheckView {
   return {
     name: check.name,
-    status:
-      receiptOnlyIncomplete && check.status === "pass"
-        ? "not_applicable"
-        : toCheckStatus(check.status),
+    status: toCheckStatus(check.status),
     detail: check.detail,
     code: check.breach_code,
   };
@@ -217,9 +211,7 @@ function normalizeVerdict(
   receipt: Record<string, unknown>,
 ): VerifySuccessResponse {
   const verdict = verifyReceiptVerdict(receipt, "receipt-only");
-  const checks = Object.values(verdict.detail.checks).map((check) =>
-    toCheckView(check, verdict.result === "limited-pass"),
-  );
+  const checks = Object.values(verdict.detail.checks).map(toCheckView);
   const breaches = verdict.breaches.map((breach) =>
     toBreachView({
       code: breach.code,

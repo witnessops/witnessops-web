@@ -3,6 +3,7 @@ import test, { afterEach } from "node:test";
 
 import {
   CLAIMANT_SESSION_MAX_AGE_SECONDS,
+  LEGACY_CLAIMANT_SESSION_COOKIE_NAME,
   claimantSessionCookieName,
   claimantSessionCookieOptions,
   createClaimantSessionCookieValue,
@@ -48,4 +49,24 @@ test("claimant authorization reads only the cookie scoped to the expected issuan
     },
   });
   assert.equal(isClaimantSessionAuthorized(wrongName, first), false);
+});
+
+test("claimant authorization accepts an unexpired legacy cookie during migration", () => {
+  process.env.WITNESSOPS_CLAIMANT_SESSION_SECRET = "test-claimant-secret";
+  const subject = { issuanceId: "iss_legacy", email: "buyer@example.com" };
+  const cookieValue = createClaimantSessionCookieValue(subject);
+  const request = new Request("https://witnessops.com/package/iss_legacy", {
+    headers: {
+      cookie: `${LEGACY_CLAIMANT_SESSION_COOKIE_NAME}=${cookieValue}`,
+    },
+  });
+
+  assert.equal(isClaimantSessionAuthorized(request, subject), true);
+  assert.equal(
+    isClaimantSessionAuthorized(request, {
+      ...subject,
+      issuanceId: "iss_other",
+    }),
+    false,
+  );
 });
