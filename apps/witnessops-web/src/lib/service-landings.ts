@@ -145,12 +145,12 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Start a non-secret fit check",
   },
   "external-exposure-assessment": {
-    headline: "See what your public-facing system exposes from the internet.",
+    headline: "See what the internet sees.",
     whoFor:
-      "We check what is exposed from the internet, link evidence to each finding, and show you what to fix.",
+      "For SaaS teams facing an enterprise security request, a recent launch or infrastructure change, or an upcoming pentest.",
     scopeLimits: [
       "One authorised public-facing system, identified by a domain, application, API, public IP, or public cloud endpoint.",
-      "Fixed scope: up to 10 first-party hostnames, 3 customer-attributed public IP addresses, and 20 public service endpoints.",
+      "One public-facing domain or application, with up to 10 first-party hostnames, 3 customer-attributed public IP addresses, and 20 public service endpoints inside that accepted boundary.",
       "If we discover related assets outside the agreed boundary, we can record them, but we won’t test them without explicit authorisation.",
       "Public cloud-hosted services can be included when they are reachable from the internet and belong to the agreed system. Cloud accounts, IAM, private networks, and provider infrastructure are not reviewed.",
       "passive discovery plus explicitly approved low-impact DNS, TLS, HTTP(S), service-identification, and allowlisted exposure checks",
@@ -179,8 +179,8 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Targets outside the confirmed first-party scope remain untouched. Third-party or shared infrastructure requires separate written authority.",
     ],
     commercialNote:
-      "Fixed price for the named boundary. No sales call required. Payment is confirmed after scope acceptance; an additional or late retest is €550 ex VAT.",
-    primaryCta: "Request your review",
+      "€1,500 paid pilot for one public-facing domain or application. No sales call required. Payment is confirmed after scope acceptance; an additional or late retest is €550 ex VAT.",
+    primaryCta: "Start a review",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Inspect synthetic sample",
   },
@@ -431,7 +431,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
   },
   "external-exposure-assessment": {
-    headline: "Sprawdź, co ujawnia jedna domena publiczna — zanim wskaże to ktoś inny.",
+    headline: "Zobacz, co widzi internet.",
     whoFor:
       "Zespoły technologiczne przed uruchomieniem, klientem enterprise, audytem, zmianą infrastruktury lub głębszym testem penetracyjnym, które nie mają jasnego obrazu ekspozycji z zewnątrz.",
     scopeLimits: [
@@ -465,8 +465,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Cele poza potwierdzonym zakresem first-party pozostają nietknięte. Infrastruktura strony trzeciej lub współdzielona wymaga osobnego pisemnego upoważnienia.",
     ],
     commercialNote:
-      "Stała cena dla wskazanej granicy. Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu; dodatkowy lub późny retest kosztuje €550 bez VAT.",
-    primaryCta: "Zamów przegląd",
+      "Płatny pilotaż €1 500 dla jednej publicznej domeny lub aplikacji. Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu; dodatkowy lub późny retest kosztuje €550 bez VAT.",
+    primaryCta: "Rozpocznij ocenę",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Zobacz syntetyczny przykład",
   },

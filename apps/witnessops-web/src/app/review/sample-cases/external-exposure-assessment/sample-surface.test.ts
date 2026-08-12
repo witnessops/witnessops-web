@@ -44,8 +44,8 @@ const expectedFiles = [
   "MANIFEST.sha256",
 ] as const;
 
-test("Public Exposure Review sample surface expects only the sanitized buyer-safe files", () => {
-  assert.match(page, /Public Exposure Review/);
+test("External Exposure Assessment sample surface expects only the sanitized buyer-safe files", () => {
+  assert.match(page, /External Exposure Assessment/);
   assert.match(page, /\/samples\/offsec-external-exposure/);
   for (const file of expectedFiles) {
     assert.match(page, new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
@@ -53,7 +53,7 @@ test("Public Exposure Review sample surface expects only the sanitized buyer-saf
   assert.doesNotMatch(page, /proofpack|receipt\.json|sig\.json/i);
 });
 
-test("Public Exposure Review sample preserves the synthetic and integrity boundaries", () => {
+test("External Exposure Assessment sample preserves the synthetic and integrity boundaries", () => {
   assert.match(page, /Synthetic worked example — not customer evidence\./);
   assert.match(page, /Neither result proves that\s+observations are complete/);
   assert.match(page, /does not prove.*system is secure/is);

@@ -167,13 +167,13 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     productId: "OFFSEC-EXTERNAL-EXPOSURE",
     homepageFeatured: true,
     commercialContract: {
-      price: "eur_1900_ex_vat_fixed_scope",
+      price: "eur_1500_paid_pilot_one_public_facing_domain_or_application",
       timing:
         "three_business_days_after_payment_accepted_sow_authority_scope_required_inputs_and_collection_window_confirmed",
     },
     name: {
-      en: "Public Exposure Review",
-      pl: "Przegląd publicznej ekspozycji",
+      en: "External Exposure Assessment",
+      pl: "Ocena ekspozycji zewnętrznej",
     },
     cardSituation: {
       en: "See what one public-facing system exposes from the internet.",
@@ -188,8 +188,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Mapa ekspozycji, priorytetyzowane ustalenia powiązane z materiałami, zalecenia naprawcze, jawne niewiadome i pakiet, który może sprawdzić kolejny odpowiedzialny właściciel.",
     },
     price: {
-      en: "€1,900 ex VAT — fixed scope",
-      pl: "€1 900 bez VAT — stały zakres",
+      en: "€1,500 paid pilot — one public-facing domain/application",
+      pl: "Płatny pilotaż €1 500 — jedna publiczna domena/aplikacja",
     },
     timing: {
       en: "Within 3 working days after payment, accepted scope, authority, required inputs, and the collection window are confirmed",

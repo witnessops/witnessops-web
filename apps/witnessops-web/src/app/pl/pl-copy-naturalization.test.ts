@@ -13,11 +13,11 @@ const buyerHomepage = readFileSync(
 
 test("Polish homepage uses the approved naturalized headline and terminology", () => {
   assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
-  assert.match(buyerHomepage, /Przegląd publicznej ekspozycji/);
-  assert.match(buyerHomepage, /Sprawdź, co ujawnia Twój system publiczny\./);
+  assert.match(buyerHomepage, /Ocena ekspozycji zewnętrznej/);
+  assert.match(buyerHomepage, /Zobacz, co widzi internet\./);
   assert.match(buyerHomepage, /Potrzebujesz innego przeglądu/);
   assert.match(buyerHomepage, /Materiały za każdym wynikiem/);
-  assert.match(buyerHomepage, /Zamów przegląd publicznej ekspozycji/);
+  assert.match(buyerHomepage, /Rozpocznij ocenę/);
   assert.doesNotMatch(homePage, /Jasny zakres\. Jasny wynik\./);
   assert.doesNotMatch(homePage, /Konkretna dostawa/);
 });
@@ -30,7 +30,7 @@ test("public catalogue uses the approved English service names in Polish", () =>
       "Customer Security Review Sprint",
       "Bounded Workflow Review",
       "One Server Security Check",
-      "Przegląd publicznej ekspozycji",
+      "Ocena ekspozycji zewnętrznej",
       "Launch Readiness Check",
       "Key, Access and Custody Review",
       "Incident Readiness Review",

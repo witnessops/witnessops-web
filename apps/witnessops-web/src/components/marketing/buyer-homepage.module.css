@@ -1,15 +1,15 @@
 .page {
-  --paper: #f4f0e7;
-  --paper-deep: #ebe5da;
-  --ink: #171713;
-  --ink-soft: #555149;
-  --accent: #171713;
-  --rule: #c9c1b4;
-  --evidence: #101310;
-  --evidence-rule: #343a34;
-  --evidence-ink: #f3f0e8;
-  --evidence-muted: #a7afa6;
-  --evidence-accent: #d8aa58;
+  --paper: #ffffff;
+  --paper-deep: #f3f3f3;
+  --ink: #050505;
+  --ink-soft: #363636;
+  --accent: #050505;
+  --rule: #d5d5d5;
+  --evidence: #050505;
+  --evidence-rule: #565656;
+  --evidence-ink: #ffffff;
+  --evidence-muted: #c7c7c7;
+  --evidence-accent: #ffffff;
   background: var(--paper) !important;
   color: var(--ink);
   display: flow-root;
@@ -25,9 +25,14 @@
   background: var(--paper);
 }
 
+.heroFrame {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+}
+
 .heroCopy {
-  max-width: 980px;
-  padding-block: clamp(2.75rem, 4vw, 4rem) 2rem;
+  min-width: 0;
+  padding: clamp(4rem, 7vw, 6.3rem) clamp(2.5rem, 5vw, 5rem) clamp(2.8rem, 4vw, 3.6rem) 0;
 }
 
 .eyebrow,
@@ -48,31 +53,33 @@
 }
 
 .heroTitle {
-  max-width: 20ch;
+  max-width: 12ch;
   margin: 0;
   color: var(--ink);
   font-family: Georgia, Cambria, "Times New Roman", serif;
-  font-size: clamp(3.15rem, 5vw, 4.2rem);
+  font-size: clamp(4rem, 6.2vw, 5.65rem);
   font-weight: 400;
-  letter-spacing: -0.055em;
-  line-height: 0.91;
+  letter-spacing: -0.05em;
+  line-height: 0.93;
   text-wrap: balance;
 }
 
 .heroBody {
-  max-width: 62ch;
-  margin: 1.4rem 0 0;
+  max-width: 64ch;
+  margin: 1.65rem 0 0;
   color: var(--ink-soft);
-  font-size: clamp(1rem, 1.45vw, 1.17rem);
-  line-height: 1.75;
+  font-size: clamp(0.98rem, 1.25vw, 1.12rem);
+  line-height: 1.52;
 }
 
 .commercialLine {
-  margin: 1rem 0 0;
+  margin: 1.45rem 0 0;
   color: var(--ink);
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: 0.015em;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.7;
 }
 
 .heroActions,
@@ -83,18 +90,18 @@
 }
 
 .heroActions {
-  margin-top: 1.5rem;
+  margin-top: 1.35rem;
 }
 
 .primaryCta,
 .secondaryCta,
 .closingPrimary,
 .closingSecondary {
-  min-height: 46px !important;
+  min-height: 52px !important;
   border-radius: 0 !important;
-  padding-inline: 1.2rem !important;
+  padding-inline: 2rem !important;
   font-family: var(--font-mono);
-  font-size: 0.68rem !important;
+  font-size: 0.74rem !important;
   font-weight: 500 !important;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -102,6 +109,7 @@
 }
 
 .primaryCta {
+  min-width: 250px;
   background: var(--ink) !important;
   color: var(--paper) !important;
 }
@@ -112,7 +120,8 @@
 }
 
 .secondaryCta {
-  border-color: #817a6f !important;
+  min-width: 230px;
+  border-color: #777777 !important;
   color: var(--ink) !important;
 }
 
@@ -121,14 +130,6 @@
   background: var(--paper-deep) !important;
 }
 
-.utilityLinks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.9rem 1.4rem;
-  margin-top: 1.25rem;
-}
-
-.utilityLinks a,
 .textLink,
 .serviceMeta a {
   color: var(--ink);
@@ -139,7 +140,6 @@
   text-underline-offset: 0.25rem;
 }
 
-.utilityLinks a:hover,
 .textLink:hover,
 .serviceMeta a:hover {
   text-decoration-color: currentColor;
@@ -147,17 +147,65 @@
 
 .assuranceLine {
   max-width: 70ch;
-  margin: 1rem 0 0;
-  color: #716b61;
+  margin: 1.35rem 0 0;
+  color: #444444;
   font-family: var(--font-mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.01em;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   line-height: 1.7;
+  text-transform: uppercase;
+}
+
+.deliverablesPanel {
+  min-width: 0;
+  padding: clamp(5.4rem, 8vw, 7rem) 0 clamp(2.8rem, 4vw, 3.6rem) clamp(2.5rem, 5vw, 4.6rem);
+  border-left: 1px solid var(--rule);
+}
+
+.deliverablesPanel h2 {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.deliverablesPanel ol {
+  margin: 2.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deliverablesPanel li {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: baseline;
+  padding: 1.4rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.deliverablesPanel li span {
+  font-family: Georgia, Cambria, "Times New Roman", serif;
+  font-size: 1.28rem;
+  font-weight: 700;
+}
+
+.deliverablesPanel li strong {
+  font-family: var(--font-sans);
+  font-size: 1.12rem;
+  font-weight: 400;
+}
+
+.evidenceSection {
+  background: var(--evidence);
+  color: var(--evidence-ink);
 }
 
 .evidencePanel {
-  margin-bottom: 1rem;
-  border: 1px solid var(--evidence-rule);
+  padding-block: 1.9rem 2.4rem;
   background: var(--evidence);
   color: var(--evidence-ink);
 }
@@ -166,10 +214,10 @@
   display: flex;
   justify-content: space-between;
   gap: 1.5rem;
-  padding: 0.9rem 1.15rem;
+  padding: 0 0 1.15rem;
   border-bottom: 1px solid var(--evidence-rule);
   color: var(--evidence-muted);
-  font-size: 0.58rem;
+  font-size: 0.64rem;
   letter-spacing: 0.13em;
   line-height: 1.55;
 }
@@ -189,74 +237,62 @@
 }
 
 .findingMeta span + span {
-  color: var(--evidence-accent);
+  color: var(--evidence-muted);
 }
 
 .findingBody {
-  padding: 1.5rem 1.15rem 0;
+  padding: 0;
 }
 
 .findingTitle {
-  max-width: 34ch;
-  margin: 0;
+  max-width: 38ch;
+  margin: 0.9rem 0 0;
   color: var(--evidence-ink);
-  font-size: clamp(1.35rem, 2.4vw, 2rem);
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.08;
+  font-family: Georgia, Cambria, "Times New Roman", serif;
+  font-size: clamp(2.1rem, 3.2vw, 2.85rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
 }
 
 .findingGrid {
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  margin-top: 1.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--evidence-rule);
+  border-bottom: 1px solid var(--evidence-rule);
 }
 
 .findingField {
   min-width: 0;
-  padding-block: 1rem 1.15rem;
-  border-top: 1px solid var(--evidence-rule);
+  padding: 1rem 2.5rem 1.2rem 0;
 }
 
 .findingObserved,
 .findingEvidence,
-.findingWhy,
-.findingAction,
-.findingRetest {
-  grid-column: span 2;
-}
-
-.findingObserved {
-  padding-right: 1.5rem;
+.findingAction {
+  grid-column: auto;
 }
 
 .findingEvidence,
-.findingWhy,
-.findingAction,
-.findingRetest {
-  padding-left: 1.5rem;
+.findingAction {
+  padding-left: 2.5rem;
   border-left: 1px solid var(--evidence-rule);
-}
-
-.findingAction,
-.findingWhy {
-  padding-right: 1.5rem;
 }
 
 .findingLabel,
 .packageLabel {
   margin: 0;
   color: var(--evidence-muted);
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   letter-spacing: 0.12em;
 }
 
 .findingValue,
-.packageItems,
-.evidenceHash {
+.packageItems {
   margin: 0.65rem 0 0;
   color: var(--evidence-ink);
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   line-height: 1.62;
 }
 
@@ -267,7 +303,7 @@
   margin: 0.65rem 0 0;
   color: var(--evidence-ink);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   line-height: 1.55;
 }
 
@@ -275,23 +311,10 @@
   color: var(--evidence-accent);
 }
 
-.evidenceHash {
-  color: var(--evidence-muted);
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-}
-
-.evidenceHash code {
-  color: var(--evidence-ink);
-}
-
 .findingFooter {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1.5rem;
-  align-items: center;
-  padding: 1rem 1.15rem;
-  border-top: 1px solid var(--evidence-rule);
+  display: flex;
+  justify-content: flex-start;
+  padding: 1rem 0 0;
 }
 
 .packageLabel {
@@ -310,7 +333,7 @@
   align-items: center;
   color: var(--evidence-ink);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.76rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-decoration: underline;
@@ -536,7 +559,7 @@
 }
 
 .page a:focus-visible {
-  outline: 3px solid #287f82;
+  outline: 3px solid #777777;
   outline-offset: 3px;
 }
 
@@ -545,12 +568,25 @@
     width: min(100% - 2rem, 1180px);
   }
 
+  .heroFrame {
+    grid-template-columns: 1fr;
+  }
+
+  .heroCopy {
+    padding-right: 0;
+  }
+
   .heroTitle {
-    font-size: clamp(3rem, 12vw, 5.4rem);
+    font-size: clamp(3.5rem, 10vw, 5.4rem);
+  }
+
+  .deliverablesPanel {
+    padding: 2.5rem 0 3rem;
+    border-top: 1px solid var(--rule);
+    border-left: 0;
   }
 
   .evidenceHeader,
-  .findingFooter,
   .sectionIntro,
   .closingSection {
     grid-template-columns: 1fr;
@@ -559,24 +595,6 @@
   .evidenceHeader {
     display: grid;
     gap: 0.4rem;
-  }
-
-  .findingFooter {
-    gap: 0.7rem;
-  }
-
-  .findingGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .findingObserved,
-  .findingEvidence,
-  .findingWhy,
-  .findingAction,
-  .findingRetest {
-    grid-column: 1;
-    padding-inline: 0;
-    border-left: 0;
   }
 
   .serviceList {
@@ -596,11 +614,12 @@
 
 @media (max-width: 700px) {
   .heroCopy {
-    padding-block: 3.4rem 2.7rem;
+    padding-block: 3.4rem 3rem;
   }
 
   .heroTitle {
-    font-size: clamp(2.8rem, 15vw, 4.25rem);
+    max-width: 10ch;
+    font-size: clamp(3.35rem, 15vw, 4.25rem);
     line-height: 0.94;
   }
 
@@ -609,8 +628,40 @@
     line-height: 1.65;
   }
 
+  .commercialLine {
+    max-width: 36ch;
+  }
+
+  .heroActions {
+    display: grid;
+  }
+
+  .heroActions > * {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .deliverablesPanel li {
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+
   .evidencePanel {
-    margin-bottom: 2rem;
+    padding-block: 1.5rem 2rem;
+  }
+
+  .findingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .findingField,
+  .findingEvidence,
+  .findingAction {
+    padding: 1rem 0 1.1rem;
+    border-left: 0;
+  }
+
+  .findingField + .findingField {
+    border-top: 1px solid var(--evidence-rule);
   }
 
   .editorialGrid {

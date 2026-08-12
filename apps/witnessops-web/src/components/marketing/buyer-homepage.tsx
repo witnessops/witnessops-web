@@ -20,16 +20,17 @@ type HeroCopy = {
 const localizedCopy = {
   en: {
     hero: {
-      eyebrow: "Public Exposure Review",
-      title: "See what your public-facing system exposes from the internet.",
-      body: "Manually reviewed findings, evidence attached, and a practical fix list.",
+      eyebrow: "External Exposure Assessment",
+      title: "See what the internet sees.",
+      body: "For SaaS teams facing an enterprise security request, a recent launch or infrastructure change, or an upcoming pentest.",
     },
-    commercialLine: "€1,900 ex VAT · 3 working days · fixed scope",
-    primaryCta: "Request your review",
-    secondaryCta: "View a synthetic sample",
+    commercialLine: "€1,500 paid pilot · 3 working days · 1 public-facing domain/application",
+    primaryCta: "Start a review",
+    secondaryCta: "View sample",
     verifyCta: "Verify a receipt",
     libraryCta: "Library",
-    noSecrets: "Manually reviewed. No exploitation. Evidence-linked findings. Explicit limits. No sales call required.",
+    noSecrets: "No exploitation · Evidence-linked · Explicit limits",
+    deliverablesLabel: "What you receive",
     offersEyebrow: "Other bounded proof work",
     offersTitle: "Need a different review?",
     offersBody:
@@ -65,7 +66,7 @@ const localizedCopy = {
         "The result is organised so another responsible person can inspect it and decide what happens next.",
       ],
     ],
-    closeTitle: "See what your public-facing system exposes.",
+    closeTitle: "See what the internet sees.",
     closeBody:
       "Request the review without a sales call. WitnessOps accepts or rejects the scope before the delivery clock starts.",
     verifyHref: "/verify",
@@ -73,16 +74,17 @@ const localizedCopy = {
   },
   pl: {
     hero: {
-      eyebrow: "Przegląd publicznej ekspozycji",
-      title: "Sprawdź, co ujawnia Twój system publiczny.",
-      body: "Zanim wskaże to klient, audytor lub atakujący. Jedna autoryzowana domena publiczna. Trzy dni robocze. €1 900 bez VAT.",
+      eyebrow: "Ocena ekspozycji zewnętrznej",
+      title: "Zobacz, co widzi internet.",
+      body: "Dla zespołów SaaS przed wymaganiem bezpieczeństwa klienta enterprise, po wdrożeniu lub zmianie infrastruktury albo przed pentestem.",
     },
-    commercialLine: "€1 900 bez VAT · 3 dni robocze · stały zakres",
-    primaryCta: "Zamów przegląd publicznej ekspozycji",
-    secondaryCta: "Zobacz syntetyczny przykład",
+    commercialLine: "Płatny pilotaż €1 500 · 3 dni robocze · 1 publiczna domena/aplikacja",
+    primaryCta: "Rozpocznij ocenę",
+    secondaryCta: "Zobacz przykład",
     verifyCta: "Zweryfikuj zapis",
     libraryCta: "Biblioteka",
-    noSecrets: "Ręcznie zweryfikowane. Bez eksploatacji. Ustalenia powiązane z materiałami. Jawne ograniczenia. Bez rozmowy sprzedażowej.",
+    noSecrets: "Bez eksploatacji · Powiązane z materiałami · Jawne ograniczenia",
+    deliverablesLabel: "Co otrzymasz",
     offersEyebrow: "Inne ograniczone prace dowodowe",
     offersTitle: "Potrzebujesz innego przeglądu?",
     offersBody:
@@ -139,8 +141,6 @@ export function BuyerHomepage({
   const catalogHref = buyerCatalogHref(locale);
   const orderHref = buyerOfferRequestHref(locale, "OFFSEC-EXTERNAL-EXPOSURE");
   const sampleHref = HOMEPAGE_SYNTHETIC_PREVIEW.sampleHref;
-  const evidenceHash = HOMEPAGE_SYNTHETIC_PREVIEW.evidenceSha256;
-  const abbreviatedEvidenceHash = `${evidenceHash.slice(0, 12)}…${evidenceHash.slice(-8)}`;
   const secondaryServices = BUYER_SERVICES.filter(
     (service) =>
       service.id !== "external-exposure-assessment" &&
@@ -156,7 +156,7 @@ export function BuyerHomepage({
       data-home-direction="operator-brief-evidence-flow"
     >
       <section data-ui-proof-id="homepage-hero" className={styles.heroSection}>
-        <header className={styles.frame}>
+        <header className={`${styles.frame} ${styles.heroFrame}`}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>{heroCopy.eyebrow}</p>
             <h1 data-ui-proof-id="homepage-hero-headline" className={styles.heroTitle}>
@@ -181,13 +181,28 @@ export function BuyerHomepage({
                 className={styles.secondaryCta}
               />
             </div>
-            <div className={styles.utilityLinks}>
-              <Link href={text.verifyHref}>{text.verifyCta}</Link>
-              <Link href={text.libraryHref}>{text.libraryCta}</Link>
-            </div>
             <p className={styles.assuranceLine}>{text.noSecrets}</p>
           </div>
 
+          <aside
+            aria-labelledby="home-deliverables-heading"
+            className={styles.deliverablesPanel}
+          >
+            <h2 id="home-deliverables-heading">{text.deliverablesLabel}</h2>
+            <ol>
+              {HOMEPAGE_SYNTHETIC_PREVIEW.packageArtifacts.map((artifact, index) => (
+                <li key={artifact.path}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <strong>{artifact.label[locale]}</strong>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        </header>
+      </section>
+
+      <section className={styles.evidenceSection}>
+        <div className={styles.frame}>
           <aside
             aria-label={preview.panelLabel}
             className={styles.evidencePanel}
@@ -214,39 +229,17 @@ export function BuyerHomepage({
                   <p className={styles.findingLabel}>{preview.evidenceLabel}</p>
                   <p className={styles.evidenceReference}>
                     <span>{HOMEPAGE_SYNTHETIC_PREVIEW.evidenceId}</span>
-                    <span aria-hidden="true">→</span>
+                    <span aria-hidden="true">·</span>
                     <span>{HOMEPAGE_SYNTHETIC_PREVIEW.evidenceArtifact}</span>
                   </p>
-                  <p className={styles.evidenceHash}>
-                    {preview.evidenceRecorded}{" "}
-                    <code aria-label={`SHA-256 ${evidenceHash}`} title={evidenceHash}>
-                      {abbreviatedEvidenceHash}
-                    </code>
-                  </p>
-                </div>
-                <div className={`${styles.findingField} ${styles.findingWhy}`}>
-                  <p className={styles.findingLabel}>{preview.whyLabel}</p>
-                  <p className={styles.findingValue}>{preview.impact}</p>
                 </div>
                 <div className={`${styles.findingField} ${styles.findingAction}`}>
                   <p className={styles.findingLabel}>{preview.nextActionLabel}</p>
                   <p className={styles.findingValue}>{preview.remediation}</p>
                 </div>
-                <div className={`${styles.findingField} ${styles.findingRetest}`}>
-                  <p className={styles.findingLabel}>{preview.retestLabel}</p>
-                  <p className={styles.findingValue}>{preview.retest}</p>
-                </div>
               </div>
             </div>
             <div className={styles.findingFooter}>
-              <div>
-                <p className={styles.packageLabel}>{preview.packageLabel}</p>
-                <p className={styles.packageItems}>
-                  {HOMEPAGE_SYNTHETIC_PREVIEW.packageArtifacts
-                    .map((artifact) => artifact.label[locale])
-                    .join(" · ")}
-                </p>
-              </div>
               <Link
                 href={sampleHref}
                 className={styles.sampleAction}
@@ -256,7 +249,7 @@ export function BuyerHomepage({
               </Link>
             </div>
           </aside>
-        </header>
+        </div>
       </section>
 
       <div className={styles.frame}>
