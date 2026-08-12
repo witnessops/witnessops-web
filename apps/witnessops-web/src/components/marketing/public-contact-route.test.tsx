@@ -25,3 +25,15 @@ test("English contact route keeps primary CTA heading and route", () => {
   assert.match(html, /engage@mail\.witnessops\.com/);
   assert.doesNotMatch(html, /Tell us what happened/);
 });
+
+test("compact footer contact route exposes a clear primary action", () => {
+  const html = renderToStaticMarkup(<PublicContactRoute compact />);
+
+  assert.match(html, /data-public-contact-variant="footer"/);
+  assert.match(html, /Primary route/);
+  assert.match(html, /href="\/review\/request"/);
+  assert.match(html, /w-full/);
+  assert.match(html, /bg-text-primary/);
+  assert.match(html, /Fallback contact:/);
+  assert.match(html, /Do not send passwords/);
+});

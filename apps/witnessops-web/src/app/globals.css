@@ -193,6 +193,40 @@ body:has(main[data-page="home"]) .public-shell {
   color: var(--color-text-primary);
 }
 
+/* The public footer is a deliberate black closing panel on every route. Keep
+   these tokens on the footer itself so page-local light themes cannot leak into
+   its contrast hierarchy. */
+footer.public-shell.public-footer[data-brand-footer] {
+  --color-brand-primary: #fafaf7;
+  --color-brand-primary-hover: #ffffff;
+  --color-brand-secondary: #d0ccc4;
+  --color-brand-accent: #fafaf7;
+  --color-brand-accent-subtle: rgba(250, 250, 247, 0.08);
+  --color-brand-muted: #a7a39b;
+  --color-surface-bg: #050505;
+  --color-surface-bg-alt: #111110;
+  --color-surface-inset: #171716;
+  --color-surface-card: #0d0d0c;
+  --color-surface-card-hover: #171716;
+  --color-surface-border: #2a2a28;
+  --color-surface-border-hover: #5c5c57;
+  --color-surface-border-strong: #74746e;
+  --color-text-primary: #fafaf7;
+  --color-text-secondary: #d0ccc4;
+  --color-text-muted: #a7a39b;
+  --color-text-inverse: #050505;
+  background: #050505;
+  color: #fafaf7;
+}
+
+footer.public-shell.public-footer[data-brand-footer] .witnessops-mark,
+footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
+  color: var(--color-text-primary);
+  border-color: transparent;
+  box-shadow: none;
+  text-shadow: none;
+}
+
 /* Buyer CTAs inherit the public black action token. Suppress the legacy
    copper glow without changing the shared component on technical surfaces. */
 .buyer-page .public-cta-button:hover,

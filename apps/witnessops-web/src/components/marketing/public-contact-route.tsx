@@ -34,13 +34,47 @@ export function PublicContactRoute({
       ? PUBLIC_CONTACT_SUBJECTS.fitCheck
       : PUBLIC_CONTACT_SUBJECTS.general;
 
+  if (compact) {
+    return (
+      <section
+        className="border-t border-surface-border pt-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0"
+        data-public-contact-route
+        data-public-contact-variant="footer"
+      >
+        <p
+          className="text-xs font-semibold uppercase tracking-[0.18em] text-text-primary"
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
+          {polish ? "Rozpocznij przegląd" : "Start a review"}
+        </p>
+        <p className="mt-3 text-xs leading-5 text-text-muted">
+          {polish ? "Główna ścieżka" : "Primary route"}
+        </p>
+        <Link
+          href={primaryHref}
+          className="mt-2 inline-flex min-h-11 w-full items-center justify-center border border-text-primary bg-text-primary px-4 text-xs font-semibold uppercase tracking-[0.14em] text-text-inverse transition-colors hover:bg-surface-bg hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+        >
+          {polish ? "Rozpocznij przegląd" : "Start a review"}
+        </Link>
+        <p className="mt-4 text-xs leading-5 text-text-secondary">
+          {polish ? "Kontakt zapasowy:" : "Fallback contact:"}{" "}
+          <a
+            href={publicContactMailto(mailtoSubject)}
+            className="inline-flex min-h-11 items-center text-text-primary underline decoration-surface-border-strong underline-offset-4 hover:decoration-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+          >
+            {PUBLIC_CONTACT_EMAIL}
+          </a>
+        </p>
+        <p className="mt-2 text-xs leading-5 text-text-muted">
+          {polish ? POLISH_NO_SECRETS_NOTE : PUBLIC_NO_SECRETS_NOTE}
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section
-      className={
-        compact
-          ? "border-t border-surface-border pt-4"
-          : "border border-surface-border bg-surface-bg p-5"
-      }
+      className="border border-surface-border bg-surface-bg p-5"
       data-public-contact-route
     >
       <p
