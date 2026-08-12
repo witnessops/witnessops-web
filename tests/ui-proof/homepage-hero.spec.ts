@@ -11,6 +11,7 @@ import {
   type ScenarioResult,
 } from "./report";
 import { writeScreenshotGrid } from "./screenshot-grid";
+import { HOMEPAGE_SYNTHETIC_PREVIEW } from "../../apps/witnessops-web/src/components/marketing/homepage-synthetic-preview";
 
 test("homepage hero mobile UI proof", async ({ browser }) => {
   await rm(UI_PROOF_OUTPUT_DIR, { recursive: true, force: true });
@@ -121,25 +122,25 @@ test("English and Polish homepages share one service-led buyer journey", async (
       path: "/",
       width: 1440,
       height: 1100,
-      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=External+Exposure+Assessment",
     },
     {
       path: "/",
       width: 390,
       height: 844,
-      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=External+Exposure+Assessment",
     },
     {
       path: "/pl",
       width: 1440,
       height: 1100,
-      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Przegl%C4%85d+publicznej+ekspozycji",
+      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Ocena+ekspozycji+zewn%C4%99trznej",
     },
     {
       path: "/pl",
       width: 390,
       height: 844,
-      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Przegl%C4%85d+publicznej+ekspozycji",
+      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Ocena+ekspozycji+zewn%C4%99trznej",
     },
   ]) {
     const context = await browser.newContext({
@@ -166,9 +167,15 @@ test("English and Polish homepages share one service-led buyer journey", async (
     await expect(page.locator('[data-home-service="external-exposure-assessment"]')).toHaveCount(0);
     await expect(page.locator("[data-public-contact-route]")).toHaveCount(1);
 
-    const syntheticPreview = page.locator('[data-home-synthetic-preview="F-002"]');
+    const syntheticPreview = page.locator(
+      `[data-home-synthetic-preview="${HOMEPAGE_SYNTHETIC_PREVIEW.findingId}"]`,
+    );
     await expect(syntheticPreview).toBeVisible();
-    await expect(syntheticPreview.locator('[data-home-evidence="E-001"]')).toBeVisible();
+    await expect(
+      syntheticPreview.locator(
+        `[data-home-evidence="${HOMEPAGE_SYNTHETIC_PREVIEW.evidenceId}"]`,
+      ),
+    ).toBeVisible();
     await expect(
       syntheticPreview.locator('[data-home-sample-action="finding-preview"]'),
     ).toHaveCount(1);
