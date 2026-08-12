@@ -6,7 +6,7 @@ import {
   verifyTokenResponseSchema,
 } from "@/lib/token-contract";
 import {
-  CLAIMANT_SESSION_COOKIE_NAME,
+  claimantSessionCookieName,
   claimantSessionCookieOptions,
   createClaimantSessionCookieValue,
 } from "@/lib/server/claimant-session";
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     if (result instanceof NextResponse) return result;
     const response = NextResponse.json(result);
     response.cookies.set(
-      CLAIMANT_SESSION_COOKIE_NAME,
+      claimantSessionCookieName(result.issuanceId),
       createClaimantSessionCookieValue({
         issuanceId: result.issuanceId,
         email: result.email,

@@ -2,10 +2,24 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  InvalidRequestBodyEncodingError,
   readBoundedRequestJson,
   readBoundedRequestText,
   RequestBodyTooLargeError,
 } from "./bounded-request-body";
+
+test("bounded reader rejects invalid UTF-8 with a typed error", async () => {
+  await assert.rejects(
+    readBoundedRequestText(
+      new Request("https://example.test", {
+        method: "POST",
+        body: new Uint8Array([0xc3, 0x28]),
+      }),
+      64,
+    ),
+    InvalidRequestBodyEncodingError,
+  );
+});
 
 test("bounded reader rejects an oversized declared body", async () => {
   await assert.rejects(

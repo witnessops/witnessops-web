@@ -22,7 +22,7 @@ This does **not**:
 |---|---|
 | `schema: "witnessops.local_server_audit.receipt.v1"` | Yes (primary) |
 | `schema: "offsecshield.receipt.v1"` | Yes (legacy dual-read) |
-| `schema_id` containing `run_receipt.schema.json` | Yes (existing detection) |
+| `schema_id: "https://offsecagent.com/schemas/run_receipt.schema.json"` with no `schema` field | Yes (legacy schema_id-only detection) |
 
 New emitters should use the primary WitnessOps schema token. Legacy packages
 do not need to be re-emitted for structural web verify to continue working.

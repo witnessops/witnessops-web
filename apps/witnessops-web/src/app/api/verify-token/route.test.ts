@@ -10,7 +10,10 @@ import {
   getIssuanceById,
   updateIssuance,
 } from "@/lib/server/token-store";
-import { CLAIMANT_SESSION_COOKIE_NAME } from "@/lib/server/claimant-session";
+import {
+  CLAIMANT_SESSION_MAX_AGE_SECONDS,
+  claimantSessionCookieName,
+} from "@/lib/server/claimant-session";
 
 import { POST as engage } from "../engage/route";
 import { POST as reviewRequest } from "../review/request/route";
@@ -142,11 +145,14 @@ async function issueExternalExposureToken(baseDir: string, locale: "en" | "pl") 
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
 
-function assertClaimantSessionSet(response: Response): string {
+function assertClaimantSessionSet(response: Response, issuanceId?: string): string {
   const setCookie = response.headers.get("set-cookie") ?? "";
-  assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
+  if (issuanceId) {
+    assert.match(setCookie, new RegExp(`^${claimantSessionCookieName(issuanceId)}=`));
+  }
   assert.match(setCookie, /HttpOnly/);
   assert.match(setCookie, /SameSite=strict/i);
+  assert.match(setCookie, new RegExp(`Max-Age=${CLAIMANT_SESSION_MAX_AGE_SECONDS}`));
   return setCookie.split(";")[0]!;
 }
 
@@ -185,7 +191,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   );
 
   assert.equal(first.status, 200);
-  assertClaimantSessionSet(first);
+  assertClaimantSessionSet(first, issued.issuanceId);
   const firstPayload = (await first.json()) as {
     channel: string;
     intakeId: string;
@@ -220,7 +226,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   );
 
   assert.equal(second.status, 200);
-  assertClaimantSessionSet(second);
+  assertClaimantSessionSet(second, issued.issuanceId);
   const secondPayload = (await second.json()) as {
     issuanceId: string;
     email: string;
@@ -256,7 +262,7 @@ test("verify-token route rejects verified-token replay after the original expiry
     }),
   );
   assert.equal(first.status, 200);
-  assertClaimantSessionSet(first);
+  assertClaimantSessionSet(first, issued.issuanceId);
 
   await updateIssuance(issued.issuanceId, (record) => ({
     ...record,

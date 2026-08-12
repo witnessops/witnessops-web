@@ -20,7 +20,7 @@ import {
 } from "@/lib/server/control-plane-client";
 import { buildCustomerProofPackageView } from "@/lib/server/customer-proof-package";
 import {
-  CLAIMANT_SESSION_COOKIE_NAME,
+  claimantSessionCookieName,
   verifyClaimantSessionCookie,
 } from "@/lib/server/claimant-session";
 import { CustomerProofPackage } from "@/components/customer-proof-package";
@@ -52,7 +52,7 @@ export default async function CustomerPackagePage({
   }
 
   const cookieStore = await cookies();
-  const claimantSession = cookieStore.get(CLAIMANT_SESSION_COOKIE_NAME)?.value;
+  const claimantSession = cookieStore.get(claimantSessionCookieName(issuanceId))?.value;
   if (
     !verifyClaimantSessionCookie(claimantSession, {
       issuanceId,

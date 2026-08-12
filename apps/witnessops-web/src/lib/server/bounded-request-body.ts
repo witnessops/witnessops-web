@@ -7,6 +7,13 @@ export class RequestBodyTooLargeError extends Error {
   }
 }
 
+export class InvalidRequestBodyEncodingError extends Error {
+  constructor() {
+    super("Request body must be valid UTF-8.");
+    this.name = "InvalidRequestBodyEncodingError";
+  }
+}
+
 export const PUBLIC_JSON_BODY_LIMIT_BYTES = 64 * 1024;
 
 export async function readBoundedRequestText(
@@ -39,7 +46,11 @@ export async function readBoundedRequestText(
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
   }
-  return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    throw new InvalidRequestBodyEncodingError();
+  }
 }
 
 export async function readBoundedRequestJson(

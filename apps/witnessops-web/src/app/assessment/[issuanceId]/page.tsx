@@ -6,7 +6,7 @@ import { getAssessmentStatus } from "@/lib/server/assessment-client";
 import { getAssessmentAuthorizationSummary } from "@/lib/server/assessment-authorization-summary";
 import { buildPostApprovalLifecycle } from "@/lib/server/post-approval-lifecycle";
 import {
-  CLAIMANT_SESSION_COOKIE_NAME,
+  claimantSessionCookieName,
   verifyClaimantSessionCookie,
 } from "@/lib/server/claimant-session";
 import { PostApprovalLifecycle } from "@/components/post-approval-lifecycle";
@@ -39,7 +39,7 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
   }
 
   const cookieStore = await cookies();
-  const claimantSession = cookieStore.get(CLAIMANT_SESSION_COOKIE_NAME)?.value;
+  const claimantSession = cookieStore.get(claimantSessionCookieName(issuanceId))?.value;
   if (
     !verifyClaimantSessionCookie(claimantSession, {
       issuanceId,

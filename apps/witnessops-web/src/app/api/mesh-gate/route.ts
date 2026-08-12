@@ -5,7 +5,11 @@ import {
 } from "@/lib/mesh-gate";
 import { findDuplicateJsonObjectKey } from "@/lib/json-ambiguity";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
-import { readBoundedRequestText, RequestBodyTooLargeError } from "@/lib/server/bounded-request-body";
+import {
+  InvalidRequestBodyEncodingError,
+  readBoundedRequestText,
+  RequestBodyTooLargeError,
+} from "@/lib/server/bounded-request-body";
 
 export const runtime = "nodejs";
 
@@ -32,11 +36,19 @@ export async function POST(request: Request) {
   try {
     raw = await readBoundedRequestText(request, BODY_LIMIT);
   } catch (error) {
-    if (!(error instanceof RequestBodyTooLargeError)) throw error;
-    return NextResponse.json(
-      { ok: false, verdict: "mesh_gate_invalid", errors: ["body too large"] },
-      { status: 413 },
-    );
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { ok: false, verdict: "mesh_gate_invalid", errors: ["body too large"] },
+        { status: 413 },
+      );
+    }
+    if (error instanceof InvalidRequestBodyEncodingError) {
+      return NextResponse.json(
+        { ok: false, verdict: "mesh_gate_invalid", errors: ["body must be valid UTF-8"] },
+        { status: 400 },
+      );
+    }
+    throw error;
   }
 
   const dup = findDuplicateJsonObjectKey(raw);

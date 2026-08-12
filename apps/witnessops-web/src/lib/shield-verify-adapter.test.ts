@@ -5,6 +5,7 @@ import test from "node:test";
 
 import {
   LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA,
+  LEGACY_RUN_RECEIPT_SCHEMA_ID,
   LOCAL_SERVER_AUDIT_ADAPTER_ID,
   LOCAL_SERVER_AUDIT_INPUT_KIND,
   LOCAL_SERVER_AUDIT_RECEIPT_SCHEMA,
@@ -40,6 +41,30 @@ test("isLocalServerAuditReceipt recognizes legacy offsecshield schema (dual-read
   const doc = loadFixture("offsec-shield-valid.json");
   assert.equal(doc.schema, LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA);
   assert.equal(isLocalServerAuditReceipt(doc), true);
+});
+
+test("isLocalServerAuditReceipt recognizes the exact legacy schema_id-only marker", () => {
+  const doc = loadFixture("offsec-shield-valid.json");
+  delete doc.schema;
+  doc.schema_id = LEGACY_RUN_RECEIPT_SCHEMA_ID;
+  assert.equal(isLocalServerAuditReceipt(doc), true);
+  assert.equal(verifyLocalServerAuditReceipt(doc).verdict, "indeterminate");
+});
+
+test("isLocalServerAuditReceipt rejects near-match and conflicting schema markers", () => {
+  assert.equal(
+    isLocalServerAuditReceipt({
+      schema_id: `${LEGACY_RUN_RECEIPT_SCHEMA_ID}.attacker`,
+    }),
+    false,
+  );
+  assert.equal(
+    isLocalServerAuditReceipt({
+      schema: "unknown.receipt.v1",
+      schema_id: LEGACY_RUN_RECEIPT_SCHEMA_ID,
+    }),
+    false,
+  );
 });
 
 test("verifyLocalServerAuditReceipt passes primary sample structurally", () => {

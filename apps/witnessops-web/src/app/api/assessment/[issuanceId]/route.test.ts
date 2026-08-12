@@ -10,7 +10,7 @@ import {
   updateIssuance,
 } from "@/lib/server/token-store";
 import {
-  CLAIMANT_SESSION_COOKIE_NAME,
+  claimantSessionCookieName,
   createClaimantSessionCookieValue,
 } from "@/lib/server/claimant-session";
 
@@ -44,7 +44,7 @@ async function issueToken(baseDir: string) {
 }
 
 function claimantSessionCookie(issuanceId: string, email: string): string {
-  return `${CLAIMANT_SESSION_COOKIE_NAME}=${createClaimantSessionCookieValue({
+  return `${claimantSessionCookieName(issuanceId)}=${createClaimantSessionCookieValue({
     issuanceId,
     email,
   })}`;
