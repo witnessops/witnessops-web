@@ -123,9 +123,9 @@ export function Navbar({ announcement }: NavbarProps) {
             <WitnessOpsMark
               variant="mark"
               size="sm"
-              tone="black"
+              tone="current"
               decorative
-              className="max-md:scale-[0.93]"
+              className="text-text-primary max-md:scale-[0.93]"
             />
             <span
               className="max-[420px]:hidden text-[11px] font-semibold uppercase tracking-[0.14em] leading-none text-text-primary"
