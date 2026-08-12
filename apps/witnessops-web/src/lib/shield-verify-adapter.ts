@@ -30,7 +30,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 /**
  * Detect local-server-audit receipts for structural verify.
- * Accepts primary WitnessOps schema, legacy offsecshield schema, or run_receipt schema_id.
+ * Accepts only the two explicitly supported wire schemas.
  */
 export function isLocalServerAuditReceipt(
   receipt: Record<string, unknown>,
@@ -41,11 +41,7 @@ export function isLocalServerAuditReceipt(
   if (receipt.schema === LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA) {
     return true;
   }
-  const schemaId = receipt.schema_id;
-  return (
-    typeof schemaId === "string" &&
-    schemaId.includes("run_receipt.schema.json")
-  );
+  return false;
 }
 
 /** @deprecated Use isLocalServerAuditReceipt */
@@ -108,7 +104,7 @@ export function verifyLocalServerAuditReceipt(
   push(
     "LSA_SCHEMA",
     recognized,
-    `Expected ${LOCAL_SERVER_AUDIT_RECEIPT_SCHEMA}, legacy ${LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA}, or run_receipt schema_id. Observed: ${schemaToken(receipt)}.`,
+    `Expected ${LOCAL_SERVER_AUDIT_RECEIPT_SCHEMA} or legacy ${LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA}. Observed: ${schemaToken(receipt)}.`,
   );
 
   // Keep SHIELD_* check names for binding failures so existing tests and callers stay stable.
@@ -156,11 +152,11 @@ export function verifyLocalServerAuditReceipt(
   ) => {
     const declared = receipt[field];
     if (declared === null || declared === undefined) {
-      push(
-        `SHIELD_${field.toUpperCase()}_OPTIONAL`,
-        true,
-        `${field} not set; skipped binding check.`,
-      );
+      checks.push({
+        name: `SHIELD_${field.toUpperCase()}_OPTIONAL`,
+        status: "not_applicable",
+        detail: `${field} not set; binding check was not performed.`,
+      });
       return;
     }
     if (typeof declared !== "string" || !SHA256_HEX.test(declared)) {
@@ -201,21 +197,17 @@ export function verifyLocalServerAuditReceipt(
     );
   }
 
-  push(
-    "SHIELD_OFFLINE_BYTES",
-    true,
-    "Artifact bytes and MANIFEST.sha256 READY/MISMATCH/MISSING require offline CLI verify on the operator host.",
-  );
+  checks.push({
+    name: "SHIELD_OFFLINE_BYTES",
+    status: "not_applicable",
+    detail:
+      "Artifact bytes and MANIFEST.sha256 READY/MISMATCH/MISSING require offline CLI verify on the operator host.",
+  });
 
   const failed = checks.some((c) => c.status === "unverified");
-  const verdict: VerifyVerdict = failed ? "invalid" : "valid";
+  const verdict: VerifyVerdict = failed ? "invalid" : "indeterminate";
 
-  const isLegacy =
-    receipt.schema === LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA ||
-    (receipt.schema !== LOCAL_SERVER_AUDIT_RECEIPT_SCHEMA &&
-      typeof receipt.schema_id === "string" &&
-      String(receipt.schema_id).includes("run_receipt.schema.json") &&
-      receipt.schema !== LOCAL_SERVER_AUDIT_RECEIPT_SCHEMA);
+  const isLegacy = receipt.schema === LEGACY_OFFSEC_SHIELD_RECEIPT_SCHEMA;
 
   const summary = failed
     ? "Local server audit receipt failed structural checks on /api/verify (not PV/QV/WV)."

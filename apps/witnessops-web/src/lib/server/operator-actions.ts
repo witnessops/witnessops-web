@@ -32,6 +32,7 @@ import {
   type TokenIssuanceRecord,
   updateIntake,
   updateIssuance,
+  withIssuanceLock,
 } from "./token-store";
 
 export type OperatorActionKind = OperatorActionRecord["kind"];
@@ -132,7 +133,7 @@ async function loadIntake(intakeId: string): Promise<IntakeRecord> {
  * matching intake event so the admission queue surfaces the rejection
  * coherently.
  */
-export async function rejectIntakeAsOperator(
+async function rejectIntakeAsOperatorUnlocked(
   input: OperatorActionInput,
 ): Promise<OperatorActionResult> {
   const intake = await loadIntake(input.intakeId);
@@ -216,6 +217,18 @@ export async function rejectIntakeAsOperator(
     approvalStatus: "approval_denied",
     blocksApproval: true,
   };
+}
+
+export async function rejectIntakeAsOperator(
+  input: OperatorActionInput,
+): Promise<OperatorActionResult> {
+  const intake = await loadIntake(input.intakeId);
+  if (!intake.latestIssuanceId) {
+    return rejectIntakeAsOperatorUnlocked(input);
+  }
+  return withIssuanceLock(intake.latestIssuanceId, () =>
+    rejectIntakeAsOperatorUnlocked(input),
+  );
 }
 
 /**
@@ -341,7 +354,7 @@ export interface RescindRejectionInput {
  * function only **appends** a complementary
  * `intake.reopen.operator_rejection_rescinded` event for the audit trail.
  */
-export async function rescindOperatorRejection(
+async function rescindOperatorRejectionUnlocked(
   input: RescindRejectionInput,
 ): Promise<OperatorActionResult> {
   const intake = await loadIntake(input.intakeId);
@@ -484,4 +497,16 @@ export async function rescindOperatorRejection(
     blocksApproval: false,
     ...(coexistingClaimantBlock ? { coexistingClaimantBlock } : {}),
   };
+}
+
+export async function rescindOperatorRejection(
+  input: RescindRejectionInput,
+): Promise<OperatorActionResult> {
+  const intake = await loadIntake(input.intakeId);
+  if (!intake.latestIssuanceId) {
+    return rescindOperatorRejectionUnlocked(input);
+  }
+  return withIssuanceLock(intake.latestIssuanceId, () =>
+    rescindOperatorRejectionUnlocked(input),
+  );
 }

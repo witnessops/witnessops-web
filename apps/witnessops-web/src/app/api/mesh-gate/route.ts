@@ -5,6 +5,7 @@ import {
 } from "@/lib/mesh-gate";
 import { findDuplicateJsonObjectKey } from "@/lib/json-ambiguity";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
+import { readBoundedRequestText, RequestBodyTooLargeError } from "@/lib/server/bounded-request-body";
 
 export const runtime = "nodejs";
 
@@ -27,16 +28,11 @@ export async function POST(request: Request) {
   const rateLimited = enforcePublicIntakeRateLimit(request, "mesh-gate");
   if (rateLimited) return rateLimited;
 
-  const len = Number(request.headers.get("content-length"));
-  if (Number.isFinite(len) && len > BODY_LIMIT) {
-    return NextResponse.json(
-      { ok: false, verdict: "mesh_gate_invalid", errors: ["body too large"] },
-      { status: 413 },
-    );
-  }
-
-  const raw = await request.text();
-  if (raw.length > BODY_LIMIT) {
+  let raw: string;
+  try {
+    raw = await readBoundedRequestText(request, BODY_LIMIT);
+  } catch (error) {
+    if (!(error instanceof RequestBodyTooLargeError)) throw error;
     return NextResponse.json(
       { ok: false, verdict: "mesh_gate_invalid", errors: ["body too large"] },
       { status: 413 },

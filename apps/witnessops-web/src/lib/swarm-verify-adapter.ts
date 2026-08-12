@@ -14,10 +14,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function isSwarmMeshExport(
   receipt: Record<string, unknown>,
 ): boolean {
-  if (receipt.schema === SWARM_MESH_EXPORT_SCHEMA) {
-    return true;
-  }
-  return isRecord(receipt.governed) && Array.isArray(receipt.governed.events);
+  return receipt.schema === SWARM_MESH_EXPORT_SCHEMA;
 }
 
 function check(
@@ -40,7 +37,7 @@ export function verifySwarmMeshExport(
   receipt: Record<string, unknown>,
 ): VerifySuccessResponse {
   const checks: VerifyCheckView[] = [];
-  let verdict: VerifyVerdict = "valid";
+  let verdict: VerifyVerdict = "indeterminate";
 
   const governed = receipt.governed;
   if (!isRecord(governed)) {
@@ -74,11 +71,11 @@ export function verifySwarmMeshExport(
     );
     checks.push(
       check(
-        "trust_events_signed",
+        "trust_event_signatures_present",
         trustEvents.length > 0 && sigOk,
         trustEvents.length > 0
-          ? `${trustEvents.length} trust event(s); signatures present.`
-          : "Need at least one signed trust event.",
+          ? `${trustEvents.length} trust event(s); signature-shaped values are present but are not cryptographically verified here.`
+          : "Need at least one trust event with a signature-shaped value.",
       ),
     );
     if (revokeEvents.length > 0) {
@@ -107,7 +104,7 @@ export function verifySwarmMeshExport(
   }
 
   const summary =
-    verdict === "valid"
+    verdict === "indeterminate"
       ? "Swarm mesh export passed structural checks (offline: swarm verify-state)."
       : "Swarm mesh export failed structural checks on /api/verify.";
 

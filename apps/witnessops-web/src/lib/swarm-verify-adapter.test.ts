@@ -35,6 +35,11 @@ test("verifySwarmMeshExport passes round3 fixture", () => {
   assert.equal(isSwarmMeshExport(doc), true);
   const result = verifySwarmMeshExport(doc);
   assert.equal(result.ok, true);
-  assert.equal(result.verdict, "valid");
+  assert.equal(result.verdict, "indeterminate");
   assert.equal(result.adapter, SWARM_ADAPTER_ID);
+  assert.ok(
+    result.checks.some(
+      (check) => check.name === "trust_event_signatures_present",
+    ),
+  );
 });

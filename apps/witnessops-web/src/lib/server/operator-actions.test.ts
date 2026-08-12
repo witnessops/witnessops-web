@@ -110,6 +110,21 @@ afterEach(async () => {
   await clearTokenStore();
 });
 
+test("operator reject and rescind serialize on the issuance lock", async () => {
+  const source = await readFile(
+    new URL("./operator-actions.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(
+    source,
+    /withIssuanceLock\(intake\.latestIssuanceId,[\s\S]*rejectIntakeAsOperatorUnlocked/,
+  );
+  assert.match(
+    source,
+    /withIssuanceLock\(intake\.latestIssuanceId,[\s\S]*rescindOperatorRejectionUnlocked/,
+  );
+});
+
 // ---------------------------------------------------------------------------
 // Pure predicate
 // ---------------------------------------------------------------------------

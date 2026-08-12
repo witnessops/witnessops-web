@@ -608,6 +608,24 @@ function collectBreaches(result: VerificationResult): Breach[] {
   return breaches;
 }
 
+function markReceiptOnlyChecksAsStructural(
+  result: VerificationResult,
+): VerificationResult {
+  const checks = Object.fromEntries(
+    Object.entries(result.checks).map(([key, value]) => [
+      key,
+      value.status === "pass"
+        ? {
+            ...value,
+            status: "skip" as const,
+            detail: `Structural consistency only; not independently verified. ${value.detail ?? value.name}`,
+          }
+        : value,
+    ]),
+  );
+  return { ...result, checks } as VerificationResult;
+}
+
 /**
  * Structured verification verdict with explicit mode, evidence completeness,
  * and machine-readable breach codes.
@@ -649,9 +667,10 @@ export function verifyReceiptVerdict(
     verification_mode: mode,
     artifact_revalidation: artifactRevalidation,
     proof_stage_claimed: claimed,
-    proof_stage_verified: detail.overall === "fail" ? "unknown" : claimed,
+    proof_stage_verified:
+      detail.overall === "fail" || mode === "receipt-only" ? "unknown" : claimed,
     result,
     breaches,
-    detail,
+    detail: mode === "receipt-only" ? markReceiptOnlyChecksAsStructural(detail) : detail,
   };
 }

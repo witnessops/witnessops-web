@@ -8,6 +8,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { clearTokenStore, updateIssuance } from "@/lib/server/token-store";
+import { CLAIMANT_SESSION_COOKIE_NAME } from "@/lib/server/claimant-session";
 
 import { POST as engage } from "../../../engage/route";
 import { POST as verifyToken } from "../../../verify-token/route";
@@ -52,7 +53,7 @@ async function issueVerifiedRunReady(baseDir: string, runId: string | null) {
   const token = mailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
   assert.ok(token);
 
-  await verifyToken(
+  const verifyResponse = await verifyToken(
     new Request("https://witnessops.com/api/verify-token", {
       method: "POST",
       body: JSON.stringify({
@@ -63,6 +64,10 @@ async function issueVerifiedRunReady(baseDir: string, runId: string | null) {
       headers: { "Content-Type": "application/json" },
     }),
   );
+  assert.equal(verifyResponse.status, 200);
+  const setCookie = verifyResponse.headers.get("set-cookie") ?? "";
+  assert.match(setCookie, new RegExp(`^${CLAIMANT_SESSION_COOKIE_NAME}=`));
+  const sessionCookie = setCookie.split(";", 1)[0]!;
 
   if (runId !== null) {
     await updateIssuance(issuance.issuanceId, (rec) => ({
@@ -71,7 +76,11 @@ async function issueVerifiedRunReady(baseDir: string, runId: string | null) {
     }));
   }
 
-  return { issuanceId: issuance.issuanceId, email: issuance.email };
+  return {
+    issuanceId: issuance.issuanceId,
+    email: issuance.email,
+    sessionCookie,
+  };
 }
 
 afterEach(async () => {
@@ -81,14 +90,17 @@ afterEach(async () => {
   await clearTokenStore();
 });
 
-function call(issuanceId: string, body: unknown) {
+function call(issuanceId: string, body: unknown, sessionCookie?: string) {
   return POST(
     new Request(
       `https://witnessops.com/api/package/${encodeURIComponent(issuanceId)}/disposition`,
       {
         method: "POST",
         body: JSON.stringify(body),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(sessionCookie ? { Cookie: sessionCookie } : {}),
+        },
       },
     ),
     { params: Promise.resolve({ issuanceId }) },
@@ -136,7 +148,7 @@ test("WEB-014: accept disposition first-write returns ok and forwards to control
   const response = await call(issued.issuanceId, {
     email: issued.email,
     disposition: "accepted",
-  });
+  }, issued.sessionCookie);
   assert.equal(response.status, 200);
   const payload = (await response.json()) as {
     ok: boolean;
@@ -185,7 +197,7 @@ test("WEB-014: idempotent replay returns ok with the existing record", async () 
     email: issued.email,
     disposition: "accepted",
     comment: "looks good",
-  });
+  }, issued.sessionCookie);
   assert.equal(response.status, 200);
 });
 
@@ -206,7 +218,7 @@ test("WEB-014: conflicting later write surfaces 409 from control-plane", async (
   const response = await call(issued.issuanceId, {
     email: issued.email,
     disposition: "rejected",
-  });
+  }, issued.sessionCookie);
   assert.equal(response.status, 409);
   const payload = (await response.json()) as { ok: boolean; error: string };
   assert.equal(payload.ok, false);
@@ -227,7 +239,7 @@ test("WEB-014: missing controlPlaneRunId yields 409 not-yet-available", async ()
   const response = await call(issued.issuanceId, {
     email: issued.email,
     disposition: "accepted",
-  });
+  }, issued.sessionCookie);
   assert.equal(response.status, 409);
   assert.equal(cpCalled, false);
 });
@@ -248,7 +260,7 @@ test("WEB-014: email mismatch yields 403 and never calls control-plane", async (
   const response = await call(issued.issuanceId, {
     email: "intruder@example.com",
     disposition: "accepted",
-  });
+  }, issued.sessionCookie);
   assert.equal(response.status, 403);
   assert.equal(cpCalled, false);
 });
@@ -261,7 +273,7 @@ test("WEB-014: invalid disposition value yields 422", async () => {
   const response = await call(issued.issuanceId, {
     email: issued.email,
     disposition: "maybe",
-  });
+  }, issued.sessionCookie);
   assert.equal(response.status, 422);
 });
 
@@ -274,19 +286,19 @@ test("WEB-014: oversized comment yields 422", async () => {
     email: issued.email,
     disposition: "accepted",
     comment: "x".repeat(2001),
-  });
+  }, issued.sessionCookie);
   assert.equal(response.status, 422);
 });
 
 test("WEB-014: unknown issuance yields 404", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-disp-"));
-  await issueVerifiedRunReady(baseDir, "run_demo123");
+  const issued = await issueVerifiedRunReady(baseDir, "run_demo123");
   applyTestEnv(baseDir);
 
   const response = await call("iss_nope", {
     email: "customer@witnessops.com",
     disposition: "accepted",
-  });
+  }, issued.sessionCookie);
   assert.equal(response.status, 404);
 });
 
@@ -299,6 +311,27 @@ test("WEB-014: not_configured control-plane yields 503", async () => {
   const response = await call(issued.issuanceId, {
     email: issued.email,
     disposition: "accepted",
-  });
+  }, issued.sessionCookie);
   assert.equal(response.status, 503);
+});
+
+test("WEB-014: matching identifiers without claimant session yield 401 and no control-plane call", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-disp-"));
+  const issued = await issueVerifiedRunReady(baseDir, "run_demo123");
+  applyTestEnv(baseDir);
+  process.env.CONTROL_PLANE_URL = "http://control-plane.internal";
+  process.env.CONTROL_PLANE_API_KEY = "cp-key";
+
+  let cpCalled = false;
+  mockCP(() => {
+    cpCalled = true;
+    return new Response("{}", { status: 200 });
+  });
+
+  const response = await call(issued.issuanceId, {
+    email: issued.email,
+    disposition: "accepted",
+  });
+  assert.equal(response.status, 401);
+  assert.equal(cpCalled, false);
 });

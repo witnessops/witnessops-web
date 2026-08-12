@@ -10,7 +10,7 @@ const FILE_FIXTURES = [
       "Canonical pass in receipt-only mode using the proof-owned PV fixture.",
     fileName: "pv-valid.json",
     provenance: "proof",
-    expected: { kind: "verification", verdict: "valid" },
+    expected: { kind: "verification", verdict: "indeterminate" },
   },
   {
     id: "qv-bad-imprint",

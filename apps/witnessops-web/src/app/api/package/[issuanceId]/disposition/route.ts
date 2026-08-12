@@ -17,6 +17,12 @@ import {
   submitCustomerAcceptance,
   type CustomerAcceptanceSubmitResult,
 } from "@/lib/server/control-plane-client";
+import { isClaimantSessionAuthorized } from "@/lib/server/claimant-session";
+import {
+  PUBLIC_JSON_BODY_LIMIT_BYTES,
+  readBoundedRequestJson,
+  RequestBodyTooLargeError,
+} from "@/lib/server/bounded-request-body";
 
 export const runtime = "nodejs";
 
@@ -74,8 +80,11 @@ export async function POST(
 
   let raw: unknown;
   try {
-    raw = await request.json();
-  } catch {
+    raw = await readBoundedRequestJson(request, PUBLIC_JSON_BODY_LIMIT_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return fail("Request body is too large.", 413);
+    }
     return fail("Invalid request body.", 400);
   }
 
@@ -90,6 +99,14 @@ export async function POST(
   }
   if (record.email !== parsed.email) {
     return fail("Email does not match issuance.", 403);
+  }
+  if (
+    !isClaimantSessionAuthorized(request, {
+      issuanceId,
+      email: parsed.email,
+    })
+  ) {
+    return fail("Claimant session is required.", 401);
   }
 
   const runId = record.controlPlaneRunId;

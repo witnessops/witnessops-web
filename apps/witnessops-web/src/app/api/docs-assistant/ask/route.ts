@@ -8,6 +8,7 @@ import {
   validateDocsAssistantAskPayload,
 } from "@/lib/docs-assistant/server-runtime";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
+import { PUBLIC_JSON_BODY_LIMIT_BYTES, readBoundedRequestJson, RequestBodyTooLargeError } from "@/lib/server/bounded-request-body";
 
 export const runtime = "nodejs";
 
@@ -48,8 +49,14 @@ export async function POST(request: Request) {
 
   let rawPayload: unknown;
   try {
-    rawPayload = await request.json();
-  } catch {
+    rawPayload = await readBoundedRequestJson(request, PUBLIC_JSON_BODY_LIMIT_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { ok: false, error: "request_body_too_large" },
+        { status: 413, headers: NO_STORE_HEADERS },
+      );
+    }
     return invalidRequestResponse("request_body_must_be_valid_json");
   }
 

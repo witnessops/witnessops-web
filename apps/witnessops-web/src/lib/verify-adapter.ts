@@ -159,10 +159,16 @@ function toCheckStatus(status: VerificationCheck["status"]): VerifyCheckStatus {
   }
 }
 
-function toCheckView(check: VerificationCheck): VerifyCheckView {
+function toCheckView(
+  check: VerificationCheck,
+  receiptOnlyIncomplete: boolean,
+): VerifyCheckView {
   return {
     name: check.name,
-    status: toCheckStatus(check.status),
+    status:
+      receiptOnlyIncomplete && check.status === "pass"
+        ? "not_applicable"
+        : toCheckStatus(check.status),
     detail: check.detail,
     code: check.breach_code,
   };
@@ -179,8 +185,9 @@ function toVerdict(result: "pass" | "fail" | "limited-pass"): VerifyVerdict {
     case "fail":
       return "invalid";
     case "pass":
-    case "limited-pass":
       return "valid";
+    case "limited-pass":
+      return "indeterminate";
   }
 }
 
@@ -195,6 +202,10 @@ function buildSummary(response: {
     return `${response.proofStageClaimed} receipt verified in ${response.scope} mode; artifact revalidation was ${response.artifactRevalidation.replaceAll("_", " ")}.`;
   }
 
+  if (response.verdict === "indeterminate") {
+    return `${response.proofStageClaimed} receipt checks passed in ${response.scope} mode, but artifact revalidation was ${response.artifactRevalidation.replaceAll("_", " ")}; verification remains incomplete.`;
+  }
+
   if (response.breaches.length > 0) {
     return response.breaches[0].detail;
   }
@@ -206,7 +217,9 @@ function normalizeVerdict(
   receipt: Record<string, unknown>,
 ): VerifySuccessResponse {
   const verdict = verifyReceiptVerdict(receipt, "receipt-only");
-  const checks = Object.values(verdict.detail.checks).map(toCheckView);
+  const checks = Object.values(verdict.detail.checks).map((check) =>
+    toCheckView(check, verdict.result === "limited-pass"),
+  );
   const breaches = verdict.breaches.map((breach) =>
     toBreachView({
       code: breach.code,

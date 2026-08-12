@@ -19,6 +19,49 @@ const resendWebhookHeaders = [
   "svix-signature",
 ] as const;
 
+const PROVIDER_OUTCOME_BODY_LIMIT_BYTES = 64 * 1024;
+
+async function readProviderOutcomeBody(request: NextRequest): Promise<string> {
+  const contentLength = Number(request.headers.get("content-length"));
+  if (
+    Number.isFinite(contentLength) &&
+    contentLength > PROVIDER_OUTCOME_BODY_LIMIT_BYTES
+  ) {
+    throw new IntakeResponseProviderOutcomeError(
+      "Provider outcome body exceeds the 64 KiB limit.",
+      413,
+    );
+  }
+
+  if (!request.body) {
+    return "";
+  }
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    totalBytes += value.byteLength;
+    if (totalBytes > PROVIDER_OUTCOME_BODY_LIMIT_BYTES) {
+      await reader.cancel();
+      throw new IntakeResponseProviderOutcomeError(
+        "Provider outcome body exceeds the 64 KiB limit.",
+        413,
+      );
+    }
+    chunks.push(value);
+  }
+
+  return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk))).toString(
+    "utf8",
+  );
+}
+
 const resendWebhookEventSchema = z.object({
   type: z.string().trim().min(1),
   created_at: z.string().trim().min(1),
@@ -336,7 +379,7 @@ function verifyAndAdaptM365Webhook(
 export async function parseProviderOutcomeEvent(
   request: NextRequest,
 ): Promise<ParsedProviderOutcomeEvent> {
-  const rawBody = await request.text();
+  const rawBody = await readProviderOutcomeBody(request);
   if (!rawBody.trim()) {
     throw new IntakeResponseProviderOutcomeError("Invalid request body.", 400);
   }

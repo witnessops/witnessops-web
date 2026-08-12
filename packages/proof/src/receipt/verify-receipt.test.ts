@@ -222,25 +222,37 @@ describe("structured verdict — verifyReceiptVerdict", () => {
     assert.equal(verdict.verification_mode, "receipt-only");
     assert.equal(verdict.artifact_revalidation, "not_performed");
     assert.equal(verdict.proof_stage_claimed, "PV");
-    assert.equal(verdict.proof_stage_verified, "PV");
+    assert.equal(verdict.proof_stage_verified, "unknown");
     assert.equal(verdict.result, "limited-pass");
     assert.equal(verdict.breaches.length, 0);
+    assert.equal(
+      Object.values(verdict.detail.checks).some((check) => check.status === "pass"),
+      false,
+    );
   });
 
   it("QV valid returns limited-pass with no breaches", () => {
     const verdict = verifyReceiptVerdict(loadFixture("qv-valid"));
     assert.equal(verdict.proof_stage_claimed, "QV");
-    assert.equal(verdict.proof_stage_verified, "QV");
+    assert.equal(verdict.proof_stage_verified, "unknown");
     assert.equal(verdict.result, "limited-pass");
     assert.equal(verdict.breaches.length, 0);
+    assert.equal(
+      Object.values(verdict.detail.checks).some((check) => check.status === "pass"),
+      false,
+    );
   });
 
   it("WV valid returns limited-pass with no breaches", () => {
     const verdict = verifyReceiptVerdict(loadFixture("wv-valid"));
     assert.equal(verdict.proof_stage_claimed, "WV");
-    assert.equal(verdict.proof_stage_verified, "WV");
+    assert.equal(verdict.proof_stage_verified, "unknown");
     assert.equal(verdict.result, "limited-pass");
     assert.equal(verdict.breaches.length, 0);
+    assert.equal(
+      Object.values(verdict.detail.checks).some((check) => check.status === "pass"),
+      false,
+    );
   });
 
   it("QV bad imprint returns fail with ANCHOR_RFC3161_IMPRINT_MISMATCH breach", () => {
@@ -281,7 +293,7 @@ describe("structured verdict — verifyReceiptVerdict", () => {
   it("Tier1 dispatch assigns claimed/verified stage for structured verdict", () => {
     const verdict = verifyReceiptVerdict(makeValidTier1R0());
     assert.equal(verdict.proof_stage_claimed, "PV");
-    assert.equal(verdict.proof_stage_verified, "PV");
+    assert.equal(verdict.proof_stage_verified, "unknown");
     assert.equal(verdict.result, "limited-pass");
   });
 });

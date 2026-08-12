@@ -48,11 +48,15 @@ test("verifyLocalServerAuditReceipt passes primary sample structurally", () => {
   assert.equal(result.ok, true);
   assert.equal(result.inputKind, LOCAL_SERVER_AUDIT_INPUT_KIND);
   assert.equal(result.adapter, LOCAL_SERVER_AUDIT_ADAPTER_ID);
-  assert.equal(result.verdict, "valid");
+  assert.equal(result.verdict, "indeterminate");
   assert.equal(result.proofStageClaimed, "unknown");
   assert.equal(result.artifactRevalidation, "not_possible");
   assert.match(result.summary, /Local server audit/i);
   assert.doesNotMatch(result.summary, /^OffSec Shield/i);
+  assert.equal(
+    result.checks.find((check) => check.name === "SHIELD_OFFLINE_BYTES")?.status,
+    "not_applicable",
+  );
 });
 
 test("verifyLocalServerAuditReceipt dual-reads legacy offsecshield fixture", () => {
@@ -61,7 +65,7 @@ test("verifyLocalServerAuditReceipt dual-reads legacy offsecshield fixture", () 
   assert.equal(result.ok, true);
   assert.equal(result.inputKind, LOCAL_SERVER_AUDIT_INPUT_KIND);
   assert.equal(result.adapter, LOCAL_SERVER_AUDIT_ADAPTER_ID);
-  assert.equal(result.verdict, "valid");
+  assert.equal(result.verdict, "indeterminate");
 });
 
 test("verifyLocalServerAuditReceipt fails authority binding mismatch (primary)", () => {
@@ -90,5 +94,5 @@ test("deprecated verifyOffsecShieldReceipt alias still works on legacy fixture",
   const doc = loadFixture("offsec-shield-valid.json");
   const result = verifyOffsecShieldReceipt(doc);
   assert.equal(result.inputKind, LOCAL_SERVER_AUDIT_INPUT_KIND);
-  assert.equal(result.verdict, "valid");
+  assert.equal(result.verdict, "indeterminate");
 });

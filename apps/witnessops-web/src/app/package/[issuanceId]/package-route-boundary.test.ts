@@ -10,6 +10,8 @@ test("customer proof package route remains noindex, private, and read-only", () 
   assert.match(source, /export const dynamic = \"force-dynamic\"/);
   assert.match(source, /getIssuanceById\(issuanceId\)/);
   assert.match(source, /record\.email !== email/);
+  assert.match(source, /verifyClaimantSessionCookie/);
+  assert.match(source, /CLAIMANT_SESSION_COOKIE_NAME/);
   assert.match(source, /notFound\(\)/);
   assert.match(source, /does not mutate control-plane truth/);
   assert.match(source, /This page is session-private/);

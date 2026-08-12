@@ -5,6 +5,11 @@ import {
   scopeApprovalResponseSchema,
 } from "@/lib/token-contract";
 import { isClaimantSessionAuthorized } from "@/lib/server/claimant-session";
+import {
+  PUBLIC_JSON_BODY_LIMIT_BYTES,
+  readBoundedRequestJson,
+  RequestBodyTooLargeError,
+} from "@/lib/server/bounded-request-body";
 import { approveScopeAndStartRecon } from "@/lib/server/token-issuance";
 
 export const runtime = "nodejs";
@@ -21,8 +26,11 @@ export async function POST(
 
   let body: unknown;
   try {
-    body = await request.json();
-  } catch {
+    body = await readBoundedRequestJson(request, PUBLIC_JSON_BODY_LIMIT_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return invalid("Request body is too large.", 413);
+    }
     return invalid("Invalid request body.", 400);
   }
 

@@ -150,6 +150,23 @@ test("claimantActionBlocksApproval: disagree blocks", () => {
   assert.equal(r.kind, "disagree");
 });
 
+test("approval and every claimant transition use the same issuance lock", async () => {
+  const claimantSource = await readFile(
+    new URL("./claimant-actions.ts", import.meta.url),
+    "utf8",
+  );
+  const approvalSource = await readFile(
+    new URL("./token-issuance.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(claimantSource, /withIssuanceLock\(input\.issuanceId/);
+  assert.match(
+    approvalSource,
+    /withIssuanceLock\(input\.issuanceId[\s\S]*approveScopeAndStartReconUnlocked/,
+  );
+});
+
 // ---------------------------------------------------------------------------
 // Service-level: writes durable state through existing store paths
 // ---------------------------------------------------------------------------

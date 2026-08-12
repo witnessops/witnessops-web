@@ -244,6 +244,39 @@ test("verify-token route allows repeat verification for the same issuance and to
   );
 });
 
+test("verify-token route rejects verified-token replay after the original expiry", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
+  const issued = await issueToken(baseDir);
+
+  const first = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(first.status, 200);
+  assertClaimantSessionSet(first);
+
+  await updateIssuance(issued.issuanceId, (record) => ({
+    ...record,
+    expiresAt: "2000-01-01T00:00:00.000Z",
+  }));
+
+  const replay = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(replay.status, 400);
+  assert.equal(replay.headers.get("set-cookie"), null);
+  const payload = (await replay.json()) as { error?: string };
+  assert.match(payload.error ?? "", /expired/i);
+});
+
 test("verify-token route returns access-change confirmation path without assessment attachment on replay", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
   const fetchCalls: Array<{ input: string; init?: RequestInit }> = [];
