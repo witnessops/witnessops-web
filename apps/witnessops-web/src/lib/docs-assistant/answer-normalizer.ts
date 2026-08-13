@@ -38,6 +38,9 @@ const SUPPORTED_WITHOUT_RETRIEVAL_BOUNDARY =
 
 const SUPPORTED_WITHOUT_CLAIMS_BOUNDARY = "supported_answer_missing_claims";
 
+const SUPPORTED_WITHOUT_CLAIM_CITATIONS_BOUNDARY =
+  "supported_answer_missing_claim_citations";
+
 function isAnswerStatus(value: unknown): value is AnswerStatus {
   return typeof value === "string" && ANSWER_STATUSES.includes(value as AnswerStatus);
 }
@@ -162,10 +165,8 @@ function isSupportedStatus(answerStatus: AnswerStatus): boolean {
   return SUPPORTED_STATUSES.includes(answerStatus);
 }
 
-// A supported answer is only invalid when it is not actually grounded: either
-// retrieval returned no citations at all, or the model stated no claims. Claims
-// whose per-claim citation_ids could not be resolved are still kept (citation
-// binding is best-effort) as long as the answer is backed by retrieved docs.
+// Supported status is fail-closed: global retrieval is not enough. Every claim
+// must bind to at least one citation ID resolved from approved retrieval output.
 function supportedDowngradeReason(
   answerStatus: AnswerStatus,
   claims: DocsAssistantClaimWithCitations[],
@@ -179,6 +180,9 @@ function supportedDowngradeReason(
   }
   if (claims.length === 0) {
     return SUPPORTED_WITHOUT_CLAIMS_BOUNDARY;
+  }
+  if (claims.some((claim) => claim.citation_ids.length === 0)) {
+    return SUPPORTED_WITHOUT_CLAIM_CITATIONS_BOUNDARY;
   }
   return null;
 }

@@ -165,7 +165,7 @@ test("docs assistant answer normalizer rejects JSON embedded in prose", () => {
   assert.match(answer.boundary_findings.join(","), /model_output_not_structured_json/);
 });
 
-test("docs assistant answer normalizer keeps supported answers grounded by retrieval even when claim citations are unresolved", () => {
+test("docs assistant answer normalizer downgrades supported answers with unbound claims", () => {
   const answer = normalizeDocsAssistantAnswer({
     question: "What does the public verifier prove?",
     response: {
@@ -188,10 +188,36 @@ test("docs assistant answer normalizer keeps supported answers grounded by retri
     citations,
   });
 
-  assert.equal(answer.answer_status, "supported_by_docs");
-  assert.equal(answer.documented_facts.length, 1);
-  assert.deepEqual(answer.documented_facts[0]?.citation_ids, []);
+  assert.equal(answer.answer_status, "needs_human_review");
+  assert.equal(answer.unsupported_reason, "supported_answer_missing_claim_citations");
+  assert.deepEqual(answer.documented_facts, []);
   assert.equal(answer.citations.length, 1);
+});
+
+test("docs assistant answer normalizer downgrades mixed grounded and ungrounded claims", () => {
+  const answer = normalizeDocsAssistantAnswer({
+    question: "What does the public verifier prove?",
+    response: {
+      output_text: JSON.stringify({
+        answer_status: "partially_supported",
+        documented_facts: [
+          { text: "Grounded claim.", citation_ids: ["0"] },
+          { text: "Unbound claim.", citation_ids: ["unknown-citation"] },
+        ],
+        inference: [],
+        citations: [],
+        unsupported_reason: null,
+        human_review_required: false,
+        not_proven: ["source_freshness"],
+        boundary_findings: [],
+      }),
+    },
+    citations,
+  });
+
+  assert.equal(answer.answer_status, "needs_human_review");
+  assert.equal(answer.unsupported_reason, "supported_answer_missing_claim_citations");
+  assert.deepEqual(answer.documented_facts, []);
 });
 
 test("docs assistant answer normalizer resolves claim citation indices to server citation ids", () => {
