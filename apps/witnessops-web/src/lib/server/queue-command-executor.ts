@@ -128,21 +128,25 @@ export type QueueCommandPayload =
       clarificationResolutionNote?: string;
     };
 
+const queueText = z.string().max(16_384);
+const queueShortText = z.string().max(512);
+const queueTextArray = z.array(z.string().max(4_096)).max(128);
+
 const queueCommandPayloadSchema = z.discriminatedUnion("command", [
   z.object({ command: z.literal("queue.claim") }).strict(),
   z.object({
     command: z.literal("queue.assign"),
-    targetOperator: z.string(),
+    targetOperator: queueShortText,
   }).strict(),
   z.object({
     command: z.literal("queue.reassign"),
-    targetOperator: z.string(),
+    targetOperator: queueShortText,
   }).strict(),
   z.object({ command: z.literal("queue.unassign") }).strict(),
   z.object({
     command: z.literal("queue.override_assign"),
-    targetOperator: z.string(),
-    reason: z.string(),
+    targetOperator: queueShortText,
+    reason: queueText,
   }).strict(),
   z.object({
     command: z.literal("queue.set_priority"),
@@ -150,36 +154,36 @@ const queueCommandPayloadSchema = z.discriminatedUnion("command", [
   }).strict(),
   z.object({
     command: z.literal("queue.request_clarification"),
-    question: z.string(),
-    reason: z.string(),
+    question: queueText,
+    reason: queueText,
   }).strict(),
   z.object({
     command: z.literal("queue.clear_clarification"),
-    reason: z.string(),
+    reason: queueText,
   }).strict(),
   z.object({
     command: z.literal("queue.start_scope_draft"),
-    scopeStatement: z.string(),
-    systemsInScope: z.array(z.string()).optional(),
-    actorsInScope: z.array(z.string()).optional(),
-    explicitOutOfScope: z.array(z.string()).optional(),
+    scopeStatement: queueText,
+    systemsInScope: queueTextArray.optional(),
+    actorsInScope: queueTextArray.optional(),
+    explicitOutOfScope: queueTextArray.optional(),
   }).strict(),
   z.object({
     command: z.literal("queue.approve_scope_contract"),
-    approvalNote: z.string().optional(),
+    approvalNote: queueText.optional(),
   }).strict(),
   z.object({
     command: z.literal("queue.supersede_scope_contract"),
-    reason: z.string(),
+    reason: queueText,
   }).strict(),
   z.object({
     command: z.literal("queue.withdraw_scope_contract"),
-    reason: z.string(),
+    reason: queueText,
   }).strict(),
   z.object({
     command: z.literal("queue.record_response"),
-    responseSummary: z.string(),
-    clarificationResolutionNote: z.string().optional(),
+    responseSummary: queueText,
+    clarificationResolutionNote: queueText.optional(),
   }).strict(),
 ]);
 

@@ -35,8 +35,10 @@ image and exact `envFrom`. `ADMIN_OIDC_SECRET` must contain
 `WITNESSOPS_GOOGLE_OIDC_CLIENT_ID`,
 `WITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET`,
 `WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI`, and
-`WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN`. Only key names are emitted for
-preflight; values are never decoded, emitted, or logged. Extra dormant
+`WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN`, and the bounded
+`WITNESSOPS_ADMIN_ROLE` enum. Credential values are never decoded, emitted, or
+logged; the role enum is decoded only into captured shell state and is not
+printed. Extra dormant
 Microsoft OIDC and legacy-key credential entries remain untouched and require a
 separately authorized custody-cleanup pass to retire.
 

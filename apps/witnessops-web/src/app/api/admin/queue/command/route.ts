@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
+  ADMIN_JSON_BODY_LIMIT_BYTES,
+  readBoundedRequestJson,
+  RequestBodyTooLargeError,
+} from "@/lib/server/bounded-request-body";
+import {
   applyQueueCommand,
   isQueueCommandName,
   parseQueueCommandPayload,
@@ -22,8 +27,11 @@ export async function POST(request: NextRequest) {
 
   let rawBody: unknown;
   try {
-    rawBody = await request.json();
-  } catch {
+    rawBody = await readBoundedRequestJson(request, ADMIN_JSON_BODY_LIMIT_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return invalid("Request body is too large.", 413);
+    }
     return invalid("Invalid request body.", 400);
   }
   if (!rawBody || typeof rawBody !== "object" || Array.isArray(rawBody)) {
@@ -35,6 +43,9 @@ export async function POST(request: NextRequest) {
   const intakeId = typeof body.intakeId === "string" ? body.intakeId : "";
   const idempotencyKey =
     typeof body.idempotencyKey === "string" ? body.idempotencyKey : "";
+  if (command.length > 64 || intakeId.length > 256 || idempotencyKey.length > 512) {
+    return invalid("Command identifiers are too long.", 400);
+  }
   if (
     body.payload !== undefined &&
     (!body.payload ||

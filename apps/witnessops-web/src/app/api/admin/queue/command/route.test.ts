@@ -155,3 +155,33 @@ test("malformed command fields are rejected before state mutation", async () => 
     "normal",
   );
 });
+
+test("oversized queue bodies are rejected before state mutation", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-body-limit-"));
+  process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
+  process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
+  await saveIntake(makeIntake());
+
+  const cookie = await founderCookie();
+  const response = await POST(
+    new NextRequest("https://witnessops.com/api/admin/queue/command", {
+      method: "POST",
+      body: JSON.stringify({ padding: "x".repeat(65 * 1024) }),
+      headers: {
+        "Content-Type": "application/json",
+        cookie: `witnessops-admin-session=${cookie}`,
+      },
+    }),
+  );
+
+  assert.equal(response.status, 413);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    error: "Request body is too large.",
+  });
+  assert.equal(
+    (await getIntakeById("intk_queue_route_validation"))?.queue?.projection
+      .projectionVersion,
+    0,
+  );
+});

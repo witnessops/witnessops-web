@@ -389,6 +389,59 @@ fi
 # --- prod deploy preflight and atomic patch ---
 # shellcheck source=k3s-lib.sh
 source "${K3S_LIB}"
+expected_build_context_exclusions=$'/.env\n/.env.*\n/**/.env\n/**/.env.*\n/deploy/topology.env\n/.witnessops-token-store/\n/ops/receipts/\n/var/\n/.azure/\n/infra/main.parameters.json\n/.playwright-mcp/\n/.playwright-cli/\n/**/.playwright-cli/\naudit-*.png\n*-cards.png\n/tmp/\n/out/\n/output/'
+assert_output "${expected_build_context_exclusions}" build_context_exclusion_patterns
+for docker_exclusion in \
+  '.env' '.env.*' '**/.env' '**/.env.*' 'deploy/topology.env' \
+  '.witnessops-token-store' 'ops/receipts' 'var' '.azure' \
+  'infra/main.parameters.json' '.playwright-mcp' '.playwright-cli' \
+  '**/.playwright-cli' 'audit-*.png' '**/audit-*.png' \
+  '*-cards.png' '**/*-cards.png'; do
+  if grep -Fqx -- "${docker_exclusion}" "${REPO_ROOT}/.dockerignore"; then
+    pass=$((pass + 1))
+    echo "PASS: Docker context excludes ${docker_exclusion}"
+  else
+    fail=$((fail + 1))
+    echo "FAIL: Docker context does not exclude ${docker_exclusion}" >&2
+  fi
+done
+build_context_source="$(mktemp -d "${TMPDIR:-/tmp}/witnessops-build-context-source.XXXXXX")"
+build_context_target="$(mktemp -d "${TMPDIR:-/tmp}/witnessops-build-context-target.XXXXXX")"
+mkdir -p \
+  "${build_context_source}/deploy" \
+  "${build_context_source}/.witnessops-token-store" \
+  "${build_context_source}/ops/receipts" \
+  "${build_context_source}/var" \
+  "${build_context_source}/nested/.playwright-cli"
+touch \
+  "${build_context_source}/safe.txt" \
+  "${build_context_source}/.env" \
+  "${build_context_source}/deploy/topology.env" \
+  "${build_context_source}/.witnessops-token-store/customer.json" \
+  "${build_context_source}/ops/receipts/private.json" \
+  "${build_context_source}/var/operator-state.json" \
+  "${build_context_source}/nested/.env.local" \
+  "${build_context_source}/nested/.playwright-cli/session.json" \
+  "${build_context_source}/audit-private.png" \
+  "${build_context_source}/nested/operator-cards.png"
+sync_build_context "${build_context_source}/" "${build_context_target}/"
+if [[ -f "${build_context_target}/safe.txt" ]] \
+  && [[ ! -e "${build_context_target}/.env" ]] \
+  && [[ ! -e "${build_context_target}/deploy/topology.env" ]] \
+  && [[ ! -e "${build_context_target}/.witnessops-token-store" ]] \
+  && [[ ! -e "${build_context_target}/ops/receipts" ]] \
+  && [[ ! -e "${build_context_target}/var" ]] \
+  && [[ ! -e "${build_context_target}/nested/.env.local" ]] \
+  && [[ ! -e "${build_context_target}/nested/.playwright-cli" ]] \
+  && [[ ! -e "${build_context_target}/audit-private.png" ]] \
+  && [[ ! -e "${build_context_target}/nested/operator-cards.png" ]]; then
+  pass=$((pass + 1))
+  echo "PASS: remote build-context sync excludes custody sentinels"
+else
+  fail=$((fail + 1))
+  echo "FAIL: remote build-context sync copied a custody sentinel" >&2
+fi
+rm -rf -- "${build_context_source}" "${build_context_target}"
 image='docker.io/library/witnessops-web:main-test-20260806T000000Z'
 expected_patch='[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"example-app-container"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"example-runtime-secret"}},{"secretRef":{"name":"example-identity-secret"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"docker.io/library/witnessops-web:main-test-20260806T000000Z"}]'
 assert_output "${expected_patch}" prod_deployment_json_patch "${image}"

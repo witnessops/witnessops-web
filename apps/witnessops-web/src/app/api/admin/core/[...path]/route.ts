@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { PUBLIC_CONTACT_EMAIL } from "@/lib/public-contact";
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
+import {
+  ADMIN_JSON_BODY_LIMIT_BYTES,
+  readBoundedRequestJson,
+  RequestBodyTooLargeError,
+} from "@/lib/server/bounded-request-body";
 import { runGmailInboxSync } from "@/lib/server/admin-gmail-reconciliation";
 import { sendVerificationEmail } from "@/lib/server/send-verification-email";
 import {
@@ -81,9 +86,12 @@ async function actorFor(request: NextRequest): Promise<CoreActor | null> {
 
 async function jsonBody(request: NextRequest): Promise<Record<string, unknown>> {
   try {
-    const body = await request.json();
+    const body = await readBoundedRequestJson(request, ADMIN_JSON_BODY_LIMIT_BYTES);
     return body && typeof body === "object" ? body as Record<string, unknown> : {};
-  } catch {
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      throw new AdminCoreError("PAYLOAD_TOO_LARGE", "Request body is too large.", 413);
+    }
     throw new AdminCoreError("INVALID_INPUT", "Invalid JSON request body.", 400);
   }
 }
@@ -91,12 +99,19 @@ async function jsonBody(request: NextRequest): Promise<Record<string, unknown>> 
 function stringValue(body: Record<string, unknown>, key: string, required = true): string {
   const value = typeof body[key] === "string" ? body[key] as string : "";
   if (required && !value.trim()) throw new AdminCoreError("INVALID_INPUT", `${key} is required.`);
+  if (value.length > 16_384) throw new AdminCoreError("INVALID_INPUT", `${key} is too long.`);
   return value.trim();
 }
 
 function stringArray(body: Record<string, unknown>, key: string): string[] {
   const value = body[key];
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  if (!Array.isArray(value)) return [];
+  if (value.length > 128) throw new AdminCoreError("INVALID_INPUT", `${key} has too many items.`);
+  const strings = value.filter((item): item is string => typeof item === "string");
+  if (strings.some((item) => item.length > 4_096)) {
+    throw new AdminCoreError("INVALID_INPUT", `${key} contains an item that is too long.`);
+  }
+  return strings;
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
+import {
+  ADMIN_JSON_BODY_LIMIT_BYTES,
+  readBoundedRequestJson,
+  RequestBodyTooLargeError,
+} from "@/lib/server/bounded-request-body";
 import { verifyQueueProjectionForIntake } from "@/lib/server/queue-projection";
 import {
   AdminBusinessAuthorizationError,
@@ -28,8 +33,11 @@ export async function POST(request: NextRequest) {
 
   let body: VerifyQueueProjectionBody;
   try {
-    body = (await request.json()) as VerifyQueueProjectionBody;
-  } catch {
+    body = (await readBoundedRequestJson(request, ADMIN_JSON_BODY_LIMIT_BYTES)) as VerifyQueueProjectionBody;
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return invalid("Request body is too large.", 413);
+    }
     return invalid("Invalid request body.", 400);
   }
 
