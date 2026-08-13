@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
+  AdminBusinessAuthorizationError,
+  requireIntakeBusinessAccess,
+} from "@/lib/server/admin-business-authorization";
+import {
   OperatorActionError,
   requestClarificationAsOperator,
 } from "@/lib/server/operator-actions";
@@ -35,6 +39,7 @@ export async function POST(request: NextRequest) {
       : "";
 
   try {
+    await requireIntakeBusinessAccess(session, intakeId);
     const result = await requestClarificationAsOperator({
       intakeId,
       actor: session.actor,
@@ -43,6 +48,9 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
+    if (error instanceof AdminBusinessAuthorizationError) {
+      return invalid(error.message, error.status);
+    }
     if (error instanceof OperatorActionError) {
       return invalid(error.message, error.status);
     }

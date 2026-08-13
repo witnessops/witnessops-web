@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
+import {
+  AdminBusinessAuthorizationError,
+  requireRunBusinessAccess,
+} from "@/lib/server/admin-business-authorization";
 import { authorizeRun } from "@/lib/server/control-plane-client";
 
 export const runtime = "nodejs";
@@ -25,6 +29,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   try {
+    await requireRunBusinessAccess(session, runId);
     const result = await authorizeRun(runId, {
       actor: session.actor,
       actorAuthSource: session.actorAuthSource,
@@ -46,6 +51,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       note: "Control-plane run authorized. Execution may proceed.",
     });
   } catch (error) {
+    if (error instanceof AdminBusinessAuthorizationError) {
+      return invalid(error.message, error.status);
+    }
     console.error("Control-plane run authorization failed", {
       errorCode:
         error && typeof error === "object" && "code" in error

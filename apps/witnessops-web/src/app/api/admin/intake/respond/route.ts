@@ -9,6 +9,10 @@ import {
   respondToIntake,
 } from "@/lib/server/intake-response";
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
+import {
+  AdminBusinessAuthorizationError,
+  requireIntakeBusinessAccess,
+} from "@/lib/server/admin-business-authorization";
 
 export const runtime = "nodejs";
 
@@ -35,6 +39,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    await requireIntakeBusinessAccess(session, parsed.data.intakeId);
     const response = await respondToIntake({
       ...parsed.data,
       actor: session.actor,
@@ -45,6 +50,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(adminIntakeRespondResponseSchema.parse(response));
   } catch (error) {
+    if (error instanceof AdminBusinessAuthorizationError) {
+      return invalid(error.message, error.status);
+    }
     if (error instanceof IntakeResponseError) {
       return invalid(error.message, error.status);
     }
