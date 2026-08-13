@@ -1,19 +1,12 @@
 #!/usr/bin/env bash
-# Shared helpers for k3s prod / mesh-dev dual-lane deploy.
-#
-# Lanes (same host ops-dev-01, same k3s namespace witnessops):
-#   prod  → deployment witnessops-web      public via Caddy → 127.0.0.1:3000
-#   dev   → deployment witnessops-web-dev  mesh-only hostNetwork 10.44.0.2:3015
+# Shared helpers for the private k3s prod / mesh-dev dual-lane deploy.
 #
 # Shared image always bakes NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com so
 # CSS/JS hashes match when both lanes run the same tag. Mesh-dev overrides
 # PORT/HOSTNAME/VERIFY_BASE at runtime only.
 #
-# Env overrides:
-#   DEPLOY_SSH=ops-dev-01                 # or root@194.147.221.89 if WG/SSH mesh is down
-#   ALLOW_DIRTY=1                         # allow build from dirty working tree
-#   MESH_DEV_URL=http://10.44.0.2:3015
-#   PROD_URL=https://witnessops.com
+# Private topology is injected by the operator environment. See
+# deploy/topology.env.example for the required variable names and safe shapes.
 # shellcheck disable=SC2034
 
 set -euo pipefail
@@ -22,25 +15,50 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEPLOY_DIR="${REPO_ROOT}/deploy"
 K8S_DIR="${DEPLOY_DIR}/k8s"
 
-# Default SSH host uses mesh jump (ops-dev-01 via wg-edge-01). If WireGuard is
-# down, use the public IP: DEPLOY_SSH=root@194.147.221.89
-DEPLOY_SSH="${DEPLOY_SSH:-ops-dev-01}"
-DEPLOY_NS="${DEPLOY_NS:-witnessops}"
-PROD_DEPLOY="${PROD_DEPLOY:-witnessops-web}"
-DEV_DEPLOY="${DEV_DEPLOY:-witnessops-web-dev}"
-MESH_DEV_URL="${MESH_DEV_URL:-http://10.44.0.2:3015}"
+: "${DEPLOY_SSH:?set DEPLOY_SSH from private topology custody}"
+: "${DEPLOY_NS:?set DEPLOY_NS from private topology custody}"
+: "${PROD_DEPLOY:?set PROD_DEPLOY from private topology custody}"
+: "${DEV_DEPLOY:?set DEV_DEPLOY from private topology custody}"
+: "${MESH_DEV_URL:?set MESH_DEV_URL from private topology custody}"
+: "${MESH_BIND_HOST:?set MESH_BIND_HOST from private topology custody}"
+: "${MESH_BIND_PORT:?set MESH_BIND_PORT from private topology custody}"
+: "${APP_CONTAINER_NAME:?set APP_CONTAINER_NAME from private topology custody}"
+: "${BASE_ENV_SECRET:?set BASE_ENV_SECRET from private topology custody}"
+: "${ADMIN_OIDC_SECRET:?set ADMIN_OIDC_SECRET from private topology custody}"
+: "${INTAKE_STORE_PVC:?set INTAKE_STORE_PVC from private topology custody}"
+: "${INTAKE_EVENTS_PVC:?set INTAKE_EVENTS_PVC from private topology custody}"
+: "${MAIL_OUT_PVC:?set MAIL_OUT_PVC from private topology custody}"
 PROD_URL="${PROD_URL:-https://witnessops.com}"
 IMAGE_REPO="${IMAGE_REPO:-docker.io/library/witnessops-web}"
-BASE_ENV_SECRET='witnessops-web-env'
-ADMIN_OIDC_SECRET='witnessops-web-admin-oidc'
 
 # Pure image/CSS compare helpers (unit-tested via deploy/scripts/test-k3s-parity.sh).
 # shellcheck source=k3s-parity.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/k3s-parity.sh"
 
+validate_private_topology() {
+  local value
+  validate_ssh_target "${DEPLOY_SSH}" \
+    || die "DEPLOY_SSH has an invalid shape"
+  for value in \
+    "${DEPLOY_NS}" "${PROD_DEPLOY}" "${DEV_DEPLOY}" \
+    "${APP_CONTAINER_NAME}" "${BASE_ENV_SECRET}" "${ADMIN_OIDC_SECRET}" \
+    "${INTAKE_STORE_PVC}" "${INTAKE_EVENTS_PVC}" "${MAIL_OUT_PVC}"; do
+    validate_kubernetes_name "${value}" \
+      || die "private Kubernetes topology has an invalid name"
+  done
+  validate_bind_host "${MESH_BIND_HOST}" \
+    || die "MESH_BIND_HOST has an invalid shape"
+  validate_unprivileged_port "${MESH_BIND_PORT}" \
+    || die "MESH_BIND_PORT must be an unprivileged TCP port"
+  [[ "${MESH_DEV_URL}" == "http://${MESH_BIND_HOST}:${MESH_BIND_PORT}" ]] \
+    || die "MESH_DEV_URL must exactly match the private bind host and port"
+}
+
 log() { printf '\033[1;34m[k3s-deploy]\033[0m %s\n' "$*" >&2; }
 err() { printf '\033[1;31m[k3s-deploy:error]\033[0m %s\n' "$*" >&2; }
 die() { err "$*"; exit 1; }
+
+validate_private_topology
 
 need() { command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"; }
 
@@ -110,6 +128,7 @@ build_shared_image() {
 
   need ssh
   need rsync
+  need node
   need git
 
   log "building shared image ${image} from HEAD ${head}"
@@ -193,7 +212,13 @@ prod_deployment_json_patch() {
   local image
   image="${1:-}"
   validate_container_image_ref "${image}" || return 1
-  printf '%s' '[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"witnessops-web"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"witnessops-web-env"}},{"secretRef":{"name":"witnessops-web-admin-oidc"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"'
+  printf '%s' '[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"'
+  printf '%s' "${APP_CONTAINER_NAME}"
+  printf '%s' '"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"'
+  printf '%s' "${BASE_ENV_SECRET}"
+  printf '%s' '"}},{"secretRef":{"name":"'
+  printf '%s' "${ADMIN_OIDC_SECRET}"
+  printf '%s' '"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"'
   printf '%s' "${image}"
   printf '%s' '"}]'
 }
@@ -265,19 +290,23 @@ deploy_dev_image() {
 
   log "deploying DEV ${DEV_DEPLOY} -> ${image} (mesh ${MESH_DEV_URL})"
   # Render locally (avoid quoting traps of embedding YAML inside remote ssh string).
-  rendered="$(mktemp "${TMPDIR:-/tmp}/witnessops-web-dev-deploy.XXXXXX.yaml")"
+  rendered="$(mktemp "${TMPDIR:-/tmp}/witnessops-dev-deploy.XXXXXX.yaml")"
   # shellcheck disable=SC2064
   trap "rm -f '${rendered}'" RETURN
-  sed "s|IMAGE_PLACEHOLDER|${image}|g" "${template}" > "${rendered}"
+  IMAGE_PLACEHOLDER="${image}" node \
+    "${DEPLOY_DIR}/scripts/render-topology-template.mjs" \
+    "${template}" "${rendered}" \
+    IMAGE_PLACEHOLDER DEPLOY_NS DEV_DEPLOY APP_CONTAINER_NAME \
+    BASE_ENV_SECRET ADMIN_OIDC_SECRET MESH_BIND_HOST MESH_BIND_PORT MESH_DEV_URL
   grep -q "${image}" "${rendered}" || die "image substitution failed in ${rendered}"
-  remote_yaml="/tmp/witnessops-web-dev-deploy.yaml"
+  remote_yaml="/tmp/witnessops-dev-deploy.yaml"
   rsync -az -e "ssh -o BatchMode=yes -o ConnectTimeout=20" \
     "${rendered}" "${DEPLOY_SSH}:${remote_yaml}"
   remote "set -euo pipefail
     kubectl apply -f '${remote_yaml}'
     kubectl -n '${DEPLOY_NS}' rollout status deployment/${DEV_DEPLOY} --timeout=180s
     kubectl -n '${DEPLOY_NS}' get deploy,pods -l app=${DEV_DEPLOY} -o wide
-    ss -lntp | grep 3015 || true
+    ss -lntp | grep -- '${MESH_BIND_PORT}' || true
   "
   assert_remote_deployment_envfrom "${DEV_DEPLOY}"
 }
@@ -321,7 +350,7 @@ smoke_pair() {
   log "smoke dev=${dev_code} css=${dev_css}"
 
   [[ "${prod_code}" == "200" ]] || die "prod smoke failed (${prod_code})"
-  [[ "${dev_code}" == "200" ]] || die "dev smoke failed (${dev_code}) — is WireGuard up? try: sudo wg-quick up wg-edge-01"
+  [[ "${dev_code}" == "200" ]] || die "dev smoke failed (${dev_code}) — confirm the private network path is active"
   if ! compare_css_refs "${prod_css}" "${dev_css}"; then
     err "CSS mismatch prod=${prod_css} dev=${dev_css}"
     return 2

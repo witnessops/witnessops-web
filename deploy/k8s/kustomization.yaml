@@ -1,6 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: witnessops
+# Template metadata only. Deploy with apply.sh after private rendering.
+namespace: ${DEPLOY_NS}
 resources:
   - namespace.yaml
   - pvc.yaml

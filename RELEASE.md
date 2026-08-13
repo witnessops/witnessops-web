@@ -18,9 +18,9 @@ surface.
 - `pnpm release` is the frozen **build-only** release entrypoint. It does not
   tag a commit, publish an image, deploy either lane, generate an SBOM, sign an
   artifact, or create a GitHub Release.
-- The current deploy target is k3s on `ops-dev-01`, namespace `witnessops`.
-- Prod is deployment `witnessops-web`; mesh-dev is deployment
-  `witnessops-web-dev`.
+- The current deploy target is a private k3s topology injected from operator
+  custody through the variables documented in `deploy/topology.env.example`.
+- Prod and mesh-dev workload names are private injected values.
 - A dual-lane release uses one shared image reference in both deployments.
 
 Do not describe an image, SBOM, release artifact, signature, receipt, workflow,
@@ -82,7 +82,7 @@ evidence shows all of the following:
 
 1. prod and mesh-dev use the identical full container image reference;
 2. `https://witnessops.com/` returns HTTP 200;
-3. `http://10.44.0.2:3015/` returns HTTP 200 over the WireGuard mesh; and
+3. `MESH_DEV_URL` returns HTTP 200 over the private network; and
 4. the primary CSS hash is identical in prod and mesh-dev.
 
 For buyer-visible changes, also check every changed public route in English and
@@ -158,7 +158,7 @@ authority lane explicitly reactivates and revalidates it:
   release or deploy;
 - GHCR `stable`, version, or SHA images as the current runtime source;
 - cosign or SBOM statements based only on historical workflow definitions;
-- `deploy/scripts/deploy.sh` and the goal0 Docker Compose path; or
+- `deploy/scripts/deploy.sh` and the retired Docker Compose path; or
 - historical Azure deployment material.
 
 Historical files may remain for reconstruction. Their presence does not prove

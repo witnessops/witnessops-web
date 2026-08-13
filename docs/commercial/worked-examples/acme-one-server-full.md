@@ -183,4 +183,4 @@ WitnessOps
 | owner | Alex Rivera |
 | status | delivered |
 | price | 950 EUR |
-| notes | partial OK if sections incomplete; explain like ops-dev-01 teaching report |
+| notes | partial OK if sections incomplete; explain using the restricted teaching report |

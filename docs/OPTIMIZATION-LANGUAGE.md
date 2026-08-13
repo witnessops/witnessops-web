@@ -87,7 +87,7 @@ Before claiming an optimization shipped:
 ## Related authority
 
 - `AGENTS.md` — verify surfaces, proof lane width, `pnpm health`
-- `docs/DEPLOYMENT_AUTHORITY.md` — goal0-edge-01 hosting
+- `docs/DEPLOYMENT_AUTHORITY.md` — current private hosting authority
 - OffSec lane: `~/DEV/OffSec/docs/local-mesh/` (federation, mesh gate ADR 0008)
 - Agent skill: `.grok/skills/optimize-witnessops-web/SKILL.md`
 
@@ -104,4 +104,4 @@ Loop complete when (3) exits 0 after `pnpm install` and (1)–(4) are present on
 
 ## Node 22 builder (different node)
 
-Fleet VM edits use system Node 20; **production build and full `pnpm health`** use **Node 22** on **goal0-edge-01** (Docker mesh build) or **`pnpm health:node22`** locally. See [`NODE22-BUILDER.md`](./NODE22-BUILDER.md).
+Fleet VM edits may use system Node 20; **production build and full `pnpm health`** use **Node 22**, including **`pnpm health:node22`** locally. See [`NODE22-BUILDER.md`](./NODE22-BUILDER.md).

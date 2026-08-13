@@ -28,7 +28,7 @@ Product: **CSR Sprint** *or* **One Server** (not both at once for the first real
 | CSR answer_matrix.csv | PASS 200 |
 | Fit check + verify | PASS 200 |
 | CSR one-pager PDF | PASS 200 |
-| Private ops-dev-01 report on Desktop | PRESENT |
+| Restricted private report outside this repo | Operator custody |
 | Commercial kit on disk | PRESENT |
 
 ---
@@ -42,7 +42,7 @@ Product: **CSR Sprint** *or* **One Server** (not both at once for the first real
       https://witnessops.com/samples/offsec-local-audit/local-server-audit-pr_lsa_20260710120000_198fd7aceb/BUYER_WALKTHROUGH.md
 - [ ] Open CSR matrix (live):  
       https://witnessops.com/samples/csr-sprint-synthetic/exports/answer_matrix.csv
-- [ ] Open private report: `~/Desktop/witnessops-ops-dev-01-report.html`  
+- [ ] Open the restricted private operator report
       Say out loud: **valid** = package checks; **partial** = incomplete collection sections, not “host failed security”
 
 ### 2. Rehearse demo (15 min) — *you*

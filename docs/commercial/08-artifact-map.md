@@ -43,7 +43,7 @@ Complete index of artifacts used for demos, learning, and delivery.
 | --- | --- | --- |
 | `~/Desktop/WITNESSOPS_OFFSEC_PRODUCT_SUITE_V1/` | Full suite extract (source, samples, hardening) | No (source); samples mirrored selectively |
 | `~/Desktop/WITNESSOPS_OFFSEC_PRODUCT_SUITE_V1_6.zip` | Suite archive | No |
-| `~/Desktop/witnessops-ops-dev-01-report.html` | Live-style One Server report: host `ops-dev-01`, run `pr_lsa_20260710222741_6b0aa4e134`, **valid + partial** | **Never public** |
+| Private live-style report held outside this repo | Operator study of a **valid + partial** outcome | **Never public** |
 | `~/Downloads/WITNESSOPS_CUSTOMER_SECURITY_REVIEW_SYNTHETIC_DATA_V1/` | CSR synthetic source (mirrored to site samples) | Source private; mirror public |
 | `~/Downloads/WitnessOps_CSR_*` | CSR campaign / one-pager sources | Private |
 | `repos/witnessops-web/docs/commercial/` | This kit | Repo (not marketing pages) |
@@ -56,7 +56,7 @@ Complete index of artifacts used for demos, learning, and delivery.
 | --- | --- | --- |
 | Web fixture | `offsec-shield-local-server-audit` / `local-fixture-a` | `/verify` structural story, light demo |
 | Suite product sample | `pr_lsa_20260710120000_198fd7aceb` | Full buyer walkthrough + offline verify story |
-| Private live-style | `pr_lsa_20260710222741_6b0aa4e134` on ops-dev-01 | Operator learning of **partial** outcomes only |
+| Private live-style | Restricted artifact held outside this repo | Operator learning of **partial** outcomes only |
 
 ---
 
@@ -66,8 +66,7 @@ Complete index of artifacts used for demos, learning, and delivery.
 # Suite LSA walkthrough
 open ~/Desktop/WITNESSOPS_OFFSEC_PRODUCT_SUITE_V1/products/OFFSEC-LOCAL-AUDIT/sample/local-server-audit-pr_lsa_20260710120000_198fd7aceb/BUYER_WALKTHROUGH.md
 
-# Private partial report (local only)
-open ~/Desktop/witnessops-ops-dev-01-report.html
+# Private partial report: use the restricted operator artifact index
 
 # CSR answer matrix
 open ~/Downloads/WITNESSOPS_CUSTOMER_SECURITY_REVIEW_SYNTHETIC_DATA_V1/exports/answer_matrix.csv

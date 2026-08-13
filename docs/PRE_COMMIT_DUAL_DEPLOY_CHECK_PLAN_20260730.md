@@ -228,8 +228,8 @@ git push origin main   # confirm with operator if policy requires
 | Precondition | Check |
 |--------------|--------|
 | Clean git HEAD at ship SHA | `git status` clean |
-| SSH to ops-dev-01 | `ssh ops-dev-01 'hostname'` (or fallback host) |
-| WireGuard for mesh smoke | `sudo wg-quick up wg-edge-01` if needed |
+| SSH to private deploy host | `ssh "${DEPLOY_SSH}" 'hostname'` |
+| Private network for mesh smoke | Confirm the operator-custodied path is active |
 | No concurrent deploy | `pnpm deploy:k3s:status` |
 
 ### 5.2 Deploy command (one image → both lanes)
@@ -269,7 +269,7 @@ pnpm smoke:buyer-path -- --base-url https://witnessops.com
 Against **mesh-dev** (WG):
 
 ```bash
-pnpm smoke:buyer-path -- --base-url http://10.44.0.2:3015
+pnpm smoke:buyer-path -- --base-url "${MESH_DEV_URL}"
 ```
 
 **Pass criteria:** all required markers present on `/`, `/catalog`, `/customer-security-review`, `/pl`, `/pl/catalog`, `/pl/customer-security-review`; no prohibited superseded catalogue strings.

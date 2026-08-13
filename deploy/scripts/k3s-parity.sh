@@ -68,10 +68,13 @@ compare_css_refs() {
 # Exact runtime contract for the application container. Order matters because
 # later envFrom sources take precedence over earlier sources for duplicate keys.
 expected_admin_runtime_envfrom_contract() {
+  : "${APP_CONTAINER_NAME:?set APP_CONTAINER_NAME}"
+  : "${BASE_ENV_SECRET:?set BASE_ENV_SECRET}"
+  : "${ADMIN_OIDC_SECRET:?set ADMIN_OIDC_SECRET}"
   printf '%s\n' \
-    'container:witnessops-web' \
-    'secret:witnessops-web-env|prefix=|optional=false' \
-    'secret:witnessops-web-admin-oidc|prefix=|optional=false'
+    "container:${APP_CONTAINER_NAME}" \
+    "secret:${BASE_ENV_SECRET}|prefix=|optional=false" \
+    "secret:${ADMIN_OIDC_SECRET}|prefix=|optional=false"
 }
 
 # Returns 0 for an exact ordered match, 2 for drift, and 1 when either side is
@@ -132,6 +135,44 @@ validate_container_image_ref() {
     return 1
   fi
   return 0
+}
+
+# Topology validators are pure so every deploy entrypoint can fail closed before
+# rendering or contacting a cluster. Callers choose which fields they require.
+validate_ssh_target() {
+  local value="${1:-}"
+  [[ -n "${value}" && ${#value} -le 253 \
+    && "${value}" =~ ^[A-Za-z0-9._-]+(@[A-Za-z0-9._-]+)?$ ]] || {
+    printf 'invalid SSH target\n' >&2
+    return 1
+  }
+}
+
+validate_kubernetes_name() {
+  local value="${1:-}"
+  [[ -n "${value}" && ${#value} -le 253 \
+    && "${value}" =~ ^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$ ]] || {
+    printf 'invalid Kubernetes topology name\n' >&2
+    return 1
+  }
+}
+
+validate_bind_host() {
+  local value="${1:-}"
+  [[ -n "${value}" && ${#value} -le 253 \
+    && "${value}" =~ ^[A-Za-z0-9.-]+$ ]] || {
+    printf 'invalid bind host\n' >&2
+    return 1
+  }
+}
+
+validate_unprivileged_port() {
+  local value="${1:-}"
+  [[ "${value}" =~ ^[0-9]+$ ]] \
+    && (( value >= 1024 && value <= 65535 )) || {
+    printf 'invalid unprivileged TCP port\n' >&2
+    return 1
+  }
 }
 
 # CLI entry when executed (not sourced).

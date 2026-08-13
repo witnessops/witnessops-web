@@ -4,7 +4,8 @@ This change is prepared but must not be applied without explicit production and 
 
 ## Pre-change and backup
 
-On `ops-dev-01`, record the active checksum and create a timestamped backup before editing:
+On the host identified by the private `DEPLOY_SSH` custody record, record the
+active checksum and create a timestamped backup before editing:
 
 ```sh
 date -u +%Y-%m-%dT%H:%M:%SZ

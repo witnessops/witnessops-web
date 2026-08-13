@@ -58,7 +58,7 @@ Then use the paste templates below.
 | --- | --- | --- |
 | Web fixture (demo-host) | Site `/samples/offsec-shield-local-server-audit/` | Yes |
 | Suite product sample `pr_lsa_20260710120000_198fd7aceb` | Site `/samples/offsec-local-audit/` + Desktop suite | Yes (mirrored) |
-| Live-style report **ops-dev-01** `pr_lsa_20260710222741_6b0aa4e134` (valid + **partial**) | `~/Desktop/witnessops-ops-dev-01-report.html` | **No — private operator study only** |
+| Restricted live-style report (valid + **partial**) | Held outside this public repo | **No — private operator study only** |
 
 ## Operating rules
 
