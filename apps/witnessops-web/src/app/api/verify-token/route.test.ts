@@ -757,6 +757,8 @@ test("concurrent support verification sends exactly one operator notification", 
 test("verify-token route does not start assessment before explicit approval", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
   applyTestEnv(baseDir);
+  process.env.GES_SERVER_URL = "https://assessment.internal";
+  process.env.GES_ASSESSMENT_KEY = "test-assessment-key";
   const fetchCalls: Array<{ input: string; init?: RequestInit }> = [];
   global.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = input instanceof Request ? input.url : input.toString();
