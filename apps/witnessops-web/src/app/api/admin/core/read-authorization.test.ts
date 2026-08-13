@@ -78,7 +78,43 @@ test("admin core API hides foreign direct IDs and list records", async () => {
   assert.equal(list.status, 200);
   assert.deepEqual((await list.json() as { items: unknown[] }).items, []);
 
+  const productList = await GET(
+    aliceRequest(["products"]),
+    context("products"),
+  );
+  assert.equal(productList.status, 200);
+  assert.deepEqual((await productList.json() as { items: unknown[] }).items, []);
+
   const founderCookie = await cookieFor("founder", "Founder");
+  const founderProducts = await GET(
+    new NextRequest("https://witnessops.com/api/admin/core/products", {
+      headers: { cookie: `witnessops-admin-session=${founderCookie}` },
+    }),
+    context("products"),
+  );
+  const products = (await founderProducts.json() as {
+    items: Array<{ id: string; productName: string }>;
+  }).items;
+  assert.ok(products[0]);
+
+  const foreignProduct = await GET(
+    aliceRequest(["products", products[0]!.id]),
+    context("products", products[0]!.id),
+  );
+  assert.equal(foreignProduct.status, 404);
+
+  const foreignProductSearch = await GET(
+    new NextRequest(
+      `https://witnessops.com/api/admin/core/search?q=${encodeURIComponent(products[0]!.productName)}`,
+      { headers: { cookie: `witnessops-admin-session=${aliceCookie}` } },
+    ),
+    context("search"),
+  );
+  assert.deepEqual(
+    (await foreignProductSearch.json() as { results: unknown[] }).results,
+    [],
+  );
+
   const founderList = await GET(
     new NextRequest("https://witnessops.com/api/admin/core/review-requests", {
       headers: { cookie: `witnessops-admin-session=${founderCookie}` },

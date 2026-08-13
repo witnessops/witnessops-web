@@ -63,8 +63,7 @@ No item was classified `REQUIRES_NEW_OPERATIONAL_CAPABILITY`.
 
 Local visual evidence was captured without copying live or synthetic records:
 
-- Desktop: `/Users/ops/WitnessOps/var/tmp/witnessops-admin-hq-ui-qa-desktop.png`
-- Mobile 390 px: `/Users/ops/WitnessOps/var/tmp/witnessops-admin-hq-ui-qa-mobile.png`
+- Desktop and mobile captures are retained in private operator evidence custody.
 
 ## Validation
 

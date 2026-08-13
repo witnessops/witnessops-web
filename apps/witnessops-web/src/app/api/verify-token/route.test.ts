@@ -246,7 +246,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   assert.equal(firstPayload.assessmentStatus, "unavailable");
   assert.equal(
     firstPayload.postVerifyPath,
-    `/assessment/${encodeURIComponent(firstPayload.issuanceId)}?email=${encodeURIComponent(firstPayload.email)}`,
+    `/assessment/${encodeURIComponent(firstPayload.issuanceId)}`,
   );
 
   const second = await POST(
@@ -278,7 +278,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   assert.equal(secondPayload.assessmentStatus, "unavailable");
   assert.equal(
     secondPayload.postVerifyPath,
-    `/assessment/${encodeURIComponent(secondPayload.issuanceId)}?email=${encodeURIComponent(secondPayload.email)}`,
+    `/assessment/${encodeURIComponent(secondPayload.issuanceId)}`,
   );
 });
 
@@ -622,13 +622,8 @@ test("verify-token route returns support confirmation path for support issuances
   };
   assert.equal(payload.channel, "support");
   assert.ok(payload.threadId?.startsWith("thr_"));
-  const expected = new URLSearchParams({
-    verified: "1",
-    intakeId: payload.intakeId,
-    email: payload.email,
-    threadId: payload.threadId!,
-  });
-  assert.equal(payload.postVerifyPath, `/support?${expected.toString()}`);
+  assert.equal(payload.postVerifyPath, "/support?verified=1");
+  assert.doesNotMatch(payload.postVerifyPath, /intakeId|email|threadId/);
 
   const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   assert.equal(mailFiles.length, 2);

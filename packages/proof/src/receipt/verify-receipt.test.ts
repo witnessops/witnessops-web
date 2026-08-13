@@ -281,10 +281,13 @@ describe("structured verdict — verifyReceiptVerdict", () => {
     assert.ok(codes.includes("DIGEST_RECORD_NOT_IN_SET"));
   });
 
-  it("bundle-complete mode reports artifact_revalidation as not_possible", () => {
+  it("bundle-complete mode fails closed when artifact revalidation is impossible", () => {
     const verdict = verifyReceiptVerdict(loadFixture("pv-valid"), "bundle-complete");
     assert.equal(verdict.verification_mode, "bundle-complete");
     assert.equal(verdict.artifact_revalidation, "not_possible");
+    assert.equal(verdict.result, "limited-pass");
+    assert.equal(verdict.proof_stage_verified, "unknown");
+    assert.equal(verdict.detail.checks.artifact_hashes_match.status, "skip");
   });
 
   it("Tier1 dispatch assigns claimed/verified stage for structured verdict", () => {

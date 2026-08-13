@@ -432,6 +432,15 @@ function filterStateForActor(state: CoreState, actor: CoreActor): CoreState {
     proofRunIds.has(record.proofRunId),
   );
   const receiptIds = new Set(receipts.map((record) => record.id));
+  const productContractIds = new Set<string>();
+  for (const record of reviewRequests) {
+    if (record.productContractVersionId) {
+      productContractIds.add(record.productContractVersionId);
+    }
+  }
+  for (const record of proofRuns) {
+    productContractIds.add(record.productContractVersionId);
+  }
 
   return {
     ...state,
@@ -441,6 +450,9 @@ function filterStateForActor(state: CoreState, actor: CoreActor): CoreState {
         (record.reviewRequestId !== null && reviewIds.has(record.reviewRequestId)),
     ),
     customers: state.customers.filter((record) => customerIds.has(record.id)),
+    productContracts: state.productContracts.filter((record) =>
+      productContractIds.has(record.id),
+    ),
     reviewRequests: state.reviewRequests.filter((record) =>
       reviewIds.has(record.id),
     ),
@@ -854,12 +866,14 @@ export async function getCustomer(idValue: string, actor?: CoreActor): Promise<C
   return clone(state.customers.find((item) => item.id === idValue) ?? null);
 }
 
-export async function listProductContracts(): Promise<ProductContractVersionRecord[]> {
-  return clone((await readState()).productContracts.sort((a, b) => a.productName.localeCompare(b.productName)));
+export async function listProductContracts(actor?: CoreActor): Promise<ProductContractVersionRecord[]> {
+  const state = actor ? filterStateForActor(await readState(), actor) : await readState();
+  return clone(state.productContracts.sort((a, b) => a.productName.localeCompare(b.productName)));
 }
 
-export async function getProductContract(idValue: string): Promise<ProductContractVersionRecord | null> {
-  return clone((await readState()).productContracts.find((item) => item.id === idValue) ?? null);
+export async function getProductContract(idValue: string, actor?: CoreActor): Promise<ProductContractVersionRecord | null> {
+  const state = actor ? filterStateForActor(await readState(), actor) : await readState();
+  return clone(state.productContracts.find((item) => item.id === idValue) ?? null);
 }
 
 export async function listReviewRequests(actor?: CoreActor): Promise<ReviewRequestRecord[]> {

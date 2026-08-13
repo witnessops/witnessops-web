@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
   AdminBusinessAuthorizationError,
-  requireIntakeBusinessAccess,
 } from "@/lib/server/admin-business-authorization";
 import {
   OperatorActionError,
@@ -31,11 +30,11 @@ export async function POST(request: NextRequest) {
   const reason = typeof body.reason === "string" ? body.reason : "";
 
   try {
-    await requireIntakeBusinessAccess(session, intakeId);
     const result = await rejectIntakeAsOperator({
       intakeId,
       actor: session.actor,
       reason,
+      role: session.role,
     });
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {

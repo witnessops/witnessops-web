@@ -25,18 +25,16 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ issuanceId: string }>;
-  searchParams: Promise<{ email?: string }>;
 }
 
-export default async function AssessmentPage({ params, searchParams }: Props) {
+export default async function AssessmentPage({ params }: Props) {
   const { issuanceId } = await params;
-  const { email: rawEmail } = await searchParams;
-  const email = rawEmail?.toLowerCase().trim() ?? "";
 
   const record = await getIssuanceById(issuanceId);
-  if (!record || record.email !== email) {
+  if (!record) {
     notFound();
   }
+  const email = record.email;
 
   const cookieStore = await cookies();
   const claimantSession = cookieStore.get(claimantSessionCookieName(issuanceId))?.value;
@@ -250,7 +248,6 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
               ) : null}
               <AssessmentPoller
                 issuanceId={issuanceId}
-                email={email}
                 initialStatus={initialStatus}
                 initialRun={liveRun}
               />

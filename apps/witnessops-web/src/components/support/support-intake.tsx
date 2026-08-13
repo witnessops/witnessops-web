@@ -116,17 +116,9 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
     const params = new URLSearchParams(window.location.search);
     if (params.get("verified") !== "1") return;
 
-    const intakeId = params.get("intakeId");
     const stored = window.sessionStorage.getItem("witnessops-support-verified");
-    if (!intakeId || !stored) return;
-
-    try {
-      const confirmation = JSON.parse(stored) as { intakeId?: string };
-      if (confirmation.intakeId === intakeId) {
-        setStatus("verified");
-      }
-    } catch {
-      window.sessionStorage.removeItem("witnessops-support-verified");
+    if (stored === "1") {
+      setStatus("verified");
     }
   }, []);
 
@@ -231,7 +223,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
 
       window.sessionStorage.setItem(
         "witnessops-support-verified",
-        JSON.stringify({ intakeId: payload.data.intakeId }),
+        "1",
       );
       window.location.assign(payload.data.postVerifyPath);
     } catch (err) {

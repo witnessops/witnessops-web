@@ -9,8 +9,14 @@ import {
   IntakeMailboxReceiptError,
   recordIntakeMailboxReceipt,
 } from "@/lib/server/intake-mailbox-receipt";
+import {
+  InvalidRequestBodyEncodingError,
+  readBoundedRequestJson,
+  RequestBodyTooLargeError,
+} from "@/lib/server/bounded-request-body";
 
 export const runtime = "nodejs";
+const MAILBOX_RECEIPT_BODY_LIMIT_BYTES = 64 * 1024;
 
 function invalid(message: string, status = 400) {
   return NextResponse.json({ ok: false, error: message }, { status });
@@ -28,8 +34,17 @@ export async function POST(request: NextRequest) {
 
     let body: unknown;
     try {
-      body = await request.json();
-    } catch {
+      body = await readBoundedRequestJson(
+        request,
+        MAILBOX_RECEIPT_BODY_LIMIT_BYTES,
+      );
+    } catch (error) {
+      if (error instanceof RequestBodyTooLargeError) {
+        return invalid("Request body is too large.", 413);
+      }
+      if (error instanceof InvalidRequestBodyEncodingError) {
+        return invalid("Invalid request body.", 400);
+      }
       return invalid("Invalid request body.", 400);
     }
 

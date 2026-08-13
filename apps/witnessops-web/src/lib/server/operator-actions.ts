@@ -24,14 +24,18 @@
  */
 import { appendIntakeEvent, readIntakeEvents } from "./intake-event-ledger";
 import type { AdmissionState } from "@/lib/token-contract";
+import type { AdminRole } from "./admin-authorization";
+import { requireIntakeBusinessAuthority } from "./admin-business-authorization";
 import {
   getIntakeById,
   getIssuanceById,
   type IntakeRecord,
+  type IntakeLockHandle,
   type OperatorActionRecord,
   type TokenIssuanceRecord,
-  updateIntake,
+  updateIntakeWithinLock,
   updateIssuance,
+  withIntakeLock,
   withIssuanceLock,
 } from "./token-store";
 
@@ -63,6 +67,7 @@ export class OperatorActionError extends Error {
 export interface OperatorActionInput {
   intakeId: string;
   actor: string;
+  role?: AdminRole;
   reason: string;
   /** Required when kind === "request_clarification". */
   clarificationQuestion?: string | null;
@@ -135,8 +140,13 @@ async function loadIntake(intakeId: string): Promise<IntakeRecord> {
  */
 async function rejectIntakeAsOperatorUnlocked(
   input: OperatorActionInput,
+  lockHandle: IntakeLockHandle,
 ): Promise<OperatorActionResult> {
   const intake = await loadIntake(input.intakeId);
+  requireIntakeBusinessAuthority(
+    { actor: input.actor, role: input.role ?? "Founder" },
+    intake,
+  );
   const reason = requireReason(input.reason);
   const actor = (input.actor ?? "").trim();
   if (!actor) {
@@ -178,13 +188,17 @@ async function rejectIntakeAsOperatorUnlocked(
   };
 
   const previousState = intake.state;
-  const updatedIntake = await updateIntake(intake.intakeId, (current) => ({
-    ...current,
-    state: "rejected",
-    rejectedAt: occurredAt,
-    updatedAt: occurredAt,
-    operatorAction: action,
-  }));
+  const updatedIntake = await updateIntakeWithinLock(
+    lockHandle,
+    intake.intakeId,
+    (current) => ({
+      ...current,
+      state: "rejected",
+      rejectedAt: occurredAt,
+      updatedAt: occurredAt,
+      operatorAction: action,
+    }),
+  );
 
   // Reuse the existing append-only intake event ledger so the rejection
   // is part of the same audit substrate the queue already reads.
@@ -223,12 +237,13 @@ export async function rejectIntakeAsOperator(
   input: OperatorActionInput,
 ): Promise<OperatorActionResult> {
   const intake = await loadIntake(input.intakeId);
-  if (!intake.latestIssuanceId) {
-    return rejectIntakeAsOperatorUnlocked(input);
-  }
-  return withIssuanceLock(intake.latestIssuanceId, () =>
-    rejectIntakeAsOperatorUnlocked(input),
-  );
+  const action = () =>
+    withIntakeLock(input.intakeId, (lockHandle) =>
+      rejectIntakeAsOperatorUnlocked(input, lockHandle),
+    );
+  return intake.latestIssuanceId
+    ? withIssuanceLock(intake.latestIssuanceId, action)
+    : action();
 }
 
 /**
@@ -239,80 +254,90 @@ export async function rejectIntakeAsOperator(
 export async function requestClarificationAsOperator(
   input: OperatorActionInput,
 ): Promise<OperatorActionResult> {
-  const intake = await loadIntake(input.intakeId);
-  const reason = requireReason(input.reason);
-  const actor = (input.actor ?? "").trim();
-  if (!actor) {
-    throw new OperatorActionError("actor is required.", 400);
-  }
-  const question = (input.clarificationQuestion ?? "").trim();
-  if (!question) {
-    throw new OperatorActionError(
-      "clarificationQuestion is required for request_clarification.",
-      400,
+  return withIntakeLock(input.intakeId, async (lockHandle) => {
+    const intake = await loadIntake(input.intakeId);
+    requireIntakeBusinessAuthority(
+      { actor: input.actor, role: input.role ?? "Founder" },
+      intake,
     );
-  }
-  if (question.length > 2000) {
-    throw new OperatorActionError(
-      "clarificationQuestion must be 2000 characters or fewer.",
-      400,
-    );
-  }
-  if (intake.state === "rejected") {
-    throw new OperatorActionError(
-      "Cannot request clarification on a rejected intake.",
-      409,
-    );
-  }
-  // WEB-006: refuse on states outside the pre-approval intake stage so
-  // a clarification request is not recorded against an already-engaged
-  // (responded) or terminal (replayed/expired) intake. The rejected
-  // case above stays first to preserve its existing 409 error message.
-  if (!OPERATOR_ACTION_ALLOWED_STATES.has(intake.state)) {
-    throw new OperatorActionError(
-      `Cannot request clarification on an intake in state "${intake.state}". Operator clarification is only valid in the pre-approval intake stage.`,
-      409,
-    );
-  }
+    const reason = requireReason(input.reason);
+    const actor = (input.actor ?? "").trim();
+    if (!actor) {
+      throw new OperatorActionError("actor is required.", 400);
+    }
+    const question = (input.clarificationQuestion ?? "").trim();
+    if (!question) {
+      throw new OperatorActionError(
+        "clarificationQuestion is required for request_clarification.",
+        400,
+      );
+    }
+    if (question.length > 2000) {
+      throw new OperatorActionError(
+        "clarificationQuestion must be 2000 characters or fewer.",
+        400,
+      );
+    }
+    if (intake.state === "rejected") {
+      throw new OperatorActionError(
+        "Cannot request clarification on a rejected intake.",
+        409,
+      );
+    }
+    // WEB-006: refuse on states outside the pre-approval intake stage so
+    // a clarification request is not recorded against an already-engaged
+    // (responded) or terminal (replayed/expired) intake. The rejected
+    // case above stays first to preserve its existing 409 error message.
+    if (!OPERATOR_ACTION_ALLOWED_STATES.has(intake.state)) {
+      throw new OperatorActionError(
+        `Cannot request clarification on an intake in state "${intake.state}". Operator clarification is only valid in the pre-approval intake stage.`,
+        409,
+      );
+    }
 
-  const occurredAt = nowIso();
-  const action: OperatorActionRecord = {
-    kind: "request_clarification",
-    recordedAt: occurredAt,
-    actor,
-    reason,
-    clarificationQuestion: question,
-  };
+    const occurredAt = nowIso();
+    const action: OperatorActionRecord = {
+      kind: "request_clarification",
+      recordedAt: occurredAt,
+      actor,
+      reason,
+      clarificationQuestion: question,
+    };
 
-  const updatedIntake = await updateIntake(intake.intakeId, (current) => ({
-    ...current,
-    updatedAt: occurredAt,
-    operatorAction: action,
-  }));
+    const updatedIntake = await updateIntakeWithinLock(
+      lockHandle,
+      intake.intakeId,
+      (current) => ({
+        ...current,
+        updatedAt: occurredAt,
+        operatorAction: action,
+      }),
+    );
 
-  await appendIntakeEvent({
-    event_type: "intake.clarification_requested",
-    occurred_at: occurredAt,
-    channel: updatedIntake.channel,
-    intake_id: updatedIntake.intakeId,
-    issuance_id: updatedIntake.latestIssuanceId,
-    thread_id: updatedIntake.threadId,
-    previous_state: updatedIntake.state,
-    next_state: updatedIntake.state,
-    source: "web/operator-actions/request-clarification",
-    payload: { actor, reason, clarificationQuestion: question },
+    await appendIntakeEvent({
+      event_type: "intake.clarification_requested",
+      occurred_at: occurredAt,
+      channel: updatedIntake.channel,
+      intake_id: updatedIntake.intakeId,
+      issuance_id: updatedIntake.latestIssuanceId,
+      thread_id: updatedIntake.threadId,
+      previous_state: updatedIntake.state,
+      next_state: updatedIntake.state,
+      source: "web/operator-actions/request-clarification",
+      payload: { actor, reason, clarificationQuestion: question },
+    });
+
+    // Approval is not blocked. The latest issuance keeps its current
+    // approvalStatus. The claimant assessment page will surface the
+    // clarification question via intake.operatorAction.
+    return {
+      intakeId: updatedIntake.intakeId,
+      state: updatedIntake.state,
+      operatorAction: action,
+      approvalStatus: undefined,
+      blocksApproval: false,
+    };
   });
-
-  // Approval is not blocked. The latest issuance keeps its current
-  // approvalStatus. The claimant assessment page will surface the
-  // clarification question via intake.operatorAction.
-  return {
-    intakeId: updatedIntake.intakeId,
-    state: updatedIntake.state,
-    operatorAction: action,
-    approvalStatus: undefined,
-    blocksApproval: false,
-  };
 }
 
 /**
@@ -331,6 +356,7 @@ export function operatorRejectionBlocksApproval(
 export interface RescindRejectionInput {
   intakeId: string;
   actor: string;
+  role?: AdminRole;
   reason: string;
 }
 
@@ -356,8 +382,13 @@ export interface RescindRejectionInput {
  */
 async function rescindOperatorRejectionUnlocked(
   input: RescindRejectionInput,
+  lockHandle: IntakeLockHandle,
 ): Promise<OperatorActionResult> {
   const intake = await loadIntake(input.intakeId);
+  requireIntakeBusinessAuthority(
+    { actor: input.actor, role: input.role ?? "Founder" },
+    intake,
+  );
   const reason = requireReason(input.reason);
   const actor = (input.actor ?? "").trim();
   if (!actor) {
@@ -413,19 +444,23 @@ async function rescindOperatorRejectionUnlocked(
       ? intake.operatorAction.actor
       : "";
 
-  const updatedIntake = await updateIntake(intake.intakeId, (current) => {
-    const next: IntakeRecord = {
-      ...current,
-      state: targetState,
-      updatedAt: occurredAt,
-      operatorAction: null,
-    };
-    // Clear the per-state timestamp set by the original rejection so
-    // the snapshot does not falsely advertise that the intake was
-    // rejected at any point in its current lifecycle position.
-    delete (next as { rejectedAt?: string }).rejectedAt;
-    return next;
-  });
+  const updatedIntake = await updateIntakeWithinLock(
+    lockHandle,
+    intake.intakeId,
+    (current) => {
+      const next: IntakeRecord = {
+        ...current,
+        state: targetState,
+        updatedAt: occurredAt,
+        operatorAction: null,
+      };
+      // Clear the per-state timestamp set by the original rejection so
+      // the snapshot does not falsely advertise that the intake was
+      // rejected at any point in its current lifecycle position.
+      delete (next as { rejectedAt?: string }).rejectedAt;
+      return next;
+    },
+  );
 
   await appendIntakeEvent({
     event_type: "intake.reopen.operator_rejection_rescinded",
@@ -503,10 +538,11 @@ export async function rescindOperatorRejection(
   input: RescindRejectionInput,
 ): Promise<OperatorActionResult> {
   const intake = await loadIntake(input.intakeId);
-  if (!intake.latestIssuanceId) {
-    return rescindOperatorRejectionUnlocked(input);
-  }
-  return withIssuanceLock(intake.latestIssuanceId, () =>
-    rescindOperatorRejectionUnlocked(input),
-  );
+  const action = () =>
+    withIntakeLock(input.intakeId, (lockHandle) =>
+      rescindOperatorRejectionUnlocked(input, lockHandle),
+    );
+  return intake.latestIssuanceId
+    ? withIssuanceLock(intake.latestIssuanceId, action)
+    : action();
 }

@@ -24,6 +24,30 @@ afterEach(async () => {
   delete process.env.WITNESSOPS_PROVIDER_EVENT_SECRET;
 });
 
+test("mailbox receipt rejects oversized authenticated bodies before JSON parsing", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-mailbox-receipt-limit-"),
+  );
+  applyTestEnv(baseDir);
+
+  const response = await POST(
+    new NextRequest("http://localhost:3001/api/provider-events/mailbox-receipt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-witnessops-provider-secret": "provider-secret",
+      },
+      body: JSON.stringify({ padding: "x".repeat(64 * 1024) }),
+    }),
+  );
+
+  assert.equal(response.status, 413);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    error: "Request body is too large.",
+  });
+});
+
 test("concurrent mailbox receipt replays record one receipt and one closure", async () => {
   const baseDir = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-mailbox-receipt-race-"),

@@ -14,6 +14,7 @@ import {
   createProofRunForRequest,
   getAdminCoreState,
   getInboxItem,
+  getProductContract,
   getProofRun,
   importGmailInboxItem,
   linkReceiptToDelivery,
@@ -106,7 +107,62 @@ test("delegated reads expose only assigned record lineages", async () => {
   assert.equal((await listProofRuns(alice)).length, 0);
   assert.equal((await listDeliveries(alice)).length, 0);
   assert.equal((await listReceiptRecords(alice)).length, 0);
-  assert.ok((await listProductContracts()).length > 0);
+  assert.equal((await listProductContracts(alice)).length, 0);
+  const founderProducts = await listProductContracts(founder);
+  assert.equal(founderProducts.length > 0, true);
+  const flagship = founderProducts[0]!;
+  const siblingVersion = await createProductContractVersion(
+    {
+      productId: flagship.productId,
+      productName: flagship.productName,
+      contractVersion: "99.0.0-test",
+      scope: "Unassigned sibling-version scope",
+      boundaries: ["Unassigned sibling-version boundary"],
+      expectedInputs: ["Unassigned sibling-version input"],
+      expectedOutputs: ["Unassigned sibling-version output"],
+      evidenceClasses: ["Unassigned sibling-version evidence"],
+      verificationPath: "Unassigned sibling-version verification path",
+      deliveryRequirements: ["Unassigned sibling-version delivery"],
+      receiptRequirements: ["Unassigned sibling-version receipt"],
+      responsibleOperator: null,
+      commercialTerms: "Unassigned sibling-version terms",
+      sourceCatalogVersion: null,
+    },
+    founder,
+  );
+  assert.equal(await getProductContract(flagship.id, alice), null);
+  assert.equal(await getProductContract(siblingVersion.id, alice), null);
+  assert.ok(await getProductContract(flagship.id, founder));
+
+  await transitionReviewRequest(aliceRequest.reviewRequest.id, "triage", alice);
+  await transitionReviewRequest(
+    aliceRequest.reviewRequest.id,
+    "fit_review",
+    alice,
+  );
+  await transitionReviewRequest(
+    aliceRequest.reviewRequest.id,
+    "fit_confirmed",
+    alice,
+  );
+  await approveReviewRequest(
+    aliceRequest.reviewRequest.id,
+    flagship.id,
+    founder,
+  );
+  assert.deepEqual(
+    (await listProductContracts(alice)).map((item) => item.id),
+    [flagship.id],
+  );
+  assert.ok(await getProductContract(flagship.id, alice));
+  assert.equal(await getProductContract(siblingVersion.id, alice), null);
+  assert.equal(
+    (await listProductContracts(alice)).some(
+      (item) => item.id === siblingVersion.id,
+    ),
+    false,
+  );
+  assert.equal(await getProductContract(flagship.id, bob), null);
   assert.equal((await listReviewRequests(founder)).length, 2);
   assert.equal(bobRequest.reviewRequest.owner, bob.actor);
 });

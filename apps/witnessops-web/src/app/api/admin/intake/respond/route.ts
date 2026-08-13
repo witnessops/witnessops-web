@@ -11,7 +11,6 @@ import {
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
   AdminBusinessAuthorizationError,
-  requireIntakeBusinessAccess,
 } from "@/lib/server/admin-business-authorization";
 
 export const runtime = "nodejs";
@@ -39,13 +38,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await requireIntakeBusinessAccess(session, parsed.data.intakeId);
     const response = await respondToIntake({
       ...parsed.data,
       actor: session.actor,
       actorAuthSource: session.actorAuthSource,
       actorSessionHash: session.actorSessionHash,
       source: "api/admin/intake/respond",
+      role: session.role,
     });
 
     return NextResponse.json(adminIntakeRespondResponseSchema.parse(response));

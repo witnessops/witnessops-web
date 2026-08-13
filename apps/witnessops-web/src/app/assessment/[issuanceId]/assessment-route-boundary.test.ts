@@ -9,7 +9,7 @@ test("assessment route remains noindex, private, and claimant-session gated", ()
   assert.match(source, /robots:\s*{\s*index:\s*false,\s*follow:\s*false\s*}/);
   assert.match(source, /export const dynamic = \"force-dynamic\"/);
   assert.match(source, /getIssuanceById\(issuanceId\)/);
-  assert.match(source, /record\.email !== email/);
+  assert.match(source, /const email = record\.email/);
   assert.match(source, /verifyClaimantSessionCookie/);
   assert.match(source, /claimantSessionCookieName/);
   assert.match(source, /notFound\(\)/);
@@ -17,6 +17,7 @@ test("assessment route remains noindex, private, and claimant-session gated", ()
   assert.match(source, /This page is session-private/);
   assert.match(source, /Do not share the URL/);
   assert.match(source, /Assessment failed upstream\./);
+  assert.doesNotMatch(source, /searchParams/);
 
   assert.doesNotMatch(source, /ContactForm|SupportIntake|Request one proof run|Package one security workflow|\/review\/request/);
   assert.doesNotMatch(source, />\s*{record\.assessmentError}\s*</);

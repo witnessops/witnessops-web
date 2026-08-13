@@ -127,9 +127,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ ok: true, items: idValue ? [customer] : await listCustomers(actor) });
     }
     if (resource === "products") {
-      const product = idValue ? await getProductContract(idValue) : null;
+      const product = idValue ? await getProductContract(idValue, actor) : null;
       if (idValue && !product) throw new AdminCoreError("NOT_FOUND", "Product contract not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [product] : await listProductContracts() });
+      return NextResponse.json({ ok: true, items: idValue ? [product] : await listProductContracts(actor) });
     }
     if (resource === "proof-runs") {
       if (idValue && action === "readiness") return NextResponse.json({ ok: true, readiness: await buildProofReadiness(idValue, actor) });

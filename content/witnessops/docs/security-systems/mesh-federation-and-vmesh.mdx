@@ -15,7 +15,7 @@ WitnessOps separates **proof verification** from **operator mesh federation** an
 
 Readers confuse three ideas:
 
-- Mesh health receipts across your own nodes (fleet VM, bastion, goal0)
+- Mesh health receipts across operator-managed nodes
 - VaultMesh federation branding and ingest URLs
 - WitnessOps `/verify` receipt-first checks (PV/QV/WV v1)
 
@@ -27,14 +27,14 @@ This page maps them without collapsing trust surfaces.
 | --- | --- | --- |
 | **WitnessOps verify** | Receipt-stage validation for submitted proof objects (scoped v1) | Hunt execution, live exposure, customer posture scans |
 | **Mesh federation** | Composite operator index (`overall_mesh_gate`), child receipt hashes | Client environment security conclusions |
-| **VaultMesh (vmesh)** | Public federation DNS, hub UI, optional ingest mirror | Bastion scope lock or offensive execution |
+| **VaultMesh (vmesh)** | Public federation DNS, hub UI, optional ingest mirror | Private scope authorization or offensive execution |
 
 ## 3. Mechanism-first flow
 
 ```text
 Authorized host collector → local-server-audit package → customer deliverable
 WitnessOps /verify → proof-stage checks on supported receipt shapes
-Operator mesh → MESH-RECEIPT (private) → goal0 vault → optional redacted public receipt → optional vmesh ingest
+Operator mesh → private MESH-RECEIPT custody → optional redacted public receipt → optional vmesh ingest
 ```
 
 Mesh federation is **operator infrastructure hygiene**. It supports how you run the lane; it is not a substitute for a buyer proof path on `/verify`.
@@ -49,7 +49,7 @@ Mesh federation is **operator infrastructure hygiene**. It supports how you run 
 
 ## 5. Trust assumptions
 
-- Bastion mirror engagement data remains authoritative for hunt gates; mesh receipts on a dev VM are working copies.
+- The authorized operator system remains authoritative for hunt gates; mesh receipts on other nodes are working copies.
 - Public mesh receipts are redacted: no filesystem paths, no scope-lock bodies.
 - Ingest acceptance does not imply hunt verify PASS.
 
@@ -59,16 +59,13 @@ Integrators can read a published operator index at `/.well-known/mesh-receipt-in
 
 That API is **not** `/api/verify` and does not prove customer environment security.
 
-Operator refresh (after mesh receipt):
-
-```bash
-bash ~/DEV/OffSec/working/scripts/publish-mesh-public-witnessops.sh "$WOPS_HUNT_EVD"
-```
-
-Then rebuild/redeploy witnessops-web on goal0.
+Publishing a redacted receipt remains an operator-controlled procedure outside
+this public repository. The public API does not accept a private receipt body or
+perform that publication step.
 
 ## 7. Next-page handoff
 
 Read [Three-Layer Stack](/docs/security-systems/three-layer-stack) for contract vs runtime vs proof ownership.
 
-For OffSec deliverables (Agent + Shield) against WitnessOps review surfaces, integrators should use the operator lane doc **OffSec ↔ WitnessOps wiring** (mesh publish bundle under `docs/local-mesh/`).
+For OffSec deliverables against WitnessOps review surfaces, use the separately
+controlled operator-lane integration procedure.

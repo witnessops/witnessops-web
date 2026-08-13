@@ -653,15 +653,7 @@ function buildPostVerifyPath(
   issuance: TokenIssuanceRecord,
 ): string {
   if (intake.channel === "support") {
-    const search = new URLSearchParams({
-      verified: "1",
-      intakeId: intake.intakeId,
-      email: issuance.email,
-    });
-    if (intake.threadId) {
-      search.set("threadId", intake.threadId);
-    }
-    return `/support?${search.toString()}`;
+    return "/support?verified=1";
   }
 
   if (isAccessChangeProofRunIntent(intake.submission.intent)) {
@@ -670,8 +662,7 @@ function buildPostVerifyPath(
       : ACCESS_CHANGE_POST_VERIFY_PATH;
   }
 
-  const search = new URLSearchParams({ email: issuance.email });
-  return `/assessment/${encodeURIComponent(issuance.issuanceId)}?${search.toString()}`;
+  return `/assessment/${encodeURIComponent(issuance.issuanceId)}`;
 }
 
 export async function createVerificationIssuance(

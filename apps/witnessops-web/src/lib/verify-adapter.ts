@@ -19,10 +19,6 @@ import {
   isLocalServerAuditReceipt,
   verifyLocalServerAuditReceipt,
 } from "./shield-verify-adapter";
-import {
-  isSwarmMeshExport,
-  verifySwarmMeshExport,
-} from "./swarm-verify-adapter";
 
 const verifyRequestSchema = z.object({
   receipt: z.union([z.string().min(1), z.record(z.unknown())]),
@@ -107,6 +103,12 @@ function looksLikeUnsupportedBundle(receipt: Record<string, unknown>): boolean {
 function validateSupportedReceipt(
   receipt: Record<string, unknown>,
 ): VerifyFailureResponse | null {
+  if (receipt.schema === "offsec.swarm.mesh_export.v1") {
+    return unsupported(
+      "Swarm mesh exports are outside the receipt-only /verify v1 boundary.",
+    );
+  }
+
   if (receipt.type === "R0") {
     return unsupported("tier1 R0 artifacts are not supported on /verify v1.");
   }
@@ -254,10 +256,6 @@ export function verifyReceiptPayload(payload: unknown): VerifyResponse {
 
   if (isLocalServerAuditReceipt(parsedReceipt)) {
     return verifyLocalServerAuditReceipt(parsedReceipt);
-  }
-
-  if (isSwarmMeshExport(parsedReceipt)) {
-    return verifySwarmMeshExport(parsedReceipt);
   }
 
   const supportFailure = validateSupportedReceipt(parsedReceipt);

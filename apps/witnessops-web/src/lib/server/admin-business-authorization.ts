@@ -121,3 +121,43 @@ export async function requireRunBusinessAccess(
     return intake;
   });
 }
+
+export async function withRunBusinessAccess<T>(
+  session: VerifiedAdminSession,
+  runId: string,
+  action: (intake: IntakeRecord) => Promise<T>,
+): Promise<T> {
+  if (!hasBusinessAuthority(session.role)) {
+    throw new AdminBusinessAuthorizationError(
+      "Business authority is required for this action.",
+      403,
+    );
+  }
+
+  const issuanceMatch = (await getAllIssuances()).find(
+    (candidate) =>
+      candidate.controlPlaneRunId === runId ||
+      candidate.assessmentRunId === runId,
+  );
+  if (!issuanceMatch?.intakeId) {
+    throw new AdminBusinessAuthorizationError("Run not found.", 404);
+  }
+
+  return withIntakeLock(issuanceMatch.intakeId, async () => {
+    const intake = await getIntakeById(issuanceMatch.intakeId!);
+    if (!intake) {
+      throw new AdminBusinessAuthorizationError("Intake not found.", 404);
+    }
+    requireIntakeBusinessAuthority(session, intake);
+    const issuance = await getIssuanceById(issuanceMatch.issuanceId);
+    if (
+      !issuance ||
+      issuance.intakeId !== intake.intakeId ||
+      (issuance.controlPlaneRunId !== runId &&
+        issuance.assessmentRunId !== runId)
+    ) {
+      throw new AdminBusinessAuthorizationError("Run not found.", 404);
+    }
+    return action(intake);
+  });
+}

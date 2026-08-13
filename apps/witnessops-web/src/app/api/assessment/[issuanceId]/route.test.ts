@@ -95,7 +95,7 @@ test("assessment route persists live status updates back to the issuance record"
 
   const response = await GET(
     new Request(
-      `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}?email=${encodeURIComponent(issued.email)}`,
+      `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}`,
       {
         headers: {
           Cookie: claimantSessionCookie(issued.issuanceId, issued.email),
@@ -150,7 +150,7 @@ test("assessment polling cannot overwrite lifecycle state written under the issu
   }) as typeof fetch;
 
   const request = new Request(
-    `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}?email=${encodeURIComponent(issued.email)}`,
+    `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}`,
     {
       headers: {
         Cookie: claimantSessionCookie(issued.issuanceId, issued.email),
@@ -208,7 +208,7 @@ test("assessment route rejects issuance and email without claimant session", asy
 
   const response = await GET(
     new Request(
-      `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}?email=${encodeURIComponent(issued.email)}`,
+      `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}`,
     ),
     { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
   );

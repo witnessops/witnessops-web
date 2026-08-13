@@ -5,7 +5,6 @@ import type { AssessmentStatusResult, FindingSummary } from "@/lib/server/assess
 
 interface AssessmentPollerProps {
   issuanceId: string;
-  email: string;
   initialStatus: string;
   initialRun?: AssessmentStatusResult | null;
 }
@@ -66,7 +65,7 @@ function FindingRow({ finding }: { finding: FindingSummary }) {
 
 const MAX_CONSECUTIVE_FAILURES = 5;
 
-export function AssessmentPoller({ issuanceId, email, initialStatus, initialRun = null }: AssessmentPollerProps) {
+export function AssessmentPoller({ issuanceId, initialStatus, initialRun = null }: AssessmentPollerProps) {
   const [status, setStatus] = useState(initialStatus);
   const [run, setRun] = useState<AssessmentStatusResult | null>(initialRun);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +81,7 @@ export function AssessmentPoller({ issuanceId, email, initialStatus, initialRun 
 
     async function poll() {
       try {
-        const url = `/api/assessment/${encodeURIComponent(issuanceId)}?email=${encodeURIComponent(email)}`;
+        const url = `/api/assessment/${encodeURIComponent(issuanceId)}`;
         const res = await fetch(url);
         if (!res.ok) {
           consecutiveFailures += 1;
@@ -128,7 +127,7 @@ export function AssessmentPoller({ issuanceId, email, initialStatus, initialRun 
       cancelled = true;
       clearInterval(interval);
     };
-  }, [issuanceId, email, isTerminal]);
+  }, [issuanceId, isTerminal]);
 
   if (pollFailed) {
     return (

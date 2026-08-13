@@ -13,7 +13,7 @@ interface RouteContext { params: Promise<{ id: string }> }
 export default async function AdminProductDetailPage({ params }: RouteContext) {
   const { id } = await params;
   const actor = await getAdminPageActor();
-  const product = await getProductContract(id);
+  const product = await getProductContract(id, actor);
   if (!product) notFound();
   const runs = (await listProofRuns(actor)).filter((run) => run.productContractVersionId === product.id);
   return <CorePage title={product.productName} eyebrow="Product contract version">

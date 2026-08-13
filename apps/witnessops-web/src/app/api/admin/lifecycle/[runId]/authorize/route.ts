@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
   AdminBusinessAuthorizationError,
-  requireRunBusinessAccess,
+  withRunBusinessAccess,
 } from "@/lib/server/admin-business-authorization";
 import { authorizeRun } from "@/lib/server/control-plane-client";
 
@@ -29,12 +29,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    await requireRunBusinessAccess(session, runId);
-    const result = await authorizeRun(runId, {
-      actor: session.actor,
-      actorAuthSource: session.actorAuthSource,
-      actorSessionHash: session.actorSessionHash,
-    });
+    const result = await withRunBusinessAccess(session, runId, () =>
+      authorizeRun(runId, {
+        actor: session.actor,
+        actorAuthSource: session.actorAuthSource,
+        actorSessionHash: session.actorSessionHash,
+      }),
+    );
     if (result.kind === "not_configured") {
       return invalid("Control plane is not configured for this deployment.", 503);
     }

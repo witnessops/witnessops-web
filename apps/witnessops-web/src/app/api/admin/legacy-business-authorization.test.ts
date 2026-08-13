@@ -9,11 +9,15 @@ import { NextRequest } from "next/server";
 import { createAdminSessionCookie } from "@/lib/server/admin-session";
 import {
   clearTokenStore,
+  getIntakeById,
   saveIntake,
   saveIssuance,
   type IntakeRecord,
   type TokenIssuanceRecord,
+  updateIntakeWithinLock,
+  withIntakeLock,
 } from "@/lib/server/token-store";
+import { readDeliveryRetryRequests } from "@/lib/server/delivery-retry-ledger";
 
 import { POST as reconcile } from "./intake/reconcile/route";
 import { POST as reject } from "./intake/reject/route";
@@ -26,6 +30,7 @@ import { POST as retryRequest } from "./lifecycle/[runId]/retry-request/route";
 const RUN_ID = "run_authz_boundary";
 const INTAKE_ID = "intk_authz_boundary";
 const ISSUANCE_ID = "iss_authz_boundary";
+const originalFetch = globalThis.fetch;
 
 async function sessionCookie(role: "Founder" | "Delegated Operator" | "Administrator", subject: string) {
   const now = Date.now();
@@ -148,6 +153,7 @@ async function callLegacyRoutes(cookie: string): Promise<Response[]> {
 }
 
 afterEach(async () => {
+  globalThis.fetch = originalFetch;
   delete process.env.WITNESSOPS_ADMIN_SECRET;
   delete process.env.WITNESSOPS_TOKEN_STORE_DIR;
   delete process.env.WITNESSOPS_TOKEN_AUDIT_DIR;
@@ -182,4 +188,57 @@ test("assigned delegated operator retains legitimate business access", async () 
     }),
   );
   assert.equal(response.status, 200);
+});
+
+test("reassignment wins before delegated response reservation and retry append", async () => {
+  const actor = "oidc:https://accounts.google.com#owner";
+  await seedCase(actor);
+  const cookie = await sessionCookie("Delegated Operator", "owner");
+
+  let responsePromise!: Promise<Response>;
+  let retryPromise!: Promise<Response>;
+  let authorizePromise!: Promise<Response>;
+  let upstreamCalls = 0;
+  globalThis.fetch = async () => {
+    upstreamCalls += 1;
+    return new Response("must not be reached", { status: 500 });
+  };
+  await withIntakeLock(INTAKE_ID, async (handle) => {
+    responsePromise = respond(
+      post("/api/admin/intake/respond", cookie, {
+        intakeId: INTAKE_ID,
+        subject: "Re: request",
+        body: "This must not be sent after reassignment.",
+      }),
+    );
+    retryPromise = retryRequest(
+      post(`/api/admin/lifecycle/${RUN_ID}/retry-request`, cookie, {
+        reason: "This must not be recorded after reassignment.",
+      }),
+      { params: Promise.resolve({ runId: RUN_ID }) },
+    );
+    authorizePromise = authorize(
+      post(`/api/admin/lifecycle/${RUN_ID}/authorize`, cookie, {}),
+      { params: Promise.resolve({ runId: RUN_ID }) },
+    );
+    await updateIntakeWithinLock(handle, INTAKE_ID, (current) => ({
+      ...current,
+      queue: current.queue
+        ? {
+            ...current.queue,
+            projection: {
+              ...current.queue.projection,
+              assignedOperator: "oidc:https://accounts.google.com#other",
+            },
+          }
+        : current.queue,
+    }));
+  });
+
+  assert.equal((await responsePromise).status, 403);
+  assert.equal((await retryPromise).status, 403);
+  assert.equal((await authorizePromise).status, 403);
+  assert.equal(upstreamCalls, 0);
+  assert.equal((await getIntakeById(INTAKE_ID))?.firstResponse, undefined);
+  assert.deepEqual(await readDeliveryRetryRequests(), []);
 });

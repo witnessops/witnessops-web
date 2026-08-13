@@ -6,6 +6,8 @@ import type {
   AdminIntakeRespondRequest,
   AdminIntakeRespondResponse,
 } from "@/lib/token-contract";
+import type { AdminRole } from "./admin-authorization";
+import { requireIntakeBusinessAuthority } from "./admin-business-authorization";
 
 import { appendIntakeEvent, readIntakeEvents } from "./intake-event-ledger";
 import {
@@ -70,6 +72,7 @@ interface RespondToIntakeInput extends AdminIntakeRespondRequest {
   actorAuthSource: AdminActorAuthSource;
   actorSessionHash: string | null;
   source: string;
+  role?: AdminRole;
 }
 
 interface ReservedResponse {
@@ -89,6 +92,10 @@ async function reserveFirstResponse(
     if (!intake) {
       throw new IntakeResponseError("Unknown intake.", 404);
     }
+    requireIntakeBusinessAuthority(
+      { actor: input.actor, role: input.role ?? "Founder" },
+      intake,
+    );
     if (!intake.threadId) {
       throw new IntakeResponseError(
         "Cannot send an operator reply without a threadId.",
