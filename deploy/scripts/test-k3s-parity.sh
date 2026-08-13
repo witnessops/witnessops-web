@@ -360,7 +360,7 @@ assert_exit 2 compare_runtime_envfrom_contract \
   "${required_shared_envfrom}" "${static_optional_drift}"
 
 required_oidc_keys="$(required_admin_oidc_key_names)"
-expected_required_oidc_keys=$'WITNESSOPS_ADMIN_SECRET\nWITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST\nWITNESSOPS_GOOGLE_OIDC_CLIENT_ID\nWITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET\nWITNESSOPS_GOOGLE_OIDC_REDIRECT_URI\nWITNESSOPS_GOOGLE_WORKSPACE_DOMAIN'
+expected_required_oidc_keys=$'WITNESSOPS_ADMIN_ROLE\nWITNESSOPS_ADMIN_SECRET\nWITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST\nWITNESSOPS_GOOGLE_OIDC_CLIENT_ID\nWITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET\nWITNESSOPS_GOOGLE_OIDC_REDIRECT_URI\nWITNESSOPS_GOOGLE_WORKSPACE_DOMAIN'
 assert_output "${expected_required_oidc_keys}" sorted_unique_lines "${required_oidc_keys}"
 assert_exit 0 validate_admin_oidc_key_names \
   "${required_oidc_keys}" \
@@ -369,6 +369,11 @@ assert_exit 2 validate_admin_oidc_key_names \
   "$(without_line "${required_oidc_keys}" WITNESSOPS_ADMIN_SECRET)"
 assert_exit 2 validate_admin_oidc_key_names \
   "$(without_line "${required_oidc_keys}" WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN)"
+assert_exit 0 validate_admin_role_value 'Founder'
+assert_exit 0 validate_admin_role_value 'Delegated Operator'
+assert_exit 0 validate_admin_role_value 'Administrator'
+assert_exit 2 validate_admin_role_value ''
+assert_exit 2 validate_admin_role_value 'admin'
 
 # --- prod deploy preflight and atomic patch ---
 # shellcheck source=k3s-lib.sh
@@ -386,7 +391,9 @@ trap 'rm -rf "${rendered_test_dir}"; rm -f "${remote_log}" "${apply_log}"' EXIT
 remote() {
   local command_text="$*"
   printf '%s\n' "${command_text}" >> "${remote_log}"
-  if [[ "${command_text}" == *"get secret"*"example-identity-secret"* ]]; then
+  if [[ "${command_text}" == *"encoded="*"WITNESSOPS_ADMIN_ROLE"* ]]; then
+    [[ "${remote_mode}" != "invalid-role" ]]
+  elif [[ "${command_text}" == *"get secret"*"example-identity-secret"* ]]; then
     if [[ "${remote_mode}" == "missing-key" ]]; then
       without_line "${required_oidc_keys}" WITNESSOPS_ADMIN_SECRET
     else
@@ -431,6 +438,23 @@ if grep -q 'kubectl .* patch ' "${remote_log}"; then
 else
   pass=$((pass + 1))
   echo "PASS: deploy_prod_image does not mutate before preflight"
+fi
+
+remote_mode="invalid-role"
+: > "${remote_log}"
+if (deploy_prod_image "${image}") >/dev/null 2>&1; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image accepted an unsupported admin role" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image rejects an unsupported admin role"
+fi
+if grep -q 'kubectl .* patch ' "${remote_log}"; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image patched before role preflight passed" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image validates role before mutation"
 fi
 
 remote_mode="ok"
@@ -507,7 +531,13 @@ fi
 # --- legacy apply path preflights before its first mutation ---
 kubectl() {
   printf '%s\n' "$*" >> "${KUBECTL_TEST_LOG}"
-  if [[ "$*" == *"get secret example-identity-secret"* ]]; then
+  if [[ "$*" == *"jsonpath={.data.WITNESSOPS_ADMIN_ROLE}"* ]]; then
+    if [[ "${KUBECTL_TEST_MODE}" == "invalid-role" ]]; then
+      printf '%s' 'aW52YWxpZA=='
+    else
+      printf '%s' 'Rm91bmRlcg=='
+    fi
+  elif [[ "$*" == *"get secret example-identity-secret"* ]]; then
     if [[ "${KUBECTL_TEST_MODE}" == "missing-key" ]]; then
       printf '%s\n' "${KUBECTL_REQUIRED_OIDC_KEYS%$'\nWITNESSOPS_GOOGLE_WORKSPACE_DOMAIN'}"
     else

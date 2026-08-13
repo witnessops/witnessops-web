@@ -287,7 +287,8 @@ export async function respondToIntake(
           500,
         );
       }
-      return updateIntakeWithinLock(handle, intake.intakeId, (record) => ({
+      const previousState = current.state;
+      const updated = await updateIntakeWithinLock(handle, intake.intakeId, (record) => ({
         ...record,
         state: "responded",
         updatedAt: respondedAt,
@@ -301,42 +302,49 @@ export async function respondToIntake(
             }
           : undefined,
       }));
+
+      try {
+        await appendIntakeEvent({
+          event_type: "INTAKE_RESPONDED",
+          occurred_at: respondedAt,
+          channel: updated.channel,
+          intake_id: updated.intakeId,
+          issuance_id: latestIssuance?.issuanceId ?? updated.latestIssuanceId,
+          thread_id: updated.threadId,
+          previous_state: previousState,
+          next_state: "responded",
+          source: input.source,
+          payload: {
+            actor: input.actor,
+            actorAuthSource: input.actorAuthSource,
+            actorSessionHash: input.actorSessionHash,
+            mailbox,
+            provider: delivery.provider,
+            providerMessageId: delivery.providerMessageId,
+            deliveryAttemptId,
+            subject,
+            bodyDigest: responseRecord.bodyDigest,
+          },
+        });
+      } catch (error) {
+        await updateIntakeWithinLock(handle, intake.intakeId, (record) => ({
+          ...current,
+          responseAttempt: record.responseAttempt
+            ? {
+                ...record.responseAttempt,
+                status: "needs_reconciliation",
+                updatedAt: nowIso(),
+              }
+            : undefined,
+        }));
+        throw error;
+      }
+      return updated;
     });
   } catch {
     await markResponseAttemptUnresolved(intake.intakeId, deliveryAttemptId);
     throw new IntakeResponseError(
       "Mail delivery was accepted, but local confirmation is unresolved; reconcile it before retrying.",
-      500,
-    );
-  }
-
-  try {
-    await appendIntakeEvent({
-      event_type: "INTAKE_RESPONDED",
-      occurred_at: respondedAt,
-      channel: updatedIntake.channel,
-      intake_id: updatedIntake.intakeId,
-      issuance_id: latestIssuance?.issuanceId ?? updatedIntake.latestIssuanceId,
-      thread_id: updatedIntake.threadId,
-      previous_state: intake.state,
-      next_state: "responded",
-      source: input.source,
-      payload: {
-        actor: input.actor,
-        actorAuthSource: input.actorAuthSource,
-        actorSessionHash: input.actorSessionHash,
-        mailbox,
-        provider: delivery.provider,
-        providerMessageId: delivery.providerMessageId,
-        deliveryAttemptId,
-        subject,
-        bodyDigest: responseRecord.bodyDigest,
-      },
-    });
-  } catch {
-    await markResponseAttemptUnresolved(intake.intakeId, deliveryAttemptId);
-    throw new IntakeResponseError(
-      "Mail delivery was accepted, but ledger confirmation is unresolved; reconcile it before retrying.",
       500,
     );
   }

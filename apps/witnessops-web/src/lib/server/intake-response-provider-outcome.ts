@@ -6,6 +6,7 @@ import type { IntakeResponseProviderOutcomeRecord } from "./token-store";
 
 import { appendIntakeEvent, readIntakeEvents } from "./intake-event-ledger";
 import { evaluatePolicyClosureWithinLock } from "./policy-closure";
+import { compareRfc3339Instants, laterRfc3339 } from "./rfc3339-instant";
 import {
   getAllIntakes,
   getIntakeById,
@@ -37,11 +38,15 @@ function shouldReplaceOutcome(
     return true;
   }
 
-  if (next.observedAt > current.observedAt) {
+  const instantOrder = compareRfc3339Instants(
+    next.observedAt,
+    current.observedAt,
+  );
+  if (instantOrder > 0) {
     return true;
   }
 
-  if (next.observedAt < current.observedAt) {
+  if (instantOrder < 0) {
     return false;
   }
 
@@ -210,10 +215,7 @@ export async function recordIntakeResponseProviderOutcome(
       )
         ? record
         : current.responseProviderOutcome,
-      updatedAt:
-        input.observedAt > current.updatedAt
-          ? input.observedAt
-          : current.updatedAt,
+      updatedAt: laterRfc3339(input.observedAt, current.updatedAt),
     }));
 
     try {

@@ -51,6 +51,17 @@ validate_admin_oidc_key_names "${oidc_key_names}" || {
   echo "apply-k8s: admin OIDC secret preflight failed (key names only)" >&2
   exit 1
 }
+role_encoded="$(kubectl get secret "${ADMIN_OIDC_SECRET}" \
+  --namespace "${DEPLOY_NS}" \
+  -o jsonpath='{.data.WITNESSOPS_ADMIN_ROLE}')" || {
+  echo "apply-k8s: admin role preflight could not read its custodied value" >&2
+  exit 1
+}
+role_value="$(node -e 'process.stdout.write(Buffer.from(process.argv[1] || "", "base64").toString("utf8"))' "${role_encoded}")"
+validate_admin_role_value "${role_value}" || {
+  echo "apply-k8s: admin role preflight failed" >&2
+  exit 1
+}
 
 rendered_dir="$(mktemp -d "${TMPDIR:-/tmp}/witnessops-k8s-render.XXXXXX")"
 trap 'rm -rf "${rendered_dir}"' EXIT

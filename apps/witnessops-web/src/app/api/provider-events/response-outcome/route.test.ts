@@ -10,6 +10,7 @@ import { NextRequest } from "next/server";
 import { appendIntakeEvent } from "@/lib/server/intake-event-ledger";
 import {
   clearTokenStore,
+  getIntakeById,
   saveIntake,
   saveIssuance,
   type IntakeRecord,
@@ -221,6 +222,56 @@ test("provider outcome route records downstream evidence against an existing res
     /"event_type":"INTAKE_RESPONSE_PROVIDER_OUTCOME_RECORDED"/,
   );
   assert.match(eventLogRaw, /"providerEventId":"evt_provider_outcome_1"/);
+});
+
+test("an older offset timestamp cannot replace a newer provider outcome", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-provider-outcome-order-"),
+  );
+  applyTestEnv(baseDir);
+  await seedProviderOutcomeCase();
+
+  const postOutcome = (providerEventId: string, outcome: string, observedAt: string) =>
+    POST(
+      new NextRequest(
+        "http://localhost:3001/api/provider-events/response-outcome",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-witnessops-provider-secret": "provider-secret",
+          },
+          body: JSON.stringify({
+            provider: "file",
+            providerEventId,
+            deliveryAttemptId: "rsp_provider_outcome",
+            outcome,
+            observedAt,
+            source: "provider_webhook",
+            rawEventType: `message.${outcome}`,
+          }),
+        },
+      ),
+    );
+
+  assert.equal(
+    (await postOutcome("evt_newer", "accepted", "2026-08-13T09:30:00Z")).status,
+    200,
+  );
+  assert.equal(
+    (
+      await postOutcome(
+        "evt_older_offset",
+        "delivered",
+        "2026-08-13T10:00:00+02:00",
+      )
+    ).status,
+    200,
+  );
+
+  const intake = await getIntakeById("intk_provider_outcome");
+  assert.equal(intake?.responseProviderOutcome?.status, "accepted");
+  assert.equal(intake?.responseProviderOutcome?.providerEventId, "evt_newer");
 });
 
 test("provider outcome route is idempotent for the same provider event id", async () => {

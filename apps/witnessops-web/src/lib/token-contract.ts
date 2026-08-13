@@ -111,9 +111,14 @@ export const supportResponseSchema = verificationSentResponseSchema.extend({
 });
 
 export const verifyTokenRequestSchema = z.object({
-  issuanceId: z.string().min(1),
+  issuanceId: z.string().trim().min(1).max(240),
   email: normalizedEmailSchema,
   token: z.string().trim().min(1),
+});
+
+export const verifyTokenLegacyPageSchema = verifyTokenRequestSchema.pick({
+  issuanceId: true,
+  email: true,
 });
 
 export const verifyTokenContextRequestSchema = z.object({

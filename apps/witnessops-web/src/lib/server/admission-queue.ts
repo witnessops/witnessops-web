@@ -36,6 +36,7 @@ import {
   type ScopeContractStatus,
   type TokenIssuanceRecord,
 } from "./token-store";
+import { compareRfc3339Instants } from "./rfc3339-instant";
 import type { CoreActor } from "./admin-core-spine";
 import { isSameOperator } from "./admin-authorization";
 
@@ -211,7 +212,7 @@ function stateRank(state: AdmissionState): number {
 }
 
 function compareIsoDescending(left: string, right: string): number {
-  return right.localeCompare(left);
+  return compareRfc3339Instants(right, left);
 }
 
 function payloadText(
@@ -251,11 +252,15 @@ function shouldProjectProviderOutcome(args: {
     return true;
   }
 
-  if (args.nextObservedAt > args.currentObservedAt) {
+  const instantOrder = compareRfc3339Instants(
+    args.nextObservedAt,
+    args.currentObservedAt,
+  );
+  if (instantOrder > 0) {
     return true;
   }
 
-  if (args.nextObservedAt < args.currentObservedAt) {
+  if (instantOrder < 0) {
     return false;
   }
 

@@ -354,7 +354,7 @@ test("verify-token route rejects verified-token replay after the original expiry
   assert.equal(replay.status, 400);
   assert.equal(replay.headers.get("set-cookie"), null);
   const payload = (await replay.json()) as { error?: string };
-  assert.match(payload.error ?? "", /expired/i);
+  assert.equal(payload.error, "Verification could not be completed.");
 });
 
 test("verify-token route returns access-change confirmation path without assessment attachment on replay", async () => {
@@ -857,7 +857,32 @@ test("verify-token route enforces expiry", async () => {
 
   assert.equal(response.status, 400);
   const payload = (await response.json()) as { error: string };
-  assert.match(payload.error, /expired/i);
+  assert.equal(payload.error, "Verification could not be completed.");
+});
+
+test("verify-token route does not disclose which credential field failed", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
+  const issued = await issueToken(baseDir);
+  const attempts = [
+    { ...issued, issuanceId: "iss_unknown" },
+    { ...issued, email: "different@witnessops.com" },
+    { ...issued, token: "WRONG-CODE" },
+  ];
+
+  for (const attempt of attempts) {
+    const response = await POST(
+      new Request("https://witnessops.com/api/verify-token", {
+        method: "POST",
+        body: JSON.stringify(attempt),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      ok: false,
+      error: "Verification could not be completed.",
+    });
+  }
 });
 
 test("verify-token GET route rejects token-bearing compatibility URLs", async () => {

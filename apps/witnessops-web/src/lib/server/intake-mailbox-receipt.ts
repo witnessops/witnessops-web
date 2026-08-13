@@ -6,6 +6,7 @@ import type { IntakeMailboxReceiptRecord } from "./token-store";
 
 import { appendIntakeEvent, readIntakeEvents } from "./intake-event-ledger";
 import { evaluatePolicyClosureWithinLock } from "./policy-closure";
+import { compareRfc3339Instants, laterRfc3339 } from "./rfc3339-instant";
 import {
   getAllIntakes,
   getIntakeById,
@@ -124,22 +125,21 @@ export async function recordIntakeMailboxReceipt(
 
     await updateIntakeWithinLock(handle, intake.intakeId, (current) => {
     const existing = current.responseMailboxReceipt;
+    const instantOrder = existing
+      ? compareRfc3339Instants(input.observedAt, existing.observedAt)
+      : 1;
     const shouldReplace =
       !existing ||
-      input.observedAt > existing.observedAt ||
-      (input.observedAt === existing.observedAt &&
-        mailboxReceiptRank(input.status) >=
-          mailboxReceiptRank(existing.status));
+      instantOrder > 0 ||
+      (instantOrder === 0 &&
+        mailboxReceiptRank(input.status) >= mailboxReceiptRank(existing.status));
 
     return {
       ...current,
       responseMailboxReceipt: shouldReplace
         ? record
         : current.responseMailboxReceipt,
-      updatedAt:
-        input.observedAt > current.updatedAt
-          ? input.observedAt
-          : current.updatedAt,
+      updatedAt: laterRfc3339(input.observedAt, current.updatedAt),
     };
     });
 

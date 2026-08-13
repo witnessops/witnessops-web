@@ -236,6 +236,17 @@ preflight_remote_admin_secrets() {
   if ! validate_admin_oidc_key_names "${oidc_key_names}"; then
     die "admin OIDC secret preflight failed (key names only)"
   fi
+
+  if ! remote "set -euo pipefail
+    encoded=\$(kubectl -n '${DEPLOY_NS}' get secret '${ADMIN_OIDC_SECRET}' -o jsonpath='{.data.WITNESSOPS_ADMIN_ROLE}')
+    role=\$(printf '%s' \"\${encoded}\" | base64 -d)
+    case \"\${role}\" in
+      'Founder'|'Delegated Operator'|'Administrator') ;;
+      *) exit 2 ;;
+    esac
+  "; then
+    die "admin role preflight failed"
+  fi
 }
 
 deployment_envfrom_contract() {

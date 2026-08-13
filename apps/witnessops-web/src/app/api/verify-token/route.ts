@@ -40,10 +40,8 @@ async function handleVerification(
       return verifyTokenResponseSchema.parse(
         await verifyIssuedTokenWithContext(contextRequest.data),
       );
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Token verification failed.";
-      return invalidRequest(message, 400);
+    } catch {
+      return invalidRequest("Verification could not be completed.", 400);
     }
   }
 
@@ -55,10 +53,8 @@ async function handleVerification(
   try {
     const verified = await verifyIssuedToken(parsed.data);
     return verifyTokenResponseSchema.parse(verified);
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Token verification failed.";
-    return invalidRequest(message, 400);
+  } catch {
+    return invalidRequest("Verification could not be completed.", 400);
   }
 }
 

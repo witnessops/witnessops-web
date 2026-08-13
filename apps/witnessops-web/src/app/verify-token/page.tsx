@@ -5,6 +5,7 @@ import {
   verificationLight,
 } from "@/components/shared/verification-light-shell";
 import { VerifyTokenForm } from "./verify-token-form";
+import { resolveVerificationPageRequest } from "./verification-page-request";
 
 export const metadata: Metadata = {
   title: "Verify Mailbox",
@@ -17,13 +18,14 @@ export const revalidate = 0;
 interface Props {
   searchParams: Promise<{
     context?: string;
+    issuanceId?: string;
+    email?: string;
   }>;
 }
 
 export default async function VerifyTokenPage({ searchParams }: Props) {
   const params = await searchParams;
-  const rawContext = params.context?.trim() ?? "";
-  const hasVerificationContext = /^[A-Za-z0-9_-]{32,128}$/.test(rawContext);
+  const verificationRequest = resolveVerificationPageRequest(params);
 
   return (
     <VerificationLightShell>
@@ -44,10 +46,8 @@ export default async function VerifyTokenPage({ searchParams }: Props) {
         </p>
 
         <div className={`mt-8 rounded p-4 ${verificationLight.card}`}>
-          {hasVerificationContext ? (
-            <VerifyTokenForm
-              context={rawContext}
-            />
+          {verificationRequest ? (
+            <VerifyTokenForm {...verificationRequest} />
           ) : (
             <div className={verificationLight.error}>
               This verification page is missing the request context. Open the

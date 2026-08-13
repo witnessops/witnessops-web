@@ -99,11 +99,22 @@ compare_runtime_envfrom_contract() {
 required_admin_oidc_key_names() {
   printf '%s\n' \
     'WITNESSOPS_ADMIN_SECRET' \
+    'WITNESSOPS_ADMIN_ROLE' \
     'WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST' \
     'WITNESSOPS_GOOGLE_OIDC_CLIENT_ID' \
     'WITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET' \
     'WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI' \
     'WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN'
+}
+
+validate_admin_role_value() {
+  case "${1:-}" in
+    'Founder'|'Delegated Operator'|'Administrator') return 0 ;;
+    *)
+      printf 'admin role is missing or unsupported\n' >&2
+      return 2
+      ;;
+  esac
 }
 
 # Accepts one or more newline-delimited key-name lists. Extra keys are allowed

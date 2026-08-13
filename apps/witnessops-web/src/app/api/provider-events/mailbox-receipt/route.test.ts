@@ -8,6 +8,7 @@ import { NextRequest } from "next/server";
 
 import {
   clearTokenStore,
+  getIntakeById,
   saveIntake,
   type IntakeRecord,
 } from "@/lib/server/token-store";
@@ -119,4 +120,65 @@ test("concurrent mailbox receipt replays record one receipt and one closure", as
     ).length,
     1,
   );
+});
+
+test("an older offset timestamp cannot replace a newer mailbox receipt", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-mailbox-receipt-order-"),
+  );
+  applyTestEnv(baseDir);
+  const intake: IntakeRecord = {
+    intakeId: "intk_mailbox_order",
+    channel: "engage",
+    email: "buyer@example.com",
+    state: "responded",
+    createdAt: "2026-08-13T08:00:00Z",
+    updatedAt: "2026-08-13T09:30:00Z",
+    latestIssuanceId: "iss_mailbox_order",
+    threadId: "thr_mailbox_order",
+    submission: {},
+    firstResponse: {
+      deliveryAttemptId: "rsp_mailbox_order",
+      subject: "Re: mailbox receipt",
+      bodyDigest: "sha256:mailbox-order",
+      actor: "admin:test",
+      actorAuthSource: "local_bypass",
+      actorSessionHash: null,
+      mailbox: "engage@witnessops.com",
+      provider: "file",
+      providerMessageId: "msg_mailbox_order",
+      deliveredAt: "2026-08-13T08:30:00Z",
+    },
+    respondedAt: "2026-08-13T08:30:00Z",
+    responseMailboxReceipt: {
+      status: "accepted",
+      observedAt: "2026-08-13T09:30:00Z",
+      deliveryAttemptId: "rsp_mailbox_order",
+      providerMessageId: "msg_mailbox_order",
+      receiptId: "receipt_newer",
+      detail: null,
+    },
+  };
+  await saveIntake(intake);
+
+  const response = await POST(
+    new NextRequest("http://localhost:3001/api/provider-events/mailbox-receipt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-witnessops-provider-secret": "provider-secret",
+      },
+      body: JSON.stringify({
+        deliveryAttemptId: "rsp_mailbox_order",
+        receiptId: "receipt_older_offset",
+        status: "delivered",
+        observedAt: "2026-08-13T10:00:00+02:00",
+      }),
+    }),
+  );
+  assert.equal(response.status, 200);
+
+  const updated = await getIntakeById("intk_mailbox_order");
+  assert.equal(updated?.responseMailboxReceipt?.status, "accepted");
+  assert.equal(updated?.responseMailboxReceipt?.receiptId, "receipt_newer");
 });

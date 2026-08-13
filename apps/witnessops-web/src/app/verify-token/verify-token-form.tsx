@@ -10,8 +10,14 @@ import {
   formatVerificationCode,
 } from "@/lib/verification-code-format";
 
-interface Props {
-  context: string;
+type Props =
+  | { context: string; issuanceId?: never; email?: never }
+  | { context?: never; issuanceId: string; email: string };
+
+export function verificationRequestBody(props: Props, token: string) {
+  return "context" in props
+    ? { context: props.context, token }
+    : { issuanceId: props.issuanceId, email: props.email, token };
 }
 
 function buildRedirectUrl(payload: VerifyTokenResponse): string {
@@ -34,10 +40,7 @@ export function VerifyTokenForm(props: Props) {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          context: props.context,
-          token: code,
-        }),
+        body: JSON.stringify(verificationRequestBody(props, code)),
       });
       const payload = (await response.json().catch(() => null)) as
         | (Partial<VerifyTokenResponse> & { error?: string })

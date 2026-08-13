@@ -39,7 +39,9 @@ import {
   saveIssuance,
   saveVerificationContext,
   updateIntake,
+  updateIntakeWithinLock,
   updateIssuance,
+  withIntakeLock,
   withIssuanceLock,
   type AssessmentStatus,
   type IntakeRecord,
@@ -311,53 +313,72 @@ async function transitionIntakeState(args: {
   patch?: Partial<IntakeRecord>;
   payload?: Record<string, unknown>;
 }): Promise<IntakeRecord> {
-  const updated = await updateIntake(args.intake.intakeId, (current) => {
-    const next: IntakeRecord = {
-      ...current,
-      ...args.patch,
-      state: args.nextState,
-      updatedAt: args.occurredAt,
-    };
+  return withIntakeLock(args.intake.intakeId, async (handle) => {
+    let previous: IntakeRecord | null = null;
+    const updated = await updateIntakeWithinLock(
+      handle,
+      args.intake.intakeId,
+      (current) => {
+        previous = current;
+        const next: IntakeRecord = {
+          ...current,
+          ...args.patch,
+          state: args.nextState,
+          updatedAt: args.occurredAt,
+        };
 
-    if (args.nextState === "verification_sent") {
-      next.verificationSentAt = args.occurredAt;
-    }
-    if (args.nextState === "verified") {
-      next.verifiedAt = args.occurredAt;
-    }
-    if (args.nextState === "admitted") {
-      next.admittedAt = args.occurredAt;
-    }
-    if (args.nextState === "expired") {
-      next.expiredAt = args.occurredAt;
-    }
-    if (args.nextState === "rejected") {
-      next.rejectedAt = args.occurredAt;
-    }
-    if (args.nextState === "responded") {
-      next.respondedAt = args.occurredAt;
-    }
-    if (args.nextState === "replayed") {
-      next.replayedAt = args.occurredAt;
+        if (args.nextState === "verification_sent") {
+          next.verificationSentAt = args.occurredAt;
+        }
+        if (args.nextState === "verified") {
+          next.verifiedAt = args.occurredAt;
+        }
+        if (args.nextState === "admitted") {
+          next.admittedAt = args.occurredAt;
+        }
+        if (args.nextState === "expired") {
+          next.expiredAt = args.occurredAt;
+        }
+        if (args.nextState === "rejected") {
+          next.rejectedAt = args.occurredAt;
+        }
+        if (args.nextState === "responded") {
+          next.respondedAt = args.occurredAt;
+        }
+        if (args.nextState === "replayed") {
+          next.replayedAt = args.occurredAt;
+        }
+
+        return next;
+      },
+    );
+
+    try {
+      await appendIntakeEvent({
+        event_type: args.eventType,
+        occurred_at: args.occurredAt,
+        channel: updated.channel,
+        intake_id: updated.intakeId,
+        issuance_id: args.issuanceId ?? updated.latestIssuanceId,
+        thread_id: updated.threadId,
+        previous_state: (previous ?? args.intake).state,
+        next_state: updated.state,
+        source: args.source,
+        payload: args.payload,
+      });
+    } catch (error) {
+      if (previous) {
+        await updateIntakeWithinLock(
+          handle,
+          args.intake.intakeId,
+          () => previous as IntakeRecord,
+        );
+      }
+      throw error;
     }
 
-    return next;
+    return updated;
   });
-
-  await appendIntakeEvent({
-    event_type: args.eventType,
-    occurred_at: args.occurredAt,
-    channel: updated.channel,
-    intake_id: updated.intakeId,
-    issuance_id: args.issuanceId ?? updated.latestIssuanceId,
-    thread_id: updated.threadId,
-    previous_state: args.intake.state,
-    next_state: updated.state,
-    source: args.source,
-    payload: args.payload,
-  });
-
-  return updated;
 }
 
 async function ensureIssuanceContext(record: TokenIssuanceRecord): Promise<{
