@@ -12,6 +12,7 @@ import {
   type ScopeContractRecord,
   getIntakeById,
   updateIntake,
+  withIntakeLock,
 } from "./token-store";
 import { appendQueueEvent, readQueueEvents, type QueueEventType } from "./queue-event-ledger";
 import {
@@ -177,7 +178,7 @@ function applyWorkflowTransition(args: {
   };
 }
 
-export async function applyQueueCommand(
+async function applyQueueCommandUnlocked(
   ctx: QueueCommandContext,
   command: QueueCommandPayload,
 ): Promise<QueueCommandResult> {
@@ -696,4 +697,13 @@ export async function applyQueueCommand(
     emittedEvents: events.map((event) => event.eventType),
     projection: nextProjection,
   };
+}
+
+export async function applyQueueCommand(
+  ctx: QueueCommandContext,
+  command: QueueCommandPayload,
+): Promise<QueueCommandResult> {
+  return withIntakeLock(ctx.intakeId, () =>
+    applyQueueCommandUnlocked(ctx, command),
+  );
 }

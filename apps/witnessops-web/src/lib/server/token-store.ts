@@ -22,6 +22,7 @@ import type {
 } from "@/lib/provider-outcomes";
 import type { DeliveryEvidenceSubcase } from "./reconciliation-subcases";
 import { getConfiguredEnvPath } from "./storage-config";
+import { withFilesystemLock } from "./filesystem-lock";
 
 /**
  * Intake and issuance JSON files are read models for lookup and operator views.
@@ -351,6 +352,20 @@ function issuanceLockPath(issuanceId: string): string {
   return resolved;
 }
 
+function intakeLockPath(intakeId: string): string {
+  assertSafeRecordId(intakeId, "intake");
+  const base = path.resolve(getAdmissionStoreDir(), "locks");
+  const safeName = `intake-${path.basename(intakeId)}.lock`;
+  const resolved = path.resolve(base, safeName);
+  if (resolved !== path.join(base, safeName)) {
+    throw new Error("Invalid intake lock path");
+  }
+  if (!resolved.startsWith(base + path.sep)) {
+    throw new Error("Invalid intake lock path");
+  }
+  return resolved;
+}
+
 async function ensureStoreDirs(): Promise<void> {
   await Promise.all([
     mkdir(path.join(getAdmissionStoreDir(), "intakes"), { recursive: true }),
@@ -417,6 +432,23 @@ export async function withIssuanceLock<T>(
       // error. Any orphaned lock is recovered by the stale-lock path above.
     }
   }
+}
+
+export async function withIntakeLock<T>(
+  intakeId: string,
+  action: () => Promise<T>,
+): Promise<T> {
+  await ensureStoreDirs();
+  return withFilesystemLock(
+    {
+      lockPath: intakeLockPath(intakeId),
+      description: `intake ${intakeId}`,
+      waitMs: LOCK_WAIT_MS,
+      timeoutMs: LOCK_TIMEOUT_MS,
+      staleMs: LOCK_STALE_MS,
+    },
+    action,
+  );
 }
 
 async function writeJsonAtomic(

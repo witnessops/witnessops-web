@@ -8,6 +8,7 @@ import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_PRIMARY_HREF,
 } from "@/lib/public-contact";
+import { withFilesystemLock } from "./filesystem-lock";
 import { getAdmissionStoreDir } from "./token-store";
 
 export const ADMIN_CORE_SCHEMA_VERSION = 1 as const;
@@ -464,6 +465,20 @@ function coreStoreFile(): string {
   return path.join(directory, "core-state.json");
 }
 
+function coreStoreLockFile(): string {
+  return path.join(path.dirname(coreStoreFile()), "core-state.lock");
+}
+
+function withCoreStateLock<T>(action: () => Promise<T>): Promise<T> {
+  return withFilesystemLock(
+    {
+      lockPath: coreStoreLockFile(),
+      description: "admin core state",
+    },
+    action,
+  );
+}
+
 function defaultProducts(): ProductContractVersionRecord[] {
   const now = isoNow();
   return getWorkflowSkus().map((sku) => ({
@@ -530,10 +545,12 @@ async function writeState(state: CoreState): Promise<void> {
 }
 
 async function mutateState<T>(mutator: (state: CoreState) => T): Promise<T> {
-  const state = await readState();
-  const result = mutator(state);
-  await writeState(state);
-  return result;
+  return withCoreStateLock(async () => {
+    const state = await readState();
+    const result = mutator(state);
+    await writeState(state);
+    return result;
+  });
 }
 
 function appendAudit(
@@ -612,7 +629,10 @@ export function getAdminCoreStorePath(): string {
 }
 
 export async function resetAdminCoreStoreForTests(): Promise<void> {
-  await rm(coreStoreFile(), { force: true });
+  await Promise.all([
+    rm(coreStoreFile(), { force: true }),
+    rm(coreStoreLockFile(), { force: true }),
+  ]);
 }
 
 export async function getAdminCoreState(): Promise<CoreState> {
@@ -1823,45 +1843,140 @@ export async function recordDeliverySent(
   idempotencyKey = `delivery-send:${deliveryId}`,
 ): Promise<DeliveryRecord> {
   requireRole(actor, "business-authority");
-  return mutateState((state) => {
-    const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
-    if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
-    if (delivery.state === "sent" || delivery.state === "acknowledged") return clone(delivery);
-    requireTransition("delivery", delivery.state, "sent", deliveryTransitions);
+  return mutateState((state) =>
+    applyDeliverySent(state, deliveryId, result, actor, idempotencyKey),
+  );
+}
+
+function applyDeliverySent(
+  state: CoreState,
+  deliveryId: string,
+  result: { provider: string; providerMessageId: string | null; sentAt: string },
+  actor: CoreActor,
+  idempotencyKey: string,
+): DeliveryRecord {
+  const delivery = state.deliveries.find(
+    (candidate) => candidate.id === deliveryId,
+  );
+  if (!delivery) {
+    throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+  }
+  if (delivery.state === "sent" || delivery.state === "acknowledged") {
+    return clone(delivery);
+  }
+  requireTransition("delivery", delivery.state, "sent", deliveryTransitions);
+  const readiness = buildDeliveryReadinessSync(state, delivery.id);
+  if (readiness.fail.length > 0 || readiness.unresolved.length > 0) {
+    throw new AdminCoreError(
+      "DELIVERY_NOT_READY",
+      "Delivery readiness checks have not passed.",
+      409,
+      readiness,
+    );
+  }
+  const previous = delivery.state;
+  delivery.state = "sent";
+  delivery.provider = result.provider;
+  delivery.providerMessageId = result.providerMessageId;
+  delivery.sentAt = result.sentAt;
+  delivery.failure = null;
+  delivery.updatedAt = isoNow();
+  state.idempotency[idempotencyKey] = {
+    recordType: "delivery",
+    recordId: delivery.id,
+  };
+  appendIntegration(state, {
+    integration: "mail",
+    operation: "send_delivery",
+    idempotencyKey,
+    status: "succeeded",
+    completedAt: delivery.updatedAt,
+    externalId: result.providerMessageId,
+    error: null,
+  });
+  appendAudit(state, {
+    recordType: "delivery",
+    recordId: delivery.id,
+    action: "record_sent",
+    actor: actor.actor,
+    previousState: previous,
+    resultingState: delivery.state,
+    integrationResult: `${result.provider}:${result.providerMessageId ?? "no-provider-id"}`,
+    linkedExternalIds: [
+      delivery.proofRunId,
+      ...(delivery.receiptId ? [delivery.receiptId] : []),
+    ],
+    failureDetails: null,
+    lineageId: delivery.lineageId,
+  });
+  return clone(delivery);
+}
+
+export interface AuthorizedDeliveryMessage {
+  to: string;
+  subject: string;
+  text: string;
+  deliveryAttemptId: string;
+}
+
+export async function sendAuthorizedDelivery(
+  deliveryId: string,
+  actor: CoreActor,
+  send: (
+    message: AuthorizedDeliveryMessage,
+  ) => Promise<{ provider: string; providerMessageId: string | null; sentAt: string }>,
+  idempotencyKey = `delivery-send:${deliveryId}`,
+): Promise<DeliveryRecord> {
+  requireRole(actor, "business-authority");
+  return withCoreStateLock(async () => {
+    const state = await readState();
+    const delivery = state.deliveries.find(
+      (candidate) => candidate.id === deliveryId,
+    );
+    if (!delivery) {
+      throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    }
+    if (delivery.state === "sent" || delivery.state === "acknowledged") {
+      return clone(delivery);
+    }
+
     const readiness = buildDeliveryReadinessSync(state, delivery.id);
     if (readiness.fail.length > 0 || readiness.unresolved.length > 0) {
-      throw new AdminCoreError("DELIVERY_NOT_READY", "Delivery readiness checks have not passed.", 409, readiness);
+      throw new AdminCoreError(
+        "DELIVERY_NOT_READY",
+        "Delivery readiness checks have not passed.",
+        409,
+        readiness,
+      );
     }
-    const previous = delivery.state;
-    delivery.state = "sent";
-    delivery.provider = result.provider;
-    delivery.providerMessageId = result.providerMessageId;
-    delivery.sentAt = result.sentAt;
-    delivery.failure = null;
-    delivery.updatedAt = isoNow();
-    state.idempotency[idempotencyKey] = { recordType: "delivery", recordId: delivery.id };
-    appendIntegration(state, {
-      integration: "mail",
-      operation: "send_delivery",
+    requireTransition("delivery", delivery.state, "sent", deliveryTransitions);
+
+    const customer = state.customers.find(
+      (candidate) => candidate.id === delivery.customerId,
+    );
+    if (!customer) {
+      throw new AdminCoreError(
+        "STORE_CORRUPT",
+        "Delivery customer is missing.",
+        500,
+      );
+    }
+
+    const result = await send({
+      to: customer.email,
+      subject: delivery.subject,
+      text: delivery.body,
+      deliveryAttemptId: delivery.id,
+    });
+    const recorded = applyDeliverySent(
+      state,
+      delivery.id,
+      result,
+      actor,
       idempotencyKey,
-      status: "succeeded",
-      completedAt: delivery.updatedAt,
-      externalId: result.providerMessageId,
-      error: null,
-    });
-    appendAudit(state, {
-      recordType: "delivery",
-      recordId: delivery.id,
-      action: "record_sent",
-      actor: actor.actor,
-      previousState: previous,
-      resultingState: delivery.state,
-      integrationResult: `${result.provider}:${result.providerMessageId ?? "no-provider-id"}`,
-      linkedExternalIds: [delivery.proofRunId, ...(delivery.receiptId ? [delivery.receiptId] : [])],
-      failureDetails: null,
-      lineageId: delivery.lineageId,
-    });
-    return clone(delivery);
+    );
+    await writeState(state);
+    return recorded;
   });
 }
 

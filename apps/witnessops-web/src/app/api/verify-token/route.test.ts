@@ -250,6 +250,48 @@ test("verify-token route allows repeat verification for the same issuance and to
   );
 });
 
+test("verified-token replay does not start assessment before scope approval", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-replay-"));
+  const issued = await issueToken(baseDir);
+  const assessmentCalls: string[] = [];
+  global.fetch = (async (input: string | URL | Request) => {
+    assessmentCalls.push(input instanceof Request ? input.url : input.toString());
+    return new Response(
+      JSON.stringify({ run_id: "run_must_not_start", status: "pending" }),
+      { status: 202, headers: { "Content-Type": "application/json" } },
+    );
+  }) as typeof fetch;
+  process.env.GES_SERVER_URL = "https://assessment.internal";
+  process.env.GES_ASSESSMENT_KEY = "test-assessment-key";
+
+  const verify = () =>
+    POST(
+      new Request("https://witnessops.com/api/verify-token", {
+        method: "POST",
+        body: JSON.stringify(issued),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+  const first = await verify();
+  assert.equal(first.status, 200);
+  assert.equal(assessmentCalls.length, 0);
+
+  const replay = await verify();
+  assert.equal(replay.status, 200);
+  const payload = (await replay.json()) as {
+    assessmentRunId: string | null;
+    assessmentStatus: string;
+  };
+  assert.equal(payload.assessmentRunId, null);
+  assert.equal(payload.assessmentStatus, "unavailable");
+  assert.equal(assessmentCalls.length, 0);
+
+  const issuance = await getIssuanceById(issued.issuanceId);
+  assert.equal(issuance?.approvalStatus, "pending");
+  assert.equal(issuance?.assessmentRunId, undefined);
+});
+
 test("verify-token route rejects verified-token replay after the original expiry", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
   const issued = await issueToken(baseDir);
