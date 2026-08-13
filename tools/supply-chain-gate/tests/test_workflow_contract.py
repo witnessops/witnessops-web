@@ -142,9 +142,10 @@ class WorkflowContractTests(unittest.TestCase):
             "\ndeploy_prod() {", 1
         )[0]
         self.assertLess(
-            build_shared_image.index("  run_supply_chain_gate\n"),
+            build_shared_image.index("  if ! run_supply_chain_gate; then\n"),
             build_shared_image.index("  if ! sync_build_context"),
         )
+        self.assertIn('die "Supply Chain Gate failed; refusing remote build"', build_shared_image)
         self.assertIn('merge-base HEAD origin/main', k3s)
         self.assertNotIn('base_ref="HEAD"', k3s)
         self.assertLess(
