@@ -430,11 +430,29 @@ export async function withIssuanceLock<T>(
   return withRecordLock(issuanceId, "issuance", action);
 }
 
+const intakeLockHandleBrand = Symbol("intake-lock-handle");
+export interface IntakeLockHandle {
+  readonly intakeId: string;
+  readonly [intakeLockHandleBrand]: true;
+}
+const activeIntakeLockHandles = new WeakSet<IntakeLockHandle>();
+
 export async function withIntakeLock<T>(
   intakeId: string,
-  action: () => Promise<T>,
+  action: (handle: IntakeLockHandle) => Promise<T>,
 ): Promise<T> {
-  return withRecordLock(intakeId, "intake", action);
+  return withRecordLock(intakeId, "intake", async () => {
+    const handle: IntakeLockHandle = {
+      intakeId,
+      [intakeLockHandleBrand]: true,
+    };
+    activeIntakeLockHandles.add(handle);
+    try {
+      return await action(handle);
+    } finally {
+      activeIntakeLockHandles.delete(handle);
+    }
+  });
 }
 
 async function writeJsonAtomic(
@@ -548,10 +566,14 @@ export async function updateIssuance(
   return updated;
 }
 
-export async function updateIntake(
+export async function updateIntakeWithinLock(
+  handle: IntakeLockHandle,
   intakeId: string,
   updater: (record: IntakeRecord) => IntakeRecord,
 ): Promise<IntakeRecord> {
+  if (!activeIntakeLockHandles.has(handle) || handle.intakeId !== intakeId) {
+    throw new Error(`Active intake lock is required: ${intakeId}`);
+  }
   const existing = await getIntakeById(intakeId);
   if (!existing) {
     throw new Error(`Unknown intakeId: ${intakeId}`);
@@ -560,6 +582,15 @@ export async function updateIntake(
   const updated = updater(existing);
   await saveIntake(updated);
   return updated;
+}
+
+export async function updateIntake(
+  intakeId: string,
+  updater: (record: IntakeRecord) => IntakeRecord,
+): Promise<IntakeRecord> {
+  return withIntakeLock(intakeId, (handle) =>
+    updateIntakeWithinLock(handle, intakeId, updater),
+  );
 }
 
 export async function clearTokenStore(): Promise<void> {
