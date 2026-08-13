@@ -16,7 +16,9 @@ test("assessment route remains noindex, private, and claimant-session gated", ()
   assert.match(source, /Explicit scope approval is required before governed recon starts/);
   assert.match(source, /This page is session-private/);
   assert.match(source, /Do not share the URL/);
+  assert.match(source, /Assessment failed upstream\./);
 
   assert.doesNotMatch(source, /ContactForm|SupportIntake|Request one proof run|Package one security workflow|\/review\/request/);
+  assert.doesNotMatch(source, />\s*{record\.assessmentError}\s*</);
   assert.doesNotMatch(source, /verified compliance|certified compliance|audit-ready|guarantees compliance/i);
 });

@@ -260,7 +260,9 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
               Scope approval is recorded, but the assessment server was not
               reachable when recon was triggered.
               {record.assessmentError ? (
-                <div className="mt-2 text-xs text-zinc-500 font-mono">{record.assessmentError}</div>
+                <div className="mt-2 text-xs text-zinc-500 font-mono">
+                  Assessment failed upstream.
+                </div>
               ) : null}
             </div>
           ) : approvalStatus === "approved" ? (
