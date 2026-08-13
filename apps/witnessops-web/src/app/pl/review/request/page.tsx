@@ -2,13 +2,18 @@ import type { Metadata } from "next";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { buyerServiceByProductId } from "@/lib/buyer-services";
+import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import { POLISH_NO_SECRETS_NOTE, POLISH_OFFERS } from "@/lib/public-i18n";
 import { getSku } from "@witnessops/catalog";
+import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
   title: "Opowiedz, co wymaga sprawdzenia",
   description: "Opisz niepoufnie ankietę, serwer, wdrożenie, incydent, zmianę dostępu lub działanie, które wymaga sprawdzenia.",
-  alternates: { canonical: "/pl/review/request", languages: { en: "/review/request", pl: "/pl/review/request", "x-default": "/review/request" } },
+  alternates: languageAlternates("/pl/review/request", {
+    en: "/review/request",
+    pl: "/pl/review/request",
+  }),
 };
 
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
@@ -17,9 +22,12 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
   const params = (await searchParams) ?? {};
   const one = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
   const productId = one(params.productId);
-  const sku = productId ? getSku(productId) : undefined;
-  const polishOffer = productId ? POLISH_OFFERS[productId] : undefined;
-  const buyerService = productId ? buyerServiceByProductId(productId) : undefined;
+  const requestedSku = productId ? getSku(productId) : undefined;
+  const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
+    ? requestedSku
+    : undefined;
+  const polishOffer = sku ? POLISH_OFFERS[sku.id] : undefined;
+  const buyerService = sku ? buyerServiceByProductId(sku.id) : undefined;
   const selectedOffer = buyerService
     ? {
         name: buyerService.name.pl,

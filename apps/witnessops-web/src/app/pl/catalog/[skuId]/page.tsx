@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { JsonLd } from "@/components/seo/json-ld";
 import { BuyerServiceDetail } from "@/components/marketing/buyer-service-detail";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
 import { buyerServiceByProductId } from "@/lib/buyer-services";
+import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
+import {
+  languageAlternates,
+  publicExposureBreadcrumbJsonLd,
+  publicExposureServiceJsonLd,
+} from "@/lib/public-seo";
 import {
   POLISH_NO_SECRETS_NOTE,
   POLISH_OFFERS,
@@ -17,7 +24,13 @@ type PageProps = { params: Promise<{ skuId: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolved = resolveSkuId((await params).skuId);
-  if (!resolved || !(resolved in POLISH_OFFERS)) return { title: "Nie znaleziono oferty" };
+  if (
+    !resolved ||
+    !isCurrentPublicCatalogSku(resolved) ||
+    !(resolved in POLISH_OFFERS)
+  ) {
+    return { title: "Nie znaleziono oferty", robots: { index: false, follow: false } };
+  }
   const id = resolved as CanonicalOffsecProductId;
   const copy = POLISH_OFFERS[id];
   const buyerService = buyerServiceByProductId(id);
@@ -26,14 +39,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: {
-      canonical: `/pl/catalog/${id.toLowerCase()}`,
-      languages: {
-        en: `/catalog/${id.toLowerCase()}`,
-        pl: `/pl/catalog/${id.toLowerCase()}`,
-        "x-default": `/catalog/${id.toLowerCase()}`,
-      },
-    },
+    alternates: languageAlternates(`/pl/catalog/${id.toLowerCase()}`, {
+      en: `/catalog/${id.toLowerCase()}`,
+      pl: `/pl/catalog/${id.toLowerCase()}`,
+    }),
     openGraph: {
       title: `${title} | WitnessOps`,
       description,
@@ -50,7 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PolishOfferPage({ params }: PageProps) {
   const id = resolveSkuId((await params).skuId) as CanonicalOffsecProductId | null;
-  if (!id || !(id in POLISH_OFFERS)) notFound();
+  if (!id || !isCurrentPublicCatalogSku(id) || !(id in POLISH_OFFERS)) notFound();
   const sku = getSku(id);
   if (!sku) notFound();
   const copy = POLISH_OFFERS[id];
@@ -58,14 +67,28 @@ export default async function PolishOfferPage({ params }: PageProps) {
 
   if (buyerService) {
     return (
-      <BuyerServiceDetail
-        locale="pl"
-        service={buyerService}
-        technicalId={id}
-        requestHref={polishOfferRequestHref(id)}
-        verificationPath={copy.verification}
-        notIncluded={copy.exclusions}
-      />
+      <>
+        {id === "OFFSEC-EXTERNAL-EXPOSURE" ? (
+          <>
+            <JsonLd
+              id="public-exposure-service"
+              value={publicExposureServiceJsonLd("pl")}
+            />
+            <JsonLd
+              id="public-exposure-breadcrumbs"
+              value={publicExposureBreadcrumbJsonLd("pl")}
+            />
+          </>
+        ) : null}
+        <BuyerServiceDetail
+          locale="pl"
+          service={buyerService}
+          technicalId={id}
+          requestHref={polishOfferRequestHref(id)}
+          verificationPath={copy.verification}
+          notIncluded={copy.exclusions}
+        />
+      </>
     );
   }
 

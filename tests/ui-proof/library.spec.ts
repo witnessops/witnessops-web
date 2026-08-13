@@ -20,7 +20,7 @@ const expectedDestinations = {
     "/review/sample-report",
     "/review/sample-cases",
     "/catalog/workflows",
-    "/catalog/offsec",
+    "/catalog",
     "/verify",
     "/docs/how-it-works/verification",
     "/docs",

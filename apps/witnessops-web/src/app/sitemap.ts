@@ -1,18 +1,18 @@
 import { statSync } from "node:fs";
 import path from "node:path";
 import type { MetadataRoute } from "next";
-import { getSurface } from "@witnessops/config";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { listSignals } from "@witnessops/content/signals";
 import { getDocsSitemapEntries } from "@witnessops/content/sitemap";
 import { loadHomeContent, loadSupportIndex } from "@/lib/content";
 import { getPolishSkus } from "@/lib/public-i18n";
+import {
+  canonicalUrl,
+  sitemapLanguageAlternates,
+} from "@/lib/public-seo";
+import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
+import { BUYER_SERVICES } from "@/lib/buyer-services";
 
-const surface = getSurface("witnessops");
-const siteUrl =
-  process.env.NEXT_PUBLIC_OS_SITE_URL ??
-  surface?.canonicalUrl ??
-  "https://witnessops.com";
 const fallbackLastModified = new Date("2026-01-01T00:00:00.000Z");
 
 type StaticRoute = {
@@ -34,17 +34,24 @@ const staticRoutes: StaticRoute[] = [
     sourcePath: "src/app/(marketing)/catalog/workflows/page.tsx",
   },
   {
-    route: "/catalog/offsec",
-    sourcePath: "src/app/(marketing)/catalog/offsec/page.tsx",
-  },
-  {
     route: "/catalog/offsec-external-exposure",
     sourcePath: "src/app/(marketing)/catalog/[skuId]/page.tsx",
   },
-  {
-    route: "/catalog/operator-platform",
-    sourcePath: "src/app/(marketing)/catalog/operator-platform/page.tsx",
-  },
+  ...BUYER_SERVICES.filter(
+    (service) =>
+      service.productId &&
+      isCurrentPublicCatalogSku(service.productId) &&
+      service.detailHref.en !== "/catalog/offsec-external-exposure",
+  ).flatMap((service) =>
+    service.detailHref.en
+      ? [
+          {
+            route: service.detailHref.en,
+            sourcePath: "src/app/(marketing)/catalog/[skuId]/page.tsx",
+          },
+        ]
+      : [],
+  ),
   { route: "/review", sourcePath: "src/app/review/page.tsx" },
   {
     route: "/customer-security-review",
@@ -107,10 +114,6 @@ const staticRoutes: StaticRoute[] = [
     sourcePath: "src/app/review/sample-report/page.tsx",
   },
   {
-    route: "/access-change-proof-run",
-    sourcePath: "src/app/access-change-proof-run/page.tsx",
-  },
-  {
     route: "/proof-backed-security-systems",
     sourcePath: "src/app/proof-backed-security-systems/page.tsx",
   },
@@ -168,7 +171,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...[...staticRoutes, ...polishRoutes].map(({ route, sourcePath, lastModified }) => ({
-      url: `${siteUrl}${route}`,
+      url: canonicalUrl(route || "/"),
+      alternates: sitemapLanguageAlternates(route || "/"),
       lastModified:
         route === "/signals" && latestSignal
           ? new Date(latestSignal.lastModified)
@@ -177,12 +181,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             : getSourceLastModified(sourcePath ?? "src/app/page.tsx"),
     })),
     ...supportDocs.map((doc) => ({
-      url: `${siteUrl}/support/${doc.slug}`,
+      url: canonicalUrl(`/support/${doc.slug}`),
       lastModified: new Date(doc.lastModified),
     })),
     {
       url: getDocCanonicalUrl("witnessops", []),
       lastModified: getSourceLastModified("src/app/docs/page.tsx"),
+      alternates: sitemapLanguageAlternates("/docs"),
     },
     ...docs,
   ];

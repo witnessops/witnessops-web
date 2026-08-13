@@ -3,19 +3,16 @@ import Link from "next/link";
 
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
+import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
   title: "Dlaczego WitnessOps",
   description:
     "Ograniczona, niezależna weryfikacja jednej istotnej aktywności AI lub bezpieczeństwa: odtwórz, co było upoważnione, wykonane, zaobserwowane i nierozwiązane.",
-  alternates: {
-    canonical: "/pl/why-witnessops",
-    languages: {
-      en: "/why-witnessops",
-      pl: "/pl/why-witnessops",
-      "x-default": "/why-witnessops",
-    },
-  },
+  alternates: languageAlternates("/pl/why-witnessops", {
+    en: "/why-witnessops",
+    pl: "/pl/why-witnessops",
+  }),
 };
 
 const principles = [

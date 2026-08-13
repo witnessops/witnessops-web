@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { buyerServiceByProductId } from "@/lib/buyer-services";
+import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
@@ -9,14 +10,16 @@ import {
   publicContactMailto,
 } from "@/lib/public-contact";
 import { getSku } from "@witnessops/catalog";
+import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
   title: "Tell Us What You Need Reviewed",
   description:
     "Send a short, non-secret fit request for a questionnaire, server, launch, incident, access change or bounded workflow. No review starts from this form.",
-  alternates: {
-    canonical: "/review/request",
-  },
+  alternates: languageAlternates("/review/request", {
+    en: "/review/request",
+    pl: "/pl/review/request",
+  }),
   openGraph: {
     title: "Tell Us What You Need Reviewed | WitnessOps",
     description:
@@ -107,9 +110,12 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
   const one = (value: string | string[] | undefined) =>
     Array.isArray(value) ? value[0] : value;
   const productId = one(params.productId);
-  const sku = productId ? getSku(productId) : undefined;
-  const selectedOffer = productId ? buyerServiceByProductId(productId) : undefined;
-  const publicExposureOrder = productId === "OFFSEC-EXTERNAL-EXPOSURE";
+  const requestedSku = productId ? getSku(productId) : undefined;
+  const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
+    ? requestedSku
+    : undefined;
+  const selectedOffer = sku ? buyerServiceByProductId(sku.id) : undefined;
+  const publicExposureOrder = sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
   const activeNextSteps = publicExposureOrder ? publicExposureNextSteps : nextSteps;
   const activeOutputs = publicExposureOrder ? publicExposureOutputs : proofOutputs;
   const activeArtifacts = publicExposureOrder ? publicExposureArtifacts : sampleArtifacts.slice(0, 5);

@@ -11,6 +11,10 @@ import {
   legacyDocsHostRedirectLocation,
   normalizeHost,
 } from "@/lib/docs-host-routing";
+import {
+  DOCUMENT_LANGUAGE_HEADER,
+  documentLanguageForPathname,
+} from "@/lib/request-language";
 
 const surface = getSurface("witnessops");
 const primaryHost = surface?.hostname ?? "witnessops.com";
@@ -49,8 +53,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(location, 308);
   }
 
-  // Apex (and www): serve /docs in-app. No redirect to docs.witnessops.com.
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(
+    DOCUMENT_LANGUAGE_HEADER,
+    documentLanguageForPathname(pathname),
+  );
+
+  // The edge proxy owns apex/www canonicalization. The app supplies the
+  // initial-document language before React renders.
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {

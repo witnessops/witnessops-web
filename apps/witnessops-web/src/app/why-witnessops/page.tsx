@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getCanonicalAlternates } from "@witnessops/config";
 import { SectionShell } from "@/components/shared/section-shell";
 import { CtaButton } from "@/components/shared/cta-button";
+import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
   title: "Why WitnessOps",
   description:
     "Bounded independent verification of consequential AI and security work. Reconstruct what was authorized, executed, observed and left unresolved for one defined activity.",
-  alternates: getCanonicalAlternates("witnessops", "/why-witnessops"),
+  alternates: languageAlternates("/why-witnessops", {
+    en: "/why-witnessops",
+    pl: "/pl/why-witnessops",
+  }),
   openGraph: {
     title: "Why WitnessOps | WitnessOps",
     description:

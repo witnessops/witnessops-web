@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { canonicalUrl, languageAlternates } from "@/lib/public-seo";
 
 export function buildMetadata(seo: {
   title: string;
@@ -20,7 +21,10 @@ export function buildMetadata(seo: {
   return {
     title: seo.title,
     description: seo.description,
-    alternates: { canonical: seo.canonical_url },
+    alternates:
+      new URL(seo.canonical_url).pathname === "/"
+        ? languageAlternates("/", { en: "/", pl: "/pl" })
+        : { canonical: canonicalUrl(new URL(seo.canonical_url).pathname) },
     openGraph: {
       title: seo.og_title,
       description: seo.og_description,

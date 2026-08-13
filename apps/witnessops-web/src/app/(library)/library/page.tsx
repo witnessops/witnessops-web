@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CtaButton } from "@/components/shared/cta-button";
+import { languageAlternates } from "@/lib/public-seo";
 
 const primaryPaths = [
   {
@@ -93,11 +94,6 @@ const secondaryGroups = [
         href: "/catalog/workflows",
         note: "Bounded action and handover packages.",
       },
-      {
-        label: "Security review services",
-        href: "/catalog/offsec",
-        note: "Read-only and launch-readiness review shapes.",
-      },
     ],
   },
   {
@@ -130,10 +126,10 @@ export const metadata: Metadata = {
   title: "WitnessOps Library",
   description:
     "Public entry points for services, examples, receipt verification, and documentation.",
-  alternates: {
-    canonical: "/library",
-    languages: { en: "/library", pl: "/pl/library", "x-default": "/library" },
-  },
+  alternates: languageAlternates("/library", {
+    en: "/library",
+    pl: "/pl/library",
+  }),
 };
 
 export default function LibraryPage() {
