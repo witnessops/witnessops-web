@@ -74,6 +74,34 @@
   ],
   "headers": [
     {
+      "source": "/verify-token",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
+      ],
+      "regex": "^/verify-token(?:/)?$"
+    },
+    {
+      "source": "/api/verify-token",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
+      ],
+      "regex": "^/api/verify-token(?:/)?$"
+    },
+    {
       "source": "/:path*",
       "headers": [
         {
