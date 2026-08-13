@@ -391,6 +391,51 @@ fi
 source "${K3S_LIB}"
 expected_build_context_exclusions=$'/.env\n/.env.*\n/**/.env\n/**/.env.*\n/deploy/topology.env\n/.witnessops-token-store/\n/ops/receipts/\n/var/\n/.azure/\n/infra/main.parameters.json\n/.playwright-mcp/\n/.playwright-cli/\n/**/.playwright-cli/\naudit-*.png\n*-cards.png\n/tmp/\n/out/\n/output/'
 assert_output "${expected_build_context_exclusions}" build_context_exclusion_patterns
+python3() {
+  printf '%s\n' 'PASS packages=1 graph_sha256=test'
+}
+gate_success_stderr="$(mktemp "${TMPDIR:-/tmp}/witnessops-gate-success.XXXXXX")"
+gate_success_output=""
+if gate_success_output="$(run_supply_chain_gate 2>"${gate_success_stderr}")" \
+  && [[ -z "${gate_success_output}" ]] \
+  && grep -Fq 'PASS packages=1 graph_sha256=test' "${gate_success_stderr}"; then
+  pass=$((pass + 1))
+  echo "PASS: supply-chain gate keeps stdout reserved and evidence visible on stderr"
+else
+  fail=$((fail + 1))
+  echo "FAIL: supply-chain gate stdout/stderr contract is incorrect" >&2
+fi
+unset -f python3
+gate_failure_dir="$(mktemp -d "${TMPDIR:-/tmp}/witnessops-gate-failure.XXXXXX")"
+gate_failure_trace="${gate_failure_dir}/mutation-trace"
+gate_failure_stderr="${gate_failure_dir}/stderr"
+gate_failure_status=0
+gate_failure_output="$(
+  run_supply_chain_gate() {
+    printf '%s\n' 'forced gate failure' >&2
+    return 7
+  }
+  sync_build_context() {
+    printf '%s\n' sync_reached >>"${gate_failure_trace}"
+  }
+  remote() {
+    printf '%s\n' remote_reached >>"${gate_failure_trace}"
+  }
+  require_clean_or_confirm() { :; }
+  need() { :; }
+  build_shared_image gate-failure-test 2>"${gate_failure_stderr}"
+)" || gate_failure_status=$?
+if [[ "${gate_failure_status}" -ne 0 ]] \
+  && [[ -z "${gate_failure_output}" ]] \
+  && [[ ! -e "${gate_failure_trace}" ]] \
+  && grep -Fq 'forced gate failure' "${gate_failure_stderr}" \
+  && grep -Fq 'Supply Chain Gate failed; refusing remote build' "${gate_failure_stderr}"; then
+  pass=$((pass + 1))
+  echo "PASS: failed supply-chain gate stops before sync inside command substitution"
+else
+  fail=$((fail + 1))
+  echo "FAIL: failed supply-chain gate did not stop the captured build" >&2
+fi
 for docker_exclusion in \
   '.env' '.env.*' '**/.env' '**/.env.*' 'deploy/topology.env' \
   '.witnessops-token-store' 'ops/receipts' 'var' '.azure' \
@@ -459,7 +504,7 @@ assert_exit 2 prod_deployment_json_patch \
 remote_mode="ok"
 remote_log="$(mktemp "${TMPDIR:-/tmp}/witnessops-k3s-remote.XXXXXX")"
 apply_log="$(mktemp "${TMPDIR:-/tmp}/witnessops-k3s-apply.XXXXXX")"
-trap 'rm -rf "${rendered_test_dir}"; rm -f "${remote_log}" "${apply_log}"' EXIT
+trap 'rm -rf "${rendered_test_dir}" "${gate_failure_dir}"; rm -f "${gate_success_stderr}" "${remote_log}" "${apply_log}"' EXIT
 
 remote() {
   local command_text="$*"

@@ -116,7 +116,10 @@ run_supply_chain_gate() {
   fi
 
   log "running Supply Chain Gate before remote build (evidence ${evidence_dir})"
-  python3 "${REPO_ROOT}/tools/supply-chain-gate/supply_chain_gate.py" "${gate_args[@]}"
+  # build_shared_image is captured with command substitution, so stdout is a
+  # data channel reserved for the single image reference. Keep gate evidence
+  # visible to the operator without allowing it to corrupt that value.
+  python3 "${REPO_ROOT}/tools/supply-chain-gate/supply_chain_gate.py" "${gate_args[@]}" >&2
 }
 
 # Keep ignored custody state out of both the remote release directory and the
@@ -179,7 +182,12 @@ build_shared_image() {
 
   log "building shared image ${image} from HEAD ${head}"
   require_clean_or_confirm
-  run_supply_chain_gate
+  # build_shared_image runs inside command substitution in every build
+  # entrypoint. Bash does not reliably preserve errexit in that context, so
+  # make this release gate explicit and fail before any remote synchronization.
+  if ! run_supply_chain_gate; then
+    die "Supply Chain Gate failed; refusing remote build"
+  fi
 
   if ! sync_build_context \
     "${REPO_ROOT}/" "${DEPLOY_SSH}:${remote_dir}/" \
