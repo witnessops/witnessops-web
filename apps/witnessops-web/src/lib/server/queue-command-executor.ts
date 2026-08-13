@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { z } from "zod";
 
 import type { AdminActorAuthSource } from "@/lib/token-contract";
 import {
@@ -43,6 +44,36 @@ export type QueueCommandName =
   | "queue.supersede_scope_contract"
   | "queue.withdraw_scope_contract"
   | "queue.record_response";
+
+export const QUEUE_COMMAND_NAMES: readonly QueueCommandName[] = [
+  "queue.claim",
+  "queue.assign",
+  "queue.reassign",
+  "queue.unassign",
+  "queue.override_assign",
+  "queue.set_priority",
+  "queue.request_clarification",
+  "queue.clear_clarification",
+  "queue.start_scope_draft",
+  "queue.approve_scope_contract",
+  "queue.supersede_scope_contract",
+  "queue.withdraw_scope_contract",
+  "queue.record_response",
+];
+
+export function isQueueCommandName(value: unknown): value is QueueCommandName {
+  return (
+    typeof value === "string" &&
+    QUEUE_COMMAND_NAMES.includes(value as QueueCommandName)
+  );
+}
+
+export class QueueCommandInputError extends Error {
+  constructor(message = "Unknown queue command.") {
+    super(message);
+    this.name = "QueueCommandInputError";
+  }
+}
 
 export type QueueReasonCode =
   | "QUEUE_STATE_PRECONDITION_FAILED"
@@ -96,6 +127,77 @@ export type QueueCommandPayload =
       responseSummary: string;
       clarificationResolutionNote?: string;
     };
+
+const queueCommandPayloadSchema = z.discriminatedUnion("command", [
+  z.object({ command: z.literal("queue.claim") }).strict(),
+  z.object({
+    command: z.literal("queue.assign"),
+    targetOperator: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.reassign"),
+    targetOperator: z.string(),
+  }).strict(),
+  z.object({ command: z.literal("queue.unassign") }).strict(),
+  z.object({
+    command: z.literal("queue.override_assign"),
+    targetOperator: z.string(),
+    reason: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.set_priority"),
+    priority: z.enum(["low", "normal", "high", "urgent"]),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.request_clarification"),
+    question: z.string(),
+    reason: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.clear_clarification"),
+    reason: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.start_scope_draft"),
+    scopeStatement: z.string(),
+    systemsInScope: z.array(z.string()).optional(),
+    actorsInScope: z.array(z.string()).optional(),
+    explicitOutOfScope: z.array(z.string()).optional(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.approve_scope_contract"),
+    approvalNote: z.string().optional(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.supersede_scope_contract"),
+    reason: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.withdraw_scope_contract"),
+    reason: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.record_response"),
+    responseSummary: z.string(),
+    clarificationResolutionNote: z.string().optional(),
+  }).strict(),
+]);
+
+export function parseQueueCommandPayload(value: unknown): QueueCommandPayload {
+  const runtimeCommand =
+    value && typeof value === "object"
+      ? (value as { command?: unknown }).command
+      : undefined;
+  if (!isQueueCommandName(runtimeCommand)) {
+    throw new QueueCommandInputError();
+  }
+
+  const parsed = queueCommandPayloadSchema.safeParse(value);
+  if (!parsed.success) {
+    throw new QueueCommandInputError("Invalid queue command payload.");
+  }
+  return parsed.data;
+}
 
 export interface QueueCommandSuccess {
   ok: true;
@@ -719,7 +821,9 @@ export async function applyQueueCommand(
   ctx: QueueCommandContext,
   command: QueueCommandPayload,
 ): Promise<QueueCommandResult> {
+  const validatedCommand = parseQueueCommandPayload(command);
+
   return withIntakeLock(ctx.intakeId, (handle) =>
-    applyQueueCommandUnlocked(ctx, command, handle),
+    applyQueueCommandUnlocked(ctx, validatedCommand, handle),
   );
 }

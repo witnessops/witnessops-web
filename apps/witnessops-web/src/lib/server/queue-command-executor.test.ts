@@ -211,3 +211,49 @@ test("all intake writers share the queue lock and preserve both updates", async 
   assert.equal(stored?.queue?.projection.priority, "high");
   assert.equal(stored?.queue?.projection.projectionVersion, 1);
 });
+
+test("runtime command validation rejects an unknown discriminator before mutation", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-invalid-"));
+  process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
+  process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
+  await saveIntake(makeIntake("owner@test"));
+
+  await assert.rejects(
+    applyQueueCommand(
+      {
+        intakeId: "intk_queue_owned",
+        actor: "owner@test",
+        actorAuthSource: "oidc_session",
+        actorSessionHash: "session-hash",
+        role: "Delegated Operator",
+        expectedProjectionVersion: 0,
+        expectedEventSequence: 0,
+        idempotencyKey: "queue-invalid-runtime-command",
+        source: "test",
+      },
+      { command: "queue.unknown" } as never,
+    ),
+    /Unknown queue command/,
+  );
+  await assert.rejects(
+    applyQueueCommand(
+      {
+        intakeId: "intk_queue_owned",
+        actor: "owner@test",
+        actorAuthSource: "oidc_session",
+        actorSessionHash: "session-hash",
+        role: "Delegated Operator",
+        expectedProjectionVersion: 0,
+        expectedEventSequence: 0,
+        idempotencyKey: "queue-null-runtime-command",
+        source: "test",
+      },
+      null as never,
+    ),
+    /Unknown queue command/,
+  );
+
+  const stored = await getIntakeById("intk_queue_owned");
+  assert.equal(stored?.queue?.projection.projectionVersion, 0);
+  assert.equal(stored?.queue?.projection.eventSequence, 0);
+});
