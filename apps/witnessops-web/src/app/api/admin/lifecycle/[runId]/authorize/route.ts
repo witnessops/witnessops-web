@@ -46,9 +46,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
       note: "Control-plane run authorized. Execution may proceed.",
     });
   } catch (error) {
-    return invalid(
-      error instanceof Error ? error.message : "Unable to authorize control-plane run.",
-      502,
-    );
+    console.error("Control-plane run authorization failed", {
+      errorCode:
+        error && typeof error === "object" && "code" in error
+          ? String(error.code)
+          : "CONTROL_PLANE_AUTHORIZE_FAILED",
+    });
+    return invalid("Unable to authorize control-plane run.", 502);
   }
 }

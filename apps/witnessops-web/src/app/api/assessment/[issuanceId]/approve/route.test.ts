@@ -187,6 +187,38 @@ test("approval route captures explicit approval and hands off to control plane o
   assert.equal(fetchCalls.length, 1);
 });
 
+test("approval route does not expose control-plane error bodies", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-approval-error-"));
+  const issued = await issueVerifiedToken(baseDir);
+  applyTestEnv(baseDir);
+  process.env.CONTROL_PLANE_URL = "http://control-plane.internal";
+  process.env.CONTROL_PLANE_API_KEY = "cp-key";
+  global.fetch = (async () =>
+    new Response("secret=handoff-token trace=http://cp.private", { status: 500 })) as typeof fetch;
+
+  const response = await POST(
+    new Request(
+      `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}/approve`,
+      {
+        method: "POST",
+        body: JSON.stringify({ email: issued.email }),
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: issued.sessionCookie,
+        },
+      },
+    ),
+    { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
+  );
+  const payload = (await response.json()) as { error: string };
+  assert.equal(response.status, 502);
+  assert.equal(
+    payload.error,
+    "Scope approval was recorded, but downstream handoff is pending.",
+  );
+  assert.doesNotMatch(payload.error, /handoff-token|cp\.private/);
+});
+
 test("approval route rejects issuance and email without claimant session", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-approval-"));
   const issued = await issueVerifiedToken(baseDir);

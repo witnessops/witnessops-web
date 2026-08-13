@@ -75,7 +75,10 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
     try {
       const live = await getAssessmentStatus(record.assessmentRunId);
       if (live) {
-        liveRun = live;
+        liveRun = {
+          ...live,
+          error: live.error ? "Assessment failed upstream." : undefined,
+        };
         initialStatus = live.status;
       }
     } catch {

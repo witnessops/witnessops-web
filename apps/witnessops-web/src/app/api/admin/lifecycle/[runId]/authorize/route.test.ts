@@ -130,7 +130,31 @@ test("admin authorize route returns explicit control-plane conflicts", async () 
   assert.equal(response.status, 409);
   const payload = (await response.json()) as { ok: boolean; error: string };
   assert.equal(payload.ok, false);
-  assert.match(payload.error, /already authorized/);
+  assert.equal(payload.error, "Control-plane run authorization conflicts with its current state.");
+  assert.doesNotMatch(payload.error, /already authorized/);
+});
+
+test("admin authorize route does not expose upstream error bodies", async () => {
+  process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS = "1";
+  process.env.CONTROL_PLANE_URL = "https://cp.example.com";
+  process.env.CONTROL_PLANE_SERVICE_IDENTITY_SECRET = "service-secret";
+  process.env.CONTROL_PLANE_SERVICE_IDENTITY_SUBJECT = "witnessops-web";
+  globalThis.fetch = async () =>
+    new Response("secret=upstream-token internal=http://cp.private/trace", {
+      status: 500,
+    });
+
+  const response = await POST(
+    new NextRequest("http://localhost:3001/api/admin/lifecycle/run_demo123/authorize", {
+      method: "POST",
+      headers: { host: "localhost:3001" },
+    }),
+    { params: Promise.resolve({ runId: "run_demo123" }) },
+  );
+  const payload = (await response.json()) as { error: string };
+  assert.equal(response.status, 502);
+  assert.equal(payload.error, "Unable to authorize control-plane run.");
+  assert.doesNotMatch(payload.error, /upstream-token|cp\.private/);
 });
 
 test("admin authorize route requires admin authentication outside local development", async () => {

@@ -293,6 +293,7 @@ test("buildPostApprovalLifecycle: control plane unreachable -> failed", async ()
   assert.equal(view.stage, "failed");
   assert.equal(view.authoritative, null);
   assert.match(view.failureReason ?? "", /unreachable/i);
+  assert.doesNotMatch(view.failureReason ?? "", /ECONNREFUSED/);
 });
 
 test("buildPostApprovalLifecycle: control plane not configured -> failed", async () => {

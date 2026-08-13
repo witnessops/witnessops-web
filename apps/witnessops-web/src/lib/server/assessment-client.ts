@@ -6,6 +6,8 @@
  * so that the caller can degrade without crashing.
  */
 
+import { logUpstreamFailure, UpstreamServiceError } from "./upstream-error";
+
 export interface AssessmentTriggerResult {
   run_id: string;
   status: "pending" | "running" | "completed" | "failed";
@@ -88,8 +90,16 @@ export async function triggerAssessment(req: {
   });
 
   if (response.status !== 202) {
-    const detail = await response.text().catch(() => "(unreadable)");
-    throw new Error(`Assessment server returned ${response.status}: ${detail}`);
+    await logUpstreamFailure({
+      service: "assessment",
+      operation: "trigger",
+      response,
+    });
+    throw new UpstreamServiceError(
+      "ASSESSMENT_REQUEST_FAILED",
+      "Assessment service request failed.",
+      response.status,
+    );
   }
 
   const body = (await response.json()) as { run_id: string; status?: string };
@@ -125,8 +135,16 @@ export async function getAssessmentStatus(
   if (response.status === 404) return null;
 
   if (!response.ok) {
-    const detail = await response.text().catch(() => "(unreadable)");
-    throw new Error(`Assessment server returned ${response.status}: ${detail}`);
+    await logUpstreamFailure({
+      service: "assessment",
+      operation: "status",
+      response,
+    });
+    throw new UpstreamServiceError(
+      "ASSESSMENT_STATUS_FAILED",
+      "Assessment status is temporarily unavailable.",
+      response.status,
+    );
   }
 
   const body = (await response.json()) as { ok: boolean } & AssessmentStatusResult;
@@ -140,7 +158,7 @@ export async function getAssessmentStatus(
     findings_summary: body.findings_summary,
     signed_with: body.signed_with,
     completed_at: body.completed_at,
-    error: body.error,
+    error: body.error ? "Assessment failed upstream." : undefined,
     vpb_ready: body.vpb_ready,
     export_status: body.export_status,
     export_id: body.export_id,
