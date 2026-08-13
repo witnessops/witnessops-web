@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 
+import { decodeXmlText } from "./verify-public-seo-xml";
+
 type SitemapEntry = {
   url: string;
   languages: Record<string, string>;
@@ -16,15 +18,6 @@ function normalizeBaseUrl(value: string) {
   return url.toString().replace(/\/$/, "");
 }
 
-function decodeXml(value: string) {
-  return value
-    .replaceAll("&amp;", "&")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&apos;", "'")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">");
-}
-
 function parseSitemap(xml: string): SitemapEntry[] {
   return [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((match) => {
     const block = match[1];
@@ -37,11 +30,11 @@ function parseSitemap(xml: string): SitemapEntry[] {
         const hreflang = attributes.match(/hreflang="([^"]+)"/)?.[1];
         const href = attributes.match(/href="([^"]+)"/)?.[1];
         assert.ok(hreflang && href, `Malformed sitemap alternate in ${loc}`);
-        return [hreflang, decodeXml(href)];
+        return [hreflang, decodeXmlText(href)];
       }),
     );
 
-    return { url: decodeXml(loc.trim()), languages };
+    return { url: decodeXmlText(loc.trim()), languages };
   });
 }
 
