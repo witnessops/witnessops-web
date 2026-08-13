@@ -191,7 +191,9 @@ async function markResponseAttemptUnresolved(
     const current = await getIntakeById(intakeId);
     if (
       !current?.responseAttempt ||
-      current.responseAttempt.deliveryAttemptId !== deliveryAttemptId
+      current.responseAttempt.deliveryAttemptId !== deliveryAttemptId ||
+      (current.responseAttempt.status !== "reserved" &&
+        current.responseAttempt.status !== "sent")
     ) {
       return;
     }
@@ -287,7 +289,7 @@ export async function respondToIntake(
         responseAttempt: record.responseAttempt
           ? {
               ...record.responseAttempt,
-              status: "sent",
+              status: "reserved",
               updatedAt: respondedAt,
             }
           : undefined,
@@ -330,6 +332,33 @@ export async function respondToIntake(
       "Mail delivery was accepted, but ledger confirmation is unresolved; reconcile it before retrying.",
       500,
     );
+  }
+
+  try {
+    await withIntakeLock(intake.intakeId, async (handle) => {
+      const current = await getIntakeById(intake.intakeId);
+      if (
+        !current?.responseAttempt ||
+        current.responseAttempt.deliveryAttemptId !== deliveryAttemptId ||
+        current.responseAttempt.status !== "reserved"
+      ) {
+        return;
+      }
+      await updateIntakeWithinLock(handle, intake.intakeId, (record) => ({
+        ...record,
+        responseAttempt: record.responseAttempt
+          ? {
+              ...record.responseAttempt,
+              status: "sent",
+              updatedAt: respondedAt,
+            }
+          : undefined,
+      }));
+    });
+  } catch {
+    // firstResponse plus INTAKE_RESPONDED are the durable delivery truth. A
+    // stale reservation marker cannot authorize another send and may be
+    // repaired independently without weakening the no-resend invariant.
   }
 
   return {
