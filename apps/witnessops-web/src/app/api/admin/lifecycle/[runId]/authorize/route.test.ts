@@ -179,13 +179,14 @@ test("admin authorize route preserves named oidc actor context", async () => {
 
   const issuedAt = Date.now();
   const sessionCookie = await createAdminSessionCookie({
-    version: 2,
+    version: 3,
     identityProvider: "google",
     issuer: "https://accounts.google.com",
     subject: "google-subject-authorize",
     actor: "oidc:https://accounts.google.com#google-subject-authorize",
     actorAuthSource: "oidc_session",
     actorSessionHash: "abcd1234abcd5678",
+    role: "Founder",
     iat: issuedAt,
     exp: issuedAt + 60_000,
   });

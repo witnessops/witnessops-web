@@ -7,6 +7,7 @@ import { sendVerificationEmail } from "@/lib/server/send-verification-email";
 import {
   AdminCoreError,
   approveReviewRequest,
+  assertDeliveryActionAuthorized,
   buildDeliveryReadiness,
   buildProofReadiness,
   classifyInboxAttachment,
@@ -70,15 +71,9 @@ function responseError(error: unknown): NextResponse {
   );
 }
 
-function roleFromEnvironment(): CoreActor["role"] {
-  const role = process.env.WITNESSOPS_ADMIN_ROLE;
-  if (role === "Delegated Operator" || role === "Administrator" || role === "Founder") return role;
-  return "Founder";
-}
-
 async function actorFor(request: NextRequest): Promise<CoreActor | null> {
   const session = await getVerifiedAdminSession(request);
-  return session ? { actor: session.actor, role: roleFromEnvironment() } : null;
+  return session ? { actor: session.actor, role: session.role } : null;
 }
 
 async function jsonBody(request: NextRequest): Promise<Record<string, unknown>> {
@@ -285,6 +280,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (resource === "deliveries" && idValue && action === "send") {
       const delivery = await getDelivery(idValue);
       if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+      await assertDeliveryActionAuthorized(idValue, actor);
       if (delivery.state === "sent" || delivery.state === "acknowledged") return NextResponse.json({ ok: true, item: delivery, idempotent: true });
       const customer = await getCustomer(delivery.customerId);
       if (!customer) throw new AdminCoreError("STORE_CORRUPT", "Delivery customer is missing.", 500);

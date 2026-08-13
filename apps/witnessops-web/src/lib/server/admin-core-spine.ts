@@ -8,6 +8,12 @@ import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_PRIMARY_HREF,
 } from "@/lib/public-contact";
+import {
+  type AdminRole,
+  hasAdministrationAuthority,
+  hasBusinessAuthority,
+  isSameOperator,
+} from "./admin-authorization";
 import { getAdmissionStoreDir } from "./token-store";
 
 export const ADMIN_CORE_SCHEMA_VERSION = 1 as const;
@@ -375,7 +381,7 @@ export interface CoreState {
 
 export interface CoreActor {
   actor: string;
-  role?: "Founder" | "Delegated Operator" | "Administrator";
+  role?: AdminRole;
 }
 
 export class AdminCoreError extends Error {
@@ -564,13 +570,75 @@ function appendIntegration(
 
 function requireRole(actor: CoreActor, action: "business-authority" | "administration"): void {
   const role = actor.role ?? "Founder";
-  if (action === "business-authority" && role === "Administrator") {
+  if (action === "business-authority" && !hasBusinessAuthority(role)) {
     throw new AdminCoreError(
       "BUSINESS_AUTHORITY_REQUIRED",
       "Administrator access does not grant authority to approve proof scope or customer-facing claims.",
       403,
     );
   }
+  if (action === "administration" && !hasAdministrationAuthority(role)) {
+    throw new AdminCoreError(
+      "ADMINISTRATION_AUTHORITY_REQUIRED",
+      "This action requires Founder or Administrator authority.",
+      403,
+    );
+  }
+}
+
+function requireAssignedBusinessRecord(
+  actor: CoreActor,
+  assignedOperator: string | null,
+): void {
+  requireRole(actor, "business-authority");
+  if (
+    (actor.role ?? "Founder") === "Delegated Operator" &&
+    !isSameOperator(assignedOperator, actor.actor)
+  ) {
+    throw new AdminCoreError(
+      "RECORD_ASSIGNMENT_REQUIRED",
+      "Delegated operators may change only records assigned to them.",
+      403,
+    );
+  }
+}
+
+function requireDeliveryAssignment(
+  state: CoreState,
+  delivery: DeliveryRecord,
+  actor: CoreActor,
+): ProofRunRecord {
+  const run = state.proofRuns.find((candidate) => candidate.id === delivery.proofRunId);
+  if (!run) throw new AdminCoreError("STORE_CORRUPT", "Delivery proof run is missing.", 500);
+  requireAssignedBusinessRecord(actor, run.owner);
+  return run;
+}
+
+function linkedInboxOwner(state: CoreState, item: InboxItemRecord): string | null {
+  if (!item.reviewRequestId) return null;
+  const request = state.reviewRequests.find(
+    (candidate) => candidate.id === item.reviewRequestId,
+  );
+  if (!request) {
+    throw new AdminCoreError("STORE_CORRUPT", "Linked review request is missing.", 500);
+  }
+  return request.owner;
+}
+
+function requireInboxAssignment(
+  state: CoreState,
+  item: InboxItemRecord,
+  actor: CoreActor,
+): void {
+  const owner = linkedInboxOwner(state, item);
+  if (!owner && (actor.role ?? "Founder") === "Delegated Operator") {
+    throw new AdminCoreError(
+      "RECORD_ASSIGNMENT_REQUIRED",
+      "This inbox item has not been assigned to the delegated operator.",
+      403,
+    );
+  }
+  requireAssignedBusinessRecord(actor, owner);
 }
 
 function requireTransition<T extends string>(
@@ -813,6 +881,7 @@ export async function reconcileGmailInbox(
   input: GmailSyncReconciliationInput,
   actor: CoreActor,
 ): Promise<{ receipt: GmailSyncReceipt; idempotent: boolean }> {
+  requireRole(actor, "administration");
   return mutateState((state) => {
     const prior = state.gmailSyncReceipts.find((receipt) => receipt.idempotencyKey === input.idempotencyKey);
     if (prior) return { receipt: clone(prior), idempotent: true };
@@ -969,6 +1038,7 @@ export async function importGmailInboxItem(
   input: GmailInboxImport,
   actor: CoreActor,
 ): Promise<{ item: InboxItemRecord; created: boolean }> {
+  requireRole(actor, "administration");
   const messageId = assertNonEmpty(input.gmailMessageId, "gmailMessageId");
   const threadId = assertNonEmpty(input.gmailThreadId, "gmailThreadId");
   const sender = assertNonEmpty(input.sender, "sender");
@@ -1043,6 +1113,7 @@ export async function classifyInboxAttachment(
   return mutateState((state) => {
     const item = state.inboxItems.find((candidate) => candidate.id === inboxItemId);
     if (!item) throw new AdminCoreError("NOT_FOUND", "Inbox item not found.", 404);
+    requireInboxAssignment(state, item, actor);
     const attachment = item.attachments.find((candidate) => candidate.attachmentId === attachmentId);
     if (!attachment) throw new AdminCoreError("NOT_FOUND", "Attachment not found.", 404);
     attachment.classification = classification;
@@ -1074,6 +1145,7 @@ export async function recordGmailLabelSync(
   return mutateState((state) => {
     const item = state.inboxItems.find((candidate) => candidate.id === inboxItemId);
     if (!item) throw new AdminCoreError("NOT_FOUND", "Inbox item not found.", 404);
+    requireInboxAssignment(state, item, actor);
     const now = isoNow();
     appendIntegration(state, {
       integration: "gmail",
@@ -1126,13 +1198,17 @@ export async function convertInboxItemToReviewRequest(
       const existing = state.reviewRequests.find((request) => request.id === item.reviewRequestId);
       const customer = existing ? state.customers.find((candidate) => candidate.id === existing.customerId) : null;
       if (!existing || !customer) throw new AdminCoreError("STORE_CORRUPT", "Linked review request is incomplete.", 500);
+      requireAssignedBusinessRecord(actor, existing.owner);
       return { reviewRequest: clone(existing), customer: clone(customer), created: false };
     }
     const existingIdempotency = state.idempotency[idempotencyKey];
     if (existingIdempotency) {
       const existing = state.reviewRequests.find((request) => request.id === existingIdempotency.recordId);
       const customer = existing ? state.customers.find((candidate) => candidate.id === existing.customerId) : null;
-      if (existing && customer) return { reviewRequest: clone(existing), customer: clone(customer), created: false };
+      if (existing && customer) {
+        requireAssignedBusinessRecord(actor, existing.owner);
+        return { reviewRequest: clone(existing), customer: clone(customer), created: false };
+      }
     }
 
     const email = extractEmail(item.sender);
@@ -1231,6 +1307,7 @@ export async function transitionReviewRequest(
   return mutateState((state) => {
     const request = state.reviewRequests.find((candidate) => candidate.id === reviewRequestId);
     if (!request) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
+    requireAssignedBusinessRecord(actor, request.owner);
     requireTransition("review_request", request.state, nextState, reviewTransitions);
     const previous = request.state;
     request.state = nextState;
@@ -1265,6 +1342,7 @@ export async function approveReviewRequest(
   return mutateState((state) => {
     const request = state.reviewRequests.find((candidate) => candidate.id === reviewRequestId);
     if (!request) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
+    requireAssignedBusinessRecord(actor, request.owner);
     const product = state.productContracts.find((candidate) => candidate.id === productContractVersionId);
     if (!product) throw new AdminCoreError("NOT_FOUND", "Product contract version not found.", 404);
     requireTransition("review_request", request.state, "approved_for_proof_run", reviewTransitions);
@@ -1298,6 +1376,7 @@ export async function addReviewRequestNote(
   return mutateState((state) => {
     const request = state.reviewRequests.find((candidate) => candidate.id === reviewRequestId);
     if (!request) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
+    requireAssignedBusinessRecord(actor, request.owner);
     const prior = request.internalNotes.at(-1);
     const note: VersionedNote = {
       noteId: id("note"),
@@ -1329,9 +1408,22 @@ export async function updateCustomer(
   patch: Partial<Pick<CustomerRecord, "name" | "organization" | "notes" | "owner">>,
   actor: CoreActor,
 ): Promise<CustomerRecord> {
+  requireRole(actor, "business-authority");
   return mutateState((state) => {
     const customer = state.customers.find((candidate) => candidate.id === customerId);
     if (!customer) throw new AdminCoreError("NOT_FOUND", "Customer not found.", 404);
+    requireAssignedBusinessRecord(actor, customer.owner);
+    if (
+      (actor.role ?? "Founder") === "Delegated Operator" &&
+      patch.owner !== undefined &&
+      !isSameOperator(patch.owner, actor.actor)
+    ) {
+      throw new AdminCoreError(
+        "ASSIGNMENT_CHANGE_NOT_ALLOWED",
+        "Delegated operators cannot reassign customer ownership.",
+        403,
+      );
+    }
     if (patch.name !== undefined) customer.name = assertNonEmpty(patch.name, "name");
     if (patch.organization !== undefined) customer.organization = patch.organization?.trim() || null;
     if (patch.notes !== undefined) customer.notes = patch.notes.trim();
@@ -1357,7 +1449,7 @@ export async function createProductContractVersion(
   input: Omit<ProductContractVersionRecord, "id" | "createdAt" | "updatedAt" | "status"> & { status?: ProductContractVersionRecord["status"] },
   actor: CoreActor,
 ): Promise<ProductContractVersionRecord> {
-  requireRole(actor, "business-authority");
+  requireRole(actor, "administration");
   return mutateState((state) => {
     const now = isoNow();
     const product: ProductContractVersionRecord = {
@@ -1398,13 +1490,17 @@ export async function createProofRunForRequest(
 ): Promise<ProofRunRecord> {
   requireRole(actor, "business-authority");
   return mutateState((state) => {
+    const request = state.reviewRequests.find((candidate) => candidate.id === reviewRequestId);
+    if (!request) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
+    requireAssignedBusinessRecord(actor, request.owner);
     const existingIdempotency = state.idempotency[idempotencyKey];
     if (existingIdempotency) {
       const existing = state.proofRuns.find((run) => run.id === existingIdempotency.recordId);
-      if (existing) return clone(existing);
+      if (existing) {
+        requireAssignedBusinessRecord(actor, existing.owner);
+        return clone(existing);
+      }
     }
-    const request = state.reviewRequests.find((candidate) => candidate.id === reviewRequestId);
-    if (!request) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
     const product = state.productContracts.find((candidate) => candidate.id === productContractVersionId);
     if (!product) throw new AdminCoreError("NOT_FOUND", "Product contract version not found.", 404);
     if (request.state !== "approved_for_proof_run") {
@@ -1483,6 +1579,18 @@ export async function updateProofRun(
   return mutateState((state) => {
     const run = state.proofRuns.find((candidate) => candidate.id === proofRunId);
     if (!run) throw new AdminCoreError("NOT_FOUND", "Proof run not found.", 404);
+    requireAssignedBusinessRecord(actor, run.owner);
+    if (
+      (actor.role ?? "Founder") === "Delegated Operator" &&
+      patch.owner !== undefined &&
+      !isSameOperator(patch.owner, actor.actor)
+    ) {
+      throw new AdminCoreError(
+        "ASSIGNMENT_CHANGE_NOT_ALLOWED",
+        "Delegated operators cannot reassign proof-run ownership.",
+        403,
+      );
+    }
     Object.assign(run, Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)));
     run.updatedAt = isoNow();
     appendAudit(state, {
@@ -1510,6 +1618,7 @@ export async function transitionProofRun(
   return mutateState((state) => {
     const run = state.proofRuns.find((candidate) => candidate.id === proofRunId);
     if (!run) throw new AdminCoreError("NOT_FOUND", "Proof run not found.", 404);
+    requireAssignedBusinessRecord(actor, run.owner);
     requireTransition("proof_run", run.state, nextState, proofTransitions);
     if (nextState === "complete") {
       const readiness = buildProofReadinessCheck(run);
@@ -1574,6 +1683,7 @@ export async function prepareDelivery(
   return mutateState((state) => {
     const run = state.proofRuns.find((candidate) => candidate.id === proofRunId);
     if (!run) throw new AdminCoreError("NOT_FOUND", "Proof run not found.", 404);
+    requireAssignedBusinessRecord(actor, run.owner);
     if (run.deliveryId) {
       const existing = state.deliveries.find((delivery) => delivery.id === run.deliveryId);
       if (existing) return clone(existing);
@@ -1630,6 +1740,7 @@ export async function updateDeliveryDraft(
   return mutateState((state) => {
     const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
     if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    requireDeliveryAssignment(state, delivery, actor);
     Object.assign(delivery, Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)));
     delivery.updatedAt = isoNow();
     appendAudit(state, {
@@ -1684,6 +1795,7 @@ export async function transitionDelivery(
   return mutateState((state) => {
     const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
     if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    requireDeliveryAssignment(state, delivery, actor);
     requireTransition("delivery", delivery.state, nextState, deliveryTransitions);
     if (nextState === "ready_for_operator_review") {
       const readiness = buildDeliveryReadinessSync(state, delivery.id);
@@ -1757,8 +1869,7 @@ export async function linkReceiptToDelivery(
   return mutateState((state) => {
     const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
     if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
-    const run = state.proofRuns.find((candidate) => candidate.id === delivery.proofRunId);
-    if (!run) throw new AdminCoreError("STORE_CORRUPT", "Delivery proof run is missing.", 500);
+    const run = requireDeliveryAssignment(state, delivery, actor);
     const receiptId = assertNonEmpty(input.receiptId, "receiptId");
     const mechanism = assertNonEmpty(input.verifierMechanism, "verifierMechanism");
     const verifierResult = assertNonEmpty(input.verifierResult, "verifierResult");
@@ -1826,6 +1937,7 @@ export async function recordDeliverySent(
   return mutateState((state) => {
     const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
     if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    requireDeliveryAssignment(state, delivery, actor);
     if (delivery.state === "sent" || delivery.state === "acknowledged") return clone(delivery);
     requireTransition("delivery", delivery.state, "sent", deliveryTransitions);
     const readiness = buildDeliveryReadinessSync(state, delivery.id);
@@ -1863,6 +1975,16 @@ export async function recordDeliverySent(
     });
     return clone(delivery);
   });
+}
+
+export async function assertDeliveryActionAuthorized(
+  deliveryId: string,
+  actor: CoreActor,
+): Promise<void> {
+  const state = await readState();
+  const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
+  if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+  requireDeliveryAssignment(state, delivery, actor);
 }
 
 export async function recordIntegrationFailure(

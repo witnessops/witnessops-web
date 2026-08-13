@@ -1,6 +1,12 @@
 import { randomUUID } from "node:crypto";
 
 import type { AdminActorAuthSource } from "@/lib/token-contract";
+import {
+  type AdminRole,
+  hasAdministrationAuthority,
+  hasBusinessAuthority,
+  isSameOperator,
+} from "./admin-authorization";
 
 import {
   type QueueClarificationRecord,
@@ -49,12 +55,12 @@ export type QueueReasonCode =
   | "SCOPE_CONTRACT_DRAFT_ALREADY_EXISTS"
   | "CLARIFICATION_REQUIRED";
 
-interface QueueCommandContext {
+export interface QueueCommandContext {
   intakeId: string;
   actor: string;
   actorAuthSource: AdminActorAuthSource;
   actorSessionHash: string | null;
-  isAdmin: boolean;
+  role: AdminRole;
   expectedProjectionVersion?: number;
   expectedEventSequence?: number;
   idempotencyKey: string;
@@ -133,6 +139,26 @@ function ensureActor(actor: string): string {
   return normalized;
 }
 
+const ASSIGNMENT_COMMANDS = new Set<QueueCommandName>([
+  "queue.assign",
+  "queue.reassign",
+  "queue.unassign",
+  "queue.override_assign",
+]);
+
+function isQueueCommandAuthorized(
+  ctx: QueueCommandContext,
+  command: QueueCommandName,
+  assignedOperator: string | null,
+): boolean {
+  if (ASSIGNMENT_COMMANDS.has(command)) {
+    return hasAdministrationAuthority(ctx.role);
+  }
+  if (!hasBusinessAuthority(ctx.role)) return false;
+  if (command === "queue.claim") return assignedOperator === null;
+  return ctx.role === "Founder" || isSameOperator(assignedOperator, ctx.actor);
+}
+
 function findScopeContract(
   bundle: QueueRecordBundle,
   scopeContractId: string,
@@ -191,6 +217,10 @@ export async function applyQueueCommand(
   const actor = ensureActor(ctx.actor);
   const bundle = buildQueueBundle(intake);
   const projection = bundle.projection;
+
+  if (!isQueueCommandAuthorized(ctx, command.command, projection.assignedOperator)) {
+    return failure(command.command, intake.intakeId, ["AUTHORIZATION_REQUIRED"]);
+  }
 
   if (
     typeof ctx.expectedProjectionVersion === "number" &&
@@ -267,11 +297,6 @@ export async function applyQueueCommand(
       break;
     }
     case "queue.assign": {
-      if (!ctx.isAdmin) {
-        return failure(command.command, intake.intakeId, [
-          "AUTHORIZATION_REQUIRED",
-        ]);
-      }
       if (nextProjection.assignedOperator) {
         return failure(command.command, intake.intakeId, ["OWNER_CONFLICT"]);
       }
@@ -312,11 +337,6 @@ export async function applyQueueCommand(
       break;
     }
     case "queue.override_assign": {
-      if (!ctx.isAdmin) {
-        return failure(command.command, intake.intakeId, [
-          "AUTHORIZATION_REQUIRED",
-        ]);
-      }
       const target = command.targetOperator.trim();
       const reason = command.reason.trim();
       if (!target || !reason) {

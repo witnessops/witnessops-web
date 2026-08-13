@@ -33,6 +33,37 @@ import {
 const founder = { actor: "founder@test", role: "Founder" as const };
 const administrator = { actor: "admin@test", role: "Administrator" as const };
 
+test("delegated operators may mutate only records assigned to them", async () => {
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "witnessops-admin-core-ownership-"));
+  await resetAdminCoreStoreForTests();
+
+  const imported = await importGmailInboxItem({
+    gmailMessageId: "gmail-msg-owned-001",
+    gmailThreadId: "gmail-thread-owned-001",
+    sender: "Owner Example <owner@example.com>",
+    recipients: ["engage@mail.witnessops.com"],
+    subject: "Assigned review",
+    receivedAt: "2026-08-13T08:00:00Z",
+    excerpt: "Review this bounded request.",
+  }, founder);
+  const owner = { actor: "owner@test", role: "Delegated Operator" as const };
+  const otherOperator = { actor: "other@test", role: "Delegated Operator" as const };
+  const converted = await convertInboxItemToReviewRequest(imported.item.id, owner);
+
+  await assert.rejects(
+    () => transitionReviewRequest(converted.reviewRequest.id, "triage", otherOperator),
+    (error: unknown) =>
+      error instanceof AdminCoreError && error.code === "RECORD_ASSIGNMENT_REQUIRED",
+  );
+
+  const transitioned = await transitionReviewRequest(
+    converted.reviewRequest.id,
+    "triage",
+    owner,
+  );
+  assert.equal(transitioned.state, "triage");
+});
+
 test("admin core spine covers the complete message-to-receipt operating path", async () => {
   process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "witnessops-admin-core-"));
   await resetAdminCoreStoreForTests();
