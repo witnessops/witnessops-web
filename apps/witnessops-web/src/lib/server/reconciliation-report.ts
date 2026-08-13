@@ -17,6 +17,7 @@ import {
   type DeliveryEvidenceSubcase,
   type ReconciliationReportSubcase,
 } from "./reconciliation-subcases";
+import type { CoreActor } from "./admin-core-spine";
 
 export const reconciliationReportDisclaimer =
   "Reconciliation records an operator judgment about ambiguous evidence; it does not prove that the missing durable confirmation ever existed. Resolved ambiguity may come from either manual reconciliation or later strong downstream provider evidence, but only reconciliation fields record human judgment.";
@@ -371,7 +372,7 @@ export function buildReconciliationReportFromView(
   };
 }
 
-export async function buildReconciliationReport(): Promise<ReconciliationReport> {
-  const view = await buildAdmissionQueueView();
+export async function buildReconciliationReport(actor?: CoreActor): Promise<ReconciliationReport> {
+  const view = await buildAdmissionQueueView(actor);
   return buildReconciliationReportFromView(view);
 }

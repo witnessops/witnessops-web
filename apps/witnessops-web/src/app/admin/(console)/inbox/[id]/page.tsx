@@ -5,6 +5,7 @@ import { CoreAction } from "../../../../../components/admin/admin-core-ui";
 import { CoreAuditTimeline, CoreMeta, CorePage, CoreState, CoreTable } from "../../../../../components/admin/admin-core-view";
 import { getInboxItem, listAuditEvents } from "@/lib/server/admin-core-spine";
 import styles from "../../../../../components/admin/admin.module.css";
+import { getAdminPageActor } from "@/lib/server/admin-page-session";
 
 export const metadata: Metadata = { title: "Admin — Inbox Item", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -12,9 +13,10 @@ interface RouteContext { params: Promise<{ id: string }> }
 
 export default async function AdminInboxDetailPage({ params }: RouteContext) {
   const { id } = await params;
-  const item = await getInboxItem(id);
+  const actor = await getAdminPageActor();
+  const item = await getInboxItem(id, actor);
   if (!item) notFound();
-  const events = await listAuditEvents(item.lineageId);
+  const events = await listAuditEvents(item.lineageId, actor);
   return <CorePage title={item.subject} eyebrow="Inbox item">
     <div className={styles.coreMetaGrid}><CoreMeta label="State" value={<CoreState value={item.state} />} /><CoreMeta label="Gmail message" value={item.gmailMessageId} /><CoreMeta label="Gmail thread" value={item.gmailThreadId} /><CoreMeta label="From" value={item.sender} /><CoreMeta label="Received" value={item.receivedAt} /></div>
     <div className={styles.coreDetailSection}><div className={styles.coreDetailSectionTitle}>Message excerpt</div><div className={styles.coreText}>{item.excerpt || "No excerpt retained; open the original Gmail thread."}</div></div>

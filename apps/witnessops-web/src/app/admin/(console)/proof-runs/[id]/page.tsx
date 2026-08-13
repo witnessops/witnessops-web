@@ -5,6 +5,7 @@ import { CoreAction, ProofRunOperatorForm } from "../../../../../components/admi
 import { CoreAuditTimeline, CoreCard, CoreMeta, CorePage, CoreState } from "../../../../../components/admin/admin-core-view";
 import { buildProofReadiness, getProofRun, listAuditEvents } from "@/lib/server/admin-core-spine";
 import styles from "../../../../../components/admin/admin.module.css";
+import { getAdminPageActor } from "@/lib/server/admin-page-session";
 
 export const metadata: Metadata = { title: "Admin — Proof Run", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -12,9 +13,10 @@ interface RouteContext { params: Promise<{ id: string }> }
 
 export default async function AdminProofRunDetailPage({ params }: RouteContext) {
   const { id } = await params;
-  const run = await getProofRun(id);
+  const actor = await getAdminPageActor();
+  const run = await getProofRun(id, actor);
   if (!run) notFound();
-  const [readiness, events] = await Promise.all([buildProofReadiness(id), listAuditEvents(run.lineageId)]);
+  const [readiness, events] = await Promise.all([buildProofReadiness(id, actor), listAuditEvents(run.lineageId, actor)]);
   const nextState: Record<string, string> = { planned: "ready", ready: "running", running: "operator_review", operator_review: "complete", blocked: "ready" };
   return <CorePage title={run.id} eyebrow="Proof run">
     <div className={styles.coreMetaGrid}><CoreMeta label="State" value={<CoreState value={run.state} />} /><CoreMeta label="Evidence" value={<CoreState value={run.evidenceState} />} /><CoreMeta label="Product contract" value={<Link href={`/admin/products/${run.productContractVersionId}`} className={styles.inlineLink}>{run.productContractSnapshot.productName} v{run.productContractSnapshot.contractVersion}</Link>} /><CoreMeta label="Owner" value={run.owner || "Unassigned"} /><CoreMeta label="Next action" value={run.nextAction} /></div>

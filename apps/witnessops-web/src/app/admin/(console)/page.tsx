@@ -5,6 +5,7 @@ import { AdminOverviewGrid } from "../../../components/admin/admin-overview-grid
 import { AdminEmptyState } from "../../../components/admin/admin-empty-state";
 import { buildLifecycleByRunId } from "../../../components/admin/admin-admission-queue";
 import { AdminCoreDashboard } from "../../../components/admin/admin-core-dashboard";
+import { getAdminPageActor } from "@/lib/server/admin-page-session";
 
 export const metadata: Metadata = {
   title: "Admin — Overview",
@@ -18,7 +19,7 @@ export default async function AdminOverviewPage() {
   let report;
 
   try {
-    view = await buildAdmissionQueueView();
+    view = await buildAdmissionQueueView(await getAdminPageActor());
     report = buildReconciliationReportFromView(view);
   } catch (err) {
     const message =
