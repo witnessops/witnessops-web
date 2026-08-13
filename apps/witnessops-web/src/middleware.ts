@@ -66,6 +66,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // Admin paths must never inherit the public static-file exclusion below:
+    // receipt identifiers are external values and may legitimately contain a
+    // period. API routes keep their own route-level session checks.
+    "/admin/:path*",
     "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\..*).*)",
   ],
 };

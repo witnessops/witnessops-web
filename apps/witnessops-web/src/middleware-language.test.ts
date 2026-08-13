@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server.js";
+
+import { config } from "./middleware";
 
 const middlewareSource = readFileSync(
   resolve(__dirname, "middleware.ts"),
@@ -19,4 +22,14 @@ test("middleware passes the requested locale into the server root layout", () =>
 test("Polish language no longer depends on client hydration", () => {
   assert.doesNotMatch(middlewareSource, /document\.documentElement\.lang/);
   assert.doesNotMatch(layoutSource, /PolishLocaleBoundary/);
+});
+
+test("admin middleware matches dotted dynamic paths", () => {
+  assert.equal(
+    unstable_doesMiddlewareMatch({
+      config,
+      url: "https://witnessops.com/admin/receipts/customer.receipt.v1",
+    }),
+    true,
+  );
 });

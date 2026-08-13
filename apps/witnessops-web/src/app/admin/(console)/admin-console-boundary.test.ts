@@ -13,6 +13,8 @@ test("admin console layout remains noindex and admin-console only", () => {
   assert.match(combinedSource, /AdminConsoleShell/);
   assert.match(combinedSource, /AdminSidebar/);
   assert.match(combinedSource, /AdminAlertBell/);
+  assert.match(combinedSource, /getVerifiedAdminSession/);
+  assert.match(combinedSource, /redirect\("\/admin\/login"\)/);
   assert.match(combinedSource, /aria-label=\"Admin navigation\"/);
   assert.match(combinedSource, /Authenticated/);
 
