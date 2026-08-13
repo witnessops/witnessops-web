@@ -21,9 +21,21 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.match(source, /data-footer-motto="proof-beats-memory"/);
   assert.match(source, /Proof beats memory\./);
   assert.match(source, /FOOTER_MOTTO/);
+  assert.match(source, /FOOTER_NAV_STYLE/);
+  assert.match(source, /FOOTER_DISPLAY_STYLE/);
+  assert.match(source, /fontFamily: "var\(--font-sans\)"/);
+  assert.match(source, /fontFamily: "var\(--font-display\)"/);
   assert.match(source, /public-footer/);
   assert.match(source, /grid-cols-2/);
-  assert.match(source, /text-xs font-medium/);
+  assert.match(
+    source,
+    /lg:grid-cols-\[minmax\(0,4fr\)_minmax\(0,3fr\)_minmax\(280px,3fr\)\]/,
+  );
+  assert.doesNotMatch(
+    source,
+    /data-footer-motto="proof-beats-memory"[\s\S]{0,180}text-center/,
+    "Footer motto should stay with the copyright instead of becoming an orphaned centered row.",
+  );
   assert.match(globals, /footer\.public-shell\.public-footer\[data-brand-footer\]/);
   assert.match(globals, /--color-surface-bg: #050505/);
   assert.match(globals, /--color-text-primary: #fafaf7/);
@@ -42,6 +54,21 @@ test("footer keeps readable text contrast and sizing", () => {
     /color:\s*"var\(--color-surface-border\)"/,
     "Footer text should not use border color as text color.",
   );
+});
+
+test("footer contact route keeps a concise no-secrets boundary and display CTA", () => {
+  const source = readFileSync(
+    resolve(__dirname, "public-contact-route.tsx"),
+    "utf-8",
+  );
+
+  assert.match(
+    source,
+    /No secrets\. Never send passwords, private keys, API keys, tokens or recovery codes\./,
+  );
+  assert.match(source, /Bez sekretów\. Nie wysyłaj haseł/);
+  assert.match(source, /style=\{\{ fontFamily: "var\(--font-display\)" \}\}/);
+  assert.match(source, /min-h-11 w-full/);
 });
 
 test("footer brand lockup uses the approved geometric mark without decorative effects", () => {

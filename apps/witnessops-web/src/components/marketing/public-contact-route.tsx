@@ -33,30 +33,34 @@ export function PublicContactRoute({
     : subject === "fit-check"
       ? PUBLIC_CONTACT_SUBJECTS.fitCheck
       : PUBLIC_CONTACT_SUBJECTS.general;
+  const compactSafetyNote = polish
+    ? "Bez sekretów. Nie wysyłaj haseł, kluczy prywatnych, kluczy API, tokenów ani kodów odzyskiwania."
+    : "No secrets. Never send passwords, private keys, API keys, tokens or recovery codes.";
 
   if (compact) {
     return (
       <section
-        className="border-t border-surface-border pt-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0"
+        className="border-t border-surface-border pt-4 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0"
         data-public-contact-route
         data-public-contact-variant="footer"
       >
         <p
-          className="text-xs font-semibold uppercase tracking-[0.18em] text-text-primary"
-          style={{ fontFamily: "var(--font-mono)" }}
+          className="text-sm font-semibold uppercase tracking-[0.14em] text-text-primary"
+          style={{ fontFamily: "var(--font-display)" }}
         >
           {polish ? "Rozpocznij przegląd" : "Start a review"}
         </p>
-        <p className="mt-3 text-xs leading-5 text-text-muted">
+        <p className="mt-2 text-xs leading-5 text-text-muted">
           {polish ? "Główna ścieżka" : "Primary route"}
         </p>
         <Link
           href={primaryHref}
-          className="mt-2 inline-flex min-h-11 w-full items-center justify-center border border-text-primary bg-text-primary px-4 text-xs font-semibold uppercase tracking-[0.14em] text-text-inverse transition-colors hover:bg-surface-bg hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+          className="mt-1 inline-flex min-h-11 w-full items-center justify-center border border-text-primary bg-text-primary px-4 text-sm font-semibold uppercase tracking-[0.12em] text-text-inverse transition-colors hover:bg-surface-bg hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+          style={{ fontFamily: "var(--font-display)" }}
         >
           {polish ? "Rozpocznij przegląd" : "Start a review"}
         </Link>
-        <p className="mt-4 text-xs leading-5 text-text-secondary">
+        <p className="mt-3 text-xs leading-5 text-text-secondary">
           {polish ? "Kontakt zapasowy:" : "Fallback contact:"}{" "}
           <a
             href={publicContactMailto(mailtoSubject)}
@@ -65,8 +69,8 @@ export function PublicContactRoute({
             {PUBLIC_CONTACT_EMAIL}
           </a>
         </p>
-        <p className="mt-2 text-xs leading-5 text-text-muted">
-          {polish ? POLISH_NO_SECRETS_NOTE : PUBLIC_NO_SECRETS_NOTE}
+        <p className="mt-1 text-xs leading-5 text-text-muted">
+          {compactSafetyNote}
         </p>
       </section>
     );
