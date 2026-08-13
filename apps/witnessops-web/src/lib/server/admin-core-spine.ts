@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 
@@ -302,6 +302,16 @@ export interface IntegrationAttemptRecord {
   error: string | null;
 }
 
+export interface DeliverySendReservationRecord {
+  deliveryId: string;
+  idempotencyKey: string;
+  reservationToken: string;
+  reservedBy: string;
+  reservedAt: string;
+  status: "reserved" | "sent" | "failed";
+  completedAt: string | null;
+}
+
 export interface GmailSyncLabelOperation {
   messageId: string;
   labelName: string;
@@ -377,6 +387,7 @@ export interface CoreState {
   integrationAttempts: IntegrationAttemptRecord[];
   gmailSyncReceipts: GmailSyncReceipt[];
   idempotency: Record<string, { recordType: string; recordId: string }>;
+  deliverySendReservations: Record<string, DeliverySendReservationRecord>;
 }
 
 export interface CoreActor {
@@ -508,6 +519,7 @@ function emptyState(): CoreState {
     integrationAttempts: [],
     gmailSyncReceipts: [],
     idempotency: {},
+    deliverySendReservations: {},
   };
 }
 
@@ -519,6 +531,7 @@ async function readState(): Promise<CoreState> {
       throw new AdminCoreError("STORE_VERSION", "Admin core store version is unsupported.", 500);
     }
     parsed.gmailSyncReceipts ??= [];
+    parsed.deliverySendReservations ??= {};
     return parsed;
   } catch (error) {
     if (error instanceof AdminCoreError) throw error;
@@ -535,11 +548,71 @@ async function writeState(state: CoreState): Promise<void> {
   await rename(temp, file);
 }
 
+const CORE_LOCK_WAIT_MS = 25;
+const CORE_LOCK_TIMEOUT_MS = 30_000;
+const CORE_LOCK_STALE_MS = 10 * 60_000;
+
+function coreLockFile(): string {
+  return path.join(path.dirname(coreStoreFile()), "core-state.lock");
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function withCoreStoreLock<T>(action: () => Promise<T>): Promise<T> {
+  const lockFile = coreLockFile();
+  const lockToken = `${process.pid}:${randomUUID()}`;
+  const deadline = Date.now() + CORE_LOCK_TIMEOUT_MS;
+  await mkdir(path.dirname(lockFile), { recursive: true });
+
+  while (true) {
+    try {
+      await writeFile(lockFile, lockToken, { encoding: "utf8", flag: "wx" });
+      break;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      try {
+        const lockStat = await stat(lockFile);
+        if (Date.now() - lockStat.mtimeMs > CORE_LOCK_STALE_MS) {
+          await rm(lockFile, { force: true });
+          continue;
+        }
+      } catch (statError) {
+        if ((statError as NodeJS.ErrnoException).code === "ENOENT") continue;
+        throw statError;
+      }
+      if (Date.now() >= deadline) {
+        throw new AdminCoreError(
+          "STORE_BUSY",
+          "Admin core state is busy; retry the operation.",
+          503,
+        );
+      }
+      await wait(CORE_LOCK_WAIT_MS);
+    }
+  }
+
+  try {
+    return await action();
+  } finally {
+    try {
+      if ((await readFile(lockFile, "utf8")) === lockToken) {
+        await rm(lockFile, { force: true });
+      }
+    } catch {
+      // A stale lock is recoverable on the next mutation.
+    }
+  }
+}
+
 async function mutateState<T>(mutator: (state: CoreState) => T): Promise<T> {
-  const state = await readState();
-  const result = mutator(state);
-  await writeState(state);
-  return result;
+  return withCoreStoreLock(async () => {
+    const state = await readState();
+    const result = mutator(state);
+    await writeState(state);
+    return result;
+  });
 }
 
 function appendAudit(
@@ -1932,6 +2005,7 @@ export async function recordDeliverySent(
   result: { provider: string; providerMessageId: string | null; sentAt: string },
   actor: CoreActor,
   idempotencyKey = `delivery-send:${deliveryId}`,
+  reservationToken?: string,
 ): Promise<DeliveryRecord> {
   requireRole(actor, "business-authority");
   return mutateState((state) => {
@@ -1939,6 +2013,20 @@ export async function recordDeliverySent(
     if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
     requireDeliveryAssignment(state, delivery, actor);
     if (delivery.state === "sent" || delivery.state === "acknowledged") return clone(delivery);
+    const reservation = state.deliverySendReservations[deliveryId];
+    if (
+      reservationToken !== undefined &&
+      (!reservation ||
+        reservation.status !== "reserved" ||
+        reservation.reservationToken !== reservationToken ||
+        reservation.idempotencyKey !== idempotencyKey)
+    ) {
+      throw new AdminCoreError(
+        "DELIVERY_RESERVATION_CONFLICT",
+        "Delivery send reservation is no longer current.",
+        409,
+      );
+    }
     requireTransition("delivery", delivery.state, "sent", deliveryTransitions);
     const readiness = buildDeliveryReadinessSync(state, delivery.id);
     if (readiness.fail.length > 0 || readiness.unresolved.length > 0) {
@@ -1952,6 +2040,10 @@ export async function recordDeliverySent(
     delivery.failure = null;
     delivery.updatedAt = isoNow();
     state.idempotency[idempotencyKey] = { recordType: "delivery", recordId: delivery.id };
+    if (reservation) {
+      reservation.status = "sent";
+      reservation.completedAt = delivery.updatedAt;
+    }
     appendIntegration(state, {
       integration: "mail",
       operation: "send_delivery",
@@ -1985,6 +2077,118 @@ export async function assertDeliveryActionAuthorized(
   const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
   if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
   requireDeliveryAssignment(state, delivery, actor);
+}
+
+export type DeliverySendReservationResult =
+  | {
+      kind: "reserved";
+      delivery: DeliveryRecord;
+      reservationToken: string;
+    }
+  | {
+      kind: "replay";
+      delivery: DeliveryRecord;
+    }
+  | {
+      kind: "in_progress";
+      delivery: DeliveryRecord;
+    };
+
+export async function reserveDeliverySend(
+  deliveryId: string,
+  actor: CoreActor,
+  idempotencyKey = `delivery-send:${deliveryId}`,
+): Promise<DeliverySendReservationResult> {
+  requireRole(actor, "business-authority");
+  const normalizedKey = assertNonEmpty(idempotencyKey, "idempotencyKey");
+  return mutateState((state) => {
+    const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
+    if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    requireDeliveryAssignment(state, delivery, actor);
+    if (delivery.state === "sent" || delivery.state === "acknowledged") {
+      return { kind: "replay", delivery: clone(delivery) };
+    }
+    const existing = state.deliverySendReservations[deliveryId];
+    if (existing?.status === "reserved") {
+      return { kind: "in_progress", delivery: clone(delivery) };
+    }
+    if (existing?.status === "sent") {
+      return { kind: "replay", delivery: clone(delivery) };
+    }
+    requireTransition("delivery", delivery.state, "sent", deliveryTransitions);
+    const readiness = buildDeliveryReadinessSync(state, delivery.id);
+    if (readiness.fail.length > 0 || readiness.unresolved.length > 0) {
+      throw new AdminCoreError(
+        "DELIVERY_NOT_READY",
+        "Delivery readiness checks have not passed.",
+        409,
+        readiness,
+      );
+    }
+
+    const now = isoNow();
+    const reservationToken = id("sendres");
+    state.deliverySendReservations[deliveryId] = {
+      deliveryId,
+      idempotencyKey: normalizedKey,
+      reservationToken,
+      reservedBy: actor.actor,
+      reservedAt: now,
+      status: "reserved",
+      completedAt: null,
+    };
+    appendIntegration(state, {
+      integration: "mail",
+      operation: "reserve_delivery_send",
+      idempotencyKey: normalizedKey,
+      status: "started",
+      completedAt: null,
+      externalId: null,
+      error: null,
+    });
+    appendAudit(state, {
+      recordType: "delivery",
+      recordId: delivery.id,
+      action: "reserve_send",
+      actor: actor.actor,
+      previousState: delivery.state,
+      resultingState: delivery.state,
+      integrationResult: "mail:reserved",
+      linkedExternalIds: [delivery.proofRunId],
+      failureDetails: null,
+      lineageId: delivery.lineageId,
+    });
+    return {
+      kind: "reserved",
+      delivery: clone(delivery),
+      reservationToken,
+    };
+  });
+}
+
+export async function failDeliverySendReservation(
+  deliveryId: string,
+  reservationToken: string,
+  actor: CoreActor,
+  safeError: string,
+): Promise<void> {
+  await mutateState((state) => {
+    const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
+    if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    requireDeliveryAssignment(state, delivery, actor);
+    const reservation = state.deliverySendReservations[deliveryId];
+    if (!reservation || reservation.reservationToken !== reservationToken) {
+      throw new AdminCoreError(
+        "DELIVERY_RESERVATION_CONFLICT",
+        "Delivery send reservation is no longer current.",
+        409,
+      );
+    }
+    reservation.status = "failed";
+    reservation.completedAt = isoNow();
+    delivery.failure = safeError;
+    delivery.updatedAt = reservation.completedAt;
+  });
 }
 
 export async function recordIntegrationFailure(

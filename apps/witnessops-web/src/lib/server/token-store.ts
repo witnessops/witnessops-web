@@ -22,7 +22,6 @@ import type {
 } from "@/lib/provider-outcomes";
 import type { DeliveryEvidenceSubcase } from "./reconciliation-subcases";
 import { getConfiguredEnvPath } from "./storage-config";
-import { withFilesystemLock } from "./filesystem-lock";
 
 /**
  * Intake and issuance JSON files are read models for lookup and operator views.
@@ -338,30 +337,19 @@ function issuancePath(issuanceId: string): string {
   return safeRecordPath(issuanceId, "issuance", "issuances");
 }
 
-function issuanceLockPath(issuanceId: string): string {
-  assertSafeRecordId(issuanceId, "issuance");
+function recordLockPath(
+  recordId: string,
+  kind: "issuance" | "intake",
+): string {
+  assertSafeRecordId(recordId, kind);
   const base = path.resolve(getAdmissionStoreDir(), "locks");
-  const safeName = `issuance-${path.basename(issuanceId)}.lock`;
+  const safeName = `${kind}-${path.basename(recordId)}.lock`;
   const resolved = path.resolve(base, safeName);
   if (resolved !== path.join(base, safeName)) {
-    throw new Error("Invalid issuance lock path");
+    throw new Error(`Invalid ${kind} lock path`);
   }
   if (!resolved.startsWith(base + path.sep)) {
-    throw new Error("Invalid issuance lock path");
-  }
-  return resolved;
-}
-
-function intakeLockPath(intakeId: string): string {
-  assertSafeRecordId(intakeId, "intake");
-  const base = path.resolve(getAdmissionStoreDir(), "locks");
-  const safeName = `intake-${path.basename(intakeId)}.lock`;
-  const resolved = path.resolve(base, safeName);
-  if (resolved !== path.join(base, safeName)) {
-    throw new Error("Invalid intake lock path");
-  }
-  if (!resolved.startsWith(base + path.sep)) {
-    throw new Error("Invalid intake lock path");
+    throw new Error(`Invalid ${kind} lock path`);
   }
   return resolved;
 }
@@ -382,12 +370,13 @@ function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function withIssuanceLock<T>(
-  issuanceId: string,
+async function withRecordLock<T>(
+  recordId: string,
+  kind: "issuance" | "intake",
   action: () => Promise<T>,
 ): Promise<T> {
   await ensureStoreDirs();
-  const lockPath = issuanceLockPath(issuanceId);
+  const lockPath = recordLockPath(recordId, kind);
   const lockToken = `${process.pid}:${randomUUID()}`;
   const deadline = Date.now() + LOCK_TIMEOUT_MS;
 
@@ -414,7 +403,7 @@ export async function withIssuanceLock<T>(
       }
 
       if (Date.now() >= deadline) {
-        throw new Error(`Timed out waiting for issuance lock: ${issuanceId}`);
+        throw new Error(`Timed out waiting for ${kind} lock: ${recordId}`);
       }
       await wait(LOCK_WAIT_MS);
     }
@@ -434,28 +423,25 @@ export async function withIssuanceLock<T>(
   }
 }
 
+export async function withIssuanceLock<T>(
+  issuanceId: string,
+  action: () => Promise<T>,
+): Promise<T> {
+  return withRecordLock(issuanceId, "issuance", action);
+}
+
 export async function withIntakeLock<T>(
   intakeId: string,
   action: () => Promise<T>,
 ): Promise<T> {
-  await ensureStoreDirs();
-  return withFilesystemLock(
-    {
-      lockPath: intakeLockPath(intakeId),
-      description: `intake ${intakeId}`,
-      waitMs: LOCK_WAIT_MS,
-      timeoutMs: LOCK_TIMEOUT_MS,
-      staleMs: LOCK_STALE_MS,
-    },
-    action,
-  );
+  return withRecordLock(intakeId, "intake", action);
 }
 
 async function writeJsonAtomic(
   filePath: string,
   value: unknown,
 ): Promise<void> {
-  const tempPath = `${filePath}.tmp`;
+  const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
   await writeFile(tempPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
   await rename(tempPath, filePath);
 }

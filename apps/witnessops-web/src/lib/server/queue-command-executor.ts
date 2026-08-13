@@ -62,8 +62,8 @@ export interface QueueCommandContext {
   actorAuthSource: AdminActorAuthSource;
   actorSessionHash: string | null;
   role: AdminRole;
-  expectedProjectionVersion?: number;
-  expectedEventSequence?: number;
+  expectedProjectionVersion: number;
+  expectedEventSequence: number;
   idempotencyKey: string;
   source: string;
 }
@@ -223,18 +223,12 @@ async function applyQueueCommandUnlocked(
     return failure(command.command, intake.intakeId, ["AUTHORIZATION_REQUIRED"]);
   }
 
-  if (
-    typeof ctx.expectedProjectionVersion === "number" &&
-    ctx.expectedProjectionVersion !== projection.projectionVersion
-  ) {
+  if (ctx.expectedProjectionVersion !== projection.projectionVersion) {
     return failure(command.command, intake.intakeId, [
       "PROJECTION_VERSION_MISMATCH",
     ]);
   }
-  if (
-    typeof ctx.expectedEventSequence === "number" &&
-    ctx.expectedEventSequence !== projection.eventSequence
-  ) {
+  if (ctx.expectedEventSequence !== projection.eventSequence) {
     return failure(command.command, intake.intakeId, [
       "PROJECTION_VERSION_MISMATCH",
     ]);

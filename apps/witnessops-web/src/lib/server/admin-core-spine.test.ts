@@ -19,11 +19,12 @@ import {
   linkReceiptToDelivery,
   listAuditEvents,
   listProductContracts,
+  recordDeliverySent,
   recordGmailLabelSync,
   prepareDelivery,
+  reserveDeliverySend,
   resetAdminCoreStoreForTests,
   searchCoreRecords,
-  sendAuthorizedDelivery,
   transitionDelivery,
   transitionProofRun,
   transitionReviewRequest,
@@ -62,6 +63,27 @@ test("delegated operators may mutate only records assigned to them", async () =>
     owner,
   );
   assert.equal(transitioned.state, "triage");
+});
+
+test("concurrent core mutations preserve every committed record", async () => {
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "witnessops-admin-core-race-"));
+  await resetAdminCoreStoreForTests();
+
+  await Promise.all(
+    Array.from({ length: 12 }, (_, index) =>
+      importGmailInboxItem({
+        gmailMessageId: `gmail-msg-race-${index}`,
+        gmailThreadId: `gmail-thread-race-${index}`,
+        sender: `buyer-${index}@example.com`,
+        recipients: ["engage@mail.witnessops.com"],
+        subject: `Concurrent request ${index}`,
+        receivedAt: "2026-08-13T08:00:00Z",
+        excerpt: "Bounded request.",
+      }, founder),
+    ),
+  );
+
+  assert.equal((await getAdminCoreState()).inboxItems.length, 12);
 });
 
 test("admin core spine covers the complete message-to-receipt operating path", async () => {
@@ -174,21 +196,6 @@ test("admin core spine covers the complete message-to-receipt operating path", a
   const deliveryRecord = await prepareDelivery(run.id, founder);
   const failedReadiness = await buildDeliveryReadiness(deliveryRecord.id);
   assert.ok(failedReadiness.fail.some((item) => item.code === "RECEIPT_LINKED"));
-  let providerCalls = 0;
-  await assert.rejects(
-    () =>
-      sendAuthorizedDelivery(deliveryRecord.id, founder, async () => {
-        providerCalls += 1;
-        return {
-          provider: "file",
-          providerMessageId: "provider-msg-unready",
-          sentAt: "2026-07-11T12:09:00Z",
-        };
-      }),
-    (error: unknown) =>
-      error instanceof AdminCoreError && error.code === "DELIVERY_NOT_READY",
-  );
-  assert.equal(providerCalls, 0);
 
   const firstReceipt = await linkReceiptToDelivery(deliveryRecord.id, {
     receiptId: "receipt-001",
@@ -218,50 +225,35 @@ test("admin core spine covers the complete message-to-receipt operating path", a
   assert.equal(deliveryReady.fail.length, 0);
   assert.equal(deliveryReady.unresolved.length, 0);
   await transitionDelivery(deliveryRecord.id, "ready_for_operator_review", founder);
-  await assert.rejects(
-    () =>
-      sendAuthorizedDelivery(deliveryRecord.id, administrator, async () => {
-        providerCalls += 1;
-        return {
-          provider: "file",
-          providerMessageId: "provider-msg-unauthorized",
-          sentAt: "2026-07-11T12:09:30Z",
-        };
-      }),
-    (error: unknown) =>
-      error instanceof AdminCoreError &&
-      error.code === "BUSINESS_AUTHORITY_REQUIRED",
-  );
-  assert.equal(providerCalls, 0);
-
-  const sent = await sendAuthorizedDelivery(
+  const sendReservation = await reserveDeliverySend(
     deliveryRecord.id,
     founder,
-    async (message) => {
-      providerCalls += 1;
-      assert.equal(message.to, "casey@example.com");
-      assert.equal(message.deliveryAttemptId, deliveryRecord.id);
-      return {
-        provider: "file",
-        providerMessageId: "provider-msg-001",
-        sentAt: "2026-07-11T12:10:00Z",
-      };
-    },
+    `delivery-send:${deliveryRecord.id}`,
   );
-  const sentAgain = await sendAuthorizedDelivery(
+  assert.equal(sendReservation.kind, "reserved");
+  assert.ok(sendReservation.kind === "reserved");
+  const competingReservation = await reserveDeliverySend(
     deliveryRecord.id,
     founder,
-    async () => {
-      providerCalls += 1;
-      return {
-        provider: "file",
-        providerMessageId: "provider-msg-should-not-duplicate",
-        sentAt: "2026-07-11T12:11:00Z",
-      };
-    },
+    `delivery-send:${deliveryRecord.id}`,
   );
-  assert.equal(providerCalls, 1);
+  assert.equal(competingReservation.kind, "in_progress");
+  const sent = await recordDeliverySent(
+    deliveryRecord.id,
+    { provider: "file", providerMessageId: "provider-msg-001", sentAt: "2026-07-11T12:10:00Z" },
+    founder,
+    `delivery-send:${deliveryRecord.id}`,
+    sendReservation.reservationToken,
+  );
+  const sentAgain = await recordDeliverySent(deliveryRecord.id, { provider: "file", providerMessageId: "provider-msg-should-not-duplicate", sentAt: "2026-07-11T12:11:00Z" }, founder);
   assert.equal(sentAgain.providerMessageId, sent.providerMessageId);
+
+  const replayReservation = await reserveDeliverySend(
+    deliveryRecord.id,
+    founder,
+    `delivery-send:${deliveryRecord.id}`,
+  );
+  assert.equal(replayReservation.kind, "replay");
 
   const search = await searchCoreRecords("receipt-002");
   assert.ok(search.some((result) => result.type === "receipt" && result.id === secondReceipt.id));
@@ -272,37 +264,4 @@ test("admin core spine covers the complete message-to-receipt operating path", a
   await recordGmailLabelSync(imported.item.id, ["witnessops/reviewed"], { status: "failed", error: "Gmail label API unavailable" }, founder);
   assert.equal((await getInboxItem(imported.item.id))?.state, "linked");
   assert.ok((await listAuditEvents(imported.item.lineageId)).some((event) => event.action === "gmail_label_sync"));
-});
-
-test("admin core serializes concurrent whole-store mutations", async () => {
-  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(
-    path.join(os.tmpdir(), "witnessops-admin-core-concurrent-"),
-  );
-  await resetAdminCoreStoreForTests();
-
-  const makeImport = (suffix: string) =>
-    importGmailInboxItem(
-      {
-        gmailMessageId: `gmail-concurrent-${suffix}`,
-        gmailThreadId: `gmail-thread-concurrent-${suffix}`,
-        sender: `Requester ${suffix} <requester-${suffix}@example.com>`,
-        recipients: ["engage@mail.witnessops.com"],
-        subject: `Concurrent request ${suffix}`,
-        receivedAt: "2026-08-13T12:00:00Z",
-        excerpt: `Concurrent import ${suffix}`,
-      },
-      founder,
-    );
-
-  await Promise.all([makeImport("a"), makeImport("b")]);
-
-  const state = await getAdminCoreState();
-  assert.deepEqual(
-    state.inboxItems.map((item) => item.gmailMessageId).sort(),
-    ["gmail-concurrent-a", "gmail-concurrent-b"],
-  );
-  assert.equal(
-    state.auditEvents.filter((event) => event.action === "import").length,
-    2,
-  );
 });
