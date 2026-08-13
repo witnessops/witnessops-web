@@ -11,7 +11,7 @@ import {
 export const metadata: Metadata = {
   title: "Security Review Pricing | WitnessOps",
   description:
-    "Published prices and commercial boundaries for bounded WitnessOps security reviews, including the External Exposure Assessment paid pilot.",
+    "Published prices and commercial boundaries for bounded WitnessOps security reviews, including the Public Exposure Review.",
   alternates: { canonical: "/pricing" },
   openGraph: {
     title: "Security Review Pricing | WitnessOps",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 const boundaries = [
   "No review starts from this page or from payment alone.",
-  "An External Exposure Assessment can be started without a sales call; authority, scope, fee treatment, timing, capacity, and evidence handling are still accepted before work begins.",
+  "A Public Exposure Review can be started without a sales call; authority, scope, price, timing, capacity, and evidence handling are still accepted before work begins.",
   "Published figures are fixed prices or starting ranges for the named boundary, excluding VAT where stated.",
   "A report, receipt, or verifier does not prove that a system is secure, complete, compliant, or free of vulnerabilities.",
 ];

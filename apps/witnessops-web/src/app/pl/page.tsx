@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { BuyerHomepage } from "@/components/marketing/buyer-homepage";
 
 export const metadata: Metadata = {
-  title: "Ocena ekspozycji zewnętrznej | WitnessOps",
+  title: "Public Exposure Review",
   description:
-    "Zobacz, co widzi internet. Płatny pilotaż dla jednej publicznej domeny lub aplikacji, dostarczony w ciągu trzech dni roboczych za €1 500.",
+    "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego, dostarczony w ciągu trzech dni roboczych za €1 900 netto.",
   alternates: {
     canonical: "/pl",
     languages: { en: "/", pl: "/pl", "x-default": "/" },

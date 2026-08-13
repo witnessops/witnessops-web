@@ -150,7 +150,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "For SaaS teams facing an enterprise security request, a recent launch or infrastructure change, or an upcoming pentest.",
     scopeLimits: [
       "One authorised public-facing system, identified by a domain, application, API, public IP, or public cloud endpoint.",
-      "One public-facing domain or application, with up to 10 first-party hostnames, 3 customer-attributed public IP addresses, and 20 public service endpoints inside that accepted boundary.",
+      "Inside that accepted system boundary: up to 1 registrable root domain, up to 10 first-party hostnames, 3 customer-attributed public IP addresses, and 20 public service endpoints.",
       "If we discover related assets outside the agreed boundary, we can record them, but we won’t test them without explicit authorisation.",
       "Public cloud-hosted services can be included when they are reachable from the internet and belong to the agreed system. Cloud accounts, IAM, private networks, and provider infrastructure are not reviewed.",
       "passive discovery plus explicitly approved low-impact DNS, TLS, HTTP(S), service-identification, and allowlisted exposure checks",
@@ -179,7 +179,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Targets outside the confirmed first-party scope remain untouched. Third-party or shared infrastructure requires separate written authority.",
     ],
     commercialNote:
-      "€1,500 paid pilot for one public-facing domain or application. No sales call required. Payment is confirmed after scope acceptance; an additional or late retest is €550 ex VAT.",
+      "€1,900 ex VAT for one authorised public-facing system. No sales call required. Payment is confirmed after scope acceptance; an additional or late retest is €550 ex VAT.",
     primaryCta: "Start a review",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Inspect synthetic sample",
@@ -435,7 +435,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     whoFor:
       "Zespoły technologiczne przed uruchomieniem, klientem enterprise, audytem, zmianą infrastruktury lub głębszym testem penetracyjnym, które nie mają jasnego obrazu ekspozycji z zewnątrz.",
     scopeLimits: [
-      "jedna autoryzowana domena rejestrowalna lub jedna ściśle ograniczona aplikacja publiczna",
+      "jeden autoryzowany system publicznie dostępny, wskazany przez domenę, host, aplikację, API, publiczny adres IP, publiczny endpoint chmurowy lub spójne połączenie tych elementów",
       "do 10 potwierdzonych hostname'ów first-party",
       "do 3 publicznych adresów IP przypisanych klientowi",
       "do 20 potwierdzonych publicznych endpointów usług",
@@ -453,7 +453,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "45-minutowe przekazanie i jeden ukierunkowany retest w ciągu 30 dni",
     ],
     steps: [
-      ["Zamówienie", "Podaj jedną domenę publiczną, służbowy adres e-mail i podstawę upoważnienia. Nie wysyłaj sekretów ani materiałów produkcyjnych."],
+      ["Zamówienie", "Wskaż jeden system publicznie dostępny, służbowy adres e-mail i podstawę upoważnienia. Nie wysyłaj sekretów ani materiałów produkcyjnych."],
       ["Akceptacja zakresu", "WitnessOps asynchronicznie akceptuje albo odrzuca granicę, potwierdza dostępność i zapisuje płatność. Rozmowa sprzedażowa nie jest wymagana."],
       ["Przegląd", "Wykonujemy wyłącznie zaakceptowane kontrole pasywne i niskiego ryzyka, a następnie ręcznie weryfikujemy, usuwamy duplikaty, ustalamy priorytety i łączymy ustalenia z materiałami."],
       ["Dostawa i retest", "Przekazujemy raporty i pakiet do sprawdzenia w ciągu trzech dni roboczych od spełnienia wszystkich warunków startu, a następnie jeden raz ponownie testujemy uzgodnione ustalenia w ciągu 30 dni."],
@@ -465,8 +465,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Cele poza potwierdzonym zakresem first-party pozostają nietknięte. Infrastruktura strony trzeciej lub współdzielona wymaga osobnego pisemnego upoważnienia.",
     ],
     commercialNote:
-      "Płatny pilotaż €1 500 dla jednej publicznej domeny lub aplikacji. Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu; dodatkowy lub późny retest kosztuje €550 bez VAT.",
-    primaryCta: "Rozpocznij ocenę",
+      "€1 900 netto za jeden autoryzowany system publicznie dostępny. Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu; dodatkowy lub późny retest kosztuje €550 netto.",
+    primaryCta: "Rozpocznij przegląd",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Zobacz syntetyczny przykład",
   },

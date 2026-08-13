@@ -20,11 +20,11 @@ type HeroCopy = {
 const localizedCopy = {
   en: {
     hero: {
-      eyebrow: "External Exposure Assessment",
+      eyebrow: "Public Exposure Review",
       title: "See what the internet sees.",
-      body: "For SaaS teams facing an enterprise security request, a recent launch or infrastructure change, or an upcoming pentest.",
+      body: "A fixed-scope, human-led review of one authorised public-facing system before an enterprise request, launch, infrastructure change, or pentest.",
     },
-    commercialLine: "€1,500 paid pilot · 3 working days · 1 public-facing domain/application",
+    commercialLine: "€1,900 ex VAT · 3 working days · 1 authorised public-facing system",
     primaryCta: "Start a review",
     secondaryCta: "View sample",
     verifyCta: "Verify a receipt",
@@ -74,12 +74,12 @@ const localizedCopy = {
   },
   pl: {
     hero: {
-      eyebrow: "Ocena ekspozycji zewnętrznej",
+      eyebrow: "Public Exposure Review",
       title: "Zobacz, co widzi internet.",
-      body: "Dla zespołów SaaS przed wymaganiem bezpieczeństwa klienta enterprise, po wdrożeniu lub zmianie infrastruktury albo przed pentestem.",
+      body: "Ręczny, ograniczony przegląd jednego autoryzowanego systemu publicznego — przed wymaganiem enterprise, wdrożeniem, zmianą infrastruktury lub pentestem.",
     },
-    commercialLine: "Płatny pilotaż €1 500 · 3 dni robocze · 1 publiczna domena/aplikacja",
-    primaryCta: "Rozpocznij ocenę",
+    commercialLine: "€1 900 netto · 3 dni robocze · 1 autoryzowany system publicznie dostępny",
+    primaryCta: "Rozpocznij przegląd",
     secondaryCta: "Zobacz przykład",
     verifyCta: "Zweryfikuj zapis",
     libraryCta: "Biblioteka",
@@ -94,7 +94,7 @@ const localizedCopy = {
     onePager: "One-pager (PDF)",
     howTitle: "Jak to działa",
     howSteps: [
-      ["Podaj jedną domenę", "Podaj służbowy e-mail, jedną domenę publiczną i podstawę upoważnienia."],
+      ["Wskaż jeden system", "Podaj służbowy e-mail, jeden system publicznie dostępny i podstawę upoważnienia."],
       [
         "Akceptacja zakresu",
         "WitnessOps asynchronicznie potwierdza granicę, dostępność i płatność. Rozmowa sprzedażowa nie jest wymagana.",
@@ -109,7 +109,7 @@ const localizedCopy = {
     whyItems: [
       [
         "Jedna jawna granica publiczna",
-        "Jedna autoryzowana domena, uzgodnione kontrole, nazwane wyłączenia i warunki zatrzymania przed rozpoczęciem pracy wobec celu.",
+        "Jeden autoryzowany system publicznie dostępny, uzgodnione kontrole, nazwane wyłączenia i warunki zatrzymania przed rozpoczęciem pracy wobec celu.",
       ],
       [
         "Materiały za każdym wynikiem",
@@ -120,7 +120,7 @@ const localizedCopy = {
         "Wynik jest uporządkowany tak, aby kolejna odpowiedzialna osoba mogła go sprawdzić i zdecydować o następnym kroku.",
       ],
     ],
-    closeTitle: "Sprawdź jedną domenę. Zobacz materiały.",
+    closeTitle: "Sprawdź jeden system. Zobacz materiały.",
     closeBody:
       "Zamów bez rozmowy sprzedażowej. WitnessOps akceptuje albo odrzuca zakres przed uruchomieniem terminu dostawy.",
     verifyHref: "/pl/verify",

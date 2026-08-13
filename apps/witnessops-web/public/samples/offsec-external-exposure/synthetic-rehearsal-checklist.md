@@ -1,4 +1,4 @@
-# External Exposure Assessment — completed rehearsal checklist
+# Public Exposure Review — completed rehearsal checklist
 
 **Synthetic worked example — not customer evidence.**
 
