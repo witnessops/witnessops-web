@@ -330,12 +330,14 @@ export function normalizeDocsAssistantAnswer(args: {
     };
   }
 
+  const retainClaims = isSupportedStatus(parsed.answer_status);
+
   return {
     schema_version: "docs-assistant.answer.v1",
     answer_status: parsed.answer_status,
     question: args.question,
-    documented_facts: documentedFacts,
-    inference,
+    documented_facts: retainClaims ? documentedFacts : [],
+    inference: retainClaims ? inference : [],
     citations: args.citations,
     unsupported_reason: normalizeUnsupportedReason(
       parsed.unsupported_reason,
