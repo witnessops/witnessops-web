@@ -17,8 +17,8 @@ export class AdminBusinessAuthorizationError extends Error {
   }
 }
 
-function requireAssignedBusinessAuthority(
-  session: VerifiedAdminSession,
+export function requireIntakeBusinessAuthority(
+  session: Pick<VerifiedAdminSession, "actor" | "role">,
   intake: IntakeRecord,
 ): void {
   if (!hasBusinessAuthority(session.role)) {
@@ -58,7 +58,7 @@ export async function requireIntakeBusinessAccess(
     if (!intake) {
       throw new AdminBusinessAuthorizationError("Intake not found.", 404);
     }
-    requireAssignedBusinessAuthority(session, intake);
+    requireIntakeBusinessAuthority(session, intake);
     return intake;
   });
 }
@@ -109,7 +109,7 @@ export async function requireRunBusinessAccess(
     if (!intake) {
       throw new AdminBusinessAuthorizationError("Intake not found.", 404);
     }
-    requireAssignedBusinessAuthority(session, intake);
+    requireIntakeBusinessAuthority(session, intake);
     const issuance = await getIssuanceById(issuanceMatch.issuanceId);
     if (
       !issuance ||

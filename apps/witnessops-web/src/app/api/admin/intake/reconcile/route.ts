@@ -7,7 +7,6 @@ import {
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
   AdminBusinessAuthorizationError,
-  requireIntakeBusinessAccess,
 } from "@/lib/server/admin-business-authorization";
 import {
   IntakeReconciliationError,
@@ -39,10 +38,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await requireIntakeBusinessAccess(session, parsed.data.intakeId);
     const response = await reconcileIntakeResponse({
       ...parsed.data,
       actor: session.actor,
+      role: session.role,
       actorAuthSource: session.actorAuthSource,
       actorSessionHash: session.actorSessionHash,
       source: "api/admin/intake/reconcile",
