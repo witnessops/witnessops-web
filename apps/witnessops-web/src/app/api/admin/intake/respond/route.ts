@@ -57,7 +57,6 @@ export async function POST(request: NextRequest) {
       return invalid(error.message, error.status);
     }
 
-    const message = error instanceof Error ? error.message : "Response failed.";
-    return invalid(message, 500);
+    return invalid("Response failed.", 500);
   }
 }

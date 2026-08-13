@@ -46,7 +46,7 @@ function shouldAutoClose(intake: IntakeRecord): {
   source: PolicyClosureSource | null;
   reason: string | null;
 } {
-  if (!intake.firstResponse) {
+  if (!intake.firstResponse && !intake.responseAttempt) {
     return { close: false, source: null, reason: null };
   }
 
@@ -135,8 +135,11 @@ export async function evaluatePolicyClosure(
       policyVersion: POLICY_VERSION,
       closureSource: decision.source,
       reason: decision.reason,
-      deliveryAttemptId: intake.firstResponse?.deliveryAttemptId ?? null,
-      provider: intake.firstResponse?.provider ?? null,
+      deliveryAttemptId:
+        intake.firstResponse?.deliveryAttemptId ??
+        intake.responseAttempt?.deliveryAttemptId ??
+        null,
+      provider: intake.firstResponse?.provider ?? "unknown",
       providerOutcomeStatus:
         intake.responseProviderOutcome?.status ?? null,
       mailboxReceiptStatus:
