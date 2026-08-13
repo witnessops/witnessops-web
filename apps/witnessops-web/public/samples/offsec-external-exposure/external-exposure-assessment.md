@@ -1,4 +1,4 @@
-# External Exposure Assessment
+# Public Exposure Review
 
 **Synthetic worked example — not customer evidence.**
 

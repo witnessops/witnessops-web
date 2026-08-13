@@ -46,7 +46,7 @@ export function getProofRunRequestLabel(
     return "access-change package request";
   }
   if (normalized === EXTERNAL_EXPOSURE_ASSESSMENT_INTENT) {
-    return "External Exposure Assessment request";
+    return "Public Exposure Review request";
   }
   return "security-workflow package request";
 }

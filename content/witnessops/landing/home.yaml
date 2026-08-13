@@ -6,16 +6,16 @@ slug: "/"
 status:
   draft: false
   canonical: true
-  last_reviewed: "2026-08-06"
+  last_reviewed: "2026-08-13"
 
 seo:
-  title: "External Exposure Assessment | WitnessOps"
-  description: "See what the internet sees. A paid pilot for one public-facing domain or application, delivered in three working days."
+  title: "Public Exposure Review for SaaS Teams | WitnessOps"
+  description: "Public Exposure Review: a fixed-scope external security review of one authorised public-facing system, delivered in three working days for €1,900 ex VAT."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
   og_title: "See what the internet sees."
-  og_description: "External Exposure Assessment. €1,500 paid pilot · 3 working days · 1 public-facing domain/application."
+  og_description: "Public Exposure Review. €1,900 ex VAT · 3 working days · 1 authorised public-facing system."
   twitter_card: "summary_large_image"
 
 theme:
@@ -43,9 +43,9 @@ navbar:
     variant: "primary"
 
 hero:
-  eyebrow: "External Exposure Assessment"
+  eyebrow: "Public Exposure Review"
   title: "See what the internet sees."
-  body: "For SaaS teams facing an enterprise security request, a recent launch or infrastructure change, or an upcoming pentest."
+  body: "A fixed-scope external security review of one authorised public-facing system, for SaaS teams facing an enterprise request, launch, infrastructure change, or upcoming pentest."
   supporting_points: []
   primary_cta:
     label: "Start a review"

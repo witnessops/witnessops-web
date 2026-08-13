@@ -1,4 +1,4 @@
-# External Exposure Assessment — focused retest result
+# Public Exposure Review — focused retest result
 
 **Synthetic worked example — not customer evidence.**
 

@@ -1,4 +1,4 @@
-# External Exposure Assessment — completed synthetic timesheet
+# Public Exposure Review — completed synthetic timesheet
 
 **Synthetic worked example — not customer evidence.**
 

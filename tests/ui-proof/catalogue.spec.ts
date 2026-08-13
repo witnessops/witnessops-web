@@ -62,7 +62,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         timing: "within_two_business_days_after_authorised_collection_window",
       },
       {
-        price: "eur_1500_paid_pilot_one_public_facing_domain_or_application",
+        price: "eur_1900_ex_vat_one_authorised_public_facing_system",
         timing:
           "three_business_days_after_payment_accepted_sow_authority_scope_required_inputs_and_collection_window_confirmed",
       },
@@ -151,7 +151,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
   }
 });
 
-test("External Exposure Assessment pricing entry preserves sample and intake links", async ({ page }) => {
+test("Public Exposure Review pricing entry preserves sample and intake links", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const response = await page.goto("/pricing", { waitUntil: "networkidle" });
   expect(response?.status()).toBe(200);
@@ -160,7 +160,7 @@ test("External Exposure Assessment pricing entry preserves sample and intake lin
     '[data-pricing-service="external-exposure-assessment"]',
   );
   await expect(card).toContainText(
-    "€1,500 paid pilot — one public-facing domain/application",
+    "€1,900 ex VAT — one authorised public-facing system",
   );
   await expect(card).toContainText("One focused retest within 30 days is included");
   await expect(

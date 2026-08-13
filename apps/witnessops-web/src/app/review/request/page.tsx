@@ -77,7 +77,7 @@ const nextSteps = [
 ];
 
 const publicExposureNextSteps = [
-  "We check the named public domain, your authority, first-party boundary, exclusions, and operator capacity.",
+  "We check the named public-facing system, your authority, first-party boundary, exclusions, and operator capacity.",
   "We accept or reject the scope asynchronously. No sales call is required.",
   "After payment, accepted SOW, authority, required inputs, and the collection window are complete, the three-working-day delivery clock starts.",
 ];
@@ -129,13 +129,13 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             color: "var(--color-brand-muted)",
           }}
         >
-          {publicExposureOrder ? "External Exposure Assessment" : "Review Request"}
+          {publicExposureOrder ? "Public Exposure Review" : "Review Request"}
         </div>
         <h1
           className="mb-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {publicExposureOrder ? "Start your External Exposure Assessment" : "Tell us what you need reviewed"}
+          {publicExposureOrder ? "Start your Public Exposure Review" : "Tell us what you need reviewed"}
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
           {publicExposureOrder
@@ -244,7 +244,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
               <p>
                 {publicExposureOrder
-                  ? "€1,500 paid pilot for one public-facing domain or application. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance."
+                  ? "€1,900 ex VAT for one authorised public-facing system. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance."
                   : "Fee, timing, and evidence handling are confirmed by email after the first fit check."}
               </p>
               <p>No work starts from this form. No proof run or target-facing check starts from this form.</p>
@@ -280,7 +280,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
                 : "/review/sample-cases/ai-agent-action-proof-run"}
               className="text-sm text-brand-accent underline-offset-4 hover:underline"
             >
-              {publicExposureOrder ? "Inspect External Exposure Assessment sample" : "Inspect sample package"}
+              {publicExposureOrder ? "Inspect Public Exposure Review sample" : "Inspect sample package"}
             </Link>
           </section>
 
@@ -336,7 +336,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           }}
         >
           {publicExposureOrder
-            ? "What the External Exposure Assessment delivers"
+            ? "What the Public Exposure Review delivers"
             : "What a bounded review package can include"}
         </div>
         <div className="grid gap-4 md:grid-cols-2">

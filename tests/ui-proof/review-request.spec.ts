@@ -59,6 +59,8 @@ test("review request routes remain responsive, accessible, and usable", async ({
 
     const form = page.locator("main form");
     await expect(form).toBeVisible();
+    await expect(form).toHaveAttribute("method", "post");
+    await expect(form).toHaveAttribute("action", "/api/review/request");
     const formBox = await form.boundingBox();
     if (scenario.width === 390) {
       expect(formBox?.width, `${scenario.path} mobile form width`).toBeGreaterThanOrEqual(320);
@@ -158,6 +160,8 @@ test("review request routes remain responsive, accessible, and usable", async ({
       : "Enter your email code";
     const verificationTitle = page.getByRole("heading", { name: verificationHeading });
     await expect(verificationTitle).toBeVisible();
+    await expect(page.locator("main form")).toHaveAttribute("method", "post");
+    await expect(page.locator("main form")).toHaveAttribute("action", "/api/verify-token");
     await expect(verificationTitle).toBeFocused();
     await expect(verificationTitle).toBeInViewport();
     const verificationPosition = await verificationTitle.evaluate((element) => {
@@ -190,7 +194,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
   }
 });
 
-test("External Exposure Assessment request preserves SKU, locale, and fit boundary", async ({ browser }) => {
+test("Public Exposure Review request preserves SKU, locale, and fit boundary", async ({ browser }) => {
   for (const scenario of [
     { locale: "en", path: "/review/request" },
     { locale: "pl", path: "/pl/review/request" },
@@ -216,7 +220,7 @@ test("External Exposure Assessment request preserves SKU, locale, and fit bounda
 
     const query = new URLSearchParams({
       productId: "OFFSEC-EXTERNAL-EXPOSURE",
-      offer: "External Exposure Assessment",
+      offer: "Public Exposure Review",
     });
     await page.goto(`${scenario.path}?${query.toString()}`, {
       waitUntil: "networkidle",

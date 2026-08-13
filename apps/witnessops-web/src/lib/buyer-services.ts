@@ -167,29 +167,29 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     productId: "OFFSEC-EXTERNAL-EXPOSURE",
     homepageFeatured: true,
     commercialContract: {
-      price: "eur_1500_paid_pilot_one_public_facing_domain_or_application",
+      price: "eur_1900_ex_vat_one_authorised_public_facing_system",
       timing:
         "three_business_days_after_payment_accepted_sow_authority_scope_required_inputs_and_collection_window_confirmed",
     },
     name: {
-      en: "External Exposure Assessment",
-      pl: "Ocena ekspozycji zewnętrznej",
+      en: "Public Exposure Review",
+      pl: "Public Exposure Review",
     },
     cardSituation: {
       en: "See what one public-facing system exposes from the internet.",
-      pl: "Zobacz, co ujawnia jedna autoryzowana domena publiczna, zanim wskaże to klient, audytor lub atakujący.",
+      pl: "Zobacz, co ujawnia jeden autoryzowany system publicznie dostępny, zanim wskaże to klient, audytor lub atakujący.",
     },
     situation: {
-      en: "A manually reviewed outside-in security review of one authorised public-facing system.",
-      pl: "Potrzebujesz jasnego, ręcznie zweryfikowanego obrazu tego, co ujawnia jedna autoryzowana domena publiczna przed uruchomieniem, przeglądem klienta, audytem lub zmianą infrastruktury.",
+      en: "A fixed-scope external security review of one authorised public-facing system.",
+      pl: "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego.",
     },
     result: {
       en: "Manually reviewed, evidence-linked findings with practical remediation guidance.",
       pl: "Mapa ekspozycji, priorytetyzowane ustalenia powiązane z materiałami, zalecenia naprawcze, jawne niewiadome i pakiet, który może sprawdzić kolejny odpowiedzialny właściciel.",
     },
     price: {
-      en: "€1,500 paid pilot — one public-facing domain/application",
-      pl: "Płatny pilotaż €1 500 — jedna publiczna domena/aplikacja",
+      en: "€1,900 ex VAT — one authorised public-facing system",
+      pl: "€1 900 netto — jeden autoryzowany system publicznie dostępny",
     },
     timing: {
       en: "Within 3 working days after payment, accepted scope, authority, required inputs, and the collection window are confirmed",

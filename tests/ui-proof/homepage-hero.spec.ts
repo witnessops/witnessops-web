@@ -122,25 +122,25 @@ test("English and Polish homepages share one service-led buyer journey", async (
       path: "/",
       width: 1440,
       height: 1100,
-      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=External+Exposure+Assessment",
+      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
     },
     {
       path: "/",
       width: 390,
       height: 844,
-      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=External+Exposure+Assessment",
+      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
     },
     {
       path: "/pl",
       width: 1440,
       height: 1100,
-      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Ocena+ekspozycji+zewn%C4%99trznej",
+      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
     },
     {
       path: "/pl",
       width: 390,
       height: 844,
-      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Ocena+ekspozycji+zewn%C4%99trznej",
+      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
     },
   ]) {
     const context = await browser.newContext({

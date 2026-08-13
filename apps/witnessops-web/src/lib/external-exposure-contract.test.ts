@@ -30,33 +30,33 @@ function getExternalExposureSku() {
   return catalog.skus.find((candidate) => candidate.id === productId);
 }
 
-test("External Exposure Assessment preserves the paid-pilot commercial contract", () => {
+test("Public Exposure Review preserves the fixed-price commercial contract", () => {
   const service = buyerServiceById("external-exposure-assessment");
   const sku = getExternalExposureSku();
 
   assert.ok(sku);
   assert.equal(service.productId, productId);
-  assert.equal(service.name.en, "External Exposure Assessment");
+  assert.equal(service.name.en, "Public Exposure Review");
   assert.equal(
     service.price.en,
-    "€1,500 paid pilot — one public-facing domain/application",
+    "€1,900 ex VAT — one authorised public-facing system",
   );
-  assert.equal(sku.price.anchor_eur_min, 1500);
-  assert.equal(sku.price.anchor_eur_max, 1500);
+  assert.equal(sku.price.anchor_eur_min, 1900);
+  assert.equal(sku.price.anchor_eur_max, 1900);
   assert.equal(
     service.timing.en,
     "Within 3 working days after payment, accepted scope, authority, required inputs, and the collection window are confirmed",
   );
 
   const landing = getServiceLanding(service.id, "en");
-  assert.match(landing.commercialNote ?? "", /€1,500 paid pilot/i);
-  assert.match(landing.commercialNote ?? "", /one public-facing domain or application/i);
+  assert.match(landing.commercialNote ?? "", /€1,900 ex VAT/i);
+  assert.match(landing.commercialNote ?? "", /one authorised public-facing system/i);
   assert.match(landing.commercialNote ?? "", /No sales call required/i);
   assert.doesNotMatch(landing.commercialNote ?? "", /first three|€2,500/i);
   assert.match(landing.deliverables.join("\n"), /one focused retest within 30 days/i);
 });
 
-test("External Exposure Assessment preserves fixed caps and allowed check classes", () => {
+test("Public Exposure Review preserves fixed caps and allowed check classes", () => {
   const sku = getExternalExposureSku();
   assert.ok(sku);
   assert.deepEqual(sku.limits, {
@@ -69,7 +69,7 @@ test("External Exposure Assessment preserves fixed caps and allowed check classe
   const landing = getServiceLanding("external-exposure-assessment", "en");
   const scope = landing.scopeLimits?.join("\n") ?? "";
   assert.match(scope, /one authorised public-facing system/i);
-  assert.match(scope, /one public-facing domain or application/i);
+  assert.match(scope, /up to 1 registrable root domain/i);
   assert.match(scope, /up to 10 first-party hostnames/i);
   assert.match(scope, /3 customer-attributed public IP addresses/i);
   assert.match(scope, /20 public service endpoints/i);
@@ -80,7 +80,7 @@ test("External Exposure Assessment preserves fixed caps and allowed check classe
   assert.match(scope, /unauthenticated, outside-in/i);
 });
 
-test("External Exposure Assessment preserves prohibited methods and claim limits", () => {
+test("Public Exposure Review preserves prohibited methods and claim limits", () => {
   const english = getServiceLanding("external-exposure-assessment", "en");
   const boundaries = english.boundaries.join("\n");
 
@@ -95,7 +95,7 @@ test("External Exposure Assessment preserves prohibited methods and claim limits
 
   const polish = POLISH_OFFERS[productId];
   assert.ok(polish);
-  assert.equal(polish.price, "Płatny pilotaż €1 500 — jedna publiczna domena/aplikacja");
+  assert.equal(polish.price, "€1 900 netto — jeden autoryzowany system publicznie dostępny");
   assert.match(polish.priceDetail ?? "", /Bez rozmowy sprzedażowej/);
   assert.doesNotMatch(polish.priceDetail ?? "", /pierwsze trzy|€2 500/);
   assert.match(polish.deliverables.join("\n"), /jeden retest w ciągu 30 dni/i);
