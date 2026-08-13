@@ -374,6 +374,17 @@ assert_exit 0 validate_admin_role_value 'Delegated Operator'
 assert_exit 0 validate_admin_role_value 'Administrator'
 assert_exit 2 validate_admin_role_value ''
 assert_exit 2 validate_admin_role_value 'admin'
+assert_exit 0 validate_no_admin_oidc_env_shadows \
+  $'PORT\nHOSTNAME\nWITNESSOPS_VERIFY_BASE_URL'
+assert_exit 2 validate_no_admin_oidc_env_shadows \
+  $'PORT\nWITNESSOPS_ADMIN_ROLE\nHOSTNAME'
+if grep -Eq '^[[:space:]]*-[[:space:]]*name:[[:space:]]*WITNESSOPS_ADMIN_ROLE[[:space:]]*$' "${DEV_MANIFEST}"; then
+  fail=$((fail + 1))
+  echo "FAIL: mesh-dev manifest explicitly shadows the custodied admin role" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: mesh-dev inherits the custodied admin role"
+fi
 
 # --- prod deploy preflight and atomic patch ---
 # shellcheck source=k3s-lib.sh
@@ -400,17 +411,25 @@ remote() {
       printf '%s\n' "${required_oidc_keys}"
     fi
   elif [[ "${command_text}" == *"get deploy"*"go-template"* ]]; then
-    case "${remote_mode}" in
-      runtime-prefix-drift|smoke-prefix-drift)
+    if [[ "${command_text}" == *"range .env}"* ]]; then
+      if [[ "${remote_mode}" == "runtime-role-shadow" || "${remote_mode}" == "smoke-role-shadow" ]]; then
+        printf '%s\n' $'PORT\nWITNESSOPS_ADMIN_ROLE'
+      else
+        printf '%s\n' $'PORT\nHOSTNAME'
+      fi
+    else
+      case "${remote_mode}" in
+        runtime-prefix-drift|smoke-prefix-drift)
         printf '%s\n' $'container:example-app-container\nsecret:example-runtime-secret|prefix=WOPS_|optional=false\nsecret:example-identity-secret|prefix=|optional=false'
         ;;
-      runtime-optional-drift|smoke-optional-drift)
+        runtime-optional-drift|smoke-optional-drift)
         printf '%s\n' $'container:example-app-container\nsecret:example-runtime-secret|prefix=|optional=true\nsecret:example-identity-secret|prefix=|optional=false'
         ;;
-      *)
+        *)
         printf '%s\n' "${runtime_envfrom_contract}"
         ;;
-    esac
+      esac
+    fi
   fi
 }
 
@@ -475,7 +494,7 @@ else
   echo "FAIL: prod deploy did not use the atomic patch" >&2
 fi
 
-for drift_mode in runtime-prefix-drift runtime-optional-drift; do
+for drift_mode in runtime-prefix-drift runtime-optional-drift runtime-role-shadow; do
   remote_mode="${drift_mode}"
   : > "${remote_log}"
   if (deploy_prod_image "${image}") >/dev/null 2>&1; then
@@ -486,11 +505,21 @@ for drift_mode in runtime-prefix-drift runtime-optional-drift; do
     echo "PASS: deploy_prod_image rejects post-patch ${drift_mode}"
   fi
   if grep -q 'kubectl .* patch ' "${remote_log}"; then
-    pass=$((pass + 1))
-    echo "PASS: ${drift_mode} is detected by post-patch runtime inspection"
+    if [[ "${drift_mode}" == "runtime-role-shadow" ]]; then
+      fail=$((fail + 1))
+      echo "FAIL: ${drift_mode} was not rejected before mutation" >&2
+    else
+      pass=$((pass + 1))
+      echo "PASS: ${drift_mode} is detected by post-patch runtime inspection"
+    fi
   else
-    fail=$((fail + 1))
-    echo "FAIL: ${drift_mode} failed before the atomic patch was exercised" >&2
+    if [[ "${drift_mode}" == "runtime-role-shadow" ]]; then
+      pass=$((pass + 1))
+      echo "PASS: ${drift_mode} is rejected before mutation"
+    else
+      fail=$((fail + 1))
+      echo "FAIL: ${drift_mode} failed before the atomic patch was exercised" >&2
+    fi
   fi
 done
 
@@ -509,6 +538,23 @@ if grep -q '^curl ' "${remote_log}"; then
 else
   pass=$((pass + 1))
   echo "PASS: smoke_pair rejects envFrom drift before HTTP checks"
+fi
+
+remote_mode="smoke-role-shadow"
+: > "${remote_log}"
+if (smoke_pair) >/dev/null 2>&1; then
+  fail=$((fail + 1))
+  echo "FAIL: smoke_pair accepted an explicit admin-role shadow" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: smoke_pair rejects an explicit admin-role shadow"
+fi
+if grep -q '^curl ' "${remote_log}"; then
+  fail=$((fail + 1))
+  echo "FAIL: smoke_pair reached HTTP before rejecting the admin-role shadow" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: smoke_pair rejects the admin-role shadow before HTTP checks"
 fi
 
 remote_mode="ok"

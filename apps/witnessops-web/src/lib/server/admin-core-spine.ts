@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 
@@ -15,6 +15,7 @@ import {
   isSameOperator,
 } from "./admin-authorization";
 import { getAdmissionStoreDir } from "./token-store";
+import { withFilesystemLock } from "./filesystem-lock";
 
 export const ADMIN_CORE_SCHEMA_VERSION = 1 as const;
 export const SECURITY_DISCLOSURE_EMAIL = "security@witnessops.com";
@@ -311,6 +312,25 @@ export interface DeliverySendReservationRecord {
   status: "reserved" | "sent" | "failed" | "outcome_unknown";
   completedAt: string | null;
 }
+
+export interface DeliverySendReservationStatus {
+  status: DeliverySendReservationRecord["status"];
+  reservedAt: string;
+  completedAt: string | null;
+}
+
+export type DeliverySendReconciliationInput =
+  | {
+      outcome: "sent";
+      provider: string;
+      providerMessageId: string | null;
+      sentAt: string;
+      note: string;
+    }
+  | {
+      outcome: "not_sent";
+      note: string;
+    };
 
 export interface GmailSyncLabelOperation {
   messageId: string;
@@ -634,58 +654,36 @@ async function writeState(state: CoreState): Promise<void> {
 const CORE_LOCK_WAIT_MS = 25;
 const CORE_LOCK_TIMEOUT_MS = 30_000;
 const CORE_LOCK_STALE_MS = 10 * 60_000;
+const DELIVERY_SEND_RESERVATION_STALE_MS = 10 * 60_000;
 
 function coreLockFile(): string {
   return path.join(path.dirname(coreStoreFile()), "core-state.lock");
 }
 
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function withCoreStoreLock<T>(action: () => Promise<T>): Promise<T> {
-  const lockFile = coreLockFile();
-  const lockToken = `${process.pid}:${randomUUID()}`;
-  const deadline = Date.now() + CORE_LOCK_TIMEOUT_MS;
-  await mkdir(path.dirname(lockFile), { recursive: true });
-
-  while (true) {
-    try {
-      await writeFile(lockFile, lockToken, { encoding: "utf8", flag: "wx" });
-      break;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-      try {
-        const lockStat = await stat(lockFile);
-        if (Date.now() - lockStat.mtimeMs > CORE_LOCK_STALE_MS) {
-          await rm(lockFile, { force: true });
-          continue;
-        }
-      } catch (statError) {
-        if ((statError as NodeJS.ErrnoException).code === "ENOENT") continue;
-        throw statError;
-      }
-      if (Date.now() >= deadline) {
-        throw new AdminCoreError(
-          "STORE_BUSY",
-          "Admin core state is busy; retry the operation.",
-          503,
-        );
-      }
-      await wait(CORE_LOCK_WAIT_MS);
-    }
-  }
-
   try {
-    return await action();
-  } finally {
-    try {
-      if ((await readFile(lockFile, "utf8")) === lockToken) {
-        await rm(lockFile, { force: true });
-      }
-    } catch {
-      // A stale lock is recoverable on the next mutation.
+    return await withFilesystemLock(
+      {
+        lockPath: coreLockFile(),
+        description: "admin core state",
+        waitMs: CORE_LOCK_WAIT_MS,
+        timeoutMs: CORE_LOCK_TIMEOUT_MS,
+        staleMs: CORE_LOCK_STALE_MS,
+      },
+      action,
+    );
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "Timed out waiting for admin core state lock"
+    ) {
+      throw new AdminCoreError(
+        "STORE_BUSY",
+        "Admin core state is busy; retry the operation.",
+        503,
+      );
     }
+    throw error;
   }
 }
 
@@ -871,6 +869,30 @@ export async function listProductContracts(actor?: CoreActor): Promise<ProductCo
   return clone(state.productContracts.sort((a, b) => a.productName.localeCompare(b.productName)));
 }
 
+export async function listProductContractChoicesForReview(
+  reviewRequestId: string,
+  actor: CoreActor,
+): Promise<Array<Pick<ProductContractVersionRecord, "id" | "productName" | "contractVersion">>> {
+  const state = await readState();
+  const request = state.reviewRequests.find(
+    (candidate) => candidate.id === reviewRequestId,
+  );
+  if (!request) {
+    throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
+  }
+  requireAssignedBusinessRecord(actor, request.owner);
+  return clone(
+    state.productContracts
+      .filter((product) => product.status === "current")
+      .map(({ id: contractId, productName, contractVersion }) => ({
+        id: contractId,
+        productName,
+        contractVersion,
+      }))
+      .sort((a, b) => a.productName.localeCompare(b.productName)),
+  );
+}
+
 export async function getProductContract(idValue: string, actor?: CoreActor): Promise<ProductContractVersionRecord | null> {
   const state = actor ? filterStateForActor(await readState(), actor) : await readState();
   return clone(state.productContracts.find((item) => item.id === idValue) ?? null);
@@ -901,6 +923,27 @@ export async function listDeliveries(actor?: CoreActor): Promise<DeliveryRecord[
 export async function getDelivery(idValue: string, actor?: CoreActor): Promise<DeliveryRecord | null> {
   const state = actor ? filterStateForActor(await readState(), actor) : await readState();
   return clone(state.deliveries.find((item) => item.id === idValue) ?? null);
+}
+
+export async function getDeliverySendReservationStatus(
+  deliveryId: string,
+  actor: CoreActor,
+): Promise<DeliverySendReservationStatus | null> {
+  const state = await readState();
+  const delivery = state.deliveries.find(
+    (candidate) => candidate.id === deliveryId,
+  );
+  if (!delivery) {
+    throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+  }
+  requireDeliveryAssignment(state, delivery, actor);
+  const reservation = state.deliverySendReservations[deliveryId];
+  if (!reservation) return null;
+  return clone({
+    status: reservation.status,
+    reservedAt: reservation.reservedAt,
+    completedAt: reservation.completedAt,
+  });
 }
 
 export async function listReceiptRecords(actor?: CoreActor): Promise<ReceiptRecord[]> {
@@ -1515,6 +1558,13 @@ export async function approveReviewRequest(
     requireAssignedBusinessRecord(actor, request.owner);
     const product = state.productContracts.find((candidate) => candidate.id === productContractVersionId);
     if (!product) throw new AdminCoreError("NOT_FOUND", "Product contract version not found.", 404);
+    if (product.status !== "current") {
+      throw new AdminCoreError(
+        "PRODUCT_CONTRACT_RETIRED",
+        "A retired product contract cannot be approved for a new proof run.",
+        409,
+      );
+    }
     requireTransition("review_request", request.state, "approved_for_proof_run", reviewTransitions);
     const previous = request.state;
     request.productContractVersionId = product.id;
@@ -2329,6 +2379,136 @@ export async function markDeliverySendOutcomeUnknown(
     delivery.failure =
       "Mail delivery outcome is unknown and requires reconciliation.";
     delivery.updatedAt = reservation.completedAt;
+  });
+}
+
+export async function reconcileDeliverySendReservation(
+  deliveryId: string,
+  input: DeliverySendReconciliationInput,
+  actor: CoreActor,
+): Promise<DeliveryRecord> {
+  requireRole(actor, "business-authority");
+  const note = assertNonEmpty(input.note, "note");
+  return mutateState((state) => {
+    const delivery = state.deliveries.find(
+      (candidate) => candidate.id === deliveryId,
+    );
+    if (!delivery) {
+      throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    }
+    requireDeliveryAssignment(state, delivery, actor);
+    const reservation = state.deliverySendReservations[deliveryId];
+    if (
+      !reservation ||
+      (reservation.status !== "reserved" &&
+        reservation.status !== "outcome_unknown")
+    ) {
+      throw new AdminCoreError(
+        "DELIVERY_RECONCILIATION_NOT_REQUIRED",
+        "Delivery has no unresolved send reservation.",
+        409,
+      );
+    }
+    if (
+      reservation.status === "reserved" &&
+      Date.now() - new Date(reservation.reservedAt).getTime() <=
+        DELIVERY_SEND_RESERVATION_STALE_MS
+    ) {
+      throw new AdminCoreError(
+        "DELIVERY_SEND_STILL_ACTIVE",
+        "The delivery reservation is still active and cannot yet be reconciled.",
+        409,
+      );
+    }
+
+    const now = isoNow();
+    if (input.outcome === "not_sent") {
+      reservation.status = "failed";
+      reservation.completedAt = now;
+      delivery.failure =
+        "An operator confirmed that the reserved delivery was not sent.";
+      delivery.updatedAt = now;
+      appendIntegration(state, {
+        integration: "mail",
+        operation: "reconcile_delivery_send_not_sent",
+        idempotencyKey: reservation.idempotencyKey,
+        status: "succeeded",
+        completedAt: now,
+        externalId: null,
+        error: null,
+      });
+      appendAudit(state, {
+        recordType: "delivery",
+        recordId: delivery.id,
+        action: "reconcile_send_not_sent",
+        actor: actor.actor,
+        previousState: delivery.state,
+        resultingState: delivery.state,
+        integrationResult: "mail:not_sent_confirmed",
+        linkedExternalIds: [delivery.proofRunId],
+        failureDetails: note,
+        lineageId: delivery.lineageId,
+      });
+      return clone(delivery);
+    }
+
+    const provider = assertNonEmpty(input.provider, "provider");
+    const sentAt = new Date(input.sentAt);
+    if (!Number.isFinite(sentAt.getTime())) {
+      throw new AdminCoreError(
+        "INVALID_INPUT",
+        "sentAt must be a valid timestamp.",
+      );
+    }
+    requireTransition("delivery", delivery.state, "sent", deliveryTransitions);
+    const readiness = buildDeliveryReadinessSync(state, delivery.id);
+    if (readiness.fail.length > 0 || readiness.unresolved.length > 0) {
+      throw new AdminCoreError(
+        "DELIVERY_NOT_READY",
+        "Delivery readiness checks have not passed.",
+        409,
+        readiness,
+      );
+    }
+    const previous = delivery.state;
+    const providerMessageId = input.providerMessageId?.trim() || null;
+    delivery.state = "sent";
+    delivery.provider = provider;
+    delivery.providerMessageId = providerMessageId;
+    delivery.sentAt = sentAt.toISOString();
+    delivery.failure = null;
+    delivery.updatedAt = now;
+    reservation.status = "sent";
+    reservation.completedAt = now;
+    state.idempotency[reservation.idempotencyKey] = {
+      recordType: "delivery",
+      recordId: delivery.id,
+    };
+    appendIntegration(state, {
+      integration: "mail",
+      operation: "reconcile_delivery_send_sent",
+      idempotencyKey: reservation.idempotencyKey,
+      status: "succeeded",
+      completedAt: now,
+      externalId: providerMessageId,
+      error: null,
+    });
+    appendAudit(state, {
+      recordType: "delivery",
+      recordId: delivery.id,
+      action: "reconcile_send_sent",
+      actor: actor.actor,
+      previousState: previous,
+      resultingState: delivery.state,
+      integrationResult: `${provider}:${providerMessageId ?? "no-provider-id"}`,
+      linkedExternalIds: [
+        delivery.proofRunId,
+        ...(delivery.receiptId ? [delivery.receiptId] : []),
+      ],
+      failureDetails: note,
+      lineageId: delivery.lineageId,
+    });
+    return clone(delivery);
   });
 }
 

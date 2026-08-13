@@ -4,7 +4,6 @@ import {
   readdir,
   rename,
   rm,
-  stat,
   writeFile,
 } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
@@ -22,6 +21,7 @@ import type {
 } from "@/lib/provider-outcomes";
 import type { DeliveryEvidenceSubcase } from "./reconciliation-subcases";
 import { getConfiguredEnvPath } from "./storage-config";
+import { withFilesystemLock } from "./filesystem-lock";
 
 /**
  * Intake and issuance JSON files are read models for lookup and operator views.
@@ -403,10 +403,6 @@ const LOCK_WAIT_MS = 25;
 const LOCK_TIMEOUT_MS = 30_000;
 const LOCK_STALE_MS = 10 * 60_000;
 
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function withRecordLock<T>(
   recordId: string,
   kind: "issuance" | "intake",
@@ -414,50 +410,16 @@ async function withRecordLock<T>(
 ): Promise<T> {
   await ensureStoreDirs();
   const lockPath = recordLockPath(recordId, kind);
-  const lockToken = `${process.pid}:${randomUUID()}`;
-  const deadline = Date.now() + LOCK_TIMEOUT_MS;
-
-  while (true) {
-    try {
-      await writeFile(lockPath, lockToken, { encoding: "utf8", flag: "wx" });
-      break;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
-        throw error;
-      }
-
-      try {
-        const lockStat = await stat(lockPath);
-        if (Date.now() - lockStat.mtimeMs > LOCK_STALE_MS) {
-          await rm(lockPath, { force: true });
-          continue;
-        }
-      } catch (statError) {
-        if ((statError as NodeJS.ErrnoException).code === "ENOENT") {
-          continue;
-        }
-        throw statError;
-      }
-
-      if (Date.now() >= deadline) {
-        throw new Error(`Timed out waiting for ${kind} lock: ${recordId}`);
-      }
-      await wait(LOCK_WAIT_MS);
-    }
-  }
-
-  try {
-    return await action();
-  } finally {
-    try {
-      if ((await readFile(lockPath, "utf8")) === lockToken) {
-        await rm(lockPath, { force: true });
-      }
-    } catch {
-      // Do not replace a completed verification result with a lock-cleanup
-      // error. Any orphaned lock is recovered by the stale-lock path above.
-    }
-  }
+  return withFilesystemLock(
+    {
+      lockPath,
+      description: `${kind} record ${recordId}`,
+      waitMs: LOCK_WAIT_MS,
+      timeoutMs: LOCK_TIMEOUT_MS,
+      staleMs: LOCK_STALE_MS,
+    },
+    action,
+  );
 }
 
 export async function withIssuanceLock<T>(

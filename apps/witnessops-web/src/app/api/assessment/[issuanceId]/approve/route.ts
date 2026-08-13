@@ -65,9 +65,9 @@ export async function POST(
     if (error instanceof ScopeApprovalInputError) {
       return invalid(error.message, 400);
     }
-    console.error("Scope approval downstream handoff failed", {
+    console.error("Scope approval could not be completed", {
       errorType: error instanceof Error ? error.name : "unknown",
     });
-    return invalid("Scope approval was recorded, but downstream handoff is pending.", 502);
+    return invalid("Scope approval could not be completed. Retry or contact support.", 502);
   }
 }

@@ -53,8 +53,6 @@ spec:
               value: production
             - name: WITNESSOPS_ADMIN_CORE_STORE_DIR
               value: /data/intake-store/admin-core
-            - name: WITNESSOPS_ADMIN_ROLE
-              value: Founder
             # Public marketing origin stays prod; verify base points at mesh for server-side paths.
             - name: NEXT_PUBLIC_OS_SITE_URL
               value: https://witnessops.com

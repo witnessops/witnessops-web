@@ -22,10 +22,13 @@ import {
   listCustomers,
   listDeliveries,
   listProductContracts,
+  listProductContractChoicesForReview,
   listProofRuns,
   listReceiptRecords,
   listReviewRequests,
+  markDeliverySendOutcomeUnknown,
   recordDeliverySent,
+  reconcileDeliverySendReservation,
   recordGmailLabelSync,
   prepareDelivery,
   reserveDeliverySend,
@@ -111,6 +114,17 @@ test("delegated reads expose only assigned record lineages", async () => {
   const founderProducts = await listProductContracts(founder);
   assert.equal(founderProducts.length > 0, true);
   const flagship = founderProducts[0]!;
+  assert.deepEqual(
+    (await listProductContractChoicesForReview(aliceRequest.reviewRequest.id, alice)).map(
+      (item) => item.id,
+    ),
+    founderProducts.filter((item) => item.status === "current").map((item) => item.id),
+  );
+  await assert.rejects(
+    () => listProductContractChoicesForReview(bobRequest.reviewRequest.id, alice),
+    (error: unknown) =>
+      error instanceof AdminCoreError && error.code === "RECORD_ASSIGNMENT_REQUIRED",
+  );
   const siblingVersion = await createProductContractVersion(
     {
       productId: flagship.productId,
@@ -345,12 +359,47 @@ test("admin core spine covers the complete message-to-receipt operating path", a
     (error: unknown) =>
       error instanceof AdminCoreError && error.code === "DELIVERY_SEND_UNRESOLVED",
   );
-  const sent = await recordDeliverySent(
+  await assert.rejects(
+    () => reconcileDeliverySendReservation(
+      deliveryRecord.id,
+      { outcome: "not_sent", note: "Premature reconciliation attempt." },
+      founder,
+    ),
+    (error: unknown) =>
+      error instanceof AdminCoreError && error.code === "DELIVERY_SEND_STILL_ACTIVE",
+  );
+  await markDeliverySendOutcomeUnknown(
     deliveryRecord.id,
-    { provider: "file", providerMessageId: "provider-msg-001", sentAt: "2026-07-11T12:10:00Z" },
-    founder,
-    `delivery-send:${deliveryRecord.id}`,
     sendReservation.reservationToken,
+    founder,
+  );
+  await reconcileDeliverySendReservation(
+    deliveryRecord.id,
+    { outcome: "not_sent", note: "Provider log confirms no accepted message." },
+    founder,
+  );
+  const retryReservation = await reserveDeliverySend(
+    deliveryRecord.id,
+    founder,
+    `delivery-send:${deliveryRecord.id}:retry`,
+  );
+  assert.equal(retryReservation.kind, "reserved");
+  assert.ok(retryReservation.kind === "reserved");
+  await markDeliverySendOutcomeUnknown(
+    deliveryRecord.id,
+    retryReservation.reservationToken,
+    founder,
+  );
+  const sent = await reconcileDeliverySendReservation(
+    deliveryRecord.id,
+    {
+      outcome: "sent",
+      provider: "file",
+      providerMessageId: "provider-msg-001",
+      sentAt: "2026-07-11T12:10:00Z",
+      note: "Provider log confirms message acceptance.",
+    },
+    founder,
   );
   const sentAgain = await recordDeliverySent(deliveryRecord.id, { provider: "file", providerMessageId: "provider-msg-should-not-duplicate", sentAt: "2026-07-11T12:11:00Z" }, founder);
   assert.equal(sentAgain.providerMessageId, sent.providerMessageId);

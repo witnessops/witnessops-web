@@ -29,10 +29,11 @@ async function removeOwnedLock(lockPath: string, lockToken: string): Promise<voi
   }
 }
 
-async function recoverStaleLock(
+async function tryAcquireLock(
   options: FileLockOptions,
+  lockToken: string,
   staleMs: number,
-): Promise<boolean> {
+): Promise<"acquired" | "retry" | "waiting"> {
   const recoveryPath = `${options.lockPath}.recovery`;
   const recoveryToken = `${process.pid}:${randomUUID()}`;
 
@@ -43,24 +44,37 @@ async function recoverStaleLock(
     });
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "EEXIST") {
-      return false;
+      return "waiting";
     }
     throw error;
   }
 
   try {
-    const lockStat = await stat(options.lockPath);
-    if (Date.now() - lockStat.mtimeMs <= staleMs) {
-      return false;
+    try {
+      await writeFile(options.lockPath, lockToken, {
+        encoding: "utf8",
+        flag: "wx",
+      });
+      return "acquired";
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+        throw error;
+      }
     }
 
-    await rm(options.lockPath, { force: true });
-    return true;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return true;
+    try {
+      const lockStat = await stat(options.lockPath);
+      if (Date.now() - lockStat.mtimeMs <= staleMs) {
+        return "waiting";
+      }
+      await rm(options.lockPath, { force: true });
+      return "retry";
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        return "retry";
+      }
+      throw error;
     }
-    throw error;
   } finally {
     await removeOwnedLock(recoveryPath, recoveryToken);
   }
@@ -79,26 +93,15 @@ export async function withFilesystemLock<T>(
   await mkdir(path.dirname(options.lockPath), { recursive: true });
 
   while (true) {
-    try {
-      await writeFile(options.lockPath, lockToken, {
-        encoding: "utf8",
-        flag: "wx",
-      });
+    const result = await tryAcquireLock(options, lockToken, staleMs);
+    if (result === "acquired") {
       break;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
-        throw error;
-      }
-
-      if (await recoverStaleLock(options, staleMs)) {
-        continue;
-      }
-
-      if (Date.now() >= deadline) {
-        throw new Error(`Timed out waiting for ${options.description} lock`);
-      }
-      await wait(waitMs);
     }
+    if (result === "retry") continue;
+    if (Date.now() >= deadline) {
+      throw new Error(`Timed out waiting for ${options.description} lock`);
+    }
+    await wait(waitMs);
   }
 
   try {

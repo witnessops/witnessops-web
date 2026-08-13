@@ -136,6 +136,23 @@ validate_admin_oidc_key_names() {
   return 0
 }
 
+validate_no_admin_oidc_env_shadows() {
+  local supplied protected_key shadowed
+  supplied="$(printf '%s\n' "$@")"
+  shadowed=0
+
+  while IFS= read -r protected_key; do
+    [[ -n "${protected_key}" ]] || continue
+    if grep -Fqx -- "${protected_key}" <<<"${supplied}"; then
+      printf 'explicit env shadows admin OIDC secret key: %s\n' "${protected_key}" >&2
+      shadowed=1
+    fi
+  done < <(required_admin_oidc_key_names)
+
+  [[ "${shadowed}" -eq 0 ]] || return 2
+  return 0
+}
+
 # Keep interpolated image references out of shell and JSON control syntax.
 validate_container_image_ref() {
   local image

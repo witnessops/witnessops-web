@@ -9,6 +9,10 @@ import {
   type SupportResponse,
 } from "@/lib/token-contract";
 import { formatVerificationCode } from "@/lib/verification-code-format";
+import {
+  consumeSupportConfirmation,
+  storeSupportConfirmation,
+} from "@/lib/support-confirmation";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
@@ -116,9 +120,14 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
     const params = new URLSearchParams(window.location.search);
     if (params.get("verified") !== "1") return;
 
-    const stored = window.sessionStorage.getItem("witnessops-support-verified");
-    if (stored === "1") {
+    if (
+      consumeSupportConfirmation(
+        window.sessionStorage,
+        params.get("confirmation") ?? "",
+      )
+    ) {
       setStatus("verified");
+      window.history.replaceState(null, "", window.location.pathname);
     }
   }, []);
 
@@ -221,11 +230,18 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
         throw new Error(verificationErrorMessage(rawPayload));
       }
 
-      window.sessionStorage.setItem(
-        "witnessops-support-verified",
-        "1",
+      const confirmation = storeSupportConfirmation(
+        window.sessionStorage,
+        payload.data.intakeId,
       );
-      window.location.assign(payload.data.postVerifyPath);
+      const destination = new URL(
+        payload.data.postVerifyPath,
+        window.location.origin,
+      );
+      destination.searchParams.set("confirmation", confirmation);
+      window.location.assign(
+        `${destination.pathname}${destination.search}${destination.hash}`,
+      );
     } catch (err) {
       setStatus("verification_error");
       setErrorMsg(

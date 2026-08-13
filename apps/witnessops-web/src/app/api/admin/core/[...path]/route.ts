@@ -34,6 +34,7 @@ import {
   listReceiptRecords,
   listReviewRequests,
   prepareDelivery,
+  reconcileDeliverySendReservation,
   reserveDeliverySend,
   failDeliverySendReservation,
   markDeliverySendOutcomeUnknown,
@@ -337,6 +338,31 @@ export async function POST(request: NextRequest, context: RouteContext) {
           500,
         );
       }
+    }
+    if (resource === "deliveries" && idValue && action === "reconcile-send") {
+      const outcome = stringValue(body, "outcome");
+      if (outcome !== "sent" && outcome !== "not_sent") {
+        throw new AdminCoreError("INVALID_INPUT", "Unknown delivery reconciliation outcome.");
+      }
+      return NextResponse.json({
+        ok: true,
+        item: await reconcileDeliverySendReservation(
+          idValue,
+          outcome === "sent"
+            ? {
+                outcome,
+                provider: stringValue(body, "provider"),
+                providerMessageId: stringValue(body, "providerMessageId", false) || null,
+                sentAt: stringValue(body, "sentAt"),
+                note: stringValue(body, "note"),
+              }
+            : {
+                outcome,
+                note: stringValue(body, "note"),
+              },
+          actor,
+        ),
+      });
     }
     return NextResponse.json({ ok: false, error: "Unknown admin core action." }, { status: 404 });
   } catch (error) {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CoreAction, ProductApproveForm, ReviewNoteForm } from "../../../../../components/admin/admin-core-ui";
 import { CoreAuditTimeline, CoreCard, CoreMeta, CorePage, CoreState } from "../../../../../components/admin/admin-core-view";
-import { getCustomer, getReviewRequest, listAuditEvents, listProductContracts } from "@/lib/server/admin-core-spine";
+import { getCustomer, getReviewRequest, listAuditEvents, listProductContractChoicesForReview } from "@/lib/server/admin-core-spine";
 import styles from "../../../../../components/admin/admin.module.css";
 import { getAdminPageActor } from "@/lib/server/admin-page-session";
 
@@ -16,7 +16,7 @@ export default async function AdminReviewRequestDetailPage({ params }: RouteCont
   const actor = await getAdminPageActor();
   const request = await getReviewRequest(id, actor);
   if (!request) notFound();
-  const [customer, products, events] = await Promise.all([getCustomer(request.customerId, actor), listProductContracts(actor), listAuditEvents(request.lineageId, actor)]);
+  const [customer, products, events] = await Promise.all([getCustomer(request.customerId, actor), listProductContractChoicesForReview(request.id, actor), listAuditEvents(request.lineageId, actor)]);
   return <CorePage title={request.id} eyebrow="Review request">
     <div className={styles.coreMetaGrid}><CoreMeta label="State" value={<CoreState value={request.state} />} /><CoreMeta label="Customer" value={customer ? <Link href={`/admin/customers/${customer.id}`} className={styles.inlineLink}>{customer.name}</Link> : request.customerId} /><CoreMeta label="Gmail thread" value={request.originatingGmailThreadId} /><CoreMeta label="Owner" value={request.owner || "Unassigned"} /><CoreMeta label="Next action" value={request.nextAction} /></div>
     <div className={styles.coreDetailSection}><div className={styles.coreDetailSectionTitle}>Request</div><div className={styles.coreText}>{request.requestText}</div></div>

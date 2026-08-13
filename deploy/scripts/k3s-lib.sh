@@ -256,6 +256,13 @@ deployment_envfrom_contract() {
   remote "kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o go-template='{{range .spec.template.spec.containers}}{{printf \"container:%s\\n\" .name}}{{range .envFrom}}{{if .secretRef}}{{printf \"secret:%s|prefix=\" .secretRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{with .secretRef.optional}}{{.}}{{else}}false{{end}}{{printf \"\\n\"}}{{else if .configMapRef}}{{printf \"configmap:%s|prefix=\" .configMapRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{with .configMapRef.optional}}{{.}}{{else}}false{{end}}{{printf \"\\n\"}}{{else}}{{printf \"unknown:|prefix=|optional=false\\n\"}}{{end}}{{end}}{{end}}'"
 }
 
+deployment_explicit_env_key_names() {
+  local deployment
+  deployment="${1:-}"
+  [[ -n "${deployment}" ]] || return 1
+  remote "kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o go-template='{{range .spec.template.spec.containers}}{{range .env}}{{printf \"%s\\n\" .name}}{{end}}{{end}}'"
+}
+
 assert_remote_deployment_envfrom() {
   local deployment expected actual rc
   deployment="${1:-}"
@@ -270,6 +277,17 @@ assert_remote_deployment_envfrom() {
   log "runtime envFrom contract matches for ${deployment}"
 }
 
+assert_remote_no_admin_oidc_env_shadows() {
+  local deployment explicit_keys
+  deployment="${1:-}"
+  explicit_keys="$(deployment_explicit_env_key_names "${deployment}")" \
+    || die "could not inspect explicit runtime env for ${deployment}"
+  if ! validate_no_admin_oidc_env_shadows "${explicit_keys}"; then
+    die "explicit runtime env shadows admin OIDC secret for ${deployment}"
+  fi
+  log "runtime env does not shadow admin OIDC secret for ${deployment}"
+}
+
 deploy_prod_image() {
   local image patch
   image="${1:-}"
@@ -277,6 +295,7 @@ deploy_prod_image() {
     || die "refusing invalid production image reference"
 
   preflight_remote_admin_secrets
+  assert_remote_no_admin_oidc_env_shadows "${PROD_DEPLOY}"
   log "deploying PROD ${PROD_DEPLOY} -> ${image}"
   remote "set -euo pipefail
     kubectl -n '${DEPLOY_NS}' get deploy '${PROD_DEPLOY}' -o jsonpath='{.spec.template.spec.containers[0].image}' > /tmp/witnessops-web-prev-image.txt
@@ -286,6 +305,7 @@ deploy_prod_image() {
     kubectl -n '${DEPLOY_NS}' get deploy ${PROD_DEPLOY} -o wide
   "
   assert_remote_deployment_envfrom "${PROD_DEPLOY}"
+  assert_remote_no_admin_oidc_env_shadows "${PROD_DEPLOY}"
 }
 
 deploy_dev_image() {
@@ -320,6 +340,7 @@ deploy_dev_image() {
     ss -lntp | grep -- '${MESH_BIND_PORT}' || true
   "
   assert_remote_deployment_envfrom "${DEV_DEPLOY}"
+  assert_remote_no_admin_oidc_env_shadows "${DEV_DEPLOY}"
 }
 
 # Fetch container image refs for both lanes (stdout: two lines prod\ndev).
@@ -336,6 +357,8 @@ smoke_pair() {
   # 1) Exact ordered runtime secret-ref contract for both lanes.
   assert_remote_deployment_envfrom "${PROD_DEPLOY}"
   assert_remote_deployment_envfrom "${DEV_DEPLOY}"
+  assert_remote_no_admin_oidc_env_shadows "${PROD_DEPLOY}"
+  assert_remote_no_admin_oidc_env_shadows "${DEV_DEPLOY}"
 
   # 2) Image-ref equality (enforced — fails even when CSS coincidentally matches).
   images_out="$(lane_image_refs 2>/dev/null || true)"

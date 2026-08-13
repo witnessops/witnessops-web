@@ -216,7 +216,7 @@ test("approval route does not expose control-plane error bodies", async () => {
   assert.equal(response.status, 502);
   assert.equal(
     payload.error,
-    "Scope approval was recorded, but downstream handoff is pending.",
+    "Scope approval could not be completed. Retry or contact support.",
   );
   assert.doesNotMatch(payload.error, /handoff-token|cp\.private/);
 });
@@ -245,7 +245,7 @@ test("approval route does not expose control-plane configuration errors", async 
   assert.equal(response.status, 502);
   assert.equal(
     payload.error,
-    "Scope approval was recorded, but downstream handoff is pending.",
+    "Scope approval could not be completed. Retry or contact support.",
   );
   assert.doesNotMatch(payload.error, /CONTROL_PLANE|API_KEY|service identity/i);
 });
@@ -280,7 +280,7 @@ test("approval route does not expose control-plane response parse errors", async
   assert.equal(response.status, 502);
   assert.equal(
     payload.error,
-    "Scope approval was recorded, but downstream handoff is pending.",
+    "Scope approval could not be completed. Retry or contact support.",
   );
   assert.doesNotMatch(payload.error, /not-json|control-plane\.internal|JSON/i);
 });
