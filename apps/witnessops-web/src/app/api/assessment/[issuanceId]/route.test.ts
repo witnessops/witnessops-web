@@ -8,6 +8,7 @@ import {
   clearTokenStore,
   getIssuanceById,
   updateIssuance,
+  withIssuanceLock,
 } from "@/lib/server/token-store";
 import {
   claimantSessionCookieName,
@@ -115,6 +116,82 @@ test("assessment route persists live status updates back to the issuance record"
   const stored = await getIssuanceById(issued.issuanceId);
   assert.equal(stored?.assessmentStatus, "completed");
   assert.equal(stored?.assessmentError, null);
+});
+
+test("assessment polling cannot overwrite lifecycle state written under the issuance lock", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-assessment-"));
+  process.env.GES_SERVER_URL = "http://ges.internal";
+  process.env.GES_ASSESSMENT_KEY = "ges-key";
+
+  const issued = await issueToken(baseDir);
+  await updateIssuance(issued.issuanceId, (record) => ({
+    ...record,
+    status: "verified",
+    verifiedAt: "2026-03-28T12:00:00Z",
+    consumedAt: "2026-03-28T12:00:00Z",
+    assessmentRunId: "run_demo123",
+    assessmentStatus: "pending",
+  }));
+
+  let assessmentRequested = false;
+  global.fetch = (async () => {
+    assessmentRequested = true;
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        run_id: "run_demo123",
+        status: "completed",
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }) as typeof fetch;
+
+  const request = new Request(
+    `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}?email=${encodeURIComponent(issued.email)}`,
+    {
+      headers: {
+        Cookie: claimantSessionCookie(issued.issuanceId, issued.email),
+      },
+    },
+  );
+
+  let pollingSettled = false;
+  let pollingPromise: Promise<Response> | undefined;
+  await withIssuanceLock(issued.issuanceId, async () => {
+    pollingPromise = GET(request, {
+      params: Promise.resolve({ issuanceId: issued.issuanceId }),
+    }).finally(() => {
+      pollingSettled = true;
+    });
+
+    for (let attempt = 0; attempt < 50 && !assessmentRequested; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 2));
+    }
+    assert.equal(assessmentRequested, true);
+
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    assert.equal(
+      pollingSettled,
+      false,
+      "assessment polling must wait for the lifecycle lock",
+    );
+
+    await updateIssuance(issued.issuanceId, (record) => ({
+      ...record,
+      approvalStatus: "approval_denied",
+    }));
+  });
+
+  assert.ok(pollingPromise);
+  const response = await pollingPromise;
+  assert.equal(response.status, 200);
+
+  const stored = await getIssuanceById(issued.issuanceId);
+  assert.equal(stored?.approvalStatus, "approval_denied");
+  assert.equal(stored?.assessmentStatus, "completed");
 });
 
 test("assessment route rejects issuance and email without claimant session", async () => {

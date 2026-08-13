@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { getIssuanceById, updateIssuance } from "@/lib/server/token-store";
+import {
+  getIssuanceById,
+  updateIssuance,
+  withIssuanceLock,
+} from "@/lib/server/token-store";
 import { getAssessmentStatus } from "@/lib/server/assessment-client";
 import { isClaimantSessionAuthorized } from "@/lib/server/claimant-session";
 import { normalizedEmailSchema } from "@/lib/token-contract";
@@ -10,19 +14,21 @@ async function persistAssessmentStatus(
   issuanceId: string,
   next: { status: "pending" | "running" | "completed" | "failed"; error?: string },
 ) {
-  await updateIssuance(issuanceId, (record) => {
-    if (
-      record.assessmentStatus === next.status &&
-      (record.assessmentError ?? null) === (next.error ?? null)
-    ) {
-      return record;
-    }
-    return {
-      ...record,
-      assessmentStatus: next.status,
-      assessmentError: next.error ?? null,
-    };
-  });
+  await withIssuanceLock(issuanceId, () =>
+    updateIssuance(issuanceId, (record) => {
+      if (
+        record.assessmentStatus === next.status &&
+        (record.assessmentError ?? null) === (next.error ?? null)
+      ) {
+        return record;
+      }
+      return {
+        ...record,
+        assessmentStatus: next.status,
+        assessmentError: next.error ?? null,
+      };
+    }),
+  );
 }
 
 export async function GET(
