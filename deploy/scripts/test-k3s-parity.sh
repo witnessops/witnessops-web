@@ -7,11 +7,43 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARITY="${SCRIPT_DIR}/k3s-parity.sh"
 K3S_LIB="${SCRIPT_DIR}/k3s-lib.sh"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-PROD_MANIFEST="${REPO_ROOT}/deploy/k8s/deployment.yaml"
-DEV_MANIFEST="${REPO_ROOT}/deploy/k8s/dev-mesh-deployment.yaml"
+PROD_TEMPLATE="${REPO_ROOT}/deploy/k8s/deployment.yaml"
+DEV_TEMPLATE="${REPO_ROOT}/deploy/k8s/dev-mesh-deployment.yaml"
 APPLY_SCRIPT="${REPO_ROOT}/deploy/k8s/apply.sh"
+DISK_HYGIENE_SCRIPT="${REPO_ROOT}/deploy/scripts/k3s-disk-hygiene.sh"
 [[ -f "${PARITY}" ]] || { echo "missing ${PARITY}" >&2; exit 1; }
 [[ -f "${K3S_LIB}" ]] || { echo "missing ${K3S_LIB}" >&2; exit 1; }
+
+# Deliberately non-operational values exercise the same injected topology
+# contract used by the live scripts without publishing private infrastructure.
+export DEPLOY_SSH=deploy-host.private.example
+export DEPLOY_NS=example-namespace
+export PROD_DEPLOY=example-prod-deployment
+export PROD_SERVICE=example-prod-service
+export DEV_DEPLOY=example-dev-deployment
+export APP_CONTAINER_NAME=example-app-container
+export BASE_ENV_SECRET=example-runtime-secret
+export ADMIN_OIDC_SECRET=example-identity-secret
+export INTAKE_STORE_PVC=example-intake-pvc
+export INTAKE_EVENTS_PVC=example-events-pvc
+export MAIL_OUT_PVC=example-mail-pvc
+export MESH_BIND_HOST=192.0.2.10
+export MESH_BIND_PORT=3001
+export MESH_DEV_URL=http://192.0.2.10:3001
+
+rendered_test_dir="$(mktemp -d "${TMPDIR:-/tmp}/witnessops-topology-test.XXXXXX")"
+PROD_MANIFEST="${rendered_test_dir}/deployment.yaml"
+DEV_MANIFEST="${rendered_test_dir}/dev-mesh-deployment.yaml"
+IMAGE_PLACEHOLDER=docker.io/library/witnessops-web:test \
+  node "${SCRIPT_DIR}/render-topology-template.mjs" \
+    "${PROD_TEMPLATE}" "${PROD_MANIFEST}" \
+    DEPLOY_NS PROD_DEPLOY APP_CONTAINER_NAME IMAGE_PLACEHOLDER \
+    BASE_ENV_SECRET ADMIN_OIDC_SECRET INTAKE_STORE_PVC INTAKE_EVENTS_PVC MAIL_OUT_PVC
+IMAGE_PLACEHOLDER=docker.io/library/witnessops-web:test \
+  node "${SCRIPT_DIR}/render-topology-template.mjs" \
+    "${DEV_TEMPLATE}" "${DEV_MANIFEST}" \
+    DEPLOY_NS DEV_DEPLOY APP_CONTAINER_NAME IMAGE_PLACEHOLDER \
+    BASE_ENV_SECRET ADMIN_OIDC_SECRET MESH_BIND_HOST MESH_BIND_PORT MESH_DEV_URL
 
 fail=0
 pass=0
@@ -28,6 +60,32 @@ assert_exit() {
     fail=$((fail + 1))
     echo "FAIL: $* (want exit ${want}, got ${got})" >&2
   fi
+}
+
+check_private_topology_denylist() {
+  local denylist_file="$1"
+  local private_token
+  local grep_status
+  local checked_tokens=0
+  local private_topology_found=0
+
+  [[ -f "${denylist_file}" ]] || return 2
+  while IFS= read -r private_token || [[ -n "${private_token}" ]]; do
+    [[ -n "${private_token}" ]] || continue
+    [[ "${private_token}" != *$'\r'* ]] || return 2
+    checked_tokens=$((checked_tokens + 1))
+    if git -C "${REPO_ROOT}" grep -F -n -- "${private_token}" -- . \
+      >/dev/null 2>&1; then
+      private_topology_found=1
+      echo "tracked private topology token is present" >&2
+    else
+      grep_status=$?
+      [[ "${grep_status}" -eq 1 ]] || return 2
+    fi
+  done < "${denylist_file}"
+
+  [[ "${checked_tokens}" -gt 0 ]] || return 2
+  [[ "${private_topology_found}" -eq 0 ]]
 }
 
 manifest_envfrom_contract() {
@@ -143,7 +201,7 @@ manifest_with_first_envfrom_optional() {
     in_envfrom && !changed && /^[[:space:]]*-[[:space:]]*secretRef:[[:space:]]*$/ {
       in_first_secret = 1
     }
-    in_first_secret && !changed && /^[[:space:]]*name:[[:space:]]*witnessops-web-env[[:space:]]*$/ {
+    in_first_secret && !changed && /^[[:space:]]*name:[[:space:]]*example-runtime-secret[[:space:]]*$/ {
       print
       prefix = $0
       sub(/[^[:space:]].*$/, "", prefix)
@@ -197,6 +255,63 @@ assert_exit 1 bash "${PARITY}" compare-images \
   'docker.io/library/witnessops-web:main-aaa' \
   ''
 
+# --- injected topology shape validation ---
+assert_exit 0 bash -c 'source "$1"; validate_kubernetes_name example-prod' _ "${PARITY}"
+assert_exit 1 bash -c 'source "$1"; validate_kubernetes_name "$2"' _ \
+  "${PARITY}" $'example-prod\n---\nkind: ConfigMap'
+assert_exit 1 bash -c 'source "$1"; validate_kubernetes_name "$2"' _ \
+  "${PARITY}" 'example prod'
+assert_exit 0 bash -c 'source "$1"; validate_ssh_target deploy-host.private.example' _ "${PARITY}"
+assert_exit 1 bash -c 'source "$1"; validate_ssh_target "$2"' _ \
+  "${PARITY}" 'deploy-host;touch-pwned'
+assert_exit 0 bash -c 'source "$1"; validate_unprivileged_port 3001' _ "${PARITY}"
+assert_exit 1 bash -c 'source "$1"; validate_unprivileged_port 22' _ "${PARITY}"
+
+denylist_test_file="$(mktemp "${TMPDIR:-/tmp}/witnessops-private-denylist.XXXXXX")"
+printf '%s' "not-tracked-private-token-${$}" > "${denylist_test_file}"
+assert_exit 0 check_private_topology_denylist "${denylist_test_file}"
+: > "${denylist_test_file}"
+assert_exit 2 check_private_topology_denylist "${denylist_test_file}"
+printf 'not-tracked-private-token-%s\r\n' "${$}" > "${denylist_test_file}"
+assert_exit 2 check_private_topology_denylist "${denylist_test_file}"
+denylist_repo_root="${REPO_ROOT}"
+denylist_binary_repo="$(mktemp -d "${TMPDIR:-/tmp}/witnessops-private-binary.XXXXXX")"
+git -C "${denylist_binary_repo}" init -q
+printf 'prefix\0tracked-binary-private-token\0suffix' \
+  > "${denylist_binary_repo}/artifact.bin"
+git -C "${denylist_binary_repo}" add artifact.bin
+printf '%s\n' 'tracked-binary-private-token' > "${denylist_test_file}"
+REPO_ROOT="${denylist_binary_repo}"
+assert_exit 1 check_private_topology_denylist "${denylist_test_file}"
+REPO_ROOT="${denylist_binary_repo}/missing"
+assert_exit 2 check_private_topology_denylist "${denylist_test_file}"
+REPO_ROOT="${denylist_repo_root}"
+rm -rf "${denylist_binary_repo}"
+rm -f "${denylist_test_file}"
+
+disk_test_dir="$(mktemp -d "${TMPDIR:-/tmp}/witnessops-disk-hygiene.XXXXXX")"
+disk_fake_bin="${disk_test_dir}/bin"
+mkdir "${disk_fake_bin}"
+ln -s "$(command -v true)" "${disk_fake_bin}/ssh"
+assert_exit 1 env \
+  PATH="${disk_fake_bin}:${PATH}" \
+  DEPLOY_SSH='deploy-host;invalid' \
+  DEPLOY_NS=example-namespace \
+  bash "${DISK_HYGIENE_SCRIPT}"
+assert_exit 1 env \
+  PATH="${disk_fake_bin}:${PATH}" \
+  DEPLOY_SSH=deploy-host.private.example \
+  DEPLOY_NS=$'example-namespace\n---' \
+  bash "${DISK_HYGIENE_SCRIPT}"
+assert_exit 1 env \
+  PATH="${disk_fake_bin}:${PATH}" \
+  DEPLOY_SSH=deploy-host.private.example \
+  DEPLOY_NS=example-namespace \
+  KEEP_IMAGES='4;invalid' \
+  bash "${DISK_HYGIENE_SCRIPT}"
+assert_exit 0 grep -Fq -- "kubectl -n '\${DEPLOY_NS}'" "${DISK_HYGIENE_SCRIPT}"
+rm -rf "${disk_test_dir}"
+
 # --- compare-css ---
 assert_exit 0 bash "${PARITY}" compare-css 'css/aaa.css' 'css/aaa.css'
 assert_exit 0 bash "${PARITY}" compare-css '' ''
@@ -204,48 +319,48 @@ assert_exit 2 bash "${PARITY}" compare-css 'css/aaa.css' 'css/bbb.css'
 assert_exit 2 bash "${PARITY}" compare-css 'css/aaa.css' ''
 
 # --- checked-in deployment secretRef parity ---
-required_shared_envfrom=$'secret:witnessops-web-env|prefix=|optional=false\nsecret:witnessops-web-admin-oidc|prefix=|optional=false'
+required_shared_envfrom=$'secret:example-runtime-secret|prefix=|optional=false\nsecret:example-identity-secret|prefix=|optional=false'
 assert_output "${required_shared_envfrom}" manifest_envfrom_contract "${PROD_MANIFEST}"
 assert_output "${required_shared_envfrom}" manifest_envfrom_contract "${DEV_MANIFEST}"
 
 static_prefix_drift="$(manifest_with_first_envfrom_prefix "${PROD_MANIFEST}" \
   | manifest_envfrom_contract /dev/stdin)"
 assert_output \
-  $'secret:witnessops-web-env|prefix=WOPS_|optional=false\nsecret:witnessops-web-admin-oidc|prefix=|optional=false' \
+  $'secret:example-runtime-secret|prefix=WOPS_|optional=false\nsecret:example-identity-secret|prefix=|optional=false' \
   printf '%s' "${static_prefix_drift}"
 
 static_optional_drift="$(manifest_with_first_envfrom_optional "${PROD_MANIFEST}" \
   | manifest_envfrom_contract /dev/stdin)"
 assert_output \
-  $'secret:witnessops-web-env|prefix=|optional=true\nsecret:witnessops-web-admin-oidc|prefix=|optional=false' \
+  $'secret:example-runtime-secret|prefix=|optional=true\nsecret:example-identity-secret|prefix=|optional=false' \
   printf '%s' "${static_optional_drift}"
 
 # --- sourced API (same file, real functions) ---
 # shellcheck source=k3s-parity.sh
 source "${PARITY}"
-runtime_envfrom_contract=$'container:witnessops-web\nsecret:witnessops-web-env|prefix=|optional=false\nsecret:witnessops-web-admin-oidc|prefix=|optional=false'
+runtime_envfrom_contract=$'container:example-app-container\nsecret:example-runtime-secret|prefix=|optional=false\nsecret:example-identity-secret|prefix=|optional=false'
 assert_output "${runtime_envfrom_contract}" expected_admin_runtime_envfrom_contract
 assert_exit 0 compare_runtime_envfrom_contract \
   "${runtime_envfrom_contract}" "${runtime_envfrom_contract}"
 assert_exit 2 compare_runtime_envfrom_contract \
   "${runtime_envfrom_contract}" \
-  $'container:witnessops-web\nsecret:witnessops-web-admin-oidc|prefix=|optional=false\nsecret:witnessops-web-env|prefix=|optional=false'
+  $'container:example-app-container\nsecret:example-identity-secret|prefix=|optional=false\nsecret:example-runtime-secret|prefix=|optional=false'
 assert_exit 2 compare_runtime_envfrom_contract \
   "${runtime_envfrom_contract}" \
-  $'container:witnessops-web\nsecret:witnessops-web-env|prefix=|optional=false'
+  $'container:example-app-container\nsecret:example-runtime-secret|prefix=|optional=false'
 assert_exit 2 compare_runtime_envfrom_contract \
   "${runtime_envfrom_contract}" \
-  $'container:witnessops-web\nsecret:witnessops-web-env|prefix=WOPS_|optional=false\nsecret:witnessops-web-admin-oidc|prefix=|optional=false'
+  $'container:example-app-container\nsecret:example-runtime-secret|prefix=WOPS_|optional=false\nsecret:example-identity-secret|prefix=|optional=false'
 assert_exit 2 compare_runtime_envfrom_contract \
   "${runtime_envfrom_contract}" \
-  $'container:witnessops-web\nsecret:witnessops-web-env|prefix=|optional=true\nsecret:witnessops-web-admin-oidc|prefix=|optional=false'
+  $'container:example-app-container\nsecret:example-runtime-secret|prefix=|optional=true\nsecret:example-identity-secret|prefix=|optional=false'
 assert_exit 2 compare_runtime_envfrom_contract \
   "${required_shared_envfrom}" "${static_prefix_drift}"
 assert_exit 2 compare_runtime_envfrom_contract \
   "${required_shared_envfrom}" "${static_optional_drift}"
 
 required_oidc_keys="$(required_admin_oidc_key_names)"
-expected_required_oidc_keys=$'WITNESSOPS_ADMIN_SECRET\nWITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST\nWITNESSOPS_GOOGLE_OIDC_CLIENT_ID\nWITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET\nWITNESSOPS_GOOGLE_OIDC_REDIRECT_URI\nWITNESSOPS_GOOGLE_WORKSPACE_DOMAIN'
+expected_required_oidc_keys=$'WITNESSOPS_ADMIN_ROLE\nWITNESSOPS_ADMIN_SECRET\nWITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST\nWITNESSOPS_GOOGLE_OIDC_CLIENT_ID\nWITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET\nWITNESSOPS_GOOGLE_OIDC_REDIRECT_URI\nWITNESSOPS_GOOGLE_WORKSPACE_DOMAIN'
 assert_output "${expected_required_oidc_keys}" sorted_unique_lines "${required_oidc_keys}"
 assert_exit 0 validate_admin_oidc_key_names \
   "${required_oidc_keys}" \
@@ -254,41 +369,67 @@ assert_exit 2 validate_admin_oidc_key_names \
   "$(without_line "${required_oidc_keys}" WITNESSOPS_ADMIN_SECRET)"
 assert_exit 2 validate_admin_oidc_key_names \
   "$(without_line "${required_oidc_keys}" WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN)"
+assert_exit 0 validate_admin_role_value 'Founder'
+assert_exit 0 validate_admin_role_value 'Delegated Operator'
+assert_exit 0 validate_admin_role_value 'Administrator'
+assert_exit 2 validate_admin_role_value ''
+assert_exit 2 validate_admin_role_value 'admin'
+assert_exit 0 validate_no_admin_oidc_env_shadows \
+  $'PORT\nHOSTNAME\nWITNESSOPS_VERIFY_BASE_URL'
+assert_exit 2 validate_no_admin_oidc_env_shadows \
+  $'PORT\nWITNESSOPS_ADMIN_ROLE\nHOSTNAME'
+if grep -Eq '^[[:space:]]*-[[:space:]]*name:[[:space:]]*WITNESSOPS_ADMIN_ROLE[[:space:]]*$' "${DEV_MANIFEST}"; then
+  fail=$((fail + 1))
+  echo "FAIL: mesh-dev manifest explicitly shadows the custodied admin role" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: mesh-dev inherits the custodied admin role"
+fi
 
 # --- prod deploy preflight and atomic patch ---
 # shellcheck source=k3s-lib.sh
 source "${K3S_LIB}"
 image='docker.io/library/witnessops-web:main-test-20260806T000000Z'
-expected_patch='[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"witnessops-web"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"witnessops-web-env"}},{"secretRef":{"name":"witnessops-web-admin-oidc"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"docker.io/library/witnessops-web:main-test-20260806T000000Z"}]'
+expected_patch='[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"example-app-container"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"example-runtime-secret"}},{"secretRef":{"name":"example-identity-secret"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"docker.io/library/witnessops-web:main-test-20260806T000000Z"}]'
 assert_output "${expected_patch}" prod_deployment_json_patch "${image}"
 assert_exit 1 prod_deployment_json_patch 'bad image ref'
 
 remote_mode="ok"
 remote_log="$(mktemp "${TMPDIR:-/tmp}/witnessops-k3s-remote.XXXXXX")"
 apply_log="$(mktemp "${TMPDIR:-/tmp}/witnessops-k3s-apply.XXXXXX")"
-trap 'rm -f "${remote_log}" "${apply_log}"' EXIT
+trap 'rm -rf "${rendered_test_dir}"; rm -f "${remote_log}" "${apply_log}"' EXIT
 
 remote() {
   local command_text="$*"
   printf '%s\n' "${command_text}" >> "${remote_log}"
-  if [[ "${command_text}" == *"get secret"*"witnessops-web-admin-oidc"* ]]; then
+  if [[ "${command_text}" == *"encoded="*"WITNESSOPS_ADMIN_ROLE"* ]]; then
+    [[ "${remote_mode}" != "invalid-role" ]]
+  elif [[ "${command_text}" == *"get secret"*"example-identity-secret"* ]]; then
     if [[ "${remote_mode}" == "missing-key" ]]; then
       without_line "${required_oidc_keys}" WITNESSOPS_ADMIN_SECRET
     else
       printf '%s\n' "${required_oidc_keys}"
     fi
   elif [[ "${command_text}" == *"get deploy"*"go-template"* ]]; then
-    case "${remote_mode}" in
-      runtime-prefix-drift|smoke-prefix-drift)
-        printf '%s\n' $'container:witnessops-web\nsecret:witnessops-web-env|prefix=WOPS_|optional=false\nsecret:witnessops-web-admin-oidc|prefix=|optional=false'
+    if [[ "${command_text}" == *"range .env}"* ]]; then
+      if [[ "${remote_mode}" == "runtime-role-shadow" || "${remote_mode}" == "smoke-role-shadow" ]]; then
+        printf '%s\n' $'PORT\nWITNESSOPS_ADMIN_ROLE'
+      else
+        printf '%s\n' $'PORT\nHOSTNAME'
+      fi
+    else
+      case "${remote_mode}" in
+        runtime-prefix-drift|smoke-prefix-drift)
+        printf '%s\n' $'container:example-app-container\nsecret:example-runtime-secret|prefix=WOPS_|optional=false\nsecret:example-identity-secret|prefix=|optional=false'
         ;;
-      runtime-optional-drift|smoke-optional-drift)
-        printf '%s\n' $'container:witnessops-web\nsecret:witnessops-web-env|prefix=|optional=true\nsecret:witnessops-web-admin-oidc|prefix=|optional=false'
+        runtime-optional-drift|smoke-optional-drift)
+        printf '%s\n' $'container:example-app-container\nsecret:example-runtime-secret|prefix=|optional=true\nsecret:example-identity-secret|prefix=|optional=false'
         ;;
-      *)
+        *)
         printf '%s\n' "${runtime_envfrom_contract}"
         ;;
-    esac
+      esac
+    fi
   fi
 }
 
@@ -318,6 +459,23 @@ else
   echo "PASS: deploy_prod_image does not mutate before preflight"
 fi
 
+remote_mode="invalid-role"
+: > "${remote_log}"
+if (deploy_prod_image "${image}") >/dev/null 2>&1; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image accepted an unsupported admin role" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image rejects an unsupported admin role"
+fi
+if grep -q 'kubectl .* patch ' "${remote_log}"; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image patched before role preflight passed" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image validates role before mutation"
+fi
+
 remote_mode="ok"
 : > "${remote_log}"
 if deploy_prod_image "${image}" >/dev/null 2>&1; then
@@ -336,7 +494,7 @@ else
   echo "FAIL: prod deploy did not use the atomic patch" >&2
 fi
 
-for drift_mode in runtime-prefix-drift runtime-optional-drift; do
+for drift_mode in runtime-prefix-drift runtime-optional-drift runtime-role-shadow; do
   remote_mode="${drift_mode}"
   : > "${remote_log}"
   if (deploy_prod_image "${image}") >/dev/null 2>&1; then
@@ -347,11 +505,21 @@ for drift_mode in runtime-prefix-drift runtime-optional-drift; do
     echo "PASS: deploy_prod_image rejects post-patch ${drift_mode}"
   fi
   if grep -q 'kubectl .* patch ' "${remote_log}"; then
-    pass=$((pass + 1))
-    echo "PASS: ${drift_mode} is detected by post-patch runtime inspection"
+    if [[ "${drift_mode}" == "runtime-role-shadow" ]]; then
+      fail=$((fail + 1))
+      echo "FAIL: ${drift_mode} was not rejected before mutation" >&2
+    else
+      pass=$((pass + 1))
+      echo "PASS: ${drift_mode} is detected by post-patch runtime inspection"
+    fi
   else
-    fail=$((fail + 1))
-    echo "FAIL: ${drift_mode} failed before the atomic patch was exercised" >&2
+    if [[ "${drift_mode}" == "runtime-role-shadow" ]]; then
+      pass=$((pass + 1))
+      echo "PASS: ${drift_mode} is rejected before mutation"
+    else
+      fail=$((fail + 1))
+      echo "FAIL: ${drift_mode} failed before the atomic patch was exercised" >&2
+    fi
   fi
 done
 
@@ -370,6 +538,23 @@ if grep -q '^curl ' "${remote_log}"; then
 else
   pass=$((pass + 1))
   echo "PASS: smoke_pair rejects envFrom drift before HTTP checks"
+fi
+
+remote_mode="smoke-role-shadow"
+: > "${remote_log}"
+if (smoke_pair) >/dev/null 2>&1; then
+  fail=$((fail + 1))
+  echo "FAIL: smoke_pair accepted an explicit admin-role shadow" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: smoke_pair rejects an explicit admin-role shadow"
+fi
+if grep -q '^curl ' "${remote_log}"; then
+  fail=$((fail + 1))
+  echo "FAIL: smoke_pair reached HTTP before rejecting the admin-role shadow" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: smoke_pair rejects the admin-role shadow before HTTP checks"
 fi
 
 remote_mode="ok"
@@ -392,7 +577,13 @@ fi
 # --- legacy apply path preflights before its first mutation ---
 kubectl() {
   printf '%s\n' "$*" >> "${KUBECTL_TEST_LOG}"
-  if [[ "$*" == *"get secret witnessops-web-admin-oidc"* ]]; then
+  if [[ "$*" == *"jsonpath={.data.WITNESSOPS_ADMIN_ROLE}"* ]]; then
+    if [[ "${KUBECTL_TEST_MODE}" == "invalid-role" ]]; then
+      printf '%s' 'aW52YWxpZA=='
+    else
+      printf '%s' 'Rm91bmRlcg=='
+    fi
+  elif [[ "$*" == *"get secret example-identity-secret"* ]]; then
     if [[ "${KUBECTL_TEST_MODE}" == "missing-key" ]]; then
       printf '%s\n' "${KUBECTL_REQUIRED_OIDC_KEYS%$'\nWITNESSOPS_GOOGLE_WORKSPACE_DOMAIN'}"
     else
@@ -426,6 +617,26 @@ else
   pass=$((pass + 1))
   echo "PASS: apply.sh preflight runs before mutation"
 fi
+
+export DEPLOY_NS=$'example-namespace\n---\nkind: ConfigMap'
+: > "${apply_log}"
+if apply_output="$(WITNESSOPS_WEB_ENV_FILE="${PARITY}" \
+  WITNESSOPS_WEB_IMAGE="${image}" \
+  bash "${APPLY_SCRIPT}" 2>&1)"; then
+  fail=$((fail + 1))
+  echo "FAIL: apply.sh accepted injected topology" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: apply.sh rejects injected topology"
+fi
+if [[ -s "${apply_log}" ]]; then
+  fail=$((fail + 1))
+  echo "FAIL: apply.sh contacted kubectl for injected topology" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: apply.sh rejects injected topology before kubectl"
+fi
+export DEPLOY_NS=example-namespace
 
 export KUBECTL_TEST_MODE="ok"
 : > "${apply_log}"
@@ -466,6 +677,28 @@ if [[ "${got}" -eq 2 ]]; then
 else
   fail=$((fail + 1))
   echo "FAIL: sourced mismatch exit want 2 got ${got}" >&2
+fi
+
+# An optional operator-custodied file can hold one exact private token per line.
+# The public repository must never contain the denylist or a reversible encoding
+# of it. Public CI still verifies the sanitized example contract when no private
+# file is supplied.
+if [[ -n "${PRIVATE_TOPOLOGY_DENYLIST_FILE:-}" ]]; then
+  if check_private_topology_denylist "${PRIVATE_TOPOLOGY_DENYLIST_FILE}"; then
+    pass=$((pass + 1))
+    echo "PASS: tracked public files contain no operator-custodied private topology tokens"
+  else
+    fail=$((fail + 1))
+  fi
+elif grep -Fq -- 'deploy-host.private.example' \
+  "${REPO_ROOT}/deploy/topology.env.example" \
+  && grep -Fq -- '192.0.2.10' \
+    "${REPO_ROOT}/deploy/topology.env.example"; then
+  pass=$((pass + 1))
+  echo "PASS: public topology contract uses non-operational examples"
+else
+  fail=$((fail + 1))
+  echo "FAIL: public topology example contract is missing" >&2
 fi
 
 echo "---"

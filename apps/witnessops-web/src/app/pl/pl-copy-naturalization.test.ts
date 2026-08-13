@@ -45,7 +45,7 @@ test("detailed Polish offer routes retain extended technical copy under buyer na
   assert.ok(POLISH_OFFERS["OFFSEC-LAUNCH-READY"]?.name);
   assert.ok(POLISH_OFFERS["OFFSEC-CUSTODY-OPS"]?.name);
   assert.ok(POLISH_OFFERS["OFFSEC-INCIDENT-READY"]?.name);
-  // Pilot remains available for custom quote pages, not primary catalogue.
+  // Pilot copy is retained as unresolved, but it is not a public sitemap route.
   assert.ok(POLISH_OFFERS["OFFSEC-PILOT"]?.name);
-  assert.equal(getPolishSkus().length, 6);
+  assert.equal(getPolishSkus().length, 5);
 });

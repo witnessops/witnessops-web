@@ -125,9 +125,14 @@ export async function POST(
       comment: parsed.comment,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Submission failed.";
-    return fail(message, 502);
+    console.error("Proof package disposition submission failed", {
+      issuanceId,
+      errorCode:
+        error && typeof error === "object" && "code" in error
+          ? String(error.code)
+          : "CONTROL_PLANE_DISPOSITION_FAILED",
+    });
+    return fail("Proof package disposition could not be submitted.", 502);
   }
 
   if (result.kind === "not_configured") {

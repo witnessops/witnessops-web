@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCanonicalAlternates } from "@witnessops/config";
 import { MarkdownContent } from "@witnessops/ui/mdx";
 import { loadSupportIndex, loadSupportPage } from "@/lib/content";
 import { SupportIntake } from "@/components/support/support-intake";
@@ -12,6 +11,7 @@ import {
   PUBLIC_NO_SECRETS_NOTE,
   publicContactMailto,
 } from "@/lib/public-contact";
+import { languageAlternates } from "@/lib/public-seo";
 
 const SECURITY_CONTACT_EMAIL = "security@witnessops.com";
 
@@ -26,7 +26,10 @@ export function generateMetadata(): Metadata {
   return {
     title,
     description,
-    alternates: getCanonicalAlternates("witnessops", "/support"),
+    alternates: languageAlternates("/support", {
+      en: "/support",
+      pl: "/pl/support",
+    }),
     openGraph: {
       title: `${title} | WitnessOps`,
       description,

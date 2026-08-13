@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build one shared image from current HEAD and import into ops-dev-01 k3s.
+# Build one shared image from current HEAD and import into the private k3s target.
 # Does not deploy.
 set -euo pipefail
 # shellcheck source=k3s-lib.sh

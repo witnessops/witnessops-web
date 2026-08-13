@@ -1,9 +1,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdtemp } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 
 import { NextRequest } from "next/server";
 
 import { createAdminSessionCookie } from "@/lib/server/admin-session";
+import {
+  clearTokenStore,
+  saveIntake,
+  saveIssuance,
+  type IntakeRecord,
+  type TokenIssuanceRecord,
+} from "@/lib/server/token-store";
 
 import { POST } from "./route";
 
@@ -53,8 +63,47 @@ function restoreEnv() {
   }
 }
 
-test.afterEach(() => {
+test.beforeEach(async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-authorize-"));
+  process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
+  const intake: IntakeRecord = {
+    intakeId: "intk_demo123",
+    channel: "engage",
+    email: "buyer@example.com",
+    state: "admitted",
+    createdAt: "2026-08-13T08:00:00Z",
+    updatedAt: "2026-08-13T08:00:00Z",
+    latestIssuanceId: "iss_demo123",
+    threadId: "thr_demo123",
+    submission: {},
+  };
+  const issuance: TokenIssuanceRecord = {
+    issuanceId: "iss_demo123",
+    intakeId: intake.intakeId,
+    channel: intake.channel,
+    email: intake.email,
+    tokenDigest: "sha256:test",
+    createdAt: intake.createdAt,
+    expiresAt: "2026-08-13T08:15:00Z",
+    status: "verified",
+    controlPlaneRunId: "run_demo123",
+    delivery: {
+      mailbox: "engage@witnessops.com",
+      alias: null,
+      templateVersion: "test-v1",
+      provider: "file",
+      providerMessageId: null,
+      deliveredAt: intake.createdAt,
+    },
+  };
+  await saveIntake(intake);
+  await saveIssuance(issuance);
+});
+
+test.afterEach(async () => {
   restoreEnv();
+  delete process.env.WITNESSOPS_TOKEN_STORE_DIR;
+  await clearTokenStore();
 });
 
 test("admin authorize route advances a requested run", async () => {
@@ -130,7 +179,31 @@ test("admin authorize route returns explicit control-plane conflicts", async () 
   assert.equal(response.status, 409);
   const payload = (await response.json()) as { ok: boolean; error: string };
   assert.equal(payload.ok, false);
-  assert.match(payload.error, /already authorized/);
+  assert.equal(payload.error, "Control-plane run authorization conflicts with its current state.");
+  assert.doesNotMatch(payload.error, /already authorized/);
+});
+
+test("admin authorize route does not expose upstream error bodies", async () => {
+  process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS = "1";
+  process.env.CONTROL_PLANE_URL = "https://cp.example.com";
+  process.env.CONTROL_PLANE_SERVICE_IDENTITY_SECRET = "service-secret";
+  process.env.CONTROL_PLANE_SERVICE_IDENTITY_SUBJECT = "witnessops-web";
+  globalThis.fetch = async () =>
+    new Response("secret=upstream-token internal=http://cp.private/trace", {
+      status: 500,
+    });
+
+  const response = await POST(
+    new NextRequest("http://localhost:3001/api/admin/lifecycle/run_demo123/authorize", {
+      method: "POST",
+      headers: { host: "localhost:3001" },
+    }),
+    { params: Promise.resolve({ runId: "run_demo123" }) },
+  );
+  const payload = (await response.json()) as { error: string };
+  assert.equal(response.status, 502);
+  assert.equal(payload.error, "Unable to authorize control-plane run.");
+  assert.doesNotMatch(payload.error, /upstream-token|cp\.private/);
 });
 
 test("admin authorize route requires admin authentication outside local development", async () => {
@@ -179,13 +252,14 @@ test("admin authorize route preserves named oidc actor context", async () => {
 
   const issuedAt = Date.now();
   const sessionCookie = await createAdminSessionCookie({
-    version: 2,
+    version: 3,
     identityProvider: "google",
     issuer: "https://accounts.google.com",
     subject: "google-subject-authorize",
     actor: "oidc:https://accounts.google.com#google-subject-authorize",
     actorAuthSource: "oidc_session",
     actorSessionHash: "abcd1234abcd5678",
+    role: "Founder",
     iat: issuedAt,
     exp: issuedAt + 60_000,
   });

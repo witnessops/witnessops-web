@@ -267,7 +267,7 @@ test("verify route dual-reads legacy offsecshield receipt schema", async () => {
   assert.equal(payload.verdict, "indeterminate");
 });
 
-test("verify route accepts Swarm mesh export via R3 structural adapter", async () => {
+test("verify route rejects Swarm mesh export outside the receipt-only boundary", async () => {
   const raw = loadVerifyFixture("swarm-mesh-export-round3");
   assert.ok(raw);
 
@@ -279,17 +279,13 @@ test("verify route accepts Swarm mesh export via R3 structural adapter", async (
     }),
   );
 
-  assert.equal(response.status, 200);
+  assert.equal(response.status, 422);
   const payload = (await response.json()) as {
     ok: boolean;
-    inputKind?: string;
-    adapter?: string;
-    verdict?: string;
+    failureClass?: string;
   };
-  assert.equal(payload.ok, true);
-  assert.equal(payload.inputKind, "offsec-swarm-mesh-export");
-  assert.equal(payload.adapter, "witnessops.verify.offsec_swarm_mesh_export.v1");
-  assert.equal(payload.verdict, "indeterminate");
+  assert.equal(payload.ok, false);
+  assert.equal(payload.failureClass, "FAILURE_INPUT_UNSUPPORTED");
 });
 
 test("verify route rejects local-server-audit receipt with bad authority binding", async () => {

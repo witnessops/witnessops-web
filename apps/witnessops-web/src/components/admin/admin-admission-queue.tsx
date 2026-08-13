@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import {
   buildAdmissionQueueView,
   formatAdmissionStateLabel,
@@ -7,7 +6,7 @@ import {
 } from "@/lib/server/admission-queue";
 import { buildPostApprovalLifecycle, type PostApprovalLifecycleView } from "@/lib/server/post-approval-lifecycle";
 import type { TokenIssuanceRecord } from "@/lib/server/token-store";
-import { verifyAdminSessionCookie } from "@/lib/server/admin-session";
+import { getAdminPageActor } from "@/lib/server/admin-page-session";
 import { PostApprovalLifecycle } from "../post-approval-lifecycle";
 import { formatProviderOutcomeStatusLabel } from "@/lib/provider-outcomes";
 import { isManualReconciliationBlocked } from "@/lib/server/evidence-resolution";
@@ -37,26 +36,6 @@ function buildDefaultReconciliationNote(row: AdmissionQueueRow): string {
     provider: row.responseProvider,
     providerMessageId: row.responseProviderMessageId,
   });
-}
-
-async function resolveAdminActor(): Promise<string | null> {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("witnessops-admin-session")?.value;
-  if (sessionCookie) {
-    const payload = await verifyAdminSessionCookie(sessionCookie);
-    if (payload) {
-      return payload.actor;
-    }
-  }
-
-  if (
-    process.env.NODE_ENV !== "production" &&
-    process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS === "1"
-  ) {
-    return "local-dev";
-  }
-
-  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -947,10 +926,11 @@ export async function AdminAdmissionQueue({
   selectedIntakeId,
 }: AdminAdmissionQueueProps = {}) {
   try {
-    const view = await buildAdmissionQueueView();
+    const actor = await getAdminPageActor();
+    const view = await buildAdmissionQueueView(actor);
     const lifecycleByRunId = await buildLifecycleByRunId(view.rows);
     const report = buildReconciliationReportFromView(view);
-    const currentActor = await resolveAdminActor();
+    const currentActor = actor.actor;
     const reconciliationRows = view.rows.filter(
       (row) => row.reconciliationPending,
     );

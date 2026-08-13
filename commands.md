@@ -13,7 +13,7 @@ This repo has no active Azure deployment command surface.
 - Archived Azure material under `docs/archive/azure-aca-retired-20260508/` is historical reference only.
 - Any future Azure command requires a separate explicit Azure reopening lane with allowed cloud surfaces, validation commands, receipts, and stop boundary.
 
-### Active k3s dual-lane (ops-dev-01)
+### Active private k3s dual-lane
 
 Canonical entrypoints (also in root `AGENTS.md` / `docs/DEPLOYMENT_AUTHORITY.md`):
 
@@ -29,9 +29,9 @@ Canonical entrypoints (also in root `AGENTS.md` / `docs/DEPLOYMENT_AUTHORITY.md`
 
 Smoke fails when prod/mesh-dev **image refs differ** (not CSS-only). Intentional
 non-parity: mesh bind/emptyDir/PORT/HOSTNAME/VERIFY_BASE. Shared secrets:
-`witnessops-web-env` + `witnessops-web-admin-oidc`.
+the `BASE_ENV_SECRET` + `ADMIN_OIDC_SECRET` contract.
 
-Env: `DEPLOY_SSH` (default `ops-dev-01`; fallback `root@194.147.221.89`), `ALLOW_DIRTY=1` for dirty trees.
+Env: source the private ignored `deploy/topology.env`; use `ALLOW_DIRTY=1` only for intentional dirty-tree builds.
 
 Legacy `deploy/scripts/deploy.sh` (GHCR / Compose) is not live authority.
 

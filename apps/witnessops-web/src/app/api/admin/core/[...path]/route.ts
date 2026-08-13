@@ -34,10 +34,14 @@ import {
   listReceiptRecords,
   listReviewRequests,
   prepareDelivery,
+  reconcileDeliverySendReservation,
+  reserveDeliverySend,
+  failDeliverySendReservation,
+  markDeliverySendOutcomeUnknown,
+  recordDeliverySent,
   recordGmailLabelSync,
   recordIntegrationFailure,
   searchCoreRecords,
-  sendAuthorizedDelivery,
   transitionDelivery,
   transitionProofRun,
   transitionReviewRequest,
@@ -70,15 +74,9 @@ function responseError(error: unknown): NextResponse {
   );
 }
 
-function roleFromEnvironment(): CoreActor["role"] {
-  const role = process.env.WITNESSOPS_ADMIN_ROLE;
-  if (role === "Delegated Operator" || role === "Administrator" || role === "Founder") return role;
-  return "Founder";
-}
-
 async function actorFor(request: NextRequest): Promise<CoreActor | null> {
   const session = await getVerifiedAdminSession(request);
-  return session ? { actor: session.actor, role: roleFromEnvironment() } : null;
+  return session ? { actor: session.actor, role: session.role } : null;
 }
 
 async function jsonBody(request: NextRequest): Promise<Record<string, unknown>> {
@@ -109,47 +107,47 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const [resource, idValue, action] = parts;
 
   try {
-    if (resource === "dashboard") return NextResponse.json({ ok: true, dashboard: await getAdminCoreDashboard() });
+    if (resource === "dashboard") return NextResponse.json({ ok: true, dashboard: await getAdminCoreDashboard(actor) });
     if (resource === "health") return NextResponse.json({ ok: true, health: getAdminCoreHealth() });
-    if (resource === "search") return NextResponse.json({ ok: true, results: await searchCoreRecords(request.nextUrl.searchParams.get("q") ?? "") });
-    if (resource === "audit") return NextResponse.json({ ok: true, events: await listAuditEvents(idValue) });
-    if (resource === "inbox" && idValue === "sync-runs") return NextResponse.json({ ok: true, receipts: await listGmailSyncReceipts() });
+    if (resource === "search") return NextResponse.json({ ok: true, results: await searchCoreRecords(request.nextUrl.searchParams.get("q") ?? "", actor) });
+    if (resource === "audit") return NextResponse.json({ ok: true, events: await listAuditEvents(idValue, actor) });
+    if (resource === "inbox" && idValue === "sync-runs") return NextResponse.json({ ok: true, receipts: await listGmailSyncReceipts(20, actor) });
     if (resource === "inbox") {
-      const item = idValue ? await getInboxItem(idValue) : null;
+      const item = idValue ? await getInboxItem(idValue, actor) : null;
       if (idValue && !item) throw new AdminCoreError("NOT_FOUND", "Inbox item not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [item] : await listInboxItems() });
+      return NextResponse.json({ ok: true, items: idValue ? [item] : await listInboxItems(actor) });
     }
     if (resource === "review-requests") {
-      const reviewRequest = idValue ? await getReviewRequest(idValue) : null;
+      const reviewRequest = idValue ? await getReviewRequest(idValue, actor) : null;
       if (idValue && !reviewRequest) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [reviewRequest] : await listReviewRequests() });
+      return NextResponse.json({ ok: true, items: idValue ? [reviewRequest] : await listReviewRequests(actor) });
     }
     if (resource === "customers") {
-      const customer = idValue ? await getCustomer(idValue) : null;
+      const customer = idValue ? await getCustomer(idValue, actor) : null;
       if (idValue && !customer) throw new AdminCoreError("NOT_FOUND", "Customer not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [customer] : await listCustomers() });
+      return NextResponse.json({ ok: true, items: idValue ? [customer] : await listCustomers(actor) });
     }
     if (resource === "products") {
-      const product = idValue ? await getProductContract(idValue) : null;
+      const product = idValue ? await getProductContract(idValue, actor) : null;
       if (idValue && !product) throw new AdminCoreError("NOT_FOUND", "Product contract not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [product] : await listProductContracts() });
+      return NextResponse.json({ ok: true, items: idValue ? [product] : await listProductContracts(actor) });
     }
     if (resource === "proof-runs") {
-      if (idValue && action === "readiness") return NextResponse.json({ ok: true, readiness: await buildProofReadiness(idValue) });
-      const proofRun = idValue ? await getProofRun(idValue) : null;
+      if (idValue && action === "readiness") return NextResponse.json({ ok: true, readiness: await buildProofReadiness(idValue, actor) });
+      const proofRun = idValue ? await getProofRun(idValue, actor) : null;
       if (idValue && !proofRun) throw new AdminCoreError("NOT_FOUND", "Proof run not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [proofRun] : await listProofRuns() });
+      return NextResponse.json({ ok: true, items: idValue ? [proofRun] : await listProofRuns(actor) });
     }
     if (resource === "deliveries") {
-      if (idValue && action === "readiness") return NextResponse.json({ ok: true, readiness: await buildDeliveryReadiness(idValue) });
-      const delivery = idValue ? await getDelivery(idValue) : null;
+      if (idValue && action === "readiness") return NextResponse.json({ ok: true, readiness: await buildDeliveryReadiness(idValue, actor) });
+      const delivery = idValue ? await getDelivery(idValue, actor) : null;
       if (idValue && !delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [delivery] : await listDeliveries() });
+      return NextResponse.json({ ok: true, items: idValue ? [delivery] : await listDeliveries(actor) });
     }
     if (resource === "receipts") {
-      const receipt = idValue ? await getReceiptRecord(idValue) : null;
+      const receipt = idValue ? await getReceiptRecord(idValue, actor) : null;
       if (idValue && !receipt) throw new AdminCoreError("NOT_FOUND", "Receipt not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [receipt] : await listReceiptRecords() });
+      return NextResponse.json({ ok: true, items: idValue ? [receipt] : await listReceiptRecords(actor) });
     }
     return NextResponse.json({ ok: false, error: "Unknown admin core resource." }, { status: 404 });
   } catch (error) {
@@ -283,32 +281,88 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }, actor) });
     }
     if (resource === "deliveries" && idValue && action === "send") {
-      const idempotencyKey =
-        stringValue(body, "idempotencyKey", false) ||
-        `delivery-send:${idValue}`;
-      let providerAttempted = false;
-      try {
-        const item = await sendAuthorizedDelivery(
-          idValue,
-          actor,
-          async (message) => {
-            providerAttempted = true;
-            const result = await sendVerificationEmail({
-              ...message,
-              replyTo: PUBLIC_CONTACT_EMAIL,
-            });
-            return { ...result, sentAt: result.deliveredAt };
-          },
-          idempotencyKey,
+      const idempotencyKey = stringValue(body, "idempotencyKey", false) || `delivery-send:${idValue}`;
+      const reservation = await reserveDeliverySend(idValue, actor, idempotencyKey);
+      const delivery = reservation.delivery;
+      if (reservation.kind === "replay") return NextResponse.json({ ok: true, item: delivery, idempotent: true });
+      if (reservation.kind === "in_progress") {
+        return NextResponse.json(
+          { ok: false, error: "Delivery send is already in progress.", code: "DELIVERY_SEND_IN_PROGRESS" },
+          { status: 409 },
         );
-        return NextResponse.json({ ok: true, item });
-      } catch (error) {
-        if (providerAttempted) {
-          const delivery = await getDelivery(idValue);
-          await recordIntegrationFailure({ integration: "mail", operation: "send_delivery", idempotencyKey, externalId: null, error: error instanceof Error ? error.message : "Mail delivery failed." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery?.lineageId ?? null });
-        }
-        throw error;
       }
+      const customer = await getCustomer(delivery.customerId, actor);
+      if (!customer) {
+        await failDeliverySendReservation(
+          idValue,
+          reservation.reservationToken,
+          actor,
+          "Delivery customer is missing.",
+        );
+        throw new AdminCoreError("STORE_CORRUPT", "Delivery customer is missing.", 500);
+      }
+      let result: Awaited<ReturnType<typeof sendVerificationEmail>>;
+      try {
+        result = await sendVerificationEmail({
+          to: customer.email,
+          replyTo: PUBLIC_CONTACT_EMAIL,
+          subject: delivery.subject,
+          text: delivery.body,
+          deliveryAttemptId: delivery.id,
+        });
+      } catch {
+        await markDeliverySendOutcomeUnknown(
+          idValue,
+          reservation.reservationToken,
+          actor,
+        );
+        await recordIntegrationFailure({ integration: "mail", operation: "send_delivery", idempotencyKey, externalId: null, error: "Mail delivery outcome is unknown." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery.lineageId });
+        throw new AdminCoreError(
+          "MAIL_DELIVERY_OUTCOME_UNKNOWN",
+          "Mail delivery outcome is unresolved; reconcile it before retrying.",
+          502,
+        );
+      }
+      try {
+        return NextResponse.json({ ok: true, item: await recordDeliverySent(idValue, { ...result, sentAt: result.deliveredAt }, actor, idempotencyKey, reservation.reservationToken) });
+      } catch {
+        await markDeliverySendOutcomeUnknown(
+          idValue,
+          reservation.reservationToken,
+          actor,
+        );
+        await recordIntegrationFailure({ integration: "mail", operation: "commit_delivery_send", idempotencyKey, externalId: result.providerMessageId, error: "Mail delivery was accepted, but local confirmation failed." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery.lineageId });
+        throw new AdminCoreError(
+          "MAIL_DELIVERY_CONFIRMATION_UNRESOLVED",
+          "Mail delivery was accepted, but local confirmation is unresolved; reconcile it before retrying.",
+          500,
+        );
+      }
+    }
+    if (resource === "deliveries" && idValue && action === "reconcile-send") {
+      const outcome = stringValue(body, "outcome");
+      if (outcome !== "sent" && outcome !== "not_sent") {
+        throw new AdminCoreError("INVALID_INPUT", "Unknown delivery reconciliation outcome.");
+      }
+      return NextResponse.json({
+        ok: true,
+        item: await reconcileDeliverySendReservation(
+          idValue,
+          outcome === "sent"
+            ? {
+                outcome,
+                provider: stringValue(body, "provider"),
+                providerMessageId: stringValue(body, "providerMessageId", false) || null,
+                sentAt: stringValue(body, "sentAt"),
+                note: stringValue(body, "note"),
+              }
+            : {
+                outcome,
+                note: stringValue(body, "note"),
+              },
+          actor,
+        ),
+      });
     }
     return NextResponse.json({ ok: false, error: "Unknown admin core action." }, { status: 404 });
   } catch (error) {

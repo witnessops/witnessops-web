@@ -1,5 +1,6 @@
 import { getSku, getSkusByTrack } from "@witnessops/catalog";
 import { buyerServiceByProductId } from "@/lib/buyer-services";
+import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 
 export type PublicLocale = "en" | "pl";
 export type CanonicalOffsecProductId = string;
@@ -123,7 +124,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
 
 const POLISH_TRANSLATED_PATHS = [
   /^\/$/,
-  /^\/catalog(?:\/(?:offsec-local-audit|offsec-external-exposure|offsec-launch-ready|offsec-custody-ops|offsec-incident-ready|offsec-pilot))?$/,
+  /^\/catalog(?:\/(?:offsec-local-audit|offsec-external-exposure|offsec-launch-ready|offsec-custody-ops|offsec-incident-ready))?$/,
   /^\/review\/request(?:\/confirmed)?$/,
   /^\/why-witnessops$/,
   /^\/customer-security-review$/,
@@ -147,7 +148,9 @@ export function polishOfferRequestHref(productId: CanonicalOffsecProductId): str
 }
 
 export function getPolishSkus() {
-  return getSkusByTrack("offsec_proof").filter((sku) => Boolean(POLISH_OFFERS[sku.id]));
+  return getSkusByTrack("offsec_proof").filter((sku) =>
+    isCurrentPublicCatalogSku(sku.id) && Boolean(POLISH_OFFERS[sku.id]),
+  );
 }
 
 export function isPolishPath(pathname: string): boolean {

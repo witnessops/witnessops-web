@@ -10,7 +10,10 @@ import {
   readBoundedRequestJson,
   RequestBodyTooLargeError,
 } from "@/lib/server/bounded-request-body";
-import { approveScopeAndStartRecon } from "@/lib/server/token-issuance";
+import {
+  approveScopeAndStartRecon,
+  ScopeApprovalInputError,
+} from "@/lib/server/token-issuance";
 
 export const runtime = "nodejs";
 
@@ -59,8 +62,12 @@ export async function POST(
 
     return NextResponse.json(scopeApprovalResponseSchema.parse(response));
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Scope approval failed.";
-    return invalid(message, 400);
+    if (error instanceof ScopeApprovalInputError) {
+      return invalid(error.message, 400);
+    }
+    console.error("Scope approval could not be completed", {
+      errorType: error instanceof Error ? error.name : "unknown",
+    });
+    return invalid("Scope approval could not be completed. Retry or contact support.", 502);
   }
 }

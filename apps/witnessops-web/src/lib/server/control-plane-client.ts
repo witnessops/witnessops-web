@@ -9,6 +9,12 @@
  */
 
 import { createHmac, randomUUID } from "node:crypto";
+import { logUpstreamFailure, UpstreamServiceError } from "./upstream-error";
+
+export const CONTROL_PLANE_AUTHORIZATION_CONFLICT_MESSAGE =
+  "Control-plane run authorization conflicts with its current state.";
+export const CONTROL_PLANE_DISPOSITION_CONFLICT_MESSAGE =
+  "Proof package disposition conflicts with its current state.";
 
 export interface ScopeApprovalHandoffRequest {
   issuanceId: string;
@@ -145,8 +151,12 @@ export async function notifyScopeApproved(
   });
 
   if (!response.ok) {
-    const detail = await response.text().catch(() => "(unreadable)");
-    throw new Error(`Control plane returned ${response.status}: ${detail}`);
+    await logUpstreamFailure({ service: "control-plane", operation: "scope-approved", response });
+    throw new UpstreamServiceError(
+      "CONTROL_PLANE_HANDOFF_FAILED",
+      "Control-plane handoff failed.",
+      response.status,
+    );
   }
 
   const body = (await response.json()) as {
@@ -159,8 +169,9 @@ export async function notifyScopeApproved(
   };
 
   if (!body.accepted) {
-    throw new Error(
-      `Control plane rejected handoff for ${req.issuanceId}: ${body.error ?? "no reason given"}`,
+    throw new UpstreamServiceError(
+      "CONTROL_PLANE_HANDOFF_REJECTED",
+      "Control-plane handoff was rejected.",
     );
   }
 
@@ -254,9 +265,11 @@ async function controlPlaneGet<T>(
 
   if (response.status === 404) return "not_found";
   if (!response.ok) {
-    const detail = await response.text().catch(() => "(unreadable)");
-    throw new Error(
-      `Control plane GET ${path} returned ${response.status}: ${detail}`,
+    await logUpstreamFailure({ service: "control-plane", operation: "read", response });
+    throw new UpstreamServiceError(
+      "CONTROL_PLANE_READ_FAILED",
+      "Control-plane lifecycle is temporarily unavailable.",
+      response.status,
     );
   }
   return (await response.json()) as T;
@@ -291,13 +304,19 @@ export async function authorizeRun(
   });
 
   if (response.status === 400 || response.status === 409) {
-    const detail = await response.text().catch(() => "(unreadable)");
-    return { kind: "conflict", status: response.status, message: detail };
+    await logUpstreamFailure({ service: "control-plane", operation: "authorize", response });
+    return {
+      kind: "conflict",
+      status: response.status,
+      message: CONTROL_PLANE_AUTHORIZATION_CONFLICT_MESSAGE,
+    };
   }
   if (!response.ok) {
-    const detail = await response.text().catch(() => "(unreadable)");
-    throw new Error(
-      `Control plane POST authorize returned ${response.status}: ${detail}`,
+    await logUpstreamFailure({ service: "control-plane", operation: "authorize", response });
+    throw new UpstreamServiceError(
+      "CONTROL_PLANE_AUTHORIZE_FAILED",
+      "Unable to authorize control-plane run.",
+      response.status,
     );
   }
 
@@ -419,13 +438,18 @@ export async function submitCustomerAcceptance(
   );
 
   if (response.status === 409) {
-    const detail = await response.text().catch(() => "(unreadable)");
-    return { kind: "conflict", message: detail };
+    await logUpstreamFailure({ service: "control-plane", operation: "customer-acceptance", response });
+    return {
+      kind: "conflict",
+      message: CONTROL_PLANE_DISPOSITION_CONFLICT_MESSAGE,
+    };
   }
   if (!response.ok) {
-    const detail = await response.text().catch(() => "(unreadable)");
-    throw new Error(
-      `Control plane POST customer-acceptance returned ${response.status}: ${detail}`,
+    await logUpstreamFailure({ service: "control-plane", operation: "customer-acceptance", response });
+    throw new UpstreamServiceError(
+      "CONTROL_PLANE_DISPOSITION_FAILED",
+      "Proof package disposition could not be submitted.",
+      response.status,
     );
   }
   const record = (await response.json()) as ControlPlaneCustomerAcceptanceRecord;

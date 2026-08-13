@@ -16,6 +16,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
+  AdminBusinessAuthorizationError,
+  withRunBusinessAccess,
+} from "@/lib/server/admin-business-authorization";
+import {
   appendDeliveryRetryRequest,
   getLatestDeliveryRetryRequest,
 } from "@/lib/server/delivery-retry-ledger";
@@ -58,46 +62,58 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return invalid("reason must be 500 characters or fewer.", 400);
   }
 
-  // Bound check: refuse if a retry is already outstanding for this run.
-  const existing = await getLatestDeliveryRetryRequest(runId);
-  if (existing) {
-    let upstream;
-    try {
-      upstream = await getCompletionView(runId);
-    } catch {
-      // Upstream unreachable — we cannot prove recovery either way.
-      // Refuse the new request rather than spam.
-      return invalid(
-        "A retry is already outstanding and control plane is unreachable. Wait for recovery or upstream visibility.",
-        409,
-      );
+  try {
+    return await withRunBusinessAccess(session, runId, async () => {
+      // Keep assignment authorization, the outstanding-retry check, and the
+      // append in one intake critical section. Queue reassignment uses the
+      // same lock, so a delegated operator cannot act on stale authority.
+      const existing = await getLatestDeliveryRetryRequest(runId);
+      if (existing) {
+        let upstream;
+        try {
+          upstream = await getCompletionView(runId);
+        } catch {
+          // Upstream unreachable — we cannot prove recovery either way.
+          // Refuse the new request rather than spam.
+          return invalid(
+            "A retry is already outstanding and control plane is unreachable. Wait for recovery or upstream visibility.",
+            409,
+          );
+        }
+        if (upstream === "not_configured" || upstream === "not_found") {
+          return invalid(
+            "A retry is already outstanding and upstream lifecycle is not visible.",
+            409,
+          );
+        }
+        const deliveredAt = upstream.delivery?.delivered_at ?? null;
+        const recovered =
+          deliveredAt &&
+          Date.parse(deliveredAt) > Date.parse(existing.requested_at);
+        if (!recovered) {
+          return invalid(
+            "A retry is already outstanding for this run. Wait for control plane to record delivery before requesting another.",
+            409,
+          );
+        }
+      }
+
+      const written = await appendDeliveryRetryRequest({
+        run_id: runId,
+        requested_by: session.actor,
+        reason,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        request: written,
+        note: "Retry intent recorded locally. This does not mark delivery as successful — control plane remains the source of truth.",
+      });
+    });
+  } catch (error) {
+    if (error instanceof AdminBusinessAuthorizationError) {
+      return invalid(error.message, error.status);
     }
-    if (upstream === "not_configured" || upstream === "not_found") {
-      return invalid(
-        "A retry is already outstanding and upstream lifecycle is not visible.",
-        409,
-      );
-    }
-    const deliveredAt = upstream.delivery?.delivered_at ?? null;
-    const recovered =
-      deliveredAt && Date.parse(deliveredAt) > Date.parse(existing.requested_at);
-    if (!recovered) {
-      return invalid(
-        "A retry is already outstanding for this run. Wait for control plane to record delivery before requesting another.",
-        409,
-      );
-    }
+    throw error;
   }
-
-  const written = await appendDeliveryRetryRequest({
-    run_id: runId,
-    requested_by: session.actor,
-    reason,
-  });
-
-  return NextResponse.json({
-    ok: true,
-    request: written,
-    note: "Retry intent recorded locally. This does not mark delivery as successful — control plane remains the source of truth.",
-  });
 }

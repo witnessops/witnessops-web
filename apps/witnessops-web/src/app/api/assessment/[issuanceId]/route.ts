@@ -6,7 +6,6 @@ import {
 } from "@/lib/server/token-store";
 import { getAssessmentStatus } from "@/lib/server/assessment-client";
 import { isClaimantSessionAuthorized } from "@/lib/server/claimant-session";
-import { normalizedEmailSchema } from "@/lib/token-contract";
 
 export const runtime = "nodejs";
 
@@ -36,28 +35,15 @@ export async function GET(
   { params }: { params: Promise<{ issuanceId: string }> },
 ) {
   const { issuanceId } = await params;
-  const { searchParams } = new URL(request.url);
-  const rawEmail = searchParams.get("email") ?? "";
-
-  // Validate the email param
-  const emailParsed = normalizedEmailSchema.safeParse(rawEmail);
-  if (!emailParsed.success) {
-    return NextResponse.json({ ok: false, error: "email is required" }, { status: 400 });
-  }
-
   const record = await getIssuanceById(issuanceId);
   if (!record) {
     return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
   }
 
-  if (record.email !== emailParsed.data) {
-    return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
-  }
-
   if (
     !isClaimantSessionAuthorized(request, {
       issuanceId,
-      email: emailParsed.data,
+      email: record.email,
     })
   ) {
     return NextResponse.json(
@@ -79,13 +65,13 @@ export async function GET(
       if (live) {
         await persistAssessmentStatus(record.issuanceId, {
           status: live.status,
-          error: live.error,
+          error: live.error ? "Assessment failed upstream." : undefined,
         });
         return NextResponse.json({
           ok: true,
           ...base,
           assessmentStatus: live.status,
-          run: live,
+          run: { ...live, error: live.error ? "Assessment failed upstream." : undefined },
         });
       }
     } catch {

@@ -4,10 +4,12 @@ import { buildAdmissionQueueView } from "@/lib/server/admission-queue";
 import { CoreCard, CoreHealthGrid, CorePage, CoreState, CoreTable } from "./admin-core-view";
 import { AdminWizBrief } from "./admin-wiz-brief";
 import styles from "./admin.module.css";
+import { getAdminPageActor } from "@/lib/server/admin-page-session";
 
 export async function AdminCoreDashboard() {
-  const dashboard = await getAdminCoreDashboard();
-  const queue = await buildAdmissionQueueView().catch(() => null);
+  const actor = await getAdminPageActor();
+  const dashboard = await getAdminCoreDashboard(actor);
+  const queue = await buildAdmissionQueueView(actor).catch(() => null);
   return <CorePage title="Dashboard" eyebrow="Core operating spine">
     {queue ? <AdminWizBrief input={{ total: queue.summary.total, ready: queue.summary.ready, reconciliationPending: queue.summary.reconciliationPending, divergent: queue.summary.divergent }} /> : null}
     <div className={styles.coreGrid}>

@@ -50,8 +50,9 @@ credential.
 
 Google authenticates identity. The existing `WITNESSOPS_ADMIN_ROLE` remains an
 environment-wide authorization setting, so all allowlisted operators receive
-the same effective WitnessOps role. This change does not derive or elevate a
-role from Google claims.
+the same effective WitnessOps role. The configured role is captured in the
+signed WitnessOps session at login and is never derived or elevated from Google
+claims. Changing the configured role requires operators to sign in again.
 
 ## Operator verification
 

@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getCanonicalAlternates } from "@witnessops/config";
 import { VerifyConsole } from "@/components/verify/verify-console";
 import { SectionShell } from "@/components/shared/section-shell";
 import { listVerifyFixtures } from "@/lib/verify-fixtures";
+import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
   title: "Verify a Receipt",
   description:
     "Upload or paste a WitnessOps receipt to check structural validity, integrity, and what the result does and does not establish.",
-  alternates: getCanonicalAlternates("witnessops", "/verify"),
+  alternates: languageAlternates("/verify", {
+    en: "/verify",
+    pl: "/pl/verify",
+  }),
   openGraph: {
     title: "Verify a Receipt | WitnessOps",
     description:

@@ -23,19 +23,25 @@ import type {
 
 import {
   digestToken,
+  digestVerificationContext,
   generateIntakeId,
   generateIssuanceId,
   generateRawToken,
+  generateVerificationContext,
   generateThreadId,
   tokenDigestMatches,
 } from "./token-crypto";
 import {
   getIntakeById,
+  getVerificationContextByDigest,
   getIssuanceById,
   saveIntake,
   saveIssuance,
+  saveVerificationContext,
   updateIntake,
+  updateIntakeWithinLock,
   updateIssuance,
+  withIntakeLock,
   withIssuanceLock,
   type AssessmentStatus,
   type IntakeRecord,
@@ -59,8 +65,39 @@ interface CreateVerificationIssuanceInput {
   submission?: IntakeSubmissionRecord;
 }
 
+export class ScopeApprovalInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ScopeApprovalInputError";
+  }
+}
+
 function nowIso(): string {
   return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+async function resolveVerificationContext(
+  context: string,
+): Promise<TokenIssuanceRecord | null> {
+  const digest = digestVerificationContext(context);
+  const contextRecord = await getVerificationContextByDigest(digest);
+  if (!contextRecord || isExpired(contextRecord.expiresAt)) return null;
+  const issuance = await getIssuanceById(contextRecord.issuanceId);
+  if (issuance?.verificationContextDigest !== digest) return null;
+  return issuance;
+}
+
+export async function verifyIssuedTokenWithContext(input: {
+  context: string;
+  token: string;
+}): Promise<VerifyTokenResponse> {
+  const issuance = await resolveVerificationContext(input.context);
+  if (!issuance) throw new Error("Unknown or expired verification context");
+  return verifyIssuedToken({
+    issuanceId: issuance.issuanceId,
+    email: issuance.email,
+    token: input.token,
+  });
 }
 
 function normalizeText(value: string | null | undefined): string | null {
@@ -276,53 +313,72 @@ async function transitionIntakeState(args: {
   patch?: Partial<IntakeRecord>;
   payload?: Record<string, unknown>;
 }): Promise<IntakeRecord> {
-  const updated = await updateIntake(args.intake.intakeId, (current) => {
-    const next: IntakeRecord = {
-      ...current,
-      ...args.patch,
-      state: args.nextState,
-      updatedAt: args.occurredAt,
-    };
+  return withIntakeLock(args.intake.intakeId, async (handle) => {
+    let previous: IntakeRecord | null = null;
+    const updated = await updateIntakeWithinLock(
+      handle,
+      args.intake.intakeId,
+      (current) => {
+        previous = current;
+        const next: IntakeRecord = {
+          ...current,
+          ...args.patch,
+          state: args.nextState,
+          updatedAt: args.occurredAt,
+        };
 
-    if (args.nextState === "verification_sent") {
-      next.verificationSentAt = args.occurredAt;
-    }
-    if (args.nextState === "verified") {
-      next.verifiedAt = args.occurredAt;
-    }
-    if (args.nextState === "admitted") {
-      next.admittedAt = args.occurredAt;
-    }
-    if (args.nextState === "expired") {
-      next.expiredAt = args.occurredAt;
-    }
-    if (args.nextState === "rejected") {
-      next.rejectedAt = args.occurredAt;
-    }
-    if (args.nextState === "responded") {
-      next.respondedAt = args.occurredAt;
-    }
-    if (args.nextState === "replayed") {
-      next.replayedAt = args.occurredAt;
+        if (args.nextState === "verification_sent") {
+          next.verificationSentAt = args.occurredAt;
+        }
+        if (args.nextState === "verified") {
+          next.verifiedAt = args.occurredAt;
+        }
+        if (args.nextState === "admitted") {
+          next.admittedAt = args.occurredAt;
+        }
+        if (args.nextState === "expired") {
+          next.expiredAt = args.occurredAt;
+        }
+        if (args.nextState === "rejected") {
+          next.rejectedAt = args.occurredAt;
+        }
+        if (args.nextState === "responded") {
+          next.respondedAt = args.occurredAt;
+        }
+        if (args.nextState === "replayed") {
+          next.replayedAt = args.occurredAt;
+        }
+
+        return next;
+      },
+    );
+
+    try {
+      await appendIntakeEvent({
+        event_type: args.eventType,
+        occurred_at: args.occurredAt,
+        channel: updated.channel,
+        intake_id: updated.intakeId,
+        issuance_id: args.issuanceId ?? updated.latestIssuanceId,
+        thread_id: updated.threadId,
+        previous_state: (previous ?? args.intake).state,
+        next_state: updated.state,
+        source: args.source,
+        payload: args.payload,
+      });
+    } catch (error) {
+      if (previous) {
+        await updateIntakeWithinLock(
+          handle,
+          args.intake.intakeId,
+          () => previous as IntakeRecord,
+        );
+      }
+      throw error;
     }
 
-    return next;
+    return updated;
   });
-
-  await appendIntakeEvent({
-    event_type: args.eventType,
-    occurred_at: args.occurredAt,
-    channel: updated.channel,
-    intake_id: updated.intakeId,
-    issuance_id: args.issuanceId ?? updated.latestIssuanceId,
-    thread_id: updated.threadId,
-    previous_state: args.intake.state,
-    next_state: updated.state,
-    source: args.source,
-    payload: args.payload,
-  });
-
-  return updated;
 }
 
 async function ensureIssuanceContext(record: TokenIssuanceRecord): Promise<{
@@ -618,15 +674,7 @@ function buildPostVerifyPath(
   issuance: TokenIssuanceRecord,
 ): string {
   if (intake.channel === "support") {
-    const search = new URLSearchParams({
-      verified: "1",
-      intakeId: intake.intakeId,
-      email: issuance.email,
-    });
-    if (intake.threadId) {
-      search.set("threadId", intake.threadId);
-    }
-    return `/support?${search.toString()}`;
+    return "/support?verified=1";
   }
 
   if (isAccessChangeProofRunIntent(intake.submission.intent)) {
@@ -635,8 +683,7 @@ function buildPostVerifyPath(
       : ACCESS_CHANGE_POST_VERIFY_PATH;
   }
 
-  const search = new URLSearchParams({ email: issuance.email });
-  return `/assessment/${encodeURIComponent(issuance.issuanceId)}?${search.toString()}`;
+  return `/assessment/${encodeURIComponent(issuance.issuanceId)}`;
 }
 
 export async function createVerificationIssuance(
@@ -652,12 +699,12 @@ export async function createVerificationIssuance(
   const intakeId = generateIntakeId();
   const issuanceId = generateIssuanceId();
   const rawToken = generateRawToken();
+  const verificationContext = generateVerificationContext();
   const createdAt = nowIso();
   const expiresAt = computeExpiresAt(createdAt);
   const normalizedSubmission = normalizeSubmission(input.submission);
   const verifyUrl = new URL("/verify-token", readVerifyBaseUrl());
-  verifyUrl.searchParams.set("issuanceId", issuanceId);
-  verifyUrl.searchParams.set("email", input.email);
+  verifyUrl.searchParams.set("context", verificationContext);
 
   const intake: IntakeRecord = {
     intakeId,
@@ -713,6 +760,7 @@ export async function createVerificationIssuance(
     channel: input.channel,
     email: input.email,
     tokenDigest: digestToken(rawToken),
+    verificationContextDigest: digestVerificationContext(verificationContext),
     createdAt,
     expiresAt,
     status: "issued",
@@ -729,6 +777,11 @@ export async function createVerificationIssuance(
   };
 
   await saveIssuance(issuanceRecord);
+  await saveVerificationContext({
+    contextDigest: issuanceRecord.verificationContextDigest!,
+    issuanceId,
+    expiresAt,
+  });
   await transitionIntakeState({
     intake,
     nextState: "verification_sent",
@@ -779,30 +832,34 @@ async function approveScopeAndStartReconUnlocked(
 ): Promise<ScopeApprovalResult> {
   const record = await getIssuanceById(input.issuanceId);
   if (!record) {
-    throw new Error("Unknown issuance");
+    throw new ScopeApprovalInputError("Unknown issuance");
   }
 
   const { intake: originalIntake, issuance: originalIssuance } =
     await ensureIssuanceContext(record);
 
   if (originalIssuance.email !== input.email) {
-    throw new Error("Issuance email mismatch");
+    throw new ScopeApprovalInputError("Issuance email mismatch");
   }
 
   const policy = getChannelPolicy(originalIntake.channel ?? "engage");
   if (!policy.autoAssessment) {
-    throw new Error("Scope approval is only available for governed recon issuances.");
+    throw new ScopeApprovalInputError(
+      "Scope approval is only available for governed recon issuances.",
+    );
   }
 
   if (originalIssuance.status !== "verified") {
-    throw new Error("Issuance must be verified before scope approval.");
+    throw new ScopeApprovalInputError(
+      "Issuance must be verified before scope approval.",
+    );
   }
 
   // WEB-003: a prior claimant retract / disagree blocks approval until
   // the engagement is re-opened. Amend does not block.
   const blocking = claimantActionBlocksApproval(originalIssuance);
   if (blocking.blocked) {
-    throw new Error(
+    throw new ScopeApprovalInputError(
       `Scope approval is blocked because the claimant has ${blocking.kind === "retract" ? "retracted the engagement" : "disagreed with the proposed scope"}.`,
     );
   }
@@ -810,7 +867,7 @@ async function approveScopeAndStartReconUnlocked(
   // WEB-004: an operator rejection (approval_denied) blocks subsequent
   // approval through the same code path that gates claimant exits.
   if (operatorRejectionBlocksApproval(originalIssuance)) {
-    throw new Error(
+    throw new ScopeApprovalInputError(
       "Scope approval is blocked because an operator has rejected this intake.",
     );
   }

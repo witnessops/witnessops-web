@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const report = await buildReconciliationReport();
+    const report = await buildReconciliationReport({
+      actor: session.actor,
+      role: session.role,
+    });
     return NextResponse.json(
       adminReconciliationReportResponseSchema.parse(report),
     );

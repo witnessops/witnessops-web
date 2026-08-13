@@ -22,6 +22,19 @@ const citations: DocsAssistantCitation[] = [
   },
 ];
 
+const planCitation: DocsAssistantCitation = {
+  citation_id: "src-corpus-plan-runtime-1",
+  source_type: "openai_file_search_result",
+  source_file_id: "file-Si3z9HvNWAQjuCEtheZsiY",
+  filename: "CORPUS_PLAN.json",
+  source_artifact: "CORPUS_PLAN.json",
+  vector_store_id: "vs_69fe62ba0e8c81918d2763cece82f0c0",
+  retrieved_result_index: 1,
+  supports: "corpus_plan_record_only",
+  source_bodies_collected: false,
+  source_bodies_uploaded: false,
+};
+
 test("docs assistant answer normalizer preserves cannot_claim", () => {
   const answer = normalizeDocsAssistantAnswer({
     question: "Can WitnessOps certify my company is compliant?",
@@ -60,6 +73,37 @@ test("docs assistant answer normalizer preserves cannot_claim", () => {
     true,
   );
   assert.equal(answer.citations.length, 1);
+});
+
+test("docs assistant answer normalizer clears claims from non-supported statuses", () => {
+  for (const answerStatus of [
+    "cannot_claim",
+    "not_found_in_docs",
+    "needs_human_review",
+  ] as const) {
+    const answer = normalizeDocsAssistantAnswer({
+      question: "What does the plan prove?",
+      response: {
+        output_text: JSON.stringify({
+          answer_status: answerStatus,
+          documented_facts: [
+            { text: "Ungrounded fact.", citation_ids: ["1"] },
+          ],
+          inference: [{ text: "Ungrounded inference.", citation_ids: ["1"] }],
+          citations: [],
+          unsupported_reason: "answer_not_supported_by_retrieved_docs",
+          human_review_required: true,
+          not_proven: ["answer_correctness"],
+          boundary_findings: [],
+        }),
+      },
+      citations: [planCitation],
+    });
+
+    assert.equal(answer.answer_status, answerStatus);
+    assert.deepEqual(answer.documented_facts, []);
+    assert.deepEqual(answer.inference, []);
+  }
 });
 
 test("docs assistant answer normalizer adds stable not-proven labels to verify-purpose cannot_claim fallback", () => {
@@ -165,7 +209,7 @@ test("docs assistant answer normalizer rejects JSON embedded in prose", () => {
   assert.match(answer.boundary_findings.join(","), /model_output_not_structured_json/);
 });
 
-test("docs assistant answer normalizer keeps supported answers grounded by retrieval even when claim citations are unresolved", () => {
+test("docs assistant answer normalizer downgrades supported answers with unbound claims", () => {
   const answer = normalizeDocsAssistantAnswer({
     question: "What does the public verifier prove?",
     response: {
@@ -188,10 +232,36 @@ test("docs assistant answer normalizer keeps supported answers grounded by retri
     citations,
   });
 
-  assert.equal(answer.answer_status, "supported_by_docs");
-  assert.equal(answer.documented_facts.length, 1);
-  assert.deepEqual(answer.documented_facts[0]?.citation_ids, []);
+  assert.equal(answer.answer_status, "needs_human_review");
+  assert.equal(answer.unsupported_reason, "supported_answer_missing_claim_citations");
+  assert.deepEqual(answer.documented_facts, []);
   assert.equal(answer.citations.length, 1);
+});
+
+test("docs assistant answer normalizer downgrades mixed grounded and ungrounded claims", () => {
+  const answer = normalizeDocsAssistantAnswer({
+    question: "What does the public verifier prove?",
+    response: {
+      output_text: JSON.stringify({
+        answer_status: "partially_supported",
+        documented_facts: [
+          { text: "Grounded claim.", citation_ids: ["0"] },
+          { text: "Unbound claim.", citation_ids: ["unknown-citation"] },
+        ],
+        inference: [],
+        citations: [],
+        unsupported_reason: null,
+        human_review_required: false,
+        not_proven: ["source_freshness"],
+        boundary_findings: [],
+      }),
+    },
+    citations,
+  });
+
+  assert.equal(answer.answer_status, "needs_human_review");
+  assert.equal(answer.unsupported_reason, "supported_answer_missing_claim_citations");
+  assert.deepEqual(answer.documented_facts, []);
 });
 
 test("docs assistant answer normalizer resolves claim citation indices to server citation ids", () => {
@@ -220,6 +290,97 @@ test("docs assistant answer normalizer resolves claim citation indices to server
   assert.equal(answer.answer_status, "partially_supported");
   assert.deepEqual(answer.documented_facts[0]?.citation_ids, [
     "src-collected-corpus-runtime-0",
+  ]);
+});
+
+test("docs assistant answer normalizer rejects plan-only support claims", () => {
+  const answer = normalizeDocsAssistantAnswer({
+    question: "What does the public verifier prove?",
+    response: {
+      output_text: JSON.stringify({
+        answer_status: "supported_by_docs",
+        documented_facts: [
+          {
+            text: "The plan says the public verifier proves the claim.",
+            citation_ids: ["1"],
+          },
+        ],
+        inference: [],
+        citations: [],
+        unsupported_reason: null,
+        human_review_required: false,
+        not_proven: ["source_freshness"],
+        boundary_findings: [],
+      }),
+    },
+    citations: [planCitation],
+  });
+
+  assert.equal(answer.answer_status, "needs_human_review");
+  assert.equal(
+    answer.unsupported_reason,
+    "supported_answer_missing_claim_capable_citations",
+  );
+  assert.deepEqual(answer.documented_facts, []);
+  assert.deepEqual(answer.citations, [planCitation]);
+});
+
+test("docs assistant answer normalizer requires every claim to bind collected source bodies", () => {
+  const answer = normalizeDocsAssistantAnswer({
+    question: "What does the public verifier prove?",
+    response: {
+      output_text: JSON.stringify({
+        answer_status: "partially_supported",
+        documented_facts: [
+          { text: "Collected source claim.", citation_ids: ["0"] },
+          { text: "Plan-only claim.", citation_ids: ["1"] },
+        ],
+        inference: [],
+        citations: [],
+        unsupported_reason: null,
+        human_review_required: false,
+        not_proven: ["source_freshness"],
+        boundary_findings: [],
+      }),
+    },
+    citations: [...citations, planCitation],
+  });
+
+  assert.equal(answer.answer_status, "needs_human_review");
+  assert.equal(
+    answer.unsupported_reason,
+    "supported_answer_missing_claim_capable_citations",
+  );
+  assert.deepEqual(answer.documented_facts, []);
+});
+
+test("docs assistant answer normalizer permits plan metadata beside claim-capable support", () => {
+  const answer = normalizeDocsAssistantAnswer({
+    question: "What does the public verifier prove?",
+    response: {
+      output_text: JSON.stringify({
+        answer_status: "partially_supported",
+        documented_facts: [
+          {
+            text: "Collected source claim with supplemental plan metadata.",
+            citation_ids: ["0", "1"],
+          },
+        ],
+        inference: [],
+        citations: [],
+        unsupported_reason: null,
+        human_review_required: false,
+        not_proven: ["source_freshness"],
+        boundary_findings: [],
+      }),
+    },
+    citations: [...citations, planCitation],
+  });
+
+  assert.equal(answer.answer_status, "partially_supported");
+  assert.deepEqual(answer.documented_facts[0]?.citation_ids, [
+    "src-collected-corpus-runtime-0",
+    "src-corpus-plan-runtime-1",
   ]);
 });
 

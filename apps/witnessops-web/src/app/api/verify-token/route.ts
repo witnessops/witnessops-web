@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import {
   verifyTokenRequestSchema,
+  verifyTokenContextRequestSchema,
   type VerifyTokenResponse,
   verifyTokenResponseSchema,
 } from "@/lib/token-contract";
@@ -10,26 +11,40 @@ import {
   claimantSessionCookieOptions,
   createClaimantSessionCookieValue,
 } from "@/lib/server/claimant-session";
-import { verifyIssuedToken } from "@/lib/server/token-issuance";
+import {
+  verifyIssuedToken,
+  verifyIssuedTokenWithContext,
+} from "@/lib/server/token-issuance";
 import { PUBLIC_JSON_BODY_LIMIT_BYTES, readBoundedRequestJson, RequestBodyTooLargeError } from "@/lib/server/bounded-request-body";
 
 export const runtime = "nodejs";
 
+const verificationResponseHeaders = {
+  "Cache-Control": "no-store",
+  "Referrer-Policy": "no-referrer",
+} as const;
+
 function invalidRequest(message: string, status = 400) {
-  return NextResponse.json({ ok: false, error: message }, { status });
-}
-
-function readPublicOrigin(request: Request): URL {
-  const configuredOrigin =
-    process.env.WITNESSOPS_VERIFY_BASE_URL?.trim() ||
-    process.env.NEXT_PUBLIC_OS_SITE_URL?.trim();
-
-  return new URL(configuredOrigin || request.url);
+  return NextResponse.json(
+    { ok: false, error: message },
+    { status, headers: verificationResponseHeaders },
+  );
 }
 
 async function handleVerification(
   payload: unknown,
 ): Promise<VerifyTokenResponse | NextResponse> {
+  const contextRequest = verifyTokenContextRequestSchema.safeParse(payload);
+  if (contextRequest.success) {
+    try {
+      return verifyTokenResponseSchema.parse(
+        await verifyIssuedTokenWithContext(contextRequest.data),
+      );
+    } catch {
+      return invalidRequest("Verification could not be completed.", 400);
+    }
+  }
+
   const parsed = verifyTokenRequestSchema.safeParse(payload);
   if (!parsed.success) {
     return invalidRequest("issuanceId, email, and token are required.");
@@ -38,10 +53,8 @@ async function handleVerification(
   try {
     const verified = await verifyIssuedToken(parsed.data);
     return verifyTokenResponseSchema.parse(verified);
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Token verification failed.";
-    return invalidRequest(message, 400);
+  } catch {
+    return invalidRequest("Verification could not be completed.", 400);
   }
 }
 
@@ -51,7 +64,9 @@ export async function POST(request: Request) {
       await readBoundedRequestJson(request, PUBLIC_JSON_BODY_LIMIT_BYTES),
     );
     if (result instanceof NextResponse) return result;
-    const response = NextResponse.json(result);
+    const response = NextResponse.json(result, {
+      headers: verificationResponseHeaders,
+    });
     response.cookies.set(
       claimantSessionCookieName(result.issuanceId),
       createClaimantSessionCookieValue({
@@ -70,16 +85,15 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const publicOrigin = readPublicOrigin(request);
-  const confirmationUrl = new URL("/verify-token", publicOrigin);
-
-  for (const key of ["issuanceId", "email", "token"]) {
-    const value = searchParams.get(key);
-    if (value) {
-      confirmationUrl.searchParams.set(key, value);
-    }
-  }
-
-  return NextResponse.redirect(confirmationUrl, { status: 302 });
+  void request;
+  return NextResponse.json(
+    { ok: false, error: "Use POST to verify a mailbox code." },
+    {
+      status: 405,
+      headers: {
+        Allow: "POST",
+        ...verificationResponseHeaders,
+      },
+    },
+  );
 }

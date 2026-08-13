@@ -22,6 +22,10 @@ export function generateIssuanceId(): string {
   return `iss_${randomUUID().replace(/-/g, "")}`;
 }
 
+export function generateVerificationContext(): string {
+  return randomBytes(24).toString("base64url");
+}
+
 export function generateIntakeId(): string {
   return `intk_${randomUUID().replace(/-/g, "")}`;
 }
@@ -48,6 +52,13 @@ export function generateRawToken(): string {
 export function digestToken(rawToken: string): string {
   const digest = createHmac("sha256", readSigningSecret())
     .update(rawToken, "utf8")
+    .digest("hex");
+  return `${SHA256_PREFIX}${digest}`;
+}
+
+export function digestVerificationContext(context: string): string {
+  const digest = createHmac("sha256", readSigningSecret())
+    .update(`verification-context:${context}`, "utf8")
     .digest("hex");
   return `${SHA256_PREFIX}${digest}`;
 }

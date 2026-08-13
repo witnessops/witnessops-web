@@ -9,6 +9,9 @@ import {
   respondToIntake,
 } from "@/lib/server/intake-response";
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
+import {
+  AdminBusinessAuthorizationError,
+} from "@/lib/server/admin-business-authorization";
 
 export const runtime = "nodejs";
 
@@ -41,15 +44,18 @@ export async function POST(request: NextRequest) {
       actorAuthSource: session.actorAuthSource,
       actorSessionHash: session.actorSessionHash,
       source: "api/admin/intake/respond",
+      role: session.role,
     });
 
     return NextResponse.json(adminIntakeRespondResponseSchema.parse(response));
   } catch (error) {
+    if (error instanceof AdminBusinessAuthorizationError) {
+      return invalid(error.message, error.status);
+    }
     if (error instanceof IntakeResponseError) {
       return invalid(error.message, error.status);
     }
 
-    const message = error instanceof Error ? error.message : "Response failed.";
-    return invalid(message, 500);
+    return invalid("Response failed.", 500);
   }
 }

@@ -145,6 +145,17 @@ async function issueExternalExposureToken(baseDir: string, locale: "en" | "pl") 
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
 
+async function verificationContextFromMail(): Promise<string> {
+  const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
+  const mailRaw = await readFile(
+    path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
+    "utf8",
+  );
+  const context = mailRaw.match(/\/verify-token\?context=([A-Za-z0-9_-]+)/)?.[1];
+  assert.ok(context);
+  return context;
+}
+
 function assertClaimantSessionSet(response: Response, issuanceId?: string): string {
   const setCookie = response.headers.get("set-cookie") ?? "";
   if (issuanceId) {
@@ -176,6 +187,27 @@ test("verify-token route requires issuanceId + email + token", async () => {
   );
 
   assert.equal(response.status, 400);
+});
+
+test("verify-token route resolves an opaque context without URL identity", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
+  const issued = await issueToken(baseDir);
+  const context = await verificationContextFromMail();
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify({ context, token: issued.token }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as { issuanceId: string; email: string };
+  assert.equal(payload.issuanceId, issued.issuanceId);
+  assert.equal(payload.email, issued.email);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.equal(response.headers.get("referrer-policy"), "no-referrer");
 });
 
 test("verify-token route allows repeat verification for the same issuance and token", async () => {
@@ -214,7 +246,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   assert.equal(firstPayload.assessmentStatus, "unavailable");
   assert.equal(
     firstPayload.postVerifyPath,
-    `/assessment/${encodeURIComponent(firstPayload.issuanceId)}?email=${encodeURIComponent(firstPayload.email)}`,
+    `/assessment/${encodeURIComponent(firstPayload.issuanceId)}`,
   );
 
   const second = await POST(
@@ -246,7 +278,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   assert.equal(secondPayload.assessmentStatus, "unavailable");
   assert.equal(
     secondPayload.postVerifyPath,
-    `/assessment/${encodeURIComponent(secondPayload.issuanceId)}?email=${encodeURIComponent(secondPayload.email)}`,
+    `/assessment/${encodeURIComponent(secondPayload.issuanceId)}`,
   );
 });
 
@@ -322,7 +354,7 @@ test("verify-token route rejects verified-token replay after the original expiry
   assert.equal(replay.status, 400);
   assert.equal(replay.headers.get("set-cookie"), null);
   const payload = (await replay.json()) as { error?: string };
-  assert.match(payload.error ?? "", /expired/i);
+  assert.equal(payload.error, "Verification could not be completed.");
 });
 
 test("verify-token route returns access-change confirmation path without assessment attachment on replay", async () => {
@@ -590,13 +622,8 @@ test("verify-token route returns support confirmation path for support issuances
   };
   assert.equal(payload.channel, "support");
   assert.ok(payload.threadId?.startsWith("thr_"));
-  const expected = new URLSearchParams({
-    verified: "1",
-    intakeId: payload.intakeId,
-    email: payload.email,
-    threadId: payload.threadId!,
-  });
-  assert.equal(payload.postVerifyPath, `/support?${expected.toString()}`);
+  assert.equal(payload.postVerifyPath, "/support?verified=1");
+  assert.doesNotMatch(payload.postVerifyPath, /intakeId|email|threadId/);
 
   const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
   assert.equal(mailFiles.length, 2);
@@ -757,6 +784,8 @@ test("concurrent support verification sends exactly one operator notification", 
 test("verify-token route does not start assessment before explicit approval", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
   applyTestEnv(baseDir);
+  process.env.GES_SERVER_URL = "https://assessment.internal";
+  process.env.GES_ASSESSMENT_KEY = "test-assessment-key";
   const fetchCalls: Array<{ input: string; init?: RequestInit }> = [];
   global.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = input instanceof Request ? input.url : input.toString();
@@ -828,10 +857,35 @@ test("verify-token route enforces expiry", async () => {
 
   assert.equal(response.status, 400);
   const payload = (await response.json()) as { error: string };
-  assert.match(payload.error, /expired/i);
+  assert.equal(payload.error, "Verification could not be completed.");
 });
 
-test("verify-token GET route redirects to confirmation page without consuming token", async () => {
+test("verify-token route does not disclose which credential field failed", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
+  const issued = await issueToken(baseDir);
+  const attempts = [
+    { ...issued, issuanceId: "iss_unknown" },
+    { ...issued, email: "different@witnessops.com" },
+    { ...issued, token: "WRONG-CODE" },
+  ];
+
+  for (const attempt of attempts) {
+    const response = await POST(
+      new Request("https://witnessops.com/api/verify-token", {
+        method: "POST",
+        body: JSON.stringify(attempt),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      ok: false,
+      error: "Verification could not be completed.",
+    });
+  }
+});
+
+test("verify-token GET route rejects token-bearing compatibility URLs", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
   const issued = await issueToken(baseDir);
 
@@ -841,23 +895,16 @@ test("verify-token GET route redirects to confirmation page without consuming to
     ),
   );
 
-  assert.equal(response.status, 302);
-  const location = response.headers.get("location") ?? "";
-  assert.ok(
-    location.startsWith("https://witnessops.com/verify-token?"),
-    `Expected redirect to /verify-token, got: ${location}`,
-  );
-  assert.ok(
-    location.includes(`issuanceId=${encodeURIComponent(issued.issuanceId)}`),
-    `Expected issuanceId param in redirect URL, got: ${location}`,
-  );
-  assert.ok(location.includes("email="));
-  assert.ok(location.includes("token="));
+  assert.equal(response.status, 405);
+  assert.equal(response.headers.get("allow"), "POST");
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.equal(response.headers.get("referrer-policy"), "no-referrer");
+  assert.equal(response.headers.get("location"), null);
   const stored = await getIssuanceById(issued.issuanceId);
   assert.equal(stored?.status, "issued");
 });
 
-test("verify-token GET route uses the public origin instead of the internal request host", async () => {
+test("verify-token GET route never copies parameters from an internal host", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
   const issued = await issueToken(baseDir);
 
@@ -867,14 +914,11 @@ test("verify-token GET route uses the public origin instead of the internal requ
     ),
   );
 
-  assert.equal(response.status, 302);
-  assert.equal(
-    response.headers.get("location"),
-    `https://witnessops.com/verify-token?issuanceId=${encodeURIComponent(issued.issuanceId)}&email=${encodeURIComponent(issued.email)}&token=${encodeURIComponent(issued.token)}`,
-  );
+  assert.equal(response.status, 405);
+  assert.equal(response.headers.get("location"), null);
 });
 
-test("verify-token GET route redirects support verification to confirmation page without consuming token", async () => {
+test("verify-token GET route also rejects support verification URLs", async () => {
   const baseDir = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-support-verify-"),
   );
@@ -886,17 +930,13 @@ test("verify-token GET route redirects support verification to confirmation page
     ),
   );
 
-  assert.equal(response.status, 302);
-  const location = response.headers.get("location") ?? "";
-  assert.ok(
-    location.startsWith("https://witnessops.com/verify-token?"),
-    `Expected redirect to /verify-token, got: ${location}`,
-  );
+  assert.equal(response.status, 405);
+  assert.equal(response.headers.get("location"), null);
   const stored = await getIssuanceById(issued.issuanceId);
   assert.equal(stored?.status, "issued");
 });
 
-test("verify-token GET support redirect uses the public origin instead of the internal request host", async () => {
+test("verify-token GET support request never reflects an internal host", async () => {
   const baseDir = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-support-verify-"),
   );
@@ -908,10 +948,6 @@ test("verify-token GET support redirect uses the public origin instead of the in
     ),
   );
 
-  assert.equal(response.status, 302);
-  const location = response.headers.get("location") ?? "";
-  assert.ok(
-    location.startsWith("https://witnessops.com/verify-token?"),
-    `Expected public confirmation redirect, got: ${location}`,
-  );
+  assert.equal(response.status, 405);
+  assert.equal(response.headers.get("location"), null);
 });

@@ -117,11 +117,11 @@ test("operator reject and rescind serialize on the issuance lock", async () => {
   );
   assert.match(
     source,
-    /withIssuanceLock\(intake\.latestIssuanceId,[\s\S]*rejectIntakeAsOperatorUnlocked/,
+    /withIntakeLock\(input\.intakeId,[\s\S]*rejectIntakeAsOperatorUnlocked[\s\S]*withIssuanceLock\(intake\.latestIssuanceId, action\)/,
   );
   assert.match(
     source,
-    /withIssuanceLock\(intake\.latestIssuanceId,[\s\S]*rescindOperatorRejectionUnlocked/,
+    /withIntakeLock\(input\.intakeId,[\s\S]*rescindOperatorRejectionUnlocked[\s\S]*withIssuanceLock\(intake\.latestIssuanceId, action\)/,
   );
 });
 

@@ -25,18 +25,16 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ issuanceId: string }>;
-  searchParams: Promise<{ email?: string }>;
 }
 
-export default async function AssessmentPage({ params, searchParams }: Props) {
+export default async function AssessmentPage({ params }: Props) {
   const { issuanceId } = await params;
-  const { email: rawEmail } = await searchParams;
-  const email = rawEmail?.toLowerCase().trim() ?? "";
 
   const record = await getIssuanceById(issuanceId);
-  if (!record || record.email !== email) {
+  if (!record) {
     notFound();
   }
+  const email = record.email;
 
   const cookieStore = await cookies();
   const claimantSession = cookieStore.get(claimantSessionCookieName(issuanceId))?.value;
@@ -75,7 +73,10 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
     try {
       const live = await getAssessmentStatus(record.assessmentRunId);
       if (live) {
-        liveRun = live;
+        liveRun = {
+          ...live,
+          error: live.error ? "Assessment failed upstream." : undefined,
+        };
         initialStatus = live.status;
       }
     } catch {
@@ -247,7 +248,6 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
               ) : null}
               <AssessmentPoller
                 issuanceId={issuanceId}
-                email={email}
                 initialStatus={initialStatus}
                 initialRun={liveRun}
               />
@@ -257,7 +257,9 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
               Scope approval is recorded, but the assessment server was not
               reachable when recon was triggered.
               {record.assessmentError ? (
-                <div className="mt-2 text-xs text-zinc-500 font-mono">{record.assessmentError}</div>
+                <div className="mt-2 text-xs text-zinc-500 font-mono">
+                  Assessment failed upstream.
+                </div>
               ) : null}
             </div>
           ) : approvalStatus === "approved" ? (

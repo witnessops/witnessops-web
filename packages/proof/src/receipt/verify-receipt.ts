@@ -669,7 +669,7 @@ export function verifyReceiptVerdict(
   let result: VerificationVerdict;
   if (detail.overall === "fail") {
     result = "fail";
-  } else if (mode === "receipt-only") {
+  } else if (mode === "receipt-only" || artifactRevalidation === "not_possible") {
     result = "limited-pass";
   } else {
     result = "pass";
@@ -679,10 +679,11 @@ export function verifyReceiptVerdict(
     verification_mode: mode,
     artifact_revalidation: artifactRevalidation,
     proof_stage_claimed: claimed,
-    proof_stage_verified:
-      detail.overall === "fail" || mode === "receipt-only" ? "unknown" : claimed,
+    // This receipt-structured entrypoint never receives source artifacts, so
+    // it cannot independently verify the receipt's claimed proof stage.
+    proof_stage_verified: "unknown",
     result,
     breaches,
-    detail: mode === "receipt-only" ? markIncompleteReceiptOnlyChecks(detail) : detail,
+    detail: markIncompleteReceiptOnlyChecks(detail),
   };
 }

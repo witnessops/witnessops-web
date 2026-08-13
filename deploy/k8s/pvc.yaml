@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: witnessops-intake-store
-  namespace: witnessops
+  name: ${INTAKE_STORE_PVC}
+  namespace: ${DEPLOY_NS}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -13,8 +13,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: witnessops-intake-events
-  namespace: witnessops
+  name: ${INTAKE_EVENTS_PVC}
+  namespace: ${DEPLOY_NS}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -25,8 +25,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: witnessops-staging-mail-out
-  namespace: witnessops
+  name: ${MAIL_OUT_PVC}
+  namespace: ${DEPLOY_NS}
 spec:
   accessModes:
     - ReadWriteOnce

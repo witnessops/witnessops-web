@@ -47,7 +47,8 @@ export interface ReceiptReadError {
 }
 
 const DEFAULT_RECEIPT_ROOT = path.resolve(
-  process.env.ASK_RECEIPT_ROOT || "/var/lib/witnessops/ask-receipts"
+  process.env.ASK_RECEIPT_ROOT ||
+    path.join(process.cwd(), ".witnessops-token-store", "ask-receipts"),
 );
 
 function ensureDir(dir: string): void {

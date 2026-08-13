@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
+import {
+  AdminBusinessAuthorizationError,
+  withRunBusinessAccess,
+} from "@/lib/server/admin-business-authorization";
 import { authorizeRun } from "@/lib/server/control-plane-client";
 
 export const runtime = "nodejs";
@@ -25,11 +29,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    const result = await authorizeRun(runId, {
-      actor: session.actor,
-      actorAuthSource: session.actorAuthSource,
-      actorSessionHash: session.actorSessionHash,
-    });
+    const result = await withRunBusinessAccess(session, runId, () =>
+      authorizeRun(runId, {
+        actor: session.actor,
+        actorAuthSource: session.actorAuthSource,
+        actorSessionHash: session.actorSessionHash,
+      }),
+    );
     if (result.kind === "not_configured") {
       return invalid("Control plane is not configured for this deployment.", 503);
     }
@@ -46,9 +52,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
       note: "Control-plane run authorized. Execution may proceed.",
     });
   } catch (error) {
-    return invalid(
-      error instanceof Error ? error.message : "Unable to authorize control-plane run.",
-      502,
-    );
+    if (error instanceof AdminBusinessAuthorizationError) {
+      return invalid(error.message, error.status);
+    }
+    console.error("Control-plane run authorization failed", {
+      errorCode:
+        error && typeof error === "object" && "code" in error
+          ? String(error.code)
+          : "CONTROL_PLANE_AUTHORIZE_FAILED",
+    });
+    return invalid("Unable to authorize control-plane run.", 502);
   }
 }

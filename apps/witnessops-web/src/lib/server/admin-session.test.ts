@@ -35,13 +35,14 @@ afterEach(() => {
 function googlePayload() {
   const issuedAt = Date.now();
   return {
-    version: 2 as const,
+    version: 3 as const,
     identityProvider: "google" as const,
     issuer: "https://accounts.google.com" as const,
     subject: "google-subject-123",
     actor: "oidc:https://accounts.google.com#google-subject-123",
     actorAuthSource: "oidc_session" as const,
     actorSessionHash: "abcd1234abcd1234",
+    role: "Delegated Operator" as const,
     iat: issuedAt,
     exp: issuedAt + 60_000,
   };
@@ -66,6 +67,7 @@ test("getVerifiedAdminSession accepts only a provider-bound Google session", asy
     actor: "oidc:https://accounts.google.com#google-subject-123",
     actorAuthSource: "oidc_session",
     actorSessionHash: "abcd1234abcd1234",
+    role: "Delegated Operator",
     isLocalBypass: false,
   });
 });
@@ -81,6 +83,8 @@ test("signed Microsoft, legacy, providerless, expired, and malformed sessions fa
     ["expired", { ...valid, exp: Date.now() - 1 }],
     ["overlong lifetime", { ...valid, exp: valid.iat + 8 * 60 * 60 * 1000 + 1 }],
     ["bad session hash", { ...valid, actorSessionHash: "not-a-hash" }],
+    ["missing role", { ...valid, role: undefined }],
+    ["unknown role", { ...valid, role: "Super Admin" }],
   ];
 
   for (const [name, payload] of cases) {

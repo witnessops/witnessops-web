@@ -4,6 +4,7 @@ import {
   getGmailSyncReceiptByIdempotency,
   listInboxItems,
   reconcileGmailInbox,
+  requireAdministrationAuthority,
   recordGmailSyncFailure,
   type CoreActor,
   type GmailSyncFailure,
@@ -56,6 +57,7 @@ export async function runGmailInboxSync(
   actor: CoreActor,
   options: GmailInboxSyncOptions = {},
 ): Promise<GmailInboxSyncResult> {
+  requireAdministrationAuthority(actor);
   const startedAt = now();
   const account = gmailSyncAccount();
   const query = defaultGmailSyncQuery();

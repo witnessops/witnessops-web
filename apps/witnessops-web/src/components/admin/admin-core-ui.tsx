@@ -190,6 +190,48 @@ export function DeliveryDraftForm({ deliveryId, initial }: { deliveryId: string;
   </form>;
 }
 
+export function DeliverySendReconciliationForm({ deliveryId }: { deliveryId: string }) {
+  const router = useRouter();
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function reconcile(form: HTMLFormElement) {
+    if (!window.confirm("Confirm the provider outcome from independent delivery evidence?")) return;
+    setBusy(true);
+    setMessage("");
+    const data = new FormData(form);
+    const body = Object.fromEntries(data.entries());
+    try {
+      const response = await fetch(`/api/admin/core/deliveries/${deliveryId}/reconcile-send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const result = await response.json() as { ok?: boolean; error?: string };
+      if (!response.ok || !result.ok) throw new Error(result.error || "Delivery reconciliation failed.");
+      setMessage("Provider outcome reconciled.");
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Delivery reconciliation failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return <form className={styles.coreForm} onSubmit={(event) => { event.preventDefault(); void reconcile(event.currentTarget); }}>
+    <select name="outcome" className={styles.queueActionSelect} required>
+      <option value="">Select confirmed outcome</option>
+      <option value="not_sent">Confirmed not sent — unlock retry</option>
+      <option value="sent">Confirmed sent — record delivery</option>
+    </select>
+    <div className={styles.coreFormGrid}>
+      <input name="provider" placeholder="Provider (required when sent)" className={styles.queueActionInput} />
+      <input name="providerMessageId" placeholder="Provider message ID, if available" className={styles.queueActionInput} />
+      <input name="sentAt" placeholder="Sent timestamp, required when sent" className={styles.queueActionInput} />
+    </div>
+    <textarea name="note" placeholder="Evidence used to confirm the provider outcome" required className={styles.queueComposerTextarea} />
+    <div className={styles.queueActionPrimaryRow}><button className={styles.rowAction} disabled={busy}>{busy ? "Reconciling…" : "Record reconciled outcome"}</button>{message ? <span className={styles.coreActionMessage}>{message}</span> : null}</div>
+  </form>;
+}
+
 export function ReceiptLinkForm({ deliveryId }: { deliveryId: string }) {
   const router = useRouter();
   const [message, setMessage] = useState("");

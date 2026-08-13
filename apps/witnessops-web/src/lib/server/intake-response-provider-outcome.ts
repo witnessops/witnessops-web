@@ -5,8 +5,15 @@ import type {
 import type { IntakeResponseProviderOutcomeRecord } from "./token-store";
 
 import { appendIntakeEvent, readIntakeEvents } from "./intake-event-ledger";
-import { evaluatePolicyClosure } from "./policy-closure";
-import { getAllIntakes, updateIntake, getIntakeById, type IntakeRecord } from "./token-store";
+import { evaluatePolicyClosureWithinLock } from "./policy-closure";
+import { compareRfc3339Instants, laterRfc3339 } from "./rfc3339-instant";
+import {
+  getAllIntakes,
+  getIntakeById,
+  updateIntakeWithinLock,
+  withIntakeLock,
+  type IntakeRecord,
+} from "./token-store";
 
 function outcomeRank(
   status: IntakeResponseProviderOutcomeRecord["status"],
@@ -31,11 +38,15 @@ function shouldReplaceOutcome(
     return true;
   }
 
-  if (next.observedAt > current.observedAt) {
+  const instantOrder = compareRfc3339Instants(
+    next.observedAt,
+    current.observedAt,
+  );
+  if (instantOrder > 0) {
     return true;
   }
 
-  if (next.observedAt < current.observedAt) {
+  if (instantOrder < 0) {
     return false;
   }
 
@@ -68,20 +79,15 @@ async function findMatchingIntake(
 ): Promise<IntakeRecord> {
   const intakes = await getAllIntakes();
   const matches = intakes.filter((intake) => {
-    if (!intake.firstResponse) {
-      return false;
-    }
-
-    if (intake.firstResponse.provider !== input.provider) {
-      return false;
-    }
-
     const providerMessageMatch =
+      Boolean(intake.firstResponse) &&
+      intake.firstResponse!.provider === input.provider &&
       Boolean(input.providerMessageId) &&
-      intake.firstResponse.providerMessageId === input.providerMessageId;
+      intake.firstResponse!.providerMessageId === input.providerMessageId;
     const attemptMatch =
       Boolean(input.deliveryAttemptId) &&
-      intake.firstResponse.deliveryAttemptId === input.deliveryAttemptId;
+      (intake.firstResponse?.deliveryAttemptId === input.deliveryAttemptId ||
+        intake.responseAttempt?.deliveryAttemptId === input.deliveryAttemptId);
 
     return providerMessageMatch || attemptMatch;
   });
@@ -129,27 +135,38 @@ export class IntakeResponseProviderOutcomeError extends Error {
 export async function recordIntakeResponseProviderOutcome(
   input: ProviderResponseOutcomeRequest,
 ): Promise<ProviderResponseOutcomeResponse> {
-  const intake = await findMatchingIntake(input);
-  if (!intake.firstResponse) {
-    throw new IntakeResponseProviderOutcomeError(
-      "No response delivery metadata exists for this intake.",
-      409,
-    );
-  }
+  const matchedIntake = await findMatchingIntake(input);
+  return withIntakeLock(matchedIntake.intakeId, async (handle) => {
+    const intake = await getIntakeById(matchedIntake.intakeId);
+    if (!intake || !intake.firstResponse && !intake.responseAttempt) {
+      throw new IntakeResponseProviderOutcomeError(
+        "No response delivery metadata exists for this intake.",
+        409,
+      );
+    }
+    const stillMatches =
+      (Boolean(input.providerMessageId) &&
+        intake.firstResponse?.provider === input.provider &&
+        intake.firstResponse.providerMessageId === input.providerMessageId) ||
+      (Boolean(input.deliveryAttemptId) &&
+        (intake.firstResponse?.deliveryAttemptId === input.deliveryAttemptId ||
+          intake.responseAttempt?.deliveryAttemptId === input.deliveryAttemptId));
+    if (!stillMatches) {
+      throw new IntakeResponseProviderOutcomeError(
+        "Provider response evidence no longer matches this intake.",
+        409,
+      );
+    }
 
-  const existingEvent = await findExistingProviderOutcomeEvent({
-    intakeId: intake.intakeId,
-    providerEventId: input.providerEventId,
-  });
-  const detail = input.detail?.trim() || null;
-  const providerMessageId =
-    input.providerMessageId ?? intake.firstResponse.providerMessageId ?? null;
-  const deliveryAttemptId =
-    input.deliveryAttemptId ?? intake.firstResponse.deliveryAttemptId;
-
-  if (existingEvent) {
-    return {
-      status: "already_recorded",
+    const detail = input.detail?.trim() || null;
+    const providerMessageId =
+      input.providerMessageId ?? intake.firstResponse?.providerMessageId ?? null;
+    const deliveryAttemptId =
+      input.deliveryAttemptId ??
+      intake.firstResponse?.deliveryAttemptId ??
+      intake.responseAttempt!.deliveryAttemptId;
+    const response = (status: ProviderResponseOutcomeResponse["status"]): ProviderResponseOutcomeResponse => ({
+      status,
       intakeId: intake.intakeId,
       channel: intake.channel,
       threadId: intake.threadId,
@@ -162,37 +179,47 @@ export async function recordIntakeResponseProviderOutcome(
       source: input.source,
       rawEventType: input.rawEventType,
       detail,
+    });
+    if (await findExistingProviderOutcomeEvent({
+      intakeId: intake.intakeId,
+      providerEventId: input.providerEventId,
+    })) {
+      try {
+        await evaluatePolicyClosureWithinLock(
+          handle,
+          `api/provider-events/response-outcome:policy_closure_replay`,
+        );
+      } catch {
+        // The provider outcome remains durable and a later replay can retry closure.
+      }
+      return response("already_recorded");
+    }
+
+    const record: IntakeResponseProviderOutcomeRecord = {
+      status: input.outcome,
+      observedAt: input.observedAt,
+      provider: input.provider,
+      providerEventId: input.providerEventId,
+      providerMessageId,
+      deliveryAttemptId,
+      source: input.source,
+      rawEventType: input.rawEventType,
+      detail,
     };
-  }
 
-  const record: IntakeResponseProviderOutcomeRecord = {
-    status: input.outcome,
-    observedAt: input.observedAt,
-    provider: input.provider,
-    providerEventId: input.providerEventId,
-    providerMessageId,
-    deliveryAttemptId,
-    source: input.source,
-    rawEventType: input.rawEventType,
-    detail,
-  };
+    await updateIntakeWithinLock(handle, intake.intakeId, (current) => ({
+      ...current,
+      responseProviderOutcome: shouldReplaceOutcome(
+        current.responseProviderOutcome,
+        record,
+      )
+        ? record
+        : current.responseProviderOutcome,
+      updatedAt: laterRfc3339(input.observedAt, current.updatedAt),
+    }));
 
-  await updateIntake(intake.intakeId, (current) => ({
-    ...current,
-    responseProviderOutcome: shouldReplaceOutcome(
-      current.responseProviderOutcome,
-      record,
-    )
-      ? record
-      : current.responseProviderOutcome,
-    updatedAt:
-      input.observedAt > current.updatedAt
-        ? input.observedAt
-        : current.updatedAt,
-  }));
-
-  try {
-    await appendIntakeEvent({
+    try {
+      await appendIntakeEvent({
       event_type: "INTAKE_RESPONSE_PROVIDER_OUTCOME_RECORDED",
       occurred_at: input.observedAt,
       channel: intake.channel,
@@ -212,41 +239,24 @@ export async function recordIntakeResponseProviderOutcome(
         rawEventType: input.rawEventType,
         detail,
       },
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new IntakeResponseProviderOutcomeError(
-      `Provider outcome was written to the snapshot, but the ledger append failed. ${message}`,
-      500,
-    );
-  }
-
-  // Evaluate auto-resolution policy after recording the outcome
-  try {
-    const updatedIntake = await getIntakeById(intake.intakeId);
-    if (updatedIntake) {
-      await evaluatePolicyClosure(
-        updatedIntake,
-        `api/provider-events/response-outcome:policy_closure`,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new IntakeResponseProviderOutcomeError(
+        `Provider outcome was written to the snapshot, but the ledger append failed. ${message}`,
+        500,
       );
     }
-  } catch {
-    // Policy closure is best-effort; the outcome fact is already durable.
-  }
 
-  return {
-    status: "recorded",
-    intakeId: intake.intakeId,
-    channel: intake.channel,
-    threadId: intake.threadId,
-    provider: input.provider,
-    providerEventId: input.providerEventId,
-    providerMessageId,
-    deliveryAttemptId,
-    outcome: input.outcome,
-    observedAt: input.observedAt,
-    source: input.source,
-    rawEventType: input.rawEventType,
-    detail,
-  };
+    try {
+      await evaluatePolicyClosureWithinLock(
+        handle,
+        `api/provider-events/response-outcome:policy_closure`,
+      );
+    } catch {
+      // Policy closure is best-effort; the outcome fact is already durable.
+    }
+
+    return response("recorded");
+  });
 }

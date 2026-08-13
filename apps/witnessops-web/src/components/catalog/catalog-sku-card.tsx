@@ -84,7 +84,13 @@ function buyerFrame(sku: CatalogSku) {
   return undefined;
 }
 
-export function CatalogSkuCard({ sku }: { sku: CatalogSku }) {
+export function CatalogSkuCard({
+  sku,
+  showDetailLink = true,
+}: {
+  sku: CatalogSku;
+  showDetailLink?: boolean;
+}) {
   const detailHref = `/catalog/${sku.id.toLowerCase()}`;
   const primaryCta = sku.cta.primary;
   const normalizedPrimaryCta =
@@ -133,7 +139,9 @@ export function CatalogSkuCard({ sku }: { sku: CatalogSku }) {
         <p className="mt-4 text-sm leading-6 text-text-muted">{frame.doubt}</p>
       ) : null}
       <div className="mt-auto flex flex-wrap gap-3 pt-6">
-        <CtaButton href={detailHref} variant="primary" label="Learn more" />
+        {showDetailLink ? (
+          <CtaButton href={detailHref} variant="primary" label="Learn more" />
+        ) : null}
         {normalizedPrimaryCta ? (
           isMailto ? (
             <a

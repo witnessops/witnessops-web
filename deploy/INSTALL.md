@@ -1,26 +1,24 @@
 # Installing witnessops-web on a host
 
-> **Current dual-lane path (use this):** ops-dev-01 k3s — prod
-> `witnessops-web` (Caddy → `127.0.0.1:3000`) + mesh-dev
-> `witnessops-web-dev` (`10.44.0.2:3015`). See
+> **Current dual-lane path (use this):** private k3s with prod and mesh-dev
+> topology injected from operator custody through `topology.env`. See
 > [`../docs/DEPLOYMENT_CUSTODY.md`](../docs/DEPLOYMENT_CUSTODY.md) and
 > in-repo scripts under `deploy/scripts/k3s-*.sh` (`pnpm deploy:k3s:both`).
 >
-> **Below:** historical Docker Compose / GHCR / goal0 install flow. Not live
+> **Below:** historical Docker Compose / GHCR install flow. Not live
 > authority unless a future lane reactivates it.
 
-This file records the historical installation method for the production web
-surface on **goal0-edge-01** (unified public host with OffSec product vhosts).
-It runs the released, signed container image from GHCR behind host Caddy on
-`167.235.12.232`, but that is not the current live path unless reactivated by a
-future lane.
+This file records a historical installation method for a unified public host.
+It ran a released, signed container image from GHCR behind host Caddy, but it
+is not the current live path unless reactivated by a future lane. Concrete
+historical topology and custody paths are intentionally omitted.
 
 Architecture:
 
 ```text
-Internet ──TLS──> Caddy (systemd) ──127.0.0.1:3000──> docker: witnessops-web
-                                                         └── /srv/witnessops/data/* (persistent)
-                                                         └── /srv/witnessops/env/witnessops-web.env (secrets)
+Internet ──TLS──> Caddy (systemd) ──loopback──> docker: witnessops-web
+                                                  └── WITNESSOPS_DATA_ROOT
+                                                  └── WITNESSOPS_WEB_ENV_FILE
 ```
 
 ## Prerequisites
@@ -33,22 +31,22 @@ Internet ──TLS──> Caddy (systemd) ──127.0.0.1:3000──> docker: wi
 ## 1. Host paths
 
 ```bash
-sudo mkdir -p /srv/witnessops/{env,data/intake-store,data/intake-events,data/staging-mail-out,backups}
+sudo mkdir -p "${WITNESSOPS_DATA_ROOT}"/{intake-store,intake-events,staging-mail-out,backups}
 # Data dirs are written by the container's uid:gid 1001:1001 (the 'nextjs' user).
-sudo chown -R 1001:1001 /srv/witnessops/data
+sudo chown -R 1001:1001 "${WITNESSOPS_DATA_ROOT}"
 ```
 
 ## 2. Runtime environment (secrets)
 
 ```bash
-sudo cp deploy/.env.example /srv/witnessops/env/witnessops-web.env
-sudo $EDITOR /srv/witnessops/env/witnessops-web.env   # fill in real secrets
-sudo chown root:witnessops /srv/witnessops/env/witnessops-web.env
-sudo chmod 640 /srv/witnessops/env/witnessops-web.env
+sudo cp deploy/.env.example "${WITNESSOPS_WEB_ENV_FILE}"
+sudo $EDITOR "${WITNESSOPS_WEB_ENV_FILE}"   # fill in real secrets
+sudo chown root:operator-group "${WITNESSOPS_WEB_ENV_FILE}"
+sudo chmod 640 "${WITNESSOPS_WEB_ENV_FILE}"
 ```
 
-`640 root:witnessops` (not `600`) is required: Docker Compose reads `env_file`
-client-side as the operator user, who must be in the `witnessops` group. The
+Mode `640` may be required: Docker Compose reads `env_file` client-side as the
+operator user, who must be in the configured operator group. The
 file stays unreadable to everyone outside that group.
 
 The env file lives on the host only and is never committed. See `deploy/.env.example`
@@ -101,11 +99,7 @@ docker compose -f docker-compose.yml ps
 
 ## Notes / current reality
 
-- **Unified host:** import OffSec-Lane `witnessops-public.Caddyfile` alongside
-  `offsec-public.Caddyfile` on goal0. See OffSec-Lane `docs/local-mesh/SINGLE-PUBLIC-HOST.md`.
-- Legacy **edge02** may still run `witnessops-web-staging` until DNS points at
-  goal0. First goal0 deploy uses production names `witnessops-web` /
-  `witnessops-web.env`.
+- Historical unified-host and staging notes are not current deployment authority.
 - TLS, DNS, and the contact/review gate are host/edge concerns, not app config.
-- Persistent data under `/srv/witnessops/data` must be backed up independently
+- Persistent data under `WITNESSOPS_DATA_ROOT` must be backed up independently
   (see the production backup custody lane).

@@ -1,0 +1,32 @@
+# Source-controlled WitnessOps public host block.
+# Merge only this bounded replacement into /etc/caddy/Caddyfile after creating
+# a timestamped backup and validating the complete active configuration.
+
+http://witnessops.com, http://www.witnessops.com, https://www.witnessops.com {
+	redir https://witnessops.com{uri} 308
+}
+
+https://witnessops.com, https://docs.witnessops.com {
+	encode zstd gzip
+
+	# FORM_UNGATE 	@gated path /api/review/request /api/verify-token
+	# FORM_UNGATE 	handle @gated {
+	# FORM_UNGATE 		respond "Service temporarily unavailable" 503
+	# FORM_UNGATE 	}
+
+	handle {
+		reverse_proxy 127.0.0.1:3000
+	}
+
+	log {
+		output file /var/log/caddy/witnessops-apex.log
+		format filter {
+			request>uri query {
+				replace context REDACTED
+				replace email REDACTED
+				replace issuanceId REDACTED
+				replace token REDACTED
+			}
+		}
+	}
+}

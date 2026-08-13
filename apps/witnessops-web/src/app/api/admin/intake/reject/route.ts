@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
+  AdminBusinessAuthorizationError,
+} from "@/lib/server/admin-business-authorization";
+import {
   OperatorActionError,
   rejectIntakeAsOperator,
 } from "@/lib/server/operator-actions";
@@ -31,9 +34,13 @@ export async function POST(request: NextRequest) {
       intakeId,
       actor: session.actor,
       reason,
+      role: session.role,
     });
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
+    if (error instanceof AdminBusinessAuthorizationError) {
+      return invalid(error.message, error.status);
+    }
     if (error instanceof OperatorActionError) {
       return invalid(error.message, error.status);
     }

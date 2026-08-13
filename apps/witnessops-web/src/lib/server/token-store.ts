@@ -4,7 +4,6 @@ import {
   readdir,
   rename,
   rm,
-  stat,
   writeFile,
 } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
@@ -120,6 +119,19 @@ export interface IntakeResponseProviderOutcomeRecord {
   detail?: string | null;
 }
 
+export interface IntakeResponseAttemptRecord {
+  deliveryAttemptId: string;
+  subject: string;
+  bodyDigest: string;
+  actor: string;
+  actorAuthSource: AdminActorAuthSource;
+  actorSessionHash: string | null;
+  mailbox: string;
+  status: "reserved" | "sent" | "needs_reconciliation" | "reconciled";
+  reservedAt: string;
+  updatedAt: string;
+}
+
 export interface IntakeMailboxReceiptRecord {
   status: IntakeResponseProviderOutcomeStatus;
   observedAt: string;
@@ -147,6 +159,7 @@ export interface IntakeRecord {
   replayedAt?: string;
   submission: IntakeSubmissionRecord;
   firstResponse?: IntakeResponseRecord;
+  responseAttempt?: IntakeResponseAttemptRecord;
   responseProviderOutcome?: IntakeResponseProviderOutcomeRecord;
   responseMailboxReceipt?: IntakeMailboxReceiptRecord;
   reconciliation?: IntakeReconciliationRecord;
@@ -247,6 +260,7 @@ export interface TokenIssuanceRecord {
   channel?: ChannelName;
   email: string;
   tokenDigest: string;
+  verificationContextDigest?: string;
   createdAt: string;
   expiresAt: string;
   status: TokenIssuanceStatus;
@@ -271,6 +285,12 @@ export interface TokenIssuanceRecord {
    *  - disagree  : claimant disputed the proposed scope; approval blocked.
    */
   claimantAction?: ClaimantActionRecord | null;
+}
+
+export interface VerificationContextRecord {
+  contextDigest: string;
+  issuanceId: string;
+  expiresAt: string;
 }
 
 export interface ClaimantActionRecord {
@@ -338,30 +358,32 @@ function issuancePath(issuanceId: string): string {
   return safeRecordPath(issuanceId, "issuance", "issuances");
 }
 
-function issuanceLockPath(issuanceId: string): string {
-  assertSafeRecordId(issuanceId, "issuance");
-  const base = path.resolve(getAdmissionStoreDir(), "locks");
-  const safeName = `issuance-${path.basename(issuanceId)}.lock`;
+function verificationContextPath(contextDigest: string): string {
+  if (!/^sha256:[a-f0-9]{64}$/.test(contextDigest)) {
+    throw new Error("Invalid verification context digest");
+  }
+  const base = path.resolve(getAdmissionStoreDir(), "verification-contexts");
+  const safeName = `${contextDigest.slice("sha256:".length)}.json`;
   const resolved = path.resolve(base, safeName);
   if (resolved !== path.join(base, safeName)) {
-    throw new Error("Invalid issuance lock path");
-  }
-  if (!resolved.startsWith(base + path.sep)) {
-    throw new Error("Invalid issuance lock path");
+    throw new Error("Invalid verification context path");
   }
   return resolved;
 }
 
-function intakeLockPath(intakeId: string): string {
-  assertSafeRecordId(intakeId, "intake");
+function recordLockPath(
+  recordId: string,
+  kind: "issuance" | "intake",
+): string {
+  assertSafeRecordId(recordId, kind);
   const base = path.resolve(getAdmissionStoreDir(), "locks");
-  const safeName = `intake-${path.basename(intakeId)}.lock`;
+  const safeName = `${kind}-${path.basename(recordId)}.lock`;
   const resolved = path.resolve(base, safeName);
   if (resolved !== path.join(base, safeName)) {
-    throw new Error("Invalid intake lock path");
+    throw new Error(`Invalid ${kind} lock path`);
   }
   if (!resolved.startsWith(base + path.sep)) {
-    throw new Error("Invalid intake lock path");
+    throw new Error(`Invalid ${kind} lock path`);
   }
   return resolved;
 }
@@ -371,6 +393,9 @@ async function ensureStoreDirs(): Promise<void> {
     mkdir(path.join(getAdmissionStoreDir(), "intakes"), { recursive: true }),
     mkdir(path.join(getAdmissionStoreDir(), "issuances"), { recursive: true }),
     mkdir(path.join(getAdmissionStoreDir(), "locks"), { recursive: true }),
+    mkdir(path.join(getAdmissionStoreDir(), "verification-contexts"), {
+      recursive: true,
+    }),
   ]);
 }
 
@@ -378,71 +403,17 @@ const LOCK_WAIT_MS = 25;
 const LOCK_TIMEOUT_MS = 30_000;
 const LOCK_STALE_MS = 10 * 60_000;
 
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export async function withIssuanceLock<T>(
-  issuanceId: string,
+async function withRecordLock<T>(
+  recordId: string,
+  kind: "issuance" | "intake",
   action: () => Promise<T>,
 ): Promise<T> {
   await ensureStoreDirs();
-  const lockPath = issuanceLockPath(issuanceId);
-  const lockToken = `${process.pid}:${randomUUID()}`;
-  const deadline = Date.now() + LOCK_TIMEOUT_MS;
-
-  while (true) {
-    try {
-      await writeFile(lockPath, lockToken, { encoding: "utf8", flag: "wx" });
-      break;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
-        throw error;
-      }
-
-      try {
-        const lockStat = await stat(lockPath);
-        if (Date.now() - lockStat.mtimeMs > LOCK_STALE_MS) {
-          await rm(lockPath, { force: true });
-          continue;
-        }
-      } catch (statError) {
-        if ((statError as NodeJS.ErrnoException).code === "ENOENT") {
-          continue;
-        }
-        throw statError;
-      }
-
-      if (Date.now() >= deadline) {
-        throw new Error(`Timed out waiting for issuance lock: ${issuanceId}`);
-      }
-      await wait(LOCK_WAIT_MS);
-    }
-  }
-
-  try {
-    return await action();
-  } finally {
-    try {
-      if ((await readFile(lockPath, "utf8")) === lockToken) {
-        await rm(lockPath, { force: true });
-      }
-    } catch {
-      // Do not replace a completed verification result with a lock-cleanup
-      // error. Any orphaned lock is recovered by the stale-lock path above.
-    }
-  }
-}
-
-export async function withIntakeLock<T>(
-  intakeId: string,
-  action: () => Promise<T>,
-): Promise<T> {
-  await ensureStoreDirs();
+  const lockPath = recordLockPath(recordId, kind);
   return withFilesystemLock(
     {
-      lockPath: intakeLockPath(intakeId),
-      description: `intake ${intakeId}`,
+      lockPath,
+      description: `${kind} record ${recordId}`,
       waitMs: LOCK_WAIT_MS,
       timeoutMs: LOCK_TIMEOUT_MS,
       staleMs: LOCK_STALE_MS,
@@ -451,11 +422,43 @@ export async function withIntakeLock<T>(
   );
 }
 
+export async function withIssuanceLock<T>(
+  issuanceId: string,
+  action: () => Promise<T>,
+): Promise<T> {
+  return withRecordLock(issuanceId, "issuance", action);
+}
+
+const intakeLockHandleBrand = Symbol("intake-lock-handle");
+export interface IntakeLockHandle {
+  readonly intakeId: string;
+  readonly [intakeLockHandleBrand]: true;
+}
+const activeIntakeLockHandles = new WeakSet<IntakeLockHandle>();
+
+export async function withIntakeLock<T>(
+  intakeId: string,
+  action: (handle: IntakeLockHandle) => Promise<T>,
+): Promise<T> {
+  return withRecordLock(intakeId, "intake", async () => {
+    const handle: IntakeLockHandle = {
+      intakeId,
+      [intakeLockHandleBrand]: true,
+    };
+    activeIntakeLockHandles.add(handle);
+    try {
+      return await action(handle);
+    } finally {
+      activeIntakeLockHandles.delete(handle);
+    }
+  });
+}
+
 async function writeJsonAtomic(
   filePath: string,
   value: unknown,
 ): Promise<void> {
-  const tempPath = `${filePath}.tmp`;
+  const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
   await writeFile(tempPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
   await rename(tempPath, filePath);
 }
@@ -477,6 +480,24 @@ async function readJsonCollection<T>(dir: string): Promise<T[]> {
 export async function saveIssuance(record: TokenIssuanceRecord): Promise<void> {
   await ensureStoreDirs();
   await writeJsonAtomic(issuancePath(record.issuanceId), record);
+}
+
+export async function saveVerificationContext(
+  record: VerificationContextRecord,
+): Promise<void> {
+  await ensureStoreDirs();
+  await writeJsonAtomic(verificationContextPath(record.contextDigest), record);
+}
+
+export async function getVerificationContextByDigest(
+  contextDigest: string,
+): Promise<VerificationContextRecord | null> {
+  try {
+    const raw = await readFile(verificationContextPath(contextDigest), "utf8");
+    return JSON.parse(raw) as VerificationContextRecord;
+  } catch {
+    return null;
+  }
 }
 
 export async function saveIntake(record: IntakeRecord): Promise<void> {
@@ -562,10 +583,14 @@ export async function updateIssuance(
   return updated;
 }
 
-export async function updateIntake(
+export async function updateIntakeWithinLock(
+  handle: IntakeLockHandle,
   intakeId: string,
   updater: (record: IntakeRecord) => IntakeRecord,
 ): Promise<IntakeRecord> {
+  if (!activeIntakeLockHandles.has(handle) || handle.intakeId !== intakeId) {
+    throw new Error(`Active intake lock is required: ${intakeId}`);
+  }
   const existing = await getIntakeById(intakeId);
   if (!existing) {
     throw new Error(`Unknown intakeId: ${intakeId}`);
@@ -574,6 +599,15 @@ export async function updateIntake(
   const updated = updater(existing);
   await saveIntake(updated);
   return updated;
+}
+
+export async function updateIntake(
+  intakeId: string,
+  updater: (record: IntakeRecord) => IntakeRecord,
+): Promise<IntakeRecord> {
+  return withIntakeLock(intakeId, (handle) =>
+    updateIntakeWithinLock(handle, intakeId, updater),
+  );
 }
 
 export async function clearTokenStore(): Promise<void> {

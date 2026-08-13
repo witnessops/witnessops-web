@@ -94,6 +94,24 @@ test("Ask WitnessOps refusal copy preserves the public proof boundary", () => {
   );
 });
 
+test("Ask WitnessOps refusal copy ignores contradictory model claims", () => {
+  assert.equal(
+    answerText({
+      answer_status: "cannot_claim",
+      documented_facts: [
+        { text: "An ungrounded model claim.", citation_ids: [] },
+      ],
+      inference: [],
+      citations: [],
+      unsupported_reason: "answer_not_supported_by_retrieved_docs",
+      human_review_required: true,
+      not_proven: ["answer_correctness"],
+      boundary_findings: [],
+    }),
+    "I cannot answer that within the Ask WitnessOps public-material boundary. Do not paste secrets. For private systems, request a fit check. Verification claims require a named artifact, verifier, and proof path. Boundary reason: answer not supported by retrieved docs.",
+  );
+});
+
 test("docs assistant source links use only claim-supporting citations", () => {
   const citation: DocsAssistantCitation = {
     citation_id: "src-collected-corpus-runtime-0",

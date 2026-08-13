@@ -33,6 +33,7 @@ Then use the paste templates below.
 | 10 | [Public Exposure Review offer](./10-public-exposure-review-offer.md) | One-page fixed-scope buyer offer and validation boundary |
 | 11 | [Public Exposure Review order and fit check](./11-public-exposure-review-fit-check.md) | Non-secret intake and fit/custom/referral routing |
 | 12 | [Offer naming market note](./12-offer-naming-market-note.md) | Short market comparison and naming guardrail |
+| 13 | [Public route disposition](./13-public-route-disposition.md) | Current, replacement, private-preview, and unresolved public route outcomes |
 
 ## Public anchors
 
@@ -57,7 +58,7 @@ Then use the paste templates below.
 | --- | --- | --- |
 | Web fixture (demo-host) | Site `/samples/offsec-shield-local-server-audit/` | Yes |
 | Suite product sample `pr_lsa_20260710120000_198fd7aceb` | Site `/samples/offsec-local-audit/` + Desktop suite | Yes (mirrored) |
-| Live-style report **ops-dev-01** `pr_lsa_20260710222741_6b0aa4e134` (valid + **partial**) | `~/Desktop/witnessops-ops-dev-01-report.html` | **No — private operator study only** |
+| Restricted live-style report (valid + **partial**) | Held outside this public repo | **No — private operator study only** |
 
 ## Operating rules
 

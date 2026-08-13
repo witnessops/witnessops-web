@@ -1,41 +1,48 @@
 import { expect, test } from "@playwright/test";
 
 const scenarios = [
-  { path: "/library", width: 1440, height: 1100, columns: 3 },
-  { path: "/library", width: 768, height: 1024, columns: 2 },
-  { path: "/library", width: 390, height: 844, columns: 1 },
-  { path: "/pl/library", width: 1440, height: 1100, columns: 3 },
-  { path: "/pl/library", width: 768, height: 1024, columns: 2 },
-  { path: "/pl/library", width: 390, height: 844, columns: 1 },
+  { path: "/library", width: 1440, height: 1100, moreRouteColumns: 2 },
+  { path: "/library", width: 768, height: 1024, moreRouteColumns: 2 },
+  { path: "/library", width: 390, height: 844, moreRouteColumns: 1 },
+  { path: "/pl/library", width: 1440, height: 1100, moreRouteColumns: 2 },
+  { path: "/pl/library", width: 768, height: 1024, moreRouteColumns: 2 },
+  { path: "/pl/library", width: 390, height: 844, moreRouteColumns: 1 },
 ] as const;
 
 const expectedDestinations = {
   "/library": [
     "/catalog",
-    "/review/request",
-    "/customer-security-review",
+    "/review/sample-cases",
+    "/verify",
     "/why-witnessops",
     "/docs/getting-started/proof-run-buyer-path",
-    "/review/sample-cases/ai-agent-action-proof-run",
-    "/review/sample-report",
+    "/customer-security-review",
+    "/review/request",
     "/review/sample-cases",
+    "/review/sample-cases/ai-agent-action-proof-run",
+    "/review/sample-cases/sbom-cisa-2026-minimum-elements",
+    "/review/sample-report",
+    "/catalog",
     "/catalog/workflows",
-    "/catalog/offsec",
+    "/docs",
     "/verify",
     "/docs/how-it-works/verification",
-    "/docs",
   ],
   "/pl/library": [
     "/pl/catalog",
-    "/pl/review/request",
     "/pl/customer-security-review",
+    "/pl/verify",
     "/pl/why-witnessops",
     "/pl/docs",
     "/pl/customer-security-review",
-    "/pl/verify",
+    "/pl/review/request",
     "/pl/catalog",
+    "/review/sample-cases",
+    "/review/sample-cases/ai-agent-action-proof-run",
+    "/review/sample-cases/sbom-cisa-2026-minimum-elements",
     "/pl/verify",
-    "/pl/docs",
+    "/docs/how-it-works/verification",
+    "/docs",
   ],
 } as const;
 
@@ -64,16 +71,20 @@ test("Library routes remain responsive, discoverable, and bounded", async ({ bro
       viewport.clientWidth + 1,
     );
 
-    const sections = page.locator("main section");
-    await expect(sections).toHaveCount(6);
-    const sectionBoxes = await sections.evaluateAll((nodes) =>
+    const moreRouteCards = page.locator(
+      'main > div > section[aria-labelledby="library-more-heading"] > div > section',
+    );
+    await expect(moreRouteCards).toHaveCount(4);
+    const sectionBoxes = await moreRouteCards.evaluateAll((nodes) =>
       nodes.map((node) => {
         const box = node.getBoundingClientRect();
         return { x: Math.round(box.x), y: Math.round(box.y), right: Math.round(box.right), height: Math.round(box.height) };
       }),
     );
     const columnPositions = [...new Set(sectionBoxes.map((box) => box.x))];
-    expect(columnPositions, `${scenario.path} grid columns`).toHaveLength(scenario.columns);
+    expect(columnPositions, `${scenario.path} more-route grid columns`).toHaveLength(
+      scenario.moreRouteColumns,
+    );
     expect(sectionBoxes.filter((box) => box.x < -1 || box.right > scenario.width + 1)).toEqual([]);
 
     const rows = sectionBoxes.reduce<Map<number, typeof sectionBoxes>>((result, box) => {

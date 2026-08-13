@@ -14,16 +14,26 @@ import {
   createProofRunForRequest,
   getAdminCoreState,
   getInboxItem,
+  getProductContract,
   getProofRun,
   importGmailInboxItem,
   linkReceiptToDelivery,
   listAuditEvents,
+  listCustomers,
+  listDeliveries,
   listProductContracts,
+  listProductContractChoicesForReview,
+  listProofRuns,
+  listReceiptRecords,
+  listReviewRequests,
+  markDeliverySendOutcomeUnknown,
+  recordDeliverySent,
+  reconcileDeliverySendReservation,
   recordGmailLabelSync,
   prepareDelivery,
+  reserveDeliverySend,
   resetAdminCoreStoreForTests,
   searchCoreRecords,
-  sendAuthorizedDelivery,
   transitionDelivery,
   transitionProofRun,
   transitionReviewRequest,
@@ -32,6 +42,165 @@ import {
 
 const founder = { actor: "founder@test", role: "Founder" as const };
 const administrator = { actor: "admin@test", role: "Administrator" as const };
+
+test("delegated operators may mutate only records assigned to them", async () => {
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "witnessops-admin-core-ownership-"));
+  await resetAdminCoreStoreForTests();
+
+  const imported = await importGmailInboxItem({
+    gmailMessageId: "gmail-msg-owned-001",
+    gmailThreadId: "gmail-thread-owned-001",
+    sender: "Owner Example <owner@example.com>",
+    recipients: ["engage@mail.witnessops.com"],
+    subject: "Assigned review",
+    receivedAt: "2026-08-13T08:00:00Z",
+    excerpt: "Review this bounded request.",
+  }, founder);
+  const owner = { actor: "owner@test", role: "Delegated Operator" as const };
+  const otherOperator = { actor: "other@test", role: "Delegated Operator" as const };
+  const converted = await convertInboxItemToReviewRequest(imported.item.id, owner);
+
+  await assert.rejects(
+    () => transitionReviewRequest(converted.reviewRequest.id, "triage", otherOperator),
+    (error: unknown) =>
+      error instanceof AdminCoreError && error.code === "RECORD_ASSIGNMENT_REQUIRED",
+  );
+
+  const transitioned = await transitionReviewRequest(
+    converted.reviewRequest.id,
+    "triage",
+    owner,
+  );
+  assert.equal(transitioned.state, "triage");
+});
+
+test("delegated reads expose only assigned record lineages", async () => {
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "witnessops-admin-core-read-scope-"));
+  await resetAdminCoreStoreForTests();
+
+  const alice = { actor: "alice@test", role: "Delegated Operator" as const };
+  const bob = { actor: "bob@test", role: "Delegated Operator" as const };
+  const aliceInbox = await importGmailInboxItem({
+    gmailMessageId: "gmail-alice",
+    gmailThreadId: "thread-alice",
+    sender: "Alice Customer <alice.customer@example.com>",
+    recipients: ["engage@mail.witnessops.com"],
+    subject: "Alice request",
+    receivedAt: "2026-08-13T08:00:00Z",
+    excerpt: "Alice bounded request",
+  }, founder);
+  const bobInbox = await importGmailInboxItem({
+    gmailMessageId: "gmail-bob",
+    gmailThreadId: "thread-bob",
+    sender: "Bob Customer <bob.customer@example.com>",
+    recipients: ["engage@mail.witnessops.com"],
+    subject: "Bob request",
+    receivedAt: "2026-08-13T08:01:00Z",
+    excerpt: "Bob bounded request",
+  }, founder);
+  const aliceRequest = await convertInboxItemToReviewRequest(aliceInbox.item.id, alice);
+  const bobRequest = await convertInboxItemToReviewRequest(bobInbox.item.id, bob);
+
+  assert.deepEqual((await listReviewRequests(alice)).map((item) => item.id), [aliceRequest.reviewRequest.id]);
+  assert.deepEqual((await listCustomers(alice)).map((item) => item.id), [aliceRequest.customer.id]);
+  assert.equal((await getInboxItem(bobInbox.item.id, alice)), null);
+  assert.equal((await getAdminCoreState(alice)).gmailSyncReceipts.length, 0);
+  assert.equal((await listAuditEvents(undefined, alice)).every((event) => event.lineageId === aliceRequest.reviewRequest.lineageId), true);
+  assert.equal((await searchCoreRecords("Bob request", alice)).length, 0);
+  assert.equal((await listProofRuns(alice)).length, 0);
+  assert.equal((await listDeliveries(alice)).length, 0);
+  assert.equal((await listReceiptRecords(alice)).length, 0);
+  assert.equal((await listProductContracts(alice)).length, 0);
+  const founderProducts = await listProductContracts(founder);
+  assert.equal(founderProducts.length > 0, true);
+  const flagship = founderProducts[0]!;
+  assert.deepEqual(
+    (await listProductContractChoicesForReview(aliceRequest.reviewRequest.id, alice)).map(
+      (item) => item.id,
+    ),
+    founderProducts.filter((item) => item.status === "current").map((item) => item.id),
+  );
+  await assert.rejects(
+    () => listProductContractChoicesForReview(bobRequest.reviewRequest.id, alice),
+    (error: unknown) =>
+      error instanceof AdminCoreError && error.code === "RECORD_ASSIGNMENT_REQUIRED",
+  );
+  const siblingVersion = await createProductContractVersion(
+    {
+      productId: flagship.productId,
+      productName: flagship.productName,
+      contractVersion: "99.0.0-test",
+      scope: "Unassigned sibling-version scope",
+      boundaries: ["Unassigned sibling-version boundary"],
+      expectedInputs: ["Unassigned sibling-version input"],
+      expectedOutputs: ["Unassigned sibling-version output"],
+      evidenceClasses: ["Unassigned sibling-version evidence"],
+      verificationPath: "Unassigned sibling-version verification path",
+      deliveryRequirements: ["Unassigned sibling-version delivery"],
+      receiptRequirements: ["Unassigned sibling-version receipt"],
+      responsibleOperator: null,
+      commercialTerms: "Unassigned sibling-version terms",
+      sourceCatalogVersion: null,
+    },
+    founder,
+  );
+  assert.equal(await getProductContract(flagship.id, alice), null);
+  assert.equal(await getProductContract(siblingVersion.id, alice), null);
+  assert.ok(await getProductContract(flagship.id, founder));
+
+  await transitionReviewRequest(aliceRequest.reviewRequest.id, "triage", alice);
+  await transitionReviewRequest(
+    aliceRequest.reviewRequest.id,
+    "fit_review",
+    alice,
+  );
+  await transitionReviewRequest(
+    aliceRequest.reviewRequest.id,
+    "fit_confirmed",
+    alice,
+  );
+  await approveReviewRequest(
+    aliceRequest.reviewRequest.id,
+    flagship.id,
+    founder,
+  );
+  assert.deepEqual(
+    (await listProductContracts(alice)).map((item) => item.id),
+    [flagship.id],
+  );
+  assert.ok(await getProductContract(flagship.id, alice));
+  assert.equal(await getProductContract(siblingVersion.id, alice), null);
+  assert.equal(
+    (await listProductContracts(alice)).some(
+      (item) => item.id === siblingVersion.id,
+    ),
+    false,
+  );
+  assert.equal(await getProductContract(flagship.id, bob), null);
+  assert.equal((await listReviewRequests(founder)).length, 2);
+  assert.equal(bobRequest.reviewRequest.owner, bob.actor);
+});
+
+test("concurrent core mutations preserve every committed record", async () => {
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "witnessops-admin-core-race-"));
+  await resetAdminCoreStoreForTests();
+
+  await Promise.all(
+    Array.from({ length: 12 }, (_, index) =>
+      importGmailInboxItem({
+        gmailMessageId: `gmail-msg-race-${index}`,
+        gmailThreadId: `gmail-thread-race-${index}`,
+        sender: `buyer-${index}@example.com`,
+        recipients: ["engage@mail.witnessops.com"],
+        subject: `Concurrent request ${index}`,
+        receivedAt: "2026-08-13T08:00:00Z",
+        excerpt: "Bounded request.",
+      }, founder),
+    ),
+  );
+
+  assert.equal((await getAdminCoreState()).inboxItems.length, 12);
+});
 
 test("admin core spine covers the complete message-to-receipt operating path", async () => {
   process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "witnessops-admin-core-"));
@@ -143,21 +312,6 @@ test("admin core spine covers the complete message-to-receipt operating path", a
   const deliveryRecord = await prepareDelivery(run.id, founder);
   const failedReadiness = await buildDeliveryReadiness(deliveryRecord.id);
   assert.ok(failedReadiness.fail.some((item) => item.code === "RECEIPT_LINKED"));
-  let providerCalls = 0;
-  await assert.rejects(
-    () =>
-      sendAuthorizedDelivery(deliveryRecord.id, founder, async () => {
-        providerCalls += 1;
-        return {
-          provider: "file",
-          providerMessageId: "provider-msg-unready",
-          sentAt: "2026-07-11T12:09:00Z",
-        };
-      }),
-    (error: unknown) =>
-      error instanceof AdminCoreError && error.code === "DELIVERY_NOT_READY",
-  );
-  assert.equal(providerCalls, 0);
 
   const firstReceipt = await linkReceiptToDelivery(deliveryRecord.id, {
     receiptId: "receipt-001",
@@ -187,50 +341,75 @@ test("admin core spine covers the complete message-to-receipt operating path", a
   assert.equal(deliveryReady.fail.length, 0);
   assert.equal(deliveryReady.unresolved.length, 0);
   await transitionDelivery(deliveryRecord.id, "ready_for_operator_review", founder);
+  const sendReservation = await reserveDeliverySend(
+    deliveryRecord.id,
+    founder,
+    `delivery-send:${deliveryRecord.id}`,
+  );
+  assert.equal(sendReservation.kind, "reserved");
+  assert.ok(sendReservation.kind === "reserved");
+  const competingReservation = await reserveDeliverySend(
+    deliveryRecord.id,
+    founder,
+    `delivery-send:${deliveryRecord.id}`,
+  );
+  assert.equal(competingReservation.kind, "in_progress");
   await assert.rejects(
-    () =>
-      sendAuthorizedDelivery(deliveryRecord.id, administrator, async () => {
-        providerCalls += 1;
-        return {
-          provider: "file",
-          providerMessageId: "provider-msg-unauthorized",
-          sentAt: "2026-07-11T12:09:30Z",
-        };
-      }),
+    () => transitionDelivery(deliveryRecord.id, "draft", founder),
     (error: unknown) =>
-      error instanceof AdminCoreError &&
-      error.code === "BUSINESS_AUTHORITY_REQUIRED",
+      error instanceof AdminCoreError && error.code === "DELIVERY_SEND_UNRESOLVED",
   );
-  assert.equal(providerCalls, 0);
-
-  const sent = await sendAuthorizedDelivery(
+  await assert.rejects(
+    () => reconcileDeliverySendReservation(
+      deliveryRecord.id,
+      { outcome: "not_sent", note: "Premature reconciliation attempt." },
+      founder,
+    ),
+    (error: unknown) =>
+      error instanceof AdminCoreError && error.code === "DELIVERY_SEND_STILL_ACTIVE",
+  );
+  await markDeliverySendOutcomeUnknown(
+    deliveryRecord.id,
+    sendReservation.reservationToken,
+    founder,
+  );
+  await reconcileDeliverySendReservation(
+    deliveryRecord.id,
+    { outcome: "not_sent", note: "Provider log confirms no accepted message." },
+    founder,
+  );
+  const retryReservation = await reserveDeliverySend(
     deliveryRecord.id,
     founder,
-    async (message) => {
-      providerCalls += 1;
-      assert.equal(message.to, "casey@example.com");
-      assert.equal(message.deliveryAttemptId, deliveryRecord.id);
-      return {
-        provider: "file",
-        providerMessageId: "provider-msg-001",
-        sentAt: "2026-07-11T12:10:00Z",
-      };
-    },
+    `delivery-send:${deliveryRecord.id}:retry`,
   );
-  const sentAgain = await sendAuthorizedDelivery(
+  assert.equal(retryReservation.kind, "reserved");
+  assert.ok(retryReservation.kind === "reserved");
+  await markDeliverySendOutcomeUnknown(
     deliveryRecord.id,
+    retryReservation.reservationToken,
     founder,
-    async () => {
-      providerCalls += 1;
-      return {
-        provider: "file",
-        providerMessageId: "provider-msg-should-not-duplicate",
-        sentAt: "2026-07-11T12:11:00Z",
-      };
-    },
   );
-  assert.equal(providerCalls, 1);
+  const sent = await reconcileDeliverySendReservation(
+    deliveryRecord.id,
+    {
+      outcome: "sent",
+      provider: "file",
+      providerMessageId: "provider-msg-001",
+      sentAt: "2026-07-11T12:10:00Z",
+      note: "Provider log confirms message acceptance.",
+    },
+    founder,
+  );
+  const sentAgain = await recordDeliverySent(deliveryRecord.id, { provider: "file", providerMessageId: "provider-msg-should-not-duplicate", sentAt: "2026-07-11T12:11:00Z" }, founder);
   assert.equal(sentAgain.providerMessageId, sent.providerMessageId);
+
+  const replayReservation = await reserveDeliverySend(
+    deliveryRecord.id,
+    founder,
+    `delivery-send:${deliveryRecord.id}`,
+  );
+  assert.equal(replayReservation.kind, "replay");
 
   const search = await searchCoreRecords("receipt-002");
   assert.ok(search.some((result) => result.type === "receipt" && result.id === secondReceipt.id));
@@ -241,37 +420,4 @@ test("admin core spine covers the complete message-to-receipt operating path", a
   await recordGmailLabelSync(imported.item.id, ["witnessops/reviewed"], { status: "failed", error: "Gmail label API unavailable" }, founder);
   assert.equal((await getInboxItem(imported.item.id))?.state, "linked");
   assert.ok((await listAuditEvents(imported.item.lineageId)).some((event) => event.action === "gmail_label_sync"));
-});
-
-test("admin core serializes concurrent whole-store mutations", async () => {
-  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(
-    path.join(os.tmpdir(), "witnessops-admin-core-concurrent-"),
-  );
-  await resetAdminCoreStoreForTests();
-
-  const makeImport = (suffix: string) =>
-    importGmailInboxItem(
-      {
-        gmailMessageId: `gmail-concurrent-${suffix}`,
-        gmailThreadId: `gmail-thread-concurrent-${suffix}`,
-        sender: `Requester ${suffix} <requester-${suffix}@example.com>`,
-        recipients: ["engage@mail.witnessops.com"],
-        subject: `Concurrent request ${suffix}`,
-        receivedAt: "2026-08-13T12:00:00Z",
-        excerpt: `Concurrent import ${suffix}`,
-      },
-      founder,
-    );
-
-  await Promise.all([makeImport("a"), makeImport("b")]);
-
-  const state = await getAdminCoreState();
-  assert.deepEqual(
-    state.inboxItems.map((item) => item.gmailMessageId).sort(),
-    ["gmail-concurrent-a", "gmail-concurrent-b"],
-  );
-  assert.equal(
-    state.auditEvents.filter((event) => event.action === "import").length,
-    2,
-  );
 });

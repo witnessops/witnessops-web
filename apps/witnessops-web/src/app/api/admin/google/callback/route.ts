@@ -12,6 +12,7 @@ import {
   ADMIN_SESSION_COOKIE_NAME,
   createAdminSessionCookie,
 } from "@/lib/server/admin-session";
+import { adminRoleFromEnvironment } from "@/lib/server/admin-authorization";
 
 const MAX_CALLBACK_BODY_BYTES = 16 * 1024;
 const MAX_CALLBACK_PARAMETERS = 16;
@@ -179,13 +180,14 @@ export async function POST(request: NextRequest) {
     const identity = await verifyGoogleOidcCode(code, transaction);
     const issuedAt = Date.now();
     const sessionCookie = await createAdminSessionCookie({
-      version: 2,
+      version: 3,
       identityProvider: "google",
       issuer: identity.issuer,
       subject: identity.subject,
       actor: identity.actor,
       actorAuthSource: "oidc_session",
       actorSessionHash: identity.sessionHash,
+      role: adminRoleFromEnvironment(),
       iat: issuedAt,
       exp: issuedAt + 8 * 60 * 60 * 1000,
     });

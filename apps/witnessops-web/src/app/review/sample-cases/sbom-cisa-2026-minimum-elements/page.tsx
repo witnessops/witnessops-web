@@ -101,11 +101,6 @@ export default function SbomCisa2026SamplePage() {
           </div>
           <div className="flex flex-wrap gap-3 pt-1">
             <CtaButton href="/review/request" variant="primary" label="Start a review" />
-            <CtaButton
-              href="/catalog/sbom-min-elements"
-              variant="secondary"
-              label="View service"
-            />
             <CtaButton href={sampleTreeUrl} variant="secondary" label="Open sample package" />
             <CtaButton
               href="/review/sample-cases"

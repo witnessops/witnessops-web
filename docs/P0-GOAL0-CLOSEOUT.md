@@ -1,4 +1,4 @@
-# P0 goal0 closeout (operator log)
+# P0 web closeout (sanitized summary)
 
 **Date:** 2026-06-21
 
@@ -6,26 +6,23 @@
 
 | Check | Result |
 |-------|--------|
-| Sync `witnessops-web` → goal0 | Explicit hop in `sync-to-node-via-bastion.sh` + mesh-gate file verify |
-| Node 22 mesh build + deploy | `witnessops-web:mesh-local`; receipt under `/opt/offsec/receipts/` |
-| Goal0 localhost smoke | `/`, mesh index, Shield sample, `/api/mesh-gate` → 200 |
+| Sync `witnessops-web` to the authorized runtime | Completed through the private operator procedure |
+| Node 22 mesh build + deploy | Completed; receipt retained in private operator custody |
+| Runtime-local smoke | `/`, mesh index, Shield sample, `/api/mesh-gate` → 200 |
 | Public `witnessops.com` smoke | Same paths → 200 |
-| Fleet `pnpm optimize:quick-check` | PASS (proof + verify + mesh-gate) |
-| `pnpm health:node22` on goal0 | PASS after route-parity baseline refresh + shield test path fix |
+| `pnpm optimize:quick-check` | PASS (proof + verify + mesh-gate) |
+| `pnpm health:node22` on the authorized runtime | PASS after route-parity baseline refresh + shield test path fix |
 
-## Commands (repeat)
+## Operator procedure
 
-```bash
-LANE_TOP=~/DEV/OffSec ./scripts/sync-to-node-via-bastion.sh
-~/DEV/OffSec/scripts/run-witnessops-mesh-goal0.sh
-cd ~/DEV/OffSec/working/sources/witnessops-web && pnpm optimize:quick-check
-pnpm health:node22:goal0   # after sync; full gate on goal0
-```
+Repeatable sync, deployment, custody paths, and host topology remain in private
+operator documentation. This public summary intentionally does not reproduce
+them.
 
 ## Next lane
 
-- **P1:** Shield receipt → `/api/verify` adapter (R2) — see `working/sources/shield/SCHEMA_RECONCILIATION.md`
-- **Git:** commit witnessops-web + OffSec-Lane when `user.name` / `user.email` configured on fleet VM
+- **P1:** Shield receipt → `/api/verify` adapter (R2); implementation notes remain in private operator custody.
+- **Git:** commit repository changes only after the configured release gate passes.
 
 ## Honesty
 

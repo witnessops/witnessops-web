@@ -36,6 +36,9 @@ import {
   type ScopeContractStatus,
   type TokenIssuanceRecord,
 } from "./token-store";
+import { compareRfc3339Instants } from "./rfc3339-instant";
+import type { CoreActor } from "./admin-core-spine";
+import { isSameOperator } from "./admin-authorization";
 
 export const adminAdmissionStateOrder: AdmissionState[] = [
   "admitted",
@@ -209,7 +212,7 @@ function stateRank(state: AdmissionState): number {
 }
 
 function compareIsoDescending(left: string, right: string): number {
-  return right.localeCompare(left);
+  return compareRfc3339Instants(right, left);
 }
 
 function payloadText(
@@ -249,11 +252,15 @@ function shouldProjectProviderOutcome(args: {
     return true;
   }
 
-  if (args.nextObservedAt > args.currentObservedAt) {
+  const instantOrder = compareRfc3339Instants(
+    args.nextObservedAt,
+    args.currentObservedAt,
+  );
+  if (instantOrder > 0) {
     return true;
   }
 
-  if (args.nextObservedAt < args.currentObservedAt) {
+  if (instantOrder < 0) {
     return false;
   }
 
@@ -518,7 +525,7 @@ export function formatAdmissionStateLabel(state: AdmissionState): string {
   return stateLabels[state];
 }
 
-export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
+export async function buildAdmissionQueueView(actor?: CoreActor): Promise<AdmissionQueueView> {
   const [events, intakeSnapshots, issuanceSnapshots] = await Promise.all([
     readIntakeEvents(),
     getAllIntakes(),
@@ -545,6 +552,13 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       issuance,
     });
     const firstResponse = snapshot?.firstResponse;
+    const responseAttempt = snapshot?.responseAttempt;
+    const evidenceProvider = firstResponse?.provider ??
+      (responseAttempt ? "unknown" : null);
+    const evidenceObservedAt = snapshot?.respondedAt ??
+      firstResponse?.deliveredAt ??
+      responseAttempt?.updatedAt ??
+      null;
     const reconciliationRecorded = snapshot?.reconciliation ?? null;
     const authoritativeProviderOutcomeStatus =
       derived.responseProviderOutcomeStatus;
@@ -559,11 +573,14 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       snapshot?.responseProviderOutcome?.observedAt ??
       null;
     const responseEvidenceSubcase = classifyDeliveryEvidenceSubcase({
-      responseProvider: firstResponse?.provider ?? null,
+      responseProvider: evidenceProvider,
       responseProviderMessageId: firstResponse?.providerMessageId ?? null,
-      responseDeliveryAttemptId: firstResponse?.deliveryAttemptId ?? null,
-      responseMailbox: firstResponse?.mailbox ?? null,
-      respondedAt: snapshot?.respondedAt ?? null,
+      responseDeliveryAttemptId:
+        firstResponse?.deliveryAttemptId ??
+        responseAttempt?.deliveryAttemptId ??
+        null,
+      responseMailbox: firstResponse?.mailbox ?? responseAttempt?.mailbox ?? null,
+      respondedAt: evidenceObservedAt,
     });
     const mailboxReceipt = snapshot?.responseMailboxReceipt ?? null;
     const queueProjection = snapshot
@@ -583,7 +600,7 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
           responseRecordId: null,
         };
     const ambiguity = resolveAmbiguity({
-      hasFirstResponse: Boolean(firstResponse),
+      hasFirstResponse: Boolean(firstResponse || responseAttempt),
       derivedState: derived.state,
       hasManualReconciliation: Boolean(reconciliationRecorded),
       providerOutcomeStatus: authoritativeProviderOutcomeStatus,
@@ -599,11 +616,14 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
     const reconciliationPending = ambiguity.pending;
     const reconciliationResolved = ambiguity.resolved;
     const reconciliationSubcase = deriveReconciliationReportSubcase({
-      responseProvider: firstResponse?.provider ?? null,
+      responseProvider: evidenceProvider,
       responseProviderMessageId: firstResponse?.providerMessageId ?? null,
-      responseDeliveryAttemptId: firstResponse?.deliveryAttemptId ?? null,
-      responseMailbox: firstResponse?.mailbox ?? null,
-      respondedAt: snapshot?.respondedAt ?? null,
+      responseDeliveryAttemptId:
+        firstResponse?.deliveryAttemptId ??
+        responseAttempt?.deliveryAttemptId ??
+        null,
+      responseMailbox: firstResponse?.mailbox ?? responseAttempt?.mailbox ?? null,
+      respondedAt: evidenceObservedAt,
       responseProviderOutcomeStatus: authoritativeProviderOutcomeStatus,
       reconciliationRecordedAt: reconciliationRecorded?.reconciledAt ?? null,
       mailboxReceiptStatus: mailboxReceipt?.status ?? null,
@@ -627,15 +647,20 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       claimantActionKind: issuance?.claimantAction?.kind ?? null,
       snapshotState: snapshot?.state ?? null,
       submission: snapshot?.submission ?? {},
-      firstResponseSubject: firstResponse?.subject ?? null,
+      firstResponseSubject: firstResponse?.subject ?? responseAttempt?.subject ?? null,
       respondedAt: snapshot?.respondedAt ?? null,
-      responseActor: firstResponse?.actor ?? null,
-      responseActorAuthSource: firstResponse?.actorAuthSource ?? null,
-      responseActorSessionHash: firstResponse?.actorSessionHash ?? null,
-      responseMailbox: firstResponse?.mailbox ?? null,
-      responseProvider: firstResponse?.provider ?? null,
+      responseActor: firstResponse?.actor ?? responseAttempt?.actor ?? null,
+      responseActorAuthSource:
+        firstResponse?.actorAuthSource ?? responseAttempt?.actorAuthSource ?? null,
+      responseActorSessionHash:
+        firstResponse?.actorSessionHash ?? responseAttempt?.actorSessionHash ?? null,
+      responseMailbox: firstResponse?.mailbox ?? responseAttempt?.mailbox ?? null,
+      responseProvider: evidenceProvider,
       responseProviderMessageId: firstResponse?.providerMessageId ?? null,
-      responseDeliveryAttemptId: firstResponse?.deliveryAttemptId ?? null,
+      responseDeliveryAttemptId:
+        firstResponse?.deliveryAttemptId ??
+        responseAttempt?.deliveryAttemptId ??
+        null,
       responseProviderOutcomeStatus: providerOutcomeStatus,
       responseProviderOutcomeObservedAt: providerOutcomeObservedAt,
       responseProviderOutcomeEventId:
@@ -705,6 +730,13 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       ? (issuanceById.get(snapshot.latestIssuanceId) ?? null)
       : null;
     const firstResponse = snapshot.firstResponse;
+    const responseAttempt = snapshot.responseAttempt;
+    const evidenceProvider = firstResponse?.provider ??
+      (responseAttempt ? "unknown" : null);
+    const evidenceObservedAt = snapshot.respondedAt ??
+      firstResponse?.deliveredAt ??
+      responseAttempt?.updatedAt ??
+      null;
     const reconciliationRecorded = snapshot.reconciliation;
     const queueProjection = buildQueueBundle(snapshot).projection;
     const providerOutcomeStatus =
@@ -712,14 +744,17 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
     const providerOutcomeObservedAt =
       snapshot.responseProviderOutcome?.observedAt ?? null;
     const responseEvidenceSubcase = classifyDeliveryEvidenceSubcase({
-      responseProvider: firstResponse?.provider ?? null,
+      responseProvider: evidenceProvider,
       responseProviderMessageId: firstResponse?.providerMessageId ?? null,
-      responseDeliveryAttemptId: firstResponse?.deliveryAttemptId ?? null,
-      responseMailbox: firstResponse?.mailbox ?? null,
-      respondedAt: snapshot.respondedAt ?? null,
+      responseDeliveryAttemptId:
+        firstResponse?.deliveryAttemptId ??
+        responseAttempt?.deliveryAttemptId ??
+        null,
+      responseMailbox: firstResponse?.mailbox ?? responseAttempt?.mailbox ?? null,
+      respondedAt: evidenceObservedAt,
     });
     const snapshotAmbiguity = resolveAmbiguity({
-      hasFirstResponse: Boolean(firstResponse),
+      hasFirstResponse: Boolean(firstResponse || responseAttempt),
       derivedState: snapshot.state,
       hasManualReconciliation: Boolean(reconciliationRecorded),
       providerOutcomeStatus: null,
@@ -734,11 +769,14 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
     const ambiguityResolutionKind = snapshotAmbiguity.kind;
     const ambiguityResolvedAt = snapshotAmbiguity.resolvedAt;
     const reconciliationSubcase = deriveReconciliationReportSubcase({
-      responseProvider: firstResponse?.provider ?? null,
+      responseProvider: evidenceProvider,
       responseProviderMessageId: firstResponse?.providerMessageId ?? null,
-      responseDeliveryAttemptId: firstResponse?.deliveryAttemptId ?? null,
-      responseMailbox: firstResponse?.mailbox ?? null,
-      respondedAt: snapshot.respondedAt ?? null,
+      responseDeliveryAttemptId:
+        firstResponse?.deliveryAttemptId ??
+        responseAttempt?.deliveryAttemptId ??
+        null,
+      responseMailbox: firstResponse?.mailbox ?? responseAttempt?.mailbox ?? null,
+      respondedAt: evidenceObservedAt,
       responseProviderOutcomeStatus: null,
       reconciliationRecordedAt: reconciliationRecorded?.reconciledAt ?? null,
       mailboxReceiptStatus: snapshot.responseMailboxReceipt?.status ?? null,
@@ -762,15 +800,20 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
       claimantActionKind: issuance?.claimantAction?.kind ?? null,
       snapshotState: snapshot.state,
       submission: snapshot.submission,
-      firstResponseSubject: firstResponse?.subject ?? null,
+      firstResponseSubject: firstResponse?.subject ?? responseAttempt?.subject ?? null,
       respondedAt: snapshot.respondedAt ?? null,
-      responseActor: firstResponse?.actor ?? null,
-      responseActorAuthSource: firstResponse?.actorAuthSource ?? null,
-      responseActorSessionHash: firstResponse?.actorSessionHash ?? null,
-      responseMailbox: firstResponse?.mailbox ?? null,
-      responseProvider: firstResponse?.provider ?? null,
+      responseActor: firstResponse?.actor ?? responseAttempt?.actor ?? null,
+      responseActorAuthSource:
+        firstResponse?.actorAuthSource ?? responseAttempt?.actorAuthSource ?? null,
+      responseActorSessionHash:
+        firstResponse?.actorSessionHash ?? responseAttempt?.actorSessionHash ?? null,
+      responseMailbox: firstResponse?.mailbox ?? responseAttempt?.mailbox ?? null,
+      responseProvider: evidenceProvider,
       responseProviderMessageId: firstResponse?.providerMessageId ?? null,
-      responseDeliveryAttemptId: firstResponse?.deliveryAttemptId ?? null,
+      responseDeliveryAttemptId:
+        firstResponse?.deliveryAttemptId ??
+        responseAttempt?.deliveryAttemptId ??
+        null,
       responseProviderOutcomeStatus: providerOutcomeStatus,
       responseProviderOutcomeObservedAt: providerOutcomeObservedAt,
       responseProviderOutcomeEventId:
@@ -826,7 +869,14 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
 
   rows.sort(sortRows);
 
-  const summary = rows.reduce<AdmissionQueueSummary>(
+  const visibleRows =
+    (actor?.role ?? "Founder") === "Delegated Operator"
+      ? rows.filter((row) =>
+          isSameOperator(row.queueAssignedOperator, actor!.actor),
+        )
+      : rows;
+
+  const summary = visibleRows.reduce<AdmissionQueueSummary>(
     (current, row) => {
       current.total += 1;
       current.byState[row.state] += 1;
@@ -856,8 +906,11 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
 
   return {
     generatedAt: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
-    eventCount: events.length,
+    eventCount: visibleRows.reduce(
+      (total, row) => total + row.ledgerEventCount,
+      0,
+    ),
     summary,
-    rows,
+    rows: visibleRows,
   };
 }

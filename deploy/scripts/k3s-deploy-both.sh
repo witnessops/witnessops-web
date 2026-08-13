@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Build ONE shared image from current HEAD and deploy to both:
-#   - prod:  witnessops-web  (public via Caddy)
-#   - dev:   witnessops-web-dev (mesh-only 10.44.0.2:3015)
+#   - prod: configured public deployment behind Caddy
+#   - dev:  configured private mesh deployment
 #
 # Usage:
 #   ./k3s-deploy-both.sh
 #   ./k3s-deploy-both.sh docker.io/library/witnessops-web:existing-tag
 #   ALLOW_DIRTY=1 ./k3s-deploy-both.sh
-#   DEPLOY_SSH=root@194.147.221.89 ./k3s-deploy-both.sh
+# Required private topology variables are listed in deploy/topology.env.example.
 set -euo pipefail
 # shellcheck source=k3s-lib.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/k3s-lib.sh"

@@ -60,15 +60,15 @@ SITUATION (catalog card)
 | **Web-oriented fixture (site)** | https://witnessops.com/samples/offsec-shield-local-server-audit/ (`RECEIPT.json`, evidence, VERIFY_NOTE) |
 | **Full suite product sample (site)** | https://witnessops.com/samples/offsec-local-audit/ (proofpack + package dir + BUYER_WALKTHROUGH) |
 | **Full suite product sample (disk)** | `~/Desktop/WITNESSOPS_OFFSEC_PRODUCT_SUITE_V1/products/OFFSEC-LOCAL-AUDIT/sample/` |
-| **Private live-style report (disk only — not public)** | `~/Desktop/witnessops-ops-dev-01-report.html` — run `pr_lsa_20260710222741_6b0aa4e134` on host `ops-dev-01`, **outcome: partial**, **verifier: valid** |
+| **Private live-style report (not public)** | Restricted operator artifact held outside this repo; **outcome: partial**, **verifier: valid** |
 
 **Learning tip:** Compare three layers:
 
 1. **Public sample page** — buyer language  
 2. **Suite package** `report.md` + `findings.json` + `BUYER_WALKTHROUGH.md` — product shape  
-3. **ops-dev-01 HTML** — how a real operator-present run reads when outcome is **partial** (incomplete sections, not “failed security”)
+3. **Private live-style report** — how an operator-present run reads when outcome is **partial** (incomplete sections, not “failed security”)
 
-**Never publish** ops-dev-01 report as a public sample (real host name, live collection).
+**Never publish** a private live-style report as a public sample (real host name, live collection).
 
 ---
 
@@ -97,7 +97,7 @@ SITUATION (catalog card)
 | --- | --- |
 | `~/Desktop/WITNESSOPS_OFFSEC_PRODUCT_SUITE_V1/` | Full OffSec suite v1.x extract (source + samples + hardening) |
 | `~/Desktop/WITNESSOPS_OFFSEC_PRODUCT_SUITE_V1_6.zip` | Canonical suite zip + sha256 |
-| `~/Desktop/witnessops-ops-dev-01-report.html` | Private One Server style report (ops-dev-01, partial) |
+| Restricted artifact outside this repo | Private One Server style report (partial) |
 | `~/Desktop/CAR-OFFER-TEMP/...` | Another suite copy — prefer main Desktop suite |
 | `~/Downloads/WITNESSOPS_CUSTOMER_SECURITY_REVIEW_SYNTHETIC_DATA_V1/` | Full CSR synthetic package |
 | `~/Downloads/WitnessOps_CSR_Sales_OnePager_*` | CSR sales one-pager sources |
@@ -111,7 +111,7 @@ SITUATION (catalog card)
 1. Read this file (10 min).  
 2. Open One Server service + sample page (5 min).  
 3. Open suite package files: `report.md`, `findings.json`, `BUYER_WALKTHROUGH.md` (10 min).  
-4. Open `ops-dev-01-report.html` privately and note **partial vs valid** language (5 min).  
+4. Open the restricted private report and note **partial vs valid** language (5 min).
 5. Open CSR service + sample + `answer_matrix.csv` (10 min).  
 6. Read fit-check reply templates once (5 min).  
 

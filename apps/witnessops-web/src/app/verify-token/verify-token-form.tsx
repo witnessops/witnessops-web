@@ -10,10 +10,14 @@ import {
   formatVerificationCode,
 } from "@/lib/verification-code-format";
 
-interface Props {
-  issuanceId: string;
-  email: string;
-  initialCode?: string;
+type Props =
+  | { context: string; issuanceId?: never; email?: never }
+  | { context?: never; issuanceId: string; email: string };
+
+export function verificationRequestBody(props: Props, token: string) {
+  return "context" in props
+    ? { context: props.context, token }
+    : { issuanceId: props.issuanceId, email: props.email, token };
 }
 
 function buildRedirectUrl(payload: VerifyTokenResponse): string {
@@ -22,7 +26,7 @@ function buildRedirectUrl(payload: VerifyTokenResponse): string {
 
 export function VerifyTokenForm(props: Props) {
   const router = useRouter();
-  const [code, setCode] = useState(formatInitialVerificationCode(props.initialCode ?? ""));
+  const [code, setCode] = useState(formatInitialVerificationCode(""));
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,11 +40,7 @@ export function VerifyTokenForm(props: Props) {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          issuanceId: props.issuanceId,
-          email: props.email,
-          token: code,
-        }),
+        body: JSON.stringify(verificationRequestBody(props, code)),
       });
       const payload = (await response.json().catch(() => null)) as
         | (Partial<VerifyTokenResponse> & { error?: string })
@@ -66,8 +66,8 @@ export function VerifyTokenForm(props: Props) {
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <div className={verificationLight.label}>Email</div>
-        <div className={`mt-1 break-all text-sm ${verificationLight.title}`}>
-          {props.email}
+        <div className={`mt-1 text-sm ${verificationLight.title}`}>
+          The mailbox that received this verification message
         </div>
       </div>
       <div>

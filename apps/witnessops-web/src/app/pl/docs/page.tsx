@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getDocsUrl } from "@witnessops/config";
 import { CtaButton } from "@/components/shared/cta-button";
+import { languageAlternates } from "@/lib/public-seo";
 
 const EN_DOCS = getDocsUrl("witnessops", "/", { mode: "canonical" });
 
@@ -8,10 +9,10 @@ export const metadata: Metadata = {
   title: "Dokumentacja WitnessOps",
   description:
     "Dowiedz się, co dostarcza WitnessOps, co wspiera wynik i jak go sprawdzić.",
-  alternates: {
-    canonical: "/pl/docs",
-    languages: { en: "/docs", pl: "/pl/docs", "x-default": "/docs" },
-  },
+  alternates: languageAlternates("/pl/docs", {
+    en: "/docs",
+    pl: "/pl/docs",
+  }),
 };
 
 export default function PolishDocsPage() {

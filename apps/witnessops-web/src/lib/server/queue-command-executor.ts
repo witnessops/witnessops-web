@@ -1,6 +1,13 @@
 import { randomUUID } from "node:crypto";
+import { z } from "zod";
 
 import type { AdminActorAuthSource } from "@/lib/token-contract";
+import {
+  type AdminRole,
+  hasAdministrationAuthority,
+  hasBusinessAuthority,
+  isSameOperator,
+} from "./admin-authorization";
 
 import {
   type QueueClarificationRecord,
@@ -11,8 +18,9 @@ import {
   type QueueWorkflowState,
   type ScopeContractRecord,
   getIntakeById,
-  updateIntake,
+  updateIntakeWithinLock,
   withIntakeLock,
+  type IntakeLockHandle,
 } from "./token-store";
 import { appendQueueEvent, readQueueEvents, type QueueEventType } from "./queue-event-ledger";
 import {
@@ -37,6 +45,36 @@ export type QueueCommandName =
   | "queue.withdraw_scope_contract"
   | "queue.record_response";
 
+export const QUEUE_COMMAND_NAMES: readonly QueueCommandName[] = [
+  "queue.claim",
+  "queue.assign",
+  "queue.reassign",
+  "queue.unassign",
+  "queue.override_assign",
+  "queue.set_priority",
+  "queue.request_clarification",
+  "queue.clear_clarification",
+  "queue.start_scope_draft",
+  "queue.approve_scope_contract",
+  "queue.supersede_scope_contract",
+  "queue.withdraw_scope_contract",
+  "queue.record_response",
+];
+
+export function isQueueCommandName(value: unknown): value is QueueCommandName {
+  return (
+    typeof value === "string" &&
+    QUEUE_COMMAND_NAMES.includes(value as QueueCommandName)
+  );
+}
+
+export class QueueCommandInputError extends Error {
+  constructor(message = "Unknown queue command.") {
+    super(message);
+    this.name = "QueueCommandInputError";
+  }
+}
+
 export type QueueReasonCode =
   | "QUEUE_STATE_PRECONDITION_FAILED"
   | "OWNER_CONFLICT"
@@ -50,14 +88,14 @@ export type QueueReasonCode =
   | "SCOPE_CONTRACT_DRAFT_ALREADY_EXISTS"
   | "CLARIFICATION_REQUIRED";
 
-interface QueueCommandContext {
+export interface QueueCommandContext {
   intakeId: string;
   actor: string;
   actorAuthSource: AdminActorAuthSource;
   actorSessionHash: string | null;
-  isAdmin: boolean;
-  expectedProjectionVersion?: number;
-  expectedEventSequence?: number;
+  role: AdminRole;
+  expectedProjectionVersion: number;
+  expectedEventSequence: number;
   idempotencyKey: string;
   source: string;
 }
@@ -89,6 +127,77 @@ export type QueueCommandPayload =
       responseSummary: string;
       clarificationResolutionNote?: string;
     };
+
+const queueCommandPayloadSchema = z.discriminatedUnion("command", [
+  z.object({ command: z.literal("queue.claim") }).strict(),
+  z.object({
+    command: z.literal("queue.assign"),
+    targetOperator: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.reassign"),
+    targetOperator: z.string(),
+  }).strict(),
+  z.object({ command: z.literal("queue.unassign") }).strict(),
+  z.object({
+    command: z.literal("queue.override_assign"),
+    targetOperator: z.string(),
+    reason: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.set_priority"),
+    priority: z.enum(["low", "normal", "high", "urgent"]),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.request_clarification"),
+    question: z.string(),
+    reason: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.clear_clarification"),
+    reason: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.start_scope_draft"),
+    scopeStatement: z.string(),
+    systemsInScope: z.array(z.string()).optional(),
+    actorsInScope: z.array(z.string()).optional(),
+    explicitOutOfScope: z.array(z.string()).optional(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.approve_scope_contract"),
+    approvalNote: z.string().optional(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.supersede_scope_contract"),
+    reason: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.withdraw_scope_contract"),
+    reason: z.string(),
+  }).strict(),
+  z.object({
+    command: z.literal("queue.record_response"),
+    responseSummary: z.string(),
+    clarificationResolutionNote: z.string().optional(),
+  }).strict(),
+]);
+
+export function parseQueueCommandPayload(value: unknown): QueueCommandPayload {
+  const runtimeCommand =
+    value && typeof value === "object"
+      ? (value as { command?: unknown }).command
+      : undefined;
+  if (!isQueueCommandName(runtimeCommand)) {
+    throw new QueueCommandInputError();
+  }
+
+  const parsed = queueCommandPayloadSchema.safeParse(value);
+  if (!parsed.success) {
+    throw new QueueCommandInputError("Invalid queue command payload.");
+  }
+  return parsed.data;
+}
 
 export interface QueueCommandSuccess {
   ok: true;
@@ -132,6 +241,26 @@ function ensureActor(actor: string): string {
     throw new Error("actor is required");
   }
   return normalized;
+}
+
+const ASSIGNMENT_COMMANDS = new Set<QueueCommandName>([
+  "queue.assign",
+  "queue.reassign",
+  "queue.unassign",
+  "queue.override_assign",
+]);
+
+function isQueueCommandAuthorized(
+  ctx: QueueCommandContext,
+  command: QueueCommandName,
+  assignedOperator: string | null,
+): boolean {
+  if (ASSIGNMENT_COMMANDS.has(command)) {
+    return hasAdministrationAuthority(ctx.role);
+  }
+  if (!hasBusinessAuthority(ctx.role)) return false;
+  if (command === "queue.claim") return assignedOperator === null;
+  return ctx.role === "Founder" || isSameOperator(assignedOperator, ctx.actor);
 }
 
 function findScopeContract(
@@ -181,6 +310,7 @@ function applyWorkflowTransition(args: {
 async function applyQueueCommandUnlocked(
   ctx: QueueCommandContext,
   command: QueueCommandPayload,
+  lockHandle: IntakeLockHandle,
 ): Promise<QueueCommandResult> {
   const intake = await getIntakeById(ctx.intakeId);
   if (!intake) {
@@ -193,18 +323,16 @@ async function applyQueueCommandUnlocked(
   const bundle = buildQueueBundle(intake);
   const projection = bundle.projection;
 
-  if (
-    typeof ctx.expectedProjectionVersion === "number" &&
-    ctx.expectedProjectionVersion !== projection.projectionVersion
-  ) {
+  if (!isQueueCommandAuthorized(ctx, command.command, projection.assignedOperator)) {
+    return failure(command.command, intake.intakeId, ["AUTHORIZATION_REQUIRED"]);
+  }
+
+  if (ctx.expectedProjectionVersion !== projection.projectionVersion) {
     return failure(command.command, intake.intakeId, [
       "PROJECTION_VERSION_MISMATCH",
     ]);
   }
-  if (
-    typeof ctx.expectedEventSequence === "number" &&
-    ctx.expectedEventSequence !== projection.eventSequence
-  ) {
+  if (ctx.expectedEventSequence !== projection.eventSequence) {
     return failure(command.command, intake.intakeId, [
       "PROJECTION_VERSION_MISMATCH",
     ]);
@@ -268,11 +396,6 @@ async function applyQueueCommandUnlocked(
       break;
     }
     case "queue.assign": {
-      if (!ctx.isAdmin) {
-        return failure(command.command, intake.intakeId, [
-          "AUTHORIZATION_REQUIRED",
-        ]);
-      }
       if (nextProjection.assignedOperator) {
         return failure(command.command, intake.intakeId, ["OWNER_CONFLICT"]);
       }
@@ -313,11 +436,6 @@ async function applyQueueCommandUnlocked(
       break;
     }
     case "queue.override_assign": {
-      if (!ctx.isAdmin) {
-        return failure(command.command, intake.intakeId, [
-          "AUTHORIZATION_REQUIRED",
-        ]);
-      }
       const target = command.targetOperator.trim();
       const reason = command.reason.trim();
       if (!target || !reason) {
@@ -661,7 +779,7 @@ async function applyQueueCommandUnlocked(
   const nextEventSequence = projection.eventSequence + events.length;
   nextProjection.eventSequence = nextEventSequence;
 
-  const updatedIntake = await updateIntake(intake.intakeId, (current) => ({
+  const updatedIntake = await updateIntakeWithinLock(lockHandle, intake.intakeId, (current) => ({
     ...current,
     updatedAt: occurredAt,
     operatorAction: nextOperatorAction,
@@ -703,7 +821,9 @@ export async function applyQueueCommand(
   ctx: QueueCommandContext,
   command: QueueCommandPayload,
 ): Promise<QueueCommandResult> {
-  return withIntakeLock(ctx.intakeId, () =>
-    applyQueueCommandUnlocked(ctx, command),
+  const validatedCommand = parseQueueCommandPayload(command);
+
+  return withIntakeLock(ctx.intakeId, (handle) =>
+    applyQueueCommandUnlocked(ctx, validatedCommand, handle),
   );
 }

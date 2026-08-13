@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
+import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
   title: "Customer Security Review Sprint",
   description:
     "WitnessOps takes one questionnaire and one product scope, identifies which proposed answers are supported by the supplied evidence, separates management assertions and open items, and returns a response package for your approval.",
-  alternates: {
-    canonical: "/customer-security-review",
-    languages: {
-      en: "/customer-security-review",
-      pl: "/pl/customer-security-review",
-      "x-default": "/customer-security-review",
-    },
-  },
+  alternates: languageAlternates("/customer-security-review", {
+    en: "/customer-security-review",
+    pl: "/pl/customer-security-review",
+  }),
 };
 
 const deliverables = [

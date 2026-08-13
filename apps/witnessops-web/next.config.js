@@ -23,6 +23,20 @@ const nextConfig = {
   async headers() {
     return [
       {
+        source: "/verify-token",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
+      {
+        source: "/api/verify-token",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
+      {
         source: "/:path*",
         headers: securityHeaders,
       },
@@ -66,6 +80,36 @@ const nextConfig = {
       {
         source: "/pl/catalog/offsec-access-removed",
         destination: "/pl/catalog",
+        permanent: true,
+      },
+      {
+        source: "/catalog/offsec",
+        destination: "/catalog",
+        permanent: true,
+      },
+      {
+        source: "/access-change-proof-run",
+        destination: "/catalog/workflows",
+        permanent: true,
+      },
+      {
+        source: "/catalog/workflow-s",
+        destination: "/catalog/workflows",
+        permanent: true,
+      },
+      {
+        source: "/catalog/workflow-m",
+        destination: "/catalog/workflows",
+        permanent: true,
+      },
+      {
+        source: "/catalog/workflow-l",
+        destination: "/catalog/workflows",
+        permanent: true,
+      },
+      {
+        source: "/catalog/workflow-rerun",
+        destination: "/catalog/workflows",
         permanent: true,
       },
     ];

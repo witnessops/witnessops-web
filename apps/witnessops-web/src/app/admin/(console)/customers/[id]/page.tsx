@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CoreAuditTimeline, CoreCard, CoreMeta, CorePage, CoreState, CoreTable } from "../../../../../components/admin/admin-core-view";
 import { getCustomer, listAuditEvents, listDeliveries, listProofRuns, listReviewRequests } from "@/lib/server/admin-core-spine";
 import styles from "../../../../../components/admin/admin.module.css";
+import { getAdminPageActor } from "@/lib/server/admin-page-session";
 
 export const metadata: Metadata = { title: "Admin — Customer", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -11,9 +12,10 @@ interface RouteContext { params: Promise<{ id: string }> }
 
 export default async function AdminCustomerDetailPage({ params }: RouteContext) {
   const { id } = await params;
-  const customer = await getCustomer(id);
+  const actor = await getAdminPageActor();
+  const customer = await getCustomer(id, actor);
   if (!customer) notFound();
-  const [requests, runs, deliveries, events] = await Promise.all([listReviewRequests(), listProofRuns(), listDeliveries(), listAuditEvents()]);
+  const [requests, runs, deliveries, events] = await Promise.all([listReviewRequests(actor), listProofRuns(actor), listDeliveries(actor), listAuditEvents(undefined, actor)]);
   const customerRequests = requests.filter((item) => item.customerId === id);
   const customerRuns = runs.filter((item) => item.customerId === id);
   const customerDeliveries = deliveries.filter((item) => item.customerId === id);
