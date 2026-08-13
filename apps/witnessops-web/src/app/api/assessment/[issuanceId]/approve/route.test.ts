@@ -76,6 +76,8 @@ afterEach(async () => {
   global.fetch = originalFetch;
   delete process.env.CONTROL_PLANE_URL;
   delete process.env.CONTROL_PLANE_API_KEY;
+  delete process.env.CONTROL_PLANE_SERVICE_IDENTITY_SECRET;
+  delete process.env.CONTROL_PLANE_SERVICE_IDENTITY_SUBJECT;
   await clearTokenStore();
 });
 
@@ -217,6 +219,70 @@ test("approval route does not expose control-plane error bodies", async () => {
     "Scope approval was recorded, but downstream handoff is pending.",
   );
   assert.doesNotMatch(payload.error, /handoff-token|cp\.private/);
+});
+
+test("approval route does not expose control-plane configuration errors", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-approval-config-error-"));
+  const issued = await issueVerifiedToken(baseDir);
+  applyTestEnv(baseDir);
+  process.env.CONTROL_PLANE_URL = "http://control-plane.internal";
+
+  const response = await POST(
+    new Request(
+      `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}/approve`,
+      {
+        method: "POST",
+        body: JSON.stringify({ email: issued.email }),
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: issued.sessionCookie,
+        },
+      },
+    ),
+    { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
+  );
+  const payload = (await response.json()) as { error: string };
+  assert.equal(response.status, 502);
+  assert.equal(
+    payload.error,
+    "Scope approval was recorded, but downstream handoff is pending.",
+  );
+  assert.doesNotMatch(payload.error, /CONTROL_PLANE|API_KEY|service identity/i);
+});
+
+test("approval route does not expose control-plane response parse errors", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-approval-parse-error-"));
+  const issued = await issueVerifiedToken(baseDir);
+  applyTestEnv(baseDir);
+  process.env.CONTROL_PLANE_URL = "http://control-plane.internal";
+  process.env.CONTROL_PLANE_API_KEY = "cp-key";
+  global.fetch = (async () =>
+    new Response("not-json control-plane.internal", {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })) as typeof fetch;
+
+  const response = await POST(
+    new Request(
+      `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}/approve`,
+      {
+        method: "POST",
+        body: JSON.stringify({ email: issued.email }),
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: issued.sessionCookie,
+        },
+      },
+    ),
+    { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
+  );
+  const payload = (await response.json()) as { error: string };
+  assert.equal(response.status, 502);
+  assert.equal(
+    payload.error,
+    "Scope approval was recorded, but downstream handoff is pending.",
+  );
+  assert.doesNotMatch(payload.error, /not-json|control-plane\.internal|JSON/i);
 });
 
 test("approval route rejects issuance and email without claimant session", async () => {
