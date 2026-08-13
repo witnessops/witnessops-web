@@ -16,7 +16,8 @@ import {
 } from "./reconciliation-subcases";
 import {
   getIntakeById,
-  updateIntake,
+  updateIntakeWithinLock,
+  withIntakeLock,
   type IntakeReconciliationRecord,
 } from "./token-store";
 
@@ -201,18 +202,41 @@ export async function reconcileIntakeResponse(
     mailbox: evidence.mailbox,
   };
 
-  await updateIntake(intake.intakeId, (current) => ({
-    ...current,
-    reconciliation: current.reconciliation ?? record,
-    responseAttempt: current.responseAttempt
-      ? {
-          ...current.responseAttempt,
-          status: "reconciled",
-          updatedAt: reconciledAt,
-        }
-      : undefined,
-    updatedAt: reconciledAt,
-  }));
+  await withIntakeLock(intake.intakeId, async (handle) => {
+    const current = await getIntakeById(intake.intakeId);
+    if (!current) {
+      throw new IntakeReconciliationError("Unknown intake.", 404);
+    }
+    if (current.reconciliation) {
+      throw new IntakeReconciliationError(
+        "Reconciliation metadata already exists. Reload the queue before proceeding.",
+        409,
+      );
+    }
+    if (
+      current.responseAttempt &&
+      (current.responseAttempt.deliveryAttemptId !== evidence.deliveryAttemptId ||
+        current.responseAttempt.status !== "needs_reconciliation")
+    ) {
+      throw new IntakeReconciliationError(
+        "The response delivery attempt is still active or no longer matches this evidence. Reload the queue before reconciling.",
+        409,
+      );
+    }
+
+    await updateIntakeWithinLock(handle, intake.intakeId, (recordToUpdate) => ({
+      ...recordToUpdate,
+      reconciliation: record,
+      responseAttempt: recordToUpdate.responseAttempt
+        ? {
+            ...recordToUpdate.responseAttempt,
+            status: "reconciled",
+            updatedAt: reconciledAt,
+          }
+        : undefined,
+      updatedAt: reconciledAt,
+    }));
+  });
 
   try {
     await appendIntakeEvent({
