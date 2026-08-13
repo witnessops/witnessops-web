@@ -251,6 +251,46 @@ test("admin reconcile route is idempotent after the reconciliation event exists"
   assert.equal(reconciliationEvents.length, 1);
 });
 
+test("concurrent reconciliation requests create one durable reconciliation", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-reconcile-race-"),
+  );
+  applyTestEnv(baseDir);
+  await seedReconciliationCase();
+
+  const request = () =>
+    POST(new NextRequest("http://localhost:3001/api/admin/intake/reconcile", {
+      method: "POST",
+      body: JSON.stringify({
+        intakeId: "intk_reconcile",
+        evidenceSubcase: "local_attempt_recorded_provider_outcome_unknown",
+        note: buildValidReconciliationNote(),
+      }),
+      headers: { "Content-Type": "application/json", host: "localhost:3001" },
+    }));
+
+  const responses = await Promise.all(Array.from({ length: 8 }, request));
+  assert.equal(responses.every((response) => response.status === 200), true);
+  const statuses = (
+    await Promise.all(
+      responses.map((response) => response.json() as Promise<{ status: string }>),
+    )
+  ).map((payload) => payload.status);
+  assert.equal(statuses.filter((status) => status === "reconciled").length, 1);
+  assert.equal(statuses.filter((status) => status === "already_reconciled").length, 7);
+
+  const eventLogRaw = await readFile(
+    path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),
+    "utf8",
+  );
+  assert.equal(
+    eventLogRaw.trim().split("\n").filter((line) =>
+      line.includes('"event_type":"INTAKE_RESPONSE_RECONCILED"'),
+    ).length,
+    1,
+  );
+});
+
 test("admin reconcile route rejects when responded is already durably confirmed", async () => {
   const baseDir = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-reconcile-"),
