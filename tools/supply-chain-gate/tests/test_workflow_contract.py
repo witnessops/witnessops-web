@@ -138,7 +138,13 @@ class WorkflowContractTests(unittest.TestCase):
     def test_local_install_and_remote_build_paths_run_gate_first(self) -> None:
         k3s = (REPO_ROOT / "deploy" / "scripts" / "k3s-lib.sh").read_text(encoding="utf-8")
         health = (REPO_ROOT / "scripts" / "health-on-node22.sh").read_text(encoding="utf-8")
-        self.assertLess(k3s.index("  run_supply_chain_gate\n"), k3s.index("  rsync -az --delete"))
+        build_shared_image = k3s.split("build_shared_image() {", 1)[1].split(
+            "\ndeploy_prod() {", 1
+        )[0]
+        self.assertLess(
+            build_shared_image.index("  run_supply_chain_gate\n"),
+            build_shared_image.index("  if ! sync_build_context"),
+        )
         self.assertIn('merge-base HEAD origin/main', k3s)
         self.assertNotIn('base_ref="HEAD"', k3s)
         self.assertLess(
