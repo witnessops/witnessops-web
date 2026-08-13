@@ -76,13 +76,12 @@ export async function reconcileIntakeResponse(
     throw new IntakeReconciliationError("Unknown intake.", 404);
   }
 
-  if (!intake.firstResponse) {
+  if (!intake.firstResponse && !intake.responseAttempt) {
     throw new IntakeReconciliationError(
       "No outbound response evidence exists for this intake.",
       409,
     );
   }
-
   const events = await readIntakeEventsById(intake.intakeId);
   const hasRespondedEvent = events.some(
     (event) => event.event_type === "INTAKE_RESPONDED",
@@ -140,12 +139,27 @@ export async function reconcileIntakeResponse(
   }
 
   const reconciledAt = nowIso();
+  const evidence = intake.firstResponse
+    ? {
+        deliveryAttemptId: intake.firstResponse.deliveryAttemptId,
+        provider: intake.firstResponse.provider,
+        providerMessageId: intake.firstResponse.providerMessageId,
+        mailbox: intake.firstResponse.mailbox,
+        observedAt: intake.respondedAt ?? intake.firstResponse.deliveredAt,
+      }
+    : {
+        deliveryAttemptId: intake.responseAttempt!.deliveryAttemptId,
+        provider: "unknown",
+        providerMessageId: null,
+        mailbox: intake.responseAttempt!.mailbox,
+        observedAt: intake.responseAttempt!.updatedAt,
+      };
   const evidenceSubcase = classifyDeliveryEvidenceSubcase({
-    responseProvider: intake.firstResponse.provider,
-    responseProviderMessageId: intake.firstResponse.providerMessageId,
-    responseDeliveryAttemptId: intake.firstResponse.deliveryAttemptId,
-    responseMailbox: intake.firstResponse.mailbox,
-    respondedAt: intake.respondedAt ?? intake.firstResponse.deliveredAt,
+    responseProvider: evidence.provider,
+    responseProviderMessageId: evidence.providerMessageId,
+    responseDeliveryAttemptId: evidence.deliveryAttemptId,
+    responseMailbox: evidence.mailbox,
+    respondedAt: evidence.observedAt,
   });
 
   if (!evidenceSubcase) {
@@ -181,15 +195,22 @@ export async function reconcileIntakeResponse(
     note,
     evidenceSubcase,
     notePolicyVersion: reconciliationNotePolicyVersion,
-    deliveryAttemptId: intake.firstResponse.deliveryAttemptId,
-    provider: intake.firstResponse.provider,
-    providerMessageId: intake.firstResponse.providerMessageId,
-    mailbox: intake.firstResponse.mailbox,
+    deliveryAttemptId: evidence.deliveryAttemptId,
+    provider: evidence.provider,
+    providerMessageId: evidence.providerMessageId,
+    mailbox: evidence.mailbox,
   };
 
   await updateIntake(intake.intakeId, (current) => ({
     ...current,
     reconciliation: current.reconciliation ?? record,
+    responseAttempt: current.responseAttempt
+      ? {
+          ...current.responseAttempt,
+          status: "reconciled",
+          updatedAt: reconciledAt,
+        }
+      : undefined,
     updatedAt: reconciledAt,
   }));
 

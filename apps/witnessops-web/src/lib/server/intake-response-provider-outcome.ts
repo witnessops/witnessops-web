@@ -68,20 +68,15 @@ async function findMatchingIntake(
 ): Promise<IntakeRecord> {
   const intakes = await getAllIntakes();
   const matches = intakes.filter((intake) => {
-    if (!intake.firstResponse) {
-      return false;
-    }
-
-    if (intake.firstResponse.provider !== input.provider) {
-      return false;
-    }
-
     const providerMessageMatch =
+      Boolean(intake.firstResponse) &&
+      intake.firstResponse!.provider === input.provider &&
       Boolean(input.providerMessageId) &&
-      intake.firstResponse.providerMessageId === input.providerMessageId;
+      intake.firstResponse!.providerMessageId === input.providerMessageId;
     const attemptMatch =
       Boolean(input.deliveryAttemptId) &&
-      intake.firstResponse.deliveryAttemptId === input.deliveryAttemptId;
+      (intake.firstResponse?.deliveryAttemptId === input.deliveryAttemptId ||
+        intake.responseAttempt?.deliveryAttemptId === input.deliveryAttemptId);
 
     return providerMessageMatch || attemptMatch;
   });
@@ -130,7 +125,7 @@ export async function recordIntakeResponseProviderOutcome(
   input: ProviderResponseOutcomeRequest,
 ): Promise<ProviderResponseOutcomeResponse> {
   const intake = await findMatchingIntake(input);
-  if (!intake.firstResponse) {
+  if (!intake.firstResponse && !intake.responseAttempt) {
     throw new IntakeResponseProviderOutcomeError(
       "No response delivery metadata exists for this intake.",
       409,
@@ -143,9 +138,11 @@ export async function recordIntakeResponseProviderOutcome(
   });
   const detail = input.detail?.trim() || null;
   const providerMessageId =
-    input.providerMessageId ?? intake.firstResponse.providerMessageId ?? null;
+    input.providerMessageId ?? intake.firstResponse?.providerMessageId ?? null;
   const deliveryAttemptId =
-    input.deliveryAttemptId ?? intake.firstResponse.deliveryAttemptId;
+    input.deliveryAttemptId ??
+    intake.firstResponse?.deliveryAttemptId ??
+    intake.responseAttempt!.deliveryAttemptId;
 
   if (existingEvent) {
     return {

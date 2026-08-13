@@ -10,6 +10,7 @@ import { clearTokenStore } from "@/lib/server/token-store";
 
 import { POST as verifyToken } from "../../../verify-token/route";
 import { POST as support } from "../../../support/route";
+import { POST as reconcile } from "../reconcile/route";
 import { POST } from "./route";
 
 function applyTestEnv(baseDir: string): void {
@@ -210,6 +211,130 @@ test("admin respond route is idempotent after the first responded event", async 
     .split("\n")
     .filter((line) => line.includes('"event_type":"INTAKE_RESPONDED"'));
   assert.equal(respondedEvents.length, 1);
+});
+
+test("concurrent first responses reserve one provider delivery", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-respond-race-"));
+  const intake = await createAdmittedSupportIntake(baseDir);
+
+  const request = () =>
+    POST(
+      new NextRequest("http://localhost:3001/api/admin/intake/respond", {
+        method: "POST",
+        body: JSON.stringify({
+          intakeId: intake.intakeId,
+          subject: "Re: concurrent WitnessOps support request",
+          body: "This reply must be delivered exactly once.",
+        }),
+        headers: { "Content-Type": "application/json", host: "localhost:3001" },
+      }),
+    );
+
+  const responses = await Promise.all([request(), request()]);
+  const payloads = await Promise.all(responses.map((response) => response.json()));
+  assert.equal(payloads.filter((payload) => payload.status === "sent").length, 1);
+  assert.ok(responses.every((response) => response.status === 200 || response.status === 409));
+
+  const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
+  assert.equal(mailFiles.length, 3);
+  const intakeRaw = await readFile(
+    path.join(
+      process.env.WITNESSOPS_TOKEN_STORE_DIR!,
+      "intakes",
+      `${intake.intakeId}.json`,
+    ),
+    "utf8",
+  );
+  assert.match(intakeRaw, /"responseAttempt"/);
+  assert.match(intakeRaw, /"status":\s*"sent"/);
+
+  const eventLogRaw = await readFile(
+    path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),
+    "utf8",
+  );
+  assert.equal(
+    eventLogRaw
+      .trim()
+      .split("\n")
+      .filter((line) => line.includes('"event_type":"INTAKE_RESPONDED"'))
+      .length,
+    1,
+  );
+});
+
+test("ambiguous provider failure is durable and blocks resend", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-respond-unknown-"));
+  const intake = await createAdmittedSupportIntake(baseDir);
+  process.env.WITNESSOPS_MAIL_PROVIDER = "resend";
+  delete process.env.WITNESSOPS_RESEND_API_KEY;
+
+  const request = () =>
+    POST(
+      new NextRequest("http://localhost:3001/api/admin/intake/respond", {
+        method: "POST",
+        body: JSON.stringify({
+          intakeId: intake.intakeId,
+          subject: "Re: unresolved delivery",
+          body: "Do not retry this response automatically.",
+        }),
+        headers: { "Content-Type": "application/json", host: "localhost:3001" },
+      }),
+    );
+
+  const failed = await request();
+  assert.equal(failed.status, 502);
+  assert.deepEqual(await failed.json(), {
+    ok: false,
+    error: "Mail delivery outcome is unresolved; reconcile it before retrying.",
+  });
+
+  process.env.WITNESSOPS_MAIL_PROVIDER = "file";
+  const retry = await request();
+  assert.equal(retry.status, 409);
+  assert.deepEqual(await retry.json(), {
+    ok: false,
+    error: "A previous response delivery requires reconciliation. Refusing to resend.",
+  });
+
+  const intakeRaw = await readFile(
+    path.join(
+      process.env.WITNESSOPS_TOKEN_STORE_DIR!,
+      "intakes",
+      `${intake.intakeId}.json`,
+    ),
+    "utf8",
+  );
+  assert.match(intakeRaw, /"status":\s*"needs_reconciliation"/);
+  assert.equal((await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length, 2);
+
+  const reconciled = await reconcile(
+    new NextRequest("http://localhost:3001/api/admin/intake/reconcile", {
+      method: "POST",
+      body: JSON.stringify({
+        intakeId: intake.intakeId,
+        evidenceSubcase: "local_attempt_recorded_provider_outcome_unknown",
+        note: [
+          "Evidence reviewed: Reviewed the durable response attempt identifier, content digest, actor, mailbox, and unresolved send result.",
+          "",
+          "Why reconcile now: The attempt is durably reserved and the provider outcome is unknown, so a second first response must remain blocked.",
+          "",
+          "Judgment: Record the ambiguity without claiming delivery and do not resend the first response.",
+        ].join("\n"),
+      }),
+      headers: { "Content-Type": "application/json", host: "localhost:3001" },
+    }),
+  );
+  assert.equal(reconciled.status, 200);
+  assert.equal((await reconciled.json()).status, "reconciled");
+
+  const afterReconciliation = await request();
+  assert.equal(afterReconciliation.status, 409);
+  assert.deepEqual(await afterReconciliation.json(), {
+    ok: false,
+    error:
+      "A previous response delivery was reconciled without durable confirmation. Refusing to resend.",
+  });
+  assert.equal((await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length, 2);
 });
 
 test("admin respond route requires admin authentication outside local development", async () => {

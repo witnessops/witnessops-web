@@ -16,7 +16,9 @@ import { sendMail } from "./send-verification-email";
 import {
   getIntakeById,
   getIssuanceById,
-  updateIntake,
+  updateIntakeWithinLock,
+  withIntakeLock,
+  type IntakeRecord,
   type IntakeResponseRecord,
 } from "./token-store";
 
@@ -70,6 +72,144 @@ interface RespondToIntakeInput extends AdminIntakeRespondRequest {
   source: string;
 }
 
+interface ReservedResponse {
+  intake: IntakeRecord;
+  deliveryAttemptId: string;
+  subject: string;
+  body: string;
+  bodyDigest: string;
+  mailbox: string;
+}
+
+async function reserveFirstResponse(
+  input: RespondToIntakeInput,
+): Promise<ReservedResponse | AdminIntakeRespondResponse> {
+  return withIntakeLock(input.intakeId, async (handle) => {
+    const intake = await getIntakeById(input.intakeId);
+    if (!intake) {
+      throw new IntakeResponseError("Unknown intake.", 404);
+    }
+    if (!intake.threadId) {
+      throw new IntakeResponseError(
+        "Cannot send an operator reply without a threadId.",
+        409,
+      );
+    }
+
+    const respondedEventExists = await hasRespondedEvent(intake.intakeId);
+    if (intake.state === "responded") {
+      if (!intake.firstResponse || !respondedEventExists) {
+        throw new IntakeResponseError(
+          "A response delivery is recorded without matching ledger evidence. Reconcile before retrying.",
+          409,
+        );
+      }
+
+      return {
+        status: "already_responded",
+        channel: intake.channel,
+        intakeId: intake.intakeId,
+        issuanceId: intake.latestIssuanceId,
+        threadId: intake.threadId,
+        email: intake.email,
+        respondedAt: intake.firstResponse.deliveredAt,
+        admissionState: "responded",
+        actor: intake.firstResponse.actor,
+        actorAuthSource: intake.firstResponse.actorAuthSource ?? "local_bypass",
+        actorSessionHash: intake.firstResponse.actorSessionHash ?? null,
+        provider: intake.firstResponse.provider,
+        providerMessageId: intake.firstResponse.providerMessageId,
+        deliveryAttemptId: intake.firstResponse.deliveryAttemptId,
+        mailbox: intake.firstResponse.mailbox,
+      };
+    }
+
+    if (intake.firstResponse && !respondedEventExists) {
+      throw new IntakeResponseError(
+        "A previous response delivery is pending ledger reconciliation. Refusing to resend.",
+        409,
+      );
+    }
+    if (intake.responseAttempt) {
+      const message = intake.responseAttempt.status === "reserved"
+        ? "A response delivery is already in progress."
+        : intake.responseAttempt.status === "reconciled"
+          ? "A previous response delivery was reconciled without durable confirmation. Refusing to resend."
+          : "A previous response delivery requires reconciliation. Refusing to resend.";
+      throw new IntakeResponseError(message, 409);
+    }
+    if (intake.state !== "admitted") {
+      throw new IntakeResponseError(
+        "Only admitted items can receive a first operator reply.",
+        409,
+      );
+    }
+
+    const subject = input.subject.trim();
+    const body = input.body.trim();
+    const bodyDigest = digestResponseBody(body);
+    const mailbox = getChannelMailbox(intake.channel);
+    const deliveryAttemptId = generateDeliveryAttemptId();
+    const reservedAt = nowIso();
+    const reservedIntake = await updateIntakeWithinLock(
+      handle,
+      intake.intakeId,
+      (current) => ({
+        ...current,
+        updatedAt: reservedAt,
+        responseAttempt: {
+          deliveryAttemptId,
+          subject,
+          bodyDigest,
+          actor: input.actor,
+          actorAuthSource: input.actorAuthSource,
+          actorSessionHash: input.actorSessionHash,
+          mailbox,
+          status: "reserved",
+          reservedAt,
+          updatedAt: reservedAt,
+        },
+      }),
+    );
+
+    return {
+      intake: reservedIntake,
+      deliveryAttemptId,
+      subject,
+      body,
+      bodyDigest,
+      mailbox,
+    };
+  });
+}
+
+async function markResponseAttemptUnresolved(
+  intakeId: string,
+  deliveryAttemptId: string,
+): Promise<void> {
+  await withIntakeLock(intakeId, async (handle) => {
+    const current = await getIntakeById(intakeId);
+    if (
+      !current?.responseAttempt ||
+      current.responseAttempt.deliveryAttemptId !== deliveryAttemptId
+    ) {
+      return;
+    }
+    const updatedAt = nowIso();
+    await updateIntakeWithinLock(handle, intakeId, (record) => ({
+      ...record,
+      updatedAt,
+      responseAttempt: record.responseAttempt
+        ? {
+            ...record.responseAttempt,
+            status: "needs_reconciliation",
+            updatedAt,
+          }
+        : undefined,
+    }));
+  });
+}
+
 /**
  * `responded` means the first external operator reply was delivered for an
  * admitted intake. Opening or viewing an item does not change state.
@@ -77,82 +217,43 @@ interface RespondToIntakeInput extends AdminIntakeRespondRequest {
 export async function respondToIntake(
   input: RespondToIntakeInput,
 ): Promise<AdminIntakeRespondResponse> {
-  const intake = await getIntakeById(input.intakeId);
-  if (!intake) {
-    throw new IntakeResponseError("Unknown intake.", 404);
-  }
-
-  if (!intake.threadId) {
-    throw new IntakeResponseError(
-      "Cannot send an operator reply without a threadId.",
-      409,
-    );
-  }
-
-  const respondedEventExists = await hasRespondedEvent(intake.intakeId);
+  const reservation = await reserveFirstResponse(input);
+  if (!("intake" in reservation)) return reservation;
+  const {
+    intake,
+    deliveryAttemptId,
+    subject,
+    body,
+    bodyDigest,
+    mailbox,
+  } = reservation;
   const latestIssuance = intake.latestIssuanceId
     ? await getIssuanceById(intake.latestIssuanceId)
     : null;
 
-  if (intake.state === "responded") {
-    if (!intake.firstResponse || !respondedEventExists) {
-      throw new IntakeResponseError(
-        "A response delivery is recorded without matching ledger evidence. Reconcile before retrying.",
-        409,
-      );
-    }
-
-    return {
-      status: "already_responded",
-      channel: intake.channel,
-      intakeId: intake.intakeId,
-      issuanceId: intake.latestIssuanceId,
-      threadId: intake.threadId,
-      email: intake.email,
-      respondedAt: intake.firstResponse.deliveredAt,
-      admissionState: "responded",
-      actor: intake.firstResponse.actor,
-      actorAuthSource: intake.firstResponse.actorAuthSource ?? "local_bypass",
-      actorSessionHash: intake.firstResponse.actorSessionHash ?? null,
-      provider: intake.firstResponse.provider,
-      providerMessageId: intake.firstResponse.providerMessageId,
-      deliveryAttemptId: intake.firstResponse.deliveryAttemptId,
-      mailbox: intake.firstResponse.mailbox,
-    };
-  }
-
-  if (intake.firstResponse && !respondedEventExists) {
+  let delivery: Awaited<ReturnType<typeof sendMail>>;
+  try {
+    delivery = await sendMail({
+      to: intake.email,
+      from: mailbox,
+      subject,
+      text: body,
+      deliveryAttemptId,
+      messageClass: messageClassForIntakeResponse(intake.channel, intake.email),
+    });
+  } catch {
+    await markResponseAttemptUnresolved(intake.intakeId, deliveryAttemptId);
     throw new IntakeResponseError(
-      "A previous response delivery is pending ledger reconciliation. Refusing to resend.",
-      409,
+      "Mail delivery outcome is unresolved; reconcile it before retrying.",
+      502,
     );
   }
-
-  if (intake.state !== "admitted") {
-    throw new IntakeResponseError(
-      "Only admitted items can receive a first operator reply.",
-      409,
-    );
-  }
-
-  const subject = input.subject.trim();
-  const body = input.body.trim();
-  const mailbox = getChannelMailbox(intake.channel);
-  const deliveryAttemptId = generateDeliveryAttemptId();
-  const delivery = await sendMail({
-    to: intake.email,
-    from: mailbox,
-    subject,
-    text: body,
-    deliveryAttemptId,
-    messageClass: messageClassForIntakeResponse(intake.channel, intake.email),
-  });
 
   const respondedAt = delivery.deliveredAt || nowIso();
   const responseRecord: IntakeResponseRecord = {
     deliveryAttemptId,
     subject,
-    bodyDigest: digestResponseBody(body),
+    bodyDigest,
     actor: input.actor,
     actorAuthSource: input.actorAuthSource,
     actorSessionHash: input.actorSessionHash,
@@ -162,13 +263,43 @@ export async function respondToIntake(
     deliveredAt: respondedAt,
   };
 
-  const updatedIntake = await updateIntake(intake.intakeId, (current) => ({
-    ...current,
-    state: "responded",
-    updatedAt: respondedAt,
-    respondedAt,
-    firstResponse: current.firstResponse ?? responseRecord,
-  }));
+  let updatedIntake: IntakeRecord;
+  try {
+    updatedIntake = await withIntakeLock(intake.intakeId, async (handle) => {
+      const current = await getIntakeById(intake.intakeId);
+      if (
+        !current?.responseAttempt ||
+        current.responseAttempt.deliveryAttemptId !== deliveryAttemptId ||
+        current.responseAttempt.status !== "reserved" ||
+        current.firstResponse
+      ) {
+        throw new IntakeResponseError(
+          "Mail delivery was accepted, but local confirmation is unresolved; reconcile it before retrying.",
+          500,
+        );
+      }
+      return updateIntakeWithinLock(handle, intake.intakeId, (record) => ({
+        ...record,
+        state: "responded",
+        updatedAt: respondedAt,
+        respondedAt,
+        firstResponse: responseRecord,
+        responseAttempt: record.responseAttempt
+          ? {
+              ...record.responseAttempt,
+              status: "sent",
+              updatedAt: respondedAt,
+            }
+          : undefined,
+      }));
+    });
+  } catch {
+    await markResponseAttemptUnresolved(intake.intakeId, deliveryAttemptId);
+    throw new IntakeResponseError(
+      "Mail delivery was accepted, but local confirmation is unresolved; reconcile it before retrying.",
+      500,
+    );
+  }
 
   try {
     await appendIntakeEvent({
@@ -193,10 +324,10 @@ export async function respondToIntake(
         bodyDigest: responseRecord.bodyDigest,
       },
     });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+  } catch {
+    await markResponseAttemptUnresolved(intake.intakeId, deliveryAttemptId);
     throw new IntakeResponseError(
-      `Operator reply was delivered and the snapshot was updated, but the ledger append failed. Queue divergence is expected until reconciliation. ${message}`,
+      "Mail delivery was accepted, but ledger confirmation is unresolved; reconcile it before retrying.",
       500,
     );
   }

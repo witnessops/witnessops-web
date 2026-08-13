@@ -119,6 +119,19 @@ export interface IntakeResponseProviderOutcomeRecord {
   detail?: string | null;
 }
 
+export interface IntakeResponseAttemptRecord {
+  deliveryAttemptId: string;
+  subject: string;
+  bodyDigest: string;
+  actor: string;
+  actorAuthSource: AdminActorAuthSource;
+  actorSessionHash: string | null;
+  mailbox: string;
+  status: "reserved" | "sent" | "needs_reconciliation" | "reconciled";
+  reservedAt: string;
+  updatedAt: string;
+}
+
 export interface IntakeMailboxReceiptRecord {
   status: IntakeResponseProviderOutcomeStatus;
   observedAt: string;
@@ -146,6 +159,7 @@ export interface IntakeRecord {
   replayedAt?: string;
   submission: IntakeSubmissionRecord;
   firstResponse?: IntakeResponseRecord;
+  responseAttempt?: IntakeResponseAttemptRecord;
   responseProviderOutcome?: IntakeResponseProviderOutcomeRecord;
   responseMailboxReceipt?: IntakeMailboxReceiptRecord;
   reconciliation?: IntakeReconciliationRecord;

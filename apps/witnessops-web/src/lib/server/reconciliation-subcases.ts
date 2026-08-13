@@ -79,6 +79,10 @@ export function classifyDeliveryEvidenceSubcase(
     return "provider_delivery_evidence_incomplete";
   }
 
+  if (fingerprint.responseProvider === "unknown") {
+    return "local_attempt_recorded_provider_outcome_unknown";
+  }
+
   if (fingerprint.responseProvider === "file") {
     return "local_attempt_recorded_provider_outcome_unknown";
   }

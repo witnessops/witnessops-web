@@ -24,8 +24,8 @@ function findMatchingIntakeByDeliveryAttempt(
 ): IntakeRecord {
   const matches = intakes.filter(
     (intake) =>
-      intake.firstResponse &&
-      intake.firstResponse.deliveryAttemptId === deliveryAttemptId,
+      intake.firstResponse?.deliveryAttemptId === deliveryAttemptId ||
+      intake.responseAttempt?.deliveryAttemptId === deliveryAttemptId,
   );
 
   if (matches.length === 0) {
@@ -67,7 +67,7 @@ export async function recordIntakeMailboxReceipt(
     input.deliveryAttemptId,
   );
 
-  if (!intake.firstResponse) {
+  if (!intake.firstResponse && !intake.responseAttempt) {
     throw new IntakeMailboxReceiptError(
       "No response delivery metadata exists for this intake.",
       409,
