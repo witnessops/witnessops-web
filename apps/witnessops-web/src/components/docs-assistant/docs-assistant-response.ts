@@ -21,16 +21,21 @@ export interface DocsAssistantRequestErrorDetails {
 }
 
 export function answerText(answer: DocsAssistantUiAnswer): string {
+  if (
+    answer.answer_status !== "supported_by_docs" &&
+    answer.answer_status !== "partially_supported"
+  ) {
+    return answer.unsupported_reason
+      ? friendlyUnsupportedReason(answer.unsupported_reason)
+      : answer.answer_status.replaceAll("_", " ");
+  }
+
   const facts = answer.documented_facts.map((claim) => claim.text);
   const inferences = answer.inference.map((claim) => claim.text);
   const lines = [...facts, ...inferences];
 
   if (lines.length > 0) {
     return lines.join("\n\n");
-  }
-
-  if (answer.unsupported_reason) {
-    return friendlyUnsupportedReason(answer.unsupported_reason);
   }
 
   return answer.answer_status.replaceAll("_", " ");

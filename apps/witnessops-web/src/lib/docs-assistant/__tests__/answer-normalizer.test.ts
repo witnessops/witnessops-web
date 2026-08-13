@@ -75,6 +75,37 @@ test("docs assistant answer normalizer preserves cannot_claim", () => {
   assert.equal(answer.citations.length, 1);
 });
 
+test("docs assistant answer normalizer clears claims from non-supported statuses", () => {
+  for (const answerStatus of [
+    "cannot_claim",
+    "not_found_in_docs",
+    "needs_human_review",
+  ] as const) {
+    const answer = normalizeDocsAssistantAnswer({
+      question: "What does the plan prove?",
+      response: {
+        output_text: JSON.stringify({
+          answer_status: answerStatus,
+          documented_facts: [
+            { text: "Ungrounded fact.", citation_ids: ["1"] },
+          ],
+          inference: [{ text: "Ungrounded inference.", citation_ids: ["1"] }],
+          citations: [],
+          unsupported_reason: "answer_not_supported_by_retrieved_docs",
+          human_review_required: true,
+          not_proven: ["answer_correctness"],
+          boundary_findings: [],
+        }),
+      },
+      citations: [planCitation],
+    });
+
+    assert.equal(answer.answer_status, answerStatus);
+    assert.deepEqual(answer.documented_facts, []);
+    assert.deepEqual(answer.inference, []);
+  }
+});
+
 test("docs assistant answer normalizer adds stable not-proven labels to verify-purpose cannot_claim fallback", () => {
   const answer = normalizeDocsAssistantAnswer({
     question: "What is /verify for?",
