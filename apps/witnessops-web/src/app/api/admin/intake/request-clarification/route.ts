@@ -13,6 +13,7 @@ import {
   OperatorActionError,
   requestClarificationAsOperator,
 } from "@/lib/server/operator-actions";
+import { logUnexpectedRouteError } from "@/lib/server/route-error-boundary";
 
 export const runtime = "nodejs";
 
@@ -61,8 +62,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof OperatorActionError) {
       return invalid(error.message, error.status);
     }
-    const message =
-      error instanceof Error ? error.message : "Clarification request failed.";
-    return invalid(message, 500);
+    logUnexpectedRouteError("Clarification request failed", error);
+    return invalid("Clarification request failed.", 500);
   }
 }

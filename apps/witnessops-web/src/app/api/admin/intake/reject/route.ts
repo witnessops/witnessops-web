@@ -13,6 +13,7 @@ import {
   OperatorActionError,
   rejectIntakeAsOperator,
 } from "@/lib/server/operator-actions";
+import { logUnexpectedRouteError } from "@/lib/server/route-error-boundary";
 
 export const runtime = "nodejs";
 
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof OperatorActionError) {
       return invalid(error.message, error.status);
     }
-    const message = error instanceof Error ? error.message : "Reject failed.";
-    return invalid(message, 500);
+    logUnexpectedRouteError("Operator rejection failed", error);
+    return invalid("Reject failed.", 500);
   }
 }

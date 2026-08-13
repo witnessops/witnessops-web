@@ -155,6 +155,7 @@ afterEach(async () => {
   await clearTokenStore();
   delete process.env.WITNESSOPS_PROVIDER_EVENT_SECRET;
   delete process.env.WITNESSOPS_RESEND_WEBHOOK_SECRET;
+  delete process.env.WITNESSOPS_M365_WEBHOOK_SECRET;
 });
 
 test("provider outcome route records downstream evidence against an existing response attempt", async () => {
@@ -569,6 +570,70 @@ test("provider outcome route rejects invalid Resend signatures", async () => {
   );
 
   assert.equal(response.status, 401);
+});
+
+test("provider authentication failures do not disclose secret configuration", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-provider-auth-boundary-"),
+  );
+  applyTestEnv(baseDir);
+
+  const body = JSON.stringify({ type: "email.delivered" });
+  const resendRequest = () =>
+    new NextRequest(
+      "http://localhost:3001/api/provider-events/response-outcome",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "svix-id": "msg_invalid",
+          "svix-timestamp": `${Math.floor(Date.now() / 1000)}`,
+          "svix-signature": "v1,invalid",
+        },
+        body,
+      },
+    );
+
+  const originalConsoleError = console.error;
+  console.error = () => undefined;
+  let missingResend: Response;
+  let missingM365: Response;
+  try {
+    missingResend = await POST(resendRequest());
+    missingM365 = await POST(
+      new NextRequest(
+        "http://localhost:3001/api/provider-events/response-outcome",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-witnessops-m365-hmac": "invalid",
+          },
+          body,
+        },
+      ),
+    );
+  } finally {
+    console.error = originalConsoleError;
+  }
+
+  process.env.WITNESSOPS_RESEND_WEBHOOK_SECRET = `whsec_${Buffer.from(
+    "resend-webhook-secret",
+    "utf8",
+  ).toString("base64")}`;
+  const invalidResend = await POST(resendRequest());
+  const expected = {
+    ok: false,
+    error: "Unauthorized provider event source.",
+  };
+
+  assert.equal(missingResend.status, 401);
+  assert.equal(missingM365.status, 401);
+  assert.equal(invalidResend.status, 401);
+  assert.deepEqual(await missingResend.json(), expected);
+  assert.deepEqual(await missingM365.json(), expected);
+  assert.deepEqual(await invalidResend.json(), expected);
+  assert.doesNotMatch(JSON.stringify(expected), /WITNESSOPS_|webhook secret/i);
 });
 
 test("provider outcome route ignores verified Resend events that do not map to delivery outcomes", async () => {

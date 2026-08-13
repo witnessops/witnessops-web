@@ -9,6 +9,7 @@ import {
 } from "@/lib/server/bounded-request-body";
 import { runGmailInboxSync } from "@/lib/server/admin-gmail-reconciliation";
 import { sendVerificationEmail } from "@/lib/server/send-verification-email";
+import { logUnexpectedRouteError } from "@/lib/server/route-error-boundary";
 import {
   AdminCoreError,
   approveReviewRequest,
@@ -68,13 +69,21 @@ interface RouteContext {
 
 function responseError(error: unknown): NextResponse {
   if (error instanceof AdminCoreError) {
+    if (error.status >= 500 && error.code !== "STORE_BUSY") {
+      logUnexpectedRouteError("Admin core action failed", error);
+      return NextResponse.json(
+        { ok: false, error: "Admin core action failed.", code: "INTERNAL_ERROR", details: null },
+        { status: error.status },
+      );
+    }
     return NextResponse.json(
       { ok: false, error: error.message, code: error.code, details: error.details },
       { status: error.status },
     );
   }
+  logUnexpectedRouteError("Admin core action failed", error);
   return NextResponse.json(
-    { ok: false, error: error instanceof Error ? error.message : "Admin core action failed." },
+    { ok: false, error: "Admin core action failed." },
     { status: 500 },
   );
 }

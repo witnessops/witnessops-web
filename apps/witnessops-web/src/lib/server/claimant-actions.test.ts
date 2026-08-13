@@ -296,6 +296,41 @@ test("claimant action route rejects issuance and email without claimant session"
   assert.equal(stored?.claimantAction ?? null, null);
 });
 
+test("claimant action route contains unexpected storage errors", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "wo-claimant-error-boundary-"));
+  const issued = await issueVerifiedToken(baseDir);
+  const originalStoreDir = process.env.WITNESSOPS_TOKEN_STORE_DIR!;
+  process.env.WITNESSOPS_TOKEN_STORE_DIR = "/dev/null/private-claimant-store";
+
+  const originalConsoleError = console.error;
+  const logged: unknown[][] = [];
+  console.error = (...args: unknown[]) => {
+    logged.push(args);
+  };
+  let response: Response;
+  try {
+    response = await amend(
+      new Request("https://witnessops.com/api/assessment/x/amend", {
+        method: "POST",
+        body: JSON.stringify({
+          email: issued.email,
+          reason: "Tightening scope",
+          amendedScope: "Passive-only on example.com",
+        }),
+        headers: jsonHeaders(issued.sessionCookie),
+      }),
+      { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
+    );
+  } finally {
+    console.error = originalConsoleError;
+    process.env.WITNESSOPS_TOKEN_STORE_DIR = originalStoreDir;
+  }
+
+  assert.equal(response.status, 500);
+  assert.deepEqual(await response.json(), { ok: false, error: "Amend failed." });
+  assert.doesNotMatch(JSON.stringify(logged), /private-claimant-store|WITNESSOPS_/);
+});
+
 // ---------------------------------------------------------------------------
 // Approve gate (the critical invariant)
 // ---------------------------------------------------------------------------

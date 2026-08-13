@@ -6,6 +6,7 @@ import {
   IntakeResponseProviderOutcomeError,
   recordIntakeResponseProviderOutcome,
 } from "@/lib/server/intake-response-provider-outcome";
+import { logUnexpectedRouteError } from "@/lib/server/route-error-boundary";
 
 export const runtime = "nodejs";
 
@@ -45,13 +46,14 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     if (error instanceof IntakeResponseProviderOutcomeError) {
+      if (error.status >= 500) {
+        logUnexpectedRouteError("Provider outcome could not be recorded", error);
+        return invalid("Unable to record provider outcome.", error.status);
+      }
       return invalid(error.message, error.status);
     }
 
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Unable to record provider outcome.";
-    return invalid(message, 500);
+    logUnexpectedRouteError("Provider outcome could not be recorded", error);
+    return invalid("Unable to record provider outcome.", 500);
   }
 }

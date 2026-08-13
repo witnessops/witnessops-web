@@ -170,3 +170,37 @@ test("admin core API rejects overlong persisted fields", async () => {
     details: null,
   });
 });
+
+test("admin core API contains unexpected storage errors", async () => {
+  const originalStoreDir = process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR;
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = "/dev/null/private-admin-core";
+  const sessionCookie = await cookieFor("founder", "Founder");
+  const originalConsoleError = console.error;
+  const logged: unknown[][] = [];
+  console.error = (...args: unknown[]) => {
+    logged.push(args);
+  };
+  let response: Response;
+  try {
+    response = await GET(
+      new NextRequest("https://witnessops.com/api/admin/core/dashboard", {
+        headers: { cookie: `witnessops-admin-session=${sessionCookie}` },
+      }),
+      context("dashboard"),
+    );
+  } finally {
+    console.error = originalConsoleError;
+    if (originalStoreDir === undefined) {
+      delete process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR;
+    } else {
+      process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = originalStoreDir;
+    }
+  }
+
+  assert.equal(response.status, 500);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    error: "Admin core action failed.",
+  });
+  assert.doesNotMatch(JSON.stringify(logged), /private-admin-core|WITNESSOPS_/);
+});

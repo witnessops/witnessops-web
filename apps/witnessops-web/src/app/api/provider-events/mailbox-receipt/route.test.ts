@@ -49,6 +49,48 @@ test("mailbox receipt rejects oversized authenticated bodies before JSON parsing
   });
 });
 
+test("mailbox receipt route contains unexpected storage errors", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-mailbox-receipt-error-"),
+  );
+  applyTestEnv(baseDir);
+  const originalStoreDir = process.env.WITNESSOPS_TOKEN_STORE_DIR!;
+  process.env.WITNESSOPS_TOKEN_STORE_DIR = "/dev/null/private-mailbox-store";
+  const originalConsoleError = console.error;
+  const logged: unknown[][] = [];
+  console.error = (...args: unknown[]) => {
+    logged.push(args);
+  };
+  let response: Response;
+  try {
+    response = await POST(
+      new NextRequest("http://localhost:3001/api/provider-events/mailbox-receipt", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-witnessops-provider-secret": "provider-secret",
+        },
+        body: JSON.stringify({
+          deliveryAttemptId: "rsp_mailbox_error",
+          receiptId: "receipt_error",
+          status: "delivered",
+          observedAt: "2026-03-29T11:06:00Z",
+        }),
+      }),
+    );
+  } finally {
+    console.error = originalConsoleError;
+    process.env.WITNESSOPS_TOKEN_STORE_DIR = originalStoreDir;
+  }
+
+  assert.equal(response.status, 500);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    error: "Unable to record mailbox receipt.",
+  });
+  assert.doesNotMatch(JSON.stringify(logged), /private-mailbox-store|WITNESSOPS_/);
+});
+
 test("concurrent mailbox receipt replays record one receipt and one closure", async () => {
   const baseDir = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-mailbox-receipt-race-"),

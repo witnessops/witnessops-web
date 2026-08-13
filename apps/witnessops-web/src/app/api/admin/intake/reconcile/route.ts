@@ -17,6 +17,7 @@ import {
   IntakeReconciliationError,
   reconcileIntakeResponse,
 } from "@/lib/server/intake-reconciliation";
+import { logUnexpectedRouteError } from "@/lib/server/route-error-boundary";
 
 export const runtime = "nodejs";
 
@@ -63,11 +64,14 @@ export async function POST(request: NextRequest) {
       return invalid(error.message, error.status);
     }
     if (error instanceof IntakeReconciliationError) {
+      if (error.status >= 500) {
+        logUnexpectedRouteError("Intake reconciliation failed", error);
+        return invalid("Reconciliation failed.", error.status);
+      }
       return invalid(error.message, error.status);
     }
 
-    const message =
-      error instanceof Error ? error.message : "Reconciliation failed.";
-    return invalid(message, 500);
+    logUnexpectedRouteError("Intake reconciliation failed", error);
+    return invalid("Reconciliation failed.", 500);
   }
 }
