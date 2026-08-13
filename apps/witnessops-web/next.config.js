@@ -23,6 +23,20 @@ const nextConfig = {
   async headers() {
     return [
       {
+        source: "/verify-token",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
+      {
+        source: "/api/verify-token",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
+      {
         source: "/:path*",
         headers: securityHeaders,
       },

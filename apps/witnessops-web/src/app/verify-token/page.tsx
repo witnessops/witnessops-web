@@ -12,21 +12,18 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface Props {
   searchParams: Promise<{
-    issuanceId?: string;
-    email?: string;
-    token?: string;
+    context?: string;
   }>;
 }
 
 export default async function VerifyTokenPage({ searchParams }: Props) {
   const params = await searchParams;
-  const issuanceId = params.issuanceId?.trim() ?? "";
-  const email = params.email?.trim() ?? "";
-  const token = params.token?.trim() ?? "";
-  const hasVerificationContext = Boolean(issuanceId && email);
+  const rawContext = params.context?.trim() ?? "";
+  const hasVerificationContext = /^[A-Za-z0-9_-]{32,128}$/.test(rawContext);
 
   return (
     <VerificationLightShell>
@@ -49,9 +46,7 @@ export default async function VerifyTokenPage({ searchParams }: Props) {
         <div className={`mt-8 rounded p-4 ${verificationLight.card}`}>
           {hasVerificationContext ? (
             <VerifyTokenForm
-              issuanceId={issuanceId}
-              email={email}
-              initialCode={token}
+              context={rawContext}
             />
           ) : (
             <div className={verificationLight.error}>

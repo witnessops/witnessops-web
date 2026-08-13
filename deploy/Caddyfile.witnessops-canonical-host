@@ -20,6 +20,13 @@ https://witnessops.com, https://docs.witnessops.com {
 
 	log {
 		output file /var/log/caddy/witnessops-apex.log
-		format json
+		format filter {
+			request>uri query {
+				replace context REDACTED
+				replace email REDACTED
+				replace issuanceId REDACTED
+				replace token REDACTED
+			}
+		}
 	}
 }

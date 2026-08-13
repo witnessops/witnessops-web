@@ -116,6 +116,11 @@ export const verifyTokenRequestSchema = z.object({
   token: z.string().trim().min(1),
 });
 
+export const verifyTokenContextRequestSchema = z.object({
+  context: z.string().trim().min(32).max(128),
+  token: z.string().trim().min(1),
+});
+
 export const verifyTokenResponseSchema = z.object({
   channel: intakeChannelSchema,
   intakeId: z.string().min(1),
