@@ -16,6 +16,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
+  ADMIN_JSON_BODY_LIMIT_BYTES,
+  readBoundedRequestJson,
+  RequestBodyTooLargeError,
+} from "@/lib/server/bounded-request-body";
+import {
   AdminBusinessAuthorizationError,
   withRunBusinessAccess,
 } from "@/lib/server/admin-business-authorization";
@@ -48,8 +53,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   let body: { reason?: unknown };
   try {
-    body = (await request.json()) as { reason?: unknown };
-  } catch {
+    body = (await readBoundedRequestJson(request, ADMIN_JSON_BODY_LIMIT_BYTES)) as { reason?: unknown };
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return invalid("Request body is too large.", 413);
+    }
     return invalid("Invalid request body.", 400);
   }
 

@@ -4,7 +4,11 @@ import os from "node:os";
 import path from "node:path";
 import test, { afterEach } from "node:test";
 
-import { applyQueueCommand } from "./queue-command-executor";
+import {
+  applyQueueCommand,
+  parseQueueCommandPayload,
+  QueueCommandInputError,
+} from "./queue-command-executor";
 import {
   clearTokenStore,
   getIntakeById,
@@ -49,6 +53,37 @@ function makeIntake(assignedOperator: string): IntakeRecord {
 
 afterEach(async () => {
   await clearTokenStore();
+});
+
+test("queue command schema bounds persisted text and arrays", () => {
+  assert.throws(
+    () => parseQueueCommandPayload({
+      command: "queue.request_clarification",
+      question: "x".repeat(16_385),
+      reason: "bounded reason",
+    }),
+    QueueCommandInputError,
+  );
+  assert.throws(
+    () => parseQueueCommandPayload({
+      command: "queue.start_scope_draft",
+      scopeStatement: "Bounded scope.",
+      systemsInScope: Array.from({ length: 129 }, (_, index) => `system-${index}`),
+    }),
+    QueueCommandInputError,
+  );
+  assert.deepEqual(
+    parseQueueCommandPayload({
+      command: "queue.start_scope_draft",
+      scopeStatement: "Bounded scope.",
+      systemsInScope: ["system-1"],
+    }),
+    {
+      command: "queue.start_scope_draft",
+      scopeStatement: "Bounded scope.",
+      systemsInScope: ["system-1"],
+    },
+  );
 });
 
 test("delegated queue commands are limited to the assigned intake", async () => {

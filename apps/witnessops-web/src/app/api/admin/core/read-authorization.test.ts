@@ -11,7 +11,7 @@ import {
   importGmailInboxItem,
   resetAdminCoreStoreForTests,
 } from "@/lib/server/admin-core-spine";
-import { GET } from "./[...path]/route";
+import { GET, POST } from "./[...path]/route";
 
 const founder = { actor: "founder@test", role: "Founder" as const };
 
@@ -123,4 +123,50 @@ test("admin core API hides foreign direct IDs and list records", async () => {
   );
   assert.equal(founderList.status, 200);
   assert.equal((await founderList.json() as { items: unknown[] }).items.length, 1);
+});
+
+test("admin core API rejects oversized bodies before dispatch", async () => {
+  const sessionCookie = await cookieFor("founder", "Founder");
+  const response = await POST(
+    new NextRequest("https://witnessops.com/api/admin/core/review-requests/unknown/note", {
+      method: "POST",
+      body: JSON.stringify({ note: "x".repeat(65 * 1024) }),
+      headers: {
+        "Content-Type": "application/json",
+        cookie: `witnessops-admin-session=${sessionCookie}`,
+      },
+    }),
+    context("review-requests", "unknown", "note"),
+  );
+
+  assert.equal(response.status, 413);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    error: "Request body is too large.",
+    code: "PAYLOAD_TOO_LARGE",
+    details: null,
+  });
+});
+
+test("admin core API rejects overlong persisted fields", async () => {
+  const sessionCookie = await cookieFor("founder", "Founder");
+  const response = await POST(
+    new NextRequest("https://witnessops.com/api/admin/core/review-requests/unknown/note", {
+      method: "POST",
+      body: JSON.stringify({ note: "x".repeat(16_385) }),
+      headers: {
+        "Content-Type": "application/json",
+        cookie: `witnessops-admin-session=${sessionCookie}`,
+      },
+    }),
+    context("review-requests", "unknown", "note"),
+  );
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    error: "note is too long.",
+    code: "INVALID_INPUT",
+    details: null,
+  });
 });

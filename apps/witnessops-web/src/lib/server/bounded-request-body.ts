@@ -15,6 +15,7 @@ export class InvalidRequestBodyEncodingError extends Error {
 }
 
 export const PUBLIC_JSON_BODY_LIMIT_BYTES = 64 * 1024;
+export const ADMIN_JSON_BODY_LIMIT_BYTES = 64 * 1024;
 
 export async function readBoundedRequestText(
   request: Request,

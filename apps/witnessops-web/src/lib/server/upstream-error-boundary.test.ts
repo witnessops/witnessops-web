@@ -3,6 +3,7 @@ import test, { afterEach } from "node:test";
 
 import { triggerAssessment } from "./assessment-client";
 import { authorizeRun, submitCustomerAcceptance } from "./control-plane-client";
+import { logUpstreamFailure } from "./upstream-error";
 
 const originalFetch = globalThis.fetch;
 
@@ -34,6 +35,40 @@ test("assessment errors omit upstream bodies", async () => {
       error.message === "Assessment service request failed." &&
       !/assessment-token|private\.internal/.test(error.message),
   );
+});
+
+test("upstream failure logs contain only allowlisted metadata", async () => {
+  const originalConsoleError = console.error;
+  const calls: unknown[][] = [];
+  console.error = (...args: unknown[]) => {
+    calls.push(args);
+  };
+
+  try {
+    await logUpstreamFailure({
+      service: "assessment",
+      operation: "trigger",
+      response: new Response(
+        JSON.stringify({
+          secret: "never-log-this-token",
+          email: "claimant@example.com",
+          internal_url: "http://private.internal",
+        }),
+        { status: 502 },
+      ),
+    });
+  } finally {
+    console.error = originalConsoleError;
+  }
+
+  assert.equal(calls.length, 1);
+  assert.equal(JSON.stringify(calls).includes("never-log-this-token"), false);
+  assert.equal(JSON.stringify(calls).includes("claimant@example.com"), false);
+  assert.equal(JSON.stringify(calls).includes("private.internal"), false);
+  assert.deepEqual(calls[0], [
+    "Upstream service request failed",
+    { service: "assessment", operation: "trigger", status: 502 },
+  ]);
 });
 
 test("control-plane conflict results omit upstream bodies", async () => {

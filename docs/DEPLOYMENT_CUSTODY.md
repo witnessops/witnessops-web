@@ -74,9 +74,11 @@ pnpm deploy:k3s:both
 
 1. Optional dirty-tree gate (`ALLOW_DIRTY=1` to skip)
 2. rsync checkout → `/tmp/witnessops-web-build-<tag>/` on `DEPLOY_SSH`
-3. Docker build with public origin baked in
-4. `k3s ctr images import` on the node
-5. Prints full image ref on stdout
+3. Exclude ignored secret, private-topology, receipt, token-store, and scratch paths
+4. Docker build with public origin baked in
+5. `k3s ctr images import` on the node
+6. Delete the remote build directory on success or failure
+7. Prints full image ref on stdout
 
 Legacy `deploy/Dockerfile.mesh` remains as a reference Dockerfile; the dual-lane
 scripts generate `deploy/Dockerfile.shared` on the build host for the shared bake.
@@ -127,18 +129,21 @@ prefix and `optional=false`:
 1. `BASE_ENV_SECRET`
 2. `ADMIN_OIDC_SECRET`
 
-The OIDC Secret must contain these six required key names:
+The OIDC Secret must contain these seven required key names:
 
 1. `WITNESSOPS_ADMIN_SECRET`
-2. `WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST`
-3. `WITNESSOPS_GOOGLE_OIDC_CLIENT_ID`
-4. `WITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET`
-5. `WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI`
-6. `WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN`
+2. `WITNESSOPS_ADMIN_ROLE`
+3. `WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST`
+4. `WITNESSOPS_GOOGLE_OIDC_CLIENT_ID`
+5. `WITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET`
+6. `WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI`
+7. `WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN`
 
 The production helper fails before mutation when either Secret is unavailable
 or the OIDC Secret lacks any required key name. Preflight emits only Secret key
-names for validation; Secret values are never decoded, emitted, or logged. Its
+names for validation. Credential values are never decoded, emitted, or logged;
+the bounded admin-role enum is decoded only into captured shell state and is
+not printed. Its
 atomic patch replaces undeclared `envFrom` drift, including source order,
 prefix, and `optional` drift, with the exact contract while updating the image.
 The mesh-dev manifest carries the same exact contract. Mesh-dev does **not**
@@ -148,7 +153,7 @@ Dormant Microsoft OIDC and legacy-key credential entries may remain in the
 custodied OIDC Secret as extra keys; this lane neither uses nor removes them.
 Their retirement requires a separately authorized custody-cleanup pass.
 
-The legacy `deploy/k8s/apply.sh` path also preflights the six OIDC key names
+The legacy `deploy/k8s/apply.sh` path also preflights the seven OIDC key names
 before its first cluster mutation. Because that preflight occurs first, the
 `DEPLOY_NS` and `ADMIN_OIDC_SECRET` must already be
 provisioned before invoking the legacy helper. That helper does not create or

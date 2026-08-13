@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -13,6 +13,7 @@ import {
   createProductContractVersion,
   createProofRunForRequest,
   getAdminCoreState,
+  getAdminCoreStorePath,
   getInboxItem,
   getProductContract,
   getProofRun,
@@ -42,6 +43,43 @@ import {
 
 const founder = { actor: "founder@test", role: "Founder" as const };
 const administrator = { actor: "admin@test", role: "Administrator" as const };
+
+async function createCompletedDelivery(
+  label: string,
+  owner: { actor: string; role: "Delegated Operator" },
+) {
+  const imported = await importGmailInboxItem({
+    gmailMessageId: `gmail-${label}`,
+    gmailThreadId: `thread-${label}`,
+    sender: `${label}@example.com`,
+    recipients: ["engage@mail.witnessops.com"],
+    subject: `${label} request`,
+    receivedAt: "2026-08-13T08:00:00Z",
+    excerpt: "Bounded request.",
+  }, founder);
+  const converted = await convertInboxItemToReviewRequest(imported.item.id, owner);
+  await transitionReviewRequest(converted.reviewRequest.id, "triage", owner);
+  await transitionReviewRequest(converted.reviewRequest.id, "fit_review", owner);
+  await transitionReviewRequest(converted.reviewRequest.id, "fit_confirmed", owner);
+  const product = (await listProductContracts(founder))[0]!;
+  await approveReviewRequest(converted.reviewRequest.id, product.id, owner);
+  const run = await createProofRunForRequest(converted.reviewRequest.id, product.id, owner);
+  await transitionProofRun(run.id, "ready", owner);
+  await transitionProofRun(run.id, "running", owner);
+  await transitionProofRun(run.id, "operator_review", owner);
+  await updateProofRun(run.id, {
+    scopeComplete: true,
+    evidenceState: "complete",
+    outputReferences: [...run.requiredOutputs],
+    evidenceReferences: [`evidence://${label}`],
+    knownGaps: [],
+    verificationInstructions: "Open the receipt and follow the verifier instructions.",
+    customerWordingReviewed: true,
+    unsupportedClaims: [],
+  }, owner);
+  await transitionProofRun(run.id, "complete", owner);
+  return prepareDelivery(run.id, owner);
+}
 
 test("delegated operators may mutate only records assigned to them", async () => {
   process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "witnessops-admin-core-ownership-"));
@@ -200,6 +238,155 @@ test("concurrent core mutations preserve every committed record", async () => {
   );
 
   assert.equal((await getAdminCoreState()).inboxItems.length, 12);
+});
+
+test("receipt linking and readiness enforce the assigned delivery lineage", async () => {
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "witnessops-admin-core-receipt-lineage-"));
+  await resetAdminCoreStoreForTests();
+
+  const alice = { actor: "alice@test", role: "Delegated Operator" as const };
+  const bob = { actor: "bob@test", role: "Delegated Operator" as const };
+  const aliceDelivery = await createCompletedDelivery("alice-lineage", alice);
+  const bobDelivery = await createCompletedDelivery("bob-lineage", bob);
+  const aliceReceipt = await linkReceiptToDelivery(aliceDelivery.id, {
+    receiptId: "receipt-shared-id",
+    claimScope: "Alice bounded outputs.",
+    evidenceReferences: ["evidence://alice-lineage"],
+    verifierMechanism: "witnessops-receipt-verifier-v1",
+    verifierResult: "valid",
+    limitations: [],
+    archiveLocation: "drive://receipts/alice-lineage",
+  }, alice);
+
+  await assert.rejects(
+    () => linkReceiptToDelivery(bobDelivery.id, {
+      receiptId: aliceReceipt.receiptId,
+      claimScope: "Bob bounded outputs.",
+      evidenceReferences: ["evidence://bob-lineage"],
+      verifierMechanism: "witnessops-receipt-verifier-v1",
+      verifierResult: "valid",
+      limitations: [],
+      archiveLocation: "drive://receipts/bob-lineage",
+    }, bob),
+    (error: unknown) =>
+      error instanceof AdminCoreError &&
+      error.code === "RECEIPT_LINEAGE_CONFLICT" &&
+      error.status === 409,
+  );
+  await assert.rejects(
+    () => linkReceiptToDelivery(bobDelivery.id, {
+      receiptId: "receipt-bob-superseding",
+      claimScope: "Bob bounded outputs.",
+      evidenceReferences: ["evidence://bob-lineage"],
+      verifierMechanism: "witnessops-receipt-verifier-v1",
+      verifierResult: "valid",
+      limitations: [],
+      archiveLocation: "drive://receipts/bob-superseding",
+      supersedesReceiptId: aliceReceipt.receiptId,
+    }, bob),
+    (error: unknown) =>
+      error instanceof AdminCoreError && error.code === "RECEIPT_LINEAGE_CONFLICT",
+  );
+  await assert.rejects(
+    () => linkReceiptToDelivery(bobDelivery.id, {
+      receiptId: "receipt-bob-forward-reference",
+      claimScope: "Bob bounded outputs.",
+      evidenceReferences: ["evidence://bob-lineage"],
+      verifierMechanism: "witnessops-receipt-verifier-v1",
+      verifierResult: "valid",
+      limitations: [],
+      archiveLocation: "drive://receipts/bob-forward-reference",
+      supersedesReceiptId: "receipt-not-yet-created",
+    }, bob),
+    (error: unknown) =>
+      error instanceof AdminCoreError && error.code === "RECEIPT_LINEAGE_CONFLICT",
+  );
+  await assert.rejects(
+    () => linkReceiptToDelivery(bobDelivery.id, {
+      receiptId: "receipt-bob-self-reference",
+      claimScope: "Bob bounded outputs.",
+      evidenceReferences: ["evidence://bob-lineage"],
+      verifierMechanism: "witnessops-receipt-verifier-v1",
+      verifierResult: "valid",
+      limitations: [],
+      archiveLocation: "drive://receipts/bob-self-reference",
+      supersedesReceiptId: "receipt-bob-self-reference",
+    }, bob),
+    (error: unknown) =>
+      error instanceof AdminCoreError && error.code === "RECEIPT_LINEAGE_CONFLICT",
+  );
+
+  const unchanged = await getAdminCoreState();
+  assert.equal(
+    unchanged.deliveries.find((delivery) => delivery.id === bobDelivery.id)?.receiptId,
+    null,
+  );
+  assert.equal(
+    unchanged.receipts.find((receipt) => receipt.receiptId === aliceReceipt.receiptId)?.supersededByReceiptId,
+    null,
+  );
+  assert.equal(
+    unchanged.receipts.some((receipt) => receipt.receiptId === "receipt-bob-superseding"),
+    false,
+  );
+  assert.equal(
+    unchanged.receipts.some((receipt) =>
+      receipt.receiptId === "receipt-bob-forward-reference" ||
+      receipt.receiptId === "receipt-bob-self-reference"),
+    false,
+  );
+
+  const concurrent = await Promise.allSettled([
+    linkReceiptToDelivery(aliceDelivery.id, {
+      receiptId: "receipt-alice-concurrent-superseding",
+      claimScope: "Alice bounded outputs.",
+      evidenceReferences: ["evidence://alice-lineage"],
+      verifierMechanism: "witnessops-receipt-verifier-v1",
+      verifierResult: "valid",
+      limitations: [],
+      archiveLocation: "drive://receipts/alice-concurrent-superseding",
+      supersedesReceiptId: "receipt-bob-concurrent",
+    }, alice),
+    linkReceiptToDelivery(bobDelivery.id, {
+      receiptId: "receipt-bob-concurrent",
+      claimScope: "Bob bounded outputs.",
+      evidenceReferences: ["evidence://bob-lineage"],
+      verifierMechanism: "witnessops-receipt-verifier-v1",
+      verifierResult: "valid",
+      limitations: [],
+      archiveLocation: "drive://receipts/bob-concurrent",
+    }, bob),
+  ]);
+  assert.equal(concurrent[0]?.status, "rejected");
+  assert.equal(concurrent[1]?.status, "fulfilled");
+  const afterConcurrent = await getAdminCoreState();
+  assert.equal(
+    afterConcurrent.receipts.some((receipt) =>
+      receipt.receiptId === "receipt-alice-concurrent-superseding"),
+    false,
+  );
+  assert.equal(
+    afterConcurrent.receipts.find((receipt) =>
+      receipt.receiptId === "receipt-bob-concurrent")?.supersededByReceiptId,
+    null,
+  );
+
+  const storePath = getAdminCoreStorePath();
+  const stored = JSON.parse(await readFile(storePath, "utf8")) as {
+    deliveries: Array<{ id: string; receiptId: string | null }>;
+  };
+  stored.deliveries.find((delivery) => delivery.id === bobDelivery.id)!.receiptId =
+    aliceReceipt.receiptId;
+  await writeFile(storePath, JSON.stringify(stored, null, 2) + "\n", "utf8");
+  const readiness = await buildDeliveryReadiness(bobDelivery.id, bob);
+  assert.equal(
+    readiness.fail.some((item) => item.code === "RECEIPT_LINEAGE"),
+    true,
+  );
+  assert.equal(
+    readiness.pass.some((item) => item.code === "RECEIPT_STRUCTURAL_VALID"),
+    false,
+  );
 });
 
 test("admin core spine covers the complete message-to-receipt operating path", async () => {

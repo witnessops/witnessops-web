@@ -2000,7 +2000,14 @@ export async function buildDeliveryReadiness(deliveryId: string, actor?: CoreAct
   };
   check(Boolean(delivery.receiptId), "RECEIPT_LINKED", "Receipt is linked", "Link a durable receipt before delivery can be ready.");
   const linkedReceipt = state.receipts.find((receipt) => receipt.receiptId === delivery.receiptId);
-  check(Boolean(linkedReceipt?.structurallyValid), "RECEIPT_STRUCTURAL_VALID", "Receipt is structurally valid", "The linked receipt must be structurally valid.");
+  const receiptMatchesLineage = Boolean(
+    linkedReceipt &&
+    linkedReceipt.customerId === delivery.customerId &&
+    linkedReceipt.proofRunId === run.id &&
+    linkedReceipt.productContractVersionId === run.productContractVersionId,
+  );
+  check(receiptMatchesLineage, "RECEIPT_LINEAGE", "Receipt matches delivery lineage", "The linked receipt must belong to this delivery lineage.");
+  check(Boolean(receiptMatchesLineage && linkedReceipt?.structurallyValid), "RECEIPT_STRUCTURAL_VALID", "Receipt is structurally valid", "The linked receipt must be structurally valid.");
   check(delivery.verificationInstructions.trim().length > 0, "DELIVERY_VERIFICATION", "Verification instructions exist", "Add verification instructions.");
   check(delivery.customerWordingReviewed, "DELIVERY_WORDING", "Customer-facing wording is reviewed", "Review the customer-facing wording.");
   check(delivery.unsupportedClaims.length === 0, "DELIVERY_CLAIMS", "Delivery contains no unsupported claims", "Remove or bound unsupported claims.");
@@ -2073,7 +2080,14 @@ function buildDeliveryReadinessSync(state: CoreState, deliveryId: string): Readi
   };
   check(Boolean(delivery.receiptId), "RECEIPT_LINKED", "Receipt is linked", "Link a durable receipt before delivery can be ready.");
   const linkedReceipt = state.receipts.find((receipt) => receipt.receiptId === delivery.receiptId);
-  check(Boolean(linkedReceipt?.structurallyValid), "RECEIPT_STRUCTURAL_VALID", "Receipt is structurally valid", "The linked receipt must be structurally valid.");
+  const receiptMatchesLineage = Boolean(
+    linkedReceipt &&
+    linkedReceipt.customerId === delivery.customerId &&
+    linkedReceipt.proofRunId === run.id &&
+    linkedReceipt.productContractVersionId === run.productContractVersionId,
+  );
+  check(receiptMatchesLineage, "RECEIPT_LINEAGE", "Receipt matches delivery lineage", "The linked receipt must belong to this delivery lineage.");
+  check(Boolean(receiptMatchesLineage && linkedReceipt?.structurallyValid), "RECEIPT_STRUCTURAL_VALID", "Receipt is structurally valid", "The linked receipt must be structurally valid.");
   check(delivery.verificationInstructions.trim().length > 0, "DELIVERY_VERIFICATION", "Verification instructions exist", "Add verification instructions.");
   check(delivery.customerWordingReviewed, "DELIVERY_WORDING", "Customer-facing wording is reviewed", "Review the customer-facing wording.");
   check(delivery.unsupportedClaims.length === 0, "DELIVERY_CLAIMS", "Delivery contains no unsupported claims", "Remove or bound unsupported claims.");
@@ -2107,7 +2121,42 @@ export async function linkReceiptToDelivery(
     const verifierResult = assertNonEmpty(input.verifierResult, "verifierResult");
     const archiveLocation = assertNonEmpty(input.archiveLocation, "archiveLocation");
     let receipt = state.receipts.find((candidate) => candidate.receiptId === receiptId);
+    const matchesDeliveryLineage = (candidate: ReceiptRecord) =>
+      candidate.customerId === delivery.customerId &&
+      candidate.proofRunId === run.id &&
+      candidate.productContractVersionId === run.productContractVersionId;
+    if (receipt && !matchesDeliveryLineage(receipt)) {
+      throw new AdminCoreError(
+        "RECEIPT_LINEAGE_CONFLICT",
+        "Receipt identifier belongs to another delivery lineage.",
+        409,
+      );
+    }
     if (!receipt) {
+      if (input.supersedesReceiptId === receiptId) {
+        throw new AdminCoreError(
+          "RECEIPT_LINEAGE_CONFLICT",
+          "A receipt cannot supersede itself.",
+          409,
+        );
+      }
+      const prior = input.supersedesReceiptId
+        ? state.receipts.find((candidate) => candidate.receiptId === input.supersedesReceiptId)
+        : null;
+      if (input.supersedesReceiptId && !prior) {
+        throw new AdminCoreError(
+          "RECEIPT_LINEAGE_CONFLICT",
+          "Superseded receipt does not exist in this delivery lineage.",
+          409,
+        );
+      }
+      if (prior && !matchesDeliveryLineage(prior)) {
+        throw new AdminCoreError(
+          "RECEIPT_LINEAGE_CONFLICT",
+          "Superseded receipt belongs to another delivery lineage.",
+          409,
+        );
+      }
       receipt = {
         id: id("receipt"),
         receiptId,
@@ -2127,10 +2176,7 @@ export async function linkReceiptToDelivery(
         updatedAt: isoNow(),
       };
       state.receipts.push(receipt);
-      if (receipt.supersedesReceiptId) {
-        const prior = state.receipts.find((candidate) => candidate.receiptId === receipt?.supersedesReceiptId);
-        if (prior) prior.supersededByReceiptId = receipt.receiptId;
-      }
+      if (prior) prior.supersededByReceiptId = receipt.receiptId;
       appendIntegration(state, {
         integration: "receipt-archive",
         operation: "link_receipt",

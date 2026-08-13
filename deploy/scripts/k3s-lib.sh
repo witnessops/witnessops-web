@@ -119,12 +119,58 @@ run_supply_chain_gate() {
   python3 "${REPO_ROOT}/tools/supply-chain-gate/supply_chain_gate.py" "${gate_args[@]}"
 }
 
+# Keep ignored custody state out of both the remote release directory and the
+# Docker builder. Keep this list aligned with the root .dockerignore.
+build_context_exclusion_patterns() {
+  printf '%s\n' \
+    '/.env' \
+    '/.env.*' \
+    '/**/.env' \
+    '/**/.env.*' \
+    '/deploy/topology.env' \
+    '/.witnessops-token-store/' \
+    '/ops/receipts/' \
+    '/var/' \
+    '/.azure/' \
+    '/infra/main.parameters.json' \
+    '/.playwright-mcp/' \
+    '/.playwright-cli/' \
+    '/**/.playwright-cli/' \
+    'audit-*.png' \
+    '*-cards.png' \
+    '/tmp/' \
+    '/out/' \
+    '/output/'
+}
+
+sync_build_context() {
+  local source_dir="$1"
+  local destination="$2"
+  shift 2
+  rsync -az --delete --delete-excluded \
+    --exclude-from=<(build_context_exclusion_patterns) \
+    --exclude node_modules \
+    --exclude .next \
+    --exclude .git \
+    --exclude artifacts \
+    --exclude '*.zip' \
+    --exclude .turbo \
+    --exclude coverage \
+    "$@" \
+    "${source_dir}" "${destination}"
+}
+
 build_shared_image() {
   local tag="$1"
   local image remote_dir head
   image="$(image_ref "${tag}")"
   head="$(git_head_short)"
   remote_dir="/tmp/witnessops-web-build-${tag}"
+
+  [[ "${tag}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ ]] \
+    || die "image tag has an invalid shape"
+  validate_container_image_ref "${image}" \
+    || die "shared image reference has an invalid shape"
 
   need ssh
   need rsync
@@ -135,18 +181,19 @@ build_shared_image() {
   require_clean_or_confirm
   run_supply_chain_gate
 
-  rsync -az --delete \
-    --exclude node_modules \
-    --exclude .next \
-    --exclude .git \
-    --exclude artifacts \
-    --exclude '*.zip' \
-    --exclude .turbo \
-    --exclude coverage \
-    -e "ssh -o BatchMode=yes -o ConnectTimeout=20" \
-    "${REPO_ROOT}/" "${DEPLOY_SSH}:${remote_dir}/"
+  if ! sync_build_context \
+    "${REPO_ROOT}/" "${DEPLOY_SSH}:${remote_dir}/" \
+    -e "ssh -o BatchMode=yes -o ConnectTimeout=20"; then
+    remote "rm -rf -- '${remote_dir}'" >/dev/null 2>&1 || true
+    die "failed to synchronize the remote build context"
+  fi
 
   remote "set -euo pipefail
+    cleanup_build_context() {
+      cd /
+      rm -rf -- '${remote_dir}'
+    }
+    trap cleanup_build_context EXIT
     cd '${remote_dir}'
     test -f deploy/Dockerfile.mesh
     # Shared image always bakes prod public origin. Mesh-dev overrides PORT/HOSTNAME/VERIFY at runtime.

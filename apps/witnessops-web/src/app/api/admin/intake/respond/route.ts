@@ -10,6 +10,11 @@ import {
 } from "@/lib/server/intake-response";
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
+  ADMIN_JSON_BODY_LIMIT_BYTES,
+  readBoundedRequestJson,
+  RequestBodyTooLargeError,
+} from "@/lib/server/bounded-request-body";
+import {
   AdminBusinessAuthorizationError,
 } from "@/lib/server/admin-business-authorization";
 
@@ -27,8 +32,11 @@ export async function POST(request: NextRequest) {
 
   let body: unknown;
   try {
-    body = await request.json();
-  } catch {
+    body = await readBoundedRequestJson(request, ADMIN_JSON_BODY_LIMIT_BYTES);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return invalid("Request body is too large.", 413);
+    }
     return invalid("Invalid request body.", 400);
   }
 
