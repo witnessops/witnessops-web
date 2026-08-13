@@ -39,6 +39,13 @@ const FOOTER_MONO_STYLE = {
   fontFamily: "var(--font-mono)",
   letterSpacing: "0.06em",
 };
+const FOOTER_NAV_STYLE = {
+  fontFamily: "var(--font-sans)",
+  letterSpacing: "0",
+};
+const FOOTER_DISPLAY_STYLE = {
+  fontFamily: "var(--font-display)",
+};
 
 /** Same motto on every footer surface (EN + PL chrome). No locale variant. */
 const FOOTER_MOTTO = "Proof beats memory.";
@@ -90,7 +97,7 @@ function resolveDocsHref(href: string): string {
 const LIBRARY_FOOTER_EN: FooterContent = {
   brand_line: "WitnessOps",
   subline:
-    "Public entry points for docs, reviews, verifier fixtures, explanatory sample cases, and the illustrative sample report.",
+    "Public entry points for documentation, reviews, verification and synthetic examples.",
   links: [
     { label: "Library", href: "/library" },
     { label: "Docs", href: DOCS_PUBLIC_HREF },
@@ -113,7 +120,7 @@ const LIBRARY_FOOTER_EN: FooterContent = {
 const LIBRARY_FOOTER_PL: FooterContent = {
   brand_line: "WitnessOps",
   subline:
-    "Publiczne punkty wejścia do dokumentacji, przeglądów, fixture weryfikatora, przykładowych przypadków i ilustracyjnego raportu.",
+    "Publiczne punkty wejścia do dokumentacji, przeglądów, weryfikacji i przykładów syntetycznych.",
   links: [
     { label: "Biblioteka", href: "/pl/library" },
     { label: "Dokumentacja", href: DOCS_PL_HREF },
@@ -136,7 +143,7 @@ const LIBRARY_FOOTER_PL: FooterContent = {
 const POLISH_FOOTER: FooterContent = {
   brand_line: "WitnessOps",
   subline:
-    "Ograniczone zakresowo przeglądy bezpieczeństwa i operacji z odwołaniami do materiałów, jasno wskazanymi ograniczeniami i praktycznym przekazaniem wyniku.",
+    "Ograniczone zakresowo przeglądy bezpieczeństwa z materiałami dowodowymi, jasnymi ograniczeniami i praktycznym przekazaniem wyniku.",
   links: [
     { label: "Usługi", href: "/pl/catalog" },
     {
@@ -171,7 +178,6 @@ export function isExternalFooterHref(href: string): boolean {
 
 export function Footer({
   brand_line,
-  subline,
   links,
   legal_links,
   build_label,
@@ -192,7 +198,8 @@ export function Footer({
     // Buyer EN: rewrite Docs to canonical host; suppress STATIC build label.
     return {
       brand_line,
-      subline,
+      subline:
+        "Bounded security reviews with evidence, explicit limits and a practical handover.",
       links: links.map((link) =>
         link.href === "/docs" || link.href.startsWith("/docs/")
           ? { ...link, href: DOCS_PUBLIC_HREF }
@@ -205,7 +212,6 @@ export function Footer({
     };
   }, [
     brand_line,
-    subline,
     links,
     legal_links,
     build_label,
@@ -244,7 +250,7 @@ export function Footer({
   }
 
   function getRootLinkStyle(href: string) {
-    const baseStyle = FOOTER_MONO_STYLE;
+    const baseStyle = FOOTER_NAV_STYLE;
 
     if (!librarySurface || !LIBRARY_QUIET_HREFS.has(href)) {
       return baseStyle;
@@ -266,8 +272,8 @@ export function Footer({
       data-brand-footer="approved-2026-07-30"
       data-footer-surface={librarySurface ? "library" : isPolishSurface ? "pl-buyer" : "en-buyer"}
     >
-      <div className="mx-auto max-w-[1200px] px-6 py-6 sm:py-8 lg:py-10">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.95fr)_minmax(260px,0.75fr)] lg:gap-10">
+      <div className="mx-auto max-w-[1200px] px-6 py-5 sm:py-7 lg:py-9">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,4fr)_minmax(0,3fr)_minmax(280px,3fr)] lg:gap-8">
           <div data-footer-brand-lockup>
             <div className="mb-2 flex items-center gap-3">
               <WitnessOpsMark
@@ -279,7 +285,7 @@ export function Footer({
               />
               <p
                 className="text-sm font-semibold uppercase tracking-[0.12em] text-text-primary"
-                style={{ fontFamily: "var(--font-display)" }}
+                style={FOOTER_DISPLAY_STYLE}
               >
                 {content.brand_line}
               </p>
@@ -298,8 +304,8 @@ export function Footer({
 
           <nav aria-label={navigationLabel}>
             <p
-              className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-text-primary"
-              style={FOOTER_MONO_STYLE}
+              className="mb-1 text-sm font-semibold uppercase tracking-[0.14em] text-text-primary"
+              style={FOOTER_DISPLAY_STYLE}
             >
               {navigationLabel}
             </p>
@@ -338,7 +344,7 @@ export function Footer({
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col items-start justify-between gap-3 border-t border-surface-border pt-5 sm:pt-6 md:flex-row md:items-center lg:mt-8">
+        <div className="mt-5 flex flex-col items-start justify-between gap-1.5 border-t border-surface-border pt-4 sm:mt-6 sm:gap-2 sm:pt-5 md:flex-row md:items-center lg:mt-7">
           <div className="flex flex-wrap gap-x-4 gap-y-0">
             {content.legal_links.map((link) => {
               const href = toHref(link.href);
@@ -376,7 +382,7 @@ export function Footer({
             </a>
           </div>
           <div
-            className="flex items-center gap-3 text-xs leading-5 text-text-secondary"
+            className="flex flex-wrap items-center gap-x-2 gap-y-0 text-xs leading-5 text-text-secondary"
             style={FOOTER_MONO_STYLE}
           >
             {showBuild ? (
@@ -386,15 +392,11 @@ export function Footer({
               </>
             ) : null}
             <span>{content.copyright}</span>
+            <span aria-hidden="true" className="text-text-muted">·</span>
+            <span data-footer-motto="proof-beats-memory">
+              {content.motto}
+            </span>
           </div>
-        </div>
-
-        <div
-          className="mt-4 text-center text-xs font-medium leading-5 tracking-[0.08em] text-text-muted sm:mt-5"
-          style={FOOTER_MONO_STYLE}
-          data-footer-motto="proof-beats-memory"
-        >
-          {content.motto}
         </div>
       </div>
     </footer>
