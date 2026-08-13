@@ -5,8 +5,14 @@ import type {
 import type { IntakeMailboxReceiptRecord } from "./token-store";
 
 import { appendIntakeEvent, readIntakeEvents } from "./intake-event-ledger";
-import { evaluatePolicyClosure } from "./policy-closure";
-import { getAllIntakes, updateIntake, getIntakeById, type IntakeRecord } from "./token-store";
+import { evaluatePolicyClosureWithinLock } from "./policy-closure";
+import {
+  getAllIntakes,
+  getIntakeById,
+  updateIntakeWithinLock,
+  withIntakeLock,
+  type IntakeRecord,
+} from "./token-store";
 
 export class IntakeMailboxReceiptError extends Error {
   readonly status: number;
@@ -62,28 +68,27 @@ export async function recordIntakeMailboxReceipt(
   input: MailboxReceiptRequest,
 ): Promise<MailboxReceiptResponse> {
   const intakes = await getAllIntakes();
-  const intake = findMatchingIntakeByDeliveryAttempt(
+  const matchedIntake = findMatchingIntakeByDeliveryAttempt(
     intakes,
     input.deliveryAttemptId,
   );
+  return withIntakeLock(matchedIntake.intakeId, async (handle) => {
+    const intake = await getIntakeById(matchedIntake.intakeId);
+    if (
+      !intake ||
+      (!intake.firstResponse && !intake.responseAttempt) ||
+      (intake.firstResponse?.deliveryAttemptId !== input.deliveryAttemptId &&
+        intake.responseAttempt?.deliveryAttemptId !== input.deliveryAttemptId)
+    ) {
+      throw new IntakeMailboxReceiptError(
+        "Delivery attempt no longer matches this intake.",
+        409,
+      );
+    }
 
-  if (!intake.firstResponse && !intake.responseAttempt) {
-    throw new IntakeMailboxReceiptError(
-      "No response delivery metadata exists for this intake.",
-      409,
-    );
-  }
-
-  const existingEvent = await findExistingMailboxReceiptEvent({
-    intakeId: intake.intakeId,
-    receiptId: input.receiptId,
-  });
-
-  const detail = input.detail?.trim() || null;
-
-  if (existingEvent) {
-    return {
-      status: "already_recorded",
+    const detail = input.detail?.trim() || null;
+    const response = (status: MailboxReceiptResponse["status"]): MailboxReceiptResponse => ({
+      status,
       intakeId: intake.intakeId,
       channel: intake.channel,
       threadId: intake.threadId,
@@ -92,19 +97,32 @@ export async function recordIntakeMailboxReceipt(
       outcome: input.status,
       observedAt: input.observedAt,
       detail,
+    });
+    if (await findExistingMailboxReceiptEvent({
+      intakeId: intake.intakeId,
+      receiptId: input.receiptId,
+    })) {
+      try {
+        await evaluatePolicyClosureWithinLock(
+          handle,
+          `api/provider-events/mailbox-receipt:policy_closure_replay`,
+        );
+      } catch {
+        // The mailbox receipt remains durable and a later replay can retry closure.
+      }
+      return response("already_recorded");
+    }
+
+    const record: IntakeMailboxReceiptRecord = {
+      status: input.status,
+      observedAt: input.observedAt,
+      deliveryAttemptId: input.deliveryAttemptId,
+      providerMessageId: input.providerMessageId ?? null,
+      receiptId: input.receiptId,
+      detail,
     };
-  }
 
-  const record: IntakeMailboxReceiptRecord = {
-    status: input.status,
-    observedAt: input.observedAt,
-    deliveryAttemptId: input.deliveryAttemptId,
-    providerMessageId: input.providerMessageId ?? null,
-    receiptId: input.receiptId,
-    detail,
-  };
-
-  await updateIntake(intake.intakeId, (current) => {
+    await updateIntakeWithinLock(handle, intake.intakeId, (current) => {
     const existing = current.responseMailboxReceipt;
     const shouldReplace =
       !existing ||
@@ -123,10 +141,10 @@ export async function recordIntakeMailboxReceipt(
           ? input.observedAt
           : current.updatedAt,
     };
-  });
+    });
 
-  try {
-    await appendIntakeEvent({
+    try {
+      await appendIntakeEvent({
       event_type: "INTAKE_MAILBOX_RECEIPT_RECORDED",
       occurred_at: input.observedAt,
       channel: intake.channel,
@@ -143,39 +161,26 @@ export async function recordIntakeMailboxReceipt(
         outcome: input.status,
         detail,
       },
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new IntakeMailboxReceiptError(
-      `Mailbox receipt was written to the snapshot, but the ledger append failed. ${message}`,
-      500,
-    );
-  }
-
-  // Evaluate auto-resolution policy after recording the receipt
-  try {
-    const updatedIntake = await getIntakeById(intake.intakeId);
-    if (updatedIntake) {
-      await evaluatePolicyClosure(
-        updatedIntake,
-        `api/provider-events/mailbox-receipt:policy_closure`,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new IntakeMailboxReceiptError(
+        `Mailbox receipt was written to the snapshot, but the ledger append failed. ${message}`,
+        500,
       );
     }
-  } catch {
-    // Policy closure is best-effort; the receipt fact is already durable.
-  }
 
-  return {
-    status: "recorded",
-    intakeId: intake.intakeId,
-    channel: intake.channel,
-    threadId: intake.threadId,
-    deliveryAttemptId: input.deliveryAttemptId,
-    receiptId: input.receiptId,
-    outcome: input.status,
-    observedAt: input.observedAt,
-    detail,
-  };
+    try {
+      await evaluatePolicyClosureWithinLock(
+        handle,
+        `api/provider-events/mailbox-receipt:policy_closure`,
+      );
+    } catch {
+      // Policy closure is best-effort; the receipt fact is already durable.
+    }
+
+    return response("recorded");
+  });
 }
 
 function mailboxReceiptRank(

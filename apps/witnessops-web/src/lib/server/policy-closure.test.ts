@@ -231,6 +231,23 @@ test("policy closure is idempotent", async () => {
   assert.equal(closures.length, 1, "exactly one policy closure event");
 });
 
+test("concurrent policy evaluations emit exactly one closure", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "policy-concurrent-"));
+  applyTestEnv(baseDir);
+  const intake = makeIntake({ responseProviderOutcome: outcome("delivered") });
+  await saveIntake(intake);
+
+  const results = await Promise.all(
+    Array.from({ length: 8 }, () => evaluatePolicyClosure(intake.intakeId, "test")),
+  );
+  assert.equal(results.filter((result) => result.emitted).length, 1);
+  const events = await readIntakeEvents();
+  assert.equal(
+    events.filter((event) => event.event_type === "INTAKE_AMBIGUITY_CLOSED_BY_POLICY").length,
+    1,
+  );
+});
+
 test("no first response means no auto-closure", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "policy-no-resp-"));
   applyTestEnv(baseDir);
