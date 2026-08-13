@@ -6,6 +6,10 @@ import {
 } from "@/lib/token-contract";
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
+  AdminBusinessAuthorizationError,
+  requireIntakeBusinessAccess,
+} from "@/lib/server/admin-business-authorization";
+import {
   IntakeReconciliationError,
   reconcileIntakeResponse,
 } from "@/lib/server/intake-reconciliation";
@@ -35,6 +39,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    await requireIntakeBusinessAccess(session, parsed.data.intakeId);
     const response = await reconcileIntakeResponse({
       ...parsed.data,
       actor: session.actor,
@@ -47,6 +52,9 @@ export async function POST(request: NextRequest) {
       adminIntakeReconcileResponseSchema.parse(response),
     );
   } catch (error) {
+    if (error instanceof AdminBusinessAuthorizationError) {
+      return invalid(error.message, error.status);
+    }
     if (error instanceof IntakeReconciliationError) {
       return invalid(error.message, error.status);
     }

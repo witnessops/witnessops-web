@@ -16,6 +16,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import {
+  AdminBusinessAuthorizationError,
+  requireRunBusinessAccess,
+} from "@/lib/server/admin-business-authorization";
+import {
   appendDeliveryRetryRequest,
   getLatestDeliveryRetryRequest,
 } from "@/lib/server/delivery-retry-ledger";
@@ -56,6 +60,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
   if (reason.length > 500) {
     return invalid("reason must be 500 characters or fewer.", 400);
+  }
+
+  try {
+    await requireRunBusinessAccess(session, runId);
+  } catch (error) {
+    if (error instanceof AdminBusinessAuthorizationError) {
+      return invalid(error.message, error.status);
+    }
+    throw error;
   }
 
   // Bound check: refuse if a retry is already outstanding for this run.
