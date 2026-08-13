@@ -94,8 +94,9 @@ compare_runtime_envfrom_contract() {
   return 0
 }
 
-# Names only. Secret values are never decoded, emitted, or logged by the deploy
-# preflight.
+# Credential values are never decoded, emitted, or logged by deploy preflight.
+# The bounded admin-role enum is decoded separately into captured shell state
+# so an exact legacy explicit role can be migrated without widening authority.
 required_admin_oidc_key_names() {
   printf '%s\n' \
     'WITNESSOPS_ADMIN_SECRET' \

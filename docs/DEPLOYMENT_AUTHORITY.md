@@ -71,8 +71,10 @@ scripts cover the lane. Prefer in-repo scripts so agents and humans share one pa
 - The production deploy helper reconciles the image and exact `envFrom`
   contract atomically after a fail-closed Secret preflight. The OIDC Secret must
   contain `WITNESSOPS_ADMIN_SECRET` plus the five
-  `WITNESSOPS_GOOGLE_*` key names used by Google admin authentication. Only key
-  names are emitted for preflight; values are never decoded, emitted, or logged.
+  `WITNESSOPS_GOOGLE_*` key names used by Google admin authentication. Credential
+  values are never decoded, emitted, or logged. The bounded
+  `WITNESSOPS_ADMIN_ROLE` enum is decoded into captured shell state, validated,
+  and used only to bind migration of an exactly matching legacy explicit role.
 - Extra dormant Microsoft OIDC or legacy-key credential entries are deliberately
   untouched. Removing them requires separate custody-cleanup authorization.
 
