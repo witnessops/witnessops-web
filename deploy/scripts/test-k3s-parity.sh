@@ -395,7 +395,9 @@ python3() {
   printf '%s\n' 'PASS packages=1 graph_sha256=test'
 }
 gate_success_stderr="$(mktemp "${TMPDIR:-/tmp}/witnessops-gate-success.XXXXXX")"
-if [[ -z "$(run_supply_chain_gate 2>"${gate_success_stderr}")" ]] \
+gate_success_output=""
+if gate_success_output="$(run_supply_chain_gate 2>"${gate_success_stderr}")" \
+  && [[ -z "${gate_success_output}" ]] \
   && grep -Fq 'PASS packages=1 graph_sha256=test' "${gate_success_stderr}"; then
   pass=$((pass + 1))
   echo "PASS: supply-chain gate keeps stdout reserved and evidence visible on stderr"
