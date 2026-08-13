@@ -44,7 +44,6 @@ import {
 } from "./token-store";
 import { renderVerificationEmail } from "./token-email-template";
 import { sendVerificationEmail } from "./send-verification-email";
-import { triggerAssessment } from "./assessment-client";
 import { notifyScopeApproved } from "./control-plane-client";
 import { claimantActionBlocksApproval } from "./claimant-actions";
 import { operatorRejectionBlocksApproval } from "./operator-actions";
@@ -640,14 +639,6 @@ function buildPostVerifyPath(
   return `/assessment/${encodeURIComponent(issuance.issuanceId)}?${search.toString()}`;
 }
 
-function shouldAttachAssessment(intake: IntakeRecord): boolean {
-  const policy = getChannelPolicy(intake.channel ?? "engage");
-  return (
-    policy.autoAssessment &&
-    !isAccessChangeProofRunIntent(intake.submission.intent)
-  );
-}
-
 export async function createVerificationIssuance(
   input: CreateVerificationIssuanceInput,
 ): Promise<VerificationIssuanceResponse> {
@@ -769,97 +760,6 @@ export async function createVerificationIssuance(
 
 function isExpired(expiresAt: string): boolean {
   return new Date(expiresAt).getTime() <= Date.now();
-}
-
-interface AssessmentAttachment {
-  assessmentRunId: string | null;
-  assessmentStatus: AssessmentStatus;
-}
-
-async function ensureAssessmentAttached(
-  record: TokenIssuanceRecord,
-): Promise<AssessmentAttachment> {
-  const latest = (await getIssuanceById(record.issuanceId)) ?? record;
-
-  const channel = latest.channel ?? "engage";
-  if (!getChannelPolicy(channel).autoAssessment) {
-    await updateIssuance(record.issuanceId, (existing) => ({
-      ...existing,
-      assessmentStatus: existing.assessmentStatus ?? "unavailable",
-      assessmentError: existing.assessmentError ?? null,
-    }));
-    return {
-      assessmentRunId: null,
-      assessmentStatus: "unavailable",
-    };
-  }
-
-  if (latest.assessmentRunId) {
-    return {
-      assessmentRunId: latest.assessmentRunId,
-      assessmentStatus: latest.assessmentStatus ?? "pending",
-    };
-  }
-
-  if (!process.env.GES_SERVER_URL) {
-    console.warn(
-      "[token-issuance] GES_SERVER_URL not set — skipping assessment for",
-      record.issuanceId,
-    );
-    await updateIssuance(record.issuanceId, (existing) => ({
-      ...existing,
-      assessmentStatus: "unavailable",
-      assessmentError: "GES_SERVER_URL not configured",
-    }));
-    return {
-      assessmentRunId: null,
-      assessmentStatus: "unavailable",
-    };
-  }
-
-  try {
-    const result = await triggerAssessment({
-      email: record.email,
-      domain: record.email.split("@")[1] ?? "",
-      issuanceId: record.issuanceId,
-    });
-
-    if (!result) {
-      await updateIssuance(record.issuanceId, (existing) => ({
-        ...existing,
-        assessmentStatus: "unavailable",
-        assessmentError: "Assessment server not configured",
-      }));
-      return {
-        assessmentRunId: null,
-        assessmentStatus: "unavailable",
-      };
-    }
-
-    await updateIssuance(record.issuanceId, (existing) => ({
-      ...existing,
-      assessmentRunId: result.run_id,
-      assessmentStatus: result.status,
-      assessmentError: null,
-    }));
-
-    return {
-      assessmentRunId: result.run_id,
-      assessmentStatus: result.status,
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[token-issuance] assessment trigger failed:", message);
-    await updateIssuance(record.issuanceId, (existing) => ({
-      ...existing,
-      assessmentStatus: "unavailable",
-      assessmentError: message,
-    }));
-    return {
-      assessmentRunId: null,
-      assessmentStatus: "unavailable",
-    };
-  }
 }
 
 interface ScopeApprovalInput {
@@ -1113,12 +1013,6 @@ async function verifyIssuedTokenUnlocked(
       source: "api/verify-token",
       occurredAt: replayedAt,
     });
-    const assessment = shouldAttachAssessment(notifiedIntake)
-      ? await ensureAssessmentAttached(admitted.issuance)
-      : {
-          assessmentRunId: null,
-          assessmentStatus: "unavailable" as const,
-        };
     return toVerificationResponse({
       intake: notifiedIntake,
       issuance: admitted.issuance,
@@ -1126,8 +1020,8 @@ async function verifyIssuedTokenUnlocked(
         admitted.issuance.verifiedAt ??
         admitted.issuance.consumedAt ??
         replayedAt,
-      assessmentRunId: assessment.assessmentRunId,
-      assessmentStatus: assessment.assessmentStatus,
+      assessmentRunId: admitted.issuance.assessmentRunId ?? null,
+      assessmentStatus: admitted.issuance.assessmentStatus ?? "unavailable",
     });
   }
 
