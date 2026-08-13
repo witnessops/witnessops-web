@@ -209,12 +209,47 @@ DF
 }
 
 prod_deployment_json_patch() {
-  local image
+  local image explicit_keys admin_role key index role_index
   image="${1:-}"
+  explicit_keys="${2:-}"
+  admin_role="${3:-}"
   validate_container_image_ref "${image}" || return 1
+  index=0
+  role_index=""
+  while IFS= read -r key; do
+    [[ -n "${key}" ]] || continue
+    case "${key}" in
+      WITNESSOPS_ADMIN_ROLE)
+        [[ -z "${role_index}" ]] || {
+          printf 'duplicate explicit admin role entries\n' >&2
+          return 2
+        }
+        role_index="${index}"
+        ;;
+      WITNESSOPS_ADMIN_SECRET|WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST|WITNESSOPS_GOOGLE_OIDC_CLIENT_ID|WITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET|WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI|WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN)
+        printf 'explicit env shadows protected admin OIDC key: %s\n' "${key}" >&2
+        return 2
+        ;;
+    esac
+    index=$((index + 1))
+  done <<<"${explicit_keys}"
+
   printf '%s' '[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"'
   printf '%s' "${APP_CONTAINER_NAME}"
-  printf '%s' '"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"'
+  printf '%s' '"}'
+  if [[ -n "${role_index}" ]]; then
+    validate_admin_role_value "${admin_role}" || return 2
+    printf '%s' ',{"op":"test","path":"/spec/template/spec/containers/0/env/'
+    printf '%s' "${role_index}"
+    printf '%s' '/name","value":"WITNESSOPS_ADMIN_ROLE"},{"op":"test","path":"/spec/template/spec/containers/0/env/'
+    printf '%s' "${role_index}"
+    printf '%s' '/value","value":"'
+    printf '%s' "${admin_role}"
+    printf '%s' '"},{"op":"remove","path":"/spec/template/spec/containers/0/env/'
+    printf '%s' "${role_index}"
+    printf '%s' '"}'
+  fi
+  printf '%s' ',{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"'
   printf '%s' "${BASE_ENV_SECRET}"
   printf '%s' '"}},{"secretRef":{"name":"'
   printf '%s' "${ADMIN_OIDC_SECRET}"
@@ -224,7 +259,8 @@ prod_deployment_json_patch() {
 }
 
 preflight_remote_admin_secrets() {
-  local oidc_key_names
+  local oidc_key_names admin_role
+  PREFLIGHT_ADMIN_ROLE=""
 
   if ! remote "kubectl -n '${DEPLOY_NS}' get secret '${BASE_ENV_SECRET}' -o name >/dev/null"; then
     die "required runtime secret is unavailable: ${BASE_ENV_SECRET}"
@@ -237,16 +273,15 @@ preflight_remote_admin_secrets() {
     die "admin OIDC secret preflight failed (key names only)"
   fi
 
-  if ! remote "set -euo pipefail
+  admin_role="$(remote "set -euo pipefail
     encoded=\$(kubectl -n '${DEPLOY_NS}' get secret '${ADMIN_OIDC_SECRET}' -o jsonpath='{.data.WITNESSOPS_ADMIN_ROLE}')
     role=\$(printf '%s' \"\${encoded}\" | base64 -d)
-    case \"\${role}\" in
-      'Founder'|'Delegated Operator'|'Administrator') ;;
-      *) exit 2 ;;
-    esac
-  "; then
+    printf '%s' \"\${role}\"
+  ")" || {
     die "admin role preflight failed"
-  fi
+  }
+  validate_admin_role_value "${admin_role}" || die "admin role preflight failed"
+  PREFLIGHT_ADMIN_ROLE="${admin_role}"
 }
 
 deployment_envfrom_contract() {
@@ -289,13 +324,17 @@ assert_remote_no_admin_oidc_env_shadows() {
 }
 
 deploy_prod_image() {
-  local image patch
+  local image patch explicit_keys admin_role
   image="${1:-}"
-  patch="$(prod_deployment_json_patch "${image}")" \
-    || die "refusing invalid production image reference"
-
   preflight_remote_admin_secrets
-  assert_remote_no_admin_oidc_env_shadows "${PROD_DEPLOY}"
+  admin_role="${PREFLIGHT_ADMIN_ROLE}"
+  explicit_keys="$(deployment_explicit_env_key_names "${PROD_DEPLOY}")" \
+    || die "could not inspect explicit runtime env for ${PROD_DEPLOY}"
+  patch="$(prod_deployment_json_patch "${image}" "${explicit_keys}" "${admin_role}")" \
+    || die "refusing invalid image or protected production env shadow"
+  if grep -Fq 'WITNESSOPS_ADMIN_ROLE' <<<"${explicit_keys}"; then
+    log "migrating legacy explicit admin role to protected Secret custody"
+  fi
   log "deploying PROD ${PROD_DEPLOY} -> ${image}"
   remote "set -euo pipefail
     kubectl -n '${DEPLOY_NS}' get deploy '${PROD_DEPLOY}' -o jsonpath='{.spec.template.spec.containers[0].image}' > /tmp/witnessops-web-prev-image.txt

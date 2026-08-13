@@ -393,6 +393,15 @@ image='docker.io/library/witnessops-web:main-test-20260806T000000Z'
 expected_patch='[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"example-app-container"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"example-runtime-secret"}},{"secretRef":{"name":"example-identity-secret"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"docker.io/library/witnessops-web:main-test-20260806T000000Z"}]'
 assert_output "${expected_patch}" prod_deployment_json_patch "${image}"
 assert_exit 1 prod_deployment_json_patch 'bad image ref'
+expected_role_migration_patch='[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"example-app-container"},{"op":"test","path":"/spec/template/spec/containers/0/env/1/name","value":"WITNESSOPS_ADMIN_ROLE"},{"op":"test","path":"/spec/template/spec/containers/0/env/1/value","value":"Founder"},{"op":"remove","path":"/spec/template/spec/containers/0/env/1"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"example-runtime-secret"}},{"secretRef":{"name":"example-identity-secret"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"docker.io/library/witnessops-web:main-test-20260806T000000Z"}]'
+assert_output "${expected_role_migration_patch}" prod_deployment_json_patch \
+  "${image}" $'PORT\nWITNESSOPS_ADMIN_ROLE\nHOSTNAME' Founder
+assert_exit 2 prod_deployment_json_patch \
+  "${image}" $'PORT\nWITNESSOPS_ADMIN_ROLE\nHOSTNAME'
+assert_exit 2 prod_deployment_json_patch \
+  "${image}" $'WITNESSOPS_ADMIN_ROLE\nWITNESSOPS_ADMIN_ROLE' Founder
+assert_exit 2 prod_deployment_json_patch \
+  "${image}" $'PORT\nWITNESSOPS_ADMIN_SECRET'
 
 remote_mode="ok"
 remote_log="$(mktemp "${TMPDIR:-/tmp}/witnessops-k3s-remote.XXXXXX")"
@@ -403,7 +412,11 @@ remote() {
   local command_text="$*"
   printf '%s\n' "${command_text}" >> "${remote_log}"
   if [[ "${command_text}" == *"encoded="*"WITNESSOPS_ADMIN_ROLE"* ]]; then
-    [[ "${remote_mode}" != "invalid-role" ]]
+    if [[ "${remote_mode}" == "invalid-role" ]]; then
+      printf '%s' 'invalid'
+    else
+      printf '%s' 'Founder'
+    fi
   elif [[ "${command_text}" == *"get secret"*"example-identity-secret"* ]]; then
     if [[ "${remote_mode}" == "missing-key" ]]; then
       without_line "${required_oidc_keys}" WITNESSOPS_ADMIN_SECRET
@@ -414,6 +427,12 @@ remote() {
     if [[ "${command_text}" == *"range .env}"* ]]; then
       if [[ "${remote_mode}" == "runtime-role-shadow" || "${remote_mode}" == "smoke-role-shadow" ]]; then
         printf '%s\n' $'PORT\nWITNESSOPS_ADMIN_ROLE'
+      elif [[ "${remote_mode}" == "migratable-role-shadow" ]]; then
+        if [[ "$(grep -c 'range .env}' "${remote_log}" || true)" -eq 1 ]]; then
+          printf '%s\n' $'PORT\nWITNESSOPS_ADMIN_ROLE\nHOSTNAME'
+        else
+          printf '%s\n' $'PORT\nHOSTNAME'
+        fi
       else
         printf '%s\n' $'PORT\nHOSTNAME'
       fi
@@ -485,6 +504,17 @@ else
   fail=$((fail + 1))
   echo "FAIL: deploy_prod_image rejected valid preflight" >&2
 fi
+
+remote_mode="migratable-role-shadow"
+: > "${remote_log}"
+if deploy_prod_image "${image}" >/dev/null 2>&1 \
+  && grep -q '"op":"remove","path":"/spec/template/spec/containers/0/env/1"' "${remote_log}"; then
+  pass=$((pass + 1))
+  echo "PASS: prod deploy atomically migrates the legacy explicit admin role"
+else
+  fail=$((fail + 1))
+  echo "FAIL: prod deploy did not migrate the legacy explicit admin role" >&2
+fi
 if grep -q 'kubectl .* patch ' "${remote_log}" \
   && ! grep -q 'set image' "${remote_log}"; then
   pass=$((pass + 1))
@@ -505,21 +535,11 @@ for drift_mode in runtime-prefix-drift runtime-optional-drift runtime-role-shado
     echo "PASS: deploy_prod_image rejects post-patch ${drift_mode}"
   fi
   if grep -q 'kubectl .* patch ' "${remote_log}"; then
-    if [[ "${drift_mode}" == "runtime-role-shadow" ]]; then
-      fail=$((fail + 1))
-      echo "FAIL: ${drift_mode} was not rejected before mutation" >&2
-    else
-      pass=$((pass + 1))
-      echo "PASS: ${drift_mode} is detected by post-patch runtime inspection"
-    fi
+    pass=$((pass + 1))
+    echo "PASS: ${drift_mode} is detected by post-patch runtime inspection"
   else
-    if [[ "${drift_mode}" == "runtime-role-shadow" ]]; then
-      pass=$((pass + 1))
-      echo "PASS: ${drift_mode} is rejected before mutation"
-    else
-      fail=$((fail + 1))
-      echo "FAIL: ${drift_mode} failed before the atomic patch was exercised" >&2
-    fi
+    fail=$((fail + 1))
+    echo "FAIL: ${drift_mode} failed before the atomic patch was exercised" >&2
   fi
 done
 
