@@ -7,22 +7,40 @@ import test, { afterEach } from "node:test";
 import { applyQueueCommand } from "./queue-command-executor";
 import {
   clearTokenStore,
-  getIntakeById,
   saveIntake,
   type IntakeRecord,
 } from "./token-store";
 
-function makeIntake(): IntakeRecord {
+function makeIntake(assignedOperator: string): IntakeRecord {
   return {
-    intakeId: "intk_queue_concurrency",
+    intakeId: "intk_queue_owned",
     channel: "engage",
-    email: "security@witnessops.com",
+    email: "buyer@example.com",
     state: "admitted",
-    createdAt: "2026-08-13T12:00:00Z",
-    updatedAt: "2026-08-13T12:00:00Z",
+    createdAt: "2026-08-13T08:00:00Z",
+    updatedAt: "2026-08-13T08:00:00Z",
     latestIssuanceId: null,
-    threadId: "thr_queue_concurrency",
+    threadId: null,
     submission: {},
+    queue: {
+      projection: {
+        queueWorkflowState: "pending_operator_review",
+        assignedOperator,
+        priority: "normal",
+        currentScopeContractId: null,
+        scopeContractStatus: null,
+        currentClarificationRecordId: null,
+        clarificationOutstanding: false,
+        respondedAt: null,
+        lastOperatorActionAt: null,
+        projectionVersion: 0,
+        eventSequence: 0,
+        responseRecordId: null,
+      },
+      scopeContracts: [],
+      clarifications: [],
+      responses: [],
+    },
   };
 }
 
@@ -30,38 +48,76 @@ afterEach(async () => {
   await clearTokenStore();
 });
 
-test("queue commands serialize version checks with snapshot and ledger writes", async () => {
-  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-command-"));
+test("delegated queue commands are limited to the assigned intake", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-authz-"));
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
-  await saveIntake(makeIntake());
+  await saveIntake(makeIntake("owner@test"));
 
-  const command = (priority: "high" | "urgent", idempotencyKey: string) =>
-    applyQueueCommand(
-      {
-        intakeId: "intk_queue_concurrency",
-        actor: "founder@test",
-        actorAuthSource: "local_bypass",
-        actorSessionHash: null,
-        isAdmin: true,
-        expectedProjectionVersion: 0,
-        expectedEventSequence: 0,
-        idempotencyKey,
-        source: "test",
-      },
-      { command: "queue.set_priority", priority },
-    );
+  const result = await applyQueueCommand(
+    {
+      intakeId: "intk_queue_owned",
+      actor: "other@test",
+      actorAuthSource: "oidc_session",
+      actorSessionHash: "session-hash",
+      role: "Delegated Operator",
+      expectedProjectionVersion: 0,
+      expectedEventSequence: 0,
+      idempotencyKey: "queue-authz-denied",
+      source: "test",
+    },
+    { command: "queue.set_priority", priority: "high" },
+  );
 
-  const results = await Promise.all([
-    command("high", "queue-concurrency-a"),
-    command("urgent", "queue-concurrency-b"),
-  ]);
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.deepEqual(result.reasonCodes, ["AUTHORIZATION_REQUIRED"]);
+  }
 
-  assert.equal(results.filter((result) => result.ok).length, 1);
-  const rejected = results.find((result) => !result.ok);
-  assert.deepEqual(rejected?.reasonCodes, ["PROJECTION_VERSION_MISMATCH"]);
+  const ownerResult = await applyQueueCommand(
+    {
+      intakeId: "intk_queue_owned",
+      actor: "owner@test",
+      actorAuthSource: "oidc_session",
+      actorSessionHash: "session-hash",
+      role: "Delegated Operator",
+      idempotencyKey: "queue-authz-owner",
+      source: "test",
+    },
+    { command: "queue.set_priority", priority: "high" },
+  );
+  assert.equal(ownerResult.ok, true);
 
-  const stored = await getIntakeById("intk_queue_concurrency");
-  assert.equal(stored?.queue?.projection.projectionVersion, 1);
-  assert.equal(stored?.queue?.projection.eventSequence, 1);
+  const administratorBusinessResult = await applyQueueCommand(
+    {
+      intakeId: "intk_queue_owned",
+      actor: "admin@test",
+      actorAuthSource: "oidc_session",
+      actorSessionHash: "session-hash",
+      role: "Administrator",
+      idempotencyKey: "queue-authz-admin-business",
+      source: "test",
+    },
+    { command: "queue.set_priority", priority: "urgent" },
+  );
+  assert.equal(administratorBusinessResult.ok, false);
+  if (!administratorBusinessResult.ok) {
+    assert.deepEqual(administratorBusinessResult.reasonCodes, [
+      "AUTHORIZATION_REQUIRED",
+    ]);
+  }
+
+  const administratorAssignmentResult = await applyQueueCommand(
+    {
+      intakeId: "intk_queue_owned",
+      actor: "admin@test",
+      actorAuthSource: "oidc_session",
+      actorSessionHash: "session-hash",
+      role: "Administrator",
+      idempotencyKey: "queue-authz-admin-assignment",
+      source: "test",
+    },
+    { command: "queue.reassign", targetOperator: "other@test" },
+  );
+  assert.equal(administratorAssignmentResult.ok, true);
 });

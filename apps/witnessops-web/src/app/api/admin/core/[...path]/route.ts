@@ -7,6 +7,7 @@ import { sendVerificationEmail } from "@/lib/server/send-verification-email";
 import {
   AdminCoreError,
   approveReviewRequest,
+  assertDeliveryActionAuthorized,
   buildDeliveryReadiness,
   buildProofReadiness,
   classifyInboxAttachment,
@@ -34,10 +35,10 @@ import {
   listReceiptRecords,
   listReviewRequests,
   prepareDelivery,
+  recordDeliverySent,
   recordGmailLabelSync,
   recordIntegrationFailure,
   searchCoreRecords,
-  sendAuthorizedDelivery,
   transitionDelivery,
   transitionProofRun,
   transitionReviewRequest,
@@ -70,15 +71,9 @@ function responseError(error: unknown): NextResponse {
   );
 }
 
-function roleFromEnvironment(): CoreActor["role"] {
-  const role = process.env.WITNESSOPS_ADMIN_ROLE;
-  if (role === "Delegated Operator" || role === "Administrator" || role === "Founder") return role;
-  return "Founder";
-}
-
 async function actorFor(request: NextRequest): Promise<CoreActor | null> {
   const session = await getVerifiedAdminSession(request);
-  return session ? { actor: session.actor, role: roleFromEnvironment() } : null;
+  return session ? { actor: session.actor, role: session.role } : null;
 }
 
 async function jsonBody(request: NextRequest): Promise<Record<string, unknown>> {
@@ -283,30 +278,23 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }, actor) });
     }
     if (resource === "deliveries" && idValue && action === "send") {
-      const idempotencyKey =
-        stringValue(body, "idempotencyKey", false) ||
-        `delivery-send:${idValue}`;
-      let providerAttempted = false;
+      const delivery = await getDelivery(idValue);
+      if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+      await assertDeliveryActionAuthorized(idValue, actor);
+      if (delivery.state === "sent" || delivery.state === "acknowledged") return NextResponse.json({ ok: true, item: delivery, idempotent: true });
+      const customer = await getCustomer(delivery.customerId);
+      if (!customer) throw new AdminCoreError("STORE_CORRUPT", "Delivery customer is missing.", 500);
       try {
-        const item = await sendAuthorizedDelivery(
-          idValue,
-          actor,
-          async (message) => {
-            providerAttempted = true;
-            const result = await sendVerificationEmail({
-              ...message,
-              replyTo: PUBLIC_CONTACT_EMAIL,
-            });
-            return { ...result, sentAt: result.deliveredAt };
-          },
-          idempotencyKey,
-        );
-        return NextResponse.json({ ok: true, item });
+        const result = await sendVerificationEmail({
+          to: customer.email,
+          replyTo: PUBLIC_CONTACT_EMAIL,
+          subject: delivery.subject,
+          text: delivery.body,
+          deliveryAttemptId: delivery.id,
+        });
+        return NextResponse.json({ ok: true, item: await recordDeliverySent(idValue, { ...result, sentAt: result.deliveredAt }, actor, stringValue(body, "idempotencyKey", false) || `delivery-send:${idValue}`) });
       } catch (error) {
-        if (providerAttempted) {
-          const delivery = await getDelivery(idValue);
-          await recordIntegrationFailure({ integration: "mail", operation: "send_delivery", idempotencyKey, externalId: null, error: error instanceof Error ? error.message : "Mail delivery failed." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery?.lineageId ?? null });
-        }
+        await recordIntegrationFailure({ integration: "mail", operation: "send_delivery", idempotencyKey: `delivery-send:${idValue}`, externalId: null, error: error instanceof Error ? error.message : "Mail delivery failed." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery.lineageId });
         throw error;
       }
     }

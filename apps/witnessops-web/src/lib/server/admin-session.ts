@@ -1,15 +1,17 @@
 import type { NextRequest } from "next/server";
 
 import type { AdminActorAuthSource } from "@/lib/token-contract";
+import { ADMIN_ROLES, type AdminRole } from "./admin-authorization";
 
 interface AdminSessionPayload {
-  version: 2;
+  version: 3;
   identityProvider: "google";
   issuer: "https://accounts.google.com";
   subject: string;
   actor: string;
   actorAuthSource: "oidc_session";
   actorSessionHash: string;
+  role: AdminRole;
   iat: number;
   exp: number;
 }
@@ -18,6 +20,7 @@ export interface VerifiedAdminSession {
   actor: string;
   actorAuthSource: AdminActorAuthSource;
   actorSessionHash: string | null;
+  role: AdminRole;
   isLocalBypass: boolean;
 }
 
@@ -116,7 +119,7 @@ export async function verifyAdminSessionCookie(
     ) as Partial<AdminSessionPayload>;
     const now = Date.now();
     if (
-      payload.version !== 2 ||
+      payload.version !== 3 ||
       typeof payload.iat !== "number" ||
       !Number.isSafeInteger(payload.iat) ||
       typeof payload.exp !== "number" ||
@@ -140,19 +143,21 @@ export async function verifyAdminSessionCookie(
       typeof payload.actor !== "string" ||
       payload.actor !== `${GOOGLE_ADMIN_ACTOR_PREFIX}${payload.subject}` ||
       typeof payload.actorSessionHash !== "string" ||
-      !SESSION_HASH_PATTERN.test(payload.actorSessionHash)
+      !SESSION_HASH_PATTERN.test(payload.actorSessionHash) ||
+      !ADMIN_ROLES.includes(payload.role as AdminRole)
     ) {
       return null;
     }
 
     return {
-      version: 2,
+      version: 3,
       identityProvider: "google",
       issuer: GOOGLE_OIDC_ISSUER,
       subject: payload.subject,
       actor: payload.actor,
       actorAuthSource: "oidc_session",
       actorSessionHash: payload.actorSessionHash,
+      role: payload.role as AdminRole,
       iat: payload.iat,
       exp: payload.exp,
     };
@@ -169,6 +174,7 @@ export async function getVerifiedAdminSession(
       actor: "local-dev",
       actorAuthSource: "local_bypass",
       actorSessionHash: null,
+      role: "Founder",
       isLocalBypass: true,
     };
   }
@@ -187,6 +193,7 @@ export async function getVerifiedAdminSession(
     actor: payload.actor,
     actorAuthSource: "oidc_session",
     actorSessionHash: payload.actorSessionHash,
+    role: payload.role,
     isLocalBypass: false,
   };
 }

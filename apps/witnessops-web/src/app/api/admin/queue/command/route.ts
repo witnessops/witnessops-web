@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         actor: session.actor,
         actorAuthSource: session.actorAuthSource,
         actorSessionHash: session.actorSessionHash,
-        isAdmin: true,
+        role: session.role,
         expectedProjectionVersion: body.expectedProjectionVersion,
         expectedEventSequence: body.expectedEventSequence,
         idempotencyKey,
