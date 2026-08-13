@@ -23,6 +23,7 @@ const trackedEnv = [
   "WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI",
   "WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN",
   "WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST",
+  "WITNESSOPS_ADMIN_ROLE",
 ] as const;
 
 const originals = Object.fromEntries(
@@ -46,6 +47,7 @@ test.afterEach(() => {
 
 function configureGoogle(): void {
   process.env.WITNESSOPS_ADMIN_SECRET = "TEST_ONLY_SESSION_SECRET_PLACEHOLDER";
+  process.env.WITNESSOPS_ADMIN_ROLE = "Founder";
   process.env.WITNESSOPS_GOOGLE_OIDC_CLIENT_ID =
     "123456-test.apps.googleusercontent.com";
   process.env.WITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET =
@@ -157,7 +159,7 @@ test("Google callback verifies identity, rotates the session, and returns safely
 
   const encodedPayload = sessionCookie.slice(0, sessionCookie.lastIndexOf("."));
   const sessionPayload = JSON.parse(atob(encodedPayload)) as Record<string, unknown>;
-  assert.equal("role" in sessionPayload, false);
+  assert.equal(sessionPayload.role, "Founder");
   assert.equal("email" in sessionPayload, false);
   assert.equal("id_token" in sessionPayload, false);
 

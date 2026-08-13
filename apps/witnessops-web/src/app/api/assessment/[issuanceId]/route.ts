@@ -79,13 +79,13 @@ export async function GET(
       if (live) {
         await persistAssessmentStatus(record.issuanceId, {
           status: live.status,
-          error: live.error,
+          error: live.error ? "Assessment failed upstream." : undefined,
         });
         return NextResponse.json({
           ok: true,
           ...base,
           assessmentStatus: live.status,
-          run: live,
+          run: { ...live, error: live.error ? "Assessment failed upstream." : undefined },
         });
       }
     } catch {

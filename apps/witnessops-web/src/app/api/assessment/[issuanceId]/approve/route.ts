@@ -11,6 +11,7 @@ import {
   RequestBodyTooLargeError,
 } from "@/lib/server/bounded-request-body";
 import { approveScopeAndStartRecon } from "@/lib/server/token-issuance";
+import { UpstreamServiceError } from "@/lib/server/upstream-error";
 
 export const runtime = "nodejs";
 
@@ -59,6 +60,9 @@ export async function POST(
 
     return NextResponse.json(scopeApprovalResponseSchema.parse(response));
   } catch (error) {
+    if (error instanceof UpstreamServiceError) {
+      return invalid("Scope approval was recorded, but downstream handoff is pending.", 502);
+    }
     const message =
       error instanceof Error ? error.message : "Scope approval failed.";
     return invalid(message, 400);

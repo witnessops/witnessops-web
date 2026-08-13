@@ -268,11 +268,7 @@ export async function buildPostApprovalLifecycle(
       : null;
 
   if (upstreamSettled.status === "rejected") {
-    const error = upstreamSettled.reason;
-    const reason =
-      error instanceof Error
-        ? `Control plane unreachable: ${error.message}`
-        : "Control plane unreachable";
+    const reason = "Control plane is temporarily unreachable.";
     if (latestRetry) {
       return {
         stage: "retry_pending",

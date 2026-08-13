@@ -222,7 +222,8 @@ test("WEB-014: conflicting later write surfaces 409 from control-plane", async (
   assert.equal(response.status, 409);
   const payload = (await response.json()) as { ok: boolean; error: string };
   assert.equal(payload.ok, false);
-  assert.match(payload.error, /first successful write wins/);
+  assert.equal(payload.error, "Proof package disposition conflicts with its current state.");
+  assert.doesNotMatch(payload.error, /first successful write wins/);
 });
 
 test("WEB-014: missing controlPlaneRunId yields 409 not-yet-available", async () => {
