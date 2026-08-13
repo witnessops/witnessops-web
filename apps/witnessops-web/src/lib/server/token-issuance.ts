@@ -59,6 +59,13 @@ interface CreateVerificationIssuanceInput {
   submission?: IntakeSubmissionRecord;
 }
 
+export class ScopeApprovalInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ScopeApprovalInputError";
+  }
+}
+
 function nowIso(): string {
   return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
 }
@@ -779,30 +786,34 @@ async function approveScopeAndStartReconUnlocked(
 ): Promise<ScopeApprovalResult> {
   const record = await getIssuanceById(input.issuanceId);
   if (!record) {
-    throw new Error("Unknown issuance");
+    throw new ScopeApprovalInputError("Unknown issuance");
   }
 
   const { intake: originalIntake, issuance: originalIssuance } =
     await ensureIssuanceContext(record);
 
   if (originalIssuance.email !== input.email) {
-    throw new Error("Issuance email mismatch");
+    throw new ScopeApprovalInputError("Issuance email mismatch");
   }
 
   const policy = getChannelPolicy(originalIntake.channel ?? "engage");
   if (!policy.autoAssessment) {
-    throw new Error("Scope approval is only available for governed recon issuances.");
+    throw new ScopeApprovalInputError(
+      "Scope approval is only available for governed recon issuances.",
+    );
   }
 
   if (originalIssuance.status !== "verified") {
-    throw new Error("Issuance must be verified before scope approval.");
+    throw new ScopeApprovalInputError(
+      "Issuance must be verified before scope approval.",
+    );
   }
 
   // WEB-003: a prior claimant retract / disagree blocks approval until
   // the engagement is re-opened. Amend does not block.
   const blocking = claimantActionBlocksApproval(originalIssuance);
   if (blocking.blocked) {
-    throw new Error(
+    throw new ScopeApprovalInputError(
       `Scope approval is blocked because the claimant has ${blocking.kind === "retract" ? "retracted the engagement" : "disagreed with the proposed scope"}.`,
     );
   }
@@ -810,7 +821,7 @@ async function approveScopeAndStartReconUnlocked(
   // WEB-004: an operator rejection (approval_denied) blocks subsequent
   // approval through the same code path that gates claimant exits.
   if (operatorRejectionBlocksApproval(originalIssuance)) {
-    throw new Error(
+    throw new ScopeApprovalInputError(
       "Scope approval is blocked because an operator has rejected this intake.",
     );
   }

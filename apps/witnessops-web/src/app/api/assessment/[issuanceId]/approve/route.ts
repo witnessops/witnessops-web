@@ -10,8 +10,10 @@ import {
   readBoundedRequestJson,
   RequestBodyTooLargeError,
 } from "@/lib/server/bounded-request-body";
-import { approveScopeAndStartRecon } from "@/lib/server/token-issuance";
-import { UpstreamServiceError } from "@/lib/server/upstream-error";
+import {
+  approveScopeAndStartRecon,
+  ScopeApprovalInputError,
+} from "@/lib/server/token-issuance";
 
 export const runtime = "nodejs";
 
@@ -60,11 +62,12 @@ export async function POST(
 
     return NextResponse.json(scopeApprovalResponseSchema.parse(response));
   } catch (error) {
-    if (error instanceof UpstreamServiceError) {
-      return invalid("Scope approval was recorded, but downstream handoff is pending.", 502);
+    if (error instanceof ScopeApprovalInputError) {
+      return invalid(error.message, 400);
     }
-    const message =
-      error instanceof Error ? error.message : "Scope approval failed.";
-    return invalid(message, 400);
+    console.error("Scope approval downstream handoff failed", {
+      errorType: error instanceof Error ? error.name : "unknown",
+    });
+    return invalid("Scope approval was recorded, but downstream handoff is pending.", 502);
   }
 }
