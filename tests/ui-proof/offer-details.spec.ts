@@ -28,8 +28,8 @@ const offers = [
   {
     path: "/catalog/offsec-external-exposure",
     service: "external-exposure-assessment",
-    name: "External Exposure Assessment",
-    price: "€1,500 paid pilot — one public-facing domain/application",
+    name: "Public Exposure Review",
+    price: "€1,900 ex VAT — one authorised public-facing system",
     timing: "Within 3 working days after payment, accepted scope, authority, required inputs, and the collection window are confirmed",
     request: "/review/request",
   },
@@ -68,8 +68,8 @@ const offers = [
   {
     path: "/pl/catalog/offsec-external-exposure",
     service: "external-exposure-assessment",
-    name: "Ocena ekspozycji zewnętrznej",
-    price: "Płatny pilotaż €1 500 — jedna publiczna domena/aplikacja",
+    name: "Public Exposure Review",
+    price: "€1 900 netto — jeden autoryzowany system publicznie dostępny",
     timing: "W ciągu 3 dni roboczych po potwierdzeniu płatności, zaakceptowanego zakresu, upoważnienia, wymaganych danych wejściowych i okna zbierania",
     request: "/pl/review/request",
   },
@@ -120,7 +120,7 @@ test("reachable offer details use the canonical buyer contract and visual system
       await expect(main).toHaveAttribute("data-price-contract", /.+/);
       if (offer.service === "external-exposure-assessment") {
         await expect(main).toContainText(
-          offer.path.startsWith("/pl") ? "Płatny pilotaż €1 500" : "€1,500 paid pilot",
+          offer.path.startsWith("/pl") ? "€1 900 netto" : "€1,900 ex VAT",
         );
         const sampleLink = main.locator(
           'a[href="/review/sample-cases/external-exposure-assessment"]',
@@ -133,9 +133,7 @@ test("reachable offer details use the canonical buyer contract and visual system
         );
         await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
           "content",
-          offer.path.startsWith("/pl")
-            ? /Ocena ekspozycji zewnętrznej \| WitnessOps/
-            : /External Exposure Assessment \| WitnessOps/,
+          /Public Exposure Review \| WitnessOps/,
         );
         await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(
           "href",
@@ -182,7 +180,7 @@ test("reachable offer details use the canonical buyer contract and visual system
   }
 });
 
-test("External Exposure Assessment synthetic sample is buyer-safe and responsive", async ({ browser }) => {
+test("Public Exposure Review synthetic sample is buyer-safe and responsive", async ({ browser }) => {
   const expectedFiles = [
     "README.md",
     "external-exposure-assessment.md",
@@ -217,7 +215,7 @@ test("External Exposure Assessment synthetic sample is buyer-safe and responsive
     const main = page.locator(
       '[data-page="external-exposure-assessment-sample"]',
     );
-    await expect(main.locator("h1")).toHaveText("External Exposure Assessment");
+    await expect(main.locator("h1")).toHaveText("Public Exposure Review");
     await expect(main).toContainText(
       "Synthetic worked example — not customer evidence.",
     );

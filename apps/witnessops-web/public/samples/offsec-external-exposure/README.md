@@ -1,4 +1,4 @@
-# External Exposure Assessment — buyer-safe synthetic sample
+# Public Exposure Review — buyer-safe synthetic sample
 
 **Synthetic worked example — not customer evidence.**
 

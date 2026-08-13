@@ -1,4 +1,4 @@
-# External Exposure Assessment — 45-minute handover
+# Public Exposure Review — 45-minute handover
 
 **Synthetic worked example — not customer evidence.**
 

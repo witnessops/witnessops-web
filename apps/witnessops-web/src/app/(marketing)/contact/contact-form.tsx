@@ -165,17 +165,17 @@ export function ContactForm({
           ? "Weryfikacja skrzynki nie rozpoczyna przeglądu. Najpierw asynchronicznie potwierdzamy zakres, upoważnienie, dostępność, cenę i warunki startu terminu dostawy."
           : "Mailbox verification does not start the review. Scope, authority, capacity, price, and delivery-clock conditions are accepted asynchronously first.",
         fitTitle: polish
-          ? "Zamów jeden przegląd publicznej ekspozycji."
-          : "Start your External Exposure Assessment.",
+          ? "Rozpocznij Public Exposure Review."
+          : "Start your Public Exposure Review.",
         fitBody: polish
-          ? "Podaj jedną domenę publiczną i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu."
+          ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu."
           : "Tell us what public-facing system you want reviewed. We’ll confirm the exact boundary and authority before any testing begins.",
-        workflow: polish ? "Domena publiczna do przeglądu" : "Public target",
+        workflow: polish ? "System publicznie dostępny do przeglądu" : "Public target",
         workflowPlaceholder: polish
-          ? "example.com — jedna domena rejestrowalna lub jedna ściśle ograniczona aplikacja publiczna"
+          ? "example.com, api.example.com, aplikacja, API, publiczny adres IP lub endpoint chmurowy"
           : "example.com or api.example.com",
         workflowHelp: polish
-          ? "Podaj wyłącznie publiczną nazwę domeny. Nie wklejaj sekretów, logów, zrzutów ekranu ani danych dostępowych."
+          ? "Podaj domenę, host, aplikację, API, publiczny adres IP albo publiczny endpoint chmurowy. Nie wklejaj sekretów, logów, zrzutów ekranu ani danych dostępowych."
           : "Domain, hostname, public IP, API, application, or public cloud endpoint. No credentials or secrets.",
         actionPath: polish ? "Dlaczego teraz?" : "Why now?",
         actionPathPlaceholder: polish
@@ -244,7 +244,7 @@ export function ContactForm({
     const evidenceAvailable = stringField(data, "evidenceAvailable");
     const proofRunScope = [
       externalExposureOrder
-        ? "Request: External Exposure Assessment"
+        ? "Request: Public Exposure Review"
         : "Request: WitnessOps review fit check",
       `Selected product / intent: ${intent}`,
       `Request locale: ${locale}`,
@@ -393,6 +393,8 @@ export function ContactForm({
       <div className="-m-4 rounded border border-[#cfc9bd] bg-[#f7f5f1] p-4 text-[#121212] sm:-m-6 sm:p-6 md:-m-8 md:p-8">
         <form
           onSubmit={handleVerifySubmit}
+          method="post"
+          action="/api/verify-token"
           className="space-y-5"
           aria-busy={verifyStatus === "verifying"}
         >
@@ -525,7 +527,13 @@ export function ContactForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5" aria-busy={status === "sending"}>
+    <form
+      onSubmit={handleSubmit}
+      method="post"
+      action="/api/review/request"
+      className="space-y-5"
+      aria-busy={status === "sending"}
+    >
       <input type="hidden" name="intent" value={intent} />
       <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
         {status === "sending"

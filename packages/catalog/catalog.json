@@ -173,8 +173,8 @@
     {
       "id": "OFFSEC-EXTERNAL-EXPOSURE",
       "track": "offsec_proof",
-      "name": "External Exposure Assessment",
-      "summary": "A paid pilot for one authorised public-facing domain or application, with manually reviewed outside-in findings, explicit unknowns, and an inspectable handover package.",
+      "name": "Public Exposure Review",
+      "summary": "A fixed-scope external security review of one authorised public-facing system, with manually reviewed outside-in findings, explicit unknowns, and an inspectable handover package.",
       "status": "ship_today",
       "availability": "witnessops_request",
       "buyer_personas": [
@@ -183,9 +183,9 @@
         "operator"
       ],
       "price": {
-        "anchor_eur_min": 1500,
-        "anchor_eur_max": 1500,
-        "display": "€1,500 paid pilot — one public-facing domain/application",
+        "anchor_eur_min": 1900,
+        "anchor_eur_max": 1900,
+        "display": "€1,900 ex VAT — one authorised public-facing system",
         "billing": "one_time"
       },
       "deliverables": [

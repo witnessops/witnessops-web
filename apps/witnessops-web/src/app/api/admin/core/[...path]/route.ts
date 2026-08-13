@@ -34,10 +34,10 @@ import {
   listReceiptRecords,
   listReviewRequests,
   prepareDelivery,
-  recordDeliverySent,
   recordGmailLabelSync,
   recordIntegrationFailure,
   searchCoreRecords,
+  sendAuthorizedDelivery,
   transitionDelivery,
   transitionProofRun,
   transitionReviewRequest,
@@ -283,22 +283,30 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }, actor) });
     }
     if (resource === "deliveries" && idValue && action === "send") {
-      const delivery = await getDelivery(idValue);
-      if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
-      if (delivery.state === "sent" || delivery.state === "acknowledged") return NextResponse.json({ ok: true, item: delivery, idempotent: true });
-      const customer = await getCustomer(delivery.customerId);
-      if (!customer) throw new AdminCoreError("STORE_CORRUPT", "Delivery customer is missing.", 500);
+      const idempotencyKey =
+        stringValue(body, "idempotencyKey", false) ||
+        `delivery-send:${idValue}`;
+      let providerAttempted = false;
       try {
-        const result = await sendVerificationEmail({
-          to: customer.email,
-          replyTo: PUBLIC_CONTACT_EMAIL,
-          subject: delivery.subject,
-          text: delivery.body,
-          deliveryAttemptId: delivery.id,
-        });
-        return NextResponse.json({ ok: true, item: await recordDeliverySent(idValue, { ...result, sentAt: result.deliveredAt }, actor, stringValue(body, "idempotencyKey", false) || `delivery-send:${idValue}`) });
+        const item = await sendAuthorizedDelivery(
+          idValue,
+          actor,
+          async (message) => {
+            providerAttempted = true;
+            const result = await sendVerificationEmail({
+              ...message,
+              replyTo: PUBLIC_CONTACT_EMAIL,
+            });
+            return { ...result, sentAt: result.deliveredAt };
+          },
+          idempotencyKey,
+        );
+        return NextResponse.json({ ok: true, item });
       } catch (error) {
-        await recordIntegrationFailure({ integration: "mail", operation: "send_delivery", idempotencyKey: `delivery-send:${idValue}`, externalId: null, error: error instanceof Error ? error.message : "Mail delivery failed." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery.lineageId });
+        if (providerAttempted) {
+          const delivery = await getDelivery(idValue);
+          await recordIntegrationFailure({ integration: "mail", operation: "send_delivery", idempotencyKey, externalId: null, error: error instanceof Error ? error.message : "Mail delivery failed." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery?.lineageId ?? null });
+        }
         throw error;
       }
     }
