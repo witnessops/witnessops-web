@@ -23,22 +23,23 @@ Release authority: internal/manual for now
 
 - Use [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md) before any deploy-adjacent work.
 - Custody map: [`docs/DEPLOYMENT_CUSTODY.md`](./docs/DEPLOYMENT_CUSTODY.md).
-- **Active dual-lane path (ops-dev-01 k3s, namespace `witnessops`):**
-  - **prod** — deployment `witnessops-web` — public `https://witnessops.com` via Caddy → `127.0.0.1:3000` (hostPort).
-  - **mesh-dev** — deployment `witnessops-web-dev` — mesh-only `http://10.44.0.2:3015` (`hostNetwork`, emptyDir intake — never shares prod PVC).
+- **Active dual-lane path:** private k3s topology is injected from operator
+  custody using the variables in `deploy/topology.env.example`.
+  - **prod** — configured production deployment, public at `https://witnessops.com` through Caddy and a loopback app bind.
+  - **mesh-dev** — configured private-network deployment using `hostNetwork` and emptyDir intake, never prod PVCs.
 - Both lanes must run the **same shared image tag** for fair CSS/UI compare. Shared builds always bake `NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`.
 - **`pnpm deploy:k3s:smoke` enforces** (exit non-zero on failure):
-  1. the exact ordered application-container `envFrom` contract on prod and mesh-dev: `witnessops-web-env`, then `witnessops-web-admin-oidc`, each with an empty prefix and `optional=false`,
+  1. the exact ordered application-container `envFrom` contract on prod and mesh-dev: `BASE_ENV_SECRET`, then `ADMIN_OIDC_SECRET`, each with an empty prefix and `optional=false`,
   2. **identical container image refs** on prod and mesh-dev (not CSS-only),
   3. HTTP 200 on prod home and mesh-dev home,
   4. matching primary CSS hash.
   Unit tests for the image/CSS, `envFrom`, Secret-preflight, and deploy-reconciliation helpers: `pnpm deploy:k3s:test-parity`.
 - **Intentional non-parity (do not “fix” these):**
-  - mesh-dev bind: `hostNetwork` `HOSTNAME=10.44.0.2` `PORT=3015`
-  - mesh-dev `WITNESSOPS_VERIFY_BASE_URL=http://10.44.0.2:3015`
+  - mesh-dev bind: `hostNetwork` with custodied `MESH_BIND_HOST` and `MESH_BIND_PORT`
+  - mesh-dev `WITNESSOPS_VERIFY_BASE_URL=MESH_DEV_URL`
   - mesh-dev **emptyDir** intake (never prod PVC)
   - prod hostPort `127.0.0.1:3000` + Caddy public edge
-- **Secret/envFrom parity:** the application container in both lanes must use exactly two ordered non-lane `secretRef`s: `witnessops-web-env`, then `witnessops-web-admin-oidc`, both with an empty prefix and `optional=false`. The prod helper reconciles that exact contract; smoke detects drift on either lane. The OIDC Secret must contain `WITNESSOPS_ADMIN_SECRET` plus the five configured `WITNESSOPS_GOOGLE_*` key names. Lane-only env keys stay under the mesh-dev env block.
+- **Secret/envFrom parity:** the application container in both lanes must use exactly two ordered non-lane `secretRef`s named by `BASE_ENV_SECRET`, then `ADMIN_OIDC_SECRET`, both with an empty prefix and `optional=false`. The prod helper reconciles that exact contract; smoke detects drift on either lane. The OIDC Secret must contain `WITNESSOPS_ADMIN_SECRET` plus the five configured `WITNESSOPS_GOOGLE_*` key names. Lane-only env keys stay under the mesh-dev env block.
 - **Repo deploy entrypoints** (prefer these over ad-hoc docker/kubectl):
 
   | Goal | Command |
@@ -53,12 +54,12 @@ Release authority: internal/manual for now
 
   Scripts live under `deploy/scripts/k3s-*.sh` and source `k3s-lib.sh` / `k3s-parity.sh`.
 - **Env for agents / local Mac:**
-  - `DEPLOY_SSH=ops-dev-01` (default; needs WireGuard mesh jump). Fallback: `DEPLOY_SSH=root@194.147.221.89`.
+  - Source a private ignored `deploy/topology.env`; the public example lists all required variable names without live values.
   - Dirty tree: `ALLOW_DIRTY=1` (required if uncommitted work must ship; still record dirty state in receipts).
-  - Mesh smoke needs WG up: `sudo wg-quick up wg-edge-01`. Hub must allow peer TCP on `wg0` (`10.44.0.0/24`).
+  - Mesh smoke requires the configured private network path.
 - DNS/Cloudflare, Caddy rewrites, API/app exposure, and OffSec product-surface exposure require separate explicit lanes.
 - A public web deploy does not imply SaaS, app, API, or OffSec readiness.
-- **Do not use** legacy `deploy/scripts/deploy.sh` / GHCR / goal0 Compose as live authority (historical only; see INSTALL.md).
+- **Do not use** legacy `deploy/scripts/deploy.sh` / GHCR / Docker Compose as live authority (historical only; see INSTALL.md).
 - Azure Container Apps is retired. Root `azure.yaml` and `infra/**` were archived under `docs/archive/azure-aca-retired-20260508/`.
 - Do not run `az`, `azd`, Bicep deployment, Azure inventory, Azure cleanup, Azure rollback, or Azure restore work from this repo unless a separate explicit Azure reopening lane names the allowed cloud surfaces, commands, receipts, and stop boundary.
 - Do not treat archived Azure files as active deploy authority, rollback authority, or evidence that Azure resources exist.
@@ -68,7 +69,7 @@ Release authority: internal/manual for now
 | Mode | Use when | How |
 | --- | --- | --- |
 | Local dev server | UI/API iteration on laptop | `pnpm dev` (app filter) — never points public DNS at localhost |
-| mesh-dev (k3s) | Shared runtime parity, form/mail, “does it look like prod?” | `pnpm deploy:k3s:dev` or `pnpm deploy:k3s:both`; open `http://10.44.0.2:3015` over WG |
+| mesh-dev (k3s) | Shared runtime parity, form/mail, “does it look like prod?” | `pnpm deploy:k3s:dev` or `pnpm deploy:k3s:both`; open the private `MESH_DEV_URL` |
 | prod | Buyer-visible public site | `pnpm deploy:k3s:prod` or both; verify `https://witnessops.com` |
 
 Default for “deploy this so we can check on mesh and public”: **`pnpm deploy:k3s:both`** (one image, both lanes). After deploy: **`pnpm deploy:k3s:smoke`**.

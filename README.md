@@ -42,7 +42,7 @@ Deployment guidance lives in [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_
 
 Current repo boundary:
 
-- active public website runtime: Caddy on `ops-dev-01` reverse-proxying to the k3s `witnessops-web` deployment
+- active public website runtime: Caddy reverse-proxying to a private k3s deployment; topology is injected from operator custody
 - active app runtime inputs: app source, package scripts, Dockerfile, environment examples, and validation commands
 - retired Azure archive: `docs/archive/azure-aca-retired-20260508/`
 

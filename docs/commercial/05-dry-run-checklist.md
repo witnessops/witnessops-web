@@ -42,7 +42,7 @@ Run this **before** the first real paid package for each product. Use synthetic 
 ### Operator dry-run (synthetic + private study)
 
 - [ ] Read suite `BUYER_WALKTHROUGH`  
-- [ ] Open private `~/Desktop/witnessops-ops-dev-01-report.html` and explain **valid + partial** in your own words (do not publish)  
+- [ ] Open the restricted private operator report and explain **valid + partial** in your own words (do not publish)
 - [ ] Confirm offline verify story without over-promising `/api/verify` for every receipt family  
 - [ ] Confirm authority requirements for a **live** run: decision owner, host binding, window, read-only profile, exclusions  
 - [ ] Confirm live path never requests secrets in fit check  

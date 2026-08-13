@@ -9,13 +9,13 @@
 | **Fleet VM** (`debian-termux-*`) | 20.x (distro) | Edit working copy, sync lane, targeted tests |
 | **Node 22 container** | 22.x | Release-quality health/build without upgrading host Node |
 | **Mesh build path** (`deploy/Dockerfile.mesh`) | 22 inside container | Build `witnessops-web` image for deploy lanes |
-| **goal0** | 22 inside container when used | Optional build/transfer staging only when the lane authorizes it |
-| **ops-dev-01 k3s** | Container runtime | Current public runtime for `witnessops.com` |
+| **Private staging host** | 22 inside container when used | Optional build/transfer staging only when the lane authorizes it |
+| **Private k3s target** | Container runtime | Current public runtime for `witnessops.com` |
 
 Release-quality **`pnpm health`** and **`pnpm build`** for production must use **Node 22**, not the fleet VM’s system Node 20.
 
-The current public runtime is `ops-dev-01` k3s deployment `witnessops-web`, not
-goal0 Docker Compose. See [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
+The current public runtime is private k3s, not Docker Compose. See
+[`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
 
 ## Authoritative paths
 
@@ -34,20 +34,18 @@ goal0 Docker Compose. See [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
    # or: bash scripts/health-on-node22.sh
    ```
 
-3. **Remote health on goal0** (only when the lane uses goal0 as staging):
+3. **Remote health on a private staging host** (only when the lane authorizes it):
 
    ```bash
    bash scripts/health-on-node22-goal0.sh
    ```
 
-Historical goal0 wrappers such as `run-witnessops-mesh-goal0.sh` may still be
-useful for build or transfer staging when named by a lane, but they are not the
-current runtime authority for `witnessops.com`.
+Historical remote wrappers may still be useful for build or transfer staging
+when named by a lane, but they are not current runtime authority.
 
 Current deploy execution is documented in
-[`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md) and uses
-`/home/mob7a0efe/DEV/mesh-agent/k8s/deploy-witnessops-web.sh` for the
-`ops-dev-01` k3s deployment.
+[`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md) and uses the in-repo
+`deploy/scripts/k3s-*.sh` entrypoints.
 
 ## Repo pins
 
@@ -58,8 +56,8 @@ Current deploy execution is documented in
 ## Do not
 
 - Treat passing `optimize:quick-check` on Node 20 as equivalent to `pnpm health` on Node 22.
-- Use goal0 Docker Compose docs as current production runtime authority.
-- Use `BUILD_MODE=host` on goal0 or fleet unless host `node -v` is 22.x and you accept non-container drift from the image build path.
+- Use historical Docker Compose docs as current production runtime authority.
+- Use `BUILD_MODE=host` on a staging host unless `node -v` is 22.x and you accept non-container drift from the image build path.
 
 ## Related
 

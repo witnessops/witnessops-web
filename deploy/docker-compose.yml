@@ -2,8 +2,7 @@
 #
 # This file is not current production authority for witnessops.com. Current
 # production authority is documented in docs/DEPLOYMENT_CUSTODY.md and
-# docs/DEPLOYMENT_AUTHORITY.md: ops-dev-01 runs Caddy, which proxies apex/www
-# traffic to 127.0.0.1:3000 and the k3s witnessops-web deployment.
+# docs/DEPLOYMENT_AUTHORITY.md.
 #
 # Do not run compose from this file as a production operation without a new
 # deployment authority lane. It is preserved as historical/reference material:
@@ -24,7 +23,7 @@ services:
 
     # Runtime secrets and config live on the host, outside this repo.
     env_file:
-      - /srv/witnessops/env/witnessops-web.env
+      - ${WITNESSOPS_WEB_ENV_FILE:?set WITNESSOPS_WEB_ENV_FILE}
 
     # Bind only to loopback. Caddy terminates TLS and proxies to this port.
     ports:
@@ -33,9 +32,9 @@ services:
     # Persistent data. Host paths survive container recreation and are backed
     # up separately (see the production backup custody lane).
     volumes:
-      - /srv/witnessops/data/intake-store:/data/intake-store
-      - /srv/witnessops/data/intake-events:/data/intake-events
-      - /srv/witnessops/data/staging-mail-out:/data/mail-out
+      - ${WITNESSOPS_DATA_ROOT:?set WITNESSOPS_DATA_ROOT}/intake-store:/data/intake-store
+      - ${WITNESSOPS_DATA_ROOT:?set WITNESSOPS_DATA_ROOT}/intake-events:/data/intake-events
+      - ${WITNESSOPS_DATA_ROOT:?set WITNESSOPS_DATA_ROOT}/staging-mail-out:/data/mail-out
 
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]

@@ -1,5 +1,6 @@
-# Mesh-only dev deployment for witnessops-web.
-# Binds exclusively to WireGuard address 10.44.0.2:3015 (hostNetwork).
+# Mesh-only dev deployment template.
+# Private names, addresses, ports, and Secret object names are injected by the
+# deploy helper from the operator's private environment.
 # Uses emptyDir so prod PVC intake data is never shared.
 #
 # Apply only via deploy/scripts/k3s-deploy-dev.sh (or k3s-deploy-both.sh)
@@ -7,10 +8,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: witnessops-web-dev
-  namespace: witnessops
+  name: ${DEV_DEPLOY}
+  namespace: ${DEPLOY_NS}
   labels:
-    app: witnessops-web-dev
+    app: ${DEV_DEPLOY}
     lane: mesh-dev
 spec:
   replicas: 1
@@ -18,11 +19,11 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: witnessops-web-dev
+      app: ${DEV_DEPLOY}
   template:
     metadata:
       labels:
-        app: witnessops-web-dev
+        app: ${DEV_DEPLOY}
         lane: mesh-dev
     spec:
       hostNetwork: true
@@ -32,22 +33,22 @@ spec:
         runAsGroup: 1001
         fsGroup: 1001
       containers:
-        - name: witnessops-web
-          image: IMAGE_PLACEHOLDER
+        - name: ${APP_CONTAINER_NAME}
+          image: ${IMAGE_PLACEHOLDER}
           imagePullPolicy: IfNotPresent
           envFrom:
-            # Same non-lane secret refs as prod (witnessops-web).
+            # Same non-lane secret refs as the configured prod deployment.
             # Lane-only differences stay under env: (PORT/HOSTNAME/VERIFY_BASE)
             # and emptyDir volumes — never drop these secrets for "dev simplicity".
             - secretRef:
-                name: witnessops-web-env
+                name: ${BASE_ENV_SECRET}
             - secretRef:
-                name: witnessops-web-admin-oidc
+                name: ${ADMIN_OIDC_SECRET}
           env:
             - name: PORT
-              value: "3015"
+              value: "${MESH_BIND_PORT}"
             - name: HOSTNAME
-              value: "10.44.0.2"
+              value: "${MESH_BIND_HOST}"
             - name: NODE_ENV
               value: production
             - name: WITNESSOPS_ADMIN_CORE_STORE_DIR
@@ -58,7 +59,7 @@ spec:
             - name: NEXT_PUBLIC_OS_SITE_URL
               value: https://witnessops.com
             - name: WITNESSOPS_VERIFY_BASE_URL
-              value: http://10.44.0.2:3015
+              value: ${MESH_DEV_URL}
             - name: WITNESSOPS_INTAKE_STORE_DIR
               value: /data/intake-store
             - name: WITNESSOPS_TOKEN_STORE_DIR
@@ -74,7 +75,7 @@ spec:
               command:
                 - node
                 - -e
-                - fetch("http://10.44.0.2:3015/").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+                - fetch("${MESH_DEV_URL}/").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 5
@@ -84,7 +85,7 @@ spec:
               command:
                 - node
                 - -e
-                - fetch("http://10.44.0.2:3015/").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+                - fetch("${MESH_DEV_URL}/").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
             initialDelaySeconds: 20
             periodSeconds: 30
             timeoutSeconds: 5

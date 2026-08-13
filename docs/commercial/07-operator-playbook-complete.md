@@ -46,7 +46,7 @@ INBOUND → FIT CHECK → SCOPE → WORK → PACKAGE → DELIVER → FOLLOW-UP
    - Site: https://witnessops.com/samples/offsec-local-audit/local-server-audit-pr_lsa_20260710120000_198fd7aceb/BUYER_WALKTHROUGH.md  
    - Site report: …/report.md  
    - Web fixture receipt (different sample family): https://witnessops.com/samples/offsec-shield-local-server-audit/RECEIPT.json  
-3. Optional private study: `~/Desktop/witnessops-ops-dev-01-report.html` — see how **partial** is explained when sections are incomplete.  
+3. Optional private study: use the restricted operator report held outside this repo to see how **partial** is explained when sections are incomplete.
 
 ### A4. Collection and package
 
@@ -118,7 +118,7 @@ INBOUND → FIT CHECK → SCOPE → WORK → PACKAGE → DELIVER → FOLLOW-UP
 | Structural `/verify` on local-server **web fixture** | When showing `offsec-shield-local-server-audit` RECEIPT family |
 | Offline `witnessops-local-audit verify` | Full suite proofpack path |
 | CSR package | No “security verified” claim — supportable answers only |
-| ops-dev-01 private report | Teaching partial outcomes only — never customer-facing |
+| Restricted private report | Teaching partial outcomes only — never customer-facing |
 
 ---
 

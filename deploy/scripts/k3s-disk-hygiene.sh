@@ -6,16 +6,37 @@
 #
 # Usage (from laptop with SSH mesh):
 #   bash deploy/scripts/k3s-disk-hygiene.sh
-#   KEEP_IMAGES=5 DEPLOY_SSH=ops-dev-01 bash deploy/scripts/k3s-disk-hygiene.sh
+#   KEEP_IMAGES=5 DEPLOY_SSH=<private-target> DEPLOY_NS=<private-namespace> bash deploy/scripts/k3s-disk-hygiene.sh
 #
 # Does NOT delete the currently running deploy image tags if they match the
 # newest KEEP_IMAGES list. Always re-run `pnpm deploy:k3s:both` after a full
 # docker image wipe.
 set -euo pipefail
 
-DEPLOY_SSH="${DEPLOY_SSH:-ops-dev-01}"
+: "${DEPLOY_SSH:?set DEPLOY_SSH from private topology custody}"
+: "${DEPLOY_NS:?set DEPLOY_NS from private topology custody}"
 KEEP_IMAGES="${KEEP_IMAGES:-4}"
 MIN_FREE_GB="${MIN_FREE_GB:-20}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=k3s-parity.sh
+source "${SCRIPT_DIR}/k3s-parity.sh"
+validate_ssh_target "${DEPLOY_SSH}" || {
+  echo "k3s-disk-hygiene: invalid private SSH target" >&2
+  exit 1
+}
+validate_kubernetes_name "${DEPLOY_NS}" || {
+  echo "k3s-disk-hygiene: invalid private Kubernetes namespace" >&2
+  exit 1
+}
+[[ "${KEEP_IMAGES}" =~ ^[0-9]+$ ]] && (( KEEP_IMAGES >= 1 && KEEP_IMAGES <= 100 )) || {
+  echo "k3s-disk-hygiene: KEEP_IMAGES must be between 1 and 100" >&2
+  exit 1
+}
+[[ "${MIN_FREE_GB}" =~ ^[0-9]+$ ]] && (( MIN_FREE_GB >= 1 && MIN_FREE_GB <= 10000 )) || {
+  echo "k3s-disk-hygiene: MIN_FREE_GB must be between 1 and 10000" >&2
+  exit 1
+}
 
 ssh -o BatchMode=yes -o ConnectTimeout=25 "${DEPLOY_SSH}" "set -euo pipefail
 KEEP_IMAGES='${KEEP_IMAGES}'
@@ -36,8 +57,8 @@ docker image prune -f >/dev/null 2>&1 || true
 k3s crictl rmi --prune >/dev/null 2>&1 || true
 journalctl --vacuum-size=200M >/dev/null 2>&1 || true
 rm -rf /tmp/witnessops-web-build-* 2>/dev/null || true
-kubectl -n witnessops delete pods --field-selector=status.phase=Succeeded --force --grace-period=0 2>/dev/null || true
-kubectl -n witnessops delete pods --field-selector=status.phase=Failed --force --grace-period=0 2>/dev/null || true
+kubectl -n '${DEPLOY_NS}' delete pods --field-selector=status.phase=Succeeded --force --grace-period=0 2>/dev/null || true
+kubectl -n '${DEPLOY_NS}' delete pods --field-selector=status.phase=Failed --force --grace-period=0 2>/dev/null || true
 echo '=== disk after ==='
 df -h /
 free_gb=\$(df -P / | awk 'NR==2 {printf \"%d\", \$4/1024/1024}')

@@ -1,18 +1,17 @@
 # Historical reference only: legacy Goal0/edge-style Caddy snippet.
 # This file is not current production authority for witnessops.com.
-# Current production Caddy config lives on ops-dev-01, with apex/www routed to
+# Current production Caddy config lives in private operational custody, with apex/www routed to
 # 127.0.0.1:3000 and the k3s witnessops-web deployment. See
 # docs/DEPLOYMENT_CUSTODY.md and docs/DEPLOYMENT_AUTHORITY.md before any
 # deploy-adjacent work. Do not copy or apply this snippet without a new Caddy
 # authority lane.
 #
-# Historical shape: host Caddy on goal0-edge-01, with edge02 Servury as the
+# Historical shape: host Caddy on a retired edge, with a retired proxy as the
 # pre-cutover path, proxying to the loopback-bound container from the legacy
 # docker-compose.yml. The contact/review gate shown below is preserved as
 # reference material only; it is not evidence of the live production gate.
 
 witnessops.com, www.witnessops.com {
-	bind 167.235.12.232
 	encode zstd gzip
 
 	# --- Contact/review gate (comment out the handle block to ungate) ---

@@ -1,4 +1,4 @@
-# Source-controlled WitnessOps host block for ops-dev-01.
+# Source-controlled WitnessOps public host block.
 # Merge only this bounded replacement into /etc/caddy/Caddyfile after creating
 # a timestamped backup and validating the complete active configuration.
 

@@ -1,11 +1,13 @@
-# Deploy (ops-dev-01 dual-lane)
+# Deploy (private dual-lane)
 
-Current live path for `witnessops.com` is **k3s on ops-dev-01**, not GHCR Compose.
+Current live path for `witnessops.com` is private k3s, not GHCR Compose. Concrete
+topology stays in operator custody and is injected using the variable names in
+`topology.env.example`.
 
 | Lane | Deployment | Reachability |
 | --- | --- | --- |
-| **prod** | `witnessops/witnessops-web` | Public via Caddy → `127.0.0.1:3000` |
-| **mesh-dev** | `witnessops/witnessops-web-dev` | WireGuard only `http://10.44.0.2:3015` |
+| **prod** | `DEPLOY_NS/PROD_DEPLOY` | Public via Caddy → loopback app bind |
+| **mesh-dev** | `DEPLOY_NS/DEV_DEPLOY` | Private `MESH_DEV_URL` only |
 
 Always prefer a **shared image** so prod and mesh-dev CSS/JS hashes match:
 
@@ -19,15 +21,15 @@ pnpm deploy:k3s:test-parity   # image/CSS, envFrom, Secret-preflight, and deploy
 **Smoke enforces (fails on drift):** the exact ordered application-container
 `envFrom` contract on both deployments, identical image refs, HTTP 200 on both
 homes, and matching primary CSS. The `envFrom` contract is
-`witnessops-web-env`, then `witnessops-web-admin-oidc`, each as a `secretRef`
+`BASE_ENV_SECRET`, then `ADMIN_OIDC_SECRET`, each as a `secretRef`
 with an empty prefix and `optional=false`; source, order, prefix, or `optional`
 drift fails.
 
-**Intentional non-parity:** mesh bind `10.44.0.2:3015`, emptyDir intake,
+**Intentional non-parity:** custodied mesh bind, emptyDir intake,
 runtime `PORT`/`HOSTNAME`/`WITNESSOPS_VERIFY_BASE_URL`.
 
 The prod helper preflights both shared Secrets, then atomically reconciles its
-image and exact `envFrom`. `witnessops-web-admin-oidc` must contain
+image and exact `envFrom`. `ADMIN_OIDC_SECRET` must contain
 `WITNESSOPS_ADMIN_SECRET` plus
 `WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST`,
 `WITNESSOPS_GOOGLE_OIDC_CLIENT_ID`,
@@ -39,8 +41,8 @@ Microsoft OIDC and legacy-key credential entries remain untouched and require a
 separately authorized custody-cleanup pass to retire.
 
 The legacy `deploy/k8s/apply.sh` path performs the same OIDC key-name preflight
-before any cluster mutation, so the `witnessops` namespace and
-`witnessops-web-admin-oidc` Secret must already exist. It does not create or
+before any cluster mutation, so `DEPLOY_NS` and `ADMIN_OIDC_SECRET` must already
+exist. It does not create or
 update that Secret.
 
 | pnpm script | Shell |
@@ -54,11 +56,13 @@ update that Secret.
 | `deploy:k3s:test-parity` | `deploy/scripts/test-k3s-parity.sh` |
 | `deploy:k3s:dev:teardown` | `deploy/scripts/k3s-dev-teardown.sh` |
 
-Common overrides:
+Private topology and an intentional dirty-tree override:
 
 ```bash
+cp deploy/topology.env.example deploy/topology.env
+# replace every example with the restricted operator values, then:
+set -a; source deploy/topology.env; set +a
 ALLOW_DIRTY=1 pnpm deploy:k3s:both
-DEPLOY_SSH=root@194.147.221.89 pnpm deploy:k3s:status
 ```
 
 Preferred prod rollback redeploys a recorded known-good image through

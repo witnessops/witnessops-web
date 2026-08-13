@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy an image (or build first) to production k3s deployment witnessops-web.
+# Deploy an image (or build first) to the configured production deployment.
 #
 # Usage:
 #   ./k3s-deploy-prod.sh                 # build shared image, deploy prod

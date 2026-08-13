@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: witnessops-web
-  namespace: witnessops
+  name: ${PROD_SERVICE}
+  namespace: ${DEPLOY_NS}
   labels:
-    app: witnessops-web
+    app: ${PROD_DEPLOY}
 spec:
   type: ClusterIP
   selector:
-    app: witnessops-web
+    app: ${PROD_DEPLOY}
   ports:
     - name: http
       port: 3000

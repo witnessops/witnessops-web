@@ -6,6 +6,8 @@ dist/
 .env
 .env.local
 .env.*.local
+deploy/topology.env
+.witnessops-token-store/
 *.tsbuildinfo
 .vercel
 .DS_Store

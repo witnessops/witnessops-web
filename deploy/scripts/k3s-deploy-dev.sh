@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-# Deploy mesh-only dev (10.44.0.2:3015) to k3s deployment witnessops-web-dev.
+# Deploy the configured mesh-only development lane.
 #
 # Usage:
 #   ./k3s-deploy-dev.sh                 # build shared image, deploy dev
 #   ./k3s-deploy-dev.sh IMAGE_REF       # deploy existing imported image
 #
-# Requires WireGuard mesh for local smoke (10.44.0.2). Hub must allow peer TCP:
-#   ufw route allow in on wg0 out on wg0 from 10.44.0.0/24 to 10.44.0.0/24
+# Requires the custodied private network path for local smoke.
 set -euo pipefail
 # shellcheck source=k3s-lib.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/k3s-lib.sh"
@@ -21,6 +20,6 @@ deploy_dev_image "${IMAGE}"
 log "dev URL ${MESH_DEV_URL}"
 DEV_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "${MESH_DEV_URL}/" || true)"
 [[ "${DEV_CODE}" == "200" ]] \
-  || die "dev smoke failed (${DEV_CODE:-request error}) — ensure WG is up (sudo wg-quick up wg-edge-01) and hub mesh-peer rule is present"
+  || die "dev smoke failed (${DEV_CODE:-request error}) — confirm the private network path is active"
 log "dev_home=${DEV_CODE}"
 log "done ${IMAGE}"

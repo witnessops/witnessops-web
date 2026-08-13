@@ -1,7 +1,7 @@
 # WitnessOps Web Deployment Custody
 
 Status: current production + mesh-dev custody note for `witnessops.com`
-Last updated: 2026-08-06
+Last updated: 2026-08-13
 
 This document records how the public WitnessOps web surface (and the mesh-only
 dev twin) is served, built, deployed, verified, and rolled back. It is
@@ -14,13 +14,13 @@ explicit apply lane.
 
 ```text
 witnessops.com / www.witnessops.com
--> DNS A 194.147.221.89
--> ops-dev-01
+-> DNS
+-> private DEPLOY_SSH target
 -> systemd caddy.service
 -> /etc/caddy/Caddyfile
 -> reverse_proxy 127.0.0.1:3000
--> k3s namespace witnessops
--> deployment witnessops-web
+-> k3s namespace DEPLOY_NS
+-> deployment PROD_DEPLOY
 -> container port 3000 (hostPort 127.0.0.1:3000)
 -> image docker.io/library/witnessops-web:main-<sha>-<UTC>
 -> PVC-backed intake / mail volumes
@@ -29,10 +29,10 @@ witnessops.com / www.witnessops.com
 ### Mesh-dev (private twin)
 
 ```text
-operator laptop (WireGuard wg-edge-01)
--> 10.44.0.2:3015
--> ops-dev-01 hostNetwork
--> k3s deployment witnessops-web-dev
+operator laptop (private network)
+-> MESH_DEV_URL
+-> private hostNetwork bind
+-> k3s deployment DEV_DEPLOY
 -> same shared image tag as prod when aligned
 -> emptyDir intake (isolated from prod PVC)
 ```
@@ -48,7 +48,7 @@ Current source custody:
 - Repo: `witnessops-web` (`https://github.com/witnessops/witnessops-web`)
 - Default branch: `main`
 - Operator checkouts may live on Mac (`~/WitnessOps/repos/witnessops-web`) or
-  other mesh nodes; build always rsyncs the checkout to `ops-dev-01` via
+  other private nodes; build always rsyncs the checkout to `DEPLOY_SSH` via
   `deploy/scripts/k3s-lib.sh`.
 
 Every apply lane must record starting HEAD and dirty state. Use
@@ -57,7 +57,7 @@ that in the receipt.
 
 ## Build
 
-Production-quality builds use **Node 22** inside Docker on `ops-dev-01`.
+Production-quality builds use **Node 22** inside Docker on the private deploy target.
 
 Canonical path (in-repo):
 
@@ -65,8 +65,9 @@ Canonical path (in-repo):
 # from monorepo root
 pnpm deploy:k3s:build              # image only
 pnpm deploy:k3s:both               # shared image → prod + mesh-dev + smoke
-# or
-ALLOW_DIRTY=1 DEPLOY_SSH=root@194.147.221.89 pnpm deploy:k3s:both
+# source the ignored private topology first
+set -a; source deploy/topology.env; set +a
+pnpm deploy:k3s:both
 ```
 
 `k3s-lib.sh` `build_shared_image`:
@@ -80,7 +81,7 @@ ALLOW_DIRTY=1 DEPLOY_SSH=root@194.147.221.89 pnpm deploy:k3s:both
 Legacy `deploy/Dockerfile.mesh` remains as a reference Dockerfile; the dual-lane
 scripts generate `deploy/Dockerfile.shared` on the build host for the shared bake.
 
-`goal0` Docker Compose is **not** current runtime authority for `witnessops.com`.
+Docker Compose is **not** current runtime authority for `witnessops.com`.
 
 ## Image
 
@@ -110,21 +111,21 @@ Canonical helpers (repo root):
 
 | Command | Effect |
 | --- | --- |
-| `pnpm deploy:k3s:prod` | build if needed → preflight Secrets → atomically reconcile image and ordered `envFrom` on `witnessops-web` |
+| `pnpm deploy:k3s:prod` | build if needed → preflight Secrets → atomically reconcile image and ordered `envFrom` on `PROD_DEPLOY` |
 | `pnpm deploy:k3s:dev` | build if needed → validate the image → apply `dev-mesh-deployment.yaml` with the exact ordered `envFrom` contract |
 | `pnpm deploy:k3s:both` | one build → both deploys → `smoke_pair` |
 | `pnpm deploy:k3s:smoke` | exact runtime `envFrom` + image + HTTP 200 + CSS parity |
 | `pnpm deploy:k3s:dev:teardown` | delete mesh-dev only |
 
-SSH target: `DEPLOY_SSH` default `ops-dev-01` (mesh ProxyJump). Public fallback
-when mesh DNS/SSH is down: `DEPLOY_SSH=root@194.147.221.89`.
+SSH target, fallback and private-network configuration come from operator custody
+and are not defaulted in public source.
 
 Secrets: the application container in both deployments uses exactly these
-ordered `secretRef` sources in namespace `witnessops`, each with an empty
+ordered `secretRef` sources in `DEPLOY_NS`, each with an empty
 prefix and `optional=false`:
 
-1. `witnessops-web-env`
-2. `witnessops-web-admin-oidc`
+1. `BASE_ENV_SECRET`
+2. `ADMIN_OIDC_SECRET`
 
 The OIDC Secret must contain these six required key names:
 
@@ -149,20 +150,20 @@ Their retirement requires a separately authorized custody-cleanup pass.
 
 The legacy `deploy/k8s/apply.sh` path also preflights the six OIDC key names
 before its first cluster mutation. Because that preflight occurs first, the
-`witnessops` namespace and `witnessops-web-admin-oidc` Secret must already be
+`DEPLOY_NS` and `ADMIN_OIDC_SECRET` must already be
 provisioned before invoking the legacy helper. That helper does not create or
 update the OIDC Secret.
 
 ## Edge
 
-Public edge for apex and `www` is Caddy on `ops-dev-01`:
+Public edge for apex and `www` is Caddy on the private deploy target:
 
 ```text
 witnessops.com, www.witnessops.com -> reverse_proxy 127.0.0.1:3000
 ```
 
 Mesh-dev must **not** be published on the public Caddy path without a separate
-exposure lane. Access is via WireGuard only (`10.44.0.2:3015`).
+exposure lane. Access is only through the custodied private `MESH_DEV_URL`.
 
 Caddy changes require their own lane unless a web apply lane explicitly
 authorizes a narrow, named public-route gate adjustment.
@@ -191,23 +192,23 @@ pnpm deploy:k3s:test-parity   # image/CSS, envFrom, Secret-preflight, and deploy
 
 Expect (all enforced; smoke exits non-zero on failure):
 
-- **identical container image refs** on `witnessops-web` and `witnessops-web-dev`
+- **identical container image refs** on `PROD_DEPLOY` and `DEV_DEPLOY`
 - exact ordered runtime `envFrom` contract on both deployments, including an
   empty prefix and `optional=false` on both Secret refs
 - `https://witnessops.com/` → HTTP 200
-- `http://10.44.0.2:3015/` → HTTP 200 (WG up)
+- `MESH_DEV_URL` → HTTP 200 over the private network
 - matching primary CSS hash
 
 Image or runtime `envFrom` drift (source, order, prefix, or `optional`) fails
 even when CSS coincidentally matches (`k3s-parity.sh`).
 
-**Intentional non-parity (not smoke failures):** mesh `10.44.0.2:3015` bind,
+**Intentional non-parity (not smoke failures):** private mesh bind,
 emptyDir intake, runtime `PORT`/`HOSTNAME`/`WITNESSOPS_VERIFY_BASE_URL`. Mesh-dev
-must still carry the same secret refs as prod (`witnessops-web-env`,
-`witnessops-web-admin-oidc`).
+must still carry the same secret refs as prod (`BASE_ENV_SECRET`,
+`ADMIN_OIDC_SECRET`).
 
-If mesh smoke fails: check `sudo wg-quick up wg-edge-01` and hub peer TCP rules
-on `wg0`.
+If mesh smoke fails, confirm the custodied private network path without adding
+its identifiers to this repository.
 
 ### Public apply completeness (prod content lanes)
 
@@ -229,7 +230,7 @@ product portals. Mesh-dev private URLs must not appear as buyer CTAs on prod.
 Every public web apply receipt must record:
 
 - lane name and authority class
-- host identity (`ops-dev-01`)
+- private host identity (in the restricted receipt, not public Git)
 - repo path and `DEPLOY_SSH`
 - start HEAD and end HEAD
 - dirty state / `ALLOW_DIRTY`
@@ -254,7 +255,7 @@ bash deploy/scripts/k3s-deploy-prod.sh docker.io/library/witnessops-web:<known-g
 pnpm deploy:k3s:smoke
 ```
 
-Emergency `kubectl -n witnessops rollout undo deployment/witnessops-web` may
+Emergency `kubectl -n "${DEPLOY_NS}" rollout undo "deployment/${PROD_DEPLOY}"` may
 restore an older pod template with stale `envFrom`. If it is used, immediately
 redeploy the resulting known-good image through `k3s-deploy-prod.sh` and run
 `pnpm deploy:k3s:smoke`; do not treat rollout status alone as rollback
@@ -274,12 +275,11 @@ through that lane’s rollback plan.
 
 ## Historical Notes
 
-Older documentation describes goal0, Docker Compose, GHCR release images, and
+Older documentation describes Docker Compose, GHCR release images, and
 Servury/edge02 migration paths. Those paths are historical or legacy unless a
 future lane explicitly reactivates them. Do not delete those records merely
 because the current runtime path is dual-lane k3s; keep the history but do not
 treat it as current production authority.
 
-The previous external helper path
-`/home/mob7a0efe/DEV/mesh-agent/k8s/deploy-witnessops-web.sh` is superseded for
-agent/operator use by **in-repo** `deploy/scripts/k3s-*.sh`.
+Previous external helpers are superseded for agent/operator use by **in-repo**
+`deploy/scripts/k3s-*.sh`.

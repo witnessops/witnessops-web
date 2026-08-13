@@ -29,7 +29,8 @@ export interface ReceiptAuditEvent {
 }
 
 const DEFAULT_AUDIT_ROOT = path.resolve(
-  process.env.ASK_AUDIT_ROOT || "/var/lib/witnessops/ask-audits"
+  process.env.ASK_AUDIT_ROOT ||
+    path.join(process.cwd(), ".witnessops-token-store", "ask-audits"),
 );
 
 function ensureDir(dir: string): void {

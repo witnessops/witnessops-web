@@ -35,7 +35,8 @@ bash scripts/verify-ollama-model-alpine.sh
 
 Hunt loop requires **`gpt-oss:20b`** with `WOPS_OLLAMA_API=chat` (not `gemma3:1b` for tool/loop workloads).
 
-**goal0-edge-01** today runs **Ubuntu 22.04** for Ollama; mesh **containers** are Alpine. That split is intentional until goal0 host OS changes.
+An operator-custodied host may run **Ubuntu 22.04** for Ollama while mesh
+**containers** are Alpine. Host identity and topology stay outside this repo.
 
 ## Related
 

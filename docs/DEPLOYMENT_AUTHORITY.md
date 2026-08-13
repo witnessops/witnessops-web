@@ -1,7 +1,7 @@
 # Deployment authority
 
-Status: `ops_dev_01_caddy_k3s_dual_lane`
-Last updated: 2026-08-06
+Status: `private_caddy_k3s_dual_lane`
+Last updated: 2026-08-13
 
 This document classifies deployment-related repository surfaces for
 `witnessops-web`. It is repo-local guidance and is not deploy approval, release
@@ -10,23 +10,25 @@ administration authority.
 
 ## Current production authority (dual-lane)
 
-Current public + mesh-dev runtime path on **ops-dev-01**:
+Current public + mesh-dev runtime path. Concrete host, address, namespace,
+workload, Secret and PVC names are held outside this public repository and
+injected through the variables listed in `deploy/topology.env.example`.
 
 ```text
 Public:
-  DNS A 194.147.221.89
-  -> ops-dev-01
+  DNS
+  -> private target from DEPLOY_SSH custody
   -> systemd caddy.service
   -> reverse_proxy 127.0.0.1:3000
-  -> k3s namespace witnessops
-  -> deployment witnessops-web
+  -> k3s namespace DEPLOY_NS
+  -> deployment PROD_DEPLOY
   -> hostPort 127.0.0.1:3000
 
-Mesh-dev (not public; WireGuard only):
-  client on 10.44.0.0/24
-  -> 10.44.0.2:3015
-  -> k3s deployment witnessops-web-dev
-  -> hostNetwork bind HOSTNAME=10.44.0.2 PORT=3015
+Mesh-dev (not public; private network only):
+  operator client
+  -> MESH_DEV_URL
+  -> k3s deployment DEV_DEPLOY
+  -> hostNetwork bind MESH_BIND_HOST:MESH_BIND_PORT
   -> emptyDir volumes (no prod PVC)
 ```
 
@@ -63,8 +65,8 @@ scripts cover the lane. Prefer in-repo scripts so agents and humans share one pa
 - **`pnpm deploy:k3s:smoke` fails when prod image ≠ mesh-dev image**, even if CSS
   happens to match. It also requires HTTP 200 on both homes, matching CSS, and
   the exact ordered application-container `envFrom` contract on both lanes.
-- That exact `envFrom` contract is `witnessops-web-env`, then
-  `witnessops-web-admin-oidc`, each as a `secretRef` with an empty prefix and
+- That exact `envFrom` contract is `BASE_ENV_SECRET`, then
+  `ADMIN_OIDC_SECRET`, each as a `secretRef` with an empty prefix and
   `optional=false`. Source, order, prefix, or `optional` drift fails smoke.
 - The production deploy helper reconciles the image and exact `envFrom`
   contract atomically after a fail-closed Secret preflight. The OIDC Secret must
@@ -75,28 +77,27 @@ scripts cover the lane. Prefer in-repo scripts so agents and humans share one pa
   untouched. Removing them requires separate custody-cleanup authorization.
 
 The legacy `deploy/k8s/apply.sh` helper runs the OIDC key-name preflight before
-any cluster mutation. Its namespace and `witnessops-web-admin-oidc` Secret must
+any cluster mutation. Its `DEPLOY_NS` namespace and `ADMIN_OIDC_SECRET` must
 therefore be preprovisioned; the helper does not create or update that Secret.
 
 ### Intentional non-parity (not drift)
 
-- Mesh-dev runtime env overrides: `PORT=3015`, `HOSTNAME=10.44.0.2`,
-  `WITNESSOPS_VERIFY_BASE_URL=http://10.44.0.2:3015`
+- Mesh-dev runtime env overrides: `PORT=MESH_BIND_PORT`,
+  `HOSTNAME=MESH_BIND_HOST`, `WITNESSOPS_VERIFY_BASE_URL=MESH_DEV_URL`
 - Mesh-dev `hostNetwork` + emptyDir volumes (no prod PVC)
 - Prod hostPort `127.0.0.1:3000` + public Caddy edge
 
 ### Operator env
 
-| Variable | Default | Notes |
+| Variable | Source | Notes |
 | --- | --- | --- |
-| `DEPLOY_SSH` | `ops-dev-01` | Mesh jump SSH. Fallback: `root@194.147.221.89` |
+| `DEPLOY_SSH` | required private custody | SSH target |
 | `ALLOW_DIRTY` | unset | Set `1` to build from dirty tree |
-| `MESH_DEV_URL` | `http://10.44.0.2:3015` | Local smoke target |
+| `MESH_DEV_URL` | required private custody | Local smoke target |
 | `PROD_URL` | `https://witnessops.com` | Public smoke target |
 
-WireGuard required for mesh-dev smoke and for default SSH host `ops-dev-01`
-(`ProxyJump wg-edge-01`). Hub must allow peer-to-peer TCP on `wg0` for
-`10.44.0.0/24`.
+The configured private network path is required for mesh-dev smoke and private
+SSH. Network profile, peer and CIDR details stay outside this public repo.
 
 ## Authority split
 
@@ -110,7 +111,7 @@ Public web content authority:
 Deploy authority:
 
 - timestamped shared image build with image ID captured
-- in-repo k3s scripts targeting `witnessops-web` and/or `witnessops-web-dev`
+- in-repo k3s scripts targeting the injected `PROD_DEPLOY` and/or `DEV_DEPLOY`
 - rollout status and dual-lane smoke when both are in scope
 - known-good rollback image redeployed through the prod reconciler, with exact
   `envFrom` reconciliation and smoke captured in the receipt
@@ -156,17 +157,16 @@ from this repo unless an explicit Azure reopening lane authorizes it.
 Changes to this deployment authority classification should remain separate from
 public copy, verifier semantics, receipt semantics, and release tagging.
 
-Any future lane that reactivates goal0/Docker Compose, GHCR release deployment,
+Any future lane that reactivates Docker Compose, GHCR release deployment,
 Azure, or another active host must name validation commands, DNS state, image
 custody, and rollback.
 
-## Historical goal0 / Docker Compose lane
+## Historical Docker Compose lane
 
-Older docs describe **goal0-edge-01** (`167.235.12.232`) as a unified public
-host using Caddy and Docker Compose. That path existed as an intended or
-historical deployment lane, but it is not the current production authority for
-`witnessops.com`.
+Older docs describe a unified public host using Caddy and Docker Compose. That
+path is historical and is not the current production authority for
+`witnessops.com`; its concrete topology is deliberately omitted here.
 
 Keep those notes as history unless a future lane explicitly reactivates them.
 Do not use `deploy/docker-compose.yml`, `deploy/scripts/deploy.sh`, or the old
-goal0 Caddy snippets as live authority without a fresh authority lane.
+retired Caddy snippets as live authority without a fresh authority lane.
