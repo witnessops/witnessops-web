@@ -428,7 +428,7 @@ remote() {
       if [[ "${remote_mode}" == "runtime-role-shadow" || "${remote_mode}" == "smoke-role-shadow" ]]; then
         printf '%s\n' $'PORT\nWITNESSOPS_ADMIN_ROLE'
       elif [[ "${remote_mode}" == "migratable-role-shadow" ]]; then
-        if [[ "$(grep -c 'range .env}' "${remote_log}" || true)" -eq 1 ]]; then
+        if [[ "$(grep -Fc 'range .env}' "${remote_log}" || true)" -eq 1 ]]; then
           printf '%s\n' $'PORT\nWITNESSOPS_ADMIN_ROLE\nHOSTNAME'
         else
           printf '%s\n' $'PORT\nHOSTNAME'
@@ -460,6 +460,34 @@ curl() {
   printf 'curl %s\n' "$*" >> "${remote_log}"
   return 0
 }
+
+remote_mode="ok"
+: > "${remote_log}"
+deployment_explicit_env_key_names "${PROD_DEPLOY}" >/dev/null
+if grep -Fq 'with index .spec.template.spec.containers 0' "${remote_log}"; then
+  pass=$((pass + 1))
+  echo "PASS: explicit env inspection is scoped to the patched container"
+else
+  fail=$((fail + 1))
+  echo "FAIL: explicit env inspection is not scoped to container zero" >&2
+fi
+
+remote_mode="ok"
+: > "${remote_log}"
+if (deploy_prod_image 'bad image ref') >/dev/null 2>&1; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image accepted invalid image ref" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image rejects invalid image ref before remote preflight"
+fi
+if [[ -s "${remote_log}" ]]; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image made remote calls for invalid image ref" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image makes no remote calls for invalid image ref"
+fi
 
 remote_mode="missing-key"
 : > "${remote_log}"

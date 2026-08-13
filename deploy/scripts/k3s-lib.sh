@@ -295,7 +295,7 @@ deployment_explicit_env_key_names() {
   local deployment
   deployment="${1:-}"
   [[ -n "${deployment}" ]] || return 1
-  remote "kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o go-template='{{range .spec.template.spec.containers}}{{range .env}}{{printf \"%s\\n\" .name}}{{end}}{{end}}'"
+  remote "kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o go-template='{{with index .spec.template.spec.containers 0}}{{range .env}}{{printf \"%s\\n\" .name}}{{end}}{{end}}'"
 }
 
 assert_remote_deployment_envfrom() {
@@ -326,12 +326,14 @@ assert_remote_no_admin_oidc_env_shadows() {
 deploy_prod_image() {
   local image patch explicit_keys admin_role
   image="${1:-}"
+  validate_container_image_ref "${image}" \
+    || die "refusing invalid production image reference"
   preflight_remote_admin_secrets
   admin_role="${PREFLIGHT_ADMIN_ROLE}"
   explicit_keys="$(deployment_explicit_env_key_names "${PROD_DEPLOY}")" \
     || die "could not inspect explicit runtime env for ${PROD_DEPLOY}"
   patch="$(prod_deployment_json_patch "${image}" "${explicit_keys}" "${admin_role}")" \
-    || die "refusing invalid image or protected production env shadow"
+    || die "refusing protected production env shadow"
   if grep -Fq 'WITNESSOPS_ADMIN_ROLE' <<<"${explicit_keys}"; then
     log "migrating legacy explicit admin role to protected Secret custody"
   fi
