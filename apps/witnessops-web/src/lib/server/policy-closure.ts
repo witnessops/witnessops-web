@@ -20,7 +20,12 @@ import { isStrongProviderOutcomeStatus } from "@/lib/provider-outcomes";
 
 import { appendIntakeEvent, readIntakeEvents } from "./intake-event-ledger";
 import { isStrongMailboxReceipt } from "./evidence-resolution";
-import type { IntakeRecord } from "./token-store";
+import {
+  getIntakeById,
+  withIntakeLock,
+  type IntakeLockHandle,
+  type IntakeRecord,
+} from "./token-store";
 
 export const POLICY_VERSION = "auto_resolution_v1";
 
@@ -102,10 +107,14 @@ function shouldAutoClose(intake: IntakeRecord): {
  * intake after new evidence arrives. If so, emit a durable policy closure
  * event. Idempotent: will not emit if a prior closure event exists.
  */
-export async function evaluatePolicyClosure(
-  intake: IntakeRecord,
+export async function evaluatePolicyClosureWithinLock(
+  handle: IntakeLockHandle,
   triggerSource: string,
 ): Promise<PolicyClosureResult> {
+  const intake = await getIntakeById(handle.intakeId);
+  if (!intake) {
+    throw new Error(`Unknown intakeId: ${handle.intakeId}`);
+  }
   const decision = shouldAutoClose(intake);
   if (!decision.close || !decision.source) {
     return { emitted: false, closureSource: null, reason: decision.reason };
@@ -152,4 +161,14 @@ export async function evaluatePolicyClosure(
     closureSource: decision.source,
     reason: decision.reason,
   };
+}
+
+export async function evaluatePolicyClosure(
+  intake: IntakeRecord | string,
+  triggerSource: string,
+): Promise<PolicyClosureResult> {
+  const intakeId = typeof intake === "string" ? intake : intake.intakeId;
+  return withIntakeLock(intakeId, (handle) =>
+    evaluatePolicyClosureWithinLock(handle, triggerSource),
+  );
 }
