@@ -17,8 +17,9 @@ import {
   type QueueWorkflowState,
   type ScopeContractRecord,
   getIntakeById,
-  updateIntake,
+  updateIntakeWithinLock,
   withIntakeLock,
+  type IntakeLockHandle,
 } from "./token-store";
 import { appendQueueEvent, readQueueEvents, type QueueEventType } from "./queue-event-ledger";
 import {
@@ -207,6 +208,7 @@ function applyWorkflowTransition(args: {
 async function applyQueueCommandUnlocked(
   ctx: QueueCommandContext,
   command: QueueCommandPayload,
+  lockHandle: IntakeLockHandle,
 ): Promise<QueueCommandResult> {
   const intake = await getIntakeById(ctx.intakeId);
   if (!intake) {
@@ -675,7 +677,7 @@ async function applyQueueCommandUnlocked(
   const nextEventSequence = projection.eventSequence + events.length;
   nextProjection.eventSequence = nextEventSequence;
 
-  const updatedIntake = await updateIntake(intake.intakeId, (current) => ({
+  const updatedIntake = await updateIntakeWithinLock(lockHandle, intake.intakeId, (current) => ({
     ...current,
     updatedAt: occurredAt,
     operatorAction: nextOperatorAction,
@@ -717,7 +719,7 @@ export async function applyQueueCommand(
   ctx: QueueCommandContext,
   command: QueueCommandPayload,
 ): Promise<QueueCommandResult> {
-  return withIntakeLock(ctx.intakeId, () =>
-    applyQueueCommandUnlocked(ctx, command),
+  return withIntakeLock(ctx.intakeId, (handle) =>
+    applyQueueCommandUnlocked(ctx, command, handle),
   );
 }

@@ -238,6 +238,11 @@ test("admin core spine covers the complete message-to-receipt operating path", a
     `delivery-send:${deliveryRecord.id}`,
   );
   assert.equal(competingReservation.kind, "in_progress");
+  await assert.rejects(
+    () => transitionDelivery(deliveryRecord.id, "draft", founder),
+    (error: unknown) =>
+      error instanceof AdminCoreError && error.code === "DELIVERY_SEND_UNRESOLVED",
+  );
   const sent = await recordDeliverySent(
     deliveryRecord.id,
     { provider: "file", providerMessageId: "provider-msg-001", sentAt: "2026-07-11T12:10:00Z" },

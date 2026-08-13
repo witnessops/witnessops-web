@@ -36,6 +36,7 @@ import {
   prepareDelivery,
   reserveDeliverySend,
   failDeliverySendReservation,
+  markDeliverySendOutcomeUnknown,
   recordDeliverySent,
   recordGmailLabelSync,
   recordIntegrationFailure,
@@ -299,24 +300,42 @@ export async function POST(request: NextRequest, context: RouteContext) {
         );
         throw new AdminCoreError("STORE_CORRUPT", "Delivery customer is missing.", 500);
       }
+      let result: Awaited<ReturnType<typeof sendVerificationEmail>>;
       try {
-        const result = await sendVerificationEmail({
+        result = await sendVerificationEmail({
           to: customer.email,
           replyTo: PUBLIC_CONTACT_EMAIL,
           subject: delivery.subject,
           text: delivery.body,
           deliveryAttemptId: delivery.id,
         });
-        return NextResponse.json({ ok: true, item: await recordDeliverySent(idValue, { ...result, sentAt: result.deliveredAt }, actor, idempotencyKey, reservation.reservationToken) });
-      } catch (error) {
-        await failDeliverySendReservation(
+      } catch {
+        await markDeliverySendOutcomeUnknown(
           idValue,
           reservation.reservationToken,
           actor,
-          "Mail delivery failed.",
         );
-        await recordIntegrationFailure({ integration: "mail", operation: "send_delivery", idempotencyKey, externalId: null, error: error instanceof Error ? error.message : "Mail delivery failed." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery.lineageId });
-        throw error;
+        await recordIntegrationFailure({ integration: "mail", operation: "send_delivery", idempotencyKey, externalId: null, error: "Mail delivery outcome is unknown." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery.lineageId });
+        throw new AdminCoreError(
+          "MAIL_DELIVERY_OUTCOME_UNKNOWN",
+          "Mail delivery outcome is unresolved; reconcile it before retrying.",
+          502,
+        );
+      }
+      try {
+        return NextResponse.json({ ok: true, item: await recordDeliverySent(idValue, { ...result, sentAt: result.deliveredAt }, actor, idempotencyKey, reservation.reservationToken) });
+      } catch {
+        await markDeliverySendOutcomeUnknown(
+          idValue,
+          reservation.reservationToken,
+          actor,
+        );
+        await recordIntegrationFailure({ integration: "mail", operation: "commit_delivery_send", idempotencyKey, externalId: result.providerMessageId, error: "Mail delivery was accepted, but local confirmation failed." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery.lineageId });
+        throw new AdminCoreError(
+          "MAIL_DELIVERY_CONFIRMATION_UNRESOLVED",
+          "Mail delivery was accepted, but local confirmation is unresolved; reconcile it before retrying.",
+          500,
+        );
       }
     }
     return NextResponse.json({ ok: false, error: "Unknown admin core action." }, { status: 404 });

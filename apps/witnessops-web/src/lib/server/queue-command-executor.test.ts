@@ -7,8 +7,11 @@ import test, { afterEach } from "node:test";
 import { applyQueueCommand } from "./queue-command-executor";
 import {
   clearTokenStore,
+  getIntakeById,
   saveIntake,
   type IntakeRecord,
+  updateIntakeWithinLock,
+  withIntakeLock,
 } from "./token-store";
 
 function makeIntake(assignedOperator: string): IntakeRecord {
@@ -159,4 +162,52 @@ test("concurrent queue commands allow one projection-version winner", async () =
   const loser = [first, second].find((result) => !result.ok);
   assert.ok(loser && !loser.ok);
   assert.deepEqual(loser.reasonCodes, ["PROJECTION_VERSION_MISMATCH"]);
+});
+
+test("all intake writers share the queue lock and preserve both updates", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-writer-race-"));
+  process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
+  process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
+  await saveIntake(makeIntake("owner@test"));
+
+  let releaseQueueLock!: () => void;
+  const holdQueueLock = new Promise<void>((resolve) => {
+    releaseQueueLock = resolve;
+  });
+  let signalLockHeld!: () => void;
+  const lockHeld = new Promise<void>((resolve) => {
+    signalLockHeld = resolve;
+  });
+  const holder = withIntakeLock("intk_queue_owned", async (handle) => {
+    signalLockHeld();
+    await holdQueueLock;
+    return updateIntakeWithinLock(handle, "intk_queue_owned", (current) => ({
+      ...current,
+      threadId: "claimant-thread-preserved",
+    }));
+  });
+  await lockHeld;
+
+  const queued = applyQueueCommand(
+    {
+      intakeId: "intk_queue_owned",
+      actor: "owner@test",
+      actorAuthSource: "oidc_session",
+      actorSessionHash: "session-hash",
+      role: "Delegated Operator",
+      expectedProjectionVersion: 0,
+      expectedEventSequence: 0,
+      idempotencyKey: "queue-cross-writer-race",
+      source: "test",
+    },
+    { command: "queue.set_priority", priority: "high" },
+  );
+  releaseQueueLock();
+
+  await holder;
+  assert.equal((await queued).ok, true);
+  const stored = await getIntakeById("intk_queue_owned");
+  assert.equal(stored?.threadId, "claimant-thread-preserved");
+  assert.equal(stored?.queue?.projection.priority, "high");
+  assert.equal(stored?.queue?.projection.projectionVersion, 1);
 });

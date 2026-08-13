@@ -308,7 +308,7 @@ export interface DeliverySendReservationRecord {
   reservationToken: string;
   reservedBy: string;
   reservedAt: string;
-  status: "reserved" | "sent" | "failed";
+  status: "reserved" | "sent" | "failed" | "outcome_unknown";
   completedAt: string | null;
 }
 
@@ -1869,6 +1869,17 @@ export async function transitionDelivery(
     const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
     if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
     requireDeliveryAssignment(state, delivery, actor);
+    const sendReservation = state.deliverySendReservations[deliveryId];
+    if (
+      sendReservation?.status === "reserved" ||
+      sendReservation?.status === "outcome_unknown"
+    ) {
+      throw new AdminCoreError(
+        "DELIVERY_SEND_UNRESOLVED",
+        "Delivery cannot transition while its send outcome is unresolved.",
+        409,
+      );
+    }
     requireTransition("delivery", delivery.state, nextState, deliveryTransitions);
     if (nextState === "ready_for_operator_review") {
       const readiness = buildDeliveryReadinessSync(state, delivery.id);
@@ -2015,11 +2026,11 @@ export async function recordDeliverySent(
     if (delivery.state === "sent" || delivery.state === "acknowledged") return clone(delivery);
     const reservation = state.deliverySendReservations[deliveryId];
     if (
-      reservationToken !== undefined &&
-      (!reservation ||
-        reservation.status !== "reserved" ||
-        reservation.reservationToken !== reservationToken ||
-        reservation.idempotencyKey !== idempotencyKey)
+      !reservationToken ||
+      !reservation ||
+      reservation.status !== "reserved" ||
+      reservation.reservationToken !== reservationToken ||
+      reservation.idempotencyKey !== idempotencyKey
     ) {
       throw new AdminCoreError(
         "DELIVERY_RESERVATION_CONFLICT",
@@ -2109,7 +2120,10 @@ export async function reserveDeliverySend(
       return { kind: "replay", delivery: clone(delivery) };
     }
     const existing = state.deliverySendReservations[deliveryId];
-    if (existing?.status === "reserved") {
+    if (
+      existing?.status === "reserved" ||
+      existing?.status === "outcome_unknown"
+    ) {
       return { kind: "in_progress", delivery: clone(delivery) };
     }
     if (existing?.status === "sent") {
@@ -2187,6 +2201,35 @@ export async function failDeliverySendReservation(
     reservation.status = "failed";
     reservation.completedAt = isoNow();
     delivery.failure = safeError;
+    delivery.updatedAt = reservation.completedAt;
+  });
+}
+
+export async function markDeliverySendOutcomeUnknown(
+  deliveryId: string,
+  reservationToken: string,
+  actor: CoreActor,
+): Promise<void> {
+  await mutateState((state) => {
+    const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
+    if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
+    requireDeliveryAssignment(state, delivery, actor);
+    const reservation = state.deliverySendReservations[deliveryId];
+    if (
+      !reservation ||
+      reservation.status !== "reserved" ||
+      reservation.reservationToken !== reservationToken
+    ) {
+      throw new AdminCoreError(
+        "DELIVERY_RESERVATION_CONFLICT",
+        "Delivery send reservation is no longer current.",
+        409,
+      );
+    }
+    reservation.status = "outcome_unknown";
+    reservation.completedAt = isoNow();
+    delivery.failure =
+      "Mail delivery outcome is unknown and requires reconciliation.";
     delivery.updatedAt = reservation.completedAt;
   });
 }
