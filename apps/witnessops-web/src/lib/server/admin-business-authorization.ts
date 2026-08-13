@@ -63,6 +63,28 @@ export async function requireIntakeBusinessAccess(
   });
 }
 
+export async function requireIntakeReadAccess(
+  session: VerifiedAdminSession,
+  intakeId: string,
+): Promise<IntakeRecord> {
+  return withIntakeLock(intakeId, async () => {
+    const intake = await getIntakeById(intakeId);
+    if (!intake) {
+      throw new AdminBusinessAuthorizationError("Intake not found.", 404);
+    }
+    if (
+      session.role === "Delegated Operator" &&
+      !isSameOperator(
+        intake.queue?.projection.assignedOperator ?? null,
+        session.actor,
+      )
+    ) {
+      throw new AdminBusinessAuthorizationError("Intake not found.", 404);
+    }
+    return intake;
+  });
+}
+
 export async function requireRunBusinessAccess(
   session: VerifiedAdminSession,
   runId: string,

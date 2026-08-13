@@ -3,6 +3,7 @@ import { buildAdmissionQueueView } from "@/lib/server/admission-queue";
 import { buildReconciliationReportFromView } from "@/lib/server/reconciliation-report";
 import { ReconciliationReportView } from "../../../../components/admin/reconciliation-report-view";
 import { AdminEmptyState } from "../../../../components/admin/admin-empty-state";
+import { getAdminPageActor } from "@/lib/server/admin-page-session";
 
 export const metadata: Metadata = {
   title: "Admin — Reports",
@@ -21,7 +22,7 @@ export default async function AdminReportsPage() {
   let staleAcceptedCount = 0;
 
   try {
-    const view = await buildAdmissionQueueView();
+    const view = await buildAdmissionQueueView(await getAdminPageActor());
     report = buildReconciliationReportFromView(view);
     staleAcceptedCount = view.rows.filter(
       (row) =>

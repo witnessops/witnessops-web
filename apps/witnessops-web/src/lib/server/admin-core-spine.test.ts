@@ -18,7 +18,12 @@ import {
   importGmailInboxItem,
   linkReceiptToDelivery,
   listAuditEvents,
+  listCustomers,
+  listDeliveries,
   listProductContracts,
+  listProofRuns,
+  listReceiptRecords,
+  listReviewRequests,
   recordDeliverySent,
   recordGmailLabelSync,
   prepareDelivery,
@@ -63,6 +68,47 @@ test("delegated operators may mutate only records assigned to them", async () =>
     owner,
   );
   assert.equal(transitioned.state, "triage");
+});
+
+test("delegated reads expose only assigned record lineages", async () => {
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "witnessops-admin-core-read-scope-"));
+  await resetAdminCoreStoreForTests();
+
+  const alice = { actor: "alice@test", role: "Delegated Operator" as const };
+  const bob = { actor: "bob@test", role: "Delegated Operator" as const };
+  const aliceInbox = await importGmailInboxItem({
+    gmailMessageId: "gmail-alice",
+    gmailThreadId: "thread-alice",
+    sender: "Alice Customer <alice.customer@example.com>",
+    recipients: ["engage@mail.witnessops.com"],
+    subject: "Alice request",
+    receivedAt: "2026-08-13T08:00:00Z",
+    excerpt: "Alice bounded request",
+  }, founder);
+  const bobInbox = await importGmailInboxItem({
+    gmailMessageId: "gmail-bob",
+    gmailThreadId: "thread-bob",
+    sender: "Bob Customer <bob.customer@example.com>",
+    recipients: ["engage@mail.witnessops.com"],
+    subject: "Bob request",
+    receivedAt: "2026-08-13T08:01:00Z",
+    excerpt: "Bob bounded request",
+  }, founder);
+  const aliceRequest = await convertInboxItemToReviewRequest(aliceInbox.item.id, alice);
+  const bobRequest = await convertInboxItemToReviewRequest(bobInbox.item.id, bob);
+
+  assert.deepEqual((await listReviewRequests(alice)).map((item) => item.id), [aliceRequest.reviewRequest.id]);
+  assert.deepEqual((await listCustomers(alice)).map((item) => item.id), [aliceRequest.customer.id]);
+  assert.equal((await getInboxItem(bobInbox.item.id, alice)), null);
+  assert.equal((await getAdminCoreState(alice)).gmailSyncReceipts.length, 0);
+  assert.equal((await listAuditEvents(undefined, alice)).every((event) => event.lineageId === aliceRequest.reviewRequest.lineageId), true);
+  assert.equal((await searchCoreRecords("Bob request", alice)).length, 0);
+  assert.equal((await listProofRuns(alice)).length, 0);
+  assert.equal((await listDeliveries(alice)).length, 0);
+  assert.equal((await listReceiptRecords(alice)).length, 0);
+  assert.ok((await listProductContracts()).length > 0);
+  assert.equal((await listReviewRequests(founder)).length, 2);
+  assert.equal(bobRequest.reviewRequest.owner, bob.actor);
 });
 
 test("concurrent core mutations preserve every committed record", async () => {

@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { NextRequest } from "next/server";
+import { createAdminSessionCookie } from "@/lib/server/admin-session";
 
 import { appendIntakeEvent } from "@/lib/server/intake-event-ledger";
 import {
@@ -394,4 +395,63 @@ test("admin reconciliation report route requires an authenticated admin session 
   );
 
   assert.equal(response.status, 401);
+});
+
+test("delegated reconciliation report includes only assigned intakes", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-report-"));
+  applyTestEnv(baseDir);
+  delete process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS;
+  process.env.WITNESSOPS_ADMIN_SECRET = "test-admin-secret";
+  await seedPendingCase();
+  await seedResolvedCase();
+  const assigned = await (await import("@/lib/server/token-store")).getIntakeById("intk_report_pending");
+  assert.ok(assigned);
+  assigned.queue = {
+    projection: {
+      queueWorkflowState: "pending_operator_review",
+      assignedOperator: "oidc:https://accounts.google.com#delegated-subject",
+      priority: "normal",
+      currentScopeContractId: null,
+      scopeContractStatus: null,
+      currentClarificationRecordId: null,
+      clarificationOutstanding: false,
+      respondedAt: null,
+      lastOperatorActionAt: null,
+      projectionVersion: 1,
+      eventSequence: 1,
+      responseRecordId: null,
+    },
+    scopeContracts: [],
+    clarifications: [],
+    responses: [],
+  };
+  await saveIntake(assigned);
+  const now = Date.now();
+  const cookie = await createAdminSessionCookie({
+    version: 3,
+    identityProvider: "google",
+    issuer: "https://accounts.google.com",
+    subject: "delegated-subject",
+    actor: "oidc:https://accounts.google.com#delegated-subject",
+    actorAuthSource: "oidc_session",
+    actorSessionHash: "abcd1234abcd5678",
+    role: "Delegated Operator",
+    iat: now,
+    exp: now + 60_000,
+  });
+
+  const response = await GET(
+    new NextRequest("https://witnessops.com/api/admin/intake/reconciliation-report", {
+      headers: { cookie: `witnessops-admin-session=${cookie}` },
+    }),
+  );
+  assert.equal(response.status, 200);
+  const report = (await response.json()) as {
+    pendingTotal: number;
+    resolvedTotal: number;
+    pendingRows: Array<{ intakeId: string }>;
+  };
+  assert.equal(report.pendingTotal, 1);
+  assert.equal(report.resolvedTotal, 0);
+  assert.deepEqual(report.pendingRows.map((row) => row.intakeId), ["intk_report_pending"]);
 });

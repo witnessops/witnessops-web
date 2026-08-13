@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import { verifyQueueProjectionForIntake } from "@/lib/server/queue-projection";
-import { getIntakeById } from "@/lib/server/token-store";
+import {
+  AdminBusinessAuthorizationError,
+  requireIntakeReadAccess,
+} from "@/lib/server/admin-business-authorization";
 
 export const runtime = "nodejs";
 
@@ -35,15 +38,14 @@ export async function POST(request: NextRequest) {
     return invalid("intakeId is required.", 400);
   }
 
-  const intake = await getIntakeById(intakeId);
-  if (!intake) {
-    return invalid("Unknown intakeId.", 404, ["SNAPSHOT_MISSING"]);
-  }
-
   try {
+    const intake = await requireIntakeReadAccess(session, intakeId);
     const result = await verifyQueueProjectionForIntake(intake);
     return NextResponse.json(result);
   } catch (error) {
+    if (error instanceof AdminBusinessAuthorizationError) {
+      return invalid(error.message, error.status, ["SNAPSHOT_MISSING"]);
+    }
     const message =
       error instanceof Error ? error.message : "Queue projection verification failed.";
     return invalid(message, 500);

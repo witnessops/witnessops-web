@@ -3,12 +3,14 @@ import type { PostApprovalLifecycleView } from "@/lib/server/post-approval-lifec
 import { deriveAlerts, type AlertItem } from "@/lib/admin/admin-alert-derive";
 import { AdminAlertPanel } from "./admin-alert-panel";
 import { buildLifecycleByRunId } from "./admin-admission-queue";
+import { getAdminPageActor } from "@/lib/server/admin-page-session";
 
 export async function AdminAlertBell() {
   let alerts: AlertItem[] = [];
 
   try {
-    const view = await buildAdmissionQueueView();
+    const actor = await getAdminPageActor();
+    const view = await buildAdmissionQueueView(actor);
     let lifecycleByRunId = new Map<string, PostApprovalLifecycleView>();
     try {
       lifecycleByRunId = await buildLifecycleByRunId(view.rows);

@@ -5,6 +5,7 @@ import { CoreAction, DeliveryDraftForm, ReceiptLinkForm } from "../../../../../c
 import { CoreAuditTimeline, CoreCard, CoreMeta, CorePage, CoreState } from "../../../../../components/admin/admin-core-view";
 import { buildDeliveryReadiness, getDelivery, listAuditEvents } from "@/lib/server/admin-core-spine";
 import styles from "../../../../../components/admin/admin.module.css";
+import { getAdminPageActor } from "@/lib/server/admin-page-session";
 
 export const metadata: Metadata = { title: "Admin — Delivery", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -12,9 +13,10 @@ interface RouteContext { params: Promise<{ id: string }> }
 
 export default async function AdminDeliveryDetailPage({ params }: RouteContext) {
   const { id } = await params;
-  const delivery = await getDelivery(id);
+  const actor = await getAdminPageActor();
+  const delivery = await getDelivery(id, actor);
   if (!delivery) notFound();
-  const [readiness, events] = await Promise.all([buildDeliveryReadiness(id), listAuditEvents(delivery.lineageId)]);
+  const [readiness, events] = await Promise.all([buildDeliveryReadiness(id, actor), listAuditEvents(delivery.lineageId, actor)]);
   return <CorePage title={delivery.id} eyebrow="Delivery">
     <div className={styles.coreMetaGrid}><CoreMeta label="State" value={<CoreState value={delivery.state} />} /><CoreMeta label="Proof run" value={<Link href={`/admin/proof-runs/${delivery.proofRunId}`} className={styles.inlineLink}>{delivery.proofRunId}</Link>} /><CoreMeta label="Receipt" value={delivery.receiptId ? <Link href={`/admin/receipts/${delivery.receiptId}`} className={styles.inlineLink}>{delivery.receiptId}</Link> : "Not linked"} /><CoreMeta label="Provider" value={delivery.provider || "Not sent"} /><CoreMeta label="Provider message" value={delivery.providerMessageId || "—"} /></div>
     <div className={styles.coreDetailSection}><div className={styles.coreDetailSectionTitle}>Delivery draft</div><DeliveryDraftForm deliveryId={delivery.id} initial={delivery} /></div>

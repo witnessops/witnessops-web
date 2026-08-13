@@ -395,6 +395,77 @@ export interface CoreActor {
   role?: AdminRole;
 }
 
+function actorCanReadOwner(actor: CoreActor, owner: string | null): boolean {
+  return (
+    (actor.role ?? "Founder") !== "Delegated Operator" ||
+    isSameOperator(owner, actor.actor)
+  );
+}
+
+function filterStateForActor(state: CoreState, actor: CoreActor): CoreState {
+  if ((actor.role ?? "Founder") !== "Delegated Operator") return state;
+
+  const reviewRequests = state.reviewRequests.filter((record) =>
+    actorCanReadOwner(actor, record.owner),
+  );
+  const reviewIds = new Set(reviewRequests.map((record) => record.id));
+  const lineageIds = new Set(reviewRequests.map((record) => record.lineageId));
+  const customerIds = new Set(reviewRequests.map((record) => record.customerId));
+  const inboxIds = new Set(reviewRequests.map((record) => record.inboxItemId));
+
+  const proofRuns = state.proofRuns.filter(
+    (record) =>
+      actorCanReadOwner(actor, record.owner) ||
+      reviewIds.has(record.reviewRequestId),
+  );
+  for (const record of proofRuns) {
+    lineageIds.add(record.lineageId);
+    customerIds.add(record.customerId);
+    reviewIds.add(record.reviewRequestId);
+  }
+  const proofRunIds = new Set(proofRuns.map((record) => record.id));
+  const deliveries = state.deliveries.filter((record) =>
+    proofRunIds.has(record.proofRunId),
+  );
+  const deliveryIds = new Set(deliveries.map((record) => record.id));
+  const receipts = state.receipts.filter((record) =>
+    proofRunIds.has(record.proofRunId),
+  );
+  const receiptIds = new Set(receipts.map((record) => record.id));
+
+  return {
+    ...state,
+    inboxItems: state.inboxItems.filter(
+      (record) =>
+        inboxIds.has(record.id) ||
+        (record.reviewRequestId !== null && reviewIds.has(record.reviewRequestId)),
+    ),
+    customers: state.customers.filter((record) => customerIds.has(record.id)),
+    reviewRequests: state.reviewRequests.filter((record) =>
+      reviewIds.has(record.id),
+    ),
+    proofRuns,
+    deliveries,
+    receipts,
+    auditEvents: state.auditEvents.filter(
+      (record) =>
+        (record.lineageId !== null && lineageIds.has(record.lineageId)) ||
+        reviewIds.has(record.recordId) ||
+        proofRunIds.has(record.recordId) ||
+        deliveryIds.has(record.recordId) ||
+        receiptIds.has(record.recordId),
+    ),
+    integrationAttempts: [],
+    gmailSyncReceipts: [],
+    idempotency: {},
+    deliverySendReservations: Object.fromEntries(
+      Object.entries(state.deliverySendReservations).filter(([deliveryId]) =>
+        deliveryIds.has(deliveryId),
+      ),
+    ),
+  };
+}
+
 export class AdminCoreError extends Error {
   readonly code: string;
   readonly status: number;
@@ -760,24 +831,27 @@ export async function resetAdminCoreStoreForTests(): Promise<void> {
   await rm(coreStoreFile(), { force: true });
 }
 
-export async function getAdminCoreState(): Promise<CoreState> {
-  return clone(await readState());
+export async function getAdminCoreState(actor?: CoreActor): Promise<CoreState> {
+  const state = await readState();
+  return clone(actor ? filterStateForActor(state, actor) : state);
 }
 
-export async function listInboxItems(): Promise<InboxItemRecord[]> {
-  return clone((await readState()).inboxItems.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+export async function listInboxItems(actor?: CoreActor): Promise<InboxItemRecord[]> {
+  return clone((actor ? filterStateForActor(await readState(), actor) : await readState()).inboxItems.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
 }
 
-export async function getInboxItem(idValue: string): Promise<InboxItemRecord | null> {
-  return clone((await readState()).inboxItems.find((item) => item.id === idValue) ?? null);
+export async function getInboxItem(idValue: string, actor?: CoreActor): Promise<InboxItemRecord | null> {
+  const state = actor ? filterStateForActor(await readState(), actor) : await readState();
+  return clone(state.inboxItems.find((item) => item.id === idValue) ?? null);
 }
 
-export async function listCustomers(): Promise<CustomerRecord[]> {
-  return clone((await readState()).customers.sort((a, b) => a.name.localeCompare(b.name)));
+export async function listCustomers(actor?: CoreActor): Promise<CustomerRecord[]> {
+  return clone((actor ? filterStateForActor(await readState(), actor) : await readState()).customers.sort((a, b) => a.name.localeCompare(b.name)));
 }
 
-export async function getCustomer(idValue: string): Promise<CustomerRecord | null> {
-  return clone((await readState()).customers.find((item) => item.id === idValue) ?? null);
+export async function getCustomer(idValue: string, actor?: CoreActor): Promise<CustomerRecord | null> {
+  const state = actor ? filterStateForActor(await readState(), actor) : await readState();
+  return clone(state.customers.find((item) => item.id === idValue) ?? null);
 }
 
 export async function listProductContracts(): Promise<ProductContractVersionRecord[]> {
@@ -788,46 +862,51 @@ export async function getProductContract(idValue: string): Promise<ProductContra
   return clone((await readState()).productContracts.find((item) => item.id === idValue) ?? null);
 }
 
-export async function listReviewRequests(): Promise<ReviewRequestRecord[]> {
-  return clone((await readState()).reviewRequests.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+export async function listReviewRequests(actor?: CoreActor): Promise<ReviewRequestRecord[]> {
+  return clone((actor ? filterStateForActor(await readState(), actor) : await readState()).reviewRequests.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
 }
 
-export async function getReviewRequest(idValue: string): Promise<ReviewRequestRecord | null> {
-  return clone((await readState()).reviewRequests.find((item) => item.id === idValue) ?? null);
+export async function getReviewRequest(idValue: string, actor?: CoreActor): Promise<ReviewRequestRecord | null> {
+  const state = actor ? filterStateForActor(await readState(), actor) : await readState();
+  return clone(state.reviewRequests.find((item) => item.id === idValue) ?? null);
 }
 
-export async function listProofRuns(): Promise<ProofRunRecord[]> {
-  return clone((await readState()).proofRuns.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+export async function listProofRuns(actor?: CoreActor): Promise<ProofRunRecord[]> {
+  return clone((actor ? filterStateForActor(await readState(), actor) : await readState()).proofRuns.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
 }
 
-export async function getProofRun(idValue: string): Promise<ProofRunRecord | null> {
-  return clone((await readState()).proofRuns.find((item) => item.id === idValue) ?? null);
+export async function getProofRun(idValue: string, actor?: CoreActor): Promise<ProofRunRecord | null> {
+  const state = actor ? filterStateForActor(await readState(), actor) : await readState();
+  return clone(state.proofRuns.find((item) => item.id === idValue) ?? null);
 }
 
-export async function listDeliveries(): Promise<DeliveryRecord[]> {
-  return clone((await readState()).deliveries.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+export async function listDeliveries(actor?: CoreActor): Promise<DeliveryRecord[]> {
+  return clone((actor ? filterStateForActor(await readState(), actor) : await readState()).deliveries.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
 }
 
-export async function getDelivery(idValue: string): Promise<DeliveryRecord | null> {
-  return clone((await readState()).deliveries.find((item) => item.id === idValue) ?? null);
+export async function getDelivery(idValue: string, actor?: CoreActor): Promise<DeliveryRecord | null> {
+  const state = actor ? filterStateForActor(await readState(), actor) : await readState();
+  return clone(state.deliveries.find((item) => item.id === idValue) ?? null);
 }
 
-export async function listReceiptRecords(): Promise<ReceiptRecord[]> {
-  return clone((await readState()).receipts.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
+export async function listReceiptRecords(actor?: CoreActor): Promise<ReceiptRecord[]> {
+  return clone((actor ? filterStateForActor(await readState(), actor) : await readState()).receipts.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
 }
 
-export async function getReceiptRecord(idValue: string): Promise<ReceiptRecord | null> {
-  const state = await readState();
+export async function getReceiptRecord(idValue: string, actor?: CoreActor): Promise<ReceiptRecord | null> {
+  const state = actor ? filterStateForActor(await readState(), actor) : await readState();
   return clone(state.receipts.find((item) => item.id === idValue || item.receiptId === idValue) ?? null);
 }
 
-export async function listAuditEvents(lineageId?: string): Promise<AuditEventRecord[]> {
-  const events = (await readState()).auditEvents;
+export async function listAuditEvents(lineageId?: string, actor?: CoreActor): Promise<AuditEventRecord[]> {
+  const state = actor ? filterStateForActor(await readState(), actor) : await readState();
+  const events = state.auditEvents;
   return clone(lineageId ? events.filter((event) => event.lineageId === lineageId) : events);
 }
 
-export async function listGmailSyncReceipts(limit = 20): Promise<GmailSyncReceipt[]> {
-  const receipts = (await readState()).gmailSyncReceipts;
+export async function listGmailSyncReceipts(limit = 20, actor?: CoreActor): Promise<GmailSyncReceipt[]> {
+  const state = actor ? filterStateForActor(await readState(), actor) : await readState();
+  const receipts = state.gmailSyncReceipts;
   return clone([...receipts].sort((a, b) => b.completedAt.localeCompare(a.completedAt)).slice(0, limit));
 }
 
@@ -1746,8 +1825,8 @@ export function buildProofReadinessCheck(run: ProofRunRecord): ReadinessCheck {
   return result;
 }
 
-export async function buildProofReadiness(proofRunId: string): Promise<ReadinessCheck> {
-  const run = await getProofRun(proofRunId);
+export async function buildProofReadiness(proofRunId: string, actor?: CoreActor): Promise<ReadinessCheck> {
+  const run = await getProofRun(proofRunId, actor);
   if (!run) throw new AdminCoreError("NOT_FOUND", "Proof run not found.", 404);
   return buildProofReadinessCheck(run);
 }
@@ -1836,8 +1915,9 @@ export async function updateDeliveryDraft(
   });
 }
 
-export async function buildDeliveryReadiness(deliveryId: string): Promise<ReadinessCheck> {
-  const state = await readState();
+export async function buildDeliveryReadiness(deliveryId: string, actor?: CoreActor): Promise<ReadinessCheck> {
+  const fullState = await readState();
+  const state = actor ? filterStateForActor(fullState, actor) : fullState;
   const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
   if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
   const run = state.proofRuns.find((candidate) => candidate.id === delivery.proofRunId);
@@ -2273,10 +2353,11 @@ export interface SearchResult {
   matchedField: string;
 }
 
-export async function searchCoreRecords(query: string): Promise<SearchResult[]> {
+export async function searchCoreRecords(query: string, actor?: CoreActor): Promise<SearchResult[]> {
   const needle = normalizeSearch(query);
   if (!needle) return [];
-  const state = await readState();
+  const fullState = await readState();
+  const state = actor ? filterStateForActor(fullState, actor) : fullState;
   const results: SearchResult[] = [];
   for (const customer of state.customers) {
     const field = ["name", "email", "organization"].find((key) => normalizeSearch(String(customer[key as keyof CustomerRecord] ?? "")).includes(needle));
@@ -2306,21 +2387,24 @@ export async function searchCoreRecords(query: string): Promise<SearchResult[]> 
     const field = ["id", "receiptId", "proofRunId", "productContractVersionId"].find((key) => normalizeSearch(String(receipt[key as keyof ReceiptRecord] ?? "")).includes(needle));
     if (field) results.push({ type: "receipt", id: receipt.id, label: receipt.receiptId, href: `/admin/receipts/${receipt.id}`, matchedField: field });
   }
-  for (const receipt of await listReceipts()) {
-    if (normalizeSearch(receipt.receiptId).includes(needle)) {
-      results.push({ type: "receipt", id: receipt.receiptId, label: receipt.receiptId, href: `/admin/receipts/${receipt.receiptId}`, matchedField: "receiptId" });
+  if ((actor?.role ?? "Founder") !== "Delegated Operator") {
+    for (const receipt of await listReceipts()) {
+      if (normalizeSearch(receipt.receiptId).includes(needle)) {
+        results.push({ type: "receipt", id: receipt.receiptId, label: receipt.receiptId, href: `/admin/receipts/${receipt.receiptId}`, matchedField: "receiptId" });
+      }
     }
   }
   return results.slice(0, 100);
 }
 
-export async function getAdminCoreDashboard(): Promise<{
+export async function getAdminCoreDashboard(actor?: CoreActor): Promise<{
   counts: Record<string, number>;
   today: { inbox: number; review: number; proofs: number; deliveries: number };
   recentProofRuns: ProofRunRecord[];
   health: ReturnType<typeof getAdminCoreHealth>;
 }> {
-  const state = await readState();
+  const fullState = await readState();
+  const state = actor ? filterStateForActor(fullState, actor) : fullState;
   const today = new Date().toISOString().slice(0, 10);
   return {
     counts: {

@@ -36,6 +36,8 @@ import {
   type ScopeContractStatus,
   type TokenIssuanceRecord,
 } from "./token-store";
+import type { CoreActor } from "./admin-core-spine";
+import { isSameOperator } from "./admin-authorization";
 
 export const adminAdmissionStateOrder: AdmissionState[] = [
   "admitted",
@@ -518,7 +520,7 @@ export function formatAdmissionStateLabel(state: AdmissionState): string {
   return stateLabels[state];
 }
 
-export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
+export async function buildAdmissionQueueView(actor?: CoreActor): Promise<AdmissionQueueView> {
   const [events, intakeSnapshots, issuanceSnapshots] = await Promise.all([
     readIntakeEvents(),
     getAllIntakes(),
@@ -862,7 +864,14 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
 
   rows.sort(sortRows);
 
-  const summary = rows.reduce<AdmissionQueueSummary>(
+  const visibleRows =
+    (actor?.role ?? "Founder") === "Delegated Operator"
+      ? rows.filter((row) =>
+          isSameOperator(row.queueAssignedOperator, actor!.actor),
+        )
+      : rows;
+
+  const summary = visibleRows.reduce<AdmissionQueueSummary>(
     (current, row) => {
       current.total += 1;
       current.byState[row.state] += 1;
@@ -892,8 +901,11 @@ export async function buildAdmissionQueueView(): Promise<AdmissionQueueView> {
 
   return {
     generatedAt: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
-    eventCount: events.length,
+    eventCount: visibleRows.reduce(
+      (total, row) => total + row.ledgerEventCount,
+      0,
+    ),
     summary,
-    rows,
+    rows: visibleRows,
   };
 }

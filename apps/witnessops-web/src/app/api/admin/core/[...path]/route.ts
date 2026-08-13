@@ -106,25 +106,25 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const [resource, idValue, action] = parts;
 
   try {
-    if (resource === "dashboard") return NextResponse.json({ ok: true, dashboard: await getAdminCoreDashboard() });
+    if (resource === "dashboard") return NextResponse.json({ ok: true, dashboard: await getAdminCoreDashboard(actor) });
     if (resource === "health") return NextResponse.json({ ok: true, health: getAdminCoreHealth() });
-    if (resource === "search") return NextResponse.json({ ok: true, results: await searchCoreRecords(request.nextUrl.searchParams.get("q") ?? "") });
-    if (resource === "audit") return NextResponse.json({ ok: true, events: await listAuditEvents(idValue) });
-    if (resource === "inbox" && idValue === "sync-runs") return NextResponse.json({ ok: true, receipts: await listGmailSyncReceipts() });
+    if (resource === "search") return NextResponse.json({ ok: true, results: await searchCoreRecords(request.nextUrl.searchParams.get("q") ?? "", actor) });
+    if (resource === "audit") return NextResponse.json({ ok: true, events: await listAuditEvents(idValue, actor) });
+    if (resource === "inbox" && idValue === "sync-runs") return NextResponse.json({ ok: true, receipts: await listGmailSyncReceipts(20, actor) });
     if (resource === "inbox") {
-      const item = idValue ? await getInboxItem(idValue) : null;
+      const item = idValue ? await getInboxItem(idValue, actor) : null;
       if (idValue && !item) throw new AdminCoreError("NOT_FOUND", "Inbox item not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [item] : await listInboxItems() });
+      return NextResponse.json({ ok: true, items: idValue ? [item] : await listInboxItems(actor) });
     }
     if (resource === "review-requests") {
-      const reviewRequest = idValue ? await getReviewRequest(idValue) : null;
+      const reviewRequest = idValue ? await getReviewRequest(idValue, actor) : null;
       if (idValue && !reviewRequest) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [reviewRequest] : await listReviewRequests() });
+      return NextResponse.json({ ok: true, items: idValue ? [reviewRequest] : await listReviewRequests(actor) });
     }
     if (resource === "customers") {
-      const customer = idValue ? await getCustomer(idValue) : null;
+      const customer = idValue ? await getCustomer(idValue, actor) : null;
       if (idValue && !customer) throw new AdminCoreError("NOT_FOUND", "Customer not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [customer] : await listCustomers() });
+      return NextResponse.json({ ok: true, items: idValue ? [customer] : await listCustomers(actor) });
     }
     if (resource === "products") {
       const product = idValue ? await getProductContract(idValue) : null;
@@ -132,21 +132,21 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ ok: true, items: idValue ? [product] : await listProductContracts() });
     }
     if (resource === "proof-runs") {
-      if (idValue && action === "readiness") return NextResponse.json({ ok: true, readiness: await buildProofReadiness(idValue) });
-      const proofRun = idValue ? await getProofRun(idValue) : null;
+      if (idValue && action === "readiness") return NextResponse.json({ ok: true, readiness: await buildProofReadiness(idValue, actor) });
+      const proofRun = idValue ? await getProofRun(idValue, actor) : null;
       if (idValue && !proofRun) throw new AdminCoreError("NOT_FOUND", "Proof run not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [proofRun] : await listProofRuns() });
+      return NextResponse.json({ ok: true, items: idValue ? [proofRun] : await listProofRuns(actor) });
     }
     if (resource === "deliveries") {
-      if (idValue && action === "readiness") return NextResponse.json({ ok: true, readiness: await buildDeliveryReadiness(idValue) });
-      const delivery = idValue ? await getDelivery(idValue) : null;
+      if (idValue && action === "readiness") return NextResponse.json({ ok: true, readiness: await buildDeliveryReadiness(idValue, actor) });
+      const delivery = idValue ? await getDelivery(idValue, actor) : null;
       if (idValue && !delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [delivery] : await listDeliveries() });
+      return NextResponse.json({ ok: true, items: idValue ? [delivery] : await listDeliveries(actor) });
     }
     if (resource === "receipts") {
-      const receipt = idValue ? await getReceiptRecord(idValue) : null;
+      const receipt = idValue ? await getReceiptRecord(idValue, actor) : null;
       if (idValue && !receipt) throw new AdminCoreError("NOT_FOUND", "Receipt not found.", 404);
-      return NextResponse.json({ ok: true, items: idValue ? [receipt] : await listReceiptRecords() });
+      return NextResponse.json({ ok: true, items: idValue ? [receipt] : await listReceiptRecords(actor) });
     }
     return NextResponse.json({ ok: false, error: "Unknown admin core resource." }, { status: 404 });
   } catch (error) {
@@ -290,7 +290,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
           { status: 409 },
         );
       }
-      const customer = await getCustomer(delivery.customerId);
+      const customer = await getCustomer(delivery.customerId, actor);
       if (!customer) {
         await failDeliverySendReservation(
           idValue,
