@@ -12,6 +12,7 @@ import {
   parseQueueCommandPayload,
   QueueCommandInputError,
 } from "@/lib/server/queue-command-executor";
+import { logUnexpectedRouteError } from "@/lib/server/route-error-boundary";
 
 export const runtime = "nodejs";
 
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof QueueCommandInputError) {
       return invalid(error.message, 400);
     }
-    const message = error instanceof Error ? error.message : "Queue command failed.";
-    return invalid(message, 500);
+    logUnexpectedRouteError("Queue command failed", error);
+    return invalid("Queue command failed.", 500);
   }
 }

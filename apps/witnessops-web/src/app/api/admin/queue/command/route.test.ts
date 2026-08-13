@@ -185,3 +185,50 @@ test("oversized queue bodies are rejected before state mutation", async () => {
     0,
   );
 });
+
+test("queue command route contains unexpected storage errors", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-error-"));
+  const originalStoreDir = process.env.WITNESSOPS_TOKEN_STORE_DIR;
+  process.env.WITNESSOPS_TOKEN_STORE_DIR = "/dev/null/private-queue-store";
+  process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
+  const cookie = await founderCookie();
+  const originalConsoleError = console.error;
+  const logged: unknown[][] = [];
+  console.error = (...args: unknown[]) => {
+    logged.push(args);
+  };
+  let response: Response;
+  try {
+    response = await POST(
+      new NextRequest("https://witnessops.com/api/admin/queue/command", {
+        method: "POST",
+        body: JSON.stringify({
+          command: "queue.set_priority",
+          intakeId: "intk_queue_route_validation",
+          expectedProjectionVersion: 0,
+          expectedEventSequence: 0,
+          idempotencyKey: "route-storage-error",
+          payload: { priority: "high" },
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          cookie: `witnessops-admin-session=${cookie}`,
+        },
+      }),
+    );
+  } finally {
+    console.error = originalConsoleError;
+    if (originalStoreDir === undefined) {
+      delete process.env.WITNESSOPS_TOKEN_STORE_DIR;
+    } else {
+      process.env.WITNESSOPS_TOKEN_STORE_DIR = originalStoreDir;
+    }
+  }
+
+  assert.equal(response.status, 500);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    error: "Queue command failed.",
+  });
+  assert.doesNotMatch(JSON.stringify(logged), /private-queue-store|WITNESSOPS_/);
+});

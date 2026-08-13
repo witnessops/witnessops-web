@@ -10,6 +10,7 @@ import {
   readBoundedRequestJson,
   RequestBodyTooLargeError,
 } from "@/lib/server/bounded-request-body";
+import { logUnexpectedRouteError } from "@/lib/server/route-error-boundary";
 
 export const runtime = "nodejs";
 
@@ -59,10 +60,13 @@ export async function POST(request: Request, { params }: RouteContext) {
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     if (error instanceof ClaimantActionError) {
+      if (error.status >= 500) {
+        logUnexpectedRouteError("Claimant scope amendment failed", error);
+        return invalid("Amend failed.", error.status);
+      }
       return invalid(error.message, error.status);
     }
-    const message =
-      error instanceof Error ? error.message : "Amend failed.";
-    return invalid(message, 500);
+    logUnexpectedRouteError("Claimant scope amendment failed", error);
+    return invalid("Amend failed.", 500);
   }
 }

@@ -14,6 +14,7 @@ import {
   readBoundedRequestJson,
   RequestBodyTooLargeError,
 } from "@/lib/server/bounded-request-body";
+import { logUnexpectedRouteError } from "@/lib/server/route-error-boundary";
 
 export const runtime = "nodejs";
 const MAILBOX_RECEIPT_BODY_LIMIT_BYTES = 64 * 1024;
@@ -60,13 +61,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(mailboxReceiptResponseSchema.parse(response));
   } catch (error) {
     if (error instanceof IntakeMailboxReceiptError) {
+      if (error.status >= 500) {
+        logUnexpectedRouteError("Mailbox receipt could not be recorded", error);
+        return invalid("Unable to record mailbox receipt.", error.status);
+      }
       return invalid(error.message, error.status);
     }
 
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Unable to record mailbox receipt.";
-    return invalid(message, 500);
+    logUnexpectedRouteError("Mailbox receipt could not be recorded", error);
+    return invalid("Unable to record mailbox receipt.", 500);
   }
 }

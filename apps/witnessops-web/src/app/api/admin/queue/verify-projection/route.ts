@@ -11,6 +11,7 @@ import {
   AdminBusinessAuthorizationError,
   requireIntakeReadAccess,
 } from "@/lib/server/admin-business-authorization";
+import { logUnexpectedRouteError } from "@/lib/server/route-error-boundary";
 
 export const runtime = "nodejs";
 
@@ -54,8 +55,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof AdminBusinessAuthorizationError) {
       return invalid(error.message, error.status, ["SNAPSHOT_MISSING"]);
     }
-    const message =
-      error instanceof Error ? error.message : "Queue projection verification failed.";
-    return invalid(message, 500);
+    logUnexpectedRouteError("Queue projection verification failed", error);
+    return invalid("Queue projection verification failed.", 500);
   }
 }

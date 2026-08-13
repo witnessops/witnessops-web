@@ -105,9 +105,13 @@ export type ParsedProviderOutcomeEvent =
 function readResendWebhookSecret(): string {
   const secret = process.env.WITNESSOPS_RESEND_WEBHOOK_SECRET?.trim();
   if (!secret) {
+    console.error("Provider webhook verification is unavailable", {
+      provider: "resend",
+      errorType: "configuration",
+    });
     throw new IntakeResponseProviderOutcomeError(
-      "WITNESSOPS_RESEND_WEBHOOK_SECRET is required for Resend webhook verification.",
-      500,
+      "Unauthorized provider event source.",
+      401,
     );
   }
 
@@ -209,7 +213,7 @@ function verifyAndAdaptResendWebhook(
     });
   } catch {
     throw new IntakeResponseProviderOutcomeError(
-      "Invalid Resend webhook signature.",
+      "Unauthorized provider event source.",
       401,
     );
   }
@@ -290,9 +294,13 @@ const m365DeliveryEventSchema = z.object({
 function readM365WebhookSecret(): string {
   const secret = process.env.WITNESSOPS_M365_WEBHOOK_SECRET?.trim();
   if (!secret) {
+    console.error("Provider webhook verification is unavailable", {
+      provider: "m365",
+      errorType: "configuration",
+    });
     throw new IntakeResponseProviderOutcomeError(
-      "WITNESSOPS_M365_WEBHOOK_SECRET is required for M365 webhook verification.",
-      500,
+      "Unauthorized provider event source.",
+      401,
     );
   }
 
@@ -331,7 +339,7 @@ function verifyAndAdaptM365Webhook(
 
   if (!verifyM365Hmac(rawBody, signatureHeader, secret)) {
     throw new IntakeResponseProviderOutcomeError(
-      "Invalid M365 webhook HMAC signature.",
+      "Unauthorized provider event source.",
       401,
     );
   }

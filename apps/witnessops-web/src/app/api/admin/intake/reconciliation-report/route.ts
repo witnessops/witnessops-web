@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminReconciliationReportResponseSchema } from "@/lib/token-contract";
 import { getVerifiedAdminSession } from "@/lib/server/admin-session";
 import { buildReconciliationReport } from "@/lib/server/reconciliation-report";
+import { logUnexpectedRouteError } from "@/lib/server/route-error-boundary";
 
 export const runtime = "nodejs";
 
@@ -25,8 +26,7 @@ export async function GET(request: NextRequest) {
       adminReconciliationReportResponseSchema.parse(report),
     );
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unable to build report.";
-    return invalid(message, 500);
+    logUnexpectedRouteError("Reconciliation report could not be built", error);
+    return invalid("Unable to build report.", 500);
   }
 }
