@@ -25,6 +25,7 @@ const DOCS_ASSISTANT_CLAIM_SCHEMA = {
     text: { type: "string" },
     citation_ids: {
       type: "array",
+      minItems: 1,
       items: { type: "string" },
     },
   },
