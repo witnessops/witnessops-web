@@ -41,6 +41,9 @@ const SUPPORTED_WITHOUT_CLAIMS_BOUNDARY = "supported_answer_missing_claims";
 const SUPPORTED_WITHOUT_CLAIM_CITATIONS_BOUNDARY =
   "supported_answer_missing_claim_citations";
 
+const SUPPORTED_WITHOUT_CLAIM_CAPABLE_CITATIONS_BOUNDARY =
+  "supported_answer_missing_claim_capable_citations";
+
 function isAnswerStatus(value: unknown): value is AnswerStatus {
   return typeof value === "string" && ANSWER_STATUSES.includes(value as AnswerStatus);
 }
@@ -165,17 +168,26 @@ function isSupportedStatus(answerStatus: AnswerStatus): boolean {
   return SUPPORTED_STATUSES.includes(answerStatus);
 }
 
+function isClaimCapableCitation(citation: DocsAssistantCitation): boolean {
+  return (
+    citation.source_type === "openai_file_search_result" &&
+    citation.supports === "collected_source_corpus_package" &&
+    citation.source_bodies_collected &&
+    citation.source_bodies_uploaded
+  );
+}
+
 // Supported status is fail-closed: global retrieval is not enough. Every claim
 // must bind to at least one citation ID resolved from approved retrieval output.
 function supportedDowngradeReason(
   answerStatus: AnswerStatus,
   claims: DocsAssistantClaimWithCitations[],
-  hasRetrievalCitations: boolean,
+  citations: DocsAssistantCitation[],
 ): string | null {
   if (!isSupportedStatus(answerStatus)) {
     return null;
   }
-  if (!hasRetrievalCitations) {
+  if (citations.length === 0) {
     return SUPPORTED_WITHOUT_RETRIEVAL_BOUNDARY;
   }
   if (claims.length === 0) {
@@ -183,6 +195,21 @@ function supportedDowngradeReason(
   }
   if (claims.some((claim) => claim.citation_ids.length === 0)) {
     return SUPPORTED_WITHOUT_CLAIM_CITATIONS_BOUNDARY;
+  }
+  const claimCapableCitationIds = new Set(
+    citations
+      .filter(isClaimCapableCitation)
+      .map((citation) => citation.citation_id),
+  );
+  if (
+    claims.some(
+      (claim) =>
+        !claim.citation_ids.some((citationId) =>
+          claimCapableCitationIds.has(citationId),
+        ),
+    )
+  ) {
+    return SUPPORTED_WITHOUT_CLAIM_CAPABLE_CITATIONS_BOUNDARY;
   }
   return null;
 }
@@ -286,7 +313,7 @@ export function normalizeDocsAssistantAnswer(args: {
   const downgradeReason = supportedDowngradeReason(
     parsed.answer_status,
     allClaims,
-    args.citations.length > 0,
+    args.citations,
   );
   if (downgradeReason) {
     return {
