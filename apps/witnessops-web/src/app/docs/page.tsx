@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
-import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { getDocsSidebar } from "@witnessops/content/sidebar";
+import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { CtaButton } from "@/components/shared/cta-button";
 import {
   normalizeHost,
   toPublicDocsHref,
 } from "@/lib/docs-host-routing";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
+import { languageAlternates } from "@/lib/public-seo";
 
 const docsDescription =
   "Start here for WitnessOps: buyer path, how the model works, and how to verify a receipt.";
@@ -18,6 +19,10 @@ export const metadata: Metadata = {
   description: docsDescription,
   alternates: {
     canonical: getDocCanonicalUrl("witnessops", []),
+    languages: languageAlternates("/docs", {
+      en: "/docs",
+      pl: "/pl/docs",
+    }).languages,
   },
   openGraph: {
     title: "Docs — WitnessOps",

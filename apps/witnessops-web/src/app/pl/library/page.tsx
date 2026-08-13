@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CtaButton } from "@/components/shared/cta-button";
+import { languageAlternates } from "@/lib/public-seo";
 
 const primaryPaths = [
   {
@@ -115,10 +116,10 @@ export const metadata: Metadata = {
   title: "Biblioteka WitnessOps",
   description:
     "Publiczne punkty wejścia do usług, przykładów, weryfikacji zapisów i dokumentacji.",
-  alternates: {
-    canonical: "/pl/library",
-    languages: { en: "/library", pl: "/pl/library", "x-default": "/library" },
-  },
+  alternates: languageAlternates("/pl/library", {
+    en: "/library",
+    pl: "/pl/library",
+  }),
 };
 
 export default function PolishLibraryPage() {

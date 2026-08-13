@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { getSurface } from "@witnessops/config";
+import { headers } from "next/headers";
 import { Footer } from "@/components/marketing/footer";
 import { Navbar } from "@/components/shared/navbar";
 import { loadHomeContent } from "@/lib/content";
 import { KonamiPenguin } from "@/components/shared/konami-penguin";
 import { RouteScrollReset } from "@/components/shared/route-scroll-reset";
+import {
+  DOCUMENT_LANGUAGE_HEADER,
+  parseDocumentLanguage,
+} from "@/lib/request-language";
 import "./globals.css";
-
-const surface = getSurface("witnessops");
 
 export const revalidate = 300;
 
@@ -18,11 +20,7 @@ export const metadata: Metadata = {
   },
   description:
     "Bounded security and operational reviews with evidence references, clear limits and a practical handover. Start with a non-secret fit check.",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_OS_SITE_URL ??
-      surface?.canonicalUrl ??
-      "https://witnessops.com",
-  ),
+  metadataBase: new URL("https://witnessops.com"),
   openGraph: {
     title: "WitnessOps — Security and operational reviews",
     description:
@@ -53,15 +51,19 @@ const appShellStyle: React.CSSProperties & {
   scrollPaddingTop: "calc(var(--app-navbar-height) + 16px)",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const content = loadHomeContent();
+  const headerStore = await headers();
+  const documentLanguage = parseDocumentLanguage(
+    headerStore.get(DOCUMENT_LANGUAGE_HEADER),
+  );
 
   return (
-    <html lang="en" className="dark" style={appShellStyle}>
+    <html lang={documentLanguage} className="dark" style={appShellStyle}>
       <head>
         <meta name="penguin" content="respect" />
         {/*

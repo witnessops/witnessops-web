@@ -2,10 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { POLISH_NO_SECRETS_NOTE } from "@/lib/public-i18n";
+import { languageAlternates } from "@/lib/public-seo";
 
 const SECURITY_CONTACT_EMAIL = "security@witnessops.com";
 
-export const metadata: Metadata = { title: "Wsparcie", description: "Wybierz właściwą drogę kontaktu z WitnessOps.", alternates: { canonical: "/pl/support", languages: { en: "/support", pl: "/pl/support", "x-default": "/support" } } };
+export const metadata: Metadata = {
+  title: "Wsparcie",
+  description: "Wybierz właściwą drogę kontaktu z WitnessOps.",
+  alternates: languageAlternates("/pl/support", {
+    en: "/support",
+    pl: "/pl/support",
+  }),
+};
 
 const routes = [
   ["Chcę rozpocząć przegląd", "/pl/review/request", "Opisz sytuację bez danych poufnych i wybierz ofertę."],

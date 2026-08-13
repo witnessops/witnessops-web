@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Operator Workspace Access",
   description:
     "WitnessOps private-preview operator workspace access and add-ons. Request access through WitnessOps; no public app signup or checkout.",
-  alternates: { canonical: "/catalog/operator-platform" },
+  robots: { index: false, follow: false },
 };
 
 export default function CatalogOperatorPlatformPage() {
@@ -58,7 +58,7 @@ export default function CatalogOperatorPlatformPage() {
           <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">Tiers</h2>
           <div className="mt-8 grid gap-px border border-surface-border bg-surface-border md:grid-cols-2">
             {tiers.map((sku) => (
-              <CatalogSkuCard key={sku.id} sku={sku} />
+              <CatalogSkuCard key={sku.id} sku={sku} showDetailLink={false} />
             ))}
           </div>
         </section>
@@ -68,7 +68,7 @@ export default function CatalogOperatorPlatformPage() {
             <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">Add-ons</h2>
             <div className="mt-8 grid gap-px border border-surface-border bg-surface-border md:grid-cols-2">
               {addons.map((sku) => (
-                <CatalogSkuCard key={sku.id} sku={sku} />
+                <CatalogSkuCard key={sku.id} sku={sku} showDetailLink={false} />
               ))}
             </div>
           </section>

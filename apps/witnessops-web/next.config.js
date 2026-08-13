@@ -68,6 +68,36 @@ const nextConfig = {
         destination: "/pl/catalog",
         permanent: true,
       },
+      {
+        source: "/catalog/offsec",
+        destination: "/catalog",
+        permanent: true,
+      },
+      {
+        source: "/access-change-proof-run",
+        destination: "/catalog/workflows",
+        permanent: true,
+      },
+      {
+        source: "/catalog/workflow-s",
+        destination: "/catalog/workflows",
+        permanent: true,
+      },
+      {
+        source: "/catalog/workflow-m",
+        destination: "/catalog/workflows",
+        permanent: true,
+      },
+      {
+        source: "/catalog/workflow-l",
+        destination: "/catalog/workflows",
+        permanent: true,
+      },
+      {
+        source: "/catalog/workflow-rerun",
+        destination: "/catalog/workflows",
+        permanent: true,
+      },
     ];
   },
 };

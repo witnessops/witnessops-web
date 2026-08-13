@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
+import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
   title: "Customer Security Review Sprint",
   description:
     "WitnessOps bierze jeden kwestionariusz i jeden zakres produktu, ustala, które proponowane odpowiedzi mają wsparcie w dostarczonych materiałach, oddziela oświadczenia kierownictwa i otwarte kwestie, a następnie przekazuje pakiet odpowiedzi do zatwierdzenia.",
-  alternates: {
-    canonical: "/pl/customer-security-review",
-    languages: {
-      en: "/customer-security-review",
-      pl: "/pl/customer-security-review",
-      "x-default": "/customer-security-review",
-    },
-  },
+  alternates: languageAlternates("/pl/customer-security-review", {
+    en: "/customer-security-review",
+    pl: "/pl/customer-security-review",
+  }),
 };
 
 const deliverables = [

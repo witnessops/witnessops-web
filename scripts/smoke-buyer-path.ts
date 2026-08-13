@@ -319,37 +319,6 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
-    path: "/access-change-proof-run",
-    requiredMarkers: [
-      "Bounded Access-Change Proof Run",
-      "Turn one sensitive access change into an evidence bundle others can inspect.",
-      "€2,500 fixed fee",
-      "Ask about access-change scoping",
-      "The active public request lane is the Proof-Backed Security Workflow.",
-      "Inspect sample package",
-      "What is not claimed",
-      "This is not a legal audit opinion.",
-      "This is not a compliance certification.",
-      "This is not a verifier-of-record result.",
-      "the action cannot be proven from available evidence",
-    ],
-    prohibitedMarkers: [
-      "View fixture demo",
-      "Request one access-change proof run",
-      "Start with a short non-secret fit check.",
-      "What security workflow should we inspect?",
-      "Workflow/tool path and touched system",
-      "Send request",
-      "verified compliance",
-      "certified compliance",
-      "audit-ready",
-      "audit opinion provided",
-      "platform for AI governance",
-      "proves compliance",
-      "guarantees compliance",
-    ],
-  },
-  {
     path: "/catalog/offsec-external-exposure",
     requiredMarkers: [
       "Public Exposure Review",
@@ -424,6 +393,19 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/review/request?productId=OFFSEC-PILOT",
+    requiredMarkers: [
+      "Tell us what you need reviewed",
+      "Start with a short, non-secret fit check.",
+      "No work starts from this form",
+    ],
+    prohibitedMarkers: [
+      "Selected offer:",
+      "10-Server Security Pilot",
+      "Pilot (entry)",
+    ],
+  },
+  {
     path: "/pl/review/request",
     requiredMarkers: [
       "Opowiedz, co wymaga sprawdzenia",
@@ -436,6 +418,18 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "engage@mail.witnessops.com",
     ],
     prohibitedMarkers: ["Opowiedz, co się wydarzyło"],
+  },
+  {
+    path: "/pl/review/request?productId=OFFSEC-PILOT",
+    requiredMarkers: [
+      "Opowiedz, co wymaga sprawdzenia",
+      "Zacznij od krótkiej, niepoufnej oceny dopasowania.",
+      "Samo zgłoszenie nie rozpoczyna pracy.",
+    ],
+    prohibitedMarkers: [
+      "Wybrana oferta:",
+      "Pilotaż przeglądu bezpieczeństwa 10 serwerów",
+    ],
   },
   {
     path: "/review/request/confirmed",

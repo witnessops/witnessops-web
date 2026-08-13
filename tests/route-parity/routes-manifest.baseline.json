@@ -34,6 +34,42 @@
       "destination": "/pl/catalog",
       "statusCode": 308,
       "regex": "^(?!/_next)/pl/catalog/offsec-access-removed(?:/)?$"
+    },
+    {
+      "source": "/catalog/offsec",
+      "destination": "/catalog",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/catalog/offsec(?:/)?$"
+    },
+    {
+      "source": "/access-change-proof-run",
+      "destination": "/catalog/workflows",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/access-change-proof-run(?:/)?$"
+    },
+    {
+      "source": "/catalog/workflow-s",
+      "destination": "/catalog/workflows",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/catalog/workflow-s(?:/)?$"
+    },
+    {
+      "source": "/catalog/workflow-m",
+      "destination": "/catalog/workflows",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/catalog/workflow-m(?:/)?$"
+    },
+    {
+      "source": "/catalog/workflow-l",
+      "destination": "/catalog/workflows",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/catalog/workflow-l(?:/)?$"
+    },
+    {
+      "source": "/catalog/workflow-rerun",
+      "destination": "/catalog/workflows",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/catalog/workflow-rerun(?:/)?$"
     }
   ],
   "headers": [

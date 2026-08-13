@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import { JsonLd } from "@/components/seo/json-ld";
 import { BuyerServiceDetail } from "@/components/marketing/buyer-service-detail";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
 import { buyerServiceByProductId } from "@/lib/buyer-services";
+import {
+  catalogSkuDisposition,
+  isCurrentPublicCatalogSku,
+} from "@/lib/public-commercial-routes";
+import {
+  canonicalUrl,
+  languageAlternates,
+  publicExposureBreadcrumbJsonLd,
+  publicExposureServiceJsonLd,
+} from "@/lib/public-seo";
 import { getSku, resolveSkuId, type CatalogSku } from "@witnessops/catalog";
 
 type PageProps = { params: Promise<{ skuId: string }> };
@@ -236,26 +247,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const id = resolveSkuId(skuId);
   const sku = id ? getSku(id) : undefined;
   if (!sku) return { title: "SKU not found" };
+  const disposition = catalogSkuDisposition(sku.id);
+  if (disposition === "private_preview" || disposition === "unresolved") {
+    return {
+      title: "Private or unavailable offer",
+      robots: { index: false, follow: false },
+    };
+  }
+  if (disposition === "replacement_available") {
+    return {
+      title: "Offer moved",
+      robots: { index: false, follow: true },
+    };
+  }
   const buyerService = buyerServiceByProductId(sku.id);
   const title = buyerService?.name.en ?? sku.name;
   const description = buyerService?.situation.en ?? sku.summary;
   const canonical = buyerService?.detailHref.en ?? `/catalog/${sku.id.toLowerCase()}`;
   const polish = buyerService?.detailHref.pl;
+  const alternates = polish
+    ? languageAlternates(canonical, { en: canonical, pl: polish })
+    : { canonical: canonicalUrl(canonical) };
   return {
     title,
     description,
-    alternates: {
-      canonical,
-      ...(polish
-        ? {
-            languages: {
-              en: canonical,
-              pl: polish,
-              "x-default": canonical,
-            },
-          }
-        : {}),
-    },
+    alternates,
     openGraph: {
       title: `${title} | WitnessOps`,
       description,
@@ -276,19 +292,38 @@ export default async function CatalogSkuDetailPage({ params }: PageProps) {
   if (!id) notFound();
   const sku = getSku(id);
   if (!sku) notFound();
+  const disposition = catalogSkuDisposition(sku.id);
+  if (disposition === "replacement_available") {
+    permanentRedirect("/catalog/workflows");
+  }
+  if (!isCurrentPublicCatalogSku(sku.id)) notFound();
 
   const buyerService = buyerServiceByProductId(sku.id);
   const frame = detailFrame(sku);
   if (buyerService) {
     return (
-      <BuyerServiceDetail
-        locale="en"
-        service={buyerService}
-        technicalId={sku.id}
-        claim={frame.claim}
-        verificationPath={frame.verificationPath}
-        notIncluded={frame.notIncluded}
-      />
+      <>
+        {sku.id === "OFFSEC-EXTERNAL-EXPOSURE" ? (
+          <>
+            <JsonLd
+              id="public-exposure-service"
+              value={publicExposureServiceJsonLd("en")}
+            />
+            <JsonLd
+              id="public-exposure-breadcrumbs"
+              value={publicExposureBreadcrumbJsonLd("en")}
+            />
+          </>
+        ) : null}
+        <BuyerServiceDetail
+          locale="en"
+          service={buyerService}
+          technicalId={sku.id}
+          claim={frame.claim}
+          verificationPath={frame.verificationPath}
+          notIncluded={frame.notIncluded}
+        />
+      </>
     );
   }
 

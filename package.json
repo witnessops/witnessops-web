@@ -26,6 +26,7 @@
     "smoke:buyer-path": "node --import tsx ./scripts/smoke-buyer-path.ts",
     "smoke:buyer-path:local": "node --import tsx ./scripts/smoke-buyer-path.ts --base-url http://127.0.0.1:3001",
     "smoke:buyer-path:test": "node --import tsx --test tests/public-smoke/smoke-buyer-path.test.ts",
+    "verify:public-seo": "node --import tsx ./scripts/verify-public-seo.ts",
     "docs:validate": "node --import tsx ./scripts/validate-docs.ts",
     "signals:validate": "node --import tsx ./scripts/validate-signals.ts",
     "deploy:k3s:build": "bash deploy/scripts/k3s-build-shared.sh",

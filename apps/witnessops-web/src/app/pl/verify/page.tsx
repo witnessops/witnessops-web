@@ -2,15 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { VerifyConsole } from "@/components/verify/verify-console";
 import { listVerifyFixtures } from "@/lib/verify-fixtures";
+import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
   title: "Zweryfikuj dostawę",
   description:
     "Prześlij lub wklej podpisany zapis wykonania, aby sprawdzić poprawność struktury, integralność i ograniczenia wyniku.",
-  alternates: {
-    canonical: "/pl/verify",
-    languages: { en: "/verify", pl: "/pl/verify", "x-default": "/verify" },
-  },
+  alternates: languageAlternates("/pl/verify", {
+    en: "/verify",
+    pl: "/pl/verify",
+  }),
 };
 
 function pickExampleReceipt(): string | null {

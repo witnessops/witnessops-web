@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { languageAlternates } from "@/lib/public-seo";
 
 const english = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 const polish = readFileSync(
@@ -29,8 +30,19 @@ test("paired Sprint routes declare only en, pl and x-default alternates", () => 
   for (const source of [english, polish]) {
     assert.match(source, /en: "\/customer-security-review"/);
     assert.match(source, /pl: "\/pl\/customer-security-review"/);
-    assert.match(source, /"x-default": "\/customer-security-review"/);
   }
+
+  assert.deepEqual(
+    languageAlternates("/customer-security-review", {
+      en: "/customer-security-review",
+      pl: "/pl/customer-security-review",
+    }).languages,
+    {
+      en: "https://witnessops.com/customer-security-review",
+      pl: "https://witnessops.com/pl/customer-security-review",
+      "x-default": "https://witnessops.com/customer-security-review",
+    },
+  );
 });
 
 test("paired Sprint layouts preserve responsive hierarchy and accessible actions", () => {
