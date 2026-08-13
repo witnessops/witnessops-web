@@ -260,6 +260,7 @@ export interface TokenIssuanceRecord {
   channel?: ChannelName;
   email: string;
   tokenDigest: string;
+  verificationContextDigest?: string;
   createdAt: string;
   expiresAt: string;
   status: TokenIssuanceStatus;
@@ -284,6 +285,12 @@ export interface TokenIssuanceRecord {
    *  - disagree  : claimant disputed the proposed scope; approval blocked.
    */
   claimantAction?: ClaimantActionRecord | null;
+}
+
+export interface VerificationContextRecord {
+  contextDigest: string;
+  issuanceId: string;
+  expiresAt: string;
 }
 
 export interface ClaimantActionRecord {
@@ -351,6 +358,19 @@ function issuancePath(issuanceId: string): string {
   return safeRecordPath(issuanceId, "issuance", "issuances");
 }
 
+function verificationContextPath(contextDigest: string): string {
+  if (!/^sha256:[a-f0-9]{64}$/.test(contextDigest)) {
+    throw new Error("Invalid verification context digest");
+  }
+  const base = path.resolve(getAdmissionStoreDir(), "verification-contexts");
+  const safeName = `${contextDigest.slice("sha256:".length)}.json`;
+  const resolved = path.resolve(base, safeName);
+  if (resolved !== path.join(base, safeName)) {
+    throw new Error("Invalid verification context path");
+  }
+  return resolved;
+}
+
 function recordLockPath(
   recordId: string,
   kind: "issuance" | "intake",
@@ -373,6 +393,9 @@ async function ensureStoreDirs(): Promise<void> {
     mkdir(path.join(getAdmissionStoreDir(), "intakes"), { recursive: true }),
     mkdir(path.join(getAdmissionStoreDir(), "issuances"), { recursive: true }),
     mkdir(path.join(getAdmissionStoreDir(), "locks"), { recursive: true }),
+    mkdir(path.join(getAdmissionStoreDir(), "verification-contexts"), {
+      recursive: true,
+    }),
   ]);
 }
 
@@ -495,6 +518,24 @@ async function readJsonCollection<T>(dir: string): Promise<T[]> {
 export async function saveIssuance(record: TokenIssuanceRecord): Promise<void> {
   await ensureStoreDirs();
   await writeJsonAtomic(issuancePath(record.issuanceId), record);
+}
+
+export async function saveVerificationContext(
+  record: VerificationContextRecord,
+): Promise<void> {
+  await ensureStoreDirs();
+  await writeJsonAtomic(verificationContextPath(record.contextDigest), record);
+}
+
+export async function getVerificationContextByDigest(
+  contextDigest: string,
+): Promise<VerificationContextRecord | null> {
+  try {
+    const raw = await readFile(verificationContextPath(contextDigest), "utf8");
+    return JSON.parse(raw) as VerificationContextRecord;
+  } catch {
+    return null;
+  }
 }
 
 export async function saveIntake(record: IntakeRecord): Promise<void> {

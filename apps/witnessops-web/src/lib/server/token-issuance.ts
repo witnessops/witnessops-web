@@ -23,17 +23,21 @@ import type {
 
 import {
   digestToken,
+  digestVerificationContext,
   generateIntakeId,
   generateIssuanceId,
   generateRawToken,
+  generateVerificationContext,
   generateThreadId,
   tokenDigestMatches,
 } from "./token-crypto";
 import {
   getIntakeById,
+  getVerificationContextByDigest,
   getIssuanceById,
   saveIntake,
   saveIssuance,
+  saveVerificationContext,
   updateIntake,
   updateIssuance,
   withIssuanceLock,
@@ -68,6 +72,30 @@ export class ScopeApprovalInputError extends Error {
 
 function nowIso(): string {
   return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+async function resolveVerificationContext(
+  context: string,
+): Promise<TokenIssuanceRecord | null> {
+  const digest = digestVerificationContext(context);
+  const contextRecord = await getVerificationContextByDigest(digest);
+  if (!contextRecord || isExpired(contextRecord.expiresAt)) return null;
+  const issuance = await getIssuanceById(contextRecord.issuanceId);
+  if (issuance?.verificationContextDigest !== digest) return null;
+  return issuance;
+}
+
+export async function verifyIssuedTokenWithContext(input: {
+  context: string;
+  token: string;
+}): Promise<VerifyTokenResponse> {
+  const issuance = await resolveVerificationContext(input.context);
+  if (!issuance) throw new Error("Unknown or expired verification context");
+  return verifyIssuedToken({
+    issuanceId: issuance.issuanceId,
+    email: issuance.email,
+    token: input.token,
+  });
 }
 
 function normalizeText(value: string | null | undefined): string | null {
@@ -659,12 +687,12 @@ export async function createVerificationIssuance(
   const intakeId = generateIntakeId();
   const issuanceId = generateIssuanceId();
   const rawToken = generateRawToken();
+  const verificationContext = generateVerificationContext();
   const createdAt = nowIso();
   const expiresAt = computeExpiresAt(createdAt);
   const normalizedSubmission = normalizeSubmission(input.submission);
   const verifyUrl = new URL("/verify-token", readVerifyBaseUrl());
-  verifyUrl.searchParams.set("issuanceId", issuanceId);
-  verifyUrl.searchParams.set("email", input.email);
+  verifyUrl.searchParams.set("context", verificationContext);
 
   const intake: IntakeRecord = {
     intakeId,
@@ -720,6 +748,7 @@ export async function createVerificationIssuance(
     channel: input.channel,
     email: input.email,
     tokenDigest: digestToken(rawToken),
+    verificationContextDigest: digestVerificationContext(verificationContext),
     createdAt,
     expiresAt,
     status: "issued",
@@ -736,6 +765,11 @@ export async function createVerificationIssuance(
   };
 
   await saveIssuance(issuanceRecord);
+  await saveVerificationContext({
+    contextDigest: issuanceRecord.verificationContextDigest!,
+    issuanceId,
+    expiresAt,
+  });
   await transitionIntakeState({
     intake,
     nextState: "verification_sent",

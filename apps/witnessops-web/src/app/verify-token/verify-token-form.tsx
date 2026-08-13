@@ -11,9 +11,7 @@ import {
 } from "@/lib/verification-code-format";
 
 interface Props {
-  issuanceId: string;
-  email: string;
-  initialCode?: string;
+  context: string;
 }
 
 function buildRedirectUrl(payload: VerifyTokenResponse): string {
@@ -22,7 +20,7 @@ function buildRedirectUrl(payload: VerifyTokenResponse): string {
 
 export function VerifyTokenForm(props: Props) {
   const router = useRouter();
-  const [code, setCode] = useState(formatInitialVerificationCode(props.initialCode ?? ""));
+  const [code, setCode] = useState(formatInitialVerificationCode(""));
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -37,8 +35,7 @@ export function VerifyTokenForm(props: Props) {
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          issuanceId: props.issuanceId,
-          email: props.email,
+          context: props.context,
           token: code,
         }),
       });
@@ -66,8 +63,8 @@ export function VerifyTokenForm(props: Props) {
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <div className={verificationLight.label}>Email</div>
-        <div className={`mt-1 break-all text-sm ${verificationLight.title}`}>
-          {props.email}
+        <div className={`mt-1 text-sm ${verificationLight.title}`}>
+          The mailbox that received this verification message
         </div>
       </div>
       <div>

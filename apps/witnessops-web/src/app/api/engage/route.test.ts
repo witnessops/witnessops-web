@@ -96,6 +96,8 @@ test("engage route creates issuance metadata and persists only token digest", as
   assert.match(tokenMatch[1], /^[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/);
   assert.equal(issuanceRaw.includes(tokenMatch[1]), false);
   assert.match(mailRaw, /^Open Verification Page: https:\/\/witnessops\.com\/verify-token\?/m);
+  assert.match(mailRaw, /\/verify-token\?context=[A-Za-z0-9_-]{32,}/);
+  assert.doesNotMatch(mailRaw, /\/verify-token\?[^\n]*(?:email|issuanceId|token)=/);
   assert.doesNotMatch(mailRaw, /^Open Verification Page: .*token=/m);
 
   const intakeRaw = await readFile(
