@@ -18,6 +18,7 @@ import {
   type ScopeContractRecord,
   getIntakeById,
   updateIntake,
+  withIntakeLock,
 } from "./token-store";
 import { appendQueueEvent, readQueueEvents, type QueueEventType } from "./queue-event-ledger";
 import {
@@ -61,8 +62,8 @@ export interface QueueCommandContext {
   actorAuthSource: AdminActorAuthSource;
   actorSessionHash: string | null;
   role: AdminRole;
-  expectedProjectionVersion?: number;
-  expectedEventSequence?: number;
+  expectedProjectionVersion: number;
+  expectedEventSequence: number;
   idempotencyKey: string;
   source: string;
 }
@@ -203,7 +204,7 @@ function applyWorkflowTransition(args: {
   };
 }
 
-export async function applyQueueCommand(
+async function applyQueueCommandUnlocked(
   ctx: QueueCommandContext,
   command: QueueCommandPayload,
 ): Promise<QueueCommandResult> {
@@ -222,18 +223,12 @@ export async function applyQueueCommand(
     return failure(command.command, intake.intakeId, ["AUTHORIZATION_REQUIRED"]);
   }
 
-  if (
-    typeof ctx.expectedProjectionVersion === "number" &&
-    ctx.expectedProjectionVersion !== projection.projectionVersion
-  ) {
+  if (ctx.expectedProjectionVersion !== projection.projectionVersion) {
     return failure(command.command, intake.intakeId, [
       "PROJECTION_VERSION_MISMATCH",
     ]);
   }
-  if (
-    typeof ctx.expectedEventSequence === "number" &&
-    ctx.expectedEventSequence !== projection.eventSequence
-  ) {
+  if (ctx.expectedEventSequence !== projection.eventSequence) {
     return failure(command.command, intake.intakeId, [
       "PROJECTION_VERSION_MISMATCH",
     ]);
@@ -716,4 +711,13 @@ export async function applyQueueCommand(
     emittedEvents: events.map((event) => event.eventType),
     projection: nextProjection,
   };
+}
+
+export async function applyQueueCommand(
+  ctx: QueueCommandContext,
+  command: QueueCommandPayload,
+): Promise<QueueCommandResult> {
+  return withIntakeLock(ctx.intakeId, () =>
+    applyQueueCommandUnlocked(ctx, command),
+  );
 }

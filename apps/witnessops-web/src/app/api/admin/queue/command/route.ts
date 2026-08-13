@@ -68,6 +68,17 @@ export async function POST(request: NextRequest) {
   if (!isQueueCommandName(command)) {
     return invalid("Unknown queue command.", 400);
   }
+  if (
+    !Number.isSafeInteger(body.expectedProjectionVersion) ||
+    !Number.isSafeInteger(body.expectedEventSequence) ||
+    (body.expectedProjectionVersion as number) < 0 ||
+    (body.expectedEventSequence as number) < 0
+  ) {
+    return invalid(
+      "expectedProjectionVersion and expectedEventSequence are required non-negative integers.",
+      400,
+    );
+  }
 
   try {
     const commandPayload: QueueCommandPayload = {
@@ -81,8 +92,8 @@ export async function POST(request: NextRequest) {
         actorAuthSource: session.actorAuthSource,
         actorSessionHash: session.actorSessionHash,
         role: session.role,
-        expectedProjectionVersion: body.expectedProjectionVersion,
-        expectedEventSequence: body.expectedEventSequence,
+        expectedProjectionVersion: body.expectedProjectionVersion as number,
+        expectedEventSequence: body.expectedEventSequence as number,
         idempotencyKey,
         source: "api/admin/queue/command",
       },

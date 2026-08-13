@@ -7,7 +7,6 @@ import { sendVerificationEmail } from "@/lib/server/send-verification-email";
 import {
   AdminCoreError,
   approveReviewRequest,
-  assertDeliveryActionAuthorized,
   buildDeliveryReadiness,
   buildProofReadiness,
   classifyInboxAttachment,
@@ -35,6 +34,8 @@ import {
   listReceiptRecords,
   listReviewRequests,
   prepareDelivery,
+  reserveDeliverySend,
+  failDeliverySendReservation,
   recordDeliverySent,
   recordGmailLabelSync,
   recordIntegrationFailure,
@@ -278,12 +279,26 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }, actor) });
     }
     if (resource === "deliveries" && idValue && action === "send") {
-      const delivery = await getDelivery(idValue);
-      if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
-      await assertDeliveryActionAuthorized(idValue, actor);
-      if (delivery.state === "sent" || delivery.state === "acknowledged") return NextResponse.json({ ok: true, item: delivery, idempotent: true });
+      const idempotencyKey = stringValue(body, "idempotencyKey", false) || `delivery-send:${idValue}`;
+      const reservation = await reserveDeliverySend(idValue, actor, idempotencyKey);
+      const delivery = reservation.delivery;
+      if (reservation.kind === "replay") return NextResponse.json({ ok: true, item: delivery, idempotent: true });
+      if (reservation.kind === "in_progress") {
+        return NextResponse.json(
+          { ok: false, error: "Delivery send is already in progress.", code: "DELIVERY_SEND_IN_PROGRESS" },
+          { status: 409 },
+        );
+      }
       const customer = await getCustomer(delivery.customerId);
-      if (!customer) throw new AdminCoreError("STORE_CORRUPT", "Delivery customer is missing.", 500);
+      if (!customer) {
+        await failDeliverySendReservation(
+          idValue,
+          reservation.reservationToken,
+          actor,
+          "Delivery customer is missing.",
+        );
+        throw new AdminCoreError("STORE_CORRUPT", "Delivery customer is missing.", 500);
+      }
       try {
         const result = await sendVerificationEmail({
           to: customer.email,
@@ -292,9 +307,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
           text: delivery.body,
           deliveryAttemptId: delivery.id,
         });
-        return NextResponse.json({ ok: true, item: await recordDeliverySent(idValue, { ...result, sentAt: result.deliveredAt }, actor, stringValue(body, "idempotencyKey", false) || `delivery-send:${idValue}`) });
+        return NextResponse.json({ ok: true, item: await recordDeliverySent(idValue, { ...result, sentAt: result.deliveredAt }, actor, idempotencyKey, reservation.reservationToken) });
       } catch (error) {
-        await recordIntegrationFailure({ integration: "mail", operation: "send_delivery", idempotencyKey: `delivery-send:${idValue}`, externalId: null, error: error instanceof Error ? error.message : "Mail delivery failed." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery.lineageId });
+        await failDeliverySendReservation(
+          idValue,
+          reservation.reservationToken,
+          actor,
+          "Mail delivery failed.",
+        );
+        await recordIntegrationFailure({ integration: "mail", operation: "send_delivery", idempotencyKey, externalId: null, error: error instanceof Error ? error.message : "Mail delivery failed." }, actor, { recordType: "delivery", recordId: idValue, lineageId: delivery.lineageId });
         throw error;
       }
     }

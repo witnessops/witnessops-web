@@ -81,6 +81,8 @@ test("delegated queue commands are limited to the assigned intake", async () => 
       actorAuthSource: "oidc_session",
       actorSessionHash: "session-hash",
       role: "Delegated Operator",
+      expectedProjectionVersion: 0,
+      expectedEventSequence: 0,
       idempotencyKey: "queue-authz-owner",
       source: "test",
     },
@@ -95,6 +97,8 @@ test("delegated queue commands are limited to the assigned intake", async () => 
       actorAuthSource: "oidc_session",
       actorSessionHash: "session-hash",
       role: "Administrator",
+      expectedProjectionVersion: 1,
+      expectedEventSequence: 1,
       idempotencyKey: "queue-authz-admin-business",
       source: "test",
     },
@@ -114,10 +118,45 @@ test("delegated queue commands are limited to the assigned intake", async () => 
       actorAuthSource: "oidc_session",
       actorSessionHash: "session-hash",
       role: "Administrator",
+      expectedProjectionVersion: 1,
+      expectedEventSequence: 1,
       idempotencyKey: "queue-authz-admin-assignment",
       source: "test",
     },
     { command: "queue.reassign", targetOperator: "other@test" },
   );
   assert.equal(administratorAssignmentResult.ok, true);
+});
+
+test("concurrent queue commands allow one projection-version winner", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-race-"));
+  process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
+  process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
+  await saveIntake(makeIntake("owner@test"));
+
+  const context = {
+    intakeId: "intk_queue_owned",
+    actor: "owner@test",
+    actorAuthSource: "oidc_session" as const,
+    actorSessionHash: "session-hash",
+    role: "Delegated Operator" as const,
+    expectedProjectionVersion: 0,
+    expectedEventSequence: 0,
+    source: "test",
+  };
+  const [first, second] = await Promise.all([
+    applyQueueCommand(
+      { ...context, idempotencyKey: "queue-race-first" },
+      { command: "queue.set_priority", priority: "high" },
+    ),
+    applyQueueCommand(
+      { ...context, idempotencyKey: "queue-race-second" },
+      { command: "queue.set_priority", priority: "urgent" },
+    ),
+  ]);
+
+  assert.equal([first, second].filter((result) => result.ok).length, 1);
+  const loser = [first, second].find((result) => !result.ok);
+  assert.ok(loser && !loser.ok);
+  assert.deepEqual(loser.reasonCodes, ["PROJECTION_VERSION_MISMATCH"]);
 });

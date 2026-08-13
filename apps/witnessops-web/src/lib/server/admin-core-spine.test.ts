@@ -22,6 +22,7 @@ import {
   recordDeliverySent,
   recordGmailLabelSync,
   prepareDelivery,
+  reserveDeliverySend,
   resetAdminCoreStoreForTests,
   searchCoreRecords,
   transitionDelivery,
@@ -62,6 +63,27 @@ test("delegated operators may mutate only records assigned to them", async () =>
     owner,
   );
   assert.equal(transitioned.state, "triage");
+});
+
+test("concurrent core mutations preserve every committed record", async () => {
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "witnessops-admin-core-race-"));
+  await resetAdminCoreStoreForTests();
+
+  await Promise.all(
+    Array.from({ length: 12 }, (_, index) =>
+      importGmailInboxItem({
+        gmailMessageId: `gmail-msg-race-${index}`,
+        gmailThreadId: `gmail-thread-race-${index}`,
+        sender: `buyer-${index}@example.com`,
+        recipients: ["engage@mail.witnessops.com"],
+        subject: `Concurrent request ${index}`,
+        receivedAt: "2026-08-13T08:00:00Z",
+        excerpt: "Bounded request.",
+      }, founder),
+    ),
+  );
+
+  assert.equal((await getAdminCoreState()).inboxItems.length, 12);
 });
 
 test("admin core spine covers the complete message-to-receipt operating path", async () => {
@@ -203,9 +225,35 @@ test("admin core spine covers the complete message-to-receipt operating path", a
   assert.equal(deliveryReady.fail.length, 0);
   assert.equal(deliveryReady.unresolved.length, 0);
   await transitionDelivery(deliveryRecord.id, "ready_for_operator_review", founder);
-  const sent = await recordDeliverySent(deliveryRecord.id, { provider: "file", providerMessageId: "provider-msg-001", sentAt: "2026-07-11T12:10:00Z" }, founder);
+  const sendReservation = await reserveDeliverySend(
+    deliveryRecord.id,
+    founder,
+    `delivery-send:${deliveryRecord.id}`,
+  );
+  assert.equal(sendReservation.kind, "reserved");
+  assert.ok(sendReservation.kind === "reserved");
+  const competingReservation = await reserveDeliverySend(
+    deliveryRecord.id,
+    founder,
+    `delivery-send:${deliveryRecord.id}`,
+  );
+  assert.equal(competingReservation.kind, "in_progress");
+  const sent = await recordDeliverySent(
+    deliveryRecord.id,
+    { provider: "file", providerMessageId: "provider-msg-001", sentAt: "2026-07-11T12:10:00Z" },
+    founder,
+    `delivery-send:${deliveryRecord.id}`,
+    sendReservation.reservationToken,
+  );
   const sentAgain = await recordDeliverySent(deliveryRecord.id, { provider: "file", providerMessageId: "provider-msg-should-not-duplicate", sentAt: "2026-07-11T12:11:00Z" }, founder);
   assert.equal(sentAgain.providerMessageId, sent.providerMessageId);
+
+  const replayReservation = await reserveDeliverySend(
+    deliveryRecord.id,
+    founder,
+    `delivery-send:${deliveryRecord.id}`,
+  );
+  assert.equal(replayReservation.kind, "replay");
 
   const search = await searchCoreRecords("receipt-002");
   assert.ok(search.some((result) => result.type === "receipt" && result.id === secondReceipt.id));
