@@ -5,6 +5,7 @@ import path from "node:path";
 import test from "node:test";
 
 import {
+  AdminCoreError,
   getAdminCoreStorePath,
   listInboxItems,
   listReviewRequests,
@@ -20,6 +21,8 @@ import {
 } from "./gmail-cli-adapter";
 
 const founder = { actor: "founder@test", role: "Founder" as const };
+const administrator = { actor: "admin@test", role: "Administrator" as const };
+const delegated = { actor: "operator@test", role: "Delegated Operator" as const };
 
 function argsJson(args: string[], name: string): Record<string, unknown> {
   const index = args.indexOf(name);
@@ -110,6 +113,37 @@ test("Gmail metadata parser retains attachment metadata without downloading cont
   assert.equal(item.attachments?.[0]?.attachmentId, "message-1-attachment");
   assert.equal(item.attachments?.[0]?.sizeBytes, 42);
   assert.deepEqual(parseGmailMessageList(`${JSON.stringify({ messages: [{ id: "a", threadId: "t" }] })}\n${JSON.stringify({ messages: [{ id: "b", threadId: "t" }] })}`), [{ id: "a", threadId: "t" }, { id: "b", threadId: "t" }]);
+});
+
+test("Gmail sync requires administration authority before any read or side effect", async () => {
+  await withTemporaryStore(async () => {
+    const runner = new FakeGwsRunner();
+    await assert.rejects(
+      () =>
+        runGmailInboxSync(delegated, {
+          runner,
+          idempotencyKey: "gmail-sync-forbidden",
+        }),
+      (error: unknown) =>
+        error instanceof AdminCoreError &&
+        error.code === "ADMINISTRATION_AUTHORITY_REQUIRED" &&
+        error.status === 403,
+    );
+    assert.equal(runner.calls.length, 0);
+    assert.equal((await listGmailSyncReceipts()).length, 0);
+  });
+});
+
+test("Administrator may run Gmail sync", async () => {
+  await withTemporaryStore(async () => {
+    const runner = new FakeGwsRunner();
+    const result = await runGmailInboxSync(administrator, {
+      runner,
+      idempotencyKey: "gmail-sync-administrator",
+    });
+    assert.equal(result.idempotent, false);
+    assert.ok(runner.calls.length > 0);
+  });
 });
 
 test("manual Gmail reconciliation creates, updates, excludes, labels, and records idempotent receipts", async () => {

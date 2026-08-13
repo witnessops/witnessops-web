@@ -659,6 +659,10 @@ function requireRole(actor: CoreActor, action: "business-authority" | "administr
   }
 }
 
+export function requireAdministrationAuthority(actor: CoreActor): void {
+  requireRole(actor, "administration");
+}
+
 function requireAssignedBusinessRecord(
   actor: CoreActor,
   assignedOperator: string | null,
