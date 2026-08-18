@@ -24,10 +24,6 @@ export function enforcePublicIntakeRateLimit(
   config: PublicIntakeRateLimitConfig = VERIFY_RATE_LIMIT_CONFIG,
 ): NextResponse | null {
   const clientIp = getClientIp(request);
-  if (clientIp === "unknown") {
-    return null;
-  }
-
   const result = checkRateLimit(
     PUBLIC_INTAKE_RATE_LIMIT_NAMESPACE,
     `${routeNamespace}:${clientIp}`,

@@ -113,10 +113,14 @@ function validateSupportedReceipt(
     return unsupported("tier1 R0 artifacts are not supported on /verify v1.");
   }
 
+  // Reject bundle-shaped objects even when proof_stage is present. A stage
+  // field must not widen /verify v1 into proof-bundle intake.
+  if (looksLikeUnsupportedBundle(receipt)) {
+    return unsupported("proof bundles are not supported on /verify v1.");
+  }
+
   if (!("proof_stage" in receipt)) {
-    return looksLikeUnsupportedBundle(receipt)
-      ? unsupported("proof bundles are not supported on /verify v1.")
-      : malformed("receipt.proof_stage is required.");
+    return malformed("receipt.proof_stage is required.");
   }
 
   if (typeof receipt.proof_stage !== "string") {
@@ -265,12 +269,8 @@ export function verifyReceiptPayload(payload: unknown): VerifyResponse {
 
   try {
     return normalizeVerdict(parsedReceipt);
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "receipt verification failed to execute.";
-    return malformed(message);
+  } catch {
+    return malformed("receipt verification failed to execute.");
   }
 }
 

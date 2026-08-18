@@ -114,6 +114,20 @@ test("getClientIp returns unknown when no headers present", () => {
   assert.equal(getClientIp(request), "unknown");
 });
 
+test("getClientIp treats non-IP forwarded values as unknown", () => {
+  const request = new Request("https://example.com", {
+    headers: { "x-forwarded-for": "not-an-ip, 5.6.7.8" },
+  });
+  assert.equal(getClientIp(request), "unknown");
+});
+
+test("getClientIp accepts IPv6 x-real-ip", () => {
+  const request = new Request("https://example.com", {
+    headers: { "x-real-ip": "2001:db8::1" },
+  });
+  assert.equal(getClientIp(request), "2001:db8::1");
+});
+
 // ── rateLimitErrorBody ──
 
 test("rateLimitErrorBody produces correct shape", () => {

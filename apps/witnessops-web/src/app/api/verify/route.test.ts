@@ -267,6 +267,35 @@ test("verify route dual-reads legacy offsecshield receipt schema", async () => {
   assert.equal(payload.verdict, "indeterminate");
 });
 
+test("verify route rejects bundle-shaped JSON even when proof_stage is present", async () => {
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        receipt: {
+          schema_version: "1.0.0",
+          proof_stage: "PV",
+          receipt_id: "rcpt_bundle_stage_001",
+          files: [{ path: "evidence.bin" }],
+        },
+      }),
+    }),
+  );
+
+  assert.equal(response.status, 422);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    failureClass?: string;
+    message?: string;
+    verdict?: string;
+  };
+  assert.equal(payload.ok, false);
+  assert.equal(payload.failureClass, "FAILURE_INPUT_UNSUPPORTED");
+  assert.equal(payload.message, "proof bundles are not supported on /verify v1.");
+  assert.equal(payload.verdict, undefined);
+});
+
 test("verify route rejects Swarm mesh export outside the receipt-only boundary", async () => {
   const raw = loadVerifyFixture("swarm-mesh-export-round3");
   assert.ok(raw);

@@ -6,6 +6,7 @@ import path from "node:path";
 
 import {
   _resetAllStores,
+  getClientIp,
   VERIFY_RATE_LIMIT_CONFIG,
 } from "@witnessops/config/rate-limit";
 import { clearTokenStore } from "@/lib/server/token-store";
@@ -88,6 +89,17 @@ test("public intake rate limit key includes route namespace and client ip", () =
   );
 });
 
+test("non-IP forwarded-for values share the unknown rate-limit identity", () => {
+  const request = new Request("https://witnessops.com/api/verify", {
+    headers: { "x-forwarded-for": "not-an-ip" },
+  });
+  assert.equal(getClientIp(request), "unknown");
+  assert.equal(
+    buildPublicIntakeRateLimitKey("verify", request),
+    "verify:unknown",
+  );
+});
+
 test("contact route rate limits per route namespace and ip", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-contact-"));
   applyTestEnv(baseDir);
@@ -144,4 +156,30 @@ test("verify route rate limits per route namespace and ip", async () => {
   applyTestEnv(baseDir);
 
   await exerciseRateLimit(POSTVerify, "/api/verify", "203.0.113.50");
+});
+
+test("verify route rate limits unknown-IP requests instead of skipping", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-unknown-"));
+  applyTestEnv(baseDir);
+
+  const body = {};
+  for (let i = 0; i < 10; i += 1) {
+    const response = await POSTVerify(
+      new Request("https://witnessops.com/api/verify", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    assert.equal(response.status, 400);
+  }
+
+  const limited = await POSTVerify(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(limited.status, 429);
 });
