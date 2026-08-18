@@ -1,16 +1,21 @@
-import { timingSafeEqual } from "node:crypto";
 import type { NextRequest } from "next/server";
 
 import type { AdminActorAuthSource } from "@/lib/token-contract";
 import { ADMIN_ROLES, type AdminRole } from "./admin-authorization";
 
+/**
+ * Length-checked constant-time compare that stays off `node:crypto`.
+ * Middleware imports this module, so Node-scheme imports fail the webpack build.
+ */
 function signaturesMatch(expectedB64: string, actualB64: string): boolean {
-  const expectedBuffer = Buffer.from(expectedB64);
-  const actualBuffer = Buffer.from(actualB64);
-  if (expectedBuffer.length !== actualBuffer.length) {
+  if (expectedB64.length !== actualB64.length) {
     return false;
   }
-  return timingSafeEqual(expectedBuffer, actualBuffer);
+  let mismatch = 0;
+  for (let i = 0; i < expectedB64.length; i += 1) {
+    mismatch |= expectedB64.charCodeAt(i) ^ actualB64.charCodeAt(i);
+  }
+  return mismatch === 0;
 }
 
 interface AdminSessionPayload {
