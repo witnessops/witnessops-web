@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildAdminPublicUrl } from "@/lib/admin-auth-origin";
+import {
+  buildAdminPublicUrl,
+  isTrustedAdminMutationOrigin,
+} from "@/lib/admin-auth-origin";
 import { GOOGLE_OIDC_TRANSACTION_COOKIE_NAME } from "@/lib/server/admin-google-oidc";
 import { ADMIN_SESSION_COOKIE_NAME } from "@/lib/server/admin-session";
 
 export async function POST(request: NextRequest) {
+  if (!isTrustedAdminMutationOrigin(request)) {
+    return NextResponse.json(
+      { ok: false, error: "Invalid request origin." },
+      {
+        status: 403,
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+  }
+
   const url = buildAdminPublicUrl("/admin/login", request);
 
   const response = NextResponse.redirect(url, 303);
