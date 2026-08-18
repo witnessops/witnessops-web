@@ -1,0 +1,29 @@
+{
+  "schema_version": "wops.ticket_triage.input.v1",
+  "ticket_id": "DEMO-002",
+  "received_at": "2026-08-18T09:15:00Z",
+  "data_classification": "synthetic_demo",
+  "requester": {
+    "display_name": "Brian Example",
+    "company": "Example Customer Two",
+    "contact": "brian.example@example.invalid"
+  },
+  "channel": "email",
+  "subject": "Suspicious Microsoft password expiry email",
+  "description": "I received an email saying my Microsoft password expires today. I clicked the link. The page asked for my username and password, but I closed it without entering anything. I did not download or open a file. The original email is still in my mailbox.",
+  "reported_impact": "single_user",
+  "context": {
+    "affected_service": "Microsoft 365 email",
+    "device_type": "Company laptop",
+    "operating_system": "Windows 11",
+    "location": "Remote",
+    "error_message": null
+  },
+  "attachments": [
+    {
+      "file_name": "suspicious-email.eml",
+      "media_type": "message/rfc822",
+      "description": "Synthetic metadata only; file contents are not uploaded"
+    }
+  ]
+}

@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://witnessops.com/schemas/company-ai-workspace/ticket-triage-output-v1.json",
+  "title": "WitnessOps Ticket Triage Output v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "ticket_id",
+    "result_status",
+    "triage",
+    "failure",
+    "control"
+  ],
+  "properties": {
+    "schema_version": { "const": "wops.ticket_triage.output.v1" },
+    "ticket_id": {
+      "oneOf": [
+        { "type": "string", "pattern": "^DEMO-[0-9]{3}$" },
+        { "type": "null" }
+      ]
+    },
+    "result_status": {
+      "enum": [
+        "completed",
+        "human_review_required",
+        "insufficient_input",
+        "rejected",
+        "system_error"
+      ]
+    },
+    "triage": {
+      "oneOf": [
+        { "$ref": "#/$defs/triage" },
+        { "type": "null" }
+      ]
+    },
+    "failure": {
+      "oneOf": [
+        { "$ref": "#/$defs/failure" },
+        { "type": "null" }
+      ]
+    },
+    "control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "human_review_required",
+        "external_actions_performed",
+        "content_disposition"
+      ],
+      "properties": {
+        "human_review_required": { "const": true },
+        "external_actions_performed": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "content_disposition": { "const": "advisory_draft_only" }
+      }
+    }
+  },
+  "$defs": {
+    "triage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "category",
+        "suggested_priority",
+        "facts",
+        "assumptions",
+        "missing_information",
+        "suggested_assignment",
+        "next_actions",
+        "draft_customer_response",
+        "escalation",
+        "uncertainties"
+      ],
+      "properties": {
+        "summary": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "category": {
+          "enum": [
+            "access_identity",
+            "security_event",
+            "performance_availability",
+            "general_request",
+            "other",
+            "unknown"
+          ]
+        },
+        "suggested_priority": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "confidence", "reason"],
+          "properties": {
+            "level": { "enum": ["P1", "P2", "P3", "P4"] },
+            "confidence": { "enum": ["low", "medium", "high"] },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 300 }
+          }
+        },
+        "facts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 300 }
+        },
+        "assumptions": {
+          "type": "array",
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 300 }
+        },
+        "missing_information": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["question", "reason", "blocking"],
+            "properties": {
+              "question": { "type": "string", "minLength": 1, "maxLength": 300 },
+              "reason": { "type": "string", "minLength": 1, "maxLength": 300 },
+              "blocking": { "type": "boolean" }
+            }
+          }
+        },
+        "suggested_assignment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["queue", "reason"],
+          "properties": {
+            "queue": {
+              "enum": [
+                "service_desk",
+                "identity",
+                "security",
+                "network",
+                "endpoint",
+                "unknown"
+              ]
+            },
+            "reason": { "type": "string", "minLength": 1, "maxLength": 300 }
+          }
+        },
+        "next_actions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "order",
+              "action",
+              "owner",
+              "requires_human_approval"
+            ],
+            "properties": {
+              "order": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "action": { "type": "string", "minLength": 1, "maxLength": 400 },
+              "owner": {
+                "enum": [
+                  "service_desk",
+                  "identity_team",
+                  "security_team",
+                  "requester",
+                  "human_reviewer"
+                ]
+              },
+              "requires_human_approval": { "const": true }
+            }
+          }
+        },
+        "draft_customer_response": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1200
+        },
+        "escalation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required", "reason_codes", "route_to"],
+          "properties": {
+            "required": { "type": "boolean" },
+            "reason_codes": {
+              "type": "array",
+              "maxItems": 4,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "suspected_security_event",
+                  "potential_account_compromise",
+                  "widespread_outage",
+                  "insufficient_evidence",
+                  "other"
+                ]
+              }
+            },
+            "route_to": {
+              "enum": [
+                "service_desk",
+                "identity",
+                "security",
+                "network",
+                "endpoint",
+                "none"
+              ]
+            }
+          }
+        },
+        "uncertainties": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 300 }
+        }
+      }
+    },
+    "failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "retryable", "human_action"],
+      "properties": {
+        "code": {
+          "enum": [
+            "INVALID_INPUT",
+            "INPUT_LIMIT_EXCEEDED",
+            "DEMO_DATA_BOUNDARY",
+            "INSUFFICIENT_INFORMATION",
+            "HUMAN_REVIEW_ONLY",
+            "MODEL_UNAVAILABLE",
+            "INVALID_MODEL_OUTPUT",
+            "INTERNAL_ERROR"
+          ]
+        },
+        "message": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "retryable": { "type": "boolean" },
+        "human_action": { "type": "string", "minLength": 1, "maxLength": 300 }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "result_status": {
+            "enum": ["completed", "human_review_required"]
+          }
+        },
+        "required": ["result_status"]
+      },
+      "then": {
+        "properties": {
+          "triage": { "$ref": "#/$defs/triage" },
+          "failure": { "type": "null" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "result_status": {
+            "enum": ["insufficient_input", "rejected", "system_error"]
+          }
+        },
+        "required": ["result_status"]
+      },
+      "then": {
+        "properties": {
+          "triage": { "type": "null" },
+          "failure": { "$ref": "#/$defs/failure" }
+        }
+      }
+    }
+  ]
+}

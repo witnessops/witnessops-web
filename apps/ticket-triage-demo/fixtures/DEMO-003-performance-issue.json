@@ -1,0 +1,23 @@
+{
+  "schema_version": "wops.ticket_triage.input.v1",
+  "ticket_id": "DEMO-003",
+  "received_at": "2026-08-18T09:30:00Z",
+  "data_classification": "synthetic_demo",
+  "requester": {
+    "display_name": "Carla Sample",
+    "company": "Example Customer Three",
+    "contact": "carla.sample@example.invalid"
+  },
+  "channel": "phone_note",
+  "subject": "Everything is slow this morning",
+  "description": "The laptop and websites have felt slow since about 09:00. I am not sure whether anyone else is affected. I restarted the browser but not the laptop. There is no error message.",
+  "reported_impact": "unknown",
+  "context": {
+    "affected_service": null,
+    "device_type": "Company laptop",
+    "operating_system": null,
+    "location": null,
+    "error_message": null
+  },
+  "attachments": []
+}

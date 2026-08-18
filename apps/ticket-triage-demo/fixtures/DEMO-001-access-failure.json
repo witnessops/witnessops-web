@@ -1,0 +1,23 @@
+{
+  "schema_version": "wops.ticket_triage.input.v1",
+  "ticket_id": "DEMO-001",
+  "received_at": "2026-08-18T09:00:00Z",
+  "data_classification": "synthetic_demo",
+  "requester": {
+    "display_name": "Anna Test",
+    "company": "Example Customer One",
+    "contact": "anna.test@example.invalid"
+  },
+  "channel": "portal",
+  "subject": "Cannot access Microsoft 365 after replacing phone",
+  "description": "I replaced my phone yesterday. Outlook now asks me to approve the sign-in on my old phone, which I no longer have. I cannot open email. Nobody else has reported the same problem. I have not shared my password or any verification code.",
+  "reported_impact": "single_user",
+  "context": {
+    "affected_service": "Microsoft 365",
+    "device_type": "Company laptop",
+    "operating_system": "Windows 11",
+    "location": "Office",
+    "error_message": "Approve sign-in request"
+  },
+  "attachments": []
+}
