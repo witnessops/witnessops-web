@@ -1,3 +1,5 @@
+import { isIP } from "node:net";
+
 // ──────────────────────────────────────────────────────────────────
 // Instance-local, best-effort rate limiting for Next.js API routes.
 //
@@ -13,21 +15,29 @@
 /**
  * Extract client IP from request headers using common proxy conventions.
  *
- * This is app-layer best effort. It trusts the first value in
- * x-forwarded-for (set by the edge proxy) and falls back to
- * x-real-ip. If neither is available, returns "unknown".
+ * This is app-layer best effort. It uses the first x-forwarded-for hop
+ * when that value looks like an IP, then x-real-ip. Values that are not
+ * IPv4/IPv6, and requests with neither header, return "unknown" so they
+ * share one rate-limit bucket instead of minting a unique key per spoof.
  *
- * Do not trust these headers beyond a reasonable proxy chain assumption.
+ * Do not treat these headers as a cryptographic client identity.
  */
+function isLikelyClientIp(value: string): boolean {
+  if (!value || value.length > 45 || value === "unknown") {
+    return false;
+  }
+  return isIP(value) !== 0;
+}
+
 export function getClientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0]?.trim();
-    if (first) return first;
+    if (first && isLikelyClientIp(first)) return first;
   }
 
-  const realIp = request.headers.get("x-real-ip");
-  if (realIp) return realIp.trim();
+  const realIp = request.headers.get("x-real-ip")?.trim();
+  if (realIp && isLikelyClientIp(realIp)) return realIp;
 
   return "unknown";
 }

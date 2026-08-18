@@ -42,6 +42,29 @@ const CHECK_STATUS_LABEL: Record<
   not_applicable: "Not applicable",
 };
 
+export function verifyResultLimitationsCopy(
+  verdict: "valid" | "invalid" | "indeterminate",
+): string {
+  switch (verdict) {
+    case "valid":
+      return "A valid result confirms the checks named in the receipt. It does not prove that every underlying action was correct, that remote systems remain unchanged, or that a full engagement story is complete.";
+    case "indeterminate":
+      return "Incomplete means receipt-scoped checks ran, but this page did not independently revalidate artifacts and did not reach a valid verdict. A named check pass is not a valid result.";
+    case "invalid":
+      return "An invalid result means one or more receipt-scoped checks failed. It does not describe systems outside this receipt.";
+  }
+}
+
+export function verifyCheckStatusLabel(
+  status: "verified" | "unverified" | "not_applicable",
+  verdict: "valid" | "invalid" | "indeterminate",
+): string {
+  if (status === "verified" && verdict === "indeterminate") {
+    return "Receipt-scoped";
+  }
+  return CHECK_STATUS_LABEL[status];
+}
+
 /** Map internal check ids to short buyer-facing labels. */
 function humanizeCheckName(name: string): string {
   const map: Record<string, string> = {
@@ -175,7 +198,7 @@ export function VerificationResult({
                 <span
                   className={`shrink-0 border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${CHECK_TONE.verified}`}
                 >
-                  {CHECK_STATUS_LABEL.verified}
+                  {verifyCheckStatusLabel("verified", response.verdict)}
                 </span>
               </li>
             ))}
@@ -201,7 +224,7 @@ export function VerificationResult({
                   <span
                     className={`shrink-0 border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${CHECK_TONE.unverified}`}
                   >
-                    {CHECK_STATUS_LABEL.unverified}
+                    {verifyCheckStatusLabel("unverified", response.verdict)}
                   </span>
                 </div>
                 {check.detail ? (
@@ -223,11 +246,7 @@ export function VerificationResult({
 
       <div className="mt-6 border border-surface-border bg-surface-bg p-4 text-sm leading-relaxed text-text-muted">
         <p className="font-semibold text-text-secondary">Limitations</p>
-        <p className="mt-2">
-          A valid result confirms the checks named in the receipt. It does not
-          prove that every underlying action was correct, that remote systems
-          remain unchanged, or that a full engagement story is complete.
-        </p>
+        <p className="mt-2">{verifyResultLimitationsCopy(response.verdict)}</p>
       </div>
 
       <p className="mt-5 text-sm text-text-muted">
