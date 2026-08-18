@@ -1,7 +1,17 @@
+import { timingSafeEqual } from "node:crypto";
 import type { NextRequest } from "next/server";
 
 import type { AdminActorAuthSource } from "@/lib/token-contract";
 import { ADMIN_ROLES, type AdminRole } from "./admin-authorization";
+
+function signaturesMatch(expectedB64: string, actualB64: string): boolean {
+  const expectedBuffer = Buffer.from(expectedB64);
+  const actualBuffer = Buffer.from(actualB64);
+  if (expectedBuffer.length !== actualBuffer.length) {
+    return false;
+  }
+  return timingSafeEqual(expectedBuffer, actualBuffer);
+}
 
 interface AdminSessionPayload {
   version: 3;
@@ -110,7 +120,7 @@ export async function verifyAdminSessionCookie(
   try {
     const expectedB64 = await signPayload(payloadB64, secret);
 
-    if (signatureB64 !== expectedB64) {
+    if (!signaturesMatch(expectedB64, signatureB64)) {
       return null;
     }
 

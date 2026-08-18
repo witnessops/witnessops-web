@@ -15,6 +15,7 @@ import { POST as POSTContact } from "./contact/route";
 import { POST as POSTEngage } from "./engage/route";
 import { POST as POSTSupport } from "./support/route";
 import { POST as POSTVerify } from "./verify/route";
+import { POST as POSTVerifyToken } from "./verify-token/route";
 
 function applyTestEnv(baseDir: string): void {
   process.env.WITNESSOPS_TOKEN_SIGNING_SECRET = "test-secret";
@@ -144,4 +145,16 @@ test("verify route rate limits per route namespace and ip", async () => {
   applyTestEnv(baseDir);
 
   await exerciseRateLimit(POSTVerify, "/api/verify", "203.0.113.50");
+});
+
+test("verify-token route rate limits per route namespace and ip", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-token-"));
+  applyTestEnv(baseDir);
+
+  await exerciseRateLimit(POSTVerifyToken, "/api/verify-token", "203.0.113.60");
+
+  const differentRoute = await POSTVerify(
+    makeRequest("/api/verify", {}, "203.0.113.60"),
+  );
+  assert.equal(differentRoute.status, 400);
 });

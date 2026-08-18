@@ -102,6 +102,9 @@ test("tampering and the production-disabled local bypass cannot establish a sess
   const tampered = `${cookie.slice(0, -1)}${replacement}`;
 
   assert.equal(await verifyAdminSessionCookie(tampered), null);
+  const payloadB64 = cookie.slice(0, cookie.lastIndexOf("."));
+  assert.equal(await verifyAdminSessionCookie(`${payloadB64}.YQ==`), null);
+  assert.equal(await verifyAdminSessionCookie(payloadB64), null);
   assert.equal(
     await getVerifiedAdminSession(
       new NextRequest("http://localhost:3001/admin", {
