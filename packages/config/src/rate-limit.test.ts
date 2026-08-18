@@ -128,6 +128,15 @@ test("getClientIp accepts IPv6 x-real-ip", () => {
   assert.equal(getClientIp(request), "2001:db8::1");
 });
 
+test("getClientIp treats malformed IPv6-like values as unknown", () => {
+  for (const value of ["a:", ":::", "1.2.3.4:1234", "1.2.3.4:"]) {
+    const request = new Request("https://example.com", {
+      headers: { "x-forwarded-for": value },
+    });
+    assert.equal(getClientIp(request), "unknown", value);
+  }
+});
+
 // ── rateLimitErrorBody ──
 
 test("rateLimitErrorBody produces correct shape", () => {

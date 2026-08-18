@@ -1,3 +1,5 @@
+import { isIP } from "node:net";
+
 // ──────────────────────────────────────────────────────────────────
 // Instance-local, best-effort rate limiting for Next.js API routes.
 //
@@ -24,13 +26,7 @@ function isLikelyClientIp(value: string): boolean {
   if (!value || value.length > 45 || value === "unknown") {
     return false;
   }
-
-  const ipv4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(value);
-  if (ipv4) {
-    return ipv4.slice(1).every((octet) => Number(octet) <= 255);
-  }
-
-  return value.includes(":") && /^[0-9a-fA-F:.]+$/.test(value);
+  return isIP(value) !== 0;
 }
 
 export function getClientIp(request: Request): string {
