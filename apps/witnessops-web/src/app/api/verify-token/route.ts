@@ -16,6 +16,7 @@ import {
   verifyIssuedTokenWithContext,
 } from "@/lib/server/token-issuance";
 import { PUBLIC_JSON_BODY_LIMIT_BYTES, readBoundedRequestJson, RequestBodyTooLargeError } from "@/lib/server/bounded-request-body";
+import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 
 export const runtime = "nodejs";
 
@@ -59,6 +60,12 @@ async function handleVerification(
 }
 
 export async function POST(request: Request) {
+  const rateLimitedResponse = enforcePublicIntakeRateLimit(
+    request,
+    "verify-token",
+  );
+  if (rateLimitedResponse) return rateLimitedResponse;
+
   try {
     const result = await handleVerification(
       await readBoundedRequestJson(request, PUBLIC_JSON_BODY_LIMIT_BYTES),

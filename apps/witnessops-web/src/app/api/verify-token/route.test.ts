@@ -4,6 +4,7 @@ import { mkdtemp, readFile, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import { _resetAllStores } from "@witnessops/config/rate-limit";
 import {
   clearTokenStore,
   getIntakeById,
@@ -172,6 +173,7 @@ afterEach(async () => {
   delete process.env.GES_SERVER_URL;
   delete process.env.GES_ASSESSMENT_KEY;
   await clearTokenStore();
+  _resetAllStores();
 });
 
 test("verify-token route requires issuanceId + email + token", async () => {

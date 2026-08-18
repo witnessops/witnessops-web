@@ -38,3 +38,37 @@ export function buildAdminPublicUrl(
   }
   return new URL(path, getAdminPublicOrigin(request));
 }
+
+function originFromCandidate(candidate: string): string | null {
+  try {
+    const url = new URL(candidate);
+    if (url.username || url.password) {
+      return null;
+    }
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Same-origin gate for cookie-clearing admin mutations.
+ * Prefer Origin; fall back to Referer. Missing both is rejected.
+ */
+export function isTrustedAdminMutationOrigin(
+  request: AdminRequestUrl & {
+    headers: { get(name: string): string | null };
+  },
+): boolean {
+  const expectedOrigin = getAdminPublicOrigin(request);
+  const originHeader = request.headers.get("origin");
+  if (originHeader !== null && originHeader !== "") {
+    return originFromCandidate(originHeader) === expectedOrigin;
+  }
+
+  const referer = request.headers.get("referer");
+  if (!referer) {
+    return false;
+  }
+  return originFromCandidate(referer) === expectedOrigin;
+}
