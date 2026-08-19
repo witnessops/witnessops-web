@@ -122,28 +122,18 @@ async function pruneExpiredReceipts(
   root: string,
   receiptFiles: fs.Dirent[],
   retentionMs: number,
-): Promise<fs.Dirent[]> {
+): Promise<Array<{ entry: fs.Dirent; size: number }>> {
   const cutoff = Date.now() - retentionMs;
-  const retained: fs.Dirent[] = [];
+  const retained: Array<{ entry: fs.Dirent; size: number }> = [];
 
   for (const entry of receiptFiles) {
     const filePath = path.join(root, entry.name);
-    try {
-      const parsed = JSON.parse(await fs.promises.readFile(filePath, "utf8")) as {
-        created_at?: unknown;
-      };
-      const createdAt =
-        typeof parsed.created_at === "string"
-          ? Date.parse(parsed.created_at)
-          : Number.NaN;
-      if (Number.isFinite(createdAt) && createdAt <= cutoff) {
-        await fs.promises.unlink(filePath);
-        continue;
-      }
-    } catch {
-      // Preserve malformed or unreadable records for explicit operator review.
+    const metadata = await fs.promises.stat(filePath);
+    if (metadata.mtimeMs <= cutoff) {
+      await fs.promises.unlink(filePath);
+      continue;
     }
-    retained.push(entry);
+    retained.push({ entry, size: metadata.size });
   }
 
   return retained;
@@ -193,12 +183,11 @@ export async function writeReceipt(
           return { ok: false, reason: "CAPACITY_FILE_LIMIT" };
         }
 
-        const sizes = await Promise.all(
-          receiptFiles.map(async (entry) =>
-            (await fs.promises.stat(path.join(root, entry.name))).size,
-          ),
-        );
-        if (sizes.reduce((total, size) => total + size, 0) + dataBytes > limits.maxBytes) {
+        if (
+          receiptFiles.reduce((total, receiptFile) => total + receiptFile.size, 0) +
+            dataBytes >
+          limits.maxBytes
+        ) {
           return { ok: false, reason: "CAPACITY_BYTE_LIMIT" };
         }
 

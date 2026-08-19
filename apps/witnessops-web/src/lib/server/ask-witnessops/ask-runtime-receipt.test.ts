@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test, { after } from "node:test";
@@ -122,6 +122,7 @@ test("receipt retention prunes expired receipts before applying the file limit",
       created_at: "2000-01-01T00:00:00.000Z",
     }),
   );
+  utimesSync(expiredPath, new Date("2000-01-01T00:00:00.000Z"), new Date("2000-01-01T00:00:00.000Z"));
 
   const result = await writeReceipt(
     {

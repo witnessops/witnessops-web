@@ -697,6 +697,19 @@ export async function createVerificationIssuance(
     throw new Error("Please use your business email.");
   }
 
+  const reservation = await reservePublicIssuanceAdmission();
+  try {
+    return await createReservedVerificationIssuance(input);
+  } finally {
+    await reservation.release().catch(() => {
+      console.error("Unable to release public verification issuance reservation");
+    });
+  }
+}
+
+async function createReservedVerificationIssuance(
+  input: CreateVerificationIssuanceInput,
+): Promise<VerificationIssuanceResponse> {
   const intakeId = generateIntakeId();
   const issuanceId = generateIssuanceId();
   const rawToken = generateRawToken();
@@ -719,7 +732,6 @@ export async function createVerificationIssuance(
     submission: normalizedSubmission,
   };
 
-  await reservePublicIssuanceAdmission();
   await saveIntake(intake);
   await appendIntakeEvent({
     event_type: "INTAKE_SUBMITTED",

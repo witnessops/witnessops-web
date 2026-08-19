@@ -75,3 +75,62 @@ test("public issuance capacity rejects before a new intake can be written", asyn
       error.code === "INTAKE_CAPACITY_REACHED",
   );
 });
+
+test("public issuance reservations prevent concurrent admissions from exceeding capacity", async () => {
+  const baseDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-public-issuance-reservation-"),
+  );
+  testRoots.push(baseDirectory);
+  applyTestStorage(baseDirectory);
+
+  const limits = {
+    dailyLimit: 10,
+    maxIntakeRecords: 1,
+    maxIssuanceRecords: 1,
+    maxEventBytes: 1024 * 1024,
+    minFreeBytes: 1,
+  };
+  const reservation = await reservePublicIssuanceAdmission(limits);
+
+  await assert.rejects(
+    () => reservePublicIssuanceAdmission(limits),
+    (error: unknown) =>
+      error instanceof PublicIssuanceAdmissionError &&
+      error.code === "INTAKE_CAPACITY_REACHED",
+  );
+
+  await reservation.release();
+  await reservePublicIssuanceAdmission(limits);
+});
+
+test("malformed public issuance budgets fail as controlled admission errors", async () => {
+  const baseDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-public-issuance-corrupt-budget-"),
+  );
+  testRoots.push(baseDirectory);
+  applyTestStorage(baseDirectory);
+  const budgetDirectory = path.join(
+    process.env.WITNESSOPS_TOKEN_STORE_DIR!,
+    "public-issuance-budgets",
+  );
+  await mkdir(budgetDirectory, { recursive: true });
+  await writeFile(
+    path.join(budgetDirectory, `${new Date().toISOString().slice(0, 10)}.json`),
+    "{",
+    "utf8",
+  );
+
+  await assert.rejects(
+    () =>
+      reservePublicIssuanceAdmission({
+        dailyLimit: 10,
+        maxIntakeRecords: 10,
+        maxIssuanceRecords: 10,
+        maxEventBytes: 1024 * 1024,
+        minFreeBytes: 1,
+      }),
+    (error: unknown) =>
+      error instanceof PublicIssuanceAdmissionError &&
+      error.code === "BUDGET_STORE_INVALID",
+  );
+});

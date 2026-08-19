@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
+  access,
   mkdir,
   readFile,
   readdir,
@@ -23,11 +24,13 @@ const DEFAULT_MAX_EVENT_BYTES = 512 * 1024 * 1024;
 const DEFAULT_MIN_FREE_BYTES = 256 * 1024 * 1024;
 const RESERVED_EVENT_BYTES = 16 * 1024;
 const BUDGET_RETENTION_DAYS = 8;
+const RESERVATION_STALE_MS = 30 * 60 * 1000;
 
 interface PublicIssuanceBudget {
   schema: typeof DAILY_BUDGET_SCHEMA;
   day: string;
   count: number;
+  reservations: Record<string, { reservedAt: string }>;
 }
 
 export interface PublicIssuanceAdmissionLimits {
@@ -36,6 +39,10 @@ export interface PublicIssuanceAdmissionLimits {
   readonly maxIssuanceRecords: number;
   readonly maxEventBytes: number;
   readonly minFreeBytes: number;
+}
+
+export interface PublicIssuanceAdmissionReservation {
+  release(): Promise<void>;
 }
 
 export class PublicIssuanceAdmissionError extends Error {
@@ -128,6 +135,7 @@ async function byteSize(filePath: string): Promise<number> {
 async function assertStorageHeadroom(
   storeDirectory: string,
   limits: PublicIssuanceAdmissionLimits,
+  reservedAdmissions: number,
 ): Promise<void> {
   const [intakeCount, issuanceCount, eventBytes, storeFilesystem, eventFilesystem] =
     await Promise.all([
@@ -138,13 +146,16 @@ async function assertStorageHeadroom(
       statfs(eventDirectory()),
     ]);
 
-  if (intakeCount + 1 > limits.maxIntakeRecords) {
+  if (intakeCount + reservedAdmissions + 1 > limits.maxIntakeRecords) {
     throw new PublicIssuanceAdmissionError("INTAKE_CAPACITY_REACHED");
   }
-  if (issuanceCount + 1 > limits.maxIssuanceRecords) {
+  if (issuanceCount + reservedAdmissions + 1 > limits.maxIssuanceRecords) {
     throw new PublicIssuanceAdmissionError("ISSUANCE_CAPACITY_REACHED");
   }
-  if (eventBytes + RESERVED_EVENT_BYTES > limits.maxEventBytes) {
+  if (
+    eventBytes + (reservedAdmissions + 1) * RESERVED_EVENT_BYTES >
+    limits.maxEventBytes
+  ) {
     throw new PublicIssuanceAdmissionError("EVENT_CAPACITY_REACHED");
   }
 
@@ -154,7 +165,9 @@ async function assertStorageHeadroom(
   if (
     freeBytes.some(
       (available) =>
-        !Number.isFinite(available) || available < limits.minFreeBytes,
+        !Number.isFinite(available) ||
+        available - (reservedAdmissions + 1) * RESERVED_EVENT_BYTES <
+          limits.minFreeBytes,
     )
   ) {
     throw new PublicIssuanceAdmissionError("LOW_STORAGE_HEADROOM");
@@ -164,21 +177,41 @@ async function assertStorageHeadroom(
 async function readBudget(filePath: string, day: string): Promise<PublicIssuanceBudget> {
   try {
     const parsed = JSON.parse(await readFile(filePath, "utf8")) as Partial<PublicIssuanceBudget>;
+    const reservations = parsed.reservations ?? {};
     if (
       parsed.schema !== DAILY_BUDGET_SCHEMA ||
       parsed.day !== day ||
       typeof parsed.count !== "number" ||
       !Number.isSafeInteger(parsed.count) ||
-      parsed.count < 0
+      parsed.count < 0 ||
+      !reservations ||
+      typeof reservations !== "object" ||
+      Array.isArray(reservations) ||
+      Object.values(reservations).some(
+        (reservation) =>
+          !reservation ||
+          typeof reservation !== "object" ||
+          typeof (reservation as { reservedAt?: unknown }).reservedAt !==
+            "string" ||
+          !Number.isFinite(
+            Date.parse((reservation as { reservedAt: string }).reservedAt),
+          ),
+      )
     ) {
       throw new PublicIssuanceAdmissionError("BUDGET_STORE_INVALID");
     }
-    return parsed as PublicIssuanceBudget;
+    return {
+      schema: DAILY_BUDGET_SCHEMA,
+      day,
+      count: parsed.count,
+      reservations: reservations as Record<string, { reservedAt: string }>,
+    };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return { schema: DAILY_BUDGET_SCHEMA, day, count: 0 };
+      return { schema: DAILY_BUDGET_SCHEMA, day, count: 0, reservations: {} };
     }
-    throw error;
+    if (error instanceof PublicIssuanceAdmissionError) throw error;
+    throw new PublicIssuanceAdmissionError("BUDGET_STORE_INVALID");
   }
 }
 
@@ -209,6 +242,83 @@ async function pruneExpiredBudgets(directory: string, day: string): Promise<void
   );
 }
 
+function unexpiredReservations(
+  reservations: Record<string, { reservedAt: string }>,
+  now: number,
+): Record<string, { reservedAt: string }> {
+  return Object.fromEntries(
+    Object.entries(reservations).filter(
+      ([, reservation]) =>
+        Date.parse(reservation.reservedAt) + RESERVATION_STALE_MS > now,
+    ),
+  );
+}
+
+async function activeReservationCount(
+  directory: string,
+  now: number,
+): Promise<number> {
+  const entries = await readdir(directory, { withFileTypes: true });
+  let count = 0;
+
+  for (const entry of entries) {
+    if (!entry.isFile() || !/^\d{4}-\d{2}-\d{2}\.json$/.test(entry.name)) {
+      continue;
+    }
+
+    const day = entry.name.slice(0, 10);
+    const filePath = path.join(directory, entry.name);
+    const budget = await readBudget(filePath, day);
+    const reservations = unexpiredReservations(budget.reservations, now);
+    if (Object.keys(reservations).length !== Object.keys(budget.reservations).length) {
+      await writeBudget(filePath, { ...budget, reservations });
+    }
+    count += Object.keys(reservations).length;
+  }
+
+  return count;
+}
+
+function admissionLockPath(storeDirectory: string): string {
+  return path.join(storeDirectory, "locks", "public-issuance-admission.lock");
+}
+
+function admissionReservation(
+  storeDirectory: string,
+  day: string,
+  reservationId: string,
+): PublicIssuanceAdmissionReservation {
+  let released = false;
+
+  return {
+    async release(): Promise<void> {
+      if (released) return;
+      await withFilesystemLock(
+        {
+          lockPath: admissionLockPath(storeDirectory),
+          description: "public verification issuance admission",
+        },
+        async () => {
+          const filePath = budgetPath(storeDirectory, day);
+          try {
+            await access(filePath);
+          } catch (error) {
+            if ((error as NodeJS.ErrnoException).code === "ENOENT") return;
+            throw error;
+          }
+
+          const budget = await readBudget(filePath, day);
+          if (!budget.reservations[reservationId]) return;
+          const { [reservationId]: _releasedReservation, ...reservations } =
+            budget.reservations;
+          await writeBudget(filePath, { ...budget, reservations });
+        },
+      );
+      released = true;
+    },
+  };
+}
+
 /**
  * Reserves one public verification issuance before it can write intake data or
  * contact a mail provider. The budget is intentionally consumed for attempts:
@@ -217,14 +327,15 @@ async function pruneExpiredBudgets(directory: string, day: string): Promise<void
  */
 export async function reservePublicIssuanceAdmission(
   limits: PublicIssuanceAdmissionLimits = configuredLimits(),
-): Promise<void> {
+): Promise<PublicIssuanceAdmissionReservation> {
   const storeDirectory = getAdmissionStoreDir();
   const day = currentDay();
   const budgetsDirectory = budgetDirectory(storeDirectory);
+  const reservationId = randomUUID();
 
-  await withFilesystemLock(
+  return withFilesystemLock(
     {
-      lockPath: path.join(storeDirectory, "locks", "public-issuance-admission.lock"),
+      lockPath: admissionLockPath(storeDirectory),
       description: "public verification issuance admission",
     },
     async () => {
@@ -233,7 +344,12 @@ export async function reservePublicIssuanceAdmission(
         mkdir(eventDirectory(), { recursive: true, mode: 0o700 }),
       ]);
       await pruneExpiredBudgets(budgetsDirectory, day);
-      await assertStorageHeadroom(storeDirectory, limits);
+
+      const activeReservations = await activeReservationCount(
+        budgetsDirectory,
+        Date.now(),
+      );
+      await assertStorageHeadroom(storeDirectory, limits, activeReservations);
 
       const filePath = budgetPath(storeDirectory, day);
       const budget = await readBudget(filePath, day);
@@ -241,7 +357,15 @@ export async function reservePublicIssuanceAdmission(
         throw new PublicIssuanceAdmissionError("DAILY_BUDGET_EXHAUSTED");
       }
 
-      await writeBudget(filePath, { ...budget, count: budget.count + 1 });
+      await writeBudget(filePath, {
+        ...budget,
+        count: budget.count + 1,
+        reservations: {
+          ...budget.reservations,
+          [reservationId]: { reservedAt: new Date().toISOString() },
+        },
+      });
+      return admissionReservation(storeDirectory, day, reservationId);
     },
   );
 }
