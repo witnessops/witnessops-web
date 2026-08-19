@@ -12,7 +12,7 @@ import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-
 import { languageAlternates } from "@/lib/public-seo";
 
 const docsDescription =
-  "Start here for WitnessOps: buyer path, how the model works, and how to verify a receipt.";
+  "Check a sample receipt first, then read the buyer path. These docs explain the model and its limits."
 
 export const metadata: Metadata = {
   title: "Docs — WitnessOps",
@@ -41,6 +41,14 @@ export const metadata: Metadata = {
 
 const primaryPaths = [
   {
+    href: "/verify",
+    title: "Verify a receipt",
+    description:
+      "Sixty seconds: open the verifier, choose Try an example, and read what valid means.",
+    cta: "Open verifier",
+    externalToDocs: true,
+  },
+  {
     href: "/docs/getting-started/proof-run-buyer-path",
     title: "Buyer path",
     description:
@@ -53,14 +61,6 @@ const primaryPaths = [
     description:
       "Governed execution, receipts, and what proof can and cannot show.",
     cta: "Learn the model",
-  },
-  {
-    href: "/verify",
-    title: "Verify a receipt",
-    description:
-      "Upload or paste receipt JSON and read a clear, receipt-scoped result.",
-    cta: "Open verifier",
-    externalToDocs: true,
   },
 ] as const;
 
@@ -114,22 +114,21 @@ export default async function DocsIndexPage() {
         </h1>
 
         <p className="mt-5 max-w-[36rem] text-base leading-7 text-text-secondary">
-          How WitnessOps works, how to evaluate a review, and how to check a
-          receipt you were given.
+          Check a receipt you can inspect, then evaluate a review. These docs
+          explain the model and its limits.
         </p>
 
         <p className="mt-3 max-w-[36rem] text-sm leading-7 text-text-muted">
-          These docs explain the model and its limits. They do not claim complete
-          runtime truth by default.
+          They do not claim complete runtime truth by default.
         </p>
 
         <div className="mt-7 flex flex-wrap gap-3">
+          <CtaButton href="/verify" variant="primary" label="Verify a receipt" />
           <CtaButton
             href={pub("/docs/getting-started/proof-run-buyer-path")}
-            variant="primary"
+            variant="secondary"
             label="Buyer path"
           />
-          <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
           <CtaButton
             href="/review/request"
             variant="secondary"
@@ -137,6 +136,42 @@ export default async function DocsIndexPage() {
           />
         </div>
       </header>
+
+      <section className="mb-12" aria-labelledby="docs-check-heading">
+        <h2
+          id="docs-check-heading"
+          className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          Check a receipt first
+          <span className="h-px flex-1 bg-surface-border" />
+        </h2>
+        <ol className="max-w-[40rem] list-decimal space-y-2 pl-5 text-sm leading-relaxed text-text-secondary">
+          <li>
+            Open{" "}
+            <Link href="/verify" className="text-brand-accent underline-offset-2 hover:underline">
+              Verify a receipt
+            </Link>
+            .
+          </li>
+          <li>Choose <strong>Try an example</strong>, or paste a sample receipt JSON.</li>
+          <li>
+            A valid result confirms the checks named in that receipt. It does not
+            prove the system is secure or that every underlying action was
+            correct.
+          </li>
+        </ol>
+        <p className="mt-3 max-w-[40rem] text-sm leading-relaxed text-text-muted">
+          Optional package to inspect first:{" "}
+          <Link
+            href="/review/sample-cases/external-exposure-assessment"
+            className="text-brand-accent underline-offset-2 hover:underline"
+          >
+            Public Exposure Review synthetic sample
+          </Link>
+          . It is not customer evidence.
+        </p>
+      </section>
 
       <section className="mb-12" aria-labelledby="docs-start-heading">
         <h2

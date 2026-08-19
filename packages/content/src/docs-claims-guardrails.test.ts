@@ -30,13 +30,16 @@ test("public docs MDX forbid dead mesh URL and over-strong issuance claim", () =
   );
 });
 
-test("buyer-path offer section matches live Proof Pack framing", () => {
+test("buyer-path offer section matches the live catalogue", () => {
   const buyer = fs.readFileSync(
     path.join(docsRoot, "getting-started/proof-run-buyer-path.mdx"),
     "utf-8",
   );
-  assert.match(buyer, /Proof Pack Review/);
-  assert.match(buyer, /pinned public sample only/i);
+  assert.match(buyer, /Public Exposure Review/);
+  assert.match(buyer, /Customer Security Review Sprint/);
+  assert.match(buyer, /Launch Readiness Check — listed on the catalogue; \*\*not yet admitted\*\*/);
+  assert.match(buyer, /pinned AI-agent public sample only/i);
+  assert.doesNotMatch(buyer, /six active services/);
   assert.doesNotMatch(buyer, /Proof-Backed Security Workflow/);
   assert.doesNotMatch(buyer, /\bCodex\b/);
 });

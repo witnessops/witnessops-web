@@ -7,9 +7,13 @@ const page = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 
 test("docs home stays small: start paths, browse hubs, limits — not a long matrix", () => {
   assert.match(page, /Documentation/);
+  assert.match(page, /Check a receipt first/);
+  assert.match(page, /Try an example/);
+  assert.match(page, /A valid result confirms the checks named in that receipt/);
   assert.match(page, /Buyer path/);
   assert.match(page, /Verify a receipt/);
   assert.match(page, /href="\/verify"/);
+  assert.match(page, /Start a review/);
   assert.match(page, /Browse by area/);
   assert.match(page, /do not claim complete runtime truth/);
 

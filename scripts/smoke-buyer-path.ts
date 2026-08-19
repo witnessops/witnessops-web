@@ -82,6 +82,9 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/docs",
     requiredMarkers: [
       "Documentation",
+      "Check a receipt first",
+      "Try an example",
+      "A valid result confirms the checks named in that receipt",
       "Buyer path",
       "Start a review",
       "Verify a receipt",
@@ -94,6 +97,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Buyer path for a security or operational review",
       "Customer Security Review Sprint",
+      "Public Exposure Review",
+      "not yet admitted",
       "View services",
       "Start a review",
       "receipt-first",
@@ -107,6 +112,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Key, Access and Custody Review",
     ],
     prohibitedMarkers: [
+      "six active services",
       "Package one security workflow",
       "Access Removal Proof",
       "10-Server Security Pilot",
