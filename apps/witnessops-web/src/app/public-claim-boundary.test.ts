@@ -12,6 +12,7 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/app/(marketing)/catalog/[skuId]/page.tsx",
   "src/app/(marketing)/catalog/workflows/page.tsx",
   "src/components/marketing/buyer-catalogue.tsx",
+  "src/components/marketing/buyer-homepage.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",
   "src/lib/buyer-services.ts",
   "src/app/proof-backed-security-systems/page.tsx",
@@ -108,6 +109,7 @@ const REQUIRED_BOUNDARY_MARKERS = [
 const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "src/lib/buyer-services.ts",
   "src/components/marketing/buyer-catalogue.tsx",
+  "src/components/marketing/buyer-homepage.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",
   "src/components/marketing/offsec-suite-sample.tsx",
   "../../content/witnessops/legal/privacy.mdx",

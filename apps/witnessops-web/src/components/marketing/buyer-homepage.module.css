@@ -345,6 +345,117 @@
   text-decoration-color: currentColor;
 }
 
+.trustPair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  padding-block: clamp(3.2rem, 5vw, 4.8rem);
+  border-bottom: 1px solid var(--rule);
+}
+
+.trustPair > * {
+  min-width: 0;
+}
+
+.trustPair > * + * {
+  padding-left: 3rem;
+  border-left: 1px solid var(--rule);
+}
+
+.trustPair .sectionTitle {
+  font-size: clamp(1.8rem, 2.8vw, 2.5rem);
+}
+
+.trustList {
+  margin: 1.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trustList li {
+  padding: 0.95rem 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.trustList li:first-child {
+  border-top: 1px solid var(--rule);
+}
+
+.exampleEyebrow {
+  margin: 0;
+  padding-top: 1.9rem;
+  color: var(--evidence-accent);
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.checkLead {
+  max-width: 40ch;
+  margin: 1.2rem 0 0;
+  color: var(--ink);
+  font-family: Georgia, Cambria, "Times New Roman", serif;
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+}
+
+.editorialSection .sectionBody {
+  margin-top: 1.15rem;
+}
+
+.whoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 2.2rem;
+  border-top: 1px solid var(--rule);
+}
+
+.whoGrid > * {
+  min-width: 0;
+  padding: 1.5rem 2rem 0 0;
+}
+
+.whoGrid > * + * {
+  padding-left: 2rem;
+  border-left: 1px solid var(--rule);
+}
+
+.whoGrid h3 {
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, Cambria, "Times New Roman", serif;
+  font-size: 1.18rem;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.whoGrid p {
+  margin: 0.65rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.whoGrid a {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.25rem;
+}
+
+.whoGrid a:hover {
+  text-decoration-color: currentColor;
+}
+
 .servicesSection,
 .editorialSection {
   padding-block: clamp(3.5rem, 6vw, 5.75rem);
@@ -664,8 +775,27 @@
     border-top: 1px solid var(--evidence-rule);
   }
 
+  .trustPair,
+  .whoGrid,
   .editorialGrid {
     grid-template-columns: 1fr;
+  }
+
+  .trustPair > * + * {
+    padding-left: 0;
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+    border-left: 0;
+  }
+
+  .whoGrid > * {
+    padding: 1.3rem 0;
+  }
+
+  .whoGrid > * + * {
+    padding-left: 0;
+    border-top: 1px solid var(--rule);
+    border-left: 0;
   }
 
   .serviceRow {

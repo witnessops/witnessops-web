@@ -15,8 +15,9 @@ test("Polish homepage uses the approved naturalized headline and terminology", (
   assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
   assert.match(buyerHomepage, /Public Exposure Review/);
   assert.match(buyerHomepage, /Zobacz, co widzi internet\./);
+  assert.match(buyerHomepage, /Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego/);
   assert.match(buyerHomepage, /Potrzebujesz innego przeglądu/);
-  assert.match(buyerHomepage, /Materiały za każdym wynikiem/);
+  assert.match(buyerHomepage, /Nie wierz zapisowi na słowo\. Sprawdź sam\./);
   assert.match(buyerHomepage, /Rozpocznij przegląd/);
   assert.doesNotMatch(homePage, /Jasny zakres\. Jasny wynik\./);
   assert.doesNotMatch(homePage, /Konkretna dostawa/);

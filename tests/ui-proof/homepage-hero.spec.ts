@@ -181,28 +181,40 @@ test("English and Polish homepages share one service-led buyer journey", async (
     ).toHaveCount(1);
 
     if (scenario.width === 1440) {
-      const servicesTop = await page
-        .locator("#home-services-heading")
+      const doTop = await page
+        .locator("#home-do-heading")
         .evaluate((heading) => heading.closest("section")?.getBoundingClientRect().top ?? Infinity);
-      expect(servicesTop).toBeLessThan(scenario.height);
+      expect(doTop).toBeLessThan(scenario.height);
     }
 
     const headings = await page.locator("main h2").allTextContents();
     const normalized = headings.map((heading) => heading.trim());
+    const doIndex = normalized.findIndex((heading) =>
+      /^(What we do|Co robimy)$/.test(heading),
+    );
+    const dontIndex = normalized.findIndex((heading) =>
+      /^(What we don't do|Czego nie robimy)$/.test(heading),
+    );
+    const exampleIndex = normalized.findIndex((heading) =>
+      /See an example|Zobacz przykład/.test(heading),
+    );
+    const checkIndex = normalized.findIndex((heading) =>
+      /Check it yourself|Sprawdź sam/.test(heading),
+    );
+    const whoIndex = normalized.findIndex((heading) =>
+      /Who is behind it|Kto za tym stoi/.test(heading),
+    );
     const offersIndex = normalized.findIndex((heading) =>
       /Need a different review|Potrzebujesz innego przeglądu/.test(
         heading,
       ),
     );
-    const howIndex = normalized.findIndex((heading) =>
-      /How it works|Jak to działa/.test(heading),
-    );
-    const whyIndex = normalized.findIndex((heading) =>
-      /Why WitnessOps|Dlaczego WitnessOps/.test(heading),
-    );
-    expect(offersIndex).toBeGreaterThanOrEqual(0);
-    expect(howIndex).toBeGreaterThan(offersIndex);
-    expect(whyIndex).toBeGreaterThan(howIndex);
+    expect(doIndex).toBeGreaterThanOrEqual(0);
+    expect(dontIndex).toBeGreaterThan(doIndex);
+    expect(exampleIndex).toBeGreaterThan(dontIndex);
+    expect(checkIndex).toBeGreaterThan(exampleIndex);
+    expect(whoIndex).toBeGreaterThan(checkIndex);
+    expect(offersIndex).toBeGreaterThan(whoIndex);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

@@ -22,15 +22,42 @@ const localizedCopy = {
     hero: {
       eyebrow: "Public Exposure Review",
       title: "See what the internet sees.",
-      body: "A fixed-scope, human-led review of one authorised public-facing system before an enterprise request, launch, infrastructure change, or pentest.",
+      body: "A fixed-scope external security review of one authorised public-facing system, for SaaS teams facing an enterprise request, launch, infrastructure change, or upcoming pentest.",
     },
-    commercialLine: "€1,900 ex VAT · 3 working days · 1 authorised public-facing system",
+    commercialLine: "€1,900 ex VAT · 3 working days after accepted start conditions · 1 authorised public-facing system",
     primaryCta: "Start a review",
     secondaryCta: "View sample",
     verifyCta: "Verify a receipt",
     libraryCta: "Library",
-    noSecrets: "No exploitation · Evidence-linked · Explicit limits",
+    noSecrets: "No exploitation · Fixed scope · No credentials",
     deliverablesLabel: "What you receive",
+    exampleEyebrow: "See an example",
+    doTitle: "What we do",
+    doItems: [
+      "Outside-in review of the public exposure of one authorised public-facing system",
+      "Human-led work with manual review of findings",
+      "Evidence-linked observations, named unknowns, and a handover package",
+    ],
+    dontTitle: "What we don't do",
+    dontItems: [
+      "No exploitation",
+      "No credentials and no internal access",
+      "No destructive testing and no continuous monitoring",
+      "No claim that this is a pentest, certification, or proof the system is secure",
+    ],
+    checkTitle: "Check it yourself",
+    checkLead: "Don't take the record on trust. Check it yourself.",
+    checkBody:
+      "Open a sample receipt at Verify a receipt and choose Try an example. A valid result confirms the checks named in the receipt. It does not prove that a finding is true, that the reviewed system is secure, or that every underlying action was correct. It does not prove the full runtime story.",
+    whoTitle: "Who is behind it",
+    whoKarol: "Karol Stefanski, founder",
+    whoKarolHref: "https://www.linkedin.com/in/karol-s",
+    whoKarolLabel: "Karol on LinkedIn",
+    whoCompany: "WitnessOps is the company that delivers the review.",
+    whoCompanyHref: "/why-witnessops",
+    whoCompanyLabel: "Why WitnessOps",
+    whoGithubHref: "https://github.com/witnessops",
+    whoGithubLabel: "GitHub",
     offersEyebrow: "Other bounded proof work",
     offersTitle: "Need a different review?",
     offersBody:
@@ -38,34 +65,6 @@ const localizedCopy = {
     viewAll: "View all services",
     openService: "View service",
     onePager: "One-pager (PDF)",
-    howTitle: "How it works",
-    howSteps: [
-      ["Name one public target", "Provide a work email, one public-facing system, and your authority to request the review."],
-      [
-        "Scope is accepted",
-        "WitnessOps confirms the boundary, capacity, and payment asynchronously. No sales call is required.",
-      ],
-      [
-        "Receive the review",
-        "The evidence-linked report is delivered within three working days after every start condition is complete.",
-      ],
-    ],
-    whyTitle: "Why WitnessOps",
-    whyHref: "/why-witnessops",
-    whyItems: [
-      [
-        "One explicit public boundary",
-        "One authorised public-facing system, agreed checks, named exclusions, and stop conditions before target-facing work begins.",
-      ],
-      [
-        "Evidence behind each result",
-        "Findings link to inspectable observations while unknowns, unsupported claims, and work not performed stay visible.",
-      ],
-      [
-        "A practical handover",
-        "The result is organised so another responsible person can inspect it and decide what happens next.",
-      ],
-    ],
     closeTitle: "See what the internet sees.",
     closeBody:
       "Request the review without a sales call. WitnessOps accepts or rejects the scope before the delivery clock starts.",
@@ -76,15 +75,42 @@ const localizedCopy = {
     hero: {
       eyebrow: "Public Exposure Review",
       title: "Zobacz, co widzi internet.",
-      body: "Ręczny, ograniczony przegląd jednego autoryzowanego systemu publicznego — przed wymaganiem enterprise, wdrożeniem, zmianą infrastruktury lub pentestem.",
+      body: "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego — przed wymaganiem enterprise, wdrożeniem, zmianą infrastruktury lub pentestem.",
     },
-    commercialLine: "€1 900 netto · 3 dni robocze · 1 autoryzowany system publicznie dostępny",
+    commercialLine: "€1 900 netto · 3 dni robocze po spełnieniu zaakceptowanych warunków startu · 1 autoryzowany system publicznie dostępny",
     primaryCta: "Rozpocznij przegląd",
     secondaryCta: "Zobacz przykład",
     verifyCta: "Zweryfikuj zapis",
     libraryCta: "Biblioteka",
-    noSecrets: "Bez eksploatacji · Powiązane z materiałami · Jawne ograniczenia",
+    noSecrets: "Bez eksploatacji · Stały zakres · Bez poświadczeń",
     deliverablesLabel: "Co otrzymasz",
+    exampleEyebrow: "Zobacz przykład",
+    doTitle: "Co robimy",
+    doItems: [
+      "Przegląd ekspozycji publicznej jednego autoryzowanego systemu publicznie dostępnego — tylko z zewnątrz",
+      "Praca prowadzona przez człowieka, z ręczną oceną ustaleń",
+      "Obserwacje powiązane z materiałami, nazwane niewiadome i pakiet przekazania",
+    ],
+    dontTitle: "Czego nie robimy",
+    dontItems: [
+      "Bez eksploatacji",
+      "Bez poświadczeń i bez dostępu wewnętrznego",
+      "Bez testów destrukcyjnych i bez ciągłego monitoringu",
+      "Bez twierdzenia, że to pentest, certyfikacja albo dowód, że system jest bezpieczny",
+    ],
+    checkTitle: "Sprawdź sam",
+    checkLead: "Nie wierz zapisowi na słowo. Sprawdź sam.",
+    checkBody:
+      "Otwórz przykładowy zapis na stronie weryfikacji i wybierz Try an example. Wynik ważny potwierdza kontrole wskazane w zapisie. Nie dowodzi, że ustalenie jest prawdziwe, że system jest bezpieczny, że każde działanie w tle było poprawne, ani pełnej historii działania.",
+    whoTitle: "Kto za tym stoi",
+    whoKarol: "Karol Stefanski, założyciel",
+    whoKarolHref: "https://www.linkedin.com/in/karol-s",
+    whoKarolLabel: "Karol na LinkedIn",
+    whoCompany: "WitnessOps to firma, która dostarcza przegląd.",
+    whoCompanyHref: "/pl/why-witnessops",
+    whoCompanyLabel: "Dlaczego WitnessOps",
+    whoGithubHref: "https://github.com/witnessops",
+    whoGithubLabel: "GitHub",
     offersEyebrow: "Inne ograniczone prace dowodowe",
     offersTitle: "Potrzebujesz innego przeglądu?",
     offersBody:
@@ -92,35 +118,7 @@ const localizedCopy = {
     viewAll: "Zobacz wszystkie usługi",
     openService: "Zobacz usługę",
     onePager: "One-pager (PDF)",
-    howTitle: "Jak to działa",
-    howSteps: [
-      ["Wskaż jeden system", "Podaj służbowy e-mail, jeden system publicznie dostępny i podstawę upoważnienia."],
-      [
-        "Akceptacja zakresu",
-        "WitnessOps asynchronicznie potwierdza granicę, dostępność i płatność. Rozmowa sprzedażowa nie jest wymagana.",
-      ],
-      [
-        "Odbierz przegląd",
-        "Raport z ustaleniami powiązanymi z materiałami otrzymasz w ciągu trzech dni roboczych od spełnienia wszystkich warunków startu.",
-      ],
-    ],
-    whyTitle: "Dlaczego WitnessOps",
-    whyHref: "/pl/why-witnessops",
-    whyItems: [
-      [
-        "Jedna jawna granica publiczna",
-        "Jeden autoryzowany system publicznie dostępny, uzgodnione kontrole, nazwane wyłączenia i warunki zatrzymania przed rozpoczęciem pracy wobec celu.",
-      ],
-      [
-        "Materiały za każdym wynikiem",
-        "Ustalenia prowadzą do sprawdzalnych obserwacji, a niewiadome, niepoparte twierdzenia i niewykonana praca pozostają widoczne.",
-      ],
-      [
-        "Praktyczne przekazanie",
-        "Wynik jest uporządkowany tak, aby kolejna odpowiedzialna osoba mogła go sprawdzić i zdecydować o następnym kroku.",
-      ],
-    ],
-    closeTitle: "Sprawdź jeden system. Zobacz materiały.",
+    closeTitle: "Zobacz, co widzi internet.",
     closeBody:
       "Zamów bez rozmowy sprzedażowej. WitnessOps akceptuje albo odrzuca zakres przed uruchomieniem terminu dostawy.",
     verifyHref: "/pl/verify",
@@ -201,8 +199,36 @@ export function BuyerHomepage({
         </header>
       </section>
 
-      <section className={styles.evidenceSection}>
+      <div className={styles.frame}>
+        <section className={styles.trustPair} aria-labelledby="home-do-heading">
+          <article>
+            <h2 id="home-do-heading" className={styles.sectionTitle}>
+              {text.doTitle}
+            </h2>
+            <ul className={styles.trustList}>
+              {text.doItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
+          <article>
+            <h2 id="home-dont-heading" className={styles.sectionTitle}>
+              {text.dontTitle}
+            </h2>
+            <ul className={styles.trustList}>
+              {text.dontItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
+        </section>
+      </div>
+
+      <section className={styles.evidenceSection} aria-labelledby="home-example-heading">
         <div className={styles.frame}>
+          <h2 id="home-example-heading" className={styles.exampleEyebrow}>
+            {text.exampleEyebrow}
+          </h2>
           <aside
             aria-label={preview.panelLabel}
             className={styles.evidencePanel}
@@ -216,7 +242,7 @@ export function BuyerHomepage({
               </p>
             </div>
             <div className={styles.findingBody}>
-              <h2 className={styles.findingTitle}>{preview.title}</h2>
+              <h3 className={styles.findingTitle}>{preview.title}</h3>
               <div className={styles.findingGrid}>
                 <div className={`${styles.findingField} ${styles.findingObserved}`}>
                   <p className={styles.findingLabel}>{preview.observedLabel}</p>
@@ -253,6 +279,57 @@ export function BuyerHomepage({
       </section>
 
       <div className={styles.frame}>
+        <section className={styles.editorialSection} aria-labelledby="home-check-heading">
+          <h2 id="home-check-heading" className={styles.sectionTitle}>
+            {text.checkTitle}
+          </h2>
+          <p className={styles.checkLead}>{text.checkLead}</p>
+          <p className={styles.sectionBody}>{text.checkBody}</p>
+          <div className={styles.heroActions}>
+            <CtaButton
+              href={text.verifyHref}
+              variant="primary"
+              label={text.verifyCta}
+              className={styles.primaryCta}
+            />
+          </div>
+        </section>
+
+        <section className={styles.editorialSection} aria-labelledby="home-who-heading">
+          <h2 id="home-who-heading" className={styles.sectionTitle}>
+            {text.whoTitle}
+          </h2>
+          <div className={styles.whoGrid}>
+            <article>
+              <h3>{text.whoKarol}</h3>
+              <p>
+                <a
+                  href={text.whoKarolHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {text.whoKarolLabel}
+                </a>
+              </p>
+            </article>
+            <article>
+              <h3>WitnessOps</h3>
+              <p>{text.whoCompany}</p>
+              <p>
+                <Link href={text.whoCompanyHref}>{text.whoCompanyLabel}</Link>
+                <span aria-hidden="true"> · </span>
+                <a
+                  href={text.whoGithubHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {text.whoGithubLabel}
+                </a>
+              </p>
+            </article>
+          </div>
+        </section>
+
         <section className={styles.servicesSection} aria-labelledby="home-services-heading">
           <div className={styles.sectionIntro}>
             <p className={styles.eyebrow}>{text.offersEyebrow}</p>
@@ -300,38 +377,6 @@ export function BuyerHomepage({
           <Link href={catalogHref} className={styles.textLink}>
             {text.viewAll} →
           </Link>
-        </section>
-
-        <section className={styles.editorialSection} aria-labelledby="home-how-heading">
-          <h2 id="home-how-heading" className={styles.sectionTitle}>{text.howTitle}</h2>
-          <ol className={styles.editorialGrid}>
-            {text.howSteps.map(([title, body], index) => (
-              <li key={title}>
-                <span className={styles.editorialNumber}>
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <h3>{title}</h3>
-                <p>{body}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className={styles.editorialSection} aria-labelledby="home-why-heading">
-          <div className={styles.sectionHeadingRow}>
-            <h2 id="home-why-heading" className={styles.sectionTitle}>{text.whyTitle}</h2>
-            <Link href={text.whyHref} className={styles.textLink}>
-              {text.whyTitle} →
-            </Link>
-          </div>
-          <div className={styles.editorialGrid}>
-            {text.whyItems.map(([title, body]) => (
-              <article key={title}>
-                <h3>{title}</h3>
-                <p>{body}</p>
-              </article>
-            ))}
-          </div>
         </section>
 
         <section
