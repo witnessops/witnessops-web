@@ -122,7 +122,7 @@ export function publicExposureServiceJsonLd(locale: "en" | "pl") {
     description:
       locale === "pl"
         ? "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego."
-        : "A fixed-scope, human-led external security review of one authorised public-facing system.",
+        : "A fixed-scope external security review of one authorised public-facing system.",
     serviceType: "Fixed-scope external security review",
     url,
     provider: { "@id": organizationJsonLd["@id"] },

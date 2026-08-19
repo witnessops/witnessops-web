@@ -10,12 +10,12 @@ status:
 
 seo:
   title: "Public Exposure Review for SaaS Teams | WitnessOps"
-  description: "Public Exposure Review: a fixed-scope external security review of one authorised public-facing system, delivered in three working days for €1,900 ex VAT."
+  description: "Public Exposure Review: a fixed-scope external security review of one authorised public-facing system, delivered in three working days after start conditions for €1,900 ex VAT."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
   og_title: "See what the internet sees."
-  og_description: "Public Exposure Review. €1,900 ex VAT · 3 working days · 1 authorised public-facing system."
+  og_description: "Public Exposure Review. €1,900 ex VAT · 3 working days after start conditions · 1 authorised public-facing system."
   twitter_card: "summary_large_image"
 
 theme:
