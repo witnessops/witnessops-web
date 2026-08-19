@@ -569,6 +569,12 @@
       "namedRegex": "^/operators(?:/)?$"
     },
     {
+      "page": "/payment/success",
+      "regex": "^/payment/success(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/payment/success(?:/)?$"
+    },
+    {
       "page": "/pl",
       "regex": "^/pl(?:/)?$",
       "routeKeys": {},

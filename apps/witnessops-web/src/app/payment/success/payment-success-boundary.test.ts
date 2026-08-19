@@ -13,6 +13,8 @@ test("payment success page keeps Stripe redirect non-authoritative", async () =>
   assert.match(source, /reconciling the Stripe record with your accepted[\s\S]*engagement/i);
   assert.match(source, /Work begins only after payment, accepted SOW, written authority/i);
   assert.match(source, /Do not send passwords, private keys, API keys/i);
+  assert.doesNotMatch(source, /text-text-primary/);
+  assert.match(source, /hover:text-brand-accent \$\{verificationLight\.title\}/);
   assert.doesNotMatch(source, /Payment received/);
   assert.doesNotMatch(source, /webhook/i);
 });

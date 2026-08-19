@@ -79,13 +79,13 @@ export default function PaymentSuccessPage() {
         <nav className="mt-8 flex flex-wrap gap-4" aria-label="Payment next steps">
           <Link
             href="/catalog/offsec-external-exposure"
-            className="text-sm font-semibold text-text-primary underline underline-offset-4 hover:text-brand-accent"
+            className={`text-sm font-semibold underline underline-offset-4 hover:text-brand-accent ${verificationLight.title}`}
           >
             Review the offer
           </Link>
           <Link
             href="/support"
-            className="text-sm font-semibold text-text-primary underline underline-offset-4 hover:text-brand-accent"
+            className={`text-sm font-semibold underline underline-offset-4 hover:text-brand-accent ${verificationLight.title}`}
           >
             Support
           </Link>
