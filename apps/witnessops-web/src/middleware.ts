@@ -1,7 +1,10 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getSurface } from "@witnessops/config";
-import { buildAdminPublicUrl } from "@/lib/admin-auth-origin";
+import {
+  buildAdminPublicUrl,
+  isTrustedAdminMutationOrigin,
+} from "@/lib/admin-auth-origin";
 
 import {
   isLocalAdminRequest,
@@ -19,9 +22,36 @@ import {
 const surface = getSurface("witnessops");
 const primaryHost = surface?.hostname ?? "witnessops.com";
 const docsHost = surface?.docsHost ?? "docs.witnessops.com";
+const OIDC_CALLBACK_PATH = "/api/admin/google/callback";
+const SAFE_REQUEST_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+function isAdminApiMutation(request: NextRequest): boolean {
+  return (
+    request.nextUrl.pathname.startsWith("/api/admin/") &&
+    request.nextUrl.pathname !== OIDC_CALLBACK_PATH &&
+    !SAFE_REQUEST_METHODS.has(request.method.toUpperCase())
+  );
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Cookie-authenticated admin mutations must originate from the exact admin
+  // origin. The federated OIDC callback is independently protected by its
+  // signed transaction cookie, state, nonce, and PKCE and must accept the
+  // identity provider's cross-origin POST.
+  if (
+    isAdminApiMutation(request) &&
+    !isTrustedAdminMutationOrigin(request)
+  ) {
+    return NextResponse.json(
+      { ok: false, error: "Invalid request origin." },
+      {
+        status: 403,
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+  }
 
   // Admin route protection (skip login page)
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
@@ -66,6 +96,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // Central request-origin gate for cookie-authenticated admin mutations.
+    // The OIDC callback stays matched and is explicitly exempted above.
+    "/api/admin/:path*",
     // Admin paths must never inherit the public static-file exclusion below:
     // receipt identifiers are external values and may legitimately contain a
     // period. API routes keep their own route-level session checks.
