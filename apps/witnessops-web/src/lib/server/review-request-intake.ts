@@ -5,7 +5,10 @@ import {
   engageRequestSchema,
   engageResponseSchema,
 } from "@/lib/token-contract";
-import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
+import {
+  enforcePublicIntakeRateLimit,
+  enforcePublicIssuanceRateLimits,
+} from "@/lib/server/public-intake-rate-limit";
 import { publicIssuanceErrorResponse } from "@/lib/server/public-issuance-error";
 import { createVerificationIssuance } from "@/lib/server/token-issuance";
 import {
@@ -49,6 +52,12 @@ export async function handleReviewRequestIntake(
         { status: 400 },
       );
     }
+
+    const recipientRateLimitResponse = enforcePublicIssuanceRateLimits(
+      email,
+      "review-request-issuance",
+    );
+    if (recipientRateLimitResponse) return recipientRateLimitResponse;
 
     const issuance = await createVerificationIssuance({
       channel: "engage",

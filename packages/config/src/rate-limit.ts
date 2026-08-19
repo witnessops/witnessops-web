@@ -15,8 +15,9 @@ import { isIP } from "node:net";
 /**
  * Extract client IP from request headers using common proxy conventions.
  *
- * This is app-layer best effort. It uses the first x-forwarded-for hop
- * when that value looks like an IP, then x-real-ip. Values that are not
+ * This is app-layer best effort for the repository's single reverse-proxy
+ * topology. It uses the proxy-adjacent (rightmost) x-forwarded-for hop when
+ * that value looks like an IP, then x-real-ip when x-forwarded-for is absent. Values that are not
  * IPv4/IPv6, and requests with neither header, return "unknown" so they
  * share one rate-limit bucket instead of minting a unique key per spoof.
  *
@@ -32,8 +33,9 @@ function isLikelyClientIp(value: string): boolean {
 export function getClientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first && isLikelyClientIp(first)) return first;
+    const proxyAdjacent = forwarded.split(",").at(-1)?.trim();
+    if (proxyAdjacent && isLikelyClientIp(proxyAdjacent)) return proxyAdjacent;
+    return "unknown";
   }
 
   const realIp = request.headers.get("x-real-ip")?.trim();
@@ -47,6 +49,7 @@ export function getClientIp(request: Request): string {
 interface RateLimitEntry {
   count: number;
   windowStart: number;
+  expiresAt: number;
 }
 
 interface RateLimitConfig {
@@ -91,7 +94,11 @@ export function checkRateLimit(
 
   // Window expired or first request — reset
   if (!entry || now - entry.windowStart >= config.windowMs) {
-    store.set(key, { count: 1, windowStart: now });
+    store.set(key, {
+      count: 1,
+      windowStart: now,
+      expiresAt: now + config.windowMs,
+    });
     return {
       allowed: true,
       remaining: config.limit - 1,
@@ -124,11 +131,11 @@ export function checkRateLimit(
 
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
-function cleanupExpiredEntries(windowMs: number) {
+function cleanupExpiredEntries() {
   const now = Date.now();
   for (const store of stores.values()) {
     for (const [key, entry] of store) {
-      if (now - entry.windowStart >= windowMs) {
+      if (now >= entry.expiresAt) {
         store.delete(key);
       }
     }
@@ -138,10 +145,10 @@ function cleanupExpiredEntries(windowMs: number) {
 let cleanupScheduled = false;
 
 /** Call once at module load to schedule periodic cleanup. */
-export function scheduleRateLimitCleanup(windowMs: number): void {
+export function scheduleRateLimitCleanup(_windowMs: number): void {
   if (cleanupScheduled) return;
   cleanupScheduled = true;
-  setInterval(() => cleanupExpiredEntries(windowMs), CLEANUP_INTERVAL_MS).unref();
+  setInterval(cleanupExpiredEntries, CLEANUP_INTERVAL_MS).unref();
 }
 
 // ── Rate limit response ──
@@ -174,4 +181,9 @@ export const VERIFY_RATE_LIMIT_CONFIG: RateLimitConfig = {
 /** Reset all rate limit state. Only use in tests. */
 export function _resetAllStores(): void {
   stores.clear();
+}
+
+/** Sweep expired rate-limit entries. Only use in tests. */
+export function _cleanupExpiredEntries(): void {
+  cleanupExpiredEntries();
 }

@@ -10,7 +10,11 @@ import {
   VERIFY_RATE_LIMIT_CONFIG,
 } from "@witnessops/config/rate-limit";
 import { clearTokenStore } from "@/lib/server/token-store";
-import { buildPublicIntakeRateLimitKey } from "@/lib/server/public-intake-rate-limit";
+import {
+  buildPublicIntakeRateLimitKey,
+  enforcePublicIssuanceRecipientRateLimit,
+  enforcePublicIssuanceRateLimits,
+} from "@/lib/server/public-intake-rate-limit";
 
 import { POST as POSTContact } from "./contact/route";
 import { POST as POSTEngage } from "./engage/route";
@@ -111,6 +115,107 @@ test("non-IP forwarded-for values share the unknown rate-limit identity", () => 
   );
 });
 
+test("spoofed leftmost forwarded addresses share the proxy-adjacent identity", () => {
+  const first = new Request("https://witnessops.com/api/verify", {
+    headers: { "x-forwarded-for": "198.51.100.1, 203.0.113.10" },
+  });
+  const second = new Request("https://witnessops.com/api/verify", {
+    headers: { "x-forwarded-for": "198.51.100.2, 203.0.113.10" },
+  });
+  assert.equal(
+    buildPublicIntakeRateLimitKey("verify", first),
+    buildPublicIntakeRateLimitKey("verify", second),
+  );
+});
+
+test("issuance recipient quota normalizes email and fails closed after its limit", async () => {
+  const config = { limit: 2, windowMs: 60_000 };
+  assert.equal(
+    enforcePublicIssuanceRecipientRateLimit(
+      "Buyer@Example.com",
+      "review-request-issuance",
+      config,
+    ),
+    null,
+  );
+  assert.equal(
+    enforcePublicIssuanceRecipientRateLimit(
+      " buyer@example.com ",
+      "review-request-issuance",
+      config,
+    ),
+    null,
+  );
+  const limited = enforcePublicIssuanceRecipientRateLimit(
+    "buyer@example.com",
+    "review-request-issuance",
+    config,
+  );
+  assert.ok(limited);
+  assert.equal(limited.status, 429);
+  assert.deepEqual(await limited.json(), {
+    ok: false,
+    error: "Rate limit exceeded",
+    code: "RATE_LIMITED",
+  });
+});
+
+test("recipient quotas remain isolated by issuance operation", () => {
+  const config = { limit: 1, windowMs: 60_000 };
+  assert.equal(
+    enforcePublicIssuanceRecipientRateLimit(
+      "buyer@example.com",
+      "review-request-issuance",
+      config,
+    ),
+    null,
+  );
+  assert.equal(
+    enforcePublicIssuanceRecipientRateLimit(
+      "buyer@example.com",
+      "support-issuance",
+      config,
+    ),
+    null,
+  );
+});
+
+test("global issuance quota bounds rotating recipients and client identities", async () => {
+  const globalConfig = { limit: 2, windowMs: 60_000 };
+  const recipientConfig = { limit: 10, windowMs: 60_000 };
+  assert.equal(
+    enforcePublicIssuanceRateLimits(
+      "one@example.com",
+      "bounded-issuance",
+      globalConfig,
+      recipientConfig,
+    ),
+    null,
+  );
+  assert.equal(
+    enforcePublicIssuanceRateLimits(
+      "two@example.net",
+      "bounded-issuance",
+      globalConfig,
+      recipientConfig,
+    ),
+    null,
+  );
+  const limited = enforcePublicIssuanceRateLimits(
+    "three@example.org",
+    "bounded-issuance",
+    globalConfig,
+    recipientConfig,
+  );
+  assert.ok(limited);
+  assert.equal(limited.status, 429);
+  assert.deepEqual(await limited.json(), {
+    ok: false,
+    error: "Rate limit exceeded",
+    code: "RATE_LIMITED",
+  });
+});
+
 test("review-request aliases share one rate-limit budget per ip", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-contact-"));
   applyTestEnv(baseDir);
@@ -175,6 +280,35 @@ test("support aliases share one rate-limit budget per ip", async () => {
     makeRequest("/api/support/message", {}, "203.0.113.31"),
   );
   assert.equal(differentIpAlias.status, 400);
+});
+
+test("both support routes enforce the shared recipient issuance quota", async () => {
+  const body = {
+    email: "buyer@example.com",
+    category: "access",
+    severity: "normal",
+    message: "Please help with access.",
+  };
+
+  for (const [post, pathname] of [
+    [POSTSupport, "/api/support"],
+    [POSTSupportMessage, "/api/support/message"],
+  ] as const) {
+    _resetAllStores();
+    for (let index = 0; index < 3; index += 1) {
+      assert.equal(
+        enforcePublicIssuanceRateLimits(
+          body.email,
+          "support-issuance",
+        ),
+        null,
+      );
+    }
+    const limited = await post(
+      makeRequest(pathname, body, "203.0.113.74"),
+    );
+    assert.equal(limited.status, 429);
+  }
 });
 
 test("verify route rate limits per route namespace and ip", async () => {

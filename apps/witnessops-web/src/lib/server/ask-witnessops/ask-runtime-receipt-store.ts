@@ -5,6 +5,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 
 import type { AskRuntimeReceipt } from "./ask-runtime-receipt";
+import { withFilesystemLock } from "../filesystem-lock";
 
 /**
  * WITNESSOPS_ASK_RUNTIME_RECEIPT_DURABLE_CUSTODY_V1
@@ -51,6 +52,39 @@ const DEFAULT_RECEIPT_ROOT = path.resolve(
     path.join(process.cwd(), ".witnessops-token-store", "ask-receipts"),
 );
 
+export interface ReceiptStorageLimits {
+  readonly maxFiles: number;
+  readonly maxBytes: number;
+  readonly minFreeBytes: number;
+}
+
+const DEFAULT_MAX_FILES = 10_000;
+const DEFAULT_MAX_BYTES = 256 * 1024 * 1024;
+const DEFAULT_MIN_FREE_BYTES = 128 * 1024 * 1024;
+
+function positiveInteger(value: string | undefined, fallback: number): number {
+  if (!value || !/^\d+$/.test(value)) return fallback;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function configuredStorageLimits(): ReceiptStorageLimits {
+  return {
+    maxFiles: positiveInteger(
+      process.env.WITNESSOPS_ASK_RECEIPT_MAX_FILES,
+      DEFAULT_MAX_FILES,
+    ),
+    maxBytes: positiveInteger(
+      process.env.WITNESSOPS_ASK_RECEIPT_MAX_BYTES,
+      DEFAULT_MAX_BYTES,
+    ),
+    minFreeBytes: positiveInteger(
+      process.env.WITNESSOPS_ASK_RECEIPT_MIN_FREE_BYTES,
+      DEFAULT_MIN_FREE_BYTES,
+    ),
+  };
+}
+
 function ensureDir(dir: string): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
@@ -79,10 +113,10 @@ function errorMessage(error: unknown): string {
 
 export async function writeReceipt(
   receipt: AskRuntimeReceipt,
-  root: string = DEFAULT_RECEIPT_ROOT
+  root: string = DEFAULT_RECEIPT_ROOT,
+  limits: ReceiptStorageLimits = configuredStorageLimits(),
 ): Promise<ReceiptWriteResult | ReceiptWriteError> {
   const targetPath = receiptPath(receipt.receipt_id, root);
-  const tempPath = `${targetPath}.tmp.${process.pid}.${Date.now()}`;
 
   try {
     ensureDir(root);
@@ -92,44 +126,77 @@ export async function writeReceipt(
       return { ok: false, reason: "INVALID_RECEIPT_SCHEMA" };
     }
 
-    const computedHash = computeContentHash(receipt);
+    return await withFilesystemLock(
+      {
+        lockPath: path.join(root, ".receipt-store.lock"),
+        description: "Ask receipt storage admission",
+      },
+      async () => {
+        try {
+          await fs.promises.access(targetPath);
+          return { ok: false, reason: "RECEIPT_ALREADY_EXISTS" };
+        } catch (accessError: unknown) {
+          if (errorCode(accessError) !== "ENOENT") throw accessError;
+        }
 
-    // For V1 we store the receipt as-is and also record a content hash for integrity
-    const payload = {
-      ...receipt,
-      _content_hash: computedHash, // internal integrity marker
-    };
+        const computedHash = computeContentHash(receipt);
+        const payload = { ...receipt, _content_hash: computedHash };
+        const data = JSON.stringify(payload, null, 2);
+        const dataBytes = Buffer.byteLength(data);
+        const receiptFiles = (await fs.promises.readdir(root, { withFileTypes: true }))
+          .filter((entry) => entry.isFile() && entry.name.endsWith(".json"));
 
-    const data = JSON.stringify(payload, null, 2);
+        if (receiptFiles.length >= limits.maxFiles) {
+          return { ok: false, reason: "CAPACITY_FILE_LIMIT" };
+        }
 
-    // Atomic write: write to temp, fsync, rename
-    await fs.promises.writeFile(tempPath, data, { mode: 0o600 });
-    const fd = await fs.promises.open(tempPath, "r+");
-    await fd.sync();
-    await fd.close();
+        const sizes = await Promise.all(
+          receiptFiles.map(async (entry) =>
+            (await fs.promises.stat(path.join(root, entry.name))).size,
+          ),
+        );
+        if (sizes.reduce((total, size) => total + size, 0) + dataBytes > limits.maxBytes) {
+          return { ok: false, reason: "CAPACITY_BYTE_LIMIT" };
+        }
 
-    // Verify what we just wrote
-    const written = await fs.promises.readFile(tempPath, "utf8");
-    const writtenObj = JSON.parse(written) as { _content_hash?: unknown };
-    if (writtenObj._content_hash !== computedHash) {
-      await fs.promises.unlink(tempPath).catch(() => {});
-      return { ok: false, reason: "WRITE_VERIFICATION_FAILED" };
-    }
+        const filesystem = await fs.promises.statfs(root);
+        const freeBytes = Number(filesystem.bavail) * Number(filesystem.bsize);
+        if (!Number.isFinite(freeBytes) || freeBytes - dataBytes < limits.minFreeBytes) {
+          return { ok: false, reason: "CAPACITY_LOW_SPACE" };
+        }
 
-    // Atomic rename (will fail if target already exists — good for immutability)
-    try {
-      await fs.promises.rename(tempPath, targetPath);
-    } catch (renameError: unknown) {
-      await fs.promises.unlink(tempPath).catch(() => {});
-      if (errorCode(renameError) === "EEXIST") {
-        return { ok: false, reason: "RECEIPT_ALREADY_EXISTS" };
+        const tempPath = `${targetPath}.tmp.${process.pid}.${Date.now()}`;
+        try {
+          await fs.promises.writeFile(tempPath, data, { mode: 0o600 });
+          const fd = await fs.promises.open(tempPath, "r+");
+          try {
+            await fd.sync();
+          } finally {
+            await fd.close();
+          }
+
+          const written = await fs.promises.readFile(tempPath, "utf8");
+          const writtenObj = JSON.parse(written) as { _content_hash?: unknown };
+          if (writtenObj._content_hash !== computedHash) {
+            return { ok: false, reason: "WRITE_VERIFICATION_FAILED" };
+          }
+
+          try {
+            await fs.promises.rename(tempPath, targetPath);
+          } catch (renameError: unknown) {
+            if (errorCode(renameError) === "EEXIST") {
+              return { ok: false, reason: "RECEIPT_ALREADY_EXISTS" };
+            }
+            throw renameError;
+          }
+
+          return { ok: true, receiptId: receipt.receipt_id, path: targetPath };
+        } finally {
+          await fs.promises.unlink(tempPath).catch(() => {});
+        }
       }
-      throw renameError;
-    }
-
-    return { ok: true, receiptId: receipt.receipt_id, path: targetPath };
+    );
   } catch (error: unknown) {
-    await fs.promises.unlink(tempPath).catch(() => {});
     return { ok: false, reason: `WRITE_FAILED: ${errorMessage(error)}` };
   }
 }
