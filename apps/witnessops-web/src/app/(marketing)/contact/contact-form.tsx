@@ -60,9 +60,11 @@ function stringField(data: FormData, name: string) {
 export function ContactForm({
   locale = "en",
   intent = "review",
+  campaignAttribution,
 }: {
   locale?: "en" | "pl";
   intent?: string;
+  campaignAttribution?: string;
 }) {
   const router = useRouter();
   const invalidScrollScheduled = useRef(false);
@@ -248,6 +250,9 @@ export function ContactForm({
         : "Request: WitnessOps review fit check",
       `Selected product / intent: ${intent}`,
       `Request locale: ${locale}`,
+      ...(campaignAttribution
+        ? [`Campaign attribution: ${campaignAttribution}`]
+        : []),
       `${externalExposureOrder ? "Boundary seed / public target" : "Review need"}: ${workflow || "not provided"}`,
       `${externalExposureOrder ? "Trigger and timing" : "Situation and affected system"}: ${agentPath || "not provided"}`,
       `${externalExposureOrder ? "Authority statement" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
