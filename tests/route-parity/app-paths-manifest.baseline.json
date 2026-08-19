@@ -54,6 +54,7 @@
   "/customer-security-review/page": "app/customer-security-review/page.js",
   "/assessment/[issuanceId]/page": "app/assessment/[issuanceId]/page.js",
   "/page": "app/page.js",
+  "/payment/success/page": "app/payment/success/page.js",
   "/package/[issuanceId]/page": "app/package/[issuanceId]/page.js",
   "/proof-backed-security-systems/page": "app/proof-backed-security-systems/page.js",
   "/review/request/confirmed/page": "app/review/request/confirmed/page.js",
