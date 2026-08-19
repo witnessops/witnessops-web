@@ -13,6 +13,8 @@ import { mkdtemp, readFile, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import { _resetAllStores } from "@witnessops/config/rate-limit";
+
 import {
   clearTokenStore,
   getIntakeById,
@@ -104,6 +106,7 @@ function jsonHeaders(sessionCookie: string): HeadersInit {
 }
 
 afterEach(async () => {
+  _resetAllStores();
   await clearTokenStore();
 });
 

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://witnessops.com/schemas/company-ai-workspace/ticket-triage-input-v1.json",
+  "title": "WitnessOps Ticket Triage Input v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "ticket_id",
+    "received_at",
+    "data_classification",
+    "requester",
+    "channel",
+    "subject",
+    "description",
+    "reported_impact",
+    "context",
+    "attachments"
+  ],
+  "properties": {
+    "schema_version": { "const": "wops.ticket_triage.input.v1" },
+    "ticket_id": { "type": "string", "pattern": "^DEMO-[0-9]{3}$" },
+    "received_at": { "type": "string", "format": "date-time" },
+    "data_classification": { "const": "synthetic_demo" },
+    "requester": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["display_name", "company", "contact"],
+      "properties": {
+        "display_name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "company": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "contact": { "type": "string", "format": "email", "maxLength": 254 }
+      }
+    },
+    "channel": { "enum": ["email", "portal", "phone_note"] },
+    "subject": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "reported_impact": {
+      "enum": ["single_user", "multiple_users", "company_wide", "unknown"]
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "affected_service",
+        "device_type",
+        "operating_system",
+        "location",
+        "error_message"
+      ],
+      "properties": {
+        "affected_service": { "type": ["string", "null"], "maxLength": 120 },
+        "device_type": { "type": ["string", "null"], "maxLength": 80 },
+        "operating_system": { "type": ["string", "null"], "maxLength": 80 },
+        "location": { "type": ["string", "null"], "maxLength": 120 },
+        "error_message": { "type": ["string", "null"], "maxLength": 500 }
+      }
+    },
+    "attachments": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["file_name", "media_type", "description"],
+        "properties": {
+          "file_name": { "type": "string", "minLength": 1, "maxLength": 180 },
+          "media_type": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "description": { "type": "string", "maxLength": 300 }
+        }
+      }
+    }
+  }
+}
