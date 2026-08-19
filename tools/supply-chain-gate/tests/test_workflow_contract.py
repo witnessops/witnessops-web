@@ -211,9 +211,15 @@ class WorkflowContractTests(unittest.TestCase):
             build,
         )
 
-    def test_privileged_release_rechecks_remote_tag_and_verifies_release_tag(self) -> None:
+    def test_privileged_release_rechecks_remote_main_and_tag_before_publish_and_release(
+        self,
+    ) -> None:
         publish = job_section(self.release, "publish")
 
+        self.assertEqual(
+            publish.count('gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main"'),
+            2,
+        )
         self.assertEqual(
             publish.count('gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${VERSION}"'),
             2,
@@ -225,6 +231,24 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertEqual(
             publish.count('[[ "${observed_source_commit}" != "${EXPECTED_SOURCE_COMMIT}" ]]'),
             2,
+        )
+        self.assertEqual(
+            publish.count('[[ "${observed_main_commit}" != "${EXPECTED_SOURCE_COMMIT}" ]]'),
+            2,
+        )
+        self.assertLess(
+            publish.index("- name: Log in to GHCR with GitHub token"),
+            publish.index(
+                "- name: Verify remote main and the release tag still name the authorized commit"
+            ),
+        )
+        self.assertLess(
+            publish.index(
+                "- name: Verify remote main and the release tag still name the authorized commit"
+            ),
+            publish.index(
+                "- name: Publish the exact verified image without building or running it"
+            ),
         )
         self.assertIn('gh release create "${VERSION}" \\\n            --verify-tag \\', publish)
 
