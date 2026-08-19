@@ -20,6 +20,28 @@ def job_section(workflow: str, job_name: str) -> str:
     return workflow[start:end]
 
 
+def multiline_run_scripts(workflow: str) -> list[str]:
+    lines = workflow.splitlines()
+    scripts: list[str] = []
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if line.strip() != "run: |":
+            index += 1
+            continue
+        run_indent = len(line) - len(line.lstrip())
+        index += 1
+        body: list[str] = []
+        while index < len(lines):
+            candidate = lines[index]
+            if candidate.strip() and len(candidate) - len(candidate.lstrip()) <= run_indent:
+                break
+            body.append(candidate)
+            index += 1
+        scripts.append("\n".join(body))
+    return scripts
+
+
 class WorkflowContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.gate = (WORKFLOW_ROOT / "supply-chain-gate.yml").read_text(encoding="utf-8")
@@ -122,6 +144,26 @@ class WorkflowContractTests(unittest.TestCase):
                 if reference.startswith("./"):
                     continue
                 self.assertRegex(reference, r"^[^@]+@[0-9a-f]{40}$", reference)
+
+    def test_release_versions_enter_shell_only_through_environment(self) -> None:
+        scripts = "\n".join(multiline_run_scripts(self.release))
+        for expression in (
+            "${{ inputs.version }}",
+            "${{ github.event.inputs.version }}",
+            "${{ needs.resolve_version.outputs.version }}",
+            "${{ needs.resolve_version.outputs.semver }}",
+        ):
+            self.assertNotIn(expression, scripts)
+
+        resolve = job_section(self.release, "resolve_version")
+        build = job_section(self.release, "build")
+        publish = job_section(self.release, "publish")
+        self.assertIn("MANUAL_VERSION: ${{ inputs.version }}", resolve)
+        self.assertIn('version="${MANUAL_VERSION}"', resolve)
+        self.assertIn("EXPECTED_SEMVER: ${{ needs.resolve_version.outputs.semver }}", build)
+        self.assertIn('"${EXPECTED_SEMVER}"', build)
+        self.assertIn("VERSION: ${{ needs.resolve_version.outputs.version }}", publish)
+        self.assertIn("SEMVER: ${{ needs.resolve_version.outputs.semver }}", publish)
 
     def test_reconstructable_evidence_fields_are_present(self) -> None:
         for workflow in (self.build_image, self.release):
