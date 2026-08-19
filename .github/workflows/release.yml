@@ -38,9 +38,11 @@ jobs:
     steps:
       - name: Resolve version
         id: version
+        env:
+          MANUAL_VERSION: ${{ inputs.version }}
         run: |
-          if [[ -n "${{ github.event.inputs.version }}" ]]; then
-            version="${{ github.event.inputs.version }}"
+          if [[ -n "${MANUAL_VERSION}" ]]; then
+            version="${MANUAL_VERSION}"
           else
             version="${GITHUB_REF_NAME}"
           fi
@@ -98,10 +100,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify package version matches tag
+        env:
+          EXPECTED_SEMVER: ${{ needs.resolve_version.outputs.semver }}
         run: |
           pkg_version="$(node -p "require('./apps/witnessops-web/package.json').version")"
-          if [[ "${pkg_version}" != "${{ needs.resolve_version.outputs.semver }}" ]]; then
-            echo "::error::apps/witnessops-web/package.json version (${pkg_version}) does not match tag (${{ needs.resolve_version.outputs.semver }}). Bump it in the release PR before tagging."
+          if [[ "${pkg_version}" != "${EXPECTED_SEMVER}" ]]; then
+            echo "::error::apps/witnessops-web/package.json version (${pkg_version}) does not match tag (${EXPECTED_SEMVER}). Bump it in the release PR before tagging."
             exit 1
           fi
 
@@ -259,15 +263,15 @@ jobs:
         id: image
         env:
           SOURCE_COMMIT_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          VERSION: ${{ needs.resolve_version.outputs.version }}
+          SEMVER: ${{ needs.resolve_version.outputs.semver }}
         run: |
           mkdir -p "${RECEIPT_DIR}"
           image_name="ghcr.io/${GITHUB_REPOSITORY,,}"
-          version="${{ needs.resolve_version.outputs.version }}"
-          semver="${{ needs.resolve_version.outputs.semver }}"
           {
             echo "image_name=${image_name}"
-            echo "tag_version=${image_name}:${version}"
-            echo "tag_semver=${image_name}:${semver}"
+            echo "tag_version=${image_name}:${VERSION}"
+            echo "tag_semver=${image_name}:${SEMVER}"
             echo "tag_stable=${image_name}:stable"
             echo "tag_sha=${image_name}:${SOURCE_COMMIT_SHA}"
           } >> "${GITHUB_OUTPUT}"
