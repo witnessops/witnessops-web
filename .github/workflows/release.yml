@@ -287,7 +287,15 @@ jobs:
             echo "tag_sha=${image_name}:${SOURCE_COMMIT_SHA}"
           } >> "${GITHUB_OUTPUT}"
 
-      - name: Verify the remote release tag still names the authorized commit
+      - name: Log in to GHCR with GitHub token
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "${GHCR_TOKEN}" | docker login ghcr.io \
+            --username "${GITHUB_ACTOR}" \
+            --password-stdin
+
+      - name: Verify remote main and the release tag still name the authorized commit
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.resolve_version.outputs.version }}
@@ -321,20 +329,17 @@ jobs:
             return 1
           }
 
+          observed_main_commit="$(
+            gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha'
+          )"
           observed_source_commit="$(resolve_remote_tag_commit)"
           if [[ ! "${EXPECTED_SOURCE_COMMIT}" =~ ^[0-9a-f]{40}$ ]] || \
+             [[ ! "${observed_main_commit}" =~ ^[0-9a-f]{40}$ ]] || \
+             [[ "${observed_main_commit}" != "${EXPECTED_SOURCE_COMMIT}" ]] || \
              [[ "${observed_source_commit}" != "${EXPECTED_SOURCE_COMMIT}" ]]; then
-            echo "::error::release tag no longer resolves to the authorized source commit"
+            echo "::error::remote main or the release tag no longer resolves to the authorized source commit"
             exit 1
           fi
-
-      - name: Log in to GHCR with GitHub token
-        env:
-          GHCR_TOKEN: ${{ github.token }}
-        run: |
-          printf '%s' "${GHCR_TOKEN}" | docker login ghcr.io \
-            --username "${GITHUB_ACTOR}" \
-            --password-stdin
 
       - name: Publish the exact verified image without building or running it
         run: |
@@ -522,10 +527,15 @@ jobs:
             return 1
           }
 
+          observed_main_commit="$(
+            gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha'
+          )"
           observed_source_commit="$(resolve_remote_tag_commit)"
           if [[ ! "${EXPECTED_SOURCE_COMMIT}" =~ ^[0-9a-f]{40}$ ]] || \
+             [[ ! "${observed_main_commit}" =~ ^[0-9a-f]{40}$ ]] || \
+             [[ "${observed_main_commit}" != "${EXPECTED_SOURCE_COMMIT}" ]] || \
              [[ "${observed_source_commit}" != "${EXPECTED_SOURCE_COMMIT}" ]]; then
-            echo "::error::release tag changed before GitHub Release creation"
+            echo "::error::remote main or the release tag changed before GitHub Release creation"
             exit 1
           fi
 

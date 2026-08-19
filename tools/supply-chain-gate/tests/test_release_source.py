@@ -62,6 +62,23 @@ class ReleaseSourceTests(unittest.TestCase):
         git(self.repo, "tag", "-a", "v1.2.3", "-m", "release")
         self.assertEqual(self.resolve()["commit_sha"], self.main_sha)
 
+    def test_historical_tag_on_main_is_rejected(self) -> None:
+        git(self.repo, "tag", "v1.2.3", self.main_sha)
+        (self.repo / "state.txt").write_text("main advanced\n", encoding="utf-8")
+        git(self.repo, "commit", "-am", "advance main")
+        git(
+            self.repo,
+            "update-ref",
+            "refs/remotes/origin/main",
+            git(self.repo, "rev-parse", "HEAD"),
+        )
+
+        with self.assertRaisesRegex(
+            MODULE.ReleaseSourceError,
+            "ordinary releases require the current main commit",
+        ):
+            self.resolve()
+
     def test_semver_named_branch_without_tag_is_rejected(self) -> None:
         git(self.repo, "branch", "v1.2.3")
         with self.assertRaisesRegex(
@@ -79,7 +96,7 @@ class ReleaseSourceTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             MODULE.ReleaseSourceError,
-            "is not descended from refs/remotes/origin/main",
+            "ordinary releases require the current main commit",
         ):
             self.resolve()
 

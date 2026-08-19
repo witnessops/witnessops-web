@@ -55,13 +55,11 @@ def resolve_release_source(
 
     commit_sha = require_commit(repo_root, tag_ref, tag_ref)
     main_sha = require_commit(repo_root, main_ref, main_ref)
-    ancestry = run_git(repo_root, "merge-base", "--is-ancestor", commit_sha, main_sha)
-    if ancestry.returncode == 1:
+    if commit_sha != main_sha:
         raise ReleaseSourceError(
-            f"release tag {tag_ref} resolves to {commit_sha}, which is not descended from {main_ref}"
+            f"release tag {tag_ref} resolves to {commit_sha}, but {main_ref} resolves to "
+            f"{main_sha}; ordinary releases require the current main commit"
         )
-    if ancestry.returncode != 0:
-        raise ReleaseSourceError("git could not establish release-tag ancestry")
 
     base_ref = require_commit(repo_root, f"{commit_sha}^", "release tag parent")
     return {
