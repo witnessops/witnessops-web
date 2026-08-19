@@ -1,18 +1,16 @@
 name: Release witnessops-web
 
-# Cut a versioned, signed release by pushing a SemVer tag. Dependency install
-# and image packaging run without package-write or OIDC authority; a separate
-# read-only job verifies the image, then the privileged job only publishes and signs it.
+# Cut a versioned, signed release from the trusted default-branch workflow.
+# Authenticated operator trigger:
+# gh api --method POST repos/witnessops/witnessops-web/dispatches \
+#   -f event_type=release-witnessops-web -F 'client_payload[version]=v0.1.0'
+# Dependency install and image packaging run without package-write or OIDC
+# authority; a separate read-only job verifies the image, then the privileged
+# job only publishes and signs it.
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version tag to build, e.g. v0.1.0 (must already exist as a git tag)"
-        required: true
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+  repository_dispatch:
+    types: [release-witnessops-web]
 
 permissions:
   contents: read
@@ -34,34 +32,35 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       semver: ${{ steps.version.outputs.semver }}
+      tag_ref: ${{ steps.version.outputs.tag_ref }}
+      commit_sha: ${{ steps.version.outputs.commit_sha }}
       base_ref: ${{ steps.version.outputs.base_ref }}
     steps:
-      - name: Resolve version
+      - name: Check out authoritative main and release tags
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: refs/heads/main
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Resolve exact release tag on authoritative main
         id: version
         env:
-          MANUAL_VERSION: ${{ inputs.version }}
+          REQUESTED_VERSION: ${{ github.event.client_payload.version }}
         run: |
-          if [[ -n "${MANUAL_VERSION}" ]]; then
-            version="${MANUAL_VERSION}"
-          else
-            version="${GITHUB_REF_NAME}"
-          fi
-          if [[ ! "${version}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::version '${version}' is not a vX.Y.Z SemVer tag"
-            exit 1
-          fi
-          {
-            echo "version=${version}"
-            echo "semver=${version#v}"
-            echo "base_ref=${version}^"
-          } >> "${GITHUB_OUTPUT}"
+          python3 tools/supply-chain-gate/resolve_release_source.py \
+            --repo-root . \
+            --version "${REQUESTED_VERSION}" \
+            --main-ref refs/remotes/origin/main \
+            --github-output "${GITHUB_OUTPUT}"
 
   supply_chain_gate:
     name: Supply Chain Gate
     needs: resolve_version
     uses: ./.github/workflows/supply-chain-gate.yml
     with:
-      checkout_ref: ${{ needs.resolve_version.outputs.version }}
+      checkout_ref: ${{ needs.resolve_version.outputs.commit_sha }}
       base_ref: ${{ needs.resolve_version.outputs.base_ref }}
     permissions:
       contents: read
@@ -77,13 +76,25 @@ jobs:
       standalone_output_sha256: ${{ steps.archive.outputs.sha256 }}
       image_archive_sha256: ${{ steps.image_archive.outputs.sha256 }}
     steps:
-      - name: Check out release tag without persisted credentials
+      - name: Check out the authorized release commit without persisted credentials
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
-          ref: ${{ needs.resolve_version.outputs.version }}
+          ref: ${{ needs.resolve_version.outputs.commit_sha }}
           fetch-depth: 0
-          fetch-tags: true
           persist-credentials: false
+
+      - name: Confirm the gate and build use the same authorized commit
+        env:
+          EXPECTED_SOURCE_COMMIT: ${{ needs.resolve_version.outputs.commit_sha }}
+          GATE_SOURCE_COMMIT: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+        run: |
+          actual_source_commit="$(git rev-parse HEAD)"
+          if [[ ! "${EXPECTED_SOURCE_COMMIT}" =~ ^[0-9a-f]{40}$ ]] || \
+             [[ "${actual_source_commit}" != "${EXPECTED_SOURCE_COMMIT}" ]] || \
+             [[ "${GATE_SOURCE_COMMIT}" != "${EXPECTED_SOURCE_COMMIT}" ]]; then
+            echo "::error::release source identity changed between resolution, gate, and build"
+            exit 1
+          fi
 
       - name: Set up pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -130,7 +141,7 @@ jobs:
       - name: Package the release image without registry or OIDC authority
         id: image_archive
         run: |
-          local_image_tag="witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}"
+          local_image_tag="witnessops-web-build:${{ needs.resolve_version.outputs.commit_sha }}"
           docker buildx create --name witnessops-web-low-authority-release-builder --driver docker-container --use
           docker buildx inspect --bootstrap
           docker buildx build \
@@ -181,7 +192,7 @@ jobs:
         env:
           EXPECTED_IMAGE_ARCHIVE_SHA256: ${{ needs.build.outputs.image_archive_sha256 }}
           EXPECTED_STANDALONE_OUTPUT_SHA256: ${{ needs.build.outputs.standalone_output_sha256 }}
-          EXPECTED_LOCAL_IMAGE_TAG: witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}
+          EXPECTED_LOCAL_IMAGE_TAG: witnessops-web-build:${{ needs.resolve_version.outputs.commit_sha }}
         run: |
           printf '%s  %s\n' \
             "${EXPECTED_IMAGE_ARCHIVE_SHA256}" \
@@ -257,12 +268,12 @@ jobs:
             "artifacts/verified-image/witnessops-web-image.tar" \
             | sha256sum -c -
           docker load --input artifacts/verified-image/witnessops-web-image.tar
-          docker image inspect "witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}" > /dev/null
+          docker image inspect "witnessops-web-build:${{ needs.resolve_version.outputs.commit_sha }}" > /dev/null
 
       - name: Set image metadata
         id: image
         env:
-          SOURCE_COMMIT_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          SOURCE_COMMIT_SHA: ${{ needs.resolve_version.outputs.commit_sha }}
           VERSION: ${{ needs.resolve_version.outputs.version }}
           SEMVER: ${{ needs.resolve_version.outputs.semver }}
         run: |
@@ -276,6 +287,47 @@ jobs:
             echo "tag_sha=${image_name}:${SOURCE_COMMIT_SHA}"
           } >> "${GITHUB_OUTPUT}"
 
+      - name: Verify the remote release tag still names the authorized commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.resolve_version.outputs.version }}
+          EXPECTED_SOURCE_COMMIT: ${{ needs.resolve_version.outputs.commit_sha }}
+        run: |
+          resolve_remote_tag_commit() {
+            local object_type object_sha
+            read -r object_type object_sha < <(
+              gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${VERSION}" \
+                --jq '[.object.type, .object.sha] | @tsv'
+            )
+            for _ in 1 2 3 4; do
+              case "${object_type}" in
+                commit)
+                  printf '%s\n' "${object_sha}"
+                  return 0
+                  ;;
+                tag)
+                  read -r object_type object_sha < <(
+                    gh api "repos/${GITHUB_REPOSITORY}/git/tags/${object_sha}" \
+                      --jq '[.object.type, .object.sha] | @tsv'
+                  )
+                  ;;
+                *)
+                  echo "::error::release tag resolved to unsupported object type '${object_type}'" >&2
+                  return 1
+                  ;;
+              esac
+            done
+            echo "::error::release tag nesting exceeds the supported limit" >&2
+            return 1
+          }
+
+          observed_source_commit="$(resolve_remote_tag_commit)"
+          if [[ ! "${EXPECTED_SOURCE_COMMIT}" =~ ^[0-9a-f]{40}$ ]] || \
+             [[ "${observed_source_commit}" != "${EXPECTED_SOURCE_COMMIT}" ]]; then
+            echo "::error::release tag no longer resolves to the authorized source commit"
+            exit 1
+          fi
+
       - name: Log in to GHCR with GitHub token
         env:
           GHCR_TOKEN: ${{ github.token }}
@@ -286,7 +338,7 @@ jobs:
 
       - name: Publish the exact verified image without building or running it
         run: |
-          source_image="witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}"
+          source_image="witnessops-web-build:${{ needs.resolve_version.outputs.commit_sha }}"
           docker tag "${source_image}" "${{ steps.image.outputs.tag_version }}"
           docker tag "${source_image}" "${{ steps.image.outputs.tag_semver }}"
           docker tag "${source_image}" "${{ steps.image.outputs.tag_stable }}"
@@ -360,6 +412,8 @@ jobs:
           IMAGE_REF: ${{ steps.digest.outputs.image_ref }}
           IMAGE_DIGEST: ${{ steps.digest.outputs.digest }}
           VERSION: ${{ needs.resolve_version.outputs.version }}
+          SOURCE_TAG_REF: ${{ needs.resolve_version.outputs.tag_ref }}
+          SOURCE_COMMIT_SHA: ${{ needs.resolve_version.outputs.commit_sha }}
           SBOM_SHA256: ${{ steps.sbom.outputs.sha256 }}
           SUPPLY_CHAIN_STATUS: ${{ needs.supply_chain_gate.outputs.status }}
           SUPPLY_CHAIN_COMMIT_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
@@ -378,9 +432,15 @@ jobs:
             repo: process.env.GITHUB_REPOSITORY,
             version: process.env.VERSION,
             run_id: process.env.GITHUB_RUN_ID,
-            commit_sha: process.env.SUPPLY_CHAIN_COMMIT_SHA,
+            commit_sha: process.env.SOURCE_COMMIT_SHA,
+            source: {
+              tag_ref: process.env.SOURCE_TAG_REF,
+              commit_sha: process.env.SOURCE_COMMIT_SHA,
+              authority_ref: "refs/remotes/origin/main",
+            },
             supply_chain_gate: {
               status: process.env.SUPPLY_CHAIN_STATUS,
+              commit_sha: process.env.SUPPLY_CHAIN_COMMIT_SHA,
               package_manager: process.env.SUPPLY_CHAIN_PACKAGE_MANAGER,
               lifecycle_review: process.env.SUPPLY_CHAIN_LIFECYCLE_STATUS,
               package_count: Number(process.env.SUPPLY_CHAIN_PACKAGE_COUNT),
@@ -394,8 +454,9 @@ jobs:
               standalone_artifact_sha256: process.env.STANDALONE_OUTPUT_SHA256,
               image_archive_sha256: process.env.IMAGE_ARCHIVE_SHA256,
               source_checkout: {
+                ref: process.env.SOURCE_COMMIT_SHA,
                 fetch_depth: 0,
-                fetch_tags: true,
+                fetch_tags: false,
                 persist_credentials: false,
               },
             },
@@ -428,10 +489,46 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.resolve_version.outputs.version }}
+          EXPECTED_SOURCE_COMMIT: ${{ needs.resolve_version.outputs.commit_sha }}
           IMAGE_REF: ${{ steps.digest.outputs.image_ref }}
           IMAGE_DIGEST: ${{ steps.digest.outputs.digest }}
           TAG_VERSION: ${{ steps.image.outputs.tag_version }}
         run: |
+          resolve_remote_tag_commit() {
+            local object_type object_sha
+            read -r object_type object_sha < <(
+              gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${VERSION}" \
+                --jq '[.object.type, .object.sha] | @tsv'
+            )
+            for _ in 1 2 3 4; do
+              case "${object_type}" in
+                commit)
+                  printf '%s\n' "${object_sha}"
+                  return 0
+                  ;;
+                tag)
+                  read -r object_type object_sha < <(
+                    gh api "repos/${GITHUB_REPOSITORY}/git/tags/${object_sha}" \
+                      --jq '[.object.type, .object.sha] | @tsv'
+                  )
+                  ;;
+                *)
+                  echo "::error::release tag resolved to unsupported object type '${object_type}'" >&2
+                  return 1
+                  ;;
+              esac
+            done
+            echo "::error::release tag nesting exceeds the supported limit" >&2
+            return 1
+          }
+
+          observed_source_commit="$(resolve_remote_tag_commit)"
+          if [[ ! "${EXPECTED_SOURCE_COMMIT}" =~ ^[0-9a-f]{40}$ ]] || \
+             [[ "${observed_source_commit}" != "${EXPECTED_SOURCE_COMMIT}" ]]; then
+            echo "::error::release tag changed before GitHub Release creation"
+            exit 1
+          fi
+
           notes="$(cat <<EOF
           ## witnessops-web ${VERSION}
 
@@ -460,6 +557,7 @@ jobs:
           EOF
           )"
           gh release create "${VERSION}" \
+            --verify-tag \
             --repo "${GITHUB_REPOSITORY}" \
             --title "witnessops-web ${VERSION}" \
             --notes "${notes}" \

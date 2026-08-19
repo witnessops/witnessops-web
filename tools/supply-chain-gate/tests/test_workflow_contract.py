@@ -150,6 +150,7 @@ class WorkflowContractTests(unittest.TestCase):
         for expression in (
             "${{ inputs.version }}",
             "${{ github.event.inputs.version }}",
+            "${{ github.event.client_payload.version }}",
             "${{ needs.resolve_version.outputs.version }}",
             "${{ needs.resolve_version.outputs.semver }}",
         ):
@@ -158,12 +159,93 @@ class WorkflowContractTests(unittest.TestCase):
         resolve = job_section(self.release, "resolve_version")
         build = job_section(self.release, "build")
         publish = job_section(self.release, "publish")
-        self.assertIn("MANUAL_VERSION: ${{ inputs.version }}", resolve)
-        self.assertIn('version="${MANUAL_VERSION}"', resolve)
+        self.assertIn(
+            "REQUESTED_VERSION: ${{ github.event.client_payload.version }}",
+            resolve,
+        )
+        self.assertIn('--version "${REQUESTED_VERSION}"', resolve)
         self.assertIn("EXPECTED_SEMVER: ${{ needs.resolve_version.outputs.semver }}", build)
         self.assertIn('"${EXPECTED_SEMVER}"', build)
         self.assertIn("VERSION: ${{ needs.resolve_version.outputs.version }}", publish)
         self.assertIn("SEMVER: ${{ needs.resolve_version.outputs.semver }}", publish)
+
+    def test_release_runs_only_from_the_default_branch_dispatch_contract(self) -> None:
+        trigger = self.release.split("\non:\n", 1)[1].split("\npermissions:\n", 1)[0]
+
+        self.assertIn("  repository_dispatch:\n", trigger)
+        self.assertIn("    types: [release-witnessops-web]\n", trigger)
+        self.assertNotIn("workflow_dispatch:", trigger)
+        self.assertNotRegex(trigger, r"(?m)^  push:\s*$")
+
+    def test_release_source_is_one_exact_tag_commit_on_authoritative_main(self) -> None:
+        resolve = job_section(self.release, "resolve_version")
+        gate = job_section(self.release, "supply_chain_gate")
+        build = job_section(self.release, "build")
+
+        self.assertIn("ref: refs/heads/main", resolve)
+        self.assertIn("fetch-depth: 0", resolve)
+        self.assertIn("fetch-tags: true", resolve)
+        self.assertIn("persist-credentials: false", resolve)
+        self.assertIn("tools/supply-chain-gate/resolve_release_source.py", resolve)
+        self.assertIn("--main-ref refs/remotes/origin/main", resolve)
+        self.assertIn("commit_sha: ${{ steps.version.outputs.commit_sha }}", resolve)
+        self.assertIn("tag_ref: ${{ steps.version.outputs.tag_ref }}", resolve)
+
+        self.assertIn(
+            "checkout_ref: ${{ needs.resolve_version.outputs.commit_sha }}",
+            gate,
+        )
+        self.assertNotIn(
+            "checkout_ref: ${{ needs.resolve_version.outputs.version }}",
+            gate,
+        )
+        self.assertIn("ref: ${{ needs.resolve_version.outputs.commit_sha }}", build)
+        self.assertNotIn("ref: ${{ needs.resolve_version.outputs.version }}", build)
+        self.assertIn(
+            "GATE_SOURCE_COMMIT: ${{ needs.supply_chain_gate.outputs.commit_sha }}",
+            build,
+        )
+        self.assertIn('actual_source_commit="$(git rev-parse HEAD)"', build)
+        self.assertIn(
+            '[[ "${GATE_SOURCE_COMMIT}" != "${EXPECTED_SOURCE_COMMIT}" ]]',
+            build,
+        )
+
+    def test_privileged_release_rechecks_remote_tag_and_verifies_release_tag(self) -> None:
+        publish = job_section(self.release, "publish")
+
+        self.assertEqual(
+            publish.count('gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${VERSION}"'),
+            2,
+        )
+        self.assertEqual(
+            publish.count('gh api "repos/${GITHUB_REPOSITORY}/git/tags/${object_sha}"'),
+            2,
+        )
+        self.assertEqual(
+            publish.count('[[ "${observed_source_commit}" != "${EXPECTED_SOURCE_COMMIT}" ]]'),
+            2,
+        )
+        self.assertIn('gh release create "${VERSION}" \\\n            --verify-tag \\', publish)
+
+    def test_release_artifact_identity_uses_the_resolved_source_commit(self) -> None:
+        publish = job_section(self.release, "publish")
+
+        self.assertNotIn(
+            "witnessops-web-build:${{ needs.supply_chain_gate.outputs.commit_sha }}",
+            self.release,
+        )
+        self.assertIn(
+            "witnessops-web-build:${{ needs.resolve_version.outputs.commit_sha }}",
+            self.release,
+        )
+        self.assertIn(
+            "SOURCE_COMMIT_SHA: ${{ needs.resolve_version.outputs.commit_sha }}",
+            publish,
+        )
+        self.assertIn("commit_sha: process.env.SOURCE_COMMIT_SHA", publish)
+        self.assertIn("tag_ref: process.env.SOURCE_TAG_REF", publish)
+        self.assertIn("commit_sha: process.env.SUPPLY_CHAIN_COMMIT_SHA", publish)
 
     def test_reconstructable_evidence_fields_are_present(self) -> None:
         for workflow in (self.build_image, self.release):
