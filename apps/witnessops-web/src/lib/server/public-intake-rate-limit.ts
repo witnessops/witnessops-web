@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
   checkRateLimit,
@@ -7,7 +8,30 @@ import {
 } from "@witnessops/config/rate-limit";
 
 const PUBLIC_INTAKE_RATE_LIMIT_NAMESPACE = "public-intake";
+const PUBLIC_ISSUANCE_GLOBAL_NAMESPACE = "public-issuance-global";
+const PUBLIC_ISSUANCE_RECIPIENT_NAMESPACE = "public-issuance-recipient";
+const PUBLIC_ISSUANCE_GLOBAL_CONFIG = {
+  limit: 30,
+  windowMs: 60_000,
+} as const;
+const PUBLIC_ISSUANCE_RECIPIENT_CONFIG = {
+  limit: 3,
+  windowMs: 15 * 60_000,
+} as const;
 type PublicIntakeRateLimitConfig = Parameters<typeof checkRateLimit>[2];
+
+function rateLimitedResponse(retryAfterSeconds: number): NextResponse {
+  return NextResponse.json(
+    { ok: false, error: "Rate limit exceeded", code: "RATE_LIMITED" },
+    {
+      status: 429,
+      headers: {
+        "Retry-After": String(retryAfterSeconds),
+        "Cache-Control": "no-store",
+      },
+    },
+  );
+}
 
 const PUBLIC_INTAKE_OPERATION_BY_ROUTE: Readonly<Record<string, string>> = {
   contact: "review-request-issuance",
@@ -43,18 +67,46 @@ export function enforcePublicIntakeRateLimit(
     return null;
   }
 
-  return NextResponse.json(
-    {
-      ok: false,
-      error: "Rate limit exceeded",
-      code: "RATE_LIMITED",
-    },
-    {
-      status: 429,
-      headers: {
-        "Retry-After": String(result.retryAfterSeconds),
-        "Cache-Control": "no-store",
-      },
-    },
+  return rateLimitedResponse(result.retryAfterSeconds);
+}
+
+export function enforcePublicIssuanceRecipientRateLimit(
+  email: string,
+  operationNamespace: string,
+  config: PublicIntakeRateLimitConfig = PUBLIC_ISSUANCE_RECIPIENT_CONFIG,
+): NextResponse | null {
+  const recipientDigest = createHash("sha256")
+    .update(email.trim().toLowerCase())
+    .digest("hex");
+  const result = checkRateLimit(
+    PUBLIC_ISSUANCE_RECIPIENT_NAMESPACE,
+    `${operationNamespace}:${recipientDigest}`,
+    config,
+  );
+
+  if (result.allowed) return null;
+
+  return rateLimitedResponse(result.retryAfterSeconds);
+}
+
+export function enforcePublicIssuanceRateLimits(
+  email: string,
+  operationNamespace: string,
+  globalConfig: PublicIntakeRateLimitConfig = PUBLIC_ISSUANCE_GLOBAL_CONFIG,
+  recipientConfig: PublicIntakeRateLimitConfig = PUBLIC_ISSUANCE_RECIPIENT_CONFIG,
+): NextResponse | null {
+  const globalResult = checkRateLimit(
+    PUBLIC_ISSUANCE_GLOBAL_NAMESPACE,
+    operationNamespace,
+    globalConfig,
+  );
+  if (!globalResult.allowed) {
+    return rateLimitedResponse(globalResult.retryAfterSeconds);
+  }
+
+  return enforcePublicIssuanceRecipientRateLimit(
+    email,
+    operationNamespace,
+    recipientConfig,
   );
 }

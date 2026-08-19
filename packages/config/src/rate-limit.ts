@@ -15,8 +15,9 @@ import { isIP } from "node:net";
 /**
  * Extract client IP from request headers using common proxy conventions.
  *
- * This is app-layer best effort. It uses the first x-forwarded-for hop
- * when that value looks like an IP, then x-real-ip. Values that are not
+ * This is app-layer best effort for the repository's single reverse-proxy
+ * topology. It uses the proxy-adjacent (rightmost) x-forwarded-for hop when
+ * that value looks like an IP, then x-real-ip when x-forwarded-for is absent. Values that are not
  * IPv4/IPv6, and requests with neither header, return "unknown" so they
  * share one rate-limit bucket instead of minting a unique key per spoof.
  *
@@ -32,8 +33,9 @@ function isLikelyClientIp(value: string): boolean {
 export function getClientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first && isLikelyClientIp(first)) return first;
+    const proxyAdjacent = forwarded.split(",").at(-1)?.trim();
+    if (proxyAdjacent && isLikelyClientIp(proxyAdjacent)) return proxyAdjacent;
+    return "unknown";
   }
 
   const realIp = request.headers.get("x-real-ip")?.trim();

@@ -95,11 +95,18 @@ test("unknown fallback key still rate-limits", () => {
 
 // ── getClientIp ──
 
-test("getClientIp extracts first x-forwarded-for value", () => {
+test("getClientIp uses the proxy-adjacent x-forwarded-for value", () => {
   const request = new Request("https://example.com", {
     headers: { "x-forwarded-for": "1.2.3.4, 5.6.7.8" },
   });
-  assert.equal(getClientIp(request), "1.2.3.4");
+  assert.equal(getClientIp(request), "5.6.7.8");
+});
+
+test("getClientIp does not accept a spoofed leftmost forwarded value", () => {
+  const request = new Request("https://example.com", {
+    headers: { "x-forwarded-for": "198.51.100.10, 203.0.113.20" },
+  });
+  assert.equal(getClientIp(request), "203.0.113.20");
 });
 
 test("getClientIp uses x-real-ip as fallback", () => {
@@ -117,6 +124,13 @@ test("getClientIp returns unknown when no headers present", () => {
 test("getClientIp treats non-IP forwarded values as unknown", () => {
   const request = new Request("https://example.com", {
     headers: { "x-forwarded-for": "not-an-ip, 5.6.7.8" },
+  });
+  assert.equal(getClientIp(request), "unknown");
+});
+
+test("getClientIp fails closed when the proxy-adjacent value is malformed", () => {
+  const request = new Request("https://example.com", {
+    headers: { "x-forwarded-for": "203.0.113.20, not-an-ip" },
   });
   assert.equal(getClientIp(request), "unknown");
 });

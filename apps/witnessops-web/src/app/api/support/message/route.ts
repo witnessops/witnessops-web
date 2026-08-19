@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { supportRequestSchema } from "@/lib/token-contract";
-import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
+import {
+  enforcePublicIntakeRateLimit,
+  enforcePublicIssuanceRateLimits,
+} from "@/lib/server/public-intake-rate-limit";
 import { publicIssuanceErrorResponse } from "@/lib/server/public-issuance-error";
 import { createVerificationIssuance } from "@/lib/server/token-issuance";
 import { PUBLIC_JSON_BODY_LIMIT_BYTES, readBoundedRequestJson, RequestBodyTooLargeError } from "@/lib/server/bounded-request-body";
@@ -35,6 +38,12 @@ export async function POST(request: Request) {
 
   try {
     const { email, subject, category, severity, message } = parsed.data;
+    const recipientRateLimitResponse = enforcePublicIssuanceRateLimits(
+      email,
+      "support-issuance",
+    );
+    if (recipientRateLimitResponse) return recipientRateLimitResponse;
+
     const issuance = await createVerificationIssuance({
       channel: "support",
       email,

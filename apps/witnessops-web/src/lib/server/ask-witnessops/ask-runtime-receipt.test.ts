@@ -87,6 +87,85 @@ test("receipt directory failures are returned as non-durable write results", asy
   }
 });
 
+test("receipt storage refuses writes at the configured file limit", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "witnessops-ask-cap-files-"));
+  const limits = { maxFiles: 1, maxBytes: 1024 * 1024, minFreeBytes: 1 };
+  const first = await writeReceipt(
+    {
+      schema: "witnessops.ask.runtime-receipt.v1",
+      receipt_id: "ask-receipt:first",
+    } as AskRuntimeReceipt,
+    root,
+    limits,
+  );
+  const second = await writeReceipt(
+    {
+      schema: "witnessops.ask.runtime-receipt.v1",
+      receipt_id: "ask-receipt:second",
+    } as AskRuntimeReceipt,
+    root,
+    limits,
+  );
+  assert.equal(first.ok, true);
+  assert.deepEqual(second, { ok: false, reason: "CAPACITY_FILE_LIMIT" });
+  rmSync(root, { recursive: true, force: true });
+});
+
+test("receipt storage refuses a write that exceeds the byte limit", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "witnessops-ask-cap-bytes-"));
+  const result = await writeReceipt(
+    {
+      schema: "witnessops.ask.runtime-receipt.v1",
+      receipt_id: "ask-receipt:too-large",
+    } as AskRuntimeReceipt,
+    root,
+    { maxFiles: 10, maxBytes: 1, minFreeBytes: 1 },
+  );
+  assert.deepEqual(result, { ok: false, reason: "CAPACITY_BYTE_LIMIT" });
+  rmSync(root, { recursive: true, force: true });
+});
+
+test("receipt storage refuses writes below the configured free-space reserve", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "witnessops-ask-cap-space-"));
+  const result = await writeReceipt(
+    {
+      schema: "witnessops.ask.runtime-receipt.v1",
+      receipt_id: "ask-receipt:low-space",
+    } as AskRuntimeReceipt,
+    root,
+    {
+      maxFiles: 10,
+      maxBytes: 1024 * 1024,
+      minFreeBytes: Number.MAX_SAFE_INTEGER,
+    },
+  );
+  assert.deepEqual(result, { ok: false, reason: "CAPACITY_LOW_SPACE" });
+  rmSync(root, { recursive: true, force: true });
+});
+
+test("concurrent receipt writes cannot race past the configured file limit", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "witnessops-ask-cap-race-"));
+  const limits = { maxFiles: 1, maxBytes: 1024 * 1024, minFreeBytes: 1 };
+  const results = await Promise.all(
+    ["one", "two"].map((id) =>
+      writeReceipt(
+        {
+          schema: "witnessops.ask.runtime-receipt.v1",
+          receipt_id: `ask-receipt:${id}`,
+        } as AskRuntimeReceipt,
+        root,
+        limits,
+      ),
+    ),
+  );
+  assert.equal(results.filter((result) => result.ok).length, 1);
+  assert.equal(
+    results.filter((result) => !result.ok && result.reason === "CAPACITY_FILE_LIMIT").length,
+    1,
+  );
+  rmSync(root, { recursive: true, force: true });
+});
+
 test("runtime receipt for closed outcome preserves failure reason and reconstructs", () => {
   const question = "Can I send logs and upload evidence?";
   const classification = classifyQuestion(question);
