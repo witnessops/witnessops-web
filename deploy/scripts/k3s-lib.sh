@@ -270,7 +270,8 @@ DF
       || { printf 'imported config digest is missing or invalid\n' >&2; exit 1; }
     immutable_image='${IMAGE_REPO}'@\"\${manifest_digest}\"
     k3s ctr images tag --force '${image}' \"\${immutable_image}\" >&2
-    k3s ctr images check \"\${immutable_image}\" >&2
+    # ctr treats positional arguments as filter expressions, not literal refs.
+    k3s ctr images check \"name==\${immutable_image}\" >&2
     printf '%s\n' '${image}' > /tmp/witnessops-web-last-built-image.txt
     printf '%s\n' \"\${immutable_image}\" > /tmp/witnessops-web-last-built-immutable-image.txt
     printf '%s\n' \"\${manifest_digest}\" > /tmp/witnessops-web-last-built-manifest-digest.txt
@@ -437,7 +438,7 @@ deployment_running_image_records() {
   local deployment
   deployment="${1:-}"
   [[ -n "${deployment}" ]] || return 1
-  remote "kubectl -n '${DEPLOY_NS}' get pods -l 'app=${deployment}' -o go-template='{{range .items}}{{if eq .status.phase \"Running\"}}{{range .status.containerStatuses}}{{if eq .name \"${APP_CONTAINER_NAME}\"}}{{printf \"%t|%s|%s\\n\" .ready .image .imageID}}{{end}}{{end}}{{end}}{{end}}'"
+  remote "kubectl -n '${DEPLOY_NS}' get pods -l 'app=${deployment}' -o go-template='{{range .items}}{{if eq .status.phase \"Running\"}}{{\$specImage := (index .spec.containers 0).image}}{{range .status.containerStatuses}}{{if eq .name \"${APP_CONTAINER_NAME}\"}}{{printf \"%t|%s|%s\\n\" .ready \$specImage .imageID}}{{end}}{{end}}{{end}}{{end}}'"
 }
 
 assert_remote_running_image_identity() {
