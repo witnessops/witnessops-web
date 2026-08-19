@@ -38,6 +38,7 @@ const LEGACY_DOC_REDIRECTS: Record<DocsSurface, Record<string, string[]>> = {
     "policy-gates": ["security-systems", "policy-gates"],
     "execution-chains": ["evidence", "execution-chains"],
     "receipt-spec": ["evidence", "receipt-spec"],
+    "security-systems/mesh-federation-and-vmesh": ["security-systems"],
     // Common guess paths (docs-host short URLs)
     intro: ["getting-started"],
     verify: ["how-it-works", "verification"],

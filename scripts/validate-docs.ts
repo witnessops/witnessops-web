@@ -89,6 +89,7 @@ function validateSurface(surface: string): ValidationIssue[] {
   const files = walkFiles(docsRoot).filter((filePath) => filePath.endsWith(".mdx"));
   const issues: ValidationIssue[] = [];
   const slugs = new Map<string, string>();
+  const publishedSlugs = new Map<string, string>();
   const inboundCounts = new Map<string, number>();
   const topLevelDirectories = fs
     .readdirSync(docsRoot, { withFileTypes: true })
@@ -150,12 +151,21 @@ function validateSurface(surface: string): ValidationIssue[] {
       slugs.set(slug, relativePath.replace(/\\/g, "/"));
     }
 
+    const isDraft =
+      getFieldValue(frontmatter, "draft")?.replaceAll('"', "") === "true";
+
+    if (isDraft) {
+      continue;
+    }
+
+    publishedSlugs.set(slug, relativePath.replace(/\\/g, "/"));
+
     for (const linkedSlug of findDocLinks(source)) {
       inboundCounts.set(linkedSlug, (inboundCounts.get(linkedSlug) ?? 0) + 1);
     }
   }
 
-  for (const [slug, relativePath] of slugs.entries()) {
+  for (const [slug, relativePath] of publishedSlugs.entries()) {
     const isRootDoc = slug === "" || !slug.includes("/");
     const inboundCount = inboundCounts.get(slug) ?? 0;
 
@@ -168,7 +178,7 @@ function validateSurface(surface: string): ValidationIssue[] {
   }
 
   for (const [linkedSlug] of inboundCounts.entries()) {
-    if (!slugs.has(linkedSlug)) {
+    if (!publishedSlugs.has(linkedSlug)) {
       issues.push({
         severity: "error",
         message: `Broken internal docs link /docs/${linkedSlug}`,

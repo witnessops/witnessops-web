@@ -3,7 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 
-import { listDocPages, resolveWitnessOpsDocsRoot } from "./docs";
+import {
+  getCanonicalDocSlug,
+  getLegacyDocRedirectSlug,
+  listDocPages,
+  resolveWitnessOpsDocsRoot,
+} from "./docs";
 
 test("resolveWitnessOpsDocsRoot finds content regardless of typical cwds", () => {
   const root = resolveWitnessOpsDocsRoot();
@@ -23,8 +28,7 @@ test("listDocPages returns English docs from monorepo content tree", async () =>
   );
 });
 
-test("legacy intro and verify aliases resolve", async () => {
-  const { getLegacyDocRedirectSlug } = await import("./docs");
+test("legacy intro and verify aliases resolve", () => {
   assert.deepEqual(getLegacyDocRedirectSlug("witnessops", ["intro"]), [
     "getting-started",
   ]);
@@ -32,4 +36,26 @@ test("legacy intro and verify aliases resolve", async () => {
     "how-it-works",
     "verification",
   ]);
+});
+
+test("legacy Mesh Federation docs URL redirects to Security Systems", async () => {
+  const meshSlug = ["security-systems", "mesh-federation-and-vmesh"];
+  assert.deepEqual(getLegacyDocRedirectSlug("witnessops", meshSlug), [
+    "security-systems",
+  ]);
+  assert.deepEqual(getCanonicalDocSlug("witnessops", meshSlug), [
+    "security-systems",
+  ]);
+
+  const pages = await listDocPages("witnessops");
+  assert.equal(
+    pages.some((page) => page.slug.join("/") === meshSlug.join("/")),
+    false,
+  );
+
+  const draftPath = path.join(
+    resolveWitnessOpsDocsRoot(),
+    "security-systems/mesh-federation-and-vmesh.mdx",
+  );
+  assert.ok(fs.existsSync(draftPath), `draft Mesh Federation page missing: ${draftPath}`);
 });

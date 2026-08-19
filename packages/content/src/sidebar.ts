@@ -178,7 +178,7 @@ const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
     id: "architecture",
     title: "Architecture",
     description:
-      "System-level boundaries: stack, mesh, threat model, practices.",
+      "System-level boundaries: stack, threat model, and practices.",
     layerChildPrefixes: ["/docs/security-systems"],
     items: [
       {

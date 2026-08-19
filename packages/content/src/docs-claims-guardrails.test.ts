@@ -30,6 +30,16 @@ test("public docs MDX forbid dead mesh URL and over-strong issuance claim", () =
   );
 });
 
+test("Security Systems buyer index does not surface Mesh Federation or VaultMesh", () => {
+  const index = fs.readFileSync(
+    path.join(docsRoot, "security-systems/index.mdx"),
+    "utf-8",
+  );
+  assert.doesNotMatch(index, /mesh-federation-and-vmesh/);
+  assert.doesNotMatch(index, /Mesh Federation/);
+  assert.doesNotMatch(index, /VaultMesh/);
+});
+
 test("buyer-path offer section matches the live catalogue", () => {
   const buyer = fs.readFileSync(
     path.join(docsRoot, "getting-started/proof-run-buyer-path.mdx"),
