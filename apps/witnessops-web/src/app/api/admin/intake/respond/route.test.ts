@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { NextRequest } from "next/server";
+import { _resetAllStores } from "@witnessops/config/rate-limit";
 
 import { clearTokenStore, getIntakeById } from "@/lib/server/token-store";
 
@@ -87,6 +88,7 @@ afterEach(async () => {
   globalThis.fetch = originalFetch;
   delete process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS;
   await clearTokenStore();
+  _resetAllStores();
 });
 
 function reconciliationRequest(intakeId: string): NextRequest {

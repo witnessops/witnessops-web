@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { _resetAllStores } from "@witnessops/config/rate-limit";
 
 import { clearTokenStore, updateIssuance } from "@/lib/server/token-store";
 import { claimantSessionCookieName } from "@/lib/server/claimant-session";
@@ -88,6 +89,7 @@ afterEach(async () => {
   delete process.env.CONTROL_PLANE_URL;
   delete process.env.CONTROL_PLANE_API_KEY;
   await clearTokenStore();
+  _resetAllStores();
 });
 
 function call(issuanceId: string, body: unknown, sessionCookie?: string) {

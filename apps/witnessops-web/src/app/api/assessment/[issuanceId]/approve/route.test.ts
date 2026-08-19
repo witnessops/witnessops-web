@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { _resetAllStores } from "@witnessops/config/rate-limit";
 
 import { clearTokenStore } from "@/lib/server/token-store";
 import { claimantSessionCookieName } from "@/lib/server/claimant-session";
@@ -79,6 +80,7 @@ afterEach(async () => {
   delete process.env.CONTROL_PLANE_SERVICE_IDENTITY_SECRET;
   delete process.env.CONTROL_PLANE_SERVICE_IDENTITY_SUBJECT;
   await clearTokenStore();
+  _resetAllStores();
 });
 
 test("approval route captures explicit approval and hands off to control plane once", async () => {

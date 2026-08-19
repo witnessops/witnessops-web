@@ -1,15 +1,11 @@
 import assert from "node:assert/strict";
 import test, { afterEach } from "node:test";
-import { mkdtemp } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 
 import {
   _resetAllStores,
   getClientIp,
   VERIFY_RATE_LIMIT_CONFIG,
 } from "@witnessops/config/rate-limit";
-import { clearTokenStore } from "@/lib/server/token-store";
 import {
   buildPublicIntakeRateLimitKey,
   enforcePublicIssuanceRecipientRateLimit,
@@ -23,19 +19,6 @@ import { POST as POSTSupport } from "./support/route";
 import { POST as POSTSupportMessage } from "./support/message/route";
 import { POST as POSTVerify } from "./verify/route";
 import { POST as POSTVerifyToken } from "./verify-token/route";
-
-function applyTestEnv(baseDir: string): void {
-  process.env.WITNESSOPS_TOKEN_SIGNING_SECRET = "test-secret";
-  process.env.WITNESSOPS_TOKEN_TTL_MINUTES = "15";
-  process.env.WITNESSOPS_TOKEN_FROM_EMAIL = "engage@witnessops.com";
-  process.env.WITNESSOPS_VERIFY_BASE_URL = "https://witnessops.com";
-  process.env.WITNESSOPS_MAIL_PROVIDER = "file";
-  process.env.WITNESSOPS_MAILBOX_ENGAGE = "engage@witnessops.com";
-  process.env.WITNESSOPS_MAILBOX_SUPPORT = "support@witnessops.com";
-  process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
-  process.env.WITNESSOPS_MAIL_OUTPUT_DIR = path.join(baseDir, "mail-out");
-  process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
-}
 
 function makeRequest(
   pathname: string,
@@ -83,8 +66,7 @@ async function exerciseRateLimit(
   assert.deepEqual(repeatedBody, limitedBody);
 }
 
-afterEach(async () => {
-  await clearTokenStore();
+afterEach(() => {
   _resetAllStores();
 });
 
@@ -217,9 +199,6 @@ test("global issuance quota bounds rotating recipients and client identities", a
 });
 
 test("review-request aliases share one rate-limit budget per ip", async () => {
-  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-contact-"));
-  applyTestEnv(baseDir);
-
   await exerciseRateLimit(POSTContact, "/api/contact", "203.0.113.10");
 
   const differentIpResponse = await POSTContact(
@@ -239,9 +218,6 @@ test("review-request aliases share one rate-limit budget per ip", async () => {
 });
 
 test("contact route rate limit resets after the configured window", async () => {
-  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-expiry-"));
-  applyTestEnv(baseDir);
-
   await exerciseRateLimit(POSTContact, "/api/contact", "203.0.113.40");
 
   const originalDateNow = Date.now;
@@ -259,16 +235,10 @@ test("contact route rate limit resets after the configured window", async () => 
 });
 
 test("engage route rate limits per route namespace and ip", async () => {
-  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-engage-"));
-  applyTestEnv(baseDir);
-
   await exerciseRateLimit(POSTEngage, "/api/engage", "203.0.113.20");
 });
 
 test("support aliases share one rate-limit budget per ip", async () => {
-  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-support-"));
-  applyTestEnv(baseDir);
-
   await exerciseRateLimit(POSTSupport, "/api/support", "203.0.113.30");
 
   const sameIpAlias = await POSTSupportMessage(
@@ -312,16 +282,10 @@ test("both support routes enforce the shared recipient issuance quota", async ()
 });
 
 test("verify route rate limits per route namespace and ip", async () => {
-  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
-  applyTestEnv(baseDir);
-
   await exerciseRateLimit(POSTVerify, "/api/verify", "203.0.113.50");
 });
 
 test("verify-token route rate limits per route namespace and ip", async () => {
-  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-token-"));
-  applyTestEnv(baseDir);
-
   await exerciseRateLimit(POSTVerifyToken, "/api/verify-token", "203.0.113.60");
 
   const differentRoute = await POSTVerify(
@@ -331,9 +295,6 @@ test("verify-token route rate limits per route namespace and ip", async () => {
 });
 
 test("verify route rate limits unknown-IP requests instead of skipping", async () => {
-  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-unknown-"));
-  applyTestEnv(baseDir);
-
   const body = {};
   for (let i = 0; i < 10; i += 1) {
     const response = await POSTVerify(
@@ -357,11 +318,6 @@ test("verify route rate limits unknown-IP requests instead of skipping", async (
 });
 
 test("verify-token route rate limits unknown-IP requests instead of skipping", async () => {
-  const baseDir = await mkdtemp(
-    path.join(os.tmpdir(), "witnessops-verify-token-unknown-"),
-  );
-  applyTestEnv(baseDir);
-
   const body = {};
   for (let i = 0; i < 10; i += 1) {
     const response = await POSTVerifyToken(
