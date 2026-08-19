@@ -1,7 +1,7 @@
 # Deployment authority
 
 Status: `private_caddy_k3s_dual_lane`
-Last updated: 2026-08-13
+Last updated: 2026-08-19
 
 This document classifies deployment-related repository surfaces for
 `witnessops-web`. It is repo-local guidance and is not deploy approval, release
@@ -42,7 +42,7 @@ Custody map: [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
 | `deploy/scripts/k3s-deploy-prod.sh` | Build (optional) + preflight Secrets + atomically reconcile prod image and exact ordered `envFrom` |
 | `deploy/scripts/k3s-deploy-dev.sh` | Build (optional) + validate image + apply mesh-dev manifest with exact ordered `envFrom` |
 | `deploy/scripts/k3s-deploy-both.sh` | Build once → prod + mesh-dev + exact-contract smoke |
-| `deploy/scripts/smoke-prod-dev.sh` | Exact runtime `envFrom` + image ref + HTTP 200 + CSS hash parity |
+| `deploy/scripts/smoke-prod-dev.sh` | Exact runtime `envFrom` + digest-qualified image/runtime identity + HTTP 200 + CSS hash parity |
 | `deploy/scripts/k3s-status.sh` | kubectl image/ready + exact-contract smoke |
 | `deploy/scripts/k3s-parity.sh` | Pure image/CSS, ordered `envFrom`, OIDC key-name, and image-ref validation helpers |
 | `deploy/scripts/test-k3s-parity.sh` | Unit tests for parity, Secret preflight, and deploy reconciliation |
@@ -59,12 +59,17 @@ scripts cover the lane. Prefer in-repo scripts so agents and humans share one pa
 
 ### Image contract and enforced parity
 
-- Tag form: `docker.io/library/witnessops-web:main-<shortsha>-<UTC>`
+- Human-readable alias: `docker.io/library/witnessops-web:main-<shortsha>-<UTC>`
+- Deployed form: `docker.io/library/witnessops-web@sha256:<manifest-digest>`
+- Both Node 22 build stages use the reviewed digest-qualified base declared by
+  `PINNED_NODE22_IMAGE`; tag-only base inputs are rejected.
 - Shared bake always sets public origin (`NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`)
-  so prod and mesh-dev CSS/asset hashes match when the image tag matches.
-- **`pnpm deploy:k3s:smoke` fails when prod image ≠ mesh-dev image**, even if CSS
-  happens to match. It also requires HTTP 200 on both homes, matching CSS, and
-  the exact ordered application-container `envFrom` contract on both lanes.
+  so prod and mesh-dev CSS/asset hashes match when the image identity matches.
+- **`pnpm deploy:k3s:smoke` fails when prod image ≠ mesh-dev image**, when an
+  image reference is not digest-qualified, or when a ready application pod's
+  runtime image ID is not the config digest bound by the expected OCI manifest.
+  It also requires HTTP 200 on both homes, matching CSS, and the exact ordered
+  application-container `envFrom` contract on both lanes.
 - That exact `envFrom` contract is `BASE_ENV_SECRET`, then
   `ADMIN_OIDC_SECRET`, each as a `secretRef` with an empty prefix and
   `optional=false`. Source, order, prefix, or `optional` drift fails smoke.
@@ -78,9 +83,13 @@ scripts cover the lane. Prefer in-repo scripts so agents and humans share one pa
 - Extra dormant Microsoft OIDC or legacy-key credential entries are deliberately
   untouched. Removing them requires separate custody-cleanup authorization.
 
-The legacy `deploy/k8s/apply.sh` helper runs the OIDC key-name preflight before
-any cluster mutation. Its `DEPLOY_NS` namespace and `ADMIN_OIDC_SECRET` must
-therefore be preprovisioned; the helper does not create or update that Secret.
+The legacy `deploy/k8s/apply.sh` helper requires a digest-qualified
+`WITNESSOPS_WEB_IMAGE` plus its build-recorded, manifest-bound
+`WITNESSOPS_WEB_CONFIG_DIGEST`. It runs the OIDC key-name preflight before any
+cluster mutation, then verifies the deployed reference, readiness, and running
+application image IDs after rollout. Its `DEPLOY_NS` namespace and
+`ADMIN_OIDC_SECRET` must therefore be preprovisioned; the helper does not create
+or update that Secret.
 
 ### Intentional non-parity (not drift)
 
@@ -112,7 +121,8 @@ Public web content authority:
 
 Deploy authority:
 
-- timestamped shared image build with image ID captured
+- timestamped shared image build with the tag alias, OCI manifest digest, and
+  manifest-bound config digest captured
 - in-repo k3s scripts targeting the injected `PROD_DEPLOY` and/or `DEV_DEPLOY`
 - rollout status and dual-lane smoke when both are in scope
 - known-good rollback image redeployed through the prod reconciler, with exact

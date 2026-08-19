@@ -19,7 +19,8 @@ pnpm deploy:k3s:test-parity   # image/CSS, envFrom, Secret-preflight, and deploy
 ```
 
 **Smoke enforces (fails on drift):** the exact ordered application-container
-`envFrom` contract on both deployments, identical image refs, HTTP 200 on both
+`envFrom` contract on both deployments, identical digest-qualified image refs,
+each ready application's manifest-bound runtime image ID, HTTP 200 on both
 homes, and matching primary CSS. The `envFrom` contract is
 `BASE_ENV_SECRET`, then `ADMIN_OIDC_SECRET`, each as a `secretRef`
 with an empty prefix and `optional=false`; source, order, prefix, or `optional`
@@ -42,10 +43,13 @@ printed. Extra dormant
 Microsoft OIDC and legacy-key credential entries remain untouched and require a
 separately authorized custody-cleanup pass to retire.
 
-The legacy `deploy/k8s/apply.sh` path performs the same OIDC key-name preflight
-before any cluster mutation, so `DEPLOY_NS` and `ADMIN_OIDC_SECRET` must already
-exist. It does not create or
-update that Secret.
+The legacy `deploy/k8s/apply.sh` path requires both a digest-qualified
+`WITNESSOPS_WEB_IMAGE` and its build-recorded, manifest-bound
+`WITNESSOPS_WEB_CONFIG_DIGEST`. It performs the same OIDC key-name preflight
+before any cluster mutation, then verifies the deployed reference, readiness,
+and running application image IDs after rollout. `DEPLOY_NS` and
+`ADMIN_OIDC_SECRET` must already exist; it does not create or update that
+Secret.
 
 | pnpm script | Shell |
 | --- | --- |
@@ -67,7 +71,7 @@ set -a; source deploy/topology.env; set +a
 ALLOW_DIRTY=1 pnpm deploy:k3s:both
 ```
 
-Preferred prod rollback redeploys a recorded known-good image through
+Preferred prod rollback redeploys a recorded known-good digest-qualified image through
 `deploy/scripts/k3s-deploy-prod.sh`, then runs `pnpm deploy:k3s:smoke`, so the
 exact `envFrom` contract is reconciled as well as the image. If emergency
 `kubectl rollout undo` is used, immediately run that reconciler and smoke;

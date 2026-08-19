@@ -5,7 +5,7 @@
 #
 # Usage:
 #   ./k3s-deploy-both.sh
-#   ./k3s-deploy-both.sh docker.io/library/witnessops-web:existing-tag
+#   ./k3s-deploy-both.sh docker.io/library/witnessops-web@sha256:<manifest-digest>
 #   ALLOW_DIRTY=1 ./k3s-deploy-both.sh
 # Required private topology variables are listed in deploy/topology.env.example.
 set -euo pipefail

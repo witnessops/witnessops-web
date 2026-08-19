@@ -10,6 +10,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 PROD_TEMPLATE="${REPO_ROOT}/deploy/k8s/deployment.yaml"
 DEV_TEMPLATE="${REPO_ROOT}/deploy/k8s/dev-mesh-deployment.yaml"
 APPLY_SCRIPT="${REPO_ROOT}/deploy/k8s/apply.sh"
+HEALTH_NODE22_SCRIPT="${REPO_ROOT}/scripts/health-on-node22.sh"
 DISK_HYGIENE_SCRIPT="${REPO_ROOT}/deploy/scripts/k3s-disk-hygiene.sh"
 [[ -f "${PARITY}" ]] || { echo "missing ${PARITY}" >&2; exit 1; }
 [[ -f "${K3S_LIB}" ]] || { echo "missing ${K3S_LIB}" >&2; exit 1; }
@@ -359,6 +360,47 @@ assert_exit 2 compare_runtime_envfrom_contract \
 assert_exit 2 compare_runtime_envfrom_contract \
   "${required_shared_envfrom}" "${static_optional_drift}"
 
+test_manifest_digest='sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+test_config_digest='sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+test_immutable_image="docker.io/library/witnessops-web@${test_manifest_digest}"
+assert_exit 0 validate_sha256_digest "${test_manifest_digest}"
+assert_exit 1 validate_sha256_digest 'sha256:not-a-digest'
+assert_exit 0 validate_digest_container_image_ref "${test_immutable_image}"
+assert_exit 1 validate_digest_container_image_ref \
+  'docker.io/library/witnessops-web:mutable-tag'
+assert_output "${test_manifest_digest}" image_digest_from_ref \
+  "${test_immutable_image}"
+assert_output "${test_config_digest}" normalize_runtime_image_id \
+  "${test_config_digest}"
+assert_output "${test_config_digest}" normalize_runtime_image_id \
+  "docker-pullable://docker.io/library/witnessops-web@${test_config_digest}"
+assert_output "${test_config_digest}" normalize_runtime_image_id \
+  "containerd://${test_config_digest}"
+assert_exit 1 normalize_runtime_image_id ''
+assert_exit 1 normalize_runtime_image_id \
+  "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+assert_exit 0 compare_running_image_records \
+  "${test_immutable_image}" "${test_config_digest}" 1 \
+  "true|${test_immutable_image}|${test_config_digest}"
+assert_exit 0 compare_running_image_records \
+  "${test_immutable_image}" "${test_config_digest}" 2 \
+  $'true|'"${test_immutable_image}"'|'"${test_config_digest}"$'\ntrue|'"${test_immutable_image}"'|containerd://'"${test_config_digest}"
+assert_exit 2 compare_running_image_records \
+  "${test_immutable_image}" "${test_config_digest}" 1 \
+  "true|docker.io/library/other@${test_manifest_digest}|${test_config_digest}"
+assert_exit 2 compare_running_image_records \
+  "${test_immutable_image}" "${test_config_digest}" 1 \
+  "true|${test_immutable_image}|${test_config_digest}|unexpected"
+assert_exit 2 compare_running_image_records \
+  "${test_immutable_image}" "${test_config_digest}" 1 \
+  "true|${test_immutable_image}|sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+assert_exit 2 compare_running_image_records \
+  "${test_immutable_image}" "${test_config_digest}" 1 \
+  "false|${test_immutable_image}|${test_config_digest}"
+assert_exit 2 compare_running_image_records \
+  "${test_immutable_image}" "${test_config_digest}" 2 \
+  "true|${test_immutable_image}|${test_config_digest}"
+
 required_oidc_keys="$(required_admin_oidc_key_names)"
 expected_required_oidc_keys=$'WITNESSOPS_ADMIN_ROLE\nWITNESSOPS_ADMIN_SECRET\nWITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST\nWITNESSOPS_GOOGLE_OIDC_CLIENT_ID\nWITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET\nWITNESSOPS_GOOGLE_OIDC_REDIRECT_URI\nWITNESSOPS_GOOGLE_WORKSPACE_DOMAIN'
 assert_output "${expected_required_oidc_keys}" sorted_unique_lines "${required_oidc_keys}"
@@ -389,6 +431,18 @@ fi
 # --- prod deploy preflight and atomic patch ---
 # shellcheck source=k3s-lib.sh
 source "${K3S_LIB}"
+assert_exit 0 grep -Fqx \
+  "ARG NODE22_BUILDER_IMAGE=${PINNED_NODE22_IMAGE}" \
+  "${REPO_ROOT}/deploy/Dockerfile.mesh"
+assert_exit 0 grep -Fqx \
+  "ARG NODE22_RUNTIME_IMAGE=${PINNED_NODE22_IMAGE}" \
+  "${REPO_ROOT}/deploy/Dockerfile.mesh"
+assert_exit 0 grep -Fqx \
+  "ARG NODE22_RUNTIME_IMAGE=${PINNED_NODE22_IMAGE}" \
+  "${REPO_ROOT}/apps/witnessops-web/Dockerfile"
+assert_exit 0 grep -Fq \
+  "IMAGE=\"\${NODE22_BUILDER_IMAGE:-${PINNED_NODE22_IMAGE}}\"" \
+  "${HEALTH_NODE22_SCRIPT}"
 expected_build_context_exclusions=$'/.env\n/.env.*\n/**/.env\n/**/.env.*\n/deploy/topology.env\n/.witnessops-token-store/\n/ops/receipts/\n/var/\n/.azure/\n/infra/main.parameters.json\n/.playwright-mcp/\n/.playwright-cli/\n/**/.playwright-cli/\naudit-*.png\n*-cards.png\n/tmp/\n/out/\n/output/'
 assert_output "${expected_build_context_exclusions}" build_context_exclusion_patterns
 python3() {
@@ -487,11 +541,13 @@ else
   echo "FAIL: remote build-context sync copied a custody sentinel" >&2
 fi
 rm -rf -- "${build_context_source}" "${build_context_target}"
-image='docker.io/library/witnessops-web:main-test-20260806T000000Z'
-expected_patch='[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"example-app-container"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"example-runtime-secret"}},{"secretRef":{"name":"example-identity-secret"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"docker.io/library/witnessops-web:main-test-20260806T000000Z"}]'
+manifest_digest='sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+config_digest='sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+image='docker.io/library/witnessops-web@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+expected_patch='[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"example-app-container"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"example-runtime-secret"}},{"secretRef":{"name":"example-identity-secret"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"docker.io/library/witnessops-web@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}]'
 assert_output "${expected_patch}" prod_deployment_json_patch "${image}"
 assert_exit 1 prod_deployment_json_patch 'bad image ref'
-expected_role_migration_patch='[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"example-app-container"},{"op":"test","path":"/spec/template/spec/containers/0/env/1/name","value":"WITNESSOPS_ADMIN_ROLE"},{"op":"test","path":"/spec/template/spec/containers/0/env/1/value","value":"Founder"},{"op":"remove","path":"/spec/template/spec/containers/0/env/1"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"example-runtime-secret"}},{"secretRef":{"name":"example-identity-secret"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"docker.io/library/witnessops-web:main-test-20260806T000000Z"}]'
+expected_role_migration_patch='[{"op":"test","path":"/spec/template/spec/containers/0/name","value":"example-app-container"},{"op":"test","path":"/spec/template/spec/containers/0/env/1/name","value":"WITNESSOPS_ADMIN_ROLE"},{"op":"test","path":"/spec/template/spec/containers/0/env/1/value","value":"Founder"},{"op":"remove","path":"/spec/template/spec/containers/0/env/1"},{"op":"add","path":"/spec/template/spec/containers/0/envFrom","value":[{"secretRef":{"name":"example-runtime-secret"}},{"secretRef":{"name":"example-identity-secret"}}]},{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"docker.io/library/witnessops-web@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}]'
 assert_output "${expected_role_migration_patch}" prod_deployment_json_patch \
   "${image}" $'PORT\nWITNESSOPS_ADMIN_ROLE\nHOSTNAME' Founder
 assert_exit 2 prod_deployment_json_patch \
@@ -504,12 +560,29 @@ assert_exit 2 prod_deployment_json_patch \
 remote_mode="ok"
 remote_log="$(mktemp "${TMPDIR:-/tmp}/witnessops-k3s-remote.XXXXXX")"
 apply_log="$(mktemp "${TMPDIR:-/tmp}/witnessops-k3s-apply.XXXXXX")"
-trap 'rm -rf "${rendered_test_dir}" "${gate_failure_dir}"; rm -f "${gate_success_stderr}" "${remote_log}" "${apply_log}"' EXIT
+health_runtime_log="$(mktemp "${TMPDIR:-/tmp}/witnessops-health-runtime.XXXXXX")"
+trap 'rm -rf "${rendered_test_dir}" "${gate_failure_dir}"; rm -f "${gate_success_stderr}" "${remote_log}" "${apply_log}" "${health_runtime_log}"' EXIT
 
 remote() {
   local command_text="$*"
   printf '%s\n' "${command_text}" >> "${remote_log}"
-  if [[ "${command_text}" == *"encoded="*"WITNESSOPS_ADMIN_ROLE"* ]]; then
+  if [[ "${command_text}" == *"k3s ctr content get"* ]]; then
+    if [[ "${remote_mode}" == "runtime-image-drift" ]]; then
+      printf '%s' 'sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
+    else
+      printf '%s' 'sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+    fi
+  elif [[ "${command_text}" == *"jsonpath='{.spec.replicas}"* ]]; then
+    printf '%s' '1|1'
+  elif [[ "${command_text}" == *"get pods"*"containerStatuses"* ]]; then
+    if [[ "${remote_mode}" == "running-image-id-drift" ]]; then
+      printf '%s\n' "true|${image}|sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    else
+      printf '%s\n' "true|${image}|${config_digest}"
+    fi
+  elif [[ "${command_text}" == *"jsonpath='{.spec.template.spec.containers[0].image}"* ]]; then
+    printf '%s\n%s\n' "${image}" "${image}"
+  elif [[ "${command_text}" == *"encoded="*"WITNESSOPS_ADMIN_ROLE"* ]]; then
     if [[ "${remote_mode}" == "invalid-role" ]]; then
       printf '%s' 'invalid'
     else
@@ -559,6 +632,38 @@ curl() {
   return 0
 }
 
+fake_container_runtime() {
+  printf '%s\n' "$*" >> "${HEALTH_RUNTIME_LOG}"
+}
+export -f fake_container_runtime
+export HEALTH_RUNTIME_LOG="${health_runtime_log}"
+
+: > "${health_runtime_log}"
+assert_exit 1 env \
+  CONTAINER_CMD=fake_container_runtime \
+  NODE22_BUILDER_IMAGE="--env=FOO=@${manifest_digest}" \
+  bash "${HEALTH_NODE22_SCRIPT}"
+if [[ -s "${health_runtime_log}" ]]; then
+  fail=$((fail + 1))
+  echo "FAIL: health-on-node22 reached the runtime for an option-shaped image" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: health-on-node22 rejects option-shaped images before runtime"
+fi
+
+: > "${health_runtime_log}"
+assert_exit 1 env \
+  CONTAINER_CMD=fake_container_runtime \
+  PNPM_VERSION='9.15.4;touch-invalid' \
+  bash "${HEALTH_NODE22_SCRIPT}"
+if [[ -s "${health_runtime_log}" ]]; then
+  fail=$((fail + 1))
+  echo "FAIL: health-on-node22 reached the runtime for an invalid pnpm version" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: health-on-node22 rejects invalid pnpm versions before runtime"
+fi
+
 remote_mode="ok"
 : > "${remote_log}"
 deployment_explicit_env_key_names "${PROD_DEPLOY}" >/dev/null
@@ -585,6 +690,23 @@ if [[ -s "${remote_log}" ]]; then
 else
   pass=$((pass + 1))
   echo "PASS: deploy_prod_image makes no remote calls for invalid image ref"
+fi
+
+remote_mode="ok"
+: > "${remote_log}"
+if (deploy_prod_image 'docker.io/library/witnessops-web:mutable-tag') >/dev/null 2>&1; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image accepted a tag-only image ref" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image rejects tag-only image refs"
+fi
+if [[ -s "${remote_log}" ]]; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image contacted the remote for a tag-only image ref" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: tag-only production refs fail before remote work"
 fi
 
 remote_mode="missing-key"
@@ -629,6 +751,16 @@ if deploy_prod_image "${image}" >/dev/null 2>&1; then
 else
   fail=$((fail + 1))
   echo "FAIL: deploy_prod_image rejected valid preflight" >&2
+fi
+
+remote_mode="running-image-id-drift"
+: > "${remote_log}"
+if (deploy_prod_image "${image}") >/dev/null 2>&1; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image accepted a running imageID mismatch" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image rejects a running imageID mismatch"
 fi
 
 remote_mode="migratable-role-shadow"
@@ -735,6 +867,16 @@ kubectl() {
     else
       printf '%s\n' "${KUBECTL_REQUIRED_OIDC_KEYS}"
     fi
+  elif [[ "$*" == *"jsonpath={.spec.template.spec.containers[0].image}"* ]]; then
+    printf '%s' "${KUBECTL_TEST_IMAGE}"
+  elif [[ "$*" == *"jsonpath={.spec.replicas}"* ]]; then
+    printf '%s' '1|1'
+  elif [[ "$*" == *"get pods"*"containerStatuses"* ]]; then
+    if [[ "${KUBECTL_TEST_MODE}" == "running-image-id-drift" ]]; then
+      printf '%s\n' "true|${KUBECTL_TEST_IMAGE}|sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    else
+      printf '%s\n' "true|${KUBECTL_TEST_IMAGE}|${KUBECTL_TEST_CONFIG_DIGEST}"
+    fi
   elif [[ "$*" == *"apply -f -"* ]]; then
     command cat >/dev/null
   fi
@@ -743,12 +885,15 @@ export -f kubectl
 export -f curl
 export KUBECTL_TEST_LOG="${apply_log}"
 export KUBECTL_REQUIRED_OIDC_KEYS="${required_oidc_keys}"
+export KUBECTL_TEST_IMAGE="${image}"
+export KUBECTL_TEST_CONFIG_DIGEST="${config_digest}"
 export remote_log
 export KUBECTL_TEST_MODE="missing-key"
 apply_output=''
 : > "${apply_log}"
 if apply_output="$(WITNESSOPS_WEB_ENV_FILE="${PARITY}" \
   WITNESSOPS_WEB_IMAGE="${image}" \
+  WITNESSOPS_WEB_CONFIG_DIGEST="${config_digest}" \
   bash "${APPLY_SCRIPT}" 2>&1)"; then
   fail=$((fail + 1))
   echo "FAIL: apply.sh accepted incomplete OIDC secret" >&2
@@ -768,6 +913,7 @@ export DEPLOY_NS=$'example-namespace\n---\nkind: ConfigMap'
 : > "${apply_log}"
 if apply_output="$(WITNESSOPS_WEB_ENV_FILE="${PARITY}" \
   WITNESSOPS_WEB_IMAGE="${image}" \
+  WITNESSOPS_WEB_CONFIG_DIGEST="${config_digest}" \
   bash "${APPLY_SCRIPT}" 2>&1)"; then
   fail=$((fail + 1))
   echo "FAIL: apply.sh accepted injected topology" >&2
@@ -787,7 +933,47 @@ export DEPLOY_NS=example-namespace
 export KUBECTL_TEST_MODE="ok"
 : > "${apply_log}"
 if apply_output="$(WITNESSOPS_WEB_ENV_FILE="${PARITY}" \
+  WITNESSOPS_WEB_IMAGE='docker.io/library/witnessops-web:mutable-tag' \
+  WITNESSOPS_WEB_CONFIG_DIGEST="${config_digest}" \
+  bash "${APPLY_SCRIPT}" 2>&1)"; then
+  fail=$((fail + 1))
+  echo "FAIL: apply.sh accepted a tag-only image" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: apply.sh rejects a tag-only image"
+fi
+if [[ -s "${apply_log}" ]]; then
+  fail=$((fail + 1))
+  echo "FAIL: apply.sh contacted kubectl for a tag-only image" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: apply.sh rejects tag-only images before kubectl"
+fi
+
+: > "${apply_log}"
+if apply_output="$(WITNESSOPS_WEB_ENV_FILE="${PARITY}" \
   WITNESSOPS_WEB_IMAGE="${image}" \
+  WITNESSOPS_WEB_CONFIG_DIGEST='sha256:not-a-digest' \
+  bash "${APPLY_SCRIPT}" 2>&1)"; then
+  fail=$((fail + 1))
+  echo "FAIL: apply.sh accepted an invalid config digest" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: apply.sh rejects an invalid config digest"
+fi
+if [[ -s "${apply_log}" ]]; then
+  fail=$((fail + 1))
+  echo "FAIL: apply.sh contacted kubectl for an invalid config digest" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: apply.sh rejects invalid config digests before kubectl"
+fi
+
+export KUBECTL_TEST_MODE="ok"
+: > "${apply_log}"
+if apply_output="$(WITNESSOPS_WEB_ENV_FILE="${PARITY}" \
+  WITNESSOPS_WEB_IMAGE="${image}" \
+  WITNESSOPS_WEB_CONFIG_DIGEST="${config_digest}" \
   bash "${APPLY_SCRIPT}" 2>&1)"; then
   pass=$((pass + 1))
   echo "PASS: apply.sh accepts complete OIDC key-name preflight"
@@ -803,6 +989,27 @@ else
   fail=$((fail + 1))
   echo "FAIL: apply.sh did not continue after valid OIDC preflight" >&2
 fi
+
+export KUBECTL_TEST_MODE="running-image-id-drift"
+: > "${apply_log}"
+if apply_output="$(WITNESSOPS_WEB_ENV_FILE="${PARITY}" \
+  WITNESSOPS_WEB_IMAGE="${image}" \
+  WITNESSOPS_WEB_CONFIG_DIGEST="${config_digest}" \
+  bash "${APPLY_SCRIPT}" 2>&1)"; then
+  fail=$((fail + 1))
+  echo "FAIL: apply.sh accepted a running imageID mismatch" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: apply.sh rejects a running imageID mismatch"
+fi
+if grep -Eq '(^| )(apply|create)( |$)' "${apply_log}"; then
+  pass=$((pass + 1))
+  echo "PASS: apply.sh detects running identity drift after exercising rollout"
+else
+  fail=$((fail + 1))
+  echo "FAIL: apply.sh did not exercise rollout before identity drift check" >&2
+fi
+export KUBECTL_TEST_MODE="ok"
 if compare_image_refs \
   'docker.io/library/witnessops-web:shared-1' \
   'docker.io/library/witnessops-web:shared-1'; then

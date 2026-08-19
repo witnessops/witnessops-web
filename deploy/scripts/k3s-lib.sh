@@ -2,7 +2,7 @@
 # Shared helpers for the private k3s prod / mesh-dev dual-lane deploy.
 #
 # Shared image always bakes NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com so
-# CSS/JS hashes match when both lanes run the same tag. Mesh-dev overrides
+# CSS/JS hashes match when both lanes run the same digest-qualified image. Mesh-dev overrides
 # PORT/HOSTNAME/VERIFY_BASE at runtime only.
 #
 # Private topology is injected by the operator environment. See
@@ -30,6 +30,7 @@ K8S_DIR="${DEPLOY_DIR}/k8s"
 : "${MAIL_OUT_PVC:?set MAIL_OUT_PVC from private topology custody}"
 PROD_URL="${PROD_URL:-https://witnessops.com}"
 IMAGE_REPO="${IMAGE_REPO:-docker.io/library/witnessops-web}"
+PINNED_NODE22_IMAGE="node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32"
 
 # Pure image/CSS compare helpers (unit-tested via deploy/scripts/test-k3s-parity.sh).
 # shellcheck source=k3s-parity.sh
@@ -165,7 +166,7 @@ sync_build_context() {
 
 build_shared_image() {
   local tag="$1"
-  local image remote_dir head
+  local image remote_dir head identity_out manifest_digest config_digest immutable_image
   image="$(image_ref "${tag}")"
   head="$(git_head_short)"
   remote_dir="/tmp/witnessops-web-build-${tag}"
@@ -174,6 +175,8 @@ build_shared_image() {
     || die "image tag has an invalid shape"
   validate_container_image_ref "${image}" \
     || die "shared image reference has an invalid shape"
+  validate_digest_container_image_ref "${PINNED_NODE22_IMAGE}" \
+    || die "pinned Node 22 base image is not digest-qualified"
 
   need ssh
   need rsync
@@ -196,7 +199,7 @@ build_shared_image() {
     die "failed to synchronize the remote build context"
   fi
 
-  remote "set -euo pipefail
+  identity_out="$(remote "set -euo pipefail
     cleanup_build_context() {
       cd /
       rm -rf -- '${remote_dir}'
@@ -206,8 +209,8 @@ build_shared_image() {
     test -f deploy/Dockerfile.mesh
     # Shared image always bakes prod public origin. Mesh-dev overrides PORT/HOSTNAME/VERIFY at runtime.
     cat > deploy/Dockerfile.shared <<'DF'
-ARG NODE22_BUILDER_IMAGE=node:22-alpine
-ARG NODE22_RUNTIME_IMAGE=node:22-alpine
+ARG NODE22_BUILDER_IMAGE
+ARG NODE22_RUNTIME_IMAGE
 ARG GWS_VERSION=0.22.5
 ARG GWS_TARGET=x86_64-unknown-linux-musl
 ARG GWS_SHA256=4db473dde4b1ab872e4ff35d769b0d4af1f1a6441a605e79d5cf8ada9c87e920
@@ -251,16 +254,46 @@ CMD [\"node\", \"apps/witnessops-web/server.js\"]
 DF
     # Keep all remote build/import output on the remote process only; do not
     # print the image ref from ssh stdout (callers use the local printf below).
-    docker build -f deploy/Dockerfile.shared -t '${image}' . >&2
-    docker image inspect '${image}' --format 'id={{.Id}}' >&2
+    docker build -f deploy/Dockerfile.shared \
+      --build-arg NODE22_BUILDER_IMAGE='${PINNED_NODE22_IMAGE}' \
+      --build-arg NODE22_RUNTIME_IMAGE='${PINNED_NODE22_IMAGE}' \
+      -t '${image}' . >&2
     docker save '${image}' | k3s ctr images import - >&2
+    manifest_digest=\$(k3s ctr images list | awk -v target='${image}' '\$1 == target { print \$3 }')
+    [[ \"\${manifest_digest}\" =~ ^sha256:[0-9a-f]{64}$ ]] \
+      || { printf 'imported manifest digest is missing or invalid\n' >&2; exit 1; }
+    command -v python3 >/dev/null 2>&1 \
+      || { printf 'python3 is required to verify imported image identity\n' >&2; exit 1; }
+    config_digest=\$(k3s ctr content get \"\${manifest_digest}\" \
+      | python3 -c 'import json,sys; print(json.load(sys.stdin)[\"config\"][\"digest\"])')
+    [[ \"\${config_digest}\" =~ ^sha256:[0-9a-f]{64}$ ]] \
+      || { printf 'imported config digest is missing or invalid\n' >&2; exit 1; }
+    immutable_image='${IMAGE_REPO}'@\"\${manifest_digest}\"
+    k3s ctr images tag --force '${image}' \"\${immutable_image}\" >&2
+    k3s ctr images check \"\${immutable_image}\" >&2
     printf '%s\n' '${image}' > /tmp/witnessops-web-last-built-image.txt
+    printf '%s\n' \"\${immutable_image}\" > /tmp/witnessops-web-last-built-immutable-image.txt
+    printf '%s\n' \"\${manifest_digest}\" > /tmp/witnessops-web-last-built-manifest-digest.txt
+    printf '%s\n' \"\${config_digest}\" > /tmp/witnessops-web-last-built-config-digest.txt
     printf '%s\n' '${head}' > /tmp/witnessops-web-last-built-head.txt
-  " >/dev/null
+    printf '%s\n%s\n' \"\${manifest_digest}\" \"\${config_digest}\"
+  ")" || die "remote shared-image build or identity verification failed"
 
-  log "built and imported ${image}"
+  manifest_digest="$(printf '%s\n' "${identity_out}" | sed -n '1p')"
+  config_digest="$(printf '%s\n' "${identity_out}" | sed -n '2p')"
+  validate_sha256_digest "${manifest_digest}" \
+    || die "remote build returned an invalid manifest digest"
+  validate_sha256_digest "${config_digest}" \
+    || die "remote build returned an invalid config digest"
+  [[ "$(printf '%s\n' "${identity_out}" | sed -n '3p')" == "" ]] \
+    || die "remote build returned unexpected identity output"
+  immutable_image="${IMAGE_REPO}@${manifest_digest}"
+  validate_digest_container_image_ref "${immutable_image}" \
+    || die "remote build returned an invalid immutable image reference"
+
+  log "built and imported tag=${image} immutable=${immutable_image} config=${config_digest}"
   # sole stdout line for local capture by deploy scripts
-  printf '%s\n' "${image}"
+  printf '%s\n' "${immutable_image}"
 }
 
 prod_deployment_json_patch() {
@@ -268,7 +301,7 @@ prod_deployment_json_patch() {
   image="${1:-}"
   explicit_keys="${2:-}"
   admin_role="${3:-}"
-  validate_container_image_ref "${image}" || return 1
+  validate_digest_container_image_ref "${image}" || return 1
   index=0
   role_index=""
   while IFS= read -r key; do
@@ -378,11 +411,69 @@ assert_remote_no_admin_oidc_env_shadows() {
   log "runtime env does not shadow admin OIDC secret for ${deployment}"
 }
 
-deploy_prod_image() {
-  local image patch explicit_keys admin_role
+remote_image_config_digest() {
+  local image manifest_digest config_digest
   image="${1:-}"
-  validate_container_image_ref "${image}" \
-    || die "refusing invalid production image reference"
+  validate_digest_container_image_ref "${image}" || return 1
+  manifest_digest="$(image_digest_from_ref "${image}")" || return 1
+  config_digest="$(remote "set -euo pipefail
+    actual_manifest=\$(k3s ctr images list | awk -v target='${image}' '\$1 == target { print \$3 }')
+    [[ \"\${actual_manifest}\" == '${manifest_digest}' ]]
+    k3s ctr content get '${manifest_digest}' \
+      | python3 -c 'import json,sys; print(json.load(sys.stdin)[\"config\"][\"digest\"])'
+  ")" || return 1
+  validate_sha256_digest "${config_digest}" || return 1
+  printf '%s' "${config_digest}"
+}
+
+deployment_replica_state() {
+  local deployment
+  deployment="${1:-}"
+  [[ -n "${deployment}" ]] || return 1
+  remote "kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o jsonpath='{.spec.replicas}{\"|\"}{.status.readyReplicas}'"
+}
+
+deployment_running_image_records() {
+  local deployment
+  deployment="${1:-}"
+  [[ -n "${deployment}" ]] || return 1
+  remote "kubectl -n '${DEPLOY_NS}' get pods -l 'app=${deployment}' -o go-template='{{range .items}}{{if eq .status.phase \"Running\"}}{{range .status.containerStatuses}}{{if eq .name \"${APP_CONTAINER_NAME}\"}}{{printf \"%t|%s|%s\\n\" .ready .image .imageID}}{{end}}{{end}}{{end}}{{end}}'"
+}
+
+assert_remote_running_image_identity() {
+  local deployment image config_digest replica_state desired ready records rc
+  deployment="${1:-}"
+  image="${2:-}"
+  config_digest="${3:-}"
+  validate_digest_container_image_ref "${image}" \
+    || die "expected image identity is not digest-qualified"
+  validate_sha256_digest "${config_digest}" \
+    || die "expected runtime config digest is invalid"
+
+  replica_state="$(deployment_replica_state "${deployment}")" \
+    || die "could not inspect replica state for ${deployment}"
+  desired="${replica_state%%|*}"
+  ready="${replica_state#*|}"
+  [[ "${desired}" =~ ^[1-9][0-9]*$ && "${ready}" == "${desired}" ]] \
+    || die "deployment ${deployment} is not fully ready (${ready:-0}/${desired:-0})"
+
+  records="$(deployment_running_image_records "${deployment}")" \
+    || die "could not inspect running image IDs for ${deployment}"
+  rc=0
+  compare_running_image_records \
+    "${image}" "${config_digest}" "${desired}" "${records}" || rc=$?
+  [[ "${rc}" -eq 0 ]] \
+    || die "running image identity drift for ${deployment} (exit ${rc})"
+  log "running image identity matches for ${deployment}: manifest=$(image_digest_from_ref "${image}") config=${config_digest} replicas=${ready}/${desired}"
+}
+
+deploy_prod_image() {
+  local image patch explicit_keys admin_role config_digest
+  image="${1:-}"
+  validate_digest_container_image_ref "${image}" \
+    || die "refusing non-immutable production image reference"
+  config_digest="$(remote_image_config_digest "${image}")" \
+    || die "production image digest is unavailable or inconsistent after import"
   preflight_remote_admin_secrets
   admin_role="${PREFLIGHT_ADMIN_ROLE}"
   explicit_keys="$(deployment_explicit_env_key_names "${PROD_DEPLOY}")" \
@@ -402,13 +493,17 @@ deploy_prod_image() {
   "
   assert_remote_deployment_envfrom "${PROD_DEPLOY}"
   assert_remote_no_admin_oidc_env_shadows "${PROD_DEPLOY}"
+  assert_remote_running_image_identity \
+    "${PROD_DEPLOY}" "${image}" "${config_digest}"
 }
 
 deploy_dev_image() {
-  local image
+  local image config_digest
   image="${1:-}"
-  validate_container_image_ref "${image}" \
-    || die "refusing invalid development image reference"
+  validate_digest_container_image_ref "${image}" \
+    || die "refusing non-immutable development image reference"
+  config_digest="$(remote_image_config_digest "${image}")" \
+    || die "development image digest is unavailable or inconsistent after import"
 
   local template="${K8S_DIR}/dev-mesh-deployment.yaml"
   local rendered remote_yaml
@@ -437,6 +532,8 @@ deploy_dev_image() {
   "
   assert_remote_deployment_envfrom "${DEV_DEPLOY}"
   assert_remote_no_admin_oidc_env_shadows "${DEV_DEPLOY}"
+  assert_remote_running_image_identity \
+    "${DEV_DEPLOY}" "${image}" "${config_digest}"
 }
 
 # Fetch container image refs for both lanes (stdout: two lines prod\ndev).
@@ -447,7 +544,7 @@ lane_image_refs() {
 
 smoke_pair() {
   need curl
-  local prod_code dev_code prod_css dev_css prod_image dev_image
+  local prod_code dev_code prod_css dev_css prod_image dev_image config_digest
   local images_out
 
   # 1) Exact ordered runtime secret-ref contract for both lanes.
@@ -468,7 +565,15 @@ smoke_pair() {
     err "dual-lane image drift (exit ${image_rc}) — run pnpm deploy:k3s:both to realign"
     return "${image_rc}"
   fi
-  log "smoke images match"
+  validate_digest_container_image_ref "${prod_image}" \
+    || die "dual-lane image reference is not digest-qualified"
+  config_digest="$(remote_image_config_digest "${prod_image}")" \
+    || die "dual-lane image digest is unavailable or inconsistent"
+  assert_remote_running_image_identity \
+    "${PROD_DEPLOY}" "${prod_image}" "${config_digest}"
+  assert_remote_running_image_identity \
+    "${DEV_DEPLOY}" "${dev_image}" "${config_digest}"
+  log "smoke images match by manifest and running config digest"
 
   # 3) HTTP + CSS parity on the buyer home path.
   prod_code="$(curl -sS -o /tmp/wo-prod.html -w '%{http_code}' --max-time 15 "${PROD_URL}/" || echo 000)"
@@ -485,7 +590,7 @@ smoke_pair() {
     err "CSS mismatch prod=${prod_css} dev=${dev_css}"
     return 2
   fi
-  log "smoke OK (runtime envFrom, HTTP 200, image, and CSS match)"
+  log "smoke OK (runtime envFrom, HTTP 200, immutable image identity, and CSS match)"
 }
 
 print_status() {

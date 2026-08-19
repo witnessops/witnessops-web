@@ -1,13 +1,23 @@
 #!/usr/bin/env bash
-# Run pnpm health inside Node 22 (default: node:22-alpine — matches deploy/Dockerfile.mesh).
+# Run pnpm health inside the same digest-pinned Node 22 base as deployment.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-IMAGE="${NODE22_BUILDER_IMAGE:-node:22-alpine}"
-ALPINE_DEPS=''
+IMAGE="${NODE22_BUILDER_IMAGE:-node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32}"
+# shellcheck source=../deploy/scripts/k3s-parity.sh
+source "${ROOT}/deploy/scripts/k3s-parity.sh"
+if ! validate_digest_container_image_ref "${IMAGE}"; then
+  echo "health-on-node22: NODE22_BUILDER_IMAGE must be digest-qualified" >&2
+  exit 1
+fi
+ALPINE_MODE=0
 if [[ "$IMAGE" == *alpine* ]]; then
-  ALPINE_DEPS='apk add --no-cache libc6-compat python3 make g++ &&'
+  ALPINE_MODE=1
 fi
 PNPM_VERSION="${PNPM_VERSION:-9.15.4}"
+if [[ ! "${PNPM_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "health-on-node22: PNPM_VERSION must be a numeric semantic version" >&2
+  exit 1
+fi
 CONTAINER_CMD="${CONTAINER_CMD:-docker}"
 
 command -v "$CONTAINER_CMD" >/dev/null || {
@@ -44,15 +54,19 @@ echo "[health-on-node22] image=$IMAGE repo=$ROOT"
   -v "$ROOT:/app:rw" \
   -w /app \
   -e CI=1 \
-  "$IMAGE" \
-  bash -lc "
-    set -euo pipefail
-    ${ALPINE_DEPS}
+  -e "WOPS_PNPM_VERSION=${PNPM_VERSION}" \
+  -e "WOPS_INSTALL_ALPINE_DEPS=${ALPINE_MODE}" \
+  -- "$IMAGE" \
+  sh -lc '
+    set -eu
+    if [ "$WOPS_INSTALL_ALPINE_DEPS" = "1" ]; then
+      apk add --no-cache libc6-compat python3 make g++
+    fi
     corepack enable
-    corepack prepare pnpm@${PNPM_VERSION} --activate
+    corepack prepare "pnpm@${WOPS_PNPM_VERSION}" --activate
     node -v
     pnpm -v
     pnpm install --frozen-lockfile
     pnpm health
-  "
+  '
 echo "[health-on-node22] OK"

@@ -3,7 +3,7 @@
 #
 # Usage:
 #   ./k3s-deploy-prod.sh                 # build shared image, deploy prod
-#   ./k3s-deploy-prod.sh IMAGE_REF       # deploy existing imported image
+#   ./k3s-deploy-prod.sh IMAGE_REF       # digest-qualified imported image
 set -euo pipefail
 # shellcheck source=k3s-lib.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/k3s-lib.sh"

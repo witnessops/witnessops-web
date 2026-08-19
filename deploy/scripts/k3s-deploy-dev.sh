@@ -3,7 +3,7 @@
 #
 # Usage:
 #   ./k3s-deploy-dev.sh                 # build shared image, deploy dev
-#   ./k3s-deploy-dev.sh IMAGE_REF       # deploy existing imported image
+#   ./k3s-deploy-dev.sh IMAGE_REF       # digest-qualified imported image
 #
 # Requires the custodied private network path for local smoke.
 set -euo pipefail
