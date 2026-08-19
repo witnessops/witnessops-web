@@ -1,27 +1,32 @@
 # Alpine OS — mesh image & Node 22 builder
 
-**Status:** default base (2026-06-21)
+**Status:** digest-pinned default base (2026-08-19)
 
 ## What changed
 
-Production mesh images use **Alpine Linux** (`node:22-alpine`), not Debian bookworm-slim:
+Production mesh images use **Alpine Linux** through a reviewed
+`node:22-alpine@sha256:<digest>` reference, not a mutable Debian or Alpine tag:
 
 | Artifact | Base |
 |----------|------|
-| `deploy/Dockerfile.mesh` | `node:22-alpine` builder + runtime |
-| `apps/witnessops-web/Dockerfile` | `node:22-alpine` runtime |
-| `build-witnessops-web-mesh.sh` | `MESH_BASE_OS=alpine`, build-args for image pins |
-| `scripts/health-on-node22.sh` | default `NODE22_BUILDER_IMAGE=node:22-alpine` |
+| `deploy/Dockerfile.mesh` | digest-qualified `node:22-alpine` builder + runtime |
+| `apps/witnessops-web/Dockerfile` | digest-qualified `node:22-alpine` runtime |
+| `deploy/scripts/k3s-lib.sh` | reviewed pin supplied to both shared-image stages |
+| `scripts/health-on-node22.sh` | reviewed digest-qualified `NODE22_BUILDER_IMAGE` default |
 
 Builder installs `libc6-compat`, `python3`, `make`, `g++` for native modules (e.g. sharp).
 
-## Override (debug only)
+## Debug-only manual override
+
+The release helpers do not accept a mutable or caller-selected base. For an
+explicitly authorized local experiment, both manual build arguments must still
+be digest-qualified:
 
 ```bash
-export NODE22_BUILDER_IMAGE=node:22-bookworm-slim
-export NODE22_RUNTIME_IMAGE=node:22-slim
-export MESH_BASE_OS=debian
-./build-witnessops-web-mesh.sh
+podman build -f deploy/Dockerfile.mesh \
+  --build-arg NODE22_BUILDER_IMAGE='node:22-bookworm-slim@sha256:<reviewed-builder-digest>' \
+  --build-arg NODE22_RUNTIME_IMAGE='node:22-slim@sha256:<reviewed-runtime-digest>' \
+  -t docker.io/library/witnessops-web:debug-local .
 ```
 
 ## Hunt loop LLM (Ollama)

@@ -166,6 +166,103 @@ validate_container_image_ref() {
   return 0
 }
 
+validate_sha256_digest() {
+  local digest="${1:-}"
+  [[ "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]] || {
+    printf 'invalid sha256 digest\n' >&2
+    return 1
+  }
+}
+
+# Release deployments must use an immutable manifest reference. A human-readable
+# tag may still be retained as a local alias and in the release receipt.
+validate_digest_container_image_ref() {
+  local image prefix digest
+  image="${1:-}"
+  validate_container_image_ref "${image}" || return 1
+  [[ "${image}" == *@sha256:* ]] || {
+    printf 'container image reference is not digest-qualified\n' >&2
+    return 1
+  }
+  prefix="${image%@*}"
+  digest="${image##*@}"
+  [[ -n "${prefix}" && "${prefix}" != *'@'* ]] || {
+    printf 'invalid digest-qualified container image reference\n' >&2
+    return 1
+  }
+  validate_sha256_digest "${digest}"
+}
+
+image_digest_from_ref() {
+  local image
+  image="${1:-}"
+  validate_digest_container_image_ref "${image}" || return 1
+  printf '%s' "${image##*@}"
+}
+
+normalize_runtime_image_id() {
+  local image_id digest
+  image_id="${1:-}"
+  if [[ -z "${image_id}" || "${image_id}" == *[[:space:]]* ]]; then
+    printf 'invalid runtime image ID\n' >&2
+    return 1
+  fi
+  digest="${image_id##*@}"
+  digest="${digest##*://}"
+  validate_sha256_digest "${digest}" >/dev/null 2>&1 || {
+    printf 'invalid runtime image ID\n' >&2
+    return 1
+  }
+  printf '%s' "${digest}"
+}
+
+# Each newline-delimited record is ready|image-ref|runtime-image-id. The image
+# ref is the immutable manifest identity; CRI reports the manifest-bound config
+# digest as imageID, so both coordinates are checked.
+compare_running_image_records() {
+  local expected_image expected_config expected_count records
+  local ready image image_id extra normalized_id count
+  expected_image="${1:-}"
+  expected_config="${2:-}"
+  expected_count="${3:-}"
+  records="${4:-}"
+
+  validate_digest_container_image_ref "${expected_image}" || return 1
+  validate_sha256_digest "${expected_config}" || return 1
+  [[ "${expected_count}" =~ ^[1-9][0-9]*$ ]] || {
+    printf 'invalid expected running replica count\n' >&2
+    return 1
+  }
+  [[ -n "${records}" ]] || {
+    printf 'running image records are missing\n' >&2
+    return 1
+  }
+
+  count=0
+  while IFS='|' read -r ready image image_id extra; do
+    [[ -n "${ready}${image}${image_id}${extra}" ]] || continue
+    if [[ "${ready}" != "true" || -n "${extra}" ]]; then
+      printf 'running image record is malformed or not ready\n' >&2
+      return 2
+    fi
+    compare_image_refs "${expected_image}" "${image}" || return 2
+    normalized_id="$(normalize_runtime_image_id "${image_id}")" || return 2
+    if [[ "${normalized_id}" != "${expected_config}" ]]; then
+      printf 'runtime image ID mismatch: expected=%s actual=%s\n' \
+        "${expected_config}" "${normalized_id}" >&2
+      return 2
+    fi
+    count=$((count + 1))
+  done <<<"${records}"
+
+  if [[ "${count}" -ne "${expected_count}" ]]; then
+    printf 'running replica count mismatch: expected=%s actual=%s\n' \
+      "${expected_count}" "${count}" >&2
+    return 2
+  fi
+  return 0
+}
+
 # Topology validators are pure so every deploy entrypoint can fail closed before
 # rendering or contacting a cluster. Callers choose which fields they require.
 validate_ssh_target() {

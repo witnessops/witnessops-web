@@ -1,7 +1,7 @@
 # WitnessOps Web Deployment Custody
 
 Status: current production + mesh-dev custody note for `witnessops.com`
-Last updated: 2026-08-13
+Last updated: 2026-08-19
 
 This document records how the public WitnessOps web surface (and the mesh-only
 dev twin) is served, built, deployed, verified, and rolled back. It is
@@ -22,7 +22,7 @@ witnessops.com / www.witnessops.com
 -> k3s namespace DEPLOY_NS
 -> deployment PROD_DEPLOY
 -> container port 3000 (hostPort 127.0.0.1:3000)
--> image docker.io/library/witnessops-web:main-<sha>-<UTC>
+-> image docker.io/library/witnessops-web@sha256:<manifest-digest>
 -> PVC-backed intake / mail volumes
 ```
 
@@ -33,13 +33,13 @@ operator laptop (private network)
 -> MESH_DEV_URL
 -> private hostNetwork bind
 -> k3s deployment DEV_DEPLOY
--> same shared image tag as prod when aligned
+-> same digest-qualified shared image reference as prod when aligned
 -> emptyDir intake (isolated from prod PVC)
 ```
 
-Pod names and exact image tags are observations that change every apply.
-Record the live tag in the apply receipt; do not treat sample tags in this file
-as permanent.
+Pod names, tag aliases, and exact image digests are observations that change every apply.
+Record the live tag alias, manifest digest, and config digest in the apply
+receipt; do not treat sample coordinates in this file as permanent.
 
 ## Source
 
@@ -75,10 +75,13 @@ pnpm deploy:k3s:both
 1. Optional dirty-tree gate (`ALLOW_DIRTY=1` to skip)
 2. rsync checkout → `/tmp/witnessops-web-build-<tag>/` on `DEPLOY_SSH`
 3. Exclude ignored secret, private-topology, receipt, token-store, and scratch paths
-4. Docker build with public origin baked in
+4. Docker build with public origin baked in and the reviewed digest-qualified
+   Node builder/runtime base supplied explicitly
 5. `k3s ctr images import` on the node
-6. Delete the remote build directory on success or failure
-7. Prints full image ref on stdout
+6. Resolve and validate the imported OCI manifest digest and its config digest,
+   then create the digest-qualified containerd alias
+7. Delete the remote build directory on success or failure
+8. Print the digest-qualified deploy reference on stdout
 
 Legacy `deploy/Dockerfile.mesh` remains as a reference Dockerfile; the dual-lane
 scripts generate `deploy/Dockerfile.shared` on the build host for the shared bake.
@@ -87,7 +90,7 @@ Docker Compose is **not** current runtime authority for `witnessops.com`.
 
 ## Image
 
-Tag form:
+Human-readable tag alias:
 
 ```text
 docker.io/library/witnessops-web:main-<shortsha>-<UTC>
@@ -95,13 +98,20 @@ docker.io/library/witnessops-web:main-<shortsha>-<UTC>
 
 Example: `docker.io/library/witnessops-web:main-9f23217-20260730T015507Z`
 
+Deployed image reference:
+
+```text
+docker.io/library/witnessops-web@sha256:<manifest-digest>
+```
+
 Apply receipt must capture:
 
 - source HEAD
 - dirty state before and after
-- image tag
-- image ID
-- previous image tag or digest (prod; and dev if replaced)
+- image tag alias
+- OCI manifest digest and digest-qualified deploy reference
+- manifest-bound config digest expected in pod `imageID`
+- previous digest-qualified image reference (prod; and dev if replaced)
 - build command and result
 - which lanes received the image (`prod`, `dev`, or both)
 
@@ -116,7 +126,7 @@ Canonical helpers (repo root):
 | `pnpm deploy:k3s:prod` | build if needed → preflight Secrets → atomically reconcile image and ordered `envFrom` on `PROD_DEPLOY` |
 | `pnpm deploy:k3s:dev` | build if needed → validate the image → apply `dev-mesh-deployment.yaml` with the exact ordered `envFrom` contract |
 | `pnpm deploy:k3s:both` | one build → both deploys → `smoke_pair` |
-| `pnpm deploy:k3s:smoke` | exact runtime `envFrom` + image + HTTP 200 + CSS parity |
+| `pnpm deploy:k3s:smoke` | exact runtime `envFrom` + digest-qualified image/runtime identity + HTTP 200 + CSS parity |
 | `pnpm deploy:k3s:dev:teardown` | delete mesh-dev only |
 
 SSH target, fallback and private-network configuration come from operator custody
@@ -153,11 +163,13 @@ Dormant Microsoft OIDC and legacy-key credential entries may remain in the
 custodied OIDC Secret as extra keys; this lane neither uses nor removes them.
 Their retirement requires a separately authorized custody-cleanup pass.
 
-The legacy `deploy/k8s/apply.sh` path also preflights the seven OIDC key names
-before its first cluster mutation. Because that preflight occurs first, the
-`DEPLOY_NS` and `ADMIN_OIDC_SECRET` must already be
-provisioned before invoking the legacy helper. That helper does not create or
-update the OIDC Secret.
+The legacy `deploy/k8s/apply.sh` path requires the build-recorded pair
+`WITNESSOPS_WEB_IMAGE=<digest-qualified-manifest-ref>` and
+`WITNESSOPS_WEB_CONFIG_DIGEST=<manifest-bound-config-digest>`. It also preflights
+the seven OIDC key names before its first cluster mutation, then verifies the
+deployed reference, readiness, and running application image IDs after rollout.
+Because that preflight occurs first, `DEPLOY_NS` and `ADMIN_OIDC_SECRET` must
+already be provisioned. The helper does not create or update the OIDC Secret.
 
 ## Edge
 
@@ -197,7 +209,9 @@ pnpm deploy:k3s:test-parity   # image/CSS, envFrom, Secret-preflight, and deploy
 
 Expect (all enforced; smoke exits non-zero on failure):
 
-- **identical container image refs** on `PROD_DEPLOY` and `DEV_DEPLOY`
+- **identical digest-qualified container image refs** on `PROD_DEPLOY` and `DEV_DEPLOY`
+- every ready application pod reports the manifest-bound config digest in its
+  runtime `imageID`, on both lanes
 - exact ordered runtime `envFrom` contract on both deployments, including an
   empty prefix and `optional=false` on both Secret refs
 - `https://witnessops.com/` → HTTP 200
@@ -240,7 +254,8 @@ Every public web apply receipt must record:
 - start HEAD and end HEAD
 - dirty state / `ALLOW_DIRTY`
 - files changed
-- image tag and image ID
+- image tag alias, OCI manifest digest, digest-qualified deploy reference, and
+  manifest-bound config digest
 - previous image (prod; dev if applicable)
 - which lanes updated
 - rollout result
@@ -256,7 +271,7 @@ through the production reconciler so the exact ordered `envFrom` contract is
 restored at the same time:
 
 ```bash
-bash deploy/scripts/k3s-deploy-prod.sh docker.io/library/witnessops-web:<known-good-tag>
+bash deploy/scripts/k3s-deploy-prod.sh docker.io/library/witnessops-web@sha256:<known-good-manifest-digest>
 pnpm deploy:k3s:smoke
 ```
 
@@ -269,7 +284,7 @@ completion.
 Mesh-dev:
 
 ```bash
-bash deploy/scripts/k3s-deploy-dev.sh docker.io/library/witnessops-web:<known-good-tag>
+bash deploy/scripts/k3s-deploy-dev.sh docker.io/library/witnessops-web@sha256:<known-good-manifest-digest>
 pnpm deploy:k3s:smoke
 # or remove entirely
 pnpm deploy:k3s:dev:teardown

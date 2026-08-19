@@ -19,13 +19,16 @@ The current public runtime is private k3s, not Docker Compose. See
 
 ## Authoritative paths
 
-1. **Mesh image build** - use the lane-approved container path:
+1. **Mesh image build** - use the canonical lane-approved path:
 
    ```bash
-   podman build -f deploy/Dockerfile.mesh -t docker.io/library/witnessops-web:<purpose>-<UTC> .
+   pnpm deploy:k3s:build
    ```
 
-   The deploy receipt must record the image tag and image ID.
+   This builds with the reviewed base pin, imports the image, and returns the
+   digest-qualified application reference. The deploy receipt must record the
+   human-readable tag alias, OCI manifest digest, digest-qualified deploy
+   reference, and manifest-bound config digest.
 
 2. **Full health in Node 22 container (any machine with Docker)** - from repo root:
 
@@ -51,7 +54,9 @@ Current deploy execution is documented in
 
 - `.nvmrc` → `22`
 - `package.json` `engines.node` → `>=22.0.0 <23`
-- Runtime image: `node:22-alpine` (`deploy/Dockerfile.mesh`, `apps/witnessops-web/Dockerfile`)
+- Runtime image: the reviewed `node:22-alpine@sha256:<digest>` pin declared in
+  `deploy/scripts/k3s-lib.sh`, `deploy/Dockerfile.mesh`,
+  `apps/witnessops-web/Dockerfile`, and `scripts/health-on-node22.sh`
 
 ## Do not
 

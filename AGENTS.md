@@ -27,12 +27,13 @@ Release authority: internal/manual for now
   custody using the variables in `deploy/topology.env.example`.
   - **prod** — configured production deployment, public at `https://witnessops.com` through Caddy and a loopback app bind.
   - **mesh-dev** — configured private-network deployment using `hostNetwork` and emptyDir intake, never prod PVCs.
-- Both lanes must run the **same shared image tag** for fair CSS/UI compare. Shared builds always bake `NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`.
+- Both lanes must run the **same digest-qualified shared image reference** for fair CSS/UI compare. The source-SHA/time tag is retained only as a human-readable alias. Shared builds always bake `NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`.
 - **`pnpm deploy:k3s:smoke` enforces** (exit non-zero on failure):
   1. the exact ordered application-container `envFrom` contract on prod and mesh-dev: `BASE_ENV_SECRET`, then `ADMIN_OIDC_SECRET`, each with an empty prefix and `optional=false`,
-  2. **identical container image refs** on prod and mesh-dev (not CSS-only),
-  3. HTTP 200 on prod home and mesh-dev home,
-  4. matching primary CSS hash.
+  2. **identical digest-qualified container image refs** on prod and mesh-dev (not CSS-only),
+  3. every ready application pod reports the config digest bound by that OCI manifest,
+  4. HTTP 200 on prod home and mesh-dev home,
+  5. matching primary CSS hash.
   Unit tests for the image/CSS, `envFrom`, Secret-preflight, and deploy-reconciliation helpers: `pnpm deploy:k3s:test-parity`.
 - **Intentional non-parity (do not “fix” these):**
   - mesh-dev bind: `hostNetwork` with custodied `MESH_BIND_HOST` and `MESH_BIND_PORT`

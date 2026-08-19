@@ -1,13 +1,11 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# Template metadata only. Deploy with apply.sh after private rendering.
+# Informational resource inventory only; this file is not a deploy entrypoint.
+# apply.sh renders topology and the build-recorded immutable image/config pair
+# directly, then enforces runtime identity.
 namespace: ${DEPLOY_NS}
 resources:
   - namespace.yaml
   - pvc.yaml
   - deployment.yaml
   - service.yaml
-images:
-  - name: witnessops-web
-    newName: ghcr.io/witnessops/witnessops-web
-    newTag: replace-me
