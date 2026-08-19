@@ -111,6 +111,21 @@ test("receipt storage refuses writes at the configured file limit", async () => 
   rmSync(root, { recursive: true, force: true });
 });
 
+test("duplicate receipt identity takes precedence over capacity errors", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "witnessops-ask-duplicate-cap-"));
+  const limits = { maxFiles: 1, maxBytes: 1024 * 1024, minFreeBytes: 1 };
+  const receipt = {
+    schema: "witnessops.ask.runtime-receipt.v1",
+    receipt_id: "ask-receipt:duplicate",
+  } as AskRuntimeReceipt;
+  assert.equal((await writeReceipt(receipt, root, limits)).ok, true);
+  assert.deepEqual(await writeReceipt(receipt, root, limits), {
+    ok: false,
+    reason: "RECEIPT_ALREADY_EXISTS",
+  });
+  rmSync(root, { recursive: true, force: true });
+});
+
 test("receipt storage refuses a write that exceeds the byte limit", async () => {
   const root = mkdtempSync(path.join(tmpdir(), "witnessops-ask-cap-bytes-"));
   const result = await writeReceipt(

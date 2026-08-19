@@ -282,6 +282,35 @@ test("support aliases share one rate-limit budget per ip", async () => {
   assert.equal(differentIpAlias.status, 400);
 });
 
+test("both support routes enforce the shared recipient issuance quota", async () => {
+  const body = {
+    email: "buyer@example.com",
+    category: "access",
+    severity: "normal",
+    message: "Please help with access.",
+  };
+
+  for (const [post, pathname] of [
+    [POSTSupport, "/api/support"],
+    [POSTSupportMessage, "/api/support/message"],
+  ] as const) {
+    _resetAllStores();
+    for (let index = 0; index < 3; index += 1) {
+      assert.equal(
+        enforcePublicIssuanceRateLimits(
+          body.email,
+          "support-issuance",
+        ),
+        null,
+      );
+    }
+    const limited = await post(
+      makeRequest(pathname, body, "203.0.113.74"),
+    );
+    assert.equal(limited.status, 429);
+  }
+});
+
 test("verify route rate limits per route namespace and ip", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-verify-"));
   applyTestEnv(baseDir);

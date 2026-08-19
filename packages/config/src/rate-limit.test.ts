@@ -4,6 +4,7 @@ import {
   checkRateLimit,
   getClientIp,
   rateLimitErrorBody,
+  _cleanupExpiredEntries,
   _resetAllStores,
 } from "./rate-limit";
 
@@ -93,6 +94,31 @@ test("unknown fallback key still rate-limits", () => {
   assert.equal(r2.allowed, false);
 });
 
+test("cleanup retains entries until each entry's own window expires", () => {
+  const originalDateNow = Date.now;
+  const anchor = originalDateNow();
+  try {
+    Date.now = () => anchor;
+    checkRateLimit("short", "client", { limit: 1, windowMs: 60_000 });
+    checkRateLimit("long", "client", { limit: 1, windowMs: 15 * 60_000 });
+
+    Date.now = () => anchor + 60_001;
+    _cleanupExpiredEntries();
+
+    Date.now = () => anchor;
+    assert.equal(
+      checkRateLimit("short", "client", { limit: 1, windowMs: 60_000 }).allowed,
+      true,
+    );
+    assert.equal(
+      checkRateLimit("long", "client", { limit: 1, windowMs: 15 * 60_000 }).allowed,
+      false,
+    );
+  } finally {
+    Date.now = originalDateNow;
+  }
+});
+
 // ── getClientIp ──
 
 test("getClientIp uses the proxy-adjacent x-forwarded-for value", () => {
@@ -121,11 +147,11 @@ test("getClientIp returns unknown when no headers present", () => {
   assert.equal(getClientIp(request), "unknown");
 });
 
-test("getClientIp treats non-IP forwarded values as unknown", () => {
+test("getClientIp ignores spoofed malformed values left of the proxy-adjacent hop", () => {
   const request = new Request("https://example.com", {
     headers: { "x-forwarded-for": "not-an-ip, 5.6.7.8" },
   });
-  assert.equal(getClientIp(request), "unknown");
+  assert.equal(getClientIp(request), "5.6.7.8");
 });
 
 test("getClientIp fails closed when the proxy-adjacent value is malformed", () => {

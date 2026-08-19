@@ -132,6 +132,13 @@ export async function writeReceipt(
         description: "Ask receipt storage admission",
       },
       async () => {
+        try {
+          await fs.promises.access(targetPath);
+          return { ok: false, reason: "RECEIPT_ALREADY_EXISTS" };
+        } catch (accessError: unknown) {
+          if (errorCode(accessError) !== "ENOENT") throw accessError;
+        }
+
         const computedHash = computeContentHash(receipt);
         const payload = { ...receipt, _content_hash: computedHash };
         const data = JSON.stringify(payload, null, 2);
