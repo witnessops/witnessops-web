@@ -175,7 +175,14 @@ export type ScopeApprovalResponse = z.infer<
 
 export const adminIntakeRespondRequestSchema = z.object({
   intakeId: z.string().trim().min(1),
-  subject: z.string().trim().min(1).max(240),
+  subject: z
+    .string()
+    .trim()
+    .min(1)
+    .max(240)
+    .refine((value) => !/[\u0000-\u001F\u007F]/u.test(value), {
+      message: "subject must not contain mail header control characters",
+    }),
   body: z.string().trim().min(1).max(8_000),
 });
 

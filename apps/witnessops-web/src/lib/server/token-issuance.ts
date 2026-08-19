@@ -54,6 +54,7 @@ import { notifyScopeApproved } from "./control-plane-client";
 import { claimantActionBlocksApproval } from "./claimant-actions";
 import { operatorRejectionBlocksApproval } from "./operator-actions";
 import { appendIntakeEvent } from "./intake-event-ledger";
+import { reservePublicIssuanceAdmission } from "./public-issuance-admission";
 
 type VerificationChannel = Exclude<ChannelName, "noreply">;
 type VerificationIssuanceResponse = EngageResponse | SupportResponse;
@@ -718,6 +719,7 @@ export async function createVerificationIssuance(
     submission: normalizedSubmission,
   };
 
+  await reservePublicIssuanceAdmission();
   await saveIntake(intake);
   await appendIntakeEvent({
     event_type: "INTAKE_SUBMITTED",

@@ -56,11 +56,14 @@ export interface ReceiptStorageLimits {
   readonly maxFiles: number;
   readonly maxBytes: number;
   readonly minFreeBytes: number;
+  /** Receipts remain immutable during this window, then are pruned before admission. */
+  readonly retentionMs?: number;
 }
 
 const DEFAULT_MAX_FILES = 10_000;
 const DEFAULT_MAX_BYTES = 256 * 1024 * 1024;
 const DEFAULT_MIN_FREE_BYTES = 128 * 1024 * 1024;
+const DEFAULT_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
 
 function positiveInteger(value: string | undefined, fallback: number): number {
   if (!value || !/^\d+$/.test(value)) return fallback;
@@ -81,6 +84,10 @@ function configuredStorageLimits(): ReceiptStorageLimits {
     minFreeBytes: positiveInteger(
       process.env.WITNESSOPS_ASK_RECEIPT_MIN_FREE_BYTES,
       DEFAULT_MIN_FREE_BYTES,
+    ),
+    retentionMs: positiveInteger(
+      process.env.WITNESSOPS_ASK_RECEIPT_RETENTION_MS,
+      DEFAULT_RETENTION_MS,
     ),
   };
 }
@@ -109,6 +116,37 @@ function errorCode(error: unknown): string | undefined {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+async function pruneExpiredReceipts(
+  root: string,
+  receiptFiles: fs.Dirent[],
+  retentionMs: number,
+): Promise<fs.Dirent[]> {
+  const cutoff = Date.now() - retentionMs;
+  const retained: fs.Dirent[] = [];
+
+  for (const entry of receiptFiles) {
+    const filePath = path.join(root, entry.name);
+    try {
+      const parsed = JSON.parse(await fs.promises.readFile(filePath, "utf8")) as {
+        created_at?: unknown;
+      };
+      const createdAt =
+        typeof parsed.created_at === "string"
+          ? Date.parse(parsed.created_at)
+          : Number.NaN;
+      if (Number.isFinite(createdAt) && createdAt <= cutoff) {
+        await fs.promises.unlink(filePath);
+        continue;
+      }
+    } catch {
+      // Preserve malformed or unreadable records for explicit operator review.
+    }
+    retained.push(entry);
+  }
+
+  return retained;
 }
 
 export async function writeReceipt(
@@ -143,8 +181,13 @@ export async function writeReceipt(
         const payload = { ...receipt, _content_hash: computedHash };
         const data = JSON.stringify(payload, null, 2);
         const dataBytes = Buffer.byteLength(data);
-        const receiptFiles = (await fs.promises.readdir(root, { withFileTypes: true }))
-          .filter((entry) => entry.isFile() && entry.name.endsWith(".json"));
+        const receiptFiles = await pruneExpiredReceipts(
+          root,
+          (await fs.promises.readdir(root, { withFileTypes: true })).filter(
+            (entry) => entry.isFile() && entry.name.endsWith(".json"),
+          ),
+          limits.retentionMs ?? DEFAULT_RETENTION_MS,
+        );
 
         if (receiptFiles.length >= limits.maxFiles) {
           return { ok: false, reason: "CAPACITY_FILE_LIMIT" };

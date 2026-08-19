@@ -68,8 +68,18 @@ function readEmailSignaturesEnabled(): boolean {
   return value !== "0" && value !== "false" && value !== "no" && value !== "off";
 }
 
+function assertSafeMailHeaderValue(value: string, field: string): void {
+  if (/[\u0000-\u001F\u007F]/u.test(value)) {
+    throw new Error(`Invalid ${field} mail header value.`);
+  }
+}
+
 function prepareEmailPayload(payload: VerificationEmailPayload): PreparedEmailPayload {
   const from = resolveFromEmail(payload);
+  assertSafeMailHeaderValue(payload.to, "To");
+  assertSafeMailHeaderValue(from, "From");
+  assertSafeMailHeaderValue(payload.subject, "Subject");
+  if (payload.replyTo) assertSafeMailHeaderValue(payload.replyTo, "Reply-To");
   const signatureProfile = readEmailSignaturesEnabled()
     ? payload.signatureProfile ??
       resolveSignatureProfile({

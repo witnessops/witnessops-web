@@ -112,6 +112,19 @@ function stringValue(body: Record<string, unknown>, key: string, required = true
   return value.trim();
 }
 
+function mailSubjectValue(body: Record<string, unknown>): string | undefined {
+  const value = stringValue(body, "subject", false);
+  if (!value) return undefined;
+  if (/[\u0000-\u001F\u007F]/u.test(value)) {
+    throw new AdminCoreError(
+      "INVALID_INPUT",
+      "subject must not contain mail header control characters.",
+      400,
+    );
+  }
+  return value;
+}
+
 function stringArray(body: Record<string, unknown>, key: string): string[] {
   const value = body[key];
   if (!Array.isArray(value)) return [];
@@ -291,7 +304,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
     if (resource === "deliveries" && idValue && action === "update") {
       return NextResponse.json({ ok: true, item: await updateDeliveryDraft(idValue, {
-        subject: stringValue(body, "subject", false) || undefined,
+        subject: mailSubjectValue(body),
         body: stringValue(body, "body", false) || undefined,
         downloadLinks: stringArray(body, "downloadLinks"),
         verificationInstructions: stringValue(body, "verificationInstructions", false) || undefined,
