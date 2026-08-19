@@ -169,7 +169,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     commercialContract: {
       price: "eur_1900_ex_vat_one_authorised_public_facing_system",
       timing:
-        "three_business_days_after_payment_accepted_sow_authority_scope_required_inputs_and_collection_window_confirmed",
+        "within_24_hours_after_agreed_payment_condition_accepted_sow_written_authority_fixed_scope_required_inputs_and_approved_collection_window_confirmed",
     },
     name: {
       en: "Public Exposure Review",
@@ -192,8 +192,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "€1 900 netto — jeden autoryzowany system publicznie dostępny",
     },
     timing: {
-      en: "Within 3 working days after payment, accepted scope, authority, required inputs, and the collection window are confirmed",
-      pl: "W ciągu 3 dni roboczych po potwierdzeniu płatności, zaakceptowanego zakresu, upoważnienia, wymaganych danych wejściowych i okna zbierania",
+      en: "Within 24 hours after the agreed payment condition, accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
+      pl: "W ciągu 24 godzin po potwierdzeniu uzgodnionego warunku płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
     },
     boundary: {
       en: "No exploitation, credentials, destructive testing, certification, or security guarantee. Unauthenticated outside-in checks only, within the agreed fixed scope.",

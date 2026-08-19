@@ -10,7 +10,7 @@
 
 ## Commercial authority and boundary
 
-The authoritative offer is the Public Exposure Review under SKU `OFFSEC-EXTERNAL-EXPOSURE`: one authorised public-facing system, fixed scope, €1,900 excluding VAT, unauthenticated outside-in, human-led and manually reviewed. The three-working-day delivery clock begins only after payment, accepted scope, authority, required inputs, and collection window are confirmed.
+The authoritative offer is the Public Exposure Review under SKU `OFFSEC-EXTERNAL-EXPOSURE`: one authorised public-facing system, fixed scope, €1,900 excluding VAT, unauthenticated outside-in, human-led and manually reviewed. Full payment is recommended, with two €950 instalments available by agreement after scope acceptance. The 24-hour delivery clock begins only after the agreed payment condition, accepted SOW, written authority, fixed scope, required inputs, and approved collection window are confirmed.
 
 It is not an open-ended penetration test, continuous attack-surface management, automated vulnerability scanning, compliance certification, attestation, completeness claim, or security guarantee. This experiment must not change those semantics.
 

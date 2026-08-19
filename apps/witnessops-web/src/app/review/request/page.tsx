@@ -83,7 +83,7 @@ const nextSteps = [
 const publicExposureNextSteps = [
   "We check the named public-facing system, your authority, first-party boundary, exclusions, and operator capacity.",
   "We accept or reject the scope asynchronously. No sales call is required.",
-  "After payment, accepted SOW, authority, required inputs, and the collection window are complete, the three-working-day delivery clock starts.",
+  "After the agreed payment condition, accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed, the 24-hour delivery clock starts.",
 ];
 
 const sampleArtifacts = [
@@ -255,7 +255,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
               <p>
                 {publicExposureOrder
-                  ? "€1,900 ex VAT for one authorised public-facing system. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance."
+                  ? "€1,900 ex VAT for one authorised public-facing system. Full payment is recommended; two €950 instalments are available by agreement after scope acceptance. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance."
                   : "Fee, timing, and evidence handling are confirmed by email after the first fit check."}
               </p>
               <p>No work starts from this form. No proof run or target-facing check starts from this form.</p>

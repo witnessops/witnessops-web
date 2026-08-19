@@ -170,7 +170,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Request", "Tell us what public-facing system you want reviewed and provide your authority to request the review. Do not send secrets or production evidence."],
       ["Scope acceptance", "WitnessOps accepts or rejects the boundary asynchronously, confirms capacity, and records payment. No sales call is required."],
       ["Review", "Perform only the accepted passive and low-impact checks, then manually validate, deduplicate, prioritise, and link findings to evidence."],
-      ["Delivery and retest", "Deliver the reports and inspection package within three working days after every start condition is complete, then retest the agreed reported findings once within 30 days."],
+      ["Delivery and retest", "Deliver the reports and inspection package within 24 hours after the agreed payment condition, accepted SOW, written authority, fixed scope, required inputs, and approved collection window are confirmed, then retest the agreed reported findings once within 30 days."],
     ],
     boundaries: [
       "No exploitation, authenticated application testing, password testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, customer-data collection, or data exfiltration.",
@@ -179,7 +179,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Targets outside the confirmed first-party scope remain untouched. Third-party or shared infrastructure requires separate written authority.",
     ],
     commercialNote:
-      "€1,900 ex VAT for one authorised public-facing system. No sales call required. Payment is confirmed after scope acceptance; an additional or late retest is €550 ex VAT.",
+      "€1,900 ex VAT for one authorised public-facing system. No sales call required. Full payment is recommended; two €950 instalments are available by agreement after scope acceptance. Payment alone does not authorise testing. One focused retest within 30 days is included; an additional or late retest is €550 ex VAT.",
     primaryCta: "Start a review",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Inspect synthetic sample",
@@ -456,7 +456,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       ["Zamówienie", "Wskaż jeden system publicznie dostępny, służbowy adres e-mail i podstawę upoważnienia. Nie wysyłaj sekretów ani materiałów produkcyjnych."],
       ["Akceptacja zakresu", "WitnessOps asynchronicznie akceptuje albo odrzuca granicę, potwierdza dostępność i zapisuje płatność. Rozmowa sprzedażowa nie jest wymagana."],
       ["Przegląd", "Wykonujemy wyłącznie zaakceptowane kontrole pasywne i niskiego ryzyka, a następnie ręcznie weryfikujemy, usuwamy duplikaty, ustalamy priorytety i łączymy ustalenia z materiałami."],
-      ["Dostawa i retest", "Przekazujemy raporty i pakiet do sprawdzenia w ciągu trzech dni roboczych od spełnienia wszystkich warunków startu, a następnie jeden raz ponownie testujemy uzgodnione ustalenia w ciągu 30 dni."],
+      ["Dostawa i retest", "Przekazujemy raporty i pakiet do sprawdzenia w ciągu 24 godzin po potwierdzeniu uzgodnionego warunku płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania, a następnie jeden raz ponownie testujemy uzgodnione ustalenia w ciągu 30 dni."],
     ],
     boundaries: [
       "Bez eksploatacji, uwierzytelnionych testów aplikacji, testowania haseł, brute force, zbierania poświadczeń, socjotechniki, odmowy usługi, działań destrukcyjnych, utrzymywania dostępu, malware, zbierania danych klientów i eksfiltracji danych.",
@@ -465,7 +465,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Cele poza potwierdzonym zakresem first-party pozostają nietknięte. Infrastruktura strony trzeciej lub współdzielona wymaga osobnego pisemnego upoważnienia.",
     ],
     commercialNote:
-      "€1 900 netto za jeden autoryzowany system publicznie dostępny. Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu; dodatkowy lub późny retest kosztuje €550 netto.",
+      "€1 900 netto za jeden autoryzowany system publicznie dostępny. Bez rozmowy sprzedażowej. Rekomendowana jest pełna płatność; dwie raty po €950 są dostępne po uzgodnieniu i akceptacji zakresu. Sama płatność nie upoważnia do testów. Jeden ukierunkowany retest w ciągu 30 dni jest wliczony; dodatkowy lub późny retest kosztuje €550 netto.",
     primaryCta: "Rozpocznij przegląd",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Zobacz syntetyczny przykład",

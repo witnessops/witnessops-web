@@ -86,7 +86,7 @@ export default function PricingPage() {
                   <p className="mt-2 text-sm leading-6 text-text-muted">{service.timing.en}</p>
                   {featured ? (
                     <p className="mt-3 text-sm leading-6 text-text-muted">
-                      No sales call required. One focused retest within 30 days is included; an additional or late retest is €550 ex VAT.
+                      No sales call required. Full payment is recommended; two €950 instalments are available by agreement after scope acceptance. Payment alone does not authorise testing. One focused retest within 30 days is included; an additional or late retest is €550 ex VAT.
                     </p>
                   ) : null}
                   <p className="mt-4 border-t border-surface-border pt-4 text-sm leading-6 text-text-muted">
@@ -104,7 +104,7 @@ export default function PricingPage() {
                     <CtaButton
                       href={service.productId ? buyerOfferRequestHref("en", service.productId) : buyerRequestHref("en")}
                       variant="primary"
-                      label={featured ? "Order the review" : "Start fit check"}
+                      label={featured ? "Request the review" : "Start fit check"}
                     />
                   </div>
                 </article>
