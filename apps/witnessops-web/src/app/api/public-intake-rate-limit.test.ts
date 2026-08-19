@@ -14,7 +14,9 @@ import { buildPublicIntakeRateLimitKey } from "@/lib/server/public-intake-rate-l
 
 import { POST as POSTContact } from "./contact/route";
 import { POST as POSTEngage } from "./engage/route";
+import { POST as POSTReviewRequest } from "./review/request/route";
 import { POST as POSTSupport } from "./support/route";
+import { POST as POSTSupportMessage } from "./support/message/route";
 import { POST as POSTVerify } from "./verify/route";
 import { POST as POSTVerifyToken } from "./verify-token/route";
 
@@ -82,11 +84,19 @@ afterEach(async () => {
   _resetAllStores();
 });
 
-test("public intake rate limit key includes route namespace and client ip", () => {
+test("public intake rate limit key groups aliases by logical operation and client ip", () => {
   const request = makeRequest("/api/contact", {}, "203.0.113.10");
   assert.equal(
     buildPublicIntakeRateLimitKey("contact", request),
-    "contact:203.0.113.10",
+    "review-request-issuance:203.0.113.10",
+  );
+  assert.equal(
+    buildPublicIntakeRateLimitKey("engage", request),
+    "review-request-issuance:203.0.113.10",
+  );
+  assert.equal(
+    buildPublicIntakeRateLimitKey("support-message", request),
+    "support-issuance:203.0.113.10",
   );
 });
 
@@ -101,7 +111,7 @@ test("non-IP forwarded-for values share the unknown rate-limit identity", () => 
   );
 });
 
-test("contact route rate limits per route namespace and ip", async () => {
+test("review-request aliases share one rate-limit budget per ip", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-contact-"));
   applyTestEnv(baseDir);
 
@@ -115,7 +125,12 @@ test("contact route rate limits per route namespace and ip", async () => {
   const sameIpDifferentRoute = await POSTEngage(
     makeRequest("/api/engage", {}, "203.0.113.10"),
   );
-  assert.equal(sameIpDifferentRoute.status, 400);
+  assert.equal(sameIpDifferentRoute.status, 429);
+
+  const sameIpCanonicalRoute = await POSTReviewRequest(
+    makeRequest("/api/review/request", {}, "203.0.113.10"),
+  );
+  assert.equal(sameIpCanonicalRoute.status, 429);
 });
 
 test("contact route rate limit resets after the configured window", async () => {
@@ -145,11 +160,21 @@ test("engage route rate limits per route namespace and ip", async () => {
   await exerciseRateLimit(POSTEngage, "/api/engage", "203.0.113.20");
 });
 
-test("support route rate limits per route namespace and ip", async () => {
+test("support aliases share one rate-limit budget per ip", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-support-"));
   applyTestEnv(baseDir);
 
   await exerciseRateLimit(POSTSupport, "/api/support", "203.0.113.30");
+
+  const sameIpAlias = await POSTSupportMessage(
+    makeRequest("/api/support/message", {}, "203.0.113.30"),
+  );
+  assert.equal(sameIpAlias.status, 429);
+
+  const differentIpAlias = await POSTSupportMessage(
+    makeRequest("/api/support/message", {}, "203.0.113.31"),
+  );
+  assert.equal(differentIpAlias.status, 400);
 });
 
 test("verify route rate limits per route namespace and ip", async () => {
