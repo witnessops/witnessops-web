@@ -33,7 +33,8 @@ Then use the paste templates below.
 | 10 | [Public Exposure Review offer](./10-public-exposure-review-offer.md) | One-page fixed-scope buyer offer and validation boundary |
 | 11 | [Public Exposure Review order and fit check](./11-public-exposure-review-fit-check.md) | Non-secret intake and fit/custom/referral routing |
 | 12 | [Offer naming market note](./12-offer-naming-market-note.md) | Short market comparison and naming guardrail |
-| 13 | [Public route disposition](./13-public-route-disposition.md) | Current, replacement, private-preview, and unresolved public route outcomes |\n| 14 | [LinkedIn Premium experiment](./14-linkedin-premium-experiment.md) | Thirty-day commercial test, attribution, weekly scoreboard, and renewal gate |
+| 13 | [Public route disposition](./13-public-route-disposition.md) | Current, replacement, private-preview, and unresolved public route outcomes |
+| 14 | [LinkedIn Premium experiment](./14-linkedin-premium-experiment.md) | Thirty-day commercial test, attribution, weekly scoreboard, and renewal gate |
 
 ## Public anchors
 
