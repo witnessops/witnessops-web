@@ -38,6 +38,12 @@ Live LinkedIn admin surfaces were inspected on 2026-08-19 before mutation.
 
 Last-seven-day dashboard context at inspection: 29 search appearances, 0 new followers, 136 post impressions, and 6 Page visitors. A separate sidebar showed 13 visitors without a confirmed date window, so it is not used as the experiment baseline.
 
+### Separate individual subscription
+
+The founder's individual `All-in-One` subscription is active and renews on 2026-09-19. LinkedIn displays it as a separate plan from the Premium Company Page, which still renews on 2026-09-18.
+
+This experiment evaluates the Company Page subscription only. Do not attribute All-in-One InMail, daily prospect suggestions, saved-prospect activity, boosting credit, personal-profile auto-invites, or hiring features to `LINKEDIN-PREMIUM-EXP-001`. Do not use boosting credit or automated/mass outbound as part of this experiment.
+
 Do not store identifiable Page visitor or invite-candidate personal data in this public repository.
 
 ## CTA and first-party attribution
@@ -202,11 +208,14 @@ Do not count a visitor as intent, a draft as outreach, a conversation as a propo
 
 Follower growth alone cannot produce `KEEP`. Confirm the actual renewal price at the decision gate. The decision record recommends `KEEP` or `CANCEL`; it does not automatically mutate the subscription.
 
+Compare the Company Page renewal price and Company Page-attributable evidence separately from the All-in-One plan; neither plan's activity can subsidise the other's decision without a named causal mechanism.
+
 ## Evidence ledger
 
 ### FACT
 
 - The live Page showed Premium active, 5 followers, automatic invites on, 300 invitation credits, service matching on, and renewal on 2026-09-18.
+- LinkedIn separately showed the founder's individual `All-in-One` plan active with renewal on 2026-09-19.
 - The live service taxonomy exposed `Cybersecurity` but no narrower category matching the bounded offer.
 - The target CTA, offer page, and synthetic sample URLs resolved successfully in a browser on 2026-08-19.
 - LinkedIn verification control reported `Not available` during the trial.
