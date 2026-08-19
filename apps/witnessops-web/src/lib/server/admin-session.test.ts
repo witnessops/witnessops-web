@@ -1,5 +1,6 @@
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import { NextRequest } from "next/server";
 
@@ -93,10 +94,10 @@ test("signed Microsoft, legacy, providerless, expired, and malformed sessions fa
   }
 });
 
-test("tampering and the production-disabled local bypass cannot establish a session", async () => {
+test("tampering and runtime local hosts cannot establish a session", async () => {
   process.env.WITNESSOPS_ADMIN_SECRET = "admin-secret";
   process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS = "1";
-  mutableEnv.NODE_ENV = "production";
+  mutableEnv.NODE_ENV = "development";
   const cookie = await createAdminSessionCookie(googlePayload());
   const replacement = cookie.endsWith("A") ? "B" : "A";
   const tampered = `${cookie.slice(0, -1)}${replacement}`;
@@ -113,4 +114,36 @@ test("tampering and the production-disabled local bypass cannot establish a sess
     ),
     null,
   );
+});
+
+test("the local bypass is confined to the explicit test runner", async () => {
+  process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS = "1";
+  mutableEnv.NODE_ENV = "test";
+
+  assert.deepEqual(
+    await getVerifiedAdminSession(
+      new NextRequest("http://localhost:3001/admin", {
+        headers: { host: "localhost:3001" },
+      }),
+    ),
+    {
+      actor: "local-dev",
+      actorAuthSource: "local_bypass",
+      actorSessionHash: null,
+      role: "Founder",
+      isLocalBypass: true,
+    },
+  );
+});
+
+test("the development server binds loopback and only tests enable bypass scaffolding", () => {
+  const packageJson = JSON.parse(
+    readFileSync(new URL("../../../package.json", import.meta.url), "utf8"),
+  ) as { scripts: Record<string, string> };
+
+  assert.equal(
+    packageJson.scripts.dev,
+    "next dev --hostname 127.0.0.1 --port 3001",
+  );
+  assert.match(packageJson.scripts.test, /^NODE_ENV=test /);
 });

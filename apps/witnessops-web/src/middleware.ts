@@ -7,7 +7,7 @@ import {
 } from "@/lib/admin-auth-origin";
 
 import {
-  isLocalAdminRequest,
+  isTestAdminRequest,
   verifyAdminSessionCookie,
 } from "@/lib/server/admin-session";
 import {
@@ -55,7 +55,7 @@ export async function middleware(request: NextRequest) {
 
   // Admin route protection (skip login page)
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-    if (!isLocalAdminRequest(request)) {
+    if (!isTestAdminRequest()) {
       const sessionCookie = request.cookies.get(
         "witnessops-admin-session",
       )?.value;

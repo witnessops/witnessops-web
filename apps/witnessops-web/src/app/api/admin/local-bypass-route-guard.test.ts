@@ -53,6 +53,12 @@ function spoofedAdminRequest(
   });
 }
 
+function directLocalhostRequest(path: string): NextRequest {
+  return new NextRequest(`http://localhost:3001${path}`, {
+    headers: { host: "localhost:3001" },
+  });
+}
+
 test("spoofed forwarded localhost does not bypass protected admin API routes", async () => {
   mutableEnv.NODE_ENV = "development";
   process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS = "1";
@@ -193,4 +199,16 @@ test("spoofed forwarded localhost does not bypass admin page middleware", async 
   assert.equal(location.pathname, "/admin/login");
   assert.equal(location.searchParams.get("returnTo"), "/admin/queue");
   assert.equal(location.searchParams.has("customer"), false);
+});
+
+test("direct localhost Host does not bypass admin page middleware in development", async () => {
+  mutableEnv.NODE_ENV = "development";
+  process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS = "1";
+
+  const response = await middleware(directLocalhostRequest("/admin/queue"));
+
+  assert.equal(response.status, 307);
+  const location = new URL(response.headers.get("location")!);
+  assert.equal(location.pathname, "/admin/login");
+  assert.equal(location.searchParams.get("returnTo"), "/admin/queue");
 });

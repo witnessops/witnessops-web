@@ -39,14 +39,16 @@ export interface VerifiedAdminSession {
   isLocalBypass: boolean;
 }
 
-const LOCAL_DEV_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 export const ADMIN_SESSION_COOKIE_NAME = "witnessops-admin-session";
 const GOOGLE_OIDC_ISSUER = "https://accounts.google.com";
 const GOOGLE_ADMIN_ACTOR_PREFIX = `oidc:${GOOGLE_OIDC_ISSUER}#`;
 const SESSION_HASH_PATTERN = /^[a-f0-9]{16}$/;
 
-function localAdminBypassEnabled(): boolean {
-  return process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS === "1";
+function testAdminBypassEnabled(): boolean {
+  return (
+    process.env.NODE_ENV === "test" &&
+    process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS === "1"
+  );
 }
 
 async function signPayload(payloadB64: string, secret: string): Promise<string> {
@@ -81,33 +83,9 @@ export async function createAdminSessionCookie(
   return `${payloadB64}.${signature}`;
 }
 
-function normalizeHost(host: string | null): string {
-  const candidate = host?.trim() ?? "";
-  if (!candidate) return "";
-  if (
-    candidate.includes(",") ||
-    candidate.includes("@") ||
-    candidate.includes("/") ||
-    candidate.includes("\\")
-  ) {
-    return "";
-  }
-
-  try {
-    return new URL(`http://${candidate}`).hostname.toLowerCase();
-  } catch {
-    return candidate.toLowerCase();
-  }
-}
-
-export function isLocalAdminRequest(request: Request | NextRequest): boolean {
-  if (
-    process.env.NODE_ENV === "production" ||
-    !localAdminBypassEnabled()
-  ) {
-    return false;
-  }
-  return LOCAL_DEV_HOSTS.has(normalizeHost(request.headers.get("host")));
+/** Test scaffolding only; runtime development and production always use sessions. */
+export function isTestAdminRequest(): boolean {
+  return testAdminBypassEnabled();
 }
 
 export async function verifyAdminSessionCookie(
@@ -184,7 +162,7 @@ export async function verifyAdminSessionCookie(
 export async function getVerifiedAdminSession(
   request: NextRequest,
 ): Promise<VerifiedAdminSession | null> {
-  if (isLocalAdminRequest(request)) {
+  if (isTestAdminRequest()) {
     return {
       actor: "local-dev",
       actorAuthSource: "local_bypass",
