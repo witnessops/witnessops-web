@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { sendVerificationEmail } from "./send-verification-email";
+import { UpstreamServiceError } from "./upstream-error";
 
 function generateThrowawayCertAndKeyPem(): { certPem: string; keyPem: string } {
   const { privateKey } = generateKeyPairSync("rsa", {
@@ -24,6 +25,7 @@ afterEach(() => {
   global.fetch = originalFetch;
   delete process.env.WITNESSOPS_MAIL_PROVIDER;
   delete process.env.WITNESSOPS_TOKEN_FROM_EMAIL;
+  delete process.env.WITNESSOPS_RESEND_API_KEY;
   delete process.env.WITNESSOPS_M365_TENANT_ID;
   delete process.env.WITNESSOPS_M365_CLIENT_ID;
   delete process.env.WITNESSOPS_M365_CLIENT_SECRET;
@@ -232,5 +234,131 @@ test("sendVerificationEmail sends via Microsoft 365 Graph with certificate auth"
   assert.equal(
     sendCall.url,
     "https://graph.microsoft.com/v1.0/users/engage%40newdomain.example/sendMail",
+  );
+});
+
+test("mail-provider failure errors and logs omit upstream response bodies", async () => {
+  const sensitiveBody = JSON.stringify({
+    secret: "never-log-provider-token",
+    email: "claimant@example.com",
+    internal_url: "http://mail.private.internal",
+  });
+  const logged: unknown[][] = [];
+  const originalConsoleError = console.error;
+  console.error = (...args: unknown[]) => {
+    logged.push(args);
+  };
+  process.env.WITNESSOPS_TOKEN_FROM_EMAIL = "engage@newdomain.example";
+
+  try {
+    process.env.WITNESSOPS_MAIL_PROVIDER = "resend";
+    process.env.WITNESSOPS_RESEND_API_KEY = "resend-test-key";
+    global.fetch = (async () =>
+      new Response(sensitiveBody, {
+        status: 502,
+        headers: { "Content-Type": "application/json" },
+      })) as typeof fetch;
+
+    await assert.rejects(
+      () =>
+        sendVerificationEmail({
+          to: "operator@example.com",
+          subject: "Verify your WitnessOps access",
+          text: "Verification code omitted from provider diagnostics.",
+        }),
+      (error: unknown) =>
+        error instanceof UpstreamServiceError &&
+        error.code === "RESEND_DELIVERY_FAILED" &&
+        error.status === 502 &&
+        error.message === "Resend delivery failed.",
+    );
+
+    delete process.env.WITNESSOPS_RESEND_API_KEY;
+    process.env.WITNESSOPS_MAIL_PROVIDER = "m365";
+    process.env.WITNESSOPS_M365_TENANT_ID = "tenant-123";
+    process.env.WITNESSOPS_M365_CLIENT_ID = "client-123";
+    process.env.WITNESSOPS_M365_CLIENT_SECRET = "client-test-secret";
+    process.env.WITNESSOPS_M365_SENDER_USER_ID = "engage@newdomain.example";
+    global.fetch = (async () =>
+      new Response(sensitiveBody, {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      })) as typeof fetch;
+
+    await assert.rejects(
+      () =>
+        sendVerificationEmail({
+          to: "operator@example.com",
+          subject: "Verify your WitnessOps access",
+          text: "Verification code omitted from provider diagnostics.",
+        }),
+      (error: unknown) =>
+        error instanceof UpstreamServiceError &&
+        error.code === "M365_TOKEN_REQUEST_FAILED" &&
+        error.status === 401 &&
+        error.message === "Microsoft 365 token request failed.",
+    );
+
+    let m365Call = 0;
+    global.fetch = (async () => {
+      m365Call += 1;
+      if (m365Call === 1) {
+        return new Response(JSON.stringify({ access_token: "graph-test-token" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response(sensitiveBody, {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    await assert.rejects(
+      () =>
+        sendVerificationEmail({
+          to: "operator@example.com",
+          subject: "Verify your WitnessOps access",
+          text: "Verification code omitted from provider diagnostics.",
+        }),
+      (error: unknown) =>
+        error instanceof UpstreamServiceError &&
+        error.code === "M365_DELIVERY_FAILED" &&
+        error.status === 503 &&
+        error.message === "Microsoft 365 delivery failed.",
+    );
+  } finally {
+    console.error = originalConsoleError;
+  }
+
+  assert.deepEqual(logged, [
+    [
+      "Upstream service request failed",
+      {
+        service: "resend",
+        operation: "send-verification-email",
+        status: 502,
+      },
+    ],
+    [
+      "Upstream service request failed",
+      {
+        service: "microsoft-365",
+        operation: "request-access-token",
+        status: 401,
+      },
+    ],
+    [
+      "Upstream service request failed",
+      {
+        service: "microsoft-365",
+        operation: "send-verification-email",
+        status: 503,
+      },
+    ],
+  ]);
+  assert.doesNotMatch(
+    JSON.stringify(logged),
+    /never-log-provider-token|claimant@example\.com|mail\.private\.internal/,
   );
 });

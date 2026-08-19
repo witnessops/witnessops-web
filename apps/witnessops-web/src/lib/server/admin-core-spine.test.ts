@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+
+import { listReceipts } from "@/lib/receipts";
 
 import {
   AdminCoreError,
@@ -248,9 +250,105 @@ test("receipt linking and readiness enforce the assigned delivery lineage", asyn
   const bob = { actor: "bob@test", role: "Delegated Operator" as const };
   const aliceDelivery = await createCompletedDelivery("alice-lineage", alice);
   const bobDelivery = await createCompletedDelivery("bob-lineage", bob);
+  const originalCwd = process.cwd();
+  const publishedFixtureRoot = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-published-receipt-"),
+  );
+  const publishedFixtureAppDir = path.join(
+    publishedFixtureRoot,
+    "apps",
+    "witnessops-web",
+  );
+  const publishedFixtureChainsDir = path.join(
+    publishedFixtureRoot,
+    "proofs",
+    "offsec",
+    "chains",
+  );
+  await mkdir(publishedFixtureAppDir, { recursive: true });
+  await mkdir(publishedFixtureChainsDir, { recursive: true });
+  await writeFile(
+    path.join(publishedFixtureChainsDir, "published-chain.json"),
+    JSON.stringify({
+      chain: [
+        {
+          stage: "M0",
+          receiptId: "published-receipt-test",
+          prevReceiptId: null,
+          timestamp: "2026-08-19T00:00:00Z",
+        },
+      ],
+    }),
+    "utf8",
+  );
+  process.chdir(publishedFixtureAppDir);
+
+  try {
+    const [publishedReceipt] = await listReceipts();
+    assert.ok(publishedReceipt);
+
+    await assert.rejects(
+      () => linkReceiptToDelivery(bobDelivery.id, {
+        receiptId: publishedReceipt.receiptId,
+        claimScope: "Bob bounded outputs.",
+        structurallyValid: true,
+        evidenceReferences: ["evidence://bob-lineage"],
+        verifierMechanism: "witnessops-receipt-verifier-v1",
+        verifierResult: "valid",
+        limitations: [],
+        archiveLocation: "drive://receipts/rebound-published",
+      }, bob),
+      (error: unknown) =>
+        error instanceof AdminCoreError &&
+        error.code === "RECEIPT_LINEAGE_CONFLICT" &&
+        error.status === 409,
+    );
+    await assert.rejects(
+      () => linkReceiptToDelivery(bobDelivery.id, {
+        receiptId: "receipt-bob-supersedes-published",
+        claimScope: "Bob bounded outputs.",
+        structurallyValid: true,
+        evidenceReferences: ["evidence://bob-lineage"],
+        verifierMechanism: "witnessops-receipt-verifier-v1",
+        verifierResult: "valid",
+        limitations: [],
+        archiveLocation: "drive://receipts/supersedes-published",
+        supersedesReceiptId: publishedReceipt.receiptId,
+      }, bob),
+      (error: unknown) =>
+        error instanceof AdminCoreError &&
+        error.code === "RECEIPT_LINEAGE_CONFLICT" &&
+        error.status === 409,
+    );
+    const afterPublishedCollision = await getAdminCoreState();
+    assert.equal(
+      afterPublishedCollision.deliveries.find(
+        (delivery) => delivery.id === bobDelivery.id,
+      )?.receiptId,
+      null,
+    );
+    assert.equal(
+      afterPublishedCollision.receipts.some(
+        (receipt) =>
+          receipt.receiptId === publishedReceipt.receiptId ||
+          receipt.receiptId === "receipt-bob-supersedes-published",
+      ),
+      false,
+    );
+    assert.equal(
+      (await listReceipts()).some(
+        (receipt) => receipt.receiptId === publishedReceipt.receiptId,
+      ),
+      true,
+    );
+  } finally {
+    process.chdir(originalCwd);
+  }
+
   const aliceReceipt = await linkReceiptToDelivery(aliceDelivery.id, {
     receiptId: "receipt-shared-id",
     claimScope: "Alice bounded outputs.",
+    structurallyValid: true,
     evidenceReferences: ["evidence://alice-lineage"],
     verifierMechanism: "witnessops-receipt-verifier-v1",
     verifierResult: "valid",
@@ -262,6 +360,7 @@ test("receipt linking and readiness enforce the assigned delivery lineage", asyn
     () => linkReceiptToDelivery(bobDelivery.id, {
       receiptId: aliceReceipt.receiptId,
       claimScope: "Bob bounded outputs.",
+      structurallyValid: true,
       evidenceReferences: ["evidence://bob-lineage"],
       verifierMechanism: "witnessops-receipt-verifier-v1",
       verifierResult: "valid",
@@ -277,6 +376,7 @@ test("receipt linking and readiness enforce the assigned delivery lineage", asyn
     () => linkReceiptToDelivery(bobDelivery.id, {
       receiptId: "receipt-bob-superseding",
       claimScope: "Bob bounded outputs.",
+      structurallyValid: true,
       evidenceReferences: ["evidence://bob-lineage"],
       verifierMechanism: "witnessops-receipt-verifier-v1",
       verifierResult: "valid",
@@ -291,6 +391,7 @@ test("receipt linking and readiness enforce the assigned delivery lineage", asyn
     () => linkReceiptToDelivery(bobDelivery.id, {
       receiptId: "receipt-bob-forward-reference",
       claimScope: "Bob bounded outputs.",
+      structurallyValid: true,
       evidenceReferences: ["evidence://bob-lineage"],
       verifierMechanism: "witnessops-receipt-verifier-v1",
       verifierResult: "valid",
@@ -305,6 +406,7 @@ test("receipt linking and readiness enforce the assigned delivery lineage", asyn
     () => linkReceiptToDelivery(bobDelivery.id, {
       receiptId: "receipt-bob-self-reference",
       claimScope: "Bob bounded outputs.",
+      structurallyValid: true,
       evidenceReferences: ["evidence://bob-lineage"],
       verifierMechanism: "witnessops-receipt-verifier-v1",
       verifierResult: "valid",
@@ -340,6 +442,7 @@ test("receipt linking and readiness enforce the assigned delivery lineage", asyn
     linkReceiptToDelivery(aliceDelivery.id, {
       receiptId: "receipt-alice-concurrent-superseding",
       claimScope: "Alice bounded outputs.",
+      structurallyValid: true,
       evidenceReferences: ["evidence://alice-lineage"],
       verifierMechanism: "witnessops-receipt-verifier-v1",
       verifierResult: "valid",
@@ -350,6 +453,7 @@ test("receipt linking and readiness enforce the assigned delivery lineage", asyn
     linkReceiptToDelivery(bobDelivery.id, {
       receiptId: "receipt-bob-concurrent",
       claimScope: "Bob bounded outputs.",
+      structurallyValid: true,
       evidenceReferences: ["evidence://bob-lineage"],
       verifierMechanism: "witnessops-receipt-verifier-v1",
       verifierResult: "valid",
@@ -503,6 +607,7 @@ test("admin core spine covers the complete message-to-receipt operating path", a
   const firstReceipt = await linkReceiptToDelivery(deliveryRecord.id, {
     receiptId: "receipt-001",
     claimScope: "Bounded launch review outputs listed in the product contract.",
+    structurallyValid: true,
     evidenceReferences: ["evidence://case-001"],
     verifierMechanism: "witnessops-receipt-verifier-v1",
     verifierResult: "valid",
@@ -514,6 +619,7 @@ test("admin core spine covers the complete message-to-receipt operating path", a
   const secondReceipt = await linkReceiptToDelivery(deliveryRecord.id, {
     receiptId: "receipt-002",
     claimScope: "Superseding bounded launch review outputs.",
+    structurallyValid: true,
     evidenceReferences: ["evidence://case-001", "evidence://case-002"],
     verifierMechanism: "witnessops-receipt-verifier-v1",
     verifierResult: "valid",

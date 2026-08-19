@@ -123,6 +123,14 @@ function stringArray(body: Record<string, unknown>, key: string): string[] {
   return strings;
 }
 
+function booleanValue(body: Record<string, unknown>, key: string): boolean {
+  const value = body[key];
+  if (typeof value !== "boolean") {
+    throw new AdminCoreError("INVALID_INPUT", `${key} must be a boolean.`, 400);
+  }
+  return value;
+}
+
 export async function GET(request: NextRequest, context: RouteContext) {
   const actor = await actorFor(request);
   if (!actor) return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
@@ -295,7 +303,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ ok: true, item: await linkReceiptToDelivery(idValue, {
         receiptId: stringValue(body, "receiptId"),
         claimScope: stringValue(body, "claimScope"),
-        structurallyValid: typeof body.structurallyValid === "boolean" ? body.structurallyValid : true,
+        structurallyValid: booleanValue(body, "structurallyValid"),
         evidenceReferences: stringArray(body, "evidenceReferences"),
         verifierMechanism: stringValue(body, "verifierMechanism"),
         verifierResult: stringValue(body, "verifierResult"),

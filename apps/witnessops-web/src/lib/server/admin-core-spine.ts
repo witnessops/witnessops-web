@@ -2097,7 +2097,7 @@ function buildDeliveryReadinessSync(state: CoreState, deliveryId: string): Readi
 export interface ReceiptLinkInput {
   receiptId: string;
   claimScope: string;
-  structurallyValid?: boolean;
+  structurallyValid: boolean;
   evidenceReferences: string[];
   verifierMechanism: string;
   verifierResult: string;
@@ -2112,6 +2112,9 @@ export async function linkReceiptToDelivery(
   actor: CoreActor,
 ): Promise<ReceiptRecord> {
   requireRole(actor, "business-authority");
+  const publishedReceiptIds = new Set(
+    (await listReceipts()).map((receipt) => receipt.receiptId),
+  );
   return mutateState((state) => {
     const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
     if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
@@ -2120,6 +2123,19 @@ export async function linkReceiptToDelivery(
     const mechanism = assertNonEmpty(input.verifierMechanism, "verifierMechanism");
     const verifierResult = assertNonEmpty(input.verifierResult, "verifierResult");
     const archiveLocation = assertNonEmpty(input.archiveLocation, "archiveLocation");
+    const supersedesReceiptId = input.supersedesReceiptId
+      ? assertNonEmpty(input.supersedesReceiptId, "supersedesReceiptId")
+      : null;
+    if (
+      publishedReceiptIds.has(receiptId) ||
+      (supersedesReceiptId && publishedReceiptIds.has(supersedesReceiptId))
+    ) {
+      throw new AdminCoreError(
+        "RECEIPT_LINEAGE_CONFLICT",
+        "Published receipt identifiers cannot be rebound or superseded.",
+        409,
+      );
+    }
     let receipt = state.receipts.find((candidate) => candidate.receiptId === receiptId);
     const matchesDeliveryLineage = (candidate: ReceiptRecord) =>
       candidate.customerId === delivery.customerId &&
@@ -2133,17 +2149,17 @@ export async function linkReceiptToDelivery(
       );
     }
     if (!receipt) {
-      if (input.supersedesReceiptId === receiptId) {
+      if (supersedesReceiptId === receiptId) {
         throw new AdminCoreError(
           "RECEIPT_LINEAGE_CONFLICT",
           "A receipt cannot supersede itself.",
           409,
         );
       }
-      const prior = input.supersedesReceiptId
-        ? state.receipts.find((candidate) => candidate.receiptId === input.supersedesReceiptId)
+      const prior = supersedesReceiptId
+        ? state.receipts.find((candidate) => candidate.receiptId === supersedesReceiptId)
         : null;
-      if (input.supersedesReceiptId && !prior) {
+      if (supersedesReceiptId && !prior) {
         throw new AdminCoreError(
           "RECEIPT_LINEAGE_CONFLICT",
           "Superseded receipt does not exist in this delivery lineage.",
@@ -2164,13 +2180,13 @@ export async function linkReceiptToDelivery(
         proofRunId: run.id,
         productContractVersionId: run.productContractVersionId,
         claimScope: assertNonEmpty(input.claimScope, "claimScope"),
-        structurallyValid: input.structurallyValid ?? true,
+        structurallyValid: input.structurallyValid,
         evidenceReferences: [...input.evidenceReferences],
         verifierMechanism: mechanism,
         verifierResult,
         limitations: [...input.limitations],
         archiveLocation,
-        supersedesReceiptId: input.supersedesReceiptId ?? null,
+        supersedesReceiptId,
         supersededByReceiptId: null,
         createdAt: isoNow(),
         updatedAt: isoNow(),

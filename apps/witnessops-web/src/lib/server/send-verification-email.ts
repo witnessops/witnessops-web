@@ -13,6 +13,7 @@ import {
   resolveSignatureProfile,
   type EmailMessageClass,
 } from "./email-signature-policy";
+import { logUpstreamFailure, UpstreamServiceError } from "./upstream-error";
 
 export interface VerificationEmailPayload {
   to: string;
@@ -229,8 +230,16 @@ async function sendWithResendProvider(
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`Resend delivery failed: ${response.status} ${detail}`);
+    await logUpstreamFailure({
+      service: "resend",
+      operation: "send-verification-email",
+      response,
+    });
+    throw new UpstreamServiceError(
+      "RESEND_DELIVERY_FAILED",
+      "Resend delivery failed.",
+      response.status,
+    );
   }
 
   const body = (await response.json()) as { id?: string };
@@ -274,23 +283,6 @@ function readM365Config(defaultSenderUserId: string): {
   }
 
   return { tenantId, clientId, clientSecret, certPath, keyPath, senderUserId };
-}
-
-async function readResponseDetail(response: Response): Promise<string> {
-  const contentType = response.headers.get("content-type") ?? "";
-  if (contentType.includes("application/json")) {
-    try {
-      return JSON.stringify(await response.json());
-    } catch {
-      return "(invalid JSON body)";
-    }
-  }
-
-  try {
-    return await response.text();
-  } catch {
-    return "(unreadable response body)";
-  }
 }
 
 async function requestM365AccessToken(config: {
@@ -365,9 +357,15 @@ async function requestM365AccessToken(config: {
   });
 
   if (!tokenResponse.ok) {
-    const detail = await readResponseDetail(tokenResponse);
-    throw new Error(
-      `Microsoft 365 token request failed: ${tokenResponse.status} ${detail}`,
+    await logUpstreamFailure({
+      service: "microsoft-365",
+      operation: "request-access-token",
+      response: tokenResponse,
+    });
+    throw new UpstreamServiceError(
+      "M365_TOKEN_REQUEST_FAILED",
+      "Microsoft 365 token request failed.",
+      tokenResponse.status,
     );
   }
 
@@ -465,9 +463,15 @@ async function sendWithM365Provider(
   );
 
   if (!response.ok) {
-    const detail = await readResponseDetail(response);
-    throw new Error(
-      `Microsoft 365 delivery failed: ${response.status} ${detail}`,
+    await logUpstreamFailure({
+      service: "microsoft-365",
+      operation: "send-verification-email",
+      response,
+    });
+    throw new UpstreamServiceError(
+      "M365_DELIVERY_FAILED",
+      "Microsoft 365 delivery failed.",
+      response.status,
     );
   }
 

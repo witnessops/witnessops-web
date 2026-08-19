@@ -171,6 +171,37 @@ test("admin core API rejects overlong persisted fields", async () => {
   });
 });
 
+test("admin core API requires an explicit receipt structural-validity assertion", async () => {
+  const sessionCookie = await cookieFor("founder", "Founder");
+  const response = await POST(
+    new NextRequest("https://witnessops.com/api/admin/core/deliveries/unknown/link-receipt", {
+      method: "POST",
+      body: JSON.stringify({
+        receiptId: "receipt-test",
+        claimScope: "Bounded test scope.",
+        evidenceReferences: [],
+        verifierMechanism: "witnessops-receipt-verifier-v1",
+        verifierResult: "valid",
+        limitations: [],
+        archiveLocation: "drive://receipts/receipt-test",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        cookie: `witnessops-admin-session=${sessionCookie}`,
+      },
+    }),
+    context("deliveries", "unknown", "link-receipt"),
+  );
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    error: "structurallyValid must be a boolean.",
+    code: "INVALID_INPUT",
+    details: null,
+  });
+});
+
 test("admin core API contains unexpected storage errors", async () => {
   const originalStoreDir = process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR;
   process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = "/dev/null/private-admin-core";

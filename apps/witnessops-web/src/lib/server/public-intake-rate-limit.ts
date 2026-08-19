@@ -9,13 +9,23 @@ import {
 const PUBLIC_INTAKE_RATE_LIMIT_NAMESPACE = "public-intake";
 type PublicIntakeRateLimitConfig = Parameters<typeof checkRateLimit>[2];
 
+const PUBLIC_INTAKE_OPERATION_BY_ROUTE: Readonly<Record<string, string>> = {
+  contact: "review-request-issuance",
+  engage: "review-request-issuance",
+  "review-request": "review-request-issuance",
+  support: "support-issuance",
+  "support-message": "support-issuance",
+};
+
 scheduleRateLimitCleanup(VERIFY_RATE_LIMIT_CONFIG.windowMs);
 
 export function buildPublicIntakeRateLimitKey(
   routeNamespace: string,
   request: Request,
 ): string {
-  return `${routeNamespace}:${getClientIp(request)}`;
+  const operationNamespace =
+    PUBLIC_INTAKE_OPERATION_BY_ROUTE[routeNamespace] ?? routeNamespace;
+  return `${operationNamespace}:${getClientIp(request)}`;
 }
 
 export function enforcePublicIntakeRateLimit(
@@ -23,10 +33,9 @@ export function enforcePublicIntakeRateLimit(
   routeNamespace: string,
   config: PublicIntakeRateLimitConfig = VERIFY_RATE_LIMIT_CONFIG,
 ): NextResponse | null {
-  const clientIp = getClientIp(request);
   const result = checkRateLimit(
     PUBLIC_INTAKE_RATE_LIMIT_NAMESPACE,
-    `${routeNamespace}:${clientIp}`,
+    buildPublicIntakeRateLimitKey(routeNamespace, request),
     config,
   );
 
