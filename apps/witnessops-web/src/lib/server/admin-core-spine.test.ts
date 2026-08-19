@@ -40,6 +40,7 @@ import {
   transitionDelivery,
   transitionProofRun,
   transitionReviewRequest,
+  updateDeliveryDraft,
   updateProofRun,
 } from "./admin-core-spine";
 
@@ -112,6 +113,216 @@ test("delegated operators may mutate only records assigned to them", async () =>
     owner,
   );
   assert.equal(transitioned.state, "triage");
+});
+
+test("delivery sends bind an immutable content revision and reject unresolved edits", async () => {
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-admin-core-send-content-"),
+  );
+  await resetAdminCoreStoreForTests();
+
+  const owner = {
+    actor: "delivery-owner@test",
+    role: "Delegated Operator" as const,
+  };
+  const prepared = await createCompletedDelivery("send-content", owner);
+  const approvedDraft = await updateDeliveryDraft(
+    prepared.id,
+    {
+      subject: "Approved delivery subject",
+      body: "Approved customer-facing delivery body.",
+    },
+    owner,
+  );
+  assert.equal(approvedDraft.contentRevision, prepared.contentRevision + 1);
+
+  await linkReceiptToDelivery(
+    prepared.id,
+    {
+      receiptId: "receipt-send-content",
+      claimScope: "Bounded send-content test outputs.",
+      structurallyValid: true,
+      evidenceReferences: ["evidence://send-content"],
+      verifierMechanism: "witnessops-receipt-verifier-v1",
+      verifierResult: "valid",
+      limitations: [],
+      archiveLocation: "drive://receipts/send-content",
+    },
+    owner,
+  );
+  const linkedDelivery = (await listDeliveries(owner)).find(
+    (delivery) => delivery.id === prepared.id,
+  );
+  assert.ok(linkedDelivery);
+  assert.equal(
+    linkedDelivery.contentRevision,
+    approvedDraft.contentRevision + 1,
+  );
+
+  await transitionDelivery(
+    prepared.id,
+    "ready_for_operator_review",
+    owner,
+  );
+  await assert.rejects(
+    () => transitionDelivery(prepared.id, "sent", owner),
+    (error: unknown) =>
+      error instanceof AdminCoreError &&
+      error.code === "DELIVERY_SEND_REQUIRED" &&
+      error.status === 409,
+  );
+
+  const reservation = await reserveDeliverySend(
+    prepared.id,
+    owner,
+    `delivery-send:${prepared.id}`,
+  );
+  assert.equal(reservation.kind, "reserved");
+  assert.ok(reservation.kind === "reserved");
+  assert.equal(reservation.contentRevision, linkedDelivery.contentRevision);
+  assert.match(reservation.contentDigest, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(reservation.sendContent.subject, approvedDraft.subject);
+  assert.equal(reservation.sendContent.body, approvedDraft.body);
+  assert.equal(reservation.sendContent.receiptId, "receipt-send-content");
+
+  await assert.rejects(
+    () =>
+      updateDeliveryDraft(
+        prepared.id,
+        {
+          subject: "Benign replacement intended to conceal sent content",
+          body: "Replacement body.",
+        },
+        owner,
+      ),
+    (error: unknown) =>
+      error instanceof AdminCoreError &&
+      error.code === "DELIVERY_SEND_UNRESOLVED" &&
+      error.status === 409,
+  );
+  await assert.rejects(
+    () =>
+      linkReceiptToDelivery(
+        prepared.id,
+        {
+          receiptId: "receipt-send-content-replacement",
+          claimScope: "Replacement receipt must not rebind an in-flight send.",
+          structurallyValid: true,
+          evidenceReferences: ["evidence://send-content-replacement"],
+          verifierMechanism: "witnessops-receipt-verifier-v1",
+          verifierResult: "valid",
+          limitations: [],
+          archiveLocation: "drive://receipts/send-content-replacement",
+        },
+        owner,
+      ),
+    (error: unknown) =>
+      error instanceof AdminCoreError &&
+      error.code === "DELIVERY_SEND_UNRESOLVED" &&
+      error.status === 409,
+  );
+
+  const duringReservation = (await listDeliveries(owner)).find(
+    (delivery) => delivery.id === prepared.id,
+  );
+  assert.equal(duringReservation?.subject, approvedDraft.subject);
+  assert.equal(duringReservation?.body, approvedDraft.body);
+  assert.equal(duringReservation?.receiptId, "receipt-send-content");
+  assert.equal(
+    (await listReceiptRecords(owner)).some(
+      (receipt) => receipt.receiptId === "receipt-send-content-replacement",
+    ),
+    false,
+  );
+
+  await markDeliverySendOutcomeUnknown(
+    prepared.id,
+    reservation.reservationToken,
+    owner,
+  );
+  await assert.rejects(
+    () =>
+      updateDeliveryDraft(
+        prepared.id,
+        { subject: "Still blocked while outcome is unknown" },
+        owner,
+      ),
+    (error: unknown) =>
+      error instanceof AdminCoreError &&
+      error.code === "DELIVERY_SEND_UNRESOLVED",
+  );
+  await reconcileDeliverySendReservation(
+    prepared.id,
+    {
+      outcome: "not_sent",
+      note: "Provider evidence confirms the reserved message was not accepted.",
+    },
+    owner,
+  );
+
+  const corrected = await updateDeliveryDraft(
+    prepared.id,
+    {
+      subject: "Corrected delivery subject",
+      body: "Corrected customer-facing delivery body.",
+    },
+    owner,
+  );
+  assert.ok(corrected.contentRevision > reservation.contentRevision);
+  const retry = await reserveDeliverySend(
+    prepared.id,
+    owner,
+    `delivery-send:${prepared.id}:retry`,
+  );
+  assert.equal(retry.kind, "reserved");
+  assert.ok(retry.kind === "reserved");
+  assert.equal(retry.sendContent.subject, corrected.subject);
+  assert.equal(retry.sendContent.body, corrected.body);
+
+  const sent = await recordDeliverySent(
+    prepared.id,
+    {
+      provider: "file",
+      providerMessageId: "provider-send-content",
+      sentAt: "2026-08-19T02:00:00Z",
+    },
+    owner,
+    `delivery-send:${prepared.id}:retry`,
+    retry.reservationToken,
+  );
+  assert.equal(sent.state, "sent");
+  assert.equal(sent.sentContentRevision, retry.contentRevision);
+  assert.equal(sent.sentContentDigest, retry.contentDigest);
+  assert.equal(sent.subject, retry.sendContent.subject);
+  assert.equal(sent.body, retry.sendContent.body);
+
+  await assert.rejects(
+    () =>
+      updateDeliveryDraft(
+        prepared.id,
+        { body: "A sent delivery record must not be rewritten." },
+        owner,
+      ),
+    (error: unknown) =>
+      error instanceof AdminCoreError &&
+      error.code === "DELIVERY_CONTENT_IMMUTABLE" &&
+      error.status === 409,
+  );
+
+  await transitionDelivery(prepared.id, "failed", owner);
+  await transitionDelivery(prepared.id, "draft", owner);
+  await assert.rejects(
+    () =>
+      updateDeliveryDraft(
+        prepared.id,
+        { body: "A later state transition must not unlock sent content." },
+        owner,
+      ),
+    (error: unknown) =>
+      error instanceof AdminCoreError &&
+      error.code === "DELIVERY_CONTENT_IMMUTABLE" &&
+      error.status === 409,
+  );
 });
 
 test("delegated reads expose only assigned record lineages", async () => {
