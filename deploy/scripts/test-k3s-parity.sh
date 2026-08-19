@@ -383,6 +383,9 @@ assert_exit 0 compare_running_image_records \
   "${test_immutable_image}" "${test_config_digest}" 1 \
   "true|${test_immutable_image}|${test_config_digest}"
 assert_exit 0 compare_running_image_records \
+  "${test_immutable_image}" "${test_config_digest}" 1 \
+  "true|${test_immutable_image}|docker-pullable://docker.io/library/witnessops-web@${test_manifest_digest}"
+assert_exit 0 compare_running_image_records \
   "${test_immutable_image}" "${test_config_digest}" 2 \
   $'true|'"${test_immutable_image}"'|'"${test_config_digest}"$'\ntrue|'"${test_immutable_image}"'|containerd://'"${test_config_digest}"
 assert_exit 2 compare_running_image_records \
@@ -431,6 +434,8 @@ fi
 # --- prod deploy preflight and atomic patch ---
 # shellcheck source=k3s-lib.sh
 source "${K3S_LIB}"
+assert_exit 0 grep -Fq 'k3s ctr images check \"name==\${immutable_image}\"' \
+  "${K3S_LIB}"
 assert_exit 0 grep -Fqx \
   "ARG NODE22_BUILDER_IMAGE=${PINNED_NODE22_IMAGE}" \
   "${REPO_ROOT}/deploy/Dockerfile.mesh"
@@ -577,6 +582,8 @@ remote() {
   elif [[ "${command_text}" == *"get pods"*"containerStatuses"* ]]; then
     if [[ "${remote_mode}" == "running-image-id-drift" ]]; then
       printf '%s\n' "true|${image}|sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    elif [[ "${remote_mode}" == "running-manifest-image-id" ]]; then
+      printf '%s\n' "true|${image}|docker.io/library/witnessops-web@${manifest_digest}"
     else
       printf '%s\n' "true|${image}|${config_digest}"
     fi
@@ -753,6 +760,16 @@ else
   echo "FAIL: deploy_prod_image rejected valid preflight" >&2
 fi
 
+remote_mode="running-manifest-image-id"
+: > "${remote_log}"
+if deploy_prod_image "${image}" >/dev/null 2>&1; then
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image accepts a CRI manifest imageID"
+else
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image rejected a CRI manifest imageID" >&2
+fi
+
 remote_mode="running-image-id-drift"
 : > "${remote_log}"
 if (deploy_prod_image "${image}") >/dev/null 2>&1; then
@@ -874,6 +891,8 @@ kubectl() {
   elif [[ "$*" == *"get pods"*"containerStatuses"* ]]; then
     if [[ "${KUBECTL_TEST_MODE}" == "running-image-id-drift" ]]; then
       printf '%s\n' "true|${KUBECTL_TEST_IMAGE}|sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    elif [[ "${KUBECTL_TEST_MODE}" == "running-manifest-image-id" ]]; then
+      printf '%s\n' "true|${KUBECTL_TEST_IMAGE}|docker.io/library/witnessops-web@${KUBECTL_TEST_MANIFEST_DIGEST}"
     else
       printf '%s\n' "true|${KUBECTL_TEST_IMAGE}|${KUBECTL_TEST_CONFIG_DIGEST}"
     fi
@@ -887,6 +906,7 @@ export KUBECTL_TEST_LOG="${apply_log}"
 export KUBECTL_REQUIRED_OIDC_KEYS="${required_oidc_keys}"
 export KUBECTL_TEST_IMAGE="${image}"
 export KUBECTL_TEST_CONFIG_DIGEST="${config_digest}"
+export KUBECTL_TEST_MANIFEST_DIGEST="${manifest_digest}"
 export remote_log
 export KUBECTL_TEST_MODE="missing-key"
 apply_output=''
@@ -988,6 +1008,20 @@ if grep -Eq '(^| )(apply|create)( |$)' "${apply_log}"; then
 else
   fail=$((fail + 1))
   echo "FAIL: apply.sh did not continue after valid OIDC preflight" >&2
+fi
+
+export KUBECTL_TEST_MODE="running-manifest-image-id"
+: > "${apply_log}"
+if apply_output="$(WITNESSOPS_WEB_ENV_FILE="${PARITY}" \
+  WITNESSOPS_WEB_IMAGE="${image}" \
+  WITNESSOPS_WEB_CONFIG_DIGEST="${config_digest}" \
+  bash "${APPLY_SCRIPT}" 2>&1)"; then
+  pass=$((pass + 1))
+  echo "PASS: apply.sh accepts a CRI manifest imageID"
+else
+  fail=$((fail + 1))
+  echo "FAIL: apply.sh rejected a CRI manifest imageID" >&2
+  printf '%s\n' "${apply_output}" >&2
 fi
 
 export KUBECTL_TEST_MODE="running-image-id-drift"

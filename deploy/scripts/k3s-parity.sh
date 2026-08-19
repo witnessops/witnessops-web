@@ -216,11 +216,12 @@ normalize_runtime_image_id() {
   printf '%s' "${digest}"
 }
 
-# Each newline-delimited record is ready|image-ref|runtime-image-id. The image
-# ref is the immutable manifest identity; CRI reports the manifest-bound config
-# digest as imageID, so both coordinates are checked.
+# Each newline-delimited record is ready|pod-spec-image-ref|runtime-image-id.
+# Kubernetes preserves the requested immutable manifest in the Pod spec. CRI
+# implementations differ on imageID: containerd may report either that manifest
+# digest or its manifest-bound config digest. Accept only those two identities.
 compare_running_image_records() {
-  local expected_image expected_config expected_count records
+  local expected_image expected_manifest expected_config expected_count records
   local ready image image_id extra normalized_id count
   expected_image="${1:-}"
   expected_config="${2:-}"
@@ -228,6 +229,7 @@ compare_running_image_records() {
   records="${4:-}"
 
   validate_digest_container_image_ref "${expected_image}" || return 1
+  expected_manifest="$(image_digest_from_ref "${expected_image}")" || return 1
   validate_sha256_digest "${expected_config}" || return 1
   [[ "${expected_count}" =~ ^[1-9][0-9]*$ ]] || {
     printf 'invalid expected running replica count\n' >&2
@@ -247,9 +249,10 @@ compare_running_image_records() {
     fi
     compare_image_refs "${expected_image}" "${image}" || return 2
     normalized_id="$(normalize_runtime_image_id "${image_id}")" || return 2
-    if [[ "${normalized_id}" != "${expected_config}" ]]; then
-      printf 'runtime image ID mismatch: expected=%s actual=%s\n' \
-        "${expected_config}" "${normalized_id}" >&2
+    if [[ "${normalized_id}" != "${expected_manifest}" \
+      && "${normalized_id}" != "${expected_config}" ]]; then
+      printf 'runtime image ID mismatch: expected-manifest=%s expected-config=%s actual=%s\n' \
+        "${expected_manifest}" "${expected_config}" "${normalized_id}" >&2
       return 2
     fi
     count=$((count + 1))

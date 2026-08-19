@@ -130,7 +130,7 @@ if [[ ! "${desired_replicas}" =~ ^[1-9][0-9]*$ \
 fi
 
 running_records="$(kubectl -n "${DEPLOY_NS}" get pods -l "app=${PROD_DEPLOY}" \
-  -o go-template='{{range .items}}{{if eq .status.phase "Running"}}{{range .status.containerStatuses}}{{if eq .name "'"${APP_CONTAINER_NAME}"'"}}{{printf "%t|%s|%s\n" .ready .image .imageID}}{{end}}{{end}}{{end}}{{end}}')" || {
+  -o go-template='{{range .items}}{{if eq .status.phase "Running"}}{{$specImage := (index .spec.containers 0).image}}{{range .status.containerStatuses}}{{if eq .name "'"${APP_CONTAINER_NAME}"'"}}{{printf "%t|%s|%s\n" .ready $specImage .imageID}}{{end}}{{end}}{{end}}{{end}}')" || {
   echo "apply-k8s: could not inspect running image identity" >&2
   exit 1
 }
