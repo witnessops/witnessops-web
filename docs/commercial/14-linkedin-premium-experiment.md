@@ -25,15 +25,15 @@ Live LinkedIn admin surfaces were inspected on 2026-08-19 before mutation.
 | Followers | 5 | Baseline only; growth alone cannot justify renewal |
 | Page description | Existing description names the offer, price, timing conditions, limits, and non-secret first-contact boundary | Keep unchanged |
 | Website URL | `https://witnessops.com` | Keep unchanged |
-| Custom CTA | `Contact us` → untagged Public Exposure Review request URL; increased visibility on | Preserve label and visibility; change URL only after the repository attribution path is approved |
+| Custom CTA | Start state was `Contact us` → untagged Public Exposure Review request URL; increased visibility on | Tracked URL saved on 2026-08-19; label and visibility unchanged |
 | Page visitors | Premium visitor view available; four identifiable historical visitors visible at inspection, subject to member privacy settings | Treat every visit as a weak signal, never buyer intent |
 | Services | Service Page published; `Cybersecurity` selected; matching on; zero Premium and zero direct requests visible | Keep on because the available category is an acceptable, not exact, match and the service description narrows the scope |
 | Automatic invites | On | Keep on; do not add custom automation |
 | Similar-Page invites | 300/300 credits available; zero selected or sent during inspection | Founder review only under the policy below |
 | Verification | `Not available`; LinkedIn says Page verification becomes available only after the free trial renews | `UNAVAILABLE`; do not claim verified |
-| Credibility highlights | None | Two evidence-backed candidates prepared; public save requires explicit action-time approval |
+| Credibility highlights | None | Save attempt on 2026-08-19 exposed a mandatory image requirement; no highlight published; deferred pending explicit selection of an existing WitnessOps image |
 | Testimonial | Off; no authorised client testimonial found in the current repository search | `NOT_AVAILABLE`; do not publish |
-| Competitor insights | Pax8, Workday, Calm, Vanta, and Kustomer | Replace weak/irrelevant suggestions with the bounded set below after explicit approval |
+| Competitor insights | Start state was Pax8, Workday, Calm, Vanta, and Kustomer | Vanta, Intruder, 7ASecurity, and OnSecurity saved and re-opened successfully on 2026-08-19 |
 | Dynamic cover | Static WitnessOps cover present; Premium offers a slideshow | No change; low priority |
 
 Last-seven-day dashboard context at inspection: 29 search appearances, 0 new followers, 136 post impressions, and 6 Page visitors. A separate sidebar showed 13 visitors without a confirmed date window, so it is not used as the experiment baseline.
@@ -48,7 +48,7 @@ Do not store identifiable Page visitor or invite-candidate personal data in this
 
 ## CTA and first-party attribution
 
-Target CTA:
+Configured CTA (live 2026-08-19):
 
 - Label: `Contact us`
 - URL: `https://witnessops.com/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&utm_source=linkedin&utm_medium=company_page&utm_campaign=premium_trial_2026`
@@ -99,6 +99,8 @@ Clear relevance requires observable fit to a potential customer ICP, referral pa
 
 ## Credibility highlights
 
+Live status: `DEFERRED_IMAGE_REQUIRED`. LinkedIn rejected the first save with `Credibility image is required. Please upload an image.` The unsaved edit was discarded and the live highlights list remains empty.
+
 Prepared candidates, maximum two:
 
 | Highlight | Secondary text | Public evidence |
@@ -116,7 +118,7 @@ Repository searches for an authorised client testimonial returned no evidence. T
 
 ## Competitor insight set
 
-Target four Pages, for content intelligence and relative observation only:
+Configured four Pages, for content intelligence and relative observation only:
 
 | Page | Relevance |
 | --- | --- |
@@ -220,6 +222,9 @@ Compare the Company Page renewal price and Company Page-attributable evidence se
 - The target CTA, offer page, and synthetic sample URLs resolved successfully in a browser on 2026-08-19.
 - LinkedIn verification control reported `Not available` during the trial.
 - No authorised testimonial was found in the inspected repository search.
+- A fresh LinkedIn CTA form reload showed the tracked URL persisted with `Contact us` and increased visibility still on.
+- Reopening competitor configuration showed exactly Vanta, Intruder, 7ASecurity, and OnSecurity.
+- LinkedIn's highlight save validation required an image; no highlight was published.
 
 ### INFERENCE
 
