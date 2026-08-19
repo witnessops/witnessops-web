@@ -63,9 +63,9 @@ export async function POST(request: Request) {
     );
   }
 
-  let doc: Record<string, unknown>;
+  let doc: unknown;
   try {
-    doc = JSON.parse(raw) as Record<string, unknown>;
+    doc = JSON.parse(raw) as unknown;
   } catch {
     return NextResponse.json(
       { ok: false, verdict: "mesh_gate_invalid", errors: ["malformed JSON"] },
