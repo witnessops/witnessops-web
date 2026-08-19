@@ -1,6 +1,6 @@
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import { getWorkflowSkus } from "@witnessops/catalog";
 import { listReceipts } from "@/lib/receipts";
@@ -267,6 +267,9 @@ export interface DeliveryRecord {
   verificationInstructions: string;
   customerWordingReviewed: boolean;
   unsupportedClaims: string[];
+  contentRevision: number;
+  sentContentRevision: number | null;
+  sentContentDigest: string | null;
   provider: string | null;
   providerMessageId: string | null;
   sentAt: string | null;
@@ -274,6 +277,20 @@ export interface DeliveryRecord {
   failure: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export const DELIVERY_SEND_CONTENT_SCHEMA =
+  "witnessops.delivery-send-content.v1" as const;
+
+export interface DeliverySendContentSnapshot {
+  schema: typeof DELIVERY_SEND_CONTENT_SCHEMA;
+  receiptId: string | null;
+  subject: string;
+  body: string;
+  downloadLinks: string[];
+  verificationInstructions: string;
+  customerWordingReviewed: boolean;
+  unsupportedClaims: string[];
 }
 
 export interface AuditEventRecord {
@@ -311,6 +328,9 @@ export interface DeliverySendReservationRecord {
   reservedAt: string;
   status: "reserved" | "sent" | "failed" | "outcome_unknown";
   completedAt: string | null;
+  contentRevision?: number;
+  contentDigest?: string;
+  contentSnapshot?: DeliverySendContentSnapshot;
 }
 
 export interface DeliverySendReservationStatus {
@@ -552,6 +572,101 @@ function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
+function deliveryContentSnapshot(
+  delivery: DeliveryRecord,
+): DeliverySendContentSnapshot {
+  return {
+    schema: DELIVERY_SEND_CONTENT_SCHEMA,
+    receiptId: delivery.receiptId,
+    subject: delivery.subject,
+    body: delivery.body,
+    downloadLinks: [...delivery.downloadLinks],
+    verificationInstructions: delivery.verificationInstructions,
+    customerWordingReviewed: delivery.customerWordingReviewed,
+    unsupportedClaims: [...delivery.unsupportedClaims],
+  };
+}
+
+function deliveryContentDigest(snapshot: DeliverySendContentSnapshot): string {
+  const digest = createHash("sha256")
+    .update(JSON.stringify(snapshot), "utf8")
+    .digest("hex");
+  return `sha256:${digest}`;
+}
+
+function requireDeliveryContentMutable(
+  state: CoreState,
+  delivery: DeliveryRecord,
+): void {
+  const reservation = state.deliverySendReservations[delivery.id];
+  if (
+    reservation?.status === "reserved" ||
+    reservation?.status === "outcome_unknown"
+  ) {
+    throw new AdminCoreError(
+      "DELIVERY_SEND_UNRESOLVED",
+      "Delivery content cannot change while its send outcome is unresolved.",
+      409,
+    );
+  }
+  if (
+    delivery.state === "sent" ||
+    delivery.state === "acknowledged" ||
+    delivery.state === "superseded" ||
+    reservation?.status === "sent" ||
+    delivery.sentAt !== null ||
+    delivery.sentContentRevision !== null ||
+    delivery.sentContentDigest !== null
+  ) {
+    throw new AdminCoreError(
+      "DELIVERY_CONTENT_IMMUTABLE",
+      "Sent delivery content is immutable.",
+      409,
+    );
+  }
+}
+
+function requireReservationContentBinding(
+  delivery: DeliveryRecord,
+  reservation: DeliverySendReservationRecord,
+): { contentRevision: number; contentDigest: string } {
+  const contentRevision = reservation.contentRevision;
+  const contentDigest = reservation.contentDigest;
+  const contentSnapshot = reservation.contentSnapshot;
+  if (
+    typeof contentRevision !== "number" ||
+    !Number.isSafeInteger(contentRevision) ||
+    contentRevision < 1 ||
+    typeof contentDigest !== "string" ||
+    !contentDigest.startsWith("sha256:") ||
+    !contentSnapshot
+  ) {
+    throw new AdminCoreError(
+      "DELIVERY_CONTENT_BINDING_MISSING",
+      "The delivery send reservation has no immutable content binding.",
+      409,
+    );
+  }
+
+  const reservedSnapshotDigest = deliveryContentDigest(contentSnapshot);
+  const currentSnapshotDigest = deliveryContentDigest(
+    deliveryContentSnapshot(delivery),
+  );
+  if (
+    reservedSnapshotDigest !== contentDigest ||
+    currentSnapshotDigest !== contentDigest ||
+    delivery.contentRevision !== contentRevision
+  ) {
+    throw new AdminCoreError(
+      "DELIVERY_CONTENT_REVISION_CONFLICT",
+      "Delivery content no longer matches the reserved send revision.",
+      409,
+    );
+  }
+
+  return { contentRevision, contentDigest };
+}
+
 function id(prefix: string): string {
   return `${prefix}_${randomUUID().replaceAll("-", "")}`;
 }
@@ -635,6 +750,21 @@ async function readState(): Promise<CoreState> {
     }
     parsed.gmailSyncReceipts ??= [];
     parsed.deliverySendReservations ??= {};
+    for (const delivery of parsed.deliveries) {
+      delivery.contentRevision ??= 1;
+      delivery.sentContentRevision ??= null;
+      delivery.sentContentDigest ??= null;
+      if (
+        !Number.isSafeInteger(delivery.contentRevision) ||
+        delivery.contentRevision < 1
+      ) {
+        throw new AdminCoreError(
+          "STORE_CORRUPT",
+          "Delivery content revision is invalid.",
+          500,
+        );
+      }
+    }
     return parsed;
   } catch (error) {
     if (error instanceof AdminCoreError) throw error;
@@ -1924,6 +2054,9 @@ export async function prepareDelivery(
       verificationInstructions: run.verificationInstructions,
       customerWordingReviewed: run.customerWordingReviewed,
       unsupportedClaims: [...run.unsupportedClaims],
+      contentRevision: 1,
+      sentContentRevision: null,
+      sentContentDigest: null,
       provider: null,
       providerMessageId: null,
       sentAt: null,
@@ -1961,7 +2094,17 @@ export async function updateDeliveryDraft(
     const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
     if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
     requireDeliveryAssignment(state, delivery, actor);
+    requireDeliveryContentMutable(state, delivery);
+    const previousContentDigest = deliveryContentDigest(
+      deliveryContentSnapshot(delivery),
+    );
     Object.assign(delivery, Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)));
+    const nextContentDigest = deliveryContentDigest(
+      deliveryContentSnapshot(delivery),
+    );
+    if (nextContentDigest !== previousContentDigest) {
+      delivery.contentRevision += 1;
+    }
     delivery.updatedAt = isoNow();
     appendAudit(state, {
       recordType: "delivery",
@@ -2024,6 +2167,13 @@ export async function transitionDelivery(
     const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
     if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
     requireDeliveryAssignment(state, delivery, actor);
+    if (nextState === "sent") {
+      throw new AdminCoreError(
+        "DELIVERY_SEND_REQUIRED",
+        "Delivery must be sent through the reserved send action.",
+        409,
+      );
+    }
     const sendReservation = state.deliverySendReservations[deliveryId];
     if (
       sendReservation?.status === "reserved" ||
@@ -2119,6 +2269,7 @@ export async function linkReceiptToDelivery(
     const delivery = state.deliveries.find((candidate) => candidate.id === deliveryId);
     if (!delivery) throw new AdminCoreError("NOT_FOUND", "Delivery not found.", 404);
     const run = requireDeliveryAssignment(state, delivery, actor);
+    requireDeliveryContentMutable(state, delivery);
     const receiptId = assertNonEmpty(input.receiptId, "receiptId");
     const mechanism = assertNonEmpty(input.verifierMechanism, "verifierMechanism");
     const verifierResult = assertNonEmpty(input.verifierResult, "verifierResult");
@@ -2203,7 +2354,10 @@ export async function linkReceiptToDelivery(
         error: null,
       });
     }
-    delivery.receiptId = receipt.receiptId;
+    if (delivery.receiptId !== receipt.receiptId) {
+      delivery.receiptId = receipt.receiptId;
+      delivery.contentRevision += 1;
+    }
     delivery.updatedAt = isoNow();
     appendAudit(state, {
       recordType: "receipt",
@@ -2248,6 +2402,10 @@ export async function recordDeliverySent(
         409,
       );
     }
+    const contentBinding = requireReservationContentBinding(
+      delivery,
+      reservation,
+    );
     requireTransition("delivery", delivery.state, "sent", deliveryTransitions);
     const readiness = buildDeliveryReadinessSync(state, delivery.id);
     if (readiness.fail.length > 0 || readiness.unresolved.length > 0) {
@@ -2258,6 +2416,8 @@ export async function recordDeliverySent(
     delivery.provider = result.provider;
     delivery.providerMessageId = result.providerMessageId;
     delivery.sentAt = result.sentAt;
+    delivery.sentContentRevision = contentBinding.contentRevision;
+    delivery.sentContentDigest = contentBinding.contentDigest;
     delivery.failure = null;
     delivery.updatedAt = isoNow();
     state.idempotency[idempotencyKey] = { recordType: "delivery", recordId: delivery.id };
@@ -2281,8 +2441,8 @@ export async function recordDeliverySent(
       actor: actor.actor,
       previousState: previous,
       resultingState: delivery.state,
-      integrationResult: `${result.provider}:${result.providerMessageId ?? "no-provider-id"}`,
-      linkedExternalIds: [delivery.proofRunId, ...(delivery.receiptId ? [delivery.receiptId] : [])],
+      integrationResult: `${result.provider}:${result.providerMessageId ?? "no-provider-id"}; content=${contentBinding.contentDigest}`,
+      linkedExternalIds: [delivery.proofRunId, ...(delivery.receiptId ? [delivery.receiptId] : []), contentBinding.contentDigest],
       failureDetails: null,
       lineageId: delivery.lineageId,
     });
@@ -2305,6 +2465,9 @@ export type DeliverySendReservationResult =
       kind: "reserved";
       delivery: DeliveryRecord;
       reservationToken: string;
+      contentRevision: number;
+      contentDigest: string;
+      sendContent: DeliverySendContentSnapshot;
     }
   | {
       kind: "replay";
@@ -2352,6 +2515,9 @@ export async function reserveDeliverySend(
 
     const now = isoNow();
     const reservationToken = id("sendres");
+    const contentRevision = delivery.contentRevision;
+    const contentSnapshot = deliveryContentSnapshot(delivery);
+    const contentDigest = deliveryContentDigest(contentSnapshot);
     state.deliverySendReservations[deliveryId] = {
       deliveryId,
       idempotencyKey: normalizedKey,
@@ -2360,6 +2526,9 @@ export async function reserveDeliverySend(
       reservedAt: now,
       status: "reserved",
       completedAt: null,
+      contentRevision,
+      contentDigest,
+      contentSnapshot,
     };
     appendIntegration(state, {
       integration: "mail",
@@ -2377,8 +2546,8 @@ export async function reserveDeliverySend(
       actor: actor.actor,
       previousState: delivery.state,
       resultingState: delivery.state,
-      integrationResult: "mail:reserved",
-      linkedExternalIds: [delivery.proofRunId],
+      integrationResult: `mail:reserved; content=${contentDigest}`,
+      linkedExternalIds: [delivery.proofRunId, contentDigest],
       failureDetails: null,
       lineageId: delivery.lineageId,
     });
@@ -2386,6 +2555,9 @@ export async function reserveDeliverySend(
       kind: "reserved",
       delivery: clone(delivery),
       reservationToken,
+      contentRevision,
+      contentDigest,
+      sendContent: clone(contentSnapshot),
     };
   });
 }
@@ -2522,6 +2694,10 @@ export async function reconcileDeliverySendReservation(
         "sentAt must be a valid timestamp.",
       );
     }
+    const contentBinding = requireReservationContentBinding(
+      delivery,
+      reservation,
+    );
     requireTransition("delivery", delivery.state, "sent", deliveryTransitions);
     const readiness = buildDeliveryReadinessSync(state, delivery.id);
     if (readiness.fail.length > 0 || readiness.unresolved.length > 0) {
@@ -2538,6 +2714,8 @@ export async function reconcileDeliverySendReservation(
     delivery.provider = provider;
     delivery.providerMessageId = providerMessageId;
     delivery.sentAt = sentAt.toISOString();
+    delivery.sentContentRevision = contentBinding.contentRevision;
+    delivery.sentContentDigest = contentBinding.contentDigest;
     delivery.failure = null;
     delivery.updatedAt = now;
     reservation.status = "sent";
@@ -2562,10 +2740,11 @@ export async function reconcileDeliverySendReservation(
       actor: actor.actor,
       previousState: previous,
       resultingState: delivery.state,
-      integrationResult: `${provider}:${providerMessageId ?? "no-provider-id"}`,
+      integrationResult: `${provider}:${providerMessageId ?? "no-provider-id"}; content=${contentBinding.contentDigest}`,
       linkedExternalIds: [
         delivery.proofRunId,
         ...(delivery.receiptId ? [delivery.receiptId] : []),
+        contentBinding.contentDigest,
       ],
       failureDetails: note,
       lineageId: delivery.lineageId,

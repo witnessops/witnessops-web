@@ -338,8 +338,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
         result = await sendVerificationEmail({
           to: customer.email,
           replyTo: PUBLIC_CONTACT_EMAIL,
-          subject: delivery.subject,
-          text: delivery.body,
+          subject: reservation.sendContent.subject,
+          text: reservation.sendContent.body,
           deliveryAttemptId: delivery.id,
         });
       } catch {
