@@ -1,6 +1,6 @@
 import test, { afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, writeFile } from "node:fs/promises";
 import { generateKeyPairSync, randomBytes } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
@@ -32,6 +32,26 @@ afterEach(() => {
   delete process.env.WITNESSOPS_M365_CERT_PATH;
   delete process.env.WITNESSOPS_M365_KEY_PATH;
   delete process.env.WITNESSOPS_M365_SENDER_USER_ID;
+  delete process.env.WITNESSOPS_MAIL_OUTPUT_DIR;
+});
+
+test("sendVerificationEmail rejects CRLF header injection before provider delivery", async () => {
+  const outputDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-mail-header-"));
+  process.env.WITNESSOPS_MAIL_PROVIDER = "file";
+  process.env.WITNESSOPS_TOKEN_FROM_EMAIL = "engage@newdomain.example";
+  process.env.WITNESSOPS_MAIL_OUTPUT_DIR = outputDir;
+
+  await assert.rejects(
+    () =>
+      sendVerificationEmail({
+        to: "operator@example.com",
+        subject: "Approved request\r\nBcc: injected@example.com",
+        text: "This must not be delivered.",
+      }),
+    /Invalid Subject mail header value\./,
+  );
+
+  assert.deepEqual(await readdir(outputDir), []);
 });
 
 test("sendVerificationEmail sends via Microsoft 365 Graph with app-only auth", async () => {

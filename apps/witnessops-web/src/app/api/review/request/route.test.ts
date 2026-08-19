@@ -27,6 +27,7 @@ function applyTestEnv(baseDir: string): void {
 
 afterEach(async () => {
   await clearTokenStore();
+  delete process.env.WITNESSOPS_PUBLIC_ISSUANCE_DAILY_LIMIT;
 });
 
 test("review request route issues a security-workflow package verification email", async () => {
@@ -144,4 +145,36 @@ test("review request route redacts upstream issuance errors", async () => {
   const payload = (await response.json()) as { ok: false; error: string };
   assert.equal(payload.ok, false);
   assert.equal(payload.error, "Unable to issue verification token.");
+});
+
+test("review request enforces the durable public issuance budget before a second write or send", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-budget-"));
+  applyTestEnv(baseDir);
+  process.env.WITNESSOPS_PUBLIC_ISSUANCE_DAILY_LIMIT = "1";
+
+  const request = (email: string) =>
+    POST(
+      new Request("https://witnessops.com/api/review/request", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+  assert.equal((await request("first@example.com")).status, 201);
+  const blocked = await request("second@example.com");
+  assert.equal(blocked.status, 503);
+  assert.deepEqual(await blocked.json(), {
+    ok: false,
+    error: "Verification requests are temporarily unavailable.",
+  });
+  assert.equal(
+    (
+      await readdir(
+        path.join(process.env.WITNESSOPS_TOKEN_STORE_DIR!, "intakes"),
+      )
+    ).length,
+    1,
+  );
+  assert.equal((await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length, 1);
 });

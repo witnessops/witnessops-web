@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test, { after } from "node:test";
@@ -108,6 +108,34 @@ test("receipt storage refuses writes at the configured file limit", async () => 
   );
   assert.equal(first.ok, true);
   assert.deepEqual(second, { ok: false, reason: "CAPACITY_FILE_LIMIT" });
+  rmSync(root, { recursive: true, force: true });
+});
+
+test("receipt retention prunes expired receipts before applying the file limit", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "witnessops-ask-retention-"));
+  const expiredPath = path.join(root, "ask-receipt-expired.json");
+  writeFileSync(
+    expiredPath,
+    JSON.stringify({
+      schema: "witnessops.ask.runtime-receipt.v1",
+      receipt_id: "ask-receipt:expired",
+      created_at: "2000-01-01T00:00:00.000Z",
+    }),
+  );
+  utimesSync(expiredPath, new Date("2000-01-01T00:00:00.000Z"), new Date("2000-01-01T00:00:00.000Z"));
+
+  const result = await writeReceipt(
+    {
+      schema: "witnessops.ask.runtime-receipt.v1",
+      receipt_id: "ask-receipt:current",
+      created_at: new Date().toISOString(),
+    } as AskRuntimeReceipt,
+    root,
+    { maxFiles: 1, maxBytes: 1024 * 1024, minFreeBytes: 1, retentionMs: 1 },
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(existsSync(expiredPath), false);
   rmSync(root, { recursive: true, force: true });
 });
 

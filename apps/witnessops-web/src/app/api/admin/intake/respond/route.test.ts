@@ -187,6 +187,30 @@ test("admin respond route sends the first external reply and records responded",
   );
 });
 
+test("admin respond route rejects a CRLF subject before reserving delivery", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-respond-header-"));
+  const intake = await createAdmittedSupportIntake(baseDir);
+
+  const response = await POST(
+    new NextRequest("http://localhost:3001/api/admin/intake/respond", {
+      method: "POST",
+      body: JSON.stringify({
+        intakeId: intake.intakeId,
+        subject: "Re: WitnessOps support request\r\nBcc: injected@example.com",
+        body: "This must not reserve or send a delivery.",
+      }),
+      headers: { "Content-Type": "application/json", host: "localhost:3001" },
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    error: "intakeId, subject, and body are required.",
+  });
+  assert.equal((await getIntakeById(intake.intakeId))?.state, "admitted");
+});
+
 test("admin respond route is idempotent after the first responded event", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-respond-"));
   const intake = await createAdmittedSupportIntake(baseDir);
