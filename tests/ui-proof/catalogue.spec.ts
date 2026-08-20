@@ -64,7 +64,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
       {
         price: "eur_1900_ex_vat_one_authorised_public_facing_system",
         timing:
-          "three_business_days_after_payment_accepted_sow_authority_scope_required_inputs_and_collection_window_confirmed",
+          "within_24_hours_after_agreed_payment_condition_accepted_sow_written_authority_fixed_scope_required_inputs_and_approved_collection_window_confirmed",
       },
       {
         price: "eur_2500_to_7500",
@@ -163,18 +163,22 @@ test("Public Exposure Review pricing entry preserves sample and intake links", a
     "€1,900 ex VAT — one authorised public-facing system",
   );
   await expect(card).toContainText("One focused retest within 30 days is included");
+  await expect(card).toContainText("Full payment is recommended");
+  await expect(card).toContainText("two €950 instalments");
+  await expect(card).toContainText("Payment alone does not authorise testing");
   await expect(
     card.locator('a[href="/review/sample-cases/external-exposure-assessment"]'),
   ).toHaveText("Inspect synthetic sample");
 
   const fitHref = await card
-    .getByRole("link", { name: "Order the review" })
+    .getByRole("link", { name: "Request the review" })
     .getAttribute("href");
   expect(
     new URL(fitHref ?? "", "http://witnessops.test").searchParams.get(
       "productId",
     ),
   ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
+  await expect(page.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]')).toHaveCount(0);
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

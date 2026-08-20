@@ -45,13 +45,16 @@ test("Public Exposure Review preserves the fixed-price commercial contract", () 
   assert.equal(sku.price.anchor_eur_max, 1900);
   assert.equal(
     service.timing.en,
-    "Within 3 working days after payment, accepted scope, authority, required inputs, and the collection window are confirmed",
+    "Within 24 hours after the agreed payment condition, accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
   );
 
   const landing = getServiceLanding(service.id, "en");
   assert.match(landing.commercialNote ?? "", /€1,900 ex VAT/i);
   assert.match(landing.commercialNote ?? "", /one authorised public-facing system/i);
   assert.match(landing.commercialNote ?? "", /No sales call required/i);
+  assert.match(landing.commercialNote ?? "", /Full payment is recommended/i);
+  assert.match(landing.commercialNote ?? "", /two €950 instalments/i);
+  assert.match(landing.commercialNote ?? "", /Payment alone does not authorise testing/i);
   assert.doesNotMatch(landing.commercialNote ?? "", /first three|€2,500/i);
   assert.match(landing.deliverables.join("\n"), /one focused retest within 30 days/i);
 });

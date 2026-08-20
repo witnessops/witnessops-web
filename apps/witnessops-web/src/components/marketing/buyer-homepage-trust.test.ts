@@ -33,7 +33,7 @@ test("Public Exposure Review constants stay named, priced, timed, and bounded", 
   assert.equal(offer?.name.pl, "Public Exposure Review");
   assert.equal(offer?.productId, "OFFSEC-EXTERNAL-EXPOSURE");
   assert.equal(offer?.price.en, "€1,900 ex VAT — one authorised public-facing system");
-  assert.match(offer?.timing.en ?? "", /Within 3 working days after/);
+  assert.match(offer?.timing.en ?? "", /Within 24 hours after/);
   assert.match(offer?.boundary.en ?? "", /No exploitation/);
   assert.match(offer?.boundary.en ?? "", /Unauthenticated outside-in checks only/);
   assert.match(source, /Public Exposure Review/);
@@ -41,11 +41,11 @@ test("Public Exposure Review constants stay named, priced, timed, and bounded", 
   assert.match(source, /Bez eksploatacji · Stały zakres · Bez poświadczeń/);
   assert.match(
     source,
-    /€1,900 ex VAT · 3 working days after accepted start conditions · 1 authorised public-facing system/,
+    /€1,900 ex VAT · delivery within 24 hours after accepted start conditions · 1 authorised public-facing system/,
   );
   assert.match(
     source,
-    /€1 900 netto · 3 dni robocze po spełnieniu zaakceptowanych warunków startu · 1 autoryzowany system publicznie dostępny/,
+    /€1 900 netto · dostawa w ciągu 24 godzin po spełnieniu zaakceptowanych warunków startu · 1 autoryzowany system publicznie dostępny/,
   );
   assert.match(source, /one authorised public-facing system/);
   assert.match(
@@ -54,10 +54,10 @@ test("Public Exposure Review constants stay named, priced, timed, and bounded", 
   );
   assert.doesNotMatch(source, /open-ended pentest/i);
   assert.doesNotMatch(source, /guarantees? (?:that )?the system is secure/i);
-  assert.doesNotMatch(source, /€1,900 ex VAT · 3 working days · 1 authorised/);
+  assert.doesNotMatch(source, /€1,900 ex VAT · 24 hours · 1 authorised/);
   assert.doesNotMatch(
     source,
-    /€1,900 ex VAT · 3 working days after start conditions · 1 authorised/,
+    /€1,900 ex VAT · 24 hours after start conditions · 1 authorised/,
   );
 });
 

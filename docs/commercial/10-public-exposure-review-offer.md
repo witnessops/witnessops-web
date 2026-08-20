@@ -43,8 +43,9 @@ No exploitation, authenticated application testing, password testing, brute forc
 
 - **Fixed fee:** €1,900 excluding VAT for the named package boundary.
 - **Ordering:** no sales call is required. The request begins asynchronous scope acceptance; it does not authorise testing.
+- **Payment:** full payment of €1,900 is recommended. Two €950 instalments are available by agreement after scope acceptance. Payment alone does not authorise testing.
 - **Availability:** subject to written scope acceptance and confirmed operator capacity.
-- **Delivery:** within three working days after payment, accepted SOW, written authority, scope freeze, required inputs, and the approved collection window are all confirmed.
+- **Delivery:** within 24 hours after the agreed payment condition, accepted SOW, written authority, scope freeze, required inputs, and the approved collection window are all confirmed.
 - **Retest:** one focused retest within 30 days is included; an additional or late retest is €550 excluding VAT.
 
 Customer-caused approval, attribution, scheduling, outage, or scope-change delays pause the delivery clock. The service does not guarantee security, completeness, compliance, third-party acceptance, or absence of vulnerabilities.
@@ -59,7 +60,7 @@ Use: <https://witnessops.com/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE>
 
 ## Operator validation boundary — do not include in buyer copy
 
-- **Known:** the public contract fixes the name, €1,900 ex-VAT price, boundary, exclusions, start conditions, handover, and included retest.
-- **Inferred:** the package is deliverable inside the three-working-day clock when every start condition is complete and the caps hold.
+- **Known:** the public contract fixes the name, €1,900 ex-VAT price, optional two-instalment structure, boundary, exclusions, start conditions, handover, and included retest.
+- **Owner-authorised commitment:** delivery within 24 hours when every start condition is complete, operator capacity is confirmed, and the caps hold. This is a forward-looking service commitment, not past-performance evidence.
 - **Unknown:** actual delivery hours, buyer willingness to pay, close rate, margin, and which trigger produces the strongest qualified demand.
 - **Required evidence:** aggregate enquiry, scope-fit, conversion, delivery-time, and objection data. Do not convert assumptions into public claims.
