@@ -214,6 +214,10 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "guarantees compliance",
       "Intended standard price after validation",
       "first three accepted engagements",
+      "Within 24 hours after the agreed payment condition",
+      "delivery within 24 hours after accepted start conditions",
+      "Full payment is recommended",
+      "two €950 instalments",
     ],
   },
   {
