@@ -8,7 +8,7 @@ import { organizationJsonLd, websiteJsonLd } from "@/lib/public-seo";
 export const metadata: Metadata = {
   title: "Public Exposure Review",
   description:
-    "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego, dostarczony w ciągu 24 godzin po spełnieniu zaakceptowanych warunków startu za €1 900 netto.",
+    "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego, dostarczony w ciągu trzech dni roboczych po spełnieniu wszystkich warunków startu za €1 900 netto.",
   alternates: languageAlternates("/pl", { en: "/", pl: "/pl" }),
 };
 
