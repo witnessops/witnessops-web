@@ -56,7 +56,7 @@ All of the following should be true:
 - Passive discovery and named low-impact checks are acceptable.
 - A decision owner can approve scope and stop conditions.
 - An engineering owner can act on findings.
-- The deadline allows three working days after payment in full, an accepted SOW, written authority, scope freeze, required inputs, and the approved collection window are confirmed.
+- The deadline allows three working days after payment in full or a written invitation-only design-partner fee waiver, an accepted SOW, written authority, scope freeze, required inputs, and the approved collection window are confirmed.
 
 ### Custom scope or referral
 
