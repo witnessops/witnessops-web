@@ -64,7 +64,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
       {
         price: "eur_1900_ex_vat_one_authorised_public_facing_system",
         timing:
-          "three_working_days_after_payment_confirmed_or_written_fee_waiver_accepted_sow_written_authority_fixed_scope_required_inputs_and_approved_collection_window_confirmed",
+          "three_working_days_after_payment_in_full_accepted_sow_written_authority_fixed_scope_required_inputs_and_approved_collection_window_confirmed",
       },
       {
         price: "eur_2500_to_7500",
