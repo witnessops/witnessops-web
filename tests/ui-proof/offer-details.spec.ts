@@ -30,7 +30,7 @@ const offers = [
     service: "external-exposure-assessment",
     name: "Public Exposure Review",
     price: "€1,900 ex VAT — one authorised public-facing system",
-    timing: "Within 3 working days after payment in full, accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
+    timing: "Within 3 working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
     request: "/review/request",
   },
   {
