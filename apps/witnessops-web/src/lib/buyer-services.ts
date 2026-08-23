@@ -192,7 +192,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "€1 900 netto — jeden autoryzowany system publicznie dostępny",
     },
     timing: {
-      en: "Within 3 working days after payment in full, accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
+      en: "Within 3 working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
       pl: "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
     },
     boundary: {
