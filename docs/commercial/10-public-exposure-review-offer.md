@@ -8,7 +8,7 @@
 
 ### See what the internet sees
 
-The **Public Exposure Review** is a manually reviewed, unauthenticated outside-in review of one authorised public-facing system. WitnessOps combines passive discovery with explicitly approved, low-impact checks, then delivers evidence-linked findings, named unknowns, and an inspectable handover package.
+The **Public Exposure Review** is a manually reviewed, unauthenticated outside-in review of one authorised public-facing system. It uses passive discovery where applicable, followed by explicitly approved, low-impact checks against the signed target schedule. WitnessOps then delivers evidence-linked findings, named unknowns, and an inspectable handover package.
 
 Buy it when an enterprise security request, launch, infrastructure change, investor or board review, or upcoming penetration test creates a real decision deadline. If the receiving party requires exploitation, authenticated testing, an accredited penetration test, certification, or formal attestation, this is not the right service.
 
@@ -18,7 +18,7 @@ Buy it when an enterprise security request, launch, infrastructure change, inves
 - Up to 10 confirmed first-party hostnames.
 - Up to 3 customer-attributed public IP addresses.
 - Up to 20 public service endpoints. An endpoint is one confirmed hostname or IP plus protocol and port.
-- Passive discovery and pre-approved low-impact DNS, TLS, HTTP(S), service-identification, and allowlisted exposure checks.
+- Passive discovery where applicable, followed by explicitly approved low-impact DNS, TLS, HTTP(S), service-identification, and allowlisted exposure checks against the signed target schedule.
 - Unauthenticated, outside-in review only.
 - Manual validation, deduplication, prioritisation, and remediation guidance.
 

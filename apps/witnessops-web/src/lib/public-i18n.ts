@@ -59,7 +59,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     process: [
       "Potwierdzamy decyzję, odbiorcę wyniku, granicę celu i to, czy ocena podatności jest akceptowana.",
       "Zamrażamy upoważnienie, zakres first-party, zatwierdzone kontrole, okno i warunki zatrzymania.",
-      "Wykonujemy dopuszczone kontrole pasywne i niskiego ryzyka z perspektywy zewnętrznej.",
+      "Tam, gdzie ma to zastosowanie, wykorzystujemy pasywne wykrywanie, a następnie wykonujemy wyłącznie jawnie zatwierdzone kontrole niskiego ryzyka zgodnie z podpisanym harmonogramem celów.",
       "Ręcznie weryfikujemy, usuwamy duplikaty, ustalamy priorytety i łączymy ustalenia z materiałami.",
       "Przekazujemy raporty i pakiet do sprawdzenia oraz wykonujemy jeden ukierunkowany retest w ciągu 30 dni.",
     ],
