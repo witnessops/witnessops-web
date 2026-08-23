@@ -56,7 +56,7 @@ All of the following should be true:
 - Passive discovery and named low-impact checks are acceptable.
 - A decision owner can approve scope and stop conditions.
 - An engineering owner can act on findings.
-- The deadline allows 24 hours after the agreed payment condition, accepted SOW, written authority, scope freeze, required inputs, and the approved collection window are confirmed.
+- The deadline allows three working days after payment in full, an accepted SOW, written authority, scope freeze, required inputs, and the approved collection window are confirmed.
 
 ### Custom scope or referral
 
@@ -85,10 +85,10 @@ a custom-scope request / not a fit] because [one specific boundary reason].
 [If fit]
 The review covers one authorised public-facing system within the 10-hostname / 3-IP /
 20-endpoint caps, using passive discovery and explicitly approved low-impact checks.
-The fixed fee is €1,900 excluding VAT. Full payment is recommended; two €950 instalments
-are available by agreement after scope acceptance. Payment alone does not authorise testing.
-Delivery is due within 24 hours after the agreed payment condition, accepted SOW, written
-authority, fixed scope, required inputs, and the approved collection window are confirmed.
+The fixed fee is €1,900 excluding VAT. Payment is due in full before the delivery clock
+starts. Payment alone does not authorise testing. Delivery is due within three working days
+after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and
+the approved collection window are confirmed.
 One focused retest within 30 days is included.
 
 Next we will send the fixed-scope statement of work and target/check schedule. Do not
