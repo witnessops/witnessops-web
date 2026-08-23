@@ -45,7 +45,7 @@ test("Public Exposure Review preserves the fixed-price commercial contract", () 
   assert.equal(sku.price.anchor_eur_max, 1900);
   assert.equal(
     service.timing.en,
-    "Within 3 working days after payment in full, accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
+    "Within 3 working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
   );
 
   const landing = getServiceLanding(service.id, "en");
