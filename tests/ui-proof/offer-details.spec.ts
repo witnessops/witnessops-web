@@ -30,7 +30,7 @@ const offers = [
     service: "external-exposure-assessment",
     name: "Public Exposure Review",
     price: "€1,900 ex VAT — one authorised public-facing system",
-    timing: "Within 24 hours after the agreed payment condition, accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
+    timing: "Within 3 working days after payment in full, accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
     request: "/review/request",
   },
   {
@@ -70,7 +70,7 @@ const offers = [
     service: "external-exposure-assessment",
     name: "Public Exposure Review",
     price: "€1 900 netto — jeden autoryzowany system publicznie dostępny",
-    timing: "W ciągu 24 godzin po potwierdzeniu uzgodnionego warunku płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
+    timing: "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
     request: "/pl/review/request",
   },
   {
