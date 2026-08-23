@@ -31,7 +31,7 @@ Public Exposure Review — non-secret request and fit check
 7. Are a CDN, hosting provider, shared platform, managed service, or other third party
    part of the boundary? Name the provider class only.
 
-8. Is passive discovery plus approval-gated low-impact checking sufficient, or do you
+8. Is passive discovery where applicable, followed by approval-gated low-impact checking, sufficient, or do you
    need exploitation, authenticated testing, password testing, or an accredited pentest?
 
 9. Who can approve scope and stop conditions, and who will own remediation?
@@ -53,7 +53,7 @@ All of the following should be true:
 - One owned or explicitly authorised public-facing system.
 - The buyer accepts a bounded, unauthenticated outside-in review rather than exploitation, certification, or attestation.
 - The estimated system stays within 10 confirmed first-party hostnames, 3 customer-attributed public IPs, and 20 service endpoints.
-- Passive discovery and named low-impact checks are acceptable.
+- The buyer accepts passive discovery where applicable, followed by named low-impact checks.
 - A decision owner can approve scope and stop conditions.
 - An engineering owner can act on findings.
 - The deadline allows three working days after payment in full or a written invitation-only design-partner fee waiver, an accepted SOW, written authority, scope freeze, required inputs, and the approved collection window are confirmed.
@@ -84,7 +84,7 @@ a custom-scope request / not a fit] because [one specific boundary reason].
 
 [If fit]
 The review covers one authorised public-facing system within the 10-hostname / 3-IP /
-20-endpoint caps, using passive discovery and explicitly approved low-impact checks.
+20-endpoint caps. It uses passive discovery where applicable, followed by explicitly approved, low-impact checks against the signed target schedule.
 The fixed fee is €1,900 excluding VAT. Payment is due in full before the delivery clock
 starts. Payment alone does not authorise testing. Delivery is due within three working days
 after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and

@@ -153,7 +153,8 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Inside that accepted system boundary: up to 1 registrable root domain, up to 10 first-party hostnames, 3 customer-attributed public IP addresses, and 20 public service endpoints.",
       "If we discover related assets outside the agreed boundary, we can record them, but we won’t test them without explicit authorisation.",
       "Public cloud-hosted services can be included when they are reachable from the internet and belong to the agreed system. Cloud accounts, IAM, private networks, and provider infrastructure are not reviewed.",
-      "passive discovery plus explicitly approved low-impact DNS, TLS, HTTP(S), service-identification, and allowlisted exposure checks",
+      "It uses passive discovery where applicable, followed by explicitly approved, low-impact checks against the signed target schedule.",
+      "Approved low-impact classes are DNS, TLS, HTTP(S), service-identification, and allowlisted exposure checks.",
       "unauthenticated, outside-in perspective only",
     ],
     deliverables: [
@@ -169,7 +170,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     steps: [
       ["Request", "Tell us what public-facing system you want reviewed and provide your authority to request the review. Do not send secrets or production evidence."],
       ["Scope acceptance", "WitnessOps accepts or rejects the boundary asynchronously, confirms capacity, and records payment. No sales call is required."],
-      ["Review", "Perform only the accepted passive and low-impact checks, then manually validate, deduplicate, prioritise, and link findings to evidence."],
+      ["Review", "Use passive discovery where applicable, then perform only the explicitly approved, low-impact checks against the signed target schedule. Manually validate, deduplicate, prioritise, and link findings to evidence."],
       ["Delivery and retest", "Deliver the reports and inspection package within three working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed, then retest the agreed reported findings once within 30 days."],
     ],
     boundaries: [
@@ -439,7 +440,8 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "do 10 potwierdzonych hostname'ów first-party",
       "do 3 publicznych adresów IP przypisanych klientowi",
       "do 20 potwierdzonych publicznych endpointów usług",
-      "pasywne wykrywanie oraz jawnie zatwierdzone, niskiego ryzyka kontrole DNS, TLS, HTTP(S), identyfikacji usług i ekspozycji z listy dozwolonej",
+      "Przegląd wykorzystuje pasywne wykrywanie tam, gdzie ma ono zastosowanie, a następnie jawnie zatwierdzone kontrole niskiego ryzyka zgodnie z podpisanym harmonogramem celów.",
+      "Zatwierdzone klasy niskiego ryzyka obejmują DNS, TLS, HTTP(S), identyfikację usług i kontrole ekspozycji z listy dozwolonej.",
       "wyłącznie nieuwierzytelniona perspektywa z zewnątrz",
     ],
     deliverables: [
@@ -455,7 +457,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     steps: [
       ["Zamówienie", "Wskaż jeden system publicznie dostępny, służbowy adres e-mail i podstawę upoważnienia. Nie wysyłaj sekretów ani materiałów produkcyjnych."],
       ["Akceptacja zakresu", "WitnessOps asynchronicznie akceptuje albo odrzuca granicę, potwierdza dostępność i zapisuje płatność. Rozmowa sprzedażowa nie jest wymagana."],
-      ["Przegląd", "Wykonujemy wyłącznie zaakceptowane kontrole pasywne i niskiego ryzyka, a następnie ręcznie weryfikujemy, usuwamy duplikaty, ustalamy priorytety i łączymy ustalenia z materiałami."],
+      ["Przegląd", "Tam, gdzie ma to zastosowanie, wykorzystujemy pasywne wykrywanie, a następnie wykonujemy wyłącznie jawnie zatwierdzone kontrole niskiego ryzyka zgodnie z podpisanym harmonogramem celów. Ręcznie weryfikujemy, usuwamy duplikaty, ustalamy priorytety i łączymy ustalenia z materiałami."],
       ["Dostawa i retest", "Przekazujemy raporty i pakiet do sprawdzenia w ciągu trzech dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania, a następnie jeden raz ponownie testujemy uzgodnione ustalenia w ciągu 30 dni."],
     ],
     boundaries: [

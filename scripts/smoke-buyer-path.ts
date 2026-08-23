@@ -359,6 +359,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "One authorised public-facing system",
       "Inside that accepted system boundary: up to 1 registrable root domain",
       "Public cloud-hosted services can be included",
+      "It uses passive discovery where applicable, followed by explicitly approved, low-impact checks against the signed target schedule.",
       "No exploitation",
       "Start a review",
       "Inspect synthetic sample",
@@ -367,6 +368,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "first three accepted engagements",
       "Intended standard price",
       "Check pilot fit",
+      "passive discovery plus explicitly approved low-impact",
+      "Perform only the accepted passive and low-impact checks",
     ],
   },
   {

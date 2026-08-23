@@ -8,6 +8,8 @@ import { POLISH_OFFERS } from "./public-i18n";
 import { getServiceLanding } from "./service-landings";
 
 const productId = "OFFSEC-EXTERNAL-EXPOSURE";
+const passiveDiscoveryQualifier =
+  "It uses passive discovery where applicable, followed by explicitly approved, low-impact checks against the signed target schedule.";
 const catalog = JSON.parse(
   readFileSync(
     resolve(__dirname, "../../../../packages/catalog/catalog.json"),
@@ -25,6 +27,20 @@ const catalog = JSON.parse(
     };
   }>;
 };
+const offerAuthority = readFileSync(
+  resolve(
+    __dirname,
+    "../../../../docs/commercial/10-public-exposure-review-offer.md",
+  ),
+  "utf8",
+);
+const fitCheckAuthority = readFileSync(
+  resolve(
+    __dirname,
+    "../../../../docs/commercial/11-public-exposure-review-fit-check.md",
+  ),
+  "utf8",
+);
 
 function getExternalExposureSku() {
   return catalog.skus.find((candidate) => candidate.id === productId);
@@ -77,9 +93,42 @@ test("Public Exposure Review preserves fixed caps and allowed check classes", ()
   assert.match(scope, /20 public service endpoints/i);
   assert.match(scope, /won’t test them without explicit authorisation/i);
   assert.match(scope, /Cloud accounts, IAM, private networks, and provider infrastructure are not reviewed/i);
-  assert.match(scope, /passive discovery/i);
+  assert.match(scope, /passive discovery where applicable/i);
+  assert.match(scope, /signed target schedule/i);
   assert.match(scope, /allowlisted exposure checks/i);
   assert.match(scope, /unauthenticated, outside-in/i);
+});
+
+test("Public Exposure Review qualifies passive discovery across current authority", () => {
+  const english = getServiceLanding("external-exposure-assessment", "en");
+  const polish = getServiceLanding("external-exposure-assessment", "pl");
+  const englishLanding = [
+    ...(english.scopeLimits ?? []),
+    ...english.steps.flat(),
+  ].join("\n");
+  const currentEnglishAuthority = [
+    offerAuthority,
+    fitCheckAuthority,
+    englishLanding,
+  ].join("\n");
+  const currentPolishAuthority = [
+    ...(polish.scopeLimits ?? []),
+    ...polish.steps.flat(),
+    ...POLISH_OFFERS[productId].process,
+  ].join("\n");
+
+  assert.ok(offerAuthority.includes(passiveDiscoveryQualifier));
+  assert.ok(fitCheckAuthority.includes(passiveDiscoveryQualifier));
+  assert.ok(englishLanding.includes(passiveDiscoveryQualifier));
+  assert.doesNotMatch(
+    currentEnglishAuthority,
+    /combines passive discovery with|passive discovery plus|passive discovery and (?:pre-approved|named)|using passive discovery and explicitly approved|perform only the accepted passive and low-impact checks/i,
+  );
+  assert.match(currentPolishAuthority, /tam, gdzie ma (?:to|ono) zastosowanie/i);
+  assert.doesNotMatch(
+    currentPolishAuthority,
+    /pasywne wykrywanie oraz|dopuszczone kontrole pasywne i niskiego ryzyka|wyłącznie zaakceptowane kontrole pasywne/i,
+  );
 });
 
 test("Public Exposure Review preserves prohibited methods and claim limits", () => {
