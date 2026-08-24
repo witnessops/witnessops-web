@@ -200,6 +200,7 @@
       "github_job_workflow_ref",
       "oidc_subject",
       "oidc_audience",
+      "cloudformation_staging_deployer_role_arn",
       "aws_role_arn",
       "aws_role_session_name",
       "aws_sts_principal_arn",
@@ -222,7 +223,8 @@
       "observed_prod_image_ref",
       "observed_mesh_image_ref",
       "observed_prod_runtime_image_id",
-      "observed_mesh_runtime_image_id"
+      "observed_mesh_runtime_image_id",
+      "adapter_result"
     ],
     "negative_tests": [
       "legacy_or_wrong_oidc_subject_denied",

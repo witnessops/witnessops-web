@@ -23,7 +23,7 @@ export function containsCredentialMaterial(value) {
     /-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(serialized) ||
     /AKIA[0-9A-Z]{16}/.test(serialized) ||
     /ASIA[0-9A-Z]{16}/.test(serialized) ||
-    /AWS_SECRET_ACCESS_KEY\s*=/.test(serialized) ||
+    /AWS_SECRET_ACCESS_KEY\s*[:=]/i.test(serialized) ||
     containsCredentialKey(value)
   );
 }

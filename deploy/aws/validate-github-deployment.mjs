@@ -119,6 +119,7 @@ const EXPECTED_ACCEPTANCE_FIELDS = [
   "github_job_workflow_ref",
   "oidc_subject",
   "oidc_audience",
+  "cloudformation_staging_deployer_role_arn",
   "aws_role_arn",
   "aws_role_session_name",
   "aws_sts_principal_arn",
@@ -142,6 +143,7 @@ const EXPECTED_ACCEPTANCE_FIELDS = [
   "observed_mesh_image_ref",
   "observed_prod_runtime_image_id",
   "observed_mesh_runtime_image_id",
+  "adapter_result",
 ];
 
 const SHA256 = /^sha256:[a-f0-9]{64}$/;
@@ -444,8 +446,10 @@ export function validateGithubDeploymentContract(contract) {
     "github_oidc_configuration_change",
     "github_environment_change",
     "github_workflow_activation",
+    "candidate_registration",
     "deployment",
     "dns_change",
+    "production_secret_change",
     "production_receipt_signing_key_activation",
     "production_key_registry_change",
     "merge",
@@ -838,7 +842,14 @@ export function validateDeploymentEvidenceStructure(contract, deployment) {
   return true;
 }
 
-export function deploymentEvidenceErrors(contract, deployment, sourceHead, manifestRef) {
+export function deploymentEvidenceErrors(
+  contract,
+  deployment,
+  sourceHead,
+  manifestRef,
+  configDigest,
+  targetAwsAccountId,
+) {
   validateDeploymentEvidenceStructure(contract, deployment);
   const errors = [];
   const add = (condition, message) => {
@@ -852,6 +863,9 @@ export function deploymentEvidenceErrors(contract, deployment, sourceHead, manif
   const stsMatch = (aws.sts_principal_arn ?? "").match(STS_PRINCIPAL_ARN);
   const repositoryMatch = (aws.ecr_repository_arn ?? "").match(ECR_REPOSITORY_ARN);
   const imageMatch = (runtime.requested_image_ref ?? "").match(ECR_IMAGE_REF);
+  const expectedStagingRoleMatch = (aws.cloudformation_staging_deployer_role_arn ?? "").match(
+    ROLE_ARN,
+  );
 
   add(deployment.status === "pass", "GitHub OIDC deployment evidence did not pass");
   add(/^\d+$/.test(github.run_id ?? ""), "GitHub run id is missing");
@@ -868,6 +882,14 @@ export function deploymentEvidenceErrors(contract, deployment, sourceHead, manif
   add(github.oidc_audience === "sts.amazonaws.com", "GitHub OIDC audience mismatch");
 
   add(roleMatch !== null, "AWS deployment role ARN is missing or outside commercial AWS");
+  add(
+    expectedStagingRoleMatch !== null,
+    "CloudFormation staging deployer role ARN is missing or outside commercial AWS",
+  );
+  add(
+    aws.role_arn === aws.cloudformation_staging_deployer_role_arn,
+    "AWS deployment role differs from the CloudFormation staging deployer role",
+  );
   add(SAFE_SESSION_NAME.test(aws.role_session_name ?? ""), "AWS role session name is missing");
   add(stsMatch !== null, "AWS STS principal evidence is missing or outside commercial AWS");
   add(repositoryMatch !== null, "ECR repository ARN is missing or outside Frankfurt");
@@ -911,15 +933,26 @@ export function deploymentEvidenceErrors(contract, deployment, sourceHead, manif
   add(runtime.observed_mesh_image_ref === runtime.requested_image_ref, "mesh image differs from requested ECR image");
   add(SHA256.test(runtime.observed_prod_runtime_image_id ?? ""), "prod runtime image id is missing");
   add(SHA256.test(runtime.observed_mesh_runtime_image_id ?? ""), "mesh runtime image id is missing");
+  add(SHA256.test(configDigest ?? ""), "migration image config digest is missing");
+  add(
+    runtime.observed_prod_runtime_image_id === configDigest,
+    "prod runtime image id differs from the manifest-bound config digest",
+  );
+  add(
+    runtime.observed_mesh_runtime_image_id === configDigest,
+    "mesh runtime image id differs from the manifest-bound config digest",
+  );
   add(runtime.adapter_result === "pass", "host deployment adapter did not pass");
 
-  if (roleMatch && stsMatch && repositoryMatch && imageMatch) {
+  if (roleMatch && expectedStagingRoleMatch && stsMatch && repositoryMatch && imageMatch) {
     const roleName = roleMatch[2].split("/").at(-1);
     add(
       roleMatch[1] === stsMatch[1] &&
+        roleMatch[1] === expectedStagingRoleMatch[1] &&
         roleMatch[1] === repositoryMatch[1] &&
-        roleMatch[1] === imageMatch[1],
-      "IAM role, STS principal, ECR repository, and image reference use different AWS accounts",
+        roleMatch[1] === imageMatch[1] &&
+        roleMatch[1] === targetAwsAccountId,
+      "CloudFormation role, IAM role, STS principal, ECR repository, image reference, and target use different AWS accounts",
     );
     add(stsMatch[2] === roleName, "STS principal does not identify the recorded deployment role");
     add(stsMatch[3] === aws.role_session_name, "STS principal session differs from the recorded role session");

@@ -42,7 +42,7 @@ function makeReadyRecord() {
     manifest_ref: imageRef("b"),
     config_digest: digest("c"),
     supply_chain_gate_result_sha256: digest("d"),
-    runtime_image_ids: [digest("b"), digest("c")],
+    runtime_image_ids: [digest("c"), digest("c")],
     status: "pass",
   };
 
@@ -92,6 +92,8 @@ function makeReadyRecord() {
       oidc_audience: "sts.amazonaws.com",
     },
     aws: {
+      cloudformation_staging_deployer_role_arn:
+        "arn:aws:iam::123456789012:role/witnessops-staging-deployer",
       role_arn: "arn:aws:iam::123456789012:role/witnessops-staging-deployer",
       role_session_name: "github-9876543210-1",
       sts_principal_arn:
@@ -117,7 +119,7 @@ function makeReadyRecord() {
       requested_image_ref: record.image.manifest_ref,
       observed_prod_image_ref: record.image.manifest_ref,
       observed_mesh_image_ref: record.image.manifest_ref,
-      observed_prod_runtime_image_id: digest("b"),
+      observed_prod_runtime_image_id: record.image.config_digest,
       observed_mesh_runtime_image_id: digest("c"),
       adapter_result: "pass",
     },
@@ -219,6 +221,13 @@ test("migration and acceptance records reject credential-shaped JSON keys", () =
       /acceptance record contains credential material/,
     );
   }
+
+  const colonDelimited = structuredClone(example);
+  colonDelimited.test_only = "AWS_SECRET_ACCESS_KEY: test-placeholder-not-a-secret";
+  assert.throws(
+    () => validateAcceptanceRecordStructure(contract, colonDelimited),
+    /acceptance record contains credential material/,
+  );
 });
 
 test("mutable images and state-manifest differences block staging", () => {
@@ -231,6 +240,30 @@ test("mutable images and state-manifest differences block staging", () => {
   assert.ok(
     stagingReadinessErrors(contract, mismatched).includes(
       "intake_store source and target manifests differ",
+    ),
+  );
+
+  const wrongTargetAccount = makeReadyRecord();
+  wrongTargetAccount.target.aws_account_id = "999999999999";
+  assert.ok(
+    stagingReadinessErrors(contract, wrongTargetAccount).includes(
+      "CloudFormation role, IAM role, STS principal, ECR repository, image reference, and target use different AWS accounts",
+    ),
+  );
+
+  const staleRuntime = makeReadyRecord();
+  staleRuntime.deployment_automation.runtime.observed_prod_runtime_image_id = digest("9");
+  assert.ok(
+    stagingReadinessErrors(contract, staleRuntime).includes(
+      "prod runtime image id differs from the manifest-bound config digest",
+    ),
+  );
+
+  const contradictoryImageEvidence = makeReadyRecord();
+  contradictoryImageEvidence.image.runtime_image_ids[0] = digest("9");
+  assert.ok(
+    stagingReadinessErrors(contract, contradictoryImageEvidence).includes(
+      "prod and mesh runtime image ids are incomplete",
     ),
   );
 });
