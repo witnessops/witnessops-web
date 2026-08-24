@@ -325,11 +325,28 @@ test("verify route rejects valid but excessively nested JSON before verifier ver
   const payload = (await response.json()) as {
     ok: boolean;
     failureClass?: string;
+    message?: string;
     verdict?: string;
   };
   assert.equal(payload.ok, false);
   assert.equal(payload.failureClass, "FAILURE_INPUT_MALFORMED");
+  assert.equal(payload.message, "request body exceeds supported JSON parser limits.");
   assert.equal(payload.verdict, undefined);
+});
+
+test("verify route keeps malformed request JSON distinct from the scanner depth limit", async () => {
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: '{"unterminated":',
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  const payload = (await response.json()) as { failureClass?: string; message?: string };
+  assert.equal(payload.failureClass, "FAILURE_INPUT_MALFORMED");
+  assert.equal(payload.message, "request body must be valid JSON.");
 });
 
 test("verify route keeps field-level messages for structurally valid receipt objects", async () => {

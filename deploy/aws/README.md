@@ -208,7 +208,9 @@ digest, config digest, scanning mode, scan status, and findings-response hash.
 Basic scanning requires `COMPLETE`, a completion timestamp, and the `findings`
 array. Registry-level enhanced scanning requires `ACTIVE`, a completion
 timestamp, and the `enhancedFindings` array. Missing, ambiguous, pending, or
-unsupported telemetry fails closed.
+unsupported telemetry fails closed. The AWS CLI must auto-aggregate every
+findings page; a retained response with a non-null `nextToken` is treated as
+truncated and rejected.
 Deploy dispatches must name that publication run and attempt. A low-authority
 job first confirms through the GitHub API that the exact run was a successful
 manual run from the reserved caller on `main` and referenced the reserved

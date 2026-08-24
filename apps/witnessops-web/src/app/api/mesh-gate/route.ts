@@ -3,7 +3,10 @@ import {
   loadPublishedMeshReceiptIndex,
   validateMeshReceiptPublic,
 } from "@/lib/mesh-gate";
-import { findDuplicateJsonObjectKey } from "@/lib/json-ambiguity";
+import {
+  findDuplicateJsonObjectKey,
+  JsonAmbiguityScanLimitError,
+} from "@/lib/json-ambiguity";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 import {
   InvalidRequestBodyEncodingError,
@@ -54,15 +57,18 @@ export async function POST(request: Request) {
   let dup: string | null;
   try {
     dup = findDuplicateJsonObjectKey(raw);
-  } catch {
-    return NextResponse.json(
-      {
-        ok: false,
-        verdict: "mesh_gate_invalid",
-        errors: ["JSON exceeds supported parser limits"],
-      },
-      { status: 400 },
-    );
+  } catch (error) {
+    if (error instanceof JsonAmbiguityScanLimitError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          verdict: "mesh_gate_invalid",
+          errors: ["JSON exceeds supported parser limits"],
+        },
+        { status: 400 },
+      );
+    }
+    dup = null;
   }
   if (dup) {
     return NextResponse.json(

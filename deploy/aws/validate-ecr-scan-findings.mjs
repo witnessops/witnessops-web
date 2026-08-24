@@ -34,6 +34,10 @@ export function validateEcrScanFindings(payload, expected) {
   assert(expected.repository === "witnessops-web", "ECR repository expectation differs");
   assert(/^sha256:[0-9a-f]{64}$/.test(expected.imageDigest), "ECR image digest is invalid");
   assert(payload.repositoryName === expected.repository, "ECR scan repository differs");
+  assert(
+    payload.nextToken === undefined || payload.nextToken === null,
+    "ECR scan response is truncated",
+  );
   assert(isRecord(payload.imageId), "ECR scan image identity is missing");
   assert(payload.imageId.imageDigest === expected.imageDigest, "ECR scan image digest differs");
   assert(isRecord(payload.imageScanStatus), "ECR scan status telemetry is missing");

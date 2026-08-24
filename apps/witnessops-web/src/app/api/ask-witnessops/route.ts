@@ -4,7 +4,10 @@ import { classifyQuestion } from "@/lib/server/ask-witnessops/authority-classifi
 import { executePolicy } from "@/lib/server/ask-witnessops/authority-policy-executor";
 import { assembleAnswer } from "@/lib/server/ask-witnessops/authority-answer-assembler";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
-import { findDuplicateJsonObjectKey } from "@/lib/json-ambiguity";
+import {
+  findDuplicateJsonObjectKey,
+  JsonAmbiguityScanLimitError,
+} from "@/lib/json-ambiguity";
 
 export const runtime = "nodejs";
 
@@ -111,7 +114,10 @@ export async function POST(request: Request) {
     // Public Ask is answer-only. It does not place unauthenticated questions
     // into durable receipt custody or advertise a receipt identifier.
     return NextResponse.json(assembled);
-  } catch {
+  } catch (error) {
+    if (error instanceof JsonAmbiguityScanLimitError) {
+      return invalidRequest("request body exceeds supported JSON parser limits.");
+    }
     return invalidRequest("request body must be valid JSON.");
   }
 }

@@ -3,7 +3,10 @@ import {
   getVerifyFailureStatusCode,
   verifyReceiptPayload,
 } from "@/lib/verify-adapter";
-import { findDuplicateJsonObjectKey } from "@/lib/json-ambiguity";
+import {
+  findDuplicateJsonObjectKey,
+  JsonAmbiguityScanLimitError,
+} from "@/lib/json-ambiguity";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 
 export const runtime = "nodejs";
@@ -91,7 +94,10 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(response);
-  } catch {
+  } catch (error) {
+    if (error instanceof JsonAmbiguityScanLimitError) {
+      return invalidRequest("request body exceeds supported JSON parser limits.");
+    }
     return invalidRequest("request body must be valid JSON.");
   }
 }

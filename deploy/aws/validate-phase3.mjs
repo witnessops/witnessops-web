@@ -103,6 +103,10 @@ export function validatePhase3Sources(sources) {
     JSON.stringify(contract.workflows.successful_scan_evidence_scanning_modes) ===
       JSON.stringify(["basic_complete_findings", "enhanced_active_enhanced_findings"]),
   );
+  assert(
+    contract.workflows.successful_scan_evidence_pagination ===
+      "aws_cli_auto_paginated_response_must_not_contain_next_token",
+  );
   assert(contract.workflows.successful_scan_evidence_retention_days === 90);
   assert(
     contract.workflows.successful_scan_evidence_aws_iam_change ===
@@ -348,6 +352,7 @@ export function validatePhase3Sources(sources) {
 
   for (const required of [
     "payload.imageId.imageDigest === expected.imageDigest",
+    "payload.nextToken === undefined",
     "Object.hasOwn(SCAN_MODES, scanStatus)",
     "payload.imageScanFindings[inventoryKey]",
     "isCompletionTimestamp(payload.imageScanFindings.imageScanCompletedAt)",

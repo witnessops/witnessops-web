@@ -65,6 +65,7 @@
       "basic_complete_findings",
       "enhanced_active_enhanced_findings"
     ],
+    "successful_scan_evidence_pagination": "aws_cli_auto_paginated_response_must_not_contain_next_token",
     "successful_scan_evidence_retention_days": 90,
     "successful_scan_evidence_aws_iam_change": "repository_scoped_ecr_describe_image_scan_findings_only",
     "immutable_tag_retry_strategy": "reuse_existing_source_tag_only_after_exact_manifest_config_and_source_label_validation"

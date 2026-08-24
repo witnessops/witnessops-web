@@ -122,3 +122,9 @@ test("an optional absent severity summary does not override the complete invento
   delete payload.imageScanFindings.findingSeverityCounts;
   assert.equal(validateEcrScanFindings(payload, expected).total_findings, 0);
 });
+
+test("a paginated response is rejected until the CLI has aggregated every page", () => {
+  const payload = validBasicPayload();
+  payload.nextToken = "more-findings";
+  assert.throws(() => validateEcrScanFindings(payload, expected), /response is truncated/);
+});

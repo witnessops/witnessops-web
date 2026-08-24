@@ -21,6 +21,15 @@ test("verify adapter fails closed on JSON nesting beyond the scanner limit", () 
   }
 });
 
+test("verify adapter keeps malformed JSON distinct from the scanner depth limit", () => {
+  const result = verifyReceiptPayload({ receipt: '{"unterminated":' });
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(result.failureClass, "FAILURE_INPUT_MALFORMED");
+    assert.equal(result.message, "Receipt payload is not valid JSON.");
+  }
+});
+
 test("verify adapter does not forward verifier exception text", () => {
   const receipt: Record<string, unknown> = {
     schema_version: "1.0.0",

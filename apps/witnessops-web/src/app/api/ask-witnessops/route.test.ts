@@ -45,6 +45,25 @@ test("public Ask rejects valid but excessively nested JSON as a controlled clien
   );
 
   assert.equal(response.status, 400);
-  const payload = (await response.json()) as { failureClass?: string };
+  const payload = (await response.json()) as { failureClass?: string; message?: string };
   assert.equal(payload.failureClass, "FAILURE_INPUT_MALFORMED");
+  assert.equal(payload.message, "request body exceeds supported JSON parser limits.");
+});
+
+test("public Ask keeps malformed JSON distinct from the scanner depth limit", async () => {
+  const response = await POST(
+    new Request("https://witnessops.com/api/ask-witnessops", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-forwarded-for": "203.0.113.83",
+      },
+      body: '{"unterminated":',
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  const payload = (await response.json()) as { failureClass?: string; message?: string };
+  assert.equal(payload.failureClass, "FAILURE_INPUT_MALFORMED");
+  assert.equal(payload.message, "request body must be valid JSON.");
 });

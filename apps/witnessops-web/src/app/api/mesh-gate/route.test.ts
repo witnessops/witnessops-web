@@ -261,3 +261,20 @@ test("mesh-gate POST rejects valid but excessively nested JSON as a controlled c
     errors: ["JSON exceeds supported parser limits"],
   });
 });
+
+test("mesh-gate POST keeps malformed JSON distinct from the scanner depth limit", async () => {
+  const response = await POST(
+    new Request("https://witnessops.com/api/mesh-gate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: '{"unterminated":',
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    verdict: "mesh_gate_invalid",
+    errors: ["malformed JSON"],
+  });
+});
