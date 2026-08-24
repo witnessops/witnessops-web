@@ -26,12 +26,17 @@ Canonical entrypoints (also in root `AGENTS.md` / `docs/DEPLOYMENT_AUTHORITY.md`
 | Status + smoke (image+HTTP+CSS) | `pnpm deploy:k3s:status` or `pnpm deploy:k3s:smoke` |
 | Parity unit tests | `pnpm deploy:k3s:test-parity` |
 | Teardown mesh-dev | `pnpm deploy:k3s:dev:teardown` |
+| Disk hygiene | `pnpm deploy:k3s:hygiene` |
 
 Smoke fails when prod/mesh-dev **image refs differ** (not CSS-only). Intentional
 non-parity: mesh bind/emptyDir/PORT/HOSTNAME/VERIFY_BASE. Shared secrets:
 the `BASE_ENV_SECRET` + `ADMIN_OIDC_SECRET` contract.
 
 Env: source the private ignored `deploy/topology.env`; use `ALLOW_DIRTY=1` only for intentional dirty-tree builds.
+
+`deploy:k3s:hygiene` is a destructive disk-maintenance operation with its own
+guards. Run it only under separate authorization after resolving the exact
+private target; it is not part of ordinary build, deploy, smoke, or rollback.
 
 Legacy `deploy/scripts/deploy.sh` (GHCR / Compose) is not live authority.
 
@@ -52,9 +57,11 @@ Runs the full live-repo check:
 
 - app tests
 - `@witnessops/proof` tests
+- ticket-triage tests
 - route parity
 - receipt smoke
 - public buyer-path smoke test
+- public SEO tests
 
 ## Focused validation commands
 
@@ -72,7 +79,8 @@ Runs receipt smoke tests.
 
 `pnpm docs:validate`
 
-Validates public docs content and docs metadata.
+Validates public MDX under `content/witnessops/docs` and its metadata. It does
+not scan repository-local `docs/*.md`.
 
 `pnpm signals:validate`
 

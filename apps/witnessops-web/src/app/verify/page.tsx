@@ -8,7 +8,7 @@ import { languageAlternates } from "@/lib/public-seo";
 export const metadata: Metadata = {
   title: "Verify a Receipt",
   description:
-    "Upload or paste a WitnessOps receipt to check structural validity, integrity, and what the result does and does not establish.",
+    "Upload or paste supported WitnessOps receipt JSON to run bounded receipt-only checks and see what remains unverified.",
   alternates: languageAlternates("/verify", {
     en: "/verify",
     pl: "/pl/verify",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Verify a Receipt | WitnessOps",
     description:
-      "Upload or paste a WitnessOps receipt to check structural validity, integrity, and what the result does and does not establish.",
+      "Upload or paste supported WitnessOps receipt JSON to run bounded receipt-only checks and see what remains unverified.",
     siteName: "WitnessOps",
     type: "website",
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Verify a Receipt | WitnessOps",
     description:
-      "Upload or paste a WitnessOps receipt to check structural validity, integrity, and what the result does and does not establish.",
+      "Upload or paste supported WitnessOps receipt JSON to run bounded receipt-only checks and see what remains unverified.",
   },
 };
 
@@ -35,7 +35,7 @@ function pickExampleReceipt(): string | null {
     fixtures.find(
       (fixture) =>
         fixture.expected.kind === "verification" &&
-        fixture.expected.verdict === "valid",
+        fixture.expected.verdict === "indeterminate",
     ) ??
     fixtures[0];
   return preferred?.receiptInput ?? null;
@@ -54,9 +54,9 @@ export default function VerifyPage() {
           Verify a WitnessOps receipt
         </h1>
         <p className="mt-4 max-w-[36rem] text-base leading-7 text-text-secondary">
-          Upload a receipt file or paste its JSON. The check confirms whether
-          the receipt is structurally valid, whether its integrity checks pass,
-          and what the result does—and does not—establish.
+          Upload a supported receipt file or paste its JSON. The public adapter
+          runs receipt-only checks and names every evidence, artifact, signature,
+          or trust input that it did not independently check.
         </p>
 
         <div className="mt-8" id="verify-console">
@@ -65,7 +65,7 @@ export default function VerifyPage() {
 
         <p className="mt-8 max-w-[36rem] text-sm leading-7 text-text-muted">
           {
-            "A valid result confirms the checks named in the receipt. It does not prove that every underlying action was correct, and it does not prove the full runtime story."
+            "Try an example currently demonstrates an indeterminate receipt-only result. Passed checks do not establish a valid result when required evidence or trust inputs were not independently checked."
           }
         </p>
 
@@ -86,13 +86,16 @@ export default function VerifyPage() {
             </p>
             <p>
               <strong className="text-text-secondary">Incomplete</strong> means
-              the receipt may be coherent, but a required trust condition could
-              not be established here.
+              the receipt may be coherent, but required evidence, artifact,
+              authorization, workflow, signature, or trust checks were not all
+              independently completed here. The API verdict is `indeterminate`.
             </p>
             <p>
-              This page does not revalidate full proof bundles or claim production
-              deployment truth. For mechanism detail, use the technical docs
-              linked below.
+              For Public Exposure Review receipts, a structurally conforming input
+              remains incomplete today because the page does not receive the full
+              evidence package and the server-owned production key policy is not
+              active. This page does not accept caller-supplied evidence or trust
+              material and does not claim production deployment truth.
             </p>
           </div>
         </details>

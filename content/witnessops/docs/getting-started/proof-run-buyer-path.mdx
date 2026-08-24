@@ -34,19 +34,9 @@ It is for a reviewer who wants to know:
 
 ## 1. Start with the situation and the catalogue
 
-WitnessOps delivers **bounded security and operational reviews** with evidence references, named limits and unresolved items. Treat [View services](/catalog) as the live offer list. Docs must not invent a shorter list.
+WitnessOps delivers **bounded security and operational reviews** with evidence references, named limits and unresolved items. Treat [View services](/catalog) as the live offer list; this page deliberately does not duplicate its inventory or commercial status.
 
-The catalogue currently lists these services (same names, prices and timing terms in English and Polish):
-
-1. Customer Security Review Sprint — live  
-2. Bounded Workflow Review — live  
-3. One Server Security Check — live  
-4. Public Exposure Review — live (homepage offer)  
-5. Launch Readiness Check — listed on the catalogue; **not yet admitted** as a live offer  
-6. Key, Access and Custody Review — live  
-7. Incident Readiness Review — live  
-
-For the questionnaire offer, see [Customer Security Review Sprint](/customer-security-review) (from €1,600 after a non-secret fit check; English and Polish one-pagers are linked from that page and the catalogue). For the homepage offer, see [Public Exposure Review](/catalog/offsec-external-exposure).
+The primary customer workflow remains [Public Exposure Review](/catalog/offsec-external-exposure). For the questionnaire offer, see [Customer Security Review Sprint](/customer-security-review). Use the catalogue and pricing surfaces for current commercial terms; docs do not redefine them.
 
 Do not read the catalogue as a broad AI governance program, production deployment claim, legal compliance claim, certification, or whole-environment assurance claim.
 
@@ -54,7 +44,9 @@ Do not read the catalogue as a broad AI governance program, production deploymen
 
 Open the [Public Exposure Review synthetic sample](/review/sample-cases/external-exposure-assessment), the [AI-agent sample package](/review/sample-cases/ai-agent-action-proof-run), or other [sample cases](/review/sample-cases).
 
-Samples are public illustrations. They demonstrate receipt shape and verifier path only. They are not live customer evidence.
+Samples are public illustrations, not live customer evidence. Read the artifact note on each sample: not every web sample includes a receipt, and a preserved verifier result may describe a larger source package rather than the reduced public copy.
+
+The Public Exposure Review synthetic sample intentionally contains no receipt. It demonstrates the report and evidence-reference boundary; it is not an input for `/verify`.
 
 **For the pinned AI-agent public sample only**, use the table below:
 
@@ -72,9 +64,9 @@ Samples are public illustrations. They demonstrate receipt shape and verifier pa
 
 Use [Verify a receipt](/verify) when you have receipt JSON to check — upload or paste, then read the result.
 
-The public console is **receipt-first v1**. It can check supported receipt JSON. It does not prove the full runtime story, source-system honesty, artifact-byte revalidation, or complete bundle custody.
+The public console is **receipt-only v1**. It can check supported receipt JSON. It does not prove the full runtime story, source-system honesty, artifact-byte revalidation, or complete bundle custody.
 
-Read a `valid` result as receipt-scoped unless a page or bundle names a stronger verifier path and the artifacts needed for that path.
+An internal `limited-pass` maps to public `indeterminate`. For Public Exposure Review, the public result stays `indeterminate` while request, authority, workflow, manifest and artifact bytes, evidence support, signature, and production key authorization were not independently checked.
 
 For the full procedure split (public vs offline bundle-complete), read [How to Verify a Receipt](/docs/how-it-works/verification).
 
@@ -126,7 +118,7 @@ Stop and do not submit secrets if:
 
 ## 9. Minimal buyer reading order
 
-1. [Verify a receipt](/verify) — use **Try an example**, or a sample receipt  
+1. [Verify a receipt](/verify) — use **Try an example** and inspect why the receipt-only result is incomplete
 2. [View services](/catalog)  
 3. [Public Exposure Review](/catalog/offsec-external-exposure) or [Customer Security Review Sprint](/customer-security-review)  
 4. [Sample cases](/review/sample-cases)  

@@ -71,11 +71,12 @@ set -a; source deploy/topology.env; set +a
 ALLOW_DIRTY=1 pnpm deploy:k3s:both
 ```
 
-Preferred prod rollback redeploys a recorded known-good digest-qualified image through
-`deploy/scripts/k3s-deploy-prod.sh`, then runs `pnpm deploy:k3s:smoke`, so the
-exact `envFrom` contract is reconciled as well as the image. If emergency
-`kubectl rollout undo` is used, immediately run that reconciler and smoke;
-rollout status alone does not prove the runtime contract.
+Preferred rollback redeploys the same recorded known-good digest-qualified image
+through `deploy/scripts/k3s-deploy-both.sh`, then runs
+`pnpm deploy:k3s:smoke`, so both lanes and their exact `envFrom` contracts are
+realigned. A single-lane emergency rollback is degraded and pair smoke remains
+failed until the other lane uses the same image. Rollout status alone does not
+prove the runtime contract.
 
 Authority: `docs/DEPLOYMENT_AUTHORITY.md`, custody: `docs/DEPLOYMENT_CUSTODY.md`,
 agent contract: root `AGENTS.md`.

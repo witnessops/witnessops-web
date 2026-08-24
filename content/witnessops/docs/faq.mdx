@@ -21,7 +21,7 @@ No. WitnessOps governs tool execution: scope, policy gates, approvals, and evide
 
 ### What is the difference between execution and proof?
 
-Execution is runtime control (`executed`, `denied`, `paused`, `failed`). Proof is post-execution verification of signed and linked artifacts (`valid`, `invalid`, `indeterminate`).
+Execution is runtime control (`executed`, `denied`, `paused`, `failed`). Proof is post-execution verification of supplied artifacts and trust inputs (`valid`, `invalid`, `indeterminate`).
 
 **Scope limit:** successful execution is not automatically a successful proof result, and proof validity is not a claim about business impact. See [Governed Execution](/docs/security-systems/governed-execution), [Proof Model](/docs/how-it-works/proof-model), and [How to Verify a Receipt](/docs/how-it-works/verification).
 
@@ -33,7 +33,7 @@ Proof artifacts are verification-bearing materials, such as receipts, manifests,
 
 ### Does a receipt prove a finding is true?
 
-No. A receipt proves a governed claim was emitted and cryptographically bound to referenced artifacts.
+No. A receipt declares a governed claim, a manifest digest, evidence references, and signature material. Cryptographic binding is established only when the matching bytes, signature, and trusted signer policy are independently checked.
 
 **Scope limit:** receipt validity does not prove exploitability, severity, remediation quality, or organizational risk acceptance. See [Receipts](/docs/evidence/receipts), [Receipt Spec](/docs/evidence/receipt-spec), and [What Evidence Is Required?](/docs/decisions/evidence-required).
 
@@ -49,13 +49,13 @@ Runtime gates evaluate policy-bound principals (`operator`, `approver`, `system`
 
 Not inside governed runtime: a failed gate blocks the step. A tool may still be run outside WitnessOps, but that action is outside governance and outside the WitnessOps receipt chain.
 
-**Scope limit:** lack of a WitnessOps receipt proves lack of governed execution for that action, not that no action happened elsewhere. See [Governed Execution](/docs/security-systems/governed-execution) and [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass).
+**Scope limit:** without a verified WitnessOps receipt, available evidence does not establish governed execution for that action. It does not prove that no action happened elsewhere. See [Governed Execution](/docs/security-systems/governed-execution) and [Lab Mode and Scope Bypass](/docs/governance/lab-mode-and-scope-bypass).
 
-### Where does independent verification happen?
+### What verification is public today?
 
-Public receipt checks run at [/verify](/verify) (or `/api/verify` for the same path). Upload or paste supported receipt JSON; a valid result is receipt-scoped.
+Public receipt-only checks run at [/verify](/verify) (or `/api/verify` for the same path). Upload or paste supported receipt JSON and read the adapter, named checks, limitations, and verdict. For Public Exposure Review, a conforming receipt remains `indeterminate` because the full evidence and production trust inputs are not independently checked there.
 
-**Scope limit:** verification checks declared proof layers; it does not rerun tools against live targets. See [How to Verify a Receipt](/docs/how-it-works/verification) and [Evidence Bundles](/docs/how-it-works/evidence-bundles).
+**Scope limit:** `/verify` does not accept proof bundles or caller-supplied trust material, recompute artifact bytes, or rerun tools against live targets. Full package verification is a separate internal path and is not currently a supported public distribution. See [How to Verify a Receipt](/docs/how-it-works/verification) and [Evidence Bundles](/docs/how-it-works/evidence-bundles).
 
 ## Evidence Sufficiency and Decisions
 

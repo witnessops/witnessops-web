@@ -11,8 +11,9 @@ const consoleSrc = readFileSync(
 
 test("public /verify page is a single-job receipt console", () => {
   assert.match(page, /Verify a WitnessOps receipt/);
-  assert.match(page, /A valid result confirms the checks named in the receipt/);
-  assert.match(page, /does not prove the full runtime story/);
+  assert.match(page, /indeterminate receipt-only result/);
+  assert.match(page, /were not independently checked/);
+  assert.match(page, /production key policy is not/);
   assert.match(page, /What this result means/);
   assert.match(page, /\/docs\/how-it-works\/verification/);
   assert.match(page, /\/docs\/evidence\/receipts/);

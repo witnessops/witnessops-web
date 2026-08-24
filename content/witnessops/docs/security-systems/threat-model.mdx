@@ -125,9 +125,9 @@ These are proof failures. They indicate malformed receipt structure, broken dige
 
 ### Indeterminate trust outcomes
 
-Not every incomplete verification result is a hard failure. The verifier can return `indeterminate` when a package is structurally coherent but a declared outside trust dependency cannot be satisfied locally.
+Not every incomplete verification result is a hard failure. The verifier can return `indeterminate` when an input is structurally coherent but required evidence bytes, request or workflow records, scope authorization, signature verification, signer authorization, or another trust dependency was not independently checked.
 
-That distinction matters. Missing trust context is different from proven tampering.
+That distinction matters. A check that was not possible is different from a check that ran and proved a mismatch.
 
 ## What a bypass looks like
 
@@ -146,9 +146,9 @@ The control here is auditability and continuity, not magical prevention.
 
 ## Partial bundle risk
 
-A partial bundle can still produce a `valid` verification result for the artifacts it actually contains.
+A partial package may contain individual checks that pass, but it cannot produce a production-valid Public Exposure Review result while required package or trust inputs are missing.
 
-That does not mean it proves completeness of the operational record. A verifier may be able to confirm that a presented subset is internally intact while still being unable to conclude that the subset represents the whole engagement, chain, or decision path.
+A verifier may be able to confirm that a presented subset is internally consistent while the overall result remains incomplete or `indeterminate`. The subset does not establish that it represents the whole engagement, chain, or decision path.
 
 This is why continuity inspection and honest packaging matter alongside cryptographic validity.
 
@@ -158,9 +158,9 @@ Verification should be read precisely.
 
 - `valid` means the declared checks for the selected verification mode passed
 - `invalid` means a proof-bearing check failed
-- `indeterminate` means the package may be coherent, but a declared outside trust condition could not be completed locally
+- `indeterminate` means the input may be coherent, but one or more required evidence, workflow, authorization, signature, or trust checks were not independently completed
 
-On the public `/verify` surface, `valid` is receipt-scoped. It does not prove bundle completeness, artifact-byte revalidation, or full operational truth.
+On the public receipt-only `/verify` surface, an internal `limited-pass` maps to `indeterminate`. Public Exposure Review also remains `indeterminate` until the full evidence and production trust checks are independently completed.
 
 These statuses are more useful than a generic green or red badge because they tell the reviewer what kind of dispute they are actually dealing with.
 

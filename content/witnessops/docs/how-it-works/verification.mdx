@@ -1,143 +1,148 @@
 ---
 title: "How to Verify a Receipt"
-description: "Check a WitnessOps receipt or proof bundle offline without relying on WitnessOps to stay in the middle."
+description: "Run the public receipt-only check, understand Public Exposure Review indeterminate semantics, and keep full-package verification separate."
 section: "docs"
 order: 4
 nav_label: "Verify a Receipt"
 draft: false
 trust_boundary_variant: "verification"
 page_answer:
-  question: "How do I check a receipt or proof bundle offline, and how should I read valid, invalid, and indeterminate results?"
+  question: "What does the public verifier check, why is a Public Exposure Review receipt currently indeterminate, and what would full verification require?"
   links:
     - href: "/docs/evidence/receipt-spec"
       label: "Receipt Spec"
-    - href: "/docs/evidence/execution-chains"
-      label: "Execution Chains"
+    - href: "/docs/how-it-works/evidence-bundles"
+      label: "Evidence Bundles"
     - href: "/docs/security-systems/threat-model"
       label: "Threat Model"
 ---
 
 # How to Verify a Receipt
 
-**Public tool first:** if you only need to check receipt JSON you were given, use [Verify a receipt](/verify) — upload or paste, then read the result. This page is the technical procedure behind that path and the optional offline modes.
+**Public tool first:** use [Verify a receipt](/verify) when you have supported receipt JSON. The public surface is receipt-only. It does not accept a proof bundle or caller-supplied keys, registries, policies, evidence, or prior verifier output.
 
-This page answers one practical question: how to verify a receipt or proof bundle without collapsing public receipt checks, bundle-complete offline review, and anchored replay into the same claim.
+## 1. Public procedure
 
-## 1. Problem this page solves
+1. Open [/verify](/verify).
+2. Upload a supported `.json` receipt or paste its JSON.
+3. Select **Verify receipt**.
+4. Read the verdict, adapter, verification scope, artifact-revalidation state, every named check, and every limitation.
 
-Many teams can export artifacts but cannot say which checks were actually proven.
+**Try an example** currently loads a PV compatibility fixture whose receipt-scoped checks pass but whose artifact bytes are not revalidated. Its result is `indeterminate`, displayed as **Indeterminate — verification incomplete**.
 
-Verification needs a deterministic sequence that separates:
+## 2. Public result contract
 
-- proof that passed
-- checks that were missing
-- trust dependencies that still sit outside the proof bundle
+The public API separates accepted verification results from malformed or unsupported input.
 
-This page defines that sequence.
-
-## 2. What you should understand after reading
-
-After this page, you should understand:
-
-- the minimum artifacts needed to verify a receipt
-- the exact order of checks for independent verification
-- what each verdict means (`valid`, `invalid`, `indeterminate`)
-- what is proven and what still depends on trust
-- how the public `/verify` result differs from bundle-complete verification
-
-## 3. Verification modes and claim boundaries
-
-Keep these modes separate before relying on a result.
-
-| Mode | Input | What the result can claim |
-| --- | --- | --- |
-| Public receipt-first v1 | Supported receipt JSON submitted to `/verify` | Receipt-scoped checks passed or failed for that JSON. Artifact bytes and bundle completeness are not revalidated. |
-| Bundle-complete offline | Receipt, manifest, referenced artifact bytes, signatures, timestamp material, and trust material | The verifier can recompute artifact hashes, check manifest integrity, and evaluate declared proof layers that are actually present. |
-| Anchored replay | Bundle-complete material plus reviewer-supplied trust anchor | The package is tested against a continuity or identity anchor obtained outside the package. |
-
-A public `valid` result on `/verify` should be read as receipt-scoped. It does not prove the full runtime story, complete bundle custody, or artifact-byte integrity. The public adapter may present an internal `limited-pass` as `valid`.
-
-## 4. Minimum artifact set
-
-At minimum, start with the receipt material and **trusted key material**. Independent checks require authentic keys or anchors; without them, signature results are not meaningful.
-
-| Artifact | Status | Why it matters |
-| --- | --- | --- |
-| Receipt JSON or exported proof bundle | required | Core proof statement and references |
-| Signing public key or trusted key source | required | You cannot check signature authenticity without it |
-| RFC 3161 timestamp token + chain | conditional | Required when the receipt claims trusted time and you need full time proof |
-| Log checkpoint + inclusion proof | conditional | Required when the receipt claims append-only publication |
-
-## 5. Procedures by mode (do not collapse)
-
-### A. Public `/verify` only (receipt-first v1)
-
-This is the **default public product path**.
-
-1. Submit **supported receipt JSON** to `/verify` (or `/api/verify`).
-2. Confirm schema, proof stage, digest relationships, and other **receipt-level** checks the public adapter runs.
-3. Read `valid` as **receipt-scoped** (including when the adapter maps internal `limited-pass` → `valid`).
-4. Do **not** treat the result as artifact-byte revalidation, bundle completeness, or full offline proof.
-
-### B. Offline bundle-complete (optional; requires offline tooling)
-
-Use only when you have a full package **and** offline verifier tooling (not the public `/verify` upload path).
-
-1. Confirm receipt + manifest + referenced artifact bytes + signatures + any timestamp/inclusion material.
-2. Recompute listed hashes from artifact bytes; check manifest integrity.
-3. Verify the signature against trusted keys.
-4. Verify structure and bindings.
-5. If claiming trusted time, fully validate the RFC 3161 token and chain.
-6. If claiming log inclusion, validate inclusion proof and checkpoint signature.
-7. Verify continuity links when present.
-
-Integrity and signature checks come before higher-layer interpretation.
-
-## 6. Expected results and interpretation
-
-| Check | Outcomes |
+| Result | Meaning |
 | --- | --- |
-| Proof-bundle integrity | pass / tampered |
-| Signature | valid / invalid / missing key |
-| Structure and binding | well-formed / malformed / digest mismatch |
-| Timestamp layer | valid / invalid / not present |
-| Log inclusion layer | valid / invalid / not present |
-| Continuity layer | proven / not present |
+| `valid` | All checks required by that adapter and mode were independently completed and passed |
+| `invalid` | A proof-bearing, profile, binding, or policy check failed |
+| `indeterminate` | The receipt may be coherent, but one or more required evidence, artifact, authorization, workflow, signature, or trust checks were not independently completed |
+| `FAILURE_INPUT_MALFORMED` | The submitted request or receipt JSON could not be safely parsed or validated as input |
+| `FAILURE_INPUT_UNSUPPORTED` | The input is outside the receipt-only surface, including proof bundles and caller-supplied trust inputs |
 
-Public surface note: `/verify` currently runs receipt-first v1. The public adapter may present an internal `limited-pass` as `valid`. Read that result as receipt-scoped: supported receipt checks passed, but artifact revalidation was not performed.
+An internal verifier result of `limited-pass` maps to public `indeterminate`, never to `valid`.
 
-Verdict interpretation:
+## 3. Public Exposure Review adapter
 
-- **`valid`**: the required checks for the declared claim set and selected mode passed. In public receipt-first mode, this does not prove bundle completeness or artifact-byte integrity.
-- **`invalid`**: one or more proof-bearing checks failed.
-- **`indeterminate`**: the proof bundle may be coherent, but a required outside trust condition could not be established locally.
+Receipts with workflow class `public_exposure_review` route to `witnessops.verify.public_exposure_review_receipt.v1`.
 
-## 7. What is proven vs what remains trusted
+The adapter recognizes the canonical product contract:
 
-**Proven when checks pass**
+- product `OFFSEC-EXTERNAL-EXPOSURE`
+- OffSec source runbook `external-exposure-assessment` version `2`
+- `witnessops.receipt.v0`
+- `witnessops.verification_context.v1`
+- `public_exposure_review`
+- `external_exposure_assessment` method version `2.0.0`
 
-- in public receipt-first mode, supported receipt structure and receipt-level consistency only
-- issuer-bound signed statement integrity
-- digest and artifact consistency
-- optional trusted-time and inclusion claims when the matching material is present and valid
+### Checks performed on receipt JSON
 
-**Still trusted externally**
+The adapter checks:
 
-- key distribution authenticity
-- TSA trust and time-source trust
-- log-operator trust model, unless additional witness policy is satisfied
+- exact envelope and workflow identity
+- bounded result and failure-state structure
+- the exact six required claims
+- `offsec_<24 lowercase hex>` evidence-reference syntax
+- subject and declared scope syntax
+- exact frozen method procedure and acceptance criteria
+- all eight required product limitations
+- UTC timestamp syntax and chronology
+- manifest SHA-256 syntax
+- Ed25519 signature-block syntax
 
-## 8. Common failure modes
+These are deterministic receipt-shape and profile checks. They do not independently establish that the receipt's declarations are true.
 
-- Missing file or hash mismatch → tampered or incomplete proof bundle.
-- Signature failure → issuer authenticity not established.
-- Timestamp failure → trusted-time claim not established.
-- Inclusion proof failure → append-only publication claim not established.
+The canonical acceptance-policy check ID is `verification_method_definition`. The v1 API response also retains `verification_method` as an additive compatibility alias; the verification page suppresses that duplicate display entry.
 
-Report failures by layer instead of collapsing everything into one vague pass/fail line.
+### Checks not performed on the public surface
 
-## 9. Next-page handoff
+The adapter explicitly reports these as not checked:
 
-Next, read [Receipts](/docs/evidence/receipts) to inspect the proof statement this verification flow is evaluating.
+- originating request record
+- authority packet and scope authorization
+- frozen target and approved-check schedules
+- complete workflow execution records
+- whether the frozen method was actually executed
+- manifest bytes and manifest digest recomputation
+- artifact bytes and artifact hash recomputation
+- whether evidence references resolve and support each claim
+- cryptographic signature verification
+- production key authorization and revocation state
 
-Then use [Anchored Replay](/docs/how-it-works/anchored-replay) when reviewer-supplied trust-anchor continuity is required.
+A well-formed Public Exposure Review receipt therefore currently returns `indeterminate`. A profile conflict returns `invalid`.
+
+## 4. Real evidence references
+
+Public Exposure Review claim references are not display labels. The bounded OffSec output adapter precomputes each staged source artifact's future canonical manifest ID in the form `offsec_<24 lowercase hex>`. The proof engine later uses the extensionless staged filename as the artifact ID in the manifest.
+
+The web adapter validates only that form. It does not fetch or accept the manifest and cannot prove that an ID resolves, that bytes match, or that the evidence supports a claim. Those conclusions require the package-verification path.
+
+## 5. Production key-registry acceptance
+
+The server-owned Public Exposure Review trust policy is currently non-authorizing:
+
+- workflow acceptance policy `public_exposure_review.production.v1` is `draft` and has no trusted revision, policy hash, or registry-manifest hash pinned
+- key-trust policy `public_exposure_review.production_signing.v1` is `draft` and has no trusted registry revision or manifest hash pinned
+- the registry is `draft`
+- no production signing keys are allowlisted
+- the production custody-approval reference is unset
+
+Production acceptance must fail closed against a pinned, server-owned trust snapshot. Activation requires:
+
+1. an active workflow acceptance policy that pins the exact key-policy bytes, trusted registry revision, and registry-manifest SHA-256
+2. an active key-trust policy and registry whose revision and manifest pins match the verifier snapshot
+3. an explicitly allowlisted active key using Ed25519, hexadecimal encoding, `production` trust scope, and usage `public_exposure_review_receipt_signing`
+4. receipt `issued_at` on or after the key's `valid_from` and before its `valid_until`
+5. a recorded production custody-approval reference
+6. null revocation plus propagation checks proving that the verifier snapshot matches the approved current pins
+
+Caller-supplied policy, registry, or public key material is never a production trust input. Missing, stale, unavailable, or unconfirmed required trust remains `indeterminate`; a known cryptographic mismatch, revoked key, disallowed signer, trust-scope or usage mismatch, validity-window failure, or policy mismatch is `invalid` once evaluated. A rotated key without an applicable historical policy is `unsupported` under the draft key policy.
+
+## 6. Full-package verification is separate
+
+The current internal package path can evaluate a receipt with its manifest, referenced artifacts, public key, request and workflow records, comparison output, and an explicit trust policy. That path can recompute bytes and evaluate checks the public receipt-only surface cannot perform.
+
+Keep two outputs distinct:
+
+- the proof engine's `verification_result.json` records producer-side build and comparison checks
+- an independently run verifier result records what a separate verifier established from supplied package and trust inputs
+
+The canonical full verifier is currently internal and has no supported public distribution. The public docs therefore do not direct buyers to install an unshipped CLI or imply that `/verify` performs package verification.
+
+## 7. Interpretation boundaries
+
+Even full verification does not prove:
+
+- that every source observation is correct
+- that the system is secure or vulnerability-free
+- that the review covers anything outside the approved scope
+- that the source host or toolchain was uncompromised
+- that human severity or business-risk judgment is correct
+
+Verification establishes named relationships over supplied artifacts and trust inputs. It does not recreate the underlying world.
+
+## 8. Next-page handoff
+
+Read [Receipt Specification](/docs/evidence/receipt-spec) for the exact Public Exposure Review contract and [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the current package boundary.

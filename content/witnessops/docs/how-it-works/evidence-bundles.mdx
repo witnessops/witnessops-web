@@ -1,6 +1,6 @@
 ---
 title: "Evidence Bundles"
-description: "What is in a WitnessOps proof bundle and how to check it offline."
+description: "The current Public Exposure Review package boundary, reconstructable manifest references, and the separation between producer output and independent verification."
 section: "docs"
 order: 3
 nav_label: "Evidence Bundles"
@@ -9,73 +9,67 @@ draft: false
 
 # Evidence Bundles
 
-A proof bundle is the portable package that carries proof artifacts from runtime to an independent reviewer.
+An evidence bundle is the portable package around a receipt. The package carries the bytes needed to reconstruct evidence references and run checks that a receipt-only surface cannot perform.
 
-## 1. Problem this page solves
+## 1. Public Exposure Review package
 
-Without packaging, proof artifacts end up scattered across systems, exports, and operator notes.
+The current proof-engine delivery contract uses this layout:
 
-A verifier needs one stable package with clear integrity boundaries. This page explains what is inside a WitnessOps bundle and how that package supports offline review.
+| Path | Role |
+| --- | --- |
+| `README.md` | Human entry point and package limits |
+| `package_index.json` | Package file inventory |
+| `receipt.json` | Canonical `witnessops.receipt.v0` profiled receipt |
+| `evidence_manifest.json` | Artifact IDs, source metadata, and hashes |
+| `verification_result.json` | Producer-side build and comparison check output |
+| `report.md` | Human-readable bounded review result |
+| `public_key.json` | Included when the package is signed |
+| `evidence/` | Staged source artifacts named by real manifest artifact IDs |
+| `normalized/` | Deterministically normalized records used for comparison |
+| `results/comparison_result.json` | Claim-by-claim comparison output |
 
-## 2. What you should understand after reading
+This is not the public `/verify` request shape. `/verify` accepts one supported receipt JSON object and rejects bundles, evidence, keys, registries, policies, and verifier results supplied by the caller.
 
-After this page, you should understand:
+## 2. Reconstructable evidence references
 
-- what a bundle contains
-- which artifacts are required and which are conditional
-- how the bundle supports local or offline verification
-- where the bundle limits begin
+The bounded OffSec adapter stages actual source files and assigns each staged source artifact the exact future manifest artifact ID in the form `offsec_<24 lowercase hex>`.
 
-## 3. Mechanism-first artifact order
+The ID is deterministically derived from the source run identity, normalized source path, and source SHA-256. It is therefore a stable manifest reference, not a sequential UI label or a replacement for the artifact digest.
 
-Read a bundle in this order:
+A reviewer reconstructs a claim reference by:
 
-| Order | Artifact class | Typical files | Why it exists |
-| --- | --- | --- | --- |
-| 1 | Receipt claim | `CLAIM.json`, `CLAIM.dsse.json` | Defines the issuer-bound governed statement |
-| 2 | Referenced evidence artifacts | `artifacts/`, referenced receipt or context files | Carries the supporting material linked to the claim |
-| 3 | Signature trust material | `trust/org-signing-pubkey.pem` | Allows offline issuer signature checks |
-| 4 | Timestamp material, when claimed | `CLAIM.dsse.sha256`, `TIMESTAMP.tsr`, `TIMESTAMP.meta.json`, `trust/tsa-cert-chain.pem` | Binds trusted time to the signed object |
-| 5 | Chain or inclusion material, when claimed | `receipts/receipts.ndjson`, `ROOT.txt`, `trust/log-pubkey.pem` | Supports continuity and append-only publication checks |
-| 6 | Manifest or index | `MANIFEST.json` | Anchors the full file inventory and digest integrity |
-| 7 | Verification structure metadata | bundle layout + declared claim layers | Tells the reviewer which checks are expected |
+1. locating the ID in `evidence_manifest.json`
+2. locating the staged file identified by that manifest entry
+3. recomputing the file digest
+4. comparing it with the manifest digest
+5. evaluating whether the artifact supports the recorded claim status
 
-### Required vs conditional bundle layers
+Receipt-only `/verify` performs none of steps 1–5 because the manifest and files are not supplied.
 
-| Artifact | Status | Verification role |
-| --- | --- | --- |
-| `MANIFEST.json` | required | Detects tampering or incomplete export |
-| `CLAIM.json` | required | Declares the governed assertion |
-| `CLAIM.dsse.json` | required | Defines the canonical signed bytes |
-| `receipts/receipts.ndjson` | required | Provides the continuity substrate |
-| `trust/org-signing-pubkey.pem` | required | Enables issuer signature validation |
-| Timestamp and TSA files | conditional | Required only when a trusted-time claim is declared |
-| Chain or log trust files | conditional | Required only when publication or continuity claims are declared |
-| `CLAIM.intoto.json` | optional | Compatibility with attestation tooling |
+## 3. Producer output is not independent verification
 
-## 4. Observed vs inferred
+`verification_result.json` is emitted by the proof-engine build. It preserves deterministic producer-side checks and unresolved states. It does not become independent merely because it is named “verification result.”
 
-| Layer | What is available | Confidence boundary |
-| --- | --- | --- |
-| Directly included artifacts | Files physically present in the bundle with digests, signatures, and checkpoint references | Testable by a local verifier |
-| Derived claims | Assertions drawn from successful artifact checks, for example “signed before time X” | Valid only when the matching layer material is present and valid |
-| Outside dependencies | Origin conditions, upstream identity or scope correctness, capture-context fidelity | Not recreated by bundle bytes alone |
+An independent verifier must separately receive the package and explicit trust inputs, recompute the relevant bytes, validate the receipt signature and signer policy, and emit its own result.
 
-## 5. Trust assumptions
+The canonical full verifier is currently an internal implementation without a supported public distribution. Public docs do not treat the producer result or a web sample result as a substitute for that run.
 
-A bundle preserves proof artifacts. It does not recreate every condition of original capture.
+## 4. Required trust inputs
 
-Trust assumptions that remain explicit:
+A complete package may contain a public key, but package-contained key material is not automatically trusted. Production acceptance also requires a server- or reviewer-owned policy that pins the registry revision and hash, authorizes the key ID and usage, checks validity and revocation, and records custody approval.
 
-- bundle references accurately represent the source capture context
-- upstream systems feeding identity, scope, and policy were correct
-- the runtime environment and key custody were trustworthy at issuance time
-- verifier trust roots are authentic
+When required evidence or trust inputs are missing, the correct outcome is incomplete or `indeterminate`, not an upgraded pass.
 
-A bundle is not proof by itself. It is the transport surface for proof artifacts.
+## 5. Other package profiles
 
-## 6. Next-page handoff
+Older documentation described a universal `CLAIM.json`, DSSE envelope, RFC 3161 token, NDJSON receipt chain, and trust-directory layout. Those artifacts may exist in retained, compatibility, or design lanes, but they are not the canonical Public Exposure Review package and are not required inputs to the current public receipt adapter.
 
-Next, read [Verification](/docs/how-it-works/verification) to run the deterministic check sequence for the bundle layers defined here.
+If a package declares DSSE, RFC 3161, in-toto, continuity, or transparency layers, verify the matching artifacts with tooling that implements that exact profile. Do not infer those layers from filenames or receipt JSON alone.
 
-For artifact taxonomy context, see [Proof Artifact Classes](/docs/reference/proof-artifact-classes).
+## 6. Limits
+
+A complete, intact package still cannot establish everything about original capture. It does not by itself prove source-tool correctness, uncompromised capture hosts, correct human judgment, or completeness outside declared scope.
+
+## 7. Next-page handoff
+
+Read [Verification](/docs/how-it-works/verification) for the public and internal path separation and [Receipt Specification](/docs/evidence/receipt-spec) for the exact product profile.

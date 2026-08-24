@@ -53,7 +53,11 @@ test("verify route keeps a valid Public Exposure Review profile indeterminate wi
     inputKind?: string;
     adapter?: string;
     verdict?: string;
-    checks?: Array<{ name: string; status: string }>;
+    checks?: Array<{
+      name: string;
+      status: string;
+      compatibilityAliasFor?: string;
+    }>;
   };
   assert.equal(payload.ok, true);
   assert.equal(payload.inputKind, "public-exposure-review-receipt");
@@ -65,7 +69,9 @@ test("verify route keeps a valid Public Exposure Review profile indeterminate wi
   for (const name of [
     "production_key_authorization",
     "request_record",
+    "scope_authorization",
     "workflow_contract_complete",
+    "verification_method_execution",
     "manifest_hash",
     "artifact_hashes",
     "evidence_support",
@@ -76,6 +82,17 @@ test("verify route keeps a valid Public Exposure Review profile indeterminate wi
       name,
     );
   }
+  assert.equal(
+    payload.checks?.find(
+      (item) => item.name === "verification_method_definition",
+    )?.status,
+    "verified",
+  );
+  assert.equal(
+    payload.checks?.find((item) => item.name === "verification_method")
+      ?.compatibilityAliasFor,
+    "verification_method_definition",
+  );
 });
 
 test("verify route returns invalid when a Public Exposure Review claim is missing", async () => {

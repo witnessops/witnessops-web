@@ -8,7 +8,8 @@ import {
 
 test("incomplete result copy does not describe the current outcome as valid", () => {
   const copy = verifyResultLimitationsCopy("indeterminate");
-  assert.match(copy, /Incomplete means receipt-scoped checks ran/);
+  assert.match(copy, /Indeterminate means receipt-scoped checks ran/);
+  assert.match(copy, /were not independently completed here/);
   assert.match(copy, /not a valid result/);
   assert.doesNotMatch(copy, /^A valid result confirms/);
 });

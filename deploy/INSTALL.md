@@ -26,7 +26,7 @@ Internet ──TLS──> Caddy (systemd) ──loopback──> docker: witnesso
 - Debian 12 (or similar) with Docker Engine + the `docker compose` plugin
 - `cosign` (for image signature verification) and `curl`
 - Caddy installed as a systemd service
-- A GHCR pull token if the package is private (it is currently public; skip if so)
+- Confirm current GHCR package visibility; authenticate with a pull token if required
 
 ## 1. Host paths
 
@@ -54,9 +54,8 @@ for the full key list and which directories map to the container mounts.
 
 ## 3. Authenticate Docker to GHCR
 
-The `witnessops-web` container package is **private** (org policy disallows
-public packages), so the host must authenticate before it can pull. Use a token
-with `read:packages`:
+Repository code does not establish current GHCR package visibility. If the
+package requires authentication, use a token with `read:packages`:
 
 ```bash
 echo "$GHCR_TOKEN" | docker login ghcr.io -u <github-user> --password-stdin

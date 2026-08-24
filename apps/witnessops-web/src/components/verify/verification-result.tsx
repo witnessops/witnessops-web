@@ -24,8 +24,8 @@ const VERDICT_TONE: Record<
   indeterminate: {
     badge: "border-signal-amber/30 bg-signal-amber/10 text-signal-amber",
     panel: "border-signal-amber/20 bg-signal-amber/5",
-    title: "Verification incomplete",
-    plain: "Incomplete",
+    title: "Indeterminate — verification incomplete",
+    plain: "Indeterminate",
   },
 };
 
@@ -50,7 +50,7 @@ export function verifyResultLimitationsCopy(
     case "valid":
       return "A valid result confirms the checks named in the receipt. It does not prove that every underlying action was correct, that remote systems remain unchanged, or that a full engagement story is complete.";
     case "indeterminate":
-      return "Incomplete means receipt-scoped checks ran, but this page did not independently revalidate artifacts and did not reach a valid verdict. A named check pass is not a valid result.";
+      return "Indeterminate means receipt-scoped checks ran, but required evidence, artifact, authorization, workflow, signature, or trust checks were not independently completed here. A named check pass is not a valid result.";
     case "invalid":
       return "An invalid result means one or more receipt-scoped checks failed. It does not describe systems outside this receipt.";
   }
@@ -157,9 +157,12 @@ export function VerificationResult({
   }
 
   const tone = VERDICT_TONE[response.verdict];
-  const passed = response.checks.filter((c) => c.status === "verified");
-  const failed = response.checks.filter((c) => c.status === "unverified");
-  const notChecked = response.checks.filter((c) => c.status === "not_checked");
+  const visibleChecks = response.checks.filter(
+    (check) => check.compatibilityAliasFor === undefined,
+  );
+  const passed = visibleChecks.filter((c) => c.status === "verified");
+  const failed = visibleChecks.filter((c) => c.status === "unverified");
+  const notChecked = visibleChecks.filter((c) => c.status === "not_checked");
 
   return (
     <section className={`border p-5 sm:p-6 ${tone.panel}`}>
