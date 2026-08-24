@@ -485,6 +485,12 @@
       "namedRegex": "^/catalog/operator\\-platform(?:/)?$"
     },
     {
+      "page": "/catalog/professional-public-footprint-audit",
+      "regex": "^/catalog/professional\\-public\\-footprint\\-audit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/catalog/professional\\-public\\-footprint\\-audit(?:/)?$"
+    },
+    {
       "page": "/catalog/workflows",
       "regex": "^/catalog/workflows(?:/)?$",
       "routeKeys": {},
@@ -585,6 +591,12 @@
       "regex": "^/pl/catalog(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/pl/catalog(?:/)?$"
+    },
+    {
+      "page": "/pl/catalog/professional-public-footprint-audit",
+      "regex": "^/pl/catalog/professional\\-public\\-footprint\\-audit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pl/catalog/professional\\-public\\-footprint\\-audit(?:/)?$"
     },
     {
       "page": "/pl/contact",

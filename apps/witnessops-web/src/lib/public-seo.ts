@@ -40,6 +40,10 @@ export const PUBLIC_LANGUAGE_PAIRS: readonly PublicLanguagePair[] = [
     en: "/catalog/offsec-incident-ready",
     pl: "/pl/catalog/offsec-incident-ready",
   },
+  {
+    en: "/catalog/professional-public-footprint-audit",
+    pl: "/pl/catalog/professional-public-footprint-audit",
+  },
 ] as const;
 
 function normalizePathname(pathname: string): string {

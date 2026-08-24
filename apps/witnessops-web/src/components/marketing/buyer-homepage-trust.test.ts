@@ -61,6 +61,18 @@ test("Public Exposure Review constants stay named, priced, timed, and bounded", 
   );
 });
 
+test("request-only public footprint audit stays secondary and off the homepage", () => {
+  const offer = BUYER_SERVICES.find(
+    (service) => service.id === "professional-public-footprint-audit",
+  );
+
+  assert.equal(offer?.homepageFeatured, false);
+  assert.equal(offer?.pricingVisible, false);
+  assert.equal(offer?.productId, undefined);
+  assert.match(source, /service\.homepageFeatured !== false/);
+  assert.doesNotMatch(source, /Professional Public Footprint Audit/);
+});
+
 test("public one-pagers stay the two existing Customer Security Review PDFs", () => {
   const pdfs = readdirSync(onePagerDir)
     .filter((name) => name.endsWith(".pdf"))

@@ -62,7 +62,7 @@ export default function PricingPage() {
             Public service lines
           </h2>
           <div className="mt-7 grid gap-5 md:grid-cols-2">
-            {BUYER_SERVICES.map((service) => {
+            {BUYER_SERVICES.filter((service) => service.pricingVisible !== false).map((service) => {
               const detailHref = service.detailHref.en ?? "/catalog";
               const featured = service.id === "external-exposure-assessment";
               return (

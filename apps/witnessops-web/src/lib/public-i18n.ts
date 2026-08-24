@@ -124,7 +124,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
 
 const POLISH_TRANSLATED_PATHS = [
   /^\/$/,
-  /^\/catalog(?:\/(?:offsec-local-audit|offsec-external-exposure|offsec-launch-ready|offsec-custody-ops|offsec-incident-ready))?$/,
+  /^\/catalog(?:\/(?:offsec-local-audit|offsec-external-exposure|offsec-launch-ready|offsec-custody-ops|offsec-incident-ready|professional-public-footprint-audit))?$/,
   /^\/review\/request(?:\/confirmed)?$/,
   /^\/why-witnessops$/,
   /^\/customer-security-review$/,

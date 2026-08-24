@@ -17,6 +17,7 @@ const expectedServiceOrder = [
   "launch-readiness-check",
   "key-access-custody-review",
   "incident-readiness-review",
+  "professional-public-footprint-audit",
 ] as const;
 
 test("catalogue routes remain responsive and usable", async ({ browser }) => {
@@ -37,7 +38,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
     await expect(page.locator("main h1")).toBeVisible();
 
     const serviceCards = page.locator("[data-buyer-service]");
-    await expect(serviceCards).toHaveCount(7);
+    await expect(serviceCards).toHaveCount(8);
     expect(
       await serviceCards.evaluateAll((cards) =>
         cards.map((card) => card.getAttribute("data-buyer-service")),
@@ -72,10 +73,15 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
       },
       { price: "eur_3000_to_15000", timing: "confirmed_during_non_secret_fit_check" },
       { price: "eur_5000_to_25000", timing: "confirmed_during_non_secret_fit_check" },
+      {
+        price: "eur_4900_excluding_vat",
+        timing:
+          "seven_to_ten_working_days_after_consent_scope_and_public_source_protocol_confirmed",
+      },
     ]);
     await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż|Access Removal/);
 
-    for (let index = 0; index < 7; index += 1) {
+    for (let index = 0; index < 8; index += 1) {
       const card = serviceCards.nth(index);
       const links = card.locator("a");
       const primary = links.first();
@@ -90,7 +96,13 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
       }
       await expect(primary).toHaveText(
-        scenario.path.startsWith("/pl") ? "Rozpocznij przegląd" : "Start a review",
+        expectedServiceOrder[index] === "professional-public-footprint-audit"
+          ? scenario.path.startsWith("/pl")
+            ? "Zapytaj o audyt"
+            : "Request this audit"
+          : scenario.path.startsWith("/pl")
+            ? "Rozpocznij przegląd"
+            : "Start a review",
       );
       // CSR card has Start + Learn more + locale one-pager PDF.
       // Bounded workflow PL has Start only (no PL detail page).
@@ -114,6 +126,26 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         await expect(links).toHaveCount(2);
       }
     }
+
+    const publicFootprintCard = page.locator(
+      '[data-buyer-service="professional-public-footprint-audit"]',
+    );
+    await expect(publicFootprintCard).toContainText(
+      scenario.path.startsWith("/pl") ? "Dostępny na zapytanie" : "Available by request",
+    );
+    await expect(publicFootprintCard).toContainText(
+      scenario.path.startsWith("/pl") ? "4 900 EUR netto" : "€4,900 excluding VAT",
+    );
+    await expect(
+      publicFootprintCard.locator('[data-service-availability="available_by_request"]'),
+    ).toHaveCount(1);
+    const publicFootprintRequestHref = await publicFootprintCard.locator("a").first().getAttribute("href");
+    expect(publicFootprintRequestHref).toBe(
+      scenario.path.startsWith("/pl") ? "/pl/review/request" : "/review/request",
+    );
+    await expect(
+      page.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]'),
+    ).toHaveCount(0);
 
     const viewport = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,
@@ -164,7 +196,7 @@ test("Public Exposure Review pricing entry preserves sample and intake links", a
   );
   await expect(card).toContainText("One focused retest within 30 days is included");
   await expect(card).toContainText("Payment is due in full before the delivery clock starts");
-  await expect(card).toContainText("Payment alone does not authorise testing");
+  await expect(card).toContainText("payment alone does not authorise testing");
   await expect(
     card.locator('a[href="/review/sample-cases/external-exposure-assessment"]'),
   ).toHaveText("Inspect synthetic sample");
