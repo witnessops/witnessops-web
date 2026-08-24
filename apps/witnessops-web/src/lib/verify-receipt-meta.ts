@@ -26,11 +26,32 @@ export function extractReceiptMeta(input: string): ReceiptMeta {
     const asString = (value: unknown) =>
       typeof value === "string" && value.trim() ? value.trim() : undefined;
 
+    const verificationContext =
+      root.verification_context &&
+      typeof root.verification_context === "object" &&
+      !Array.isArray(root.verification_context)
+        ? (root.verification_context as Record<string, unknown>)
+        : undefined;
+    const contextSubject =
+      verificationContext?.subject &&
+      typeof verificationContext.subject === "object" &&
+      !Array.isArray(verificationContext.subject)
+        ? (verificationContext.subject as Record<string, unknown>)
+        : undefined;
+    const contextTimestamps =
+      verificationContext?.timestamps &&
+      typeof verificationContext.timestamps === "object" &&
+      !Array.isArray(verificationContext.timestamps)
+        ? (verificationContext.timestamps as Record<string, unknown>)
+        : undefined;
+
     const subject =
       root.subject && typeof root.subject === "object"
         ? asString((root.subject as { id?: unknown }).id) ??
           asString((root.subject as { name?: unknown }).name)
-        : asString(root.subject);
+        : asString(root.subject) ??
+          asString(contextSubject?.display_name) ??
+          asString(contextSubject?.reference);
 
     let issuer =
       root.issuer && typeof root.issuer === "object"
@@ -49,9 +70,15 @@ export function extractReceiptMeta(input: string): ReceiptMeta {
     }
 
     return {
-      receiptId: asString(root.receipt_id) ?? asString(root.id),
+      receiptId:
+        asString(root.receipt_id) ??
+        asString(root.id) ??
+        asString(root.proof_run_id),
       issuer,
-      createdAt: asString(root.created_at) ?? asString(root.issued_at),
+      createdAt:
+        asString(root.created_at) ??
+        asString(root.issued_at) ??
+        asString(contextTimestamps?.issued_at),
       subject,
     };
   } catch {

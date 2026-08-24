@@ -19,6 +19,12 @@ import {
   isLocalServerAuditReceipt,
   verifyLocalServerAuditReceipt,
 } from "./shield-verify-adapter";
+import {
+  PUBLIC_EXPOSURE_REVIEW_UNSUPPORTED_COMPANION_KEYS,
+  hasPublicExposureReviewCompanionInput,
+  isPublicExposureReviewReceiptCandidate,
+  verifyPublicExposureReviewReceipt,
+} from "./public-exposure-review-verify-adapter";
 
 const verifyRequestSchema = z.object({
   receipt: z.union([z.string().min(1), z.record(z.unknown())]),
@@ -32,9 +38,13 @@ const SUPPORTED_SCHEMA_VERSIONS: Record<ProofStage, string[]> = {
 
 const UNSUPPORTED_BUNDLE_KEYS = [
   "artifacts",
+  "bundle",
   "bundle_id",
   "bundleId",
+  "evidence",
+  "evidence_manifest",
   "files",
+  "manifest",
   "proofs",
   "receipts",
 ] as const;
@@ -245,6 +255,17 @@ function normalizeVerdict(
 
 export function verifyReceiptPayload(payload: unknown): VerifyResponse {
   try {
+    if (
+      isRecord(payload) &&
+      PUBLIC_EXPOSURE_REVIEW_UNSUPPORTED_COMPANION_KEYS.some((key) =>
+        Object.prototype.hasOwnProperty.call(payload, key),
+      )
+    ) {
+      return unsupported(
+        "Receipt-only /verify does not accept bundled evidence or caller-supplied trust inputs.",
+      );
+    }
+
     const parsedRequest = verifyRequestSchema.safeParse(payload);
     if (!parsedRequest.success) {
       return malformed("request body must be JSON with a receipt field.");
@@ -257,6 +278,15 @@ export function verifyReceiptPayload(payload: unknown): VerifyResponse {
 
     if (!isRecord(parsedReceipt)) {
       return malformed("Receipt payload must decode to a JSON object.");
+    }
+
+    if (isPublicExposureReviewReceiptCandidate(parsedReceipt)) {
+      if (hasPublicExposureReviewCompanionInput(parsedReceipt)) {
+        return unsupported(
+          "Public Exposure Review receipt verification does not accept bundled evidence or caller-supplied trust inputs.",
+        );
+      }
+      return verifyPublicExposureReviewReceipt(parsedReceipt);
     }
 
     if (isLocalServerAuditReceipt(parsedReceipt)) {

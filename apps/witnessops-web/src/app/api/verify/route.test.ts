@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { _resetAllStores } from "@witnessops/config/rate-limit";
 import { loadVerifyFixture } from "@/lib/verify-fixtures";
+import { makePublicExposureReviewReceipt } from "@/lib/public-exposure-review-verify-adapter.test-fixture";
 
 import { POST } from "./route";
 
@@ -35,6 +36,154 @@ test("verify route keeps receipt-only success indeterminate without artifact rev
   assert.equal(payload.verdict, "indeterminate");
   assert.equal(payload.proofStageClaimed, "PV");
   assert.equal(payload.scope, "receipt-only");
+});
+
+test("verify route keeps a valid Public Exposure Review profile indeterminate with explicit unchecked inputs", async () => {
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receipt: makePublicExposureReviewReceipt() }),
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    inputKind?: string;
+    adapter?: string;
+    verdict?: string;
+    checks?: Array<{ name: string; status: string }>;
+  };
+  assert.equal(payload.ok, true);
+  assert.equal(payload.inputKind, "public-exposure-review-receipt");
+  assert.equal(
+    payload.adapter,
+    "witnessops.verify.public_exposure_review_receipt.v1",
+  );
+  assert.equal(payload.verdict, "indeterminate");
+  for (const name of [
+    "production_key_authorization",
+    "request_record",
+    "workflow_contract_complete",
+    "manifest_hash",
+    "artifact_hashes",
+    "evidence_support",
+  ]) {
+    assert.equal(
+      payload.checks?.find((item) => item.name === name)?.status,
+      "not_checked",
+      name,
+    );
+  }
+});
+
+test("verify route returns invalid when a Public Exposure Review claim is missing", async () => {
+  const receipt = makePublicExposureReviewReceipt();
+  (receipt.claims as unknown[]).pop();
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receipt }),
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    verdict?: string;
+    checks?: Array<{ name: string; status: string }>;
+  };
+  assert.equal(payload.ok, true);
+  assert.equal(payload.verdict, "invalid");
+  assert.equal(
+    payload.checks?.find((item) => item.name === "receipt_claims")?.status,
+    "unverified",
+  );
+});
+
+test("verify route returns invalid when a required Public Exposure Review limitation is missing", async () => {
+  const receipt = makePublicExposureReviewReceipt();
+  const context = receipt.verification_context as Record<string, unknown>;
+  context.limitations = (
+    context.limitations as string[]
+  ).filter((item) => item !== "not_a_penetration_test");
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receipt }),
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    verdict?: string;
+    checks?: Array<{ name: string; status: string }>;
+  };
+  assert.equal(payload.ok, true);
+  assert.equal(payload.verdict, "invalid");
+  assert.equal(
+    payload.checks?.find((item) => item.name === "receipt_limitations")
+      ?.status,
+    "unverified",
+  );
+});
+
+test("verify route does not call a well-formed signature mutation invalid while production trust is absent", async () => {
+  const receipt = makePublicExposureReviewReceipt();
+  const signature = receipt.signature as Record<string, unknown>;
+  signature.signature = `c${"b".repeat(127)}`;
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receipt }),
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    verdict?: string;
+    checks?: Array<{ name: string; status: string }>;
+  };
+  assert.equal(payload.ok, true);
+  assert.equal(payload.verdict, "indeterminate");
+  assert.equal(
+    payload.checks?.find(
+      (item) => item.name === "receipt_signature_cryptographic",
+    )?.status,
+    "not_checked",
+  );
+});
+
+test("verify route rejects evidence bundled with a Public Exposure Review receipt", async () => {
+  const receipt = makePublicExposureReviewReceipt();
+  receipt.evidence = [{ artifact_id: "offsec_000000000000000000000000" }];
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receipt }),
+    }),
+  );
+
+  assert.equal(response.status, 422);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    failureClass?: string;
+    verdict?: string;
+  };
+  assert.equal(payload.ok, false);
+  assert.equal(payload.failureClass, "FAILURE_INPUT_UNSUPPORTED");
+  assert.equal(payload.verdict, undefined);
 });
 
 test("verify route returns invalid for a canonical failing receipt fixture", async () => {

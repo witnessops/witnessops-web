@@ -1,5 +1,8 @@
 import Link from "next/link";
-import type { VerifyResponse } from "@/lib/verify-contract";
+import type {
+  VerifyCheckStatus,
+  VerifyResponse,
+} from "@/lib/verify-contract";
 import type { ReceiptMeta } from "@/lib/verify-receipt-meta";
 
 const VERDICT_TONE: Record<
@@ -26,19 +29,17 @@ const VERDICT_TONE: Record<
   },
 };
 
-const CHECK_TONE: Record<"verified" | "unverified" | "not_applicable", string> =
-  {
-    verified: "border-signal-green/20 bg-signal-green/5 text-signal-green",
-    unverified: "border-signal-red/20 bg-signal-red/5 text-signal-red",
-    not_applicable: "border-surface-border bg-surface-bg text-text-muted",
-  };
+const CHECK_TONE: Record<VerifyCheckStatus, string> = {
+  verified: "border-signal-green/20 bg-signal-green/5 text-signal-green",
+  unverified: "border-signal-red/20 bg-signal-red/5 text-signal-red",
+  not_checked: "border-signal-amber/20 bg-signal-amber/5 text-signal-amber",
+  not_applicable: "border-surface-border bg-surface-bg text-text-muted",
+};
 
-const CHECK_STATUS_LABEL: Record<
-  "verified" | "unverified" | "not_applicable",
-  string
-> = {
+const CHECK_STATUS_LABEL: Record<VerifyCheckStatus, string> = {
   verified: "Passed",
   unverified: "Failed",
+  not_checked: "Not checked",
   not_applicable: "Not applicable",
 };
 
@@ -56,7 +57,7 @@ export function verifyResultLimitationsCopy(
 }
 
 export function verifyCheckStatusLabel(
-  status: "verified" | "unverified" | "not_applicable",
+  status: VerifyCheckStatus,
   verdict: "valid" | "invalid" | "indeterminate",
 ): string {
   if (status === "verified" && verdict === "indeterminate") {
@@ -158,6 +159,7 @@ export function VerificationResult({
   const tone = VERDICT_TONE[response.verdict];
   const passed = response.checks.filter((c) => c.status === "verified");
   const failed = response.checks.filter((c) => c.status === "unverified");
+  const notChecked = response.checks.filter((c) => c.status === "not_checked");
 
   return (
     <section className={`border p-5 sm:p-6 ${tone.panel}`}>
@@ -238,6 +240,36 @@ export function VerificationResult({
                 className="border-l-2 border-signal-red bg-surface-bg px-4 py-3 text-sm text-text-secondary"
               >
                 {breach.detail}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {notChecked.length > 0 ? (
+        <div className="mt-6">
+          <h4 className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
+            Not checked on this surface
+          </h4>
+          <ul className="mt-3 space-y-2">
+            {notChecked.map((check) => (
+              <li
+                key={check.name}
+                className="border border-surface-border bg-surface-bg px-4 py-3 text-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-text-primary">
+                    {humanizeCheckName(check.name)}
+                  </span>
+                  <span
+                    className={`shrink-0 border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${CHECK_TONE.not_checked}`}
+                  >
+                    {verifyCheckStatusLabel("not_checked", response.verdict)}
+                  </span>
+                </div>
+                {check.detail ? (
+                  <p className="mt-2 text-text-muted">{check.detail}</p>
+                ) : null}
               </li>
             ))}
           </ul>

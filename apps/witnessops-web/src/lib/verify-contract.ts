@@ -9,7 +9,11 @@ export type VerifyFailureClass =
 
 export type VerifyVerdict = "valid" | "invalid" | "indeterminate";
 
-export type VerifyCheckStatus = "verified" | "unverified" | "not_applicable";
+export type VerifyCheckStatus =
+  | "verified"
+  | "unverified"
+  | "not_checked"
+  | "not_applicable";
 
 export interface VerifyCheckView {
   name: string;
@@ -26,6 +30,7 @@ export interface VerifyBreachView {
 
 export type VerifyInputKind =
   | "receipt"
+  | "public-exposure-review-receipt"
   | "local-server-audit-receipt"
   /** @deprecated Dual-read responses use local-server-audit-receipt */
   | "offsec-shield-receipt"
@@ -36,6 +41,7 @@ export interface VerifySuccessResponse {
   inputKind: VerifyInputKind;
   /** Structural adapters (not PV/QV/WV). */
   adapter?:
+    | "witnessops.verify.public_exposure_review_receipt.v1"
     | "witnessops.verify.local_server_audit_receipt.v1"
     /** @deprecated Alias retained for type compatibility; responses emit primary id */
     | "witnessops.verify.offsec_shield_receipt.v1"
