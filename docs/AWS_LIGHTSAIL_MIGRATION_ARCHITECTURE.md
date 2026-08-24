@@ -99,6 +99,60 @@ Reject in this phase:
   completed receipts in Git;
 - activating production receipt trust as part of the deployment or cutover.
 
+## GitHub deployment source contract (Phase 1; not active)
+
+Phase 1 adds a reviewed source boundary for a later GitHub-to-AWS release path:
+
+```text
+main commit
+-> GitHub OIDC short-lived role
+-> immutable ECR manifest
+-> lane-specific SSM document
+-> fixed root-owned host adapter
+-> existing k3s reconciliation and smoke boundary
+```
+
+The machine contract is
+[`../deploy/aws/github-deployment-contract.v1.json`](../deploy/aws/github-deployment-contract.v1.json)
+and the parameterized CloudFormation source is
+[`../deploy/aws/cloudformation/github-deployment-bootstrap.template.json`](../deploy/aws/cloudformation/github-deployment-bootstrap.template.json).
+Neither is active infrastructure or deploy authority.
+
+The trust is split across an exact-repository image publisher, staging deployer,
+and production deployer. Each checks the `sts.amazonaws.com` audience, immutable
+owner/repository subject, repository and owner IDs, `refs/heads/main`, an exact
+GitHub Environment, and the reserved reusable workflow at
+`.github/workflows/aws-release-reusable.yml@refs/heads/main`. The reusable
+workflow is absent in Phase 1, preventing unrelated workflows from assuming the
+roles. Production additionally requires a protected GitHub Environment
+reviewer. OIDC eliminates stored AWS access keys; it does not eliminate the
+production authorization gate.
+
+The template reuses an operator-supplied account-level GitHub OIDC provider ARN,
+creates no provider or activation credential, and creates no Lightsail instance,
+DNS, Secret, KMS signing key, or production key-registry resource. Its ECR
+repository name and Run Command retention are fixed, and the repository is
+immutable and retained. Its two SSM documents accept only bounded identity
+inputs and call `/usr/local/sbin/witnessops-deploy-v1`; arbitrary command text is
+not an input. Registry-level ECR scan configuration is observed, not overwritten,
+and acceptance requires digests for the observed configuration and findings plus
+an explicit passing policy result. The host adapter and GitHub workflows are
+explicitly Phase 3 deliverables and are absent in Phase 1.
+
+Lightsail is registered later as a Systems Manager hybrid managed node. The
+host-side service role may pull only the exact ECR repository and write the exact
+Run Command log group. The web pod receives no AWS credentials. Managed-node
+stage tags and separate documents prevent a staging role from targeting the
+production stage and vice versa.
+
+Staging acceptance must record the GitHub run/attempt, reusable workflow ref,
+OIDC subject/audience, AWS role/session and STS principal, ECR repository/digest,
+observed scan configuration/findings/policy result, SSM node/document
+version/document digest/command ID/status, CloudWatch log group, host-adapter
+digest, requested image, and observed prod/mesh runtime identities. Missing or
+mismatched trust and artifact inputs block readiness; they are not inferred from
+an HTTP 200.
+
 ## Compute
 
 The target is one Lightsail Linux instance with:
@@ -230,22 +284,32 @@ distribution independently.
 
 ## Immutable image provenance
 
-For this bounded migration, provenance means:
+Current production authority remains the private local-k3s build until a
+separate activation lane completes. The Phase 1 GitHub/ECR material is source
+only and cannot be cited as evidence that an ECR artifact was published or
+deployed.
+
+For the planned GitHub/ECR candidate, provenance means:
 
 - full clean Git source SHA;
+- GitHub run ID/attempt and the exact main-branch source SHA;
+- observed immutable OIDC subject/audience, reserved reusable-workflow ref, and
+  the STS role/session identity;
 - Supply Chain Gate result hash;
 - digest-qualified Node 22 base image;
 - pinned Google Workspace CLI version/archive hash;
-- one human alias plus the application OCI manifest digest;
+- exact ECR repository ARN, one human alias, the application OCI manifest digest,
+  and digests of the observed scan configuration and findings with its policy result;
 - manifest-bound config digest;
+- SSM managed-node ID, document name/version/content digest, command ID/status,
+  CloudWatch log group, and root-owned adapter digest;
 - identical prod/mesh pod spec refs and observed runtime image IDs.
 
-The active private build imports a locally built image into k3s. The repository's
-CI can separately produce SBOM/cosign-signed GHCR artifacts, but current deploy
-authority does not establish that those bytes are the locally imported image.
-This PR therefore records the limitation and does not make a false cosign/SBOM
-claim. A later artifact-import change can close that gap without reactivating
-historical Compose deployment.
+The active private build still imports a locally built image into k3s. Phase 1
+does not add a workflow or host adapter and therefore makes no ECR, cosign, SBOM,
+or deployed-artifact claim. Phase 3 must import the exact ECR manifest into local
+k3s containerd without placing AWS credentials in the web pod, then reconcile
+and observe the same digest in both runtime lanes.
 
 ## Staging acceptance
 
@@ -267,14 +331,17 @@ Required staging evidence:
 5. Same digest-qualified image and manifest/config/runtime identity in both
    lanes.
 6. Candidate-local routes for home, request, verify, security, and support.
-7. Public Exposure Review receipt-only behavior:
+7. GitHub OIDC deployment identity: run/attempt, immutable claims, reserved
+   reusable workflow, STS principal, ECR digest and scan-policy evidence, SSM
+   node/document/command, adapter digest, logs, and runtime digests.
+8. Public Exposure Review receipt-only behavior:
    - recognized profile → `indeterminate`;
    - malformed profile → `invalid`;
    - same-shape signature mutation while crypto/trust is unchecked →
      `indeterminate` with `receipt_signature_cryptographic=not_checked`.
-8. State manifests, admin-core load, NDJSON parse, and projection reconstruction.
-9. Isolated backup restore.
-10. Alarm notification fire/recovery and known-good image/state rollback rehearsal.
+9. State manifests, admin-core load, NDJSON parse, and projection reconstruction.
+10. Isolated backup restore.
+11. Alarm notification fire/recovery and known-good image/state rollback rehearsal.
 
 The checked-in example remains `not_run` and cutover-unauthorized. The validator
 fails closed on incomplete gates, mutable images, manifest mismatches, trust
@@ -349,7 +416,11 @@ Cutover is a future, separately authorized sequence:
 | Rollback after new writes can lose data | Freeze and reverse-sync/reconcile before DNS rollback |
 | DNS/Caddy/secret values are private/unknown | Resolve and evidence in restricted apply/cutover receipt |
 
-Next phase after this PR is reviewed: provision a non-public candidate in an
-explicit AWS apply lane, fill the restricted acceptance record, run staging and
-restore/rollback rehearsals, and stop before DNS. Production-key activation
-remains an independent phase regardless of AWS readiness.
+Next phase after this PR is reviewed requires the operator MacBook checkout (or
+approved AWS CloudShell): reuse the account-level OIDC provider, apply the
+reviewed template, configure immutable GitHub OIDC subjects and protected
+Environments, and hybrid-register the non-public candidate. Stop before adapter
+installation, workflow activation, application deployment, or DNS. A subsequent
+Phase 3 PR implements the bounded adapter and workflow using the observed
+non-secret resource identifiers. Production-key activation remains independent
+regardless of AWS readiness.

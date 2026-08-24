@@ -99,6 +99,49 @@
     "production_key_registry_changed": false,
     "production_signing_private_key_present_on_candidate": false
   },
+  "deployment_automation": {
+    "status": "not_run",
+    "github": {
+      "run_id": null,
+      "run_attempt": null,
+      "environment": null,
+      "repository_id": "1200448046",
+      "repository_owner_id": "272034497",
+      "source_ref": null,
+      "source_sha": null,
+      "job_workflow_ref": null,
+      "oidc_subject": null,
+      "oidc_audience": null
+    },
+    "aws": {
+      "role_arn": null,
+      "role_session_name": null,
+      "sts_principal_arn": null,
+      "ecr_repository_arn": null,
+      "ecr_image_digest": null,
+      "ecr_scanning_configuration_sha256": null,
+      "ecr_scan_status": "not_run",
+      "ecr_scan_findings_sha256": null,
+      "ecr_scan_policy_ref": null,
+      "ecr_scan_policy_result": "not_run",
+      "ssm_managed_node_id": null,
+      "ssm_document_name": null,
+      "ssm_document_version": null,
+      "ssm_document_sha256": null,
+      "ssm_command_id": null,
+      "ssm_command_status": "not_run",
+      "cloudwatch_log_group": null
+    },
+    "runtime": {
+      "adapter_sha256": null,
+      "requested_image_ref": null,
+      "observed_prod_image_ref": null,
+      "observed_mesh_image_ref": null,
+      "observed_prod_runtime_image_id": null,
+      "observed_mesh_runtime_image_id": null,
+      "adapter_result": "not_run"
+    }
+  },
   "checks": [
     {
       "id": "repository_health_node22",
@@ -132,6 +175,11 @@
     },
     {
       "id": "candidate_public_routes",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "github_oidc_deployment_evidence",
       "status": "not_run",
       "evidence_ref": null
     },

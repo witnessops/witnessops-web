@@ -17,7 +17,7 @@ const contract = readJson(path.join(THIS_DIR, "migration-contract.v1.json"));
 const example = readJson(path.join(THIS_DIR, "acceptance-record.example.json"));
 const digest = (character) => `sha256:${character.repeat(64)}`;
 const imageRef = (character) =>
-  `docker.io/library/witnessops-web@sha256:${character.repeat(64)}`;
+  `123456789012.dkr.ecr.eu-central-1.amazonaws.com/witnessops-web@sha256:${character.repeat(64)}`;
 
 function makeReadyRecord() {
   const record = structuredClone(example);
@@ -75,6 +75,53 @@ function makeReadyRecord() {
 
   record.trust_boundary.pre_migration_policy_digest = digest("4");
   record.trust_boundary.post_migration_policy_digest = digest("4");
+  record.deployment_automation = {
+    status: "pass",
+    github: {
+      run_id: "9876543210",
+      run_attempt: 1,
+      environment: "aws-staging",
+      repository_id: "1200448046",
+      repository_owner_id: "272034497",
+      source_ref: "refs/heads/main",
+      source_sha: record.source.head,
+      job_workflow_ref:
+        "witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@refs/heads/main",
+      oidc_subject:
+        "repo:witnessops@272034497/witnessops-web@1200448046:environment:aws-staging",
+      oidc_audience: "sts.amazonaws.com",
+    },
+    aws: {
+      role_arn: "arn:aws:iam::123456789012:role/witnessops-staging-deployer",
+      role_session_name: "github-9876543210-1",
+      sts_principal_arn:
+        "arn:aws:sts::123456789012:assumed-role/witnessops-staging-deployer/github-9876543210-1",
+      ecr_repository_arn:
+        "arn:aws:ecr:eu-central-1:123456789012:repository/witnessops-web",
+      ecr_image_digest: digest("b"),
+      ecr_scanning_configuration_sha256: digest("8"),
+      ecr_scan_status: "COMPLETE",
+      ecr_scan_findings_sha256: digest("9"),
+      ecr_scan_policy_ref: "restricted:ecr-scan-policy-v1",
+      ecr_scan_policy_result: "pass",
+      ssm_managed_node_id: `mi-${"c".repeat(17)}`,
+      ssm_document_name: "witnessops-aws-deploy-staging-v1",
+      ssm_document_version: "1",
+      ssm_document_sha256: digest("6"),
+      ssm_command_id: "123e4567-e89b-42d3-a456-426614174000",
+      ssm_command_status: "Success",
+      cloudwatch_log_group: "/witnessops/witnessops-aws/deploy",
+    },
+    runtime: {
+      adapter_sha256: digest("7"),
+      requested_image_ref: record.image.manifest_ref,
+      observed_prod_image_ref: record.image.manifest_ref,
+      observed_mesh_image_ref: record.image.manifest_ref,
+      observed_prod_runtime_image_id: digest("b"),
+      observed_mesh_runtime_image_id: digest("c"),
+      adapter_result: "pass",
+    },
+  };
   for (const check of record.checks) {
     check.status = "pass";
     check.evidence_ref = `restricted:${check.id}`;
@@ -148,6 +195,30 @@ test("production key activation or registry changes fail closed", () => {
       "production signer trust changed during AWS migration",
     ),
   );
+});
+
+test("migration and acceptance records reject credential-shaped JSON keys", () => {
+  for (const key of ["awsSecretAccessKey", "AWSSecretAccessKey", "AWSSessionToken"]) {
+    const changedContract = structuredClone(contract);
+    changedContract.test_only = {
+      [key]: "test-placeholder-not-a-secret",
+    };
+    assert.throws(
+      () => validateMigrationContract(changedContract),
+      /migration contract contains credential material/,
+    );
+  }
+
+  for (const key of ["aws-secret-access-key", "AWSAccessKeyId", "aws_session_token"]) {
+    const changedRecord = structuredClone(example);
+    changedRecord.test_only = {
+      [key]: "test-placeholder-not-a-secret",
+    };
+    assert.throws(
+      () => validateAcceptanceRecordStructure(contract, changedRecord),
+      /acceptance record contains credential material/,
+    );
+  }
 });
 
 test("mutable images and state-manifest differences block staging", () => {

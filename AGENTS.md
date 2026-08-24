@@ -53,6 +53,7 @@ Release authority: internal/manual for now
   | Parity unit tests | `pnpm deploy:k3s:test-parity` |
   | Remove mesh-dev only | `pnpm deploy:k3s:dev:teardown` |
   | Validate planned AWS migration contract | `pnpm deploy:aws:test` |
+  | Validate planned GitHub OIDC/ECR/SSM source | `pnpm deploy:aws:validate-github` |
   | Read-only pre-DNS AWS candidate acceptance | `pnpm deploy:aws:candidate` (explicit candidate identity required) |
 
   Scripts live under `deploy/scripts/k3s-*.sh` and source `k3s-lib.sh` / `k3s-parity.sh`.
@@ -69,8 +70,11 @@ Release authority: internal/manual for now
 - **Planned AWS candidate (not active authority):**
   [`docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md`](./docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md)
   and [`deploy/aws/`](./deploy/aws/README.md) define a Lightsail host-migration
-  contract and read-only pre-DNS acceptance path. They do not authorize AWS
-  resource creation, deploy, DNS, secret rotation, cutover, or decommissioning.
+  contract, a Phase 1 GitHub OIDC/ECR/SSM source contract, and a read-only
+  pre-DNS acceptance path. The CloudFormation source is not an applied stack;
+  no GitHub AWS-deployment workflow or host adapter is active. These files do
+  not authorize AWS resource creation, GitHub setting changes, deploy, DNS,
+  secret rotation, cutover, or decommissioning.
 - AWS deployment and Public Exposure Review production-key activation are
   separate authority lanes. Never place a production receipt-signing private
   key on the web host/pod, add one to the runtime Secrets, change the production

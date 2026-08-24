@@ -50,6 +50,25 @@
     "availability_limit": "single_instance_single_node_not_highly_available",
     "minimum_free_system_disk_gib_after_migration": 20
   },
+  "deployment_automation": {
+    "contract_id": "witnessops.aws_github_deployment.v1",
+    "status": "phase_1_source_contract_not_active",
+    "required_for_candidate_acceptance": true,
+    "github_workflows_present": false,
+    "host_adapter_present": false,
+    "cloudformation_applied": false,
+    "authentication": "github_oidc_short_lived_aws_sessions_no_stored_aws_access_keys",
+    "not_authorized": [
+      "github_oidc_configuration_change",
+      "github_environment_change",
+      "github_workflow_activation",
+      "cloudformation_apply",
+      "ssm_hybrid_activation",
+      "deployment",
+      "production_receipt_signing_key_activation",
+      "production_key_registry_change"
+    ]
+  },
   "edge_and_networking": {
     "static_ipv4_required": true,
     "ipv6_enabled": false,
@@ -199,8 +218,9 @@
     }
   },
   "image_provenance": {
-    "mode": "current_private_k3s_local_build_identity",
-    "build_command": "pnpm deploy:k3s:build",
+    "mode": "planned_github_oidc_ecr_digest_candidate",
+    "current_runtime_fallback": "current_private_k3s_local_build_identity_until_a_separate_activation_lane_completes",
+    "phase_1_build_command": null,
     "immutable_reference_pattern": "^[a-z0-9][a-z0-9._/-]*@sha256:[a-f0-9]{64}$",
     "required_evidence": [
       "source_head",
@@ -211,12 +231,21 @@
       "human_readable_image_alias",
       "oci_manifest_digest",
       "manifest_bound_config_digest",
+      "github_run_and_attempt",
+      "immutable_oidc_subject_and_audience",
+      "reserved_reusable_workflow_ref",
+      "assumed_role_and_sts_principal",
+      "ecr_repository_and_image_digest",
+      "observed_ecr_scanning_configuration_findings_and_policy_result",
+      "ssm_node_document_version_digest_and_command",
+      "host_adapter_digest",
       "prod_and_mesh_runtime_image_ids"
     ],
     "required_runtime_property": "prod_and_mesh_dev_run_the_same_digest_qualified_image",
     "limitations": [
-      "the_current_private_k3s_build_is_not_the_ci_cosign_signed_ghcr_artifact",
-      "do_not_claim_cosign_or_sbom_verification_for_the_deployed_local_image_without_a_separate_artifact_import_lane"
+      "phase_1_defines_source_contracts_only_and_does_not_publish_or_deploy_an_ecr_image",
+      "the_host_adapter_and_github_workflows_are_not_implemented_or_active_in_phase_1",
+      "do_not_claim_cosign_sbom_or_ecr_deployment_provenance_until_the_named_inputs_are_independently_observed"
     ]
   },
   "staging_acceptance": {
@@ -231,6 +260,7 @@
       "candidate_runtime_identity",
       "candidate_dual_lane",
       "candidate_public_routes",
+      "github_oidc_deployment_evidence",
       "per_receipt_indeterminate",
       "per_malformed_invalid",
       "state_manifest_reconciliation",

@@ -173,7 +173,13 @@ from this repo unless an explicit Azure reopening lane authorizes it.
 The bounded target architecture and migration gates are defined in
 [`AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md`](./AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md)
 and [`deploy/aws/README.md`](../deploy/aws/README.md). The machine-readable
-contract is [`deploy/aws/migration-contract.v1.json`](../deploy/aws/migration-contract.v1.json).
+contracts are
+[`deploy/aws/migration-contract.v1.json`](../deploy/aws/migration-contract.v1.json)
+and
+[`deploy/aws/github-deployment-contract.v1.json`](../deploy/aws/github-deployment-contract.v1.json).
+The parameterized CloudFormation file under `deploy/aws/cloudformation/` is
+reviewable source, not an applied stack. No GitHub AWS-deployment workflow or
+host adapter is active in this phase.
 
 These files are design, evidence, and fail-closed acceptance surfaces only.
 They do not authorize creating AWS resources, deploying workloads, copying
