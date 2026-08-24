@@ -4,9 +4,22 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import {
+  deploymentEvidenceErrors,
+  validateDeploymentEvidenceStructure,
+  validateGithubDeploymentContract,
+} from "./validate-github-deployment.mjs";
+
 const THIS_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_CONTRACT_PATH = path.join(THIS_DIR, "migration-contract.v1.json");
 const DEFAULT_RECORD_PATH = path.join(THIS_DIR, "acceptance-record.example.json");
+const DEFAULT_GITHUB_DEPLOYMENT_CONTRACT_PATH = path.join(
+  THIS_DIR,
+  "github-deployment-contract.v1.json",
+);
+const githubDeploymentContract = JSON.parse(
+  readFileSync(DEFAULT_GITHUB_DEPLOYMENT_CONTRACT_PATH, "utf8"),
+);
 
 const EXPECTED_CHECK_IDS = [
   "repository_health_node22",
@@ -16,6 +29,7 @@ const EXPECTED_CHECK_IDS = [
   "candidate_runtime_identity",
   "candidate_dual_lane",
   "candidate_public_routes",
+  "github_oidc_deployment_evidence",
   "per_receipt_indeterminate",
   "per_malformed_invalid",
   "state_manifest_reconciliation",
@@ -122,6 +136,35 @@ export function validateMigrationContract(contract) {
     "migration must preserve the current single-node/single-writer runtime",
   );
 
+  const automation = contract.deployment_automation;
+  assert(
+    automation?.contract_id === githubDeploymentContract.contract_id,
+    "migration points to the wrong GitHub deployment contract",
+  );
+  assert(
+    automation?.status === "phase_1_source_contract_not_active",
+    "migration falsely presents GitHub deployment as active",
+  );
+  assert(
+    automation?.required_for_candidate_acceptance === true,
+    "candidate acceptance does not require GitHub deployment evidence",
+  );
+  assert(automation?.github_workflows_present === false, "Phase 1 claims GitHub workflows exist");
+  assert(automation?.host_adapter_present === false, "Phase 1 claims the host adapter exists");
+  assert(automation?.cloudformation_applied === false, "Phase 1 claims CloudFormation was applied");
+  for (const boundary of [
+    "github_oidc_configuration_change",
+    "github_environment_change",
+    "github_workflow_activation",
+    "cloudformation_apply",
+    "ssm_hybrid_activation",
+    "deployment",
+    "production_receipt_signing_key_activation",
+    "production_key_registry_change",
+  ]) {
+    assert(automation?.not_authorized?.includes(boundary), `automation does not forbid ${boundary}`);
+  }
+
   const edge = contract.edge_and_networking;
   assert(edge?.static_ipv4_required === true, "static IPv4 must be required");
   assert(edge?.ipv6_enabled === false, "IPv6 must remain disabled in this bounded phase");
@@ -201,6 +244,7 @@ export function validateMigrationContract(contract) {
 
 export function validateAcceptanceRecordStructure(contract, record) {
   validateMigrationContract(contract);
+  validateGithubDeploymentContract(githubDeploymentContract);
   assert(isObject(record), "acceptance record must be an object");
   assert(
     record.record_version === "witnessops.aws_migration_acceptance.v1",
@@ -232,6 +276,7 @@ export function validateAcceptanceRecordStructure(contract, record) {
   );
 
   assert(record.cutover?.dns_changed === false, "acceptance record includes a DNS mutation");
+  validateDeploymentEvidenceStructure(githubDeploymentContract, record.deployment_automation);
   return true;
 }
 
@@ -329,6 +374,15 @@ export function stagingReadinessErrors(contract, record) {
   add(
     trust.pre_migration_policy_digest === trust.post_migration_policy_digest,
     "production signer trust changed during AWS migration",
+  );
+
+  errors.push(
+    ...deploymentEvidenceErrors(
+      githubDeploymentContract,
+      record.deployment_automation,
+      record.source?.head,
+      record.image?.manifest_ref,
+    ),
   );
 
   for (const check of record.checks) {

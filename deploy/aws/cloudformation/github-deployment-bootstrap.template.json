@@ -1,0 +1,763 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "WitnessOps Phase 1 source contract for GitHub OIDC, immutable ECR publication, and lane-bounded SSM deployment. Applying this template requires separate operator authority.",
+  "Metadata": {
+    "WitnessOps": {
+      "ContractId": "witnessops.aws_github_deployment.v1",
+      "Status": "phase_1_pr_only_no_apply_authority",
+      "ProductionKeyActivation": false,
+      "ProductionKeyRegistryChange": false,
+      "CreatesGitHubOidcProvider": false,
+      "CreatesSsmHybridActivation": false,
+      "InstallsHostAdapter": false
+    }
+  },
+  "Parameters": {
+    "GitHubOidcProviderArn": {
+      "Type": "String",
+      "Description": "ARN of the existing account-level token.actions.githubusercontent.com OIDC provider. The stack deliberately does not create a duplicate provider.",
+      "AllowedPattern": "^arn:aws:iam::[0-9]{12}:oidc-provider/token\\.actions\\.githubusercontent\\.com$",
+      "ConstraintDescription": "Must be the existing GitHub Actions OIDC provider ARN in the target AWS account."
+    }
+  },
+  "Resources": {
+    "ApplicationRepository": {
+      "Type": "AWS::ECR::Repository",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "RepositoryName": "witnessops-web",
+        "EmptyOnDelete": false,
+        "EncryptionConfiguration": {
+          "EncryptionType": "AES256"
+        },
+        "ImageScanningConfiguration": {
+          "ScanOnPush": true
+        },
+        "ImageTagMutability": "IMMUTABLE",
+        "LifecyclePolicy": {
+          "LifecyclePolicyText": "{\"rules\":[{\"rulePriority\":1,\"description\":\"Expire untagged images after 30 days; tagged rollback evidence is retained\",\"selection\":{\"tagStatus\":\"untagged\",\"countType\":\"sinceImagePushed\",\"countUnit\":\"days\",\"countNumber\":30},\"action\":{\"type\":\"expire\"}}]}"
+        },
+        "Tags": [
+          {
+            "Key": "WitnessOpsApplication",
+            "Value": "witnessops-web"
+          },
+          {
+            "Key": "WitnessOpsAuthority",
+            "Value": "github-oidc-deployment-v1"
+          }
+        ]
+      }
+    },
+    "RunCommandLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/witnessops/${AWS::StackName}/deploy"
+        },
+        "RetentionInDays": 30,
+        "Tags": [
+          {
+            "Key": "WitnessOpsApplication",
+            "Value": "witnessops-web"
+          }
+        ]
+      }
+    },
+    "GitHubImagePublisherRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "Description": "OIDC role for immutable witnessops-web ECR publication only.",
+        "MaxSessionDuration": 3600,
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "GitHubImmutableImagePublisher",
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": {
+                  "Ref": "GitHubOidcProviderArn"
+                }
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "StringEquals": {
+                  "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                  "token.actions.githubusercontent.com:sub": "repo:witnessops@272034497/witnessops-web@1200448046:environment:aws-image-publish",
+                  "token.actions.githubusercontent.com:repository": "witnessops/witnessops-web",
+                  "token.actions.githubusercontent.com:repository_id": "1200448046",
+                  "token.actions.githubusercontent.com:repository_owner_id": "272034497",
+                  "token.actions.githubusercontent.com:ref": "refs/heads/main",
+                  "token.actions.githubusercontent.com:environment": "aws-image-publish",
+                  "token.actions.githubusercontent.com:job_workflow_ref": "witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@refs/heads/main"
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "PublishExactRepository",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "GetRegistryAuthorizationToken",
+                  "Effect": "Allow",
+                  "Action": "ecr:GetAuthorizationToken",
+                  "Resource": "*",
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      }
+                    }
+                  }
+                },
+                {
+                  "Sid": "PublishOnlyApplicationRepository",
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:BatchGetImage",
+                    "ecr:CompleteLayerUpload",
+                    "ecr:DescribeImages",
+                    "ecr:GetDownloadUrlForLayer",
+                    "ecr:InitiateLayerUpload",
+                    "ecr:PutImage",
+                    "ecr:UploadLayerPart"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "ApplicationRepository",
+                      "Arn"
+                    ]
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "DenyPublisherAuthorityExpansion",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Deny",
+                  "Action": [
+                    "iam:*",
+                    "kms:Decrypt",
+                    "kms:Sign",
+                    "lightsail:*",
+                    "route53:*",
+                    "secretsmanager:*",
+                    "ssm:SendCommand",
+                    "ssm:StartSession"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "WitnessOpsAuthority",
+            "Value": "github-image-publisher"
+          }
+        ]
+      }
+    },
+    "ManagedNodeServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "Description": "Service role for one hybrid-registered Lightsail managed node. Not available to the web pod.",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ssm.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        ],
+        "Policies": [
+          {
+            "PolicyName": "PullExactRepository",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "GetRegistryAuthorizationToken",
+                  "Effect": "Allow",
+                  "Action": "ecr:GetAuthorizationToken",
+                  "Resource": "*",
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      }
+                    }
+                  }
+                },
+                {
+                  "Sid": "PullOnlyApplicationRepository",
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:BatchGetImage",
+                    "ecr:GetDownloadUrlForLayer"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "ApplicationRepository",
+                      "Arn"
+                    ]
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "WriteExactRunCommandLogGroup",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "logs:DescribeLogGroups",
+                  "Resource": "*",
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      }
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:DescribeLogStreams",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${RunCommandLogGroup.Arn}:*"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "DenyManagedNodeAuthorityExpansion",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Deny",
+                  "Action": [
+                    "ecr:CompleteLayerUpload",
+                    "ecr:InitiateLayerUpload",
+                    "ecr:PutImage",
+                    "ecr:UploadLayerPart",
+                    "iam:*",
+                    "kms:Decrypt",
+                    "kms:Sign",
+                    "lightsail:*",
+                    "route53:*",
+                    "secretsmanager:*",
+                    "ssm:GetParameter",
+                    "ssm:GetParameters",
+                    "ssm:GetParametersByPath"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "WitnessOpsAuthority",
+            "Value": "ssm-hybrid-managed-node"
+          }
+        ]
+      }
+    },
+    "StagingDeploymentDocument": {
+      "Type": "AWS::SSM::Document",
+      "Properties": {
+        "DocumentFormat": "JSON",
+        "DocumentType": "Command",
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-deploy-staging-v1"
+        },
+        "TargetType": "/",
+        "UpdateMethod": "NewVersion",
+        "VersionName": "v1_0_0",
+        "Content": {
+          "schemaVersion": "2.2",
+          "description": "Invoke the fixed WitnessOps staging deployment adapter with validated identity inputs.",
+          "parameters": {
+            "ImageDigest": {
+              "type": "String",
+              "allowedPattern": "^sha256:[a-f0-9]{64}$",
+              "interpolationType": "ENV_VAR"
+            },
+            "SourceCommit": {
+              "type": "String",
+              "allowedPattern": "^[a-f0-9]{40}$",
+              "interpolationType": "ENV_VAR"
+            },
+            "ConfigDigest": {
+              "type": "String",
+              "allowedPattern": "^sha256:[a-f0-9]{64}$",
+              "interpolationType": "ENV_VAR"
+            },
+            "ExpectedCurrentDigest": {
+              "type": "String",
+              "allowedPattern": "^(absent|sha256:[a-f0-9]{64})$",
+              "interpolationType": "ENV_VAR"
+            }
+          },
+          "mainSteps": [
+            {
+              "name": "invokeBoundedAdapter",
+              "action": "aws:runShellScript",
+              "precondition": {
+                "StringEquals": [
+                  "platformType",
+                  "Linux"
+                ]
+              },
+              "inputs": {
+                "timeoutSeconds": "1800",
+                "runCommand": [
+                  {
+                    "Fn::Sub": "exec /usr/local/sbin/witnessops-deploy-v1 --lane staging --region ${AWS::Region} --registry ${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix} --repository witnessops-web --image-digest \"$SSM_ImageDigest\" --source-commit \"$SSM_SourceCommit\" --config-digest \"$SSM_ConfigDigest\" --expected-current-digest \"$SSM_ExpectedCurrentDigest\""
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "WitnessOpsApplication",
+            "Value": "witnessops-web"
+          },
+          {
+            "Key": "WitnessOpsDeploymentLane",
+            "Value": "staging"
+          }
+        ]
+      }
+    },
+    "ProductionDeploymentDocument": {
+      "Type": "AWS::SSM::Document",
+      "Properties": {
+        "DocumentFormat": "JSON",
+        "DocumentType": "Command",
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-deploy-production-v1"
+        },
+        "TargetType": "/",
+        "UpdateMethod": "NewVersion",
+        "VersionName": "v1_0_0",
+        "Content": {
+          "schemaVersion": "2.2",
+          "description": "Invoke the fixed WitnessOps production deployment adapter with validated identity inputs.",
+          "parameters": {
+            "ImageDigest": {
+              "type": "String",
+              "allowedPattern": "^sha256:[a-f0-9]{64}$",
+              "interpolationType": "ENV_VAR"
+            },
+            "SourceCommit": {
+              "type": "String",
+              "allowedPattern": "^[a-f0-9]{40}$",
+              "interpolationType": "ENV_VAR"
+            },
+            "ConfigDigest": {
+              "type": "String",
+              "allowedPattern": "^sha256:[a-f0-9]{64}$",
+              "interpolationType": "ENV_VAR"
+            },
+            "ExpectedCurrentDigest": {
+              "type": "String",
+              "allowedPattern": "^(absent|sha256:[a-f0-9]{64})$",
+              "interpolationType": "ENV_VAR"
+            }
+          },
+          "mainSteps": [
+            {
+              "name": "invokeBoundedAdapter",
+              "action": "aws:runShellScript",
+              "precondition": {
+                "StringEquals": [
+                  "platformType",
+                  "Linux"
+                ]
+              },
+              "inputs": {
+                "timeoutSeconds": "1800",
+                "runCommand": [
+                  {
+                    "Fn::Sub": "exec /usr/local/sbin/witnessops-deploy-v1 --lane production --region ${AWS::Region} --registry ${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix} --repository witnessops-web --image-digest \"$SSM_ImageDigest\" --source-commit \"$SSM_SourceCommit\" --config-digest \"$SSM_ConfigDigest\" --expected-current-digest \"$SSM_ExpectedCurrentDigest\""
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "WitnessOpsApplication",
+            "Value": "witnessops-web"
+          },
+          {
+            "Key": "WitnessOpsDeploymentLane",
+            "Value": "production"
+          }
+        ]
+      }
+    },
+    "GitHubStagingDeployerRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "Description": "OIDC role restricted to the staging SSM document and staging-tagged managed node.",
+        "MaxSessionDuration": 3600,
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "GitHubImmutableStagingDeployer",
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": {
+                  "Ref": "GitHubOidcProviderArn"
+                }
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "StringEquals": {
+                  "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                  "token.actions.githubusercontent.com:sub": "repo:witnessops@272034497/witnessops-web@1200448046:environment:aws-staging",
+                  "token.actions.githubusercontent.com:repository": "witnessops/witnessops-web",
+                  "token.actions.githubusercontent.com:repository_id": "1200448046",
+                  "token.actions.githubusercontent.com:repository_owner_id": "272034497",
+                  "token.actions.githubusercontent.com:ref": "refs/heads/main",
+                  "token.actions.githubusercontent.com:environment": "aws-staging",
+                  "token.actions.githubusercontent.com:job_workflow_ref": "witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@refs/heads/main"
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "InvokeStagingDeploymentOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "UseStagingDocument",
+                  "Effect": "Allow",
+                  "Action": "ssm:SendCommand",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${StagingDeploymentDocument}"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      }
+                    }
+                  }
+                },
+                {
+                  "Sid": "TargetOnlyStagingManagedNode",
+                  "Effect": "Allow",
+                  "Action": "ssm:SendCommand",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:managed-instance/*"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      },
+                      "ssm:resourceTag/WitnessOpsApplication": "witnessops-web",
+                      "ssm:resourceTag/WitnessOpsDeploymentLane": "staging"
+                    }
+                  }
+                },
+                {
+                  "Sid": "ReadCommandResult",
+                  "Effect": "Allow",
+                  "Action": "ssm:GetCommandInvocation",
+                  "Resource": "*",
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "DenyStagingAuthorityExpansion",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Deny",
+                  "Action": [
+                    "ecr:CompleteLayerUpload",
+                    "ecr:InitiateLayerUpload",
+                    "ecr:PutImage",
+                    "ecr:UploadLayerPart",
+                    "iam:*",
+                    "kms:Decrypt",
+                    "kms:Sign",
+                    "lightsail:*",
+                    "route53:*",
+                    "secretsmanager:*",
+                    "ssm:StartSession"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "WitnessOpsAuthority",
+            "Value": "github-staging-deployer"
+          }
+        ]
+      }
+    },
+    "GitHubProductionDeployerRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "Description": "OIDC role restricted to the production SSM document and production-tagged managed node. GitHub Environment approval remains external and mandatory.",
+        "MaxSessionDuration": 3600,
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "GitHubImmutableProductionDeployer",
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": {
+                  "Ref": "GitHubOidcProviderArn"
+                }
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "StringEquals": {
+                  "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+                  "token.actions.githubusercontent.com:sub": "repo:witnessops@272034497/witnessops-web@1200448046:environment:aws-production",
+                  "token.actions.githubusercontent.com:repository": "witnessops/witnessops-web",
+                  "token.actions.githubusercontent.com:repository_id": "1200448046",
+                  "token.actions.githubusercontent.com:repository_owner_id": "272034497",
+                  "token.actions.githubusercontent.com:ref": "refs/heads/main",
+                  "token.actions.githubusercontent.com:environment": "aws-production",
+                  "token.actions.githubusercontent.com:job_workflow_ref": "witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@refs/heads/main"
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "InvokeProductionDeploymentOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "UseProductionDocument",
+                  "Effect": "Allow",
+                  "Action": "ssm:SendCommand",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${ProductionDeploymentDocument}"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      }
+                    }
+                  }
+                },
+                {
+                  "Sid": "TargetOnlyProductionManagedNode",
+                  "Effect": "Allow",
+                  "Action": "ssm:SendCommand",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:managed-instance/*"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      },
+                      "ssm:resourceTag/WitnessOpsApplication": "witnessops-web",
+                      "ssm:resourceTag/WitnessOpsDeploymentLane": "production"
+                    }
+                  }
+                },
+                {
+                  "Sid": "ReadCommandResult",
+                  "Effect": "Allow",
+                  "Action": "ssm:GetCommandInvocation",
+                  "Resource": "*",
+                  "Condition": {
+                    "StringEquals": {
+                      "aws:RequestedRegion": {
+                        "Ref": "AWS::Region"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "DenyProductionAuthorityExpansion",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Deny",
+                  "Action": [
+                    "ecr:CompleteLayerUpload",
+                    "ecr:InitiateLayerUpload",
+                    "ecr:PutImage",
+                    "ecr:UploadLayerPart",
+                    "iam:*",
+                    "kms:Decrypt",
+                    "kms:Sign",
+                    "lightsail:*",
+                    "route53:*",
+                    "secretsmanager:*",
+                    "ssm:StartSession"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "WitnessOpsAuthority",
+            "Value": "github-production-deployer"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "EcrRepositoryArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ApplicationRepository",
+          "Arn"
+        ]
+      }
+    },
+    "EcrRepositoryUri": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ApplicationRepository",
+          "RepositoryUri"
+        ]
+      }
+    },
+    "GitHubImagePublisherRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "GitHubImagePublisherRole",
+          "Arn"
+        ]
+      }
+    },
+    "GitHubStagingDeployerRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "GitHubStagingDeployerRole",
+          "Arn"
+        ]
+      }
+    },
+    "GitHubProductionDeployerRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "GitHubProductionDeployerRole",
+          "Arn"
+        ]
+      }
+    },
+    "ManagedNodeServiceRoleArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ManagedNodeServiceRole",
+          "Arn"
+        ]
+      }
+    },
+    "StagingDeploymentDocumentName": {
+      "Value": {
+        "Ref": "StagingDeploymentDocument"
+      }
+    },
+    "ProductionDeploymentDocumentName": {
+      "Value": {
+        "Ref": "ProductionDeploymentDocument"
+      }
+    },
+    "RunCommandLogGroupName": {
+      "Value": {
+        "Ref": "RunCommandLogGroup"
+      }
+    }
+  }
+}

@@ -7,6 +7,12 @@ for moving the existing WitnessOps web runtime to one AWS Lightsail instance in
 Frankfurt. It does not provision AWS resources, deploy an image, rotate a live
 secret, change DNS, activate a production receipt-signing key, or merge itself.
 
+The GitHub deployment material in this directory is also source-only. It defines
+the least-privilege OIDC, ECR, and Systems Manager boundary that a later operator
+lane may apply; it does not create a GitHub Environment, change the repository's
+OIDC subject format, apply CloudFormation, register a managed node, install the
+host adapter, or add an active deployment workflow.
+
 The architecture decision and risk assessment are in
 [`../../docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md`](../../docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md).
 The current live authority remains
@@ -18,9 +24,13 @@ separately authorized cutover is completed and evidenced.
 | File | Purpose |
 | --- | --- |
 | `migration-contract.v1.json` | Machine-readable compute, edge, state, custody, provenance, acceptance, rollback, and cutover contract |
+| `github-deployment-contract.v1.json` | Phase 1 GitHub OIDC, ECR, SSM, host-adapter, and acceptance boundary; explicitly non-active |
+| `cloudformation/github-deployment-bootstrap.template.json` | Parameterized source for one existing GitHub OIDC provider, three split roles, immutable ECR, two bounded SSM documents, hybrid-node role, and Run Command logs |
 | `acceptance-record.example.json` | Non-operational, fail-closed template for the restricted migration receipt |
+| `validate-github-deployment.mjs` | Validates the deployment contract, CloudFormation source, and recorded deployment identities without contacting AWS or GitHub |
 | `validate-acceptance.mjs` | Validates contract structure and staging/cutover readiness without contacting AWS |
 | `candidate-acceptance.sh` | Read-only pre-DNS inspection of an explicitly identified, already provisioned candidate |
+| `validate-github-deployment.test.mjs` | OIDC, role separation, ECR, SSM command-injection, and evidence-tamper tests |
 | `validate-acceptance.test.mjs` | Contract, trust-boundary, tamper, and candidate-helper tests |
 
 Real resource identifiers, IP addresses, account numbers, topology values,
@@ -39,6 +49,7 @@ Use Node 22 and pnpm 9.15.4 from the repository root:
 ```bash
 pnpm deploy:aws:test
 pnpm deploy:aws:validate
+pnpm deploy:aws:validate-github
 ```
 
 The second command validates the checked-in example structurally. The template
@@ -53,6 +64,103 @@ pnpm deploy:aws:validate -- \
 
 Passing the validator is evidence that the named gates are populated; it is not
 deployment, DNS, secret-rotation, signing, or cutover approval.
+
+## GitHub-to-AWS deployment boundary
+
+Status: **Phase 1 source contract only; not active**.
+
+The recommended authentication path is GitHub Actions OIDC. GitHub requests a
+short-lived AWS STS session for one exact role; no `AWS_ACCESS_KEY_ID`,
+`AWS_SECRET_ACCESS_KEY`, private deploy key, or AWS password is stored in GitHub.
+This removes long-lived AWS credentials, but it does not remove authorization:
+the production job must still pass a protected `aws-production` GitHub
+Environment with at least one reviewer and self-review disabled.
+
+The source contract splits authority:
+
+| Principal | May do | Must not do |
+| --- | --- | --- |
+| `aws-image-publish` role | Authenticate to ECR and push layers/manifests to the exact `witnessops-web` repository | Send SSM commands, read secrets, sign receipts, mutate IAM/Lightsail/DNS |
+| `aws-staging` role | Invoke only the staging document on a correctly tagged staging managed node; read that command result | Push ECR, target production, start a shell session, read secrets, mutate infrastructure |
+| `aws-production` role | Invoke only the production document on a correctly tagged production managed node after GitHub Environment approval | Push ECR, target staging, start a shell session, read secrets, mutate infrastructure |
+| Lightsail SSM service role | SSM Agent core calls, pull the exact ECR repository, write the exact Run Command log group | Push images, read Parameter Store/Secrets Manager, decrypt/sign with KMS, mutate IAM/Lightsail/DNS |
+
+Every OIDC trust checks the exact audience, immutable owner/repository subject,
+repository ID, owner ID, `refs/heads/main`, GitHub Environment, and the reserved
+reusable workflow
+`witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@refs/heads/main`.
+That workflow does not exist or run in Phase 1, so an unrelated workflow cannot
+assume a deployment role. This environment cannot inspect the repository's
+current immutable-subject setting, so the setting is deliberately recorded as
+**unknown**, not assumed. A later operator lane must first install the AWS trust
+for the immutable form and then observe and enable that form in GitHub before any
+positive role-assumption test.
+
+The CloudFormation source accepts only the ARN of an existing commercial-
+partition account-level GitHub OIDC provider. It never creates a second
+provider, and the repository name and 30-day Run Command log retention are fixed
+rather than operator-overridable. Its ECR repository uses immutable tags,
+scan-on-push, AES-256 at-rest encryption, retained deletion semantics, and
+expiration of untagged images only; tagged rollback artifacts are not
+automatically expired. Because ECR enhanced scanning is configured at registry
+level, Phase 1 deliberately does not overwrite that account-wide setting.
+Candidate acceptance instead records digests of the observed registry scanning
+configuration and findings plus the explicit scan-policy reference/result; a
+scan-on-push flag alone is not acceptance evidence.
+
+Lightsail does not receive an IAM instance profile through this contract. A
+later operator lane registers the host as one Systems Manager hybrid managed
+node using a one-time activation held outside Git and GitHub. The two SSM
+documents accept only image digest, source commit, config digest, and expected
+current digest. Each uses `ENV_VAR` interpolation and executes only:
+
+```text
+/usr/local/sbin/witnessops-deploy-v1
+```
+
+That root-owned adapter is a Phase 3 deliverable, not present in this PR. It must
+construct the exact account/region/repository reference, reject mutable or
+unexpected images, verify the current and requested digests, import the ECR
+manifest into local k3s containerd, reuse the current reconciliation/smoke
+contract where compatible, and emit no secret or customer data. Neither the web
+pod nor either Kubernetes Secret receives AWS credentials.
+
+Current primary references for the contract:
+
+- [GitHub OIDC immutable subjects and environments](https://docs.github.com/en/actions/reference/security/oidc)
+- [GitHub OIDC with reusable workflows](https://docs.github.com/actions/deployment/security-hardening-your-deployments/using-openid-connect-with-reusable-workflows)
+- [AWS GitHub OIDC condition keys](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_iam-condition-keys.html)
+- [AWS IAM GitHub trust-policy validation](https://docs.aws.amazon.com/IAM/latest/UserGuide/access-analyzer-reference-policy-checks.html)
+- [Systems Manager tag-restricted Run Command](https://docs.aws.amazon.com/systems-manager/latest/userguide/run-command-setting-up.html)
+- [Systems Manager hybrid managed-node service role](https://docs.aws.amazon.com/systems-manager/latest/userguide/hybrid-multicloud-service-role.html)
+- [SSM document input validation and interpolation](https://docs.aws.amazon.com/systems-manager/latest/userguide/documents-schemas-features.html)
+- [ECR repository CloudFormation contract](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-ecr-repository.html)
+- [ECR basic and enhanced image scanning](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html)
+- [Run Command output in CloudWatch Logs](https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-rc-setting-up-cwlogs.html)
+
+## Environment handoff
+
+**Phase 1 — this PR: OPERATOR LAPTOP REQUIRED: NO.** Contract files, validators,
+negative tests, and documentation can be completed in the current repository
+environment. Stop before any AWS or GitHub setting changes.
+
+**Phase 2 — AWS bootstrap: OPERATOR LAPTOP REQUIRED: YES.** Use the custodied
+MacBook checkout under `~/WitnessOps/repos/witnessops-web` (or an approved AWS
+CloudShell session) with the operator's normal AWS/GitHub authentication to:
+
+1. inspect the target AWS account/region and reuse its single GitHub OIDC provider;
+2. apply the reviewed template by exact merged commit/template digest;
+3. observe and enable the repository's immutable OIDC subject format in the safe order documented above while preserving the reserved reusable-workflow claim;
+4. create the three GitHub Environments and store only non-secret role/resource identifiers as variables;
+5. create a one-node SSM hybrid activation, register the exact Lightsail host, apply the required application/stage tags, then dispose of the one-time activation material;
+6. capture CloudFormation outputs, the observed ECR registry scan configuration, and negative IAM tests in restricted custody;
+7. stop before installing a deployment adapter, enabling a deployment workflow, deploying the app, changing DNS, or activating production signing trust.
+
+**Phase 3 — adapter/workflow PR:** return to repository work after Phase 2 has
+supplied the non-secret resource identifiers. Implement and test the root-owned
+host adapter plus a caller and the reserved reusable digest-only workflow in a
+separate PR. Its production job remains approval-gated. Production receipt-key
+activation remains another independent authority lane.
 
 ## Candidate preparation boundary
 

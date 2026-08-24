@@ -1,0 +1,244 @@
+{
+  "contract_id": "witnessops.aws_github_deployment.v1",
+  "status": "phase_1_pr_only_no_apply_authority",
+  "last_reviewed": "2026-08-24",
+  "authority": {
+    "repository": "witnessops/witnessops-web",
+    "repository_id": "1200448046",
+    "repository_owner": "witnessops",
+    "repository_owner_id": "272034497",
+    "default_branch": "main",
+    "in_scope": [
+      "github_oidc_trust_contract",
+      "ecr_repository_contract",
+      "bounded_ssm_run_command_contract",
+      "deployment_acceptance_evidence"
+    ],
+    "not_authorized": [
+      "cloudformation_apply",
+      "aws_resource_mutation",
+      "github_oidc_configuration_change",
+      "github_environment_change",
+      "github_workflow_activation",
+      "candidate_registration",
+      "deployment",
+      "dns_change",
+      "production_secret_change",
+      "production_receipt_signing_key_activation",
+      "production_key_registry_change",
+      "merge"
+    ]
+  },
+  "oidc": {
+    "issuer": "https://token.actions.githubusercontent.com",
+    "audience": "sts.amazonaws.com",
+    "provider_strategy": "reuse_one_existing_account_level_provider",
+    "provider_arn_is_operator_input": true,
+    "long_lived_aws_credentials_allowed": false,
+    "immutable_subject_required": true,
+    "immutable_subject_current_state": "unknown_must_be_observed_before_activation",
+    "source_ref": "refs/heads/main",
+    "reusable_workflow_ref": "witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@refs/heads/main",
+    "reusable_workflow_status": "phase_3_reserved_path_not_present_or_active_in_phase_1",
+    "roles": [
+      {
+        "id": "image_publisher",
+        "environment": "aws-image-publish",
+        "subject": "repo:witnessops@272034497/witnessops-web@1200448046:environment:aws-image-publish",
+        "permission_boundary": "ecr_push_exact_repository_only"
+      },
+      {
+        "id": "staging_deployer",
+        "environment": "aws-staging",
+        "subject": "repo:witnessops@272034497/witnessops-web@1200448046:environment:aws-staging",
+        "permission_boundary": "ssm_staging_document_and_tagged_node_only"
+      },
+      {
+        "id": "production_deployer",
+        "environment": "aws-production",
+        "subject": "repo:witnessops@272034497/witnessops-web@1200448046:environment:aws-production",
+        "permission_boundary": "ssm_production_document_and_tagged_node_only"
+      }
+    ],
+    "required_trust_claims": [
+      "aud",
+      "sub",
+      "repository",
+      "repository_id",
+      "repository_owner_id",
+      "ref",
+      "environment",
+      "job_workflow_ref"
+    ],
+    "session_duration_seconds": 3600
+  },
+  "github_environments": {
+    "aws-image-publish": {
+      "deployment_branch": "main",
+      "required_reviewers_minimum": 0,
+      "allow_self_review": false,
+      "stores_aws_secrets": false
+    },
+    "aws-staging": {
+      "deployment_branch": "main",
+      "required_reviewers_minimum": 0,
+      "allow_self_review": false,
+      "stores_aws_secrets": false
+    },
+    "aws-production": {
+      "deployment_branch": "main",
+      "required_reviewers_minimum": 1,
+      "allow_self_review": false,
+      "stores_aws_secrets": false
+    }
+  },
+  "ecr": {
+    "region": "eu-central-1",
+    "repository_name": "witnessops-web",
+    "tag_mutability": "IMMUTABLE",
+    "scan_on_push": true,
+    "registry_scanning_configuration": "observe_existing_do_not_mutate_in_phase_1",
+    "encryption": "AES256",
+    "empty_on_delete": false,
+    "deletion_policy": "Retain",
+    "deployment_reference": "account.dkr.ecr.eu-central-1.amazonaws.com/witnessops-web@sha256:<digest>",
+    "mutable_tag_deployment_allowed": false,
+    "lifecycle": {
+      "untagged_expiry_days": 30,
+      "tagged_image_expiry": "none_rollback_tags_are_not_automatically_expired"
+    }
+  },
+  "ssm": {
+    "lightsail_registration_mode": "hybrid_managed_node",
+    "activation_creation_in_template": false,
+    "activation_code_storage": "operator_custody_one_time_never_git_never_github_secret",
+    "managed_node_service_role": {
+      "trust_principal": "ssm.amazonaws.com",
+      "managed_policy": "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+      "additional_permissions": [
+        "ecr_pull_exact_repository",
+        "run_command_output_exact_log_group"
+      ],
+      "forbidden_permissions": [
+        "ecr_push",
+        "iam_mutation",
+        "lightsail_mutation",
+        "route53_mutation",
+        "secretsmanager_read",
+        "kms_sign",
+        "ssm_parameter_read"
+      ]
+    },
+    "target_tags": {
+      "application_key": "WitnessOpsApplication",
+      "application_value": "witnessops-web",
+      "lane_key": "WitnessOpsDeploymentLane",
+      "staging_value": "staging",
+      "production_value": "production"
+    },
+    "documents": [
+      {
+        "id": "staging",
+        "version_name": "v1_0_0",
+        "lane": "staging",
+        "adapter_path": "/usr/local/sbin/witnessops-deploy-v1"
+      },
+      {
+        "id": "production",
+        "version_name": "v1_0_0",
+        "lane": "production",
+        "adapter_path": "/usr/local/sbin/witnessops-deploy-v1"
+      }
+    ],
+    "document_inputs": {
+      "ImageDigest": "^sha256:[a-f0-9]{64}$",
+      "SourceCommit": "^[a-f0-9]{40}$",
+      "ConfigDigest": "^sha256:[a-f0-9]{64}$",
+      "ExpectedCurrentDigest": "^(absent|sha256:[a-f0-9]{64})$"
+    },
+    "arbitrary_command_parameter_allowed": false,
+    "parameter_interpolation": "ENV_VAR",
+    "cloudwatch_log_retention_days": 30
+  },
+  "host_adapter": {
+    "phase": "phase_3_not_implemented_or_installed_by_this_contract",
+    "path": "/usr/local/sbin/witnessops-deploy-v1",
+    "owner": "root",
+    "group": "root",
+    "mode": "0755",
+    "required_behaviors": [
+      "accept_only_lane_image_digest_source_commit_config_digest_and_expected_current_digest",
+      "construct_the_image_reference_from_the_stack_account_region_and_repository_constants",
+      "reject_mutable_image_references_and_unexpected_registry_or_repository",
+      "verify_the_observed_ecr_manifest_digest_before_import",
+      "verify_expected_current_runtime_digest_before_mutation",
+      "import_the_exact_ecr_manifest_into_local_k3s_containerd_without_pod_aws_credentials",
+      "reuse_the_existing_k3s_reconciliation_and_smoke_contract_where_compatible",
+      "deploy_staging_and_production_as_separate_lane_operations",
+      "emit_no_credentials_secrets_customer_state_or_receipt_signing_material",
+      "return_nonzero_on_any_identity_reconciliation_or_smoke_failure"
+    ],
+    "forbidden_behaviors": [
+      "accept_arbitrary_shell_text",
+      "build_unreviewed_source_on_the_target",
+      "change_dns",
+      "change_runtime_secrets",
+      "read_or_write_production_receipt_signing_keys",
+      "change_the_production_key_registry",
+      "widen_verify_semantics"
+    ]
+  },
+  "acceptance": {
+    "required_fields": [
+      "github_run_id",
+      "github_run_attempt",
+      "github_environment",
+      "github_repository_id",
+      "github_repository_owner_id",
+      "github_source_ref",
+      "github_source_sha",
+      "github_job_workflow_ref",
+      "oidc_subject",
+      "oidc_audience",
+      "aws_role_arn",
+      "aws_role_session_name",
+      "aws_sts_principal_arn",
+      "ecr_repository_arn",
+      "ecr_image_digest",
+      "ecr_scanning_configuration_sha256",
+      "ecr_scan_status",
+      "ecr_scan_findings_sha256",
+      "ecr_scan_policy_ref",
+      "ecr_scan_policy_result",
+      "ssm_managed_node_id",
+      "ssm_document_name",
+      "ssm_document_version",
+      "ssm_document_sha256",
+      "ssm_command_id",
+      "ssm_command_status",
+      "cloudwatch_log_group",
+      "adapter_sha256",
+      "requested_image_ref",
+      "observed_prod_image_ref",
+      "observed_mesh_image_ref",
+      "observed_prod_runtime_image_id",
+      "observed_mesh_runtime_image_id"
+    ],
+    "negative_tests": [
+      "legacy_or_wrong_oidc_subject_denied",
+      "wrong_repository_or_owner_id_denied",
+      "non_main_ref_denied",
+      "wrong_github_environment_denied",
+      "wrong_or_missing_reusable_workflow_denied",
+      "publisher_cannot_send_ssm_command",
+      "deployer_cannot_push_ecr_image",
+      "staging_deployer_cannot_target_production_document_or_node",
+      "production_deployer_cannot_target_staging_document_or_node",
+      "untagged_or_wrongly_tagged_managed_node_denied",
+      "mutable_image_input_rejected",
+      "missing_or_failed_image_scan_policy_rejected",
+      "arbitrary_command_input_rejected",
+      "missing_or_mismatched_runtime_digest_fails_acceptance"
+    ]
+  }
+}
