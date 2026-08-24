@@ -74,6 +74,7 @@ const EXPECTED_PUBLISHER_ACTIONS = [
   "ecr:BatchCheckLayerAvailability",
   "ecr:BatchGetImage",
   "ecr:CompleteLayerUpload",
+  "ecr:DescribeImageScanFindings",
   "ecr:DescribeImages",
   "ecr:GetDownloadUrlForLayer",
   "ecr:InitiateLayerUpload",
@@ -500,6 +501,15 @@ export function validateGithubDeploymentContract(contract) {
     assert(role?.subject === expected.subject, `${id} immutable subject mismatch`);
     assert(!role.subject.includes("*"), `${id} subject contains a wildcard`);
   }
+  assert(
+    contract.oidc.roles.find((item) => item.id === "image_publisher")?.permission_boundary ===
+      "ecr_push_and_scan_findings_read_exact_repository_only",
+    "publisher contract permission boundary differs",
+  );
+  assert(
+    contract.ecr.publisher_scan_read_action === "ecr:DescribeImageScanFindings",
+    "publisher scan-read contract differs",
+  );
   assert(
     contract.github_environments?.["aws-production"]?.required_reviewers_minimum >= 1,
     "production environment has no reviewer gate",

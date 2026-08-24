@@ -9,6 +9,7 @@ import {
   computeMeshReceiptContentSha256,
   MESH_RECEIPT_PUBLIC_SCHEMA,
 } from "@/lib/mesh-gate";
+import { JSON_AMBIGUITY_MAX_DEPTH } from "@/lib/json-ambiguity";
 
 afterEach(() => {
   _resetAllStores();
@@ -237,5 +238,43 @@ test("mesh-gate POST rejects invalid UTF-8 as a controlled client error", async 
     ok: false,
     verdict: "mesh_gate_invalid",
     errors: ["body must be valid UTF-8"],
+  });
+});
+
+test("mesh-gate POST rejects valid but excessively nested JSON as a controlled client error", async () => {
+  const depth = JSON_AMBIGUITY_MAX_DEPTH + 1;
+  const body = `${'{"nested":'.repeat(depth)}{"value":1,"value":2}${"}".repeat(depth)}`;
+  assert.doesNotThrow(() => JSON.parse(body));
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/mesh-gate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    verdict: "mesh_gate_invalid",
+    errors: ["JSON exceeds supported parser limits"],
+  });
+});
+
+test("mesh-gate POST keeps malformed JSON distinct from the scanner depth limit", async () => {
+  const response = await POST(
+    new Request("https://witnessops.com/api/mesh-gate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: '{"unterminated":',
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    verdict: "mesh_gate_invalid",
+    errors: ["malformed JSON"],
   });
 });

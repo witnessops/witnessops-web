@@ -1,3 +1,12 @@
+export const JSON_AMBIGUITY_MAX_DEPTH = 128;
+
+export class JsonAmbiguityScanLimitError extends Error {
+  constructor() {
+    super(`JSON nesting exceeds the supported depth of ${JSON_AMBIGUITY_MAX_DEPTH}.`);
+    this.name = "JsonAmbiguityScanLimitError";
+  }
+}
+
 export function findDuplicateJsonObjectKey(source: string): string | null {
   let index = 0;
 
@@ -40,7 +49,7 @@ export function findDuplicateJsonObjectKey(source: string): string | null {
     }
   }
 
-  function parseArray(): string | null {
+  function parseArray(depth: number): string | null {
     index += 1;
     skipWhitespace();
     if (source[index] === "]") {
@@ -49,7 +58,7 @@ export function findDuplicateJsonObjectKey(source: string): string | null {
     }
 
     while (index < source.length) {
-      const duplicateKey = parseValue();
+      const duplicateKey = parseValue(depth);
       if (duplicateKey !== null) {
         return duplicateKey;
       }
@@ -68,7 +77,7 @@ export function findDuplicateJsonObjectKey(source: string): string | null {
     return null;
   }
 
-  function parseObject(): string | null {
+  function parseObject(depth: number): string | null {
     index += 1;
     const keys = new Set<string>();
     skipWhitespace();
@@ -95,7 +104,7 @@ export function findDuplicateJsonObjectKey(source: string): string | null {
       }
       index += 1;
 
-      const duplicateKey = parseValue();
+      const duplicateKey = parseValue(depth);
       if (duplicateKey !== null) {
         return duplicateKey;
       }
@@ -115,14 +124,20 @@ export function findDuplicateJsonObjectKey(source: string): string | null {
     return null;
   }
 
-  function parseValue(): string | null {
+  function parseValue(depth: number): string | null {
     skipWhitespace();
     const char = source[index];
     if (char === "{") {
-      return parseObject();
+      if (depth >= JSON_AMBIGUITY_MAX_DEPTH) {
+        throw new JsonAmbiguityScanLimitError();
+      }
+      return parseObject(depth + 1);
     }
     if (char === "[") {
-      return parseArray();
+      if (depth >= JSON_AMBIGUITY_MAX_DEPTH) {
+        throw new JsonAmbiguityScanLimitError();
+      }
+      return parseArray(depth + 1);
     }
     if (char === "\"") {
       readJsonString();
@@ -132,9 +147,5 @@ export function findDuplicateJsonObjectKey(source: string): string | null {
     return null;
   }
 
-  try {
-    return parseValue();
-  } catch {
-    return null;
-  }
+  return parseValue(0);
 }

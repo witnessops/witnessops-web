@@ -83,8 +83,8 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     path: "/api/ask-witnessops",
     methods: ["POST"],
     category: "public-utility",
-    summary: "Deterministic Ask WitnessOps question endpoint with durable receipt custody",
-    note: "Accepts bounded JSON questions, returns the assembled answer, and reports durable or ephemeral receipt status through response headers.",
+    summary: "Deterministic Ask WitnessOps answer-only question endpoint",
+    note: "Accepts bounded JSON questions and returns the assembled answer without persisting public questions or emitting receipt-custody headers.",
   },
   {
     path: "/api/contact",

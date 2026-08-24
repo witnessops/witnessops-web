@@ -14,7 +14,10 @@ import type {
   VerifySuccessResponse,
   VerifyVerdict,
 } from "@/lib/verify-contract";
-import { findDuplicateJsonObjectKey } from "./json-ambiguity";
+import {
+  findDuplicateJsonObjectKey,
+  JsonAmbiguityScanLimitError,
+} from "./json-ambiguity";
 import {
   isLocalServerAuditReceipt,
   verifyLocalServerAuditReceipt,
@@ -91,7 +94,15 @@ function parseReceiptInput(
     return receipt;
   }
 
-  if (findDuplicateJsonObjectKey(receipt) !== null) {
+  let duplicateKey: string | null = null;
+  try {
+    duplicateKey = findDuplicateJsonObjectKey(receipt);
+  } catch (error) {
+    if (error instanceof JsonAmbiguityScanLimitError) {
+      return malformed("Receipt payload exceeds supported JSON parser limits.");
+    }
+  }
+  if (duplicateKey !== null) {
     return malformed("Receipt payload contains duplicate JSON object keys.");
   }
 

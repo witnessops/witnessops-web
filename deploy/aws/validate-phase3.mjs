@@ -41,6 +41,7 @@ export function loadPhase3Sources(root = ROOT) {
     reusable: read(".github/workflows/aws-release-reusable.yml"),
     validation: read(".github/workflows/aws-phase3-validate.yml"),
     scanVerifier: read("deploy/aws/verify-scan-evidence.mjs"),
+    scanFindingsValidator: read("deploy/aws/validate-ecr-scan-findings.mjs"),
   };
 }
 
@@ -56,6 +57,7 @@ export function validatePhase3Sources(sources) {
     reusable,
     validation,
     scanVerifier,
+    scanFindingsValidator,
   } = sources;
 
   assert(!containsCredentialMaterial(sources), "Phase 3 source contains credential material");
@@ -95,10 +97,25 @@ export function validatePhase3Sources(sources) {
   assert(contract.workflows.deployment_requires_publication_run_identity === true);
   assert(
     contract.workflows.successful_scan_evidence ===
-      "github_run_artifact_bound_to_exact_publisher_run_attempt_source_manifest_and_config",
+      "github_run_artifact_bound_to_exact_publisher_run_attempt_source_manifest_config_and_describe_image_scan_findings_response",
+  );
+  assert(
+    JSON.stringify(contract.workflows.successful_scan_evidence_scanning_modes) ===
+      JSON.stringify(["basic_complete_findings", "enhanced_active_enhanced_findings"]),
+  );
+  assert(
+    contract.workflows.successful_scan_evidence_pagination ===
+      "aws_cli_auto_paginated_response_must_not_contain_next_token",
   );
   assert(contract.workflows.successful_scan_evidence_retention_days === 90);
-  assert(contract.workflows.successful_scan_evidence_aws_iam_change === false);
+  assert(
+    contract.workflows.successful_scan_evidence_aws_iam_change ===
+      "repository_scoped_ecr_describe_image_scan_findings_only",
+  );
+  assert(
+    contract.workflows.immutable_tag_retry_strategy ===
+      "reuse_existing_source_tag_only_after_exact_registry_manifest_config_source_label_and_verified_local_build_config_digest_validation",
+  );
   assert(contract.activation_gates.merge_required_before_host_install === true);
   assert(contract.activation_gates.config_digest_required === true);
   assert(contract.activation_gates.root_staged_apply_self_test_required === true);
@@ -203,6 +220,12 @@ export function validatePhase3Sources(sources) {
     'org.opencontainers.image.revision="${SOURCE_COMMIT}"',
     "NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com",
     "WITNESSOPS_VERIFY_BASE_URL=https://witnessops.com",
+    "gcompat=1.1.0-r4",
+    "python3=3.14.7-r1",
+    "make=4.4.1-r4",
+    "g++=15.2.0-r5",
+    "ca-certificates=20260611-r0",
+    "curl=8.21.0-r0",
   ]) {
     assert(dockerfile.includes(required), `AWS Dockerfile is missing ${required}`);
   }
@@ -253,6 +276,15 @@ export function validatePhase3Sources(sources) {
     'expected_repository_uri="${registry}/${ECR_REPOSITORY}"',
     '[[ "${ECR_REPOSITORY_URI}" == "${expected_repository_uri}" ]]',
     "validate_scan_evidence:",
+    "aws ecr describe-image-scan-findings",
+    "ImageNotFound",
+    'publication_mode="reused_existing_immutable_tag"',
+    'EXPECTED_BUILD_CONFIG_DIGEST: ${{ steps.local_image.outputs.config_digest }}',
+    '[[ "${config_digest}" == "${EXPECTED_BUILD_CONFIG_DIGEST}" ]]',
+    "ecr-scan-findings.json",
+    "ecr-manifest.json",
+    "IN_PROGRESS|PENDING",
+    "enhancedFindings",
     "actions: read",
     "witnessops-web-aws-scan-evidence-",
     "github-token: ${{ github.token }}",
@@ -269,6 +301,23 @@ export function validatePhase3Sources(sources) {
   );
   assert(!reusable.includes("secrets:"), "reusable workflow accepts or forwards GitHub secrets");
   assert(!reusable.includes(":latest"), "reusable workflow uses a mutable latest reference");
+  assert(
+    !reusable.includes("imageScanFindingsSummary") && !reusable.includes("aws ecr describe-images"),
+    "reusable workflow uses DescribeImages scan telemetry",
+  );
+  const publisherJob = reusable.slice(
+    reusable.indexOf("\n  publish_image:"),
+    reusable.indexOf("\n  validate_scan_evidence:"),
+  );
+  assert(publisherJob.length > 0, "publisher job boundaries are missing");
+  for (const required of [
+    "Check out the exact scan validator without persisted credentials",
+    "ref: ${{ needs.validate.outputs.source_commit }}",
+    "persist-credentials: false",
+    "node deploy/aws/validate-ecr-scan-findings.mjs",
+  ]) {
+    assert(publisherJob.includes(required), `publisher job is missing ${required}`);
+  }
   assert(
     !/\b(commands|shell_command|run_command)\b\s*:/.test(reusable),
     "reusable workflow accepts an arbitrary command input",
@@ -292,11 +341,32 @@ export function validatePhase3Sources(sources) {
     'reusable.ref === "refs/heads/main"',
     "evidence.image_digest === expected.imageDigest",
     "evidence.config_digest === expected.configDigest",
-    'evidence.scan_status === "COMPLETE"',
+    "SCAN_MODE_STATUS",
+    "evidence.scan_status === SCAN_MODE_STATUS[evidence.scan_mode]",
     "evidence.critical_findings === 0",
     "evidence.high_findings === 0",
+    "evidence.scan_api === SCAN_API",
+    "validateEcrScanFindings",
+    "scan findings artifact hash differs",
   ]) {
     assert(scanVerifier.includes(required), `scan evidence verifier is missing ${required}`);
+  }
+
+  for (const required of [
+    "payload.imageId.imageDigest === expected.imageDigest",
+    "payload.nextToken === undefined",
+    "Object.hasOwn(SCAN_MODES, scanStatus)",
+    "payload.imageScanFindings[inventoryKey]",
+    "isCompletionTimestamp(payload.imageScanFindings.imageScanCompletedAt)",
+    "severityCounts.CRITICAL",
+    "severityCounts.HIGH",
+    "criticalFindings === 0",
+    "highFindings === 0",
+  ]) {
+    assert(
+      scanFindingsValidator.includes(required),
+      `ECR scan findings validator is missing ${required}`,
+    );
   }
 
   assert(validation.includes("\n  pull_request:"), "Phase 3 validation does not run on PRs");
@@ -309,6 +379,10 @@ export function validatePhase3Sources(sources) {
   assert(
     validation.includes("node --test deploy/aws/verify-scan-evidence.test.mjs"),
     "validation workflow omits scan evidence tests",
+  );
+  assert(
+    validation.includes("node --test deploy/aws/validate-ecr-scan-findings.test.mjs"),
+    "validation workflow omits ECR scan findings tests",
   );
   return true;
 }

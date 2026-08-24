@@ -113,6 +113,69 @@ test("publisher must bind the exact ECR repository URI", () => {
   );
 });
 
+test("publisher must use digest-bound DescribeImageScanFindings telemetry", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace("aws ecr describe-image-scan-findings", "aws ecr describe-images"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /describe-image-scan-findings|DescribeImages scan telemetry/,
+  );
+});
+
+test("publisher must support completed basic and enhanced scan inventories", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace("enhancedFindings", "unreviewedEnhancedInventory"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /enhancedFindings/,
+  );
+});
+
+test("publisher must check out the exact scan validator before invoking it", () => {
+  const sources = loadPhase3Sources();
+  sources.reusable = sources.reusable.replace(
+    /      - name: Check out the exact scan validator without persisted credentials[\s\S]*?          persist-credentials: false\n\n/,
+    "",
+  );
+  assert.throws(
+    () => validatePhase3Sources(sources),
+    /publisher job is missing Check out the exact scan validator/,
+  );
+});
+
+test("publisher must preserve retry recovery for an existing immutable source tag", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace(
+      'publication_mode="reused_existing_immutable_tag"',
+      'publication_mode="overwritten_existing_tag"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /reused_existing_immutable_tag/,
+  );
+});
+
+test("publisher must bind reused immutable tags to the verified local build identity", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace(
+      '[[ "${config_digest}" == "${EXPECTED_BUILD_CONFIG_DIGEST}" ]]',
+      '[[ "${config_digest}" =~ ^sha256: ]]',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /EXPECTED_BUILD_CONFIG_DIGEST/,
+  );
+});
+
+test("AWS image packages must retain reviewed Alpine versions", () => {
+  const mutated = changed("dockerfile", (value) => value.replace("curl=8.21.0-r0", "curl"));
+  assert.throws(() => validatePhase3Sources(mutated), /curl=8\.21\.0-r0/);
+});
+
 test("both deploy jobs must require successful scan evidence", () => {
   const mutated = changed("reusable", (value) =>
     value.replace("needs: [validate, validate_scan_evidence]", "needs: validate"),

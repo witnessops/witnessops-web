@@ -197,9 +197,22 @@ self-tests only that staged pair before replacing either installed target.
 
 The publisher equality-binds its configured ECR URI to the reviewed account,
 Frankfurt region, and `witnessops-web` repository before requesting an ECR login
-token. After an image scan is `COMPLETE` with zero critical and high findings,
-the publication run retains one non-secret, 90-day GitHub artifact bound to the
-exact run ID, run attempt, source commit, manifest digest, and config digest.
+token. It derives the expected config digest from the hash-verified local build
+archive before requesting AWS identity. It reuses an existing immutable source
+tag only after the ECR manifest, config digest, source-revision label, and that
+local-build config digest all match, so self-declared registry metadata cannot
+authorize retry recovery. After
+`DescribeImageScanFindings` returns an exact-digest, completed inventory with
+zero critical and high findings, the publication run retains one non-secret,
+90-day GitHub artifact containing the exact ECR manifest, raw findings response,
+and evidence record bound to the run ID, run attempt, source commit, manifest
+digest, config digest, scanning mode, scan status, and findings-response hash.
+Basic scanning requires `COMPLETE`, a completion timestamp, and the `findings`
+array. Registry-level enhanced scanning requires `ACTIVE`, a completion
+timestamp, and the `enhancedFindings` array. Missing, ambiguous, pending, or
+unsupported telemetry fails closed. The AWS CLI must auto-aggregate every
+findings page; a retained response with a non-null `nextToken` is treated as
+truncated and rejected.
 Deploy dispatches must name that publication run and attempt. A low-authority
 job first confirms through the GitHub API that the exact run was a successful
 manual run from the reserved caller on `main` and referenced the reserved
@@ -207,7 +220,11 @@ reusable workflow at that same source commit. The immutable artifact can only
 be emitted by the guarded `publish_image` job; its exact operation, run identity,
 and requested digests are then validated. Neither deploy job can request AWS
 OIDC identity unless those checks pass. This uses repository-scoped GitHub
-Actions read permission and does not add or broaden AWS IAM permission.
+Actions read permission. The source contract adds only
+`ecr:DescribeImageScanFindings` to the publisher's existing exact-repository,
+region-constrained statement; applying that IAM source change requires a
+separate reviewed CloudFormation change-set approval and is not performed by
+merging this source.
 
 Lane smoke checks permit direct HTTP 200 responses and same-authority redirects,
 but reject a cross-authority redirect before the redirected network request is

@@ -1,17 +1,25 @@
+import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  validateEvidenceArtifacts,
   validatePublicationRun,
   validateScanEvidence,
 } from "./verify-scan-evidence.mjs";
+
+const configDigest = `sha256:${"c".repeat(64)}`;
+const manifestBytes = Buffer.from(
+  JSON.stringify({ schemaVersion: 2, config: { digest: configDigest }, layers: [] }),
+);
+const manifestDigest = `sha256:${createHash("sha256").update(manifestBytes).digest("hex")}`;
 
 const expected = {
   publicationRunId: "12345678901",
   publicationRunAttempt: "2",
   sourceCommit: "a".repeat(40),
-  imageDigest: `sha256:${"b".repeat(64)}`,
-  configDigest: `sha256:${"c".repeat(64)}`,
+  imageDigest: manifestDigest,
+  configDigest,
 };
 
 function validRun() {
@@ -39,9 +47,25 @@ function validRun() {
   };
 }
 
-function validEvidence() {
+function validScanFindingsBytes() {
+  return Buffer.from(
+    JSON.stringify({
+      registryId: "000000000000",
+      repositoryName: "witnessops-web",
+      imageId: { imageDigest: expected.imageDigest, imageTag: expected.sourceCommit },
+      imageScanStatus: { status: "COMPLETE" },
+      imageScanFindings: {
+        findings: [],
+        findingSeverityCounts: {},
+        imageScanCompletedAt: "2026-08-24T19:00:00Z",
+      },
+    }),
+  );
+}
+
+function validEvidence(scanFindingsBytes = validScanFindingsBytes()) {
   return {
-    schema_version: 1,
+    schema_version: 2,
     repository: "witnessops/witnessops-web",
     repository_id: "1200448046",
     repository_owner_id: "272034497",
@@ -52,18 +76,57 @@ function validEvidence() {
       "witnessops/witnessops-web/.github/workflows/aws-release.yml@refs/heads/main",
     event_name: "workflow_dispatch",
     source_commit: expected.sourceCommit,
+    source_tag: expected.sourceCommit,
     image_digest: expected.imageDigest,
     config_digest: expected.configDigest,
+    ecr_manifest_sha256: expected.imageDigest,
+    publication_mode: "pushed",
+    scan_api: "ecr:DescribeImageScanFindings",
+    scan_mode: "basic",
+    scan_findings_sha256: `sha256:${createHash("sha256").update(scanFindingsBytes).digest("hex")}`,
     scan_status: "COMPLETE",
+    total_findings: 0,
     critical_findings: 0,
     high_findings: 0,
-    scan_policy: "basic_complete_zero_critical_high",
+    scan_policy: "describe_image_scan_findings_mode_aware_zero_critical_high_v1",
   };
 }
 
 test("exact successful publication run and scan evidence are accepted", () => {
+  const scanFindingsBytes = validScanFindingsBytes();
+  const evidence = validEvidence(scanFindingsBytes);
   assert.equal(validatePublicationRun(validRun(), expected), true);
-  assert.equal(validateScanEvidence(validEvidence(), expected), true);
+  assert.equal(validateScanEvidence(evidence, expected), true);
+  assert.equal(
+    validateEvidenceArtifacts(evidence, expected, scanFindingsBytes, manifestBytes),
+    true,
+  );
+});
+
+test("exact enhanced scan evidence is accepted", () => {
+  const scanFindingsBytes = Buffer.from(
+    JSON.stringify({
+      registryId: "000000000000",
+      repositoryName: "witnessops-web",
+      imageId: { imageDigest: expected.imageDigest, imageTag: expected.sourceCommit },
+      imageScanStatus: { status: "ACTIVE" },
+      imageScanFindings: {
+        enhancedFindings: [],
+        findingSeverityCounts: {},
+        imageScanCompletedAt: "2026-08-24T19:00:00Z",
+      },
+    }),
+  );
+  const evidence = {
+    ...validEvidence(scanFindingsBytes),
+    scan_mode: "enhanced",
+    scan_status: "ACTIVE",
+  };
+  assert.equal(validateScanEvidence(evidence, expected), true);
+  assert.equal(
+    validateEvidenceArtifacts(evidence, expected, scanFindingsBytes, manifestBytes),
+    true,
+  );
 });
 
 test("an artifact from a non-publication operation is rejected", () => {
@@ -106,4 +169,41 @@ test("an artifact with an unreviewed field is rejected", () => {
   const evidence = validEvidence();
   evidence.attacker_note = "ignored";
   assert.throws(() => validateScanEvidence(evidence, expected), /field inventory/);
+});
+
+test("a tampered scan-findings artifact is rejected", () => {
+  const scanFindingsBytes = validScanFindingsBytes();
+  const evidence = validEvidence(scanFindingsBytes);
+  const tampered = Buffer.from(scanFindingsBytes.toString("utf8").replace("COMPLETE", "FAILED"));
+  assert.throws(
+    () => validateEvidenceArtifacts(evidence, expected, tampered, manifestBytes),
+    /artifact hash differs/,
+  );
+});
+
+test("a manifest artifact with a different config digest is rejected", () => {
+  const scanFindingsBytes = validScanFindingsBytes();
+  const evidence = validEvidence(scanFindingsBytes);
+  const wrongManifest = Buffer.from(
+    JSON.stringify({ schemaVersion: 2, config: { digest: `sha256:${"d".repeat(64)}` }, layers: [] }),
+  );
+  const changedExpected = {
+    ...expected,
+    imageDigest: `sha256:${createHash("sha256").update(wrongManifest).digest("hex")}`,
+  };
+  const changedEvidence = {
+    ...evidence,
+    image_digest: changedExpected.imageDigest,
+    ecr_manifest_sha256: changedExpected.imageDigest,
+  };
+  const changedScan = Buffer.from(
+    validScanFindingsBytes()
+      .toString("utf8")
+      .replace(expected.imageDigest, changedExpected.imageDigest),
+  );
+  changedEvidence.scan_findings_sha256 = `sha256:${createHash("sha256").update(changedScan).digest("hex")}`;
+  assert.throws(
+    () => validateEvidenceArtifacts(changedEvidence, changedExpected, changedScan, wrongManifest),
+    /config digest differs/,
+  );
 });
