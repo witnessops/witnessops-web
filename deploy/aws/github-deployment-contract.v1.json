@@ -45,7 +45,7 @@
         "id": "image_publisher",
         "environment": "aws-image-publish",
         "subject": "repo:witnessops@272034497/witnessops-web@1200448046:environment:aws-image-publish",
-        "permission_boundary": "ecr_push_exact_repository_only"
+        "permission_boundary": "ecr_push_and_scan_findings_read_exact_repository_only"
       },
       {
         "id": "staging_deployer",
@@ -98,6 +98,7 @@
     "tag_mutability": "IMMUTABLE",
     "scan_on_push": true,
     "registry_scanning_configuration": "observe_existing_do_not_mutate_in_phase_1",
+    "publisher_scan_read_action": "ecr:DescribeImageScanFindings",
     "encryption": "AES256",
     "empty_on_delete": false,
     "deletion_policy": "Retain",

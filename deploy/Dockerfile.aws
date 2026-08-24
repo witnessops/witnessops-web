@@ -10,7 +10,11 @@ ARG GWS_SHA256=4db473dde4b1ab872e4ff35d769b0d4af1f1a6441a605e79d5cf8ada9c87e920
 FROM ${NODE22_BUILDER_IMAGE} AS builder
 ARG SOURCE_COMMIT
 WORKDIR /app
-RUN apk add --no-cache libc6-compat python3 make g++
+RUN apk add --no-cache \
+  gcompat=1.1.0-r4 \
+  python3=3.14.7-r1 \
+  make=4.4.1-r4 \
+  g++=15.2.0-r5
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 COPY . .
 ENV NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com
@@ -24,7 +28,10 @@ ARG GWS_TARGET
 ARG GWS_SHA256
 LABEL org.opencontainers.image.source="https://github.com/witnessops/witnessops-web"
 LABEL org.opencontainers.image.revision="${SOURCE_COMMIT}"
-RUN apk add --no-cache libc6-compat ca-certificates curl \
+RUN apk add --no-cache \
+  gcompat=1.1.0-r4 \
+  ca-certificates=20260611-r0 \
+  curl=8.21.0-r0 \
   && curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
     "https://github.com/googleworkspace/cli/releases/download/v${GWS_VERSION}/google-workspace-cli-${GWS_TARGET}.tar.gz" \
     --output /tmp/gws.tar.gz \

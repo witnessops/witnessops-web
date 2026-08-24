@@ -184,6 +184,12 @@ jobs:
       contents: read
       id-token: write
     steps:
+      - name: Check out the exact scan validator without persisted credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ needs.validate.outputs.source_commit }}
+          persist-credentials: false
+
       - name: Download the exact low-authority image archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -208,7 +214,7 @@ jobs:
           role-session-name: github-${{ github.run_id }}-${{ github.run_attempt }}
           mask-aws-account-id: true
 
-      - name: Publish without rebuilding or running the image
+      - name: Publish or recover the exact immutable source tag without running the image
         id: publish
         env:
           AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
@@ -227,62 +233,119 @@ jobs:
           target="${expected_repository_uri}:${SOURCE_COMMIT}"
           aws ecr get-login-password --region "${AWS_REGION}" \
             | docker login --username AWS --password-stdin "${registry}"
-          docker tag "witnessops-web-aws:${SOURCE_COMMIT}" "${target}"
-          docker push "${target}"
-          docker logout "${registry}" >/dev/null
-          image_digest="$(aws ecr describe-images \
+          trap 'docker logout "${registry}" >/dev/null 2>&1 || true' EXIT
+
+          aws ecr batch-get-image \
             --region "${AWS_REGION}" \
             --repository-name "${ECR_REPOSITORY}" \
             --image-ids "imageTag=${SOURCE_COMMIT}" \
-            --query 'imageDetails[0].imageDigest' \
-            --output text)"
-          [[ "${image_digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
-          manifest="$(aws ecr batch-get-image \
-            --region "${AWS_REGION}" \
-            --repository-name "${ECR_REPOSITORY}" \
-            --image-ids "imageDigest=${image_digest}" \
             --accepted-media-types application/vnd.docker.distribution.manifest.v2+json application/vnd.oci.image.manifest.v1+json \
-            --query 'images[0].imageManifest' \
-            --output text)"
-          printf '%s' "${manifest}" > "${RUNNER_TEMP}/ecr-manifest.json"
+            --output json > "${RUNNER_TEMP}/ecr-image-response.json"
+          image_count="$(jq -r '.images | length' "${RUNNER_TEMP}/ecr-image-response.json")"
+          failure_count="$(jq -r '.failures | length' "${RUNNER_TEMP}/ecr-image-response.json")"
+
+          if [[ "${image_count}" == "0" ]]; then
+            [[ "${failure_count}" == "1" ]]
+            [[ "$(jq -r '.failures[0].failureCode' "${RUNNER_TEMP}/ecr-image-response.json")" == "ImageNotFound" ]]
+            docker tag "witnessops-web-aws:${SOURCE_COMMIT}" "${target}"
+            docker push "${target}"
+            publication_mode="pushed"
+            aws ecr batch-get-image \
+              --region "${AWS_REGION}" \
+              --repository-name "${ECR_REPOSITORY}" \
+              --image-ids "imageTag=${SOURCE_COMMIT}" \
+              --accepted-media-types application/vnd.docker.distribution.manifest.v2+json application/vnd.oci.image.manifest.v1+json \
+              --output json > "${RUNNER_TEMP}/ecr-image-response.json"
+          else
+            [[ "${image_count}" == "1" && "${failure_count}" == "0" ]]
+            docker pull "${target}"
+            publication_mode="reused_existing_immutable_tag"
+          fi
+          docker logout "${registry}" >/dev/null
+          trap - EXIT
+
+          jq -e '(.images | length) == 1 and (.failures | length) == 0' \
+            "${RUNNER_TEMP}/ecr-image-response.json" >/dev/null
+          image_digest="$(jq -r '.images[0].imageId.imageDigest' "${RUNNER_TEMP}/ecr-image-response.json")"
+          [[ "${image_digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
+          jq -jr '.images[0].imageManifest' "${RUNNER_TEMP}/ecr-image-response.json" \
+            > "${RUNNER_TEMP}/ecr-manifest.json"
           observed_manifest="sha256:$(sha256sum "${RUNNER_TEMP}/ecr-manifest.json" | awk '{print $1}')"
           [[ "${observed_manifest}" == "${image_digest}" ]]
           config_digest="$(jq -r '.config.digest' "${RUNNER_TEMP}/ecr-manifest.json")"
           [[ "${config_digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
+          [[ "$(docker image inspect "${target}" --format '{{.Id}}')" == "${config_digest}" ]]
+          [[ "$(docker image inspect "${target}" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" == "${SOURCE_COMMIT}" ]]
           {
             echo "image_digest=${image_digest}"
             echo "config_digest=${config_digest}"
+            echo "publication_mode=${publication_mode}"
           } >> "${GITHUB_OUTPUT}"
 
-      - name: Fail closed until the basic ECR scan completes cleanly
+      - name: Fail closed on exact DescribeImageScanFindings telemetry
+        id: scan
         env:
           AWS_REGION: ${{ vars.AWS_REGION }}
           ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
           IMAGE_DIGEST: ${{ steps.publish.outputs.image_digest }}
         run: |
           set -euo pipefail
-          scan_json=""
-          for _attempt in $(seq 1 60); do
-            scan_json="$(aws ecr describe-images \
+          scan_file="${RUNNER_TEMP}/ecr-scan-findings.json"
+          scan_error="${RUNNER_TEMP}/ecr-scan-error.txt"
+          for attempt in $(seq 1 60); do
+            if ! aws ecr describe-image-scan-findings \
               --region "${AWS_REGION}" \
               --repository-name "${ECR_REPOSITORY}" \
               --image-ids "imageDigest=${IMAGE_DIGEST}" \
-              --output json)"
-            status="$(jq -r '.imageDetails[0].imageScanStatus.status // "UNKNOWN"' <<<"${scan_json}")"
-            [[ "${status}" != "FAILED" ]] || exit 1
-            [[ "${status}" != "COMPLETE" ]] || break
-            sleep 10
+              --output json > "${scan_file}" 2> "${scan_error}"; then
+              if grep -q 'ScanNotFoundException' "${scan_error}" && [[ "${attempt}" != "60" ]]; then
+                sleep 10
+                continue
+              fi
+              printf 'ECR scan findings observation failed\n' >&2
+              exit 1
+            fi
+            rm -f "${scan_error}"
+            jq -e \
+              --arg repository "${ECR_REPOSITORY}" \
+              --arg digest "${IMAGE_DIGEST}" \
+              '.repositoryName == $repository and .imageId.imageDigest == $digest and (.imageScanStatus | type == "object")' \
+              "${scan_file}" >/dev/null
+            status="$(jq -er '.imageScanStatus.status | strings' "${scan_file}")"
+            case "${status}" in
+              COMPLETE) break ;;
+              IN_PROGRESS)
+                [[ "${attempt}" != "60" ]]
+                sleep 10
+                ;;
+              *)
+                printf 'ECR scan reached non-success status: %s\n' "${status}" >&2
+                exit 1
+                ;;
+            esac
           done
-          [[ "$(jq -r '.imageDetails[0].imageScanStatus.status // "UNKNOWN"' <<<"${scan_json}")" == "COMPLETE" ]]
-          critical="$(jq -r '.imageDetails[0].imageScanFindingsSummary.findingSeverityCounts.CRITICAL // 0' <<<"${scan_json}")"
-          high="$(jq -r '.imageDetails[0].imageScanFindingsSummary.findingSeverityCounts.HIGH // 0' <<<"${scan_json}")"
-          [[ "${critical}" == "0" && "${high}" == "0" ]]
+          node deploy/aws/validate-ecr-scan-findings.mjs \
+            --scan "${scan_file}" \
+            --repository "${ECR_REPOSITORY}" \
+            --image-digest "${IMAGE_DIGEST}" \
+            --output "${RUNNER_TEMP}/ecr-scan-summary.json"
+          {
+            echo "scan_findings_sha256=sha256:$(sha256sum "${scan_file}" | awk '{print $1}')"
+            echo "total_findings=$(jq -r '.total_findings' "${RUNNER_TEMP}/ecr-scan-summary.json")"
+            echo "critical_findings=$(jq -r '.critical_findings' "${RUNNER_TEMP}/ecr-scan-summary.json")"
+            echo "high_findings=$(jq -r '.high_findings' "${RUNNER_TEMP}/ecr-scan-summary.json")"
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Write digest-bound successful-scan evidence
         env:
           SOURCE_COMMIT: ${{ needs.validate.outputs.source_commit }}
           IMAGE_DIGEST: ${{ steps.publish.outputs.image_digest }}
           CONFIG_DIGEST: ${{ steps.publish.outputs.config_digest }}
+          PUBLICATION_MODE: ${{ steps.publish.outputs.publication_mode }}
+          SCAN_FINDINGS_SHA256: ${{ steps.scan.outputs.scan_findings_sha256 }}
+          TOTAL_FINDINGS: ${{ steps.scan.outputs.total_findings }}
+          CRITICAL_FINDINGS: ${{ steps.scan.outputs.critical_findings }}
+          HIGH_FINDINGS: ${{ steps.scan.outputs.high_findings }}
         run: |
           set -euo pipefail
           jq -n \
@@ -296,8 +359,13 @@ jobs:
             --arg source_commit "${SOURCE_COMMIT}" \
             --arg image_digest "${IMAGE_DIGEST}" \
             --arg config_digest "${CONFIG_DIGEST}" \
+            --arg publication_mode "${PUBLICATION_MODE}" \
+            --arg scan_findings_sha256 "${SCAN_FINDINGS_SHA256}" \
+            --argjson total_findings "${TOTAL_FINDINGS}" \
+            --argjson critical_findings "${CRITICAL_FINDINGS}" \
+            --argjson high_findings "${HIGH_FINDINGS}" \
             '{
-              schema_version: 1,
+              schema_version: 2,
               repository: $repository,
               repository_id: $repository_id,
               repository_owner_id: $repository_owner_id,
@@ -307,12 +375,18 @@ jobs:
               caller_workflow_ref: $caller_workflow_ref,
               event_name: $event_name,
               source_commit: $source_commit,
+              source_tag: $source_commit,
               image_digest: $image_digest,
               config_digest: $config_digest,
+              ecr_manifest_sha256: $image_digest,
+              publication_mode: $publication_mode,
+              scan_api: "ecr:DescribeImageScanFindings",
+              scan_findings_sha256: $scan_findings_sha256,
               scan_status: "COMPLETE",
-              critical_findings: 0,
-              high_findings: 0,
-              scan_policy: "basic_complete_zero_critical_high"
+              total_findings: $total_findings,
+              critical_findings: $critical_findings,
+              high_findings: $high_findings,
+              scan_policy: "describe_image_scan_findings_complete_zero_critical_high_v1"
             }' > "${RUNNER_TEMP}/witnessops-aws-scan-evidence.json"
 
       - name: Retain only non-secret successful-scan evidence
@@ -322,7 +396,10 @@ jobs:
           retention-days: 90
           compression-level: 0
           if-no-files-found: error
-          path: ${{ runner.temp }}/witnessops-aws-scan-evidence.json
+          path: |
+            ${{ runner.temp }}/witnessops-aws-scan-evidence.json
+            ${{ runner.temp }}/ecr-scan-findings.json
+            ${{ runner.temp }}/ecr-manifest.json
 
       - name: Summarize non-secret immutable image identity
         run: |
@@ -332,7 +409,9 @@ jobs:
             echo "- Source commit: \`${{ needs.validate.outputs.source_commit }}\`"
             echo "- Manifest digest: \`${{ steps.publish.outputs.image_digest }}\`"
             echo "- Config digest: \`${{ steps.publish.outputs.config_digest }}\`"
-            echo "- ECR scan: \`COMPLETE, zero CRITICAL/HIGH\`"
+            echo "- ECR scan API: \`DescribeImageScanFindings\`"
+            echo "- ECR scan: \`COMPLETE, zero CRITICAL/HIGH, findings telemetry retained\`"
+            echo "- Publication mode: \`${{ steps.publish.outputs.publication_mode }}\`"
             echo "- Application deployment: \`NOT RUN\`"
           } >> "${GITHUB_STEP_SUMMARY}"
 
@@ -386,6 +465,8 @@ jobs:
           node deploy/aws/verify-scan-evidence.mjs \
             --run "${RUNNER_TEMP}/publication-run.json" \
             --evidence "${RUNNER_TEMP}/scan-evidence/witnessops-aws-scan-evidence.json" \
+            --scan-findings "${RUNNER_TEMP}/scan-evidence/ecr-scan-findings.json" \
+            --manifest "${RUNNER_TEMP}/scan-evidence/ecr-manifest.json" \
             --publication-run-id "${{ needs.validate.outputs.publication_run_id }}" \
             --publication-run-attempt "${{ needs.validate.outputs.publication_run_attempt }}" \
             --source-commit "${{ needs.validate.outputs.source_commit }}" \

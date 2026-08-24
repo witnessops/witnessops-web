@@ -3,6 +3,23 @@ import test from "node:test";
 
 import { verifyReceiptPayload } from "./verify-adapter";
 import { makePublicExposureReviewReceipt } from "./public-exposure-review-verify-adapter.test-fixture";
+import { JSON_AMBIGUITY_MAX_DEPTH } from "./json-ambiguity";
+
+test("verify adapter fails closed on JSON nesting beyond the scanner limit", () => {
+  const depth = JSON_AMBIGUITY_MAX_DEPTH + 1;
+  const receipt = `${'{"nested":'.repeat(depth)}{"value":1,"value":2}${"}".repeat(depth)}`;
+  assert.doesNotThrow(() => JSON.parse(receipt));
+
+  const result = verifyReceiptPayload({ receipt });
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(result.failureClass, "FAILURE_INPUT_MALFORMED");
+    assert.equal(
+      result.message,
+      "Receipt payload exceeds supported JSON parser limits.",
+    );
+  }
+});
 
 test("verify adapter does not forward verifier exception text", () => {
   const receipt: Record<string, unknown> = {

@@ -112,8 +112,8 @@ test("ask-witnessops API route is server-only and does not leak deterministic su
   assert.match(askRouteSource, /ask-witnessops\/authority-policy-executor/);
   assert.match(askRouteSource, /ask-witnessops\/authority-answer-assembler/);
 
-  // Receipt reference is provided out-of-band via header to preserve exact answer content
-  assert.match(askRouteSource, /X-Ask-Receipt-Id/);
+  assert.doesNotMatch(askRouteSource, /createAskRuntimeReceipt|writeReceipt/);
+  assert.doesNotMatch(askRouteSource, /X-Ask-Receipt-(?:Id|Status)/);
 });
 
 test("runtime receipt contract is not re-exported through the governed loader", () => {

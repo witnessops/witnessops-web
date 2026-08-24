@@ -3,8 +3,6 @@ import { normalizeAskRequest } from "@/lib/server/ask-witnessops/ask-request-nor
 import { classifyQuestion } from "@/lib/server/ask-witnessops/authority-classifier";
 import { executePolicy } from "@/lib/server/ask-witnessops/authority-policy-executor";
 import { assembleAnswer } from "@/lib/server/ask-witnessops/authority-answer-assembler";
-import { createAskRuntimeReceipt } from "@/lib/server/ask-witnessops/ask-runtime-receipt";
-import { writeReceipt } from "@/lib/server/ask-witnessops/ask-runtime-receipt-store";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 import { findDuplicateJsonObjectKey } from "@/lib/json-ambiguity";
 
@@ -110,29 +108,9 @@ export async function POST(request: Request) {
     const decision = executePolicy({ classification });
     const assembled = assembleAnswer({ policyDecision: decision });
 
-    // Durable custody: create receipt then persist it before claiming it is durable.
-    const receipt = createAskRuntimeReceipt({
-      normalizedQuestion: normalized.request.question,
-      classification,
-      policyDecision: decision,
-      assembledAnswer: assembled,
-    });
-
-    const writeResult = await writeReceipt(receipt);
-
-    const response = NextResponse.json(assembled);
-
-    if (writeResult.ok) {
-      // Only advertise the ID as durable after successful atomic write.
-      response.headers.set("X-Ask-Receipt-Id", receipt.receipt_id);
-      response.headers.set("X-Ask-Receipt-Status", "durable");
-    } else {
-      // Explicit non-durable marker on write failure.
-      response.headers.set("X-Ask-Receipt-Status", "ephemeral");
-      // Do not set X-Ask-Receipt-Id on failure.
-    }
-
-    return response;
+    // Public Ask is answer-only. It does not place unauthenticated questions
+    // into durable receipt custody or advertise a receipt identifier.
+    return NextResponse.json(assembled);
   } catch {
     return invalidRequest("request body must be valid JSON.");
   }

@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { _resetAllStores } from "@witnessops/config/rate-limit";
 import { loadVerifyFixture } from "@/lib/verify-fixtures";
 import { makePublicExposureReviewReceipt } from "@/lib/public-exposure-review-verify-adapter.test-fixture";
+import { JSON_AMBIGUITY_MAX_DEPTH } from "@/lib/json-ambiguity";
 
 import { POST } from "./route";
 
@@ -304,6 +305,30 @@ test("verify route rejects duplicate nested receipt fields before verifier verdi
     payload.message,
     "Receipt payload contains duplicate JSON object keys.",
   );
+  assert.equal(payload.verdict, undefined);
+});
+
+test("verify route rejects valid but excessively nested JSON before verifier verdict", async () => {
+  const depth = JSON_AMBIGUITY_MAX_DEPTH + 1;
+  const body = `${'{"nested":'.repeat(depth)}{"value":1,"value":2}${"}".repeat(depth)}`;
+  assert.doesNotThrow(() => JSON.parse(body));
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  const payload = (await response.json()) as {
+    ok: boolean;
+    failureClass?: string;
+    verdict?: string;
+  };
+  assert.equal(payload.ok, false);
+  assert.equal(payload.failureClass, "FAILURE_INPUT_MALFORMED");
   assert.equal(payload.verdict, undefined);
 });
 

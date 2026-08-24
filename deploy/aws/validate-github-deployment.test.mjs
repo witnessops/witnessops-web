@@ -116,6 +116,19 @@ test("OIDC trust rejects legacy, wildcard, wrong-id, non-main, and wrong-environ
 });
 
 test("publisher and deployer permissions cannot cross their role boundary", () => {
+  const publisherCannotReadScan = structuredClone(template);
+  const publisherActions =
+    publisherCannotReadScan.Resources.GitHubImagePublisherRole.Properties.Policies[0]
+      .PolicyDocument.Statement[1].Action;
+  publisherCannotReadScan.Resources.GitHubImagePublisherRole.Properties.Policies[0]
+    .PolicyDocument.Statement[1].Action = publisherActions.filter(
+      (action) => action !== "ecr:DescribeImageScanFindings",
+    );
+  assert.throws(
+    () => validateCloudFormationTemplate(contract, publisherCannotReadScan),
+    /publisher Allow actions has the wrong item count/,
+  );
+
   const publisherCanDeploy = structuredClone(template);
   publisherCanDeploy.Resources.GitHubImagePublisherRole.Properties.Policies[0].PolicyDocument.Statement.push(
     {

@@ -91,8 +91,12 @@ function parseReceiptInput(
     return receipt;
   }
 
-  if (findDuplicateJsonObjectKey(receipt) !== null) {
-    return malformed("Receipt payload contains duplicate JSON object keys.");
+  try {
+    if (findDuplicateJsonObjectKey(receipt) !== null) {
+      return malformed("Receipt payload contains duplicate JSON object keys.");
+    }
+  } catch {
+    return malformed("Receipt payload exceeds supported JSON parser limits.");
   }
 
   try {

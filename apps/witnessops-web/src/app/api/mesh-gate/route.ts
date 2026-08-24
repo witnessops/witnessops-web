@@ -51,7 +51,19 @@ export async function POST(request: Request) {
     throw error;
   }
 
-  const dup = findDuplicateJsonObjectKey(raw);
+  let dup: string | null;
+  try {
+    dup = findDuplicateJsonObjectKey(raw);
+  } catch {
+    return NextResponse.json(
+      {
+        ok: false,
+        verdict: "mesh_gate_invalid",
+        errors: ["JSON exceeds supported parser limits"],
+      },
+      { status: 400 },
+    );
+  }
   if (dup) {
     return NextResponse.json(
       {
