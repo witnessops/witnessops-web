@@ -27,4 +27,12 @@ test("indeterminate check passes are labeled receipt-scoped, not Passed", () => 
   );
   assert.equal(verifyCheckStatusLabel("verified", "valid"), "Passed");
   assert.equal(verifyCheckStatusLabel("unverified", "indeterminate"), "Failed");
+  assert.equal(
+    verifyCheckStatusLabel("not_checked", "indeterminate"),
+    "Not checked",
+  );
+  assert.notEqual(
+    verifyCheckStatusLabel("not_checked", "indeterminate"),
+    verifyCheckStatusLabel("not_applicable", "indeterminate"),
+  );
 });
