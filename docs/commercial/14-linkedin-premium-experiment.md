@@ -23,9 +23,9 @@ Live LinkedIn admin surfaces were inspected on 2026-08-19 before mutation.
 | Surface | Observed start state | Experiment decision |
 | --- | --- | --- |
 | Followers | 5 | Baseline only; growth alone cannot justify renewal |
-| Page description | Existing description names the offer, price, timing conditions, limits, and non-secret first-contact boundary | Keep unchanged |
+| Page description | Existing description names the offer, price, timing conditions, limits, and non-secret first-contact boundary | Preserve as the 2026-08-19 baseline; the founder-approved Option A target below supersedes the prior keep-unchanged decision only after exact action-time approval and live readback |
 | Website URL | `https://witnessops.com` | Keep unchanged |
-| Custom CTA | Start state was `Contact us` → untagged Public Exposure Review request URL; increased visibility on | Tracked URL saved on 2026-08-19; label and visibility unchanged |
+| Custom CTA | Start state was `Contact us` → untagged Public Exposure Review request URL; increased visibility on | Preserve this as the 2026-08-19 baseline; keep the tracked URL and increased visibility, while the Option A target below supersedes the label with `Request services` after exact action-time approval and live readback |
 | Page visitors | Premium visitor view available; four identifiable historical visitors visible at inspection, subject to member privacy settings | Treat every visit as a weak signal, never buyer intent |
 | Services | Service Page published; `Cybersecurity` selected; matching on; zero Premium and zero direct requests visible | Keep on because the available category is an acceptable, not exact, match and the service description narrows the scope |
 | Automatic invites | On | Keep on; do not add custom automation |
@@ -37,6 +37,65 @@ Live LinkedIn admin surfaces were inspected on 2026-08-19 before mutation.
 | Dynamic cover | Static WitnessOps cover present; Premium offers a slideshow | No change; low priority |
 
 Last-seven-day dashboard context at inspection: 29 search appearances, 0 new followers, 136 post impressions, and 6 Page visitors. A separate sidebar showed 13 visitors without a confirmed date window, so it is not used as the experiment baseline.
+
+### Founder-approved Option A profile alignment
+
+- Strategy decision: `OPTION_A_APPROVED`
+- Decision date: `2026-08-24`
+- Public-save status: `PENDING_EXACT_ACTION_TIME_APPROVAL`
+- Applied and read-back date: `null`
+
+The 2026-08-19 start-state evidence above remains the immutable baseline for
+`LINKEDIN-PREMIUM-EXP-001`. This decision records a later founder-approved
+profile-alignment intervention; it does not rewrite the baseline or represent
+the target fields as live before exact save approval and readback.
+
+The Company Page target state is:
+
+- **Tagline:** `Customer security review blocking a live deal? Fixed-scope external review of one authorised public-facing system.`
+- **About:**
+
+  > WitnessOps runs a fixed-scope external security review of one authorised public-facing system when a customer security review is blocking a live deal.
+  >
+  > The Public Exposure Review is human-led, manually reviewed and unauthenticated. It uses passive discovery where applicable, followed by explicitly approved, low-impact checks against the signed target schedule.
+  >
+  > The buyer receives:
+  > • manually checked, evidence-linked findings;
+  > • practical remediation guidance;
+  > • explicit scope limits, unknowns and exclusions;
+  > • an inspectable handover package;
+  > • one 45-minute handover and one focused retest of reported findings within 30 days.
+  >
+  > Fixed fee: €1,900 excluding VAT.
+  > Delivery: within three working days after payment in full, an accepted statement of work, written authority, scope freeze, required inputs and the approved collection window are all confirmed, subject to confirmed operator capacity.
+  > No sales call is required. A request begins asynchronous scope acceptance; it does not authorise testing. Payment alone does not authorise testing.
+  >
+  > This is not an open-ended penetration test, compliance certification, attestation or guarantee of security, completeness or absence of vulnerabilities. It does not guarantee third-party acceptance.
+  >
+  > Initial requests must be non-secret. Do not send credentials, logs, screenshots, customer records or production evidence until handling and scope are agreed.
+  >
+  > Request the review:
+  > https://witnessops.com/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE
+
+- **Custom CTA label:** `Request services`
+- **Custom CTA URL:** `https://witnessops.com/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&utm_source=linkedin&utm_medium=company_page&utm_campaign=premium_trial_2026`
+- **Increased CTA visibility:** keep on.
+- **Website URL:** keep `https://witnessops.com`.
+- **Founded:** remove unsupported `2008` and leave the field unset; do not substitute another year without evidence.
+- **Specialties:** `Public Exposure Reviews`; `Fixed-Scope External Security Reviews`; `Outside-In Security Reviews`; `External Exposure Mapping`; `Evidence-Linked Findings`; `Remediation Guidance`; `Inspectable Handover Packages`.
+- **Services overview:** `A customer security review is blocking a live deal. Public Exposure Review: one authorised public-facing system; manually reviewed, unauthenticated. Passive discovery where applicable; approved low-impact checks only. Evidence-linked findings and limits. €1,900 ex VAT; full payment before the clock. Within 3 working days once all conditions are met. Payment alone does not authorise testing. No exploitation; not a pentest. https://witnessops.com/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE`
+- **Services controls:** keep `Contact for pricing`, `Cybersecurity`, remote delivery, matching and existing media unchanged.
+
+`Request services` intentionally supersedes `Contact us` because the destination
+is a bounded asynchronous service request, not a general-contact surface or a
+required sales call. The label does not indicate scope acceptance, authority,
+payment or permission to test. The exact tracked URL and increased visibility
+remain unchanged.
+
+Once the live fields are saved and read back, replace the pending status and
+`null` date above with the evidenced application timestamp. Do not pool
+pre-alignment and post-alignment CTA evidence without naming the intervention
+date.
 
 ### Separate individual subscription
 
