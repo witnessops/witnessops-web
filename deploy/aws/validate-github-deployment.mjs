@@ -2,7 +2,10 @@
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import { fileURLToPath, pathToFileURL } from "node:url";
+
+import { containsCredentialMaterial } from "./credential-material.mjs";
 
 const THIS_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_CONTRACT_PATH = path.join(THIS_DIR, "github-deployment-contract.v1.json");
@@ -18,6 +21,7 @@ const EXPECTED_OWNER_ID = "272034497";
 const EXPECTED_REF = "refs/heads/main";
 const EXPECTED_JOB_WORKFLOW_REF =
   "witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@refs/heads/main";
+const EXPECTED_ADAPTER_PATH = "/usr/local/sbin/witnessops-deploy-v1";
 const EXPECTED_ROLE_CONFIG = new Map([
   [
     "image_publisher",
@@ -222,16 +226,6 @@ function hasCurrentRegionCondition(statement) {
   return statement.Condition?.StringEquals?.["aws:RequestedRegion"]?.Ref === "AWS::Region";
 }
 
-function serializedContainsSecretMaterial(value) {
-  const serialized = JSON.stringify(value);
-  return (
-    /-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(serialized) ||
-    /AKIA[0-9A-Z]{16}/.test(serialized) ||
-    /ASIA[0-9A-Z]{16}/.test(serialized) ||
-    /AWS_SECRET_ACCESS_KEY\s*[=:]\s*[^"'\s]+/.test(serialized)
-  );
-}
-
 function validateRoleTrust(role, expected) {
   assert(role?.Type === "AWS::IAM::Role", `${expected.logicalId} must be an IAM role`);
   assert(
@@ -289,12 +283,21 @@ function validateDeploymentRole(role, lane, documentLogicalId) {
     statementActions(statement).includes("ssm:SendCommand"),
   );
   assert(sendStatements.length === 2, `${lane} deployer needs separate document and node grants`);
+  const expectedDocumentResource = {
+    "Fn::Sub":
+      "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${" +
+      documentLogicalId +
+      "}",
+  };
   const documentStatement = sendStatements.find((statement) =>
-    JSON.stringify(statement.Resource).includes(`\${${documentLogicalId}}`),
+    isDeepStrictEqual(statement.Resource, expectedDocumentResource),
   );
   assert(documentStatement, `${lane} deployer is not pinned to ${documentLogicalId}`);
+  const expectedNodeResource = {
+    "Fn::Sub": "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:managed-instance/*",
+  };
   const nodeStatement = sendStatements.find((statement) =>
-    JSON.stringify(statement.Resource).includes("managed-instance/*"),
+    isDeepStrictEqual(statement.Resource, expectedNodeResource),
   );
   assert(nodeStatement, `${lane} deployer has no managed-node resource boundary`);
   assert(
@@ -305,6 +308,22 @@ function validateDeploymentRole(role, lane, documentLogicalId) {
   assert(
     nodeStatement.Condition?.StringEquals?.["ssm:resourceTag/WitnessOpsDeploymentLane"] === lane,
     `${lane} deployer lacks the exact lane target tag`,
+  );
+  assert(
+    isDeepStrictEqual(documentStatement.Condition, {
+      StringEquals: { "aws:RequestedRegion": { Ref: "AWS::Region" } },
+    }),
+    `${lane} document grant has unexpected conditions`,
+  );
+  assert(
+    isDeepStrictEqual(nodeStatement.Condition, {
+      StringEquals: {
+        "aws:RequestedRegion": { Ref: "AWS::Region" },
+        "ssm:resourceTag/WitnessOpsApplication": "witnessops-web",
+        "ssm:resourceTag/WitnessOpsDeploymentLane": lane,
+      },
+    }),
+    `${lane} managed-node grant has unexpected conditions`,
   );
   for (const statement of sendStatements) {
     assert(
@@ -362,7 +381,7 @@ function validateSsmDocument(resource, lane, contractDocument) {
   const command = commands[0]?.["Fn::Sub"];
   assert(typeof command === "string", `${lane} document command must be a fixed Fn::Sub string`);
   assert(
-    command.startsWith(`exec ${contractDocument.adapter_path} --lane ${lane} `),
+    command.startsWith(`exec ${EXPECTED_ADAPTER_PATH} --lane ${lane} `),
     `${lane} document does not exec the fixed adapter and lane`,
   );
   assert(
@@ -384,6 +403,21 @@ function validateSsmDocument(resource, lane, contractDocument) {
     ),
     `${lane} document contains an unbounded or secret-bearing command`,
   );
+  const expectedCommand = [
+    `exec ${EXPECTED_ADAPTER_PATH}`,
+    `--lane ${lane}`,
+    "--region ${AWS::Region}",
+    "--registry ${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix}",
+    "--repository witnessops-web",
+    '--image-digest "$SSM_ImageDigest"',
+    '--source-commit "$SSM_SourceCommit"',
+    '--config-digest "$SSM_ConfigDigest"',
+    '--expected-current-digest "$SSM_ExpectedCurrentDigest"',
+  ].join(" ");
+  assert(
+    command === expectedCommand,
+    `${lane} document command differs from the exact adapter invocation`,
+  );
 }
 
 export function readJson(filePath) {
@@ -400,7 +434,7 @@ export function validateGithubDeploymentContract(contract) {
     contract.status === "phase_1_pr_only_no_apply_authority",
     "GitHub deployment contract must remain Phase 1 and non-authorizing",
   );
-  assert(!serializedContainsSecretMaterial(contract), "GitHub deployment contract contains credentials");
+  assert(!containsCredentialMaterial(contract), "GitHub deployment contract contains credentials");
   assert(contract.authority?.repository === EXPECTED_REPOSITORY, "repository name mismatch");
   assert(contract.authority?.repository_id === EXPECTED_REPOSITORY_ID, "repository id mismatch");
   assert(contract.authority?.repository_owner_id === EXPECTED_OWNER_ID, "repository owner id mismatch");
@@ -466,6 +500,10 @@ export function validateGithubDeploymentContract(contract) {
     contract.github_environments?.["aws-production"]?.required_reviewers_minimum >= 1,
     "production environment has no reviewer gate",
   );
+  assert(
+    contract.github_environments?.["aws-production"]?.allow_self_review === false,
+    "production environment allows self-review",
+  );
   for (const environment of Object.values(contract.github_environments ?? {})) {
     assert(environment.deployment_branch === "main", "GitHub environment allows a non-main branch");
     assert(environment.stores_aws_secrets === false, "GitHub environment stores AWS credentials");
@@ -492,10 +530,27 @@ export function validateGithubDeploymentContract(contract) {
   for (const [name, pattern] of EXPECTED_DOCUMENT_PARAMETERS) {
     assert(contract.ssm.document_inputs[name] === pattern, `${name} input pattern mismatch`);
   }
+  const contractDocuments = contract.ssm?.documents;
+  assert(Array.isArray(contractDocuments), "SSM document contract is missing");
+  exactStringSet(
+    contractDocuments.map((document) => document?.id),
+    ["staging", "production"],
+    "SSM document contract inventory",
+  );
+  for (const lane of ["staging", "production"]) {
+    const document = contractDocuments.find((item) => item.id === lane);
+    assert(document.lane === lane, `${lane} document contract lane mismatch`);
+    assert(document.version_name === "v1_0_0", `${lane} document contract version mismatch`);
+    assert(
+      document.adapter_path === EXPECTED_ADAPTER_PATH,
+      `${lane} document contract adapter path mismatch`,
+    );
+  }
   assert(
     contract.host_adapter?.phase === "phase_3_not_implemented_or_installed_by_this_contract",
     "Phase 1 falsely claims the host adapter is installed",
   );
+  assert(contract.host_adapter?.path === EXPECTED_ADAPTER_PATH, "host adapter path mismatch");
   assert(
     contract.host_adapter?.forbidden_behaviors?.includes("accept_arbitrary_shell_text"),
     "host adapter boundary does not forbid arbitrary shell text",
@@ -511,7 +566,7 @@ export function validateGithubDeploymentContract(contract) {
 export function validateCloudFormationTemplate(contract, template) {
   validateGithubDeploymentContract(contract);
   assert(isObject(template), "CloudFormation template must be an object");
-  assert(!serializedContainsSecretMaterial(template), "CloudFormation template contains credentials");
+  assert(!containsCredentialMaterial(template), "CloudFormation template contains credentials");
   const metadata = template.Metadata?.WitnessOps;
   assert(metadata?.ContractId === contract.contract_id, "CloudFormation contract id mismatch");
   assert(metadata?.Status === contract.status, "CloudFormation status is authorizing or mismatched");
@@ -632,9 +687,17 @@ export function validateCloudFormationTemplate(contract, template) {
   const managedNodeRole = resources.ManagedNodeServiceRole;
   assert(managedNodeRole?.Type === "AWS::IAM::Role", "managed-node service role is missing");
   assert(
-    managedNodeRole.Properties?.AssumeRolePolicyDocument?.Statement?.[0]?.Principal?.Service ===
-      "ssm.amazonaws.com",
-    "managed-node service role has the wrong trust principal",
+    isDeepStrictEqual(managedNodeRole.Properties?.AssumeRolePolicyDocument, {
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Effect: "Allow",
+          Principal: { Service: "ssm.amazonaws.com" },
+          Action: "sts:AssumeRole",
+        },
+      ],
+    }),
+    "managed-node service role trust must contain only the SSM service principal",
   );
   assert(
     Array.isArray(managedNodeRole.Properties?.ManagedPolicyArns) &&

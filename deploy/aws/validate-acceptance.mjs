@@ -9,6 +9,7 @@ import {
   validateDeploymentEvidenceStructure,
   validateGithubDeploymentContract,
 } from "./validate-github-deployment.mjs";
+import { containsCredentialMaterial } from "./credential-material.mjs";
 
 const THIS_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_CONTRACT_PATH = path.join(THIS_DIR, "migration-contract.v1.json");
@@ -82,15 +83,6 @@ function positiveInteger(value) {
   return Number.isSafeInteger(value) && value > 0;
 }
 
-function containsSecretMaterial(value) {
-  const serialized = JSON.stringify(value);
-  return (
-    /-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(serialized) ||
-    /AKIA[0-9A-Z]{16}/.test(serialized) ||
-    /ASIA[0-9A-Z]{16}/.test(serialized)
-  );
-}
-
 export function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, "utf8"));
 }
@@ -105,7 +97,7 @@ export function validateMigrationContract(contract) {
     contract.status === "planned_candidate_no_apply_authority",
     "AWS contract must remain planned and non-authorizing",
   );
-  assert(!containsSecretMaterial(contract), "migration contract contains credential material");
+  assert(!containsCredentialMaterial(contract), "migration contract contains credential material");
 
   const notAuthorized = contract.authority?.not_authorized;
   assert(Array.isArray(notAuthorized), "authority.not_authorized must be an array");
@@ -251,7 +243,7 @@ export function validateAcceptanceRecordStructure(contract, record) {
     "unexpected acceptance record version",
   );
   assert(record.contract_id === contract.contract_id, "acceptance record contract id mismatch");
-  assert(!containsSecretMaterial(record), "acceptance record contains credential material");
+  assert(!containsCredentialMaterial(record), "acceptance record contains credential material");
   assert(record.target?.region === contract.compute.region, "acceptance record region mismatch");
 
   exactIdSet(record.state, [...EXPECTED_STATE_STRATEGIES.keys()], "acceptance state records");

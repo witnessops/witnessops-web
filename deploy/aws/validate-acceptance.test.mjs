@@ -197,6 +197,30 @@ test("production key activation or registry changes fail closed", () => {
   );
 });
 
+test("migration and acceptance records reject credential-shaped JSON keys", () => {
+  for (const key of ["awsSecretAccessKey", "AWSSecretAccessKey", "AWSSessionToken"]) {
+    const changedContract = structuredClone(contract);
+    changedContract.test_only = {
+      [key]: "test-placeholder-not-a-secret",
+    };
+    assert.throws(
+      () => validateMigrationContract(changedContract),
+      /migration contract contains credential material/,
+    );
+  }
+
+  for (const key of ["aws-secret-access-key", "AWSAccessKeyId", "aws_session_token"]) {
+    const changedRecord = structuredClone(example);
+    changedRecord.test_only = {
+      [key]: "test-placeholder-not-a-secret",
+    };
+    assert.throws(
+      () => validateAcceptanceRecordStructure(contract, changedRecord),
+      /acceptance record contains credential material/,
+    );
+  }
+});
+
 test("mutable images and state-manifest differences block staging", () => {
   const mutable = makeReadyRecord();
   mutable.image.manifest_ref = "docker.io/library/witnessops-web:latest";

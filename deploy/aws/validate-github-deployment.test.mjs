@@ -174,6 +174,92 @@ test("publisher and deployer permissions cannot cross their role boundary", () =
     () => validateCloudFormationTemplate(contract, crossLaneTarget),
     /staging deployer lacks the exact lane target tag/,
   );
+
+  const documentResourceUnion = structuredClone(template);
+  const stagingDocumentGrant =
+    documentResourceUnion.Resources.GitHubStagingDeployerRole.Properties.Policies[0].PolicyDocument.Statement.find(
+      (statement) => JSON.stringify(statement.Resource).includes("StagingDeploymentDocument"),
+    );
+  stagingDocumentGrant.Resource = [stagingDocumentGrant.Resource, "*"];
+  assert.throws(
+    () => validateCloudFormationTemplate(contract, documentResourceUnion),
+    /staging deployer is not pinned to StagingDeploymentDocument/,
+  );
+
+  const nodeResourceUnion = structuredClone(template);
+  const stagingNodeGrant =
+    nodeResourceUnion.Resources.GitHubStagingDeployerRole.Properties.Policies[0].PolicyDocument.Statement.find(
+      (statement) => JSON.stringify(statement.Resource).includes("managed-instance"),
+    );
+  stagingNodeGrant.Resource = [stagingNodeGrant.Resource, "*"];
+  assert.throws(
+    () => validateCloudFormationTemplate(contract, nodeResourceUnion),
+    /staging deployer has no managed-node resource boundary/,
+  );
+});
+
+test("managed-node trust contains only the SSM service principal", () => {
+  const expandedTrust = structuredClone(template);
+  expandedTrust.Resources.ManagedNodeServiceRole.Properties.AssumeRolePolicyDocument.Statement.push({
+    Effect: "Allow",
+    Principal: { AWS: "*" },
+    Action: "sts:AssumeRole",
+  });
+  assert.throws(
+    () => validateCloudFormationTemplate(contract, expandedTrust),
+    /trust must contain only the SSM service principal/,
+  );
+});
+
+test("production environment cannot enable self-review", () => {
+  for (const value of [true, undefined]) {
+    const changed = structuredClone(contract);
+    changed.github_environments["aws-production"].allow_self_review = value;
+    assert.throws(
+      () => validateGithubDeploymentContract(changed),
+      /production environment allows self-review/,
+    );
+  }
+});
+
+test("deployment contract pins the one reviewed host adapter path", () => {
+  const changedDocument = structuredClone(contract);
+  changedDocument.ssm.documents[0].adapter_path = "/usr/local/sbin/other-adapter";
+  assert.throws(
+    () => validateGithubDeploymentContract(changedDocument),
+    /staging document contract adapter path mismatch/,
+  );
+
+  const changedAdapter = structuredClone(contract);
+  changedAdapter.host_adapter.path = "/usr/local/sbin/other-adapter";
+  assert.throws(
+    () => validateGithubDeploymentContract(changedAdapter),
+    /host adapter path mismatch/,
+  );
+});
+
+test("deployment source rejects credential-shaped JSON keys", () => {
+  for (const key of ["AWS_SECRET_ACCESS_KEY", "AWSSecretAccessKey", "AWSSessionToken"]) {
+    const changedContract = structuredClone(contract);
+    changedContract.test_only = {
+      [key]: "test-placeholder-not-a-secret",
+    };
+    assert.throws(
+      () => validateGithubDeploymentContract(changedContract),
+      /GitHub deployment contract contains credentials/,
+    );
+  }
+
+  for (const key of ["aws-secret-access-key", "AWSAccessKeyId", "aws_session_token"]) {
+    const changedTemplate = structuredClone(template);
+    changedTemplate.Metadata.TestOnly = {
+      [key]: "test-placeholder-not-a-secret",
+    };
+    assert.throws(
+      () => validateCloudFormationTemplate(contract, changedTemplate),
+      /CloudFormation template contains credentials/,
+    );
+  }
 });
 
 test("ECR identity, scanning, retention, and deletion protections fail closed", () => {
@@ -246,6 +332,17 @@ test("SSM documents accept only validated identity fields and one fixed adapter"
     () => validateCloudFormationTemplate(contract, shellEscape),
     /does not exec the fixed adapter and lane/,
   );
+
+  for (const suffix of [" $(/usr/bin/true)", " ; /usr/bin/true"]) {
+    const shellSyntax = structuredClone(template);
+    shellSyntax.Resources.StagingDeploymentDocument.Properties.Content.mainSteps[0].inputs.runCommand[0][
+      "Fn::Sub"
+    ] += suffix;
+    assert.throws(
+      () => validateCloudFormationTemplate(contract, shellSyntax),
+      /command differs from the exact adapter invocation/,
+    );
+  }
 
   const unsafeManagedNode = structuredClone(template);
   unsafeManagedNode.Resources.ManagedNodeServiceRole.Properties.Policies[0].PolicyDocument.Statement.push({
