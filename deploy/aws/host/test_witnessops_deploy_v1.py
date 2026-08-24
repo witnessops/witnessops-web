@@ -5,13 +5,11 @@ import http.server
 import importlib.machinery
 import io
 import json
-import os
 from pathlib import Path
 import tarfile
 import tempfile
 import threading
-import unittest
-from unittest import mock
+from unittest import TestCase, main, mock
 
 
 THIS_DIR = Path(__file__).resolve().parent
@@ -63,7 +61,7 @@ class FakeResponse(io.BytesIO):
         self.close()
 
 
-class ConfigTests(unittest.TestCase):
+class ConfigTests(TestCase):
     def write_config(self, value: dict, mode: int = 0o600) -> tuple[tempfile.TemporaryDirectory, Path]:
         directory = tempfile.TemporaryDirectory()
         path = Path(directory.name) / "deploy-v1.json"
@@ -100,7 +98,7 @@ class ConfigTests(unittest.TestCase):
             adapter.load_config(path, enforce_root=False)
 
 
-class OciTests(unittest.TestCase):
+class OciTests(TestCase):
     def test_verified_single_platform_archive(self):
         source_commit = "a" * 40
         image_config = json.dumps(
@@ -261,7 +259,7 @@ class OciTests(unittest.TestCase):
                 )
 
 
-class RuntimeContractTests(unittest.TestCase):
+class RuntimeContractTests(TestCase):
     def deployment(self, explicit_env=None):
         return {
             "spec": {
@@ -389,7 +387,7 @@ class RuntimeContractTests(unittest.TestCase):
         smoke.assert_called_once()
 
 
-class SmokeTests(unittest.TestCase):
+class SmokeTests(TestCase):
     def start_server(self, callback):
         class Handler(http.server.BaseHTTPRequestHandler):
             def do_GET(self):
@@ -498,4 +496,4 @@ class SmokeTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    main()
