@@ -1,0 +1,527 @@
+name: WitnessOps reusable AWS release
+
+on:
+  workflow_call:
+    inputs:
+      operation:
+        type: string
+        required: true
+      image_digest:
+        type: string
+        required: false
+        default: ""
+      source_commit:
+        type: string
+        required: false
+        default: ""
+      config_digest:
+        type: string
+        required: false
+        default: ""
+      publication_run_id:
+        type: string
+        required: false
+        default: ""
+      publication_run_attempt:
+        type: string
+        required: false
+        default: ""
+      expected_current_digest:
+        type: string
+        required: false
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: witnessops-aws-release-${{ inputs.operation }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate immutable release inputs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      operation: ${{ steps.inputs.outputs.operation }}
+      image_digest: ${{ steps.inputs.outputs.image_digest }}
+      source_commit: ${{ steps.inputs.outputs.source_commit }}
+      config_digest: ${{ steps.inputs.outputs.config_digest }}
+      publication_run_id: ${{ steps.inputs.outputs.publication_run_id }}
+      publication_run_attempt: ${{ steps.inputs.outputs.publication_run_attempt }}
+      expected_current_digest: ${{ steps.inputs.outputs.expected_current_digest }}
+    steps:
+      - name: Check out merged main without persisted credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate repository, ref, and digest-only inputs
+        id: inputs
+        env:
+          OPERATION: ${{ inputs.operation }}
+          IMAGE_DIGEST: ${{ inputs.image_digest }}
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+          CONFIG_DIGEST: ${{ inputs.config_digest }}
+          PUBLICATION_RUN_ID: ${{ inputs.publication_run_id }}
+          PUBLICATION_RUN_ATTEMPT: ${{ inputs.publication_run_attempt }}
+          EXPECTED_CURRENT_DIGEST: ${{ inputs.expected_current_digest }}
+        run: |
+          set -euo pipefail
+          [[ "${GITHUB_REPOSITORY}" == "witnessops/witnessops-web" ]]
+          [[ "${GITHUB_REPOSITORY_ID}" == "1200448046" ]]
+          [[ "${GITHUB_REPOSITORY_OWNER_ID}" == "272034497" ]]
+          [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]
+          [[ "${GITHUB_WORKFLOW_REF}" == "witnessops/witnessops-web/.github/workflows/aws-release.yml@refs/heads/main" ]]
+          [[ "${GITHUB_REF}" == "refs/heads/main" ]]
+          case "${OPERATION}" in
+            publish-image)
+              source_commit="${GITHUB_SHA}"
+              image_digest=""
+              config_digest=""
+              publication_run_id="${GITHUB_RUN_ID}"
+              publication_run_attempt="${GITHUB_RUN_ATTEMPT}"
+              expected_current_digest=""
+              ;;
+            deploy-staging|deploy-production)
+              [[ "${IMAGE_DIGEST}" =~ ^sha256:[0-9a-f]{64}$ ]]
+              [[ "${SOURCE_COMMIT}" =~ ^[0-9a-f]{40}$ ]]
+              [[ "${CONFIG_DIGEST}" =~ ^sha256:[0-9a-f]{64}$ ]]
+              [[ "${PUBLICATION_RUN_ID}" =~ ^[1-9][0-9]{0,19}$ ]]
+              [[ "${PUBLICATION_RUN_ATTEMPT}" =~ ^[1-9][0-9]{0,5}$ ]]
+              [[ "${EXPECTED_CURRENT_DIGEST}" =~ ^(absent|sha256:[0-9a-f]{64})$ ]]
+              git cat-file -e "${SOURCE_COMMIT}^{commit}"
+              git merge-base --is-ancestor "${SOURCE_COMMIT}" HEAD
+              source_commit="${SOURCE_COMMIT}"
+              image_digest="${IMAGE_DIGEST}"
+              config_digest="${CONFIG_DIGEST}"
+              publication_run_id="${PUBLICATION_RUN_ID}"
+              publication_run_attempt="${PUBLICATION_RUN_ATTEMPT}"
+              expected_current_digest="${EXPECTED_CURRENT_DIGEST}"
+              ;;
+            *)
+              printf 'unsupported AWS release operation\n' >&2
+              exit 1
+              ;;
+          esac
+          {
+            echo "operation=${OPERATION}"
+            echo "image_digest=${image_digest}"
+            echo "source_commit=${source_commit}"
+            echo "config_digest=${config_digest}"
+            echo "publication_run_id=${publication_run_id}"
+            echo "publication_run_attempt=${publication_run_attempt}"
+            echo "expected_current_digest=${expected_current_digest}"
+          } >> "${GITHUB_OUTPUT}"
+
+  build_image:
+    name: Build exact AWS image without AWS authority
+    if: needs.validate.outputs.operation == 'publish-image'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      archive_sha256: ${{ steps.archive.outputs.sha256 }}
+    steps:
+      - name: Check out merged main without persisted credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run the repository supply-chain gate
+        run: |
+          python3 tools/supply-chain-gate/supply_chain_gate.py \
+            --repo-root . \
+            --lockfile pnpm-lock.yaml \
+            --base-ref HEAD^ \
+            --output-dir "${RUNNER_TEMP}/supply-chain"
+
+      - name: Build one linux-amd64 Docker image archive
+        run: |
+          set -euo pipefail
+          docker build \
+            --file deploy/Dockerfile.aws \
+            --build-arg "SOURCE_COMMIT=${{ needs.validate.outputs.source_commit }}" \
+            --tag "witnessops-web-aws:${{ needs.validate.outputs.source_commit }}" \
+            .
+          docker save \
+            --output "${RUNNER_TEMP}/witnessops-web-aws.tar" \
+            "witnessops-web-aws:${{ needs.validate.outputs.source_commit }}"
+
+      - name: Hash the exact image archive
+        id: archive
+        run: |
+          digest="$(sha256sum "${RUNNER_TEMP}/witnessops-web-aws.tar" | awk '{print $1}')"
+          echo "sha256=${digest}" >> "${GITHUB_OUTPUT}"
+          printf '%s  %s\n' "${digest}" witnessops-web-aws.tar \
+            > "${RUNNER_TEMP}/witnessops-web-aws.tar.sha256"
+
+      - name: Transfer only the hashed image archive
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: witnessops-web-aws-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/witnessops-web-aws.tar
+            ${{ runner.temp }}/witnessops-web-aws.tar.sha256
+
+  publish_image:
+    name: Publish exact image to immutable ECR
+    if: needs.validate.outputs.operation == 'publish-image'
+    needs: [validate, build_image]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: aws-image-publish
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download the exact low-authority image archive
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: witnessops-web-aws-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/aws-image
+
+      - name: Verify archive before requesting AWS identity
+        env:
+          EXPECTED_ARCHIVE_SHA256: ${{ needs.build_image.outputs.archive_sha256 }}
+        run: |
+          printf '%s  %s\n' \
+            "${EXPECTED_ARCHIVE_SHA256}" \
+            "${RUNNER_TEMP}/aws-image/witnessops-web-aws.tar" \
+            | sha256sum -c -
+          docker load --input "${RUNNER_TEMP}/aws-image/witnessops-web-aws.tar"
+
+      - name: Configure the environment-scoped AWS publisher identity
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: github-${{ github.run_id }}-${{ github.run_attempt }}
+          mask-aws-account-id: true
+
+      - name: Publish without rebuilding or running the image
+        id: publish
+        env:
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
+          ECR_REPOSITORY_URI: ${{ vars.AWS_ECR_REPOSITORY_URI }}
+          SOURCE_COMMIT: ${{ needs.validate.outputs.source_commit }}
+        run: |
+          set -euo pipefail
+          [[ "${AWS_ACCOUNT_ID}" =~ ^[0-9]{12}$ ]]
+          [[ "${AWS_REGION}" == "eu-central-1" ]]
+          [[ "${ECR_REPOSITORY}" == "witnessops-web" ]]
+          registry="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          expected_repository_uri="${registry}/${ECR_REPOSITORY}"
+          [[ "${ECR_REPOSITORY_URI}" == "${expected_repository_uri}" ]]
+          target="${expected_repository_uri}:${SOURCE_COMMIT}"
+          aws ecr get-login-password --region "${AWS_REGION}" \
+            | docker login --username AWS --password-stdin "${registry}"
+          docker tag "witnessops-web-aws:${SOURCE_COMMIT}" "${target}"
+          docker push "${target}"
+          docker logout "${registry}" >/dev/null
+          image_digest="$(aws ecr describe-images \
+            --region "${AWS_REGION}" \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-ids "imageTag=${SOURCE_COMMIT}" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)"
+          [[ "${image_digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
+          manifest="$(aws ecr batch-get-image \
+            --region "${AWS_REGION}" \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-ids "imageDigest=${image_digest}" \
+            --accepted-media-types application/vnd.docker.distribution.manifest.v2+json application/vnd.oci.image.manifest.v1+json \
+            --query 'images[0].imageManifest' \
+            --output text)"
+          printf '%s' "${manifest}" > "${RUNNER_TEMP}/ecr-manifest.json"
+          observed_manifest="sha256:$(sha256sum "${RUNNER_TEMP}/ecr-manifest.json" | awk '{print $1}')"
+          [[ "${observed_manifest}" == "${image_digest}" ]]
+          config_digest="$(jq -r '.config.digest' "${RUNNER_TEMP}/ecr-manifest.json")"
+          [[ "${config_digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
+          {
+            echo "image_digest=${image_digest}"
+            echo "config_digest=${config_digest}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Fail closed until the basic ECR scan completes cleanly
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
+          IMAGE_DIGEST: ${{ steps.publish.outputs.image_digest }}
+        run: |
+          set -euo pipefail
+          scan_json=""
+          for _attempt in $(seq 1 60); do
+            scan_json="$(aws ecr describe-images \
+              --region "${AWS_REGION}" \
+              --repository-name "${ECR_REPOSITORY}" \
+              --image-ids "imageDigest=${IMAGE_DIGEST}" \
+              --output json)"
+            status="$(jq -r '.imageDetails[0].imageScanStatus.status // "UNKNOWN"' <<<"${scan_json}")"
+            [[ "${status}" != "FAILED" ]] || exit 1
+            [[ "${status}" != "COMPLETE" ]] || break
+            sleep 10
+          done
+          [[ "$(jq -r '.imageDetails[0].imageScanStatus.status // "UNKNOWN"' <<<"${scan_json}")" == "COMPLETE" ]]
+          critical="$(jq -r '.imageDetails[0].imageScanFindingsSummary.findingSeverityCounts.CRITICAL // 0' <<<"${scan_json}")"
+          high="$(jq -r '.imageDetails[0].imageScanFindingsSummary.findingSeverityCounts.HIGH // 0' <<<"${scan_json}")"
+          [[ "${critical}" == "0" && "${high}" == "0" ]]
+
+      - name: Write digest-bound successful-scan evidence
+        env:
+          SOURCE_COMMIT: ${{ needs.validate.outputs.source_commit }}
+          IMAGE_DIGEST: ${{ steps.publish.outputs.image_digest }}
+          CONFIG_DIGEST: ${{ steps.publish.outputs.config_digest }}
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg repository "${GITHUB_REPOSITORY}" \
+            --arg repository_id "${GITHUB_REPOSITORY_ID}" \
+            --arg repository_owner_id "${GITHUB_REPOSITORY_OWNER_ID}" \
+            --arg publication_run_id "${GITHUB_RUN_ID}" \
+            --arg publication_run_attempt "${GITHUB_RUN_ATTEMPT}" \
+            --arg caller_workflow_ref "${GITHUB_WORKFLOW_REF}" \
+            --arg event_name "${GITHUB_EVENT_NAME}" \
+            --arg source_commit "${SOURCE_COMMIT}" \
+            --arg image_digest "${IMAGE_DIGEST}" \
+            --arg config_digest "${CONFIG_DIGEST}" \
+            '{
+              schema_version: 1,
+              repository: $repository,
+              repository_id: $repository_id,
+              repository_owner_id: $repository_owner_id,
+              publication_run_id: $publication_run_id,
+              publication_run_attempt: $publication_run_attempt,
+              operation: "publish-image",
+              caller_workflow_ref: $caller_workflow_ref,
+              event_name: $event_name,
+              source_commit: $source_commit,
+              image_digest: $image_digest,
+              config_digest: $config_digest,
+              scan_status: "COMPLETE",
+              critical_findings: 0,
+              high_findings: 0,
+              scan_policy: "basic_complete_zero_critical_high"
+            }' > "${RUNNER_TEMP}/witnessops-aws-scan-evidence.json"
+
+      - name: Retain only non-secret successful-scan evidence
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: witnessops-web-aws-scan-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 90
+          compression-level: 0
+          if-no-files-found: error
+          path: ${{ runner.temp }}/witnessops-aws-scan-evidence.json
+
+      - name: Summarize non-secret immutable image identity
+        run: |
+          {
+            echo "## AWS image publication receipt"
+            echo ""
+            echo "- Source commit: \`${{ needs.validate.outputs.source_commit }}\`"
+            echo "- Manifest digest: \`${{ steps.publish.outputs.image_digest }}\`"
+            echo "- Config digest: \`${{ steps.publish.outputs.config_digest }}\`"
+            echo "- ECR scan: \`COMPLETE, zero CRITICAL/HIGH\`"
+            echo "- Application deployment: \`NOT RUN\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  validate_scan_evidence:
+    name: Validate exact successful publication and scan evidence
+    if: >-
+      needs.validate.outputs.operation == 'deploy-staging' ||
+      needs.validate.outputs.operation == 'deploy-production'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Check out the exact deployment verifier without persisted credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Read the exact GitHub publication run metadata
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PUBLICATION_RUN_ID: ${{ needs.validate.outputs.publication_run_id }}
+        run: |
+          set -euo pipefail
+          [[ "${GITHUB_API_URL}" == "https://api.github.com" ]]
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --proto '=https' \
+            --tlsv1.2 \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GITHUB_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2026-03-10" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${PUBLICATION_RUN_ID}" \
+            > "${RUNNER_TEMP}/publication-run.json"
+
+      - name: Download only the named publication-run evidence artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: witnessops-web-aws-scan-evidence-${{ needs.validate.outputs.publication_run_id }}-${{ needs.validate.outputs.publication_run_attempt }}
+          path: ${{ runner.temp }}/scan-evidence
+          github-token: ${{ github.token }}
+          repository: witnessops/witnessops-web
+          run-id: ${{ needs.validate.outputs.publication_run_id }}
+
+      - name: Bind deployment inputs to successful scan evidence
+        run: |
+          node deploy/aws/verify-scan-evidence.mjs \
+            --run "${RUNNER_TEMP}/publication-run.json" \
+            --evidence "${RUNNER_TEMP}/scan-evidence/witnessops-aws-scan-evidence.json" \
+            --publication-run-id "${{ needs.validate.outputs.publication_run_id }}" \
+            --publication-run-attempt "${{ needs.validate.outputs.publication_run_attempt }}" \
+            --source-commit "${{ needs.validate.outputs.source_commit }}" \
+            --image-digest "${{ needs.validate.outputs.image_digest }}" \
+            --config-digest "${{ needs.validate.outputs.config_digest }}"
+
+  deploy_staging:
+    name: Deploy exact digest to staging
+    if: needs.validate.outputs.operation == 'deploy-staging'
+    needs: [validate, validate_scan_evidence]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: aws-staging
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Validate the configured staging target
+        env:
+          MANAGED_NODE_ID: ${{ vars.AWS_SSM_MANAGED_NODE_ID }}
+        run: |
+          set -euo pipefail
+          [[ "${MANAGED_NODE_ID}" =~ ^mi-[0-9a-f]{17}$ ]]
+
+      - name: Configure the environment-scoped staging identity
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: github-${{ github.run_id }}-${{ github.run_attempt }}
+          mask-aws-account-id: true
+
+      - name: Invoke only the staging SSM document
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          MANAGED_NODE_ID: ${{ vars.AWS_SSM_MANAGED_NODE_ID }}
+          DOCUMENT_NAME: ${{ vars.AWS_SSM_DOCUMENT_NAME }}
+          LOG_GROUP: ${{ vars.AWS_RUN_COMMAND_LOG_GROUP }}
+          IMAGE_DIGEST: ${{ needs.validate.outputs.image_digest }}
+          SOURCE_COMMIT: ${{ needs.validate.outputs.source_commit }}
+          CONFIG_DIGEST: ${{ needs.validate.outputs.config_digest }}
+          EXPECTED_CURRENT_DIGEST: ${{ needs.validate.outputs.expected_current_digest }}
+        run: |
+          set -euo pipefail
+          parameters="$(jq -cn \
+            --arg image "${IMAGE_DIGEST}" \
+            --arg source "${SOURCE_COMMIT}" \
+            --arg config "${CONFIG_DIGEST}" \
+            --arg current "${EXPECTED_CURRENT_DIGEST}" \
+            '{ImageDigest:[$image],SourceCommit:[$source],ConfigDigest:[$config],ExpectedCurrentDigest:[$current]}')"
+          command_id="$(aws ssm send-command \
+            --region "${AWS_REGION}" \
+            --instance-ids "${MANAGED_NODE_ID}" \
+            --document-name "${DOCUMENT_NAME}" \
+            --parameters "${parameters}" \
+            --cloud-watch-output-config "CloudWatchOutputEnabled=true,CloudWatchLogGroupName=${LOG_GROUP}" \
+            --query 'Command.CommandId' \
+            --output text)"
+          [[ "${command_id}" =~ ^[0-9a-f-]{36}$ ]]
+          aws ssm wait command-executed \
+            --region "${AWS_REGION}" \
+            --command-id "${command_id}" \
+            --instance-id "${MANAGED_NODE_ID}"
+          status="$(aws ssm get-command-invocation \
+            --region "${AWS_REGION}" \
+            --command-id "${command_id}" \
+            --instance-id "${MANAGED_NODE_ID}" \
+            --query Status \
+            --output text)"
+          [[ "${status}" == "Success" ]]
+          printf '### Staging command\n\n- Status: \`Success\`\n- Command ID: \`%s\`\n' \
+            "${command_id}" >> "${GITHUB_STEP_SUMMARY}"
+
+  deploy_production:
+    name: Deploy exact digest to production
+    if: needs.validate.outputs.operation == 'deploy-production'
+    needs: [validate, validate_scan_evidence]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: aws-production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Validate the configured production target
+        env:
+          MANAGED_NODE_ID: ${{ vars.AWS_SSM_MANAGED_NODE_ID }}
+        run: |
+          set -euo pipefail
+          [[ "${MANAGED_NODE_ID}" =~ ^mi-[0-9a-f]{17}$ ]]
+
+      - name: Configure the reviewer-gated production identity
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: github-${{ github.run_id }}-${{ github.run_attempt }}
+          mask-aws-account-id: true
+
+      - name: Invoke only the production SSM document
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          MANAGED_NODE_ID: ${{ vars.AWS_SSM_MANAGED_NODE_ID }}
+          DOCUMENT_NAME: ${{ vars.AWS_SSM_DOCUMENT_NAME }}
+          LOG_GROUP: ${{ vars.AWS_RUN_COMMAND_LOG_GROUP }}
+          IMAGE_DIGEST: ${{ needs.validate.outputs.image_digest }}
+          SOURCE_COMMIT: ${{ needs.validate.outputs.source_commit }}
+          CONFIG_DIGEST: ${{ needs.validate.outputs.config_digest }}
+          EXPECTED_CURRENT_DIGEST: ${{ needs.validate.outputs.expected_current_digest }}
+        run: |
+          set -euo pipefail
+          parameters="$(jq -cn \
+            --arg image "${IMAGE_DIGEST}" \
+            --arg source "${SOURCE_COMMIT}" \
+            --arg config "${CONFIG_DIGEST}" \
+            --arg current "${EXPECTED_CURRENT_DIGEST}" \
+            '{ImageDigest:[$image],SourceCommit:[$source],ConfigDigest:[$config],ExpectedCurrentDigest:[$current]}')"
+          command_id="$(aws ssm send-command \
+            --region "${AWS_REGION}" \
+            --instance-ids "${MANAGED_NODE_ID}" \
+            --document-name "${DOCUMENT_NAME}" \
+            --parameters "${parameters}" \
+            --cloud-watch-output-config "CloudWatchOutputEnabled=true,CloudWatchLogGroupName=${LOG_GROUP}" \
+            --query 'Command.CommandId' \
+            --output text)"
+          [[ "${command_id}" =~ ^[0-9a-f-]{36}$ ]]
+          aws ssm wait command-executed \
+            --region "${AWS_REGION}" \
+            --command-id "${command_id}" \
+            --instance-id "${MANAGED_NODE_ID}"
+          status="$(aws ssm get-command-invocation \
+            --region "${AWS_REGION}" \
+            --command-id "${command_id}" \
+            --instance-id "${MANAGED_NODE_ID}" \
+            --query Status \
+            --output text)"
+          [[ "${status}" == "Success" ]]
+          printf '### Production command\n\n- Status: \`Success\`\n- Command ID: \`%s\`\n' \
+            "${command_id}" >> "${GITHUB_STEP_SUMMARY}"

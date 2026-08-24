@@ -1,0 +1,40 @@
+name: Validate AWS Phase 3 source
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/aws-phase3-validate.yml"
+      - ".github/workflows/aws-release.yml"
+      - ".github/workflows/aws-release-reusable.yml"
+      - "deploy/Dockerfile.aws"
+      - "deploy/aws/host/**"
+      - "deploy/aws/phase3-adapter-workflow-contract.v1.json"
+      - "deploy/aws/README.md"
+      - "deploy/aws/validate-phase3.mjs"
+      - "deploy/aws/validate-phase3.test.mjs"
+      - "deploy/aws/verify-scan-evidence.mjs"
+      - "deploy/aws/verify-scan-evidence.test.mjs"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out without persisted credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Validate the bounded source
+        run: |
+          bash -n deploy/aws/host/install-witnessops-deploy-v1.sh
+          bash deploy/aws/host/test_install_witnessops_deploy_v1.sh
+          python3 -m py_compile deploy/aws/host/witnessops-deploy-v1
+          python3 -m unittest deploy/aws/host/test_witnessops_deploy_v1.py
+          node --test deploy/aws/validate-phase3.test.mjs
+          node --test deploy/aws/verify-scan-evidence.test.mjs
+          node deploy/aws/validate-phase3.mjs

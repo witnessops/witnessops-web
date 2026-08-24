@@ -162,6 +162,71 @@ host adapter plus a caller and the reserved reusable digest-only workflow in a
 separate PR. Its production job remains approval-gated. Production receipt-key
 activation remains another independent authority lane.
 
+### Phase 3 activation boundary
+
+The Phase 3 source consists of:
+
+- `deploy/aws/host/witnessops-deploy-v1`, a fixed-argument Python adapter that
+  reads the hybrid-node credential file only in memory, verifies one exact ECR
+  manifest/config/source identity, imports a bounded OCI archive into k3s
+  containerd, checks the existing runtime/secret-ref contract, and restores the
+  previous digest-qualified image on a failed post-patch gate;
+- `deploy/aws/host/install-witnessops-deploy-v1.sh`, whose default `--check`
+  mode is read-only and whose `--apply` mode requires the exact adapter and
+  topology-config SHA-256 values;
+- `.github/workflows/aws-release.yml`, a manual caller with no executable job
+  steps of its own; and
+- `.github/workflows/aws-release-reusable.yml`, the reserved reusable workflow
+  pinned by the Phase 2 OIDC trust policy and fail-closed to the exact manual
+  caller path and `workflow_dispatch` event.
+
+Merging those workflow files makes the manual workflow visible; it does not run
+it. Phase 3 activation must not dispatch the workflow, publish an image, invoke
+an SSM document, or modify a Kubernetes deployment. The source must first merge
+to `main`; install only the bytes read back from that exact merged commit and
+bind both the adapter and generated config to their separately reviewed
+SHA-256 values. Generate the non-secret topology config in root-only staging
+from restricted operator custody without copying `/root/.aws/credentials` or
+any credential value. Validate both digests with the installer `--check`, then
+separately run `--apply` and read back root ownership, mode, both digests, and
+`--self-test` output. Deployment and rollback patches compare the exact
+previous image value before replacement and refuse to overwrite a third state.
+Apply mode never executes the supplied adapter pathname: it copies both source
+files into root-owned temporary paths, verifies both staged digests, and
+self-tests only that staged pair before replacing either installed target.
+
+The publisher equality-binds its configured ECR URI to the reviewed account,
+Frankfurt region, and `witnessops-web` repository before requesting an ECR login
+token. After an image scan is `COMPLETE` with zero critical and high findings,
+the publication run retains one non-secret, 90-day GitHub artifact bound to the
+exact run ID, run attempt, source commit, manifest digest, and config digest.
+Deploy dispatches must name that publication run and attempt. A low-authority
+job first confirms through the GitHub API that the exact run was a successful
+manual run from the reserved caller on `main` and referenced the reserved
+reusable workflow at that same source commit. The immutable artifact can only
+be emitted by the guarded `publish_image` job; its exact operation, run identity,
+and requested digests are then validated. Neither deploy job can request AWS
+OIDC identity unless those checks pass. This uses repository-scoped GitHub
+Actions read permission and does not add or broaden AWS IAM permission.
+
+Lane smoke checks permit direct HTTP 200 responses and same-authority redirects,
+but reject a cross-authority redirect before the redirected network request is
+sent.
+
+The existing production hybrid node is not a staging target. Leave
+`AWS_SSM_MANAGED_NODE_ID` unset in `aws-staging` until a distinct managed node
+has the reviewed staging tags. Production stores only its managed-node ID as a
+non-secret environment variable. Production protection must continue to
+require a reviewer with self-review disabled.
+
+Adapter removal is bounded and does not touch the application: move
+`/usr/local/sbin/witnessops-deploy-v1` and `/etc/witnessops/deploy-v1.json` into
+the restricted root backup location, then confirm both installed paths are
+absent. Workflow rollback is a normal PR reverting only the caller, reusable
+workflow, validation workflow, adapter source, installer, config example,
+contract, and validator. Neither rollback path authorizes image deletion,
+application deployment, DNS changes, secret changes, or signing activation.
+
 ## Candidate preparation boundary
 
 The later authorized apply lane creates one Ubuntu 24.04 Lightsail instance in

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "account_id": "123456789012",
+  "region": "eu-central-1",
+  "registry": "123456789012.dkr.ecr.eu-central-1.amazonaws.com",
+  "repository": "witnessops-web",
+  "namespace": "replace-from-private-custody",
+  "application_container": "replace-from-private-custody",
+  "base_env_secret": "replace-from-private-custody",
+  "admin_oidc_secret": "replace-from-private-custody",
+  "credentials_file": "/root/.aws/credentials",
+  "containerd_namespace": "k8s.io",
+  "lanes": {
+    "staging": {
+      "deployment": "replace-from-private-custody",
+      "smoke_urls": [
+        "http://replace-from-private-custody/"
+      ]
+    },
+    "production": {
+      "deployment": "replace-from-private-custody",
+      "smoke_urls": [
+        "https://witnessops.com/"
+      ]
+    }
+  }
+}

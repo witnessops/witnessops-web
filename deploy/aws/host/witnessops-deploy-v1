@@ -1,0 +1,1033 @@
+#!/usr/bin/env python3
+"""Fail-closed WitnessOps ECR-to-k3s deployment adapter.
+
+The SSM documents pass only identity inputs. This root-owned adapter validates
+those inputs against a root-owned non-secret topology file, downloads the exact
+single-platform ECR manifest without exposing credentials on argv, imports a
+verified OCI archive into k3s containerd, reconciles one lane, and rolls back
+the image if a post-patch check fails.
+"""
+
+from __future__ import annotations
+
+import argparse
+import base64
+import configparser
+import contextlib
+import datetime as dt
+import fcntl
+import hashlib
+import hmac
+import json
+import os
+from pathlib import Path
+import re
+import ssl
+import stat
+import subprocess
+import sys
+import tarfile
+import tempfile
+from typing import Any, BinaryIO
+import urllib.error
+import urllib.parse
+import urllib.request
+
+
+CONFIG_PATH = Path("/etc/witnessops/deploy-v1.json")
+LOCK_PATH = Path("/run/lock/witnessops-deploy-v1.lock")
+STATE_DIR = Path("/var/lib/witnessops/deploy-v1")
+REGION = "eu-central-1"
+REPOSITORY = "witnessops-web"
+SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
+COMMIT = re.compile(r"^[0-9a-f]{40}$")
+ACCOUNT = re.compile(r"^[0-9]{12}$")
+REGION_SHAPE = re.compile(r"^[a-z]{2}-[a-z]+-[1-9][0-9]*$")
+K8S_NAME = re.compile(r"^[a-z0-9](?:[-a-z0-9.]*[a-z0-9])?$")
+REGISTRY = re.compile(
+    r"^(?P<account>[0-9]{12})\.dkr\.ecr\.(?P<region>[a-z]{2}-[a-z]+-[1-9][0-9]*)\.amazonaws\.com$"
+)
+MANIFEST_TYPES = {
+    "application/vnd.docker.distribution.manifest.v2+json",
+    "application/vnd.oci.image.manifest.v1+json",
+}
+MAX_LAYER_COUNT = 128
+MAX_IMAGE_BYTES = 4 * 1024 * 1024 * 1024
+PROTECTED_ENV_KEYS = {
+    "WITNESSOPS_ADMIN_SECRET",
+    "WITNESSOPS_ADMIN_ROLE",
+    "WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST",
+    "WITNESSOPS_GOOGLE_OIDC_CLIENT_ID",
+    "WITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET",
+    "WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI",
+    "WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN",
+}
+
+
+class AdapterError(RuntimeError):
+    """Expected fail-closed error with a non-sensitive message."""
+
+
+def require_exact_keys(value: dict[str, Any], expected: set[str], label: str) -> None:
+    if set(value) != expected:
+        raise AdapterError(f"{label} has an unsupported field inventory")
+
+
+def validate_digest(value: str, label: str) -> str:
+    if not SHA256.fullmatch(value):
+        raise AdapterError(f"{label} is not a SHA-256 digest")
+    return value
+
+
+def validate_commit(value: str) -> str:
+    if not COMMIT.fullmatch(value):
+        raise AdapterError("source commit is not a full lowercase Git commit")
+    return value
+
+
+def validate_k8s_name(value: str, label: str) -> str:
+    if len(value) > 253 or not K8S_NAME.fullmatch(value):
+        raise AdapterError(f"{label} has an invalid Kubernetes name")
+    return value
+
+
+def validate_secure_file(path: Path, *, root_required: bool) -> os.stat_result:
+    try:
+        info = path.lstat()
+    except OSError as exc:
+        raise AdapterError(f"required file is unavailable: {path}") from exc
+    if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode):
+        raise AdapterError(f"required path is not a regular file: {path}")
+    if root_required and info.st_uid != 0:
+        raise AdapterError(f"required file is not root-owned: {path}")
+    if info.st_mode & 0o022:
+        raise AdapterError(f"required file is group/world writable: {path}")
+    return info
+
+
+def load_config(path: Path, *, enforce_root: bool = True) -> dict[str, Any]:
+    validate_secure_file(path, root_required=enforce_root)
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise AdapterError("adapter configuration is not valid JSON") from exc
+    if not isinstance(data, dict):
+        raise AdapterError("adapter configuration must be an object")
+    require_exact_keys(
+        data,
+        {
+            "schema_version",
+            "account_id",
+            "region",
+            "registry",
+            "repository",
+            "namespace",
+            "application_container",
+            "base_env_secret",
+            "admin_oidc_secret",
+            "credentials_file",
+            "containerd_namespace",
+            "lanes",
+        },
+        "adapter configuration",
+    )
+    if data["schema_version"] != 1:
+        raise AdapterError("adapter configuration version is unsupported")
+    account = str(data["account_id"])
+    region = str(data["region"])
+    registry = str(data["registry"])
+    if not ACCOUNT.fullmatch(account):
+        raise AdapterError("AWS account identifier has an invalid shape")
+    if region != REGION or not REGION_SHAPE.fullmatch(region):
+        raise AdapterError("AWS region differs from the reviewed Frankfurt contract")
+    registry_match = REGISTRY.fullmatch(registry)
+    if (
+        registry_match is None
+        or registry_match.group("account") != account
+        or registry_match.group("region") != region
+    ):
+        raise AdapterError("ECR registry does not match the configured account and region")
+    if data["repository"] != REPOSITORY:
+        raise AdapterError("ECR repository differs from the reviewed contract")
+    for key in (
+        "namespace",
+        "application_container",
+        "base_env_secret",
+        "admin_oidc_secret",
+    ):
+        data[key] = validate_k8s_name(str(data[key]), key)
+    if data["credentials_file"] != "/root/.aws/credentials":
+        raise AdapterError("credential source differs from the SSM hybrid-node contract")
+    if data["containerd_namespace"] != "k8s.io":
+        raise AdapterError("containerd namespace differs from the k3s contract")
+    lanes = data["lanes"]
+    if not isinstance(lanes, dict):
+        raise AdapterError("lane configuration must be an object")
+    require_exact_keys(lanes, {"staging", "production"}, "lane configuration")
+    for lane, lane_config in lanes.items():
+        if not isinstance(lane_config, dict):
+            raise AdapterError(f"{lane} lane configuration must be an object")
+        require_exact_keys(lane_config, {"deployment", "smoke_urls"}, f"{lane} lane")
+        lane_config["deployment"] = validate_k8s_name(
+            str(lane_config["deployment"]), f"{lane} deployment"
+        )
+        smoke_urls = lane_config["smoke_urls"]
+        if not isinstance(smoke_urls, list) or not smoke_urls or len(smoke_urls) > 8:
+            raise AdapterError(f"{lane} smoke URL inventory is invalid")
+        for url in smoke_urls:
+            parsed = urllib.parse.urlsplit(str(url))
+            if (
+                parsed.scheme not in {"http", "https"}
+                or not parsed.hostname
+                or parsed.username
+                or parsed.password
+                or parsed.fragment
+                or len(str(url)) > 512
+            ):
+                raise AdapterError(f"{lane} smoke URL has an invalid shape")
+    return data
+
+
+def run_command(
+    args: list[str],
+    *,
+    input_bytes: bytes | None = None,
+    timeout: int = 180,
+) -> bytes:
+    try:
+        result = subprocess.run(
+            args,
+            input=input_bytes,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+            timeout=timeout,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        tool = Path(args[0]).name
+        raise AdapterError(f"{tool} operation failed") from exc
+    return result.stdout
+
+
+def open_deployment_lock(path: Path):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    flags = os.O_RDWR | os.O_CREAT | os.O_CLOEXEC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    try:
+        descriptor = os.open(path, flags, 0o600)
+    except OSError as exc:
+        raise AdapterError("deployment lock is unavailable") from exc
+    try:
+        info = os.fstat(descriptor)
+        if (
+            not stat.S_ISREG(info.st_mode)
+            or info.st_uid != 0
+            or info.st_nlink != 1
+            or info.st_mode & 0o077
+        ):
+            raise AdapterError("deployment lock has unsafe ownership or mode")
+        return os.fdopen(descriptor, "r+", encoding="utf-8")
+    except Exception:
+        os.close(descriptor)
+        raise
+
+
+def load_credentials(path: Path) -> tuple[str, str, str]:
+    info = validate_secure_file(path, root_required=True)
+    if stat.S_IMODE(info.st_mode) != 0o600:
+        raise AdapterError("SSM credential file mode is not 0600")
+    parser = configparser.RawConfigParser()
+    try:
+        with path.open("r", encoding="utf-8") as stream:
+            parser.read_file(stream)
+        access_key = parser.get("default", "aws_access_key_id")
+        secret_key = parser.get("default", "aws_secret_access_key")
+        session_token = parser.get("default", "aws_session_token")
+    except (OSError, configparser.Error) as exc:
+        raise AdapterError("SSM managed-node credentials are unavailable") from exc
+    if (
+        not re.fullmatch(r"[A-Z0-9]{16,128}", access_key)
+        or len(secret_key) < 32
+        or len(session_token) < 16
+    ):
+        raise AdapterError("SSM managed-node credentials have an invalid shape")
+    return access_key, secret_key, session_token
+
+
+def hmac_bytes(key: bytes, value: str) -> bytes:
+    return hmac.new(key, value.encode("utf-8"), hashlib.sha256).digest()
+
+
+def ecr_api_call(
+    region: str,
+    target: str,
+    payload: dict[str, Any],
+    credentials: tuple[str, str, str],
+) -> dict[str, Any]:
+    access_key, secret_key, session_token = credentials
+    host = f"api.ecr.{region}.amazonaws.com"
+    endpoint = f"https://{host}/"
+    body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+    now = dt.datetime.now(dt.timezone.utc)
+    amz_date = now.strftime("%Y%m%dT%H%M%SZ")
+    date_stamp = now.strftime("%Y%m%d")
+    canonical_headers = (
+        "content-type:application/x-amz-json-1.1\n"
+        f"host:{host}\n"
+        f"x-amz-date:{amz_date}\n"
+        f"x-amz-security-token:{session_token}\n"
+        f"x-amz-target:{target}\n"
+    )
+    signed_headers = "content-type;host;x-amz-date;x-amz-security-token;x-amz-target"
+    canonical_request = "\n".join(
+        [
+            "POST",
+            "/",
+            "",
+            canonical_headers,
+            signed_headers,
+            hashlib.sha256(body).hexdigest(),
+        ]
+    )
+    scope = f"{date_stamp}/{region}/ecr/aws4_request"
+    string_to_sign = "\n".join(
+        [
+            "AWS4-HMAC-SHA256",
+            amz_date,
+            scope,
+            hashlib.sha256(canonical_request.encode("utf-8")).hexdigest(),
+        ]
+    )
+    date_key = hmac_bytes(("AWS4" + secret_key).encode("utf-8"), date_stamp)
+    region_key = hmac_bytes(date_key, region)
+    service_key = hmac_bytes(region_key, "ecr")
+    signing_key = hmac_bytes(service_key, "aws4_request")
+    signature = hmac.new(
+        signing_key, string_to_sign.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+    authorization = (
+        f"AWS4-HMAC-SHA256 Credential={access_key}/{scope},"
+        f" SignedHeaders={signed_headers}, Signature={signature}"
+    )
+    request = urllib.request.Request(
+        endpoint,
+        data=body,
+        method="POST",
+        headers={
+            "Authorization": authorization,
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Date": amz_date,
+            "X-Amz-Security-Token": session_token,
+            "X-Amz-Target": target,
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            result = json.load(response)
+    except (urllib.error.URLError, json.JSONDecodeError) as exc:
+        raise AdapterError("ECR control-plane request failed") from exc
+    if not isinstance(result, dict):
+        raise AdapterError("ECR control-plane response is malformed")
+    return result
+
+
+class StripCrossHostAuthorization(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req: Any, fp: Any, code: int, msg: str, headers: Any, newurl: str) -> Any:
+        parsed = urllib.parse.urlsplit(newurl)
+        if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+            raise AdapterError("ECR registry redirect is not a safe HTTPS target")
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirected is None:
+            return None
+        old_host = urllib.parse.urlsplit(req.full_url).netloc
+        new_host = urllib.parse.urlsplit(newurl).netloc
+        if old_host != new_host:
+            for mapping in (redirected.headers, redirected.unredirected_hdrs):
+                for key in list(mapping):
+                    if key.lower() == "authorization":
+                        del mapping[key]
+        return redirected
+
+
+def normalized_url_authority(url: str) -> tuple[str, str, int]:
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.username or parsed.password:
+        raise AdapterError("URL authority contains user information")
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise AdapterError("URL authority has an invalid port") from exc
+    if parsed.scheme == "https":
+        port = port or 443
+    elif parsed.scheme == "http":
+        port = port or 80
+    else:
+        raise AdapterError("URL authority has an invalid scheme")
+    if not parsed.hostname:
+        raise AdapterError("URL authority has no hostname")
+    return parsed.scheme, parsed.hostname.lower(), port
+
+
+class SameAuthorityRedirects(urllib.request.HTTPRedirectHandler):
+    def __init__(self, expected_url: str):
+        super().__init__()
+        self.expected_authority = normalized_url_authority(expected_url)
+
+    def redirect_request(self, req: Any, fp: Any, code: int, msg: str, headers: Any, newurl: str) -> Any:
+        if normalized_url_authority(newurl) != self.expected_authority:
+            raise AdapterError("lane smoke redirected outside its configured authority")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def registry_request(
+    url: str,
+    authorization_token: str,
+    *,
+    accept: str | None = None,
+) -> BinaryIO:
+    headers = {"Authorization": f"Basic {authorization_token}"}
+    if accept:
+        headers["Accept"] = accept
+    request = urllib.request.Request(url, headers=headers)
+    opener = urllib.request.build_opener(StripCrossHostAuthorization())
+    try:
+        return opener.open(request, timeout=60)
+    except urllib.error.URLError as exc:
+        raise AdapterError("ECR registry request failed") from exc
+
+
+def get_ecr_authorization(
+    config: dict[str, Any],
+    credentials: tuple[str, str, str],
+) -> str:
+    response = ecr_api_call(
+        config["region"],
+        "AmazonEC2ContainerRegistry_V20150921.GetAuthorizationToken",
+        {"registryIds": [config["account_id"]]},
+        credentials,
+    )
+    items = response.get("authorizationData")
+    if not isinstance(items, list) or len(items) != 1:
+        raise AdapterError("ECR authorization response has an unexpected inventory")
+    item = items[0]
+    if item.get("proxyEndpoint") != f"https://{config['registry']}":
+        raise AdapterError("ECR authorization endpoint differs from the reviewed registry")
+    token = item.get("authorizationToken")
+    if not isinstance(token, str) or len(token) < 32:
+        raise AdapterError("ECR authorization token is missing")
+    try:
+        decoded = base64.b64decode(token, validate=True)
+    except ValueError as exc:
+        raise AdapterError("ECR authorization token is malformed") from exc
+    if not decoded.startswith(b"AWS:") or b"\x00" in decoded:
+        raise AdapterError("ECR authorization token has an unexpected shape")
+    return token
+
+
+def copy_verified_blob(
+    response: BinaryIO,
+    destination: Path,
+    expected_digest: str,
+    *,
+    maximum_bytes: int = 4 * 1024 * 1024 * 1024,
+) -> int:
+    validate_digest(expected_digest, "blob digest")
+    digest = hashlib.sha256()
+    total = 0
+    with destination.open("wb") as stream:
+        while True:
+            chunk = response.read(1024 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > maximum_bytes:
+                raise AdapterError("ECR blob exceeds the adapter size boundary")
+            digest.update(chunk)
+            stream.write(chunk)
+    if f"sha256:{digest.hexdigest()}" != expected_digest:
+        raise AdapterError("downloaded ECR blob digest mismatch")
+    return total
+
+
+def fetch_oci_archive(
+    config: dict[str, Any],
+    image_digest: str,
+    source_commit: str,
+    config_digest: str,
+    work_dir: Path,
+) -> Path:
+    credentials = load_credentials(Path(config["credentials_file"]))
+    token = get_ecr_authorization(config, credentials)
+    base_url = f"https://{config['registry']}/v2/{config['repository']}"
+    accept = ", ".join(sorted(MANIFEST_TYPES))
+    with registry_request(
+        f"{base_url}/manifests/{image_digest}", token, accept=accept
+    ) as response:
+        manifest_bytes = response.read(16 * 1024 * 1024 + 1)
+        media_type = response.headers.get("Content-Type", "").split(";", 1)[0].strip()
+        observed_header = response.headers.get("Docker-Content-Digest")
+    if len(manifest_bytes) > 16 * 1024 * 1024:
+        raise AdapterError("ECR manifest exceeds the adapter size boundary")
+    observed_digest = f"sha256:{hashlib.sha256(manifest_bytes).hexdigest()}"
+    if observed_digest != image_digest or (
+        observed_header is not None and observed_header != image_digest
+    ):
+        raise AdapterError("ECR manifest digest mismatch")
+    try:
+        manifest = json.loads(manifest_bytes)
+    except json.JSONDecodeError as exc:
+        raise AdapterError("ECR manifest is not valid JSON") from exc
+    if not isinstance(manifest, dict):
+        raise AdapterError("ECR manifest is malformed")
+    manifest_type = manifest.get("mediaType") or media_type
+    if manifest_type not in MANIFEST_TYPES:
+        raise AdapterError("ECR image is not a reviewed single-platform manifest")
+    if manifest.get("schemaVersion") != 2:
+        raise AdapterError("ECR manifest schema is unsupported")
+    config_descriptor = manifest.get("config")
+    layers = manifest.get("layers")
+    if not isinstance(config_descriptor, dict) or not isinstance(layers, list) or not layers:
+        raise AdapterError("ECR manifest descriptor inventory is invalid")
+    if len(layers) > MAX_LAYER_COUNT:
+        raise AdapterError("ECR image has too many layers")
+    if config_descriptor.get("digest") != config_digest:
+        raise AdapterError("ECR config digest differs from the workflow input")
+    descriptors = [config_descriptor, *layers]
+    total_image_bytes = 0
+    for descriptor in descriptors:
+        if not isinstance(descriptor, dict):
+            raise AdapterError("ECR blob descriptor is malformed")
+        validate_digest(str(descriptor.get("digest", "")), "manifest blob")
+        size = descriptor.get("size")
+        if not isinstance(size, int) or size < 0:
+            raise AdapterError("ECR blob descriptor size is invalid")
+        total_image_bytes += size
+        if total_image_bytes > MAX_IMAGE_BYTES:
+            raise AdapterError("ECR image exceeds the adapter size boundary")
+
+    layout = work_dir / "oci"
+    blobs = layout / "blobs" / "sha256"
+    blobs.mkdir(parents=True, mode=0o700)
+    (layout / "oci-layout").write_text(
+        '{"imageLayoutVersion":"1.0.0"}\n', encoding="utf-8"
+    )
+    manifest_path = blobs / image_digest.removeprefix("sha256:")
+    manifest_path.write_bytes(manifest_bytes)
+    for descriptor in descriptors:
+        digest = str(descriptor["digest"])
+        destination = blobs / digest.removeprefix("sha256:")
+        with registry_request(f"{base_url}/blobs/{digest}", token) as response:
+            actual_size = copy_verified_blob(response, destination, digest)
+        if actual_size != descriptor["size"]:
+            raise AdapterError("downloaded ECR blob size mismatch")
+
+    config_path = blobs / config_digest.removeprefix("sha256:")
+    try:
+        image_config = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise AdapterError("image config blob is malformed") from exc
+    labels = image_config.get("config", {}).get("Labels", {})
+    if not isinstance(labels, dict) or labels.get("org.opencontainers.image.revision") != source_commit:
+        raise AdapterError("image source-commit label differs from the requested commit")
+    if image_config.get("architecture") != "amd64" or image_config.get("os") != "linux":
+        raise AdapterError("image platform differs from the reviewed linux-amd64 contract")
+    index = {
+        "schemaVersion": 2,
+        "mediaType": "application/vnd.oci.image.index.v1+json",
+        "manifests": [
+            {
+                "mediaType": manifest_type,
+                "digest": image_digest,
+                "size": len(manifest_bytes),
+                "platform": {"architecture": "amd64", "os": "linux"},
+            }
+        ],
+    }
+    (layout / "index.json").write_text(
+        json.dumps(index, separators=(",", ":")) + "\n", encoding="utf-8"
+    )
+    archive = work_dir / "image.oci.tar"
+    with tarfile.open(archive, mode="w") as output:
+        for path in sorted(layout.rglob("*")):
+            output.add(path, arcname=path.relative_to(layout), recursive=False)
+    return archive
+
+
+def import_image(
+    config: dict[str, Any],
+    archive: Path,
+    image_digest: str,
+    config_digest: str,
+) -> str:
+    base_name = f"{config['registry']}/{config['repository']}"
+    image_ref = f"{base_name}@{image_digest}"
+    namespace = config["containerd_namespace"]
+    run_command(
+        [
+            "k3s",
+            "ctr",
+            "-n",
+            namespace,
+            "images",
+            "import",
+            "--digests",
+            "--base-name",
+            base_name,
+            "--platform",
+            "linux/amd64",
+            str(archive),
+        ],
+        timeout=900,
+    )
+    images = run_command(
+        ["k3s", "ctr", "-n", namespace, "images", "list", "--quiet"]
+    ).decode("utf-8", errors="strict").splitlines()
+    if image_ref not in images:
+        run_command(
+            [
+                "k3s",
+                "ctr",
+                "-n",
+                namespace,
+                "images",
+                "tag",
+                "--force",
+                image_digest,
+                image_ref,
+            ]
+        )
+    if containerd_config_digest(config, image_digest) != config_digest:
+        raise AdapterError("containerd config digest differs after import")
+    return image_ref
+
+
+def containerd_config_digest(config: dict[str, Any], image_digest: str) -> str:
+    validate_digest(image_digest, "containerd manifest")
+    manifest_bytes = run_command(
+        [
+            "k3s",
+            "ctr",
+            "-n",
+            config["containerd_namespace"],
+            "content",
+            "get",
+            image_digest,
+        ]
+    )
+    if f"sha256:{hashlib.sha256(manifest_bytes).hexdigest()}" != image_digest:
+        raise AdapterError("containerd manifest digest differs after import")
+    try:
+        manifest = json.loads(manifest_bytes)
+    except json.JSONDecodeError as exc:
+        raise AdapterError("containerd manifest is malformed after import") from exc
+    return validate_digest(
+        str(manifest.get("config", {}).get("digest", "")),
+        "containerd config",
+    )
+
+
+def kubectl(config: dict[str, Any], *args: str, timeout: int = 180) -> bytes:
+    return run_command(
+        [
+            "k3s",
+            "kubectl",
+            "-n",
+            config["namespace"],
+            *args,
+        ],
+        timeout=timeout,
+    )
+
+
+def deployment(config: dict[str, Any], lane: str) -> dict[str, Any]:
+    name = config["lanes"][lane]["deployment"]
+    try:
+        value = json.loads(
+            kubectl(config, "get", "deployment", name, "-o", "json")
+        )
+    except json.JSONDecodeError as exc:
+        raise AdapterError("Kubernetes deployment response is malformed") from exc
+    if not isinstance(value, dict):
+        raise AdapterError("Kubernetes deployment response is malformed")
+    return value
+
+
+def application_container(
+    config: dict[str, Any], deployment_value: dict[str, Any]
+) -> tuple[int, dict[str, Any]]:
+    containers = (
+        deployment_value.get("spec", {})
+        .get("template", {})
+        .get("spec", {})
+        .get("containers", [])
+    )
+    if not isinstance(containers, list):
+        raise AdapterError("deployment container inventory is malformed")
+    matches = [
+        (index, value)
+        for index, value in enumerate(containers)
+        if isinstance(value, dict) and value.get("name") == config["application_container"]
+    ]
+    if len(matches) != 1:
+        raise AdapterError("application container is missing or ambiguous")
+    return matches[0]
+
+
+def validate_runtime_contract(
+    config: dict[str, Any], deployment_value: dict[str, Any]
+) -> tuple[int, str]:
+    index, container = application_container(config, deployment_value)
+    expected_env_from = [
+        {"secretRef": {"name": config["base_env_secret"]}},
+        {"secretRef": {"name": config["admin_oidc_secret"]}},
+    ]
+    if container.get("envFrom") != expected_env_from:
+        raise AdapterError("runtime envFrom contract differs from the reviewed order")
+    explicit_env = container.get("env", [])
+    if not isinstance(explicit_env, list):
+        raise AdapterError("runtime explicit environment is malformed")
+    for item in explicit_env:
+        if isinstance(item, dict) and item.get("name") in PROTECTED_ENV_KEYS:
+            raise AdapterError("runtime explicit environment shadows a protected key")
+    image = container.get("image")
+    if not isinstance(image, str):
+        raise AdapterError("current runtime image is unavailable")
+    return index, image
+
+
+def digest_from_image_ref(value: str) -> str:
+    if "@" not in value:
+        raise AdapterError("current runtime image is not digest-qualified")
+    digest = value.rsplit("@", 1)[1]
+    return validate_digest(digest, "current runtime image")
+
+
+def normalize_runtime_image_id(value: str) -> str:
+    if not value or any(character.isspace() for character in value):
+        raise AdapterError("runtime image identity has an invalid shape")
+    digest = value.rsplit("@", 1)[-1]
+    digest = digest.rsplit("://", 1)[-1]
+    return validate_digest(digest, "runtime image identity")
+
+
+def patch_image(
+    config: dict[str, Any],
+    lane: str,
+    container_index: int,
+    expected_image_ref: str,
+    image_ref: str,
+) -> None:
+    validate_digest(expected_image_ref.rsplit("@", 1)[-1], "expected patch image")
+    validate_digest(image_ref.rsplit("@", 1)[-1], "patch image")
+    patch = [
+        {
+            "op": "test",
+            "path": f"/spec/template/spec/containers/{container_index}/name",
+            "value": config["application_container"],
+        },
+        {
+            "op": "test",
+            "path": f"/spec/template/spec/containers/{container_index}/image",
+            "value": expected_image_ref,
+        },
+        {
+            "op": "replace",
+            "path": f"/spec/template/spec/containers/{container_index}/image",
+            "value": image_ref,
+        },
+    ]
+    kubectl(
+        config,
+        "patch",
+        "deployment",
+        config["lanes"][lane]["deployment"],
+        "--type=json",
+        f"--patch={json.dumps(patch, separators=(',', ':'))}",
+    )
+
+
+def restore_previous_image(
+    config: dict[str, Any],
+    lane: str,
+    requested_image: str,
+    previous_image: str,
+    previous_config_digest: str,
+) -> None:
+    latest = deployment(config, lane)
+    container_index, observed_image = validate_runtime_contract(config, latest)
+    if observed_image == requested_image:
+        patch_image(
+            config,
+            lane,
+            container_index,
+            requested_image,
+            previous_image,
+        )
+    elif observed_image != previous_image:
+        raise AdapterError("rollback refused to overwrite an unexpected runtime image")
+    rollout(config, lane)
+    validate_running_identity(
+        config, lane, previous_image, previous_config_digest
+    )
+    smoke(config, lane)
+
+
+def rollout(config: dict[str, Any], lane: str) -> None:
+    kubectl(
+        config,
+        "rollout",
+        "status",
+        f"deployment/{config['lanes'][lane]['deployment']}",
+        "--timeout=180s",
+        timeout=210,
+    )
+
+
+def validate_running_identity(
+    config: dict[str, Any],
+    lane: str,
+    expected_image: str,
+    config_digest: str,
+) -> None:
+    current = deployment(config, lane)
+    _, observed_image = validate_runtime_contract(config, current)
+    if observed_image != expected_image:
+        raise AdapterError("deployment image differs after rollout")
+    desired = current.get("spec", {}).get("replicas", 1)
+    ready = current.get("status", {}).get("readyReplicas", 0)
+    if not isinstance(desired, int) or desired < 1 or ready != desired:
+        raise AdapterError("deployment is not fully ready after rollout")
+    selector = current.get("spec", {}).get("selector", {}).get("matchLabels")
+    if not isinstance(selector, dict) or not selector:
+        raise AdapterError("deployment selector is unavailable")
+    selector_text = ",".join(f"{key}={value}" for key, value in sorted(selector.items()))
+    pods = json.loads(kubectl(config, "get", "pods", "-l", selector_text, "-o", "json"))
+    items = pods.get("items", []) if isinstance(pods, dict) else []
+    if not isinstance(items, list) or len(items) != desired:
+        raise AdapterError("running pod inventory differs from the desired replicas")
+    expected_manifest = expected_image.rsplit("@", 1)[1]
+    accepted_runtime_ids = {expected_manifest, config_digest}
+    for pod in items:
+        statuses = pod.get("status", {}).get("containerStatuses", [])
+        matches = [
+            item
+            for item in statuses
+            if isinstance(item, dict)
+            and item.get("name") == config["application_container"]
+        ]
+        if len(matches) != 1 or not matches[0].get("ready"):
+            raise AdapterError("application container is not ready")
+        runtime_id = str(matches[0].get("imageID", ""))
+        observed_digest = normalize_runtime_image_id(runtime_id)
+        if observed_digest not in accepted_runtime_ids:
+            raise AdapterError("runtime image identity differs after rollout")
+
+
+def smoke(config: dict[str, Any], lane: str) -> None:
+    context = ssl.create_default_context()
+    for url in config["lanes"][lane]["smoke_urls"]:
+        expected_authority = normalized_url_authority(url)
+        request = urllib.request.Request(
+            url,
+            headers={"User-Agent": "WitnessOps-Deploy-Adapter/1"},
+            method="GET",
+        )
+        opener = urllib.request.build_opener(
+            SameAuthorityRedirects(url),
+            urllib.request.HTTPSHandler(context=context),
+        )
+        try:
+            with opener.open(request, timeout=15) as response:
+                status_code = response.status
+                if normalized_url_authority(response.geturl()) != expected_authority:
+                    raise AdapterError("lane smoke redirected outside its configured authority")
+                response.read(1)
+        except urllib.error.URLError as exc:
+            raise AdapterError("lane smoke request failed") from exc
+        if status_code != 200:
+            raise AdapterError("lane smoke returned a non-200 status")
+
+
+def write_receipt(
+    lane: str,
+    source_commit: str,
+    image_digest: str,
+    config_digest: str,
+    previous_digest: str,
+    result: str,
+) -> None:
+    STATE_DIR.mkdir(parents=True, exist_ok=True, mode=0o750)
+    os.chmod(STATE_DIR, 0o750)
+    receipt = {
+        "schema_version": "witnessops.host-deploy.v1",
+        "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "lane": lane,
+        "source_commit": source_commit,
+        "image_digest": image_digest,
+        "config_digest": config_digest,
+        "previous_digest": previous_digest,
+        "result": result,
+    }
+    destination = STATE_DIR / f"last-{lane}.json"
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        encoding="utf-8",
+        dir=STATE_DIR,
+        prefix=f".last-{lane}.",
+        delete=False,
+    ) as stream:
+        temporary = Path(stream.name)
+        json.dump(receipt, stream, separators=(",", ":"))
+        stream.write("\n")
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.chmod(temporary, 0o640)
+    os.replace(temporary, destination)
+
+
+def execute(args: argparse.Namespace) -> dict[str, Any]:
+    if os.geteuid() != 0:
+        raise AdapterError("adapter must run as root")
+    config = load_config(Path(args.config), enforce_root=True)
+    if args.region != config["region"]:
+        raise AdapterError("requested region differs from host configuration")
+    if args.registry != config["registry"]:
+        raise AdapterError("requested registry differs from host configuration")
+    if args.repository != config["repository"]:
+        raise AdapterError("requested repository differs from host configuration")
+    image_digest = validate_digest(args.image_digest, "requested image")
+    source_commit = validate_commit(args.source_commit)
+    config_digest = validate_digest(args.config_digest, "requested config")
+    expected_current = args.expected_current_digest
+    if expected_current != "absent":
+        validate_digest(expected_current, "expected current image")
+
+    with open_deployment_lock(LOCK_PATH) as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        current = deployment(config, args.lane)
+        container_index, current_image = validate_runtime_contract(config, current)
+        current_digest = digest_from_image_ref(current_image)
+        if expected_current == "absent" or current_digest != expected_current:
+            raise AdapterError("current runtime digest differs from the expected precondition")
+        current_config_digest = containerd_config_digest(config, current_digest)
+        with tempfile.TemporaryDirectory(
+            prefix="witnessops-deploy-v1-", dir="/var/tmp"
+        ) as temporary:
+            archive = fetch_oci_archive(
+                config,
+                image_digest,
+                source_commit,
+                config_digest,
+                Path(temporary),
+            )
+            requested_image = import_image(
+                config, archive, image_digest, config_digest
+            )
+        changed = requested_image != current_image
+        try:
+            if changed:
+                patch_image(
+                    config,
+                    args.lane,
+                    container_index,
+                    current_image,
+                    requested_image,
+                )
+            rollout(config, args.lane)
+            validate_running_identity(
+                config, args.lane, requested_image, config_digest
+            )
+            smoke(config, args.lane)
+        except Exception as exc:
+            rollback_result = "not_required"
+            if changed:
+                try:
+                    restore_previous_image(
+                        config,
+                        args.lane,
+                        requested_image,
+                        current_image,
+                        current_config_digest,
+                    )
+                    rollback_result = "pass"
+                except Exception:
+                    rollback_result = "fail"
+            write_receipt(
+                args.lane,
+                source_commit,
+                image_digest,
+                config_digest,
+                current_digest,
+                f"fail_rollback_{rollback_result}",
+            )
+            if isinstance(exc, AdapterError):
+                raise
+            raise AdapterError("post-patch acceptance failed") from exc
+        write_receipt(
+            args.lane,
+            source_commit,
+            image_digest,
+            config_digest,
+            current_digest,
+            "pass",
+        )
+        return {
+            "adapter_result": "pass",
+            "lane": args.lane,
+            "source_commit": source_commit,
+            "image_digest": image_digest,
+            "config_digest": config_digest,
+            "previous_digest": current_digest,
+            "changed": changed,
+        }
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(allow_abbrev=False)
+    parser.add_argument("--config", default=str(CONFIG_PATH))
+    parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--lane", choices=("staging", "production"))
+    parser.add_argument("--region")
+    parser.add_argument("--registry")
+    parser.add_argument("--repository")
+    parser.add_argument("--image-digest")
+    parser.add_argument("--source-commit")
+    parser.add_argument("--config-digest")
+    parser.add_argument("--expected-current-digest")
+    args = parser.parse_args()
+    if args.self_test:
+        return args
+    required = (
+        "lane",
+        "region",
+        "registry",
+        "repository",
+        "image_digest",
+        "source_commit",
+        "config_digest",
+        "expected_current_digest",
+    )
+    if any(getattr(args, name) is None for name in required):
+        parser.error("all deployment identity arguments are required")
+    return args
+
+
+def main() -> int:
+    try:
+        args = parse_args()
+        if args.self_test:
+            load_config(Path(args.config), enforce_root=False)
+            print('{"adapter_self_test":"pass"}')
+            return 0
+        result = execute(args)
+        print(json.dumps(result, separators=(",", ":"), sort_keys=True))
+        return 0
+    except (AdapterError, BlockingIOError) as exc:
+        message = str(exc) if isinstance(exc, AdapterError) else "another deployment is in progress"
+        print(f"witnessops-deploy-v1: {message}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
