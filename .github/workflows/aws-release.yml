@@ -1,0 +1,58 @@
+name: WitnessOps AWS release control
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Exact bounded operation
+        type: choice
+        required: true
+        options:
+          - publish-image
+          - deploy-staging
+          - deploy-production
+      image_digest:
+        description: sha256 manifest digest for deploy operations
+        type: string
+        required: false
+      source_commit:
+        description: full merged-main source commit for deploy operations
+        type: string
+        required: false
+      config_digest:
+        description: sha256 image config digest for deploy operations
+        type: string
+        required: false
+      publication_run_id:
+        description: GitHub Actions run ID that published and scanned this image
+        type: string
+        required: false
+      publication_run_attempt:
+        description: GitHub Actions run attempt that published and scanned this image
+        type: string
+        required: false
+      expected_current_digest:
+        description: exact current runtime digest, or absent for a new deployment
+        type: string
+        required: false
+
+permissions:
+  actions: read
+  contents: read
+  id-token: write
+
+jobs:
+  dispatch:
+    uses: ./.github/workflows/aws-release-reusable.yml
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    with:
+      operation: ${{ inputs.operation }}
+      image_digest: ${{ inputs.image_digest }}
+      source_commit: ${{ inputs.source_commit }}
+      config_digest: ${{ inputs.config_digest }}
+      publication_run_id: ${{ inputs.publication_run_id }}
+      publication_run_attempt: ${{ inputs.publication_run_attempt }}
+      expected_current_digest: ${{ inputs.expected_current_digest }}

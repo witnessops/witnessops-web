@@ -1,0 +1,88 @@
+{
+  "contract_id": "witnessops.aws.adapter-workflow.v1",
+  "status": "source_only_requires_review_merge_and_separate_host_apply",
+  "source_branch_requirement": "clean_merged_main",
+  "adapter": {
+    "source_path": "deploy/aws/host/witnessops-deploy-v1",
+    "installed_path": "/usr/local/sbin/witnessops-deploy-v1",
+    "config_path": "/etc/witnessops/deploy-v1.json",
+    "owner": "root",
+    "group": "root",
+    "mode": "0755",
+    "config_mode": "0600",
+    "credential_source": "/root/.aws/credentials",
+    "credential_handling": "read_in_memory_never_emit_never_copy",
+    "image_transport": "ecr_registry_api_to_verified_oci_archive_to_k3s_containerd",
+    "deployment_inputs": [
+      "lane",
+      "region",
+      "registry",
+      "repository",
+      "image_digest",
+      "source_commit",
+      "config_digest",
+      "expected_current_digest"
+    ],
+    "required_checks": [
+      "exact_account_region_registry_repository",
+      "single_platform_manifest_digest",
+      "manifest_config_digest",
+      "image_source_commit_label",
+      "expected_current_runtime_digest",
+      "atomic_expected_current_image_compare_and_swap",
+      "exact_runtime_envfrom_contract",
+      "no_protected_explicit_env_shadow",
+      "rollout_status",
+      "runtime_manifest_or_config_identity",
+      "lane_smoke_http_200",
+      "pre_follow_same_authority_smoke_redirect",
+      "rollback_compare_and_swap"
+    ],
+    "rollback": "restore_previous_digest_qualified_image_and_wait_for_rollout_on_any_post_patch_failure"
+  },
+  "workflows": {
+    "caller": ".github/workflows/aws-release.yml",
+    "reusable": ".github/workflows/aws-release-reusable.yml",
+    "validation": ".github/workflows/aws-phase3-validate.yml",
+    "caller_trigger": "workflow_dispatch_only",
+    "caller_workflow_ref": "witnessops/witnessops-web/.github/workflows/aws-release.yml@refs/heads/main",
+    "reusable_trigger": "workflow_call_only",
+    "reusable_exact_caller_required": true,
+    "automatic_publish_or_deploy": false,
+    "operations": [
+      "publish-image",
+      "deploy-staging",
+      "deploy-production"
+    ],
+    "production_environment": "aws-production",
+    "production_review_required": true,
+    "long_lived_aws_credentials": false,
+    "mutable_deploy_reference": false,
+    "exact_ecr_repository_uri_required": true,
+    "deployment_requires_publication_run_identity": true,
+    "successful_scan_evidence": "github_run_artifact_bound_to_exact_publisher_run_attempt_source_manifest_and_config",
+    "successful_scan_evidence_retention_days": 90,
+    "successful_scan_evidence_aws_iam_change": false
+  },
+  "activation_gates": {
+    "merge_required_before_host_install": true,
+    "adapter_digest_required": true,
+    "config_digest_required": true,
+    "root_staged_apply_self_test_required": true,
+    "successful_scan_evidence_required": true,
+    "host_config_preflight_required": true,
+    "production_managed_node_variable_required": true,
+    "staging_managed_node_variable_required": true,
+    "workflow_dispatch_forbidden_in_activation_lane": true
+  },
+  "not_authorized": [
+    "workflow_dispatch",
+    "image_publication",
+    "ssm_send_command",
+    "application_deployment",
+    "dns_change",
+    "runtime_secret_change",
+    "production_signing_activation",
+    "production_key_registry_change"
+  ]
+}

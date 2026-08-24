@@ -1,0 +1,194 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import {
+  loadPhase3Sources,
+  validatePhase3Sources,
+} from "./validate-phase3.mjs";
+
+const sources = loadPhase3Sources();
+
+function changed(key, transform) {
+  const result = structuredClone(sources);
+  result[key] = transform(result[key]);
+  return result;
+}
+
+test("Phase 3 adapter and workflows preserve the source-only boundary", () => {
+  assert.equal(validatePhase3Sources(sources), true);
+});
+
+test("automatic caller triggers are rejected", () => {
+  const mutated = changed("caller", (value) =>
+    value.replace("  workflow_dispatch:", "  push:\n    branches: [main]\n  workflow_dispatch:"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /automatic trigger push:/,
+  );
+});
+
+test("caller cannot bypass the reserved reusable workflow", () => {
+  const mutated = changed("caller", (value) =>
+    value.replace(
+      "uses: ./.github/workflows/aws-release-reusable.yml",
+      "runs-on: ubuntu-latest\n    steps:\n      - run: aws ssm send-command",
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /bypasses the reserved reusable workflow|executable steps/,
+  );
+});
+
+test("production environment removal is rejected", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace("environment: aws-production", "environment: aws-staging"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /lacks aws-production/,
+  );
+});
+
+test("reusable workflow must pin the manual dispatch event", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace(
+      '[[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]',
+      '[[ -n "${GITHUB_EVENT_NAME}" ]]',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /GITHUB_EVENT_NAME|workflow_dispatch/,
+  );
+});
+
+test("reusable workflow must pin the exact manual caller", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace(
+      "witnessops/witnessops-web/.github/workflows/aws-release.yml@refs/heads/main",
+      "witnessops/witnessops-web/.github/workflows/alternate.yml@refs/heads/main",
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /aws-release.yml@refs\/heads\/main/,
+  );
+});
+
+test("installer must bind the topology config digest", () => {
+  const mutated = changed("installer", (value) =>
+    value.replaceAll("--expected-config-sha256", "--unbound-config-sha256"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /expected-config-sha256/,
+  );
+});
+
+test("apply mode cannot execute the adapter source pathname", () => {
+  const mutated = changed("installer", (value) =>
+    value.replace(
+      '[[ "${EUID}" -eq 0 ]]',
+      'python3 "${adapter_source}" --self-test --config "${config_source}"\n[[ "${EUID}" -eq 0 ]]',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /execute an adapter source pathname/,
+  );
+});
+
+test("publisher must bind the exact ECR repository URI", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace(
+      '[[ "${ECR_REPOSITORY_URI}" == "${expected_repository_uri}" ]]',
+      '[[ -n "${ECR_REPOSITORY_URI}" ]]',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /ECR_REPOSITORY_URI/,
+  );
+});
+
+test("both deploy jobs must require successful scan evidence", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace("needs: [validate, validate_scan_evidence]", "needs: validate"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /both bound to successful scan evidence/,
+  );
+});
+
+test("scan evidence must come from the exact publish operation", () => {
+  const mutated = changed("scanVerifier", (value) =>
+    value.replace(
+      'evidence.operation === "publish-image"',
+      'Boolean(evidence.operation)',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /publish-image/,
+  );
+});
+
+test("smoke redirects must be checked before follow", () => {
+  const mutated = changed("adapter", (value) =>
+    value.replaceAll("SameAuthorityRedirects", "PermissiveRedirects"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /SameAuthorityRedirects/,
+  );
+});
+
+test("unreviewed credential-action revisions are rejected", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace(
+      "aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708",
+      "aws-actions/configure-aws-credentials@main",
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /credential action is unpinned/,
+  );
+});
+
+test("arbitrary command inputs are rejected", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace(
+      "operation:\n        type: string",
+      "commands:\n        type: string\n      operation:\n        type: string",
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /arbitrary command input/,
+  );
+});
+
+test("adapter shell execution expansion is rejected", () => {
+  const mutated = changed("adapter", (value) =>
+    value.replace("timeout=timeout,", "timeout=timeout,\n            shell=True,"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /forbidden execution surface shell=True/,
+  );
+});
+
+test("activation contract cannot authorize dispatch or deployment", () => {
+  const mutated = structuredClone(sources);
+  mutated.contract.not_authorized = mutated.contract.not_authorized.filter(
+    (value) => value !== "workflow_dispatch",
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /non-authorized boundary has the wrong inventory/,
+  );
+});
