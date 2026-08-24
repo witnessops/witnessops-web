@@ -28,7 +28,7 @@ const FILE_FIXTURES = [
       "Primary witnessops.local_server_audit.receipt.v1 JSON fixture for /api/verify structural checks; does not revalidate artifact bytes.",
     fileName: "local-server-audit-valid.json",
     provenance: "app",
-    expected: { kind: "verification", verdict: "valid" },
+    expected: { kind: "verification", verdict: "indeterminate" },
   },
   {
     id: "local-server-audit-bad-binding",
@@ -46,7 +46,7 @@ const FILE_FIXTURES = [
       "Legacy offsecshield.receipt.v1 fixture still accepted by dual-read structural verify; not a buyer-facing product title.",
     fileName: "offsec-shield-valid.json",
     provenance: "app",
-    expected: { kind: "verification", verdict: "valid" },
+    expected: { kind: "verification", verdict: "indeterminate" },
   },
   {
     id: "offsec-shield-bad-binding",
@@ -64,7 +64,10 @@ const FILE_FIXTURES = [
       "offsec.swarm.mesh_export.v1 DEV export; R3 structural adapter (not PV/QV/WV).",
     fileName: "swarm-mesh-export-round3.json",
     provenance: "app",
-    expected: { kind: "verification", verdict: "valid" },
+    expected: {
+      kind: "failure",
+      failureClass: "FAILURE_INPUT_UNSUPPORTED",
+    },
   },
   {
     id: "unsupported-stage",

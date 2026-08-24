@@ -21,7 +21,7 @@ function pickExampleReceipt(): string | null {
     fixtures.find(
       (fixture) =>
         fixture.expected.kind === "verification" &&
-        fixture.expected.verdict === "valid",
+        fixture.expected.verdict === "indeterminate",
     ) ??
     fixtures[0];
   return preferred?.receiptInput ?? null;
@@ -44,14 +44,14 @@ export default function PolishVerifyPage() {
           Zweryfikuj zapis WitnessOps
         </h1>
         <p className="mt-5 text-base leading-7 text-text-secondary">
-          Prześlij plik zapisu lub wklej jego JSON. Sprawdzenie potwierdzi, czy
-          zapis jest poprawny strukturalnie, czy przechodzi kontrole
-          integralności oraz co wynik ustala — i czego nie ustala.
+          Prześlij obsługiwany plik zapisu lub wklej jego JSON. Publiczny adapter
+          wykonuje wyłącznie kontrole zapisu i wskazuje materiały, podpisy oraz
+          dane zaufania, których nie sprawdzono niezależnie.
         </p>
         <p className="mt-3 text-sm leading-7 text-text-muted">
-          Wynik ważny potwierdza kontrole wskazane w zapisie. Nie dowodzi, że
-          każde działanie leżące u podstaw było poprawne, ani pełnej historii
-          operacyjnej.
+          Domyślny przykład daje wynik nieokreślony (`indeterminate`). Kontrole,
+          które przeszły, nie tworzą wyniku ważnego, jeżeli wymagane materiały
+          dowodowe lub dane zaufania nie zostały niezależnie sprawdzone.
         </p>
       </header>
 
@@ -65,9 +65,10 @@ export default function PolishVerifyPage() {
         </summary>
         <div className="mt-4 space-y-3 text-sm leading-relaxed text-text-muted">
           <p>
-            Wynik dotyczy podpisanego zapisu JSON. Nie potwierdza zgodności z
-            regulacjami, pełnego bezpieczeństwa systemu ani kompletności
-            materiałów poza zakresem zapisu.
+            Dla Public Exposure Review poprawny strukturalnie zapis pozostaje dziś
+            nieokreślony: ta strona nie otrzymuje pełnego pakietu dowodowego, a
+            serwerowa polityka kluczy produkcyjnych nie jest aktywna. Strona nie
+            przyjmuje danych zaufania ani dowodów dostarczonych przez wywołującego.
           </p>
           <p>
             Szczegóły techniczne (EN):{" "}

@@ -2,7 +2,7 @@
 
 Public web surface for WitnessOps.
 
-This repository contains the public WitnessOps site, the receipt-first `/verify`
+This repository contains the public WitnessOps site, the receipt-only `/verify`
 route, the `/api/verify` endpoint behind that flow, public buyer/review pages,
 and sample proof-surface pages used to explain artifact inspection boundaries.
 
@@ -10,18 +10,18 @@ and sample proof-surface pages used to explain artifact inspection boundaries.
 
 - Shows the public WitnessOps pages.
 - Lets anyone check receipt JSON through `/verify`.
-- Exposes the same receipt-first verification path through `/api/verify` for programmatic use.
+- Exposes the same receipt-only verification path through `/api/verify` for programmatic use.
 - Exposes public WitnessOps documentation and bounded guidance to ChatGPT and
   other MCP clients through the stateless Streamable HTTP `/mcp` endpoint.
 - Returns deterministic verification results for the same receipt input.
 - Provides buyer-facing proof-run, sample-case, docs, support, pricing, library, and legal/security surfaces.
 - Presents the AI Agent Action Proof Run sample with pinned artifact links, manifest provenance, visible artifact digests, and buyer-path smoke coverage.
-- Documents the current public hosting custody in [`docs/DEPLOYMENT_CUSTODY.md`](./docs/DEPLOYMENT_CUSTODY.md) and [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md). OffSec-Lane copy: `working/sources/witnessops-web/README-LANE.md`.
+- Documents the current public hosting custody in [`docs/DEPLOYMENT_CUSTODY.md`](./docs/DEPLOYMENT_CUSTODY.md) and [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md). Historical lane notes: [`README-LANE.md`](./README-LANE.md).
 
 ## What this repository does not do
 
 - It is not the control plane.
-- It does not issue or sign receipts or proof bundles.
+- It does not issue or sign customer or production verification receipts or proof bundles. A CI canary workflow emits and keyless-signs a public-manifest diff to test repository release evidence.
 - It is not the system that runs customer workflows.
 - It does not store customer data as part of normal verification.
 - It does not recompute individual source artifact hashes for the external sample repo locally.
@@ -55,13 +55,16 @@ authority without a separate explicit Azure reopening lane.
 
 ## Verify a receipt
 
-Open <https://witnessops.com/verify>, upload a receipt `.json` or paste the JSON, and
-read the result. A valid result confirms the checks named in the receipt; it does
-not prove that every underlying action was correct.
+Open <https://witnessops.com/verify>, upload a supported receipt `.json` or paste
+the JSON, and read the result. The current example is `indeterminate`: the
+receipt-only checks run, but required artifact bytes are not independently
+checked. Public Exposure Review receipts also remain `indeterminate` while the
+full evidence, workflow, signature, and production trust checks are incomplete.
 
 Programmatic callers can post the same receipt to `/api/verify` and receive the
-same verification path and result shape. Proof-bundle uploads are not accepted on
-the public surface — see the verification docs for offline package checks.
+same verification path and result shape. Proof-bundle uploads and caller-supplied
+trust inputs are not accepted on the public surface. Full-package verification is
+a separate internal path and is not currently a supported public distribution.
 
 ## ChatGPT / MCP app
 

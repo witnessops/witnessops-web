@@ -33,6 +33,21 @@ sudo journalctl -u caddy --since "5 minutes ago" --no-pager
 
 Acceptance requires direct `308` redirects from HTTP apex, HTTP `www`, and HTTPS `www` to the HTTPS apex, preserving paths and query strings. The HTTPS apex must remain `200` for current public pages. Test `/`, a nested current path, a missing path, and a path with multiple query parameters.
 
+The legacy `docs.witnessops.com` host must also return one direct `308` with the
+following path mapping and query preservation:
+
+| Request path on legacy docs host | Expected apex location |
+| --- | --- |
+| `/` | `https://witnessops.com/docs` |
+| `/getting-started` | `https://witnessops.com/docs/getting-started` |
+| `/docs/how-it-works` | `https://witnessops.com/docs/how-it-works` |
+| `/support` | `https://witnessops.com/support` |
+| `/missing-path` | `https://witnessops.com/docs/missing-path` |
+| `/getting-started?x=1&y=2` | `https://witnessops.com/docs/getting-started?x=1&y=2` |
+
+The apex `/docs` path is canonical and must not redirect back to the legacy docs
+host.
+
 ## Immediate rollback
 
 Use the exact backup path recorded before the change:

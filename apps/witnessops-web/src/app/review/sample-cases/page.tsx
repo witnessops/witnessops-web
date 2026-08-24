@@ -260,8 +260,9 @@ export default function SampleCasesIndexPage() {
               Not a production deployment claim or complete AI governance program.
             </li>
             <li className="border-t border-surface-border pt-4">
-              A valid public receipt result confirms the checks named in that receipt — not that
-              every underlying action was correct.
+              A public receipt-only result names the checks that ran and remains
+              indeterminate whenever required evidence or trust inputs were not
+              independently checked.
             </li>
           </ul>
         </section>

@@ -18,9 +18,9 @@ Use this quickstart when you need a first-pass receipt check without collapsing 
 1. Go to [Verify a receipt](/verify).
 2. Upload a `.json` receipt or paste the JSON.
 3. Select **Verify receipt**.
-4. Read the verdict, checks passed, and limitations on the result.
+4. Read the verdict, adapter, checks, and limitations on the result.
 
-A valid public result confirms the checks named in that receipt. It does not prove that every underlying action was correct.
+The default example is `indeterminate`: its receipt-scoped checks run, but artifact bytes are not revalidated. Passed checks do not become a valid verdict when required evidence or trust inputs were not independently checked.
 
 ## Scope and bounded references
 
@@ -32,9 +32,9 @@ A valid public result confirms the checks named in that receipt. It does not pro
 
 ## Public verifier boundary
 
-**Default path (this quickstart):** use public `/verify` only against supported receipt JSON. A public `valid` result means the receipt-scoped checks for that input passed (including when the adapter maps internal `limited-pass` → `valid`). It does not mean artifact bytes were recomputed, the proof bundle is complete, or every outside trust condition was established.
+**Default path (this quickstart):** use public `/verify` only against supported receipt JSON. An internal `limited-pass` maps to public `indeterminate`. The result names the receipt-scoped checks that ran and the required evidence, artifact, authorization, workflow, signature, or trust checks that remain incomplete.
 
-**Optional offline extension:** bundle-complete checks (manifest integrity, artifact-byte revalidation, full timestamp-token validation) require offline tooling and the full package. They are **not** what `/verify` performs. See [How to Verify a Receipt](/docs/how-it-works/verification) procedures A vs B.
+**Separate internal package path:** manifest integrity, artifact-byte revalidation, signature verification, and production trust evaluation require the full package and explicit trust inputs. They are **not** what `/verify` performs, and the canonical full verifier is not currently a supported public distribution.
 
 ## Execution, proof, evidence, and interpretation are separate lanes
 
@@ -50,14 +50,16 @@ Treat these lanes independently. A strong proof result does not replace interpre
 ## Procedure (public `/verify` first)
 
 1. Start with the receipt JSON only for the public path.
-2. Run the public receipt-first flow at `/verify` (or the flow rendered below for this quickstart). Do not treat optional bundle materials as part of the public result.
+2. Run the public receipt-only flow at `/verify` (or the flow rendered below for this quickstart). Do not treat optional bundle materials as part of the public result.
 3. If you later perform offline bundle-complete checks, record them as a **separate** procedure (verification doc procedure B).
 4. Record outcomes per step and tie each outcome to the inspected evidence.
 5. Make policy or incident conclusions only after listing unresolved assumptions.
 
+For Public Exposure Review receipts, the public adapter validates the `witnessops.receipt.v0` workflow profile and real OffSec manifest artifact-ID syntax. The result remains `indeterminate` while the request, authority, full workflow, manifest and artifact bytes, evidence support, signature, and production key authorization are not independently checked.
+
 ## Verify First sample paths
 
-Use the live library and verifier surfaces to inspect current sample cases and move into the receipt-first verification lane:
+Use the live library and verifier surfaces to inspect current sample cases and move into the receipt-only verification lane:
 
 - [Library](/library)
 - [Verify](/verify)

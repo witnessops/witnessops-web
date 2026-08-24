@@ -47,9 +47,44 @@ test("buyer-path offer section matches the live catalogue", () => {
   );
   assert.match(buyer, /Public Exposure Review/);
   assert.match(buyer, /Customer Security Review Sprint/);
-  assert.match(buyer, /Launch Readiness Check — listed on the catalogue; \*\*not yet admitted\*\*/);
   assert.match(buyer, /pinned AI-agent public sample only/i);
+  assert.match(buyer, /does not duplicate its inventory or commercial status/i);
+  assert.match(buyer, /intentionally contains no receipt/i);
   assert.doesNotMatch(buyer, /six active services/);
+  assert.doesNotMatch(buyer, /not yet admitted/);
   assert.doesNotMatch(buyer, /Proof-Backed Security Workflow/);
   assert.doesNotMatch(buyer, /\bCodex\b/);
+});
+
+test("public verification docs preserve current indeterminate semantics", () => {
+  const corpus = readAllMdx();
+  const receiptSpec = fs.readFileSync(
+    path.join(docsRoot, "evidence/receipt-spec.mdx"),
+    "utf-8",
+  );
+  const verification = fs.readFileSync(
+    path.join(docsRoot, "how-it-works/verification.mdx"),
+    "utf-8",
+  );
+
+  assert.doesNotMatch(
+    corpus,
+    /limited-pass`?\s*(?:→|maps? to)\s*(?:public\s+)?`?valid`?/i,
+  );
+  assert.match(verification, /limited-pass[^\n]+public `indeterminate`/i);
+  assert.match(verification, /not independently (?:checked|completed)/i);
+  assert.match(verification, /production_signing\.v1/);
+  assert.match(verification, /public_exposure_review\.production\.v1/);
+  assert.match(verification, /OFFSEC-EXTERNAL-EXPOSURE/);
+  assert.match(verification, /external-exposure-assessment/);
+  assert.match(verification, /verification_method_definition|method definition/i);
+  assert.match(verification, /public_exposure_review_receipt_signing/);
+  assert.match(verification, /production` trust scope/);
+  assert.match(verification, /no production signing keys are allowlisted/i);
+
+  assert.match(receiptSpec, /witnessops\.receipt\.v0/);
+  assert.match(receiptSpec, /witnessops\.verification_context\.v1/);
+  assert.match(receiptSpec, /public_exposure_review/);
+  assert.match(receiptSpec, /offsec_<24 lowercase hex>/);
+  assert.doesNotMatch(receiptSpec, /Receipt v2 is the canonical/i);
 });

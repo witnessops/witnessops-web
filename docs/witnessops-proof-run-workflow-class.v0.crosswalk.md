@@ -1,8 +1,14 @@
 # WitnessOps Proof Run Workflow Class v0 — Public Docs Crosswalk
 
-**Status:** Draft v0 crosswalk  
+**Status:** Historical draft; superseded by the 2026-08-24 code-truth audit
 **Repository:** `witnessops/witnessops-web`  
 **Purpose:** Map the internal `witnessops-proof-run-workflow-class.v0` operating model to the current public documentation and artifact vocabulary in this repository.
+
+> This record preserves an earlier alignment decision. Its Receipt v2, DSSE, and
+> receipt-first conclusions are not current implementation authority. Use
+> `docs/DOCS_CODE_TRUTH_AUDIT_2026-08-24.md`, the canonical
+> `witnessops.receipt.v0` contract, and its
+> `witnessops.verification_context.v1` Public Exposure Review profile instead.
 
 This document is an internal alignment artifact. It does not introduce a new public proof claim, receipt schema, verifier result, or runtime behavior.
 

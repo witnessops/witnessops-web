@@ -1,6 +1,6 @@
 ---
 title: "Receipts"
-description: "What a WitnessOps receipt is, what it proves, and how it connects to proof bundles, signatures, timestamps, and chain continuity."
+description: "What a current WitnessOps receipt declares, what verification can establish, and which inputs remain outside receipt-only checks."
 section: "docs"
 order: 2
 nav_label: "Receipts"
@@ -9,85 +9,82 @@ draft: false
 
 # Receipts
 
-A receipt is the atomic proof statement in WitnessOps. It is the smallest portable statement about a governed event that another person can check independently **given trusted verification keys or anchors**.
+A receipt is a portable signed claim about one bounded workflow result. It carries declared context and evidence references; it is not the evidence package and it is not proof merely because its JSON has the expected shape.
 
-## 1. Problem this page solves
+## 1. Current product receipt
 
-Security teams often share logs and screenshots, but those are hard to verify outside the team that created them.
+The canonical Public Exposure Review receipt uses:
 
-Receipts solve a narrower and stronger problem:
+- envelope `witnessops.receipt.v0`
+- profile `witnessops.verification_context.v1`
+- workflow class `public_exposure_review`
 
-- make a governed event portable
-- bind that event to issuer-authenticated cryptographic material
-- make tampering and continuity breaks detectable
+It supports the primary customer sequence:
 
-## 2. What you should understand after reading
+1. request
+2. scoped review
+3. evidence collection
+4. verification result
+5. signed receipt
+6. verification page
 
-After this page, you should understand:
+The receipt binds the final record to the declared subject, scope, method, timestamps, limitations, claim set, manifest digest, and signer identifier. Claim evidence references are real `offsec_<24 lowercase hex>` manifest artifact IDs produced from exported OffSec records.
 
-- what a receipt contains at a high level
-- what a receipt proves and what it does not prove
-- how receipts connect to proof bundles, timestamps, and chain continuity
-- why receipt strength is layered rather than all-or-nothing
+## 2. What a receipt contains
 
-## 3. Receipt mechanism
+At a high level, the Public Exposure Review profile contains:
 
-A receipt combines four elements:
+1. workflow and proof-run identity
+2. subject and bounded scope
+3. the frozen review method and acceptance criteria
+4. observation, performance, issuance, and optional expiry times
+5. the fixed product limitations
+6. six required workflow claims with manifest artifact references
+7. a manifest SHA-256 declaration
+8. an Ed25519 signature declaration and key ID
 
-1. a statement about a governed action, decision, or result
-2. issuer-bound signature material
-3. continuity linkage to the surrounding receipt stream
-4. references to supporting proof artifacts in the proof bundle
+The exact field contract is in [Receipt Specification](/docs/evidence/receipt-spec).
 
-In practice, it tells a reviewer what happened, under whose recorded authority, and where the event sits in sequence.
+## 3. Declaration is not independent proof
 
-## 4. What a receipt proves
+A receipt can declare that evidence was collected, scope was authorized, or artifacts were hash-bound. Those statements become independently testable only when the verifier has the matching request, authority, workflow, manifest, artifact, signature, and trust inputs.
 
-When verification succeeds for the available layers, a receipt can prove:
+The public `/verify` surface currently receives receipt JSON only. For Public Exposure Review it checks the profile and declared relationships, but it does not receive the full package or an active production trust snapshot. A conforming receipt therefore remains `indeterminate`.
 
-- the issuer-bound statement has not been modified
-- the statement exists at a specific place in continuity history
-- referenced proof layers such as timestamp, inclusion, or witness checks are satisfied when present and valid
+## 4. What stronger verification can establish
 
-This is stronger than ordinary logging and narrower than a claim of full operational truth.
+When a complete package is independently verified against authentic trust inputs, the checks can establish, within the declared scope:
 
-## 5. What remains outside receipt proof
+- the signature matches the canonical receipt bytes
+- the signer is authorized by the pinned production policy
+- the manifest bytes match the receipt digest
+- referenced artifact bytes match the manifest
+- evidence references resolve and support the recorded claim status
+- required limitations and unresolved states were preserved
 
-A receipt does not prove:
+Each conclusion must name the checks and inputs that produced it. A producer-generated `verification_result.json` is package output; it is not automatically an independent verification result.
 
-- underlying tool correctness
-- perfect operator or approver judgment
-- uncompromised host state on its own
-- the complete story if surrounding artifacts are missing
+## 5. What a receipt never proves on its own
 
-Receipt proof is about governed issuance integrity, not total knowledge.
+A receipt does not by itself prove:
 
-## 6. Strength ladder (layered assurance)
+- that a finding is correct or exploitable
+- that the reviewed system is secure
+- that no vulnerability exists
+- that the source tools or host were uncompromised
+- that the target and approval records were truthful
+- that the signer was authorized or unrevoked
+- that referenced manifest and artifact bytes exist or match
+- that the review is complete outside its declared scope
 
-| Level | Meaning |
-| --- | --- |
-| Signed receipt | The issuer claim can be checked |
-| Timestamped receipt | The signed object is bound to trusted time |
-| Receipt in a proof bundle | Surrounding integrity material is available for offline checks |
-| Witnessed receipt | Declared witness or trust-policy checks also succeed |
+Public Exposure Review also preserves the explicit non-claims that it is not a penetration test, certification, attestation, compliance determination, proof of security, proof of completeness, proof of third-party acceptance, or proof of absence of vulnerabilities.
 
-Each level adds something. Missing higher layers means the receipt proves less, not that it proves nothing.
+## 6. Compatibility receipt families
 
-## 7. Common interpretation and failure signals
+The web verifier retains bounded adapters for PV/QV/WV receipts and local-server-audit structural receipts. They are compatibility surfaces, not alternate definitions of the canonical Public Exposure Review receipt.
 
-Verification focuses on concrete checks: required fields, hashes, signatures, digest relationships, and policy-declared trust layers.
+Do not infer one universal ledger, timestamp, DSSE, or continuity layout across all accepted families. Read the adapter name, scope, artifact-revalidation field, named checks, and limitations in the actual result.
 
-Typical failure signals:
+## 7. Next-page handoff
 
-- hash mismatch → bytes changed
-- signature failure → issuer authenticity not established
-- digest mismatch → proof references do not line up
-- `indeterminate` → a required outside trust condition could not be established locally
-
-Report by layer instead of collapsing everything into one vague score.
-
-## 8. Next-page handoff
-
-Next, read [Receipt Specification](/docs/evidence/receipt-spec) for the field-level technical contract.
-
-Then continue to [Execution Chains](/docs/evidence/execution-chains) for continuity and ordering across multiple receipts.
+Read [Receipt Specification](/docs/evidence/receipt-spec) for the field contract, then [Verification](/docs/how-it-works/verification) for the public result semantics.

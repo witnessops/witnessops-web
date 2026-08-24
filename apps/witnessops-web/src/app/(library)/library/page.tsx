@@ -120,7 +120,7 @@ const secondaryGroups = [
 ] as const;
 
 const exampleBoundary =
-  "Examples are labelled samples or illustrations. Each example is not a live customer artifact. A valid public receipt result confirms the checks named in that receipt — not that every underlying action was correct.";
+  "Examples are labelled samples or illustrations. Each example is not a live customer artifact. The public receipt-only result names the checks that ran and stays indeterminate whenever required evidence or trust inputs were not independently checked.";
 
 export const metadata: Metadata = {
   title: "WitnessOps Library",

@@ -1,6 +1,6 @@
 ---
 title: "Getting Started"
-description: "Go from first read to one governed run and one receipt you can check."
+description: "Start with the Public Exposure Review customer workflow, then inspect its evidence and receipt verification boundaries."
 section: "docs"
 order: 2
 nav_label: "Getting Started"
@@ -9,88 +9,52 @@ draft: false
 
 # Getting Started
 
-This page answers one question: how do you go from first read to one governed run and one receipt you can check?
+The primary customer workflow is **Public Exposure Review**. It is a bounded review of one authorized public-facing system, not a generic governed-runtime product or a new verification offer.
 
-If you are evaluating the public request path before submitting work, read the [Buyer path](/docs/getting-started/proof-run-buyer-path) for catalogue, sample, verifier and non-secret fit-check order.
+If you are evaluating the request path, read the [Buyer path](/docs/getting-started/proof-run-buyer-path) before submitting work.
 
-## 1. Problem this page solves
+## 1. Product sequence
 
-Most consequential work leaves behind fragmented evidence. After execution, teams often cannot answer clearly:
+The current workflow contract is:
 
-- what ran
-- what scope and policy applied
-- who approved intrusive actions
-- whether another person can verify the record outside the original system
+1. **Request** — submit a non-secret fit check.
+2. **Scoped review** — agree authority, target, approved checks, exclusions, timing, stop conditions, price, and evidence handling before work starts.
+3. **Evidence collection** — perform only the bounded outside-in review and preserve source records, hashes, unknowns, and limitations.
+4. **Verification result** — produce the pre-signing bounded review/comparison result, preserving skipped, failed, partial, or inconclusive states. This is producer output, not an independent verifier verdict.
+5. **Signed receipt** — issue the profiled `witnessops.receipt.v0` record with real manifest artifact IDs.
+6. **Verification page** — submit receipt JSON to `/verify` and read the bounded result.
 
-WitnessOps addresses that by enforcing policy at runtime and emitting signed receipts linked to execution artifacts.
+No stage should silently stand in for another. Mailbox confirmation is not review start, producer comparison output is not independent verification, and receipt shape is not evidence truth.
 
-## 2. What you should understand after reading
+## 2. Start conditions
 
-After this page, you should understand:
+Before target-facing work begins, the engagement needs:
 
-- the minimum setup for a first governed run
-- the exact order of the first path
-- which artifact marks success
-- what another person can verify independently
-- what still depends on trust
+- a named approving authority
+- one authorized public-facing system and frozen target schedule
+- an approved low-impact check schedule
+- explicit exclusions and stop conditions
+- an observation window
+- agreed evidence handling
 
-## 3. Minimum setup and assumptions
+The request form does not accept credentials, logs, private keys, screenshots, customer evidence, or other secrets. Those handling terms are agreed separately if the request fits.
 
-Before running anything:
+## 3. Expected proof package
 
-- You have an authorized target scope (domain, IP, or asset list).
-- You have a runbook describing tools, steps, and gates. See [Runbooks](/docs/operations/runbooks).
-- You have policy and approval requirements defined. See [Policy Gates](/docs/security-systems/policy-gates).
-- You know who can approve the run. See [Authorization Model](/docs/governance/authorization-model).
-- You can export the receipt and related artifacts for outside review.
+The package contract includes a receipt, evidence manifest, producer verification result, report, staged evidence, normalized records, and comparison result. A public key is present when signed.
 
-## 4. First governed path (exact order)
+Claim evidence references use IDs precomputed by the OffSec adapter for staged source artifacts and then carried into the proof-engine manifest. They are not invented labels. See [Evidence Bundles](/docs/how-it-works/evidence-bundles).
 
-1. **Define the runbook.** Name the targets, tools, gates, and expected artifacts.
-2. **Set scope and approval.** Make the authorized boundary and the approver path explicit before execution.
-3. **Execute the runbook.** WitnessOps enforces the gates at each step. A failed gate stops the run.
-4. **Record approvals or exceptions.** If approval is required, execution pauses until the approval is recorded.
-5. **Complete the run and emit artifacts.** On success, the receipt and evidence artifacts are written.
+## 4. Public verification boundary
 
-If no receipt is emitted, treat the run as incomplete for proof purposes.
+Use [Verify a receipt](/verify) for supported receipt JSON. For Public Exposure Review, the page checks the exact workflow profile, required claims, limitations, timestamps, manifest-digest syntax, and signature syntax.
 
-## 5. Artifact you should expect at the end
+The result remains `indeterminate` while the request, authority, workflow execution, manifest and artifact bytes, evidence support, signature, and production key authorization have not been independently checked. The page rejects caller-supplied evidence and trust material.
 
-A successful first run should produce:
+## 5. What remains outside proof
 
-- **`receipt.json`** — signed record with the execution binding and continuity link
-- **`manifest.json`** — list of produced artifacts and hashes
-- **`state.json`** — execution context for replay and investigation
+Neither the receipt nor a verified package proves that the system is secure, no vulnerability exists, source tools were correct, capture hosts were uncompromised, human judgment was right, or anything outside the approved scope was checked.
 
-The minimum success condition is one valid signed receipt linked to the governed action that ran.
+## 6. Next-page handoff
 
-## 6. What can be verified independently
-
-Independent verification should confirm:
-
-- receipt signature validity
-- execution-binding fields and artifact references
-- continuity link to prior receipt state, when present
-- artifact hash integrity against the manifest
-
-Use [Verify a receipt](/verify) to check receipt JSON on the public tool. For procedure detail, read [How to Verify a Receipt](/docs/how-it-works/verification) and [Receipt Specification](/docs/evidence/receipt-spec).
-
-## 7. What is proven vs what is still trusted
-
-**Proven by artifacts**
-
-- A governed action completed with recorded scope and policy context.
-- Approval and gate events were recorded for that run.
-- The receipt and referenced artifacts are cryptographically consistent.
-
-**Still trusted**
-
-- Underlying tool correctness and finding quality.
-- Human judgment quality from operators and approvers.
-- Key distribution and timestamp authority continuity.
-
-## 8. Next-page handoff
-
-Next, read [How It Works](/docs/how-it-works) to move from the first run to the full mechanism model.
-
-After that, continue to [Governed Execution](/docs/security-systems/governed-execution) for runtime authority boundaries.
+Read [How It Works](/docs/how-it-works) for the architecture boundary and [Receipt Specification](/docs/evidence/receipt-spec) for the exact profiled envelope.

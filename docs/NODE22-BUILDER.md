@@ -8,7 +8,7 @@
 |------|----------------|------|
 | **Fleet VM** (`debian-termux-*`) | 20.x (distro) | Edit working copy, sync lane, targeted tests |
 | **Node 22 container** | 22.x | Release-quality health/build without upgrading host Node |
-| **Mesh build path** (`deploy/Dockerfile.mesh`) | 22 inside container | Build `witnessops-web` image for deploy lanes |
+| **Shared k3s image build** (`deploy/scripts/k3s-lib.sh` generates `deploy/Dockerfile.shared`) | 22 inside container | Canonical image build for both deploy lanes |
 | **Private staging host** | 22 inside container when used | Optional build/transfer staging only when the lane authorizes it |
 | **Private k3s target** | Container runtime | Current public runtime for `witnessops.com` |
 
@@ -55,7 +55,8 @@ Current deploy execution is documented in
 - `.nvmrc` → `22`
 - `package.json` `engines.node` → `>=22.0.0 <23`
 - Runtime image: the reviewed `node:22-alpine@sha256:<digest>` pin declared in
-  `deploy/scripts/k3s-lib.sh`, `deploy/Dockerfile.mesh`,
+  `deploy/scripts/k3s-lib.sh`, with `deploy/Dockerfile.mesh` retained as a
+  reference/parity Dockerfile, plus
   `apps/witnessops-web/Dockerfile`, and `scripts/health-on-node22.sh`
 
 ## Do not

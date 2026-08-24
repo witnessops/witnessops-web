@@ -63,10 +63,9 @@ Canonical path (in-repo):
 
 ```bash
 # from monorepo root
-pnpm deploy:k3s:build              # image only
-pnpm deploy:k3s:both               # shared image → prod + mesh-dev + smoke
 # source the ignored private topology first
 set -a; source deploy/topology.env; set +a
+pnpm deploy:k3s:build              # image only
 pnpm deploy:k3s:both
 ```
 
@@ -266,27 +265,25 @@ Every public web apply receipt must record:
 
 ## Rollback
 
-Preferred prod rollback is to redeploy a previously recorded, known-good image
-through the production reconciler so the exact ordered `envFrom` contract is
-restored at the same time:
+Preferred rollback is to redeploy the same previously recorded, known-good
+digest-qualified image to both lanes. Pair smoke fails closed when prod and
+mesh-dev image references differ.
 
 ```bash
-bash deploy/scripts/k3s-deploy-prod.sh docker.io/library/witnessops-web@sha256:<known-good-manifest-digest>
+bash deploy/scripts/k3s-deploy-both.sh docker.io/library/witnessops-web@sha256:<known-good-manifest-digest>
 pnpm deploy:k3s:smoke
 ```
 
 Emergency `kubectl -n "${DEPLOY_NS}" rollout undo "deployment/${PROD_DEPLOY}"` may
 restore an older pod template with stale `envFrom`. If it is used, immediately
-redeploy the resulting known-good image through `k3s-deploy-prod.sh` and run
-`pnpm deploy:k3s:smoke`; do not treat rollout status alone as rollback
-completion.
+redeploy the resulting known-good image through `k3s-deploy-both.sh`. A
+single-lane rollback is a degraded emergency state: `pnpm deploy:k3s:smoke`
+remains failed until the other lane is realigned. Do not treat rollout status
+alone as rollback completion.
 
-Mesh-dev:
+To remove mesh-dev entirely after a separately authorized lane change:
 
 ```bash
-bash deploy/scripts/k3s-deploy-dev.sh docker.io/library/witnessops-web@sha256:<known-good-manifest-digest>
-pnpm deploy:k3s:smoke
-# or remove entirely
 pnpm deploy:k3s:dev:teardown
 ```
 

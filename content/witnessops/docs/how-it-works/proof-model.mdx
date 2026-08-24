@@ -1,6 +1,6 @@
 ---
 title: "Proof Model"
-description: "What gets signed, timestamped, and checked in the WitnessOps proof chain."
+description: "How Public Exposure Review declarations, evidence bytes, signatures, trust policy, and verifier checks form separate assurance layers."
 section: "docs"
 order: 2
 nav_label: "Proof Model"
@@ -9,64 +9,49 @@ draft: false
 
 # Proof Model
 
-The proof model explains how a governed action becomes evidence another person can carry, challenge, and check later.
+WitnessOps proof is layered. A workflow declaration, evidence package, signature, signer policy, and verifier result answer different questions and must not be collapsed into one badge.
 
-## 1. Problem this page solves
+## 1. Current sequence
 
-Execution alone does not preserve trust. A step can run and succeed, but still be hard to challenge later if the proof artifacts are missing or weak.
+1. The approved Public Exposure Review produces source records within its frozen scope and method.
+2. The bounded OffSec adapter exports eligible records, stages actual files, and derives real manifest artifact IDs.
+3. The proof engine normalizes records, compares workflow claims, builds the package, and signs the receipt when an authorized signing input is supplied.
+4. A separate verifier can recompute package bytes, evidence support, signature, workflow checks, and explicit trust policy.
+5. The public web adapter accepts receipt JSON only and reports which receipt-profile checks ran and which required checks did not.
 
-This page explains the exact proof path in WitnessOps from governed action to independent verification **given trusted keys or anchors**.
+## 2. Assurance layers
 
-## 2. What you should understand after reading
-
-After this page, you should understand:
-
-- what gets signed
-- what gets timestamped
-- what gets chained
-- what another person can verify later
-- what still depends on outside trust
-
-## 3. Mechanism-first proof sequence
-
-WitnessOps proof flow works in this strict order:
-
-1. **A governed action happens.** Runtime policy, scope, and approvals decide whether the step can run.
-2. **Execution artifacts are captured.** The system records the result and the proof-relevant references.
-3. **A receipt is issued.** A structured statement is signed to bind intent, actor, result, and continuity references.
-4. **Proof layers are attached.** Optional timestamp and publication or continuity material strengthen the claim set.
-5. **Proof is packaged for transport.** Bundle artifacts and trust material let a third party replay checks locally.
-6. **A later challenge or review happens.** A verifier checks integrity, signatures, time or publication layers, and continuity based on the declared claims.
-
-### What each proof layer adds
-
-| Layer | What is bound | What it proves |
+| Layer | Input | What a successful check can establish |
 | --- | --- | --- |
-| Issuer signature | Structured receipt statement | Issuer-bound claim integrity |
-| Timestamp layer | Digest of signed receipt envelope | Existence-before-time **only if** the RFC 3161 token and TSA chain fully verify (not structural field presence alone in receipt-first mode) |
-| Continuity or publication layer | Receipt sequence linkage and log or checkpoint references, when present | The claim is connected to an append-only continuity story |
+| Receipt profile | `witnessops.receipt.v0` + Public Exposure Review context | Submitted JSON preserves the expected product fields, claims, limitations, method, and relationships |
+| Evidence integrity | Manifest and referenced artifact bytes | Supplied files match declared hashes and references resolve |
+| Evidence support | Claims plus independently inspected artifacts | Supplied artifacts support the recorded claim status under the declared method |
+| Signature | Canonical receipt bytes, Ed25519 signature, public key | The signature matches that key |
+| Production signer policy | Pinned registry revision/hash, allowlist, validity, usage, custody, revocation | The key was accepted for this production workflow under that policy |
+| Workflow verification | Request, authority, frozen schedules, execution records | The recorded work stayed within the accepted workflow contract |
 
-Execution creates events. The proof model decides which of those events stay challengeable later.
+Passing one row does not imply the others passed.
 
-## 4. Observed vs inferred
+## 3. Producer and verifier results
 
-| Category | Included material | Confidence boundary |
-| --- | --- | --- |
-| Directly captured | Signed receipt fields, digest bindings, continuity links, declared bundle artifacts | Cryptographically or structurally testable |
-| Derived claims | Operational narrative assembled from artifact order and relationships | Depends on correct interpretation of captured artifacts |
-| Presentation summaries | Dashboards, status rollups, human summaries | Useful for operations, not proof-bearing by default |
+The proof engine's `verification_result.json` is deterministic producer-side output. It records build and comparison checks and preserves unresolved states. It is not proof that a separate party reran those checks.
 
-## 5. Trust assumptions
+An independent result requires a separate verifier invocation with the package and reviewer- or server-owned trust inputs. The canonical full verifier is currently internal and is not a supported public distribution.
 
-The proof model reduces trust requirements, but it does not remove all trust:
+## 4. Public result today
 
-- **Origin-system assumptions:** upstream systems feeding identity, scope, and context are accurate.
-- **Execution-environment assumptions:** the runtime host, key custody, and pipeline controls were not compromised outside the captured proof layers.
-- **Operator and input assumptions:** the provided intent and target context were truthful and policy-aligned.
-- **Trust-root assumptions:** the verifier has authentic key and trust-anchor material.
+The public adapter checks receipt structure and the exact Public Exposure Review profile. It does not receive package bytes or an active production trust snapshot. A conforming Public Exposure Review receipt therefore returns `indeterminate`; a profile conflict returns `invalid`.
 
-## 6. Next-page handoff
+The current production signing policy is draft and allowlists no keys. Signature syntax is not signature verification, and a key included in a package is not automatically trusted.
 
-Next, read [Evidence Bundles](/docs/how-it-works/evidence-bundles) to see the concrete package that carries this proof model to independent reviewers.
+## 5. Optional compatibility layers
 
-Then use [Verification](/docs/how-it-works/verification) to run the deterministic checking sequence and read `valid`, `invalid`, and `indeterminate` correctly.
+Some retained or compatibility formats declare timestamps, DSSE envelopes, predecessor chains, Merkle roots, checkpoints, or inclusion proofs. Those layers are testable only when the specific artifacts and trust roots are supplied and the selected verifier implements that profile. They are not universal Public Exposure Review receipt fields.
+
+## 6. Limits
+
+Even a fully verified package does not prove tool correctness, uncompromised source hosts, perfect human judgment, system security, absence of vulnerabilities, or completeness outside the approved scope.
+
+## 7. Next-page handoff
+
+Read [Evidence Bundles](/docs/how-it-works/evidence-bundles), [Verification](/docs/how-it-works/verification), and [Receipt Specification](/docs/evidence/receipt-spec) for the executable contracts.

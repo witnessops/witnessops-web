@@ -8,19 +8,19 @@ import { BUYER_SERVICES } from "@/lib/buyer-services";
 const source = readFileSync(resolve(__dirname, "buyer-homepage.tsx"), "utf8");
 const onePagerDir = resolve(__dirname, "../../../public/assets/one-pagers");
 
-test("homepage trust journey states what valid does and does not establish", () => {
+test("homepage trust journey preserves indeterminate receipt-only semantics", () => {
   assert.match(source, /Don't take the record on trust\. Check it yourself\./);
-  assert.match(source, /A valid result confirms the checks named in the receipt\./);
-  assert.match(source, /Wynik ważny potwierdza kontrole wskazane w zapisie\./);
+  assert.match(source, /The current example is indeterminate/);
+  assert.match(source, /Obecny przykład daje wynik nieokreślony/);
+  assert.match(source, /were not independently checked/);
   assert.match(source, /does not prove that a finding is true/);
   assert.match(source, /that the reviewed system is secure/);
-  assert.match(source, /does not prove the full runtime story/);
   assert.match(source, /href=\{text\.verifyHref\}/);
   assert.match(source, /https:\/\/www\.linkedin\.com\/in\/karol-s/);
   assert.match(source, /https:\/\/github\.com\/witnessops/);
   assert.doesNotMatch(source, /How it works/);
   assert.doesNotMatch(source, /proves that a finding is true/);
-  assert.doesNotMatch(source, /receipt-scoped checks named for that receipt/);
+  assert.doesNotMatch(source, /A valid result confirms/);
   assert.doesNotMatch(source, /Wynik valid/);
 });
 

@@ -1,5 +1,11 @@
 # Docs claims audit — mistakes and unproven claims
 
+> **Historical audit — superseded 2026-08-24.** This report preserves the
+> evidence and conclusions observed on 2026-07-30. It is not current product or
+> verifier authority. In particular, current code maps `limited-pass` to
+> `indeterminate`, and the canonical Public Exposure Review receipt is
+> `witnessops.receipt.v0` with `witnessops.verification_context.v1`.
+
 **Date:** 2026-07-30  
 **Corpus:** `content/witnessops/docs/**/*.mdx` (~63 files)  
 **Cross-check:** AGENTS.md verify boundaries, live `/verify`, `/review`, sample package, public docs host  

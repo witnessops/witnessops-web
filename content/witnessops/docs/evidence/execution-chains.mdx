@@ -1,12 +1,12 @@
 ---
 title: "Execution Chains"
-description: "How chained receipts become continuity, portable bundles, and a verifiable order of operations."
+description: "When continuity evidence is present, what it can establish, and why it is not a universal field in current WitnessOps receipts."
 section: "docs"
 order: 3
 nav_label: "Execution Chains"
 draft: false
 page_answer:
-  question: "How do chained receipts become a continuity story, and what should I verify before treating a bundle as a complete operational record?"
+  question: "When is continuity evidence available, and what should I verify before treating a sequence as intact?"
   links:
     - href: "/docs/evidence/receipts"
       label: "Receipts"
@@ -18,92 +18,45 @@ page_answer:
 
 # Execution Chains
 
-An execution chain is the continuity layer across multiple receipts. A receipt says one governed event was issued. A chain lets a reviewer test whether the presented event history is ordered and intact.
+Execution continuity is an optional proof layer across multiple events or receipts. It is not a universal field group in every current WitnessOps receipt.
 
-## 1. Problem this page solves
+## 1. Current Public Exposure Review boundary
 
-Single receipts are useful, but they are not enough for sequence review.
+The canonical Public Exposure Review receipt uses `witnessops.receipt.v0` with `witnessops.verification_context.v1`. It binds one proof run to a manifest digest and real manifest artifact IDs. The profile does not define `ledger.stream`, `ledger.seq`, `ledger.prev_hash`, or `ledger.entry_hash` fields.
 
-Reviewers usually need continuity answers:
+Do not add or infer those fields when evaluating this profile. The public `/verify` adapter validates the exact profiled envelope and rejects unsupported top-level fields.
 
-- did prerequisite events appear before high-impact actions?
-- does the presented history have link breaks or missing segments?
-- were receipts reordered or modified after issuance?
+## 2. Compatibility and design continuity formats
 
-This page explains exactly what chain evidence can establish for those questions.
+Some compatibility receipts, retained packages, or design documents use predecessor digests, sequence numbers, hash-chained records, Merkle roots, log checkpoints, or inclusion proofs. Those mechanisms are meaningful only when the specific receipt or package contract declares them and the verifier checks the matching bytes.
 
-## 2. Reader outcome
+An older documented `ledger.*` Receipt v2 model is not the canonical Public Exposure Review envelope and is not accepted as a standalone current `/verify` format.
 
-After this page, you should be able to:
+## 3. Checks for a declared chain
 
-- identify the fields that create chain continuity
-- run concrete continuity checks such as link, order, and integrity
-- separate chain-backed conclusions from interpretation and assumptions
+When a supported package declares continuity, a verifier should:
 
-## 3. Mechanism-first chain model
+1. identify the exact stream or segment boundary
+2. recompute each record digest under the declared canonicalization rules
+3. check predecessor links and sequence rules
+4. detect gaps, duplicates, reordering, and link mismatches within the declared segment
+5. verify any checkpoint, inclusion proof, or external anchor with independently obtained trust material
 
-Chain continuity comes from receipt fields, not from narrative summaries.
+A receipt-only result cannot establish a chain when predecessor records and continuity artifacts were not supplied.
 
-### Event linking
+## 4. What continuity can and cannot support
 
-Each receipt carries continuity fields in its ledger block:
-
-- `ledger.stream` → which stream or lane the receipt belongs to
-- `ledger.seq` → sequence position inside that stream
-- `ledger.prev_hash` → declared hash of the prior receipt in that stream
-- `ledger.entry_hash` → hash of this receipt's canonical bytes
-
-At minimum, a verifier checks that `prev_hash` in receipt _N_ matches `entry_hash` in the predecessor receipt for the same stream.
-
-### Ordering
-
-Ordering is checked per stream, not across unrelated streams.
-
-A verifier groups receipts by `ledger.stream`, sorts by `ledger.seq`, and checks for unexpected gaps, duplicates, or predecessor mismatches. If boundaries are declared, such as the first or last sequence in a bundle, those boundaries must match what is presented.
-
-### Integrity continuity
-
-Integrity continuity is the combined result of:
-
-1. recomputing `entry_hash` and matching each receipt's declared value
-2. confirming `prev_hash` links match predecessor `entry_hash` values
-3. confirming sequence order checks pass for the claimed stream segment
-
-If any of those fail, continuity is broken for that segment.
-
-## 4. What chain evidence can support vs what it cannot prove
-
-| Chain evidence can support | Chain evidence cannot prove |
+| Continuity evidence can support | Continuity evidence cannot prove |
 | --- | --- |
-| Receipt A is linked as predecessor of Receipt B in the presented stream | The underlying real-world action definitely happened as described |
-| The presented sequence has no detected reorder or modify break under the checked rules | No events were omitted outside the declared stream boundary |
-| A declared stream segment is internally consistent | Operator judgment or approval quality was correct |
-| A bundle's chain material matches its own declared continuity links | Host integrity, tool correctness, or organizational policy quality |
+| Presented records link and order consistently under the declared contract | No records were omitted outside the declared segment |
+| Presented bytes have no detected link or digest break | The underlying real-world actions happened exactly as described |
+| A checkpoint or anchor covers the supplied segment when independently verified | Tool correctness, host integrity, or human judgment |
+| Declared approval and execution records appear in a tested order | The original authority source was truthful |
 
-Chain evidence is continuity evidence. It is not a substitute for full incident truth.
+## 5. Public result boundary
 
-## 5. Observed vs inferred separation
+`valid` is appropriate only when every continuity check required by the selected mode and contract was independently completed and passed. If chain material, package bytes, or required anchors are unavailable, the overall result remains incomplete or `indeterminate`; passing checks over a presented subset do not establish completeness.
 
-| Layer | What it contains | Confidence boundary |
-| --- | --- | --- |
-| Observed (directly checkable) | Hash recomputation results, `prev_hash` link matches, `seq` ordering outcomes, declared stream boundaries | Determined by verifier checks over presented artifacts |
-| Inferred (interpretive) | "Approval preceded execution, so policy was likely followed" | Depends on human interpretation of observed order |
-| Outside chain proof | Event correctness, target appropriateness, source-system reliability | Requires additional evidence and trust inputs |
+## 6. Next-page handoff
 
-Keep these layers separate in reports so continuity checks are not overstated.
-
-## 6. Trust assumptions and limits
-
-Chain verification still depends on explicit assumptions:
-
-- canonicalization and hashing rules are implemented consistently
-- issuance keys and signing controls were not subverted at issue time
-- stream identity and scope boundaries are declared honestly
-- the verifier received the full artifact set for the claimed chain segment
-- timestamp and trusted-time guarantees come from timestamp evidence, not chain order alone
-
-When an assumption is uncertain, report reduced confidence instead of upgrading claims.
-
-## 7. Next-page handoff
-
-Next, read [Sensitive Artifact Handling](/docs/evidence/sensitive-artifact-handling) to apply stricter controls to raw credentials, tokens, and other high-risk artifacts that may accompany chain evidence.
+Read [Receipt Specification](/docs/evidence/receipt-spec) for the current Public Exposure Review contract and [Evidence Bundles](/docs/how-it-works/evidence-bundles) for reconstructable package references.

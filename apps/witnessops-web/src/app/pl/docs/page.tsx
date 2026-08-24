@@ -49,7 +49,7 @@ export default function PolishDocsPage() {
         <article className="border border-surface-border p-5">
           <h2 className="font-semibold text-text-primary">Dla kupujących</h2>
           <p className="mt-2 text-sm leading-6 text-text-muted">
-            Porównaj sześć ofert, jasno określone rezultaty, potrzebne
+            Porównaj aktualne oferty, jasno określone rezultaty, potrzebne
             informacje, ceny, terminy i wyłączenia.
           </p>
         </article>

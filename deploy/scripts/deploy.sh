@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# deploy.sh - versioned, verified deploy of witnessops-web to the current host.
+# deploy.sh - historical versioned, verified Compose deploy of witnessops-web.
 #
 # Historical Compose helper: run only on a separately authorized target host.
 # of this repo. It pulls a released image by version tag, verifies its cosign

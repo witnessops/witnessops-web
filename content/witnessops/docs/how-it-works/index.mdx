@@ -1,6 +1,6 @@
 ---
 title: "How It Works"
-description: "How WitnessOps turns a governed operation into signed proof another person can check."
+description: "How the Public Exposure Review workflow becomes an evidence-linked receipt and a bounded verification result."
 section: "docs"
 order: 1
 nav_label: "How It Works"
@@ -9,92 +9,58 @@ draft: false
 
 # How It Works
 
-This page explains the path from a governed action to proof another person can check.
+WitnessOps turns one authorized Public Exposure Review into a scoped record that another reviewer can inspect. The product workflow, evidence producer, receipt builder, trust policy, verifier, and web adapter remain separate components.
 
-## 1. Problem this page solves
+## 1. Product workflow
 
-Security teams often have logs, but no clear chain from approval to execution to proof.
+The customer-facing order is:
 
-When challenged, they need to answer:
+1. request
+2. scoped review
+3. evidence collection
+4. pre-signing bounded review/comparison result
+5. signed receipt
+6. verification page
 
-- what ran
-- who allowed it to run
-- whether scope controls were applied
-- what another person can verify independently
+This order preserves product authority. The verification layer supports the review; it does not create another offer, dashboard, marketplace, or user-management product.
 
-This page explains the mechanism that connects those answers.
+The pre-signing result uses receipt outcomes `pass`, `partial`, `fail`, or `inconclusive`; `blocked` remains an operational state, not a receipt outcome. Review outcome and verifier verdict are separate domains, so a review `pass` can still project as `indeterminate` when independent checks are incomplete.
 
-## 2. What you should understand after reading
+## 2. Component boundaries
 
-After this page, you should understand:
+| Component | Responsibility | Does not do |
+| --- | --- | --- |
+| Public request and review workflow | Captures fit, authority, scope, approved checks, timing, limits, and review outcome | Does not establish cryptographic proof by itself |
+| Bounded OffSec adapter | Exports eligible source records, stages evidence, and supplies real manifest artifact IDs and verification context | Does not contact targets, sign receipts, choose trust, or verify packages |
+| Proof engine | Builds deterministic package files and signs receipts when an authorized signer is supplied | Does not independently verify its own output or define production key custody |
+| Key registry and policy | Defines which signer could be accepted for production workflow use | Is currently draft and authorizes no production Public Exposure Review key |
+| Internal verifier | Recomputes package, signature, evidence, workflow, and trust checks from explicit inputs | Is not currently a supported public distribution |
+| Public `/verify` adapter | Runs compatible receipt-only checks and presents `valid`, `invalid`, or `indeterminate` | Does not accept bundles or caller-supplied evidence and trust inputs |
 
-- the exact stage order for a governed run
-- which artifacts are created at each stage
-- where independent verification starts
-- what this mechanism proves and what it does not prove
+## 3. Evidence and receipt construction
 
-## 3. Mechanism sequence (exact order)
+The OffSec adapter deterministically derives each `offsec_<24 lowercase hex>` artifact ID from the source run, normalized source path, and source SHA-256. The proof engine carries those identifiers into the evidence manifest and receipt claim references.
 
-Every governed operation follows this sequence:
+The Public Exposure Review receipt uses `witnessops.receipt.v0` with `witnessops.verification_context.v1`. It preserves the exact method, subject, scope, timestamps, claims, limitations, outcome, manifest digest, and signature declaration.
 
-1. **Declare intent and scope.** Choose the runbook step, target scope, and required gates.
-2. **Evaluate policy gates.** Check scope, approvals, and preconditions before execution.
-3. **Execute the governed step.** The tool action runs only if the gates pass.
-4. **Capture and hash artifacts.** Write the execution outputs and hash them.
-5. **Emit the signed receipt.** Sign a structured statement of what ran.
-6. **Attach outside proof layers.** Add timestamp and log/inclusion material when available.
-7. **Publish continuity state.** Link the receipt to prior state so the sequence can be replayed.
-8. **Export the proof bundle.** Hand the receipt and supporting artifacts to an independent reviewer.
+Producer `verification_result.json` records build and comparison checks. It is not an independent verifier result.
 
-## 4. Artifacts produced by the mechanism
+## 4. Public verification
 
-For a successful governed run, expect:
+The web adapter validates the exact receipt profile and returns `invalid` for a profile conflict. A conforming receipt currently returns `indeterminate` because request and authority records, workflow execution, manifest and artifact bytes, evidence support, cryptographic signature, and production key authorization are not independently checked on the public surface.
 
-- **`receipt.json`** — signed execution statement
-- **`manifest.json`** — artifact inventory with hash bindings
-- **`state.json`** — execution state for replay and investigation
+An internal `limited-pass` also maps to public `indeterminate`.
 
-Depending on the configured proof layers, the bundle may also include timestamp and log inclusion material.
+## 5. Production acceptance boundary
 
-## 5. Independent verification path
+Production validity requires a complete package, every required independent check, an active workflow acceptance policy, and an active pinned key-registry policy. Both current policies are draft; their trusted revision and hash pins are unset, and no production key is allowlisted.
 
-A reviewer can verify the bundle without calling WitnessOps by checking:
+Missing required evidence or trust is `indeterminate`. A failed profile, digest, signature, revoked-key, or active-policy check is `invalid` when that check is actually performed.
 
-- receipt signature validity
-- structure and digest bindings
-- timestamp token validity, if present
-- log inclusion and checkpoint consistency, if present
-- continuity links to prior state, if provided
+## 6. Non-claims
 
-Start with [How to Verify a Receipt](/docs/how-it-works/verification), then use [Anchored Replay](/docs/how-it-works/anchored-replay) when reviewer-supplied trust anchors are required.
+The verification architecture does not prove that a finding is correct, the system is secure, no vulnerability exists, the source environment was uncompromised, or the review covers anything outside its bounded contract.
 
-## 6. What this mechanism proves
+## 7. Next-page handoff
 
-This mechanism can prove that a governed execution claim was **recorded** with cryptographic integrity and linked evidence **when verified against trusted keys** (and higher layers when present and fully checked).
-
-It does not, by itself, prove:
-
-- that every tool result is correct
-- that every human decision was right
-- that outside trust roots are uncompromised
-
-## 7. Remaining trust assumptions
-
-The model still depends on a few trust inputs:
-
-- key distribution and rotation posture
-- timestamp authority trust
-- transparency-log trust root continuity
-- policy authoring quality and approval quality
-
-These are named design boundaries, not hidden guarantees.
-
-## 8. Next-page handoff
-
-Next, read [Governed Execution](/docs/security-systems/governed-execution) for runtime authority boundaries and gate behavior under real execution pressure.
-
-Then continue to [Proof Model](/docs/how-it-works/proof-model) for authority layers, signature layers, and proof strength.
-
-Then review [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the portable package exported from this path.
-
-If you need standards mapping details, read [Standards Alignment](/docs/how-it-works/standards).
+Read [Verification](/docs/how-it-works/verification), [Receipt Specification](/docs/evidence/receipt-spec), and [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the executable boundaries.

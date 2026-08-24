@@ -4,23 +4,25 @@
 
 ## What changed
 
-Production mesh images use **Alpine Linux** through a reviewed
+Current shared k3s images use **Alpine Linux** through a reviewed
 `node:22-alpine@sha256:<digest>` reference, not a mutable Debian or Alpine tag:
 
 | Artifact | Base |
 |----------|------|
-| `deploy/Dockerfile.mesh` | digest-qualified `node:22-alpine` builder + runtime |
+| generated `deploy/Dockerfile.shared` | canonical digest-qualified `node:22-alpine` builder + runtime for both lanes |
+| `deploy/Dockerfile.mesh` | checked-in reference/parity Dockerfile |
 | `apps/witnessops-web/Dockerfile` | digest-qualified `node:22-alpine` runtime |
 | `deploy/scripts/k3s-lib.sh` | reviewed pin supplied to both shared-image stages |
 | `scripts/health-on-node22.sh` | reviewed digest-qualified `NODE22_BUILDER_IMAGE` default |
 
 Builder installs `libc6-compat`, `python3`, `make`, `g++` for native modules (e.g. sharp).
 
-## Debug-only manual override
+## Reference-Dockerfile debug build
 
-The release helpers do not accept a mutable or caller-selected base. For an
-explicitly authorized local experiment, both manual build arguments must still
-be digest-qualified:
+The deployment helpers generate the canonical shared Dockerfile and do not
+accept a mutable or caller-selected base. For an explicitly authorized local
+experiment using the reference Dockerfile, both manual build arguments must
+still be digest-qualified:
 
 ```bash
 podman build -f deploy/Dockerfile.mesh \

@@ -1,5 +1,10 @@
 # Public docs site audit
 
+> **Historical audit — superseded 2026-08-24.** This report records the
+> 2026-07-30 live topology and must not be used as current routing or deployment
+> authority. Current repository authority keeps apex `/docs` canonical and
+> treats the legacy docs host as a redirect surface.
+
 **Date:** 2026-07-30 (UTC)  
 **Auditor:** implementer (live probe + repo read)  
 **Live image (at probe):** `main-3abbab5-…` dual-lane (hub-only nav shipped)  
