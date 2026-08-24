@@ -1,0 +1,316 @@
+{
+  "contract_id": "witnessops.aws_lightsail_migration.v1",
+  "status": "planned_candidate_no_apply_authority",
+  "last_reviewed": "2026-08-24",
+  "authority": {
+    "current_runtime": "private_caddy_k3s_dual_lane",
+    "target_runtime": "aws_lightsail_caddy_k3s_dual_lane",
+    "in_scope": [
+      "compute",
+      "edge_and_networking",
+      "persistent_state_migration",
+      "runtime_secret_rotation_and_custody",
+      "immutable_image_identity",
+      "staging_acceptance",
+      "observability",
+      "rollback",
+      "cutover"
+    ],
+    "not_authorized": [
+      "aws_resource_mutation",
+      "deployment",
+      "dns_change",
+      "production_secret_change",
+      "production_receipt_signing_key_activation",
+      "production_key_registry_change",
+      "stripe_change",
+      "merge"
+    ]
+  },
+  "compute": {
+    "provider": "aws",
+    "service": "lightsail",
+    "region": "eu-central-1",
+    "location": "Frankfurt",
+    "blueprint": "ubuntu-24.04",
+    "instance_count": 1,
+    "plan": {
+      "memory_gib": 4,
+      "vcpu": 2,
+      "system_disk_gib": 80
+    },
+    "runtime": {
+      "orchestrator": "single-node-k3s",
+      "production_replicas": 1,
+      "production_strategy": "Recreate",
+      "edge_process": "systemd-caddy",
+      "application_user": 1001,
+      "application_group": 1001
+    },
+    "availability_limit": "single_instance_single_node_not_highly_available",
+    "minimum_free_system_disk_gib_after_migration": 20
+  },
+  "edge_and_networking": {
+    "static_ipv4_required": true,
+    "ipv6_enabled": false,
+    "public_ingress": [
+      {
+        "protocol": "tcp",
+        "port": 80,
+        "source": "0.0.0.0/0",
+        "purpose": "caddy_http_and_certificate_flow"
+      },
+      {
+        "protocol": "tcp",
+        "port": 443,
+        "source": "0.0.0.0/0",
+        "purpose": "caddy_https"
+      },
+      {
+        "protocol": "tcp",
+        "port": 22,
+        "source": "operator_allowlist_only",
+        "purpose": "operator_ssh"
+      }
+    ],
+    "prohibited_public_ports": [
+      3000,
+      3001,
+      6443,
+      10250
+    ],
+    "caddy_upstream": "127.0.0.1:3000",
+    "mesh_dev_exposure": "private_network_only",
+    "dns_apply_authority": "separate_cutover_lane",
+    "route_exposure_rule": "preserve_existing_edge_dispositions_without_widening_api_admin_mcp_or_offsec_surfaces"
+  },
+  "persistent_state": {
+    "consistency_model": "single_writer_precopy_then_write_freeze_and_final_sync",
+    "mappings": [
+      {
+        "id": "intake_store",
+        "source": "INTAKE_STORE_PVC",
+        "target_mount": "/data/intake-store",
+        "strategy": "copy_and_manifest_verify",
+        "contents": [
+          "intakes",
+          "issuances",
+          "verification-contexts",
+          "admin-core/core-state.json"
+        ],
+        "exclude_from_copy": [
+          "locks/*.lock*",
+          "admin-core/core-state.lock*",
+          "**/*.tmp",
+          "**/*.tmp.*"
+        ]
+      },
+      {
+        "id": "intake_events",
+        "source": "INTAKE_EVENTS_PVC",
+        "target_mount": "/data/intake-events",
+        "strategy": "copy_and_manifest_verify",
+        "contents": [
+          "events.ndjson",
+          "delivery-retries.ndjson",
+          "token-audit-json"
+        ],
+        "exclude_from_copy": [
+          "**/*.tmp",
+          "**/*.tmp.*"
+        ]
+      },
+      {
+        "id": "mail_out",
+        "source": "MAIL_OUT_PVC",
+        "target_mount": "/data/mail-out",
+        "strategy": "archive_source_then_recreate_empty",
+        "contents": [
+          "staged-mail-files"
+        ],
+        "replay_allowed": false
+      },
+      {
+        "id": "ask_receipts",
+        "source": "ASK_RECEIPT_ROOT_or_container_default_if_present",
+        "target_mount": null,
+        "strategy": "archive_only_not_remounted",
+        "contents": [
+          "ask-runtime-receipts"
+        ]
+      },
+      {
+        "id": "ask_audits",
+        "source": "ASK_AUDIT_ROOT_or_container_default_if_present",
+        "target_mount": null,
+        "strategy": "archive_only_not_remounted",
+        "contents": [
+          "ask-receipt-audits"
+        ]
+      }
+    ],
+    "manifest_requirements": [
+      "sorted_relative_paths",
+      "sha256_per_regular_file",
+      "aggregate_manifest_sha256",
+      "regular_file_count",
+      "total_regular_file_bytes",
+      "uid_gid_and_mode_inventory",
+      "reject_symlink_device_socket_and_partial_ndjson_input"
+    ],
+    "restore_acceptance": [
+      "target_manifests_match_source_for_copy_strategies",
+      "admin_core_does_not_silently_initialize_empty_when_source_was_nonempty",
+      "event_ledger_parses_without_partial_or_malformed_lines",
+      "projection_reconstruction_matches_copied_snapshots",
+      "application_uid_1001_can_read_and_write_active_mounts",
+      "mail_out_target_is_empty",
+      "archive_only_surfaces_are_not_live_mounts"
+    ]
+  },
+  "secrets_and_signing": {
+    "runtime_secret_custody": "external_operator_custody_to_preprovisioned_kubernetes_secrets",
+    "runtime_secret_refs_in_order": [
+      "BASE_ENV_SECRET",
+      "ADMIN_OIDC_SECRET"
+    ],
+    "rotation_targets": [
+      "WITNESSOPS_ADMIN_SECRET",
+      "WITNESSOPS_GOOGLE_OIDC_CLIENT_SECRET",
+      "WITNESSOPS_RESEND_API_KEY",
+      "WITNESSOPS_TOKEN_SIGNING_SECRET"
+    ],
+    "state_coupled_rotation": {
+      "name": "WITNESSOPS_TOKEN_SIGNING_SECRET",
+      "gate": "inventory_nonterminal_tokens_and_choose_explicit_invalidate_reissue_or_approved_compatibility_plan_before_rotation"
+    },
+    "forbidden_workload_credentials": [
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+      "AWS_SESSION_TOKEN"
+    ],
+    "production_receipt_signing": {
+      "activation_in_scope": false,
+      "registry_change_in_scope": false,
+      "private_key_destination": "never_web_host_never_web_pod_never_kubernetes_secret",
+      "allowed_public_key_ids_in_this_contract": [],
+      "required_migration_change": "none",
+      "future_authority": "separate_production_key_registry_and_signing_custody_pr"
+    }
+  },
+  "image_provenance": {
+    "mode": "current_private_k3s_local_build_identity",
+    "build_command": "pnpm deploy:k3s:build",
+    "immutable_reference_pattern": "^[a-z0-9][a-z0-9._/-]*@sha256:[a-f0-9]{64}$",
+    "required_evidence": [
+      "source_head",
+      "source_tree_clean_state",
+      "supply_chain_gate_result_sha256",
+      "pinned_node22_base_image_digest",
+      "pinned_gws_archive_sha256",
+      "human_readable_image_alias",
+      "oci_manifest_digest",
+      "manifest_bound_config_digest",
+      "prod_and_mesh_runtime_image_ids"
+    ],
+    "required_runtime_property": "prod_and_mesh_dev_run_the_same_digest_qualified_image",
+    "limitations": [
+      "the_current_private_k3s_build_is_not_the_ci_cosign_signed_ghcr_artifact",
+      "do_not_claim_cosign_or_sbom_verification_for_the_deployed_local_image_without_a_separate_artifact_import_lane"
+    ]
+  },
+  "staging_acceptance": {
+    "pre_dns_only": true,
+    "candidate_helper": "deploy/aws/candidate-acceptance.sh",
+    "receipt_location": "ops/receipts/aws-migration/",
+    "required_checks": [
+      "repository_health_node22",
+      "k3s_contract_unit_tests",
+      "candidate_compute_capacity",
+      "candidate_edge_local",
+      "candidate_runtime_identity",
+      "candidate_dual_lane",
+      "candidate_public_routes",
+      "per_receipt_indeterminate",
+      "per_malformed_invalid",
+      "state_manifest_reconciliation",
+      "projection_reconstruction",
+      "secret_name_and_path_preflight",
+      "backup_restore_rehearsal",
+      "observability_alarm_test",
+      "rollback_rehearsal"
+    ]
+  },
+  "observability": {
+    "lightsail_metrics": [
+      "StatusCheckFailed",
+      "CPUUtilization",
+      "NetworkIn",
+      "NetworkOut"
+    ],
+    "host_signals": [
+      "caddy_service_active",
+      "k3s_service_active",
+      "system_disk_free_space",
+      "kubernetes_DiskPressure_false"
+    ],
+    "application_signals": [
+      "deployment_ready_replicas",
+      "pod_restart_count",
+      "home_verify_review_request_and_support_http_status",
+      "intake_storage_errors",
+      "event_ledger_errors",
+      "mail_provider_errors",
+      "upstream_and_rate_limit_errors"
+    ],
+    "requirements": [
+      "named_owner",
+      "notification_contact_verified",
+      "alarm_fired_and_recovered_test_recorded",
+      "log_retention_and_redaction_recorded",
+      "external_post_cutover_probe"
+    ]
+  },
+  "rollback": {
+    "old_host_retention": "retain_until_explicit_decommission_approval_after_observation_and_state_reconciliation",
+    "image_rollback": "redeploy_one_recorded_known_good_digest_to_both_lanes_then_run_pair_smoke",
+    "before_target_writes": "restore_previous_dns_records_to_retained_old_host",
+    "after_target_writes": "freeze_writes_and_reconcile_target_changes_back_before_restoring_old_host_or_repair_forward_on_target",
+    "abort_triggers": [
+      "state_manifest_mismatch",
+      "projection_reconstruction_failure",
+      "candidate_storage_path_or_permission_failure",
+      "mutable_or_mismatched_runtime_image",
+      "required_secret_preflight_failure",
+      "unexpected_public_route_exposure",
+      "per_receipt_overclaim_or_non_indeterminate_result_without_independent_trust_inputs",
+      "unhealthy_caddy_k3s_or_application",
+      "unowned_or_untested_alarm",
+      "rollback_target_not_ready"
+    ]
+  },
+  "cutover": {
+    "requires_separate_apply_authority": true,
+    "dns_changes_in_this_pr": false,
+    "production_key_activation_in_this_pr": false,
+    "gates_in_order": [
+      "approved_recovery_objectives_and_maintenance_window",
+      "source_and_target_backup_evidence",
+      "candidate_staging_acceptance_complete",
+      "old_host_rollback_readiness_confirmed",
+      "precopy_complete",
+      "source_write_freeze",
+      "final_sync_and_manifest_reconciliation",
+      "candidate_local_readiness_recheck",
+      "separately_authorized_dns_change",
+      "external_tls_route_and_verifier_checks",
+      "observation_window",
+      "explicit_close_or_rollback_decision"
+    ],
+    "dns_surface": [
+      "witnessops.com",
+      "www.witnessops.com",
+      "docs.witnessops.com_redirect_reachability"
+    ]
+  }
+}

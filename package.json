@@ -11,7 +11,7 @@
     "build": "pnpm --filter witnessops-web build",
     "lint": "pnpm --filter witnessops-web lint",
     "typecheck": "pnpm --filter witnessops-web typecheck",
-    "test": "pnpm --filter witnessops-web test && pnpm --filter @witnessops/proof test && pnpm ticket-triage:test && pnpm route-parity && pnpm receipt-smoke && pnpm smoke:buyer-path:test && pnpm verify:public-seo:test",
+    "test": "pnpm --filter witnessops-web test && pnpm --filter @witnessops/proof test && pnpm ticket-triage:test && pnpm route-parity && pnpm receipt-smoke && pnpm smoke:buyer-path:test && pnpm verify:public-seo:test && pnpm deploy:aws:test",
     "health": "pnpm --filter witnessops-web build && pnpm --filter witnessops-web lint && pnpm --filter witnessops-web typecheck && pnpm ticket-triage:typecheck && pnpm test && pnpm docs:validate && pnpm signals:validate",
     "health:node22": "bash scripts/health-on-node22.sh",
     "health:node22:goal0": "bash scripts/health-on-node22-goal0.sh",
@@ -42,7 +42,10 @@
     "deploy:k3s:status": "bash deploy/scripts/k3s-status.sh",
     "deploy:k3s:dev:teardown": "bash deploy/scripts/k3s-dev-teardown.sh",
     "deploy:k3s:test-parity": "bash deploy/scripts/test-k3s-parity.sh",
-    "deploy:k3s:hygiene": "bash deploy/scripts/k3s-disk-hygiene.sh"
+    "deploy:k3s:hygiene": "bash deploy/scripts/k3s-disk-hygiene.sh",
+    "deploy:aws:test": "node --test deploy/aws/validate-acceptance.test.mjs && bash -n deploy/aws/candidate-acceptance.sh",
+    "deploy:aws:validate": "node deploy/aws/validate-acceptance.mjs",
+    "deploy:aws:candidate": "bash deploy/aws/candidate-acceptance.sh"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

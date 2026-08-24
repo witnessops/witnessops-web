@@ -52,6 +52,8 @@ Release authority: internal/manual for now
   | Status + envFrom/image/HTTP/CSS smoke | `pnpm deploy:k3s:smoke` or `pnpm deploy:k3s:status` |
   | Parity unit tests | `pnpm deploy:k3s:test-parity` |
   | Remove mesh-dev only | `pnpm deploy:k3s:dev:teardown` |
+  | Validate planned AWS migration contract | `pnpm deploy:aws:test` |
+  | Read-only pre-DNS AWS candidate acceptance | `pnpm deploy:aws:candidate` (explicit candidate identity required) |
 
   Scripts live under `deploy/scripts/k3s-*.sh` and source `k3s-lib.sh` / `k3s-parity.sh`.
 - **Env for agents / local Mac:**
@@ -64,6 +66,15 @@ Release authority: internal/manual for now
 - Azure Container Apps is retired. Root `azure.yaml` and `infra/**` were archived under `docs/archive/azure-aca-retired-20260508/`.
 - Do not run `az`, `azd`, Bicep deployment, Azure inventory, Azure cleanup, Azure rollback, or Azure restore work from this repo unless a separate explicit Azure reopening lane names the allowed cloud surfaces, commands, receipts, and stop boundary.
 - Do not treat archived Azure files as active deploy authority, rollback authority, or evidence that Azure resources exist.
+- **Planned AWS candidate (not active authority):**
+  [`docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md`](./docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md)
+  and [`deploy/aws/`](./deploy/aws/README.md) define a Lightsail host-migration
+  contract and read-only pre-DNS acceptance path. They do not authorize AWS
+  resource creation, deploy, DNS, secret rotation, cutover, or decommissioning.
+- AWS deployment and Public Exposure Review production-key activation are
+  separate authority lanes. Never place a production receipt-signing private
+  key on the web host/pod, add one to the runtime Secrets, change the production
+  key registry, or widen `/verify` trust as part of an AWS migration.
 
 ## Local vs mesh-dev vs prod (when working on web)
 

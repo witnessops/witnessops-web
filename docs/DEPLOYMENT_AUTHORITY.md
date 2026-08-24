@@ -164,6 +164,27 @@ docs/archive/azure-aca-retired-20260508/
 That archive is historical reference only. Do not run `az`, `azd`, or Bicep
 from this repo unless an explicit Azure reopening lane authorizes it.
 
+## Planned AWS Lightsail candidate: not active authority
+
+The bounded target architecture and migration gates are defined in
+[`AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md`](./AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md)
+and [`deploy/aws/README.md`](../deploy/aws/README.md). The machine-readable
+contract is [`deploy/aws/migration-contract.v1.json`](../deploy/aws/migration-contract.v1.json).
+
+These files are design, evidence, and fail-closed acceptance surfaces only.
+They do not authorize creating AWS resources, deploying workloads, copying
+production data, changing DNS, writing Secrets, or cutting traffic over. The
+current live status at the top of this document remains authoritative until a
+separately authorized cutover has been executed and evidenced.
+
+The candidate preserves the existing deployment seam and runtime shape:
+`DEPLOY_SSH` selects the host, Caddy terminates the public edge, the app binds
+to loopback, and a single-node k3s instance owns the production PVCs, Secrets,
+and digest-qualified image. It does not activate Public Exposure Review
+production signing keys or change the production verification key registry;
+those actions require a separate custody and activation lane after AWS
+acceptance.
+
 ## Review boundary
 
 Changes to this deployment authority classification should remain separate from

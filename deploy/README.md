@@ -80,4 +80,7 @@ rollout status alone does not prove the runtime contract.
 Authority: `docs/DEPLOYMENT_AUTHORITY.md`, custody: `docs/DEPLOYMENT_CUSTODY.md`,
 agent contract: root `AGENTS.md`.
 
+Planned AWS Lightsail host migration (not active authority and no apply
+permission): [`aws/README.md`](./aws/README.md).
+
 Legacy Compose/GHCR: `scripts/deploy.sh` + `INSTALL.md` (historical only).
