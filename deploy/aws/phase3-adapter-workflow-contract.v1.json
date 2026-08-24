@@ -61,6 +61,10 @@
     "exact_ecr_repository_uri_required": true,
     "deployment_requires_publication_run_identity": true,
     "successful_scan_evidence": "github_run_artifact_bound_to_exact_publisher_run_attempt_source_manifest_config_and_describe_image_scan_findings_response",
+    "successful_scan_evidence_scanning_modes": [
+      "basic_complete_findings",
+      "enhanced_active_enhanced_findings"
+    ],
     "successful_scan_evidence_retention_days": 90,
     "successful_scan_evidence_aws_iam_change": "repository_scoped_ecr_describe_image_scan_findings_only",
     "immutable_tag_retry_strategy": "reuse_existing_source_tag_only_after_exact_manifest_config_and_source_label_validation"

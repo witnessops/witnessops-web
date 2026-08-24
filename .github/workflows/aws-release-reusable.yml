@@ -313,8 +313,25 @@ jobs:
               "${scan_file}" >/dev/null
             status="$(jq -er '.imageScanStatus.status | strings' "${scan_file}")"
             case "${status}" in
-              COMPLETE) break ;;
-              IN_PROGRESS)
+              COMPLETE)
+                if jq -e \
+                  '.imageScanFindings.imageScanCompletedAt != null and (.imageScanFindings.findings | type == "array")' \
+                  "${scan_file}" >/dev/null; then
+                  break
+                fi
+                [[ "${attempt}" != "60" ]]
+                sleep 10
+                ;;
+              ACTIVE)
+                if jq -e \
+                  '.imageScanFindings.imageScanCompletedAt != null and (.imageScanFindings.enhancedFindings | type == "array")' \
+                  "${scan_file}" >/dev/null; then
+                  break
+                fi
+                [[ "${attempt}" != "60" ]]
+                sleep 10
+                ;;
+              IN_PROGRESS|PENDING)
                 [[ "${attempt}" != "60" ]]
                 sleep 10
                 ;;
@@ -330,6 +347,8 @@ jobs:
             --image-digest "${IMAGE_DIGEST}" \
             --output "${RUNNER_TEMP}/ecr-scan-summary.json"
           {
+            echo "scan_mode=$(jq -r '.scan_mode' "${RUNNER_TEMP}/ecr-scan-summary.json")"
+            echo "scan_status=$(jq -r '.scan_status' "${RUNNER_TEMP}/ecr-scan-summary.json")"
             echo "scan_findings_sha256=sha256:$(sha256sum "${scan_file}" | awk '{print $1}')"
             echo "total_findings=$(jq -r '.total_findings' "${RUNNER_TEMP}/ecr-scan-summary.json")"
             echo "critical_findings=$(jq -r '.critical_findings' "${RUNNER_TEMP}/ecr-scan-summary.json")"
@@ -342,6 +361,8 @@ jobs:
           IMAGE_DIGEST: ${{ steps.publish.outputs.image_digest }}
           CONFIG_DIGEST: ${{ steps.publish.outputs.config_digest }}
           PUBLICATION_MODE: ${{ steps.publish.outputs.publication_mode }}
+          SCAN_MODE: ${{ steps.scan.outputs.scan_mode }}
+          SCAN_STATUS: ${{ steps.scan.outputs.scan_status }}
           SCAN_FINDINGS_SHA256: ${{ steps.scan.outputs.scan_findings_sha256 }}
           TOTAL_FINDINGS: ${{ steps.scan.outputs.total_findings }}
           CRITICAL_FINDINGS: ${{ steps.scan.outputs.critical_findings }}
@@ -360,6 +381,8 @@ jobs:
             --arg image_digest "${IMAGE_DIGEST}" \
             --arg config_digest "${CONFIG_DIGEST}" \
             --arg publication_mode "${PUBLICATION_MODE}" \
+            --arg scan_mode "${SCAN_MODE}" \
+            --arg scan_status "${SCAN_STATUS}" \
             --arg scan_findings_sha256 "${SCAN_FINDINGS_SHA256}" \
             --argjson total_findings "${TOTAL_FINDINGS}" \
             --argjson critical_findings "${CRITICAL_FINDINGS}" \
@@ -381,12 +404,13 @@ jobs:
               ecr_manifest_sha256: $image_digest,
               publication_mode: $publication_mode,
               scan_api: "ecr:DescribeImageScanFindings",
+              scan_mode: $scan_mode,
               scan_findings_sha256: $scan_findings_sha256,
-              scan_status: "COMPLETE",
+              scan_status: $scan_status,
               total_findings: $total_findings,
               critical_findings: $critical_findings,
               high_findings: $high_findings,
-              scan_policy: "describe_image_scan_findings_complete_zero_critical_high_v1"
+              scan_policy: "describe_image_scan_findings_mode_aware_zero_critical_high_v1"
             }' > "${RUNNER_TEMP}/witnessops-aws-scan-evidence.json"
 
       - name: Retain only non-secret successful-scan evidence
@@ -410,7 +434,7 @@ jobs:
             echo "- Manifest digest: \`${{ steps.publish.outputs.image_digest }}\`"
             echo "- Config digest: \`${{ steps.publish.outputs.config_digest }}\`"
             echo "- ECR scan API: \`DescribeImageScanFindings\`"
-            echo "- ECR scan: \`COMPLETE, zero CRITICAL/HIGH, findings telemetry retained\`"
+            echo "- ECR scan: \`${{ steps.scan.outputs.scan_mode }} / ${{ steps.scan.outputs.scan_status }}, zero CRITICAL/HIGH, findings telemetry retained\`"
             echo "- Publication mode: \`${{ steps.publish.outputs.publication_mode }}\`"
             echo "- Application deployment: \`NOT RUN\`"
           } >> "${GITHUB_STEP_SUMMARY}"

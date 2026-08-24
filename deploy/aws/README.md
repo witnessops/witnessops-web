@@ -200,12 +200,15 @@ Frankfurt region, and `witnessops-web` repository before requesting an ECR login
 token. It reuses an existing immutable source tag only after the ECR manifest,
 config digest, and source-revision label all match, so a failed post-push scan
 can be retried without overwriting or abandoning the source tag. After
-`DescribeImageScanFindings` returns exact-digest `COMPLETE` telemetry with a
-present findings inventory and zero critical and high findings, the publication
-run retains one non-secret, 90-day GitHub artifact containing the exact ECR
-manifest, raw findings response, and evidence record bound to the run ID, run
-attempt, source commit, manifest digest, config digest, and findings-response
-hash.
+`DescribeImageScanFindings` returns an exact-digest, completed inventory with
+zero critical and high findings, the publication run retains one non-secret,
+90-day GitHub artifact containing the exact ECR manifest, raw findings response,
+and evidence record bound to the run ID, run attempt, source commit, manifest
+digest, config digest, scanning mode, scan status, and findings-response hash.
+Basic scanning requires `COMPLETE`, a completion timestamp, and the `findings`
+array. Registry-level enhanced scanning requires `ACTIVE`, a completion
+timestamp, and the `enhancedFindings` array. Missing, ambiguous, pending, or
+unsupported telemetry fails closed.
 Deploy dispatches must name that publication run and attempt. A low-authority
 job first confirms through the GitHub API that the exact run was a successful
 manual run from the reserved caller on `main` and referenced the reserved

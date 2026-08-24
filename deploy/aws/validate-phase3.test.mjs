@@ -123,6 +123,16 @@ test("publisher must use digest-bound DescribeImageScanFindings telemetry", () =
   );
 });
 
+test("publisher must support completed basic and enhanced scan inventories", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace("enhancedFindings", "unreviewedEnhancedInventory"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /enhancedFindings/,
+  );
+});
+
 test("publisher must check out the exact scan validator before invoking it", () => {
   const sources = loadPhase3Sources();
   sources.reusable = sources.reusable.replace(

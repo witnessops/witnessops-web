@@ -3,7 +3,10 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
-const COMPLETE = "COMPLETE";
+const SCAN_MODES = {
+  COMPLETE: { inventoryKey: "findings", mode: "basic" },
+  ACTIVE: { inventoryKey: "enhancedFindings", mode: "enhanced" },
+};
 const ALLOWED_SEVERITIES = new Set([
   "INFORMATIONAL",
   "UNDEFINED",
@@ -21,6 +24,11 @@ function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function isCompletionTimestamp(value) {
+  if (typeof value === "number") return Number.isFinite(value) && value > 0;
+  return typeof value === "string" && value.length > 0 && !Number.isNaN(Date.parse(value));
+}
+
 export function validateEcrScanFindings(payload, expected) {
   assert(isRecord(payload), "ECR scan response must be an object");
   assert(expected.repository === "witnessops-web", "ECR repository expectation differs");
@@ -29,15 +37,29 @@ export function validateEcrScanFindings(payload, expected) {
   assert(isRecord(payload.imageId), "ECR scan image identity is missing");
   assert(payload.imageId.imageDigest === expected.imageDigest, "ECR scan image digest differs");
   assert(isRecord(payload.imageScanStatus), "ECR scan status telemetry is missing");
-  assert(payload.imageScanStatus.status === COMPLETE, "ECR scan is not complete");
+  const scanStatus = payload.imageScanStatus.status;
+  assert(
+    typeof scanStatus === "string" && Object.hasOwn(SCAN_MODES, scanStatus),
+    "ECR scan is not in a supported successful state",
+  );
+  const { inventoryKey, mode } = SCAN_MODES[scanStatus];
   assert(isRecord(payload.imageScanFindings), "ECR scan findings telemetry is missing");
   assert(
-    Object.hasOwn(payload.imageScanFindings, "findings") &&
-      Array.isArray(payload.imageScanFindings.findings),
-    "ECR scan findings inventory is missing",
+    Object.hasOwn(payload.imageScanFindings, inventoryKey) &&
+      Array.isArray(payload.imageScanFindings[inventoryKey]),
+    `ECR ${mode} scan findings inventory is missing`,
+  );
+  const alternateInventoryKey = mode === "basic" ? "enhancedFindings" : "findings";
+  assert(
+    !Object.hasOwn(payload.imageScanFindings, alternateInventoryKey),
+    "ECR scan findings inventory is ambiguous",
+  );
+  assert(
+    isCompletionTimestamp(payload.imageScanFindings.imageScanCompletedAt),
+    "ECR scan completion timestamp is missing or invalid",
   );
 
-  const findings = payload.imageScanFindings.findings;
+  const findings = payload.imageScanFindings[inventoryKey];
   for (const finding of findings) {
     assert(isRecord(finding), "ECR scan finding must be an object");
     assert(
@@ -46,8 +68,24 @@ export function validateEcrScanFindings(payload, expected) {
     );
   }
 
-  const criticalFindings = findings.filter((finding) => finding.severity === "CRITICAL").length;
-  const highFindings = findings.filter((finding) => finding.severity === "HIGH").length;
+  const severityCounts = payload.imageScanFindings.findingSeverityCounts ?? {};
+  assert(isRecord(severityCounts), "ECR scan severity-count telemetry is invalid");
+  for (const [severity, count] of Object.entries(severityCounts)) {
+    assert(ALLOWED_SEVERITIES.has(severity), "ECR scan severity-count key is unsupported");
+    assert(
+      Number.isSafeInteger(count) && count >= 0,
+      "ECR scan severity-count value is invalid",
+    );
+  }
+
+  const criticalFindings = Math.max(
+    findings.filter((finding) => finding.severity === "CRITICAL").length,
+    severityCounts.CRITICAL ?? 0,
+  );
+  const highFindings = Math.max(
+    findings.filter((finding) => finding.severity === "HIGH").length,
+    severityCounts.HIGH ?? 0,
+  );
   assert(criticalFindings === 0, "ECR scan contains critical findings");
   assert(highFindings === 0, "ECR scan contains high findings");
 
@@ -55,7 +93,8 @@ export function validateEcrScanFindings(payload, expected) {
     schema_version: 1,
     repository: expected.repository,
     image_digest: expected.imageDigest,
-    scan_status: COMPLETE,
+    scan_mode: mode,
+    scan_status: scanStatus,
     total_findings: findings.length,
     critical_findings: criticalFindings,
     high_findings: highFindings,

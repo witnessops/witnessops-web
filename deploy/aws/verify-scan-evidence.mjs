@@ -15,9 +15,10 @@ const REUSABLE_PATH =
 const CALLER_WORKFLOW_REF =
   "witnessops/witnessops-web/.github/workflows/aws-release.yml@refs/heads/main";
 const EVENT_NAME = "workflow_dispatch";
-const SCAN_POLICY = "describe_image_scan_findings_complete_zero_critical_high_v1";
+const SCAN_POLICY = "describe_image_scan_findings_mode_aware_zero_critical_high_v1";
 const SCAN_API = "ecr:DescribeImageScanFindings";
 const PUBLICATION_MODES = new Set(["pushed", "reused_existing_immutable_tag"]);
+const SCAN_MODE_STATUS = { basic: "COMPLETE", enhanced: "ACTIVE" };
 
 const EVIDENCE_KEYS = [
   "caller_workflow_ref",
@@ -36,6 +37,7 @@ const EVIDENCE_KEYS = [
   "repository_owner_id",
   "scan_api",
   "scan_findings_sha256",
+  "scan_mode",
   "scan_policy",
   "scan_status",
   "schema_version",
@@ -143,7 +145,14 @@ export function validateScanEvidence(evidence, expected) {
     /^sha256:[0-9a-f]{64}$/.test(evidence.scan_findings_sha256),
     "scan findings hash is invalid",
   );
-  assert(evidence.scan_status === "COMPLETE", "scan evidence status differs");
+  assert(
+    typeof evidence.scan_mode === "string" && Object.hasOwn(SCAN_MODE_STATUS, evidence.scan_mode),
+    "scan evidence mode differs",
+  );
+  assert(
+    evidence.scan_status === SCAN_MODE_STATUS[evidence.scan_mode],
+    "scan evidence status differs",
+  );
   assert(
     Number.isSafeInteger(evidence.total_findings) && evidence.total_findings >= 0,
     "scan evidence total findings is invalid",
@@ -168,6 +177,7 @@ export function validateEvidenceArtifacts(
     JSON.parse(scanFindingsBytes.toString("utf8")),
     { repository: "witnessops-web", imageDigest: expected.imageDigest },
   );
+  assert(scanSummary.scan_mode === evidence.scan_mode, "scan artifact mode differs");
   assert(scanSummary.scan_status === evidence.scan_status, "scan artifact status differs");
   assert(
     scanSummary.total_findings === evidence.total_findings,

@@ -99,6 +99,10 @@ export function validatePhase3Sources(sources) {
     contract.workflows.successful_scan_evidence ===
       "github_run_artifact_bound_to_exact_publisher_run_attempt_source_manifest_config_and_describe_image_scan_findings_response",
   );
+  assert(
+    JSON.stringify(contract.workflows.successful_scan_evidence_scanning_modes) ===
+      JSON.stringify(["basic_complete_findings", "enhanced_active_enhanced_findings"]),
+  );
   assert(contract.workflows.successful_scan_evidence_retention_days === 90);
   assert(
     contract.workflows.successful_scan_evidence_aws_iam_change ===
@@ -273,6 +277,8 @@ export function validatePhase3Sources(sources) {
     'publication_mode="reused_existing_immutable_tag"',
     "ecr-scan-findings.json",
     "ecr-manifest.json",
+    "IN_PROGRESS|PENDING",
+    "enhancedFindings",
     "actions: read",
     "witnessops-web-aws-scan-evidence-",
     "github-token: ${{ github.token }}",
@@ -329,7 +335,8 @@ export function validatePhase3Sources(sources) {
     'reusable.ref === "refs/heads/main"',
     "evidence.image_digest === expected.imageDigest",
     "evidence.config_digest === expected.configDigest",
-    'evidence.scan_status === "COMPLETE"',
+    "SCAN_MODE_STATUS",
+    "evidence.scan_status === SCAN_MODE_STATUS[evidence.scan_mode]",
     "evidence.critical_findings === 0",
     "evidence.high_findings === 0",
     "evidence.scan_api === SCAN_API",
@@ -341,9 +348,11 @@ export function validatePhase3Sources(sources) {
 
   for (const required of [
     "payload.imageId.imageDigest === expected.imageDigest",
-    "payload.imageScanStatus.status === COMPLETE",
-    'Object.hasOwn(payload.imageScanFindings, "findings")',
-    "Array.isArray(payload.imageScanFindings.findings)",
+    "Object.hasOwn(SCAN_MODES, scanStatus)",
+    "payload.imageScanFindings[inventoryKey]",
+    "isCompletionTimestamp(payload.imageScanFindings.imageScanCompletedAt)",
+    "severityCounts.CRITICAL",
+    "severityCounts.HIGH",
     "criticalFindings === 0",
     "highFindings === 0",
   ]) {

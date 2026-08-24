@@ -54,7 +54,11 @@ function validScanFindingsBytes() {
       repositoryName: "witnessops-web",
       imageId: { imageDigest: expected.imageDigest, imageTag: expected.sourceCommit },
       imageScanStatus: { status: "COMPLETE" },
-      imageScanFindings: { findings: [] },
+      imageScanFindings: {
+        findings: [],
+        findingSeverityCounts: {},
+        imageScanCompletedAt: "2026-08-24T19:00:00Z",
+      },
     }),
   );
 }
@@ -78,12 +82,13 @@ function validEvidence(scanFindingsBytes = validScanFindingsBytes()) {
     ecr_manifest_sha256: expected.imageDigest,
     publication_mode: "pushed",
     scan_api: "ecr:DescribeImageScanFindings",
+    scan_mode: "basic",
     scan_findings_sha256: `sha256:${createHash("sha256").update(scanFindingsBytes).digest("hex")}`,
     scan_status: "COMPLETE",
     total_findings: 0,
     critical_findings: 0,
     high_findings: 0,
-    scan_policy: "describe_image_scan_findings_complete_zero_critical_high_v1",
+    scan_policy: "describe_image_scan_findings_mode_aware_zero_critical_high_v1",
   };
 }
 
@@ -91,6 +96,32 @@ test("exact successful publication run and scan evidence are accepted", () => {
   const scanFindingsBytes = validScanFindingsBytes();
   const evidence = validEvidence(scanFindingsBytes);
   assert.equal(validatePublicationRun(validRun(), expected), true);
+  assert.equal(validateScanEvidence(evidence, expected), true);
+  assert.equal(
+    validateEvidenceArtifacts(evidence, expected, scanFindingsBytes, manifestBytes),
+    true,
+  );
+});
+
+test("exact enhanced scan evidence is accepted", () => {
+  const scanFindingsBytes = Buffer.from(
+    JSON.stringify({
+      registryId: "000000000000",
+      repositoryName: "witnessops-web",
+      imageId: { imageDigest: expected.imageDigest, imageTag: expected.sourceCommit },
+      imageScanStatus: { status: "ACTIVE" },
+      imageScanFindings: {
+        enhancedFindings: [],
+        findingSeverityCounts: {},
+        imageScanCompletedAt: "2026-08-24T19:00:00Z",
+      },
+    }),
+  );
+  const evidence = {
+    ...validEvidence(scanFindingsBytes),
+    scan_mode: "enhanced",
+    scan_status: "ACTIVE",
+  };
   assert.equal(validateScanEvidence(evidence, expected), true);
   assert.equal(
     validateEvidenceArtifacts(evidence, expected, scanFindingsBytes, manifestBytes),
