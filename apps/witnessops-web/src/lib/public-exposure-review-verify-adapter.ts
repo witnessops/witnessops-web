@@ -66,11 +66,22 @@ export function verifyPublicExposureReviewReceipt(
   receipt: Record<string, unknown>,
 ): VerifySuccessResponse {
   const validation = validatePublicExposureReviewReceipt(receipt);
-  const checks: VerifyCheckView[] = validation.checks.map((item) => ({
-    name: item.name,
-    status: item.status === "pass" ? "verified" : "unverified",
-    detail: item.detail,
-  }));
+  const checks: VerifyCheckView[] = validation.checks.flatMap((item) => {
+    const view: VerifyCheckView = {
+      name: item.name,
+      status: item.status === "pass" ? "verified" : "unverified",
+      detail: item.detail,
+    };
+    if (item.name !== "verification_method") return [view];
+
+    return [
+      { ...view, name: "verification_method_definition" },
+      {
+        ...view,
+        compatibilityAliasFor: "verification_method_definition",
+      },
+    ];
+  });
 
   if (validation.valid) {
     checks.push(
@@ -93,6 +104,10 @@ export function verifyPublicExposureReviewReceipt(
       notChecked(
         "workflow_contract_complete",
         "The receipt-only surface did not receive the complete authority and workflow execution records.",
+      ),
+      notChecked(
+        "verification_method_execution",
+        "The receipt preserves the frozen method definition, but the receipt-only surface did not independently check that the declared procedure was executed.",
       ),
       notChecked(
         "manifest_hash",

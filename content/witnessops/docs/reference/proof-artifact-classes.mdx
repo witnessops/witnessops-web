@@ -63,9 +63,9 @@ For verification output interpretation:
 
 - `valid`: required checks for the declared scope passed
 - `invalid`: one or more proof-bearing checks failed
-- `indeterminate`: an external trust requirement was declared but could not be established locally
+- `indeterminate`: one or more required evidence, artifact, authorization, workflow, signature, or trust checks were not independently completed
 
-Current `/api/verify` v1 for supported receipt inputs is receipt-first and returns deterministic receipt-lane verdicts, while malformed or unsupported input classes are reported separately (`FAILURE_INPUT_MALFORMED`, `FAILURE_INPUT_UNSUPPORTED`).
+Current `/api/verify` v1 for supported receipt inputs is receipt-only and returns deterministic receipt-lane verdicts, while malformed or unsupported input classes are reported separately (`FAILURE_INPUT_MALFORMED`, `FAILURE_INPUT_UNSUPPORTED`).
 
 ## 5. Explicit scope limits and non-claims
 

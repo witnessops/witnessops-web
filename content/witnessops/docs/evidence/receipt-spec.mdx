@@ -1,282 +1,244 @@
 ---
 title: "Receipt Specification"
-description: "Technical reference for WitnessOps Receipt v2, its proof references, and what the current verifier can assert about it."
+description: "Current WitnessOps receipt contracts, the Public Exposure Review profile, and the bounded checks performed by the public verifier."
 section: "docs"
 order: 4
 nav_label: "Receipt Spec"
 draft: false
 page_answer:
-  question: "What exactly is the receipt object, which proof references define it, and what can the current verifier assert about it?"
+  question: "Which receipt contracts are current, what does the Public Exposure Review profile require, and what can the public verifier assert?"
   links:
     - href: "/docs/how-it-works/verification"
       label: "Verification"
     - href: "/docs/evidence/receipts"
       label: "Receipts"
-    - href: "/docs/evidence/execution-chains"
-      label: "Execution Chains"
+    - href: "/docs/security-systems/threat-model"
+      label: "Threat Model"
 ---
 
 # Receipt Specification
 
-This is the technical reference page for WitnessOps Receipt v2. It explains what a receipt is expected to carry, which proof references matter, how continuity is expressed, and how the current verifier reads the surrounding proof package.
+This page describes the receipt contracts that the current WitnessOps code accepts. It keeps the canonical Public Exposure Review contract separate from older compatibility receipt families.
 
-If you need the concept first, start with [Receipts](/docs/evidence/receipts). If you need the operator workflow, go to [Verification](/docs/how-it-works/verification).
+If you need the concept first, start with [Receipts](/docs/evidence/receipts). If you need the public procedure, go to [Verification](/docs/how-it-works/verification).
 
-## 1. Problem this page solves
+## 1. Current contract boundary
 
-Reviewers often receive a receipt artifact but still need a field-level contract for what is signed, what is referenced, and what verification can actually assert.
+The canonical cross-repository receipt envelope is `witnessops.receipt.v0`. Public Exposure Review applies the additive profile `witnessops.verification_context.v1` and workflow class `public_exposure_review`.
 
-This page solves that diligence problem by defining the Receipt v2 shape and its proof references in technical terms.
+The public `/verify` surface also retains bounded compatibility adapters. Acceptance by a compatibility adapter does not make that receipt family the canonical cross-repository contract.
 
-## 2. What you should understand after reading
+| Receipt family | Current public handling | Boundary |
+| --- | --- | --- |
+| `witnessops.receipt.v0` + `witnessops.verification_context.v1` + `public_exposure_review` | Product-specific receipt-only adapter | Canonical Public Exposure Review profile; currently `indeterminate` when structurally conforming because full evidence and production trust are not checked |
+| PV `1.0.0` / `1.1.0`, QV `2.0.0`, WV `2.1.0` | Generic receipt compatibility adapter | Receipt-only checks; partial artifact coverage maps to `indeterminate` |
+| `witnessops.local_server_audit.receipt.v1` and its exact legacy markers | Structural dual-read adapter | Structural and cross-field checks only; artifact bytes are not checked |
 
-After this page, you should be able to answer:
+Objects such as a conceptual `witnessops.receipt.v2` ledger envelope are not accepted by the current public API unless they also match one of the executable contracts above. They must not be presented as the universal current receipt format.
 
-- What exactly is a WitnessOps Receipt v2?
-- What is signed, what is timestamped, and what is only referenced?
-- Which fields establish continuity between receipts?
-- How does the current verification path classify success, failure, or incomplete trust?
+The Public Exposure Review identity crosswalk is exact:
 
-This page describes the public receipt contract. It does not replace the verifier implementation or bundle contract. It explains how they fit together.
+| Authority layer | Identifier |
+| --- | --- |
+| Existing product ID | `OFFSEC-EXTERNAL-EXPOSURE` |
+| Receipt workflow class | `public_exposure_review` |
+| OffSec source runbook | `external-exposure-assessment` version `2` |
+| Receipt verification method | `external_exposure_assessment` version `2.0.0` |
 
-## Receipt v2 at a glance
+The product ID and hyphenated source-runbook ID belong to the offer and producer context; they are not extra top-level receipt fields.
 
-Receipt v2 is the canonical statement WitnessOps issues for a governed event. It is designed to be:
+## 2. Public Exposure Review envelope
 
-- portable enough to move outside the runtime
-- structured enough for offline verification
-- narrow enough to stay atomic
+A Public Exposure Review receipt has exactly these top-level fields:
 
-Receipt v2 is not the full evidence bundle. It is the atomic proof statement inside the wider trust package.
+| Field | Purpose |
+| --- | --- |
+| `receipt_version` | Must be `witnessops.receipt.v0` |
+| `receipt_profile` | Must be `witnessops.verification_context.v1` |
+| `workflow_class` | Must be `public_exposure_review` |
+| `proof_run_id` | Stable run identifier in the `pr_per_<24 lowercase hex>` form |
+| `verification_context` | Subject, scope, method, timestamps, and preserved limitations |
+| `result` | Bounded review outcome and named failure states |
+| `claims` | Exact workflow claim set with manifest artifact references |
+| `manifest_hash` | Declared SHA-256 digest of the evidence manifest |
+| `signature` | Declared Ed25519 signature and public-key identifier |
 
-At minimum, a Receipt v2 needs to express five things:
-
-1. identity of the receipt itself
-2. continuity position within a receipt stream
-3. claimed event details
-4. proof references to signed and timestamped material
-5. enough linkage to connect the receipt to the bundle and chain around it
-
-## Canonical shape
-
-The public shape below is intentionally simplified, but it reflects the current model: a governed statement plus structured references to the cryptographic artifacts that bind it.
+The following example is a shape illustration, not a pasteable valid receipt. Real receipts must contain the exact frozen method text, complete claims and limitations, real manifest artifact IDs, a real manifest digest, and a real signature.
 
 ```json
 {
-  "schema": "witnessops.receipt.v2",
-  "receipt_id": "rct_01H...",
-  "ledger": {
-    "stream": "engagement/execution",
-    "seq": 1842,
-    "prev_hash": "sha256:...",
-    "entry_hash": "sha256:..."
-  },
-  "time": {
-    "claimed_utc": "2026-03-28T12:34:56Z"
-  },
-  "actor": {
-    "principal": "operator://...",
-    "origin": "bridge://cli"
-  },
-  "intent": {
-    "type": "scan.recon",
-    "request_id": "req_01H..."
+  "receipt_version": "witnessops.receipt.v0",
+  "receipt_profile": "witnessops.verification_context.v1",
+  "workflow_class": "public_exposure_review",
+  "proof_run_id": "pr_per_<24-lowercase-hex>",
+  "verification_context": {
+    "subject": {
+      "type": "public_facing_system",
+      "reference": "urn:witnessops:public-exposure-review:<proof-run-id>"
+    },
+    "scope": {
+      "included": ["declared included scope"],
+      "criteria": ["declared review criteria"],
+      "excluded": ["declared exclusions"],
+      "observation_window": {
+        "started_at": "<UTC timestamp>",
+        "ended_at": "<UTC timestamp>"
+      }
+    },
+    "verification_method": {
+      "id": "external_exposure_assessment",
+      "version": "2.0.0",
+      "procedure": ["<exact frozen procedure>"],
+      "pass_criteria": ["<exact frozen pass criteria>"],
+      "fail_criteria": ["<exact frozen fail criteria>"]
+    },
+    "timestamps": {
+      "performed_at": "<UTC timestamp>",
+      "issued_at": "<UTC timestamp>",
+      "expires_at": null
+    },
+    "limitations": ["<all required limitation codes>"]
   },
   "result": {
-    "status": "ok",
-    "summary": "Governed recon completed"
+    "outcome": "inconclusive",
+    "failure_states": ["<named unresolved state>"]
   },
-  "proof": {
-    "dsse": {
-      "payload_type": "application/vnd.witnessops.execution-receipt.v2+json",
-      "envelope_digest": "sha256:...",
-      "keyid": "sha256:..."
-    },
-    "rfc3161": {
-      "present": true,
-      "hashed_message": "sha256:...",
-      "tsa": "tsa://...",
-      "token_ref": "bundle/TIMESTAMP.tsr"
-    },
-    "log": {
-      "included": true,
-      "checkpoint_ref": "bundle/checkpoint.json",
-      "inclusion_ref": "bundle/inclusion-proof.json"
+  "claims": [
+    {
+      "claim": "offer_contract_applied",
+      "status": "inconclusive",
+      "evidence_refs": ["offsec_<24-lowercase-hex>"]
     }
+  ],
+  "manifest_hash": "sha256:<64-lowercase-hex>",
+  "signature": {
+    "algorithm": "ed25519",
+    "public_key_id": "<registry-key-id>",
+    "encoding": "hex",
+    "signature": "<128-lowercase-hex>"
   }
 }
 ```
 
-The exact packaging may vary by bundle or delivery format. The trust model does not: the receipt is the claim, and the bundle carries the surrounding material required to verify that claim.
+Receipt outcomes are exactly `pass`, `partial`, `fail`, or `inconclusive`.
+`blocked` is an operational workflow state and is not a receipt outcome. The
+bounded review outcome is separate from the verifier verdict: even a receipt
+whose review outcome is `pass` remains publicly `indeterminate` while required
+evidence, execution, signature, or trust checks are incomplete.
 
-## Field groups
+## 3. Workflow context and claims
 
-### Receipt identity
+The profile binds the receipt to one product workflow, not to a generic verification offer.
 
-These fields identify the artifact being inspected.
+The subject must be a `public_facing_system`. The subject reference must be derived from the proof-run ID. Scope must preserve included items, review criteria, exclusions, and a UTC observation window.
 
-| Field | Purpose |
-| --- | --- |
-| `schema` | Declares the receipt contract version |
-| `receipt_id` | Stable identifier for this receipt |
-| `intent.type` | Names the governed event category |
-| `result.status` | Records the terminal outcome claimed by the issuer |
+The method is frozen as `external_exposure_assessment` version `2.0.0`. The public adapter compares the complete procedure, pass criteria, and fail criteria with its server-owned contract snapshot. Request input cannot replace that contract.
 
-These fields tell the verifier what kind of statement they are looking at. They do not establish continuity or proof strength on their own.
+Every receipt must contain each of these six claims exactly once:
 
-### Continuity fields
+1. `offer_contract_applied`
+2. `authority_and_scope_recorded`
+3. `recorded_checks_within_approved_schedule`
+4. `findings_reference_evidence`
+5. `unknowns_and_limitations_preserved`
+6. `source_artifacts_hash_bound`
 
-These fields place the receipt into an append-only stream.
+Each claim must reference at least one real OffSec manifest artifact ID in the form `offsec_<24 lowercase hex>`. The bounded producer adapter precomputes each staged source artifact's exact future manifest ID; the proof engine later emits that ID from the extensionless staged filename. Synthetic labels or invented path names are not acceptable substitutes.
 
-| Field | Purpose |
-| --- | --- |
-| `ledger.stream` | Names the stream or lane this receipt belongs to |
-| `ledger.seq` | Sequence number inside that stream |
-| `ledger.prev_hash` | Hash of the previous receipt in the stream |
-| `ledger.entry_hash` | Hash of this receipt's canonical form |
+The public receipt-only adapter checks identifier syntax and claim membership. It does not receive the manifest entry or artifact bytes, so it cannot establish that a reference resolves or supports the claim.
 
-Continuity is broken if `entry_hash` recomputes differently, `prev_hash` does not match the prior receipt, or expected sequence order is missing.
+## 4. Required limitations
 
-### Claimed event fields
+The profile preserves these eight product non-claims:
 
-These fields describe the governed event itself.
+1. `not_a_penetration_test`
+2. `not_a_certification`
+3. `not_an_attestation`
+4. `not_a_compliance_determination`
+5. `not_proof_of_security`
+6. `not_proof_of_completeness`
+7. `not_proof_of_third_party_acceptance`
+8. `not_proof_of_absence_of_vulnerabilities`
 
-| Field | Purpose |
-| --- | --- |
-| `time.claimed_utc` | Claimed event time from the issuer |
-| `actor.principal` | Who acted or approved |
-| `actor.origin` | Which invocation path produced the request |
-| `intent` | What was requested under policy |
-| `result` | What WitnessOps says happened |
+Additional limitations may be present. Removing or weakening any required limitation makes the profiled receipt invalid.
 
-These fields matter for audit reconstruction, but they remain issuer claims until the surrounding proof material verifies.
+## 5. Time, manifest, and signature fields
 
-### Proof reference fields
+All timestamps are UTC RFC 3339 values. The required chronology is:
 
-Receipt v2 carries references to cryptographic artifacts rather than pretending the receipt alone is the whole proof story.
+`started_at <= ended_at <= performed_at <= issued_at < expires_at`
 
-| Field | Purpose |
-| --- | --- |
-| `proof.dsse.payload_type` | Declares the signed payload type |
-| `proof.dsse.envelope_digest` | Digest of the DSSE envelope bytes |
-| `proof.dsse.keyid` | Identifier for the signing key used to issue the statement |
-| `proof.rfc3161.hashed_message` | Digest bound into the RFC 3161 timestamp token |
-| `proof.rfc3161.tsa` | Timestamp authority that issued the token |
-| `proof.log.checkpoint_ref` | Reference to the log checkpoint that covers the receipt |
-| `proof.log.inclusion_ref` | Reference to the inclusion proof or equivalent log material |
+`expires_at` may be `null`. The public adapter checks syntax and chronology only; it does not supply an independent time source.
 
-These references matter because the receipt does not become portable proof until a verifier can locate and validate the signed, timestamped, and committed material around it.
+`manifest_hash` must declare a lowercase SHA-256 digest. The receipt-only adapter checks that syntax but does not receive or hash manifest bytes.
 
-## DSSE reference model
+The signature block must declare Ed25519, a canonical key identifier, lowercase hexadecimal encoding, and a 64-byte signature. The public adapter checks that shape. It does not verify the signature cryptographically while no server-owned active production key is authorized.
 
-The signing layer is a DSSE envelope over the receipt statement. For diligence purposes, the important points are:
+## 6. Production key acceptance
 
-- the payload type is explicit
-- the envelope bytes are the object being signed
-- the envelope digest is the object later bound to trusted time
+The current Public Exposure Review trust snapshot is deliberately non-authorizing:
 
-That order matters. The timestamp should bind to the signed envelope, not to an unsigned precursor and not to a human-readable rendering.
+- workflow acceptance policy `public_exposure_review.production.v1` is `draft`, with no trusted revision, policy hash, or registry-manifest hash pinned
+- key-trust policy `public_exposure_review.production_signing.v1` is `draft`, with no trusted registry revision or manifest hash pinned
+- the registry status is `draft`
+- no production public-key IDs are allowlisted
+- the production custody-approval reference is unset
 
-## RFC 3161 reference model
+Production acceptance requires server-owned policy and registry snapshots, not caller-supplied trust material. Before a receipt can be accepted as production-valid:
 
-WitnessOps uses RFC 3161 as the trusted-time reference for the signed object. In the public model:
+1. the workflow acceptance policy must be active and pin the exact key-policy bytes, trusted registry revision, and registry-manifest SHA-256
+2. the key-trust policy and registry must be active and their revision and manifest pins must agree with the verifier snapshot
+3. the signer must be explicitly allowlisted with an active key record using Ed25519, hexadecimal encoding, `production` trust scope, and usage `public_exposure_review_receipt_signing`
+4. `verification_context.timestamps.issued_at` must be on or after `valid_from` and before `valid_until`
+5. the production custody-approval reference must be recorded
+6. revocation must be null and propagation rules must confirm that the verifier snapshot matches the approved current pins
 
-- the timestamp token covers the DSSE envelope digest
-- the timestamp token is an adjacent proof artifact, not a replacement for the receipt
-- the receipt records where that timestamp proof lives and what digest it is expected to cover
+Missing, stale, unavailable, or unconfirmed required trust input is `indeterminate`. A cryptographic mismatch, known revoked or disallowed key, trust-scope or usage mismatch, or signature outside the accepted validity window is `invalid` once those checks are actually performed. A rotated key without an applicable historical policy is `unsupported` under the draft key policy.
 
-When the timestamp token is absent, the receipt may still be valid as a signed statement, but it proves less about time.
+## 7. Public verification result
 
-## Canonicalization and derived hashes
+For a structurally conforming Public Exposure Review receipt, `/verify` currently reports `indeterminate`, with `scope: receipt-only` and `artifactRevalidation: not_performed`.
 
-Receipt verification depends on deterministic hashing. Two rules matter:
+The adapter checks:
 
-1. the canonical representation must be stable
-2. derived fields must not participate in computing themselves
+- exact envelope, version, profile, workflow class, and proof-run ID shape
+- bounded result and failure-state shape
+- exact required claim set and manifest artifact-ID syntax
+- subject and declared scope syntax
+- exact frozen verification method
+- preservation of the eight required limitations
+- timestamp syntax and chronology
+- manifest-digest syntax
+- signature-block syntax
 
-Current typed proof paths in the implementation follow this rule explicitly. Artifact-hash computation and execution-hash computation are treated as separate canonicalization paths so the same receipt body is not allowed to self-justify derived digests.
+It does not independently check:
 
-For a technical buyer, the important consequence is simple: if canonicalization rules are ambiguous, trust drops immediately. WitnessOps treats canonicalization as part of the proof contract, not as a UI detail.
+- the originating request record
+- authority packet, frozen target schedule, or approved-check schedule
+- complete workflow execution records
+- whether the frozen verification method was actually executed
+- the manifest bytes or their digest
+- artifact bytes or per-artifact hashes
+- whether referenced evidence supports each claim
+- the Ed25519 signature against an active production key
+- production key authorization and revocation state
 
-## Current verification model
+Caller-supplied evidence, keys, registries, policies, or verifier results are rejected rather than promoted to server trust inputs.
 
-Keep two verification surfaces separate.
+## 8. What the receipt can and cannot establish
 
-- The public `/verify` surface is receipt-first v1. It accepts supported receipt JSON and returns a receipt-scoped result.
-- Bundle-complete verification evaluates the receipt in the context of the canonical proof bundle around it.
+Receipt shape validation establishes that the submitted JSON conforms to the declared profile. It does not establish issuance, evidence truth, signer authorization, scope authorization, or complete execution.
 
-At a high level, a bundle-complete verifier does this:
+When a full package is independently verified against authentic, active trust inputs, stronger conclusions may be possible about signature integrity, manifest and artifact consistency, workflow evidence, and claim support. That is a separate internal package-verification path; the canonical internal verifier is not a supported public distribution today.
 
-1. normalize and parse the manifest
-2. validate required fields and protocol compatibility
-3. check artifact presence and hash integrity
-4. validate signature and digest relationships
-5. evaluate witness or trust-registry requirements when declared
-6. return `valid`, `invalid`, or `indeterminate`
+A receipt never proves that the reviewed system is secure, that a finding is correct, that no vulnerability exists, or that the engagement is complete beyond its declared scope and evidence.
 
-The public receipt-first surface does not prove bundle completeness or artifact-byte revalidation. A public `valid` result means supported receipt-level checks passed for the submitted receipt.
+## 9. Next-page handoff
 
-Those statuses mean:
-
-| Status | Meaning |
-| --- | --- |
-| `valid` | Required bundle structure and proof checks passed |
-| `invalid` | A proof-bearing check failed |
-| `indeterminate` | The bundle may be well-formed, but a required outside trust condition was unavailable |
-
-That last case matters. WitnessOps treats incomplete trust state differently from a hard cryptographic failure.
-
-## Public failure vocabulary and proof breach codes
-
-The public API first distinguishes input rejection from receipt verification results.
-
-Public API failure classes:
-
-- `FAILURE_INPUT_MALFORMED`
-- `FAILURE_INPUT_UNSUPPORTED`
-
-Proof-bearing receipt checks then expose breach codes such as:
-
-- `SCHEMA_MISSING_FIELD`
-- `SCHEMA_UNKNOWN_STAGE`
-- `DIGEST_RECORD_NOT_IN_SET`
-- `DIGEST_ARTIFACT_TAMPERED`
-- `ATTESTATION_SIGNATURE_INVALID`
-- `ANCHOR_RFC3161_IMPRINT_MISMATCH`
-- `WITNESS_SUBJECT_MISMATCH`
-- `WITNESS_UNTRUSTED`
-
-For diligence review, that separation matters. A malformed request is different from a receipt that parses but fails a proof-bearing check.
-
-## What Receipt v2 proves
-
-When verified against a **trusted WitnessOps verification key**, Receipt v2 proves that the signed statement is intact and claims issuance under that key identity, and that the statement is bound into a continuity structure with explicit proof references. It does not by itself prove key custody was uncompromised or that only WitnessOps could ever produce a matching shape.
-
-When the surrounding bundle also verifies, the verifier can additionally conclude that:
-
-- the signed statement is intact
-- the required artifacts match declared digests
-- the receipt sits inside the declared trust package
-- any declared witness policy or trust-registry requirement was satisfied, unless the verifier returns `indeterminate`
-
-## What Receipt v2 does not prove
-
-Receipt v2 does not, by itself, prove:
-
-- that the underlying tool output was correct
-- that the target choice was appropriate
-- that the host running the operation was uncompromised
-- that key custody outside the proof system was perfect
-- that an isolated receipt tells the whole operational story without its chain and bundle context
-
-Those boundaries belong in the threat model, not hidden in marketing copy.
-
-## 8. Next-page handoff
-
-Next, read [Threat Model and Trust Boundaries](/docs/security-systems/threat-model) to evaluate what this receipt contract can and cannot guarantee under adversarial conditions.
+Read [How to Verify a Receipt](/docs/how-it-works/verification) for the public procedure and exact verdict boundaries.
 
 Then continue with:
 
-- [Execution Chains](/docs/evidence/execution-chains) for continuity and Merkle packaging
-- [Proof Model](/docs/how-it-works/proof-model) for signature and timestamp layers
-- [Verification](/docs/how-it-works/verification) for operator workflow
+- [Receipts](/docs/evidence/receipts) for the mechanism summary
+- [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the package boundary
+- [Threat Model and Trust Boundaries](/docs/security-systems/threat-model) for adversarial limits

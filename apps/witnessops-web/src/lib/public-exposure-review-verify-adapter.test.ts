@@ -37,6 +37,7 @@ test("valid profile remains indeterminate under the non-authorizing server trust
     "request_record",
     "scope_authorization",
     "workflow_contract_complete",
+    "verification_method_execution",
     "manifest_hash",
     "artifact_hashes",
     "evidence_support",
@@ -49,6 +50,17 @@ test("valid profile remains indeterminate under the non-authorizing server trust
     );
   }
   assert.ok(!result.checks.some((item) => item.name === "receipt_signature"));
+  assert.equal(
+    result.checks.find(
+      (item) => item.name === "verification_method_definition",
+    )?.status,
+    "verified",
+  );
+  assert.equal(
+    result.checks.find((item) => item.name === "verification_method")
+      ?.compatibilityAliasFor,
+    "verification_method_definition",
+  );
 });
 
 test("treats receipt-declared scope as syntax only, not authorized workflow scope", () => {

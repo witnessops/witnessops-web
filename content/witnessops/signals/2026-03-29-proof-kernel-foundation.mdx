@@ -2,8 +2,8 @@
 title: Proof kernel foundation shipped
 date: 2026-03-29
 type: verification
-summary: Core proof path established across signing, timestamp binding, chaining, packaging, and offline verification.
-impact: Receipts and bundles now follow a defined verification sequence.
+summary: Historical foundation work established a DSSE-oriented proof design lane; it is not the current public verification contract.
+impact: The milestone informed later receipt and offline-package work without authorizing a public validity verdict.
 invariant: External trust remains partially external where timestamp and witness dependencies apply.
 links:
   - label: Receipt Spec
@@ -16,4 +16,13 @@ published: true
 order: 20
 ---
 
-The current proof path includes DSSE, RFC 3161 binding, in-toto alignment, receipt chaining, bundle packaging, and offline verification flow.
+At the time of this milestone, the proof design lane included DSSE, RFC 3161
+binding, in-toto alignment, receipt chaining, bundle packaging, and offline
+verification flow.
+
+Current contract note (2026-08-24): the public `/verify` surface is receipt-only.
+For the Public Exposure Review profile it checks bounded receipt structure and
+preserves an `indeterminate` result because evidence bytes, workflow execution,
+signer authorization, and cryptographic trust inputs are not independently
+checked there. The canonical receipt/profile pair is
+`witnessops.receipt.v0` plus `witnessops.verification_context.v1`.

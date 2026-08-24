@@ -17,7 +17,7 @@ Readers confuse three ideas:
 
 - Mesh health receipts across operator-managed nodes
 - VaultMesh federation branding and ingest URLs
-- WitnessOps `/verify` receipt-first checks (PV/QV/WV v1)
+- WitnessOps `/verify` receipt-only checks (PV/QV/WV compatibility plus current product profiles)
 
 This page maps them without collapsing trust surfaces.
 
@@ -45,7 +45,7 @@ Mesh federation is **operator infrastructure hygiene**. It supports how you run 
 | --- | --- | --- |
 | Mesh receipt | Documented child receipts, gate rules, redaction ADR | None beyond declared gate semantics |
 | vmesh ingest | Client schema and dry-run publish in operator lane | Availability of EU ingest endpoint is environment-specific |
-| `/verify` | Receipt-first v1 scope on the public verifier | Shield proof-packs may require schema alignment before verify |
+| `/verify` | Receipt-only v1 scope on the public verifier | Proof packages remain outside this input boundary |
 
 ## 5. Trust assumptions
 

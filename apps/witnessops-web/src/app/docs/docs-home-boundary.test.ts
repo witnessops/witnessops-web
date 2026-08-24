@@ -9,7 +9,8 @@ test("docs home stays small: start paths, browse hubs, limits — not a long mat
   assert.match(page, /Documentation/);
   assert.match(page, /Check a receipt first/);
   assert.match(page, /Try an example/);
-  assert.match(page, /A valid result confirms the checks named in that receipt/);
+  assert.match(page, /The default example is indeterminate/);
+  assert.match(page, /were not independently checked/);
   assert.match(page, /Buyer path/);
   assert.match(page, /Verify a receipt/);
   assert.match(page, /href="\/verify"/);

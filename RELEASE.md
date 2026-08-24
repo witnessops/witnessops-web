@@ -147,20 +147,26 @@ Record the rollback command, resulting image references, rollout status, HTTP
 results, and CSS parity. Caddy or DNS rollback belongs to its separately
 authorized lane.
 
-## Retired release and deployment instructions
+## Artifact publication is separate from runtime deployment
 
-The former SemVer/GHCR path is historical and is not live release or deployment
-authority. Do not use the following as the production procedure unless a future
-authority lane explicitly reactivates and revalidates it:
+`.github/workflows/release.yml` and `.github/workflows/build-image.yml` are
+executable artifact-publication surfaces. Depending on their authenticated
+trigger, they can build and publish GHCR images, attach supply-chain material,
+sign artifacts, and create a GitHub Release. Their definitions are not evidence
+that a particular run succeeded; use the actual workflow run and published
+artifacts for that claim.
 
-- SemVer tag-driven deployment instructions;
-- `.github/workflows/release.yml` or `build-image.yml` as proof of a current
-  release or deploy;
-- GHCR `stable`, version, or SHA images as the current runtime source;
-- cosign or SBOM statements based only on historical workflow definitions;
-- `deploy/scripts/deploy.sh` and the retired Docker Compose path; or
-- historical Azure deployment material.
+Running either workflow requires separate release/publication authority. Neither
+workflow is the current private-k3s runtime deployment path, and a published GHCR
+image or GitHub Release does not prove `witnessops.com` was deployed.
 
-Historical files may remain for reconstruction. Their presence does not prove
-that a workflow ran, an artifact was signed, an SBOM was generated, an image was
-published, or a release was deployed.
+These paths remain historical for live runtime deployment:
+
+- SemVer tags or GHCR `stable`, version, or SHA images as the current runtime
+  source;
+- `deploy/scripts/deploy.sh` and the Docker Compose path; and
+- archived Azure deployment material.
+
+If the GitHub workflows are intended to be retired completely, disable their
+triggers in a separate reviewed code change; documentation alone does not retire
+an executable workflow.

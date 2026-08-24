@@ -20,6 +20,8 @@ export interface VerifyCheckView {
   status: VerifyCheckStatus;
   detail?: string;
   code?: VerificationVerdict_["breaches"][number]["code"];
+  /** Additive API alias retained for an older check identifier; hidden in UI. */
+  compatibilityAliasFor?: string;
 }
 
 export interface VerifyBreachView {

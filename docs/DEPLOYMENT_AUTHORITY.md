@@ -98,7 +98,11 @@ or update that Secret.
 - Mesh-dev `hostNetwork` + emptyDir volumes (no prod PVC)
 - Prod hostPort `127.0.0.1:3000` + public Caddy edge
 
-### Operator env
+### Selected operator controls
+
+The table below is not the complete topology contract. The deployment scripts
+fail closed unless every required value in `deploy/topology.env.example` is
+loaded before they are invoked.
 
 | Variable | Source | Notes |
 | --- | --- | --- |

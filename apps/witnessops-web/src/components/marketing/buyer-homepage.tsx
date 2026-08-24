@@ -48,7 +48,7 @@ const localizedCopy = {
     checkTitle: "Check it yourself",
     checkLead: "Don't take the record on trust. Check it yourself.",
     checkBody:
-      "Open a sample receipt at Verify a receipt and choose Try an example. A valid result confirms the checks named in the receipt. It does not prove that a finding is true, that the reviewed system is secure, or that every underlying action was correct. It does not prove the full runtime story.",
+      "Open Verify a receipt and choose Try an example. The current example is indeterminate: receipt-scoped checks ran, but required evidence and trust inputs were not independently checked. It does not prove that a finding is true, that the reviewed system is secure, or that every underlying action was correct.",
     whoTitle: "Who is behind it",
     whoKarol: "Karol Stefanski, founder",
     whoKarolHref: "https://www.linkedin.com/in/karol-s",
@@ -101,7 +101,7 @@ const localizedCopy = {
     checkTitle: "Sprawdź sam",
     checkLead: "Nie wierz zapisowi na słowo. Sprawdź sam.",
     checkBody:
-      "Otwórz przykładowy zapis na stronie weryfikacji i wybierz Try an example. Wynik ważny potwierdza kontrole wskazane w zapisie. Nie dowodzi, że ustalenie jest prawdziwe, że system jest bezpieczny, że każde działanie w tle było poprawne, ani pełnej historii działania.",
+      "Otwórz stronę weryfikacji i wybierz Try an example. Obecny przykład daje wynik nieokreślony: wykonano kontrole zapisu, ale wymaganych dowodów i danych zaufania nie sprawdzono niezależnie. Nie dowodzi to, że ustalenie jest prawdziwe, system jest bezpieczny ani każde działanie było poprawne.",
     whoTitle: "Kto za tym stoi",
     whoKarol: "Karol Stefanski, założyciel",
     whoKarolHref: "https://www.linkedin.com/in/karol-s",

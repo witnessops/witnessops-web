@@ -44,7 +44,7 @@ const primaryPaths = [
     href: "/verify",
     title: "Verify a receipt",
     description:
-      "Sixty seconds: open the verifier, choose Try an example, and read what valid means.",
+      "Sixty seconds: open the verifier, choose Try an example, and inspect why the receipt-only result is incomplete.",
     cta: "Open verifier",
     externalToDocs: true,
   },
@@ -156,9 +156,8 @@ export default async function DocsIndexPage() {
           </li>
           <li>Choose <strong>Try an example</strong>, or paste a sample receipt JSON.</li>
           <li>
-            A valid result confirms the checks named in that receipt. It does not
-            prove the system is secure or that every underlying action was
-            correct.
+            The default example is indeterminate: inspect the checks that ran and
+            the evidence and trust inputs that were not independently checked.
           </li>
         </ol>
         <p className="mt-3 max-w-[40rem] text-sm leading-relaxed text-text-muted">
@@ -303,12 +302,13 @@ export default async function DocsIndexPage() {
         </h2>
         <ul className="mt-3 space-y-2 text-sm leading-relaxed text-text-muted">
           <li>
-            A valid public receipt result confirms the checks named in that
-            receipt. It does not prove every underlying action was correct.
+            A public receipt-only result names the checks that ran and remains
+            indeterminate when required evidence or trust inputs were not
+            independently checked.
           </li>
           <li>
-            Independent verification still depends on trusted keys and the
-            materials you actually have.
+            Full-package verification also depends on complete evidence and
+            independently selected, active trust inputs.
           </li>
           <li>
             These docs do not claim complete runtime truth or production
