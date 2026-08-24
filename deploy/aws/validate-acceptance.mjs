@@ -327,7 +327,9 @@ export function stagingReadinessErrors(contract, record) {
   add(
     Array.isArray(image?.runtime_image_ids) &&
       image.runtime_image_ids.length >= 2 &&
-      image.runtime_image_ids.every((item) => SHA256.test(item)),
+      image.runtime_image_ids.every(
+        (item) => SHA256.test(item) && item === image.config_digest,
+      ),
     "prod and mesh runtime image ids are incomplete",
   );
 
@@ -374,6 +376,8 @@ export function stagingReadinessErrors(contract, record) {
       record.deployment_automation,
       record.source?.head,
       record.image?.manifest_ref,
+      record.image?.config_digest,
+      record.target?.aws_account_id,
     ),
   );
 

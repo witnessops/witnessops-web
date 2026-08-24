@@ -19,6 +19,8 @@ const template = readJson(
 const digest = (character) => `sha256:${character.repeat(64)}`;
 const sourceHead = "a".repeat(40);
 const manifestRef = `123456789012.dkr.ecr.eu-central-1.amazonaws.com/witnessops-web@${digest("b")}`;
+const configDigest = digest("c");
+const targetAwsAccountId = "123456789012";
 
 function makeReadyDeploymentEvidence() {
   return {
@@ -38,6 +40,8 @@ function makeReadyDeploymentEvidence() {
       oidc_audience: "sts.amazonaws.com"
     },
     aws: {
+      cloudformation_staging_deployer_role_arn:
+        "arn:aws:iam::123456789012:role/witnessops-staging-deployer",
       role_arn: "arn:aws:iam::123456789012:role/witnessops-staging-deployer",
       role_session_name: "github-9876543210-1",
       sts_principal_arn:
@@ -63,8 +67,8 @@ function makeReadyDeploymentEvidence() {
       requested_image_ref: manifestRef,
       observed_prod_image_ref: manifestRef,
       observed_mesh_image_ref: manifestRef,
-      observed_prod_runtime_image_id: digest("f"),
-      observed_mesh_runtime_image_id: digest("1"),
+      observed_prod_runtime_image_id: configDigest,
+      observed_mesh_runtime_image_id: configDigest,
       adapter_result: "pass"
     }
   };
@@ -222,6 +226,30 @@ test("production environment cannot enable self-review", () => {
   }
 });
 
+test("deployment contract preserves every non-authorized Phase 2 boundary", () => {
+  for (const boundary of ["candidate_registration", "production_secret_change"]) {
+    const changed = structuredClone(contract);
+    changed.authority.not_authorized = changed.authority.not_authorized.filter(
+      (item) => item !== boundary,
+    );
+    assert.throws(
+      () => validateGithubDeploymentContract(changed),
+      new RegExp(`contract does not forbid ${boundary}`),
+    );
+  }
+});
+
+test("deployment contract declares the adapter result as required evidence", () => {
+  const changed = structuredClone(contract);
+  changed.acceptance.required_fields = changed.acceptance.required_fields.filter(
+    (item) => item !== "adapter_result",
+  );
+  assert.throws(
+    () => validateGithubDeploymentContract(changed),
+    /deployment acceptance fields has the wrong item count|deployment acceptance fields is missing adapter_result/,
+  );
+});
+
 test("deployment contract pins the one reviewed host adapter path", () => {
   const changedDocument = structuredClone(contract);
   changedDocument.ssm.documents[0].adapter_path = "/usr/local/sbin/other-adapter";
@@ -258,6 +286,15 @@ test("deployment source rejects credential-shaped JSON keys", () => {
     assert.throws(
       () => validateCloudFormationTemplate(contract, changedTemplate),
       /CloudFormation template contains credentials/,
+    );
+  }
+
+  for (const separator of [":", "="]) {
+    const changedContract = structuredClone(contract);
+    changedContract.test_only = `AWS_SECRET_ACCESS_KEY ${separator} test-placeholder-not-a-secret`;
+    assert.throws(
+      () => validateGithubDeploymentContract(changedContract),
+      /GitHub deployment contract contains credentials/,
     );
   }
 });
@@ -395,12 +432,29 @@ test("template has an exact resource inventory and no transforms", () => {
 test("complete staging deployment evidence is reconstructable and tampering blocks readiness", () => {
   const evidence = makeReadyDeploymentEvidence();
   assert.equal(validateDeploymentEvidenceStructure(contract, evidence), true);
-  assert.deepEqual(deploymentEvidenceErrors(contract, evidence, sourceHead, manifestRef), []);
+  assert.deepEqual(
+    deploymentEvidenceErrors(
+      contract,
+      evidence,
+      sourceHead,
+      manifestRef,
+      configDigest,
+      targetAwsAccountId,
+    ),
+    [],
+  );
 
   const missingTrust = structuredClone(evidence);
   missingTrust.github.oidc_subject = null;
   assert.ok(
-    deploymentEvidenceErrors(contract, missingTrust, sourceHead, manifestRef).includes(
+    deploymentEvidenceErrors(
+      contract,
+      missingTrust,
+      sourceHead,
+      manifestRef,
+      configDigest,
+      targetAwsAccountId,
+    ).includes(
       "GitHub OIDC subject is missing or not immutable staging",
     ),
   );
@@ -409,7 +463,14 @@ test("complete staging deployment evidence is reconstructable and tampering bloc
   wrongWorkflow.github.job_workflow_ref =
     "witnessops/witnessops-web/.github/workflows/unreviewed.yml@refs/heads/main";
   assert.ok(
-    deploymentEvidenceErrors(contract, wrongWorkflow, sourceHead, manifestRef).includes(
+    deploymentEvidenceErrors(
+      contract,
+      wrongWorkflow,
+      sourceHead,
+      manifestRef,
+      configDigest,
+      targetAwsAccountId,
+    ).includes(
       "GitHub deployment did not use the reserved reusable workflow",
     ),
   );
@@ -417,7 +478,14 @@ test("complete staging deployment evidence is reconstructable and tampering bloc
   const failedScanPolicy = structuredClone(evidence);
   failedScanPolicy.aws.ecr_scan_policy_result = "fail";
   assert.ok(
-    deploymentEvidenceErrors(contract, failedScanPolicy, sourceHead, manifestRef).includes(
+    deploymentEvidenceErrors(
+      contract,
+      failedScanPolicy,
+      sourceHead,
+      manifestRef,
+      configDigest,
+      targetAwsAccountId,
+    ).includes(
       "ECR scan acceptance policy did not pass",
     ),
   );
@@ -426,7 +494,14 @@ test("complete staging deployment evidence is reconstructable and tampering bloc
   mutableImage.runtime.requested_image_ref =
     "123456789012.dkr.ecr.eu-central-1.amazonaws.com/witnessops-web:latest";
   assert.ok(
-    deploymentEvidenceErrors(contract, mutableImage, sourceHead, manifestRef).includes(
+    deploymentEvidenceErrors(
+      contract,
+      mutableImage,
+      sourceHead,
+      manifestRef,
+      configDigest,
+      targetAwsAccountId,
+    ).includes(
       "requested ECR image is not a Frankfurt digest-qualified reference",
     ),
   );
@@ -435,8 +510,15 @@ test("complete staging deployment evidence is reconstructable and tampering bloc
   crossedAccount.aws.sts_principal_arn =
     "arn:aws:sts::999999999999:assumed-role/witnessops-staging-deployer/github-9876543210-1";
   assert.ok(
-    deploymentEvidenceErrors(contract, crossedAccount, sourceHead, manifestRef).includes(
-      "IAM role, STS principal, ECR repository, and image reference use different AWS accounts",
+    deploymentEvidenceErrors(
+      contract,
+      crossedAccount,
+      sourceHead,
+      manifestRef,
+      configDigest,
+      targetAwsAccountId,
+    ).includes(
+      "CloudFormation role, IAM role, STS principal, ECR repository, image reference, and target use different AWS accounts",
     ),
   );
 
@@ -444,9 +526,72 @@ test("complete staging deployment evidence is reconstructable and tampering bloc
   wrongSession.aws.sts_principal_arn =
     "arn:aws:sts::123456789012:assumed-role/witnessops-staging-deployer/github-different";
   assert.ok(
-    deploymentEvidenceErrors(contract, wrongSession, sourceHead, manifestRef).includes(
+    deploymentEvidenceErrors(
+      contract,
+      wrongSession,
+      sourceHead,
+      manifestRef,
+      configDigest,
+      targetAwsAccountId,
+    ).includes(
       "STS principal session differs from the recorded role session",
     ),
+  );
+
+  const unrelatedSameAccountRole = structuredClone(evidence);
+  unrelatedSameAccountRole.aws.role_arn =
+    "arn:aws:iam::123456789012:role/unrelated-administrator";
+  unrelatedSameAccountRole.aws.sts_principal_arn =
+    "arn:aws:sts::123456789012:assumed-role/unrelated-administrator/github-9876543210-1";
+  assert.ok(
+    deploymentEvidenceErrors(
+      contract,
+      unrelatedSameAccountRole,
+      sourceHead,
+      manifestRef,
+      configDigest,
+      targetAwsAccountId,
+    ).includes("AWS deployment role differs from the CloudFormation staging deployer role"),
+  );
+
+  const wrongTargetAccount = "999999999999";
+  assert.ok(
+    deploymentEvidenceErrors(
+      contract,
+      evidence,
+      sourceHead,
+      manifestRef,
+      configDigest,
+      wrongTargetAccount,
+    ).includes(
+      "CloudFormation role, IAM role, STS principal, ECR repository, image reference, and target use different AWS accounts",
+    ),
+  );
+
+  const staleProdRuntime = structuredClone(evidence);
+  staleProdRuntime.runtime.observed_prod_runtime_image_id = digest("9");
+  assert.ok(
+    deploymentEvidenceErrors(
+      contract,
+      staleProdRuntime,
+      sourceHead,
+      manifestRef,
+      configDigest,
+      targetAwsAccountId,
+    ).includes("prod runtime image id differs from the manifest-bound config digest"),
+  );
+
+  const staleMeshRuntime = structuredClone(evidence);
+  staleMeshRuntime.runtime.observed_mesh_runtime_image_id = digest("8");
+  assert.ok(
+    deploymentEvidenceErrors(
+      contract,
+      staleMeshRuntime,
+      sourceHead,
+      manifestRef,
+      configDigest,
+      targetAwsAccountId,
+    ).includes("mesh runtime image id differs from the manifest-bound config digest"),
   );
 
   const wrongRepository = structuredClone(evidence);

@@ -146,10 +146,13 @@ stage tags and separate documents prevent a staging role from targeting the
 production stage and vice versa.
 
 Staging acceptance must record the GitHub run/attempt, reusable workflow ref,
-OIDC subject/audience, AWS role/session and STS principal, ECR repository/digest,
-observed scan configuration/findings/policy result, SSM node/document
-version/document digest/command ID/status, CloudWatch log group, host-adapter
-digest, requested image, and observed prod/mesh runtime identities. Missing or
+OIDC subject/audience, the CloudFormation staging-role output, the assumed AWS
+role/session and STS principal, ECR repository/digest, observed scan
+configuration/findings/policy result, SSM node/document version/document
+digest/command ID/status, CloudWatch log group, host-adapter digest, requested
+image, and observed prod/mesh runtime identities. The role, STS, repository,
+image, and CloudFormation output must use the recorded target AWS account, and
+both runtime identities must equal the manifest-bound config digest. Missing or
 mismatched trust and artifact inputs block readiness; they are not inferred from
 an HTTP 200.
 
@@ -332,8 +335,10 @@ Required staging evidence:
    lanes.
 6. Candidate-local routes for home, request, verify, security, and support.
 7. GitHub OIDC deployment identity: run/attempt, immutable claims, reserved
-   reusable workflow, STS principal, ECR digest and scan-policy evidence, SSM
-   node/document/command, adapter digest, logs, and runtime digests.
+   reusable workflow, CloudFormation staging-role output, exact assumed role and
+   STS principal, target-account binding, ECR digest and scan-policy evidence,
+   SSM node/document/command, adapter digest, logs, and manifest-bound runtime
+   config digests.
 8. Public Exposure Review receipt-only behavior:
    - recognized profile → `indeterminate`;
    - malformed profile → `invalid`;
