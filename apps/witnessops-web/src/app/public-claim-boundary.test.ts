@@ -15,6 +15,7 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/components/marketing/buyer-homepage.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",
   "src/lib/buyer-services.ts",
+  "src/lib/professional-public-footprint-audit.ts",
   "src/app/proof-backed-security-systems/page.tsx",
   "src/app/docs/page.tsx",
   "src/app/review/page.tsx",
@@ -108,6 +109,7 @@ const REQUIRED_BOUNDARY_MARKERS = [
 
 const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
   "src/lib/buyer-services.ts",
+  "src/lib/professional-public-footprint-audit.ts",
   "src/components/marketing/buyer-catalogue.tsx",
   "src/components/marketing/buyer-homepage.tsx",
   "src/components/marketing/homepage-synthetic-preview.ts",

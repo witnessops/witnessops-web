@@ -12,6 +12,7 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/catalog/offsec-launch-ready",
   "/catalog/offsec-custody-ops",
   "/catalog/offsec-incident-ready",
+  "/catalog/professional-public-footprint-audit",
   "/library",
   "/pricing",
   "/review/sample-cases",
@@ -27,6 +28,7 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/customer-security-review",
   "/pl/customer-security-review",
   "/pl/library",
+  "/pl/catalog/professional-public-footprint-audit",
   "/review/sample-cases/approval-gated-containment",
   "/review/sample-cases/privileged-access-grant",
 ] as const;

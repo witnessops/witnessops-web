@@ -19,12 +19,13 @@ const expectedOrder = [
   "launch-readiness-check",
   "key-access-custody-review",
   "incident-readiness-review",
+  "professional-public-footprint-audit",
 ];
 
 test("English and Polish catalogue pages render one shared offer contract", () => {
   assert.match(englishPage, /BuyerCatalogue locale="en"/);
   assert.match(polishPage, /<BuyerCatalogue locale="pl" \/>/);
-  assert.equal(BUYER_SERVICES.length, 7);
+  assert.equal(BUYER_SERVICES.length, 8);
   assert.deepEqual(BUYER_SERVICES.map((service) => service.id), expectedOrder);
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "OFFSEC-PILOT"));
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "SBOM-MIN-ELEMENTS"));
@@ -83,6 +84,25 @@ test("each public offer carries a localized commercial boundary", () => {
       );
     }
   }
+});
+
+test("professional public footprint audit keeps its request-only bilingual contract", () => {
+  const audit = BUYER_SERVICES.find(
+    (service) => service.id === "professional-public-footprint-audit",
+  );
+
+  assert.equal(audit?.productId, undefined);
+  assert.equal(audit?.homepageFeatured, false);
+  assert.equal(audit?.pricingVisible, false);
+  assert.equal(audit?.availability?.status, "available_by_request");
+  assert.equal(audit?.availability?.label.en, "Available by request");
+  assert.equal(audit?.availability?.label.pl, "Dostępny na zapytanie");
+  assert.equal(audit?.price.en, "€4,900 excluding VAT");
+  assert.equal(audit?.price.pl, "4 900 EUR netto");
+  assert.equal(audit?.timing.en, "7–10 working days");
+  assert.equal(audit?.timing.pl, "7–10 dni roboczych");
+  assert.equal(audit?.requestCta?.en, "Request this audit");
+  assert.equal(audit?.requestCta?.pl, "Zapytaj o audyt");
 });
 
 test("secondary details are exposed only for localized pages that exist", () => {

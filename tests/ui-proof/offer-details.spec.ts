@@ -89,6 +89,22 @@ const offers = [
     timing: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
     request: "/pl/review/request",
   },
+  {
+    path: "/catalog/professional-public-footprint-audit",
+    service: "professional-public-footprint-audit",
+    name: "Professional Public Footprint Audit",
+    price: "€4,900 excluding VAT",
+    timing: "7–10 working days",
+    request: "/review/request",
+  },
+  {
+    path: "/pl/catalog/professional-public-footprint-audit",
+    service: "professional-public-footprint-audit",
+    name: "Audyt publicznego śladu zawodowego",
+    price: "4 900 EUR netto",
+    timing: "7–10 dni roboczych",
+    request: "/pl/review/request",
+  },
 ] as const;
 
 const viewports = [
@@ -145,7 +161,34 @@ test("reachable offer details use the canonical buyer contract and visual system
         );
       }
       await expect(main).toContainText(offer.timing);
+      await expect(main).toContainText(offer.price);
       await expect(main.locator("h1")).not.toContainText(/OFFSEC-|Proof packages/i);
+
+      if (offer.service === "professional-public-footprint-audit") {
+        await expect(main).toContainText(
+          offer.path.startsWith("/pl") ? "Dostępny na zapytanie" : "Available by request",
+        );
+        await expect(main.locator(`a[href="${offer.request}"]`).first()).toHaveText(
+          offer.path.startsWith("/pl") ? "Zapytaj o audyt" : "Request this audit",
+        );
+        await expect(main).toContainText(
+          offer.path.startsWith("/pl")
+            ? "Jedna osoba, która wyraziła zgodę"
+            : "One consenting professional",
+        );
+        await expect(main).toContainText(
+          offer.path.startsWith("/pl") ? "Ciągły monitoring" : "Ongoing monitoring",
+        );
+        await expect(main).toContainText(
+          offer.path.startsWith("/pl") ? "Porady prawne" : "Legal advice",
+        );
+        await expect(
+          main.locator('[data-service-availability="available_by_request"]'),
+        ).toHaveCount(1);
+        await expect(
+          main.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]'),
+        ).toHaveCount(0);
+      }
 
       const metrics = await main.evaluate((element) => ({
         background: getComputedStyle(element).backgroundColor,
@@ -160,10 +203,16 @@ test("reachable offer details use the canonical buyer contract and visual system
         const link = requestLinks.nth(index);
         const href = await link.getAttribute("href");
         expect(href).toMatch(new RegExp(`^${offer.request}`));
-        if (offer.path.startsWith("/pl")) {
+        if (
+          offer.path.startsWith("/pl") &&
+          offer.service !== "professional-public-footprint-audit"
+        ) {
           expect(new URL(href ?? "", "http://witnessops.test").searchParams.get("offer")).toBe(
             offer.name,
           );
+        }
+        if (offer.service === "professional-public-footprint-audit") {
+          expect(href).toBe(offer.request);
         }
         if (offer.service === "external-exposure-assessment") {
           expect(new URL(href ?? "", "http://witnessops.test").searchParams.get("productId")).toBe(

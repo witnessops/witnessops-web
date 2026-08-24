@@ -305,6 +305,54 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     sampleHref: "/review/sample-cases/incident-readiness-review",
     sampleLabel: "Inspect incident-readiness sample",
   },
+  "professional-public-footprint-audit": {
+    headline: "Know what the public record supports — and where it can mislead.",
+    whoFor:
+      "A professional, partner, founder or executive who wants a bounded, evidence-backed view of their own public professional footprint before clients, counterparties, referrers or automated research systems form conclusions from it.",
+    deliverables: [
+      "concise 3–5 page “what the internet sees” mirror",
+      "canonical professional fact sheet",
+      "public claim-to-evidence audit",
+      "prioritised correction and clarification register",
+      "private evidence appendix",
+      "60-minute subject review and correction session",
+      "password-protected offline report bundle",
+    ],
+    steps: [
+      [
+        "Consent and fit check",
+        "Confirm that the professional is ordering the review or has given documented authorisation, then name one professional and one primary firm without sending confidential material.",
+      ],
+      [
+        "Research protocol",
+        "Fix the research date, identity markers, public professional source set, repeatable searches, scope limits and stop conditions.",
+      ],
+      [
+        "Public-evidence review",
+        "Map material conclusions to attributable sources and distinguish independent support, self- or firm-published claims, reasonable inference, conflicts, stale information and what cannot be established.",
+      ],
+      [
+        "Private handover and correction",
+        "Deliver the password-protected offline bundle, review it with the subject for 60 minutes and record corrections without turning private assertions into public facts.",
+      ],
+    ],
+    scopeLimits: [
+      "One consenting professional",
+      "One primary firm",
+      "Public professional sources only",
+      "A defined source set and repeatable searches as of the stated research date",
+    ],
+    boundaries: [
+      "The service may be ordered only by the professional being reviewed or by an organisation with documented authorisation from that professional.",
+      "No employer, client, counterparty, institution or other person is contacted.",
+      "The report documents what the defined public-source protocol supports, contradicts, leaves ambiguous or cannot establish; it does not claim to cover the whole internet.",
+      "Absence of public evidence is not treated as absence of experience, and public material is not treated as proof of private professional competence.",
+      "The service does not provide legal advice, make hiring decisions, investigate private conduct, manage reputation campaigns or assess cybersecurity.",
+    ],
+    commercialNote:
+      "Available by request. One consenting professional, one primary firm and public professional sources only.",
+    primaryCta: "Request this audit",
+  },
 };
 
 const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
@@ -591,6 +639,54 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
     sampleHref: "/review/sample-cases/incident-readiness-review",
     sampleLabel: "Zobacz przykład gotowości",
+  },
+  "professional-public-footprint-audit": {
+    headline: "Sprawdź, co potwierdza publiczny obraz — i gdzie może wprowadzać w błąd.",
+    whoFor:
+      "Dla osoby wykonującej zawód, partnera, założyciela lub osoby zarządzającej, która chce poznać ograniczony i oparty na źródłach obraz własnego publicznego śladu zawodowego, zanim klienci, kontrahenci, osoby polecające lub systemy AI wyciągną z niego wnioski.",
+    deliverables: [
+      "zwięzłe, 3–5-stronicowe odzwierciedlenie „co widzi internet”",
+      "kanoniczna karta faktów zawodowych",
+      "audyt publicznych twierdzeń względem źródeł",
+      "priorytetowy rejestr korekt i wyjaśnień",
+      "prywatny załącznik dowodowy",
+      "60-minutowa sesja weryfikacji i korekty z osobą objętą audytem",
+      "chroniony hasłem pakiet raportów offline",
+    ],
+    steps: [
+      [
+        "Zgoda i ocena dopasowania",
+        "Potwierdź, że przegląd zamawia osoba, której dotyczy, albo że udzieliła udokumentowanego upoważnienia, a następnie wskaż jedną osobę i jedną główną firmę bez przesyłania materiałów poufnych.",
+      ],
+      [
+        "Protokół badawczy",
+        "Ustal datę badania, identyfikatory osoby, zbiór publicznych źródeł zawodowych, powtarzalne wyszukiwania, granice zakresu i warunki zatrzymania.",
+      ],
+      [
+        "Przegląd publicznych źródeł",
+        "Przypisz istotne wnioski do źródeł i rozróżnij niezależne potwierdzenie, twierdzenia własne lub firmowe, rozsądne wnioskowanie, konflikty, nieaktualne informacje oraz kwestie niemożliwe do ustalenia.",
+      ],
+      [
+        "Prywatne przekazanie i korekta",
+        "Przekaż chroniony hasłem pakiet offline, omów go z osobą objętą audytem podczas 60-minutowej sesji i zapisz korekty bez przedstawiania prywatnych oświadczeń jako publicznych faktów.",
+      ],
+    ],
+    scopeLimits: [
+      "Jedna osoba, która wyraziła zgodę",
+      "Jedna główna firma",
+      "Wyłącznie publiczne źródła zawodowe",
+      "Zdefiniowany zbiór źródeł i powtarzalne wyszukiwania na wskazany dzień badania",
+    ],
+    boundaries: [
+      "Usługę może zamówić wyłącznie osoba objęta audytem albo organizacja posiadająca jej udokumentowane upoważnienie.",
+      "Nie kontaktujemy się z pracodawcami, klientami, kontrahentami, instytucjami ani innymi osobami.",
+      "Raport dokumentuje, co wspiera, czemu przeczy, co pozostawia niejednoznaczne lub czego nie pozwala ustalić zdefiniowany protokół publicznych źródeł; nie twierdzi, że obejmuje cały internet.",
+      "Brak publicznych źródeł nie jest traktowany jako brak doświadczenia, a materiały publiczne nie są traktowane jako dowód prywatnych kompetencji zawodowych.",
+      "Usługa nie zapewnia porad prawnych, nie służy do podejmowania decyzji o zatrudnieniu, nie bada prywatnego postępowania, nie prowadzi kampanii zarządzania reputacją ani nie ocenia cyberbezpieczeństwa.",
+    ],
+    commercialNote:
+      "Dostępny na zapytanie. Jedna osoba, która wyraziła zgodę, jedna główna firma i wyłącznie publiczne źródła zawodowe.",
+    primaryCta: "Zapytaj o audyt",
   },
 };
 

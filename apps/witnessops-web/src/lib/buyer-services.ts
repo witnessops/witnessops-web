@@ -10,9 +10,16 @@ export type BuyerService = {
     | "external-exposure-assessment"
     | "launch-readiness-check"
     | "key-access-custody-review"
-    | "incident-readiness-review";
+    | "incident-readiness-review"
+    | "professional-public-footprint-audit";
   productId?: string;
   homepageFeatured?: boolean;
+  pricingVisible?: boolean;
+  availability?: {
+    status: "available_by_request";
+    label: LocalizedText;
+  };
+  requestCta?: LocalizedText;
   commercialContract: {
     price: string;
     timing: string;
@@ -322,6 +329,59 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     detailHref: {
       en: "/catalog/offsec-incident-ready",
       pl: "/pl/catalog/offsec-incident-ready",
+    },
+  },
+  {
+    id: "professional-public-footprint-audit",
+    homepageFeatured: false,
+    pricingVisible: false,
+    availability: {
+      status: "available_by_request",
+      label: {
+        en: "Available by request",
+        pl: "Dostępny na zapytanie",
+      },
+    },
+    requestCta: {
+      en: "Request this audit",
+      pl: "Zapytaj o audyt",
+    },
+    commercialContract: {
+      price: "eur_4900_excluding_vat",
+      timing:
+        "seven_to_ten_working_days_after_consent_scope_and_public_source_protocol_confirmed",
+    },
+    name: {
+      en: "Professional Public Footprint Audit",
+      pl: "Audyt publicznego śladu zawodowego",
+    },
+    cardSituation: {
+      en: "See what clients, counterparties and AI systems can actually verify, infer or misunderstand about your professional footprint.",
+      pl: "Zobacz, co klienci, kontrahenci i systemy AI mogą rzeczywiście zweryfikować, wywnioskować lub błędnie zrozumieć na podstawie Twojego publicznego śladu zawodowego.",
+    },
+    situation: {
+      en: "Understand what a careful outsider can currently establish about one professional’s identity, work, public claims and visible expertise — and identify material inaccuracies, ambiguity and evidence gaps.",
+      pl: "Dowiedz się, co uważny odbiorca może obecnie ustalić o tożsamości zawodowej, pracy, publicznych twierdzeniach i widocznej wiedzy jednej osoby — oraz wskaż istotne nieścisłości, niejednoznaczności i luki dowodowe.",
+    },
+    result: {
+      en: "A concise public-footprint mirror, canonical fact sheet, claim-to-evidence audit, correction register and private evidence appendix, followed by a 60-minute subject review.",
+      pl: "Zwięzłe odzwierciedlenie publicznego śladu, kanoniczna karta faktów, audyt twierdzeń względem źródeł, rejestr korekt oraz prywatny załącznik dowodowy, a następnie 60-minutowa sesja weryfikacyjna.",
+    },
+    price: {
+      en: "€4,900 excluding VAT",
+      pl: "4 900 EUR netto",
+    },
+    timing: {
+      en: "7–10 working days",
+      pl: "7–10 dni roboczych",
+    },
+    boundary: {
+      en: "One consenting professional · one primary firm · public professional sources only. The audit documents the public record as of a stated date; it does not verify private competence or provide legal advice.",
+      pl: "Jedna osoba, która wyraziła zgodę · jedna główna firma · wyłącznie publiczne źródła zawodowe. Audyt dokumentuje publiczny obraz na wskazany dzień; nie potwierdza prywatnych kompetencji ani nie stanowi porady prawnej.",
+    },
+    detailHref: {
+      en: "/catalog/professional-public-footprint-audit",
+      pl: "/pl/catalog/professional-public-footprint-audit",
     },
   },
 ] as const;

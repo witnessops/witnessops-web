@@ -23,8 +23,8 @@ test("Polish homepage uses the approved naturalized headline and terminology", (
   assert.doesNotMatch(homePage, /Konkretna dostawa/);
 });
 
-test("public catalogue uses the approved English service names in Polish", () => {
-  assert.equal(BUYER_SERVICES.length, 7);
+test("public catalogue uses the approved service names in Polish", () => {
+  assert.equal(BUYER_SERVICES.length, 8);
   assert.deepEqual(
     BUYER_SERVICES.map((service) => service.name.pl),
     [
@@ -35,6 +35,7 @@ test("public catalogue uses the approved English service names in Polish", () =>
       "Launch Readiness Check",
       "Key, Access and Custody Review",
       "Incident Readiness Review",
+      "Audyt publicznego śladu zawodowego",
     ],
   );
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "OFFSEC-PILOT"));

@@ -119,7 +119,17 @@ export function BuyerServiceDetail({
 
         <header className="mt-8 grid gap-8 border-b border-surface-border pb-12 md:gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+            {service.availability ? (
+              <p
+                data-service-availability={service.availability.status}
+                className="inline-flex border border-surface-border bg-neutral-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted"
+              >
+                {service.availability.label[locale]}
+              </p>
+            ) : null}
+            <p
+              className={`${service.availability ? "mt-4 " : ""}text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent`}
+            >
               {service.name[locale]}
             </p>
             <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">

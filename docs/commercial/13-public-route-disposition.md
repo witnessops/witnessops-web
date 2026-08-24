@@ -5,6 +5,7 @@ This record separates confirmed route behavior from unresolved commercial decisi
 | Route or family | Classification | Implemented outcome | Evidence |
 | --- | --- | --- | --- |
 | `/catalog/offsec-external-exposure` and `/pl/catalog/offsec-external-exposure` | current | Keep public, indexable, canonical, and paired EN/PL | Authoritative Public Exposure Review contract: €1,900 excluding VAT; one authorised public-facing system; fixed-scope and human-led. |
+| `/catalog/professional-public-footprint-audit` and `/pl/catalog/professional-public-footprint-audit` | current secondary service | Keep public, indexable, canonical, paired EN/PL, and available only by request | Consent-based review of one professional and one primary firm using public professional sources only; €4,900 excluding VAT; general request route; no direct payment or Stripe link. Public Exposure Review remains the primary offer. |
 | `/catalog`, `/pricing`, `/review/request` and their genuine Polish equivalents | current | Keep public and indexable | Current buyer path and offer-correction contract. |
 | `/catalog/offsec-local-audit` and `/pl/catalog/offsec-local-audit` | unresolved current offer | Keep public and indexable | The remediation brief explicitly prohibits retirement by inference. |
 | `/catalog/offsec` | replacement available | Direct permanent redirect to `/catalog` | It is an aggregate of the same public security-review cards; `/catalog` is the complete current buyer catalogue. |

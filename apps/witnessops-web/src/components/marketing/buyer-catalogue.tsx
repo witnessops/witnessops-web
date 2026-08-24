@@ -149,6 +149,14 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                 data-timing-contract={service.commercialContract.timing}
                 className="flex h-full flex-col bg-white p-7 md:p-9"
               >
+                {service.availability ? (
+                  <p
+                    data-service-availability={service.availability.status}
+                    className="mb-3 inline-flex self-start border border-surface-border bg-neutral-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted"
+                  >
+                    {service.availability.label[locale]}
+                  </p>
+                ) : null}
                 <p className="text-sm leading-6 text-text-muted">
                   {service.cardSituation[locale]}
                 </p>
@@ -179,7 +187,7 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                     href={serviceRequestHref}
                     className="inline-flex min-h-11 items-center bg-black px-5 text-sm font-semibold text-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
                   >
-                    {text.primaryCta}
+                    {service.requestCta?.[locale] ?? text.primaryCta}
                   </Link>
                   {detailHref ? (
                     <Link
