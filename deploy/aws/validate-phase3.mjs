@@ -114,7 +114,7 @@ export function validatePhase3Sources(sources) {
   );
   assert(
     contract.workflows.immutable_tag_retry_strategy ===
-      "reuse_existing_source_tag_only_after_exact_manifest_config_and_source_label_validation",
+      "reuse_existing_source_tag_only_after_exact_registry_manifest_config_source_label_and_verified_local_build_config_digest_validation",
   );
   assert(contract.activation_gates.merge_required_before_host_install === true);
   assert(contract.activation_gates.config_digest_required === true);
@@ -279,6 +279,8 @@ export function validatePhase3Sources(sources) {
     "aws ecr describe-image-scan-findings",
     "ImageNotFound",
     'publication_mode="reused_existing_immutable_tag"',
+    'EXPECTED_BUILD_CONFIG_DIGEST: ${{ steps.local_image.outputs.config_digest }}',
+    '[[ "${config_digest}" == "${EXPECTED_BUILD_CONFIG_DIGEST}" ]]',
     "ecr-scan-findings.json",
     "ecr-manifest.json",
     "IN_PROGRESS|PENDING",

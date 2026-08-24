@@ -158,6 +158,19 @@ test("publisher must preserve retry recovery for an existing immutable source ta
   );
 });
 
+test("publisher must bind reused immutable tags to the verified local build identity", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace(
+      '[[ "${config_digest}" == "${EXPECTED_BUILD_CONFIG_DIGEST}" ]]',
+      '[[ "${config_digest}" =~ ^sha256: ]]',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(mutated),
+    /EXPECTED_BUILD_CONFIG_DIGEST/,
+  );
+});
+
 test("AWS image packages must retain reviewed Alpine versions", () => {
   const mutated = changed("dockerfile", (value) => value.replace("curl=8.21.0-r0", "curl"));
   assert.throws(() => validatePhase3Sources(mutated), /curl=8\.21\.0-r0/);

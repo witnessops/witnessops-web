@@ -197,9 +197,11 @@ self-tests only that staged pair before replacing either installed target.
 
 The publisher equality-binds its configured ECR URI to the reviewed account,
 Frankfurt region, and `witnessops-web` repository before requesting an ECR login
-token. It reuses an existing immutable source tag only after the ECR manifest,
-config digest, and source-revision label all match, so a failed post-push scan
-can be retried without overwriting or abandoning the source tag. After
+token. It derives the expected config digest from the hash-verified local build
+archive before requesting AWS identity. It reuses an existing immutable source
+tag only after the ECR manifest, config digest, source-revision label, and that
+local-build config digest all match, so self-declared registry metadata cannot
+authorize retry recovery. After
 `DescribeImageScanFindings` returns an exact-digest, completed inventory with
 zero critical and high findings, the publication run retains one non-secret,
 90-day GitHub artifact containing the exact ECR manifest, raw findings response,

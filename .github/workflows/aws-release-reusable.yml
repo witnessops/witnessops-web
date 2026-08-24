@@ -197,14 +197,19 @@ jobs:
           path: ${{ runner.temp }}/aws-image
 
       - name: Verify archive before requesting AWS identity
+        id: local_image
         env:
           EXPECTED_ARCHIVE_SHA256: ${{ needs.build_image.outputs.archive_sha256 }}
+          SOURCE_COMMIT: ${{ needs.validate.outputs.source_commit }}
         run: |
           printf '%s  %s\n' \
             "${EXPECTED_ARCHIVE_SHA256}" \
             "${RUNNER_TEMP}/aws-image/witnessops-web-aws.tar" \
             | sha256sum -c -
           docker load --input "${RUNNER_TEMP}/aws-image/witnessops-web-aws.tar"
+          config_digest="$(docker image inspect "witnessops-web-aws:${SOURCE_COMMIT}" --format '{{.Id}}')"
+          [[ "${config_digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
+          echo "config_digest=${config_digest}" >> "${GITHUB_OUTPUT}"
 
       - name: Configure the environment-scoped AWS publisher identity
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
@@ -221,6 +226,7 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
           ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
           ECR_REPOSITORY_URI: ${{ vars.AWS_ECR_REPOSITORY_URI }}
+          EXPECTED_BUILD_CONFIG_DIGEST: ${{ steps.local_image.outputs.config_digest }}
           SOURCE_COMMIT: ${{ needs.validate.outputs.source_commit }}
         run: |
           set -euo pipefail
@@ -274,6 +280,7 @@ jobs:
           [[ "${observed_manifest}" == "${image_digest}" ]]
           config_digest="$(jq -r '.config.digest' "${RUNNER_TEMP}/ecr-manifest.json")"
           [[ "${config_digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
+          [[ "${config_digest}" == "${EXPECTED_BUILD_CONFIG_DIGEST}" ]]
           [[ "$(docker image inspect "${target}" --format '{{.Id}}')" == "${config_digest}" ]]
           [[ "$(docker image inspect "${target}" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" == "${SOURCE_COMMIT}" ]]
           {
