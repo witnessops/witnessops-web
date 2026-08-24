@@ -1,0 +1,199 @@
+{
+  "record_version": "witnessops.aws_migration_acceptance.v1",
+  "contract_id": "witnessops.aws_lightsail_migration.v1",
+  "recorded_at": null,
+  "source": {
+    "head": null,
+    "tree_clean": null,
+    "current_host_receipt_ref": null
+  },
+  "target": {
+    "aws_account_id": null,
+    "region": "eu-central-1",
+    "availability_zone": null,
+    "instance_id": null,
+    "static_ipv4_observed": null,
+    "candidate_host_receipt_ref": null
+  },
+  "recovery_objectives": {
+    "rpo_minutes": null,
+    "rto_minutes": null,
+    "maintenance_window_minutes": null,
+    "approved": false
+  },
+  "image": {
+    "source_head": null,
+    "human_readable_alias": null,
+    "manifest_ref": null,
+    "config_digest": null,
+    "supply_chain_gate_result_sha256": null,
+    "runtime_image_ids": [],
+    "status": "not_run"
+  },
+  "state": [
+    {
+      "id": "intake_store",
+      "source_manifest_sha256": null,
+      "target_manifest_sha256": null,
+      "archive_sha256": null,
+      "source_file_count": null,
+      "target_file_count": null,
+      "source_bytes": null,
+      "target_bytes": null,
+      "target_empty": null,
+      "status": "not_run"
+    },
+    {
+      "id": "intake_events",
+      "source_manifest_sha256": null,
+      "target_manifest_sha256": null,
+      "archive_sha256": null,
+      "source_file_count": null,
+      "target_file_count": null,
+      "source_bytes": null,
+      "target_bytes": null,
+      "target_empty": null,
+      "status": "not_run"
+    },
+    {
+      "id": "mail_out",
+      "source_manifest_sha256": null,
+      "target_manifest_sha256": null,
+      "archive_sha256": null,
+      "source_file_count": null,
+      "target_file_count": null,
+      "source_bytes": null,
+      "target_bytes": null,
+      "target_empty": null,
+      "status": "not_run"
+    },
+    {
+      "id": "ask_receipts",
+      "source_manifest_sha256": null,
+      "target_manifest_sha256": null,
+      "archive_sha256": null,
+      "source_file_count": null,
+      "target_file_count": null,
+      "source_bytes": null,
+      "target_bytes": null,
+      "target_empty": null,
+      "status": "not_run"
+    },
+    {
+      "id": "ask_audits",
+      "source_manifest_sha256": null,
+      "target_manifest_sha256": null,
+      "archive_sha256": null,
+      "source_file_count": null,
+      "target_file_count": null,
+      "source_bytes": null,
+      "target_bytes": null,
+      "target_empty": null,
+      "status": "not_run"
+    }
+  ],
+  "trust_boundary": {
+    "pre_migration_policy_digest": null,
+    "post_migration_policy_digest": null,
+    "production_key_activation_performed": false,
+    "production_key_registry_changed": false,
+    "production_signing_private_key_present_on_candidate": false
+  },
+  "checks": [
+    {
+      "id": "repository_health_node22",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "k3s_contract_unit_tests",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "candidate_compute_capacity",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "candidate_edge_local",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "candidate_runtime_identity",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "candidate_dual_lane",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "candidate_public_routes",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "per_receipt_indeterminate",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "per_malformed_invalid",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "state_manifest_reconciliation",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "projection_reconstruction",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "secret_name_and_path_preflight",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "backup_restore_rehearsal",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "observability_alarm_test",
+      "status": "not_run",
+      "evidence_ref": null
+    },
+    {
+      "id": "rollback_rehearsal",
+      "status": "not_run",
+      "evidence_ref": null
+    }
+  ],
+  "observability": {
+    "ready": false,
+    "notification_contact_verified": false,
+    "alarm_fired_and_recovered": false,
+    "log_retention_and_redaction_recorded": false,
+    "owner": null
+  },
+  "rollback": {
+    "ready": false,
+    "old_host_retained": false,
+    "known_good_image_ref": null,
+    "state_reverse_sync_plan_recorded": false
+  },
+  "cutover": {
+    "authorized": false,
+    "approval_reference": null,
+    "performed": false,
+    "dns_changed": false,
+    "decision": "not_evaluated"
+  }
+}
