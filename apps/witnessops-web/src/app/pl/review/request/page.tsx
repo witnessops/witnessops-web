@@ -7,21 +7,38 @@ import { POLISH_NO_SECRETS_NOTE, POLISH_OFFERS } from "@/lib/public-i18n";
 import { getSku } from "@witnessops/catalog";
 import { languageAlternates } from "@/lib/public-seo";
 
-export const metadata: Metadata = {
-  title: "Opowiedz, co wymaga sprawdzenia",
-  description: "Opisz niepoufnie ankietę, serwer, wdrożenie, incydent, zmianę dostępu lub działanie, które wymaga sprawdzenia.",
-  alternates: languageAlternates("/pl/review/request", {
-    en: "/review/request",
-    pl: "/pl/review/request",
-  }),
-};
-
 type Props = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
+
+function oneParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const params = (await searchParams) ?? {};
+  const productId = oneParam(params.productId);
+  const requestedSku = productId ? getSku(productId) : undefined;
+  const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
+    ? requestedSku
+    : undefined;
+  const publicExposureOrder = sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
+
+  return {
+    title: publicExposureOrder
+      ? "Rozpocznij Public Exposure Review"
+      : "Opowiedz, co wymaga sprawdzenia",
+    description: publicExposureOrder
+      ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów."
+      : "Opisz niepoufnie ankietę, serwer, wdrożenie, incydent, zmianę dostępu lub działanie, które wymaga sprawdzenia.",
+    alternates: languageAlternates("/pl/review/request", {
+      en: "/review/request",
+      pl: "/pl/review/request",
+    }),
+  };
+}
 
 export default async function PolishReviewRequestPage({ searchParams }: Props) {
   const params = (await searchParams) ?? {};
-  const one = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
-  const productId = one(params.productId);
+  const productId = oneParam(params.productId);
   const requestedSku = productId ? getSku(productId) : undefined;
   const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
     ? requestedSku
@@ -36,14 +53,25 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         timing: buyerService.timing.pl,
       }
     : polishOffer;
+  const publicExposureOrder = sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
 
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-16">
       <header className="mb-8 max-w-[720px]">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">Zgłoszenie przeglądu</p>
-        <h1 className="mt-3 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">Opowiedz, co wymaga sprawdzenia</h1>
-        <p className="mt-4 text-base leading-7 text-text-muted">To pierwsza rozmowa o dopasowaniu, a nie przekazanie dowodów. Opisz własnymi słowami ankietę, serwer, wdrożenie, incydent, zmianę dostępu lub działanie, które wymaga przeglądu.</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
+          {publicExposureOrder ? "Public Exposure Review" : "Zgłoszenie przeglądu"}
+        </p>
+        <h1 className="mt-3 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">
+          {publicExposureOrder
+            ? "Rozpocznij Public Exposure Review"
+            : "Opowiedz, co wymaga sprawdzenia"}
+        </h1>
+        <p className="mt-4 text-base leading-7 text-text-muted">
+          {publicExposureOrder
+            ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu."
+            : "To pierwsza rozmowa o dopasowaniu, a nie przekazanie dowodów. Opisz własnymi słowami ankietę, serwer, wdrożenie, incydent, zmianę dostępu lub działanie, które wymaga przeglądu."}
+        </p>
         {selectedOffer ? <div className="mt-5 border border-brand-accent/30 bg-brand-accent/5 p-4 text-sm leading-6 text-text-secondary"><p className="font-semibold text-brand-accent">Wybrana oferta: {selectedOffer.name}</p><p className="mt-2">Cena: {selectedOffer.price}</p><p>Termin: {selectedOffer.timing}</p></div> : null}
         <p className="mt-4 text-sm leading-7 text-text-muted">{POLISH_NO_SECRETS_NOTE}</p>
       </header>

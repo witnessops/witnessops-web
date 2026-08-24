@@ -9,6 +9,17 @@ const form = readFileSync(
   "utf-8",
 );
 
+test("Polish PER request chrome mirrors the English offer-specific header", () => {
+  assert.match(page, /sku\?\.id === "OFFSEC-EXTERNAL-EXPOSURE"/);
+  assert.match(page, /generateMetadata/);
+  assert.match(page, /Rozpocznij Public Exposure Review/);
+  assert.match(
+    page,
+    /Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu/,
+  );
+  assert.match(page, /Opowiedz, co wymaga sprawdzenia/);
+});
+
 test("Polish review request selects the native Polish form copy", () => {
   assert.ok(page.includes('<ContactForm locale="pl" intent={sku?.id ?? "review"} />'));
   for (const marker of [

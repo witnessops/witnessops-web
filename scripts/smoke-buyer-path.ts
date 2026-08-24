@@ -454,6 +454,20 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     prohibitedMarkers: ["Opowiedz, co się wydarzyło"],
   },
   {
+    path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
+    requiredMarkers: [
+      "Public Exposure Review",
+      "Rozpocznij Public Exposure Review",
+      "Wskaż jeden system publicznie dostępny i podstawę upoważnienia",
+      "Rozmowa sprzedażowa nie jest wymagana",
+      "Wyślij zgłoszenie do akceptacji zakresu",
+    ],
+    prohibitedMarkers: [
+      "Opowiedz, co wymaga sprawdzenia",
+      "This form authorizes testing",
+    ],
+  },
+  {
     path: "/pl/review/request?productId=OFFSEC-PILOT",
     requiredMarkers: [
       "Opowiedz, co wymaga sprawdzenia",
