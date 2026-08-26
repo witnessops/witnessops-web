@@ -84,6 +84,9 @@ importers:
       '@witnessops/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      aegis-deterministic:
+        specifier: file:../../vendor/aegis/aegis-deterministic-2.0.0-cleanroom.3.tgz
+        version: file:vendor/aegis/aegis-deterministic-2.0.0-cleanroom.3.tgz
       framer-motion:
         specifier: ^12.36.0
         version: 12.36.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1055,6 +1058,12 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
+  aegis-deterministic@file:vendor/aegis/aegis-deterministic-2.0.0-cleanroom.3.tgz:
+    resolution: {integrity: sha512-YbuEotoElIgGjpKAaeuTXfXkHfC6Nr7nJEDXtR46w0Ix4LmKIJPlndkZ4PDxSlq3KQqAqDYXvLf6WQVNwfSMFg==, tarball: file:vendor/aegis/aegis-deterministic-2.0.0-cleanroom.3.tgz}
+    version: 2.0.0-cleanroom.3
+    engines: {node: '>=22'}
+    hasBin: true
+
   ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
     peerDependencies:
@@ -1469,6 +1478,7 @@ packages:
   eslint@9.39.4:
     resolution: {integrity: sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -3473,6 +3483,8 @@ snapshots:
       acorn: 8.16.0
 
   acorn@8.16.0: {}
+
+  aegis-deterministic@file:vendor/aegis/aegis-deterministic-2.0.0-cleanroom.3.tgz: {}
 
   ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:

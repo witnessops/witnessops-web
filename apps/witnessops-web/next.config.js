@@ -12,6 +12,7 @@ const nextConfig = {
     "@witnessops/config",
     "@witnessops/content",
     "@witnessops/proof",
+    "aegis-deterministic",
   ],
   serverExternalPackages: ["blake3"],
   webpack: (config) => {
@@ -56,6 +57,13 @@ const nextConfig = {
             key: "X-Content-Type-Options",
             value: "nosniff",
           },
+        ],
+      },
+      {
+        source: "/verify/skill",
+        headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
         ],
       },
     ];

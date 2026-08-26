@@ -131,5 +131,6 @@
   "/admin/(console)/settings/page": "app/admin/(console)/settings/page.js",
   "/admin/(console)/proof-runs/[id]/page": "app/admin/(console)/proof-runs/[id]/page.js",
   "/admin/(console)/system/page": "app/admin/(console)/system/page.js",
-  "/admin/(console)/review-requests/[id]/page": "app/admin/(console)/review-requests/[id]/page.js"
+  "/admin/(console)/review-requests/[id]/page": "app/admin/(console)/review-requests/[id]/page.js",
+  "/verify/skill/page": "app/verify/skill/page.js"
 }

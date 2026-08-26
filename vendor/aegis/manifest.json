@@ -1,0 +1,15 @@
+{
+  "product": "Aegis",
+  "package": "aegis-deterministic",
+  "verifier": "aegis-deterministic@2.0.0-cleanroom.3",
+  "source_repository": "VaultSovereign/Aegis",
+  "source_sha": "af967e166d44776675ed78e9fd68eda52c3d72ff",
+  "source_ci_run": "32999353580",
+  "artifact": "aegis-deterministic-2.0.0-cleanroom.3.tgz",
+  "sha256": "d438853a906de7949e3e476f7ca7c5589dcbd3d1f7d08e62b96d840900d046eb",
+  "bytes": 20533,
+  "files_in_tarball": 23,
+  "generated_at": "2026-08-26T19:22:32Z",
+  "provenance": "built from immutable accepted Aegis source; not independently maintained in witnessops-web",
+  "update_policy": "never auto-follow Aegis main; replace only after an explicit accepted SHA, its tests, npm pack, and a new SHA-256"
+}
