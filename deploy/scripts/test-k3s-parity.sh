@@ -253,6 +253,20 @@ line_precedes() {
     && (( first_line < second_line ))
 }
 
+function_line_precedes() {
+  local function_name="$1"
+  local first="$2"
+  local second="$3"
+  local body first_line second_line
+  body="$(declare -f "${function_name}")" || return 1
+  first_line="$(printf '%s\n' "${body}" | grep -nF -m 1 -- "${first}" | cut -d: -f1)" \
+    || return 1
+  second_line="$(printf '%s\n' "${body}" | grep -nF -m 1 -- "${second}" | cut -d: -f1)" \
+    || return 1
+  [[ "${first_line}" =~ ^[0-9]+$ && "${second_line}" =~ ^[0-9]+$ ]] \
+    && (( first_line < second_line ))
+}
+
 # --- compare-images (CLI drives shipped entrypoint) ---
 assert_exit 0 bash "${PARITY}" compare-images \
   'docker.io/library/witnessops-web:main-abc-1' \
@@ -495,6 +509,13 @@ assert_exit 0 line_precedes \
 assert_exit 0 line_precedes \
   "${REPO_ROOT}/deploy/scripts/smoke-prod-dev.sh" \
   preflight_prod_target_identity print_status
+assert_exit 0 function_line_precedes \
+  build_shared_image \
+  'if ! run_supply_chain_gate; then' preflight_prod_target_identity
+assert_exit 0 grep -Fq -- '--connect-timeout 2 --max-time 5' \
+  "${K3S_LIB}"
+assert_exit 0 grep -Fq -- '--connect-timeout 2 --max-time 5' \
+  "${DISK_HYGIENE_SCRIPT}"
 assert_exit 0 grep -Fq 'k3s ctr images check \"name==\${immutable_image}\"' \
   "${K3S_LIB}"
 assert_exit 0 grep -Fqx \
@@ -539,13 +560,12 @@ gate_failure_output="$(
     printf '%s\n' sync_reached >>"${gate_failure_trace}"
   }
   remote() {
+    printf '%s\n' remote_reached >>"${gate_failure_trace}"
     if [[ "$*" == "bash -s" ]]; then
       printf '%s|%s|%s' \
         "${PROD_EXPECTED_HOSTNAME}" \
         "${PROD_EXPECTED_INSTANCE_ID}" \
         "${WITNESSOPS_PROD_REGION}"
-    else
-      printf '%s\n' remote_reached >>"${gate_failure_trace}"
     fi
   }
   require_clean_or_confirm() { :; }

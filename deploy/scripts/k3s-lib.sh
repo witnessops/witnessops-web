@@ -88,14 +88,14 @@ preflight_prod_target_identity() {
   validate_prod_target_contract
   observed_identity="$(remote bash -s <<'REMOTE'
 set -eu
-token="$(curl -fsS -X PUT \
+token="$(curl -fsS --connect-timeout 2 --max-time 5 -X PUT \
   -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' \
   http://169.254.169.254/latest/api/token)"
 hostname_value="$(hostname)"
-instance_id="$(curl -fsS \
+instance_id="$(curl -fsS --connect-timeout 2 --max-time 5 \
   -H "X-aws-ec2-metadata-token: ${token}" \
   http://169.254.169.254/latest/meta-data/instance-id)"
-region="$(curl -fsS \
+region="$(curl -fsS --connect-timeout 2 --max-time 5 \
   -H "X-aws-ec2-metadata-token: ${token}" \
   http://169.254.169.254/latest/meta-data/placement/region)"
 printf '%s|%s|%s' "${hostname_value}" "${instance_id}" "${region}"
@@ -222,8 +222,6 @@ build_shared_image() {
   validate_digest_container_image_ref "${PINNED_NODE22_IMAGE}" \
     || die "pinned Node 22 base image is not digest-qualified"
 
-  preflight_prod_target_identity
-
   need ssh
   need rsync
   need node
@@ -237,6 +235,8 @@ build_shared_image() {
   if ! run_supply_chain_gate; then
     die "Supply Chain Gate failed; refusing remote build"
   fi
+
+  preflight_prod_target_identity
 
   if ! sync_build_context \
     "${REPO_ROOT}/" "${DEPLOY_SSH}:${remote_dir}/" \

@@ -58,14 +58,14 @@ validate_bind_host "${PROD_EXPECTED_HOSTNAME}" || {
 observed_identity="$(
   ssh -o BatchMode=yes -o ConnectTimeout=25 "${DEPLOY_SSH}" bash -s <<'REMOTE'
 set -eu
-token="$(curl -fsS -X PUT \
+token="$(curl -fsS --connect-timeout 2 --max-time 5 -X PUT \
   -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' \
   http://169.254.169.254/latest/api/token)"
 hostname_value="$(hostname)"
-instance_id="$(curl -fsS \
+instance_id="$(curl -fsS --connect-timeout 2 --max-time 5 \
   -H "X-aws-ec2-metadata-token: ${token}" \
   http://169.254.169.254/latest/meta-data/instance-id)"
-region="$(curl -fsS \
+region="$(curl -fsS --connect-timeout 2 --max-time 5 \
   -H "X-aws-ec2-metadata-token: ${token}" \
   http://169.254.169.254/latest/meta-data/placement/region)"
 printf '%s|%s|%s' "${hostname_value}" "${instance_id}" "${region}"
