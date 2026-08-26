@@ -21,6 +21,7 @@
     "@witnessops/content": "workspace:*",
     "@witnessops/proof": "workspace:*",
     "@witnessops/ui": "workspace:*",
+    "aegis-deterministic": "file:../../vendor/aegis/aegis-deterministic-2.0.0-cleanroom.3.tgz",
     "framer-motion": "^12.36.0",
     "jose": "^6.2.2",
     "js-yaml": "^4.3.1",

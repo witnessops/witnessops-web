@@ -39,6 +39,7 @@ const EXCLUDED_SITEMAP_ROUTES = [
   "/access-change-proof-run",
   "/pl/catalog/offsec-pilot",
   "/catalog/sbom-min-elements",
+  "/verify/skill",
 ] as const;
 
 test("sitemap includes canonical public buyer routes", async () => {
