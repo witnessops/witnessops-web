@@ -16,12 +16,13 @@ export default function CatalogWorkflowsPage() {
     <BuyerServiceDetail
       locale="en"
       service={service}
-      claim="This package creates a bounded claim about one agreed action, workflow, or handoff and names the evidence that supports it."
-      verificationPath="The delivered packet names the receipt artifact, verifier result where produced, and challenge path for the scoped evidence. If a verifier does not apply, the packet must say so."
+      claim="This review determines whether one named agentic or automated workflow has a defensible authority, control, evidence, receipt, and verification path."
+      verificationPath="The sample proof bundle names the proposed receipt schema, referenced evidence, signer, verifier result, and challenge path. A receipt proves only what that named verifier and referenced evidence support."
       notIncluded={[
         "Self-serve checkout",
         "Compliance certification",
-        "Open-ended investigation",
+        "Production deployment of the proposed controls",
+        "Open-ended investigation or whole-environment audit",
         "Customer evidence intake before scope and handling are agreed",
       ]}
     />

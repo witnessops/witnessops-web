@@ -98,8 +98,8 @@ test("public footprint audit preserves consent, source and bounded-claim limits"
   );
 });
 
-test("Public Exposure Review remains primary and commercially unchanged", () => {
-  assert.equal(publicExposure.homepageFeatured, true);
+test("Public Exposure Review remains current, off the homepage, and commercially unchanged", () => {
+  assert.equal(publicExposure.homepageFeatured, false);
   assert.equal(publicExposure.productId, "OFFSEC-EXTERNAL-EXPOSURE");
   assert.equal(
     publicExposure.price.en,

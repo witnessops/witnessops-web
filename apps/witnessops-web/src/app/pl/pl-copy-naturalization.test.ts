@@ -11,14 +11,14 @@ const buyerHomepage = readFileSync(
   "utf-8",
 );
 
-test("Polish homepage uses the approved naturalized headline and terminology", () => {
+test("Polish homepage uses the agent-proof positioning and naturalized terminology", () => {
   assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
-  assert.match(buyerHomepage, /Public Exposure Review/);
-  assert.match(buyerHomepage, /Zobacz, co widzi internet\./);
-  assert.match(buyerHomepage, /Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego/);
-  assert.match(buyerHomepage, /Potrzebujesz innego przeglądu/);
-  assert.match(buyerHomepage, /Nie wierz zapisowi na słowo\. Sprawdź sam\./);
-  assert.match(buyerHomepage, /Rozpocznij przegląd/);
+  assert.match(buyerHomepage, /Agents act\. WitnessOps proves\./);
+  assert.match(buyerHomepage, /Podpisane potwierdzenia i zewnętrzna weryfikacja istotnych działań agentów AI/);
+  assert.match(buyerHomepage, /Agenci AI stają się niewidocznymi operatorami/);
+  assert.match(buyerHomepage, /Nadzieja nie jest artefaktem audytowym/);
+  assert.match(buyerHomepage, /Agent Risk & Control Review/);
+  assert.match(buyerHomepage, /Przynieś jeden workflow/);
   assert.doesNotMatch(homePage, /Jasny zakres\. Jasny wynik\./);
   assert.doesNotMatch(homePage, /Konkretna dostawa/);
 });
@@ -29,7 +29,7 @@ test("public catalogue uses the approved service names in Polish", () => {
     BUYER_SERVICES.map((service) => service.name.pl),
     [
       "Customer Security Review Sprint",
-      "Bounded Workflow Review",
+      "Agent Risk & Control Review",
       "One Server Security Check",
       "Public Exposure Review",
       "Launch Readiness Check",

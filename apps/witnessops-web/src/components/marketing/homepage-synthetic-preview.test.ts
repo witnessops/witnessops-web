@@ -51,7 +51,7 @@ test("homepage preview preserves the published F-003 to E-003 linkage", () => {
   assert.equal(english.remediation, finding.remediation);
 });
 
-test("homepage preview links to the full sample and names only published package artifacts", () => {
+test("retained Public Exposure Review preview contract names only published package artifacts", () => {
   assert.equal(
     HOMEPAGE_SYNTHETIC_PREVIEW.sampleHref,
     "/review/sample-cases/external-exposure-assessment",
@@ -62,16 +62,8 @@ test("homepage preview links to the full sample and names only published package
   }
 
   const homepageSource = readFileSync(resolve(__dirname, "buyer-homepage.tsx"), "utf8");
-  const actionMarker = 'data-home-sample-action="finding-preview"';
-  const actionMarkerIndex = homepageSource.indexOf(actionMarker);
-  assert.notEqual(actionMarkerIndex, -1);
-  const actionStart = homepageSource.lastIndexOf("<Link", actionMarkerIndex);
-  const actionEnd = homepageSource.indexOf("</Link>", actionMarkerIndex);
-  assert.notEqual(actionStart, -1);
-  assert.notEqual(actionEnd, -1);
-  const previewActionSource = homepageSource.slice(actionStart, actionEnd + "</Link>".length);
-  assert.match(previewActionSource, /href=\{sampleHref\}/);
-  assert.match(previewActionSource, /data-home-sample-action="finding-preview"/);
-  assert.match(homepageSource, /data-home-synthetic-preview/);
-  assert.match(homepageSource, /data-home-evidence/);
+  assert.doesNotMatch(homepageSource, /HOMEPAGE_SYNTHETIC_PREVIEW/);
+  assert.doesNotMatch(homepageSource, /data-home-synthetic-preview/);
+  assert.doesNotMatch(homepageSource, /data-home-evidence/);
+  assert.match(homepageSource, /\/review\/sample-cases\/ai-agent-action-proof-run/);
 });

@@ -35,20 +35,20 @@ export async function GET() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "20px", maxWidth: "860px" }}>
             <div style={{ fontSize: 24, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fb923c" }}>
-              Governed Execution
+              Proof infrastructure
             </div>
             <div style={{ fontSize: 72, lineHeight: 1.04, fontWeight: 700 }}>
-              Verifiable operational receipts for high-trust execution
+              Agents act. WitnessOps proves.
             </div>
             <div style={{ fontSize: 28, lineHeight: 1.35, color: "#cbd5e1" }}>
-              Policy-gated runs, signed receipts, and execution chains that survive the operation.
+              Signed receipts and external verification for consequential AI-agent actions.
             </div>
           </div>
           <div style={{ display: "flex", gap: "18px", fontSize: 24, color: "#cbd5e1" }}>
-            <div>Runbooks</div>
-            <div>Policy Gates</div>
+            <div>Authority</div>
+            <div>Evidence</div>
             <div>Signed Receipts</div>
-            <div>Execution Chains</div>
+            <div>Verification</div>
           </div>
         </div>
       </div>

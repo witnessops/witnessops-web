@@ -69,7 +69,16 @@
   margin: 1.65rem 0 0;
   color: var(--ink-soft);
   font-size: clamp(0.98rem, 1.25vw, 1.12rem);
+  font-weight: 600;
   line-height: 1.52;
+}
+
+.heroIntro {
+  max-width: 68ch;
+  margin: 1.25rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.72;
 }
 
 .commercialLine {
@@ -183,7 +192,7 @@
   grid-template-columns: 2.4rem minmax(0, 1fr);
   gap: 1rem;
   align-items: baseline;
-  padding: 1.4rem 0;
+  padding: 0.9rem 0;
   border-bottom: 1px solid var(--rule);
 }
 
@@ -195,13 +204,121 @@
 
 .deliverablesPanel li strong {
   font-family: var(--font-sans);
-  font-size: 1.12rem;
+  font-size: 0.98rem;
   font-weight: 400;
+  line-height: 1.4;
 }
 
 .evidenceSection {
   background: var(--evidence);
   color: var(--evidence-ink);
+}
+
+.offerFrame {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+  gap: clamp(3rem, 7vw, 7rem);
+  padding-block: clamp(3.8rem, 7vw, 6.5rem);
+}
+
+.offerIntro {
+  min-width: 0;
+}
+
+.offerTitle {
+  max-width: 12ch;
+  margin: 1.1rem 0 0;
+  color: var(--evidence-ink);
+  font-family: Georgia, Cambria, "Times New Roman", serif;
+  font-size: clamp(2.7rem, 5vw, 4.8rem);
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.offerLead {
+  max-width: 42ch;
+  margin: 1.6rem 0 0;
+  color: var(--evidence-ink);
+  font-family: Georgia, Cambria, "Times New Roman", serif;
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  line-height: 1.3;
+}
+
+.offerBody {
+  max-width: 62ch;
+  margin: 1rem 0 0;
+  color: var(--evidence-muted);
+  font-size: 0.92rem;
+  line-height: 1.72;
+}
+
+.offerCommercial {
+  max-width: 64ch;
+  margin: 1.5rem 0 0;
+  color: var(--evidence-ink);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
+.offerDetails {
+  min-width: 0;
+  padding-left: clamp(2rem, 4vw, 4rem);
+  border-left: 1px solid var(--evidence-rule);
+}
+
+.offerDetails article {
+  padding-block: 1.4rem;
+  border-bottom: 1px solid var(--evidence-rule);
+}
+
+.offerDetails article:first-child {
+  padding-top: 0;
+}
+
+.offerDetails h3 {
+  margin: 0;
+  color: var(--evidence-ink);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.offerDetails p,
+.offerDetails li {
+  color: var(--evidence-muted);
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+
+.offerDetails p {
+  margin: 0.8rem 0 0;
+}
+
+.offerDetails ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 1.5rem;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.offerDetails li {
+  padding-top: 0.55rem;
+  border-top: 1px solid #292e29;
+}
+
+.offerOutcome p {
+  color: var(--evidence-ink);
+  font-family: Georgia, Cambria, "Times New Roman", serif;
+  font-size: 1.15rem;
+  line-height: 1.45;
 }
 
 .evidencePanel {
@@ -364,6 +481,10 @@
 
 .trustPair .sectionTitle {
   font-size: clamp(1.8rem, 2.8vw, 2.5rem);
+}
+
+.trustPair .sectionBody {
+  margin-top: 1.25rem;
 }
 
 .trustList {
@@ -683,6 +804,17 @@
     grid-template-columns: 1fr;
   }
 
+  .offerFrame {
+    grid-template-columns: 1fr;
+  }
+
+  .offerDetails {
+    padding-top: 2.5rem;
+    padding-left: 0;
+    border-top: 1px solid var(--evidence-rule);
+    border-left: 0;
+  }
+
   .heroCopy {
     padding-right: 0;
   }
@@ -761,6 +893,10 @@
   }
 
   .findingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .offerDetails ul {
     grid-template-columns: 1fr;
   }
 

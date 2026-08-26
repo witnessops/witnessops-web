@@ -6,9 +6,9 @@ import { languageAlternates } from "@/lib/public-seo";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
-  title: "Public Exposure Review",
+  title: "Podpisane zapisy działań agentów AI",
   description:
-    "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego, dostarczony w ciągu trzech dni roboczych po spełnieniu wszystkich warunków startu za €1 900 netto.",
+    "Agents act. WitnessOps proves. Podpisane potwierdzenia i zewnętrzna weryfikacja istotnych działań agentów AI.",
   alternates: languageAlternates("/pl", { en: "/", pl: "/pl" }),
 };
 

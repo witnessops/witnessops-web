@@ -5,6 +5,8 @@ Scope: `witnessops-web` public docs, public verification surfaces, repository-lo
 deployment instructions, and the adjacent canonical verification repositories.
 Base web commit: `6953794177e5e071874522c9a76071d26d0930d0`
 
+> **Commercial-positioning update, 2026-08-26:** this audit preserves the product and verifier facts observed on 2026-08-24. Its statement that Public Exposure Review was the primary customer workflow is superseded by Agent Risk & Control Review as the primary homepage offer. Public Exposure Review remains a separate current catalogue offer.
+
 ## Status vocabulary
 
 - **FACT** — directly supported by executable code, schema, test, workflow, or
@@ -17,7 +19,7 @@ Base web commit: `6953794177e5e071874522c9a76071d26d0930d0`
 
 | Component | Classification | Current authority |
 | --- | --- | --- |
-| Public product | FACT | Public Exposure Review remains the primary customer workflow. Verification supports `request → scoped review → evidence collection → verification result → signed receipt → verification page`; it is not another offer. |
+| Public product at the audit snapshot | FACT | Public Exposure Review was the primary customer workflow on 2026-08-24. The 2026-08-26 commercial-positioning update above supersedes only that homepage priority; the documented verification sequence remains scoped to Public Exposure Review. |
 | Receipt schema | FACT | `witnessops-contracts` defines canonical `witnessops.receipt.v0`; Public Exposure Review adds `witnessops.verification_context.v1`. |
 | Workflow contract | FACT | `witnessops-workflow-catalog` defines draft acceptance policy `public_exposure_review.production.v1`. It binds product `OFFSEC-EXTERNAL-EXPOSURE`, OffSec runbook `external-exposure-assessment` v2, workflow class `public_exposure_review`, and receipt method `external_exposure_assessment` `2.0.0`, with six exact claims and eight required limitations. |
 | OffSec producer adapter | FACT | `witnessops-offsec` performs an offline bounded transformation, stages actual source files, supplies workflow context, and emits deterministic real `offsec_<24hex>` manifest artifact IDs. It does not contact targets, sign, select trust, or verify. |

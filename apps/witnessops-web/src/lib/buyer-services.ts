@@ -93,25 +93,26 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
 
   {
     id: "bounded-workflow-review",
+    homepageFeatured: true,
     commercialContract: {
       price: "from_eur_1500",
       timing: "confirmed_during_non_secret_fit_check",
     },
     name: {
-      en: "Bounded Workflow Review",
-      pl: "Bounded Workflow Review",
+      en: "Agent Risk & Control Review",
+      pl: "Agent Risk & Control Review",
     },
     cardSituation: {
-      en: "One technical action, finding or handoff needs to be explained and supported.",
-      pl: "Jedno działanie techniczne, znalezisko lub przekazanie pracy wymaga wyjaśnienia i udokumentowania.",
+      en: "One agentic or automated workflow touches systems that matter, but its authority and evidence path are unclear.",
+      pl: "Jeden agentowy lub zautomatyzowany workflow działa w istotnych systemach, ale jego upoważnienia i ścieżka dowodowa są niejasne.",
     },
     situation: {
-      en: "One technical action, finding, change or handoff must be explained after the work changes hands.",
-      pl: "Jedno działanie techniczne, znalezisko, zmiana lub przekazanie pracy musi pozostać zrozumiałe po zmianie właściciela.",
+      en: "One agentic or automated workflow needs a defensible authority, control, evidence, receipt, and verification path before or after it touches a sensitive system.",
+      pl: "Jeden agentowy lub zautomatyzowany workflow potrzebuje możliwej do obrony ścieżki upoważnień, kontroli, materiałów, zapisu i weryfikacji przed działaniem w systemie wrażliwym lub po nim.",
     },
     result: {
-      en: "A bounded report or proof package naming the authority, work performed or reviewed, evidence references, limitations and unresolved items.",
-      pl: "Ograniczony raport lub pakiet wskazujący upoważnienie, wykonaną lub ocenioną pracę, odwołania do materiałów, ograniczenia i nierozwiązane kwestie.",
+      en: "A workflow map, permission model, approval and evidence gap analysis, receipt schema, sample proof bundle, verifier path, and control recommendations.",
+      pl: "Mapa workflow, model uprawnień, analiza luk w zatwierdzeniach i materiałach, schemat zapisu, przykładowy pakiet dowodowy, ścieżka weryfikacji i zalecenia dotyczące kontroli.",
     },
     price: {
       en: "From €1,500",
@@ -122,8 +123,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
     },
     boundary: {
-      en: "The exact workflow and verification mechanism are named in the engagement. A report alone is not described as independently verified.",
-      pl: "Dokładny przepływ pracy i mechanizm weryfikacji są nazwane w ustaleniach. Sam raport nie jest opisywany jako niezależnie zweryfikowany.",
+      en: "One named workflow only. A receipt proves only what its named verifier and referenced evidence support; it does not certify that the agent was correct, safe, compliant, or complete.",
+      pl: "Tylko jeden nazwany workflow. Zapis dowodzi wyłącznie tego, co wspierają wskazany weryfikator i przywołane materiały; nie certyfikuje, że agent działał poprawnie, bezpiecznie, zgodnie z wymaganiami lub kompletnie.",
     },
     detailHref: {
       en: "/catalog/workflows",
@@ -172,7 +173,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
   {
     id: "external-exposure-assessment",
     productId: "OFFSEC-EXTERNAL-EXPOSURE",
-    homepageFeatured: true,
+    homepageFeatured: false,
     commercialContract: {
       price: "eur_1900_ex_vat_one_authorised_public_facing_system",
       timing:

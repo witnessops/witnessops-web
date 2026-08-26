@@ -60,11 +60,11 @@ test("Public Exposure Review sample preserves the synthetic and integrity bounda
   assert.match(page, /OFFSEC-EXTERNAL-EXPOSURE/);
 });
 
-test("sample is linked from the homepage, offer detail, catalogue, and pricing entry", () => {
+test("sample remains linked from its offer detail, catalogue, and pricing entry", () => {
   const route = "/review/sample-cases/external-exposure-assessment";
   assert.match(serviceLandings, new RegExp(route));
   assert.match(pricing, new RegExp(route));
   assert.match(catalogue, new RegExp(route));
-  assert.match(homepage, /HOMEPAGE_SYNTHETIC_PREVIEW\.sampleHref/);
+  assert.doesNotMatch(homepage, /HOMEPAGE_SYNTHETIC_PREVIEW/);
   assert.match(homepagePreview, new RegExp(route));
 });
