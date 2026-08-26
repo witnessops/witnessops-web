@@ -33,9 +33,15 @@ function requireSingleExecutableLine(source, command, label) {
   assert(count === 1, `${label} must appear exactly once as an executable line`);
 }
 
+function requireSingleExactLine(source, expected, label) {
+  const count = source.split(/\r?\n/u).filter((line) => line === expected).length;
+  assert(count === 1, `${label} must appear exactly once at the reviewed indentation`);
+}
+
 const EXPECTED_BUILD_IMAGE_JOB = [
   "  build_image:",
   "    name: Build exact AWS image without publication authority",
+  "    needs: validate",
   "    runs-on: ubuntu-latest",
   "    timeout-minutes: 30",
   "    permissions:",
@@ -77,6 +83,33 @@ const EXPECTED_BUILD_IMAGE_JOB = [
   "            '",
 ].join("\n");
 
+const EXPECTED_PULL_REQUEST_PATHS = [
+  "apps/witnessops-web/**",
+  "content/**",
+  "packages/**",
+  ".dockerignore",
+  ".github/workflows/aws-phase3-validate.yml",
+  ".github/workflows/aws-release.yml",
+  ".github/workflows/aws-release-reusable.yml",
+  "deploy/Dockerfile.aws",
+  "deploy/aws/cloudformation/github-deployment-bootstrap.template.json",
+  "deploy/aws/github-deployment-contract.v1.json",
+  "deploy/aws/host/**",
+  "deploy/aws/phase3-adapter-workflow-contract.v1.json",
+  "deploy/aws/README.md",
+  "deploy/aws/validate-phase3.mjs",
+  "deploy/aws/validate-phase3.test.mjs",
+  "deploy/aws/validate-ecr-scan-findings.mjs",
+  "deploy/aws/validate-ecr-scan-findings.test.mjs",
+  "deploy/aws/validate-github-deployment.mjs",
+  "deploy/aws/validate-github-deployment.test.mjs",
+  "deploy/aws/verify-scan-evidence.mjs",
+  "deploy/aws/verify-scan-evidence.test.mjs",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+];
+
 function exactNamedWorkflowJob(source, name) {
   const marker = `  ${name}:\n`;
   const start = source.indexOf(marker);
@@ -90,6 +123,16 @@ function exactNamedWorkflowJob(source, name) {
   return source
     .slice(start, next < 0 ? source.length : start + marker.length + next)
     .trimEnd();
+}
+
+function pullRequestPathBlock(source) {
+  const marker = "  pull_request:\n    paths:\n";
+  const start = source.indexOf(marker);
+  assert(start >= 0, "validation workflow is missing pull_request paths");
+  const contentStart = start + marker.length;
+  const tail = source.slice(contentStart);
+  const nextTrigger = tail.search(/^  \S/mu);
+  return tail.slice(0, nextTrigger < 0 ? tail.length : nextTrigger).trimEnd();
 }
 
 export function loadPhase3Sources(root = ROOT) {
@@ -438,6 +481,27 @@ export function validatePhase3Sources(sources) {
   }
 
   assert(validation.includes("\n  pull_request:"), "Phase 3 validation does not run on PRs");
+  const prPaths = pullRequestPathBlock(validation);
+  for (const buildInput of [
+    "apps/witnessops-web/**",
+    "content/**",
+    "packages/**",
+    ".dockerignore",
+    "deploy/Dockerfile.aws",
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+  ]) {
+    requireSingleExactLine(
+      prPaths,
+      `      - "${buildInput}"`,
+      `AWS image build input ${buildInput}`,
+    );
+  }
+  assert(
+    prPaths === EXPECTED_PULL_REQUEST_PATHS.map((entry) => `      - "${entry}"`).join("\n"),
+    "validation pull_request paths must match the complete reviewed inventory",
+  );
   assert(!validation.includes("id-token: write"), "validation workflow can mint OIDC tokens");
   assert(!validation.includes("secrets:"), "validation workflow uses secrets");
   assert(
@@ -483,6 +547,10 @@ export function validatePhase3Sources(sources) {
   assert(
     !/^    continue-on-error:/mu.test(buildJob),
     "build_image job failures must remain gating",
+  );
+  assert(
+    buildJob.includes("\n    needs: validate\n"),
+    "build_image job must wait for source validation",
   );
   assert(
     buildJob === EXPECTED_BUILD_IMAGE_JOB,

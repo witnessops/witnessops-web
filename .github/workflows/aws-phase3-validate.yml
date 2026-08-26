@@ -3,6 +3,10 @@ name: Validate AWS Phase 3 source
 on:
   pull_request:
     paths:
+      - "apps/witnessops-web/**"
+      - "content/**"
+      - "packages/**"
+      - ".dockerignore"
       - ".github/workflows/aws-phase3-validate.yml"
       - ".github/workflows/aws-release.yml"
       - ".github/workflows/aws-release-reusable.yml"
@@ -20,6 +24,9 @@ on:
       - "deploy/aws/validate-github-deployment.test.mjs"
       - "deploy/aws/verify-scan-evidence.mjs"
       - "deploy/aws/verify-scan-evidence.test.mjs"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
   workflow_dispatch: {}
 
 permissions:
@@ -50,6 +57,7 @@ jobs:
 
   build_image:
     name: Build exact AWS image without publication authority
+    needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

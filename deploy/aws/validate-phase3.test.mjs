@@ -189,6 +189,47 @@ test("AWS runtime must retain the patched OpenSSL package versions", () => {
 });
 
 test("PR validation must build without image publication authority", () => {
+  const missingBuildInputTrigger = changed("validation", (value) =>
+    value.replace('      - "apps/witnessops-web/**"\n', ""),
+  );
+  assert.throws(
+    () => validatePhase3Sources(missingBuildInputTrigger),
+    /AWS image build input apps\/witnessops-web/,
+  );
+
+  const commentedBuildInputTrigger = changed("validation", (value) =>
+    value.replace(
+      '      - "pnpm-lock.yaml"',
+      '      # - "pnpm-lock.yaml"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(commentedBuildInputTrigger),
+    /AWS image build input pnpm-lock.yaml/,
+  );
+
+  const nestedBuildInputTrigger = changed("validation", (value) =>
+    value.replace(
+      '      - "packages/**"',
+      '        - "packages/**"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(nestedBuildInputTrigger),
+    /AWS image build input packages/,
+  );
+
+  const negatedBuildInputTriggers = changed("validation", (value) =>
+    value.replace(
+      '      - "pnpm-workspace.yaml"',
+      '      - "pnpm-workspace.yaml"\n      - "!**"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(negatedBuildInputTriggers),
+    /complete reviewed inventory/,
+  );
+
   const withoutBuild = changed("validation", (value) =>
     value.replace("docker build", "docker inspect"),
   );
@@ -284,6 +325,14 @@ test("PR validation must build without image publication authority", () => {
   assert.throws(
     () => validatePhase3Sources(maskedBuildFailure),
     /failures must remain gating/,
+  );
+
+  const parallelBuild = changed("validation", (value) =>
+    value.replace("    needs: validate\n", ""),
+  );
+  assert.throws(
+    () => validatePhase3Sources(parallelBuild),
+    /must wait for source validation/,
   );
 
   const misplacedVerificationStep = changed("validation", (value) =>
