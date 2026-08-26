@@ -1,1 +1,2 @@
 package	version	path	sha256	status	source	rationale
+aegis-deterministic	2.0.0-cleanroom.3	vendor/aegis/aegis-deterministic-2.0.0-cleanroom.3.tgz	d438853a906de7949e3e476f7ca7c5589dcbd3d1f7d08e62b96d840900d046eb	APPROVED	VaultSovereign/Aegis@af967e166d44776675ed78e9fd68eda52c3d72ff; GitHub Actions run 32999353580	Reviewed content-addressed Aegis browser verifier artifact for WitnessOps Check a Skill integration.
