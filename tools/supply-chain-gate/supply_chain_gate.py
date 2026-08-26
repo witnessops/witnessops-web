@@ -8,18 +8,22 @@ package metadata. It never imports or executes package code.
 from __future__ import annotations
 
 import argparse
+import base64
 import csv
 import hashlib
 import json
 import os
+import posixpath
 import re
+import stat
 import subprocess
 import sys
+import tarfile
 import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
 
@@ -96,6 +100,10 @@ SUSPICIOUS_SCRIPT_PATTERNS = {
 }
 MAX_OSV_RESPONSE_BYTES = 32 * 1024 * 1024
 MAX_NPM_METADATA_BYTES = 4 * 1024 * 1024
+MAX_REVIEWED_TARBALL_BYTES = 64 * 1024 * 1024
+MAX_REVIEWED_TARBALL_ENTRIES = 10_000
+MAX_REVIEWED_TARBALL_EXPANDED_BYTES = 256 * 1024 * 1024
+MAX_REVIEWED_PACKAGE_JSON_BYTES = 1024 * 1024
 REGISTRY_VERSION_PATTERN = re.compile(
     r"^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
     r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
@@ -117,9 +125,24 @@ UNSUPPORTED_DEPENDENCY_PREFIXES = (
     "portal:",
     "ssh:",
 )
+VENDORED_ARTIFACT_REVIEW_FIELDS = (
+    "package",
+    "version",
+    "path",
+    "sha256",
+    "status",
+    "source",
+    "rationale",
+)
+NPM_PACKAGE_NAME_PATTERN = re.compile(
+    r"^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$",
+    re.I,
+)
 
 Pair = tuple[str, str]
 ResolutionMap = dict[Pair, tuple[str, ...]]
+ReviewedArtifactKey = tuple[str, str]
+ReviewedArtifactMap = dict[ReviewedArtifactKey, dict[str, str]]
 
 
 class GateError(RuntimeError):
@@ -140,6 +163,11 @@ def sha256_bytes(data: bytes) -> str:
 
 def sha256_file(path: Path) -> str:
     return sha256_bytes(path.read_bytes())
+
+
+def sha512_sri(data: bytes) -> str:
+    digest = hashlib.sha512(data).digest()
+    return "sha512-" + base64.b64encode(digest).decode("ascii")
 
 
 def canonical_json_bytes(value: Any) -> bytes:
@@ -223,8 +251,193 @@ def dependency_spec_is_unsupported(value: str) -> bool:
     return "/" in spec
 
 
-def unsupported_dependency_sources(repo: Path) -> list[dict[str, str]]:
-    records: list[dict[str, str]] = []
+def contains_control_character(value: str) -> bool:
+    return any(ord(character) < 32 or ord(character) == 127 for character in value)
+
+
+def normalize_reviewed_artifact_path(value: str, label: str) -> str:
+    if (
+        not value
+        or "\\" in value
+        or contains_control_character(value)
+        or urllib.parse.unquote(value) != value
+    ):
+        raise GateError(f"{label}: reviewed artifact path is not canonical")
+    if re.search(r"[*?\[\]{}]", value):
+        raise GateError(f"{label}: reviewed artifact path may not contain wildcards")
+    path = PurePosixPath(value)
+    if path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
+        raise GateError(f"{label}: reviewed artifact path must be repository-relative")
+    if path.suffix != ".tgz" or path.as_posix() != value:
+        raise GateError(f"{label}: reviewed artifact path must name one canonical .tgz file")
+    return value
+
+
+def parse_vendored_artifact_reviews(data: bytes, label: str) -> ReviewedArtifactMap:
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise GateError(f"{label}: review data is not UTF-8") from exc
+    lines = [line for line in text.splitlines() if not line.startswith("#")]
+    if not lines:
+        raise GateError(f"{label}: missing TSV header")
+    reader = csv.DictReader(lines, delimiter="\t")
+    if tuple(reader.fieldnames or ()) != VENDORED_ARTIFACT_REVIEW_FIELDS:
+        raise GateError(
+            f"{label}: expected exact fields {', '.join(VENDORED_ARTIFACT_REVIEW_FIELDS)}"
+        )
+    reviews: ReviewedArtifactMap = {}
+    for row_number, row in enumerate(reader, start=2):
+        if None in row:
+            raise GateError(f"{label}:{row_number}: unexpected extra TSV field")
+        normalized = {key: (value or "").strip() for key, value in row.items() if key is not None}
+        if not any(normalized.values()):
+            continue
+        if any(not normalized.get(field) for field in VENDORED_ARTIFACT_REVIEW_FIELDS):
+            raise GateError(f"{label}:{row_number}: missing required field")
+        package = normalized["package"]
+        version = normalized["version"]
+        path = normalize_reviewed_artifact_path(
+            normalized["path"], f"{label}:{row_number}"
+        )
+        digest = normalized["sha256"]
+        status = normalized["status"].upper()
+        if not NPM_PACKAGE_NAME_PATTERN.fullmatch(package):
+            raise GateError(f"{label}:{row_number}: invalid npm package name")
+        if not is_registry_version(version):
+            raise GateError(f"{label}:{row_number}: invalid package version")
+        if not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise GateError(f"{label}:{row_number}: invalid artifact SHA-256")
+        if status not in {"APPROVED", "BLOCKED"}:
+            raise GateError(f"{label}:{row_number}: invalid review status")
+        normalized["path"] = path
+        normalized["status"] = status
+        key = (package, path)
+        if key in reviews:
+            raise GateError(f"{label}: duplicate artifact review for {package} at {path}")
+        reviews[key] = normalized
+    return reviews
+
+
+def local_tarball_spec_path(spec: str) -> str | None:
+    value = spec.strip()
+    if not value.lower().startswith("file:"):
+        return None
+    raw_path = value[5:]
+    if PurePosixPath(raw_path).suffix.lower() != ".tgz":
+        return None
+    return raw_path
+
+
+def resolve_manifest_local_tarball(
+    repo: Path, manifest: Path, raw_path: str, label: str
+) -> tuple[str, Path]:
+    if (
+        not raw_path
+        or "\\" in raw_path
+        or contains_control_character(raw_path)
+        or urllib.parse.unquote(raw_path) != raw_path
+    ):
+        raise GateError(f"{label}: local tarball path is not canonical")
+    if re.search(r"[*?\[\]{}]", raw_path) or PurePosixPath(raw_path).is_absolute():
+        raise GateError(f"{label}: local tarball path is unsupported")
+    candidate = Path(os.path.normpath(str(manifest.parent / raw_path)))
+    try:
+        relative = candidate.relative_to(repo)
+    except ValueError as exc:
+        raise GateError(f"{label}: local tarball path escapes repository root") from exc
+    relative_value = relative.as_posix()
+    normalize_reviewed_artifact_path(relative_value, label)
+    return relative_value, candidate
+
+
+def require_regular_file_without_symlinks(repo: Path, relative: str, label: str) -> Path:
+    current = repo
+    for part in PurePosixPath(relative).parts:
+        current = current / part
+        try:
+            metadata = current.lstat()
+        except OSError as exc:
+            raise GateError(f"{label}: reviewed artifact is missing") from exc
+        if stat.S_ISLNK(metadata.st_mode):
+            raise GateError(f"{label}: reviewed artifact path traverses a symlink")
+    metadata = current.lstat()
+    if not stat.S_ISREG(metadata.st_mode):
+        raise GateError(f"{label}: reviewed artifact is not a regular file")
+    if metadata.st_size > MAX_REVIEWED_TARBALL_BYTES:
+        raise GateError(f"{label}: reviewed artifact exceeds the inert inspection size limit")
+    return current
+
+
+def inspect_npm_tarball(path: Path, package: str, version: str, label: str) -> dict[str, Any]:
+    try:
+        with tarfile.open(path, mode="r:gz") as archive:
+            entry_count = 0
+            expanded_size = 0
+            names: set[str] = set()
+            package_json_member: tarfile.TarInfo | None = None
+            for member in archive:
+                entry_count += 1
+                if entry_count > MAX_REVIEWED_TARBALL_ENTRIES:
+                    raise GateError(
+                        f"{label}: archive entry count exceeds the inert inspection limit"
+                    )
+                member_name = member.name
+                member_path = PurePosixPath(member_name)
+                if (
+                    not member_name
+                    or "\\" in member_name
+                    or member_path.is_absolute()
+                    or any(part in {"", ".", ".."} for part in member_path.parts)
+                    or member_path.as_posix() != member_name
+                ):
+                    raise GateError(f"{label}: archive contains a non-canonical member path")
+                if member_name in names:
+                    raise GateError(f"{label}: archive contains a duplicate member path")
+                names.add(member_name)
+                if member.isdir():
+                    continue
+                if not member.isfile():
+                    raise GateError(f"{label}: archive contains a non-regular member")
+                expanded_size += member.size
+                if expanded_size > MAX_REVIEWED_TARBALL_EXPANDED_BYTES:
+                    raise GateError(f"{label}: archive expansion exceeds the inert inspection limit")
+                if member_name == "package/package.json":
+                    package_json_member = member
+            if package_json_member is None:
+                raise GateError(f"{label}: archive is missing package/package.json")
+            if package_json_member.size > MAX_REVIEWED_PACKAGE_JSON_BYTES:
+                raise GateError(f"{label}: package/package.json exceeds the inspection limit")
+            extracted = archive.extractfile(package_json_member)
+            if extracted is None:
+                raise GateError(f"{label}: package/package.json is unreadable")
+            package_json_bytes = extracted.read(MAX_REVIEWED_PACKAGE_JSON_BYTES + 1)
+    except (tarfile.TarError, OSError) as exc:
+        raise GateError(f"{label}: artifact is not a readable gzip npm tarball") from exc
+    try:
+        metadata = json.loads(package_json_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise GateError(f"{label}: package/package.json is invalid JSON") from exc
+    if not isinstance(metadata, dict):
+        raise GateError(f"{label}: package/package.json root must be an object")
+    if metadata.get("name") != package:
+        raise GateError(f"{label}: archive package name differs from the reviewed tuple")
+    if metadata.get("version") != version:
+        raise GateError(f"{label}: archive package version differs from the reviewed tuple")
+    return {
+        "archive_entry_count": entry_count,
+        "expanded_size": expanded_size,
+        "package_json_sha256": sha256_bytes(package_json_bytes),
+    }
+
+
+def inspect_dependency_sources(
+    repo: Path, reviews: ReviewedArtifactMap
+) -> tuple[list[dict[str, str]], list[dict[str, Any]], ReviewedArtifactMap, list[str]]:
+    unsupported: list[dict[str, str]] = []
+    reviewed_records: list[dict[str, Any]] = []
+    accepted: ReviewedArtifactMap = {}
+    blocked: list[str] = []
     for manifest in discover_files(repo, {"package.json"}):
         relative = repository_relative_path(repo, manifest, "manifest")
         try:
@@ -247,8 +460,69 @@ def unsupported_dependency_sources(repo: Path) -> list[dict[str, str]]:
             for package, spec in dependencies.items():
                 if not isinstance(package, str) or not isinstance(spec, str):
                     raise GateError(f"{relative}: {field} contains a non-string dependency")
-                if dependency_spec_is_unsupported(spec):
-                    records.append(
+                raw_tarball_path = local_tarball_spec_path(spec)
+                if raw_tarball_path is not None:
+                    artifact_path, _ = resolve_manifest_local_tarball(
+                        repo,
+                        manifest,
+                        raw_tarball_path,
+                        f"{relative}: {field} {package}",
+                    )
+                    review = reviews.get((package, artifact_path))
+                    record: dict[str, Any] = {
+                        "package": package,
+                        "version": review["version"] if review else "",
+                        "source_class": "reviewed-local-tarball",
+                        "path": artifact_path,
+                        "artifact_sha256": "",
+                        "review_status": review["status"] if review else "UNAPPROVED",
+                        "review_source": review["source"] if review else "",
+                        "manifest": relative,
+                        "dependency_field": field,
+                        "decision": "BLOCKED",
+                    }
+                    if review is None:
+                        blocked.append(
+                            f"unapproved local tarball dependency: {package} at {artifact_path}"
+                        )
+                        reviewed_records.append(record)
+                        continue
+                    if review["status"] != "APPROVED":
+                        blocked.append(
+                            f"review status blocks local tarball dependency: {package} at {artifact_path}"
+                        )
+                        reviewed_records.append(record)
+                        continue
+                    try:
+                        artifact = require_regular_file_without_symlinks(
+                            repo, artifact_path, f"{package} at {artifact_path}"
+                        )
+                        artifact_bytes = artifact.read_bytes()
+                        actual_sha256 = sha256_bytes(artifact_bytes)
+                        record["artifact_sha256"] = actual_sha256
+                        if actual_sha256 != review["sha256"]:
+                            raise GateError(
+                                f"{package} at {artifact_path}: artifact SHA-256 differs from review"
+                            )
+                        record.update(
+                            inspect_npm_tarball(
+                                artifact,
+                                package,
+                                review["version"],
+                                f"{package} at {artifact_path}",
+                            )
+                        )
+                    except GateError as exc:
+                        blocked.append(str(exc))
+                        reviewed_records.append(record)
+                        continue
+                    record["decision"] = "ACCEPTED"
+                    reviewed_records.append(record)
+                    accepted_review = dict(review)
+                    accepted_review["integrity"] = sha512_sri(artifact_bytes)
+                    accepted[(package, artifact_path)] = accepted_review
+                elif dependency_spec_is_unsupported(spec):
+                    unsupported.append(
                         {
                             "manifest": relative,
                             "dependency_field": field,
@@ -271,7 +545,7 @@ def unsupported_dependency_sources(repo: Path) -> list[dict[str, str]]:
                 raise GateError(
                     f"{relative}: pnpm.patchedDependencies contains a non-string entry"
                 )
-            records.append(
+            unsupported.append(
                 {
                     "manifest": relative,
                     "dependency_field": "pnpm.patchedDependencies",
@@ -279,13 +553,26 @@ def unsupported_dependency_sources(repo: Path) -> list[dict[str, str]]:
                     "specifier_sha256": source_sha256(patch_path),
                 }
             )
-    return sorted(
-        records,
-        key=lambda item: (
-            item["manifest"],
-            item["dependency_field"],
-            item["package"],
+    return (
+        sorted(
+            unsupported,
+            key=lambda item: (
+                item["manifest"],
+                item["dependency_field"],
+                item["package"],
+            ),
         ),
+        sorted(
+            reviewed_records,
+            key=lambda item: (
+                item["path"],
+                item["package"],
+                item["manifest"],
+                item["dependency_field"],
+            ),
+        ),
+        accepted,
+        sorted(set(blocked)),
     )
 
 
@@ -327,7 +614,265 @@ def split_package_key(value: str) -> Pair | None:
     return name, version
 
 
-def parse_pnpm_lock(data: bytes, label: str = "pnpm-lock.yaml") -> set[Pair]:
+def pnpm_package_blocks(text: str) -> list[tuple[str, list[str]]]:
+    blocks: list[tuple[str, list[str]]] = []
+    section = ""
+    current_key: str | None = None
+    current_lines: list[str] = []
+
+    def flush() -> None:
+        nonlocal current_key, current_lines
+        if current_key is not None:
+            blocks.append((current_key, current_lines))
+        current_key, current_lines = None, []
+
+    for line in text.splitlines():
+        top = re.match(r"^([A-Za-z][A-Za-z0-9_-]*):\s*$", line)
+        if top:
+            flush()
+            section = top.group(1)
+            continue
+        if section != "packages":
+            continue
+        entry = re.match(r"^  (\S.*):\s*$", line)
+        if entry:
+            flush()
+            current_key = decode_yaml_scalar(entry.group(1))
+            continue
+        if current_key is not None:
+            current_lines.append(line)
+    flush()
+    return blocks
+
+
+def split_pnpm_local_tarball_key(value: str) -> tuple[str, str] | None:
+    marker = "@file:"
+    index = value.rfind(marker)
+    if index <= 0:
+        return None
+    return value[:index], value[index + len(marker) :]
+
+
+def normalize_lockfile_local_tarball_path(raw_path: str, importer: str, label: str) -> str:
+    if (
+        not raw_path
+        or "\\" in raw_path
+        or contains_control_character(raw_path)
+        or urllib.parse.unquote(raw_path) != raw_path
+    ):
+        raise GateError(f"{label}: local tarball path is not canonical")
+    if re.search(r"[*?\[\]{}]", raw_path) or PurePosixPath(raw_path).is_absolute():
+        raise GateError(f"{label}: local tarball path is unsupported")
+    base = "" if importer in {"", "."} else importer
+    normalized = posixpath.normpath(posixpath.join(base, raw_path))
+    if normalized == ".." or normalized.startswith("../") or normalized.startswith("/"):
+        raise GateError(f"{label}: local tarball path escapes repository root")
+    return normalize_reviewed_artifact_path(normalized, label)
+
+
+def normalize_pnpm_importer(value: str, label: str) -> str:
+    if value == ".":
+        return value
+    if (
+        not value
+        or "\\" in value
+        or contains_control_character(value)
+        or urllib.parse.unquote(value) != value
+        or re.search(r"[*?\[\]{}]", value)
+    ):
+        raise GateError(f"{label}: importer path is not canonical")
+    path = PurePosixPath(value)
+    if (
+        path.is_absolute()
+        or any(part in {"", ".", ".."} for part in path.parts)
+        or path.as_posix() != value
+    ):
+        raise GateError(f"{label}: importer path must be repository-relative")
+    return value
+
+
+def parse_pnpm_local_tarball_records(
+    text: str, label: str, approved: ReviewedArtifactMap
+) -> dict[str, dict[str, str]]:
+    records: dict[str, dict[str, str]] = {}
+    for package_key, lines in pnpm_package_blocks(text):
+        local_key = split_pnpm_local_tarball_key(package_key)
+        if local_key is None:
+            continue
+        package, raw_path = local_key
+        path = normalize_lockfile_local_tarball_path(
+            raw_path, "", f"{label}: pnpm package entry {package}"
+        )
+        review = approved.get((package, path))
+        if review is None:
+            raise unsupported_source(f"{label}: pnpm package entry", package_key)
+        version = ""
+        resolution_fields: dict[str, str] = {}
+        in_resolution = False
+        for line in lines:
+            match_version = re.match(r"^    version:\s*(.+?)\s*$", line)
+            if match_version:
+                version = decode_yaml_scalar(match_version.group(1))
+                continue
+            resolution = re.match(r"^    resolution:\s*(.*)$", line)
+            if resolution:
+                resolution_fields.update(parse_inline_resolution(resolution.group(1)))
+                in_resolution = not bool(resolution.group(1).strip())
+                continue
+            if in_resolution:
+                nested = re.match(
+                    r"^      ['\"]?(integrity|tarball|type|repo|commit|path)['\"]?:\s*(.+?)\s*$",
+                    line,
+                )
+                if nested:
+                    resolution_fields[nested.group(1)] = decode_yaml_scalar(nested.group(2))
+                elif line and len(line) - len(line.lstrip()) <= 4:
+                    in_resolution = False
+        if version != review["version"]:
+            raise GateError(
+                f"{label}: local tarball lock version differs for {package} at {path}"
+            )
+        if resolution_fields.get("tarball") != f"file:{path}":
+            raise GateError(
+                f"{label}: local tarball resolution path differs for {package} at {path}"
+            )
+        if not resolution_fields.get("integrity"):
+            raise GateError(
+                f"{label}: local tarball resolution lacks integrity for {package} at {path}"
+            )
+        expected_integrity = review.get("integrity")
+        if expected_integrity and resolution_fields["integrity"] != expected_integrity:
+            raise GateError(
+                f"{label}: local tarball integrity differs from artifact bytes "
+                f"for {package} at {path}"
+            )
+        unsupported = {
+            key: resolution_fields[key]
+            for key in ("type", "repo", "commit", "path")
+            if key in resolution_fields
+        }
+        if unsupported:
+            raise unsupported_source(
+                f"{label}: local tarball resolution",
+                canonical_json_bytes(unsupported).decode("utf-8"),
+            )
+        if package_key in records:
+            raise GateError(f"{label}: duplicate local tarball package entry {package_key}")
+        records[package_key] = {
+            "package": package,
+            "version": version,
+            "path": path,
+            "integrity": resolution_fields["integrity"],
+            "tarball": resolution_fields["tarball"],
+        }
+    return records
+
+
+def pnpm_registry_pairs(text: str, label: str) -> set[Pair]:
+    pairs: set[Pair] = set()
+    for package_key, _ in pnpm_package_blocks(text):
+        if split_pnpm_local_tarball_key(package_key) is not None:
+            continue
+        pair = split_package_key(package_key)
+        if pair is None:
+            raise unsupported_source(f"{label}: pnpm package entry", package_key)
+        pairs.add(pair)
+    return pairs
+
+
+def validate_pnpm_local_tarball_importers(
+    text: str, label: str, approved: ReviewedArtifactMap
+) -> set[tuple[str, str, str]]:
+    section = ""
+    importer = ""
+    dependency_group = ""
+    package = ""
+    fields: dict[str, str] = {}
+    records: set[tuple[str, str, str]] = set()
+
+    def flush() -> None:
+        nonlocal package, fields
+        if not package:
+            fields = {}
+            return
+        file_fields = {
+            key: value
+            for key, value in fields.items()
+            if value.strip().lower().startswith("file:")
+        }
+        if file_fields:
+            if set(file_fields) != {"specifier", "version"}:
+                raise GateError(
+                    f"{label}: incomplete local tarball importer identity for {package}"
+                )
+            specifier_path = normalize_lockfile_local_tarball_path(
+                file_fields["specifier"].strip()[5:],
+                importer,
+                f"{label}: importer {importer} dependency {package}",
+            )
+            version_path = normalize_lockfile_local_tarball_path(
+                file_fields["version"].strip()[5:],
+                "",
+                f"{label}: importer {importer} dependency {package}",
+            )
+            if specifier_path != version_path:
+                raise GateError(
+                    f"{label}: importer paths differ for local tarball dependency {package}"
+                )
+            review = approved.get((package, specifier_path))
+            if review is None:
+                raise unsupported_source(
+                    f"{label}: importer local tarball dependency", package
+                )
+            records.add((package, review["version"], specifier_path))
+        package, fields = "", {}
+
+    for line in text.splitlines():
+        top = re.match(r"^([A-Za-z][A-Za-z0-9_-]*):\s*$", line)
+        if top:
+            flush()
+            section = top.group(1)
+            importer = dependency_group = ""
+            continue
+        if section != "importers":
+            continue
+        importer_match = re.match(r"^  (\S.*):\s*$", line)
+        if importer_match:
+            flush()
+            importer = normalize_pnpm_importer(
+                decode_yaml_scalar(importer_match.group(1)),
+                f"{label}: importer",
+            )
+            dependency_group = ""
+            continue
+        group_match = re.match(
+            r"^    (dependencies|devDependencies|optionalDependencies):\s*$", line
+        )
+        if group_match:
+            flush()
+            dependency_group = group_match.group(1)
+            continue
+        if not importer or not dependency_group:
+            continue
+        package_match = re.match(r"^      (\S.*):\s*$", line)
+        if package_match:
+            flush()
+            package = decode_yaml_scalar(package_match.group(1))
+            continue
+        if not package:
+            continue
+        field_match = re.match(r"^        (specifier|version):\s*(.+?)\s*$", line)
+        if field_match:
+            fields[field_match.group(1)] = decode_yaml_scalar(field_match.group(2))
+    flush()
+    return records
+
+
+def parse_pnpm_lock(
+    data: bytes,
+    label: str = "pnpm-lock.yaml",
+    approved_local_tarballs: ReviewedArtifactMap | None = None,
+) -> set[Pair]:
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as exc:
@@ -339,6 +884,15 @@ def parse_pnpm_lock(data: bytes, label: str = "pnpm-lock.yaml") -> set[Pair]:
     ) or "patch_hash=" in text:
         raise unsupported_pnpm_patch(label, text)
 
+    approved = approved_local_tarballs or {}
+    local_records = parse_pnpm_local_tarball_records(text, label, approved)
+    importer_records = validate_pnpm_local_tarball_importers(text, label, approved)
+    package_records = {
+        (record["package"], record["version"], record["path"])
+        for record in local_records.values()
+    }
+    if importer_records != package_records:
+        raise GateError(f"{label}: local tarball importer and package identities differ")
     section = ""
     pairs: set[Pair] = set()
     saw_packages = False
@@ -354,6 +908,10 @@ def parse_pnpm_lock(data: bytes, label: str = "pnpm-lock.yaml") -> set[Pair]:
         if not entry:
             continue
         package_key = decode_yaml_scalar(entry.group(1))
+        if package_key in local_records:
+            record = local_records[package_key]
+            pairs.add((record["package"], record["version"]))
+            continue
         pair = split_package_key(package_key)
         if pair is None:
             raise unsupported_source(f"{label}: pnpm package entry", package_key)
@@ -361,7 +919,7 @@ def parse_pnpm_lock(data: bytes, label: str = "pnpm-lock.yaml") -> set[Pair]:
 
     if not saw_packages:
         raise GateError(f"{label}: missing packages section")
-    validate_pnpm_resolution_sources(data, label)
+    validate_pnpm_resolution_sources(data, label, local_records)
     return pairs
 
 
@@ -502,10 +1060,14 @@ def parse_yarn_lock(data: bytes, label: str = "yarn.lock") -> set[Pair]:
     return pairs
 
 
-def parse_lockfile_bytes(path: str | Path, data: bytes) -> set[Pair]:
+def parse_lockfile_bytes(
+    path: str | Path,
+    data: bytes,
+    approved_local_tarballs: ReviewedArtifactMap | None = None,
+) -> set[Pair]:
     name = Path(path).name
     if name == "pnpm-lock.yaml":
-        return parse_pnpm_lock(data, str(path))
+        return parse_pnpm_lock(data, str(path), approved_local_tarballs)
     if name == "package-lock.json":
         return parse_package_lock(data, str(path))
     if name == "yarn.lock":
@@ -522,26 +1084,36 @@ def parse_inline_resolution(raw: str) -> dict[str, str]:
     fields: dict[str, str] = {}
     content = value[1:-1]
     for key in ("integrity", "tarball", "type", "repo", "commit", "path"):
-        match = re.search(
+        matches = list(re.finditer(
             rf"(?:^|,)\s*['\"]?{key}['\"]?\s*:\s*"
             rf"(\"(?:\\.|[^\"])*\"|'(?:''|[^'])*'|[^,}}]+)",
             content,
-        )
-        if match:
-            fields[key] = decode_yaml_scalar(match.group(1))
+        ))
+        if len(matches) > 1:
+            raise GateError(f"pnpm inline resolution contains duplicate {key} field")
+        if matches:
+            fields[key] = decode_yaml_scalar(matches[0].group(1))
     return fields
 
 
-def validate_pnpm_resolution_fields(fields: Mapping[str, str], label: str) -> None:
+def validate_pnpm_resolution_fields(
+    fields: Mapping[str, str], label: str, allowed_local_tarball: str | None = None
+) -> None:
     unsupported = {key: fields[key] for key in ("type", "repo", "commit", "path") if key in fields}
     if unsupported:
         raise unsupported_source(label, canonical_json_bytes(unsupported).decode("utf-8"))
     tarball = fields.get("tarball")
     if tarball:
+        if allowed_local_tarball is not None and tarball == f"file:{allowed_local_tarball}":
+            return
         validate_registry_tarball_source(tarball, label)
 
 
-def validate_pnpm_resolution_sources(data: bytes, label: str) -> None:
+def validate_pnpm_resolution_sources(
+    data: bytes,
+    label: str,
+    local_records: Mapping[str, Mapping[str, str]] | None = None,
+) -> None:
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as exc:
@@ -549,21 +1121,31 @@ def validate_pnpm_resolution_sources(data: bytes, label: str) -> None:
 
     section = ""
     in_resolution = False
+    current_local_tarball: str | None = None
     for line in text.splitlines():
         top = re.match(r"^([A-Za-z][A-Za-z0-9_-]*):\s*$", line)
         if top:
             section = top.group(1)
             in_resolution = False
+            current_local_tarball = None
             continue
         if section != "packages":
             continue
-        if re.match(r"^  \S.*:\s*$", line):
+        entry = re.match(r"^  (\S.*):\s*$", line)
+        if entry:
             in_resolution = False
+            key = decode_yaml_scalar(entry.group(1))
+            record = (local_records or {}).get(key)
+            current_local_tarball = record.get("path") if record else None
             continue
         resolution = re.match(r"^    resolution:\s*(.*)$", line)
         if resolution:
             fields = parse_inline_resolution(resolution.group(1))
-            validate_pnpm_resolution_fields(fields, f"{label}: pnpm resolution")
+            validate_pnpm_resolution_fields(
+                fields,
+                f"{label}: pnpm resolution",
+                current_local_tarball,
+            )
             in_resolution = not bool(resolution.group(1).strip())
             continue
         if in_resolution:
@@ -575,18 +1157,25 @@ def validate_pnpm_resolution_sources(data: bytes, label: str) -> None:
                 validate_pnpm_resolution_fields(
                     {nested.group(1): decode_yaml_scalar(nested.group(2))},
                     f"{label}: pnpm resolution",
+                    current_local_tarball,
                 )
             elif line and len(line) - len(line.lstrip()) <= 4:
                 in_resolution = False
 
 
-def parse_pnpm_resolution_map(data: bytes, label: str = "pnpm-lock.yaml") -> ResolutionMap:
+def parse_pnpm_resolution_map(
+    data: bytes,
+    label: str = "pnpm-lock.yaml",
+    approved_local_tarballs: ReviewedArtifactMap | None = None,
+) -> ResolutionMap:
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as exc:
         raise GateError(f"{label}: lockfile is not UTF-8") from exc
 
-    pairs = parse_pnpm_lock(data, label)
+    approved = approved_local_tarballs or {}
+    pairs = parse_pnpm_lock(data, label, approved)
+    local_records = parse_pnpm_local_tarball_records(text, label, approved)
     records: dict[Pair, set[str]] = {}
     section = ""
     current_pair: Pair | None = None
@@ -609,7 +1198,13 @@ def parse_pnpm_resolution_map(data: bytes, label: str = "pnpm-lock.yaml") -> Res
         entry = re.match(r"^  (\S.*):\s*$", line)
         if entry:
             flush()
-            current_pair = split_package_key(decode_yaml_scalar(entry.group(1)))
+            package_key = decode_yaml_scalar(entry.group(1))
+            local_record = local_records.get(package_key)
+            current_pair = (
+                (local_record["package"], local_record["version"])
+                if local_record
+                else split_package_key(package_key)
+            )
             continue
         if current_pair is None:
             continue
@@ -731,10 +1326,14 @@ def parse_yarn_resolution_map(data: bytes, label: str = "yarn.lock") -> Resoluti
     return freeze_resolution_map(pairs, records)
 
 
-def parse_lockfile_resolution_map(path: str | Path, data: bytes) -> ResolutionMap:
+def parse_lockfile_resolution_map(
+    path: str | Path,
+    data: bytes,
+    approved_local_tarballs: ReviewedArtifactMap | None = None,
+) -> ResolutionMap:
     name = Path(path).name
     if name == "pnpm-lock.yaml":
-        return parse_pnpm_resolution_map(data, str(path))
+        return parse_pnpm_resolution_map(data, str(path), approved_local_tarballs)
     if name == "package-lock.json":
         return parse_package_lock_resolution_map(data, str(path))
     if name == "yarn.lock":
@@ -1150,6 +1749,46 @@ def git_blob(repo: Path, revision: str, relative_path: str) -> bytes | None:
     return completed.stdout if completed.returncode == 0 else None
 
 
+def load_vendored_artifact_review_authority(
+    repo: Path, path: Path, base_ref: str | None
+) -> tuple[ReviewedArtifactMap, dict[str, Any]]:
+    if path.is_symlink() or not path.is_file():
+        raise GateError("vendored artifact review ledger must be a regular repository file")
+    relative = repository_relative_path(repo, path, "vendored artifact review ledger")
+    current_bytes = path.read_bytes()
+    parse_vendored_artifact_reviews(current_bytes, relative)
+    current_sha256 = sha256_bytes(current_bytes)
+
+    if base_ref:
+        authority_revision = run_git(repo, ["rev-parse", f"{base_ref}^{{commit}}"]).strip()
+        authority_bytes = git_blob(repo, authority_revision, relative)
+        if authority_bytes is None:
+            authority_reviews: ReviewedArtifactMap = {}
+            authority_status = "ABSENT_ON_BASE"
+            authority_sha256 = ""
+        else:
+            authority_reviews = parse_vendored_artifact_reviews(
+                authority_bytes, f"{authority_revision}:{relative}"
+            )
+            authority_status = "LOADED_FROM_BASE"
+            authority_sha256 = sha256_bytes(authority_bytes)
+    else:
+        authority_revision = run_git(repo, ["rev-parse", "HEAD"]).strip()
+        authority_bytes = current_bytes
+        authority_reviews = parse_vendored_artifact_reviews(authority_bytes, relative)
+        authority_status = "LOADED_FROM_CURRENT"
+        authority_sha256 = current_sha256
+
+    return authority_reviews, {
+        "review_file": relative,
+        "authority_revision": authority_revision,
+        "authority_status": authority_status,
+        "authority_sha256": authority_sha256,
+        "current_sha256": current_sha256,
+        "current_differs_from_authority": current_sha256 != authority_sha256,
+    }
+
+
 def dependency_contract(data: bytes | None, label: str) -> dict[str, Any]:
     if data is None:
         return {}
@@ -1219,7 +1858,12 @@ def evaluate_git_change(repo: Path, base_ref: str | None) -> tuple[dict[str, Any
     return result, set()
 
 
-def base_graph(repo: Path, base_ref: str | None, lockfiles: Sequence[Path]) -> set[Pair]:
+def base_graph(
+    repo: Path,
+    base_ref: str | None,
+    lockfiles: Sequence[Path],
+    base_approved_local_tarballs: ReviewedArtifactMap | None = None,
+) -> set[Pair]:
     if not base_ref:
         return set()
     pairs: set[Pair] = set()
@@ -1228,12 +1872,16 @@ def base_graph(repo: Path, base_ref: str | None, lockfiles: Sequence[Path]) -> s
         data = git_blob(repo, base_ref, relative)
         if data is None:
             continue
-        pairs.update(parse_lockfile_bytes(relative, data))
+        pairs.update(parse_lockfile_bytes(relative, data, base_approved_local_tarballs))
     return pairs
 
 
 def compare_lockfile_resolutions(
-    repo: Path, base_ref: str | None, lockfiles: Sequence[Path]
+    repo: Path,
+    base_ref: str | None,
+    lockfiles: Sequence[Path],
+    current_approved_local_tarballs: ReviewedArtifactMap | None = None,
+    base_approved_local_tarballs: ReviewedArtifactMap | None = None,
 ) -> tuple[list[dict[str, str]], set[Pair]]:
     if not base_ref:
         return [], set()
@@ -1245,8 +1893,12 @@ def compare_lockfile_resolutions(
         if base_data is None:
             continue
         current_data = lockfile.read_bytes()
-        base_resolutions = parse_lockfile_resolution_map(relative, base_data)
-        current_resolutions = parse_lockfile_resolution_map(relative, current_data)
+        base_resolutions = parse_lockfile_resolution_map(
+            relative, base_data, base_approved_local_tarballs
+        )
+        current_resolutions = parse_lockfile_resolution_map(
+            relative, current_data, current_approved_local_tarballs
+        )
         for pair in sorted(base_resolutions.keys() & current_resolutions.keys()):
             before = base_resolutions[pair]
             after = current_resolutions[pair]
@@ -1272,6 +1924,10 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--base-ref")
     parser.add_argument("--ioc-file", default="security/supply-chain/emergency-iocs.tsv")
     parser.add_argument("--lifecycle-reviews", default="security/supply-chain/lifecycle-reviews.tsv")
+    parser.add_argument(
+        "--vendored-artifact-reviews",
+        default="security/supply-chain/vendored-artifact-reviews.tsv",
+    )
     parser.add_argument("--osv-url", default=OSV_API_URL)
     parser.add_argument("--osv-snapshot")
     parser.add_argument("--registry-url", default=NPM_REGISTRY_URL)
@@ -1336,12 +1992,38 @@ def main(argv: Sequence[str] | None = None) -> int:
         "reason": "not evaluated",
     }
     graph: set[Pair] = set()
+    registry_graph: set[Pair] = set()
     commit_sha = "UNKNOWN"
     unsupported_sources: list[dict[str, str]] = []
+    reviewed_artifacts: dict[str, Any] = {
+        "authority": {},
+        "records": [],
+        "lockfile_records": [],
+    }
+    authority_reviews: ReviewedArtifactMap = {}
+    base_approved_reviews: ReviewedArtifactMap = {}
+    accepted_local_tarballs: ReviewedArtifactMap = {}
 
     try:
         commit_sha = run_git(repo, ["rev-parse", "HEAD"]).strip()
-        unsupported_sources = unsupported_dependency_sources(repo)
+        review_path = resolve_under(repo, args.vendored_artifact_reviews)
+        authority_reviews, review_authority = load_vendored_artifact_review_authority(
+            repo, review_path, args.base_ref
+        )
+        reviewed_artifacts["authority"] = review_authority
+        base_approved_reviews = {
+            key: dict(review)
+            for key, review in authority_reviews.items()
+            if review["status"] == "APPROVED"
+        }
+        (
+            unsupported_sources,
+            reviewed_records,
+            accepted_local_tarballs,
+            reviewed_artifact_blocks,
+        ) = inspect_dependency_sources(repo, authority_reviews)
+        reviewed_artifacts["records"] = reviewed_records
+        blocked_reasons.extend(reviewed_artifact_blocks)
         dependency_change["unsupported_sources"] = unsupported_sources
         for record in unsupported_sources:
             blocked_reasons.append(
@@ -1355,12 +2037,35 @@ def main(argv: Sequence[str] | None = None) -> int:
             lockfiles = discover_files(repo, LOCKFILE_NAMES)
         if not lockfiles:
             raise GateError("no dependency lockfiles found")
+        reviewed_lock_records: list[dict[str, str]] = []
         for lockfile in lockfiles:
             if not lockfile.is_file():
                 raise GateError(f"missing lockfile: {lockfile}")
             relative = repository_relative_path(repo, lockfile, "lockfile")
             try:
-                pairs = parse_lockfile_bytes(relative, lockfile.read_bytes())
+                lockfile_bytes = lockfile.read_bytes()
+                pairs = parse_lockfile_bytes(
+                    relative, lockfile_bytes, accepted_local_tarballs
+                )
+                if lockfile.name == "pnpm-lock.yaml":
+                    lockfile_text = lockfile_bytes.decode("utf-8")
+                    registry_graph.update(pnpm_registry_pairs(lockfile_text, relative))
+                    local_records = parse_pnpm_local_tarball_records(
+                        lockfile_text, relative, accepted_local_tarballs
+                    )
+                    reviewed_lock_records.extend(
+                        {
+                            "lockfile": relative,
+                            "package": record["package"],
+                            "version": record["version"],
+                            "path": record["path"],
+                            "integrity": record["integrity"],
+                            "source_class": "reviewed-local-tarball",
+                        }
+                        for record in local_records.values()
+                    )
+                else:
+                    registry_graph.update(pairs)
             except CoverageError as exc:
                 degraded_reasons.append(str(exc))
                 pairs = set()
@@ -1372,6 +2077,25 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "sha256": sha256_file(lockfile),
                     "package_count": len(pairs),
                 }
+            )
+        reviewed_artifacts["lockfile_records"] = sorted(
+            reviewed_lock_records,
+            key=lambda item: (item["lockfile"], item["path"], item["package"]),
+        )
+        expected_reviewed_tuples = {
+            (package, review["version"], path)
+            for (package, path), review in accepted_local_tarballs.items()
+        }
+        observed_reviewed_tuples = {
+            (record["package"], record["version"], record["path"])
+            for record in reviewed_lock_records
+        }
+        for package, version, path in sorted(
+            expected_reviewed_tuples - observed_reviewed_tuples
+        ):
+            blocked_reasons.append(
+                f"reviewed local tarball is missing exact lockfile identity: "
+                f"{package}@{version} at {path}"
             )
 
         graph_bytes = canonical_graph_bytes(graph)
@@ -1386,9 +2110,21 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         if args.base_ref:
             try:
-                new_pairs = sorted(graph - base_graph(repo, args.base_ref, lockfiles))
+                new_pairs = sorted(
+                    graph
+                    - base_graph(
+                        repo,
+                        args.base_ref,
+                        lockfiles,
+                        base_approved_reviews,
+                    )
+                )
                 resolution_changes, resolution_changed_pairs = compare_lockfile_resolutions(
-                    repo, args.base_ref, lockfiles
+                    repo,
+                    args.base_ref,
+                    lockfiles,
+                    accepted_local_tarballs,
+                    base_approved_reviews,
                 )
                 dependency_change["resolution_changes"] = resolution_changes
                 for pair in sorted(resolution_changed_pairs):
@@ -1500,7 +2236,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             for key, review in reviews.items()
             if review["outcome"] == "BLOCKED" and (key[0], key[1]) in graph
         }
-        lifecycle_pairs = sorted(introduced_pair_set | rejected_review_pairs)
+        reviewed_pair_set = {
+            (review["package"], review["version"])
+            for review in accepted_local_tarballs.values()
+        }
+        reviewed_only_pair_set = reviewed_pair_set - registry_graph
+        lifecycle_pairs = sorted(
+            (introduced_pair_set | rejected_review_pairs) - reviewed_only_pair_set
+        )
         if lifecycle_pairs:
             snapshot_metadata: dict[Pair, dict[str, Any]] | None = None
             snapshot_sources: dict[Pair, str] | None = None
@@ -1546,6 +2289,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             },
             "intelligence": intelligence,
             "dependency_change": dependency_change,
+            "reviewed_artifacts": reviewed_artifacts,
             "new_packages": [{"package": name, "version": version} for name, version in new_pairs],
             "lifecycle_review": {
                 "status": (
@@ -1588,6 +2332,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             },
             "intelligence": intelligence,
             "dependency_change": dependency_change,
+            "reviewed_artifacts": reviewed_artifacts,
             "new_packages": [],
             "lifecycle_review": {"status": "UNKNOWN", "records": lifecycle_records},
             "matches": {"emergency_iocs": emergency_matches, "osv_advisories": advisory_matches},
