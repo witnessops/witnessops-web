@@ -423,14 +423,14 @@ deployment_envfrom_contract() {
   local deployment
   deployment="${1:-}"
   [[ -n "${deployment}" ]] || return 1
-  remote "kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o go-template='{{range .spec.template.spec.containers}}{{printf \"container:%s\\n\" .name}}{{range .envFrom}}{{if .secretRef}}{{printf \"secret:%s|prefix=\" .secretRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{with .secretRef.optional}}{{.}}{{else}}false{{end}}{{printf \"\\n\"}}{{else if .configMapRef}}{{printf \"configmap:%s|prefix=\" .configMapRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{with .configMapRef.optional}}{{.}}{{else}}false{{end}}{{printf \"\\n\"}}{{else}}{{printf \"unknown:|prefix=|optional=false\\n\"}}{{end}}{{end}}{{end}}'"
+  remote "sudo -n k3s kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o go-template='{{range .spec.template.spec.containers}}{{printf \"container:%s\\n\" .name}}{{range .envFrom}}{{if .secretRef}}{{printf \"secret:%s|prefix=\" .secretRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{with .secretRef.optional}}{{.}}{{else}}false{{end}}{{printf \"\\n\"}}{{else if .configMapRef}}{{printf \"configmap:%s|prefix=\" .configMapRef.name}}{{if .prefix}}{{printf \"%s\" .prefix}}{{end}}{{printf \"|optional=\"}}{{with .configMapRef.optional}}{{.}}{{else}}false{{end}}{{printf \"\\n\"}}{{else}}{{printf \"unknown:|prefix=|optional=false\\n\"}}{{end}}{{end}}{{end}}'"
 }
 
 deployment_explicit_env_key_names() {
   local deployment
   deployment="${1:-}"
   [[ -n "${deployment}" ]] || return 1
-  remote "kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o go-template='{{with index .spec.template.spec.containers 0}}{{range .env}}{{printf \"%s\\n\" .name}}{{end}}{{end}}'"
+  remote "sudo -n k3s kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o go-template='{{with index .spec.template.spec.containers 0}}{{range .env}}{{printf \"%s\\n\" .name}}{{end}}{{end}}'"
 }
 
 assert_remote_deployment_envfrom() {
@@ -464,9 +464,9 @@ remote_image_config_digest() {
   validate_digest_container_image_ref "${image}" || return 1
   manifest_digest="$(image_digest_from_ref "${image}")" || return 1
   config_digest="$(remote "set -euo pipefail
-    actual_manifest=\$(k3s ctr images list | awk -v target='${image}' '\$1 == target { print \$3 }')
+    actual_manifest=\$(sudo -n k3s ctr images list | awk -v target='${image}' '\$1 == target { print \$3 }')
     [[ \"\${actual_manifest}\" == '${manifest_digest}' ]]
-    k3s ctr content get '${manifest_digest}' \
+    sudo -n k3s ctr content get '${manifest_digest}' \
       | python3 -c 'import json,sys; print(json.load(sys.stdin)[\"config\"][\"digest\"])'
   ")" || return 1
   validate_sha256_digest "${config_digest}" || return 1
@@ -477,14 +477,14 @@ deployment_replica_state() {
   local deployment
   deployment="${1:-}"
   [[ -n "${deployment}" ]] || return 1
-  remote "kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o jsonpath='{.spec.replicas}{\"|\"}{.status.readyReplicas}'"
+  remote "sudo -n k3s kubectl -n '${DEPLOY_NS}' get deploy '${deployment}' -o jsonpath='{.spec.replicas}{\"|\"}{.status.readyReplicas}'"
 }
 
 deployment_running_image_records() {
   local deployment
   deployment="${1:-}"
   [[ -n "${deployment}" ]] || return 1
-  remote "kubectl -n '${DEPLOY_NS}' get pods -l 'app=${deployment}' -o go-template='{{range .items}}{{if eq .status.phase \"Running\"}}{{\$specImage := (index .spec.containers 0).image}}{{range .status.containerStatuses}}{{if eq .name \"${APP_CONTAINER_NAME}\"}}{{printf \"%t|%s|%s\\n\" .ready \$specImage .imageID}}{{end}}{{end}}{{end}}{{end}}'"
+  remote "sudo -n k3s kubectl -n '${DEPLOY_NS}' get pods -l 'app=${deployment}' -o go-template='{{range .items}}{{if eq .status.phase \"Running\"}}{{\$specImage := (index .spec.containers 0).image}}{{range .status.containerStatuses}}{{if eq .name \"${APP_CONTAINER_NAME}\"}}{{printf \"%t|%s|%s\\n\" .ready \$specImage .imageID}}{{end}}{{end}}{{end}}{{end}}'"
 }
 
 assert_remote_running_image_identity() {
@@ -586,8 +586,8 @@ deploy_dev_image() {
 
 # Fetch container image refs for both lanes (stdout: two lines prod\ndev).
 lane_image_refs() {
-  remote "kubectl -n '${DEPLOY_NS}' get deploy '${PROD_DEPLOY}' -o jsonpath='{.spec.template.spec.containers[0].image}{\"\\n\"}'
-    kubectl -n '${DEPLOY_NS}' get deploy '${DEV_DEPLOY}' -o jsonpath='{.spec.template.spec.containers[0].image}{\"\\n\"}'"
+  remote "sudo -n k3s kubectl -n '${DEPLOY_NS}' get deploy '${PROD_DEPLOY}' -o jsonpath='{.spec.template.spec.containers[0].image}{\"\\n\"}'
+    sudo -n k3s kubectl -n '${DEPLOY_NS}' get deploy '${DEV_DEPLOY}' -o jsonpath='{.spec.template.spec.containers[0].image}{\"\\n\"}'"
 }
 
 smoke_pair() (
@@ -654,5 +654,5 @@ smoke_pair() (
 )
 
 print_status() {
-  remote "kubectl -n '${DEPLOY_NS}' get deploy ${PROD_DEPLOY} ${DEV_DEPLOY} -o custom-columns=NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image,READY:.status.readyReplicas 2>/dev/null || kubectl -n '${DEPLOY_NS}' get deploy ${PROD_DEPLOY} -o custom-columns=NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image,READY:.status.readyReplicas"
+  remote "sudo -n k3s kubectl -n '${DEPLOY_NS}' get deploy ${PROD_DEPLOY} ${DEV_DEPLOY} -o custom-columns=NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image,READY:.status.readyReplicas 2>/dev/null || sudo -n k3s kubectl -n '${DEPLOY_NS}' get deploy ${PROD_DEPLOY} -o custom-columns=NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image,READY:.status.readyReplicas"
 }

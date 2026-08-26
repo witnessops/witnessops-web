@@ -195,6 +195,8 @@ test("the fixed status path disables ambient execution and output leaks", () => 
   assert.doesNotMatch(librarySource, /\/tmp\/wo-(?:prod|dev)\.html/);
   assert.match(librarySource, /mktemp -d \/tmp\/witnessops-smoke\.XXXXXX/);
   assert.ok((librarySource.match(/curl -q --noproxy '\*'/g) ?? []).length >= 5);
+  assert.ok((librarySource.match(/sudo -n k3s kubectl/g) ?? []).length >= 7);
+  assert.ok((librarySource.match(/sudo -n k3s ctr/g) ?? []).length >= 2);
   assert.match(deployReadme, /complete status transcript is therefore restricted evidence/);
   assert.match(deployReadme, /capture stdout and stderr together in an owner-only file/);
   assert.match(deployReadme, /never run this\s+command in public CI or public logs/);

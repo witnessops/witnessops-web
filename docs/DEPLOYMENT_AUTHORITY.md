@@ -84,6 +84,9 @@ status wrapper redacts its direct topology summary lines, but the underlying
 SSH and Kubernetes diagnostics may contain private workload or endpoint
 identifiers. Its combined stdout/stderr is restricted evidence and must be
 captured in an owner-only file, never a public CI job or public log. The
+fixed path uses non-interactive `sudo -n` only for its read-only k3s kubectl and
+containerd queries and fails closed when that access is unavailable. This does
+not authorize Kubernetes, containerd, service, or host mutation. The
 deterministic exact-root data helper is tested by
 `deploy:k3s:test-state-aggregate`; its production execution remains a separate
 read-only evidence action, not deploy authority.
