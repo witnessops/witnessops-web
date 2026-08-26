@@ -14,7 +14,7 @@ export const SKILL_PASS_LIMITATION =
   "Aegis checks a SKILL.md against explicit deterministic policy rules. A pass means no governed pattern was detected under the selected policy; it does not prove the skill is safe.";
 
 export const SKILL_PASS_SUMMARY =
-  "No governed pattern was detected under the selected policy.";
+  "No policy-blocking operational pattern was detected under the selected policy.";
 
 export type SkillScanResult = ReturnType<typeof scanSkill>;
 
@@ -43,18 +43,28 @@ export function runSkillScan(input: {
   sourceName?: string;
 }): SkillScanOutcome {
   const content = input.content;
-  if (typeof content !== "string" || content.trim().length === 0) {
+  if (typeof content !== "string") {
     return {
       ok: false,
       code: "EMPTY_INPUT",
       message: "Paste a SKILL.md or choose a local Markdown file first.",
     };
   }
-  if (content.length > SKILL_MAX_BYTES) {
+  if (
+    content.length > SKILL_MAX_BYTES ||
+    new TextEncoder().encode(content).byteLength > SKILL_MAX_BYTES
+  ) {
     return {
       ok: false,
       code: "OVERSIZED",
       message: `This file is larger than ${SKILL_MAX_BYTES} bytes. Trim the skill and try again.`,
+    };
+  }
+  if (content.trim().length === 0) {
+    return {
+      ok: false,
+      code: "EMPTY_INPUT",
+      message: "Paste a SKILL.md or choose a local Markdown file first.",
     };
   }
   if (content.includes("\u0000")) {

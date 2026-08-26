@@ -29,6 +29,8 @@ test("skill console exposes paste, file, policy, verdict, report controls", () =
   assert.match(consoleSrc, /Download \.md/);
   assert.match(consoleSrc, /SKILL_PASS_SUMMARY/);
   assert.match(consoleSrc, /AEGIS_VERIFIER_ID/);
+  assert.match(consoleSrc, /onDragOver=\{handleDragOver\}/);
+  assert.match(consoleSrc, /onDrop=\{handleDrop\}/);
   assert.doesNotMatch(consoleSrc, /Verified safe/);
   assert.doesNotMatch(consoleSrc, /localStorage/);
 });

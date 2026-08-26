@@ -71,10 +71,7 @@ export function SkillConsole() {
     }
   }
 
-  async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
+  async function loadLocalFile(file: File) {
     if (!isAcceptedSkillFile(file) || file.size > SKILL_MAX_BYTES) {
       setOutcome({
         ok: false,
@@ -90,6 +87,25 @@ export function SkillConsole() {
     setContent(text);
     setSourceName(file.name || "SKILL.md");
     setOutcome(null);
+  }
+
+  async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) await loadLocalFile(file);
+  }
+
+  function handleDragOver(event: React.DragEvent<HTMLElement>) {
+    if (!Array.from(event.dataTransfer.types).includes("Files")) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  }
+
+  async function handleDrop(event: React.DragEvent<HTMLElement>) {
+    if (!Array.from(event.dataTransfer.types).includes("Files")) return;
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
+    if (file) await loadLocalFile(file);
   }
 
   async function copyReport(report: string) {
@@ -122,6 +138,8 @@ export function SkillConsole() {
       <section
         className="border border-surface-border bg-surface-bg p-5 sm:p-6"
         aria-labelledby="skill-input-heading"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -132,7 +150,8 @@ export function SkillConsole() {
               SKILL.md input
             </h2>
             <p className="mt-1 text-sm text-text-muted">
-              Stays in this browser. No account, history, or upload.
+              Paste below, choose a local file, or drop one in this panel. Stays
+              in this browser. No account, history, or upload.
             </p>
           </div>
           <label

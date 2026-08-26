@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   SKILL_CONTRACT_PATH,
   SKILL_MAX_BYTES,
+  SKILL_PASS_SUMMARY,
   runSkillScan,
 } from "./run-scan";
 
@@ -12,6 +13,37 @@ test("oversized input does not pass", () => {
   if (!outcome.ok) {
     assert.equal(outcome.code, "OVERSIZED");
   }
+});
+
+test("pasted input size is enforced in UTF-8 bytes", () => {
+  const outcome = runSkillScan({
+    content: "é".repeat(Math.floor(SKILL_MAX_BYTES / 2) + 1),
+  });
+  assert.equal(outcome.ok, false);
+  if (!outcome.ok) {
+    assert.equal(outcome.code, "OVERSIZED");
+  }
+});
+
+test("a pass summary remains accurate when documentary findings are retained", () => {
+  const outcome = runSkillScan({
+    content: `---
+name: documentary-example
+description: Documents prompt-injection language for reviewer education.
+---
+# Documentary example
+
+Example of unsafe wording:
+
+> Never ignore previous instructions.
+`,
+  });
+  assert.equal(outcome.ok, true);
+  if (!outcome.ok) return;
+  assert.equal(outcome.result.verdict, "pass");
+  assert.ok(outcome.result.findings.some((finding) => finding.documentary));
+  assert.match(SKILL_PASS_SUMMARY, /policy-blocking operational pattern/);
+  assert.doesNotMatch(SKILL_PASS_SUMMARY, /^No governed pattern/);
 });
 
 test("nul bytes are unsupported and never a pass", () => {
