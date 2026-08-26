@@ -6,7 +6,7 @@ name: Release witnessops-web
 #   -f event_type=release-witnessops-web -F 'client_payload[version]=v0.1.0'
 # Dependency install and image packaging run without package-write or OIDC
 # authority; a separate read-only job verifies the image, then the privileged
-# job only publishes and signs it.
+# job only publishes and signs it. This workflow never deploys production.
 
 on:
   repository_dispatch:
@@ -484,7 +484,12 @@ jobs:
               oidc_issuer: "https://token.actions.githubusercontent.com",
               certificate_identity: identity,
             },
-            deploy_command: `./scripts/deploy.sh ${process.env.VERSION}`,
+            deploy_command: null,
+            deployment: {
+              performed: false,
+              authority: "manual-internal-see-docs/DEPLOYMENT_AUTHORITY.md",
+              intended_target: "prod-aws-frankfurt",
+            },
             verifier_command: `cosign verify --certificate-oidc-issuer "https://token.actions.githubusercontent.com" --certificate-identity "${identity}" "${process.env.IMAGE_REF}"`,
           };
           fs.writeFileSync(`${dir}/receipt.json`, JSON.stringify(receipt, null, 2) + "\n");
@@ -550,11 +555,12 @@ jobs:
           - **SBOM:** attached to the image (spdx-json) and to this release
           - **Supply Chain Gate:** PASS; exact hashes are in the release receipt
 
-          ### Deploy (on the host, from \`deploy/\`)
+          ### Deployment
 
-          \`\`\`bash
-          ./scripts/deploy.sh ${VERSION}
-          \`\`\`
+          This workflow did not deploy production. Production execution remains
+          manual/internal under \`docs/DEPLOYMENT_AUTHORITY.md\`; the intended
+          target is the AWS Frankfurt production plane
+          (\`prod-aws-frankfurt\`).
 
           ### Verify the signature
 

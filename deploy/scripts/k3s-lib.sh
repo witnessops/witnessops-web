@@ -16,6 +16,9 @@ DEPLOY_DIR="${REPO_ROOT}/deploy"
 K8S_DIR="${DEPLOY_DIR}/k8s"
 
 : "${DEPLOY_SSH:?set DEPLOY_SSH from private topology custody}"
+: "${PROD_TARGET_PROFILE:?set PROD_TARGET_PROFILE to the tracked production plane}"
+: "${PROD_EXPECTED_HOSTNAME:?set PROD_EXPECTED_HOSTNAME from private topology custody}"
+: "${PROD_EXPECTED_INSTANCE_ID:?set PROD_EXPECTED_INSTANCE_ID from private topology custody}"
 : "${DEPLOY_NS:?set DEPLOY_NS from private topology custody}"
 : "${PROD_DEPLOY:?set PROD_DEPLOY from private topology custody}"
 : "${DEV_DEPLOY:?set DEV_DEPLOY from private topology custody}"
@@ -31,6 +34,8 @@ K8S_DIR="${DEPLOY_DIR}/k8s"
 PROD_URL="${PROD_URL:-https://witnessops.com}"
 IMAGE_REPO="${IMAGE_REPO:-docker.io/library/witnessops-web}"
 PINNED_NODE22_IMAGE="node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32"
+WITNESSOPS_PROD_TARGET_PROFILE="prod-aws-frankfurt"
+WITNESSOPS_PROD_REGION="eu-central-1"
 
 # Pure image/CSS compare helpers (unit-tested via deploy/scripts/test-k3s-parity.sh).
 # shellcheck source=k3s-parity.sh
@@ -53,6 +58,16 @@ validate_private_topology() {
     || die "MESH_BIND_PORT must be an unprivileged TCP port"
   [[ "${MESH_DEV_URL}" == "http://${MESH_BIND_HOST}:${MESH_BIND_PORT}" ]] \
     || die "MESH_DEV_URL must exactly match the private bind host and port"
+  validate_prod_target_contract
+}
+
+validate_prod_target_contract() {
+  [[ "${PROD_TARGET_PROFILE}" == "${WITNESSOPS_PROD_TARGET_PROFILE}" ]] \
+    || die "PROD_TARGET_PROFILE must identify the AWS Frankfurt production plane"
+  validate_bind_host "${PROD_EXPECTED_HOSTNAME}" \
+    || die "PROD_EXPECTED_HOSTNAME has an invalid shape"
+  [[ "${PROD_EXPECTED_INSTANCE_ID}" =~ ^i-[0-9a-f]{8,32}$ ]] \
+    || die "PROD_EXPECTED_INSTANCE_ID has an invalid shape"
 }
 
 log() { printf '\033[1;34m[k3s-deploy]\033[0m %s\n' "$*" >&2; }
@@ -66,6 +81,35 @@ need() { command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"; 
 remote() {
   # shellcheck disable=SC2029
   ssh -o BatchMode=yes -o ConnectTimeout=20 "${DEPLOY_SSH}" "$@"
+}
+
+preflight_prod_target_identity() {
+  local observed_identity observed_hostname observed_instance_id observed_region
+  validate_prod_target_contract
+  observed_identity="$(remote bash -s <<'REMOTE'
+set -eu
+token="$(curl -fsS --connect-timeout 2 --max-time 5 -X PUT \
+  -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' \
+  http://169.254.169.254/latest/api/token)"
+hostname_value="$(hostname)"
+instance_id="$(curl -fsS --connect-timeout 2 --max-time 5 \
+  -H "X-aws-ec2-metadata-token: ${token}" \
+  http://169.254.169.254/latest/meta-data/instance-id)"
+region="$(curl -fsS --connect-timeout 2 --max-time 5 \
+  -H "X-aws-ec2-metadata-token: ${token}" \
+  http://169.254.169.254/latest/meta-data/placement/region)"
+printf '%s|%s|%s' "${hostname_value}" "${instance_id}" "${region}"
+REMOTE
+)" || die "could not read the intended production target identity"
+  IFS='|' read -r observed_hostname observed_instance_id observed_region \
+    <<<"${observed_identity}"
+  [[ "${observed_hostname}" == "${PROD_EXPECTED_HOSTNAME}" ]] \
+    || die "production target hostname mismatch"
+  [[ "${observed_instance_id}" == "${PROD_EXPECTED_INSTANCE_ID}" ]] \
+    || die "production target instance identity mismatch"
+  [[ "${observed_region}" == "${WITNESSOPS_PROD_REGION}" ]] \
+    || die "production target AWS region mismatch"
+  log "production target contract matched ${PROD_TARGET_PROFILE}"
 }
 
 require_clean_or_confirm() {
@@ -191,6 +235,8 @@ build_shared_image() {
   if ! run_supply_chain_gate; then
     die "Supply Chain Gate failed; refusing remote build"
   fi
+
+  preflight_prod_target_identity
 
   if ! sync_build_context \
     "${REPO_ROOT}/" "${DEPLOY_SSH}:${remote_dir}/" \
@@ -473,6 +519,7 @@ deploy_prod_image() {
   image="${1:-}"
   validate_digest_container_image_ref "${image}" \
     || die "refusing non-immutable production image reference"
+  preflight_prod_target_identity
   config_digest="$(remote_image_config_digest "${image}")" \
     || die "production image digest is unavailable or inconsistent after import"
   preflight_remote_admin_secrets

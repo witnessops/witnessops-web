@@ -14,9 +14,14 @@
 set -euo pipefail
 
 : "${DEPLOY_SSH:?set DEPLOY_SSH from private topology custody}"
+: "${PROD_TARGET_PROFILE:?set PROD_TARGET_PROFILE to the tracked production plane}"
+: "${PROD_EXPECTED_HOSTNAME:?set PROD_EXPECTED_HOSTNAME from private topology custody}"
+: "${PROD_EXPECTED_INSTANCE_ID:?set PROD_EXPECTED_INSTANCE_ID from private topology custody}"
 : "${DEPLOY_NS:?set DEPLOY_NS from private topology custody}"
 KEEP_IMAGES="${KEEP_IMAGES:-4}"
 MIN_FREE_GB="${MIN_FREE_GB:-20}"
+WITNESSOPS_PROD_TARGET_PROFILE="prod-aws-frankfurt"
+WITNESSOPS_PROD_REGION="eu-central-1"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=k3s-parity.sh
@@ -29,12 +34,58 @@ validate_kubernetes_name "${DEPLOY_NS}" || {
   echo "k3s-disk-hygiene: invalid private Kubernetes namespace" >&2
   exit 1
 }
+validate_bind_host "${PROD_EXPECTED_HOSTNAME}" || {
+  echo "k3s-disk-hygiene: invalid expected production hostname" >&2
+  exit 1
+}
+[[ "${PROD_EXPECTED_INSTANCE_ID}" =~ ^i-[0-9a-f]{8,32}$ ]] || {
+  echo "k3s-disk-hygiene: invalid expected production instance identity" >&2
+  exit 1
+}
 [[ "${KEEP_IMAGES}" =~ ^[0-9]+$ ]] && (( KEEP_IMAGES >= 1 && KEEP_IMAGES <= 100 )) || {
   echo "k3s-disk-hygiene: KEEP_IMAGES must be between 1 and 100" >&2
   exit 1
 }
 [[ "${MIN_FREE_GB}" =~ ^[0-9]+$ ]] && (( MIN_FREE_GB >= 1 && MIN_FREE_GB <= 10000 )) || {
   echo "k3s-disk-hygiene: MIN_FREE_GB must be between 1 and 10000" >&2
+  exit 1
+}
+
+[[ "${PROD_TARGET_PROFILE}" == "${WITNESSOPS_PROD_TARGET_PROFILE}" ]] || {
+  echo "k3s-disk-hygiene: refusing non-Frankfurt production target" >&2
+  exit 1
+}
+observed_identity="$(
+  ssh -o BatchMode=yes -o ConnectTimeout=25 "${DEPLOY_SSH}" bash -s <<'REMOTE'
+set -eu
+token="$(curl -fsS --connect-timeout 2 --max-time 5 -X PUT \
+  -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' \
+  http://169.254.169.254/latest/api/token)"
+hostname_value="$(hostname)"
+instance_id="$(curl -fsS --connect-timeout 2 --max-time 5 \
+  -H "X-aws-ec2-metadata-token: ${token}" \
+  http://169.254.169.254/latest/meta-data/instance-id)"
+region="$(curl -fsS --connect-timeout 2 --max-time 5 \
+  -H "X-aws-ec2-metadata-token: ${token}" \
+  http://169.254.169.254/latest/meta-data/placement/region)"
+printf '%s|%s|%s' "${hostname_value}" "${instance_id}" "${region}"
+REMOTE
+)" || {
+  echo "k3s-disk-hygiene: could not read production target identity" >&2
+  exit 1
+}
+IFS='|' read -r observed_hostname observed_instance_id observed_region \
+  <<<"${observed_identity}"
+[[ "${observed_hostname}" == "${PROD_EXPECTED_HOSTNAME}" ]] || {
+  echo "k3s-disk-hygiene: production target hostname mismatch" >&2
+  exit 1
+}
+[[ "${observed_instance_id}" == "${PROD_EXPECTED_INSTANCE_ID}" ]] || {
+  echo "k3s-disk-hygiene: production target instance identity mismatch" >&2
+  exit 1
+}
+[[ "${observed_region}" == "${WITNESSOPS_PROD_REGION}" ]] || {
+  echo "k3s-disk-hygiene: production target AWS region mismatch" >&2
   exit 1
 }
 
