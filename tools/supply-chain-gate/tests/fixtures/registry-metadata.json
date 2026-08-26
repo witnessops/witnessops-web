@@ -17,6 +17,15 @@
         "version": "1.0.0",
         "scripts": {"preinstall": "node setup.mjs"}
       }
+    },
+    {
+      "package": "reviewed-package",
+      "version": "1.0.0",
+      "metadata": {
+        "name": "reviewed-package",
+        "version": "1.0.0",
+        "scripts": {}
+      }
     }
   ]
 }
