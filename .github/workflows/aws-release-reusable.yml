@@ -303,7 +303,7 @@ jobs:
             if ! aws ecr describe-image-scan-findings \
               --region "${AWS_REGION}" \
               --repository-name "${ECR_REPOSITORY}" \
-              --image-ids "imageDigest=${IMAGE_DIGEST}" \
+              --image-id "imageDigest=${IMAGE_DIGEST}" \
               --output json > "${scan_file}" 2> "${scan_error}"; then
               if grep -q 'ScanNotFoundException' "${scan_error}" && [[ "${attempt}" != "60" ]]; then
                 sleep 10

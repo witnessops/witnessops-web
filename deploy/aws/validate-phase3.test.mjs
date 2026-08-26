@@ -123,6 +123,16 @@ test("publisher must use digest-bound DescribeImageScanFindings telemetry", () =
   );
 });
 
+test("publisher must use the singular DescribeImageScanFindings image-id argument", () => {
+  const mutated = changed("reusable", (value) =>
+    value.replace(
+      '--image-id "imageDigest=${IMAGE_DIGEST}"',
+      '--image-ids "imageDigest=${IMAGE_DIGEST}"',
+    ),
+  );
+  assert.throws(() => validatePhase3Sources(mutated), /--image-id/);
+});
+
 test("publisher must support completed basic and enhanced scan inventories", () => {
   const mutated = changed("reusable", (value) =>
     value.replace("enhancedFindings", "unreviewedEnhancedInventory"),
