@@ -4,6 +4,8 @@ set -euo pipefail
 # shellcheck source=k3s-lib.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/k3s-lib.sh"
 
+preflight_prod_target_identity
+
 print_status || true
 echo "---"
 log "PROD_URL=${PROD_URL}"

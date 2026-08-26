@@ -8,6 +8,8 @@ set -euo pipefail
 # shellcheck source=k3s-lib.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/k3s-lib.sh"
 
+preflight_prod_target_identity
+
 IMAGE="${1:-}"
 if [[ -z "${IMAGE}" ]]; then
   TAG="$(make_image_tag main)"

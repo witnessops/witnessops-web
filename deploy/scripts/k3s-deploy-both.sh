@@ -12,6 +12,10 @@ set -euo pipefail
 # shellcheck source=k3s-lib.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/k3s-lib.sh"
 
+# A dual-lane invocation must prove the Frankfurt production target before a
+# build or mesh-dev mutation, even when an existing image is supplied.
+preflight_prod_target_identity
+
 IMAGE="${1:-}"
 if [[ -z "${IMAGE}" ]]; then
   TAG="$(make_image_tag main)"

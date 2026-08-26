@@ -18,6 +18,9 @@ DISK_HYGIENE_SCRIPT="${REPO_ROOT}/deploy/scripts/k3s-disk-hygiene.sh"
 # Deliberately non-operational values exercise the same injected topology
 # contract used by the live scripts without publishing private infrastructure.
 export DEPLOY_SSH=deploy-host.private.example
+export PROD_TARGET_PROFILE=prod-aws-frankfurt
+export PROD_EXPECTED_HOSTNAME=deploy-host.private.example
+export PROD_EXPECTED_INSTANCE_ID=i-0123456789abcdef0
 export DEPLOY_NS=example-namespace
 export PROD_DEPLOY=example-prod-deployment
 export PROD_SERVICE=example-prod-service
@@ -239,6 +242,17 @@ assert_output() {
   fi
 }
 
+line_precedes() {
+  local file="$1"
+  local first="$2"
+  local second="$3"
+  local first_line second_line
+  first_line="$(grep -nF -m 1 -- "${first}" "${file}" | cut -d: -f1)" || return 1
+  second_line="$(grep -nF -m 1 -- "${second}" "${file}" | cut -d: -f1)" || return 1
+  [[ "${first_line}" =~ ^[0-9]+$ && "${second_line}" =~ ^[0-9]+$ ]] \
+    && (( first_line < second_line ))
+}
+
 # --- compare-images (CLI drives shipped entrypoint) ---
 assert_exit 0 bash "${PARITY}" compare-images \
   'docker.io/library/witnessops-web:main-abc-1' \
@@ -297,18 +311,43 @@ ln -s "$(command -v true)" "${disk_fake_bin}/ssh"
 assert_exit 1 env \
   PATH="${disk_fake_bin}:${PATH}" \
   DEPLOY_SSH='deploy-host;invalid' \
+  PROD_TARGET_PROFILE=prod-aws-frankfurt \
+  PROD_EXPECTED_HOSTNAME=deploy-host.private.example \
+  PROD_EXPECTED_INSTANCE_ID=i-0123456789abcdef0 \
   DEPLOY_NS=example-namespace \
   bash "${DISK_HYGIENE_SCRIPT}"
 assert_exit 1 env \
   PATH="${disk_fake_bin}:${PATH}" \
   DEPLOY_SSH=deploy-host.private.example \
+  PROD_TARGET_PROFILE=prod-aws-frankfurt \
+  PROD_EXPECTED_HOSTNAME=deploy-host.private.example \
+  PROD_EXPECTED_INSTANCE_ID=i-0123456789abcdef0 \
   DEPLOY_NS=$'example-namespace\n---' \
   bash "${DISK_HYGIENE_SCRIPT}"
 assert_exit 1 env \
   PATH="${disk_fake_bin}:${PATH}" \
   DEPLOY_SSH=deploy-host.private.example \
+  PROD_TARGET_PROFILE=prod-aws-frankfurt \
+  PROD_EXPECTED_HOSTNAME=deploy-host.private.example \
+  PROD_EXPECTED_INSTANCE_ID=i-0123456789abcdef0 \
   DEPLOY_NS=example-namespace \
   KEEP_IMAGES='4;invalid' \
+  bash "${DISK_HYGIENE_SCRIPT}"
+assert_exit 1 env \
+  PATH="${disk_fake_bin}:${PATH}" \
+  DEPLOY_SSH=deploy-host.private.example \
+  PROD_TARGET_PROFILE=old-vps-break-glass \
+  PROD_EXPECTED_HOSTNAME=deploy-host.private.example \
+  PROD_EXPECTED_INSTANCE_ID=i-0123456789abcdef0 \
+  DEPLOY_NS=example-namespace \
+  bash "${DISK_HYGIENE_SCRIPT}"
+assert_exit 1 env \
+  PATH="${disk_fake_bin}:${PATH}" \
+  DEPLOY_SSH=deploy-host.private.example \
+  PROD_TARGET_PROFILE=prod-aws-frankfurt \
+  PROD_EXPECTED_HOSTNAME=deploy-host.private.example \
+  PROD_EXPECTED_INSTANCE_ID=not-an-instance \
+  DEPLOY_NS=example-namespace \
   bash "${DISK_HYGIENE_SCRIPT}"
 assert_exit 0 grep -Fq -- "kubectl -n '\${DEPLOY_NS}'" "${DISK_HYGIENE_SCRIPT}"
 rm -rf "${disk_test_dir}"
@@ -434,6 +473,28 @@ fi
 # --- prod deploy preflight and atomic patch ---
 # shellcheck source=k3s-lib.sh
 source "${K3S_LIB}"
+assert_exit 0 validate_prod_target_contract
+assert_exit 1 env \
+  PROD_TARGET_PROFILE=legacy-vps-production \
+  bash -c 'source "$1"' _ "${K3S_LIB}"
+assert_exit 1 env \
+  PROD_EXPECTED_HOSTNAME='invalid;hostname' \
+  bash -c 'source "$1"' _ "${K3S_LIB}"
+assert_exit 1 env \
+  PROD_EXPECTED_INSTANCE_ID=not-an-instance \
+  bash -c 'source "$1"' _ "${K3S_LIB}"
+assert_exit 0 line_precedes \
+  "${REPO_ROOT}/deploy/scripts/k3s-deploy-prod.sh" \
+  preflight_prod_target_identity 'IMAGE="${1:-}"'
+assert_exit 0 line_precedes \
+  "${REPO_ROOT}/deploy/scripts/k3s-deploy-both.sh" \
+  preflight_prod_target_identity 'IMAGE="${1:-}"'
+assert_exit 0 line_precedes \
+  "${REPO_ROOT}/deploy/scripts/k3s-status.sh" \
+  preflight_prod_target_identity print_status
+assert_exit 0 line_precedes \
+  "${REPO_ROOT}/deploy/scripts/smoke-prod-dev.sh" \
+  preflight_prod_target_identity print_status
 assert_exit 0 grep -Fq 'k3s ctr images check \"name==\${immutable_image}\"' \
   "${K3S_LIB}"
 assert_exit 0 grep -Fqx \
@@ -478,7 +539,14 @@ gate_failure_output="$(
     printf '%s\n' sync_reached >>"${gate_failure_trace}"
   }
   remote() {
-    printf '%s\n' remote_reached >>"${gate_failure_trace}"
+    if [[ "$*" == "bash -s" ]]; then
+      printf '%s|%s|%s' \
+        "${PROD_EXPECTED_HOSTNAME}" \
+        "${PROD_EXPECTED_INSTANCE_ID}" \
+        "${WITNESSOPS_PROD_REGION}"
+    else
+      printf '%s\n' remote_reached >>"${gate_failure_trace}"
+    fi
   }
   require_clean_or_confirm() { :; }
   need() { :; }
@@ -571,7 +639,34 @@ trap 'rm -rf "${rendered_test_dir}" "${gate_failure_dir}"; rm -f "${gate_success
 remote() {
   local command_text="$*"
   printf '%s\n' "${command_text}" >> "${remote_log}"
-  if [[ "${command_text}" == *"k3s ctr content get"* ]]; then
+  if [[ "${command_text}" == "bash -s" ]]; then
+    case "${remote_mode}" in
+      wrong-prod-host)
+        printf '%s|%s|%s' \
+          'other-host.private.example' \
+          "${PROD_EXPECTED_INSTANCE_ID}" \
+          "${WITNESSOPS_PROD_REGION}"
+        ;;
+      wrong-instance-id)
+        printf '%s|%s|%s' \
+          "${PROD_EXPECTED_HOSTNAME}" \
+          'i-0fedcba9876543210' \
+          "${WITNESSOPS_PROD_REGION}"
+        ;;
+      wrong-region)
+        printf '%s|%s|%s' \
+          "${PROD_EXPECTED_HOSTNAME}" \
+          "${PROD_EXPECTED_INSTANCE_ID}" \
+          'eu-west-1'
+        ;;
+      *)
+        printf '%s|%s|%s' \
+          "${PROD_EXPECTED_HOSTNAME}" \
+          "${PROD_EXPECTED_INSTANCE_ID}" \
+          "${WITNESSOPS_PROD_REGION}"
+        ;;
+    esac
+  elif [[ "${command_text}" == *"k3s ctr content get"* ]]; then
     if [[ "${remote_mode}" == "runtime-image-drift" ]]; then
       printf '%s' 'sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
     else
@@ -669,6 +764,67 @@ if [[ -s "${health_runtime_log}" ]]; then
 else
   pass=$((pass + 1))
   echo "PASS: health-on-node22 rejects invalid pnpm versions before runtime"
+fi
+
+remote_mode="ok"
+: > "${remote_log}"
+if preflight_prod_target_identity >/dev/null 2>&1; then
+  pass=$((pass + 1))
+  echo "PASS: production target preflight accepts the custodied Frankfurt identity"
+else
+  fail=$((fail + 1))
+  echo "FAIL: production target preflight rejected the custodied Frankfurt identity" >&2
+fi
+
+remote_mode="wrong-prod-host"
+: > "${remote_log}"
+if (deploy_prod_image "${image}") >/dev/null 2>&1; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image accepted a mismatched hostname" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image rejects a mismatched hostname"
+fi
+if grep -q 'kubectl .* patch ' "${remote_log}"; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image patched after target identity mismatch" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: target identity mismatch fails before production mutation"
+fi
+
+remote_mode="wrong-instance-id"
+: > "${remote_log}"
+if (deploy_prod_image "${image}") >/dev/null 2>&1; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image accepted a mismatched AWS instance identity" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image rejects a mismatched AWS instance identity"
+fi
+if grep -q 'kubectl .* patch ' "${remote_log}"; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image patched after instance identity mismatch" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: instance identity mismatch fails before production mutation"
+fi
+
+remote_mode="wrong-region"
+: > "${remote_log}"
+if (deploy_prod_image "${image}") >/dev/null 2>&1; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image accepted a mismatched AWS region" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: deploy_prod_image rejects a mismatched AWS region"
+fi
+if grep -q 'kubectl .* patch ' "${remote_log}"; then
+  fail=$((fail + 1))
+  echo "FAIL: deploy_prod_image patched after AWS region mismatch" >&2
+else
+  pass=$((pass + 1))
+  echo "PASS: AWS region mismatch fails before production mutation"
 fi
 
 remote_mode="ok"
@@ -1077,12 +1233,18 @@ if [[ -n "${PRIVATE_TOPOLOGY_DENYLIST_FILE:-}" ]]; then
   else
     fail=$((fail + 1))
   fi
-elif grep -Fq -- 'deploy-host.private.example' \
+elif grep -Fq -- 'DEPLOY_SSH=deploy-host.private.example' \
   "${REPO_ROOT}/deploy/topology.env.example" \
+  && grep -Fq -- 'PROD_TARGET_PROFILE=prod-aws-frankfurt' \
+    "${REPO_ROOT}/deploy/topology.env.example" \
+  && grep -Fq -- 'PROD_EXPECTED_HOSTNAME=deploy-host.private.example' \
+    "${REPO_ROOT}/deploy/topology.env.example" \
+  && grep -Fq -- 'PROD_EXPECTED_INSTANCE_ID=i-0123456789abcdef0' \
+    "${REPO_ROOT}/deploy/topology.env.example" \
   && grep -Fq -- '192.0.2.10' \
     "${REPO_ROOT}/deploy/topology.env.example"; then
   pass=$((pass + 1))
-  echo "PASS: public topology contract uses non-operational examples"
+  echo "PASS: public target profile is explicit and private identity uses non-operational examples"
 else
   fail=$((fail + 1))
   echo "FAIL: public topology example contract is missing" >&2

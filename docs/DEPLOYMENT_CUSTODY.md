@@ -1,7 +1,7 @@
 # WitnessOps Web Deployment Custody
 
-Status: current production + mesh-dev custody note for `witnessops.com`
-Last updated: 2026-08-19
+Status: AWS Frankfurt intended production target + optional mesh-dev custody note
+Last updated: 2026-08-26
 
 This document records how the public WitnessOps web surface (and the mesh-only
 dev twin) is served, built, deployed, verified, and rolled back. It is
@@ -15,7 +15,7 @@ explicit apply lane.
 ```text
 witnessops.com / www.witnessops.com
 -> DNS
--> private DEPLOY_SSH target
+-> AWS Lightsail Frankfurt production plane prod-aws-frankfurt
 -> systemd caddy.service
 -> /etc/caddy/Caddyfile
 -> reverse_proxy 127.0.0.1:3000
@@ -23,7 +23,7 @@ witnessops.com / www.witnessops.com
 -> deployment PROD_DEPLOY
 -> container port 3000 (hostPort 127.0.0.1:3000)
 -> image docker.io/library/witnessops-web@sha256:<manifest-digest>
--> PVC-backed intake / mail volumes
+-> current on-host custody paths (hostPath in the migration audit)
 ```
 
 ### Mesh-dev (private twin)
@@ -37,6 +37,10 @@ operator laptop (private network)
 -> emptyDir intake (isolated from prod PVC)
 ```
 
+The accepted claim is limited to: "The witnessops-web apex/www production
+serving path operates from AWS Lightsail in Frankfurt." It does not accept API,
+mesh-dev, credential, data-equivalence, or rollback-equivalence surfaces.
+
 Pod names, tag aliases, and exact image digests are observations that change every apply.
 Record the live tag alias, manifest digest, and config digest in the apply
 receipt; do not treat sample coordinates in this file as permanent.
@@ -48,8 +52,9 @@ Current source custody:
 - Repo: `witnessops-web` (`https://github.com/witnessops/witnessops-web`)
 - Default branch: `main`
 - Operator checkouts may live on Mac (`~/WitnessOps/repos/witnessops-web`) or
-  other private nodes; build always rsyncs the checkout to `DEPLOY_SSH` via
-  `deploy/scripts/k3s-lib.sh`.
+  other private nodes. The canonical helper validates the generic Frankfurt
+  profile plus the operator-custodied hostname, AWS instance identity, and
+  region before remote build or production work.
 
 Every apply lane must record starting HEAD and dirty state. Use
 `ALLOW_DIRTY=1` only when intentionally shipping uncommitted work, and note
@@ -57,7 +62,11 @@ that in the receipt.
 
 ## Build
 
-Production-quality builds use **Node 22** inside Docker on the private deploy target.
+The repository's shared-image helper expects **Node 22** inside Docker on the
+intended deploy target. The migration audit did not prove that this Docker
+build/import prerequisite is currently available on the Frankfurt host. Treat
+that as a blocked execution prerequisite, not permission to build on the old
+VPS.
 
 Canonical path (in-repo):
 
@@ -128,8 +137,14 @@ Canonical helpers (repo root):
 | `pnpm deploy:k3s:smoke` | exact runtime `envFrom` + digest-qualified image/runtime identity + HTTP 200 + CSS parity |
 | `pnpm deploy:k3s:dev:teardown` | delete mesh-dev only |
 
-SSH target, fallback and private-network configuration come from operator custody
-and are not defaulted in public source.
+The generic target contract is explicit in public source:
+
+- `PROD_TARGET_PROFILE=prod-aws-frankfurt`
+
+`DEPLOY_SSH`, `PROD_EXPECTED_HOSTNAME`, `PROD_EXPECTED_INSTANCE_ID`, namespace,
+workload, Secret, storage, fallback, and private-network configuration remain
+in ignored operator custody. The helper checks the remote hostname, IMDSv2
+instance identity, and AWS region before shared build or production mutation.
 
 Secrets: the application container in both deployments uses exactly these
 ordered `secretRef` sources in `DEPLOY_NS`, each with an empty
@@ -172,7 +187,7 @@ already be provisioned. The helper does not create or update the OIDC Secret.
 
 ## Edge
 
-Public edge for apex and `www` is Caddy on the private deploy target:
+Public edge for apex and `www` is Caddy on the intended Frankfurt target:
 
 ```text
 witnessops.com, www.witnessops.com -> reverse_proxy 127.0.0.1:3000
@@ -249,6 +264,7 @@ Every public web apply receipt must record:
 
 - lane name and authority class
 - private host identity (in the restricted receipt, not public Git)
+- expected and observed Frankfurt target identity
 - repo path and `DEPLOY_SSH`
 - start HEAD and end HEAD
 - dirty state / `ALLOW_DIRTY`
@@ -265,9 +281,17 @@ Every public web apply receipt must record:
 
 ## Rollback
 
-Preferred rollback is to redeploy the same previously recorded, known-good
-digest-qualified image to both lanes. Pair smoke fails closed when prod and
-mesh-dev image references differ.
+The retained old VPS is a rollback surface, not routine deployment authority.
+Using it requires a separately authorized recovery lane that checks its access,
+security posture, image/data currency, and public-routing implications. This
+document does not assert rollback equivalence. The 2026-08-26 migration closure
+decision classifies it as break-glass only.
+
+Preferred prod rollback is to redeploy a previously recorded, known-good image
+through the production reconciler so the exact ordered `envFrom` contract is
+restored at the same time. When mesh-dev is active and included in the recovery
+lane, redeploy the same digest-qualified image to both lanes; pair smoke fails
+closed while their image references differ.
 
 ```bash
 bash deploy/scripts/k3s-deploy-both.sh docker.io/library/witnessops-web@sha256:<known-good-manifest-digest>

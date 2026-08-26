@@ -1,36 +1,52 @@
 # Deployment authority
 
-Status: `private_caddy_k3s_dual_lane`
-Last updated: 2026-08-19
+Status: `aws_lightsail_frankfurt_intended_production_target`
+Last updated: 2026-08-26
 
 This document classifies deployment-related repository surfaces for
 `witnessops-web`. It is repo-local guidance and is not deploy approval, release
 approval, production verification, cloud inventory, rollback approval, or server
 administration authority.
 
-## Current production authority (dual-lane)
+## Accepted serving-path claim
 
-Current public + mesh-dev runtime path. Concrete host, address, namespace,
-workload, Secret and PVC names are held outside this public repository and
-injected through the variables listed in `deploy/topology.env.example`.
+"The witnessops-web apex/www production serving path operates from AWS
+Lightsail in Frankfurt."
+
+This claim does not include `api.witnessops.com`, mesh-dev availability,
+credential remediation, rollback equivalence, or the broader WitnessOps
+production environment.
+
+## Intended production deployment authority
+
+The single intended routine production target is the AWS Lightsail Frankfurt
+plane `prod-aws-frankfurt`. Exact host and instance identity, namespace,
+workload, Secret, storage, and private-network values remain in operator
+custody and are injected through ignored `deploy/topology.env` using the names
+in `deploy/topology.env.example`.
 
 ```text
 Public:
   DNS
-  -> private target from DEPLOY_SSH custody
+  -> AWS Lightsail Frankfurt production plane: prod-aws-frankfurt
   -> systemd caddy.service
   -> reverse_proxy 127.0.0.1:3000
   -> k3s namespace DEPLOY_NS
   -> deployment PROD_DEPLOY
   -> hostPort 127.0.0.1:3000
 
-Mesh-dev (not public; private network only):
+Optional mesh-dev (not public; not part of the accepted claim):
   operator client
   -> MESH_DEV_URL
   -> k3s deployment DEV_DEPLOY
   -> hostNetwork bind MESH_BIND_HOST:MESH_BIND_PORT
   -> emptyDir volumes (no prod PVC)
 ```
+
+The retained old VPS is rollback-only and may host unrelated surfaces. It is
+not the intended routine `witnessops-web` production deploy target. Rollback
+use requires a separately authorized recovery lane and must not silently
+change the accepted serving-path claim.
 
 Custody map: [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
 
@@ -47,6 +63,14 @@ Custody map: [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
 | `deploy/scripts/k3s-parity.sh` | Pure image/CSS, ordered `envFrom`, OIDC key-name, and image-ref validation helpers |
 | `deploy/scripts/test-k3s-parity.sh` | Unit tests for parity, Secret preflight, and deploy reconciliation |
 | `deploy/scripts/k3s-dev-teardown.sh` | Delete mesh-dev only |
+| `deploy/scripts/k3s-disk-hygiene.sh` | Prune production-host build/runtime residue only after the same Frankfurt target check |
+
+Before any shared build, production status/smoke, or production mutation, the
+helpers require `PROD_TARGET_PROFILE=prod-aws-frankfurt`, then compare the
+read-only remote hostname, IMDSv2 instance identity, and AWS region with
+ignored operator custody and the checked-in regional contract. A mismatch
+fails before image build, Secret inspection, or Kubernetes mutation. This
+guard is validation, not deploy authorization.
 
 pnpm aliases (monorepo root):
 `deploy:k3s:build|prod|dev|both|smoke|status|test-parity|dev:teardown`.
@@ -106,13 +130,31 @@ loaded before they are invoked.
 
 | Variable | Source | Notes |
 | --- | --- | --- |
-| `DEPLOY_SSH` | required private custody | SSH target |
+| `DEPLOY_SSH` | required private operator custody | SSH alias or host for the custodied target |
+| `PROD_TARGET_PROFILE` | checked-in public contract | Must be `prod-aws-frankfurt` |
+| `PROD_EXPECTED_HOSTNAME` | required private operator custody | Exact remote hostname; compared at preflight |
+| `PROD_EXPECTED_INSTANCE_ID` | required private operator custody | Exact AWS instance ID; compared through IMDSv2 |
 | `ALLOW_DIRTY` | unset | Set `1` to build from dirty tree |
 | `MESH_DEV_URL` | required private custody | Local smoke target |
 | `PROD_URL` | `https://witnessops.com` | Public smoke target |
 
 The configured private network path is required for mesh-dev smoke and private
 SSH. Network profile, peer and CIDR details stay outside this public repo.
+
+### CI/CD boundary
+
+`.github/workflows/release.yml` builds, verifies, signs, and publishes an
+immutable release artifact. It does **not** SSH to a host, apply Kubernetes
+manifests, restart services, or deploy production. Its receipt records no
+deployment and points operators back to this authority document. Production
+execution remains an explicit manual/internal lane.
+
+### Known execution limitation
+
+The migration audit observed k3s on the Frankfurt target but did not prove that
+the current remote Docker build/import path is usable there. Target identity
+is now fail-closed, but the build/import prerequisite remains a Phase 2 blocker;
+do not redirect the helper to the old VPS to work around it.
 
 ## Authority split
 
@@ -131,6 +173,9 @@ Deploy authority:
 - rollout status and dual-lane smoke when both are in scope
 - known-good rollback image redeployed through the prod reconciler, with exact
   `envFrom` reconciliation and smoke captured in the receipt
+- restricted target-identity receipt showing the generic Frankfurt plane and
+  matching expected/observed private host and instance identity without
+  publishing those private identifiers
 
 DNS/Cloudflare authority:
 
@@ -168,7 +213,7 @@ docs/archive/azure-aca-retired-20260508/
 That archive is historical reference only. Do not run `az`, `azd`, or Bicep
 from this repo unless an explicit Azure reopening lane authorizes it.
 
-## Planned AWS Lightsail candidate: not active authority
+## AWS infrastructure automation source: not active deploy authority
 
 The bounded target architecture and migration gates are defined in
 [`AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md`](./AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md)
@@ -178,14 +223,15 @@ contracts are
 and
 [`deploy/aws/github-deployment-contract.v1.json`](../deploy/aws/github-deployment-contract.v1.json).
 The parameterized CloudFormation file under `deploy/aws/cloudformation/` is
-reviewable source, not an applied stack. No GitHub AWS-deployment workflow or
-host adapter is active in this phase.
+reviewable source, not evidence of the stack that created the current host. No
+GitHub AWS-deployment workflow or host adapter is active in this phase.
 
-These files are design, evidence, and fail-closed acceptance surfaces only.
+These files remain design, evidence, and fail-closed acceptance surfaces only.
 They do not authorize creating AWS resources, deploying workloads, copying
 production data, changing DNS, writing Secrets, or cutting traffic over. The
-current live status at the top of this document remains authoritative until a
-separately authorized cutover has been executed and evidenced.
+current Frankfurt serving path at the top of this document is authoritative;
+that point-in-time runtime evidence does not prove this automation source was
+applied to build it.
 
 The candidate preserves the existing deployment seam and runtime shape:
 `DEPLOY_SSH` selects the host, Caddy terminates the public edge, the app binds

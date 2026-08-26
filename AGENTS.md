@@ -23,10 +23,21 @@ Release authority: internal/manual for now
 
 - Use [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md) before any deploy-adjacent work.
 - Custody map: [`docs/DEPLOYMENT_CUSTODY.md`](./docs/DEPLOYMENT_CUSTODY.md).
-- **Active dual-lane path:** private k3s topology is injected from operator
-  custody using the variables in `deploy/topology.env.example`.
-  - **prod** — configured production deployment, public at `https://witnessops.com` through Caddy and a loopback app bind.
-  - **mesh-dev** — configured private-network deployment using `hostNetwork` and emptyDir intake, never prod PVCs.
+- **Intended production target:** AWS Lightsail Frankfurt plane
+  `prod-aws-frankfurt`, selected with
+  `PROD_TARGET_PROFILE=prod-aws-frankfurt`.
+  Canonical shared-build, production status/smoke, production deploy, and
+  production-host hygiene entrypoints must fail closed unless the target
+  contract and read-only remote hostname, AWS instance identity, and region
+  checks all match operator custody. Exact host and instance identifiers stay
+  out of public Git. The old VPS is rollback-only and must not be used as the
+  routine production target.
+- **Accepted claim:** "The witnessops-web apex/www production serving path
+  operates from AWS Lightsail in Frankfurt." Do not expand this to API,
+  mesh-dev, data, rollback-equivalence, or broader production acceptance.
+- The repo retains a dual-lane model in which **prod** is public through Caddy
+  and a loopback app bind, while optional **mesh-dev** uses `hostNetwork` and
+  emptyDir intake. Mesh-dev availability is not implied by the accepted claim.
 - Both lanes must run the **same digest-qualified shared image reference** for fair CSS/UI compare. The source-SHA/time tag is retained only as a human-readable alias. Shared builds always bake `NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`.
 - **`pnpm deploy:k3s:smoke` enforces** (exit non-zero on failure):
   1. the exact ordered application-container `envFrom` contract on prod and mesh-dev: `BASE_ENV_SECRET`, then `ADMIN_OIDC_SECRET`, each with an empty prefix and `optional=false`,
@@ -52,13 +63,17 @@ Release authority: internal/manual for now
   | Status + envFrom/image/HTTP/CSS smoke | `pnpm deploy:k3s:smoke` or `pnpm deploy:k3s:status` |
   | Parity unit tests | `pnpm deploy:k3s:test-parity` |
   | Remove mesh-dev only | `pnpm deploy:k3s:dev:teardown` |
-  | Validate planned AWS migration contract | `pnpm deploy:aws:test` |
-  | Validate planned GitHub OIDC/ECR/SSM source | `pnpm deploy:aws:validate-github` |
-  | Read-only pre-DNS AWS candidate acceptance | `pnpm deploy:aws:candidate` (explicit candidate identity required) |
+  | Validate AWS infrastructure source contract | `pnpm deploy:aws:test` |
+  | Validate unapplied GitHub OIDC/ECR/SSM source | `pnpm deploy:aws:validate-github` |
+  | Read-only AWS candidate acceptance | `pnpm deploy:aws:candidate` (explicit candidate identity required) |
 
   Scripts live under `deploy/scripts/k3s-*.sh` and source `k3s-lib.sh` / `k3s-parity.sh`.
 - **Env for agents / local Mac:**
   - Source a private ignored `deploy/topology.env`; the public example lists all required variable names without live values.
+  - Confirm `PROD_TARGET_PROFILE=prod-aws-frankfurt`; keep `DEPLOY_SSH`,
+    `PROD_EXPECTED_HOSTNAME`, and `PROD_EXPECTED_INSTANCE_ID` in ignored
+    operator custody. The scripts enforce all three private identity checks
+    before build or prod mutation.
   - Dirty tree: `ALLOW_DIRTY=1` (required if uncommitted work must ship; still record dirty state in receipts).
   - Mesh smoke requires the configured private network path.
 - DNS/Cloudflare, Caddy rewrites, API/app exposure, and OffSec product-surface exposure require separate explicit lanes.
@@ -67,11 +82,12 @@ Release authority: internal/manual for now
 - Azure Container Apps is retired. Root `azure.yaml` and `infra/**` were archived under `docs/archive/azure-aca-retired-20260508/`.
 - Do not run `az`, `azd`, Bicep deployment, Azure inventory, Azure cleanup, Azure rollback, or Azure restore work from this repo unless a separate explicit Azure reopening lane names the allowed cloud surfaces, commands, receipts, and stop boundary.
 - Do not treat archived Azure files as active deploy authority, rollback authority, or evidence that Azure resources exist.
-- **Planned AWS candidate (not active authority):**
+- **AWS automation source (not live deploy authority):**
   [`docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md`](./docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md)
-  and [`deploy/aws/`](./deploy/aws/README.md) define a Lightsail host-migration
-  contract, a Phase 1 GitHub OIDC/ECR/SSM source contract, and a read-only
-  pre-DNS acceptance path. The CloudFormation source is not an applied stack;
+  and [`deploy/aws/`](./deploy/aws/README.md) retain the reviewable Lightsail
+  infrastructure, GitHub OIDC/ECR/SSM, and candidate-acceptance source
+  contracts. The Frankfurt serving path is live, but committed evidence does
+  not establish that this CloudFormation source was applied to create it, and
   no GitHub AWS-deployment workflow or host adapter is active. These files do
   not authorize AWS resource creation, GitHub setting changes, deploy, DNS,
   secret rotation, cutover, or decommissioning.

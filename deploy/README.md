@@ -1,8 +1,14 @@
-# Deploy (private dual-lane)
+# Deploy (AWS Frankfurt production target)
 
-Current live path for `witnessops.com` is private k3s, not GHCR Compose. Concrete
-topology stays in operator custody and is injected using the variable names in
-`topology.env.example`.
+The intended routine production target for `witnessops.com` is the AWS
+Lightsail Frankfurt plane `prod-aws-frankfurt`, not the retained old VPS and
+not GHCR Compose. `topology.env.example` fixes that generic public plane;
+exact host, instance, namespace, workload, Secret, storage, and mesh values
+stay in ignored operator custody.
+
+Accepted claim: "The witnessops-web apex/www production serving path operates
+from AWS Lightsail in Frankfurt." Do not expand it to API, mesh-dev, rollback,
+credentials, or the broader production environment.
 
 | Lane | Deployment | Reachability |
 | --- | --- | --- |
@@ -17,6 +23,14 @@ pnpm deploy:k3s:both
 pnpm deploy:k3s:smoke
 pnpm deploy:k3s:test-parity   # image/CSS, envFrom, Secret-preflight, and deploy-reconciliation tests
 ```
+
+The build, production status/smoke, production deploy, and production-host
+hygiene helpers fail closed unless `PROD_TARGET_PROFILE=prod-aws-frankfurt`
+and read-only remote hostname, IMDSv2 instance identity, and AWS region checks
+match ignored operator custody. The audit did not prove that the Frankfurt host
+has the Docker build/import prerequisite expected by `build_shared_image`;
+resolve that in a separately authorized execution phase. Do not point
+`DEPLOY_SSH` back to the old VPS as a workaround.
 
 **Smoke enforces (fails on drift):** the exact ordered application-container
 `envFrom` contract on both deployments, identical digest-qualified image refs,
@@ -68,6 +82,7 @@ Private topology and an intentional dirty-tree override:
 cp deploy/topology.env.example deploy/topology.env
 # replace every example with the restricted operator values, then:
 set -a; source deploy/topology.env; set +a
+# Review only; running a deploy still requires a separately authorized lane.
 ALLOW_DIRTY=1 pnpm deploy:k3s:both
 ```
 
@@ -81,7 +96,10 @@ prove the runtime contract.
 Authority: `docs/DEPLOYMENT_AUTHORITY.md`, custody: `docs/DEPLOYMENT_CUSTODY.md`,
 agent contract: root `AGENTS.md`.
 
-Planned AWS Lightsail host migration (not active authority and no apply
-permission): [`aws/README.md`](./aws/README.md).
+AWS infrastructure and deployment-automation source (not evidence of an
+applied stack and not apply permission): [`aws/README.md`](./aws/README.md).
 
 Legacy Compose/GHCR: `scripts/deploy.sh` + `INSTALL.md` (historical only).
+
+GitHub release CI publishes and signs an artifact only. It performs no
+production deployment; see `docs/DEPLOYMENT_AUTHORITY.md`.
