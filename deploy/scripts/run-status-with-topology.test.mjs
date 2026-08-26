@@ -21,6 +21,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../
 const example = readFileSync(path.join(repoRoot, "deploy/topology.env.example"), "utf8");
 const wrapperSource = readFileSync(path.join(repoRoot, "deploy/scripts/run-status-with-topology.mjs"), "utf8");
 const statusSource = readFileSync(path.join(repoRoot, "deploy/scripts/k3s-status.sh"), "utf8");
+const productionStatusSource = readFileSync(path.join(repoRoot, "deploy/scripts/k3s-status-prod-readonly.sh"), "utf8");
 const librarySource = readFileSync(path.join(repoRoot, "deploy/scripts/k3s-lib.sh"), "utf8");
 const deployReadme = readFileSync(path.join(repoRoot, "deploy/README.md"), "utf8");
 
@@ -190,7 +191,12 @@ test("private topology custody rejects broad permissions and symlinks", async ()
 });
 
 test("the fixed status path disables ambient execution and output leaks", () => {
-  assert.match(wrapperSource, /spawnSync\("\/bin\/bash", \["deploy\/scripts\/k3s-status\.sh"\]/);
+  assert.match(wrapperSource, /spawnSync\("\/bin\/bash", \["deploy\/scripts\/k3s-status-prod-readonly\.sh"\]/);
+  assert.doesNotMatch(productionStatusSource, /DEV_DEPLOY|MESH_DEV_URL/);
+  assert.doesNotMatch(productionStatusSource, /kubectl.*\b(?:apply|patch|delete|rollout|scale)\b/);
+  assert.doesNotMatch(productionStatusSource, /systemctl.*\b(?:restart|reload)\b/);
+  assert.doesNotMatch(productionStatusSource, /mktemp|prod\.html/);
+  assert.match(productionStatusSource, /curl .* -o \/dev\/null /);
   assert.doesNotMatch(statusSource, /log .*\$\{(?:DEPLOY_SSH|MESH_DEV_URL|PROD_URL)\}/);
   assert.doesNotMatch(librarySource, /\/tmp\/wo-(?:prod|dev)\.html/);
   assert.match(librarySource, /mktemp -d \/tmp\/witnessops-smoke\.XXXXXX/);
@@ -200,4 +206,5 @@ test("the fixed status path disables ambient execution and output leaks", () => 
   assert.match(deployReadme, /complete status transcript is therefore restricted evidence/);
   assert.match(deployReadme, /capture stdout and stderr together in an owner-only file/);
   assert.match(deployReadme, /never run this\s+command in public CI or public logs/);
+  assert.match(deployReadme, /shared topology file\s+still validates the full dual-lane schema/);
 });

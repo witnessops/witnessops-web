@@ -73,7 +73,7 @@ Secret.
 | `deploy:k3s:both` | `deploy/scripts/k3s-deploy-both.sh` |
 | `deploy:k3s:smoke` | `deploy/scripts/smoke-prod-dev.sh` |
 | `deploy:k3s:status` | `deploy/scripts/k3s-status.sh` |
-| `deploy:k3s:status:topology` | Strictly parse ignored topology as data, then run read-only status |
+| `deploy:k3s:status:topology` | Strictly parse ignored topology as data, then run production-only read status |
 | `deploy:k3s:validate-topology` | Validate ignored topology without remote access |
 | `deploy:k3s:test-parity` | `deploy/scripts/test-k3s-parity.sh` |
 | `deploy:k3s:test-evidence` | Topology-parser and deterministic live-state helper tests |
@@ -105,6 +105,12 @@ loader; do not fall back to `source` or `eval` for automated execution.
 The fixed status path uses `sudo -n k3s kubectl` and `sudo -n k3s ctr` only for
 its Kubernetes and containerd reads, and fails closed when that non-interactive
 read access is unavailable; this does not grant or exercise mutation authority.
+It performs no mesh runtime or reachability check. The shared topology file
+still validates the full dual-lane schema, including syntactically valid mesh
+fields, so configuration-schema drift fails closed. The optional mesh
+deployment/runtime remains covered by `deploy:k3s:status` and
+`deploy:k3s:smoke`; its runtime absence does not block the narrow production
+serving-path gate.
 An operator may validate an already-custodied file in place with
 `node deploy/scripts/run-status-with-topology.mjs --validate-only --topology-file /absolute/private/path`;
 the file must be a regular, non-symlink file owned by the current user with no

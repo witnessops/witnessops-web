@@ -60,6 +60,7 @@ Custody map: [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
 | `deploy/scripts/k3s-deploy-both.sh` | Build once → prod + mesh-dev + exact-contract smoke |
 | `deploy/scripts/smoke-prod-dev.sh` | Exact runtime `envFrom` + digest-qualified image/runtime identity + HTTP 200 + CSS hash parity |
 | `deploy/scripts/k3s-status.sh` | kubectl image/ready + exact-contract smoke |
+| `deploy/scripts/k3s-status-prod-readonly.sh` | Production-only target/runtime/HTTP read gate; excludes optional mesh-dev |
 | `deploy/scripts/run-status-with-topology.mjs` | Strict private-topology parser + read-only status subprocess; no deploy selection |
 | `deploy/scripts/k3s-parity.sh` | Pure image/CSS, ordered `envFrom`, OIDC key-name, and image-ref validation helpers |
 | `deploy/scripts/test-k3s-parity.sh` | Unit tests for parity, Secret preflight, and deploy reconciliation |
@@ -87,6 +88,11 @@ captured in an owner-only file, never a public CI job or public log. The
 fixed path uses non-interactive `sudo -n` only for its read-only k3s kubectl and
 containerd queries and fails closed when that access is unavailable. This does
 not authorize Kubernetes, containerd, service, or host mutation. The
+topology wrapper selects the production-only gate so its evidence matches the
+accepted apex/www claim. It performs no mesh runtime or reachability check, but
+the shared topology file still requires syntactically valid dual-lane schema
+fields. Optional mesh-dev remains a separate dual-lane status and smoke
+concern. The
 deterministic exact-root data helper is tested by
 `deploy:k3s:test-state-aggregate`; its production execution remains a separate
 read-only evidence action, not deploy authority.

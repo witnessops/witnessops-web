@@ -384,7 +384,7 @@ function main(argv) {
     return 0;
   }
 
-  const result = spawnSync("/bin/bash", ["deploy/scripts/k3s-status.sh"], {
+  const result = spawnSync("/bin/bash", ["deploy/scripts/k3s-status-prod-readonly.sh"], {
     cwd: REPO_ROOT,
     env: statusEnvironment(process.env, topology),
     shell: false,
