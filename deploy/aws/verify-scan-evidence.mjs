@@ -82,7 +82,9 @@ export function validatePublicationRun(run, expected) {
   );
   assert(run.event === EVENT_NAME, "publication run event differs");
   assert(
-    run.path === `${CALLER_PATH}@main` || run.path === `${CALLER_PATH}@refs/heads/main`,
+    run.path === CALLER_PATH ||
+      run.path === `${CALLER_PATH}@main` ||
+      run.path === `${CALLER_PATH}@refs/heads/main`,
     "publication run workflow path differs",
   );
   assert(run.head_branch === "main", "publication run branch differs");
@@ -101,7 +103,8 @@ export function validatePublicationRun(run, expected) {
   );
   const reusable = run.referenced_workflows[0];
   assert(
-    reusable.path === `${REUSABLE_PATH}@main` ||
+    reusable.path === `${REUSABLE_PATH}@${expected.sourceCommit}` ||
+      reusable.path === `${REUSABLE_PATH}@main` ||
       reusable.path === `${REUSABLE_PATH}@refs/heads/main`,
     "publication run reusable workflow path differs",
   );
