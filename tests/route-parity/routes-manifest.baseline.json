@@ -148,6 +148,20 @@
         }
       ],
       "regex": "^/assets/one-pagers(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
+      "source": "/verify/skill",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
+      ],
+      "regex": "^/verify/skill(?:/)?$"
     }
   ],
   "rewrites": {
@@ -831,6 +845,12 @@
       "regex": "^/verify(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/verify(?:/)?$"
+    },
+    {
+      "page": "/verify/skill",
+      "regex": "^/verify/skill(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/verify/skill(?:/)?$"
     },
     {
       "page": "/verify-token",
