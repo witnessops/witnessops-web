@@ -30,6 +30,8 @@ LABEL org.opencontainers.image.source="https://github.com/witnessops/witnessops-
 LABEL org.opencontainers.image.revision="${SOURCE_COMMIT}"
 RUN apk add --no-cache \
   gcompat=1.1.0-r4 \
+  libcrypto3=3.5.8-r0 \
+  libssl3=3.5.8-r0 \
   ca-certificates=20260611-r0 \
   curl=8.21.0-r0 \
   && curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \

@@ -176,6 +176,180 @@ test("AWS image packages must retain reviewed Alpine versions", () => {
   assert.throws(() => validatePhase3Sources(mutated), /curl=8\.21\.0-r0/);
 });
 
+test("AWS runtime must retain the patched OpenSSL package versions", () => {
+  const staleCrypto = changed("dockerfile", (value) =>
+    value.replace("libcrypto3=3.5.8-r0", "libcrypto3=3.5.7-r0"),
+  );
+  assert.throws(() => validatePhase3Sources(staleCrypto), /libcrypto3=3\.5\.8-r0/);
+
+  const staleSsl = changed("dockerfile", (value) =>
+    value.replace("libssl3=3.5.8-r0", "libssl3=3.5.7-r0"),
+  );
+  assert.throws(() => validatePhase3Sources(staleSsl), /libssl3=3\.5\.8-r0/);
+});
+
+test("PR validation must build without image publication authority", () => {
+  const missingBuildInputTrigger = changed("validation", (value) =>
+    value.replace('      - "apps/witnessops-web/**"\n', ""),
+  );
+  assert.throws(
+    () => validatePhase3Sources(missingBuildInputTrigger),
+    /AWS image build input apps\/witnessops-web/,
+  );
+
+  const commentedBuildInputTrigger = changed("validation", (value) =>
+    value.replace(
+      '      - "pnpm-lock.yaml"',
+      '      # - "pnpm-lock.yaml"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(commentedBuildInputTrigger),
+    /AWS image build input pnpm-lock.yaml/,
+  );
+
+  const nestedBuildInputTrigger = changed("validation", (value) =>
+    value.replace(
+      '      - "packages/**"',
+      '        - "packages/**"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(nestedBuildInputTrigger),
+    /AWS image build input packages/,
+  );
+
+  const negatedBuildInputTriggers = changed("validation", (value) =>
+    value.replace(
+      '      - "pnpm-workspace.yaml"',
+      '      - "pnpm-workspace.yaml"\n      - "!**"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(negatedBuildInputTriggers),
+    /complete reviewed inventory/,
+  );
+
+  const withoutBuild = changed("validation", (value) =>
+    value.replace("docker build", "docker inspect"),
+  );
+  assert.throws(() => validatePhase3Sources(withoutBuild), /docker build/);
+
+  const repositoryBackedVersionCheck = changed("validation", (value) =>
+    value.replace("/lib/apk/db/installed", "/var/cache/apk/APKINDEX.tar.gz"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(repositoryBackedVersionCheck),
+    /\/lib\/apk\/db\/installed/,
+  );
+
+  const staleCryptoCheck = changed("validation", (value) =>
+    value.replace(
+      'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+      'test "$(installed_apk_version libcrypto3)" = "3.5.7-r0"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(staleCryptoCheck),
+    /libcrypto3 runtime version assertion/,
+  );
+
+  const staleSslCheck = changed("validation", (value) =>
+    value.replace(
+      'test "$(installed_apk_version libssl3)" = "3.5.8-r0"',
+      'test "$(installed_apk_version libssl3)" = "3.5.7-r0"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(staleSslCheck),
+    /libssl3 runtime version assertion/,
+  );
+
+  const nonEnforcingVersionCheck = changed("validation", (value) =>
+    value.replace(
+      'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+      'echo "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(nonEnforcingVersionCheck),
+    /libcrypto3 runtime version assertion/,
+  );
+
+  for (const [name, expected] of [
+    ["libcrypto3", 'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"'],
+    ["libssl3", 'test "$(installed_apk_version libssl3)" = "3.5.8-r0"'],
+  ]) {
+    const commentedOutVersionCheck = changed("validation", (value) =>
+      value.replace(expected, `# ${expected}`),
+    );
+    assert.throws(
+      () => validatePhase3Sources(commentedOutVersionCheck),
+      new RegExp(`${name} runtime version assertion`),
+    );
+  }
+
+  const duplicateVersionCheck = changed("validation", (value) =>
+    value.replace(
+      'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+      'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"\n              test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(duplicateVersionCheck),
+    /libcrypto3 runtime version assertion/,
+  );
+
+  const deadBranchVersionCheck = changed("validation", (value) =>
+    value.replace(
+      '              test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+      '              if false; then\n                test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"\n              fi',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(deadBranchVersionCheck),
+    /exact reviewed no-publication gating structure/,
+  );
+
+  const disabledBuildJob = changed("validation", (value) =>
+    value.replace("  build_image:\n", "  build_image:\n    if: false\n"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(disabledBuildJob),
+    /must not be conditionally disabled/,
+  );
+
+  const maskedBuildFailure = changed("validation", (value) =>
+    value.replace("  build_image:\n", "  build_image:\n    continue-on-error: true\n"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(maskedBuildFailure),
+    /failures must remain gating/,
+  );
+
+  const parallelBuild = changed("validation", (value) =>
+    value.replace("    needs: validate\n", ""),
+  );
+  assert.throws(
+    () => validatePhase3Sources(parallelBuild),
+    /must wait for source validation/,
+  );
+
+  const misplacedVerificationStep = changed("validation", (value) =>
+    value.replace(
+      "      - name: Verify the patched runtime packages and tools",
+      "  parked_verification:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Verify the patched runtime packages and tools",
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(misplacedVerificationStep),
+    /build_image|missing step/,
+  );
+
+  const withPush = changed("validation", (value) => `${value}\n      - run: docker push image\n`);
+  assert.throws(() => validatePhase3Sources(withPush), /can publish an image/);
+});
+
 test("both deploy jobs must require successful scan evidence", () => {
   const mutated = changed("reusable", (value) =>
     value.replace("needs: [validate, validate_scan_evidence]", "needs: validate"),
