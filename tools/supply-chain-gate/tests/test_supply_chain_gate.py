@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
+import os
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 TOOL_ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +20,9 @@ REPO_ROOT = TOOL_ROOT.parents[1]
 SCRIPT = TOOL_ROOT / "supply_chain_gate.py"
 IOC_FILE = REPO_ROOT / "security" / "supply-chain" / "emergency-iocs.tsv"
 REVIEWS_FILE = REPO_ROOT / "security" / "supply-chain" / "lifecycle-reviews.tsv"
+VENDORED_REVIEWS_HEADER = (
+    "package\tversion\tpath\tsha256\tstatus\tsource\trationale\n"
+)
 
 SPEC = importlib.util.spec_from_file_location("supply_chain_gate", SCRIPT)
 assert SPEC and SPEC.loader
@@ -32,11 +39,25 @@ class SyntheticRepository:
         self._temp = tempfile.TemporaryDirectory(prefix="witnessops-supply-chain-test-")
         self.root = Path(self._temp.name)
         shutil.copyfile(FIXTURES / lock_fixture, self.root / "pnpm-lock.yaml")
+        self.vendored_reviews = (
+            self.root / "security" / "supply-chain" / "vendored-artifact-reviews.tsv"
+        )
+        self.vendored_reviews.parent.mkdir(parents=True)
+        self.vendored_reviews.write_text(VENDORED_REVIEWS_HEADER, encoding="utf-8")
         self.write_package(dependencies or {})
         run(["git", "init", "--quiet"], self.root)
         run(["git", "config", "user.name", "WitnessOps fixture"], self.root)
         run(["git", "config", "user.email", "fixture@example.invalid"], self.root)
-        run(["git", "add", "package.json", "pnpm-lock.yaml"], self.root)
+        run(
+            [
+                "git",
+                "add",
+                "package.json",
+                "pnpm-lock.yaml",
+                "security/supply-chain/vendored-artifact-reviews.tsv",
+            ],
+            self.root,
+        )
         run(["git", "commit", "--quiet", "-m", "fixture baseline"], self.root)
 
     def write_package(self, dependencies: dict[str, str]) -> None:
@@ -45,6 +66,74 @@ class SyntheticRepository:
 
     def replace_lock(self, fixture: str) -> None:
         shutil.copyfile(FIXTURES / fixture, self.root / "pnpm-lock.yaml")
+
+    def write_review(
+        self,
+        package: str,
+        version: str,
+        path: str,
+        digest: str,
+        *,
+        status: str = "APPROVED",
+    ) -> None:
+        self.vendored_reviews.write_text(
+            VENDORED_REVIEWS_HEADER
+            + f"{package}\t{version}\t{path}\t{digest}\t{status}\t"
+            "fixture-authority@example.invalid\tExact inert fixture review.\n",
+            encoding="utf-8",
+        )
+
+    def write_tarball(
+        self,
+        path: str,
+        package: str,
+        version: str,
+        *,
+        extra_member: str | None = None,
+    ) -> Path:
+        artifact = self.root / path
+        artifact.parent.mkdir(parents=True, exist_ok=True)
+        package_json = json.dumps(
+            {"name": package, "version": version, "private": True},
+            sort_keys=True,
+        ).encode("utf-8")
+        with tarfile.open(artifact, mode="w:gz") as archive:
+            metadata = tarfile.TarInfo("package/package.json")
+            metadata.size = len(package_json)
+            metadata.mode = 0o644
+            archive.addfile(metadata, io.BytesIO(package_json))
+            if extra_member is not None:
+                payload = b"inert"
+                member = tarfile.TarInfo(extra_member)
+                member.size = len(payload)
+                member.mode = 0o644
+                archive.addfile(member, io.BytesIO(payload))
+        return artifact
+
+    def write_local_dependency(self, package: str, version: str, path: str) -> None:
+        self.write_package({package: f"file:{path}"})
+        integrity = GATE.sha512_sri((self.root / path).read_bytes())
+        (self.root / "pnpm-lock.yaml").write_text(
+            "lockfileVersion: '9.0'\n"
+            "importers:\n"
+            "  .:\n"
+            "    dependencies:\n"
+            f"      {package}:\n"
+            f"        specifier: file:{path}\n"
+            f"        version: file:{path}\n"
+            "packages:\n"
+            f"  {package}@file:{path}:\n"
+            f"    resolution: {{integrity: {integrity}, "
+            f"tarball: file:{path}}}\n"
+            f"    version: {version}\n"
+            "snapshots:\n"
+            f"  {package}@file:{path}: {{}}\n",
+            encoding="utf-8",
+        )
+
+    def commit_all(self, message: str) -> None:
+        run(["git", "add", "-A"], self.root)
+        run(["git", "commit", "--quiet", "-m", message], self.root)
 
     def close(self) -> None:
         self._temp.cleanup()
@@ -62,6 +151,38 @@ class SupplyChainGateTests(unittest.TestCase):
         repository = SyntheticRepository(lock_fixture, dependencies)
         self.repositories.append(repository)
         return repository
+
+    def approved_local_dependency(
+        self,
+        *,
+        package: str = "reviewed-package",
+        version: str = "1.0.0",
+        path: str = "vendor/reviewed-package-1.0.0.tgz",
+        archive_package: str | None = None,
+        archive_version: str | None = None,
+        extra_member: str | None = None,
+        approved_digest: str | None = None,
+    ) -> tuple[SyntheticRepository, Path, str]:
+        repository = self.repository("empty-pnpm-lock.yaml")
+        artifact = repository.write_tarball(
+            path,
+            archive_package or package,
+            archive_version or version,
+            extra_member=extra_member,
+        )
+        artifact_bytes = artifact.read_bytes()
+        digest = GATE.sha256_bytes(artifact_bytes)
+        artifact.unlink()
+        repository.write_review(
+            package,
+            version,
+            path,
+            approved_digest or digest,
+        )
+        repository.commit_all("establish reviewed artifact authority")
+        artifact.write_bytes(artifact_bytes)
+        repository.write_local_dependency(package, version, path)
+        return repository, artifact, digest
 
     def invoke(
         self,
@@ -86,6 +207,8 @@ class SupplyChainGateTests(unittest.TestCase):
             str(ioc_file or IOC_FILE),
             "--lifecycle-reviews",
             str(reviews_file or REVIEWS_FILE),
+            "--vendored-artifact-reviews",
+            str(repository.vendored_reviews),
             "--osv-snapshot",
             str(FIXTURES / osv_fixture),
             "--output-dir",
@@ -151,6 +274,373 @@ snapshots: {}
         for spec in ("^1.2.3", "latest", "npm:@scope/package@1.2.3", "workspace:*", "catalog:"):
             with self.subTest(spec=spec):
                 self.assertFalse(GATE.dependency_spec_is_unsupported(spec))
+
+    def test_unapproved_local_tgz_is_blocked(self) -> None:
+        repository = self.repository("empty-pnpm-lock.yaml")
+        repository.write_tarball(
+            "vendor/unapproved-package-1.0.0.tgz", "unapproved-package", "1.0.0"
+        )
+        repository.write_local_dependency(
+            "unapproved-package", "1.0.0", "vendor/unapproved-package-1.0.0.tgz"
+        )
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(result["status"], "BLOCKED")
+        self.assertEqual(
+            result["reviewed_artifacts"]["records"][0]["review_status"],
+            "UNAPPROVED",
+        )
+        self.assertIn("unapproved local tarball dependency", completed.stderr)
+
+    def test_exact_base_approved_local_tgz_is_accepted(self) -> None:
+        repository, _, digest = self.approved_local_dependency()
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(result["status"], "PASS")
+        record = result["reviewed_artifacts"]["records"][0]
+        self.assertEqual(record["decision"], "ACCEPTED")
+        self.assertEqual(record["artifact_sha256"], digest)
+        self.assertEqual(record["source_class"], "reviewed-local-tarball")
+        self.assertEqual(result["graph"]["package_count"], 1)
+
+    def test_wrong_reviewed_artifact_sha_is_blocked(self) -> None:
+        repository, _, _ = self.approved_local_dependency(approved_digest="0" * 64)
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("artifact SHA-256 differs from review", completed.stderr)
+        self.assertEqual(result["reviewed_artifacts"]["records"][0]["decision"], "BLOCKED")
+
+    def test_modified_tarball_bytes_are_blocked(self) -> None:
+        repository, artifact, _ = self.approved_local_dependency()
+        artifact.write_bytes(artifact.read_bytes() + b"modified")
+        completed, _ = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("artifact SHA-256 differs from review", completed.stderr)
+
+    def test_archive_package_name_mismatch_is_blocked(self) -> None:
+        repository, _, _ = self.approved_local_dependency(
+            archive_package="different-package"
+        )
+        completed, _ = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("archive package name differs", completed.stderr)
+
+    def test_archive_package_version_mismatch_is_blocked(self) -> None:
+        repository, _, _ = self.approved_local_dependency(archive_version="2.0.0")
+        completed, _ = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("archive package version differs", completed.stderr)
+
+    def test_tarball_inspection_streams_members(self) -> None:
+        package_json = b'{"name":"reviewed-package","version":"1.0.0"}'
+        member = tarfile.TarInfo("package/package.json")
+        member.size = len(package_json)
+
+        class StreamingArchive:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def __iter__(self):
+                yield member
+
+            def getmembers(self):
+                raise AssertionError("full archive materialization is forbidden")
+
+            def extractfile(self, requested):
+                self_outer.assertIs(requested, member)
+                return io.BytesIO(package_json)
+
+        self_outer = self
+        with mock.patch.object(GATE.tarfile, "open", return_value=StreamingArchive()):
+            result = GATE.inspect_npm_tarball(
+                Path("unused.tgz"),
+                "reviewed-package",
+                "1.0.0",
+                "streaming fixture",
+            )
+        self.assertEqual(result["archive_entry_count"], 1)
+
+    def test_local_tarball_integrity_must_match_artifact_bytes(self) -> None:
+        repository, artifact, _ = self.approved_local_dependency()
+        integrity = GATE.sha512_sri(artifact.read_bytes())
+        lockfile = repository.root / "pnpm-lock.yaml"
+        lockfile.write_text(
+            lockfile.read_text(encoding="utf-8").replace(integrity, "sha512-wrong"),
+            encoding="utf-8",
+        )
+        completed, _ = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("integrity differs from artifact bytes", completed.stderr)
+
+    def test_duplicate_inline_tarball_cannot_hide_remote_source(self) -> None:
+        repository, _, _ = self.approved_local_dependency()
+        path = "vendor/reviewed-package-1.0.0.tgz"
+        lockfile = repository.root / "pnpm-lock.yaml"
+        lockfile.write_text(
+            lockfile.read_text(encoding="utf-8").replace(
+                f"tarball: file:{path}}}",
+                f"tarball: file:{path}, tarball: https://example.invalid/package.tgz}}",
+            ),
+            encoding="utf-8",
+        )
+        completed, _ = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("duplicate tarball field", completed.stderr)
+
+    def test_local_tarball_package_requires_matching_importer_identity(self) -> None:
+        repository, artifact, _ = self.approved_local_dependency()
+        path = "vendor/reviewed-package-1.0.0.tgz"
+        integrity = GATE.sha512_sri(artifact.read_bytes())
+        (repository.root / "pnpm-lock.yaml").write_text(
+            "lockfileVersion: '9.0'\n"
+            "importers:\n"
+            "  .: {}\n"
+            "packages:\n"
+            f"  reviewed-package@file:{path}:\n"
+            f"    resolution: {{integrity: {integrity}, tarball: file:{path}}}\n"
+            "    version: 1.0.0\n"
+            "snapshots: {}\n",
+            encoding="utf-8",
+        )
+        completed, _ = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("importer and package identities differ", completed.stderr)
+
+    def test_registry_copy_of_reviewed_pair_still_gets_lifecycle_review(self) -> None:
+        repository, _, _ = self.approved_local_dependency()
+        lockfile = repository.root / "pnpm-lock.yaml"
+        lockfile.write_text(
+            lockfile.read_text(encoding="utf-8").replace(
+                "snapshots:\n",
+                "  reviewed-package@1.0.0:\n"
+                "    resolution: {integrity: sha512-registry-copy}\n"
+                "snapshots:\n",
+            ),
+            encoding="utf-8",
+        )
+        completed, result = self.invoke(
+            repository,
+            base_ref="HEAD",
+            registry_fixture="registry-metadata.json",
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(
+            [record["package"] for record in result["lifecycle_review"]["records"]],
+            ["reviewed-package"],
+        )
+
+    def test_dependency_path_traversal_is_blocked(self) -> None:
+        repository = self.repository("empty-pnpm-lock.yaml")
+        repository.write_package({"escape-package": "file:../escape-package.tgz"})
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("escapes repository root", completed.stderr)
+        self.assertEqual(result["status"], "BLOCKED")
+
+    def test_archive_member_path_traversal_is_blocked(self) -> None:
+        repository, _, _ = self.approved_local_dependency(
+            extra_member="package/../../escape"
+        )
+        completed, _ = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("archive contains a non-canonical member path", completed.stderr)
+
+    def test_symlink_artifact_is_blocked(self) -> None:
+        repository = self.repository("empty-pnpm-lock.yaml")
+        target = repository.write_tarball(
+            "vendor/real-package.tgz", "reviewed-package", "1.0.0"
+        )
+        digest = GATE.sha256_file(target)
+        repository.write_review(
+            "reviewed-package",
+            "1.0.0",
+            "vendor/reviewed-package-1.0.0.tgz",
+            digest,
+        )
+        repository.commit_all("establish reviewed artifact authority")
+        link = repository.root / "vendor" / "reviewed-package-1.0.0.tgz"
+        os.symlink(target.name, link)
+        repository.write_local_dependency(
+            "reviewed-package", "1.0.0", "vendor/reviewed-package-1.0.0.tgz"
+        )
+        completed, _ = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("traverses a symlink", completed.stderr)
+
+    def test_directory_file_dependency_remains_blocked(self) -> None:
+        repository = self.repository("clean-pnpm-lock.yaml")
+        (repository.root / "vendor" / "package").mkdir(parents=True)
+        repository.write_package({"local-package": "file:vendor/package"})
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(
+            result["dependency_change"]["unsupported_sources"][0]["package"],
+            "local-package",
+        )
+
+    def test_ordinary_local_file_dependency_remains_blocked(self) -> None:
+        repository = self.repository("clean-pnpm-lock.yaml")
+        repository.write_package({"local-package": "file:vendor/package.zip"})
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(
+            result["dependency_change"]["unsupported_sources"][0]["package"],
+            "local-package",
+        )
+
+    def test_git_dependency_remains_blocked(self) -> None:
+        repository = self.repository("clean-pnpm-lock.yaml")
+        repository.write_package({"git-package": "git+https://example.invalid/pkg.git#deadbeef"})
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(result["dependency_change"]["unsupported_sources"][0]["package"], "git-package")
+
+    def test_remote_tarball_dependency_remains_blocked(self) -> None:
+        repository = self.repository("clean-pnpm-lock.yaml")
+        repository.write_package({"remote-package": "https://example.invalid/pkg.tgz"})
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(result["dependency_change"]["unsupported_sources"][0]["package"], "remote-package")
+
+    def test_link_dependency_remains_blocked(self) -> None:
+        repository = self.repository("clean-pnpm-lock.yaml")
+        repository.write_package({"link-package": "link:vendor/package"})
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(result["dependency_change"]["unsupported_sources"][0]["package"], "link-package")
+
+    def test_wildcard_artifact_approval_is_rejected(self) -> None:
+        repository = self.repository("clean-pnpm-lock.yaml")
+        repository.write_review(
+            "reviewed-package",
+            "1.0.0",
+            "vendor/*.tgz",
+            "0" * 64,
+        )
+        completed, _ = self.invoke(repository)
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("may not contain wildcards", completed.stderr)
+
+    def test_approval_added_with_dependency_does_not_self_authorize(self) -> None:
+        repository = self.repository("empty-pnpm-lock.yaml")
+        artifact = repository.write_tarball(
+            "vendor/reviewed-package-1.0.0.tgz", "reviewed-package", "1.0.0"
+        )
+        repository.write_review(
+            "reviewed-package",
+            "1.0.0",
+            "vendor/reviewed-package-1.0.0.tgz",
+            GATE.sha256_file(artifact),
+        )
+        repository.write_local_dependency(
+            "reviewed-package", "1.0.0", "vendor/reviewed-package-1.0.0.tgz"
+        )
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(result["reviewed_artifacts"]["records"][0]["review_status"], "UNAPPROVED")
+        self.assertTrue(
+            result["reviewed_artifacts"]["authority"]["current_differs_from_authority"]
+        )
+
+    def test_approval_modified_with_dependency_does_not_change_base_authority(self) -> None:
+        repository = self.repository("empty-pnpm-lock.yaml")
+        repository.write_review(
+            "other-package",
+            "1.0.0",
+            "vendor/other-package-1.0.0.tgz",
+            "1" * 64,
+        )
+        repository.commit_all("establish unrelated review authority")
+        artifact = repository.write_tarball(
+            "vendor/reviewed-package-1.0.0.tgz", "reviewed-package", "1.0.0"
+        )
+        repository.write_review(
+            "reviewed-package",
+            "1.0.0",
+            "vendor/reviewed-package-1.0.0.tgz",
+            GATE.sha256_file(artifact),
+        )
+        repository.write_local_dependency(
+            "reviewed-package", "1.0.0", "vendor/reviewed-package-1.0.0.tgz"
+        )
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertEqual(result["reviewed_artifacts"]["records"][0]["review_status"], "UNAPPROVED")
+
+    def test_approval_for_another_artifact_cannot_authorize_dependency(self) -> None:
+        repository = self.repository("empty-pnpm-lock.yaml")
+        repository.write_review(
+            "reviewed-package",
+            "1.0.0",
+            "vendor/other-package-1.0.0.tgz",
+            "2" * 64,
+        )
+        repository.commit_all("establish other artifact authority")
+        repository.write_tarball(
+            "vendor/reviewed-package-1.0.0.tgz", "reviewed-package", "1.0.0"
+        )
+        repository.write_local_dependency(
+            "reviewed-package", "1.0.0", "vendor/reviewed-package-1.0.0.tgz"
+        )
+        completed, _ = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("unapproved local tarball dependency", completed.stderr)
+
+    def test_approval_only_change_passes_without_becoming_current_authority(self) -> None:
+        repository = self.repository("clean-pnpm-lock.yaml", {"safe-package": "1.0.0"})
+        repository.write_review(
+            "future-package",
+            "1.0.0",
+            "vendor/future-package-1.0.0.tgz",
+            "3" * 64,
+        )
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertTrue(
+            result["reviewed_artifacts"]["authority"]["current_differs_from_authority"]
+        )
+        self.assertEqual(result["reviewed_artifacts"]["records"], [])
+
+    def test_reviewed_artifact_evidence_binds_exact_tuple(self) -> None:
+        repository, _, digest = self.approved_local_dependency()
+        authority_commit = run(["git", "rev-parse", "HEAD"], repository.root).stdout.strip()
+        completed, result = self.invoke(repository, base_ref="HEAD")
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        record = result["reviewed_artifacts"]["records"][0]
+        self.assertEqual(
+            {
+                key: record[key]
+                for key in (
+                    "package",
+                    "version",
+                    "source_class",
+                    "path",
+                    "artifact_sha256",
+                    "review_status",
+                    "review_source",
+                )
+            },
+            {
+                "package": "reviewed-package",
+                "version": "1.0.0",
+                "source_class": "reviewed-local-tarball",
+                "path": "vendor/reviewed-package-1.0.0.tgz",
+                "artifact_sha256": digest,
+                "review_status": "APPROVED",
+                "review_source": "fixture-authority@example.invalid",
+            },
+        )
+        self.assertEqual(
+            result["reviewed_artifacts"]["authority"]["authority_revision"],
+            authority_commit,
+        )
+        self.assertEqual(
+            result["reviewed_artifacts"]["lockfile_records"][0]["path"],
+            "vendor/reviewed-package-1.0.0.tgz",
+        )
 
     def test_pnpm_patched_dependencies_fail_closed(self) -> None:
         repository = self.repository("patched-pnpm-lock.yaml", {"safe-package": "1.0.0"})
