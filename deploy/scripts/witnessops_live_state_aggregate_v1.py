@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 
-HELPER_VERSION = "1.1.0"
+HELPER_VERSION = "1.1.1"
 MAX_FILE_BYTES = 4 * 1024 * 1024
 MAX_TOTAL_BYTES = 128 * 1024 * 1024
 MAX_FILES = 10_000
@@ -52,7 +52,7 @@ class FileObservation:
 ROOT_SPECS = (
     RootSpec("intake-store", "/srv/witnessops-web/intake-store", "json-document"),
     RootSpec("intake-events", "/srv/witnessops-web/intake-events", "json-lines"),
-    RootSpec("mail-out", "/srv/witnessops-web/mail-out", "json-document"),
+    RootSpec("mail-out", "/srv/witnessops-web/mail-out", "raw-artifact"),
 )
 
 
@@ -184,26 +184,26 @@ def _parse_json(text: str) -> None:
 
 
 def _validate_records(payload: bytes, record_format: str) -> None:
-    try:
-        text = payload.decode("utf-8")
-    except UnicodeDecodeError:
-        _fail("invalid-utf8")
+    if record_format != "raw-artifact":
+        try:
+            text = payload.decode("utf-8")
+        except UnicodeDecodeError:
+            _fail("invalid-utf8")
 
-    try:
-        if record_format == "json-document":
-            _parse_json(text)
-            return
-        if record_format == "json-lines":
-            for raw_line in text.split("\n"):
-                line = raw_line[:-1] if raw_line.endswith("\r") else raw_line
-                if "\r" in line:
-                    _fail("invalid-json-framing")
-                if line.strip(" \t"):
-                    _parse_json(line)
-            return
-    except (json.JSONDecodeError, OverflowError, RecursionError, ValueError):
-        _fail("invalid-json")
-    _fail("unknown-record-format")
+        try:
+            if record_format == "json-document":
+                _parse_json(text)
+            elif record_format == "json-lines":
+                for raw_line in text.split("\n"):
+                    line = raw_line[:-1] if raw_line.endswith("\r") else raw_line
+                    if "\r" in line:
+                        _fail("invalid-json-framing")
+                    if line.strip(" \t"):
+                        _parse_json(line)
+            else:
+                _fail("unknown-record-format")
+        except (json.JSONDecodeError, OverflowError, RecursionError, ValueError):
+            _fail("invalid-json")
 
 
 def _child_stat(directory_descriptor: int, name: bytes) -> os.stat_result:

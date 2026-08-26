@@ -64,6 +64,34 @@ test("shell syntax, inline comments, whitespace, and control bytes are rejected"
   }
 });
 
+test("SSH targets preserve the established host and user-qualified forms", () => {
+  const qualified = parseTopology(
+    example.replace(
+      "DEPLOY_SSH=deploy-host.private.example",
+      "DEPLOY_SSH=ubuntu@deploy-host.private.example",
+    ),
+  );
+  assert.equal(qualified.DEPLOY_SSH, "ubuntu@deploy-host.private.example");
+
+  for (const value of [
+    "@deploy-host.private.example",
+    "ubuntu@",
+    "ubuntu@@deploy-host.private.example",
+    "ubuntu/deploy-host.private.example",
+  ]) {
+    expectCode(
+      () =>
+        parseTopology(
+          example.replace(
+            "DEPLOY_SSH=deploy-host.private.example",
+            `DEPLOY_SSH=${value}`,
+          ),
+        ),
+      "invalid-topology-value-shape",
+    );
+  }
+});
+
 test("Frankfurt profile and instance identity are exact", () => {
   expectCode(
     () => parseTopology(example.replace("prod-aws-frankfurt", "legacy-vps-production")),

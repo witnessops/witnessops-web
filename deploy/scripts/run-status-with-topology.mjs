@@ -82,6 +82,14 @@ function validDnsName(value) {
   );
 }
 
+function validSshTarget(value) {
+  return (
+    value.length > 0 &&
+    value.length <= 253 &&
+    /^[A-Za-z0-9._-]+(?:@[A-Za-z0-9._-]+)?$/.test(value)
+  );
+}
+
 function validKubernetesName(value) {
   if (value.length === 0 || value.length > 253) {
     return false;
@@ -101,7 +109,10 @@ function validateValueShape(key, value, values) {
   if (key === "PROD_EXPECTED_INSTANCE_ID") {
     return /^i-[0-9a-f]{8,32}$/.test(value);
   }
-  if (key === "DEPLOY_SSH" || key === "PROD_EXPECTED_HOSTNAME") {
+  if (key === "DEPLOY_SSH") {
+    return validSshTarget(value);
+  }
+  if (key === "PROD_EXPECTED_HOSTNAME") {
     return validDnsName(value);
   }
   if (KUBERNETES_NAME_KEYS.has(key)) {

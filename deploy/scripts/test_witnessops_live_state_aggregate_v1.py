@@ -9,14 +9,13 @@ import json
 import os
 import struct
 import tempfile
-import unittest
 from pathlib import Path
-from unittest import mock
+from unittest import TestCase, main, mock
 
 import witnessops_live_state_aggregate_v1 as aggregate
 
 
-class LiveStateAggregateTests(unittest.TestCase):
+class LiveStateAggregateTests(TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
         self.root = Path(os.path.realpath(self.temporary.name))
@@ -48,7 +47,7 @@ class LiveStateAggregateTests(unittest.TestCase):
             [
                 ("intake-store", "/srv/witnessops-web/intake-store", "json-document"),
                 ("intake-events", "/srv/witnessops-web/intake-events", "json-lines"),
-                ("mail-out", "/srv/witnessops-web/mail-out", "json-document"),
+                ("mail-out", "/srv/witnessops-web/mail-out", "raw-artifact"),
             ],
         )
         stderr = io.StringIO()
@@ -95,6 +94,21 @@ class LiveStateAggregateTests(unittest.TestCase):
         self.root.joinpath("valid.json").write_bytes(b'{"first":1}\nnot-json\n')
         with self.assertRaisesRegex(aggregate.ObservationError, "invalid-json"):
             aggregate.observe_root(self.spec("json-lines"))
+
+        self.root.joinpath("valid.json").write_bytes(b"{}")
+        with self.assertRaisesRegex(aggregate.ObservationError, "unknown-record-format"):
+            aggregate.observe_root(self.spec("unsupported"))
+
+    def test_raw_artifact_accepts_eml_and_arbitrary_bytes(self) -> None:
+        payload = b"From: sender@example.com\r\nContent-Type: message/rfc822\r\n\r\nbody\xff"
+        self.write("message.eml", payload)
+        result = aggregate.observe_root(self.spec("raw-artifact"))
+        self.assertEqual(result["files"], 1)
+        self.assertEqual(result["bytes"], len(payload))
+        self.assertEqual(
+            result["path_bound_sha256"],
+            self.expected([(b"message.eml", payload)]),
+        )
 
     def test_nonstandard_constants_and_jsonl_framing_fail_closed(self) -> None:
         for payload in (b"NaN", b"Infinity", b'{"value":NaN}'):
@@ -190,4 +204,4 @@ class LiveStateAggregateTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    main()
