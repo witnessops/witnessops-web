@@ -47,3 +47,38 @@ jobs:
           node --test deploy/aws/validate-github-deployment.test.mjs
           node deploy/aws/validate-github-deployment.mjs
           node deploy/aws/validate-phase3.mjs
+
+  build_image:
+    name: Build exact AWS image without publication authority
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out without persisted credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Build the linux-amd64 AWS image
+        run: |
+          set -euo pipefail
+          docker build \
+            --platform linux/amd64 \
+            --file deploy/Dockerfile.aws \
+            --build-arg "SOURCE_COMMIT=${GITHUB_SHA}" \
+            --tag "witnessops-web-aws-pr:${GITHUB_SHA}" \
+            .
+
+      - name: Verify the patched runtime packages and tools
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            --entrypoint /bin/sh \
+            "witnessops-web-aws-pr:${GITHUB_SHA}" \
+            -eu -c '
+              test "$(apk info -v libcrypto3)" = "libcrypto3-3.5.8-r0"
+              test "$(apk info -v libssl3)" = "libssl3-3.5.8-r0"
+              node --version
+              gws --version
+            '

@@ -176,6 +176,28 @@ test("AWS image packages must retain reviewed Alpine versions", () => {
   assert.throws(() => validatePhase3Sources(mutated), /curl=8\.21\.0-r0/);
 });
 
+test("AWS runtime must retain the patched OpenSSL package versions", () => {
+  const staleCrypto = changed("dockerfile", (value) =>
+    value.replace("libcrypto3=3.5.8-r0", "libcrypto3=3.5.7-r0"),
+  );
+  assert.throws(() => validatePhase3Sources(staleCrypto), /libcrypto3=3\.5\.8-r0/);
+
+  const staleSsl = changed("dockerfile", (value) =>
+    value.replace("libssl3=3.5.8-r0", "libssl3=3.5.7-r0"),
+  );
+  assert.throws(() => validatePhase3Sources(staleSsl), /libssl3=3\.5\.8-r0/);
+});
+
+test("PR validation must build without image publication authority", () => {
+  const withoutBuild = changed("validation", (value) =>
+    value.replace("docker build", "docker inspect"),
+  );
+  assert.throws(() => validatePhase3Sources(withoutBuild), /docker build/);
+
+  const withPush = changed("validation", (value) => `${value}\n      - run: docker push image\n`);
+  assert.throws(() => validatePhase3Sources(withPush), /can publish an image/);
+});
+
 test("both deploy jobs must require successful scan evidence", () => {
   const mutated = changed("reusable", (value) =>
     value.replace("needs: [validate, validate_scan_evidence]", "needs: validate"),

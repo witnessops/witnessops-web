@@ -224,6 +224,8 @@ export function validatePhase3Sources(sources) {
     "python3=3.14.7-r1",
     "make=4.4.1-r4",
     "g++=15.2.0-r5",
+    "libcrypto3=3.5.8-r0",
+    "libssl3=3.5.8-r0",
     "ca-certificates=20260611-r0",
     "curl=8.21.0-r0",
   ]) {
@@ -384,6 +386,19 @@ export function validatePhase3Sources(sources) {
     validation.includes("node --test deploy/aws/validate-ecr-scan-findings.test.mjs"),
     "validation workflow omits ECR scan findings tests",
   );
+  for (const required of [
+    "Build exact AWS image without publication authority",
+    "docker build",
+    "--platform linux/amd64",
+    "--file deploy/Dockerfile.aws",
+    '--build-arg "SOURCE_COMMIT=${GITHUB_SHA}"',
+    "libcrypto3-3.5.8-r0",
+    "libssl3-3.5.8-r0",
+    "gws --version",
+  ]) {
+    assert(validation.includes(required), `validation workflow is missing ${required}`);
+  }
+  assert(!validation.includes("docker push"), "validation workflow can publish an image");
   return true;
 }
 
