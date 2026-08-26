@@ -194,6 +194,109 @@ test("PR validation must build without image publication authority", () => {
   );
   assert.throws(() => validatePhase3Sources(withoutBuild), /docker build/);
 
+  const repositoryBackedVersionCheck = changed("validation", (value) =>
+    value.replace("/lib/apk/db/installed", "/var/cache/apk/APKINDEX.tar.gz"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(repositoryBackedVersionCheck),
+    /\/lib\/apk\/db\/installed/,
+  );
+
+  const staleCryptoCheck = changed("validation", (value) =>
+    value.replace(
+      'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+      'test "$(installed_apk_version libcrypto3)" = "3.5.7-r0"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(staleCryptoCheck),
+    /libcrypto3 runtime version assertion/,
+  );
+
+  const staleSslCheck = changed("validation", (value) =>
+    value.replace(
+      'test "$(installed_apk_version libssl3)" = "3.5.8-r0"',
+      'test "$(installed_apk_version libssl3)" = "3.5.7-r0"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(staleSslCheck),
+    /libssl3 runtime version assertion/,
+  );
+
+  const nonEnforcingVersionCheck = changed("validation", (value) =>
+    value.replace(
+      'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+      'echo "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(nonEnforcingVersionCheck),
+    /libcrypto3 runtime version assertion/,
+  );
+
+  for (const [name, expected] of [
+    ["libcrypto3", 'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"'],
+    ["libssl3", 'test "$(installed_apk_version libssl3)" = "3.5.8-r0"'],
+  ]) {
+    const commentedOutVersionCheck = changed("validation", (value) =>
+      value.replace(expected, `# ${expected}`),
+    );
+    assert.throws(
+      () => validatePhase3Sources(commentedOutVersionCheck),
+      new RegExp(`${name} runtime version assertion`),
+    );
+  }
+
+  const duplicateVersionCheck = changed("validation", (value) =>
+    value.replace(
+      'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+      'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"\n              test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(duplicateVersionCheck),
+    /libcrypto3 runtime version assertion/,
+  );
+
+  const deadBranchVersionCheck = changed("validation", (value) =>
+    value.replace(
+      '              test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+      '              if false; then\n                test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"\n              fi',
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(deadBranchVersionCheck),
+    /exact reviewed no-publication gating structure/,
+  );
+
+  const disabledBuildJob = changed("validation", (value) =>
+    value.replace("  build_image:\n", "  build_image:\n    if: false\n"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(disabledBuildJob),
+    /must not be conditionally disabled/,
+  );
+
+  const maskedBuildFailure = changed("validation", (value) =>
+    value.replace("  build_image:\n", "  build_image:\n    continue-on-error: true\n"),
+  );
+  assert.throws(
+    () => validatePhase3Sources(maskedBuildFailure),
+    /failures must remain gating/,
+  );
+
+  const misplacedVerificationStep = changed("validation", (value) =>
+    value.replace(
+      "      - name: Verify the patched runtime packages and tools",
+      "  parked_verification:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Verify the patched runtime packages and tools",
+    ),
+  );
+  assert.throws(
+    () => validatePhase3Sources(misplacedVerificationStep),
+    /build_image|missing step/,
+  );
+
   const withPush = changed("validation", (value) => `${value}\n      - run: docker push image\n`);
   assert.throws(() => validatePhase3Sources(withPush), /can publish an image/);
 });

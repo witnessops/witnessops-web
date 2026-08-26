@@ -77,8 +77,15 @@ jobs:
             --entrypoint /bin/sh \
             "witnessops-web-aws-pr:${GITHUB_SHA}" \
             -eu -c '
-              test "$(apk info -v libcrypto3)" = "libcrypto3-3.5.8-r0"
-              test "$(apk info -v libssl3)" = "libssl3-3.5.8-r0"
+              installed_apk_version() {
+                awk -v wanted="$1" '\''
+                  $0 == "P:" wanted { found = 1; next }
+                  found && /^V:/ { print substr($0, 3); exit }
+                  found && /^$/ { exit 1 }
+                '\'' /lib/apk/db/installed
+              }
+              test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"
+              test "$(installed_apk_version libssl3)" = "3.5.8-r0"
               node --version
               gws --version
             '

@@ -26,6 +26,72 @@ function forbiddenAutomaticTriggers(source, label) {
   }
 }
 
+function requireSingleExecutableLine(source, command, label) {
+  const count = source
+    .split(/\r?\n/u)
+    .filter((line) => line.trim() === command).length;
+  assert(count === 1, `${label} must appear exactly once as an executable line`);
+}
+
+const EXPECTED_BUILD_IMAGE_JOB = [
+  "  build_image:",
+  "    name: Build exact AWS image without publication authority",
+  "    runs-on: ubuntu-latest",
+  "    timeout-minutes: 30",
+  "    permissions:",
+  "      contents: read",
+  "    steps:",
+  "      - name: Check out without persisted credentials",
+  "        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5",
+  "        with:",
+  "          persist-credentials: false",
+  "",
+  "      - name: Build the linux-amd64 AWS image",
+  "        run: |",
+  "          set -euo pipefail",
+  "          docker build \\",
+  "            --platform linux/amd64 \\",
+  "            --file deploy/Dockerfile.aws \\",
+  '            --build-arg "SOURCE_COMMIT=${GITHUB_SHA}" \\',
+  '            --tag "witnessops-web-aws-pr:${GITHUB_SHA}" \\',
+  "            .",
+  "",
+  "      - name: Verify the patched runtime packages and tools",
+  "        run: |",
+  "          set -euo pipefail",
+  "          docker run --rm \\",
+  "            --entrypoint /bin/sh \\",
+  '            "witnessops-web-aws-pr:${GITHUB_SHA}" \\',
+  "            -eu -c '",
+  "              installed_apk_version() {",
+  '                awk -v wanted="$1" \'\\\'\'',
+  '                  $0 == "P:" wanted { found = 1; next }',
+  "                  found && /^V:/ { print substr($0, 3); exit }",
+  "                  found && /^$/ { exit 1 }",
+  "                '\\'' /lib/apk/db/installed",
+  "              }",
+  '              test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+  '              test "$(installed_apk_version libssl3)" = "3.5.8-r0"',
+  "              node --version",
+  "              gws --version",
+  "            '",
+].join("\n");
+
+function exactNamedWorkflowJob(source, name) {
+  const marker = `  ${name}:\n`;
+  const start = source.indexOf(marker);
+  assert(start >= 0, `validation workflow is missing job ${name}`);
+  assert(
+    source.indexOf(marker, start + marker.length) < 0,
+    `validation workflow contains duplicate job ${name}`,
+  );
+  const tail = source.slice(start + marker.length);
+  const next = tail.search(/^  [A-Za-z0-9_-]+:\s*$/mu);
+  return source
+    .slice(start, next < 0 ? source.length : start + marker.length + next)
+    .trimEnd();
+}
+
 export function loadPhase3Sources(root = ROOT) {
   const read = (relative) => readFileSync(path.join(root, relative), "utf8");
   return {
@@ -392,13 +458,36 @@ export function validatePhase3Sources(sources) {
     "--platform linux/amd64",
     "--file deploy/Dockerfile.aws",
     '--build-arg "SOURCE_COMMIT=${GITHUB_SHA}"',
-    "libcrypto3-3.5.8-r0",
-    "libssl3-3.5.8-r0",
+    "installed_apk_version()",
+    "/lib/apk/db/installed",
     "gws --version",
   ]) {
     assert(validation.includes(required), `validation workflow is missing ${required}`);
   }
+  requireSingleExecutableLine(
+    validation,
+    'test "$(installed_apk_version libcrypto3)" = "3.5.8-r0"',
+    "libcrypto3 runtime version assertion",
+  );
+  requireSingleExecutableLine(
+    validation,
+    'test "$(installed_apk_version libssl3)" = "3.5.8-r0"',
+    "libssl3 runtime version assertion",
+  );
   assert(!validation.includes("docker push"), "validation workflow can publish an image");
+  const buildJob = exactNamedWorkflowJob(validation, "build_image");
+  assert(
+    !/^    if:/mu.test(buildJob),
+    "build_image job must not be conditionally disabled",
+  );
+  assert(
+    !/^    continue-on-error:/mu.test(buildJob),
+    "build_image job failures must remain gating",
+  );
+  assert(
+    buildJob === EXPECTED_BUILD_IMAGE_JOB,
+    "build_image job must retain the exact reviewed no-publication gating structure",
+  );
   return true;
 }
 
