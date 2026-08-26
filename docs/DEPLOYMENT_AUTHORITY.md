@@ -60,8 +60,10 @@ Custody map: [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
 | `deploy/scripts/k3s-deploy-both.sh` | Build once → prod + mesh-dev + exact-contract smoke |
 | `deploy/scripts/smoke-prod-dev.sh` | Exact runtime `envFrom` + digest-qualified image/runtime identity + HTTP 200 + CSS hash parity |
 | `deploy/scripts/k3s-status.sh` | kubectl image/ready + exact-contract smoke |
+| `deploy/scripts/run-status-with-topology.mjs` | Strict private-topology parser + read-only status subprocess; no deploy selection |
 | `deploy/scripts/k3s-parity.sh` | Pure image/CSS, ordered `envFrom`, OIDC key-name, and image-ref validation helpers |
 | `deploy/scripts/test-k3s-parity.sh` | Unit tests for parity, Secret preflight, and deploy reconciliation |
+| `deploy/scripts/witnessops_live_state_aggregate_v1.py` | Read-only, exact-root, path-bound Phase 0 data metadata helper |
 | `deploy/scripts/k3s-dev-teardown.sh` | Delete mesh-dev only |
 | `deploy/scripts/k3s-disk-hygiene.sh` | Prune production-host build/runtime residue only after the same Frankfurt target check |
 
@@ -74,6 +76,17 @@ guard is validation, not deploy authorization.
 
 pnpm aliases (monorepo root):
 `deploy:k3s:build|prod|dev|both|smoke|status|test-parity|dev:teardown`.
+
+Private-topology validation and read-only status use
+`deploy:k3s:validate-topology` and `deploy:k3s:status:topology`. These commands
+parse the ignored file as data and cannot choose a deployment command. The
+status wrapper redacts its direct topology summary lines, but the underlying
+SSH and Kubernetes diagnostics may contain private workload or endpoint
+identifiers. Its combined stdout/stderr is restricted evidence and must be
+captured in an owner-only file, never a public CI job or public log. The
+deterministic exact-root data helper is tested by
+`deploy:k3s:test-state-aggregate`; its production execution remains a separate
+read-only evidence action, not deploy authority.
 
 Shared helpers: `deploy/scripts/k3s-lib.sh` + `k3s-parity.sh`. Manifest template for
 mesh-dev: `deploy/k8s/dev-mesh-deployment.yaml`.

@@ -73,18 +73,52 @@ Secret.
 | `deploy:k3s:both` | `deploy/scripts/k3s-deploy-both.sh` |
 | `deploy:k3s:smoke` | `deploy/scripts/smoke-prod-dev.sh` |
 | `deploy:k3s:status` | `deploy/scripts/k3s-status.sh` |
+| `deploy:k3s:status:topology` | Strictly parse ignored topology as data, then run read-only status |
+| `deploy:k3s:validate-topology` | Validate ignored topology without remote access |
 | `deploy:k3s:test-parity` | `deploy/scripts/test-k3s-parity.sh` |
+| `deploy:k3s:test-evidence` | Topology-parser and deterministic live-state helper tests |
 | `deploy:k3s:dev:teardown` | `deploy/scripts/k3s-dev-teardown.sh` |
 
 Private topology and an intentional dirty-tree override:
 
 ```bash
 cp deploy/topology.env.example deploy/topology.env
-# replace every example with the restricted operator values, then:
-set -a; source deploy/topology.env; set +a
-# Review only; running a deploy still requires a separately authorized lane.
-ALLOW_DIRTY=1 pnpm deploy:k3s:both
+# replace every example with the restricted operator values, then validate
+# without executing the file as shell code:
+pnpm deploy:k3s:validate-topology
+# Read-only status is separately explicit and performs no deploy:
+umask 077
+pnpm deploy:k3s:status:topology > /absolute/restricted/status.txt 2>&1
 ```
+
+`run-status-with-topology.mjs` accepts exactly the tracked key set, validates
+each value's data shape, rejects duplicates, unknowns, shell syntax, inline
+comments, and control characters, and passes the resulting map directly to the
+status subprocess through an absolute shell path and a minimal child
+environment. Its direct topology summary lines are redacted, but underlying
+SSH or Kubernetes diagnostics can contain private workload or endpoint
+identifiers. The complete status transcript is therefore restricted evidence:
+capture stdout and stderr together in an owner-only file and never run this
+command in public CI or public logs. It cannot select a deployment command. A future deployment
+still requires separate authority and a separately reviewed non-evaluating
+loader; do not fall back to `source` or `eval` for automated execution.
+An operator may validate an already-custodied file in place with
+`node deploy/scripts/run-status-with-topology.mjs --validate-only --topology-file /absolute/private/path`;
+the file must be a regular, non-symlink file owned by the current user with no
+group or world permissions.
+
+Phase 0 live-state evidence uses
+`deploy/scripts/witnessops_live_state_aggregate_v1.py`. The helper has no root
+override: it reads only the three admitted `/srv/witnessops-web` state roots,
+opens every root/descendant component without following symlinks, rejects
+non-regular objects, applies file/directory/depth/byte limits, and validates
+strict JSON/JSONL without emitting record contents or paths. It revalidates
+file and directory metadata after collection to reject observed drift; this is
+not a filesystem snapshot and does not claim atomic consistency against a
+privileged actor able to restore metadata. Output is limited to the canonical
+root label, counts, timestamps, path-bound SHA-256, and invalid-record count. Run its unit
+tests with `pnpm deploy:k3s:test-state-aggregate`. Execution against production
+is read-only but still requires an explicitly authorized evidence lane.
 
 Preferred rollback redeploys the same recorded known-good digest-qualified image
 through `deploy/scripts/k3s-deploy-both.sh`, then runs

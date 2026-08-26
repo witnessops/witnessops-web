@@ -88,14 +88,14 @@ preflight_prod_target_identity() {
   validate_prod_target_contract
   observed_identity="$(remote bash -s <<'REMOTE'
 set -eu
-token="$(curl -fsS --connect-timeout 2 --max-time 5 -X PUT \
+token="$(curl -q --noproxy '*' -fsS --connect-timeout 2 --max-time 5 -X PUT \
   -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' \
   http://169.254.169.254/latest/api/token)"
 hostname_value="$(hostname)"
-instance_id="$(curl -fsS --connect-timeout 2 --max-time 5 \
+instance_id="$(curl -q --noproxy '*' -fsS --connect-timeout 2 --max-time 5 \
   -H "X-aws-ec2-metadata-token: ${token}" \
   http://169.254.169.254/latest/meta-data/instance-id)"
-region="$(curl -fsS --connect-timeout 2 --max-time 5 \
+region="$(curl -q --noproxy '*' -fsS --connect-timeout 2 --max-time 5 \
   -H "X-aws-ec2-metadata-token: ${token}" \
   http://169.254.169.254/latest/meta-data/placement/region)"
 printf '%s|%s|%s' "${hostname_value}" "${instance_id}" "${region}"
@@ -590,10 +590,22 @@ lane_image_refs() {
     kubectl -n '${DEPLOY_NS}' get deploy '${DEV_DEPLOY}' -o jsonpath='{.spec.template.spec.containers[0].image}{\"\\n\"}'"
 }
 
-smoke_pair() {
+smoke_pair() (
   need curl
   local prod_code dev_code prod_css dev_css prod_image dev_image config_digest
+  local smoke_dir prod_html dev_html
   local images_out
+
+  smoke_dir="$(mktemp -d /tmp/witnessops-smoke.XXXXXX)" \
+    || die "could not create private smoke workspace"
+  chmod 700 "${smoke_dir}" || die "could not restrict private smoke workspace"
+  prod_html="${smoke_dir}/prod.html"
+  dev_html="${smoke_dir}/dev.html"
+  cleanup_smoke_workspace() {
+    rm -f -- "${prod_html}" "${dev_html}"
+    rmdir -- "${smoke_dir}" >/dev/null 2>&1 || true
+  }
+  trap cleanup_smoke_workspace EXIT
 
   # 1) Exact ordered runtime secret-ref contract for both lanes.
   assert_remote_deployment_envfrom "${PROD_DEPLOY}"
@@ -624,10 +636,10 @@ smoke_pair() {
   log "smoke images match by manifest and running config digest"
 
   # 3) HTTP + CSS parity on the buyer home path.
-  prod_code="$(curl -sS -o /tmp/wo-prod.html -w '%{http_code}' --max-time 15 "${PROD_URL}/" || echo 000)"
-  dev_code="$(curl -sS -o /tmp/wo-dev.html -w '%{http_code}' --max-time 15 "${MESH_DEV_URL}/" || echo 000)"
-  prod_css="$(grep -oE 'css/[a-f0-9]+\.css' /tmp/wo-prod.html 2>/dev/null | head -1 || true)"
-  dev_css="$(grep -oE 'css/[a-f0-9]+\.css' /tmp/wo-dev.html 2>/dev/null | head -1 || true)"
+  prod_code="$(curl -q --noproxy '*' -sS -o "${prod_html}" -w '%{http_code}' --max-time 15 "${PROD_URL}/" || echo 000)"
+  dev_code="$(curl -q --noproxy '*' -sS -o "${dev_html}" -w '%{http_code}' --max-time 15 "${MESH_DEV_URL}/" || echo 000)"
+  prod_css="$(grep -oE 'css/[a-f0-9]+\.css' "${prod_html}" 2>/dev/null | head -1 || true)"
+  dev_css="$(grep -oE 'css/[a-f0-9]+\.css' "${dev_html}" 2>/dev/null | head -1 || true)"
 
   log "smoke prod=${prod_code} css=${prod_css}"
   log "smoke dev=${dev_code} css=${dev_css}"
@@ -639,7 +651,7 @@ smoke_pair() {
     return 2
   fi
   log "smoke OK (runtime envFrom, HTTP 200, immutable image identity, and CSS match)"
-}
+)
 
 print_status() {
   remote "kubectl -n '${DEPLOY_NS}' get deploy ${PROD_DEPLOY} ${DEV_DEPLOY} -o custom-columns=NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image,READY:.status.readyReplicas 2>/dev/null || kubectl -n '${DEPLOY_NS}' get deploy ${PROD_DEPLOY} -o custom-columns=NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image,READY:.status.readyReplicas"

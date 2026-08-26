@@ -8,7 +8,7 @@ preflight_prod_target_identity
 
 print_status || true
 echo "---"
-log "PROD_URL=${PROD_URL}"
-log "MESH_DEV_URL=${MESH_DEV_URL}"
-log "DEPLOY_SSH=${DEPLOY_SSH}"
+log "public production URL configured"
+log "private mesh URL configured"
+log "private SSH target configured"
 smoke_pair || exit $?
