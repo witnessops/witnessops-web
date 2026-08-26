@@ -388,6 +388,7 @@ export function validatePhase3Sources(sources) {
     '[[ "${ECR_REPOSITORY_URI}" == "${expected_repository_uri}" ]]',
     "validate_scan_evidence:",
     "aws ecr describe-image-scan-findings",
+    '--image-id "imageDigest=${IMAGE_DIGEST}"',
     "ImageNotFound",
     'publication_mode="reused_existing_immutable_tag"',
     'EXPECTED_BUILD_CONFIG_DIGEST: ${{ steps.local_image.outputs.config_digest }}',
