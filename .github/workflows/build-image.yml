@@ -204,8 +204,8 @@ jobs:
 
   publish:
     # A merge to main may validate the exact image, but publication requires a
-    # separate explicit operator dispatch.
-    if: github.event_name == 'workflow_dispatch'
+    # separate explicit operator dispatch from main.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     name: Publish, SBOM, and keyless-sign verified image
     needs: [supply_chain_gate, build, verify_artifact]
     runs-on: ubuntu-latest

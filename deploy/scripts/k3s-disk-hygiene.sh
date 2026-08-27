@@ -9,8 +9,8 @@
 #   KEEP_IMAGES=5 DEPLOY_SSH=<private-target> DEPLOY_NS=<private-namespace> bash deploy/scripts/k3s-disk-hygiene.sh
 #
 # Does NOT delete the currently running deploy image tags if they match the
-# newest KEEP_IMAGES list. Always re-run `pnpm deploy:k3s:both` after a full
-# docker image wipe.
+# newest KEEP_IMAGES list. After a full image wipe, production realignment must
+# use the protected AWS/ECR/SSM workflow; do not use a retired local deploy alias.
 set -euo pipefail
 
 : "${DEPLOY_SSH:?set DEPLOY_SSH from private topology custody}"

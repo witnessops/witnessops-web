@@ -74,7 +74,7 @@ Custody map: [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
 | Surface | Authority |
 | --- | --- |
 | `.github/workflows/aws-release.yml` + `aws-release-reusable.yml` | Active routine build, publish, evidence, protected-environment, and SSM path |
-| `.github/workflows/build-image.yml` | Pull-request and merged-main validation only; image publication requires an explicit `workflow_dispatch`, so merging source cannot publish an image |
+| `.github/workflows/build-image.yml` | Pull-request and merged-main validation only; image publication requires an explicit `workflow_dispatch` from `refs/heads/main`, so merging source cannot publish an image |
 | `deploy/aws/host/witnessops-deploy-v1` | Installed host-side SSM adapter contract for Frankfurt k3s |
 | `pnpm deploy:k3s:build`, `deploy:k3s:prod`, `deploy:k3s:both` | **Retired**; fail with `RETIRED_PRODUCTION_DEPLOY_PATH` |
 | `deploy/scripts/k3s-build-shared.sh`, `k3s-deploy-prod.sh`, `k3s-deploy-both.sh` | Historical/manual-recovery implementation only; direct invocation is not routine authority |

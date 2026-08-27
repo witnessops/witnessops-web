@@ -12,7 +12,10 @@ test("a merge to main cannot publish the validated image", async () => {
   const publishStart = workflow.indexOf("\n  publish:\n");
   assert.notEqual(publishStart, -1);
   const publishBlock = workflow.slice(publishStart);
-  assert.match(publishBlock, /if: github\.event_name == 'workflow_dispatch'/);
+  assert.match(
+    publishBlock,
+    /if: github\.event_name == 'workflow_dispatch' && github\.ref == 'refs\/heads\/main'/,
+  );
   assert.doesNotMatch(
     publishBlock,
     /if: github\.event_name != 'pull_request'/,

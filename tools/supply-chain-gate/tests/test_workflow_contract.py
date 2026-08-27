@@ -130,7 +130,11 @@ class WorkflowContractTests(unittest.TestCase):
         publish = job_section(self.build_image, "publish")
         self.assertRegex(self.build_image, r"(?m)^  pull_request:\s*$")
         self.assertIn('  push:\n    branches: ["main"]\n', self.build_image)
-        self.assertIn("    if: github.event_name == 'workflow_dispatch'\n", publish)
+        self.assertIn(
+            "    if: github.event_name == 'workflow_dispatch' && "
+            "github.ref == 'refs/heads/main'\n",
+            publish,
+        )
 
     def test_required_gate_runs_for_every_pull_request(self) -> None:
         self.assertRegex(self.gate, r"(?m)^  pull_request:\s*$")

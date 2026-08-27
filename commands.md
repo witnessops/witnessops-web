@@ -13,16 +13,19 @@ This repo has no active Azure deployment command surface.
 - Archived Azure material under `docs/archive/azure-aca-retired-20260508/` is historical reference only.
 - Any future Azure command requires a separate explicit Azure reopening lane with allowed cloud surfaces, validation commands, receipts, and stop boundary.
 
-### Active private k3s dual-lane
+### Active AWS production and private mesh-dev boundary
 
-Canonical entrypoints (also in root `AGENTS.md` / `docs/DEPLOYMENT_AUTHORITY.md`):
+Routine production publication and deployment are available only through a
+manual `.github/workflows/aws-release.yml` dispatch from `refs/heads/main`.
+The workflow operations are `publish-image`, `deploy-staging`, and
+approval-gated `deploy-production`. Merging does not dispatch them.
+
+Retained root entrypoints (also in root `AGENTS.md` /
+`docs/DEPLOYMENT_AUTHORITY.md`):
 
 | Script | Command |
 | --- | --- |
-| Build shared image | `pnpm deploy:k3s:build` |
-| Deploy prod only | `pnpm deploy:k3s:prod` |
 | Deploy mesh-dev only | `pnpm deploy:k3s:dev` |
-| Build once → both | `pnpm deploy:k3s:both` |
 | Status + smoke (image+HTTP+CSS) | `pnpm deploy:k3s:status` or `pnpm deploy:k3s:smoke` |
 | Parity unit tests | `pnpm deploy:k3s:test-parity` |
 | Teardown mesh-dev | `pnpm deploy:k3s:dev:teardown` |
@@ -31,6 +34,11 @@ Canonical entrypoints (also in root `AGENTS.md` / `docs/DEPLOYMENT_AUTHORITY.md`
 Smoke fails when prod/mesh-dev **image refs differ** (not CSS-only). Intentional
 non-parity: mesh bind/emptyDir/PORT/HOSTNAME/VERIFY_BASE. Shared secrets:
 the `BASE_ENV_SECRET` + `ADMIN_OIDC_SECRET` contract.
+
+`pnpm deploy:k3s:build`, `pnpm deploy:k3s:prod`, and
+`pnpm deploy:k3s:both` are retired aliases that fail closed with
+`RETIRED_PRODUCTION_DEPLOY_PATH`. Production drift is reconciled through the
+AWS workflow; mesh-dev may then be aligned separately.
 
 Env: source the private ignored `deploy/topology.env`; use `ALLOW_DIRTY=1` only for intentional dirty-tree builds.
 

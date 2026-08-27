@@ -64,7 +64,7 @@ before the follow-up PR may be reviewed.
 
 A merge to `main` may run the low-authority image build and verification
 workflow, but it cannot publish the image. The privileged publish job requires
-an explicit `workflow_dispatch`; the regression is covered by
+an explicit `workflow_dispatch` from `refs/heads/main`; the regression is covered by
 `deploy/scripts/no-automatic-image-publication.test.mjs`.
 
 Routine production authority is:
