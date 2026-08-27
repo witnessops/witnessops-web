@@ -14,14 +14,17 @@ const buyerHomepage = readFileSync(
 test("Polish homepage uses the bounded workflow positioning and naturalized terminology", () => {
   assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
   assert.match(buyerHomepage, /Agenci działają\. WitnessOps dostarcza dowody\./);
-  assert.match(buyerHomepage, /Zdefiniuj granice workflow/);
+  assert.match(buyerHomepage, /Sprawdź agenta przed działaniem/);
+  assert.match(buyerHomepage, /Zobacz jedno ograniczone działanie/);
+  assert.match(buyerHomepage, /Sprawdź, co się wydarzyło/);
+  assert.match(buyerHomepage, /Przynieś prawdziwy workflow/);
   assert.match(buyerHomepage, /Pięć pytań\. Jeden ograniczony workflow\./);
   assert.match(buyerHomepage, /Zweryfikowany syntetyczny przykład — nie są to materiały klienta/);
   assert.match(buyerHomepage, /Co pozostaje nierozstrzygnięte\?/);
   assert.match(buyerHomepage, /Agent Risk & Control Review/);
   assert.match(buyerHomepage, /Zgłoś jeden workflow agenta/);
   assert.match(buyerHomepage, /Uruchom i zweryfikuj demo rotacji skompromitowanego klucza API/);
-  assert.doesNotMatch(buyerHomepage, /\/verify\/skill/);
+  assert.match(buyerHomepage, /\/verify\/skill/);
   assert.doesNotMatch(buyerHomepage, /Aegis/);
   assert.doesNotMatch(buyerHomepage, /zewnętrzna weryfikacja/i);
   assert.doesNotMatch(homePage, /Jasny zakres\. Jasny wynik\./);

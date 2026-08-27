@@ -1,0 +1,12 @@
+{
+  "browser": "Playwright Chromium against next start",
+  "filename": "witnessops-demo-receipt-2026-08-27T12-00-00-000Z_6bb484a2.json",
+  "displayedSha256": "6bb484a2de9c8a7724cae1622c30f368f087d13f9286a804def79229d557bb50",
+  "downloadedFileSha256": "6bb484a2de9c8a7724cae1622c30f368f087d13f9286a804def79229d557bb50",
+  "exactBytesMatch": true,
+  "replayTimeRequestCount": 1,
+  "liveCrmCredentialModelOrCustomerDataRequests": 0,
+  "schema": "witnessops.demo-receipt.v1",
+  "signed": false,
+  "noNewExecution": true
+}

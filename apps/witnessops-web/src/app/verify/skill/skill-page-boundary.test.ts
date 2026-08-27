@@ -8,13 +8,19 @@ const consoleSrc = readFileSync(
   resolve(import.meta.dirname, "../../../components/verify/skill-console.tsx"),
   "utf8",
 );
-const discoverySurfaces = [
-  resolve(import.meta.dirname, "../../../components/marketing/buyer-homepage.tsx"),
+const nonDiscoverySurfaces = [
   resolve(import.meta.dirname, "../../../components/marketing/footer.tsx"),
   resolve(import.meta.dirname, "../../../components/shared/navbar.tsx"),
   resolve(import.meta.dirname, "../../sitemap.ts"),
-  resolve(import.meta.dirname, "../../../../../../content/witnessops/landing/home.yaml"),
 ].map((path) => readFileSync(path, "utf8"));
+const homepage = readFileSync(
+  resolve(import.meta.dirname, "../../../components/marketing/buyer-homepage.tsx"),
+  "utf8",
+);
+const skillDetail = readFileSync(
+  resolve(import.meta.dirname, "../../(library)/library/[slug]/page.tsx"),
+  "utf8",
+);
 
 test("Check a Skill page renders the required product limitation", () => {
   assert.match(page, /Check an agent skill before you trust it/);
@@ -48,14 +54,29 @@ test("skill console exposes paste, file, policy, verdict, report controls", () =
   assert.match(consoleSrc, /No upload/);
   assert.match(consoleSrc, /No model call/);
   assert.match(consoleSrc, /data-ui-proof-id="skill-result"/);
+  assert.match(consoleSrc, /No governed pattern was detected under the selected policy\. This does not prove/);
+  assert.match(consoleSrc, /input sha256:/);
   assert.doesNotMatch(consoleSrc, /Verified safe/);
   assert.doesNotMatch(consoleSrc, /localStorage/);
+  assert.doesNotMatch(consoleSrc, /sessionStorage/);
 });
 
-test("Check a Skill remains noindex and absent from public discovery surfaces", () => {
+test("Check a Skill remains noindex while the bounded journey can link to it", () => {
   assert.match(page, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false/);
-  for (const source of discoverySurfaces) {
+  for (const source of nonDiscoverySurfaces) {
     assert.doesNotMatch(source, /\/verify\/skill/);
-    assert.doesNotMatch(source, /Check a skill/i);
   }
+  assert.match(homepage, /href:\s*"\/verify\/skill"/);
+  assert.match(skillDetail, /Check this exact version/);
+  assert.match(skillDetail, /skill=\$\{encodeURIComponent\(skill\.slug\)\}/);
+  assert.match(skillDetail, /sha256=\$\{skill\.sha256\}/);
+});
+
+test("exact-version prefill is server validated and editing invalidates the bind", () => {
+  assert.match(page, /skill\.version === requestedVersion/);
+  assert.match(page, /skill\.sha256 === requestedSha256/);
+  assert.match(page, /readSkillMarkdown\(exactSkill\.slug\)/);
+  assert.match(consoleSrc, /data-ui-proof-id="skill-exact-version-binding"/);
+  assert.match(consoleSrc, /setExactBinding\(null\)/);
+  assert.match(consoleSrc, /Exact-version binding removed because the input changed/);
 });

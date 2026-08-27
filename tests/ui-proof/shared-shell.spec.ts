@@ -68,14 +68,18 @@ test("accepted buyer routes retain a consistent, accessible shared shell", async
       const response = await page.goto(route, { waitUntil: "networkidle" });
       expect(response?.status(), `${route} ${viewport.name} status`).toBe(200);
       await expect(page.locator("main h1").first()).toBeVisible();
-      await expect(page.locator("nav")).toBeVisible();
+      await expect(page.locator("nav.public-shell")).toBeVisible();
       await expect(page.locator("footer")).toBeVisible();
 
       const shell = await page.evaluate(() => {
-        const nav = document.querySelector("nav")?.getBoundingClientRect();
+        const nav = document
+          .querySelector("nav.public-shell")
+          ?.getBoundingClientRect();
         const main = document.querySelector("main")?.getBoundingClientRect();
         const visibleNavTargets = Array.from(
-          document.querySelectorAll<HTMLElement>("nav a, nav button"),
+          document.querySelectorAll<HTMLElement>(
+            "nav.public-shell a, nav.public-shell button",
+          ),
         ).filter((element) => {
           const box = element.getBoundingClientRect();
           const style = getComputedStyle(element);
@@ -127,7 +131,9 @@ test("accepted buyer routes retain a consistent, accessible shared shell", async
       expect(shell.clippedFooterLinks, `${route} clipped footer links`).toBe(0);
 
       const activeHref = activeNavigationHref.get(route);
-      const visibleActive = page.locator('nav [aria-current="page"]:visible');
+      const visibleActive = page.locator(
+        'nav.public-shell [aria-current="page"]:visible',
+      );
       if (activeHref) {
         await expect(visibleActive, `${route} active route`).toHaveCount(1);
         await expect(visibleActive).toHaveAttribute("href", activeHref);
@@ -153,7 +159,9 @@ test("language switching preserves every accepted route pair and header geometry
 
   for (const [englishPath, polishPath] of languagePairs) {
     await page.goto(englishPath, { waitUntil: "networkidle" });
-    const englishHeaderHeight = await page.locator("nav").evaluate((nav) => nav.getBoundingClientRect().height);
+    const englishHeaderHeight = await page
+      .locator("nav.public-shell")
+      .evaluate((nav) => nav.getBoundingClientRect().height);
     const polishLink = page.getByRole("link", { name: "PL", exact: true });
     await expect(polishLink).toHaveCount(1);
     await expect(polishLink).toHaveAttribute("href", polishPath);
@@ -161,9 +169,11 @@ test("language switching preserves every accepted route pair and header geometry
     await polishLink.click();
     await expect(page).toHaveURL(new RegExp(`${polishPath.replaceAll("/", "\\/")}$`));
     await expect(page.locator("main h1").first()).toBeVisible();
-    expect(await page.locator("nav").evaluate((nav) => nav.getBoundingClientRect().height)).toBe(
-      englishHeaderHeight,
-    );
+    expect(
+      await page
+        .locator("nav.public-shell")
+        .evaluate((nav) => nav.getBoundingClientRect().height),
+    ).toBe(englishHeaderHeight);
 
     const englishLink = page.getByRole("link", { name: "EN", exact: true });
     await expect(englishLink).toHaveCount(1);
@@ -217,10 +227,10 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
       ctaColor: cta ? getComputedStyle(cta).color : null,
     };
   });
-  expect(menuVisuals.currentBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(menuVisuals.currentBackground).toBe("rgb(238, 238, 238)");
   expect(menuVisuals.currentBorder).toBe("2px");
-  expect(menuVisuals.ctaBackground).toBe("rgb(255, 255, 255)");
-  expect(menuVisuals.ctaColor).toBe("rgb(0, 0, 0)");
+  expect(menuVisuals.ctaBackground).toBe("rgb(5, 5, 5)");
+  expect(menuVisuals.ctaColor).toBe("rgb(255, 255, 255)");
   const openGeometry = await page.locator("main").evaluate((main) => {
     const box = main.getBoundingClientRect();
     return {

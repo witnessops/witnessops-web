@@ -445,6 +445,53 @@
   color: var(--skill-rule-strong);
 }
 
+.exactBinding {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.7fr);
+  gap: 0.75rem 1.25rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--skill-accent) 44%, transparent);
+  background: color-mix(in srgb, var(--skill-accent) 7%, transparent);
+}
+
+.exactBinding div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.exactBinding span,
+.bindingInvalidated {
+  color: var(--skill-ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.exactBinding strong {
+  color: var(--skill-ink);
+  font-size: 0.82rem;
+}
+
+.exactBinding code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--skill-accent-soft);
+  font-size: 0.7rem;
+}
+
+.bindingInvalidated {
+  margin: 1rem 0 0;
+  color: var(--color-signal-yellow);
+}
+
+.resultLimitation {
+  color: var(--skill-ink-muted) !important;
+  font-size: 0.76rem !important;
+}
+
 .errorState {
   margin: 0 clamp(1.3rem, 3vw, 2rem) clamp(1.3rem, 3vw, 2rem);
   padding: 1rem 1.1rem;
@@ -837,6 +884,10 @@
 
   .inputBoundary span + span::before {
     margin-right: 0.6rem;
+  }
+
+  .exactBinding {
+    grid-template-columns: 1fr;
   }
 
   .verdictCard {

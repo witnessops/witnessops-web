@@ -132,6 +132,26 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
     },
     {
+      "source": "/samples/api-key-rotation/v1/:artifact*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ],
+      "regex": "^/samples/api-key-rotation/v1(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
+      "source": "/.well-known/witnessops-demo-signing-keys.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, must-revalidate"
+        }
+      ],
+      "regex": "^/\\.well-known/witnessops-demo-signing-keys\\.json(?:/)?$"
+    },
+    {
       "source": "/assets/one-pagers/:file*",
       "headers": [
         {
@@ -337,6 +357,22 @@
         "nxtPreceiptId": "nxtPreceiptId"
       },
       "namedRegex": "^/execution/(?<nxtPreceiptId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/library/[slug]",
+      "regex": "^/library/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/library/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/library/[slug]/download",
+      "regex": "^/library/([^/]+?)/download(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/library/(?<nxtPslug>[^/]+?)/download(?:/)?$"
     },
     {
       "page": "/package/[issuanceId]",
@@ -779,6 +815,12 @@
       "regex": "^/review/sample\\-cases/sbom\\-cisa\\-2026\\-minimum\\-elements(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/review/sample\\-cases/sbom\\-cisa\\-2026\\-minimum\\-elements(?:/)?$"
+    },
+    {
+      "page": "/review/sample-cases/witnessed-crm-status-change",
+      "regex": "^/review/sample\\-cases/witnessed\\-crm\\-status\\-change(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/review/sample\\-cases/witnessed\\-crm\\-status\\-change(?:/)?$"
     },
     {
       "page": "/review/sample-report",
