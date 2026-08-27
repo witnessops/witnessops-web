@@ -16,11 +16,11 @@ test("Polish homepage uses the bounded workflow positioning and naturalized term
   assert.match(buyerHomepage, /Agenci działają\. WitnessOps dostarcza dowody\./);
   assert.match(buyerHomepage, /Zdefiniuj granice workflow/);
   assert.match(buyerHomepage, /Pięć pytań\. Jeden ograniczony workflow\./);
-  assert.match(buyerHomepage, /Opublikowany przykład — nie są to materiały klienta/);
+  assert.match(buyerHomepage, /Zweryfikowany syntetyczny przykład — nie są to materiały klienta/);
   assert.match(buyerHomepage, /Co pozostaje nierozstrzygnięte\?/);
   assert.match(buyerHomepage, /Agent Risk & Control Review/);
   assert.match(buyerHomepage, /Zgłoś jeden workflow agenta/);
-  assert.match(buyerHomepage, /Zobacz publiczny przykład materiałów/);
+  assert.match(buyerHomepage, /Uruchom i zweryfikuj demo rotacji skompromitowanego klucza API/);
   assert.doesNotMatch(buyerHomepage, /\/verify\/skill/);
   assert.doesNotMatch(buyerHomepage, /Aegis/);
   assert.doesNotMatch(buyerHomepage, /zewnętrzna weryfikacja/i);

@@ -55,12 +55,12 @@ const sampleCases = [
     emphasize: true,
   },
   {
-    title: "AI agent change package",
+    title: "Compromised API key rotation",
     href: "/review/sample-cases/ai-agent-action-proof-run",
-    situation: "An AI agent proposed and applied one bounded code or configuration change.",
+    situation: "A synthetic compromise signal triggers one bounded API-key rotation.",
     youSee:
-      "Who authorized it, what was allowed, what evidence was captured, and how a third party can re-check the package.",
-    tags: ["Full package on GitHub", "Receipt + verifier path"],
+      "The signed authority, exact evidence, browser verification, one-byte tamper challenge, and network-free offline verifier.",
+    tags: ["Signed synthetic run", "Browser + offline verifier"],
     emphasize: true,
   },
   {

@@ -14,6 +14,7 @@ export async function checkHomepageHero(
   checks.push(await selectorExists(page, "homepage-hero-headline", severity));
   checks.push(await selectorExists(page, "homepage-hero-body", severity));
   checks.push(await selectorExists(page, "homepage-hero-primary-cta", severity));
+  checks.push(await selectorExists(page, "homepage-demo-cta", severity));
   checks.push(
     await selectorVisible(page, "homepage-hero-headline", "headline visible", severity),
   );
@@ -25,6 +26,9 @@ export async function checkHomepageHero(
       "primary CTA visible",
       severity,
     ),
+  );
+  checks.push(
+    await selectorVisible(page, "homepage-demo-cta", "demo CTA visible", severity),
   );
 
   const ctaBox = await page
@@ -72,6 +76,20 @@ export async function checkHomepageHero(
     severity,
     expected: expectedFitCheckHref,
     actual: primaryCtaHref,
+  });
+
+  const demoCtaHref = await page
+    .locator(uiProofSelector("homepage-demo-cta"))
+    .first()
+    .getAttribute("href")
+    .catch(() => null);
+  const expectedDemoHref = "/review/sample-cases/ai-agent-action-proof-run";
+  checks.push({
+    name: "demo CTA opens the verifiable key-rotation specimen",
+    status: demoCtaHref === expectedDemoHref ? "pass" : "fail",
+    severity,
+    expected: expectedDemoHref,
+    actual: demoCtaHref,
   });
 
   const scrollMetrics = await page.evaluate(() => ({

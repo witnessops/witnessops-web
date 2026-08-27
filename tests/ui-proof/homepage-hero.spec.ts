@@ -154,6 +154,10 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       "href",
       scenario.primary,
     );
+    await expect(page.locator('[data-ui-proof-id="homepage-demo-cta"]')).toHaveAttribute(
+      "href",
+      "/review/sample-cases/ai-agent-action-proof-run",
+    );
     await expect(page.locator('main[data-home-direction="agent-proof-offer"]')).toHaveCount(1);
     await expect(page.locator("#evidence-questions")).toContainText(scenario.methodHeading);
     await expect(page.locator("#agent-action-receipt")).toContainText(scenario.receiptHeading);

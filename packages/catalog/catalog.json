@@ -95,7 +95,7 @@
   "samples": [
     {
       "id": "ai-agent-action-proof-run",
-      "title": "AI agent action proof run",
+      "title": "Compromised API key rotation demo",
       "href": "/review/sample-cases/ai-agent-action-proof-run",
       "surface": "witnessops.com"
     },

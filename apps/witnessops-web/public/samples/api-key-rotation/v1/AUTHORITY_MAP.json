@@ -1,0 +1,42 @@
+{
+  "schema": "witnessops.authority_map.v1",
+  "sample_id": "COMPROMISED_API_KEY_ROTATION_SAMPLE_V1",
+  "authority_id": "authority_demo_rotation_20260827_001",
+  "roles": {
+    "proposer": "remediation_agent_demo_001",
+    "approver": "security_owner_demo_001",
+    "executor": "credential_rotation_tool_demo_001",
+    "verifier": "witnessops_demo_verifier_v1"
+  },
+  "approval": {
+    "approved": true,
+    "approved_at": "2026-08-27T12:00:10Z",
+    "expires_at": "2026-08-27T12:01:10Z",
+    "approved_by": "security_owner_demo_001",
+    "contract_id": "contract_demo_rotation_20260827_001",
+    "exact_target": {
+      "provider": "Northstar API (synthetic)",
+      "tenant": "sandbox_tenant_001",
+      "consumer": "billing_worker_demo",
+      "old_key_id": "sk_demo_old_7F2C91",
+      "old_key_fingerprint": "sha256:457612e26457c27e1443f6dfae65c12106f045ecdaed588eba7f43dbf06885d5"
+    },
+    "allowed_operations": [
+      "create_replacement",
+      "update_consumer_reference",
+      "probe_replacement",
+      "revoke_old",
+      "probe_old",
+      "read_back_state"
+    ],
+    "approval_text": "Approve one replayable synthetic API-key rotation under the exact contract. No real provider, secret, customer, or production system is authorized.",
+    "single_use": true
+  },
+  "negative_boundaries": [
+    "No real credential compromise is asserted.",
+    "No production system or provider is contacted.",
+    "No secret value is generated, stored, transmitted, or displayed.",
+    "No legal compliance or security certification is asserted."
+  ],
+  "synthetic": true
+}

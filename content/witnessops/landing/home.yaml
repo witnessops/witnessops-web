@@ -156,7 +156,7 @@ sections:
       - label: "Read the verification contract"
         href: "/docs/how-it-works/verification"
         variant: "ghost"
-    closing: "The public sample demonstrates receipt shape and verifier path only. It does not claim production deployment. It is not a legal compliance claim or complete AI governance program. It is not whole-environment assurance."
+    closing: "The public sample verifies cryptographic integrity and the declared synthetic rotation transition against exact published bytes. It does not establish a real compromise, provider action, customer evidence, compliance, correctness, safety, completeness, or whole-environment assurance, and it does not claim production deployment."
 
   - type: "boundary"
     id: "boundary"

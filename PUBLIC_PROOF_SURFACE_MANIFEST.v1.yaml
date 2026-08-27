@@ -36,7 +36,7 @@ public_surfaces:
   ai_agent_action_sample:
     route: /review/sample-cases/ai-agent-action-proof-run
     contract_path: apps/witnessops-web/src/app/review/sample-cases/ai-agent-action-proof-run/sample-artifact-contract.ts
-    boundary: web records pinned sample manifest provenance and displays artifact digests; it does not independently recompute source artifact bytes locally
+    boundary: browser and offline verifier recompute the purpose-limited synthetic signer, exact evidence bytes, receipt references, authority, scope, and declared rotation transition; no real provider action or compromise is checked
 
 non_semantic_canary_boundary:
   changes_to_this_manifest_do_not:
@@ -45,7 +45,7 @@ non_semantic_canary_boundary:
     - issue or sign receipts
     - execute proof runs
     - store customer data as part of normal verification
-    - recompute external sample artifact bytes
+    - extend the sample verifier beyond its fixed synthetic specimen
     - prove production deployment
     - prove legal compliance
     - prove source-system truth
