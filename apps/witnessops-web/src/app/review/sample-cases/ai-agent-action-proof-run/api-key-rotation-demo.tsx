@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  mutateFirstBase64Byte,
+  sha256Utf8,
+} from "@/lib/api-key-rotation-browser-integrity";
 import styles from "./api-key-rotation-demo.module.css";
 
 const specimenRoot = "/samples/api-key-rotation/v1";
@@ -123,6 +127,13 @@ export function ApiKeyRotationDemo({
           bundleResponse.text(),
           registryResponse.text(),
         ]);
+        const actualBundleSha256 = await sha256Utf8(bundleText);
+        if (actualBundleSha256 !== bundleSha256) {
+          throw new Error(
+            `PUBLIC_BUNDLE_DIGEST_MISMATCH: expected ${bundleSha256}; received ${actualBundleSha256}.`,
+          );
+        }
+
         const result = await verifierModule.verifyBundle(bundleText, registryText);
 
         if (!cancelled) {
@@ -144,7 +155,7 @@ export function ApiKeyRotationDemo({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [bundleSha256]);
 
   useEffect(() => {
     if (!isReplaying) {
@@ -208,7 +219,7 @@ export function ApiKeyRotationDemo({
       return;
     }
 
-    afterState.content = `${afterState.content} `;
+    afterState.content = mutateFirstBase64Byte(afterState.content);
     const result = await verifyBundle(JSON.stringify(mutatedBundle), specimen.registry);
     setTamperResult(result);
   }
@@ -515,19 +526,19 @@ export function ApiKeyRotationDemo({
           </button>
         </div>
         <div className={styles.downloadLinks}>
-          <a href={bundleHref} download>
+          <a href={bundleHref} download="BUNDLE.wops.json">
             <span>BUNDLE.wops.json</span>
             <small>SIGNED SPECIMEN ↓</small>
           </a>
-          <a href={verifierHref} download>
+          <a href={verifierHref} download="verify.mjs">
             <span>verify.mjs</span>
             <small>VERIFIER SOURCE ↓</small>
           </a>
-          <a href={keyRegistryHref} download>
+          <a href={keyRegistryHref} download="DEMO_KEY_REGISTRY.json">
             <span>DEMO_KEY_REGISTRY.json</span>
             <small>PUBLIC KEY ↓</small>
           </a>
-          <a href={`${specimenRoot}/RECEIPT.json`} download>
+          <a href={`${specimenRoot}/RECEIPT.json`} download="RECEIPT.json">
             <span>RECEIPT.json</span>
             <small>RAW RECEIPT ↓</small>
           </a>

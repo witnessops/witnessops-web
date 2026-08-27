@@ -122,6 +122,12 @@ test("public page makes replay, local verification, tamper challenge, and limits
   assert.match(client, /proves_real_provider_action/);
   assert.match(client, /No WitnessOps API/);
   assert.match(client, /webpackIgnore: true/);
+  assert.match(client, /sha256Utf8\(bundleText\)/);
+  assert.match(client, /actualBundleSha256 !== bundleSha256/);
+  assert.match(client, /PUBLIC_BUNDLE_DIGEST_MISMATCH/);
+  assert.match(client, /mutateFirstBase64Byte\(afterState\.content\)/);
+  assert.match(client, /download="DEMO_KEY_REGISTRY\.json"/);
+  assert.doesNotMatch(client, /afterState\.content = `\$\{afterState\.content\} `/);
   assert.doesNotMatch(client, /method:\s*["'](?:POST|PUT|PATCH|DELETE)/);
 });
 
