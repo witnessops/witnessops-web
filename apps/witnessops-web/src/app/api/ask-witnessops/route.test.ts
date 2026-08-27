@@ -225,6 +225,387 @@ test("public Ask refuses evidence intake before any provider call", async () => 
   }
 });
 
+test("public Ask recognizes a natural agent key-rotation buyer workflow", async () => {
+  enableTestOpenAiRuntime();
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = (async () => {
+    calls += 1;
+    throw new Error("provider must not be called");
+  }) as typeof fetch;
+
+  try {
+    const response = await POST(
+      askRequest(
+        "We use an AI agent to rotate compromised production API keys. How do we prove who authorized it, what changed, and whether the old key was revoked?",
+        "203.0.113.88",
+      ),
+    );
+    const payload = (await response.json()) as {
+      answer_mode?: string;
+      status?: string;
+      route?: { route_id?: string } | null;
+      commercial_fit?: {
+        result?: string;
+        intent?: string;
+        offer_id?: string;
+        matching_specimen_id?: string;
+        offer?: { price_label?: string };
+      };
+    };
+
+    assert.equal(calls, 0);
+    assert.equal(response.status, 200);
+    assert.equal(payload.answer_mode, "policy_refusal");
+    assert.equal(payload.status, "closed");
+    assert.equal(payload.route, null);
+    assert.equal(payload.commercial_fit?.result, "likely");
+    assert.equal(payload.commercial_fit?.intent, "workflow");
+    assert.equal(
+      payload.commercial_fit?.offer_id,
+      "bounded-workflow-review",
+    );
+    assert.equal(payload.commercial_fit?.offer?.price_label, "From €1,500");
+    assert.equal(
+      payload.commercial_fit?.matching_specimen_id,
+      "ai-agent-action-proof-run",
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("public Ask recognizes the paid offer and price", async () => {
+  const response = await POST(
+    askRequest(
+      "What is included in the Agent Risk & Control Review and how much does it cost?",
+      "203.0.113.89",
+    ),
+  );
+  const payload = (await response.json()) as {
+    status?: string;
+    route?: { route_id?: string } | null;
+    commercial_fit?: {
+      result?: string;
+      intent?: string;
+      offer?: { name?: string; price_label?: string };
+    };
+  };
+
+  assert.equal(payload.status, "closed");
+  assert.equal(payload.route, null);
+  assert.equal(payload.commercial_fit?.result, "likely");
+  assert.equal(payload.commercial_fit?.intent, "offer");
+  assert.equal(
+    payload.commercial_fit?.offer?.name,
+    "Agent Risk & Control Review",
+  );
+  assert.equal(payload.commercial_fit?.offer?.price_label, "From €1,500");
+});
+
+test("public Ask never sends a secret-bearing buyer question to the provider", async () => {
+  enableTestOpenAiRuntime();
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = (async () => {
+    calls += 1;
+    throw new Error("provider must not be called");
+  }) as typeof fetch;
+
+  try {
+    const response = await POST(
+      askRequest(
+        "Can WitnessOps review one bounded AI-agent action? The agent used api_key=sk-proj-abcdefghijklmnopqrstuv.",
+        "203.0.113.90",
+      ),
+    );
+    const payload = (await response.json()) as {
+      schema?: string;
+      answer_mode?: string;
+      status?: string;
+      assembler_contract_id?: string;
+      deterministic_replay_hash?: string;
+      authority_answer?: {
+        schema?: string;
+        status?: string;
+        route?: unknown;
+        template?: { template_id?: string };
+        policy_decision?: {
+          question_class_id?: string;
+          template_id?: string;
+        };
+      };
+      commercial_fit?: { result?: string; offer?: unknown };
+    };
+
+    assert.equal(calls, 0);
+    assert.equal(
+      payload.schema,
+      "witnessops.ask.public-boundary-response.v1",
+    );
+    assert.equal(payload.answer_mode, "policy_refusal");
+    assert.equal(payload.status, "closed");
+    assert.equal(payload.assembler_contract_id, undefined);
+    assert.equal(payload.deterministic_replay_hash, undefined);
+    assert.equal(
+      payload.authority_answer?.schema,
+      "witnessops.ask.assembled-answer.v1",
+    );
+    assert.equal(
+      payload.authority_answer?.policy_decision?.question_class_id,
+      "ai_agent_action",
+    );
+    assert.equal(
+      payload.authority_answer?.template?.template_id,
+      payload.authority_answer?.policy_decision?.template_id,
+    );
+    assert.equal(payload.commercial_fit?.result, "blocked");
+    assert.equal(payload.commercial_fit?.offer, null);
+    assert.equal(JSON.stringify(payload).includes("sk-proj"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("public Ask does not sell or send an active incident to the provider", async () => {
+  enableTestOpenAiRuntime();
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = (async () => {
+    calls += 1;
+    throw new Error("provider must not be called");
+  }) as typeof fetch;
+
+  try {
+    const response = await POST(
+      askRequest(
+        "Can WitnessOps review one bounded AI-agent action during our active ransomware incident right now?",
+        "203.0.113.91",
+      ),
+    );
+    const payload = (await response.json()) as {
+      answer_mode?: string;
+      status?: string;
+      route?: unknown;
+      authority_answer?: {
+        policy_decision?: { question_class_id?: string };
+      };
+      commercial_fit?: { result?: string; offer?: unknown };
+    };
+
+    assert.equal(calls, 0);
+    assert.equal(payload.answer_mode, "policy_refusal");
+    assert.equal(payload.status, "closed");
+    assert.equal(payload.route, null);
+    assert.equal(
+      payload.authority_answer?.policy_decision?.question_class_id,
+      "ai_agent_action",
+    );
+    assert.equal(payload.commercial_fit?.result, "not_fit");
+    assert.equal(payload.commercial_fit?.offer, null);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("public Ask hard-stops broader secret, abuse, and claim boundaries", async () => {
+  enableTestOpenAiRuntime();
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = (async () => {
+    calls += 1;
+    throw new Error("provider must not be called");
+  }) as typeof fetch;
+
+  const cases = [
+    {
+      question:
+        'Can WitnessOps review one bounded AI-agent action? It used {"apiKey":"supersecretvalue123"}.',
+      expectedResult: "blocked",
+      forbiddenEcho: "supersecretvalue123",
+    },
+    {
+      question:
+        "Can WitnessOps review one bounded AI-agent action? AWS_SECRET_ACCESS_KEY=anothersecretvalue123.",
+      expectedResult: "blocked",
+      forbiddenEcho: "anothersecretvalue123",
+    },
+    {
+      question:
+        "Can WitnessOps review one bounded AI-agent action that probes a rival without permission?",
+      expectedResult: "blocked",
+      forbiddenEcho: "without permission",
+    },
+    {
+      question:
+        "Can WitnessOps review one bounded AI-agent action and verify that it is secure?",
+      expectedResult: "not_fit",
+      forbiddenEcho: "verify that it is secure",
+    },
+  ] as const;
+
+  try {
+    for (const [index, item] of cases.entries()) {
+      const response = await POST(
+        askRequest(item.question, `203.0.113.${100 + index}`),
+      );
+      const payload = (await response.json()) as {
+        answer_mode?: string;
+        status?: string;
+        authority_answer?: {
+          policy_decision?: { question_class_id?: string };
+        };
+        commercial_fit?: { result?: string; offer?: unknown };
+      };
+
+      assert.equal(payload.answer_mode, "policy_refusal");
+      assert.equal(payload.status, "closed");
+      assert.equal(
+        payload.authority_answer?.policy_decision?.question_class_id,
+        "ai_agent_action",
+      );
+      assert.equal(payload.commercial_fit?.result, item.expectedResult);
+      assert.equal(payload.commercial_fit?.offer, null);
+      assert.equal(JSON.stringify(payload).includes(item.forbiddenEcho), false);
+    }
+    assert.equal(calls, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("public Ask hard-stops common secret and unsafe-language variants before the provider", async () => {
+  enableTestOpenAiRuntime();
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = (async () => {
+    calls += 1;
+    throw new Error("provider must not be called");
+  }) as typeof fetch;
+
+  const cases = [
+    {
+      question:
+        "Can WitnessOps review one bounded AI-agent action? Authorization: Basic dXNlcjpwYXNz",
+      expectedResult: "blocked",
+    },
+    {
+      question:
+        "Can WitnessOps review one bounded AI-agent action? -----BEGIN ENCRYPTED PRIVATE KEY-----",
+      expectedResult: "blocked",
+    },
+    {
+      question:
+        "Can WitnessOps review one bounded AI-agent action while our systems are currently being hacked?",
+      expectedResult: "not_fit",
+    },
+    {
+      question:
+        "Can WitnessOps review one bounded AI-agent action that steals credentials from a rival?",
+      expectedResult: "blocked",
+    },
+  ] as const;
+
+  try {
+    for (const [index, item] of cases.entries()) {
+      const response = await POST(
+        askRequest(item.question, `203.0.113.${120 + index}`),
+      );
+      const payload = (await response.json()) as {
+        schema?: string;
+        status?: string;
+        route?: unknown;
+        assembler_contract_id?: string;
+        authority_answer?: {
+          schema?: string;
+          template?: { template_id?: string };
+          policy_decision?: { template_id?: string };
+        };
+        commercial_fit?: { result?: string; offer?: unknown };
+      };
+
+      assert.equal(
+        payload.schema,
+        "witnessops.ask.public-boundary-response.v1",
+      );
+      assert.equal(payload.status, "closed");
+      assert.equal(payload.route, null);
+      assert.equal(payload.assembler_contract_id, undefined);
+      assert.equal(
+        payload.authority_answer?.schema,
+        "witnessops.ask.assembled-answer.v1",
+      );
+      assert.equal(
+        payload.authority_answer?.template?.template_id,
+        payload.authority_answer?.policy_decision?.template_id,
+      );
+      assert.equal(payload.commercial_fit?.result, item.expectedResult);
+      assert.equal(payload.commercial_fit?.offer, null);
+    }
+    assert.equal(calls, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("public Ask keeps broad-scope and unrelated-price signals honest", async () => {
+  const broadResponse = await POST(
+    askRequest(
+      "Review our AI agent across our entire cloud environment",
+      "203.0.113.110",
+    ),
+  );
+  const broadPayload = (await broadResponse.json()) as {
+    status?: string;
+    route?: unknown;
+    commercial_fit?: { result?: string; offer?: { price_label?: string } };
+  };
+
+  assert.equal(broadPayload.status, "closed");
+  assert.equal(broadPayload.route, null);
+  assert.equal(broadPayload.commercial_fit?.result, "needs_boundary");
+  assert.equal(
+    broadPayload.commercial_fit?.offer?.price_label,
+    "From €1,500",
+  );
+
+  const multiResponse = await POST(
+    askRequest(
+      "Review every AI-agent workflow across production",
+      "203.0.113.112",
+    ),
+  );
+  const multiPayload = (await multiResponse.json()) as {
+    commercial_fit?: { result?: string; offer?: { price_label?: string } };
+  };
+  assert.equal(multiPayload.commercial_fit?.result, "needs_boundary");
+  assert.equal(
+    multiPayload.commercial_fit?.offer?.price_label,
+    "From €1,500",
+  );
+
+  const unrelatedResponse = await POST(
+    askRequest("How much does AWS cost?", "203.0.113.111"),
+  );
+  const unrelatedPayload = (await unrelatedResponse.json()) as {
+    commercial_fit?: { result?: string; offer?: unknown };
+  };
+  assert.equal(unrelatedPayload.commercial_fit?.result, "unknown");
+  assert.equal(unrelatedPayload.commercial_fit?.offer, null);
+
+  const vendorWorkflowResponse = await POST(
+    askRequest(
+      "How much does an AWS automated workflow cost?",
+      "203.0.113.113",
+    ),
+  );
+  const vendorWorkflowPayload = (await vendorWorkflowResponse.json()) as {
+    commercial_fit?: { result?: string; offer?: unknown };
+  };
+  assert.equal(vendorWorkflowPayload.commercial_fit?.result, "unknown");
+  assert.equal(vendorWorkflowPayload.commercial_fit?.offer, null);
+});
+
 test("public Ask rejects valid but excessively nested JSON as a controlled client error", async () => {
   const depth = JSON_AMBIGUITY_MAX_DEPTH + 1;
   const body = `${'{"nested":'.repeat(depth)}{"question":"one","question":"two"}${"}".repeat(depth)}`;

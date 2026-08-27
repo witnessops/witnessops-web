@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   buyerRequestHref,
   buyerServiceById,
+  buyerServiceRequestHref,
 } from "@/lib/buyer-services";
 import { getServiceLanding } from "@/lib/service-landings";
 import { PROFESSIONAL_PUBLIC_FOOTPRINT_DETAIL } from "./professional-public-footprint-audit";
@@ -41,8 +42,10 @@ test("public footprint audit uses the existing general request route without pay
   assert.equal(audit.productId, undefined);
   assert.equal(buyerRequestHref("en"), "/review/request");
   assert.equal(buyerRequestHref("pl"), "/pl/review/request");
+  assert.equal(buyerServiceRequestHref("en", audit), "/review/request");
+  assert.equal(buyerServiceRequestHref("pl", audit), "/pl/review/request");
   assert.doesNotMatch(JSON.stringify(audit), /stripe|checkout|payment[_-]?link/i);
-  assert.match(catalogueSource, /service\.productId[\s\S]*buyerOfferRequestHref/);
+  assert.match(catalogueSource, /buyerServiceRequestHref\(locale, service\)/);
   assert.match(pricingSource, /service\.pricingVisible !== false/);
 });
 

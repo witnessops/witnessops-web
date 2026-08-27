@@ -10,6 +10,7 @@ import {
   fetchAskWitnessOps,
   type AskWitnessOpsUiAnswer,
 } from "./ask-witnessops-response";
+import { AskWitnessOpsCommercialFitCard } from "./ask-witnessops-commercial-fit-card";
 import { AskWitnessOpsReceiptMeta } from "./ask-witnessops-receipt-meta";
 import { AskWitnessOpsRouteCta } from "./ask-witnessops-route-cta";
 import { AskWitnessOpsSourceLinks } from "./ask-witnessops-source-links";
@@ -38,6 +39,24 @@ const HIDDEN_WIDGET_PATHS = [
 // Tailwind's shared `sm` breakpoint starts at 40rem. Keep the JavaScript
 // scroll-lock boundary aligned with the responsive layout boundary below.
 const MOBILE_WIDGET_MEDIA_QUERY = "(max-width: 39.999rem)";
+
+const GUIDED_FIT_QUESTIONS = [
+  {
+    label: "Agent changed production",
+    question:
+      "Can WitnessOps review one bounded AI-agent action that changes a production system?",
+  },
+  {
+    label: "Approval or authority gap",
+    question:
+      "Can WitnessOps review who approved access for one consequential agent workflow?",
+  },
+  {
+    label: "Review scope and price",
+    question:
+      "What is included in the Agent Risk & Control Review and how much does it cost?",
+  },
+] as const;
 
 export function shouldShowDocsAssistantWidget(pathname: string): boolean {
   if (pathname === "/docs/assistant") return false;
@@ -157,11 +176,12 @@ export function DocsAssistantWidget() {
     return null;
   }
 
-  async function handleAsk() {
-    const trimmed = question.trim();
+  async function handleAsk(questionOverride?: string) {
+    const trimmed = (questionOverride ?? question).trim();
     if (!trimmed || loading) return;
     setLoading(true);
     setAnswer(null);
+    setContactMode(false);
 
     try {
       const data = await fetchAskWitnessOps(trimmed);
@@ -267,38 +287,39 @@ export function DocsAssistantWidget() {
               {!answer && !loading && (
                 <div>
                   <h2 className="text-lg font-semibold text-text-primary">
-                    What can I help you with?
+                    Describe one consequential agent workflow.
                   </h2>
-                  <div className="mt-4 grid gap-1">
-                    <button
-                      type="button"
-                      onClick={() => inputRef.current?.focus()}
-                      className="flex min-h-10 items-center gap-3 rounded px-2 text-left text-sm text-text-muted transition-colors hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
-                    >
-                      <span aria-hidden="true">?</span>
-                      Ask a question
-                    </button>
+                  <p className="mt-2 text-xs leading-relaxed text-text-muted">
+                    Use non-secret terms. I’ll show whether it fits the Agent
+                    Risk &amp; Control Review, what the review would examine, and
+                    the paid next step.
+                  </p>
+                  <div className="mt-4 grid gap-2">
+                    {GUIDED_FIT_QUESTIONS.map((item) => (
+                      <button
+                        key={item.label}
+                        type="button"
+                        onClick={() => void handleAsk(item.question)}
+                        className="min-h-10 rounded border border-surface-border px-3 py-2 text-left text-xs font-medium text-text-muted transition-colors hover:border-brand-accent hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
                     <Link
                       href="/docs"
                       onClick={handleClose}
                       className="flex min-h-10 items-center gap-3 rounded px-2 text-sm text-text-muted transition-colors hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
                     >
-                      <span aria-hidden="true">⌕</span>
                       Find a page
                     </Link>
                     <Link
-                      href="/review/request"
+                      href="/review/request?offerId=bounded-workflow-review&source=ask"
                       onClick={handleClose}
                       className="flex min-h-10 items-center gap-3 rounded px-2 text-sm text-text-muted transition-colors hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
                     >
-                      <span aria-hidden="true">→</span>
-                      Start a fit check
+                      Request scope directly
                     </Link>
                   </div>
-                  <p className="mt-5 text-xs leading-relaxed text-text-muted">
-                    Ask a non-secret question about proof packets, receipts,
-                    verification paths, catalog packages, or safe first contact.
-                  </p>
                 </div>
               )}
 
@@ -322,7 +343,14 @@ export function DocsAssistantWidget() {
                       >
                         {askWitnessOpsModeLabel(answer.answer)}
                       </p>
-                      <AskWitnessOpsRouteCta answer={answer.answer} compact />
+                      <AskWitnessOpsCommercialFitCard
+                        answer={answer.answer}
+                        compact
+                        onRequestScope={() => setContactMode(true)}
+                      />
+                      {!answer.answer.commercial_fit.offer && (
+                        <AskWitnessOpsRouteCta answer={answer.answer} compact />
+                      )}
                       <AskWitnessOpsSourceLinks
                         answer={answer.answer}
                         compact
@@ -346,6 +374,8 @@ export function DocsAssistantWidget() {
               }
             >
               <DocsAssistantContactHandoff
+                expanded={contactMode}
+                commercialFit={answer?.answer?.commercial_fit}
                 onExpandedChange={setContactMode}
               />
             </div>
@@ -369,7 +399,7 @@ export function DocsAssistantWidget() {
                     type="text"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="Ask a non-secret question..."
+                    placeholder="Example: An agent rotates a compromised production key."
                     className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-2.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
                   />
                   <button
@@ -377,12 +407,13 @@ export function DocsAssistantWidget() {
                     disabled={loading || !question.trim()}
                     className="shrink-0 rounded border border-surface-border bg-surface-bg px-3 py-2 text-xs text-text-muted transition-colors hover:border-brand-accent hover:text-brand-accent disabled:opacity-40"
                   >
-                    Ask
+                    {loading ? "…" : "Check fit"}
                   </button>
                 </form>
                 <p className="mt-2 shrink-0 text-[11px] leading-relaxed text-text-muted">
-                  Answers are based on public WitnessOps material. For private
-                  systems, request a fit check.
+                  AI uses public WitnessOps material. Questions may be processed
+                  by OpenAI with provider storage disabled. Do not include
+                  confidential or personal material. <Link href="/privacy">Privacy</Link>
                 </p>
               </>
             )}

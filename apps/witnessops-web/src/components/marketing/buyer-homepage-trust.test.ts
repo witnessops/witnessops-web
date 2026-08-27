@@ -53,7 +53,8 @@ test("homepage connects the agent workflow review to a bounded receipt specimen"
   assert.match(source, /\/review\/sample-cases\/ai-agent-action-proof-run/);
   assert.match(source, /\/review\/sample-cases\/witnessed-crm-status-change/);
   assert.match(source, /\/verify\/skill/);
-  assert.match(source, /\/review\/request\?productId=WORKFLOW-S/);
+  assert.match(source, /\/review\/request\?offerId=bounded-workflow-review/);
+  assert.doesNotMatch(source, /productId=WORKFLOW-S/);
   assert.doesNotMatch(source, /Aegis/);
   assert.doesNotMatch(source, /external verification/i);
   assert.doesNotMatch(source, /Every consequential agent action gets a verifiable receipt/i);

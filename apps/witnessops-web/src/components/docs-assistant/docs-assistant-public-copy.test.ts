@@ -9,10 +9,13 @@ function source(filename: string): string {
 
 const title = "ASK WITNESSOPS";
 const subtitle = "Bounded proof guide";
-const intro = "Ask a non-secret question";
+const workflowIntro =
+  /Describe one consequential agent(?:ic or automated)? workflow/;
 const warning = "Do not paste secrets";
-const footer = "Answers are based on public WitnessOps material";
-const placeholder = "Ask a non-secret question...";
+const providerDisclosure =
+  /Questions may be processed\s+by\s+OpenAI\s+with provider storage disabled/;
+const placeholder =
+  "Example: An agent rotates a compromised production key.";
 
 test("Ask WitnessOps surfaces carry the bounded public-copy contract", () => {
   for (const filename of [
@@ -23,11 +26,13 @@ test("Ask WitnessOps surfaces carry the bounded public-copy contract", () => {
     const content = source(filename);
     assert.match(content, new RegExp(title));
     assert.match(content, new RegExp(subtitle));
-    assert.match(content, new RegExp(intro));
+    assert.match(content, workflowIntro);
     assert.match(content, new RegExp(warning));
-    assert.match(content, new RegExp(footer));
+    assert.match(content, providerDisclosure);
     assert.match(content, new RegExp(placeholder.replaceAll(".", "\\.")));
+    assert.match(content, /Check fit/);
     assert.match(content, /fetchAskWitnessOps/);
+    assert.match(content, /AskWitnessOpsCommercialFitCard/);
     assert.doesNotMatch(content, /\/api\/docs-assistant\/ask/);
     assert.doesNotMatch(content, /Ask anything about WitnessOps/i);
   }
@@ -36,22 +41,41 @@ test("Ask WitnessOps surfaces carry the bounded public-copy contract", () => {
   assert.match(client, /\/api\/ask-witnessops/);
 });
 
-test("Ask WitnessOps offers the five buyer and proof quick prompts", () => {
-  const content = source("docs-assistant-page.tsx");
+test("Ask WitnessOps offers buyer-oriented workflow, scope, and price prompts", () => {
+  const page = source("docs-assistant-page.tsx");
   const prompts = [
-    "What package fits a launch readiness review?",
-    "What does a proof packet include?",
+    "An AI agent rotates compromised production keys. How can we prove authorization and revocation?",
+    "What is included in the Agent Risk & Control Review?",
+    "How much does one workflow review cost?",
+    "How should one consequential agent workflow be bounded?",
     "Can I send logs or screenshots?",
-    "What is not included in workspace access?",
-    "How do I request a fit check?",
   ];
 
   for (const prompt of prompts) {
     assert.ok(
-      content.includes(prompt),
+      page.includes(prompt),
       `Missing quick prompt: ${prompt}`,
     );
   }
+
+  const widget = source("docs-assistant-widget.tsx");
+  assert.match(widget, /Agent changed production/);
+  assert.match(widget, /Approval or authority gap/);
+  assert.match(widget, /Review scope and price/);
+  assert.match(widget, /how much does it cost\?/);
+  assert.match(widget, /offerId=bounded-workflow-review&source=ask/);
+});
+
+test("Ask WitnessOps presents the paid commercial-fit contract", () => {
+  const card = source("ask-witnessops-commercial-fit-card.tsx");
+  const response = source("ask-witnessops-response.ts");
+
+  assert.match(card, /Commercial fit/);
+  assert.match(card, /Request scope for this workflow/);
+  assert.match(card, /offer\.price_label/);
+  assert.match(card, /Fit signal only/);
+  assert.match(response, /From €1,500/);
+  assert.match(response, /offerId=bounded-workflow-review&source=ask/);
 });
 
 test("Ask WitnessOps loading copy stays provider-neutral", () => {
@@ -88,8 +112,11 @@ test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
   const contact = source("docs-assistant-contact-handoff.tsx");
 
   assert.match(widget, /<DocsAssistantContactHandoff/);
+  assert.match(widget, /expanded=\{contactMode\}/);
+  assert.match(widget, /commercialFit=\{answer\?\.answer\?\.commercial_fit\}/);
   assert.match(widget, /onExpandedChange=\{setContactMode\}/);
-  assert.match(contact, /Leave contact details/);
+  assert.match(contact, /Request a scoped review/);
+  assert.match(contact, /Request scope for this workflow/);
   assert.match(contact, /Work email/);
   assert.match(contact, /Note or request/);
   assert.match(contact, /\/api\/contact/);

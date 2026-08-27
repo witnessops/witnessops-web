@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
-import { localizedPath } from "@/lib/public-i18n";
+import { localizedHref, localizedPath } from "@/lib/public-i18n";
 
 const navbar = readFileSync(resolve(__dirname, "navbar.tsx"), "utf-8");
 
@@ -34,6 +34,14 @@ test("homepage navigation follows the offer, evidence, receipt, and workflow pat
     navbar,
     /data-product-journey-nav=\{productJourneyNav \? "true" : undefined\}/,
   );
+  assert.match(
+    navbar,
+    /href: buyerPublicOfferRequestHref\("en", "bounded-workflow-review"\)/,
+  );
+  assert.match(
+    navbar,
+    /href: buyerPublicOfferRequestHref\("pl", "bounded-workflow-review"\)/,
+  );
 });
 
 test("Check a Skill remains absent from shared navigation", () => {
@@ -54,6 +62,23 @@ test("language switch preserves every approved paired buyer route", () => {
     assert.equal(localizedPath(english, "pl"), polish);
     assert.equal(localizedPath(polish, "en"), english);
   }
+});
+
+test("request language switch preserves the selected workflow offer query", () => {
+  const offerQuery =
+    "offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review";
+
+  assert.equal(
+    localizedHref("/review/request", offerQuery, "pl"),
+    `/pl/review/request?${offerQuery}`,
+  );
+  assert.equal(
+    localizedHref("/pl/review/request", offerQuery, "en"),
+    `/review/request?${offerQuery}`,
+  );
+  assert.match(navbar, /const searchParams = useSearchParams\(\)/);
+  assert.match(navbar, /localizedHref\(currentPath, currentSearch, "en"\)/);
+  assert.match(navbar, /localizedHref\(currentPath, currentSearch, "pl"\)/);
 });
 
 test("tablet uses the compact navigation instead of overflowing desktop links", () => {

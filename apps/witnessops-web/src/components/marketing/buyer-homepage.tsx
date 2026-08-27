@@ -6,7 +6,10 @@ import {
   sampleSourceRepository,
 } from "@/app/review/sample-cases/ai-agent-action-proof-run/sample-artifact-contract";
 import { CtaButton } from "@/components/shared/cta-button";
-import { buyerOfferRequestHref, type BuyerLocale } from "@/lib/buyer-services";
+import {
+  buyerPublicOfferRequestHref,
+  type BuyerLocale,
+} from "@/lib/buyer-services";
 import styles from "./buyer-homepage.module.css";
 
 type HeroCopy = {
@@ -54,7 +57,7 @@ const localizedCopy = {
         step: "Paid review",
         title: "Bring the real workflow",
         body: "Move from a public specimen to one scoped Agent Risk & Control Review.",
-        href: "/review/request?productId=WORKFLOW-S",
+        href: "/review/request?offerId=bounded-workflow-review",
       },
     ],
     reviewEyebrow: "The evidence questions",
@@ -152,7 +155,7 @@ const localizedCopy = {
         step: "Płatny przegląd",
         title: "Przynieś prawdziwy workflow",
         body: "Przejdź od publicznego przykładu do jednego Agent Risk & Control Review.",
-        href: "/pl/review/request?productId=WORKFLOW-S",
+        href: "/pl/review/request?offerId=bounded-workflow-review",
       },
     ],
     reviewEyebrow: "Pytania dowodowe",
@@ -224,7 +227,10 @@ export function BuyerHomepage({
   const text = localizedCopy[locale];
   const heroCopy = hero ?? text.hero;
   const sampleHref = "/review/sample-cases/ai-agent-action-proof-run";
-  const requestHref = buyerOfferRequestHref(locale, "WORKFLOW-S");
+  const requestHref = buyerPublicOfferRequestHref(
+    locale,
+    "bounded-workflow-review",
+  );
   const offerHref = "/catalog/workflows";
 
   return (

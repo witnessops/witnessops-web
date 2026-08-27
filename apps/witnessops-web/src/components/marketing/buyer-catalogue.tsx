@@ -4,8 +4,8 @@ import { PublicContactRoute } from "@/components/marketing/public-contact-route"
 import {
   BUYER_SERVICES,
   ONE_PAGER_LINK_PROPS,
-  buyerOfferRequestHref,
   buyerRequestHref,
+  buyerServiceRequestHref,
   type BuyerLocale,
 } from "@/lib/buyer-services";
 
@@ -134,9 +134,7 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
           {BUYER_SERVICES.map((service) => {
             const detailHref = service.detailHref[locale];
             const onePager = service.onePagerHref?.[locale];
-            const serviceRequestHref = service.productId
-              ? buyerOfferRequestHref(locale, service.productId)
-              : requestHref;
+            const serviceRequestHref = buyerServiceRequestHref(locale, service);
             const externalExposureSample =
               service.id === "external-exposure-assessment"
                 ? "/review/sample-cases/external-exposure-assessment"

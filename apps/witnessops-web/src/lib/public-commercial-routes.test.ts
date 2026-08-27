@@ -1,12 +1,17 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import test from "node:test";
 
 import {
   catalogSkuDisposition,
   isCurrentPublicCatalogSku,
 } from "./public-commercial-routes";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import {
+  buyerPublicOfferRequestHref,
+  buyerServiceByPublicOfferId,
+  buyerServiceRequestHref,
+} from "./buyer-services";
 
 test("commercial SKU route dispositions preserve current offers and contain drift", () => {
   assert.equal(catalogSkuDisposition("OFFSEC-LOCAL-AUDIT"), "current");
@@ -27,4 +32,47 @@ test("request pages gate query-selected commercial records to current public SKU
     const source = readFileSync(path, "utf8");
     assert.match(source, /isCurrentPublicCatalogSku\(requestedSku\.id\)/);
   }
+});
+
+test("English review intake can preserve the current workflow offer without reviving a replaced SKU", () => {
+  const source = readFileSync(
+    resolve(__dirname, "../app/review/request/page.tsx"),
+    "utf8",
+  );
+
+  assert.match(source, /const offerId = one\(params\.offerId\)/);
+  assert.match(source, /buyerServiceByPublicOfferId\(offerId\)/);
+  assert.match(source, /selectedOffer\?\.id \?\? "review"/);
+  assert.match(source, /Selected offer: \{selectedOffer\.name\.en\}/);
+  assert.match(source, /Price: \{selectedOffer\.price\.en\}/);
+  assert.doesNotMatch(source, /isCurrentPublicCatalogSku\(requestedOffer/);
+
+  const offer = buyerServiceByPublicOfferId("bounded-workflow-review");
+  assert.equal(offer?.name.en, "Agent Risk & Control Review");
+  assert.equal(offer?.price.en, "From €1,500");
+  assert.equal(offer?.productId, undefined);
+  assert.equal(buyerServiceByPublicOfferId("one-server-security-check"), undefined);
+  assert.equal(buyerServiceByPublicOfferId("not-a-real-offer"), undefined);
+
+  assert.equal(
+    buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
+  );
+  assert.equal(
+    buyerServiceRequestHref("pl", offer!),
+    "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
+  );
+});
+
+test("Polish review intake preserves the same public workflow offer", () => {
+  const source = readFileSync(
+    resolve(__dirname, "../app/pl/review/request/page.tsx"),
+    "utf8",
+  );
+
+  assert.match(source, /const offerId = oneParam\(params\.offerId\)/);
+  assert.match(source, /buyerServiceByPublicOfferId\(offerId\)/);
+  assert.match(source, /buyerService\?\.id \?\? "review"/);
+  assert.match(source, /Wybrana oferta: \{selectedOffer\.name\}/);
+  assert.match(source, /Cena: \{selectedOffer\.price\}/);
 });

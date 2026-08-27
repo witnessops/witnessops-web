@@ -41,5 +41,6 @@ test("paid CTA appears only inside the receipt stage", () => {
   const paidCta = replay.indexOf("Agent Risk &amp; Control Review");
   assert.ok(receiptStart >= 0);
   assert.ok(paidCta > receiptStart);
-  assert.match(replay, /\/review\/request\?productId=WORKFLOW-S/);
+  assert.match(replay, /\/review\/request\?offerId=bounded-workflow-review/);
+  assert.doesNotMatch(replay, /productId=WORKFLOW-S/);
 });

@@ -4,8 +4,8 @@ import Link from "next/link";
 import { CtaButton } from "@/components/shared/cta-button";
 import {
   BUYER_SERVICES,
-  buyerOfferRequestHref,
   buyerRequestHref,
+  buyerServiceRequestHref,
 } from "@/lib/buyer-services";
 
 export const metadata: Metadata = {
@@ -102,7 +102,7 @@ export default function PricingPage() {
                       />
                     ) : null}
                     <CtaButton
-                      href={service.productId ? buyerOfferRequestHref("en", service.productId) : buyerRequestHref("en")}
+                      href={buyerServiceRequestHref("en", service)}
                       variant="primary"
                       label={featured ? "Request the review" : "Start fit check"}
                     />

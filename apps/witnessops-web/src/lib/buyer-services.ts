@@ -398,6 +398,28 @@ export function buyerOfferRequestHref(locale: BuyerLocale, productId: string): s
   return `${buyerRequestHref(locale)}?${params.toString()}`;
 }
 
+export function buyerPublicOfferRequestHref(
+  locale: BuyerLocale,
+  offerId: "bounded-workflow-review",
+): string {
+  const service = buyerServiceByPublicOfferId(offerId);
+  const params = new URLSearchParams({ offerId });
+  if (service) params.set("offer", service.name[locale]);
+  return `${buyerRequestHref(locale)}?${params.toString()}`;
+}
+
+export function buyerServiceRequestHref(
+  locale: BuyerLocale,
+  service: BuyerService,
+): string {
+  if (service.id === "bounded-workflow-review") {
+    return buyerPublicOfferRequestHref(locale, service.id);
+  }
+  return service.productId
+    ? buyerOfferRequestHref(locale, service.productId)
+    : buyerRequestHref(locale);
+}
+
 export function buyerCatalogHref(locale: BuyerLocale): string {
   return locale === "pl" ? "/pl/catalog" : "/catalog";
 }
@@ -406,6 +428,16 @@ export function buyerServiceById(id: BuyerService["id"]): BuyerService {
   const service = BUYER_SERVICES.find((candidate) => candidate.id === id);
   if (!service) throw new Error(`Unknown buyer service: ${id}`);
   return service;
+}
+
+export function buyerServiceByPublicOfferId(
+  id: string,
+): BuyerService | undefined {
+  // `offerId` is an untrusted public query parameter. Keep this allowlist
+  // separate from the catalogue/SKU lookup so it cannot revive a withdrawn
+  // product or expose another service merely because its internal id is known.
+  if (id !== "bounded-workflow-review") return undefined;
+  return buyerServiceById(id);
 }
 
 export function buyerServiceByProductId(productId: string): BuyerService | undefined {

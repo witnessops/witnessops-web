@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
 import {
   buyerWalkthroughHref,
   publicVerifierSha256,
@@ -131,6 +132,20 @@ test("public page makes replay, local verification, tamper challenge, and limits
   assert.match(client, /download="DEMO_KEY_REGISTRY\.json"/);
   assert.doesNotMatch(client, /afterState\.content = `\$\{afterState\.content\} `/);
   assert.doesNotMatch(client, /method:\s*["'](?:POST|PUT|PATCH|DELETE)/);
+});
+
+test("specimen review CTA preserves the Agent Risk offer selection", () => {
+  const page = readFileSync(resolve(__dirname, "page.tsx"), "utf8");
+
+  assert.match(
+    page,
+    /buyerPublicOfferRequestHref\(\s*"en",\s*"bounded-workflow-review",?\s*\)/,
+  );
+  assert.match(page, /<Link href=\{reviewRequestHref\}>Start a review →<\/Link>/);
+  assert.equal(
+    buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
+  );
 });
 
 test("versioned specimen bytes are immutable while key discovery revalidates", () => {
