@@ -62,6 +62,11 @@ before the follow-up PR may be reviewed.
 
 ## Deployment authority
 
+A merge to `main` may run the low-authority image build and verification
+workflow, but it cannot publish the image. The privileged publish job requires
+an explicit `workflow_dispatch`; the regression is covered by
+`deploy/scripts/no-automatic-image-publication.test.mjs`.
+
 Routine production authority is:
 
 `exact main commit -> immutable ECR digest -> protected aws-production environment -> OIDC deploy role -> bounded SSM document -> Frankfurt k3s`
