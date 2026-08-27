@@ -1,0 +1,15 @@
+{
+  "browser": "Playwright Chromium against next start",
+  "marker": "WOPS_BROWSER_SENTINEL_20260827_7F3C91D2",
+  "captureBoundary": "after initial network idle and before editor fill",
+  "verifyTimeRequestCount": 0,
+  "markerInRequestUrlBodyOrHeaders": false,
+  "skillBodyInRequests": false,
+  "witnessOpsVerifyApiCalls": 0,
+  "modelCalls": [],
+  "localStorageEntries": 0,
+  "sessionStorageEntries": 0,
+  "indexedDbNames": [],
+  "cookieCount": 0,
+  "markerInStorageOrCookies": false
+}

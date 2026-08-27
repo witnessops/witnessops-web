@@ -1,33 +1,12 @@
 import { expect, test } from "@playwright/test";
 
 const scenarios = [
-  { path: "/library", width: 1440, height: 1100, moreRouteColumns: 2 },
-  { path: "/library", width: 768, height: 1024, moreRouteColumns: 2 },
-  { path: "/library", width: 390, height: 844, moreRouteColumns: 1 },
   { path: "/pl/library", width: 1440, height: 1100, moreRouteColumns: 2 },
   { path: "/pl/library", width: 768, height: 1024, moreRouteColumns: 2 },
   { path: "/pl/library", width: 390, height: 844, moreRouteColumns: 1 },
 ] as const;
 
 const expectedDestinations = {
-  "/library": [
-    "/catalog",
-    "/review/sample-cases",
-    "/verify",
-    "/why-witnessops",
-    "/docs/getting-started/proof-run-buyer-path",
-    "/customer-security-review",
-    "/review/request",
-    "/review/sample-cases",
-    "/review/sample-cases/ai-agent-action-proof-run",
-    "/review/sample-cases/sbom-cisa-2026-minimum-elements",
-    "/review/sample-report",
-    "/catalog",
-    "/catalog/workflows",
-    "/docs",
-    "/verify",
-    "/docs/how-it-works/verification",
-  ],
   "/pl/library": [
     "/pl/catalog",
     "/pl/customer-security-review",
@@ -46,7 +25,73 @@ const expectedDestinations = {
   ],
 } as const;
 
-test("Library routes remain responsive, discoverable, and bounded", async ({ browser }) => {
+const skillSlugs = [
+  "governed-agent-verifier",
+  "receipt-first-verifier",
+  "claim-boundary-copy",
+  "governed-recon",
+  "evidence-capture-and-chain",
+  "proof-run-handover",
+  "key-custody-hygiene",
+  "decision-fabric-validator",
+  "mcp-tool-hygiene",
+  "offboarding-evidence",
+  "sample-case-authoring",
+] as const;
+
+test("English Skill Library resolves all exact-byte first-party routes", async ({ browser }) => {
+  for (const viewport of [
+    { width: 1280, height: 800 },
+    { width: 390, height: 844 },
+  ]) {
+    const context = await browser.newContext({ viewport });
+    const page = await context.newPage();
+    const consoleErrors: string[] = [];
+    const pageErrors: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") consoleErrors.push(message.text());
+    });
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+
+    const response = await page.goto("/library", { waitUntil: "networkidle" });
+    expect(response?.status()).toBe(200);
+    await expect(page.locator("main h1")).toContainText("Inspect the instructions");
+    const skillCards = page.locator('main section[aria-label="First-party skills"] a');
+    await expect(skillCards).toHaveCount(11);
+    expect(await skillCards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href"))))
+      .toEqual(skillSlugs.map((slug) => `/library/${slug}`));
+    for (let index = 0; index < 11; index += 1) {
+      expect((await skillCards.nth(index).boundingBox())?.height).toBeGreaterThanOrEqual(44);
+    }
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
+    expect(consoleErrors).toEqual([]);
+    expect(pageErrors).toEqual([]);
+    await context.close();
+  }
+
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await context.newPage();
+  for (const slug of skillSlugs) {
+    const response = await page.goto(`/library/${slug}`, { waitUntil: "domcontentloaded" });
+    expect(response?.status(), slug).toBe(200);
+    await expect(page.getByRole("link", { name: "Check this exact version" })).toHaveAttribute(
+      "href",
+      new RegExp(`^/verify/skill\\?skill=${slug}&version=1\\.0\\.0&sha256=[a-f0-9]{64}$`),
+    );
+    await expect(page.getByRole("link", { name: "Download SKILL.md" })).toHaveAttribute(
+      "href",
+      `/library/${slug}/download`,
+    );
+  }
+  const missing = await page.goto("/library/not-a-public-skill", { waitUntil: "domcontentloaded" });
+  expect(missing?.status()).toBe(404);
+  await context.close();
+});
+
+test("Polish Library route remains responsive, discoverable, and bounded", async ({ browser }) => {
   for (const scenario of scenarios) {
     const context = await browser.newContext({
       viewport: { width: scenario.width, height: scenario.height },

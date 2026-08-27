@@ -112,7 +112,7 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       path: "/",
       width: 1440,
       height: 1100,
-      primary: "/review/request",
+      primary: "/review/request?productId=WORKFLOW-S",
       methodHeading: "Five questions. One bounded workflow.",
       receiptHeading: "Produce something another party can check.",
     },
@@ -120,7 +120,7 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       path: "/",
       width: 390,
       height: 844,
-      primary: "/review/request",
+      primary: "/review/request?productId=WORKFLOW-S",
       methodHeading: "Five questions. One bounded workflow.",
       receiptHeading: "Produce something another party can check.",
     },
@@ -128,7 +128,7 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       path: "/pl",
       width: 1440,
       height: 1100,
-      primary: "/pl/review/request",
+      primary: "/pl/review/request?productId=WORKFLOW-S",
       methodHeading: "Pięć pytań. Jeden ograniczony workflow.",
       receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
     },
@@ -136,7 +136,7 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       path: "/pl",
       width: 390,
       height: 844,
-      primary: "/pl/review/request",
+      primary: "/pl/review/request?productId=WORKFLOW-S",
       methodHeading: "Pięć pytań. Jeden ograniczony workflow.",
       receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
     },
@@ -165,10 +165,14 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       "Agent Risk & Control Review",
     );
     await expect(page.locator('#agent-risk-control a[href="/catalog/workflows"]')).toHaveCount(1);
-    await expect(page.locator('main a[href="/verify/skill"]')).toHaveCount(0);
+    await expect(page.locator('main a[href="/verify/skill"]')).toHaveCount(1);
+    await expect(page.locator("main")).toContainText(/Check the agent before it acts|Sprawdź agenta przed działaniem/);
+    await expect(page.locator("main")).toContainText(/See one bounded action|Zobacz jedno ograniczone działanie/);
+    await expect(page.locator("main")).toContainText(/Inspect what happened|Sprawdź, co się wydarzyło/);
+    await expect(page.locator("main")).toContainText(/Bring the real workflow|Przynieś prawdziwy workflow/);
     await expect(page.locator('nav a[href="/verify/skill"]')).toHaveCount(0);
     await expect(page.locator('footer a[href="/verify/skill"]')).toHaveCount(0);
-    await expect(page.locator("main")).not.toContainText(/Aegis|SKILL\.md|Check a skill/i);
+    await expect(page.locator("main")).not.toContainText(/Aegis/);
     await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż/);
     await expect(page.locator("[data-public-contact-route]")).toHaveCount(1);
 

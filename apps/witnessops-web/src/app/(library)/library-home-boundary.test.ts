@@ -9,17 +9,14 @@ const pl = readFileSync(
   "utf-8",
 );
 
-test("EN library is a short map with three starts and correct verify", () => {
-  assert.match(en, /Public entry points/);
-  assert.match(en, /Browse services/);
-  assert.match(en, /Verify a receipt/);
-  assert.match(en, /href: "\/verify"/);
-  assert.match(en, /Buyer path/);
-  assert.match(en, /not a live customer artifact/);
-  assert.doesNotMatch(en, /Public verifier/);
-  assert.doesNotMatch(en, /Security workflow buyer path/);
-  assert.doesNotMatch(en, /border-2 border-black bg-white/);
-  assert.doesNotMatch(en, /Example deliverables/);
+test("EN canonical library exposes exact-byte first-party skill contracts", () => {
+  assert.match(en, /WitnessOps Skill Library/);
+  assert.match(en, /listSkills\(\)/);
+  assert.match(en, /\/library\/governed-agent-verifier/);
+  assert.match(en, /Inspect exact bytes/);
+  assert.match(en, /Apache-2\.0/);
+  assert.match(en, /no marketplace, ratings, accounts, remote fetching, or cloud skill storage/);
+  assert.match(en, /does not establish that a resulting workflow/);
 });
 
 test("PL library mirrors the short map structure", () => {
