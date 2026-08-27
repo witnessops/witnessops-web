@@ -64,6 +64,15 @@ const sampleCases = [
     emphasize: true,
   },
   {
+    title: "Witnessed synthetic CRM action",
+    href: "/review/sample-cases/witnessed-crm-status-change",
+    situation: "A recorded bounded action changes only Acme from NEW to REVIEWED.",
+    youSee:
+      "Original run authority, replay-only consent, the fixed action sequence, independent read-back, and an unsigned exact-byte demonstration receipt.",
+    tags: ["Recorded synthetic run", "Replay + unsigned receipt"],
+    emphasize: true,
+  },
+  {
     title: "Custody / wallet-ops review",
     href: "/review/sample-cases/custody-wallet-ops-review",
     situation:

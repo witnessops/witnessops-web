@@ -6,7 +6,7 @@ import {
   sampleSourceRepository,
 } from "@/app/review/sample-cases/ai-agent-action-proof-run/sample-artifact-contract";
 import { CtaButton } from "@/components/shared/cta-button";
-import { buyerRequestHref, type BuyerLocale } from "@/lib/buyer-services";
+import { buyerOfferRequestHref, type BuyerLocale } from "@/lib/buyer-services";
 import styles from "./buyer-homepage.module.css";
 
 type HeroCopy = {
@@ -34,18 +34,27 @@ const localizedCopy = {
     flowItems: [
       {
         step: "Before execution",
-        title: "Declare the workflow boundary",
-        body: "Name the owner, permitted actions, policy, systems, and approval.",
+        title: "Check the agent before it acts",
+        body: "Open a public SKILL.md and check its exact bytes locally in your browser.",
+        href: "/verify/skill",
       },
       {
-        step: "During execution",
-        title: "Preserve authority and evidence",
-        body: "Name the approval, scope, tool path, observations, and unresolved gaps.",
+        step: "Recorded action",
+        title: "See one bounded action",
+        body: "Approve a recorded synthetic replay and watch only the catalogued sequence.",
+        href: "/review/sample-cases/witnessed-crm-status-change",
       },
       {
-        step: "After execution",
-        title: "Make the action reviewable",
-        body: "Bind the record to evidence references, limits, and a verifier path.",
+        step: "Evidence",
+        title: "Inspect what happened",
+        body: "Read the before and after state, action log, independent read-back, and receipt.",
+        href: "/review/sample-cases/witnessed-crm-status-change#receipt",
+      },
+      {
+        step: "Paid review",
+        title: "Bring the real workflow",
+        body: "Move from a public specimen to one scoped Agent Risk & Control Review.",
+        href: "/review/request?productId=WORKFLOW-S",
       },
     ],
     reviewEyebrow: "The evidence questions",
@@ -123,18 +132,27 @@ const localizedCopy = {
     flowItems: [
       {
         step: "Przed wykonaniem",
-        title: "Zdefiniuj granice workflow",
-        body: "Nazwij właściciela, dozwolone działania, politykę, systemy i zgodę.",
+        title: "Sprawdź agenta przed działaniem",
+        body: "Otwórz publiczny SKILL.md i sprawdź lokalnie jego dokładne bajty.",
+        href: "/verify/skill",
       },
       {
-        step: "Podczas wykonania",
-        title: "Zachowaj upoważnienie i materiały",
-        body: "Nazwij zgodę, zakres, ścieżkę narzędzi, obserwacje i nierozstrzygnięte luki.",
+        step: "Zapisane działanie",
+        title: "Zobacz jedno ograniczone działanie",
+        body: "Zatwierdź odtworzenie syntetycznego przykładu i obejrzyj stałą sekwencję.",
+        href: "/review/sample-cases/witnessed-crm-status-change",
       },
       {
-        step: "Po wykonaniu",
-        title: "Uczyń działanie możliwym do przeglądu",
-        body: "Powiąż zapis z materiałami, ograniczeniami i ścieżką weryfikatora.",
+        step: "Materiały",
+        title: "Sprawdź, co się wydarzyło",
+        body: "Przejrzyj stan przed i po, log działań, niezależny odczyt i zapis.",
+        href: "/review/sample-cases/witnessed-crm-status-change#receipt",
+      },
+      {
+        step: "Płatny przegląd",
+        title: "Przynieś prawdziwy workflow",
+        body: "Przejdź od publicznego przykładu do jednego Agent Risk & Control Review.",
+        href: "/pl/review/request?productId=WORKFLOW-S",
       },
     ],
     reviewEyebrow: "Pytania dowodowe",
@@ -206,7 +224,7 @@ export function BuyerHomepage({
   const text = localizedCopy[locale];
   const heroCopy = hero ?? text.hero;
   const sampleHref = "/review/sample-cases/ai-agent-action-proof-run";
-  const requestHref = buyerRequestHref(locale);
+  const requestHref = buyerOfferRequestHref(locale, "WORKFLOW-S");
   const offerHref = "/catalog/workflows";
 
   return (
@@ -232,7 +250,9 @@ export function BuyerHomepage({
               {text.flowItems.map((item, index) => (
                 <li key={item.step}>
                   <span className={styles.flowNumber}>{String(index + 1).padStart(2, "0")}</span>
-                  <div><p>{item.step}</p><h2>{item.title}</h2><span>{item.body}</span></div>
+                  <Link href={item.href} className={styles.flowLink}>
+                    <p>{item.step}</p><h2>{item.title}</h2><span>{item.body}</span>
+                  </Link>
                 </li>
               ))}
             </ol>

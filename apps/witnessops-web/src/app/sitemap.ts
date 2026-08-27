@@ -12,6 +12,7 @@ import {
 } from "@/lib/public-seo";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import { BUYER_SERVICES } from "@/lib/buyer-services";
+import { listSkills } from "@/lib/skills/catalog";
 
 const fallbackLastModified = new Date("2026-01-01T00:00:00.000Z");
 
@@ -27,6 +28,10 @@ const staticRoutes: StaticRoute[] = [
     lastModified: () => new Date(loadHomeContent().status.last_reviewed),
   },
   { route: "/library", sourcePath: "src/app/(library)/library/page.tsx" },
+  ...listSkills().map(({ slug }) => ({
+    route: `/library/${slug}`,
+    sourcePath: "src/app/(library)/library/[slug]/page.tsx",
+  })),
   { route: "/pricing", sourcePath: "src/app/(marketing)/pricing/page.tsx" },
   { route: "/catalog", sourcePath: "src/app/(marketing)/catalog/page.tsx" },
   {
@@ -70,6 +75,11 @@ const staticRoutes: StaticRoute[] = [
   {
     route: "/review/sample-cases/ai-agent-action-proof-run",
     sourcePath: "src/app/review/sample-cases/ai-agent-action-proof-run/page.tsx",
+  },
+  {
+    route: "/review/sample-cases/witnessed-crm-status-change",
+    sourcePath:
+      "src/app/review/sample-cases/witnessed-crm-status-change/page.tsx",
   },
   {
     route: "/review/sample-cases/local-server-security-review",
