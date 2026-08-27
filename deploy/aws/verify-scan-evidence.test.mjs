@@ -27,14 +27,14 @@ function validRun() {
     id: 12345678901,
     run_attempt: 2,
     event: "workflow_dispatch",
-    path: ".github/workflows/aws-release.yml@main",
+    path: ".github/workflows/aws-release.yml",
     head_branch: "main",
     head_sha: expected.sourceCommit,
     status: "completed",
     conclusion: "success",
     referenced_workflows: [
       {
-        path: "witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@main",
+        path: `witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@${expected.sourceCommit}`,
         ref: "refs/heads/main",
         sha: expected.sourceCommit,
       },
@@ -103,6 +103,14 @@ test("exact successful publication run and scan evidence are accepted", () => {
   );
 });
 
+test("historical ref-decorated workflow path spellings remain accepted", () => {
+  const run = validRun();
+  run.path = ".github/workflows/aws-release.yml@refs/heads/main";
+  run.referenced_workflows[0].path =
+    "witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@main";
+  assert.equal(validatePublicationRun(run, expected), true);
+});
+
 test("exact enhanced scan evidence is accepted", () => {
   const scanFindingsBytes = Buffer.from(
     JSON.stringify({
@@ -151,6 +159,16 @@ test("a different reusable workflow SHA is rejected", () => {
   const run = validRun();
   run.referenced_workflows[0].sha = "d".repeat(40);
   assert.throws(() => validatePublicationRun(run, expected), /workflow SHA differs/);
+});
+
+test("a reusable workflow path bound to a different commit is rejected", () => {
+  const run = validRun();
+  run.referenced_workflows[0].path =
+    `witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@${"d".repeat(40)}`;
+  assert.throws(
+    () => validatePublicationRun(run, expected),
+    /reusable workflow path differs/,
+  );
 });
 
 test("a scan artifact for a different manifest digest is rejected", () => {
