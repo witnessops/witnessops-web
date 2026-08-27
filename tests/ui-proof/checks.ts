@@ -69,7 +69,8 @@ export async function checkHomepageHero(
     .first()
     .getAttribute("href")
     .catch(() => null);
-  const expectedFitCheckHref = "/review/request?productId=WORKFLOW-S";
+  const expectedFitCheckHref =
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review";
   checks.push({
     name: "primary CTA opens the non-secret workflow fit check",
     status: primaryCtaHref === expectedFitCheckHref ? "pass" : "fail",
