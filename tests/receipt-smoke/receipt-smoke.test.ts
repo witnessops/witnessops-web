@@ -21,7 +21,7 @@ test("receipt-only verification remains indeterminate without artifact revalidat
     assert.equal(
       result.checks.find((check) => check.name === "artifact_hashes_match")
         ?.status,
-      "not_applicable",
+      "not_checked",
     );
   }
 });

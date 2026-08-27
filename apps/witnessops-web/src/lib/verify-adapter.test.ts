@@ -4,6 +4,7 @@ import test from "node:test";
 import { verifyReceiptPayload } from "./verify-adapter";
 import { makePublicExposureReviewReceipt } from "./public-exposure-review-verify-adapter.test-fixture";
 import { JSON_AMBIGUITY_MAX_DEPTH } from "./json-ambiguity";
+import { loadVerifyFixture } from "./verify-fixtures";
 
 test("verify adapter fails closed on JSON nesting beyond the scanner limit", () => {
   const depth = JSON_AMBIGUITY_MAX_DEPTH + 1;
@@ -28,6 +29,23 @@ test("verify adapter keeps malformed JSON distinct from the scanner depth limit"
     assert.equal(result.failureClass, "FAILURE_INPUT_MALFORMED");
     assert.equal(result.message, "Receipt payload is not valid JSON.");
   }
+});
+
+test("verify adapter preserves skipped receipt checks as visible not-checked results", () => {
+  const fixture = loadVerifyFixture("pv-valid");
+  assert.ok(fixture);
+  const result = verifyReceiptPayload({ receipt: fixture.receiptInput });
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  const skipped = result.checks.filter((check) => check.status === "not_checked");
+  assert.ok(skipped.length > 0);
+  assert.ok(
+    skipped.every((check) =>
+      /not independently verified|not checked|not revalidated|unavailable/i.test(
+        check.detail ?? "",
+      ),
+    ),
+  );
 });
 
 test("verify adapter does not forward verifier exception text", () => {

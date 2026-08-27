@@ -63,13 +63,16 @@ function artifactSha256(
   relativePath: string,
 ): string | null {
   if (!Array.isArray(artifacts)) return null;
+  const matches: unknown[] = [];
   for (const item of artifacts) {
     if (!isRecord(item)) continue;
-    if (item.path === relativePath && typeof item.sha256 === "string") {
-      return item.sha256;
+    if (item.path === relativePath) {
+      matches.push(item.sha256);
     }
   }
-  return null;
+  return matches.length === 1 && typeof matches[0] === "string"
+    ? matches[0]
+    : null;
 }
 
 function check(
@@ -137,9 +140,17 @@ export function verifyLocalServerAuditReceipt(
   }
 
   const artifacts = receipt.artifacts;
+  const artifactPaths = Array.isArray(artifacts)
+    ? artifacts.flatMap((artifact) =>
+        isRecord(artifact) && typeof artifact.path === "string"
+          ? [artifact.path]
+          : [],
+      )
+    : [];
   const artifactsOk =
     Array.isArray(artifacts) &&
     artifacts.length > 0 &&
+    new Set(artifactPaths).size === artifacts.length &&
     artifacts.every(
       (a) =>
         isRecord(a) &&
@@ -150,7 +161,7 @@ export function verifyLocalServerAuditReceipt(
   push(
     "SHIELD_ARTIFACTS",
     artifactsOk,
-    "artifacts[] must list path + sha256 (64 hex) for each entry.",
+    "artifacts[] must list one unique path + sha256 (64 hex) for each entry.",
   );
 
   const bindHash = (

@@ -1,17 +1,11 @@
 # AWS Lightsail migration lane
 
-Status: **planned candidate; no apply authority**
+Status: **active routine GitHub/ECR/SSM production path; execution still requires explicit approval**
 
-This directory defines the bounded infrastructure contract and acceptance path
-for moving the existing WitnessOps web runtime to one AWS Lightsail instance in
-Frankfurt. It does not provision AWS resources, deploy an image, rotate a live
-secret, change DNS, activate a production receipt-signing key, or merge itself.
-
-The GitHub deployment material in this directory is also source-only. It defines
-the least-privilege OIDC, ECR, and Systems Manager boundary that a later operator
-lane may apply; it does not create a GitHub Environment, change the repository's
-OIDC subject format, apply CloudFormation, register a managed node, install the
-host adapter, or add an active deployment workflow.
+This directory defines the bounded infrastructure contract and active routine
+GitHub/ECR/SSM path for the WitnessOps web runtime on AWS Lightsail in Frankfurt.
+Its existence does not authorize a dispatch, environment approval, deployment,
+secret change, DNS change, signing-key activation, or merge.
 
 The architecture decision and risk assessment are in
 [`../../docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md`](../../docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md).
@@ -24,7 +18,7 @@ separately authorized cutover is completed and evidenced.
 | File | Purpose |
 | --- | --- |
 | `migration-contract.v1.json` | Machine-readable compute, edge, state, custody, provenance, acceptance, rollback, and cutover contract |
-| `github-deployment-contract.v1.json` | Phase 1 GitHub OIDC, ECR, SSM, host-adapter, and acceptance boundary; explicitly non-active |
+| `github-deployment-contract.v1.json` | GitHub OIDC, ECR, SSM, host-adapter, and acceptance boundary |
 | `cloudformation/github-deployment-bootstrap.template.json` | Parameterized source for one existing GitHub OIDC provider, three split roles, immutable ECR, two bounded SSM documents, hybrid-node role, and Run Command logs |
 | `acceptance-record.example.json` | Non-operational, fail-closed template for the restricted migration receipt |
 | `validate-github-deployment.mjs` | Validates the deployment contract, CloudFormation source, and recorded deployment identities without contacting AWS or GitHub |
@@ -67,7 +61,7 @@ deployment, DNS, secret-rotation, signing, or cutover approval.
 
 ## GitHub-to-AWS deployment boundary
 
-Status: **Phase 1 source contract only; not active**.
+Status: **active routine path**.
 
 The recommended authentication path is GitHub Actions OIDC. GitHub requests a
 short-lived AWS STS session for one exact role; no `AWS_ACCESS_KEY_ID`,
@@ -89,12 +83,10 @@ Every OIDC trust checks the exact audience, immutable owner/repository subject,
 repository ID, owner ID, `refs/heads/main`, GitHub Environment, and the reserved
 reusable workflow
 `witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@refs/heads/main`.
-That workflow does not exist or run in Phase 1, so an unrelated workflow cannot
-assume a deployment role. This environment cannot inspect the repository's
-current immutable-subject setting, so the setting is deliberately recorded as
-**unknown**, not assumed. A later operator lane must first install the AWS trust
-for the immutable form and then observe and enable that form in GitHub before any
-positive role-assumption test.
+The reserved caller and reusable workflow are active on `main`. The
+`aws-production` GitHub Environment requires a reviewer, prevents self-review,
+and does not allow administrator bypass. Those controls do not themselves
+authorize a specific deployment.
 
 The CloudFormation source accepts only the ARN of an existing commercial-
 partition account-level GitHub OIDC provider. It never creates a second
@@ -118,7 +110,7 @@ current digest. Each uses `ENV_VAR` interpolation and executes only:
 /usr/local/sbin/witnessops-deploy-v1
 ```
 
-That root-owned adapter is a Phase 3 deliverable, not present in this PR. It must
+That root-owned adapter is the active host-side contract. It must
 construct the exact account/region/repository reference, reject mutable or
 unexpected images, verify the current and requested digests, import the ECR
 manifest into local k3s containerd, reuse the current reconciliation/smoke
@@ -138,7 +130,11 @@ Current primary references for the contract:
 - [ECR basic and enhanced image scanning](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html)
 - [Run Command output in CloudWatch Logs](https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-rc-setting-up-cwlogs.html)
 
-## Environment handoff
+## Historical activation handoff
+
+The phase notes below record how the active path was introduced. They are not
+current execution instructions and do not supersede the protected GitHub
+workflow.
 
 **Phase 1 — this PR: OPERATOR LAPTOP REQUIRED: NO.** Contract files, validators,
 negative tests, and documentation can be completed in the current repository
@@ -361,21 +357,24 @@ separate apply approval.
 
 ## Immutable image evidence
 
-Use the current authoritative private-k3s build path:
+Routine image evidence comes from the manual-dispatch
+`.github/workflows/aws-release.yml` publication operation: an exact merged-main
+commit is built as one `linux/amd64` image without AWS authority, transferred as
+a hashed archive, published under its immutable source tag, resolved to its ECR
+manifest and config digests, and checked against ECR scan evidence before a
+deploy operation can proceed.
 
-```bash
-pnpm deploy:k3s:build
-```
+The former `pnpm deploy:k3s:build` Mac/SSH path is retired and fails closed. It
+must not be used to create routine production evidence.
 
 Record the clean source HEAD, Supply Chain Gate result digest, pinned Node base
 digest, pinned Google Workspace CLI archive hash, human alias, OCI manifest
 digest, manifest-bound config digest, and the runtime image IDs from both
 lanes. Both lanes must run the same digest-qualified reference.
 
-The current local k3s image is not established as the separately built,
-cosign-signed GHCR image. Do not claim deployed cosign or SBOM provenance in
-this migration receipt. Importing the signed GHCR artifact or adding equivalent
-attestation to the private build is a separate artifact-provenance change.
+Do not claim cosign, SBOM, or other provenance beyond the exact evidence emitted
+by the active ECR workflow. Adding another attestation mechanism is a separate
+artifact-provenance change.
 
 ## Read-only pre-DNS candidate acceptance
 

@@ -1,7 +1,7 @@
 # WitnessOps Web Deployment Custody
 
-Status: AWS Frankfurt intended production target + optional mesh-dev custody note
-Last updated: 2026-08-26
+Status: GitHub/ECR/SSM to AWS Frankfurt active routine custody
+Last updated: 2026-08-27
 
 This document records how the public WitnessOps web surface (and the mesh-only
 dev twin) is served, built, deployed, verified, and rolled back. It is
@@ -22,7 +22,7 @@ witnessops.com / www.witnessops.com
 -> k3s namespace DEPLOY_NS
 -> deployment PROD_DEPLOY
 -> container port 3000 (hostPort 127.0.0.1:3000)
--> image docker.io/library/witnessops-web@sha256:<manifest-digest>
+-> image <aws-account>.dkr.ecr.eu-central-1.amazonaws.com/witnessops-web@sha256:<manifest-digest>
 -> current on-host custody paths (hostPath in the migration audit)
 ```
 
@@ -51,89 +51,60 @@ Current source custody:
 
 - Repo: `witnessops-web` (`https://github.com/witnessops/witnessops-web`)
 - Default branch: `main`
-- Operator checkouts may live on Mac (`~/WitnessOps/repos/witnessops-web`) or
-  other private nodes. The canonical helper validates the generic Frankfurt
-  profile plus the operator-custodied hostname, AWS instance identity, and
-  region before remote build or production work.
-
-Every apply lane must record starting HEAD and dirty state. Use
-`ALLOW_DIRTY=1` only when intentionally shipping uncommitted work, and note
-that in the receipt.
+- Routine production input is an exact commit already merged to `main`.
+- The manual AWS workflow validates repository, ref, source commit, image
+  digest, config digest, publication run, and expected current digest.
+- A local Mac checkout is not production artifact or mutation custody.
 
 ## Build
 
-The repository's shared-image helper expects **Node 22** inside Docker on the
-intended deploy target. The migration audit did not prove that this Docker
-build/import prerequisite is currently available on the Frankfurt host. Treat
-that as a blocked execution prerequisite, not permission to build on the old
-VPS.
+The AWS release workflow checks out the exact merged commit, runs the repository
+supply-chain gate, and builds one `linux/amd64` archive without AWS credentials.
+Only the `aws-image-publish` job may obtain the scoped publisher identity. It
+verifies the archive before AWS access, writes the immutable source tag to the
+Frankfurt ECR repository, and retains digest-bound scan evidence.
 
-Canonical path (in-repo):
-
-```bash
-# from monorepo root
-# source the ignored private topology first
-set -a; source deploy/topology.env; set +a
-pnpm deploy:k3s:build              # image only
-pnpm deploy:k3s:both
-```
-
-`k3s-lib.sh` `build_shared_image`:
-
-1. Optional dirty-tree gate (`ALLOW_DIRTY=1` to skip)
-2. rsync checkout → `/tmp/witnessops-web-build-<tag>/` on `DEPLOY_SSH`
-3. Exclude ignored secret, private-topology, receipt, token-store, and scratch paths
-4. Docker build with public origin baked in and the reviewed digest-qualified
-   Node builder/runtime base supplied explicitly
-5. `k3s ctr images import` on the node
-6. Resolve and validate the imported OCI manifest digest and its config digest,
-   then create the digest-qualified containerd alias
-7. Delete the remote build directory on success or failure
-8. Print the digest-qualified deploy reference on stdout
-
-Legacy `deploy/Dockerfile.mesh` remains as a reference Dockerfile; the dual-lane
-scripts generate `deploy/Dockerfile.shared` on the build host for the shared bake.
+The former remote Mac/SSH build-import route is retired from routine production
+authority. Its package aliases fail closed with
+`RETIRED_PRODUCTION_DEPLOY_PATH`.
 
 Docker Compose is **not** current runtime authority for `witnessops.com`.
 
 ## Image
 
-Human-readable tag alias:
+Immutable lookup tag:
 
 ```text
-docker.io/library/witnessops-web:main-<shortsha>-<UTC>
+<aws-account>.dkr.ecr.eu-central-1.amazonaws.com/witnessops-web:source-<40-char-sha>
 ```
-
-Example: `docker.io/library/witnessops-web:main-9f23217-20260730T015507Z`
 
 Deployed image reference:
 
 ```text
-docker.io/library/witnessops-web@sha256:<manifest-digest>
+<aws-account>.dkr.ecr.eu-central-1.amazonaws.com/witnessops-web@sha256:<manifest-digest>
 ```
 
 Apply receipt must capture:
 
 - source HEAD
-- dirty state before and after
-- image tag alias
+- immutable source tag
 - OCI manifest digest and digest-qualified deploy reference
 - manifest-bound config digest expected in pod `imageID`
 - previous digest-qualified image reference (prod; and dev if replaced)
-- build command and result
-- which lanes received the image (`prod`, `dev`, or both)
+- publication run ID/attempt and ECR scan evidence
+- protected production environment approval and SSM command result
 
 Do not rely on a mutable tag alone as rollback evidence.
 
 ## Transfer And Deploy
 
-Canonical helpers (repo root):
+Routine and retained surfaces:
 
 | Command | Effect |
 | --- | --- |
-| `pnpm deploy:k3s:prod` | build if needed → preflight Secrets → atomically reconcile image and ordered `envFrom` on `PROD_DEPLOY` |
+| `.github/workflows/aws-release.yml` | exact commit → immutable ECR → protected `aws-production` → bounded SSM → Frankfurt k3s |
+| `pnpm deploy:k3s:build`, `deploy:k3s:prod`, `deploy:k3s:both` | retired; fail closed |
 | `pnpm deploy:k3s:dev` | build if needed → validate the image → apply `dev-mesh-deployment.yaml` with the exact ordered `envFrom` contract |
-| `pnpm deploy:k3s:both` | one build → both deploys → `smoke_pair` |
 | `pnpm deploy:k3s:smoke` | exact runtime `envFrom` + digest-qualified image/runtime identity + HTTP 200 + CSS parity |
 | `pnpm deploy:k3s:dev:teardown` | delete mesh-dev only |
 
@@ -141,10 +112,9 @@ The generic target contract is explicit in public source:
 
 - `PROD_TARGET_PROFILE=prod-aws-frankfurt`
 
-`DEPLOY_SSH`, `PROD_EXPECTED_HOSTNAME`, `PROD_EXPECTED_INSTANCE_ID`, namespace,
-workload, Secret, storage, fallback, and private-network configuration remain
-in ignored operator custody. The helper checks the remote hostname, IMDSv2
-instance identity, and AWS region before shared build or production mutation.
+`DEPLOY_SSH`, `PROD_EXPECTED_HOSTNAME`, and `PROD_EXPECTED_INSTANCE_ID` remain
+ignored read-only status custody. Production mutation uses the environment-bound
+managed node, production SSM document, and installed host-adapter configuration.
 
 Secrets: the application container in both deployments uses exactly these
 ordered `secretRef` sources in `DEPLOY_NS`, each with an empty
@@ -163,7 +133,7 @@ The OIDC Secret must contain these seven required key names:
 6. `WITNESSOPS_GOOGLE_OIDC_REDIRECT_URI`
 7. `WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN`
 
-The production helper fails before mutation when either Secret is unavailable
+The production host adapter fails before mutation when either Secret is unavailable
 or the OIDC Secret lacks any required key name. Preflight emits only Secret key
 names for validation. Credential values are never decoded, emitted, or logged;
 the bounded admin-role enum is decoded only into captured shell state and is
@@ -177,13 +147,8 @@ Dormant Microsoft OIDC and legacy-key credential entries may remain in the
 custodied OIDC Secret as extra keys; this lane neither uses nor removes them.
 Their retirement requires a separately authorized custody-cleanup pass.
 
-The legacy `deploy/k8s/apply.sh` path requires the build-recorded pair
-`WITNESSOPS_WEB_IMAGE=<digest-qualified-manifest-ref>` and
-`WITNESSOPS_WEB_CONFIG_DIGEST=<manifest-bound-config-digest>`. It also preflights
-the seven OIDC key names before its first cluster mutation, then verifies the
-deployed reference, readiness, and running application image IDs after rollout.
-Because that preflight occurs first, `DEPLOY_NS` and `ADMIN_OIDC_SECRET` must
-already be provisioned. The helper does not create or update the OIDC Secret.
+The legacy `deploy/k8s/apply.sh` and direct `k3s-deploy-prod.sh` paths are
+historical/manual-recovery code, not routine production authority.
 
 ## Edge
 
@@ -212,7 +177,7 @@ hostname.
 
 ## Verification
 
-### Dual-lane smoke (every both-lane apply)
+### Read-only production and optional dual-lane smoke
 
 ```bash
 pnpm deploy:k3s:smoke
@@ -260,19 +225,18 @@ product portals. Mesh-dev private URLs must not appear as buyer CTAs on prod.
 
 ## Receipts
 
-Every public web apply receipt must record:
+Every public web apply record must retain:
 
 - lane name and authority class
 - private host identity (in the restricted receipt, not public Git)
 - expected and observed Frankfurt target identity
-- repo path and `DEPLOY_SSH`
-- start HEAD and end HEAD
-- dirty state / `ALLOW_DIRTY`
+- exact merged source commit
+- workflow run ID and attempt
 - files changed
-- image tag alias, OCI manifest digest, digest-qualified deploy reference, and
+- ECR source tag, OCI manifest digest, digest-qualified deploy reference, and
   manifest-bound config digest
 - previous image (prod; dev if applicable)
-- which lanes updated
+- environment approval and SSM command result
 - rollout result
 - dual-lane smoke result when both were targeted
 - public route sweep / forbidden scan when buyer surface changed
@@ -287,23 +251,14 @@ security posture, image/data currency, and public-routing implications. This
 document does not assert rollback equivalence. The 2026-08-26 migration closure
 decision classifies it as break-glass only.
 
-Preferred prod rollback is to redeploy a previously recorded, known-good image
-through the production reconciler so the exact ordered `envFrom` contract is
-restored at the same time. When mesh-dev is active and included in the recovery
-lane, redeploy the same digest-qualified image to both lanes; pair smoke fails
-closed while their image references differ.
+Preferred production rollback is a separately authorized
+`deploy-production` operation through the same protected GitHub environment and
+SSM document, naming the known-good ECR manifest/config digests and the exact
+current production digest. Direct kubectl or SSH rollback is break-glass only.
 
-```bash
-bash deploy/scripts/k3s-deploy-both.sh docker.io/library/witnessops-web@sha256:<known-good-manifest-digest>
-pnpm deploy:k3s:smoke
-```
-
-Emergency `kubectl -n "${DEPLOY_NS}" rollout undo "deployment/${PROD_DEPLOY}"` may
-restore an older pod template with stale `envFrom`. If it is used, immediately
-redeploy the resulting known-good image through `k3s-deploy-both.sh`. A
-single-lane rollback is a degraded emergency state: `pnpm deploy:k3s:smoke`
-remains failed until the other lane is realigned. Do not treat rollout status
-alone as rollback completion.
+Emergency direct kubectl rollback may restore an older pod template with stale
+runtime configuration. It is not routine authority and rollout status alone is
+not rollback completion.
 
 To remove mesh-dev entirely after a separately authorized lane change:
 
@@ -322,5 +277,6 @@ future lane explicitly reactivates them. Do not delete those records merely
 because the current runtime path is dual-lane k3s; keep the history but do not
 treat it as current production authority.
 
-Previous external helpers are superseded for agent/operator use by **in-repo**
-`deploy/scripts/k3s-*.sh`.
+The former direct Mac/SSH and `deploy/scripts/k3s-*.sh` production mutation
+path is retired. Read-only status/parity helpers and the separate mesh-dev lane
+remain available.

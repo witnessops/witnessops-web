@@ -10,6 +10,8 @@ import {
   AEGIS_VERIFIER_ID,
   SKILL_MAX_BYTES,
   SKILL_PASS_SUMMARY,
+  decodeSkillUtf8,
+  normalizeSkillSourceName,
   runSkillScan,
   type SkillScanOutcome,
   type SkillScanResult,
@@ -52,11 +54,6 @@ type SkillConsoleProps = {
   initialBinding?: ExactSkillBinding | null;
 };
 
-async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
 export function SkillConsole({
   initialContent = "",
   initialSourceName = "SKILL.md",
@@ -85,14 +82,13 @@ export function SkillConsole({
     setBusy(true);
     setCopyState("idle");
     try {
-      setInputSha256(await sha256(nextContent));
-      setOutcome(
-        runSkillScan({
-          content: nextContent,
-          policyId: nextPolicy,
-          sourceName: nextName,
-        }),
-      );
+      const nextOutcome = await runSkillScan({
+        content: nextContent,
+        policyId: nextPolicy,
+        sourceName: nextName,
+      });
+      setInputSha256(nextOutcome.ok ? nextOutcome.inputSha256 : null);
+      setOutcome(nextOutcome);
     } finally {
       setBusy(false);
     }
@@ -110,9 +106,20 @@ export function SkillConsole({
       });
       return;
     }
-    const text = await file.text();
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let text: string;
+    try {
+      text = decodeSkillUtf8(bytes);
+    } catch {
+      setOutcome({
+        ok: false,
+        code: "UNSUPPORTED_FILE",
+        message: "The selected file is not valid UTF-8 and was not evaluated.",
+      });
+      return;
+    }
     setContent(text);
-    setSourceName(file.name || "SKILL.md");
+    setSourceName(normalizeSkillSourceName(file.name));
     setExactBinding(null);
     setInputSha256(null);
     setOutcome(null);
@@ -155,7 +162,7 @@ export function SkillConsole({
     document.body.appendChild(link);
     link.click();
     link.remove();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   const result = outcome?.ok ? outcome.result : null;
@@ -224,7 +231,19 @@ export function SkillConsole({
           <textarea
             value={content}
             onChange={(event) => {
-              setContent(event.target.value);
+              const nextContent = event.target.value;
+              if (
+                nextContent.length > SKILL_MAX_BYTES ||
+                new TextEncoder().encode(nextContent).byteLength > SKILL_MAX_BYTES
+              ) {
+                setOutcome({
+                  ok: false,
+                  code: "OVERSIZED",
+                  message: `This file is larger than ${SKILL_MAX_BYTES} bytes. Trim the skill and try again.`,
+                });
+                return;
+              }
+              setContent(nextContent);
               setSourceName("SKILL.md");
               setExactBinding(null);
               setInputSha256(null);

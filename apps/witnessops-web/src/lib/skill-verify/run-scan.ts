@@ -2,8 +2,11 @@ import { scanSkill } from "aegis-deterministic";
 import { reportMarkdown } from "aegis-deterministic/report";
 import { DEFAULT_SKILL_POLICY_ID, isSkillPolicyId } from "./policies";
 
-/** Bounded SKILL.md size. 128 KiB scanned in well under a second on the package engine. */
-export const SKILL_MAX_BYTES = 128 * 1024;
+/**
+ * Bounded SKILL.md size. The pinned scanner remains synchronous, so keep the
+ * accepted input below the measured multi-second main-thread range.
+ */
+export const SKILL_MAX_BYTES = 16 * 1024;
 
 /** Hygiene in Aegis keys off this path. Always scan paste/upload as SKILL.md. */
 export const SKILL_CONTRACT_PATH = "SKILL.md";
@@ -22,6 +25,8 @@ export type SkillScanSuccess = {
   ok: true;
   result: SkillScanResult;
   report: string;
+  inputSha256: string;
+  inputBytes: number;
 };
 
 export type SkillScanFailure = {
@@ -37,11 +42,59 @@ export type SkillScanFailure = {
 
 export type SkillScanOutcome = SkillScanSuccess | SkillScanFailure;
 
-export function runSkillScan(input: {
+export function decodeSkillUtf8(bytes: Uint8Array): string {
+  return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
+}
+
+export function normalizeSkillSourceName(value?: string): string {
+  const basename = (value ?? SKILL_CONTRACT_PATH)
+    .replaceAll("\\", "/")
+    .split("/")
+    .at(-1) ?? SKILL_CONTRACT_PATH;
+  const normalized = basename
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/[^A-Za-z0-9._ -]/g, "_")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
+  return normalized || SKILL_CONTRACT_PATH;
+}
+
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes).buffer);
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
+function bindReport(
+  report: string,
+  identity: {
+    sourceName: string;
+    inputSha256: string;
+    inputBytes: number;
+    policyId: string;
+  },
+): string {
+  return [
+    "<!-- witnessops-skill-report-binding:v1 -->",
+    "## WitnessOps input binding",
+    "",
+    `- Source: \`${identity.sourceName}\``,
+    `- Input SHA-256: \`${identity.inputSha256}\``,
+    `- Input bytes: \`${identity.inputBytes}\``,
+    `- Verifier: \`${AEGIS_VERIFIER_ID}\``,
+    `- Policy: \`${identity.policyId}\``,
+    "",
+    report,
+  ].join("\n");
+}
+
+export async function runSkillScan(input: {
   content: string;
   policyId?: string;
   sourceName?: string;
-}): SkillScanOutcome {
+}): Promise<SkillScanOutcome> {
   const content = input.content;
   if (typeof content !== "string") {
     return {
@@ -50,10 +103,7 @@ export function runSkillScan(input: {
       message: "Paste a SKILL.md or choose a local Markdown file first.",
     };
   }
-  if (
-    content.length > SKILL_MAX_BYTES ||
-    new TextEncoder().encode(content).byteLength > SKILL_MAX_BYTES
-  ) {
+  if (content.length > SKILL_MAX_BYTES) {
     return {
       ok: false,
       code: "OVERSIZED",
@@ -75,10 +125,19 @@ export function runSkillScan(input: {
     };
   }
 
+  const contentBytes = new TextEncoder().encode(content);
+  if (contentBytes.byteLength > SKILL_MAX_BYTES) {
+    return {
+      ok: false,
+      code: "OVERSIZED",
+      message: `This file is larger than ${SKILL_MAX_BYTES} bytes. Trim the skill and try again.`,
+    };
+  }
+
   const policyId = isSkillPolicyId(input.policyId ?? "")
     ? input.policyId!
     : DEFAULT_SKILL_POLICY_ID;
-  const sourceName = input.sourceName?.trim() || SKILL_CONTRACT_PATH;
+  const sourceName = normalizeSkillSourceName(input.sourceName);
 
   let result: SkillScanResult;
   try {
@@ -101,5 +160,17 @@ export function runSkillScan(input: {
     return { ok: false, code: "REPORT_FAILED", message };
   }
 
-  return { ok: true, result, report };
+  const inputSha256 = await sha256Hex(contentBytes);
+  return {
+    ok: true,
+    result,
+    report: bindReport(report, {
+      sourceName,
+      inputSha256,
+      inputBytes: contentBytes.byteLength,
+      policyId,
+    }),
+    inputSha256,
+    inputBytes: contentBytes.byteLength,
+  };
 }

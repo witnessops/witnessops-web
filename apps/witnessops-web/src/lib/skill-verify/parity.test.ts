@@ -34,14 +34,14 @@ test("Standard is the default policy and all Aegis packs are selectable", () => 
   );
 });
 
-test("empty input does not pass", () => {
-  const outcome = runSkillScan({ content: "   " });
+test("empty input does not pass", async () => {
+  const outcome = await runSkillScan({ content: "   " });
   assert.equal(outcome.ok, false);
   if (!outcome.ok) assert.equal(outcome.code, "EMPTY_INPUT");
 });
 
 test("ledger-notes passes Standard with packaged identity", async () => {
-  const outcome = runSkillScan({
+  const outcome = await runSkillScan({
     content: await sampleContent("ledger-notes"),
     policyId: "standard",
     sourceName: "ledger-notes.md",
@@ -57,7 +57,7 @@ test("ledger-notes passes Standard with packaged identity", async () => {
 });
 
 test("cluster-ops fails Standard and includes sc-pipe-shell", async () => {
-  const outcome = runSkillScan({
+  const outcome = await runSkillScan({
     content: await sampleContent("cluster-ops"),
     policyId: "standard",
   });
@@ -70,7 +70,7 @@ test("cluster-ops fails Standard and includes sc-pipe-shell", async () => {
 });
 
 test("glyph-override fails with inj-ignore-prev and confusable evidence", async () => {
-  const outcome = runSkillScan({
+  const outcome = await runSkillScan({
     content: await sampleContent("glyph-override"),
     policyId: "standard",
   });
@@ -86,7 +86,7 @@ test("glyph-override fails with inj-ignore-prev and confusable evidence", async 
 });
 
 test("paste-exfil fails with exfil-sensitive-transfer components", async () => {
-  const outcome = runSkillScan({
+  const outcome = await runSkillScan({
     content: await sampleContent("paste-exfil"),
     policyId: "standard",
   });
@@ -106,7 +106,7 @@ test("paste-exfil fails with exfil-sensitive-transfer components", async () => {
 test("policy switching uses the selected pack without changing scanner identity", async () => {
   const content = await sampleContent("cluster-ops");
   for (const pack of SKILL_POLICY_PACKS) {
-    const outcome = runSkillScan({ content, policyId: pack.id });
+    const outcome = await runSkillScan({ content, policyId: pack.id });
     assert.equal(outcome.ok, true);
     if (!outcome.ok) continue;
     assert.equal(outcome.result.policyId, pack.id);
