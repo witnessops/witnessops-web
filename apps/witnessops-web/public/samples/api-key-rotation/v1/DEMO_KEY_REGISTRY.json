@@ -1,0 +1,19 @@
+{
+  "schema": "witnessops.demo_key_registry.v1",
+  "generated_at": "2026-08-27T12:00:17Z",
+  "keys": [
+    {
+      "id": "witnessops_demo_api_key_rotation_20260827",
+      "algorithm": "ed25519",
+      "purpose": "synthetic_demo_receipts_only",
+      "status": "retired",
+      "valid_from": "2026-08-27T12:00:17Z",
+      "retired_at": "2026-08-27T12:00:18Z",
+      "public_key_raw_hex": "9f57bdfbadc04bf87e53d64b75e279e6891524050f6d9c1d4ff0a3dd816e8591",
+      "public_key_spki_base64": "MCowBQYDK2VwAyEAn1e9+63AS/h+U9ZLdeJ55okVJAUPbZwdT/Cj3YFuhZE=",
+      "public_key_fingerprint": "sha256:72a03b6fdacaad90dfc58c0e782ec51e111dfecbc1b841b6cb7a68d0a557f6e4",
+      "pem_path": "DEMO_PUBLIC_KEY.pem",
+      "limitation": "Purpose-limited synthetic-demo key. The private key was not persisted after this specimen was generated. This is not a production or organization-wide trust root."
+    }
+  ]
+}

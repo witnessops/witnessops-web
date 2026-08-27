@@ -1,0 +1,63 @@
+{
+  "manifest_version": "witnessops.evidence_manifest.v0",
+  "workflow_class": "compromised_api_key_rotation",
+  "proof_run_id": "pr_demo_api_key_rotation_20260827_001",
+  "source_systems": [
+    "synthetic_authority",
+    "synthetic_detector",
+    "synthetic_key_provider",
+    "synthetic_rotation_tool",
+    "synthetic_fixture"
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "action_boundary",
+      "artifact_type": "action_boundary",
+      "source_system": "synthetic_authority",
+      "path": "ACTION_BOUNDARY.json",
+      "sha256": "sha256:a1eec35e467325bab1d7ff55f6f8ad0b13bfc1bf5f53f0ed42100fb54f3860a7"
+    },
+    {
+      "artifact_id": "authority_approval",
+      "artifact_type": "authority_map",
+      "source_system": "synthetic_authority",
+      "path": "AUTHORITY_MAP.json",
+      "sha256": "sha256:8ea8e4e377164182ca66c1e2e20d225d5595eb4a3648670f9066274e91765b1f"
+    },
+    {
+      "artifact_id": "compromise_alert",
+      "artifact_type": "exposure_alert",
+      "source_system": "synthetic_detector",
+      "path": "evidence/ALERT.json",
+      "sha256": "sha256:e0dfb0f2b879398887527d648e465fa61d8122b612ffdb9e23eceef350ad2320"
+    },
+    {
+      "artifact_id": "before_state",
+      "artifact_type": "credential_state",
+      "source_system": "synthetic_key_provider",
+      "path": "evidence/BEFORE.json",
+      "sha256": "sha256:8e53a926c9521bc11663cf793ef171e4cace7bca5c583a0e672c24668502c078"
+    },
+    {
+      "artifact_id": "rotation_execution",
+      "artifact_type": "ordered_event_log",
+      "source_system": "synthetic_rotation_tool",
+      "path": "evidence/EVENTS.ndjson",
+      "sha256": "sha256:6de1b0fd44c8f1f592a49930e59ca039dbcea4478c503109b606f0d080332a0f"
+    },
+    {
+      "artifact_id": "after_state",
+      "artifact_type": "credential_state",
+      "source_system": "synthetic_key_provider",
+      "path": "evidence/AFTER.json",
+      "sha256": "sha256:b04855340230cad2f4c5de94095591f823f1296d053f36fcaa4b6aac4a282266"
+    },
+    {
+      "artifact_id": "reference_checks",
+      "artifact_type": "rotation_check_report",
+      "source_system": "synthetic_fixture",
+      "path": "evidence/CHECKS.json",
+      "sha256": "sha256:3065e243420256e5f1dd340115e7cfa30fc1565b095c127704b631c1a69e4a28"
+    }
+  ]
+}

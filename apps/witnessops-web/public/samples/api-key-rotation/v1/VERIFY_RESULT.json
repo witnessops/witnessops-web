@@ -1,0 +1,17 @@
+{
+  "schema": "witnessops.demo_verify_result.v1",
+  "verifier": "witnessops_demo_verifier_v1",
+  "fixture": "compromised_api_key_rotation_v1",
+  "receipt_id": "pr_demo_api_key_rotation_20260827_001",
+  "verdict": "VALID_SYNTHETIC_SPECIMEN",
+  "checks": {
+    "signature_math": "pass",
+    "published_demo_key": "pass",
+    "evidence_integrity": "pass_7_of_7",
+    "receipt_references": "pass",
+    "rotation_semantics": "pass_8_of_8",
+    "real_provider_action_checked": "no"
+  },
+  "boundary": "Reference output for comparison only. The browser and offline verifiers recompute this result from the bundle and separately published demo key.",
+  "synthetic": true
+}

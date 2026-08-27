@@ -1,0 +1,21 @@
+{
+  "schema": "witnessops.demo.exposure_alert.v1",
+  "sample_id": "COMPROMISED_API_KEY_ROTATION_SAMPLE_V1",
+  "alert_id": "alert_demo_api_key_20260827_001",
+  "observed_at": "2026-08-27T12:00:00Z",
+  "detector": "synthetic_repository_secret_scanner",
+  "classification": "suspected_compromised_api_key",
+  "confidence": "high_synthetic_fixture",
+  "credential": {
+    "provider": "Northstar API (synthetic)",
+    "tenant": "sandbox_tenant_001",
+    "key_id": "sk_demo_old_7F2C91",
+    "fingerprint": "sha256:457612e26457c27e1443f6dfae65c12106f045ecdaed588eba7f43dbf06885d5",
+    "material_captured": false
+  },
+  "trigger": {
+    "source": "synthetic_commit_history",
+    "reference": "fixture://leak-marker/commit-001"
+  },
+  "synthetic": true
+}

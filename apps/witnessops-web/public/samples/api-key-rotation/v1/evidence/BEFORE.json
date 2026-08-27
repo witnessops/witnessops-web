@@ -1,0 +1,21 @@
+{
+  "schema": "witnessops.demo.credential_state.v1",
+  "sample_id": "COMPROMISED_API_KEY_ROTATION_SAMPLE_V1",
+  "observed_at": "2026-08-27T12:00:04Z",
+  "source": "synthetic_provider_readback",
+  "revision": 41,
+  "tenant": "sandbox_tenant_001",
+  "credentials": [
+    {
+      "key_id": "sk_demo_old_7F2C91",
+      "fingerprint": "sha256:457612e26457c27e1443f6dfae65c12106f045ecdaed588eba7f43dbf06885d5",
+      "status": "active",
+      "secret_material_available": false
+    }
+  ],
+  "consumer": {
+    "id": "billing_worker_demo",
+    "credential_key_id": "sk_demo_old_7F2C91"
+  },
+  "synthetic": true
+}

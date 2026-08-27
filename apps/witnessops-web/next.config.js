@@ -41,6 +41,24 @@ const nextConfig = {
         source: "/:path*",
         headers: securityHeaders,
       },
+      {
+        source: "/samples/api-key-rotation/v1/:artifact*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/.well-known/witnessops-demo-signing-keys.json",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=300, must-revalidate",
+          },
+        ],
+      },
       // Sales one-pagers: open in the browser (new tab), do not force download.
       {
         source: "/assets/one-pagers/:file*",

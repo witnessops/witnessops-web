@@ -43,8 +43,8 @@ For `src/app/review/sample-cases/ai-agent-action-proof-run/`:
 - Treat `sample-artifact-contract.ts` as the local web-side source of truth for pinned sample identity, manifest provenance, artifact names, artifact URLs, and displayed digests.
 - Do not duplicate sample commit, manifest blob SHA, manifest text SHA-256, artifact digests, or GitHub sample URLs in page code when a contract field exists.
 - Keep `artifact-links.test.ts` updated with any contract or page-rendering change.
-- Preserve the distinction between displayed artifacts and manifest-hashed artifacts. `MANIFEST.sha256` is displayed as the digest-list artifact but is not self-listed in the manifest. `README.md` is hashed in the pinned manifest but is not shown as a page inspection artifact.
-- Current boundary: this app records and displays pinned external manifest provenance, but does not recompute individual source artifact bytes locally.
+- Preserve the distinction between the immutable source specimen, the exact same-origin mirror, the purpose-limited demo trust root, and the sample-specific verifier. `MANIFEST.sha256` is not self-listed.
+- Current boundary: this app recomputes exact evidence bytes and the declared synthetic rotation transition for one fixed public specimen. It does not verify a real provider action, a real compromise, production signing-key custody, or source-system truth. `/verify` and `/api/verify` remain receipt-only.
 
 ## Terminology
 

@@ -26,7 +26,7 @@ const localizedCopy = {
     heroIntro:
       "Define the workflow before execution, preserve authority and evidence while it runs, then produce a bounded record another responsible party can inspect.",
     primaryCta: "Bring one agentic workflow",
-    sampleLink: "Inspect the public evidence sample",
+    sampleLink: "Run and verify the compromised API key rotation demo",
     offerCta: "See scope and pricing",
     handlingBoundary:
       "Do not send passwords, private keys, API keys, tokens or recovery codes · One workflow · Evidence handling agreed before intake",
@@ -68,15 +68,15 @@ const localizedCopy = {
     receiptEyebrow: "After execution · Public specimen",
     receiptTitle: "Produce something another party can check.",
     receiptBody:
-      "An Agent Action Receipt can bind declared authority, execution records, evidence references, the reported result, signer or key references where implemented, verifier output, and unresolved gaps.",
-    receiptStatus: "Published sample — not live customer evidence",
-    receiptSpecimenTitle: "Agent Action Receipt specimen",
+      "The published demo binds declared authority, every rotation event, seven exact evidence files, the reported result, and a purpose-limited Ed25519 demo signer to one immutable receipt.",
+    receiptStatus: "Verified synthetic specimen — not live customer evidence",
+    receiptSpecimenTitle: "Compromised API key rotation specimen",
     receiptRepositoryLabel: "Repository",
     receiptCommitLabel: "Pinned commit",
-    receiptManifestLabel: "Manifest SHA-256",
+    receiptManifestLabel: "Published MANIFEST.sha256 file",
     receiptResultLabel: "Reported verifier result",
-    receiptResult: "pass_with_sample_limitations",
-    receiptLink: "Open the pinned evidence sample",
+    receiptResult: "VALID_SYNTHETIC_SPECIMEN",
+    receiptLink: "Replay and verify the signed rotation",
     offerEyebrow: "Paid engagement",
     offerTitle: "Agent Risk & Control Review",
     offerLead: "Review the workflow, not only the file.",
@@ -115,7 +115,7 @@ const localizedCopy = {
     heroIntro:
       "Zdefiniuj workflow przed wykonaniem, zachowaj upoważnienie i materiały podczas działania, a potem przygotuj ograniczony zapis, który inna odpowiedzialna osoba może przejrzeć.",
     primaryCta: "Zgłoś jeden workflow agenta",
-    sampleLink: "Zobacz publiczny przykład materiałów",
+    sampleLink: "Uruchom i zweryfikuj demo rotacji skompromitowanego klucza API",
     offerCta: "Zobacz zakres i cenę",
     handlingBoundary:
       "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, tokenów ani kodów odzyskiwania · Jeden workflow · Zasady obsługi materiałów uzgadniane przed przyjęciem",
@@ -157,15 +157,15 @@ const localizedCopy = {
     receiptEyebrow: "Po wykonaniu · Publiczny wzór",
     receiptTitle: "Przygotuj zapis, który inna osoba może sprawdzić.",
     receiptBody:
-      "Agent Action Receipt może powiązać zadeklarowane upoważnienie, zapis wykonania, odniesienia do materiałów, odnotowany wynik, odniesienie do podpisującego lub klucza — tam, gdzie jest wdrożone — wynik weryfikatora i nierozstrzygnięte luki.",
-    receiptStatus: "Opublikowany przykład — nie są to materiały klienta",
-    receiptSpecimenTitle: "Przykład Agent Action Receipt",
+      "Opublikowane demo wiąże zadeklarowane upoważnienie, każde zdarzenie rotacji, siedem dokładnych plików dowodowych, wynik oraz ograniczony do demo klucz podpisujący Ed25519 w jednym niezmiennym zapisie.",
+    receiptStatus: "Zweryfikowany syntetyczny przykład — nie są to materiały klienta",
+    receiptSpecimenTitle: "Przykład rotacji skompromitowanego klucza API",
     receiptRepositoryLabel: "Repozytorium",
     receiptCommitLabel: "Przypięty commit",
-    receiptManifestLabel: "SHA-256 manifestu",
+    receiptManifestLabel: "Opublikowany plik MANIFEST.sha256",
     receiptResultLabel: "Zapisany wynik weryfikatora",
-    receiptResult: "pass_with_sample_limitations",
-    receiptLink: "Otwórz przypięty przykład materiałów",
+    receiptResult: "VALID_SYNTHETIC_SPECIMEN",
+    receiptLink: "Odtwórz i zweryfikuj podpisaną rotację",
     offerEyebrow: "Płatny przegląd",
     offerTitle: "Agent Risk & Control Review",
     offerLead: "Przejrzyj workflow, nie tylko plik.",
@@ -205,9 +205,9 @@ export function BuyerHomepage({
 }) {
   const text = localizedCopy[locale];
   const heroCopy = hero ?? text.hero;
+  const sampleHref = "/review/sample-cases/ai-agent-action-proof-run";
   const requestHref = buyerRequestHref(locale);
   const offerHref = "/catalog/workflows";
-  const sampleHref = "/review/sample-cases/ai-agent-action-proof-run";
 
   return (
     <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="agent-proof-offer">
@@ -222,7 +222,7 @@ export function BuyerHomepage({
               <CtaButton uiProofId="homepage-hero-primary-cta" href={requestHref} variant="primary" label={text.primaryCta} className={styles.primaryCta} />
               <CtaButton href={offerHref} variant="secondary" label={text.offerCta} className={styles.secondaryCta} />
             </div>
-            <Link className={styles.heroSampleLink} href={sampleHref}>{text.sampleLink} <span aria-hidden="true">↗</span></Link>
+            <Link data-ui-proof-id="homepage-demo-cta" className={styles.heroSampleLink} href={sampleHref}>{text.sampleLink} <span aria-hidden="true">↗</span></Link>
             <p className={styles.assuranceLine}>{text.handlingBoundary}</p>
           </div>
 

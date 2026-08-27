@@ -1,0 +1,50 @@
+{
+  "schema": "witnessops.demo.rotation_checks.v1",
+  "sample_id": "COMPROMISED_API_KEY_ROTATION_SAMPLE_V1",
+  "method": "deterministic_state_reconstruction",
+  "result": "pass",
+  "checks": [
+    {
+      "id": "approval_preceded_rotation",
+      "status": "pass",
+      "observed": "2026-08-27T12:00:10Z < 2026-08-27T12:00:11Z"
+    },
+    {
+      "id": "target_matched_approval",
+      "status": "pass",
+      "observed": "sandbox_tenant_001"
+    },
+    {
+      "id": "new_fingerprint_differs",
+      "status": "pass",
+      "observed": "sha256:457612e26457c27e1443f6dfae65c12106f045ecdaed588eba7f43dbf06885d5 != sha256:2d31ebd63621e6dda194ccf85b1a4f83cb37bb4e9e6ae8e6833cce37df4a241e"
+    },
+    {
+      "id": "consumer_migrated_before_revocation",
+      "status": "pass",
+      "observed": "12:00:12Z < 12:00:14Z"
+    },
+    {
+      "id": "new_key_accepted",
+      "status": "pass",
+      "observed": "HTTP 200 synthetic_ok"
+    },
+    {
+      "id": "old_key_rejected",
+      "status": "pass",
+      "observed": "HTTP 401 credential_revoked"
+    },
+    {
+      "id": "prohibited_actions_absent",
+      "status": "pass",
+      "observed": "0 prohibited operations"
+    },
+    {
+      "id": "plaintext_secret_absent",
+      "status": "pass",
+      "observed": "fingerprints and key IDs only"
+    }
+  ],
+  "limitation": "Reference output only. A verifier must recompute these checks from the signed evidence rather than trust this file.",
+  "synthetic": true
+}

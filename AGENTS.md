@@ -127,8 +127,8 @@ Default for “deploy this so we can check on mesh and public”: **`pnpm deploy
 - Do not hard-code sample commits, manifest hashes, artifact digests, or sample URLs directly in the page when a contract field exists.
 - Keep `artifact-links.test.ts` aligned with the sample artifact contract.
 - Keep `scripts/smoke-buyer-path.ts` aligned with buyer-visible proof markers.
-- Current web-side boundary: the web contract records pinned sample manifest provenance and displays artifact digests, but it does not recompute individual source artifact hashes locally.
-- Cross-repo sample artifact verification must be handled in a separate lane before claiming source artifact bytes were independently recomputed by this repo.
+- Current web-side boundary: the fixed compromised-key specimen is mirrored as exact same-origin bytes. Its sample-specific browser/offline verifier checks the purpose-limited demo signer, evidence hashes, receipt references, authority, scope, and declared synthetic rotation transition.
+- That verification does not establish a real provider action, real credential compromise, source-system truth, production signing-key custody, legal compliance, or whole-environment assurance. Keep `/verify` and `/api/verify` receipt-only.
 
 ## Codex Security review
 

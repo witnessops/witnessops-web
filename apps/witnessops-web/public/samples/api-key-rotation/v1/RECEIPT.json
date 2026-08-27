@@ -1,0 +1,140 @@
+{
+  "receipt_version": "witnessops.receipt.v0",
+  "receipt_profile": "witnessops.verification_context.v1",
+  "workflow_class": "compromised_api_key_rotation",
+  "proof_run_id": "pr_demo_api_key_rotation_20260827_001",
+  "verification_context": {
+    "subject": {
+      "type": "synthetic_api_credential",
+      "reference": "synthetic://sandbox_tenant_001/credentials/sk_demo_old_7F2C91",
+      "display_name": "Synthetic compromised API-key rotation"
+    },
+    "scope": {
+      "included": [
+        "one suspected-compromised synthetic API credential",
+        "one synthetic consumer reference",
+        "one bounded rotation and post-rotation read-back"
+      ],
+      "criteria": [
+        "authority precedes execution and exactly matches the target",
+        "replacement works before the old credential is revoked",
+        "consumer migrates before the old credential is revoked",
+        "old credential is rejected after revocation",
+        "final state read-back matches the expected transition",
+        "no secret material or prohibited action appears in the evidence"
+      ],
+      "excluded": [
+        "real providers, credentials, compromises, customers, and production systems",
+        "source-system honesty outside the supplied synthetic artifacts",
+        "legal compliance, universal security correctness, and whole-environment assurance"
+      ],
+      "observation_window": {
+        "started_at": "2026-08-27T12:00:00Z",
+        "ended_at": "2026-08-27T12:00:16Z"
+      }
+    },
+    "verification_method": {
+      "id": "synthetic_api_key_rotation_reconstruction",
+      "version": "1.0.0",
+      "procedure": [
+        "verify the receipt signature against the separately published demo key",
+        "recompute the canonical evidence-manifest hash",
+        "recompute every exact evidence-file SHA-256 digest",
+        "resolve every receipt evidence reference to the manifest",
+        "reconstruct event order, authority, scope, probes, and final state"
+      ],
+      "pass_criteria": [
+        "signature, published key, manifest, evidence, references, and all rotation checks pass"
+      ],
+      "fail_criteria": [
+        "any cryptographic, artifact, reference, authority, scope, order, probe, or final-state check fails"
+      ]
+    },
+    "timestamps": {
+      "performed_at": "2026-08-27T12:00:16Z",
+      "issued_at": "2026-08-27T12:00:17Z",
+      "expires_at": null
+    },
+    "limitations": [
+      "This is a deterministic synthetic demonstration; no real provider, credential, compromise, customer, or production system was used or checked.",
+      "A valid signature establishes integrity under the published purpose-limited demo key, not source-system truth or production signing-key custody.",
+      "The verifier establishes only the claims recomputed from the included public artifacts.",
+      "The replay is a presentation of the signed run and does not execute or authorize a new action."
+    ]
+  },
+  "result": {
+    "outcome": "pass",
+    "failure_states": []
+  },
+  "claims": [
+    {
+      "claim": "approval_preceded_rotation",
+      "status": "passed",
+      "evidence_refs": [
+        "action_boundary",
+        "authority_approval",
+        "rotation_execution"
+      ]
+    },
+    {
+      "claim": "target_matched_approval",
+      "status": "passed",
+      "evidence_refs": [
+        "action_boundary",
+        "authority_approval",
+        "rotation_execution"
+      ]
+    },
+    {
+      "claim": "replacement_key_accepted",
+      "status": "passed",
+      "evidence_refs": [
+        "before_state",
+        "rotation_execution",
+        "after_state"
+      ]
+    },
+    {
+      "claim": "consumer_migrated_before_revocation",
+      "status": "passed",
+      "evidence_refs": [
+        "before_state",
+        "rotation_execution",
+        "after_state"
+      ]
+    },
+    {
+      "claim": "old_key_rejected_after_revocation",
+      "status": "passed",
+      "evidence_refs": [
+        "rotation_execution",
+        "after_state"
+      ]
+    },
+    {
+      "claim": "prohibited_actions_absent",
+      "status": "passed",
+      "evidence_refs": [
+        "action_boundary",
+        "rotation_execution"
+      ]
+    },
+    {
+      "claim": "plaintext_secret_absent",
+      "status": "passed",
+      "evidence_refs": [
+        "compromise_alert",
+        "before_state",
+        "rotation_execution",
+        "after_state"
+      ]
+    }
+  ],
+  "manifest_hash": "sha256:667753d361c58728aedbe305485b72a859c3800508d5c87d74f03b8c5f2fc628",
+  "signature": {
+    "algorithm": "ed25519",
+    "public_key_id": "witnessops_demo_api_key_rotation_20260827",
+    "encoding": "hex",
+    "signature": "13c76bf704e67978b2433dbbeef0f04be33cf35279a96379926c75b4d78b15b6b4b83c3e5e89d2526d67ab3b3beb6cf9121531d8260c024a85e87eea8634870c"
+  }
+}

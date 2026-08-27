@@ -10,7 +10,8 @@
     "validate:ask-authority-loader": "node ./scripts/validate-ask-authority-loader-standalone.mjs",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "NODE_ENV=test TSX_TSCONFIG_PATH=tsconfig.test.json node --import ./scripts/register-server-only-test-stub.mjs --import tsx --test 'src/**/*.test.ts' 'src/**/*.test.tsx'",
+    "test": "NODE_ENV=test node --test src/lib/api-key-rotation-demo-verifier.test.mjs && NODE_ENV=test TSX_TSCONFIG_PATH=tsconfig.test.json node --import ./scripts/register-server-only-test-stub.mjs --import tsx --test 'src/**/*.test.ts' 'src/**/*.test.tsx'",
+    "test:api-key-rotation-demo": "node --test src/lib/api-key-rotation-demo-verifier.test.mjs",
     "test:evidence": "tsx --tsconfig ./tsconfig.json --test 'src/lib/server/*.test.ts' 'src/app/api/provider-events/**/*.test.ts'"
   },
   "dependencies": {

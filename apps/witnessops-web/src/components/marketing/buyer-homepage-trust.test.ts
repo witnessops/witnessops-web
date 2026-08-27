@@ -27,20 +27,22 @@ test("homepage connects the agent workflow review to a bounded receipt specimen"
   assert.match(source, /What was observed\?/);
   assert.match(source, /What remains unresolved\?/);
   assert.match(source, /How can it be challenged\?/);
-  assert.match(source, /Published sample — not live customer evidence/);
+  assert.match(source, /Verified synthetic specimen — not live customer evidence/);
   assert.match(source, /sampleSourceRepository/);
   assert.match(source, /sampleCommitShort/);
   assert.match(source, /sampleManifestSha256/);
   assert.equal(sampleSourceRepository, "witnessops/witnessops-sample-cases");
-  assert.equal(sampleCommitShort, "99741c8d50cd");
+  assert.equal(sampleCommitShort, "d4ad234bd815");
   assert.equal(
     sampleManifestSha256,
-    "6c43e87534a4e445321c46d9765efa885d3df5aa8eb8110a214653b0f46d7447",
+    "9d8668507f3da027886a1847a92b705671063ed89cbb354d45909c119bb414e7",
   );
-  assert.match(source, /pass_with_sample_limitations/);
+  assert.match(source, /VALID_SYNTHETIC_SPECIMEN/);
   assert.match(source, /does not establish production deployment, compliance/);
   assert.match(source, /A receipt is only as strong as its named evidence and verifier/);
   assert.match(source, /Bring one agentic workflow/);
+  assert.match(source, /Run and verify the compromised API key rotation demo/);
+  assert.match(source, /data-ui-proof-id="homepage-demo-cta"/);
   assert.match(source, /id="evidence-questions"/);
   assert.match(source, /id="agent-action-receipt"/);
   assert.match(source, /id="agent-risk-control"/);

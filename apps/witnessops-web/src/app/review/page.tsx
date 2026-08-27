@@ -259,9 +259,9 @@ export default function ReviewPage() {
             href={sampleBundleHref}
             className="block border border-brand-accent/40 bg-brand-accent/5 p-4 transition-colors hover:border-brand-accent"
           >
-            <h3 className="text-sm font-semibold text-text-primary">AI agent change package</h3>
+            <h3 className="text-sm font-semibold text-text-primary">Compromised API key rotation</h3>
             <p className="mt-2 text-sm leading-6 text-text-secondary">
-              Full sample package for one approved agent change.
+              Replay one signed synthetic run, then verify its exact evidence yourself.
             </p>
           </a>
           <a

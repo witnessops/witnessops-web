@@ -1,0 +1,47 @@
+{
+  "schema": "witnessops.action_boundary.v1",
+  "sample_id": "COMPROMISED_API_KEY_ROTATION_SAMPLE_V1",
+  "contract_id": "contract_demo_rotation_20260827_001",
+  "requested_action": "rotate one suspected-compromised synthetic API credential",
+  "exact_targets": {
+    "provider": "Northstar API (synthetic)",
+    "tenant": "sandbox_tenant_001",
+    "consumer": "billing_worker_demo",
+    "old_key_id": "sk_demo_old_7F2C91",
+    "old_key_fingerprint": "sha256:457612e26457c27e1443f6dfae65c12106f045ecdaed588eba7f43dbf06885d5"
+  },
+  "allowed_operations": [
+    "create_replacement",
+    "update_consumer_reference",
+    "probe_replacement",
+    "revoke_old",
+    "probe_old",
+    "read_back_state"
+  ],
+  "prohibited_operations": [
+    "read_or_export_secret_material",
+    "mutate_non_synthetic_tenant",
+    "delete_audit_evidence",
+    "expand_scope"
+  ],
+  "success_conditions": [
+    "replacement fingerprint differs from the old fingerprint",
+    "consumer references the replacement before old-key revocation",
+    "replacement-key canary returns HTTP 200 before old-key revocation",
+    "old credential is revoked",
+    "old-key canary returns HTTP 401 credential_revoked after revocation",
+    "independent read-back shows old revoked, replacement active, and consumer migrated"
+  ],
+  "timeout_seconds": 60,
+  "maximum_dual_active_seconds": 30,
+  "termination_conditions": [
+    "stop before revocation if replacement canary fails",
+    "stop if any target differs from the approved synthetic tenant",
+    "stop if credential material becomes readable",
+    "stop at timeout"
+  ],
+  "rollback_before_revocation": "restore the consumer reference to the old synthetic key and deactivate the replacement",
+  "recovery_after_revocation": "request new authority for a second replacement; never reactivate the suspected-compromised key",
+  "proposed_at": "2026-08-27T12:00:05Z",
+  "synthetic": true
+}
