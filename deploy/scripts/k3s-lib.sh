@@ -622,7 +622,7 @@ smoke_pair() (
   local image_rc=0
   compare_image_refs "${prod_image}" "${dev_image}" || image_rc=$?
   if [[ "${image_rc}" -ne 0 ]]; then
-    err "dual-lane image drift (exit ${image_rc}) — run pnpm deploy:k3s:both to realign"
+    err "dual-lane image drift (exit ${image_rc}) — reconcile production through .github/workflows/aws-release.yml, then align mesh-dev with pnpm deploy:k3s:dev"
     return "${image_rc}"
   fi
   validate_digest_container_image_ref "${prod_image}" \

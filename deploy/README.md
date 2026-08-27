@@ -1,6 +1,6 @@
 # Deploy (AWS Frankfurt production target)
 
-The intended routine production target for `witnessops.com` is the AWS
+The active routine production target for `witnessops.com` is the AWS
 Lightsail Frankfurt plane `prod-aws-frankfurt`, not the retained old VPS and
 not GHCR Compose. `topology.env.example` fixes that generic public plane;
 exact host, instance, namespace, workload, Secret, storage, and mesh values
@@ -15,22 +15,22 @@ credentials, or the broader production environment.
 | **prod** | `DEPLOY_NS/PROD_DEPLOY` | Public via Caddy → loopback app bind |
 | **mesh-dev** | `DEPLOY_NS/DEV_DEPLOY` | Private `MESH_DEV_URL` only |
 
-Always prefer a **shared image** so prod and mesh-dev CSS/JS hashes match:
+Routine production authority is:
 
-```bash
-# monorepo root
-pnpm deploy:k3s:both
-pnpm deploy:k3s:smoke
-pnpm deploy:k3s:test-parity   # image/CSS, envFrom, Secret-preflight, and deploy-reconciliation tests
+```text
+exact merged main commit
+-> .github/workflows/aws-release.yml
+-> immutable Frankfurt ECR image and scan evidence
+-> protected aws-production environment
+-> bounded production SSM document
+-> witnessops-deploy-v1
+-> Frankfurt k3s
 ```
 
-The build, production status/smoke, production deploy, and production-host
-hygiene helpers fail closed unless `PROD_TARGET_PROFILE=prod-aws-frankfurt`
-and read-only remote hostname, IMDSv2 instance identity, and AWS region checks
-match ignored operator custody. The audit did not prove that the Frankfurt host
-has the Docker build/import prerequisite expected by `build_shared_image`;
-resolve that in a separately authorized execution phase. Do not point
-`DEPLOY_SSH` back to the old VPS as a workaround.
+`pnpm deploy:k3s:build`, `deploy:k3s:prod`, and `deploy:k3s:both` are retired
+and fail closed. Direct Mac/SSH builds and kubectl production applies are not
+routine authority. Keep `deploy:k3s:status:topology` for restricted read-only
+status and `deploy:k3s:smoke` for an explicitly scoped read-only check.
 
 **Smoke enforces (fails on drift):** the exact ordered application-container
 `envFrom` contract on both deployments, identical digest-qualified image refs,
@@ -43,7 +43,7 @@ drift fails.
 **Intentional non-parity:** custodied mesh bind, emptyDir intake,
 runtime `PORT`/`HOSTNAME`/`WITNESSOPS_VERIFY_BASE_URL`.
 
-The prod helper preflights both shared Secrets, then atomically reconciles its
+The production SSM host adapter preflights both shared Secrets, then reconciles its
 image and exact `envFrom`. `ADMIN_OIDC_SECRET` must contain
 `WITNESSOPS_ADMIN_SECRET` plus
 `WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST`,
@@ -57,20 +57,15 @@ printed. Extra dormant
 Microsoft OIDC and legacy-key credential entries remain untouched and require a
 separately authorized custody-cleanup pass to retire.
 
-The legacy `deploy/k8s/apply.sh` path requires both a digest-qualified
-`WITNESSOPS_WEB_IMAGE` and its build-recorded, manifest-bound
-`WITNESSOPS_WEB_CONFIG_DIGEST`. It performs the same OIDC key-name preflight
-before any cluster mutation, then verifies the deployed reference, readiness,
-and running application image IDs after rollout. `DEPLOY_NS` and
-`ADMIN_OIDC_SECRET` must already exist; it does not create or update that
-Secret.
+The legacy `deploy/k8s/apply.sh` and direct production k3s scripts are retained
+only for historical/manual-recovery review. They are not routine deploy authority.
 
 | pnpm script | Shell |
 | --- | --- |
-| `deploy:k3s:build` | `deploy/scripts/k3s-build-shared.sh` |
-| `deploy:k3s:prod` | `deploy/scripts/k3s-deploy-prod.sh` |
+| `deploy:k3s:build` | retired fail-closed command |
+| `deploy:k3s:prod` | retired fail-closed command |
 | `deploy:k3s:dev` | `deploy/scripts/k3s-deploy-dev.sh` |
-| `deploy:k3s:both` | `deploy/scripts/k3s-deploy-both.sh` |
+| `deploy:k3s:both` | retired fail-closed command |
 | `deploy:k3s:smoke` | `deploy/scripts/smoke-prod-dev.sh` |
 | `deploy:k3s:status` | `deploy/scripts/k3s-status.sh` |
 | `deploy:k3s:status:topology` | Strictly parse ignored topology as data, then run production-only read status |
@@ -129,18 +124,15 @@ root label, counts, timestamps, path-bound SHA-256, and invalid-record count. Ru
 tests with `pnpm deploy:k3s:test-state-aggregate`. Execution against production
 is read-only but still requires an explicitly authorized evidence lane.
 
-Preferred rollback redeploys the same recorded known-good digest-qualified image
-through `deploy/scripts/k3s-deploy-both.sh`, then runs
-`pnpm deploy:k3s:smoke`, so both lanes and their exact `envFrom` contracts are
-realigned. A single-lane emergency rollback is degraded and pair smoke remains
-failed until the other lane uses the same image. Rollout status alone does not
-prove the runtime contract.
+Preferred rollback sends the recorded known-good ECR digest through the same
+protected production environment and SSM document, with the exact current
+digest supplied as the compare-and-swap precondition. Rollout status alone does
+not prove the runtime contract.
 
 Authority: `docs/DEPLOYMENT_AUTHORITY.md`, custody: `docs/DEPLOYMENT_CUSTODY.md`,
 agent contract: root `AGENTS.md`.
 
-AWS infrastructure and deployment-automation source (not evidence of an
-applied stack and not apply permission): [`aws/README.md`](./aws/README.md).
+AWS deployment-automation source and boundary: [`aws/README.md`](./aws/README.md).
 
 Legacy Compose/GHCR: `scripts/deploy.sh` + `INSTALL.md` (historical only).
 

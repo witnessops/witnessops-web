@@ -1,9 +1,10 @@
 # Installing witnessops-web on a host
 
-> **Current dual-lane path (use this):** private k3s with prod and mesh-dev
-> topology injected from operator custody through `topology.env`. See
+> **Current routine production path:** exact merged `main` → GitHub AWS release
+> workflow → immutable ECR → protected `aws-production` → bounded SSM →
+> Frankfurt k3s. See
 > [`../docs/DEPLOYMENT_CUSTODY.md`](../docs/DEPLOYMENT_CUSTODY.md) and
-> in-repo scripts under `deploy/scripts/k3s-*.sh` (`pnpm deploy:k3s:both`).
+> [`aws/README.md`](./aws/README.md). Direct k3s production commands are retired.
 >
 > **Below:** historical Docker Compose / GHCR install flow. Not live
 > authority unless a future lane reactivates it.

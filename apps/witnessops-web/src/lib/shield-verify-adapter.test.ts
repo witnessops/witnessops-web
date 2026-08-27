@@ -115,6 +115,52 @@ test("verifyLocalServerAuditReceipt fails authority binding mismatch (legacy)", 
   );
 });
 
+test("verifyLocalServerAuditReceipt rejects duplicate artifact paths before binding", () => {
+  const doc = loadFixture("local-server-audit-valid.json");
+  const artifacts = doc.artifacts;
+  assert.ok(Array.isArray(artifacts));
+  const authority = artifacts.find(
+    (item) =>
+      typeof item === "object" &&
+      item !== null &&
+      (item as Record<string, unknown>).path === "evidence/authority.json",
+  );
+  assert.ok(authority);
+  artifacts.push({
+    ...(authority as Record<string, unknown>),
+    sha256: "f".repeat(64),
+  });
+
+  const result = verifyLocalServerAuditReceipt(doc);
+  assert.equal(result.verdict, "invalid");
+  assert.equal(
+    result.checks.find((check) => check.name === "SHIELD_ARTIFACTS")?.status,
+    "unverified",
+  );
+  assert.equal(
+    result.checks.find(
+      (check) => check.name === "SHIELD_AUTHORITY_HASH_BINDING",
+    )?.status,
+    "unverified",
+  );
+});
+
+test("duplicate artifact path cannot bind when only one duplicate has a hash", () => {
+  const doc = loadFixture("local-server-audit-valid.json");
+  const artifacts = doc.artifacts;
+  assert.ok(Array.isArray(artifacts));
+  artifacts.push({ path: "evidence/authority.json" });
+
+  const result = verifyLocalServerAuditReceipt(doc);
+  assert.equal(result.verdict, "invalid");
+  assert.equal(
+    result.checks.find(
+      (check) => check.name === "SHIELD_AUTHORITY_HASH_BINDING",
+    )?.status,
+    "unverified",
+  );
+});
+
 test("deprecated verifyOffsecShieldReceipt alias still works on legacy fixture", () => {
   const doc = loadFixture("offsec-shield-valid.json");
   const result = verifyOffsecShieldReceipt(doc);

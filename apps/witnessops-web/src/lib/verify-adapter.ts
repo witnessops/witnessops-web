@@ -182,7 +182,7 @@ function toCheckStatus(status: VerificationCheck["status"]): VerifyCheckStatus {
     case "fail":
       return "unverified";
     case "skip":
-      return "not_applicable";
+      return "not_checked";
   }
 }
 

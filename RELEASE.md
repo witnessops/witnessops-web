@@ -61,21 +61,19 @@ only; passing it does not mean that a deploy occurred.
 
 ## Deploy the approved commit
 
-Deployment requires an explicit apply lane. Before applying, record the source
-commit, dirty state, current prod and mesh-dev image references, and a known
-rollback image or rollout revision.
+Production deployment requires a separately approved apply lane. The only
+routine production path is a manual dispatch of
+`.github/workflows/aws-release.yml` from `refs/heads/main`: `publish-image`,
+then `deploy-staging`, then approval-gated `deploy-production`. The path binds
+the exact merged source to an immutable Frankfurt ECR digest, requires scan
+evidence, waits at the protected `aws-production` environment, and invokes the
+bounded SSM adapter for Frankfurt k3s. A source merge does not authorize or
+start any of these operations.
 
-From the repository root, build one shared image and deploy that same image to
-both lanes:
-
-```bash
-pnpm deploy:k3s:both
-pnpm deploy:k3s:smoke
-```
-
-`pnpm deploy:k3s:both` builds once, applies prod and mesh-dev, and invokes the
-dual-lane smoke. The explicit follow-up `pnpm deploy:k3s:smoke` records the
-post-apply state independently.
+Before any dispatch, record the source commit, current production image digest,
+expected current digest, publication evidence, and the known rollback image.
+The retired `deploy:k3s:build`, `deploy:k3s:prod`, and `deploy:k3s:both`
+aliases fail closed and are not production or rollback instructions.
 
 The deployment is not complete until the smoke exits successfully and its
 evidence shows all of the following:
@@ -90,17 +88,18 @@ Polish as applicable on both lanes, run the buyer-route sweep and forbidden-link
 scan required by the deployment custody contract, and record the HTTP results.
 Do not publish mesh-dev URLs in buyer-facing content.
 
-The supported narrower entrypoints remain available only when the authorized
-lane explicitly names a single target:
+The local entrypoints retained for the separate mesh-dev and read-only evidence
+lanes are:
 
 ```bash
-pnpm deploy:k3s:build   # build/import shared image only
-pnpm deploy:k3s:prod    # prod only
-pnpm deploy:k3s:dev     # mesh-dev only
+pnpm deploy:k3s:dev     # mesh-dev only; never production authority
+pnpm deploy:k3s:status  # read-only dual-lane state
+pnpm deploy:k3s:smoke   # read-only dual-lane contract smoke
 ```
 
-For the normal prod plus mesh-dev apply, use `pnpm deploy:k3s:both` so the
-shared-image invariant is preserved.
+If production and mesh-dev diverge, reconcile production only through the
+manual AWS workflow and its staging/approval gates. Align mesh-dev separately
+with `pnpm deploy:k3s:dev` after the exact production image is established.
 
 ## Release evidence
 
@@ -124,24 +123,11 @@ in the receipt. A mutable tag alone is not sufficient rollback evidence.
 
 ## Rollback
 
-Use the approved, known-good source commit captured before deployment. Rebuild
-and import that commit through the same repository-owned dual-lane path; do not
-assume that an older local image is still present in k3s containerd, and do not
-run a bare workstation `kubectl` command against an unverified context.
-
-```bash
-WOPS_ROLLBACK_ROOT="$(mktemp -d /tmp/witnessops-web-rollback.XXXXXX)"
-git worktree add --detach "$WOPS_ROLLBACK_ROOT/source" <known-good-source-commit>
-cd "$WOPS_ROLLBACK_ROOT/source"
-corepack pnpm install --frozen-lockfile
-pnpm deploy:k3s:both
-pnpm deploy:k3s:smoke
-```
-
-After evidence is recorded, return to the primary checkout, remove the exact
-temporary worktree with `git worktree remove "$WOPS_ROLLBACK_ROOT/source"`, and
-remove the now-empty temporary directory. This produces a new timestamped image
-from the known-good source and imports it before applying it to both lanes.
+Use the approved, known-good immutable ECR image captured before deployment.
+Rollback uses the same manually dispatched AWS workflow and protected
+production environment with the expected-current-digest guard; it is not a
+direct SSH, local-image, or workstation `kubectl` procedure. A rollback is a
+separately authorized production mutation.
 
 Record the rollback command, resulting image references, rollout status, HTTP
 results, and CSS parity. Caddy or DNS rollback belongs to its separately

@@ -14,6 +14,23 @@ afterEach(() => {
   _resetAllStores();
 });
 
+test("verify route rejects malformed UTF-8 before JSON parsing", async () => {
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: new Uint8Array([
+        0x7b, 0x22, 0x72, 0x65, 0x63, 0x65, 0x69, 0x70, 0x74, 0x22, 0x3a,
+        0x22, 0xc3, 0x28, 0x22, 0x7d,
+      ]),
+    }),
+  );
+
+  assert.equal(response.status, 400);
+  const payload = (await response.json()) as { message?: string };
+  assert.equal(payload.message, "request body must be valid UTF-8.");
+});
+
 test("verify route keeps receipt-only success indeterminate without artifact revalidation", async () => {
   const fixture = loadVerifyFixture("pv-valid");
   assert.ok(fixture);

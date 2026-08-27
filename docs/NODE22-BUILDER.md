@@ -8,7 +8,7 @@
 |------|----------------|------|
 | **Fleet VM** (`debian-termux-*`) | 20.x (distro) | Edit working copy, sync lane, targeted tests |
 | **Node 22 container** | 22.x | Release-quality health/build without upgrading host Node |
-| **Shared k3s image build** (`deploy/scripts/k3s-lib.sh` generates `deploy/Dockerfile.shared`) | 22 inside container | Canonical image build for both deploy lanes |
+| **Historical shared k3s image build** (`deploy/scripts/k3s-lib.sh` generates `deploy/Dockerfile.shared`) | 22 inside container | Retained implementation reference; not routine production authority |
 | **Private staging host** | 22 inside container when used | Optional build/transfer staging only when the lane authorizes it |
 | **Private k3s target** | Container runtime | Current public runtime for `witnessops.com` |
 
@@ -19,16 +19,14 @@ The current public runtime is private k3s, not Docker Compose. See
 
 ## Authoritative paths
 
-1. **Mesh image build** - use the canonical lane-approved path:
+1. **Production image build** - use the manually dispatched
+   `.github/workflows/aws-release.yml` `publish-image` operation from
+   `refs/heads/main`. It builds and publishes the exact merged source through
+   the immutable Frankfurt ECR path. A merge alone cannot publish.
 
-   ```bash
-   pnpm deploy:k3s:build
-   ```
-
-   This builds with the reviewed base pin, imports the image, and returns the
-   digest-qualified application reference. The deploy receipt must record the
-   human-readable tag alias, OCI manifest digest, digest-qualified deploy
-   reference, and manifest-bound config digest.
+   The deployment record must include the source commit, OCI manifest digest,
+   digest-qualified deploy reference, manifest-bound config digest, and scan
+   evidence. The retired `pnpm deploy:k3s:build` alias fails closed.
 
 2. **Full health in Node 22 container (any machine with Docker)** - from repo root:
 
@@ -47,8 +45,9 @@ Historical remote wrappers may still be useful for build or transfer staging
 when named by a lane, but they are not current runtime authority.
 
 Current deploy execution is documented in
-[`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md) and uses the in-repo
-`deploy/scripts/k3s-*.sh` entrypoints.
+[`DEPLOYMENT_AUTHORITY.md`](./DEPLOYMENT_AUTHORITY.md) and uses the protected
+GitHub/ECR/SSM path. Direct `deploy/scripts/k3s-*.sh` production invocation is
+historical/manual-recovery implementation, not routine authority.
 
 ## Repo pins
 

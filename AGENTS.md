@@ -23,7 +23,7 @@ Release authority: internal/manual for now
 
 - Use [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md) before any deploy-adjacent work.
 - Custody map: [`docs/DEPLOYMENT_CUSTODY.md`](./docs/DEPLOYMENT_CUSTODY.md).
-- **Intended production target:** AWS Lightsail Frankfurt plane
+- **Active production target:** AWS Lightsail Frankfurt plane
   `prod-aws-frankfurt`, selected with
   `PROD_TARGET_PROFILE=prod-aws-frankfurt`.
   Canonical shared-build, production status/smoke, production deploy, and
@@ -51,20 +51,19 @@ Release authority: internal/manual for now
   - mesh-dev `WITNESSOPS_VERIFY_BASE_URL=MESH_DEV_URL`
   - mesh-dev **emptyDir** intake (never prod PVC)
   - prod hostPort `127.0.0.1:3000` + Caddy public edge
-- **Secret/envFrom parity:** the application container in both lanes must use exactly two ordered non-lane `secretRef`s named by `BASE_ENV_SECRET`, then `ADMIN_OIDC_SECRET`, both with an empty prefix and `optional=false`. The prod helper reconciles that exact contract; smoke detects drift on either lane. The OIDC Secret must contain `WITNESSOPS_ADMIN_SECRET` plus the five configured `WITNESSOPS_GOOGLE_*` key names. Lane-only env keys stay under the mesh-dev env block.
-- **Repo deploy entrypoints** (prefer these over ad-hoc docker/kubectl):
+- **Secret/envFrom parity:** the application container in both lanes must use exactly two ordered non-lane `secretRef`s named by `BASE_ENV_SECRET`, then `ADMIN_OIDC_SECRET`, both with an empty prefix and `optional=false`. The production SSM host adapter reconciles that contract; smoke detects drift on either lane. The OIDC Secret must contain `WITNESSOPS_ADMIN_SECRET` plus the five configured `WITNESSOPS_GOOGLE_*` key names. Lane-only env keys stay under the mesh-dev env block.
+- **Repo deployment surfaces:**
 
   | Goal | Command |
   | --- | --- |
-  | Build shared image only | `pnpm deploy:k3s:build` |
-  | Deploy prod | `pnpm deploy:k3s:prod` |
+  | Routine production build/publish/deploy | `.github/workflows/aws-release.yml` → immutable ECR → protected `aws-production` → bounded SSM document → Frankfurt k3s |
+  | Retired direct production path | `pnpm deploy:k3s:build`, `deploy:k3s:prod`, and `deploy:k3s:both` fail closed |
   | Deploy mesh-dev | `pnpm deploy:k3s:dev` |
-  | Build once → both lanes | `pnpm deploy:k3s:both` |
   | Status + envFrom/image/HTTP/CSS smoke | `pnpm deploy:k3s:smoke` or `pnpm deploy:k3s:status` |
   | Parity unit tests | `pnpm deploy:k3s:test-parity` |
   | Remove mesh-dev only | `pnpm deploy:k3s:dev:teardown` |
   | Validate AWS infrastructure source contract | `pnpm deploy:aws:test` |
-  | Validate unapplied GitHub OIDC/ECR/SSM source | `pnpm deploy:aws:validate-github` |
+  | Validate GitHub OIDC/ECR/SSM source contract | `pnpm deploy:aws:validate-github` |
   | Read-only AWS candidate acceptance | `pnpm deploy:aws:candidate` (explicit candidate identity required) |
 
   Scripts live under `deploy/scripts/k3s-*.sh` and source `k3s-lib.sh` / `k3s-parity.sh`.
@@ -72,9 +71,8 @@ Release authority: internal/manual for now
   - Source a private ignored `deploy/topology.env`; the public example lists all required variable names without live values.
   - Confirm `PROD_TARGET_PROFILE=prod-aws-frankfurt`; keep `DEPLOY_SSH`,
     `PROD_EXPECTED_HOSTNAME`, and `PROD_EXPECTED_INSTANCE_ID` in ignored
-    operator custody. The scripts enforce all three private identity checks
-    before build or prod mutation.
-  - Dirty tree: `ALLOW_DIRTY=1` (required if uncommitted work must ship; still record dirty state in receipts).
+    operator custody. Read-only status scripts enforce all three identity checks.
+  - Local topology is read-only production status custody, not production mutation authority.
   - Mesh smoke requires the configured private network path.
 - DNS/Cloudflare, Caddy rewrites, API/app exposure, and OffSec product-surface exposure require separate explicit lanes.
 - A public web deploy does not imply SaaS, app, API, or OffSec readiness.
@@ -82,15 +80,15 @@ Release authority: internal/manual for now
 - Azure Container Apps is retired. Root `azure.yaml` and `infra/**` were archived under `docs/archive/azure-aca-retired-20260508/`.
 - Do not run `az`, `azd`, Bicep deployment, Azure inventory, Azure cleanup, Azure rollback, or Azure restore work from this repo unless a separate explicit Azure reopening lane names the allowed cloud surfaces, commands, receipts, and stop boundary.
 - Do not treat archived Azure files as active deploy authority, rollback authority, or evidence that Azure resources exist.
-- **AWS automation source (not live deploy authority):**
+- **AWS automation source (active routine deploy authority):**
   [`docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md`](./docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md)
   and [`deploy/aws/`](./deploy/aws/README.md) retain the reviewable Lightsail
-  infrastructure, GitHub OIDC/ECR/SSM, and candidate-acceptance source
-  contracts. The Frankfurt serving path is live, but committed evidence does
-  not establish that this CloudFormation source was applied to create it, and
-  no GitHub AWS-deployment workflow or host adapter is active. These files do
-  not authorize AWS resource creation, GitHub setting changes, deploy, DNS,
-  secret rotation, cutover, or decommissioning.
+  infrastructure, GitHub OIDC/ECR/SSM, and candidate-acceptance contracts.
+  `.github/workflows/aws-release.yml`, immutable ECR publication, the protected
+  `aws-production` environment, the bounded production SSM document, and the
+  installed host adapter form the active routine deployment path. This does not
+  authorize AWS resource creation, GitHub setting changes, DNS, secret rotation,
+  cutover, or decommissioning.
 - AWS deployment and Public Exposure Review production-key activation are
   separate authority lanes. Never place a production receipt-signing private
   key on the web host/pod, add one to the runtime Secrets, change the production
@@ -101,10 +99,11 @@ Release authority: internal/manual for now
 | Mode | Use when | How |
 | --- | --- | --- |
 | Local dev server | UI/API iteration on laptop | `pnpm dev` (app filter) — never points public DNS at localhost |
-| mesh-dev (k3s) | Shared runtime parity, form/mail, “does it look like prod?” | `pnpm deploy:k3s:dev` or `pnpm deploy:k3s:both`; open the private `MESH_DEV_URL` |
-| prod | Buyer-visible public site | `pnpm deploy:k3s:prod` or both; verify `https://witnessops.com` |
+| mesh-dev (k3s) | Shared runtime parity, form/mail, “does it look like prod?” | `pnpm deploy:k3s:dev`; open the private `MESH_DEV_URL` |
+| prod | Buyer-visible public site | Separately authorized `.github/workflows/aws-release.yml`; verify with read-only status/browser gates |
 
-Default for “deploy this so we can check on mesh and public”: **`pnpm deploy:k3s:both`** (one image, both lanes). After deploy: **`pnpm deploy:k3s:smoke`**.
+Production and mesh-dev are separate lanes. Never use the retired direct-k3s
+commands as a shortcut around ECR, the protected production environment, or SSM.
 
 ## Public docs host contract
 

@@ -1,7 +1,7 @@
 # Deployment authority
 
-Status: `aws_lightsail_frankfurt_intended_production_target`
-Last updated: 2026-08-26
+Status: `github_ecr_ssm_frankfurt_active_routine_authority`
+Last updated: 2026-08-27
 
 This document classifies deployment-related repository surfaces for
 `witnessops-web`. It is repo-local guidance and is not deploy approval, release
@@ -17,13 +17,32 @@ This claim does not include `api.witnessops.com`, mesh-dev availability,
 credential remediation, rollback equivalence, or the broader WitnessOps
 production environment.
 
-## Intended production deployment authority
+## Active routine production deployment authority
 
-The single intended routine production target is the AWS Lightsail Frankfurt
+The single routine production target is the AWS Lightsail Frankfurt
 plane `prod-aws-frankfurt`. Exact host and instance identity, namespace,
 workload, Secret, storage, and private-network values remain in operator
-custody and are injected through ignored `deploy/topology.env` using the names
-in `deploy/topology.env.example`.
+custody.
+
+The only routine production mutation path is:
+
+```text
+exact merged main commit
+-> .github/workflows/aws-release.yml (manual dispatch)
+-> build one linux/amd64 image without AWS authority
+-> aws-image-publish environment and immutable Frankfurt ECR repository
+-> digest-bound ECR scan evidence
+-> aws-production protected environment (required reviewer; self-review blocked)
+-> least-privilege production OIDC role
+-> one bounded production SSM document
+-> installed witnessops-deploy-v1 host adapter
+-> digest-qualified image in Frankfurt k3s
+```
+
+Publication is not deployment authority. The production environment gate and
+the SSM document are required after ECR publication. The workflow requires the
+expected current digest, so a stale or concurrent production state fails
+closed.
 
 ```text
 Public:
@@ -50,14 +69,16 @@ change the accepted serving-path claim.
 
 Custody map: [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
 
-### Canonical deploy helpers (in this repo)
+### Active and retired helpers
 
-| Script | Purpose |
+| Surface | Authority |
 | --- | --- |
-| `deploy/scripts/k3s-build-shared.sh` | Build one shared image from HEAD; import into k3s; no deploy |
-| `deploy/scripts/k3s-deploy-prod.sh` | Build (optional) + preflight Secrets + atomically reconcile prod image and exact ordered `envFrom` |
+| `.github/workflows/aws-release.yml` + `aws-release-reusable.yml` | Active routine build, publish, evidence, protected-environment, and SSM path |
+| `.github/workflows/build-image.yml` | Pull-request and merged-main validation only; image publication requires an explicit `workflow_dispatch` from `refs/heads/main`, so merging source cannot publish an image |
+| `deploy/aws/host/witnessops-deploy-v1` | Installed host-side SSM adapter contract for Frankfurt k3s |
+| `pnpm deploy:k3s:build`, `deploy:k3s:prod`, `deploy:k3s:both` | **Retired**; fail with `RETIRED_PRODUCTION_DEPLOY_PATH` |
+| `deploy/scripts/k3s-build-shared.sh`, `k3s-deploy-prod.sh`, `k3s-deploy-both.sh` | Historical/manual-recovery implementation only; direct invocation is not routine authority |
 | `deploy/scripts/k3s-deploy-dev.sh` | Build (optional) + validate image + apply mesh-dev manifest with exact ordered `envFrom` |
-| `deploy/scripts/k3s-deploy-both.sh` | Build once → prod + mesh-dev + exact-contract smoke |
 | `deploy/scripts/smoke-prod-dev.sh` | Exact runtime `envFrom` + digest-qualified image/runtime identity + HTTP 200 + CSS hash parity |
 | `deploy/scripts/k3s-status.sh` | kubectl image/ready + exact-contract smoke |
 | `deploy/scripts/k3s-status-prod-readonly.sh` | Production-only target/runtime/HTTP read gate; excludes optional mesh-dev |
@@ -68,15 +89,10 @@ Custody map: [`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
 | `deploy/scripts/k3s-dev-teardown.sh` | Delete mesh-dev only |
 | `deploy/scripts/k3s-disk-hygiene.sh` | Prune production-host build/runtime residue only after the same Frankfurt target check |
 
-Before any shared build, production status/smoke, or production mutation, the
-helpers require `PROD_TARGET_PROFILE=prod-aws-frankfurt`, then compare the
-read-only remote hostname, IMDSv2 instance identity, and AWS region with
-ignored operator custody and the checked-in regional contract. A mismatch
-fails before image build, Secret inspection, or Kubernetes mutation. This
-guard is validation, not deploy authorization.
-
-pnpm aliases (monorepo root):
-`deploy:k3s:build|prod|dev|both|smoke|status|test-parity|dev:teardown`.
+The retained topology-based production commands are read-only status and smoke
+surfaces. Their target checks are validation, not deploy authorization. A
+separately authorized recovery may inspect the historical helpers, but must not
+silently restore them as the routine path.
 
 Private-topology validation and read-only status use
 `deploy:k3s:validate-topology` and `deploy:k3s:status:topology`. These commands
@@ -105,8 +121,12 @@ scripts cover the lane. Prefer in-repo scripts so agents and humans share one pa
 
 ### Image contract and enforced parity
 
-- Human-readable alias: `docker.io/library/witnessops-web:main-<shortsha>-<UTC>`
-- Deployed form: `docker.io/library/witnessops-web@sha256:<manifest-digest>`
+- Routine production form:
+  `<aws-account>.dkr.ecr.eu-central-1.amazonaws.com/witnessops-web@sha256:<manifest-digest>`
+- The source-SHA ECR tag is an immutable lookup alias; the deployed reference is
+  digest-qualified.
+- Historical local `docker.io/library/witnessops-web@sha256:...` images are not
+  routine production authority.
 - Both Node 22 build stages use the reviewed digest-qualified base declared by
   `PINNED_NODE22_IMAGE`; tag-only base inputs are rejected.
 - Shared bake always sets public origin (`NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`)
@@ -119,8 +139,8 @@ scripts cover the lane. Prefer in-repo scripts so agents and humans share one pa
 - That exact `envFrom` contract is `BASE_ENV_SECRET`, then
   `ADMIN_OIDC_SECRET`, each as a `secretRef` with an empty prefix and
   `optional=false`. Source, order, prefix, or `optional` drift fails smoke.
-- The production deploy helper reconciles the image and exact `envFrom`
-  contract atomically after a fail-closed Secret preflight. The OIDC Secret must
+- The SSM host adapter reconciles the image after fail-closed target, current
+  digest, Secret, and runtime preflights. The OIDC Secret must
   contain `WITNESSOPS_ADMIN_SECRET` plus the five
   `WITNESSOPS_GOOGLE_*` key names used by Google admin authentication. Credential
   values are never decoded, emitted, or logged. The bounded
@@ -129,13 +149,9 @@ scripts cover the lane. Prefer in-repo scripts so agents and humans share one pa
 - Extra dormant Microsoft OIDC or legacy-key credential entries are deliberately
   untouched. Removing them requires separate custody-cleanup authorization.
 
-The legacy `deploy/k8s/apply.sh` helper requires a digest-qualified
-`WITNESSOPS_WEB_IMAGE` plus its build-recorded, manifest-bound
-`WITNESSOPS_WEB_CONFIG_DIGEST`. It runs the OIDC key-name preflight before any
-cluster mutation, then verifies the deployed reference, readiness, and running
-application image IDs after rollout. Its `DEPLOY_NS` namespace and
-`ADMIN_OIDC_SECRET` must therefore be preprovisioned; the helper does not create
-or update that Secret.
+The legacy `deploy/k8s/apply.sh` helper and direct SSH/kubectl production
+scripts are retired from routine authority. Their presence supports historical
+review and bounded recovery analysis only.
 
 ### Intentional non-parity (not drift)
 
@@ -165,18 +181,10 @@ SSH. Network profile, peer and CIDR details stay outside this public repo.
 
 ### CI/CD boundary
 
-`.github/workflows/release.yml` builds, verifies, signs, and publishes an
-immutable release artifact. It does **not** SSH to a host, apply Kubernetes
-manifests, restart services, or deploy production. Its receipt records no
-deployment and points operators back to this authority document. Production
-execution remains an explicit manual/internal lane.
-
-### Known execution limitation
-
-The migration audit observed k3s on the Frankfurt target but did not prove that
-the current remote Docker build/import path is usable there. Target identity
-is now fail-closed, but the build/import prerequisite remains a Phase 2 blocker;
-do not redirect the helper to the old VPS to work around it.
+`.github/workflows/release.yml` remains artifact-release only. Production image
+movement is owned separately by `.github/workflows/aws-release.yml`; it builds,
+publishes to immutable ECR, validates scan evidence, waits at the protected
+`aws-production` environment, and invokes only the production SSM document.
 
 ## Authority split
 
@@ -189,15 +197,12 @@ Public web content authority:
 
 Deploy authority:
 
-- timestamped shared image build with the tag alias, OCI manifest digest, and
-  manifest-bound config digest captured
-- in-repo k3s scripts targeting the injected `PROD_DEPLOY` and/or `DEV_DEPLOY`
-- rollout status and dual-lane smoke when both are in scope
-- known-good rollback image redeployed through the prod reconciler, with exact
-  `envFrom` reconciliation and smoke captured in the receipt
-- restricted target-identity receipt showing the generic Frankfurt plane and
-  matching expected/observed private host and instance identity without
-  publishing those private identifiers
+- exact merged `main` commit and immutable ECR image/config digests
+- successful digest-bound ECR scan evidence from the named publication run
+- required approval at the protected `aws-production` environment
+- least-privilege production OIDC role invoking only the production SSM document
+- installed host adapter reconciling the exact digest on Frankfurt k3s
+- expected-current-digest compare-and-swap, rollout health, and rollback evidence
 
 DNS/Cloudflare authority:
 
@@ -235,7 +240,7 @@ docs/archive/azure-aca-retired-20260508/
 That archive is historical reference only. Do not run `az`, `azd`, or Bicep
 from this repo unless an explicit Azure reopening lane authorizes it.
 
-## AWS infrastructure automation source: not active deploy authority
+## AWS GitHub/ECR/SSM lane: active routine deploy authority
 
 The bounded target architecture and migration gates are defined in
 [`AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md`](./AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md)
@@ -244,24 +249,13 @@ contracts are
 [`deploy/aws/migration-contract.v1.json`](../deploy/aws/migration-contract.v1.json)
 and
 [`deploy/aws/github-deployment-contract.v1.json`](../deploy/aws/github-deployment-contract.v1.json).
-The parameterized CloudFormation file under `deploy/aws/cloudformation/` is
-reviewable source, not evidence of the stack that created the current host. No
-GitHub AWS-deployment workflow or host adapter is active in this phase.
+The GitHub workflows, ECR publication role, protected production environment,
+production deployer role, bounded SSM document, and installed host adapter are
+the active routine path. The CloudFormation source remains a reviewable desired
+state; this document does not claim it created every observed live resource.
 
-These files remain design, evidence, and fail-closed acceptance surfaces only.
-They do not authorize creating AWS resources, deploying workloads, copying
-production data, changing DNS, writing Secrets, or cutting traffic over. The
-current Frankfurt serving path at the top of this document is authoritative;
-that point-in-time runtime evidence does not prove this automation source was
-applied to build it.
-
-The candidate preserves the existing deployment seam and runtime shape:
-`DEPLOY_SSH` selects the host, Caddy terminates the public edge, the app binds
-to loopback, and a single-node k3s instance owns the production PVCs, Secrets,
-and digest-qualified image. It does not activate Public Exposure Review
-production signing keys or change the production verification key registry;
-those actions require a separate custody and activation lane after AWS
-acceptance.
+This authority does not include DNS changes, Secret writes, production signing
+key activation, verification-key registry changes, or arbitrary SSM commands.
 
 ## Review boundary
 
