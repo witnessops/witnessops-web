@@ -3,29 +3,55 @@ import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
+import {
+  sampleCommitShort,
+  sampleManifestSha256,
+  sampleSourceRepository,
+} from "@/app/review/sample-cases/ai-agent-action-proof-run/sample-artifact-contract";
 import { BUYER_SERVICES } from "@/lib/buyer-services";
 
 const source = readFileSync(resolve(__dirname, "buyer-homepage.tsx"), "utf8");
 const onePagerDir = resolve(__dirname, "../../../public/assets/one-pagers");
 
-test("homepage leads with the agent-action promise and a bounded receipt claim", () => {
+test("homepage connects the agent workflow review to a bounded receipt specimen", () => {
   assert.match(source, /Agents act\. WitnessOps proves\./);
-  assert.match(
-    source,
-    /Signed receipts and external verification for consequential AI-agent actions\./,
+  assert.match(source, /Proof infrastructure for agentic operations/);
+  assert.match(source, /Declare the workflow boundary/);
+  assert.match(source, /Before execution/);
+  assert.match(source, /During execution/);
+  assert.match(source, /After execution/);
+  assert.match(source, /Produce something another party can check\./);
+  assert.match(source, /Five questions\. One bounded workflow\./);
+  assert.match(source, /What was authorized\?/);
+  assert.match(source, /What was executed\?/);
+  assert.match(source, /What was observed\?/);
+  assert.match(source, /What remains unresolved\?/);
+  assert.match(source, /How can it be challenged\?/);
+  assert.match(source, /Published sample — not live customer evidence/);
+  assert.match(source, /sampleSourceRepository/);
+  assert.match(source, /sampleCommitShort/);
+  assert.match(source, /sampleManifestSha256/);
+  assert.equal(sampleSourceRepository, "witnessops/witnessops-sample-cases");
+  assert.equal(sampleCommitShort, "99741c8d50cd");
+  assert.equal(
+    sampleManifestSha256,
+    "6c43e87534a4e445321c46d9765efa885d3df5aa8eb8110a214653b0f46d7447",
   );
-  assert.match(source, /AI agents are becoming invisible operators\./);
-  assert.match(source, /Hope is not an audit artifact\./);
-  assert.match(source, /Every consequential agent action gets a verifiable receipt\./);
-  assert.match(source, /Who owned the agent/);
-  assert.match(source, /What policy or approval allowed it/);
-  assert.match(source, /How the receipt can be verified later/);
-  assert.match(source, /A receipt proves only what its named verifier and referenced evidence support/);
-  assert.match(source, /does not certify that an agent was correct, safe, compliant, or complete/);
-  assert.match(source, /sample, not customer evidence/);
+  assert.match(source, /pass_with_sample_limitations/);
+  assert.match(source, /does not establish production deployment, compliance/);
+  assert.match(source, /A receipt is only as strong as its named evidence and verifier/);
+  assert.match(source, /Bring one agentic workflow/);
+  assert.match(source, /id="evidence-questions"/);
+  assert.match(source, /id="agent-action-receipt"/);
+  assert.match(source, /id="agent-risk-control"/);
   assert.match(source, /\/review\/sample-cases\/ai-agent-action-proof-run/);
-  assert.doesNotMatch(source, /Current paid entry point/);
-  assert.doesNotMatch(source, /proves that the agent was correct/i);
+  assert.doesNotMatch(source, /\/verify\/skill/);
+  assert.doesNotMatch(source, /Aegis/);
+  assert.doesNotMatch(source, /SKILL\.md/);
+  assert.doesNotMatch(source, /Check a skill/i);
+  assert.doesNotMatch(source, /external verification/i);
+  assert.doesNotMatch(source, /Every consequential agent action gets a verifiable receipt/i);
+  assert.doesNotMatch(source, /No secrets/i);
 });
 
 test("Agent Risk & Control Review is the named, priced, bounded homepage offer", () => {
@@ -41,19 +67,21 @@ test("Agent Risk & Control Review is the named, priced, bounded homepage offer",
   assert.match(offer?.timing.en ?? "", /Confirmed during the non-secret fit check/);
   assert.match(offer?.boundary.en ?? "", /One named workflow only/);
   assert.match(source, /Agent Risk & Control Review/);
-  assert.match(source, /A focused review of one agentic or automated workflow\./);
-  assert.match(source, /Agent and tool permission model/);
-  assert.match(source, /Approval and policy gap analysis/);
-  assert.match(source, /Sample proof bundle/);
-  assert.match(source, /Control recommendations/);
+  assert.match(source, /Review the workflow, not only the file\./);
+  assert.match(source, /Workflow and permission map/);
+  assert.match(source, /Approval and evidence-gap analysis/);
+  assert.match(source, /Proposed receipt and verifier path/);
+  assert.match(source, /Sample package and control recommendations/);
   assert.match(
     source,
-    /You know whether the workflow can be defended in an audit, customer review, or incident investigation\./,
+    /A practical handover that separates supported observations, unresolved gaps, and the evidence or controls needed to strengthen the workflow\./,
   );
   assert.match(
     source,
-    /Bring one agentic workflow\. We’ll show you what proof is missing\./,
+    /Bring one consequential workflow\. Make its authority and evidence reviewable\./,
   );
+  assert.match(source, /From €1,500 · Timing confirmed during a fit check/);
+  assert.match(source, /See scope and pricing/);
 });
 
 test("Public Exposure Review remains a current catalog offer but is not the homepage lead", () => {

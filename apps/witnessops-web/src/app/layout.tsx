@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Footer } from "@/components/marketing/footer";
 import { Navbar } from "@/components/shared/navbar";
+import { DocsAssistantWidget } from "@/components/docs-assistant/docs-assistant-widget";
 import { loadHomeContent } from "@/lib/content";
 import { KonamiPenguin } from "@/components/shared/konami-penguin";
 import { RouteScrollReset } from "@/components/shared/route-scroll-reset";
@@ -105,6 +106,7 @@ export default async function RootLayout({
         <RouteScrollReset />
         {children}
         <Footer {...content.footer} />
+        <DocsAssistantWidget />
         <KonamiPenguin />
       </body>
     </html>

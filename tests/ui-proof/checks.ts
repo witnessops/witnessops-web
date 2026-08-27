@@ -65,13 +65,12 @@ export async function checkHomepageHero(
     .first()
     .getAttribute("href")
     .catch(() => null);
-  const expectedOrderHref =
-    "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review";
+  const expectedFitCheckHref = "/review/request";
   checks.push({
-    name: "primary CTA opens the Public Exposure Review order route",
-    status: primaryCtaHref === expectedOrderHref ? "pass" : "fail",
+    name: "primary CTA opens the non-secret workflow fit check",
+    status: primaryCtaHref === expectedFitCheckHref ? "pass" : "fail",
     severity,
-    expected: expectedOrderHref,
+    expected: expectedFitCheckHref,
     actual: primaryCtaHref,
   });
 

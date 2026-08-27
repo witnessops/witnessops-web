@@ -18,6 +18,30 @@ test("primary buyer navigation contains the approved English destinations", () =
   }
 });
 
+test("homepage navigation follows the offer, evidence, receipt, and workflow path", () => {
+  for (const marker of [
+    'label: "Agent Risk & Control Review", href: "/catalog/workflows"',
+    'label: "How it works", href: "/#evidence-questions"',
+    'label: "Action receipt", href: "/#agent-action-receipt"',
+    'label: "Bring one workflow"',
+    'Proof beats memory.',
+  ]) {
+    assert.ok(navbar.includes(marker), `Missing homepage navigation marker: ${marker}`);
+  }
+
+  assert.match(navbar, /data-home-nav=\{homeNav \? "true" : undefined\}/);
+  assert.match(
+    navbar,
+    /data-product-journey-nav=\{productJourneyNav \? "true" : undefined\}/,
+  );
+});
+
+test("Check a Skill remains absent from shared navigation", () => {
+  assert.doesNotMatch(navbar, /\/verify\/skill/);
+  assert.doesNotMatch(navbar, /Check a skill/i);
+  assert.match(navbar, /const productJourneyNav = homeNav/);
+});
+
 test("language switch preserves every approved paired buyer route", () => {
   for (const [english, polish] of [
     ["/", "/pl"],

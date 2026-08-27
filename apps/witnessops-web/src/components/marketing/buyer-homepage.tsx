@@ -1,9 +1,12 @@
-import { CtaButton } from "@/components/shared/cta-button";
+import Link from "next/link";
+
 import {
-  buyerCatalogHref,
-  buyerRequestHref,
-  type BuyerLocale,
-} from "@/lib/buyer-services";
+  sampleCommitShort,
+  sampleManifestSha256,
+  sampleSourceRepository,
+} from "@/app/review/sample-cases/ai-agent-action-proof-run/sample-artifact-contract";
+import { CtaButton } from "@/components/shared/cta-button";
+import { buyerRequestHref, type BuyerLocale } from "@/lib/buyer-services";
 import styles from "./buyer-homepage.module.css";
 
 type HeroCopy = {
@@ -15,135 +18,181 @@ type HeroCopy = {
 const localizedCopy = {
   en: {
     hero: {
-      eyebrow: "WitnessOps",
+      eyebrow: "Proof infrastructure for agentic operations",
       title: "Agents act. WitnessOps proves.",
-      body: "Signed receipts and external verification for consequential AI-agent actions.",
+      body:
+        "WitnessOps helps security, platform, and compliance teams reconstruct one consequential agent workflow: what was authorized, what ran, what was observed, what remains unresolved, and how the result can be challenged.",
     },
     heroIntro:
-      "AI agents are starting to touch production systems, security tools, customer data, and operational workflows. When something important happens, logs are not enough. WitnessOps creates proof bundles that show what was approved, what ran, what changed, what evidence was captured, and how an external reviewer can verify it.",
-    primaryCta: "Bring one workflow",
-    offerCta: "See the first offer",
-    sampleCta: "Inspect agent sample",
-    verifyCta: "Verify a receipt",
-    catalogCta: "View all services",
-    noSecrets: "Non-secret fit check · One bounded workflow · Evidence handling agreed before intake",
-    receiptLabel: "A verifiable receipt records",
-    receiptItems: [
-      "Who owned the agent",
-      "What action was requested",
-      "What policy or approval allowed it",
-      "What tools and systems were touched",
-      "What evidence was captured",
-      "What changed",
-      "What signer or key attested to it",
-      "How the receipt can be verified later",
+      "Define the workflow before execution, preserve authority and evidence while it runs, then produce a bounded record another responsible party can inspect.",
+    primaryCta: "Bring one agentic workflow",
+    sampleLink: "Inspect the public evidence sample",
+    offerCta: "See scope and pricing",
+    handlingBoundary:
+      "Do not send passwords, private keys, API keys, tokens or recovery codes · One workflow · Evidence handling agreed before intake",
+    flowLabel: "The WitnessOps method",
+    flowItems: [
+      {
+        step: "Before execution",
+        title: "Declare the workflow boundary",
+        body: "Name the owner, permitted actions, policy, systems, and approval.",
+      },
+      {
+        step: "During execution",
+        title: "Preserve authority and evidence",
+        body: "Name the approval, scope, tool path, observations, and unresolved gaps.",
+      },
+      {
+        step: "After execution",
+        title: "Make the action reviewable",
+        body: "Bind the record to evidence references, limits, and a verifier path.",
+      },
     ],
-    problemEyebrow: "The problem",
-    problemTitle: "AI agents are becoming invisible operators.",
-    problemBody:
-      "They can trigger workflows, call tools, change systems, update tickets, query data, and make decisions. But when a customer, auditor, incident responder, or executive asks what actually happened, most teams have only scattered logs, screenshots, Slack messages, and hope.",
-    problemClose: "Hope is not an audit artifact.",
-    answerEyebrow: "The WitnessOps answer",
-    answerTitle: "Every consequential agent action gets a verifiable receipt.",
-    answerBody:
-      "The receipt binds the action to its authority, evidence, result, signer, and verifier path so another responsible person can inspect the record without trusting the agent or its operator on reputation alone.",
-    offerEyebrow: "First offer",
+    reviewEyebrow: "The evidence questions",
+    reviewTitle: "Five questions. One bounded workflow.",
+    reviewBody:
+      "The paid engagement organizes the workflow around the evidence another responsible person would need to inspect or challenge it.",
+    reviewItems: [
+      { title: "What was authorized?", body: "Owner, scope, policy and approval." },
+      { title: "What was executed?", body: "Action, tool path and touched system." },
+      { title: "What was observed?", body: "Evidence, records and reported result." },
+      {
+        title: "What remains unresolved?",
+        body: "Gaps, exceptions and unsupported conclusions.",
+      },
+      {
+        title: "How can it be challenged?",
+        body: "Named artifacts, verifier output and replay path.",
+      },
+    ],
+    receiptEyebrow: "After execution · Public specimen",
+    receiptTitle: "Produce something another party can check.",
+    receiptBody:
+      "An Agent Action Receipt can bind declared authority, execution records, evidence references, the reported result, signer or key references where implemented, verifier output, and unresolved gaps.",
+    receiptStatus: "Published sample — not live customer evidence",
+    receiptSpecimenTitle: "Agent Action Receipt specimen",
+    receiptRepositoryLabel: "Repository",
+    receiptCommitLabel: "Pinned commit",
+    receiptManifestLabel: "Manifest SHA-256",
+    receiptResultLabel: "Reported verifier result",
+    receiptResult: "pass_with_sample_limitations",
+    receiptLink: "Open the pinned evidence sample",
+    offerEyebrow: "Paid engagement",
     offerTitle: "Agent Risk & Control Review",
-    offerLead: "A focused review of one agentic or automated workflow.",
+    offerLead: "Review the workflow, not only the file.",
     offerBody:
-      "We map the workflow, identify authority and evidence gaps, define the receipt schema, and produce a sample proof bundle that shows how the action can be approved, executed, evidenced, and verified.",
+      "The engagement maps one named workflow, identifies authority and evidence gaps, defines a proposed receipt shape, and produces a clearly labelled sample package with control recommendations.",
     bestForTitle: "Best for",
     bestForBody:
-      "Security teams, platform teams, compliance teams, MSSPs, and AI automation teams that are letting agents or automations touch sensitive systems.",
+      "Security, platform, compliance, MSSP, and AI automation teams letting agents or automations touch sensitive systems.",
     deliverablesTitle: "Deliverables",
     deliverables: [
-      "Workflow map",
-      "Agent and tool permission model",
-      "Approval and policy gap analysis",
-      "Evidence requirements",
-      "Receipt schema",
-      "Sample proof bundle",
-      "Verifier path",
-      "Control recommendations",
+      "Workflow and permission map",
+      "Approval and evidence-gap analysis",
+      "Proposed receipt and verifier path",
+      "Sample package and control recommendations",
     ],
     commercialLine:
-      "From €1,500 · Timing confirmed during a non-secret fit check · One agentic or automated workflow",
+      "From €1,500 · Timing confirmed during a fit check · One agentic or automated workflow",
     outcomeTitle: "Outcome",
     outcomeBody:
-      "You know whether the workflow can be defended in an audit, customer review, or incident investigation.",
+      "A practical handover that separates supported observations, unresolved gaps, and the evidence or controls needed to strengthen the workflow.",
     boundaryEyebrow: "Proof boundary",
     boundaryTitle: "A receipt is only as strong as its named evidence and verifier.",
     boundaryBody:
-      "WitnessOps distinguishes a signed record from a supported claim. A receipt proves only what its named verifier and referenced evidence support. It does not certify that an agent was correct, safe, compliant, or complete. The review’s sample proof bundle is clearly labelled as a sample, not customer evidence.",
-    closeTitle: "Bring one agentic workflow. We’ll show you what proof is missing.",
+      "WitnessOps distinguishes a signed record from a supported claim. A receipt proves only what its named verifier and referenced evidence support. It does not certify that an agent was correct, safe, compliant, or complete. The public receipt specimen is an inspection aid, not customer evidence, and does not establish production deployment, compliance, correctness, safety, or completeness.",
+    closeTitle: "Bring one consequential workflow. Make its authority and evidence reviewable.",
     closeBody:
-      "Start with a short, non-secret fit check. Name the workflow, its owner, and the consequential action. Evidence is handled only after scope and handling are agreed.",
+      "Start with the workflow name, its owner, and the consequential action. Customer evidence is accepted only after scope and handling are agreed.",
   },
   pl: {
     hero: {
-      eyebrow: "WitnessOps",
-      title: "Agents act. WitnessOps proves.",
-      body: "Podpisane potwierdzenia i zewnętrzna weryfikacja istotnych działań agentów AI.",
+      eyebrow: "Infrastruktura dowodowa dla operacji agentowych",
+      title: "Agenci działają. WitnessOps dostarcza dowody.",
+      body:
+        "WitnessOps pomaga zespołom bezpieczeństwa, platform i compliance odtworzyć jeden istotny workflow agenta: co zatwierdzono, co uruchomiono, co zaobserwowano, co pozostaje nierozstrzygnięte i jak można zakwestionować wynik.",
     },
     heroIntro:
-      "Agenci AI zaczynają działać w systemach produkcyjnych, narzędziach bezpieczeństwa, danych klientów i przepływach operacyjnych. Gdy dzieje się coś istotnego, same logi nie wystarczą. WitnessOps tworzy pakiety dowodowe pokazujące, co zatwierdzono, co wykonano, co się zmieniło, jakie materiały zebrano i jak może je sprawdzić zewnętrzny recenzent.",
-    primaryCta: "Przynieś jeden workflow",
-    offerCta: "Zobacz pierwszą ofertę",
-    sampleCta: "Zobacz przykład agenta",
-    verifyCta: "Zweryfikuj zapis",
-    catalogCta: "Zobacz wszystkie usługi",
-    noSecrets: "Niepoufna ocena dopasowania · Jeden ograniczony workflow · Zasady obsługi materiałów uzgodnione przed ich przyjęciem",
-    receiptLabel: "Weryfikowalny zapis obejmuje",
-    receiptItems: [
-      "Kto był właścicielem agenta",
-      "Jakie działanie zlecono",
-      "Jaka polityka lub zgoda je dopuściła",
-      "Jakich narzędzi i systemów dotknięto",
-      "Jakie materiały zebrano",
-      "Co się zmieniło",
-      "Jaki podpisujący lub klucz to poświadczył",
-      "Jak później zweryfikować zapis",
+      "Zdefiniuj workflow przed wykonaniem, zachowaj upoważnienie i materiały podczas działania, a potem przygotuj ograniczony zapis, który inna odpowiedzialna osoba może przejrzeć.",
+    primaryCta: "Zgłoś jeden workflow agenta",
+    sampleLink: "Zobacz publiczny przykład materiałów",
+    offerCta: "Zobacz zakres i cenę",
+    handlingBoundary:
+      "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, tokenów ani kodów odzyskiwania · Jeden workflow · Zasady obsługi materiałów uzgadniane przed przyjęciem",
+    flowLabel: "Metoda WitnessOps",
+    flowItems: [
+      {
+        step: "Przed wykonaniem",
+        title: "Zdefiniuj granice workflow",
+        body: "Nazwij właściciela, dozwolone działania, politykę, systemy i zgodę.",
+      },
+      {
+        step: "Podczas wykonania",
+        title: "Zachowaj upoważnienie i materiały",
+        body: "Nazwij zgodę, zakres, ścieżkę narzędzi, obserwacje i nierozstrzygnięte luki.",
+      },
+      {
+        step: "Po wykonaniu",
+        title: "Uczyń działanie możliwym do przeglądu",
+        body: "Powiąż zapis z materiałami, ograniczeniami i ścieżką weryfikatora.",
+      },
     ],
-    problemEyebrow: "Problem",
-    problemTitle: "Agenci AI stają się niewidocznymi operatorami.",
-    problemBody:
-      "Mogą uruchamiać workflow, wywoływać narzędzia, zmieniać systemy, aktualizować zgłoszenia, odpytywać dane i podejmować decyzje. Gdy klient, audytor, zespół reagowania na incydenty albo zarząd pyta, co naprawdę się wydarzyło, większość zespołów ma tylko rozproszone logi, zrzuty ekranu, wiadomości na Slacku i nadzieję.",
-    problemClose: "Nadzieja nie jest artefaktem audytowym.",
-    answerEyebrow: "Odpowiedź WitnessOps",
-    answerTitle: "Każde istotne działanie agenta otrzymuje weryfikowalny zapis.",
-    answerBody:
-      "Zapis łączy działanie z upoważnieniem, materiałami, wynikiem, podpisującym i ścieżką weryfikacji, aby inna odpowiedzialna osoba mogła go sprawdzić bez polegania wyłącznie na reputacji agenta lub operatora.",
-    offerEyebrow: "Pierwsza oferta",
+    reviewEyebrow: "Pytania dowodowe",
+    reviewTitle: "Pięć pytań. Jeden ograniczony workflow.",
+    reviewBody:
+      "Płatny przegląd porządkuje workflow wokół materiałów, których inna odpowiedzialna osoba potrzebuje, aby go sprawdzić lub zakwestionować.",
+    reviewItems: [
+      { title: "Co zatwierdzono?", body: "Właściciel, zakres, polityka i zgoda." },
+      { title: "Co wykonano?", body: "Działanie, ścieżka narzędzi i dotknięty system." },
+      { title: "Co zaobserwowano?", body: "Materiały, zapisy i odnotowany wynik." },
+      {
+        title: "Co pozostaje nierozstrzygnięte?",
+        body: "Luki, wyjątki i niepoparte wnioski.",
+      },
+      {
+        title: "Jak można to zakwestionować?",
+        body: "Nazwane artefakty, wynik weryfikatora i ścieżka odtworzenia.",
+      },
+    ],
+    receiptEyebrow: "Po wykonaniu · Publiczny wzór",
+    receiptTitle: "Przygotuj zapis, który inna osoba może sprawdzić.",
+    receiptBody:
+      "Agent Action Receipt może powiązać zadeklarowane upoważnienie, zapis wykonania, odniesienia do materiałów, odnotowany wynik, odniesienie do podpisującego lub klucza — tam, gdzie jest wdrożone — wynik weryfikatora i nierozstrzygnięte luki.",
+    receiptStatus: "Opublikowany przykład — nie są to materiały klienta",
+    receiptSpecimenTitle: "Przykład Agent Action Receipt",
+    receiptRepositoryLabel: "Repozytorium",
+    receiptCommitLabel: "Przypięty commit",
+    receiptManifestLabel: "SHA-256 manifestu",
+    receiptResultLabel: "Zapisany wynik weryfikatora",
+    receiptResult: "pass_with_sample_limitations",
+    receiptLink: "Otwórz przypięty przykład materiałów",
+    offerEyebrow: "Płatny przegląd",
     offerTitle: "Agent Risk & Control Review",
-    offerLead: "Skupiony przegląd jednego agentowego lub zautomatyzowanego workflow.",
+    offerLead: "Przejrzyj workflow, nie tylko plik.",
     offerBody:
-      "Mapujemy workflow, wskazujemy luki w upoważnieniach i materiałach, definiujemy schemat zapisu i przygotowujemy przykładowy pakiet dowodowy pokazujący, jak działanie może być zatwierdzone, wykonane, udokumentowane i zweryfikowane.",
+      "Przegląd mapuje jeden nazwany workflow, wskazuje luki w upoważnieniach i materiałach, definiuje proponowany kształt zapisu i dostarcza jasno oznaczony przykładowy pakiet z zaleceniami dotyczącymi kontroli.",
     bestForTitle: "Dla kogo",
     bestForBody:
       "Zespoły bezpieczeństwa, platform, compliance, MSSP i automatyzacji AI, które pozwalają agentom lub automatyzacjom działać w systemach wrażliwych.",
     deliverablesTitle: "Zakres dostawy",
     deliverables: [
-      "Mapa workflow",
-      "Model uprawnień agenta i narzędzi",
-      "Analiza luk w zatwierdzeniach i politykach",
-      "Wymagania dowodowe",
-      "Schemat zapisu",
-      "Przykładowy pakiet dowodowy",
-      "Ścieżka weryfikacji",
-      "Zalecenia dotyczące kontroli",
+      "Mapa workflow i uprawnień",
+      "Analiza luk w zatwierdzeniach i materiałach",
+      "Proponowany zapis i ścieżka weryfikatora",
+      "Przykładowy pakiet i zalecenia dotyczące kontroli",
     ],
     commercialLine:
-      "Od 6 500 zł (ok. €1 500) · Termin potwierdzany podczas niepoufnej oceny dopasowania · Jeden agentowy lub zautomatyzowany workflow",
+      "Od 6 500 zł (ok. €1 500) · Termin potwierdzany podczas oceny dopasowania · Jeden agentowy lub zautomatyzowany workflow",
     outcomeTitle: "Wynik",
     outcomeBody:
-      "Wiesz, czy workflow można obronić podczas audytu, przeglądu klienta lub dochodzenia po incydencie.",
+      "Praktyczne przekazanie, które oddziela poparte obserwacje, nierozstrzygnięte luki oraz materiały lub kontrole potrzebne do wzmocnienia workflow.",
     boundaryEyebrow: "Granica dowodu",
     boundaryTitle: "Zapis jest tak mocny, jak wskazane materiały i weryfikator.",
     boundaryBody:
-      "WitnessOps odróżnia podpisany zapis od twierdzenia popartego dowodami. Zapis nie certyfikuje, że agent działał poprawnie, bezpiecznie, zgodnie z wymaganiami lub kompletnie; dowodzi tylko tego, co wspierają wskazany weryfikator i przywołane materiały. Przykładowy pakiet jest wyraźnie oznaczony jako przykład, a nie materiał klienta.",
-    closeTitle: "Przynieś jeden agentowy workflow. Pokażemy, jakiego dowodu brakuje.",
+      "WitnessOps odróżnia podpisany zapis od twierdzenia popartego materiałami. Zapis dowodzi wyłącznie tego, co wspierają wskazany weryfikator i przywołane materiały. Nie certyfikuje, że agent działał poprawnie, bezpiecznie, zgodnie z wymaganiami lub kompletnie. Publiczny przykład zapisu pomaga w inspekcji, ale nie jest materiałem klienta i nie potwierdza wdrożenia produkcyjnego, zgodności, poprawności, bezpieczeństwa ani kompletności.",
+    closeTitle: "Zgłoś jeden istotny workflow. Uczyń jego upoważnienie i materiały możliwymi do przeglądu.",
     closeBody:
-      "Zacznij od krótkiej, niepoufnej oceny dopasowania. Nazwij workflow, jego właściciela i istotne działanie. Materiały są przyjmowane dopiero po uzgodnieniu zakresu i zasad postępowania.",
+      "Zacznij od nazwy workflow, jego właściciela i istotnego działania. Materiały klienta są przyjmowane dopiero po uzgodnieniu zakresu i zasad postępowania.",
   },
 } as const;
 
@@ -157,58 +206,33 @@ export function BuyerHomepage({
   const text = localizedCopy[locale];
   const heroCopy = hero ?? text.hero;
   const requestHref = buyerRequestHref(locale);
-  const catalogHref = buyerCatalogHref(locale);
-  const offerHref = locale === "en" ? "/catalog/workflows" : catalogHref;
+  const offerHref = "/catalog/workflows";
   const sampleHref = "/review/sample-cases/ai-agent-action-proof-run";
-  const verifyHref = locale === "pl" ? "/pl/verify" : "/verify";
 
   return (
-    <main
-      id="main-content"
-      tabIndex={-1}
-      className={`buyer-page ${styles.page}`}
-      data-page="home"
-      data-home-direction="agent-proof-offer"
-    >
+    <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="agent-proof-offer">
       <section data-ui-proof-id="homepage-hero" className={styles.heroSection}>
         <header className={`${styles.frame} ${styles.heroFrame}`}>
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>{heroCopy.eyebrow}</p>
-            <h1 data-ui-proof-id="homepage-hero-headline" className={styles.heroTitle}>
-              {heroCopy.title}
-            </h1>
-            <p data-ui-proof-id="homepage-hero-body" className={styles.heroBody}>
-              {heroCopy.body}
-            </p>
+            <h1 data-ui-proof-id="homepage-hero-headline" className={styles.heroTitle}>{heroCopy.title}</h1>
+            <p data-ui-proof-id="homepage-hero-body" className={styles.heroBody}>{heroCopy.body}</p>
             <p className={styles.heroIntro}>{text.heroIntro}</p>
             <div className={styles.heroActions}>
-              <CtaButton
-                uiProofId="homepage-hero-primary-cta"
-                href={requestHref}
-                variant="primary"
-                label={text.primaryCta}
-                className={styles.primaryCta}
-              />
-              <CtaButton
-                href={offerHref}
-                variant="secondary"
-                label={text.offerCta}
-                className={styles.secondaryCta}
-              />
+              <CtaButton uiProofId="homepage-hero-primary-cta" href={requestHref} variant="primary" label={text.primaryCta} className={styles.primaryCta} />
+              <CtaButton href={offerHref} variant="secondary" label={text.offerCta} className={styles.secondaryCta} />
             </div>
-            <p className={styles.assuranceLine}>{text.noSecrets}</p>
+            <Link className={styles.heroSampleLink} href={sampleHref}>{text.sampleLink} <span aria-hidden="true">↗</span></Link>
+            <p className={styles.assuranceLine}>{text.handlingBoundary}</p>
           </div>
 
-          <aside
-            aria-labelledby="home-receipt-heading"
-            className={styles.deliverablesPanel}
-          >
-            <h2 id="home-receipt-heading">{text.receiptLabel}</h2>
-            <ol>
-              {text.receiptItems.map((item, index) => (
-                <li key={item}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <strong>{item}</strong>
+          <aside className={styles.flowPanel} aria-label={text.flowLabel}>
+            <div className={styles.flowHeader}><span>{text.flowLabel}</span><span aria-hidden="true">φ</span></div>
+            <ol className={styles.flowList}>
+              {text.flowItems.map((item, index) => (
+                <li key={item.step}>
+                  <span className={styles.flowNumber}>{String(index + 1).padStart(2, "0")}</span>
+                  <div><p>{item.step}</p><h2>{item.title}</h2><span>{item.body}</span></div>
                 </li>
               ))}
             </ol>
@@ -216,112 +240,70 @@ export function BuyerHomepage({
         </header>
       </section>
 
-      <div className={styles.frame}>
-        <section className={styles.trustPair} aria-labelledby="home-problem-heading">
-          <article>
-            <p className={styles.eyebrow}>{text.problemEyebrow}</p>
-            <h2 id="home-problem-heading" className={styles.sectionTitle}>
-              {text.problemTitle}
-            </h2>
-            <p className={styles.sectionBody}>{text.problemBody}</p>
-            <p className={styles.checkLead}>{text.problemClose}</p>
-          </article>
-          <article>
-            <p className={styles.eyebrow}>{text.answerEyebrow}</p>
-            <h2 id="home-answer-heading" className={styles.sectionTitle}>
-              {text.answerTitle}
-            </h2>
-            <p className={styles.sectionBody}>{text.answerBody}</p>
-          </article>
-        </section>
-      </div>
+      <section id="evidence-questions" className={styles.reviewSection} aria-labelledby="home-review-heading">
+        <div className={styles.frame}>
+          <div className={styles.sectionIntro}>
+            <p className={styles.eyebrow}>{text.reviewEyebrow}</p>
+            <h2 id="home-review-heading" className={styles.sectionTitle}>{text.reviewTitle}</h2>
+            <p className={styles.sectionBody}>{text.reviewBody}</p>
+          </div>
+          <ol className={styles.reviewGrid}>
+            {text.reviewItems.map((item, index) => <li key={item.title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{item.title}</h3><p>{item.body}</p></li>)}
+          </ol>
+        </div>
+      </section>
 
-      <section className={styles.evidenceSection} aria-labelledby="home-offer-heading">
+      <section id="agent-action-receipt" className={styles.receiptSection} aria-labelledby="home-receipt-heading">
+        <div className={`${styles.frame} ${styles.receiptFrame}`}>
+          <div className={styles.receiptCopy}>
+            <p className={styles.eyebrow}>{text.receiptEyebrow}</p>
+            <h2 id="home-receipt-heading" className={styles.sectionTitle}>{text.receiptTitle}</h2>
+            <p className={styles.sectionBody}>{text.receiptBody}</p>
+            <Link className={styles.textLink} href={sampleHref}>{text.receiptLink} →</Link>
+          </div>
+
+          <article className={styles.receiptCard}>
+            <div className={styles.receiptHeader}><span>{text.receiptSpecimenTitle}</span><span>{text.receiptStatus}</span></div>
+            <dl className={styles.receiptFacts}>
+              <div><dt>{text.receiptRepositoryLabel}</dt><dd>{sampleSourceRepository}</dd></div>
+              <div><dt>{text.receiptCommitLabel}</dt><dd><code>{sampleCommitShort}</code></dd></div>
+              <div><dt>{text.receiptManifestLabel}</dt><dd><code>{sampleManifestSha256}</code></dd></div>
+              <div><dt>{text.receiptResultLabel}</dt><dd><code>{text.receiptResult}</code></dd></div>
+            </dl>
+            <div className={styles.receiptFooter}><span>Authority</span><span>Execution</span><span>Evidence</span><span>Limits</span><span>Challenge</span></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="agent-risk-control" className={styles.offerSection} aria-labelledby="home-offer-heading">
         <div className={`${styles.frame} ${styles.offerFrame}`}>
           <div className={styles.offerIntro}>
-            <p className={styles.exampleEyebrow}>{text.offerEyebrow}</p>
-            <h2 id="home-offer-heading" className={styles.offerTitle}>
-              {text.offerTitle}
-            </h2>
+            <p className={styles.eyebrow}>{text.offerEyebrow}</p>
+            <h2 id="home-offer-heading" className={styles.offerTitle}>{text.offerTitle}</h2>
             <p className={styles.offerLead}>{text.offerLead}</p>
             <p className={styles.offerBody}>{text.offerBody}</p>
             <p className={styles.offerCommercial}>{text.commercialLine}</p>
-            <div className={styles.heroActions}>
-              <CtaButton
-                href={offerHref}
-                variant="primary"
-                label={text.offerCta}
-                className={styles.closingPrimary}
-              />
-              <CtaButton
-                href={sampleHref}
-                variant="secondary"
-                label={text.sampleCta}
-                className={styles.closingSecondary}
-              />
-            </div>
+            <CtaButton href={offerHref} variant="primary" label={text.offerCta} className={styles.primaryCta} />
           </div>
 
           <div className={styles.offerDetails}>
-            <article>
-              <h3>{text.bestForTitle}</h3>
-              <p>{text.bestForBody}</p>
-            </article>
-            <article>
-              <h3>{text.deliverablesTitle}</h3>
-              <ul>
-                {text.deliverables.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </article>
-            <article className={styles.offerOutcome}>
-              <h3>{text.outcomeTitle}</h3>
-              <p>{text.outcomeBody}</p>
-            </article>
+            <article><h3>{text.bestForTitle}</h3><p>{text.bestForBody}</p></article>
+            <article><h3>{text.deliverablesTitle}</h3><ul>{text.deliverables.map((item) => <li key={item}>{item}</li>)}</ul></article>
+            <article className={styles.offerOutcome}><h3>{text.outcomeTitle}</h3><p>{text.outcomeBody}</p></article>
           </div>
         </div>
       </section>
 
       <div className={styles.frame}>
-        <section className={styles.editorialSection} aria-labelledby="home-boundary-heading">
+        <section className={styles.boundarySection} aria-labelledby="home-boundary-heading">
           <p className={styles.eyebrow}>{text.boundaryEyebrow}</p>
-          <h2 id="home-boundary-heading" className={styles.sectionTitle}>
-            {text.boundaryTitle}
-          </h2>
+          <h2 id="home-boundary-heading" className={styles.sectionTitle}>{text.boundaryTitle}</h2>
           <p className={styles.sectionBody}>{text.boundaryBody}</p>
-          <div className={styles.heroActions}>
-            <CtaButton
-              href={verifyHref}
-              variant="secondary"
-              label={text.verifyCta}
-              className={styles.secondaryCta}
-            />
-          </div>
         </section>
 
-        <section
-          className={styles.closingSection}
-          aria-labelledby="home-close-heading"
-        >
-          <div>
-            <h2 id="home-close-heading">{text.closeTitle}</h2>
-            <p>{text.closeBody}</p>
-          </div>
-          <div className={styles.closingActions}>
-            <CtaButton
-              href={requestHref}
-              variant="primary"
-              label={text.primaryCta}
-              className={styles.closingPrimary}
-            />
-            <CtaButton
-              href={catalogHref}
-              variant="secondary"
-              label={text.catalogCta}
-              className={styles.closingSecondary}
-            />
-          </div>
+        <section className={styles.closingSection} aria-labelledby="home-close-heading">
+          <div><h2 id="home-close-heading">{text.closeTitle}</h2><p>{text.closeBody}</p></div>
+          <CtaButton href={requestHref} variant="primary" label={text.primaryCta} className={styles.closingPrimary} />
         </section>
       </div>
     </main>

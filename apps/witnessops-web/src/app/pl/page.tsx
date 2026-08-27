@@ -6,9 +6,9 @@ import { languageAlternates } from "@/lib/public-seo";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
-  title: "Podpisane zapisy działań agentów AI",
+  title: "Infrastruktura dowodowa dla operacji agentowych",
   description:
-    "Agents act. WitnessOps proves. Podpisane potwierdzenia i zewnętrzna weryfikacja istotnych działań agentów AI.",
+    "Sprawdź agenta przed wykonaniem, zachowaj upoważnienie i materiały podczas działania, a potem przygotuj ograniczony zapis możliwy do przeglądu.",
   alternates: languageAlternates("/pl", { en: "/", pl: "/pl" }),
 };
 

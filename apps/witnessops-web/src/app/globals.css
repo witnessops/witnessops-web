@@ -165,12 +165,10 @@ body {
 }
 
 /* Public black-and-white palette. Buyer pages and their shared navbar/footer use
-   the same white, ink, and neutral-rule system. On dark public pages the shell
-   intentionally falls back to the root black token set instead of forcing white. */
+   the same white, ink, and neutral-rule system. The homepage and other dark
+   public pages intentionally fall back to the root black token set. */
 .buyer-page,
-main[data-page="home"],
-body:has(.buyer-page) .public-shell,
-body:has(main[data-page="home"]) .public-shell {
+body:has(.buyer-page) .public-shell {
   --color-brand-primary: #050505;
   --color-brand-primary-hover: #242424;
   --color-brand-secondary: #f3f3f3;

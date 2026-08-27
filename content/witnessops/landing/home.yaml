@@ -6,16 +6,16 @@ slug: "/"
 status:
   draft: false
   canonical: true
-  last_reviewed: "2026-08-26"
+  last_reviewed: "2026-08-27"
 
 seo:
-  title: "Signed Receipts for AI-Agent Actions | WitnessOps"
-  description: "Agents act. WitnessOps proves. Signed receipts and external verification for consequential AI-agent actions."
+  title: "Proof infrastructure for agentic operations | WitnessOps"
+  description: "Check the agent before it acts, preserve authority and evidence during execution, and produce a bounded record another party can inspect."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
   og_title: "Agents act. WitnessOps proves."
-  og_description: "Signed receipts and external verification for consequential AI-agent actions."
+  og_description: "Before execution: inspect the declared agent. After execution: produce a bounded record another party can check."
   twitter_card: "summary_large_image"
 
 theme:
@@ -29,30 +29,28 @@ navbar:
     text: ""
     href: ""
   links:
-    - label: "Services"
-      href: "/catalog"
     - label: "Agent Risk & Control Review"
       href: "/catalog/workflows"
-    - label: "Library"
-      href: "/library"
-    - label: "Why WitnessOps"
-      href: "/why-witnessops"
+    - label: "How it works"
+      href: "/#evidence-questions"
+    - label: "Action receipt"
+      href: "/#agent-action-receipt"
   cta:
     label: "Bring one workflow"
     href: "/review/request"
     variant: "primary"
 
 hero:
-  eyebrow: "WitnessOps"
+  eyebrow: "Proof infrastructure for agentic operations"
   title: "Agents act. WitnessOps proves."
-  body: "Signed receipts and external verification for consequential AI-agent actions."
+  body: "WitnessOps helps security, platform, and compliance teams reconstruct one consequential agent workflow: what was authorized, what ran, what was observed, what remains unresolved, and how the result can be challenged."
   supporting_points: []
   primary_cta:
-    label: "Bring one workflow"
+    label: "Bring one agentic workflow"
     href: "/review/request"
     variant: "primary"
   secondary_cta:
-    label: "See the first offer"
+    label: "See scope and pricing"
     href: "/catalog/workflows"
     variant: "secondary"
   proof_badges: []
@@ -178,10 +176,10 @@ sections:
 
 final_cta:
   enabled: true
-  title: "Ready for a bounded review?"
-  body: "Describe one situation without secrets. We confirm fit, scope, price and evidence handling before work starts."
+  title: "Bring one workflow. Make its boundaries and evidence gaps explicit."
+  body: "Start with the workflow name, its owner and the consequential action. Do not include passwords, private keys, API keys, tokens or recovery codes."
   ctas:
-    - label: "Start a review"
+    - label: "Review one workflow"
       href: "/review/request"
       variant: "primary"
     - label: "View services"
@@ -190,7 +188,7 @@ final_cta:
 
 footer:
   brand_line: "WitnessOps"
-  subline: "Signed receipts and external verification for consequential AI-agent actions."
+  subline: "Scoped reviews of consequential AI and security work with named evidence requirements and explicit limits."
   links:
     - label: "Services"
       href: "/catalog"

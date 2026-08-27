@@ -35,20 +35,19 @@ export async function GET() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "20px", maxWidth: "860px" }}>
             <div style={{ fontSize: 24, letterSpacing: "0.18em", textTransform: "uppercase", color: "#fb923c" }}>
-              Proof infrastructure
+              Proof infrastructure for agentic operations
             </div>
             <div style={{ fontSize: 72, lineHeight: 1.04, fontWeight: 700 }}>
               Agents act. WitnessOps proves.
             </div>
             <div style={{ fontSize: 28, lineHeight: 1.35, color: "#cbd5e1" }}>
-              Signed receipts and external verification for consequential AI-agent actions.
+              Check before execution. Preserve evidence. Make the action reviewable.
             </div>
           </div>
           <div style={{ display: "flex", gap: "18px", fontSize: 24, color: "#cbd5e1" }}>
-            <div>Authority</div>
-            <div>Evidence</div>
-            <div>Signed Receipts</div>
-            <div>Verification</div>
+            <div>Before: inspect</div>
+            <div>During: preserve</div>
+            <div>After: prove</div>
           </div>
         </div>
       </div>

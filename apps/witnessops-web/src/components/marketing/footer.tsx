@@ -143,12 +143,12 @@ const LIBRARY_FOOTER_PL: FooterContent = {
 const POLISH_FOOTER: FooterContent = {
   brand_line: "WitnessOps",
   subline:
-    "Ograniczone zakresowo przeglądy bezpieczeństwa z materiałami dowodowymi, jasnymi ograniczeniami i praktycznym przekazaniem wyniku.",
+    "Ograniczone zakresowo przeglądy istotnych działań AI i bezpieczeństwa ze wskazanymi wymaganiami dowodowymi, jasnymi ograniczeniami i praktycznym przekazaniem wyniku.",
   links: [
     { label: "Usługi", href: "/pl/catalog" },
     {
-      label: "Customer Security Review",
-      href: "/pl/customer-security-review",
+      label: "Agent Risk & Control Review",
+      href: "/catalog/workflows",
     },
     { label: "Dlaczego WitnessOps", href: "/pl/why-witnessops" },
     { label: "Weryfikacja", href: "/pl/verify" },
@@ -178,6 +178,7 @@ export function isExternalFooterHref(href: string): boolean {
 
 export function Footer({
   brand_line,
+  subline,
   links,
   legal_links,
   build_label,
@@ -198,8 +199,7 @@ export function Footer({
     // Buyer EN: rewrite Docs to canonical host; suppress STATIC build label.
     return {
       brand_line,
-      subline:
-        "Bounded security reviews with evidence, explicit limits and a practical handover.",
+      subline,
       links: links.map((link) =>
         link.href === "/docs" || link.href.startsWith("/docs/")
           ? { ...link, href: DOCS_PUBLIC_HREF }
@@ -212,6 +212,7 @@ export function Footer({
     };
   }, [
     brand_line,
+    subline,
     links,
     legal_links,
     build_label,
@@ -225,8 +226,8 @@ export function Footer({
       ? "Publiczne punkty wejścia"
       : "Public entry points"
     : isPolishSurface
-      ? "Operacje poparte dowodami"
-      : "Proof-backed operations";
+      ? "Ograniczona rekonstrukcja"
+      : "Bounded reconstruction";
 
   function toHref(href: string) {
     if (librarySurface) {

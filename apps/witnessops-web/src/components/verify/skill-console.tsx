@@ -14,6 +14,7 @@ import {
   type SkillScanOutcome,
   type SkillScanResult,
 } from "@/lib/skill-verify/run-scan";
+import styles from "./skill-console.module.css";
 
 const ACCEPTED_EXTENSIONS = [".md", ".markdown", ".txt"];
 
@@ -28,15 +29,15 @@ function isAcceptedSkillFile(file: File): boolean {
 }
 
 function verdictClass(verdict: SkillScanResult["verdict"]): string {
-  if (verdict === "pass") return "text-signal-green border-signal-green/40";
-  if (verdict === "review") return "text-signal-amber border-signal-amber/40";
-  return "text-signal-red border-signal-red/40";
+  if (verdict === "pass") return styles.verdictPass;
+  if (verdict === "review") return styles.verdictReview;
+  return styles.verdictFail;
 }
 
 function severityClass(severity: string): string {
-  if (severity === "critical") return "text-signal-red";
-  if (severity === "high") return "text-signal-amber";
-  return "text-text-secondary";
+  if (severity === "critical") return styles.severityCritical;
+  if (severity === "high") return styles.severityHigh;
+  return styles.severityDefault;
 }
 
 export function SkillConsole() {
@@ -132,31 +133,48 @@ export function SkillConsole() {
   const result = outcome?.ok ? outcome.result : null;
   const visibleFindings = result?.findings.slice(0, 50) ?? [];
   const extraFindings = result ? Math.max(0, result.findings.length - visibleFindings.length) : 0;
+  const contentBytes = new TextEncoder().encode(content).byteLength;
+  const verdictLabel = result
+    ? result.verdict === "review"
+      ? "Review required"
+      : result.verdict === "pass"
+        ? "Pass"
+        : "Fail"
+    : null;
 
   return (
-    <div className="space-y-6">
+    <div className={styles.console} data-ui-proof-id="skill-console">
+      <div className={styles.consoleHeader}>
+        <div>
+          <p>Evaluation workspace</p>
+          <h2>Check one declared skill</h2>
+        </div>
+        <span>Local · deterministic · no account</span>
+      </div>
+
       <section
-        className="border border-surface-border bg-surface-bg p-5 sm:p-6"
+        className={styles.inputPanel}
         aria-labelledby="skill-input-heading"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
+        data-ui-proof-id="skill-input"
       >
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2
-              id="skill-input-heading"
-              className="text-base font-semibold text-text-primary sm:text-lg"
-            >
-              SKILL.md input
-            </h2>
-            <p className="mt-1 text-sm text-text-muted">
-              Paste below, choose a local file, or drop one in this panel. Stays
-              in this browser. No account, history, or upload.
-            </p>
+        <div className={styles.inputHeader}>
+          <div className={styles.inputTitle}>
+            <span>01</span>
+            <div>
+              <h2 id="skill-input-heading">
+                Provide the SKILL.md
+              </h2>
+              <p id="skill-input-guidance">
+                Paste below, choose a local file, or drop it into this workspace.
+                The content stays in this browser.
+              </p>
+            </div>
           </div>
           <label
             htmlFor={fileInputId}
-            className="inline-flex min-h-11 cursor-pointer items-center border border-surface-border bg-surface-card px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent"
+            className={styles.fileButton}
           >
             Choose local file
             <input
@@ -169,8 +187,12 @@ export function SkillConsole() {
           </label>
         </div>
 
-        <label className="mt-4 block">
+        <label className={styles.editorShell}>
           <span className="sr-only">Paste SKILL.md</span>
+          <span className={styles.editorBar} aria-hidden="true">
+            <span>{sourceName}</span>
+            <span>{contentBytes} / {SKILL_MAX_BYTES} bytes</span>
+          </span>
           <textarea
             value={content}
             onChange={(event) => {
@@ -182,15 +204,17 @@ export function SkillConsole() {
             autoComplete="off"
             autoCorrect="off"
             placeholder="Paste SKILL.md here…"
-            className="min-h-[14rem] w-full resize-y border border-surface-border bg-[#0a0e17] p-4 font-mono text-xs leading-6 text-text-secondary outline-none transition-colors placeholder:text-text-muted/45 focus:border-brand-accent"
+            className={styles.editor}
             aria-label="Paste SKILL.md"
+            aria-describedby="skill-input-guidance"
           />
         </label>
 
-        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <label className="block text-sm">
-            <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-text-muted">
-              Policy
+        <div className={styles.controlRow}>
+          <label className={styles.policyControl}>
+            <span>
+              <b>02</b>
+              Select policy
             </span>
             <select
               value={policyId}
@@ -199,7 +223,7 @@ export function SkillConsole() {
                 setPolicyId(next);
                 if (content.trim()) verify(content, next, sourceName);
               }}
-              className="min-h-11 w-full border border-surface-border bg-surface-card px-3 text-sm text-text-primary sm:min-w-[16rem]"
+              className={styles.policySelect}
               aria-label="Aegis policy pack"
             >
               {SKILL_POLICY_PACKS.map((pack) => (
@@ -213,57 +237,79 @@ export function SkillConsole() {
             type="button"
             onClick={() => verify()}
             disabled={busy}
-            className="inline-flex min-h-11 w-full items-center justify-center border border-brand-accent bg-brand-accent px-5 py-3 text-sm font-semibold text-brand-ink transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            className={styles.verifyButton}
+            data-ui-proof-id="skill-verify-button"
           >
             {busy ? "Checking…" : "Verify"}
           </button>
         </div>
+
+        <div className={styles.inputBoundary}>
+          <span>Declared instructions only</span>
+          <span>No upload</span>
+          <span>No model call</span>
+        </div>
       </section>
 
       {outcome && !outcome.ok ? (
-        <p className="border border-signal-red/40 bg-surface-card px-5 py-4 text-sm text-signal-red" role="alert">
-          {outcome.message} This is not a pass.
-        </p>
+        <div className={styles.errorState} role="alert">
+          <span>Input not evaluated</span>
+          <p>{outcome.message} This is not a pass.</p>
+        </div>
       ) : null}
 
       {outcome?.ok ? (
-        <section id="skill-result" className="scroll-mt-24 space-y-5" aria-live="polite">
-          <div className={`border bg-surface-card px-5 py-5 ${verdictClass(outcome.result.verdict)}`}>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em]">
-              {outcome.result.verdict}
-            </p>
-            <p className="mt-2 text-xl font-semibold text-text-primary">
-              {outcome.result.verdict === "pass"
-                ? SKILL_PASS_SUMMARY
-                : outcome.result.verdict === "review"
-                  ? "Review required under the selected policy."
-                  : "Governed patterns were detected under the selected policy."}
-            </p>
-            <p className="mt-3 text-xs text-text-muted">
-              {AEGIS_VERIFIER_ID} · policy {outcome.result.policyId}
-            </p>
+        <section
+          id="skill-result"
+          className={styles.resultSection}
+          aria-live="polite"
+          data-ui-proof-id="skill-result"
+        >
+          <div className={`${styles.verdictCard} ${verdictClass(outcome.result.verdict)}`}>
+            <div className={styles.verdictStatus}>
+              <p>Policy result</p>
+              <strong>{verdictLabel}</strong>
+              <span>Bounded result · not a safety verdict</span>
+            </div>
+            <div className={styles.verdictSummary}>
+              <p>
+                {outcome.result.verdict === "pass"
+                  ? SKILL_PASS_SUMMARY
+                  : outcome.result.verdict === "review"
+                    ? "Review required under the selected policy."
+                    : "Governed patterns were detected under the selected policy."}
+              </p>
+              <code>
+                {AEGIS_VERIFIER_ID} · policy {outcome.result.policyId}
+              </code>
+            </div>
           </div>
 
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">
-              Findings
-            </h3>
+          <div className={styles.findingsSection}>
+            <div className={styles.findingsHeader}>
+              <div>
+                <p>03</p>
+                <h3>Inspect findings</h3>
+              </div>
+              <span>{visibleFindings.length} shown</span>
+            </div>
             {visibleFindings.length === 0 ? (
-              <p className="mt-3 text-sm text-text-secondary">No findings.</p>
+              <p className={styles.noFindings}>No governed pattern was detected.</p>
             ) : (
-              <ul className="mt-3 space-y-2">
+              <ul className={styles.findingsList}>
                 {visibleFindings.map((finding) => (
-                  <li key={finding.id} className="border border-surface-border bg-surface-bg">
+                  <li key={finding.id}>
                     <details>
-                      <summary className="cursor-pointer px-4 py-3 text-sm text-text-primary">
-                        <span className={`mr-2 font-semibold uppercase ${severityClass(finding.severity)}`}>
+                      <summary>
+                        <span className={`${styles.severity} ${severityClass(finding.severity)}`}>
                           {finding.severity}
                         </span>
-                        {finding.title}
+                        <span className={styles.findingTitle}>{finding.title}</span>
+                        <span className={styles.disclosureLabel}>Inspect</span>
                       </summary>
-                      <div className="space-y-3 border-t border-surface-border px-4 py-4 text-sm leading-relaxed text-text-muted">
-                        <p>
-                          <code className="text-text-secondary">{finding.ruleId}</code>
+                      <div className={styles.findingBody}>
+                        <p className={styles.findingMeta}>
+                          <code>{finding.ruleId}</code>
                           {" · "}
                           {finding.category}
                           {finding.evidence
@@ -271,9 +317,9 @@ export function SkillConsole() {
                             : null}
                           {finding.documentary ? " · documentary/example" : " · operational"}
                         </p>
-                        <p className="text-text-secondary">Reason: {finding.detail}</p>
+                        <p className={styles.findingReason}>Reason: {finding.detail}</p>
                         {finding.evidence?.snippet ? (
-                          <pre className="overflow-x-auto bg-[#0a0e17] p-3 font-mono text-xs text-text-secondary">
+                          <pre className={styles.evidenceSnippet}>
                             {finding.evidence.snippet}
                           </pre>
                         ) : null}
@@ -281,20 +327,20 @@ export function SkillConsole() {
                         finding.evidence.original !== finding.evidence.snippet ? (
                           <p>
                             Original:{" "}
-                            <code className="text-text-secondary">{finding.evidence.original}</code>
+                            <code>{finding.evidence.original}</code>
                           </p>
                         ) : null}
                         {finding.evidence?.normalized ? (
                           <p>
                             Canonical:{" "}
-                            <code className="text-text-secondary">{finding.evidence.normalized}</code>
+                            <code>{finding.evidence.normalized}</code>
                           </p>
                         ) : null}
                         {finding.evidence?.transform ? (
                           <p>Fold: {finding.evidence.transform}</p>
                         ) : null}
                         {finding.evidence?.components ? (
-                          <ul className="space-y-1">
+                          <ul className={styles.componentsList}>
                             <li>Source: {finding.evidence.components.source}</li>
                             <li>Transfer: {finding.evidence.components.action}</li>
                             <li>Destination: {finding.evidence.components.destination}</li>
@@ -308,27 +354,36 @@ export function SkillConsole() {
               </ul>
             )}
             {extraFindings > 0 ? (
-              <p className="mt-3 text-xs text-text-muted">
+              <p className={styles.extraFindings}>
                 {extraFindings} additional findings are in the Markdown report.
               </p>
             ) : null}
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className={styles.reportActions}>
+            <div>
+              <p>04</p>
+              <span>Keep the report</span>
+            </div>
             <button
               type="button"
               onClick={() => copyReport(outcome.report)}
-              className="inline-flex min-h-11 items-center border border-surface-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-primary hover:border-brand-accent"
+              className={styles.reportButton}
+              data-ui-proof-id="skill-copy-report"
             >
               {copyState === "copied" ? "Copied" : "Copy Markdown"}
             </button>
             <button
               type="button"
               onClick={() => downloadReport(outcome.report)}
-              className="inline-flex min-h-11 items-center border border-surface-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-primary hover:border-brand-accent"
+              className={styles.reportButton}
+              data-ui-proof-id="skill-download-report"
             >
               Download .md
             </button>
+            <span className={styles.copyStatus} aria-live="polite">
+              {copyState === "failed" ? "Clipboard unavailable. Download the report instead." : ""}
+            </span>
           </div>
         </section>
       ) : null}

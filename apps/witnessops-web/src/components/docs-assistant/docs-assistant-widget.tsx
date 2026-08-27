@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
@@ -19,6 +20,22 @@ interface AnswerState {
   error?: boolean;
 }
 
+const HIDDEN_WIDGET_PATHS = [
+  "/pl",
+  "/admin",
+  "/assessment",
+  "/design",
+  "/runner-loop",
+] as const;
+
+export function shouldShowDocsAssistantWidget(pathname: string): boolean {
+  if (pathname === "/docs/assistant") return false;
+
+  return !HIDDEN_WIDGET_PATHS.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 export function DocsAssistantWidget() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -33,7 +50,20 @@ export function DocsAssistantWidget() {
     }
   }, [open]);
 
-  if (pathname === "/docs/assistant") {
+  useEffect(() => {
+    if (!open) return;
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        handleClose();
+      }
+    }
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [open]);
+
+  if (!shouldShowDocsAssistantWidget(pathname)) {
     return null;
   }
 
@@ -89,13 +119,17 @@ export function DocsAssistantWidget() {
       className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3 max-[420px]:bottom-20 max-[420px]:left-4 max-[420px]:right-4 max-[420px]:items-stretch sm:bottom-6 sm:right-6"
     >
       {open && (
-        <div
-          className="flex w-[calc(100vw-2rem)] max-w-[320px] flex-col overflow-hidden rounded border border-surface-border bg-surface-bg shadow-xl max-[420px]:w-full max-[420px]:max-w-none"
-          style={{ height: "min(440px, calc(100vh - 8rem))" }}
+        <section
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="ask-witnessops-title"
+          className="flex w-[calc(100vw-2rem)] max-w-[390px] flex-col overflow-hidden rounded-xl border border-surface-border bg-surface-bg shadow-[0_24px_80px_rgba(0,0,0,0.45)] max-[420px]:w-full max-[420px]:max-w-none"
+          style={{ height: "min(560px, calc(100vh - 8rem))" }}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-surface-border px-4 py-3">
             <div>
               <span
+                id="ask-witnessops-title"
                 className="block text-xs font-semibold uppercase tracking-[0.18em] text-text-primary"
                 style={{ fontFamily: "var(--font-mono)" }}
               >
@@ -117,10 +151,41 @@ export function DocsAssistantWidget() {
           <div className="flex min-h-0 flex-1 flex-col p-4">
             <div className="flex-1 overflow-y-auto">
               {!answer && !loading && (
-                <p className="text-xs leading-relaxed text-text-muted">
-                  Ask a non-secret question about proof packets, receipts,
-                  verification paths, catalog packages, or safe first contact.
-                </p>
+                <div>
+                  <h2 className="text-lg font-semibold text-text-primary">
+                    What can I help you with?
+                  </h2>
+                  <div className="mt-4 grid gap-1">
+                    <button
+                      type="button"
+                      onClick={() => inputRef.current?.focus()}
+                      className="flex min-h-10 items-center gap-3 rounded px-2 text-left text-sm text-text-muted transition-colors hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                    >
+                      <span aria-hidden="true">?</span>
+                      Ask a question
+                    </button>
+                    <Link
+                      href="/docs"
+                      onClick={handleClose}
+                      className="flex min-h-10 items-center gap-3 rounded px-2 text-sm text-text-muted transition-colors hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                    >
+                      <span aria-hidden="true">⌕</span>
+                      Find a page
+                    </Link>
+                    <Link
+                      href="/review/request"
+                      onClick={handleClose}
+                      className="flex min-h-10 items-center gap-3 rounded px-2 text-sm text-text-muted transition-colors hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                    >
+                      <span aria-hidden="true">→</span>
+                      Start a fit check
+                    </Link>
+                  </div>
+                  <p className="mt-5 text-xs leading-relaxed text-text-muted">
+                    Ask a non-secret question about proof packets, receipts,
+                    verification paths, catalog packages, or safe first contact.
+                  </p>
+                </div>
               )}
 
               {loading && <DocsAssistantLoadingStatus compact />}
@@ -185,14 +250,14 @@ export function DocsAssistantWidget() {
               systems, request a fit check.
             </p>
           </div>
-        </div>
+        </section>
       )}
 
       <button
         onClick={handleToggle}
-        className="flex h-10 items-center gap-2 rounded border border-surface-border bg-surface-bg px-4 text-xs font-semibold uppercase tracking-wider text-text-primary shadow-lg transition-colors hover:border-brand-accent hover:text-brand-accent max-[420px]:w-10 max-[420px]:justify-center max-[420px]:px-0"
+        className="flex h-11 items-center gap-2 rounded-full border border-text-primary bg-text-primary px-5 text-sm font-semibold text-text-inverse shadow-[0_12px_36px_rgba(0,0,0,0.28)] transition-all hover:-translate-y-0.5 hover:border-brand-accent hover:bg-brand-accent hover:text-text-inverse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none max-[420px]:w-11 max-[420px]:justify-center max-[420px]:px-0"
         aria-expanded={open}
-        aria-label="Toggle Ask WitnessOps"
+        aria-label={open ? "Close Ask WitnessOps" : "Open Ask WitnessOps"}
       >
         <svg
           width="14"
@@ -208,7 +273,7 @@ export function DocsAssistantWidget() {
             strokeLinejoin="round"
           />
         </svg>
-        <span className="max-[420px]:sr-only">Ask WitnessOps</span>
+        <span className="max-[420px]:sr-only">Ask AI</span>
       </button>
     </div>
   );
