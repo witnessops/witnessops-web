@@ -40,10 +40,35 @@ function severityClass(severity: string): string {
   return styles.severityDefault;
 }
 
-export function SkillConsole() {
+export type ExactSkillBinding = {
+  slug: string;
+  version: string;
+  sha256: string;
+};
+
+type SkillConsoleProps = {
+  initialContent?: string;
+  initialSourceName?: string;
+  initialBinding?: ExactSkillBinding | null;
+};
+
+async function sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export function SkillConsole({
+  initialContent = "",
+  initialSourceName = "SKILL.md",
+  initialBinding = null,
+}: SkillConsoleProps) {
   const fileInputId = useId();
-  const [content, setContent] = useState("");
-  const [sourceName, setSourceName] = useState("SKILL.md");
+  const [content, setContent] = useState(initialContent);
+  const [sourceName, setSourceName] = useState(initialSourceName);
+  const [exactBinding, setExactBinding] = useState<ExactSkillBinding | null>(initialBinding);
+  const [inputSha256, setInputSha256] = useState<string | null>(
+    initialBinding?.sha256 ?? null,
+  );
   const [policyId, setPolicyId] = useState<SkillPolicyId>(DEFAULT_SKILL_POLICY_ID);
   const [outcome, setOutcome] = useState<SkillScanOutcome | null>(null);
   const [busy, setBusy] = useState(false);
@@ -56,10 +81,11 @@ export function SkillConsole() {
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [outcome]);
 
-  function verify(nextContent = content, nextPolicy = policyId, nextName = sourceName) {
+  async function verify(nextContent = content, nextPolicy = policyId, nextName = sourceName) {
     setBusy(true);
     setCopyState("idle");
     try {
+      setInputSha256(await sha256(nextContent));
       setOutcome(
         runSkillScan({
           content: nextContent,
@@ -87,6 +113,8 @@ export function SkillConsole() {
     const text = await file.text();
     setContent(text);
     setSourceName(file.name || "SKILL.md");
+    setExactBinding(null);
+    setInputSha256(null);
     setOutcome(null);
   }
 
@@ -198,6 +226,8 @@ export function SkillConsole() {
             onChange={(event) => {
               setContent(event.target.value);
               setSourceName("SKILL.md");
+              setExactBinding(null);
+              setInputSha256(null);
               setOutcome(null);
             }}
             spellCheck={false}
@@ -221,7 +251,7 @@ export function SkillConsole() {
               onChange={(event) => {
                 const next = event.target.value as SkillPolicyId;
                 setPolicyId(next);
-                if (content.trim()) verify(content, next, sourceName);
+                if (content.trim()) void verify(content, next, sourceName);
               }}
               className={styles.policySelect}
               aria-label="Aegis policy pack"
@@ -235,7 +265,7 @@ export function SkillConsole() {
           </label>
           <button
             type="button"
-            onClick={() => verify()}
+            onClick={() => void verify()}
             disabled={busy}
             className={styles.verifyButton}
             data-ui-proof-id="skill-verify-button"
@@ -249,6 +279,20 @@ export function SkillConsole() {
           <span>No upload</span>
           <span>No model call</span>
         </div>
+
+        {exactBinding ? (
+          <div className={styles.exactBinding} data-ui-proof-id="skill-exact-version-binding">
+            <div>
+              <span>Exact library version</span>
+              <strong>{exactBinding.slug}@{exactBinding.version}</strong>
+            </div>
+            <code>{exactBinding.sha256}</code>
+          </div>
+        ) : initialBinding ? (
+          <p className={styles.bindingInvalidated} role="status">
+            Exact-version binding removed because the input changed.
+          </p>
+        ) : null}
       </section>
 
       {outcome && !outcome.ok ? (
@@ -279,9 +323,16 @@ export function SkillConsole() {
                     ? "Review required under the selected policy."
                     : "Governed patterns were detected under the selected policy."}
               </p>
+              {outcome.result.verdict === "pass" ? (
+                <p className={styles.resultLimitation}>
+                  No governed pattern was detected under the selected policy. This does not prove
+                  that the skill or resulting workflow is safe.
+                </p>
+              ) : null}
               <code>
                 {AEGIS_VERIFIER_ID} · policy {outcome.result.policyId}
               </code>
+              {inputSha256 ? <code>input sha256:{inputSha256}</code> : null}
             </div>
           </div>
 

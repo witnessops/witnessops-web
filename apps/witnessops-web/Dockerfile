@@ -26,6 +26,7 @@ RUN addgroup -g 1001 -S nodejs \
 COPY apps/witnessops-web/.next/standalone ./
 COPY apps/witnessops-web/.next/static ./apps/witnessops-web/.next/static
 COPY apps/witnessops-web/public ./apps/witnessops-web/public
+COPY content/witnessops/skills ./content/witnessops/skills
 
 RUN mkdir -p apps/witnessops-web/.next/cache \
   && chown -R nextjs:nodejs \

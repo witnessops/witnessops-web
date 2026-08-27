@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SkillConsole } from "@/components/verify/skill-console";
+import { getSkill, readSkillMarkdown } from "@/lib/skills/catalog";
 import styles from "@/components/verify/skill-console.module.css";
 
 export const metadata: Metadata = {
@@ -9,7 +10,25 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function CheckSkillPage() {
+type Props = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function single(value: string | string[] | undefined): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+export default async function CheckSkillPage({ searchParams }: Props) {
+  const query = searchParams ? await searchParams : {};
+  const requestedSlug = single(query.skill);
+  const requestedVersion = single(query.version);
+  const requestedSha256 = single(query.sha256);
+  const skill = requestedSlug ? getSkill(requestedSlug) : undefined;
+  const exactSkill =
+    skill && skill.version === requestedVersion && skill.sha256 === requestedSha256
+      ? skill
+      : undefined;
+
   return (
     <main
       id="main-content"
@@ -26,8 +45,8 @@ export default function CheckSkillPage() {
               Check an agent skill before you trust it.
             </h1>
             <p className={styles.heroBody}>
-              Paste or drop a SKILL.md. Aegis runs locally in this browser. The
-              skill is not uploaded, stored, or sent to a model.
+              Paste or drop a SKILL.md. The scan runs locally in this browser.
+              The skill is not uploaded, stored, or sent to a model.
             </p>
             <p className={styles.heroLimit}>
               {
@@ -72,7 +91,21 @@ export default function CheckSkillPage() {
 
       <section className={styles.workspaceSection} aria-label="Aegis skill evaluation workspace">
         <div className={styles.frame} id="skill-console">
-          <SkillConsole />
+          <SkillConsole
+            initialContent={exactSkill ? readSkillMarkdown(exactSkill.slug) : ""}
+            initialSourceName={
+              exactSkill ? `${exactSkill.slug}@${exactSkill.version}/SKILL.md` : "SKILL.md"
+            }
+            initialBinding={
+              exactSkill
+                ? {
+                    slug: exactSkill.slug,
+                    version: exactSkill.version,
+                    sha256: exactSkill.sha256,
+                  }
+                : null
+            }
+          />
         </div>
       </section>
     </main>
