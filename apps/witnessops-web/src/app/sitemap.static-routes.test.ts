@@ -14,6 +14,7 @@ const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
   "/catalog/offsec-incident-ready",
   "/catalog/professional-public-footprint-audit",
   "/library",
+  "/media-kit",
   "/pricing",
   "/review/sample-cases",
   "/review/sample-cases/ai-agent-action-proof-run",

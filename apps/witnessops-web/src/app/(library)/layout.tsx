@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s — WitnessOps Library",
-    default: "WitnessOps Library",
+    template: "%s — WitnessOps Skills",
+    default: "WitnessOps Skills",
   },
   description:
     "Reasoning on trust boundaries, verification, failure modes, and governed systems.",

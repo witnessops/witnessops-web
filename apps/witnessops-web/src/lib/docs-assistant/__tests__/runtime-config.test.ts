@@ -5,6 +5,7 @@ import {
   DOCS_ASSISTANT_STAGING_MODEL,
   DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID,
   type DocsAssistantRuntimeEnv,
+  readAskWitnessOpsOpenAiRuntimeConfig,
   readDocsAssistantRuntimeConfig,
 } from "../runtime-config";
 
@@ -92,5 +93,37 @@ test("docs assistant runtime config fails closed when key is missing", () => {
   assert.deepEqual(
     readDocsAssistantRuntimeConfig(enabledEnv({ OPENAI_API_KEY: undefined })),
     { enabled: false, reason: "missing_api_key" },
+  );
+});
+
+test("public Ask OpenAI config uses a separate exact production gate", () => {
+  const config = readAskWitnessOpsOpenAiRuntimeConfig({
+    WITNESSOPS_ASK_OPENAI_ENABLED: "true",
+    WITNESSOPS_ASK_OPENAI_STAGE: "production",
+    WITNESSOPS_DOCS_ASSISTANT_VECTOR_STORE_ID:
+      DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID,
+    WITNESSOPS_DOCS_ASSISTANT_MODEL: DOCS_ASSISTANT_STAGING_MODEL,
+    OPENAI_API_KEY: "test-key",
+  });
+
+  assert.equal(config.enabled, true);
+  if (config.enabled) {
+    assert.equal(config.stage, "production");
+    assert.equal(config.vectorStoreId, DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID);
+    assert.equal(config.model, DOCS_ASSISTANT_STAGING_MODEL);
+  }
+});
+
+test("public Ask OpenAI config fails closed for missing and staging-only gates", () => {
+  assert.deepEqual(readAskWitnessOpsOpenAiRuntimeConfig({}), {
+    enabled: false,
+    reason: "gate_not_enabled",
+  });
+  assert.deepEqual(
+    readAskWitnessOpsOpenAiRuntimeConfig({
+      WITNESSOPS_ASK_OPENAI_ENABLED: "true",
+      WITNESSOPS_ASK_OPENAI_STAGE: "staging",
+    }),
+    { enabled: false, reason: "stage_not_production" },
   );
 });

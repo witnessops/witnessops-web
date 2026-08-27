@@ -50,7 +50,7 @@ export function SampleCaseBanner({
             href="/library"
             className="inline-flex min-h-11 items-center text-sm font-semibold text-text-muted underline-offset-4 hover:text-text-primary hover:underline"
           >
-            Library
+            Skills
           </Link>
         </div>
       ) : null}

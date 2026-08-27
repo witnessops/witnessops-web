@@ -57,6 +57,7 @@
   "/package/[issuanceId]/page": "app/package/[issuanceId]/page.js",
   "/page": "app/page.js",
   "/payment/success/page": "app/payment/success/page.js",
+  "/media-kit/page": "app/media-kit/page.js",
   "/review/sample-cases/access-removed-proof/page": "app/review/sample-cases/access-removed-proof/page.js",
   "/proof-backed-security-systems/page": "app/proof-backed-security-systems/page.js",
   "/review/sample-cases/custody-wallet-ops-review/page": "app/review/sample-cases/custody-wallet-ops-review/page.js",

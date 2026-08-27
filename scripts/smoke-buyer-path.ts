@@ -590,7 +590,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Do not submit secrets",
       "While you wait",
       "How verification works",
-      "Library",
+      "Skills",
       "Example reviews",
       "Package offer",
       "Not a legal audit opinion.",

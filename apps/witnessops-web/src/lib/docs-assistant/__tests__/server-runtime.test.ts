@@ -52,6 +52,7 @@ test("docs assistant request builder uses exact staging Responses file-search co
   ]);
   assert.deepEqual(request.tool_choice, { type: "file_search" });
   assert.equal(request.max_tool_calls, 1);
+  assert.equal(request.max_output_tokens, 1_200);
   assert.deepEqual(request.include, ["file_search_call.results"]);
   assert.deepEqual(request.text.format.type, "json_schema");
   assert.deepEqual(request.text.format.name, "docs_assistant_answer");
@@ -157,4 +158,55 @@ test("docs assistant payload validator rejects unsupported request shapes", asyn
       error: "case_id_must_be_non_empty_string",
     },
   );
+});
+
+test("docs assistant bounds provider time and maps timeout without leaking details", async () => {
+  const { isDocsAssistantRuntimeUnavailable, runDocsAssistantServerRuntime } =
+    await import("../server-runtime");
+  const events: Array<Record<string, unknown>> = [];
+  const neverCompletes = ((_url: string | URL | Request, init?: RequestInit) =>
+    new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => {
+        reject(new DOMException("aborted", "AbortError"));
+      });
+    })) as typeof fetch;
+
+  const answer = await runDocsAssistantServerRuntime({
+    payload: { question: "What does a proof packet include?" },
+    config: testConfig(),
+    fetchImpl: neverCompletes,
+    timeoutMs: 5,
+    logger: (event) => events.push(event as unknown as Record<string, unknown>),
+  });
+
+  assert.equal(isDocsAssistantRuntimeUnavailable(answer), true);
+  assert.equal(answer.unsupported_reason, "docs_assistant_runtime_unavailable");
+  assert.deepEqual(answer.boundary_findings, ["provider_timeout"]);
+  assert.equal(events.at(-1)?.request_id, null);
+  assert.equal(events.at(-1)?.error_class, "provider_timeout");
+  assert.equal("question" in (events.at(-1) ?? {}), false);
+});
+
+test("docs assistant logs provider request IDs without prompt or response bodies", async () => {
+  const { runDocsAssistantServerRuntime } = await import("../server-runtime");
+  const events: Array<Record<string, unknown>> = [];
+  const failedFetch = (async () =>
+    new Response("upstream detail must not escape", {
+      status: 502,
+      headers: { "x-request-id": "req_safe_test" },
+    })) as typeof fetch;
+
+  const answer = await runDocsAssistantServerRuntime({
+    payload: { question: "What does a proof packet include?" },
+    config: testConfig(),
+    fetchImpl: failedFetch,
+    logger: (event) => events.push(event as unknown as Record<string, unknown>),
+  });
+
+  assert.equal(answer.unsupported_reason, "docs_assistant_runtime_unavailable");
+  assert.deepEqual(answer.boundary_findings, ["provider_http_error"]);
+  assert.equal(events[0]?.request_id, "req_safe_test");
+  assert.equal(events[0]?.status, 502);
+  assert.equal("question" in (events[0] ?? {}), false);
+  assert.equal(JSON.stringify(answer).includes("upstream detail"), false);
 });

@@ -613,6 +613,12 @@
       "namedRegex": "^/mcp/directory(?:/)?$"
     },
     {
+      "page": "/media-kit",
+      "regex": "^/media\\-kit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/media\\-kit(?:/)?$"
+    },
+    {
       "page": "/og/home",
       "regex": "^/og/home(?:/)?$",
       "routeKeys": {},

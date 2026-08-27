@@ -35,7 +35,7 @@ const waitLinks = [
   },
   {
     href: "/library",
-    label: "Library",
+    label: "Skills",
     body: "Browse public entry points, examples, and documentation.",
   },
   {

@@ -10,9 +10,13 @@ const pl = readFileSync(
 );
 
 test("EN canonical library exposes exact-byte first-party skill contracts", () => {
-  assert.match(en, /WitnessOps Skill Library/);
+  assert.match(en, /All Skills Library/);
+  assert.match(en, /WitnessOps skills/);
   assert.match(en, /listSkills\(\)/);
   assert.match(en, /\/library\/governed-agent-verifier/);
+  assert.match(en, /className=\{`\$\{styles\.frame\} \$\{styles\.catalog\}`\}/);
+  assert.match(en, /href=\{`\/library\/\$\{skill\.slug\}`\}/);
+  assert.doesNotMatch(en, /https:\/\/witnessops\.com\/library/);
   assert.match(en, /Inspect exact bytes/);
   assert.match(en, /Apache-2\.0/);
   assert.match(en, /no marketplace, ratings, accounts, remote fetching, or cloud skill storage/);
