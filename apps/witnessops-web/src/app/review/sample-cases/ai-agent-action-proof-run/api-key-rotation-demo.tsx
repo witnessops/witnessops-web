@@ -113,7 +113,7 @@ export function ApiKeyRotationDemo({
         const verifierUrl = new URL(verifierHref, window.location.href).href;
         const [bundleResponse, registryResponse, verifierModule] = await Promise.all([
           fetch(bundleHref, { cache: "force-cache" }),
-          fetch(keyRegistryHref, { cache: "force-cache" }),
+          fetch(keyRegistryHref, { cache: "no-cache" }),
           import(/* webpackIgnore: true */ verifierUrl) as Promise<VerifierModule>,
         ]);
 
