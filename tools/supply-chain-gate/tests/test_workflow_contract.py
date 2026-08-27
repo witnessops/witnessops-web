@@ -126,10 +126,11 @@ class WorkflowContractTests(unittest.TestCase):
             self.assertIn("docker buildx build", build)
             self.assertIn("type=docker,dest=", build)
 
-    def test_pull_requests_can_validate_artifacts_without_publish_authority(self) -> None:
+    def test_pull_requests_and_main_pushes_validate_without_publish_authority(self) -> None:
         publish = job_section(self.build_image, "publish")
         self.assertRegex(self.build_image, r"(?m)^  pull_request:\s*$")
-        self.assertIn("    if: github.event_name != 'pull_request'\n", publish)
+        self.assertIn('  push:\n    branches: ["main"]\n', self.build_image)
+        self.assertIn("    if: github.event_name == 'workflow_dispatch'\n", publish)
 
     def test_required_gate_runs_for_every_pull_request(self) -> None:
         self.assertRegex(self.gate, r"(?m)^  pull_request:\s*$")
