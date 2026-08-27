@@ -11,14 +11,19 @@ const buyerHomepage = readFileSync(
   "utf-8",
 );
 
-test("Polish homepage uses the approved naturalized headline and terminology", () => {
+test("Polish homepage uses the bounded workflow positioning and naturalized terminology", () => {
   assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
-  assert.match(buyerHomepage, /Public Exposure Review/);
-  assert.match(buyerHomepage, /Zobacz, co widzi internet\./);
-  assert.match(buyerHomepage, /Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego/);
-  assert.match(buyerHomepage, /Potrzebujesz innego przeglądu/);
-  assert.match(buyerHomepage, /Nie wierz zapisowi na słowo\. Sprawdź sam\./);
-  assert.match(buyerHomepage, /Rozpocznij przegląd/);
+  assert.match(buyerHomepage, /Agenci działają\. WitnessOps dostarcza dowody\./);
+  assert.match(buyerHomepage, /Zdefiniuj granice workflow/);
+  assert.match(buyerHomepage, /Pięć pytań\. Jeden ograniczony workflow\./);
+  assert.match(buyerHomepage, /Opublikowany przykład — nie są to materiały klienta/);
+  assert.match(buyerHomepage, /Co pozostaje nierozstrzygnięte\?/);
+  assert.match(buyerHomepage, /Agent Risk & Control Review/);
+  assert.match(buyerHomepage, /Zgłoś jeden workflow agenta/);
+  assert.match(buyerHomepage, /Zobacz publiczny przykład materiałów/);
+  assert.doesNotMatch(buyerHomepage, /\/verify\/skill/);
+  assert.doesNotMatch(buyerHomepage, /Aegis/);
+  assert.doesNotMatch(buyerHomepage, /zewnętrzna weryfikacja/i);
   assert.doesNotMatch(homePage, /Jasny zakres\. Jasny wynik\./);
   assert.doesNotMatch(homePage, /Konkretna dostawa/);
 });
@@ -29,7 +34,7 @@ test("public catalogue uses the approved service names in Polish", () => {
     BUYER_SERVICES.map((service) => service.name.pl),
     [
       "Customer Security Review Sprint",
-      "Bounded Workflow Review",
+      "Agent Risk & Control Review",
       "One Server Security Check",
       "Public Exposure Review",
       "Launch Readiness Check",

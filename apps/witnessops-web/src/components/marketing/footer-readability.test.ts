@@ -56,7 +56,7 @@ test("footer keeps readable text contrast and sizing", () => {
   );
 });
 
-test("footer contact route keeps a concise no-secrets boundary and display CTA", () => {
+test("footer contact route keeps a concise credential-handling boundary and display CTA", () => {
   const source = readFileSync(
     resolve(__dirname, "public-contact-route.tsx"),
     "utf-8",
@@ -64,9 +64,10 @@ test("footer contact route keeps a concise no-secrets boundary and display CTA",
 
   assert.match(
     source,
-    /No secrets\. Never send passwords, private keys, API keys, tokens or recovery codes\./,
+    /Do not send passwords, private keys, API keys, tokens or recovery codes\./,
   );
-  assert.match(source, /Bez sekretów\. Nie wysyłaj haseł/);
+  assert.match(source, /Nie wysyłaj haseł/);
+  assert.doesNotMatch(source, /No secrets|Bez sekretów/);
   assert.match(source, /style=\{\{ fontFamily: "var\(--font-display\)" \}\}/);
   assert.match(source, /min-h-11 w-full/);
 });
@@ -97,14 +98,15 @@ test("footer provides Polish homepage labels without changing route contracts", 
 
   for (const marker of [
     'label: "Usługi", href: "/pl/catalog"',
-    'href: "/pl/customer-security-review"',
+    'label: "Agent Risk & Control Review"',
+    'href: "/catalog/workflows"',
     'label: "Rozpocznij przegląd", href: "/pl/review/request"',
     'label: "Prywatność", href: "/privacy"',
     'label: "Warunki", href: "/terms"',
     'label: "Bezpieczeństwo", href: "/security"',
     'motto: FOOTER_MOTTO',
     "Proof beats memory.",
-    "Operacje poparte dowodami",
+    "Ograniczona rekonstrukcja",
   ]) {
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
   }

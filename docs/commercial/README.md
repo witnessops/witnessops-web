@@ -3,7 +3,7 @@
 Operator-facing materials so the live catalog + samples convert into real engagements.
 Written for learning the offers while you sell and deliver them.
 
-**Operate this week:** Public Exposure Review is the primary fixed-scope homepage route under the existing `OFFSEC-EXTERNAL-EXPOSURE` SKU. Customer Security Review Sprint and One Server Security Check remain available in the broader catalogue.
+**Operate this week:** Agent Risk & Control Review is the primary homepage offer: one agentic or automated workflow, from €1,500 after a non-secret fit check. Public Exposure Review, Customer Security Review Sprint, and One Server Security Check remain available in the broader catalogue.
 
 ## Start here
 
@@ -35,12 +35,15 @@ Then use the paste templates below.
 | 12 | [Offer naming market note](./12-offer-naming-market-note.md) | Short market comparison and naming guardrail |
 | 13 | [Public route disposition](./13-public-route-disposition.md) | Current, replacement, private-preview, and unresolved public route outcomes |
 | 14 | [LinkedIn Premium experiment](./14-linkedin-premium-experiment.md) | Thirty-day commercial test, attribution, weekly scoreboard, and renewal gate |
+| 15 | [Agent Risk & Control Review offer](./15-agent-risk-control-review-offer.md) | Primary homepage offer, delivery contract, and verification boundary |
 
 ## Public anchors
 
 | Surface | URL |
 | --- | --- |
 | Catalog | https://witnessops.com/catalog |
+| Agent Risk & Control Review | https://witnessops.com/catalog/workflows |
+| Synthetic agent sample | https://witnessops.com/review/sample-cases/ai-agent-action-proof-run |
 | CSR service | https://witnessops.com/customer-security-review |
 | CSR sample page | https://witnessops.com/review/sample-cases/customer-security-review-sprint |
 | CSR full synthetic package | https://witnessops.com/samples/csr-sprint-synthetic/ |

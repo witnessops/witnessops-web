@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SkillConsole } from "@/components/verify/skill-console";
-import { SectionShell } from "@/components/shared/section-shell";
+import styles from "@/components/verify/skill-console.module.css";
 
 export const metadata: Metadata = {
   title: "Check a Skill",
@@ -11,28 +11,70 @@ export const metadata: Metadata = {
 
 export default function CheckSkillPage() {
   return (
-    <main id="main-content" tabIndex={-1}>
-      <SectionShell narrow className="pt-10 sm:pt-14">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-          Check a Skill
-        </p>
-        <h1 className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl lg:text-5xl">
-          Check an agent skill before you trust it.
-        </h1>
-        <p className="mt-4 max-w-[36rem] text-base leading-7 text-text-secondary">
-          Paste or drop a SKILL.md. Aegis runs locally in this browser. The skill
-          is not uploaded, stored, or sent to a model.
-        </p>
-        <p className="mt-4 max-w-[36rem] text-sm leading-7 text-text-muted">
-          {
-            "Aegis checks a SKILL.md against explicit deterministic policy rules. A pass means no governed pattern was detected under the selected policy; it does not prove the skill is safe."
-          }
-        </p>
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className={styles.page}
+      data-page="skill-check"
+      data-ui-proof-id="skill-check-page"
+    >
+      <section className={styles.heroSection}>
+        <div className={`${styles.frame} ${styles.heroFrame}`}>
+          <header className={styles.heroCopy}>
+            <p className={styles.eyebrow}>Before execution · Aegis by WitnessOps</p>
+            <h1 className={styles.heroTitle}>
+              Check an agent skill before you trust it.
+            </h1>
+            <p className={styles.heroBody}>
+              Paste or drop a SKILL.md. Aegis runs locally in this browser. The
+              skill is not uploaded, stored, or sent to a model.
+            </p>
+            <p className={styles.heroLimit}>
+              {
+                "Aegis checks a SKILL.md against explicit deterministic policy rules. A pass means no governed pattern was detected under the selected policy; it does not prove the skill is safe."
+              }
+            </p>
+          </header>
 
-        <div className="mt-8" id="skill-console">
+          <aside
+            className={styles.boundaryPanel}
+            aria-label="Local verification boundary"
+            data-ui-proof-id="skill-local-boundary"
+          >
+            <div className={styles.panelHeader}>
+              <span>Local verification boundary</span>
+              <span>01</span>
+            </div>
+            <dl className={styles.boundaryRows}>
+              <div>
+                <dt>Input</dt>
+                <dd>One SKILL.md</dd>
+              </div>
+              <div>
+                <dt>Processing</dt>
+                <dd>This browser</dd>
+              </div>
+              <div>
+                <dt>Storage</dt>
+                <dd>None</dd>
+              </div>
+              <div>
+                <dt>Model calls</dt>
+                <dd>None</dd>
+              </div>
+            </dl>
+            <p className={styles.boundaryNote}>
+              Deterministic policy output · bounded to declared instructions
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section className={styles.workspaceSection} aria-label="Aegis skill evaluation workspace">
+        <div className={styles.frame} id="skill-console">
           <SkillConsole />
         </div>
-      </SectionShell>
+      </section>
     </main>
   );
 }

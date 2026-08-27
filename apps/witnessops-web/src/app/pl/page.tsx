@@ -6,9 +6,9 @@ import { languageAlternates } from "@/lib/public-seo";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
-  title: "Public Exposure Review",
+  title: "Infrastruktura dowodowa dla operacji agentowych",
   description:
-    "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego, dostarczony w ciągu trzech dni roboczych po spełnieniu wszystkich warunków startu za €1 900 netto.",
+    "Sprawdź agenta przed wykonaniem, zachowaj upoważnienie i materiały podczas działania, a potem przygotuj ograniczony zapis możliwy do przeglądu.",
   alternates: languageAlternates("/pl", { en: "/", pl: "/pl" }),
 };
 

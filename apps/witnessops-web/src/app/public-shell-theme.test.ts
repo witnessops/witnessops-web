@@ -15,10 +15,8 @@ const footer = readFileSync(
 
 test("the shared public shell follows the page surface theme", () => {
   assert.match(globals, /body:has\(\.buyer-page\) \.public-shell/);
-  assert.match(
-    globals,
-    /body:has\(main\[data-page="home"\]\) \.public-shell/,
-  );
+  assert.doesNotMatch(globals, /body:has\(main\[data-page="home"\]\) \.public-shell/);
+  assert.doesNotMatch(globals, /main\[data-page="home"\],/);
   assert.doesNotMatch(
     globals,
     /\.public-shell,\s*\.buyer-page/,

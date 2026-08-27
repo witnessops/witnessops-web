@@ -3,65 +3,102 @@ import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
+import {
+  sampleCommitShort,
+  sampleManifestSha256,
+  sampleSourceRepository,
+} from "@/app/review/sample-cases/ai-agent-action-proof-run/sample-artifact-contract";
 import { BUYER_SERVICES } from "@/lib/buyer-services";
 
 const source = readFileSync(resolve(__dirname, "buyer-homepage.tsx"), "utf8");
 const onePagerDir = resolve(__dirname, "../../../public/assets/one-pagers");
 
-test("homepage trust journey preserves indeterminate receipt-only semantics", () => {
-  assert.match(source, /Don't take the record on trust\. Check it yourself\./);
-  assert.match(source, /The current example is indeterminate/);
-  assert.match(source, /Obecny przykład daje wynik nieokreślony/);
-  assert.match(source, /were not independently checked/);
-  assert.match(source, /does not prove that a finding is true/);
-  assert.match(source, /that the reviewed system is secure/);
-  assert.match(source, /href=\{text\.verifyHref\}/);
-  assert.match(source, /https:\/\/www\.linkedin\.com\/in\/karol-s/);
-  assert.match(source, /https:\/\/github\.com\/witnessops/);
-  assert.doesNotMatch(source, /How it works/);
-  assert.doesNotMatch(source, /proves that a finding is true/);
-  assert.doesNotMatch(source, /A valid result confirms/);
-  assert.doesNotMatch(source, /Wynik valid/);
+test("homepage connects the agent workflow review to a bounded receipt specimen", () => {
+  assert.match(source, /Agents act\. WitnessOps proves\./);
+  assert.match(source, /Proof infrastructure for agentic operations/);
+  assert.match(source, /Declare the workflow boundary/);
+  assert.match(source, /Before execution/);
+  assert.match(source, /During execution/);
+  assert.match(source, /After execution/);
+  assert.match(source, /Produce something another party can check\./);
+  assert.match(source, /Five questions\. One bounded workflow\./);
+  assert.match(source, /What was authorized\?/);
+  assert.match(source, /What was executed\?/);
+  assert.match(source, /What was observed\?/);
+  assert.match(source, /What remains unresolved\?/);
+  assert.match(source, /How can it be challenged\?/);
+  assert.match(source, /Published sample — not live customer evidence/);
+  assert.match(source, /sampleSourceRepository/);
+  assert.match(source, /sampleCommitShort/);
+  assert.match(source, /sampleManifestSha256/);
+  assert.equal(sampleSourceRepository, "witnessops/witnessops-sample-cases");
+  assert.equal(sampleCommitShort, "99741c8d50cd");
+  assert.equal(
+    sampleManifestSha256,
+    "6c43e87534a4e445321c46d9765efa885d3df5aa8eb8110a214653b0f46d7447",
+  );
+  assert.match(source, /pass_with_sample_limitations/);
+  assert.match(source, /does not establish production deployment, compliance/);
+  assert.match(source, /A receipt is only as strong as its named evidence and verifier/);
+  assert.match(source, /Bring one agentic workflow/);
+  assert.match(source, /id="evidence-questions"/);
+  assert.match(source, /id="agent-action-receipt"/);
+  assert.match(source, /id="agent-risk-control"/);
+  assert.match(source, /\/review\/sample-cases\/ai-agent-action-proof-run/);
+  assert.doesNotMatch(source, /\/verify\/skill/);
+  assert.doesNotMatch(source, /Aegis/);
+  assert.doesNotMatch(source, /SKILL\.md/);
+  assert.doesNotMatch(source, /Check a skill/i);
+  assert.doesNotMatch(source, /external verification/i);
+  assert.doesNotMatch(source, /Every consequential agent action gets a verifiable receipt/i);
+  assert.doesNotMatch(source, /No secrets/i);
 });
 
-test("Public Exposure Review constants stay named, priced, timed, and bounded", () => {
+test("Agent Risk & Control Review is the named, priced, bounded homepage offer", () => {
+  const offer = BUYER_SERVICES.find(
+    (service) => service.id === "bounded-workflow-review",
+  );
+
+  assert.equal(offer?.name.en, "Agent Risk & Control Review");
+  assert.equal(offer?.name.pl, "Agent Risk & Control Review");
+  assert.equal(offer?.homepageFeatured, true);
+  assert.equal(offer?.productId, undefined);
+  assert.equal(offer?.price.en, "From €1,500");
+  assert.match(offer?.timing.en ?? "", /Confirmed during the non-secret fit check/);
+  assert.match(offer?.boundary.en ?? "", /One named workflow only/);
+  assert.match(source, /Agent Risk & Control Review/);
+  assert.match(source, /Review the workflow, not only the file\./);
+  assert.match(source, /Workflow and permission map/);
+  assert.match(source, /Approval and evidence-gap analysis/);
+  assert.match(source, /Proposed receipt and verifier path/);
+  assert.match(source, /Sample package and control recommendations/);
+  assert.match(
+    source,
+    /A practical handover that separates supported observations, unresolved gaps, and the evidence or controls needed to strengthen the workflow\./,
+  );
+  assert.match(
+    source,
+    /Bring one consequential workflow\. Make its authority and evidence reviewable\./,
+  );
+  assert.match(source, /From €1,500 · Timing confirmed during a fit check/);
+  assert.match(source, /See scope and pricing/);
+});
+
+test("Public Exposure Review remains a current catalog offer but is not the homepage lead", () => {
   const offer = BUYER_SERVICES.find(
     (service) => service.id === "external-exposure-assessment",
   );
 
   assert.equal(offer?.name.en, "Public Exposure Review");
-  assert.equal(offer?.name.pl, "Public Exposure Review");
   assert.equal(offer?.productId, "OFFSEC-EXTERNAL-EXPOSURE");
   assert.equal(offer?.price.en, "€1,900 ex VAT — one authorised public-facing system");
   assert.match(offer?.timing.en ?? "", /Within 3 working days after/);
   assert.match(offer?.boundary.en ?? "", /No exploitation/);
   assert.match(offer?.boundary.en ?? "", /Unauthenticated outside-in checks only/);
-  assert.match(source, /Public Exposure Review/);
-  assert.match(source, /No exploitation · Fixed scope · No credentials/);
-  assert.match(source, /Bez eksploatacji · Stały zakres · Bez poświadczeń/);
-  assert.match(
-    source,
-    /€1,900 ex VAT · 3 working days after all start conditions are complete · 1 authorised public-facing system/,
-  );
-  assert.match(
-    source,
-    /€1 900 netto · 3 dni robocze po spełnieniu wszystkich warunków startu · 1 autoryzowany system publicznie dostępny/,
-  );
-  assert.match(source, /one authorised public-facing system/);
-  assert.match(
-    source,
-    /No claim that this is a pentest, certification, or proof the system is secure/,
-  );
-  assert.doesNotMatch(source, /open-ended pentest/i);
-  assert.doesNotMatch(source, /guarantees? (?:that )?the system is secure/i);
-  assert.doesNotMatch(source, /€1,900 ex VAT · 3 working days · 1 authorised/);
-  assert.doesNotMatch(
-    source,
-    /€1,900 ex VAT · 3 working days after start conditions · 1 authorised/,
-  );
+  assert.doesNotMatch(source, /Public Exposure Review/);
 });
 
-test("request-only public footprint audit stays secondary and off the homepage", () => {
+test("request-only public footprint audit stays off the homepage", () => {
   const offer = BUYER_SERVICES.find(
     (service) => service.id === "professional-public-footprint-audit",
   );
@@ -69,7 +106,6 @@ test("request-only public footprint audit stays secondary and off the homepage",
   assert.equal(offer?.homepageFeatured, false);
   assert.equal(offer?.pricingVisible, false);
   assert.equal(offer?.productId, undefined);
-  assert.match(source, /service\.homepageFeatured !== false/);
   assert.doesNotMatch(source, /Professional Public Footprint Audit/);
 });
 
@@ -88,6 +124,4 @@ test("public one-pagers stay the two existing Customer Security Review PDFs", ()
       ?.onePagerHref,
     undefined,
   );
-  assert.match(source, /ONE_PAGER_LINK_PROPS/);
-  assert.doesNotMatch(source, /public-exposure.*\.pdf|per-.*\.pdf/i);
 });

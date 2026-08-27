@@ -35,5 +35,6 @@ test("compact footer contact route exposes a clear primary action", () => {
   assert.match(html, /w-full/);
   assert.match(html, /bg-text-primary/);
   assert.match(html, /Fallback contact:/);
-  assert.match(html, /No secrets\. Never send passwords/);
+  assert.match(html, /Do not send passwords/);
+  assert.doesNotMatch(html, /No secrets/);
 });

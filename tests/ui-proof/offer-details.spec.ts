@@ -4,7 +4,7 @@ const offers = [
   {
     path: "/catalog/workflows",
     service: "bounded-workflow-review",
-    name: "Bounded Workflow Review",
+    name: "Agent Risk & Control Review",
     price: "From €1,500",
     timing: "Confirmed during the non-secret fit check",
     request: "/review/request",

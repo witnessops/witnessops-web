@@ -11,7 +11,6 @@ import {
   type ScenarioResult,
 } from "./report";
 import { writeScreenshotGrid } from "./screenshot-grid";
-import { HOMEPAGE_SYNTHETIC_PREVIEW } from "../../apps/witnessops-web/src/components/marketing/homepage-synthetic-preview";
 
 test("homepage hero mobile UI proof", async ({ browser }) => {
   await rm(UI_PROOF_OUTPUT_DIR, { recursive: true, force: true });
@@ -107,40 +106,39 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
   ).toEqual([]);
 });
 
-test("English and Polish homepages share one service-led buyer journey", async ({ browser }) => {
-  const expectedOrder = [
-    "customer-security-review-sprint",
-    "bounded-workflow-review",
-    "one-server-security-check",
-    "launch-readiness-check",
-    "key-access-custody-review",
-    "incident-readiness-review",
-  ];
-
+test("English and Polish homepages share one agent-risk and receipt journey", async ({ browser }) => {
   for (const scenario of [
     {
       path: "/",
       width: 1440,
       height: 1100,
-      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+      primary: "/review/request",
+      methodHeading: "Five questions. One bounded workflow.",
+      receiptHeading: "Produce something another party can check.",
     },
     {
       path: "/",
       width: 390,
       height: 844,
-      primary: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+      primary: "/review/request",
+      methodHeading: "Five questions. One bounded workflow.",
+      receiptHeading: "Produce something another party can check.",
     },
     {
       path: "/pl",
       width: 1440,
       height: 1100,
-      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+      primary: "/pl/review/request",
+      methodHeading: "Pięć pytań. Jeden ograniczony workflow.",
+      receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
     },
     {
       path: "/pl",
       width: 390,
       height: 844,
-      primary: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+      primary: "/pl/review/request",
+      methodHeading: "Pięć pytań. Jeden ograniczony workflow.",
+      receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
     },
   ]) {
     const context = await browser.newContext({
@@ -156,65 +154,28 @@ test("English and Polish homepages share one service-led buyer journey", async (
       "href",
       scenario.primary,
     );
-    const serviceCards = page.locator("[data-home-service]");
-    await expect(serviceCards).toHaveCount(6);
-    expect(
-      await serviceCards.evaluateAll((cards) =>
-        cards.map((card) => card.getAttribute("data-home-service")),
-      ),
-    ).toEqual(expectedOrder);
+    await expect(page.locator('main[data-home-direction="agent-proof-offer"]')).toHaveCount(1);
+    await expect(page.locator("#evidence-questions")).toContainText(scenario.methodHeading);
+    await expect(page.locator("#agent-action-receipt")).toContainText(scenario.receiptHeading);
+    await expect(page.locator("#agent-risk-control")).toContainText(
+      "Agent Risk & Control Review",
+    );
+    await expect(page.locator('#agent-risk-control a[href="/catalog/workflows"]')).toHaveCount(1);
+    await expect(page.locator('main a[href="/verify/skill"]')).toHaveCount(0);
+    await expect(page.locator('nav a[href="/verify/skill"]')).toHaveCount(0);
+    await expect(page.locator('footer a[href="/verify/skill"]')).toHaveCount(0);
+    await expect(page.locator("main")).not.toContainText(/Aegis|SKILL\.md|Check a skill/i);
     await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż/);
-    await expect(page.locator('[data-home-service="external-exposure-assessment"]')).toHaveCount(0);
     await expect(page.locator("[data-public-contact-route]")).toHaveCount(1);
 
-    const syntheticPreview = page.locator(
-      `[data-home-synthetic-preview="${HOMEPAGE_SYNTHETIC_PREVIEW.findingId}"]`,
-    );
-    await expect(syntheticPreview).toBeVisible();
-    await expect(
-      syntheticPreview.locator(
-        `[data-home-evidence="${HOMEPAGE_SYNTHETIC_PREVIEW.evidenceId}"]`,
-      ),
-    ).toBeVisible();
-    await expect(
-      syntheticPreview.locator('[data-home-sample-action="finding-preview"]'),
-    ).toHaveCount(1);
-
-    if (scenario.width === 1440) {
-      const doTop = await page
-        .locator("#home-do-heading")
-        .evaluate((heading) => heading.closest("section")?.getBoundingClientRect().top ?? Infinity);
-      expect(doTop).toBeLessThan(scenario.height);
-    }
-
-    const headings = await page.locator("main h2").allTextContents();
-    const normalized = headings.map((heading) => heading.trim());
-    const doIndex = normalized.findIndex((heading) =>
-      /^(What we do|Co robimy)$/.test(heading),
-    );
-    const dontIndex = normalized.findIndex((heading) =>
-      /^(What we don't do|Czego nie robimy)$/.test(heading),
-    );
-    const exampleIndex = normalized.findIndex((heading) =>
-      /See an example|Zobacz przykład/.test(heading),
-    );
-    const checkIndex = normalized.findIndex((heading) =>
-      /Check it yourself|Sprawdź sam/.test(heading),
-    );
-    const whoIndex = normalized.findIndex((heading) =>
-      /Who is behind it|Kto za tym stoi/.test(heading),
-    );
-    const offersIndex = normalized.findIndex((heading) =>
-      /Need a different review|Potrzebujesz innego przeglądu/.test(
-        heading,
-      ),
-    );
-    expect(doIndex).toBeGreaterThanOrEqual(0);
-    expect(dontIndex).toBeGreaterThan(doIndex);
-    expect(exampleIndex).toBeGreaterThan(dontIndex);
-    expect(checkIndex).toBeGreaterThan(exampleIndex);
-    expect(whoIndex).toBeGreaterThan(checkIndex);
-    expect(offersIndex).toBeGreaterThan(whoIndex);
+    const sectionIds = await page
+      .locator("main > section[id]")
+      .evaluateAll((sections) => sections.map((section) => section.id));
+    expect(sectionIds).toEqual([
+      "evidence-questions",
+      "agent-action-receipt",
+      "agent-risk-control",
+    ]);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

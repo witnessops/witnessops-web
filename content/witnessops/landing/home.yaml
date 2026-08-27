@@ -6,16 +6,16 @@ slug: "/"
 status:
   draft: false
   canonical: true
-  last_reviewed: "2026-08-13"
+  last_reviewed: "2026-08-27"
 
 seo:
-  title: "Public Exposure Review for SaaS Teams | WitnessOps"
-  description: "Public Exposure Review: a fixed-scope external security review of one authorised public-facing system, delivered in three working days after start conditions for €1,900 ex VAT."
+  title: "Proof infrastructure for agentic operations | WitnessOps"
+  description: "Check the agent before it acts, preserve authority and evidence during execution, and produce a bounded record another party can inspect."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "See what the internet sees."
-  og_description: "Public Exposure Review. €1,900 ex VAT · 3 working days after start conditions · 1 authorised public-facing system."
+  og_title: "Agents act. WitnessOps proves."
+  og_description: "Before execution: inspect the declared agent. After execution: produce a bounded record another party can check."
   twitter_card: "summary_large_image"
 
 theme:
@@ -29,31 +29,29 @@ navbar:
     text: ""
     href: ""
   links:
-    - label: "Services"
-      href: "/catalog"
-    - label: "Customer Security Review"
-      href: "/customer-security-review"
-    - label: "Library"
-      href: "/library"
-    - label: "Why WitnessOps"
-      href: "/why-witnessops"
+    - label: "Agent Risk & Control Review"
+      href: "/catalog/workflows"
+    - label: "How it works"
+      href: "/#evidence-questions"
+    - label: "Action receipt"
+      href: "/#agent-action-receipt"
   cta:
-    label: "Start a review"
+    label: "Bring one workflow"
     href: "/review/request"
     variant: "primary"
 
 hero:
-  eyebrow: "Public Exposure Review"
-  title: "See what the internet sees."
-  body: "A fixed-scope external security review of one authorised public-facing system, for SaaS teams facing an enterprise request, launch, infrastructure change, or upcoming pentest."
+  eyebrow: "Proof infrastructure for agentic operations"
+  title: "Agents act. WitnessOps proves."
+  body: "WitnessOps helps security, platform, and compliance teams reconstruct one consequential agent workflow: what was authorized, what ran, what was observed, what remains unresolved, and how the result can be challenged."
   supporting_points: []
   primary_cta:
-    label: "Start a review"
-    href: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE"
+    label: "Bring one agentic workflow"
+    href: "/review/request"
     variant: "primary"
   secondary_cta:
-    label: "View sample"
-    href: "/review/sample-cases/external-exposure-assessment"
+    label: "See scope and pricing"
+    href: "/catalog/workflows"
     variant: "secondary"
   proof_badges: []
   media:
@@ -178,10 +176,10 @@ sections:
 
 final_cta:
   enabled: true
-  title: "Ready for a bounded review?"
-  body: "Describe one situation without secrets. We confirm fit, scope, price and evidence handling before work starts."
+  title: "Bring one workflow. Make its boundaries and evidence gaps explicit."
+  body: "Start with the workflow name, its owner and the consequential action. Do not include passwords, private keys, API keys, tokens or recovery codes."
   ctas:
-    - label: "Start a review"
+    - label: "Review one workflow"
       href: "/review/request"
       variant: "primary"
     - label: "View services"
@@ -190,12 +188,12 @@ final_cta:
 
 footer:
   brand_line: "WitnessOps"
-  subline: "Bounded security and operational reviews with evidence references, clear limits and a practical handover."
+  subline: "Scoped reviews of consequential AI and security work with named evidence requirements and explicit limits."
   links:
     - label: "Services"
       href: "/catalog"
-    - label: "Customer Security Review"
-      href: "/customer-security-review"
+    - label: "Agent Risk & Control Review"
+      href: "/catalog/workflows"
     - label: "Why WitnessOps"
       href: "/why-witnessops"
     - label: "Verify a receipt"
