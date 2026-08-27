@@ -10,7 +10,6 @@ interface MobileNavbarMenuProps {
   cta: { label: string; href: string; variant: string };
   utilityLink?: { label: string; href: string };
   currentPath: string;
-  productJourneyNav?: boolean;
   openLabel: string;
   closeLabel: string;
 }
@@ -20,7 +19,6 @@ export function MobileNavbarMenu({
   cta,
   utilityLink,
   currentPath,
-  productJourneyNav = false,
   openLabel,
   closeLabel,
 }: MobileNavbarMenuProps) {
@@ -82,11 +80,15 @@ export function MobileNavbarMenu({
   }, [menuOpen]);
 
   return (
-    <div className="lg:hidden">
+    <div className="contents">
       <button
         ref={toggleRef}
         type="button"
-        className="inline-flex size-11 items-center justify-center rounded-md border border-surface-border-strong bg-surface-bg text-text-primary transition-all duration-200 hover:-translate-y-px hover:border-brand-accent hover:bg-brand-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none"
+        className={`inline-flex size-11 items-center justify-center rounded-md border bg-transparent text-text-secondary transition-colors duration-200 hover:border-surface-border-strong hover:bg-surface-inset hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent lg:hidden ${
+          menuOpen
+            ? "border-surface-border-strong text-text-primary"
+            : "border-surface-border"
+        }`}
         aria-expanded={menuOpen}
         aria-controls={menuId}
         aria-label={menuOpen ? closeLabel : openLabel}
@@ -119,48 +121,47 @@ export function MobileNavbarMenu({
         id={menuId}
         aria-hidden={!menuOpen}
         inert={!menuOpen}
-        className={`public-shell absolute top-full right-0 left-0 overflow-hidden border-t border-surface-border bg-surface-bg text-text-primary transition-[max-height,opacity] duration-200 ${
-          menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        className={`public-shell -mx-4 w-[calc(100%+2rem)] flex-none overflow-hidden bg-surface-bg text-text-primary transition-[max-height,opacity] duration-200 sm:-mx-6 sm:w-[calc(100%+3rem)] lg:hidden ${
+          menuOpen
+            ? "max-h-[32rem] border-t border-surface-border opacity-100"
+            : "pointer-events-none max-h-0 border-t border-transparent opacity-0"
         }`}
       >
-        <div className="mx-auto flex max-w-content flex-col px-6 py-3">
+        <div className="mx-auto flex max-w-content flex-col px-4 py-2 sm:px-6">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               aria-current={currentPath === link.href ? "page" : undefined}
-              className={`inline-flex min-h-11 items-center border-l-2 px-3 py-2 text-sm transition-all duration-200 hover:translate-x-1 hover:border-brand-accent hover:bg-brand-accent/10 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none ${
+              className={`inline-flex h-12 items-center border-l-2 px-3 text-sm transition-colors duration-200 hover:border-brand-accent/60 hover:bg-brand-accent/[0.06] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent ${
                 currentPath === link.href
-                  ? "border-brand-accent bg-surface-inset font-semibold text-text-primary"
+                  ? "border-brand-accent bg-brand-accent/[0.06] font-semibold text-text-primary"
                   : "border-transparent bg-transparent text-text-secondary"
               }`}
               onClick={closeMenu}
             >
-              {link.label}
+              <span className="inline-block -translate-y-px">{link.label}</span>
             </Link>
           ))}
           {utilityLink ? (
             <Link
               href={utilityLink.href}
-              className="mt-1 inline-flex min-h-11 items-center border-t border-surface-border px-3 py-2 text-sm font-semibold text-text-secondary hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+              className="inline-flex h-12 items-center border-t border-surface-border px-3 text-sm font-semibold text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
               onClick={closeMenu}
             >
-              {utilityLink.label}
+              <span className="inline-block -translate-y-px">{utilityLink.label}</span>
             </Link>
           ) : null}
           <CtaButton
             label={cta.label}
             href={cta.href}
             variant={(cta.variant as "primary" | "secondary" | "ghost") ?? "primary"}
-            className={`mt-2 min-h-11 w-full !rounded-md ${
-              productJourneyNav
-                ? "!border !border-brand-accent !bg-brand-accent !text-text-inverse !shadow-[0_8px_24px_rgba(242,122,61,0.16)] hover:-translate-y-0.5 hover:!brightness-110 hover:!shadow-[0_12px_30px_rgba(242,122,61,0.28)]"
-                : "!bg-text-primary !text-surface-bg !shadow-none hover:!bg-[#2b2b25] hover:!shadow-none"
-            } focus-visible:!ring-brand-accent focus-visible:!ring-offset-surface-bg ${
+            className={`mt-2 h-12 w-full !rounded-md !border !border-brand-accent !bg-brand-accent !text-text-inverse !shadow-[0_8px_24px_rgba(242,122,61,0.16)] hover:!brightness-110 hover:!shadow-[0_12px_30px_rgba(242,122,61,0.24)] focus-visible:!ring-brand-accent focus-visible:!ring-offset-surface-bg ${
               currentPath === cta.href ? "ring-2 ring-brand-accent" : ""
             }`}
             ariaCurrent={currentPath === cta.href ? "page" : undefined}
             onClick={closeMenu}
+            labelClassName="inline-block -translate-y-px"
           />
         </div>
       </div>

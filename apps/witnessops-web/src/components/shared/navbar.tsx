@@ -14,7 +14,7 @@ import {
 const BUYER_NAV_LINKS = [
   { label: "Services", href: "/catalog" },
   { label: "Customer Security Review", href: "/customer-security-review" },
-  { label: "Library", href: "/library" },
+  { label: "Skills", href: "/library" },
   { label: "Why WitnessOps", href: "/why-witnessops" },
 ];
 
@@ -48,6 +48,8 @@ const HOME_NAV_CTA_PL = {
   variant: "primary",
 };
 
+const HOME_BRAND_LINE = "Proof beats memory.";
+
 interface NavbarProps {
   links: { label: string; href: string }[];
   cta: { label: string; href: string; variant: string };
@@ -61,6 +63,7 @@ export function Navbar({ announcement }: NavbarProps) {
   const polish = isPolishPath(currentPath);
   const homeNav = currentPath === "/" || currentPath === "/pl";
   const productJourneyNav = homeNav;
+  const homepageNativeChrome = homeNav || currentPath === "/media-kit";
 
   const logoHref = "/";
   const effectiveLinks = homeNav
@@ -117,7 +120,7 @@ export function Navbar({ announcement }: NavbarProps) {
     const baseClassName =
       "hidden min-h-11 items-center whitespace-nowrap rounded-md px-4 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none lg:inline-flex";
 
-    if (productJourneyNav) {
+    if (homepageNativeChrome) {
       return `${baseClassName} border border-brand-accent bg-brand-accent text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.16)] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_30px_rgba(242,122,61,0.28)] active:translate-y-0 active:scale-[0.98] active:shadow-[0_5px_16px_rgba(242,122,61,0.18)]`;
     }
 
@@ -155,29 +158,36 @@ export function Navbar({ announcement }: NavbarProps) {
       )}
       <nav
         ref={navRef}
-        className="public-shell sticky top-0 z-50 border-b border-surface-border bg-surface-bg text-text-primary"
+        className="mobile-brand-navbar public-shell sticky top-0 z-50 border-b border-surface-border bg-surface-bg pt-[env(safe-area-inset-top)] text-text-primary lg:pt-0"
         data-home-nav={homeNav ? "true" : undefined}
         data-product-journey-nav={productJourneyNav ? "true" : undefined}
       >
-        <div className="mx-auto flex max-w-content items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-content flex-wrap items-center justify-between px-4 py-2 sm:px-6 lg:flex-nowrap lg:py-4">
           <Link
             href={logoHref}
             aria-label={polish ? "WitnessOps — strona główna" : "WitnessOps home"}
-            className="group flex min-h-11 shrink-0 items-center gap-2 rounded text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+            className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-2 rounded text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
           >
             <WitnessOpsMark
               variant="mark"
               size="sm"
               tone="current"
               decorative
-              className="text-text-primary max-md:scale-[0.93]"
+              className="text-text-primary"
             />
             <span
-              className="max-[420px]:hidden text-[11px] font-semibold uppercase tracking-[0.14em] leading-none text-text-primary"
+              className="hidden text-[11px] font-semibold uppercase leading-none tracking-[0.14em] text-text-primary lg:inline"
               style={{ fontFamily: "var(--font-display)" }}
               aria-hidden="true"
             >
               {brandLabel}
+            </span>
+            <span
+              aria-hidden="true"
+              className="inline-block -translate-y-px text-xs font-semibold tracking-[0.055em] text-text-primary transition-colors group-hover:text-brand-accent lg:hidden"
+              style={{ fontFamily: "var(--font-mono)" }}
+            >
+              {HOME_BRAND_LINE}
             </span>
             {productJourneyNav ? (
               <span
@@ -185,12 +195,12 @@ export function Navbar({ announcement }: NavbarProps) {
                 className="ml-2 hidden border-l border-surface-border pl-4 text-[0.68rem] font-medium tracking-[0.04em] text-text-muted transition-colors group-hover:text-text-secondary lg:inline"
                 style={{ fontFamily: "var(--font-mono)" }}
               >
-                Proof beats memory.
+                {HOME_BRAND_LINE}
               </span>
             ) : null}
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="contents lg:flex lg:items-center lg:gap-3">
             <div className="hidden items-center gap-4 lg:flex lg:gap-6 xl:gap-8">
               {effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
@@ -252,7 +262,6 @@ export function Navbar({ announcement }: NavbarProps) {
               cta={effectiveCta}
               utilityLink={languageLink}
               currentPath={currentPath}
-              productJourneyNav={productJourneyNav}
               openLabel={polish ? "Otwórz główną nawigację" : "Open primary navigation"}
               closeLabel={polish ? "Zamknij główną nawigację" : "Close primary navigation"}
             />

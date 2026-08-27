@@ -19,6 +19,28 @@ export interface DocsAssistantPayloadValidationResult {
 
 export type DocsAssistantFetch = typeof fetch;
 
+export const DOCS_ASSISTANT_REQUEST_TIMEOUT_MS = 12_000;
+export const DOCS_ASSISTANT_MAX_OUTPUT_TOKENS = 1_200;
+
+export interface DocsAssistantProviderEvent {
+  event: "openai_response" | "openai_error";
+  request_id: string | null;
+  status: number | null;
+  duration_ms: number;
+  error_class: string | null;
+}
+
+export type DocsAssistantProviderLogger = (
+  event: DocsAssistantProviderEvent,
+) => void;
+
+class DocsAssistantProviderError extends Error {
+  constructor(readonly errorClass: string) {
+    super(errorClass);
+    this.name = "DocsAssistantProviderError";
+  }
+}
+
 const DOCS_ASSISTANT_CLAIM_SCHEMA = {
   type: "object",
   properties: {
@@ -183,6 +205,7 @@ export function buildDocsAssistantResponsesRequest(args: {
     ],
     tool_choice: { type: "file_search" },
     max_tool_calls: 1,
+    max_output_tokens: DOCS_ASSISTANT_MAX_OUTPUT_TOKENS,
     include: ["file_search_call.results"],
     text: {
       format: {
@@ -236,33 +259,82 @@ export async function executeDocsAssistantResponsesRequest(args: {
   payload: DocsAssistantAskPayload;
   config: DocsAssistantRuntimeEnabledConfig;
   fetchImpl?: DocsAssistantFetch;
+  timeoutMs?: number;
+  logger?: DocsAssistantProviderLogger;
 }): Promise<unknown> {
   const fetchImpl = args.fetchImpl ?? globalThis.fetch;
+  const timeoutMs = args.timeoutMs ?? DOCS_ASSISTANT_REQUEST_TIMEOUT_MS;
+  const logger = args.logger ?? defaultProviderLogger;
   const requestBody = buildDocsAssistantResponsesRequest({
     payload: args.payload,
     config: args.config,
   });
+  const controller = new AbortController();
+  const startedAt = Date.now();
+  let timeoutTriggered = false;
+  const timeout = setTimeout(() => {
+    timeoutTriggered = true;
+    controller.abort();
+  }, timeoutMs);
 
-  const response = await fetchImpl("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${args.config.apiKey}`,
-    },
-    body: JSON.stringify(requestBody),
-  });
+  try {
+    const response = await fetchImpl("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${args.config.apiKey}`,
+      },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal,
+    });
+    const requestId = response.headers.get("x-request-id");
 
-  if (!response.ok) {
-    throw new Error(`openai_responses_request_failed:${response.status}`);
+    logger({
+      event: response.ok ? "openai_response" : "openai_error",
+      request_id: requestId,
+      status: response.status,
+      duration_ms: Date.now() - startedAt,
+      error_class: response.ok ? null : "provider_http_error",
+    });
+
+    if (!response.ok) {
+      throw new DocsAssistantProviderError("provider_http_error");
+    }
+
+    try {
+      return await response.json();
+    } catch {
+      throw new DocsAssistantProviderError("provider_invalid_response");
+    }
+  } catch (error) {
+    if (error instanceof DocsAssistantProviderError) {
+      throw error;
+    }
+
+    const errorClass =
+      timeoutTriggered ||
+      (error instanceof Error && error.name === "AbortError")
+        ? "provider_timeout"
+        : "provider_unavailable";
+    logger({
+      event: "openai_error",
+      request_id: null,
+      status: null,
+      duration_ms: Date.now() - startedAt,
+      error_class: errorClass,
+    });
+    throw new DocsAssistantProviderError(errorClass);
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return response.json();
 }
 
 export async function runDocsAssistantServerRuntime(args: {
   payload: DocsAssistantAskPayload;
   config: DocsAssistantRuntimeEnabledConfig;
   fetchImpl?: DocsAssistantFetch;
+  timeoutMs?: number;
+  logger?: DocsAssistantProviderLogger;
 }): Promise<DocsAssistantAnswer> {
   try {
     const response = await executeDocsAssistantResponsesRequest(args);
@@ -282,10 +354,24 @@ export async function runDocsAssistantServerRuntime(args: {
   } catch (error) {
     return buildRuntimeErrorAnswer({
       question: args.payload.question,
-      unsupportedReason: "docs_assistant_runtime_error",
+      unsupportedReason: "docs_assistant_runtime_unavailable",
       boundaryFindings: [
-        error instanceof Error ? error.message : "unknown_runtime_error",
+        error instanceof DocsAssistantProviderError
+          ? error.errorClass
+          : "provider_unavailable",
       ],
     });
   }
+}
+
+export function isDocsAssistantRuntimeUnavailable(
+  answer: DocsAssistantAnswer,
+): boolean {
+  return answer.unsupported_reason === "docs_assistant_runtime_unavailable";
+}
+
+function defaultProviderLogger(event: DocsAssistantProviderEvent) {
+  // Intentionally excludes prompt and response bodies. The provider request ID
+  // is retained for troubleshooting without logging visitor content.
+  console.info("[ask-witnessops:openai]", JSON.stringify(event));
 }

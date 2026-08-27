@@ -55,7 +55,7 @@ test("English Skill Library resolves all exact-byte first-party routes", async (
 
     const response = await page.goto("/library", { waitUntil: "networkidle" });
     expect(response?.status()).toBe(200);
-    await expect(page.locator("main h1")).toContainText("Inspect the instructions");
+    await expect(page.locator("main h1")).toHaveText("All Skills Library");
     const skillCards = page.locator('main section[aria-label="First-party skills"] a');
     await expect(skillCards).toHaveCount(11);
     expect(await skillCards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href"))))

@@ -303,7 +303,7 @@ export function VerificationResult({
           href="/library"
           className="text-brand-accent underline-offset-4 hover:underline"
         >
-          Library
+          Skills
         </Link>
       </p>
     </section>

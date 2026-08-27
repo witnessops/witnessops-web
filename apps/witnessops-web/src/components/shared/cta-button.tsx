@@ -8,6 +8,7 @@ interface CtaButtonProps {
   href: string;
   variant: Variant;
   className?: string;
+  labelClassName?: string;
   onClick?: MouseEventHandler<HTMLAnchorElement>;
   uiProofId?: string;
   ariaCurrent?: "page";
@@ -27,6 +28,7 @@ export function CtaButton({
   href,
   variant,
   className,
+  labelClassName,
   onClick,
   uiProofId,
   ariaCurrent,
@@ -46,7 +48,7 @@ export function CtaButton({
         data-ui-proof-id={uiProofId}
         aria-current={ariaCurrent}
       >
-        {label}
+        {labelClassName ? <span className={labelClassName}>{label}</span> : label}
       </a>
     );
   }
@@ -59,7 +61,7 @@ export function CtaButton({
       data-ui-proof-id={uiProofId}
       aria-current={ariaCurrent}
     >
-      {label}
+      {labelClassName ? <span className={labelClassName}>{label}</span> : label}
     </Link>
   );
 }

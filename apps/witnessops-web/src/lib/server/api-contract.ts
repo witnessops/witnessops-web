@@ -83,8 +83,8 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     path: "/api/ask-witnessops",
     methods: ["POST"],
     category: "public-utility",
-    summary: "Deterministic Ask WitnessOps answer-only question endpoint",
-    note: "Accepts bounded JSON questions and returns the assembled answer without persisting public questions or emitting receipt-custody headers.",
+    summary: "Bounded Ask WitnessOps answer-only question endpoint",
+    note: "Preserves deterministic policy gates, uses the approved server-only OpenAI retrieval runtime when explicitly enabled, and otherwise returns an honest deterministic fallback without persisting public questions or emitting receipt-custody headers.",
   },
   {
     path: "/api/contact",

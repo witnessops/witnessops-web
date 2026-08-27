@@ -126,7 +126,7 @@ export default function VerifyPage() {
             href="/library"
             className="text-brand-accent underline-offset-4 hover:underline"
           >
-            Library &amp; sample materials
+            Skills &amp; sample materials
           </Link>
         </nav>
       </SectionShell>

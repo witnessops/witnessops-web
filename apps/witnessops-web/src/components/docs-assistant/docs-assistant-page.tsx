@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   askWitnessOpsAnswerText,
+  askWitnessOpsModeLabel,
   fetchAskWitnessOps,
   type AskWitnessOpsUiAnswer,
 } from "./ask-witnessops-response";
@@ -138,6 +139,12 @@ export function DocsAssistantPage() {
                     </p>
                     {msg.answer && (
                       <>
+                        <p
+                          className="mb-2 mt-3 text-xs uppercase tracking-[0.08em] text-text-muted"
+                          style={{ fontFamily: "var(--font-mono)" }}
+                        >
+                          {askWitnessOpsModeLabel(msg.answer)}
+                        </p>
                         <AskWitnessOpsRouteCta answer={msg.answer} />
                         <AskWitnessOpsSourceLinks answer={msg.answer} />
                         <AskWitnessOpsReceiptMeta answer={msg.answer} />

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
-import { getSurfaceUrl } from "@witnessops/config";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { isPolishPath } from "@/lib/public-i18n";
@@ -28,6 +27,7 @@ const LIBRARY_PRIMARY_HREFS = new Set([
   "/pl/verify",
 ]);
 const LIBRARY_QUIET_HREFS = new Set<string>();
+const MEDIA_KIT_HREF = "/media-kit";
 const GITHUB_PROFILE_HREF = "https://github.com/witnessops";
 const FOOTER_LINK_CLASS =
   "inline-flex min-h-11 items-center rounded-sm text-sm font-medium leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
@@ -99,7 +99,7 @@ const LIBRARY_FOOTER_EN: FooterContent = {
   subline:
     "Public entry points for documentation, reviews, verification and synthetic examples.",
   links: [
-    { label: "Library", href: "/library" },
+    { label: "Skills", href: "/library" },
     { label: "Docs", href: DOCS_PUBLIC_HREF },
     { label: "Review", href: "/review" },
     { label: "Start a review", href: "/review/request" },
@@ -166,10 +166,11 @@ const POLISH_FOOTER: FooterContent = {
   motto: FOOTER_MOTTO,
 };
 
-function resolveFooterHref(href: string): string {
-  const docsResolved = resolveDocsHref(href);
-  if (!docsResolved.startsWith("/")) return docsResolved;
-  return getSurfaceUrl("witnessops", docsResolved);
+export function resolveFooterHref(href: string): string {
+  // Same-app routes must stay path-relative so local, dev, and production
+  // previews preserve their current origin. True external destinations pass
+  // through unchanged and are rendered as external anchors below.
+  return resolveDocsHref(href);
 }
 
 export function isExternalFooterHref(href: string): boolean {
@@ -345,7 +346,7 @@ export function Footer({
           </div>
         </div>
 
-        <div className="mt-5 flex flex-col items-start justify-between gap-1.5 border-t border-surface-border pt-4 sm:mt-6 sm:gap-2 sm:pt-5 md:flex-row md:items-center lg:mt-7">
+        <div className="mt-5 flex flex-col items-start justify-between gap-1.5 border-t border-surface-border pt-4 sm:mt-6 sm:gap-2 sm:pt-5 md:flex-row md:items-center md:pr-32 lg:mt-7">
           <div className="flex flex-wrap gap-x-4 gap-y-0">
             {content.legal_links.map((link) => {
               const href = toHref(link.href);
@@ -371,6 +372,15 @@ export function Footer({
                 </Link>
               );
             })}
+            {!isPolishSurface ? (
+              <Link
+                href={toHref(MEDIA_KIT_HREF)}
+                className={FOOTER_LEGAL_LINK_CLASS}
+                style={FOOTER_MONO_STYLE}
+              >
+                Media kit
+              </Link>
+            ) : null}
             <a
               href={GITHUB_PROFILE_HREF}
               target="_blank"

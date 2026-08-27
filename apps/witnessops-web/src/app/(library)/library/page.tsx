@@ -6,7 +6,7 @@ import { languageAlternates } from "@/lib/public-seo";
 import styles from "./skill-library.module.css";
 
 export const metadata: Metadata = {
-  title: "WitnessOps Skill Library",
+  title: "All Skills Library",
   description: "Eleven first-party agent skill contracts with exact source bytes, SHA-256 digests, and a local deterministic check path.",
   alternates: languageAlternates("/library", { en: "/library", pl: "/pl/library" }),
 };
@@ -18,8 +18,8 @@ export default function LibraryPage() {
     <main id="main-content" tabIndex={-1} className={styles.page} data-page="skill-library">
       <header className={styles.hero}>
         <div className={styles.frame}>
-          <p className={styles.eyebrow}>WitnessOps Skill Library · first-party contracts</p>
-          <h1 className={styles.title}>Inspect the instructions before the agent acts.</h1>
+          <p className={styles.eyebrow}>WitnessOps skills · first-party contracts</p>
+          <h1 className={styles.title}>All Skills Library</h1>
           <p className={styles.lead}>
             Every entry is a committed SKILL.md with one exact byte sequence. Read it, copy it,
             download it, or send that exact version to the local Aegis checker.
@@ -34,7 +34,7 @@ export default function LibraryPage() {
         </div>
       </header>
 
-      <section className={styles.frame} aria-label="First-party skills">
+      <section className={`${styles.frame} ${styles.catalog}`} aria-label="First-party skills">
         <div className={styles.grid}>
           {skills.map((skill) => (
             <Link key={skill.slug} href={`/library/${skill.slug}`} className={`${styles.card} ${skill.featured ? styles.featured : ""}`}>

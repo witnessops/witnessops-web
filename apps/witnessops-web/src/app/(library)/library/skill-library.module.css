@@ -23,6 +23,7 @@
 .actionSecondary { border: 1px solid #474743; color: var(--ink); }
 .actionPrimary:hover, .actionSecondary:hover { transform: translateY(-2px); }
 .boundary { margin-top: 1.4rem; color: var(--ink-muted); font-size: .82rem; line-height: 1.6; }
+.catalog { padding-top: clamp(1.5rem, 3vw, 2.5rem); }
 .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; padding-block: 1px; background: var(--rule); border-inline: 1px solid var(--rule); }
 .card { min-width: 0; padding: 1.7rem; background: var(--paper-raised); color: inherit; transition: background 160ms ease, transform 160ms ease; }
 .card:hover { background: var(--paper-soft); transform: translateY(-2px); }

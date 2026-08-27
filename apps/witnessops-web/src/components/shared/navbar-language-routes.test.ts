@@ -10,7 +10,7 @@ test("primary buyer navigation contains the approved English destinations", () =
   for (const marker of [
     'label: "Services", href: "/catalog"',
     'label: "Customer Security Review", href: "/customer-security-review"',
-    'label: "Library", href: "/library"',
+    'label: "Skills", href: "/library"',
     'label: "Why WitnessOps", href: "/why-witnessops"',
     'label: "Start a review"',
   ]) {
@@ -63,5 +63,48 @@ test("tablet uses the compact navigation instead of overflowing desktop links", 
   );
 
   assert.match(navbar, /hidden items-center gap-4 lg:flex/);
-  assert.match(mobileNavbar, /className="lg:hidden"/);
+  assert.match(mobileNavbar, /lg:hidden/);
+});
+
+test("mobile header uses the approved mark and compact brand line", () => {
+  assert.match(navbar, /const HOME_BRAND_LINE = "Proof beats memory\."/);
+  assert.match(navbar, /aria-label=\{polish \? "WitnessOps — strona główna" : "WitnessOps home"\}/);
+  assert.match(navbar, /hidden text-\[11px\][^\n]+lg:inline/);
+  assert.match(navbar, /text-xs font-semibold[^\n]+lg:hidden/);
+  assert.match(navbar, /inline-block -translate-y-px text-xs/);
+  assert.match(navbar, /px-4 py-2[^\n]+lg:py-4/);
+  assert.match(navbar, /mobile-brand-navbar/);
+  assert.doesNotMatch(navbar, /max-\[420px\]:hidden/);
+});
+
+test("mobile menu is an attached 48px-row sheet with one orange action", () => {
+  const mobileNavbar = readFileSync(
+    resolve(__dirname, "mobile-navbar-menu.tsx"),
+    "utf-8",
+  );
+
+  assert.match(mobileNavbar, /className="contents"/);
+  assert.match(mobileNavbar, /w-\[calc\(100%\+2rem\)\]/);
+  assert.match(mobileNavbar, /max-h-\[32rem\]/);
+  assert.match(mobileNavbar, /inline-flex h-12 items-center border-l-2/);
+  assert.match(mobileNavbar, /inline-flex h-12 items-center border-t/);
+  assert.equal(
+    mobileNavbar.match(/!bg-brand-accent/g)?.length,
+    1,
+    "The mobile sheet must contain exactly one orange primary action",
+  );
+  assert.equal(
+    mobileNavbar.match(/inline-block -translate-y-px/g)?.length,
+    3,
+    "Every mobile menu text treatment must share the optical baseline correction",
+  );
+  assert.match(mobileNavbar, /labelClassName="inline-block -translate-y-px"/);
+});
+
+test("media kit reuses the homepage-native orange action chrome", () => {
+  assert.match(
+    navbar,
+    /const homepageNativeChrome = homeNav \|\| currentPath === "\/media-kit"/,
+  );
+  assert.match(navbar, /getDesktopCtaClassName/);
 });

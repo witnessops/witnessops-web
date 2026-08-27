@@ -23,6 +23,10 @@ export interface AskWitnessOpsUiAnswer {
   readonly failure_reason?: string;
   readonly receipt_id?: string;
   readonly receipt_status?: "durable" | "ephemeral";
+  readonly answer_mode:
+    | "ai_assisted"
+    | "deterministic_fallback"
+    | "policy_refusal";
 }
 
 export interface AskWitnessOpsRequestErrorDetails {
@@ -40,6 +44,18 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
   }
 
   return "";
+}
+
+export function askWitnessOpsModeLabel(answer: AskWitnessOpsUiAnswer): string {
+  if (answer.answer_mode === "ai_assisted") {
+    return "AI-assisted · public WitnessOps material";
+  }
+
+  if (answer.answer_mode === "policy_refusal") {
+    return "Boundary guidance";
+  }
+
+  return "Public guide · AI unavailable";
 }
 
 const SAME_SITE_HOSTS = new Set(["witnessops.com", "www.witnessops.com"]);
@@ -157,6 +173,11 @@ function parseAssembledAnswer(payload: unknown): AskWitnessOpsUiAnswer {
     presented_sources: asPresentedSources(record.presented_sources),
     failure_reason:
       typeof record.failure_reason === "string" ? record.failure_reason : undefined,
+    answer_mode:
+      record.answer_mode === "ai_assisted" ||
+      record.answer_mode === "policy_refusal"
+        ? record.answer_mode
+        : "deterministic_fallback",
   };
 }
 

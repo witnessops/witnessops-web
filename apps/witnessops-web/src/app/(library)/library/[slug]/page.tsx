@@ -32,7 +32,7 @@ export default async function SkillDetailPage({ params }: Props) {
     <main id="main-content" tabIndex={-1} className={styles.page} data-page="skill-detail">
       <header className={`${styles.frame} ${styles.detailHeader}`}>
         <div>
-          <p className={styles.eyebrow}>WitnessOps Skill Library · {categoryLabel(skill.category)}</p>
+          <p className={styles.eyebrow}>All Skills Library · {categoryLabel(skill.category)}</p>
           <h1 className={styles.detailTitle}>{skill.name}</h1>
           <p className={styles.lead}>{skill.tagline}</p>
           <div className={styles.actions}>

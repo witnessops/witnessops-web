@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import {
   askWitnessOpsAnswerText,
+  askWitnessOpsModeLabel,
   fetchAskWitnessOps,
   type AskWitnessOpsUiAnswer,
 } from "./ask-witnessops-response";
@@ -90,6 +91,12 @@ export function DocsAssistantInline() {
 
       {response && (
         <div className="mt-4 border-l-2 border-surface-border pl-4">
+          <p
+            className="mb-2 text-xs uppercase tracking-[0.08em] text-text-muted"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            {askWitnessOpsModeLabel(response)}
+          </p>
           <p className="whitespace-pre-line text-sm leading-relaxed text-text-primary">
             {askWitnessOpsAnswerText(response)}
           </p>

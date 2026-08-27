@@ -54,11 +54,65 @@ test("Ask WitnessOps offers the five buyer and proof quick prompts", () => {
   }
 });
 
-test("Ask WitnessOps loading copy reflects deterministic assembly", () => {
+test("Ask WitnessOps loading copy stays provider-neutral", () => {
   const content = source("docs-assistant-loading-status.tsx");
-  assert.match(content, /Assembling bounded public answer/);
+  assert.match(content, /Checking public WitnessOps material/);
   assert.doesNotMatch(content, /Searching docs/);
-  assert.doesNotMatch(content, /Searching public WitnessOps material/);
+  assert.doesNotMatch(content, /Calling OpenAI/);
+});
+
+test("Ask WitnessOps client surfaces contain no OpenAI credential contract", () => {
+  for (const filename of [
+    "ask-witnessops-response.ts",
+    "docs-assistant-widget.tsx",
+    "docs-assistant-page.tsx",
+    "docs-assistant-inline.tsx",
+  ]) {
+    const content = source(filename);
+    assert.doesNotMatch(content, /OPENAI_API_KEY/);
+    assert.doesNotMatch(content, /NEXT_PUBLIC_OPENAI/);
+  }
+});
+
+test("Ask WitnessOps hides its trigger while the dialog owns the floating space", () => {
+  const content = source("docs-assistant-widget.tsx");
+
+  assert.match(content, /shouldShowDocsAssistantTrigger\(open\)/);
+  assert.match(content, /aria-controls="ask-witnessops-dialog"/);
+  assert.match(content, /triggerRef\.current\?\.focus\(\)/);
+  assert.doesNotMatch(content, /aria-label=\{open \?/);
+});
+
+test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
+  const widget = source("docs-assistant-widget.tsx");
+  const contact = source("docs-assistant-contact-handoff.tsx");
+
+  assert.match(widget, /<DocsAssistantContactHandoff/);
+  assert.match(widget, /onExpandedChange=\{setContactMode\}/);
+  assert.match(contact, /Leave contact details/);
+  assert.match(contact, /Work email/);
+  assert.match(contact, /Note or request/);
+  assert.match(contact, /\/api\/contact/);
+  assert.match(contact, /\/api\/verify-token/);
+  assert.match(contact, /Follow-up is asynchronous/);
+  assert.match(contact, /No review begins here/);
+  assert.match(contact, /Do not include secrets/);
+});
+
+test("Ask WitnessOps uses a full-viewport mobile surface at the shared breakpoint", () => {
+  const content = source("docs-assistant-widget.tsx");
+
+  assert.match(content, /MOBILE_WIDGET_MEDIA_QUERY = "\(max-width: 39\.999rem\)"/);
+  assert.match(content, /h-\[var\(--ask-ai-mobile-height\)\] w-full max-w-none/);
+  assert.match(content, /sm:h-\[min\(560px,calc\(100vh-8rem\)\)\]/);
+  assert.match(content, /sm:max-w-\[390px\]/);
+  assert.match(content, /env\(safe-area-inset-top\)/);
+  assert.match(content, /env\(safe-area-inset-bottom\)/);
+  assert.match(content, /window\.visualViewport/);
+  assert.match(content, /--ask-ai-keyboard-cushion/);
+  assert.match(content, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(content, /document\.body\.style\.overflow = previousOverflow/);
+  assert.doesNotMatch(content, /max-\[420px\]:max-w-none/);
 });
 
 test("Ask WitnessOps full page uses mobile document flow and desktop scrolling", () => {

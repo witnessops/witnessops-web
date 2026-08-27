@@ -3,7 +3,11 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
-import { isExternalFooterHref, isLibraryPath } from "./footer";
+import {
+  isExternalFooterHref,
+  isLibraryPath,
+  resolveFooterHref,
+} from "./footer";
 
 test("footer keeps readable text contrast and sizing", () => {
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
@@ -27,6 +31,7 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.match(source, /fontFamily: "var\(--font-display\)"/);
   assert.match(source, /public-footer/);
   assert.match(source, /grid-cols-2/);
+  assert.match(source, /md:pr-32/);
   assert.match(
     source,
     /lg:grid-cols-\[minmax\(0,4fr\)_minmax\(0,3fr\)_minmax\(280px,3fr\)\]/,
@@ -122,10 +127,73 @@ test("library surface includes English and Polish library paths", () => {
   assert.equal(isLibraryPath("/pl/catalog"), false);
 });
 
+test("English public skills destination uses the Skills label without changing its route", () => {
+  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
+  const homepageContent = readFileSync(
+    resolve(__dirname, "../../../../../content/witnessops/landing/home.yaml"),
+    "utf-8",
+  );
+
+  assert.match(source, /label: "Skills", href: "\/library"/);
+  assert.doesNotMatch(source, /label: "Library", href: "\/library"/);
+  assert.match(homepageContent, /- label: "Skills"\s+href: "\/library"/);
+  assert.doesNotMatch(homepageContent, /- label: "Library"\s+href: "\/library"/);
+});
+
+test("footer keeps Media kit in the English secondary row immediately before GitHub", () => {
+  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
+
+  assert.match(source, /const MEDIA_KIT_HREF = "\/media-kit"/);
+  assert.match(
+    source,
+    /!isPolishSurface[\s\S]*Media kit[\s\S]*href=\{GITHUB_PROFILE_HREF\}/,
+  );
+  assert.doesNotMatch(
+    source,
+    /const POLISH_FOOTER:[\s\S]*label: "Media kit"/,
+  );
+  assert.doesNotMatch(
+    source,
+    /const LIBRARY_FOOTER_PL:[\s\S]*label: "Media kit"/,
+  );
+});
+
 test("footer classifies the source route before same-site URL resolution", () => {
   assert.equal(isExternalFooterHref("/privacy"), false);
   assert.equal(isExternalFooterHref("/review/request"), false);
   assert.equal(isExternalFooterHref("https://github.com/witnessops"), true);
+});
+
+test("footer keeps every public WitnessOps destination on the current origin", () => {
+  for (const href of [
+    "/catalog",
+    "/catalog/workflows",
+    "/why-witnessops",
+    "/verify",
+    "/docs",
+    "/library",
+    "/privacy",
+    "/terms",
+    "/security",
+    "/media-kit",
+    "/review/request",
+  ]) {
+    assert.equal(resolveFooterHref(href), href);
+    assert.equal(isExternalFooterHref(resolveFooterHref(href)), false);
+  }
+
+  for (const href of [
+    "https://github.com/witnessops",
+    "mailto:engage@witnessops.com",
+  ]) {
+    assert.equal(resolveFooterHref(href), href);
+  }
+});
+
+test("footer does not reintroduce canonical production URLs for internal routes", () => {
+  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
+  assert.doesNotMatch(source, /getSurfaceUrl\("witnessops"/);
+  assert.doesNotMatch(source, /https:\/\/witnessops\.com\/(?:catalog|why|verify|docs|library|privacy|terms|security|media-kit)/);
 });
 
 test("footer suppresses Build STATIC and ships PL library island", () => {

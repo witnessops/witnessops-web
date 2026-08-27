@@ -88,7 +88,7 @@ export default function WhyWitnessOpsPage() {
             href="/library"
             className="font-semibold text-text-muted underline-offset-4 hover:text-text-primary hover:underline"
           >
-            Library
+            Skills
           </Link>
         </p>
       </SectionShell>

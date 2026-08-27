@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   askWitnessOpsAnswerText,
+  askWitnessOpsModeLabel,
   askWitnessOpsRouteLabel,
   askWitnessOpsSourceHref,
   askWitnessOpsSourceTarget,
@@ -12,6 +13,7 @@ test("ask witnessops answer text prefers the deterministic template body", () =>
   assert.equal(
     askWitnessOpsAnswerText({
       schema: "witnessops.ask.assembled-answer.v1",
+      answer_mode: "deterministic_fallback",
       status: "success",
       template: {
         template_id: "answer.fit_check.v1",
@@ -29,6 +31,7 @@ test("ask witnessops closed answers fall back to bounded public guidance", () =>
   assert.match(
     askWitnessOpsAnswerText({
       schema: "witnessops.ask.assembled-answer.v1",
+      answer_mode: "policy_refusal",
       status: "closed",
       template: {
         template_id: "decline.evidence_intake.v1",
@@ -40,6 +43,30 @@ test("ask witnessops closed answers fall back to bounded public guidance", () =>
       failure_reason: "POLICY_REFUSAL_OR_DECLINE",
     }),
     /outside the bounded public Ask WitnessOps path/,
+  );
+});
+
+test("ask witnessops labels AI, fallback, and boundary responses honestly", () => {
+  const answer = {
+    schema: "witnessops.ask.assembled-answer.v1" as const,
+    status: "success" as const,
+    template: { template_id: "answer.v1", body: "Answer", source_display: null },
+    route: null,
+    presented_sources: [],
+    answer_mode: "ai_assisted" as const,
+  };
+
+  assert.equal(
+    askWitnessOpsModeLabel(answer),
+    "AI-assisted · public WitnessOps material",
+  );
+  assert.equal(
+    askWitnessOpsModeLabel({ ...answer, answer_mode: "deterministic_fallback" }),
+    "Public guide · AI unavailable",
+  );
+  assert.equal(
+    askWitnessOpsModeLabel({ ...answer, answer_mode: "policy_refusal" }),
+    "Boundary guidance",
   );
 });
 
