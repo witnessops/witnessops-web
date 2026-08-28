@@ -120,6 +120,17 @@ test("Ask WitnessOps does not cover the dedicated review request form", () => {
   assert.match(content, /"\/review\/request"/);
 });
 
+test("Ask WitnessOps yields the floating layer while the mobile navigation is open", () => {
+  const styles = source("docs-assistant-widget.module.css");
+  const mobileNavbar = source("../shared/mobile-navbar-menu.tsx");
+
+  assert.match(mobileNavbar, /data-mobile-nav-open/);
+  assert.match(
+    styles,
+    /:global\(html\[data-mobile-nav-open="true"\]\) \.trigger\s*\{\s*display: none;/,
+  );
+});
+
 test("Ask WitnessOps resets across route changes and closes before same-site navigation", () => {
   const widget = source("docs-assistant-widget.tsx");
   const routeCta = source("ask-witnessops-route-cta.tsx");

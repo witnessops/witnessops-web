@@ -177,9 +177,12 @@ test("the homepage receipt promise lands on the named signed-rotation specimen",
   await receiptLink.click();
 
   await expectPath(page, SAMPLE_PATH);
-  await expect(page.locator("main h1")).toContainText(
-    /The key leaked\.\s+The agent rotated it\./,
-  );
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: /^The key leaked\. The agent rotated it\.$/,
+    }),
+  ).toBeVisible();
   await expect(page.getByText("Published sample — not live customer evidence")).toBeVisible();
   await expect(page.locator('[data-ui-proof-id="api-key-rotation-demo"]')).toBeVisible();
   await saveEvidence(page, "02-desktop-receipt-landing.png");
@@ -199,7 +202,7 @@ test("a selected offer survives the click handoff into the request form", async 
   await page.goto("/catalog/workflows", { waitUntil: "networkidle" });
   const selectedOfferCta = page
     .locator('[data-buyer-service-detail="bounded-workflow-review"]')
-    .getByRole("link", { name: "Start a non-secret fit check" })
+    .getByRole("link", { name: "Bring one workflow", exact: true })
     .first();
   await selectedOfferCta.click();
 
@@ -337,6 +340,7 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   const menu = page.locator("#witnessops-mobile-menu");
   const lastCta = menu.getByRole("link", { name: "Start a review", exact: true });
   await expect(menu).toHaveAttribute("aria-hidden", "false");
+  await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toBeHidden();
 
   await menu.hover();
   await page.mouse.wheel(0, 1000);
@@ -344,8 +348,17 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   await expect(lastCta).toBeInViewport();
   const ctaBox = await lastCta.boundingBox();
   expect(ctaBox, "the final mobile CTA has a rendered box").not.toBeNull();
-  expect(ctaBox!.top).toBeGreaterThanOrEqual(0);
+  expect(ctaBox!.y).toBeGreaterThanOrEqual(0);
   expect(ctaBox!.y + ctaBox!.height).toBeLessThanOrEqual(320);
+  const ctaCenterIsClear = await lastCta.evaluate((cta) => {
+    const box = cta.getBoundingClientRect();
+    const hit = document.elementFromPoint(
+      box.left + box.width / 2,
+      box.top + box.height / 2,
+    );
+    return hit === cta || (hit instanceof Node && cta.contains(hit));
+  });
+  expect(ctaCenterIsClear, "the final mobile CTA is not covered by a floating layer").toBe(true);
 
   await lastCta.click();
   await expectPath(page, "/review/request");
@@ -446,7 +459,7 @@ test("the docs drawer and search preserve stacked focus and scroll locks", async
   await expect(drawerFirst).toBeFocused();
 
   await drawerLast.focus();
-  await page.keyboard.press("Control+K");
+  await page.keyboard.press("Control+k");
   const searchDialog = page.getByRole("dialog", { name: "Search documentation" });
   await expect(searchDialog).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Search docs input" })).toBeFocused();

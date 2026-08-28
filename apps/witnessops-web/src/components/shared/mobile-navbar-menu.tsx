@@ -38,6 +38,18 @@ export function MobileNavbarMenu({
   }, [pathname]);
 
   useEffect(() => {
+    const root = document.documentElement;
+
+    if (menuOpen) {
+      root.setAttribute("data-mobile-nav-open", "true");
+    } else {
+      root.removeAttribute("data-mobile-nav-open");
+    }
+
+    return () => root.removeAttribute("data-mobile-nav-open");
+  }, [menuOpen]);
+
+  useEffect(() => {
     if (!menuOpen) return;
 
     const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';

@@ -701,6 +701,10 @@
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.42);
 }
 
+:global(html[data-mobile-nav-open="true"]) .trigger {
+  display: none;
+}
+
 .triggerLabel,
 .triggerMeta {
   display: none;
