@@ -195,9 +195,9 @@ export function DocsAssistantPage() {
           </button>
         </form>
         <p className="mt-2 text-sm leading-relaxed text-text-muted md:text-xs">
-          AI uses public WitnessOps material. Questions may be processed by
-          OpenAI with provider storage disabled. Do not include confidential or
-          personal material.
+          AI uses public WitnessOps material. Eligible questions may be sent to
+          OpenAI with <code>store: false</code>; provider retention may still
+          apply. Do not include confidential or personal material.
         </p>
       </div>
     </div>

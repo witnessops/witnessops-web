@@ -28,8 +28,9 @@ test("English public shell mounts the compact Ask WitnessOps launcher", () => {
   assert.match(widget, /offerId=bounded-workflow-review&source=ask/);
   assert.match(
     widget,
-    /Questions may be processed\s+by\s+OpenAI\s+with provider storage disabled/,
+    /Eligible questions may be\s+sent to OpenAI\s+with.*store: false.*provider\s+retention\s+may\s+still\s+apply/s,
   );
+  assert.doesNotMatch(widget, /provider storage disabled/);
   assert.match(
     widget,
     /Example: An agent rotates a compromised production key\./,

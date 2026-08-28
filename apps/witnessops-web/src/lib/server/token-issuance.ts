@@ -8,11 +8,10 @@ import {
   type ChannelName,
 } from "@/lib/channel-policy";
 import {
-  ACCESS_CHANGE_POST_VERIFY_PATH,
-  getProofRunRequestLabel,
-  isAccessChangeProofRunIntent,
-  isManualProofRunIntent,
-} from "@/lib/access-change-proof-run";
+  MANUAL_COMMERCIAL_POST_VERIFY_PATH,
+  getCommercialRequestLabel,
+  isManualCommercialRequestIntent,
+} from "@/lib/commercial-request-intents";
 import type {
   EngageResponse,
   SupportResponse,
@@ -133,7 +132,7 @@ function operatorNotificationSubject(intake: IntakeRecord): string {
   if (intake.channel === "support") {
     return `Verified support request: ${identity}`;
   }
-  const requestLabel = getProofRunRequestLabel(intake.submission.intent);
+  const requestLabel = getCommercialRequestLabel(intake.submission.intent);
   return `Verified ${requestLabel}: ${identity}`;
 }
 
@@ -162,7 +161,7 @@ function renderOperatorNotificationText(args: {
     ].join("\n");
   }
 
-  const requestLabel = getProofRunRequestLabel(args.intake.submission.intent);
+  const requestLabel = getCommercialRequestLabel(args.intake.submission.intent);
   return [
     `Verified WitnessOps ${requestLabel}`,
     "",
@@ -224,7 +223,7 @@ function renderOperatorNotificationHtml(args: {
     ].join("");
   }
 
-  const requestLabel = getProofRunRequestLabel(args.intake.submission.intent);
+  const requestLabel = getCommercialRequestLabel(args.intake.submission.intent);
   const scope = args.intake.submission.scope ?? "not provided";
   const C = {
     bg: "#f7f5f1",
@@ -488,7 +487,7 @@ async function ensureOperatorNotificationSent(args: {
   const eligible =
     args.intake.channel === "support" ||
     (args.intake.channel === "engage" &&
-      isManualProofRunIntent(args.intake.submission.intent));
+      isManualCommercialRequestIntent(args.intake.submission.intent));
   if (!eligible) {
     return args.intake;
   }
@@ -678,10 +677,10 @@ function buildPostVerifyPath(
     return "/support?verified=1";
   }
 
-  if (isAccessChangeProofRunIntent(intake.submission.intent)) {
+  if (isManualCommercialRequestIntent(intake.submission.intent)) {
     return intake.submission.locale === "pl"
       ? "/pl/review/request/confirmed"
-      : ACCESS_CHANGE_POST_VERIFY_PATH;
+      : MANUAL_COMMERCIAL_POST_VERIFY_PATH;
   }
 
   return `/assessment/${encodeURIComponent(issuance.issuanceId)}`;
@@ -854,6 +853,12 @@ async function approveScopeAndStartReconUnlocked(
 
   if (originalIssuance.email !== input.email) {
     throw new ScopeApprovalInputError("Issuance email mismatch");
+  }
+
+  if (isManualCommercialRequestIntent(originalIntake.submission.intent)) {
+    throw new ScopeApprovalInputError(
+      "Scope approval is not available for manual commercial requests.",
+    );
   }
 
   const policy = getChannelPolicy(originalIntake.channel ?? "engage");

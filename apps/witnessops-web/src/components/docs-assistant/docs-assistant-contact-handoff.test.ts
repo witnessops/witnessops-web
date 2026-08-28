@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   buildAskAiContactRequest,
   buildAskAiContactScope,
-} from "./docs-assistant-contact-handoff";
+} from "./docs-assistant-contact-handoff-contract";
 
 const likelyWorkflowFit = {
   schema: "witnessops.ask.commercial-fit.v1" as const,

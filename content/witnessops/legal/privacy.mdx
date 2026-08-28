@@ -22,13 +22,15 @@ Most proof artifacts exposed through WitnessOps are public verification material
 
 If you contact WitnessOps, we receive the information you choose to provide, including name, email address, organization, and message content.
 
-When you submit a question through Ask WitnessOps, the question reaches the WitnessOps server. For eligible questions, it may be sent to the OpenAI Responses API with file search limited to approved public WitnessOps material. The provider request sets `store: false`.
+When you submit a question through Ask WitnessOps, the question reaches the WitnessOps server. For eligible questions, it may be sent to the OpenAI Responses API with file search limited to approved public WitnessOps material. The provider request sets `store: false`; this does not itself mean zero data retention, and provider retention may still apply.
 
 The application-level provider event log excludes question and response bodies. It retains only coarse request metadata for troubleshooting: provider request ID, response status, duration, and error class.
 
 Do not include secrets, credentials, confidential information, customer or system data, or personal data in an Ask WitnessOps question.
 
 The contact handoff does not automatically copy your Ask WitnessOps question. Contact details and the note you choose to enter are submitted only when you explicitly submit the contact form.
+
+After mailbox confirmation for a review request, the browser may hold a narrowed request record in session storage. That record contains only the request reference, confirmation time, language, fixed request kind, and source path. It excludes the email address, note, verification code, issuance and thread identifiers, assessment identifiers, URL, and price, and follows the browser's session-storage lifecycle.
 
 Operational systems may also generate minimal server and delivery logs required to maintain availability and security.
 

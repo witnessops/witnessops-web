@@ -1,0 +1,293 @@
+.record {
+  --record-paper: #f1eee6;
+  --record-sheet: #fbf9f4;
+  --record-ink: #111111;
+  --record-muted: #65615a;
+  --record-rule: #c9c3b8;
+  --record-accent: #b94716;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--record-rule);
+  border-radius: 0.35rem;
+  background: var(--record-paper);
+  color: var(--record-ink);
+  box-shadow: 0 20px 56px rgba(31, 24, 18, 0.12);
+}
+
+.header {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.72rem 1rem;
+  border-bottom: 1px solid var(--record-rule);
+  background: var(--record-sheet);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.header strong {
+  color: var(--record-accent);
+  text-align: right;
+}
+
+.body {
+  padding: clamp(1rem, 3vw, 1.6rem);
+}
+
+.kicker {
+  margin: 0;
+  color: var(--record-accent);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0.75rem 0 0;
+  color: var(--record-ink);
+  font-size: clamp(1.75rem, 5vw, 2.85rem);
+  font-weight: 760;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.requestName {
+  display: grid;
+  gap: 0.25rem;
+  margin: 1rem 0 0;
+}
+
+.requestName span,
+.facts dt,
+.nextStep span {
+  color: var(--record-muted);
+  font-family: var(--font-mono);
+  font-size: 0.57rem;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.requestName strong {
+  color: var(--record-ink);
+  font-size: 0.93rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 1.25rem 0 0;
+  border-top: 1px solid var(--record-rule);
+  border-left: 1px solid var(--record-rule);
+}
+
+.facts > div {
+  min-width: 0;
+  min-height: 86px;
+  padding: 0.8rem;
+  border-right: 1px solid var(--record-rule);
+  border-bottom: 1px solid var(--record-rule);
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.facts dd {
+  margin: 0.5rem 0 0;
+  color: var(--record-ink);
+  font-size: 0.74rem;
+  font-weight: 650;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.facts code,
+.facts time {
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+}
+
+.facts .negative {
+  color: var(--record-accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nextStep {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--record-rule);
+  border-bottom: 1px solid var(--record-rule);
+}
+
+.nextStep strong {
+  color: var(--record-ink);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.boundary {
+  margin: 1rem 0 0;
+  padding-left: 0.75rem;
+  border-left: 4px solid var(--record-accent);
+  color: var(--record-muted);
+  font-size: 0.68rem;
+  font-weight: 560;
+  line-height: 1.55;
+}
+
+.copyButton {
+  min-height: 44px;
+  margin-top: 1rem;
+  border: 1px solid var(--record-ink);
+  border-radius: 0.25rem;
+  background: var(--record-ink);
+  padding: 0.7rem 0.95rem;
+  color: var(--record-sheet);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.copyButton:hover {
+  background: var(--record-accent);
+}
+
+.copyButton:focus-visible {
+  outline: 3px solid var(--record-accent);
+  outline-offset: 3px;
+}
+
+.copyStatus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.copyFallback {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.copyFallback label {
+  color: var(--record-accent);
+  font-family: var(--font-mono);
+  font-size: 0.57rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.copyFallback textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--record-ink);
+  border-radius: 0.2rem;
+  background: var(--record-sheet);
+  padding: 0.7rem;
+  color: var(--record-ink);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  line-height: 1.5;
+}
+
+.copyFallback textarea:focus-visible {
+  outline: 3px solid var(--record-accent);
+  outline-offset: 2px;
+}
+
+.footer {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--record-rule);
+  background: var(--record-sheet);
+}
+
+.footer span {
+  padding: 0.65rem 0.35rem;
+  color: var(--record-muted);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.footer span + span {
+  border-left: 1px solid var(--record-rule);
+}
+
+.compact {
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.24);
+}
+
+.compact .body {
+  padding: 0.95rem;
+}
+
+.compact .title {
+  font-size: clamp(1.65rem, 7vw, 2.2rem);
+}
+
+.compact .facts > div {
+  min-height: 78px;
+  padding: 0.65rem;
+}
+
+@media (max-width: 520px) {
+  .header {
+    align-items: flex-start;
+  }
+
+  .facts {
+    grid-template-columns: 1fr;
+  }
+
+  .facts > div {
+    min-height: 0;
+  }
+
+  .footer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer span:nth-child(3),
+  .footer span:nth-child(4) {
+    border-top: 1px solid var(--record-rule);
+  }
+
+  .footer span:nth-child(3) {
+    border-left: 0;
+  }
+
+  .copyButton {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copyButton {
+    transition: none;
+  }
+}

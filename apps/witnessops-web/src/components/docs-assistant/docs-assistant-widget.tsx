@@ -81,18 +81,32 @@ export function DocsAssistantWidget() {
   const [answer, setAnswer] = useState<AnswerState | null>(null);
   const [loading, setLoading] = useState(false);
   const [contactMode, setContactMode] = useState(false);
+  const [contactBusy, setContactBusy] = useState(false);
   const [mobileViewport, setMobileViewport] = useState<MobileViewportState>({
     height: null,
     keyboardVisible: false,
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const contactLauncherRef = useRef<HTMLButtonElement>(null);
+  const restoreContactLauncherFocusRef = useRef(false);
+  const contactBusyRef = useRef(false);
 
   useEffect(() => {
     if (open) {
       inputRef.current?.focus();
     }
   }, [open]);
+
+  useEffect(() => {
+    if (contactMode || !restoreContactLauncherFocusRef.current) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      contactLauncherRef.current?.focus();
+      restoreContactLauncherFocusRef.current = false;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [contactMode]);
 
   useEffect(() => {
     if (!open) return;
@@ -214,6 +228,8 @@ export function DocsAssistantWidget() {
   }
 
   function handleClose() {
+    if (contactBusyRef.current) return;
+
     setOpen(false);
     setQuestion("");
     setAnswer(null);
@@ -223,6 +239,20 @@ export function DocsAssistantWidget() {
 
   function handleOpen() {
     setOpen(true);
+  }
+
+  function handleContactModeChange(expanded: boolean) {
+    if (!expanded && contactBusyRef.current) return;
+
+    if (!expanded) {
+      restoreContactLauncherFocusRef.current = true;
+    }
+    setContactMode(expanded);
+  }
+
+  function handleContactBusyChange(busy: boolean) {
+    contactBusyRef.current = busy;
+    setContactBusy(busy);
   }
 
   const dialogStyle = {
@@ -273,9 +303,15 @@ export function DocsAssistantWidget() {
               <span>PUBLIC MATERIAL</span>
             </div>
             <button
+              type="button"
               onClick={handleClose}
+              disabled={contactBusy}
               className={styles.closeButton}
-              aria-label="Close Ask WitnessOps"
+              aria-label={
+                contactBusy
+                  ? "Close unavailable while request is processing"
+                  : "Close Ask WitnessOps"
+              }
             >
               ✕
             </button>
@@ -384,7 +420,7 @@ export function DocsAssistantWidget() {
                           <AskWitnessOpsCommercialFitCard
                             answer={answer.answer}
                             compact
-                            onRequestScope={() => setContactMode(true)}
+                            onRequestScope={() => handleContactModeChange(true)}
                           />
                         )}
                         {answer.answer?.commercial_fit.offer && (
@@ -425,7 +461,9 @@ export function DocsAssistantWidget() {
                 <DocsAssistantContactHandoff
                   expanded
                   commercialFit={answer?.answer?.commercial_fit}
-                  onExpandedChange={setContactMode}
+                  launcherRef={contactLauncherRef}
+                  onBusyChange={handleContactBusyChange}
+                  onExpandedChange={handleContactModeChange}
                 />
               </div>
             )}
@@ -435,7 +473,9 @@ export function DocsAssistantWidget() {
                 <DocsAssistantContactHandoff
                   expanded={false}
                   commercialFit={answer?.answer?.commercial_fit}
-                  onExpandedChange={setContactMode}
+                  launcherRef={contactLauncherRef}
+                  onBusyChange={handleContactBusyChange}
+                  onExpandedChange={handleContactModeChange}
                 />
               </div>
             )}
@@ -475,9 +515,10 @@ export function DocsAssistantWidget() {
                   </button>
                 </form>
                 <p className={styles.providerDisclosure}>
-                  AI uses public WitnessOps material. Questions may be processed
-                  by OpenAI with provider storage disabled. Do not include
-                  confidential or personal material. <Link href="/privacy">Privacy</Link>
+                  AI uses public WitnessOps material. Eligible questions may be
+                  sent to OpenAI with <code>store: false</code>; provider retention
+                  may still apply. Do not include confidential or personal material.{" "}
+                  <Link href="/privacy">Privacy</Link>
                 </p>
               </div>
             )}

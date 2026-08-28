@@ -1,10 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type Ref,
+} from "react";
 
+import { ReviewRequestRecord } from "@/components/review-request/review-request-record";
+import {
+  buildReviewRequestConfirmation,
+  type ReviewRequestConfirmation,
+} from "@/lib/review-request-confirmation";
 import { formatVerificationCode } from "@/lib/verification-code-format";
 import type { EngageResponse, VerifyTokenResponse } from "@/lib/token-contract";
 import type { AskWitnessOpsCommercialFit } from "./ask-witnessops-response";
+import { buildAskAiContactRequest } from "./docs-assistant-contact-handoff-contract";
 
 type VerificationStep = Pick<
   EngageResponse,
@@ -13,46 +25,17 @@ type VerificationStep = Pick<
 
 const CONTACT_PANEL_ID = "ask-witnessops-contact-handoff";
 
-export function buildAskAiContactScope(
-  note: string,
-  commercialFit?: AskWitnessOpsCommercialFit,
-): string {
-  return [
-    "Contact path: Ask AI panel handoff",
-    ...(commercialFit?.offer_id
-      ? [
-          `Offer: ${commercialFit.offer_id}`,
-          `Commercial fit signal: ${commercialFit.result}`,
-          `Commercial intent: ${commercialFit.intent}`,
-          `Source: ${commercialFit.source}`,
-        ]
-      : []),
-    `Visitor note: ${note.trim() || "not provided"}`,
-    "First-message boundary: no files, secrets, logs, screenshots, credentials, private keys, MFA codes, customer records, or production evidence requested.",
-    "Next step: mailbox verification, followed by asynchronous fit and scope review. No review starts from this contact handoff.",
-  ].join("\n");
-}
-
-export function buildAskAiContactRequest(
-  email: string,
-  note: string,
-  commercialFit?: AskWitnessOpsCommercialFit,
-) {
-  return {
-    email,
-    intent: "ask-ai-contact",
-    locale: "en",
-    scope: buildAskAiContactScope(note, commercialFit),
-  } as const;
-}
-
 export function DocsAssistantContactHandoff({
   expanded,
   commercialFit,
+  launcherRef,
+  onBusyChange,
   onExpandedChange,
 }: {
   expanded: boolean;
   commercialFit?: AskWitnessOpsCommercialFit;
+  launcherRef?: Ref<HTMLButtonElement>;
+  onBusyChange?: (busy: boolean) => void;
   onExpandedChange: (expanded: boolean) => void;
 }) {
   const [email, setEmail] = useState("");
@@ -65,8 +48,12 @@ export function DocsAssistantContactHandoff({
     useState<VerificationStep | null>(null);
   const [verificationCode, setVerificationCode] = useState("");
   const [boundaryAccepted, setBoundaryAccepted] = useState(false);
+  const [confirmationRecord, setConfirmationRecord] =
+    useState<ReviewRequestConfirmation | null>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const verificationCodeRef = useRef<HTMLInputElement>(null);
+  const confirmationHeadingRef = useRef<HTMLHeadingElement>(null);
+  const inFlightRef = useRef<"contact" | "verification" | null>(null);
 
   useEffect(() => {
     if (!expanded || verificationStep) return;
@@ -84,7 +71,18 @@ export function DocsAssistantContactHandoff({
     return () => window.cancelAnimationFrame(frame);
   }, [verificationStep]);
 
+  useEffect(() => {
+    if (status !== "confirmed" || !confirmationRecord) return;
+
+    const frame = window.requestAnimationFrame(() =>
+      confirmationHeadingRef.current?.focus(),
+    );
+    return () => window.cancelAnimationFrame(frame);
+  }, [confirmationRecord, status]);
+
   function reset() {
+    if (inFlightRef.current !== null) return;
+
     onExpandedChange(false);
     setEmail("");
     setNote("");
@@ -93,12 +91,15 @@ export function DocsAssistantContactHandoff({
     setVerificationStep(null);
     setVerificationCode("");
     setBoundaryAccepted(false);
+    setConfirmationRecord(null);
   }
 
   async function handleContactSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (status === "sending") return;
+    if (inFlightRef.current !== null) return;
 
+    inFlightRef.current = "contact";
+    onBusyChange?.(true);
     setStatus("sending");
     setErrorMessage("");
 
@@ -138,6 +139,11 @@ export function DocsAssistantContactHandoff({
           ? error.message
           : "Could not start contact confirmation.",
       );
+    } finally {
+      if (inFlightRef.current === "contact") {
+        inFlightRef.current = null;
+        onBusyChange?.(false);
+      }
     }
   }
 
@@ -145,10 +151,16 @@ export function DocsAssistantContactHandoff({
     event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
-    if (!verificationStep || !boundaryAccepted || status === "verifying") {
+    if (
+      !verificationStep ||
+      !boundaryAccepted ||
+      inFlightRef.current !== null
+    ) {
       return;
     }
 
+    inFlightRef.current = "verification";
+    onBusyChange?.(true);
     setStatus("verifying");
     setErrorMessage("");
 
@@ -171,12 +183,37 @@ export function DocsAssistantContactHandoff({
         throw new Error(payload?.error ?? "Mailbox confirmation failed.");
       }
 
+      const record = buildReviewRequestConfirmation(payload, {
+        locale: "en",
+        requestKind:
+          commercialFit?.offer_id === "bounded-workflow-review"
+            ? "agent-risk-control-review"
+            : "review-request",
+        source: "ask",
+      });
+      if (!record) {
+        throw new Error(
+          "Mailbox confirmation completed, but the request boundary could not be confirmed.",
+        );
+      }
+
+      setConfirmationRecord(record);
+      setEmail("");
+      setNote("");
+      setVerificationStep(null);
+      setVerificationCode("");
+      setBoundaryAccepted(false);
       setStatus("confirmed");
     } catch (error) {
       setStatus("error");
       setErrorMessage(
         error instanceof Error ? error.message : "Mailbox confirmation failed.",
       );
+    } finally {
+      if (inFlightRef.current === "verification") {
+        inFlightRef.current = null;
+        onBusyChange?.(false);
+      }
     }
   }
 
@@ -188,6 +225,7 @@ export function DocsAssistantContactHandoff({
           AI.
         </p>
         <button
+          ref={launcherRef}
           type="button"
           onClick={() => {
             onExpandedChange(true);
@@ -202,23 +240,23 @@ export function DocsAssistantContactHandoff({
     );
   }
 
-  if (status === "confirmed") {
+  if (status === "confirmed" && confirmationRecord) {
     return (
       <div
         id={CONTACT_PANEL_ID}
+        data-ask-contact-confirmed
         className="mt-5 border-t border-surface-border pt-4"
         aria-live="polite"
       >
-        <h2 className="text-sm font-semibold text-text-primary">
-          Contact confirmed
-        </h2>
-        <p className="mt-2 text-xs leading-relaxed text-text-muted">
-          Your work email and optional note are now in the fit-and-scope intake.
-          Follow-up is asynchronous; no review or evidence intake has started.
-        </p>
+        <ReviewRequestRecord
+          confirmation={confirmationRecord}
+          compact
+          headingRef={confirmationHeadingRef}
+        />
         <button
           type="button"
           onClick={reset}
+          data-ask-contact-return
           className="mt-3 text-xs font-semibold text-brand-accent underline decoration-brand-accent/40 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
         >
           Return to Ask AI
@@ -228,8 +266,15 @@ export function DocsAssistantContactHandoff({
   }
 
   return (
-    <div id={CONTACT_PANEL_ID} className="mt-5 border-t border-surface-border pt-4">
-      <div className="flex items-start justify-between gap-3">
+    <div
+      id={CONTACT_PANEL_ID}
+      data-ask-contact-panel
+      className="mt-5 border-t border-surface-border pt-4"
+    >
+      <div
+        data-ask-contact-heading
+        className="flex items-start justify-between gap-3"
+      >
         <div>
           <h2 className="text-sm font-semibold text-text-primary">
             {commercialFit?.offer
@@ -255,7 +300,8 @@ export function DocsAssistantContactHandoff({
         <button
           type="button"
           onClick={reset}
-          className="shrink-0 text-xs text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+          disabled={status === "sending" || status === "verifying"}
+          className="shrink-0 text-xs text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent disabled:cursor-not-allowed disabled:opacity-40"
         >
           Back
         </button>
@@ -264,6 +310,7 @@ export function DocsAssistantContactHandoff({
       {verificationStep ? (
         <form
           onSubmit={handleVerificationSubmit}
+          data-ask-contact-form
           className="mt-4 space-y-3"
           aria-busy={status === "verifying"}
         >
@@ -287,8 +334,10 @@ export function DocsAssistantContactHandoff({
                 setVerificationCode(
                   formatVerificationCode(event.currentTarget.value),
                 );
-                setStatus("idle");
-                setErrorMessage("");
+                setStatus((current) =>
+                  current === "verifying" ? current : "idle",
+                );
+                if (inFlightRef.current === null) setErrorMessage("");
               }}
               autoComplete="one-time-code"
               autoCapitalize="characters"
@@ -308,8 +357,10 @@ export function DocsAssistantContactHandoff({
               checked={boundaryAccepted}
               onChange={(event) => {
                 setBoundaryAccepted(event.currentTarget.checked);
-                setStatus("idle");
-                setErrorMessage("");
+                setStatus((current) =>
+                  current === "verifying" ? current : "idle",
+                );
+                if (inFlightRef.current === null) setErrorMessage("");
               }}
               className="mt-0.5 h-4 w-4 shrink-0 accent-brand-accent"
             />
@@ -338,6 +389,7 @@ export function DocsAssistantContactHandoff({
       ) : (
         <form
           onSubmit={handleContactSubmit}
+          data-ask-contact-form
           className="mt-4 space-y-3"
           aria-busy={status === "sending"}
         >
@@ -355,8 +407,10 @@ export function DocsAssistantContactHandoff({
               value={email}
               onChange={(event) => {
                 setEmail(event.currentTarget.value);
-                setStatus("idle");
-                setErrorMessage("");
+                setStatus((current) =>
+                  current === "sending" ? current : "idle",
+                );
+                if (inFlightRef.current === null) setErrorMessage("");
               }}
               autoComplete="email"
               required
@@ -374,7 +428,13 @@ export function DocsAssistantContactHandoff({
             <textarea
               id="ask-ai-contact-note"
               value={note}
-              onChange={(event) => setNote(event.currentTarget.value)}
+              onChange={(event) => {
+                setNote(event.currentTarget.value);
+                setStatus((current) =>
+                  current === "sending" ? current : "idle",
+                );
+                if (inFlightRef.current === null) setErrorMessage("");
+              }}
               rows={3}
               maxLength={1_000}
               placeholder="What would you like to discuss? Keep it high level."
@@ -382,9 +442,9 @@ export function DocsAssistantContactHandoff({
             />
           </div>
           <p className="text-[11px] leading-relaxed text-text-muted">
-            After mailbox confirmation, this opens an asynchronous fit-and-scope
-            review only. It does not start work. Do not include secrets, logs,
-            credentials, screenshots, or customer evidence.
+            Follow-up is asynchronous. After mailbox confirmation, WitnessOps
+            may assess fit and scope only. No review begins here. Do not include secrets,
+            logs, credentials, screenshots, or customer evidence.
           </p>
           {status === "error" && (
             <p className="text-xs text-red-400" role="alert">
