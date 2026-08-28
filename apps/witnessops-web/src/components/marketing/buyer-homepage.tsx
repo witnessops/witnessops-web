@@ -24,10 +24,10 @@ const localizedCopy = {
       eyebrow: "Proof infrastructure for agentic operations",
       title: "Agents act. WitnessOps proves.",
       body:
-        "WitnessOps helps security, platform, and compliance teams reconstruct one consequential agent workflow: what was authorized, what ran, what was observed, what remains unresolved, and how the result can be challenged.",
+        "Reconstruct one consequential agent workflow: what was authorized, what ran, what was observed, and what remains unresolved.",
     },
     heroIntro:
-      "Define the workflow before execution, preserve authority and evidence while it runs, then produce a bounded record another responsible party can inspect.",
+      "Produce a bounded record another responsible party can inspect or challenge.",
     primaryCta: "Bring one agentic workflow",
     sampleLink: "Run and verify the compromised API key rotation demo",
     offerCta: "See scope and pricing",
@@ -122,10 +122,10 @@ const localizedCopy = {
       eyebrow: "Infrastruktura dowodowa dla operacji agentowych",
       title: "Agenci działają. WitnessOps dostarcza dowody.",
       body:
-        "WitnessOps pomaga zespołom bezpieczeństwa, platform i compliance odtworzyć jeden istotny workflow agenta: co zatwierdzono, co uruchomiono, co zaobserwowano, co pozostaje nierozstrzygnięte i jak można zakwestionować wynik.",
+        "Odtwórz jeden istotny workflow agenta: co zatwierdzono, co uruchomiono, co zaobserwowano i co pozostaje nierozstrzygnięte.",
     },
     heroIntro:
-      "Zdefiniuj workflow przed wykonaniem, zachowaj upoważnienie i materiały podczas działania, a potem przygotuj ograniczony zapis, który inna odpowiedzialna osoba może przejrzeć.",
+      "Przygotuj ograniczony zapis, który inna odpowiedzialna osoba może sprawdzić lub zakwestionować.",
     primaryCta: "Zgłoś jeden workflow agenta",
     sampleLink: "Uruchom i zweryfikuj demo rotacji skompromitowanego klucza API",
     offerCta: "Zobacz zakres i cenę",
@@ -237,9 +237,15 @@ export function BuyerHomepage({
     <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="agent-proof-offer">
       <section data-ui-proof-id="homepage-hero" className={styles.heroSection}>
         <header className={`${styles.frame} ${styles.heroFrame}`}>
-          <div className={styles.heroCopy}>
+          <div data-ask-trigger-guard className={styles.heroCopy}>
             <p className={styles.eyebrow}>{heroCopy.eyebrow}</p>
-            <h1 data-ui-proof-id="homepage-hero-headline" className={styles.heroTitle}>{heroCopy.title}</h1>
+            <h1
+              data-ui-proof-id="homepage-hero-headline"
+              data-copy-length={heroCopy.title.length > 36 ? "long" : "standard"}
+              className={styles.heroTitle}
+            >
+              {heroCopy.title}
+            </h1>
             <p data-ui-proof-id="homepage-hero-body" className={styles.heroBody}>{heroCopy.body}</p>
             <p className={styles.heroIntro}>{text.heroIntro}</p>
             <div className={styles.heroActions}>

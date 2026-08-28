@@ -160,11 +160,11 @@ export function Navbar({ announcement }: NavbarProps) {
         data-home-nav={homeNav ? "true" : undefined}
         data-product-journey-nav={productJourneyNav ? "true" : undefined}
       >
-        <div className="mx-auto flex max-w-content flex-wrap items-center justify-between px-4 py-2 sm:px-6 lg:flex-nowrap lg:py-4">
+        <div className="mx-auto flex max-w-content flex-wrap items-center justify-between px-4 py-1.5 sm:px-6 lg:flex-nowrap lg:py-4">
           <Link
             href={logoHref}
             aria-label={polish ? "WitnessOps — strona główna" : "WitnessOps home"}
-            className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-2 rounded text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+            className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-1.5 rounded text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
           >
             <WitnessOpsMark
               variant="mark"
@@ -182,7 +182,7 @@ export function Navbar({ announcement }: NavbarProps) {
             </span>
             <span
               aria-hidden="true"
-              className="inline-block -translate-y-px text-xs font-semibold tracking-[0.055em] text-text-primary transition-colors group-hover:text-brand-accent lg:hidden"
+              className="inline-block -translate-y-px text-[0.7rem] font-semibold tracking-[0.035em] text-text-primary transition-colors group-hover:text-brand-accent lg:hidden"
               style={{ fontFamily: "var(--font-mono)" }}
             >
               {HOME_BRAND_LINE}

@@ -95,9 +95,9 @@ test("mobile header uses the approved mark and compact brand line", () => {
   assert.match(navbar, /const HOME_BRAND_LINE = "Proof beats memory\."/);
   assert.match(navbar, /aria-label=\{polish \? "WitnessOps — strona główna" : "WitnessOps home"\}/);
   assert.match(navbar, /hidden text-\[11px\][^\n]+lg:inline/);
-  assert.match(navbar, /text-xs font-semibold[^\n]+lg:hidden/);
-  assert.match(navbar, /inline-block -translate-y-px text-xs/);
-  assert.match(navbar, /px-4 py-2[^\n]+lg:py-4/);
+  assert.match(navbar, /text-\[0\.7rem\] font-semibold[^\n]+lg:hidden/);
+  assert.match(navbar, /inline-block -translate-y-px text-\[0\.7rem\]/);
+  assert.match(navbar, /px-4 py-1\.5[^\n]+lg:py-4/);
   assert.match(navbar, /mobile-brand-navbar/);
   assert.doesNotMatch(navbar, /max-\[420px\]:hidden/);
 });

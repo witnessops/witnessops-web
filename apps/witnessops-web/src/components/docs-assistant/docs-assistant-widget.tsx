@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MessageCircle, X } from "lucide-react";
 
 import {
   askWitnessOpsAnswerText,
@@ -83,21 +84,65 @@ export function DocsAssistantWidget() {
   const [loading, setLoading] = useState(false);
   const [contactMode, setContactMode] = useState(false);
   const [contactBusy, setContactBusy] = useState(false);
+  const [suppressHomeTrigger, setSuppressHomeTrigger] = useState(
+    pathname === "/",
+  );
   const [mobileViewport, setMobileViewport] = useState<MobileViewportState>({
     height: null,
     keyboardVisible: false,
   });
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const contactLauncherRef = useRef<HTMLButtonElement>(null);
   const restoreContactLauncherFocusRef = useRef(false);
   const contactBusyRef = useRef(false);
 
   useEffect(() => {
-    if (open) {
-      inputRef.current?.focus();
+    if (!open) return;
+
+    if (window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY).matches) {
+      dialogRef.current?.focus();
+      return;
     }
+
+    inputRef.current?.focus();
   }, [open]);
+
+  useEffect(() => {
+    if (pathname !== "/") {
+      setSuppressHomeTrigger(false);
+      return;
+    }
+
+    const mobileViewport = window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY);
+    const triggerGuard = document.querySelector("[data-ask-trigger-guard]");
+    if (!triggerGuard) {
+      setSuppressHomeTrigger(false);
+      return;
+    }
+
+    let heroVisible = true;
+    const syncTrigger = () => {
+      setSuppressHomeTrigger(mobileViewport.matches && heroVisible);
+    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        heroVisible = entry.isIntersecting;
+        syncTrigger();
+      },
+      { threshold: 0.05 },
+    );
+
+    observer.observe(triggerGuard);
+    mobileViewport.addEventListener("change", syncTrigger);
+    syncTrigger();
+
+    return () => {
+      observer.disconnect();
+      mobileViewport.removeEventListener("change", syncTrigger);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (contactMode || !restoreContactLauncherFocusRef.current) return;
@@ -256,6 +301,14 @@ export function DocsAssistantWidget() {
     setContactBusy(busy);
   }
 
+  function handleResetAnswer() {
+    if (loading || contactBusyRef.current) return;
+
+    setAnswer(null);
+    setQuestion("");
+    window.requestAnimationFrame(() => inputRef.current?.focus());
+  }
+
   const dialogStyle = {
     "--ask-ai-mobile-height":
       mobileViewport.height === null
@@ -265,13 +318,17 @@ export function DocsAssistantWidget() {
       ? "4rem"
       : "0px",
   } as CSSProperties;
+  const hasPaidScopeCta = Boolean(answer?.answer?.commercial_fit.offer);
+  const layerClassName = open ? styles.openLayer : styles.closedLayer;
 
   return (
-    <div className={open ? styles.openLayer : styles.closedLayer}>
+    <div className={layerClassName}>
       {open && (
         <section
+          ref={dialogRef}
           id="ask-witnessops-dialog"
           role="dialog"
+          tabIndex={-1}
           aria-modal="false"
           aria-labelledby="ask-witnessops-title"
           className={styles.dialog}
@@ -288,7 +345,7 @@ export function DocsAssistantWidget() {
           }
           style={dialogStyle}
         >
-          <div className={styles.chrome}>
+          <div className={styles.chrome} data-ask-chrome>
             <div className={styles.chromeIdentity}>
               <span
                 id="ask-witnessops-title"
@@ -314,7 +371,7 @@ export function DocsAssistantWidget() {
                   : "Close Ask WitnessOps"
               }
             >
-              ✕
+              <X size={16} strokeWidth={1.7} aria-hidden="true" />
             </button>
           </div>
 
@@ -336,15 +393,14 @@ export function DocsAssistantWidget() {
               {!answer && !loading && (
                 <div className={styles.promptStage}>
                   <p className={styles.promptKicker}>
-                    One workflow · non-secret terms
+                    One workflow · no secrets
                   </p>
                   <h2 className={styles.promptTitle}>
                     Describe one consequential agent workflow.
                   </h2>
                   <p className={styles.promptCopy}>
-                    Use non-secret terms. I’ll show whether it fits the Agent
-                    Risk &amp; Control Review, what the review would examine, and
-                    the paid next step.
+                    See the likely review scope, evidence questions, and paid
+                    next step using only a short non-secret description.
                   </p>
                   <div className={styles.guidedRows}>
                     {GUIDED_FIT_QUESTIONS.map((item, index) => (
@@ -365,13 +421,6 @@ export function DocsAssistantWidget() {
                     ))}
                   </div>
                   <div className={styles.utilityLinks}>
-                    <Link
-                      href="/docs"
-                      onClick={handleClose}
-                      className={styles.utilityLink}
-                    >
-                      Find public material <span aria-hidden="true">↗</span>
-                    </Link>
                     <Link
                       href="/review/request?offerId=bounded-workflow-review&source=ask"
                       onClick={handleClose}
@@ -424,12 +473,9 @@ export function DocsAssistantWidget() {
                             onRequestScope={() => handleContactModeChange(true)}
                           />
                         )}
-                        {answer.answer?.commercial_fit.offer && (
-                          <p className={styles.answerRowLabel}>
-                            PUBLIC GUIDANCE
-                          </p>
+                        {!answer.answer?.commercial_fit.offer && (
+                          <p className={styles.answerCopy}>{answer.content}</p>
                         )}
-                        <p className={styles.answerCopy}>{answer.content}</p>
 
                         {answer.answer && (
                           <>
@@ -452,6 +498,13 @@ export function DocsAssistantWidget() {
                       </div>
                     </section>
                   )}
+                  <button
+                    type="button"
+                    onClick={handleResetAnswer}
+                    className={styles.resultReset}
+                  >
+                    Ask another workflow
+                  </button>
                 </div>
               )}
 
@@ -469,7 +522,7 @@ export function DocsAssistantWidget() {
               </div>
             )}
 
-            {!contactMode && (
+            {!contactMode && answer && !hasPaidScopeCta && (
               <div className={styles.contactLauncher}>
                 <DocsAssistantContactHandoff
                   expanded={false}
@@ -481,8 +534,8 @@ export function DocsAssistantWidget() {
               </div>
             )}
 
-            {!contactMode && (
-              <div className={styles.composer}>
+            {!contactMode && !answer && (
+              <div className={styles.composer} data-ask-composer>
                 <p className={styles.safetyLine}>
                   <strong>PUBLIC INPUT</strong>
                   <span>
@@ -503,7 +556,7 @@ export function DocsAssistantWidget() {
                     type="text"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="Example: An agent rotates a compromised production key."
+                    placeholder="Example: An agent rotates a compromised key."
                     aria-label="Describe one non-secret workflow"
                     className={styles.askInput}
                   />
@@ -516,9 +569,9 @@ export function DocsAssistantWidget() {
                   </button>
                 </form>
                 <p className={styles.providerDisclosure}>
-                  AI uses public WitnessOps material. Eligible questions may be
-                  sent to OpenAI with <code>store: false</code>; provider retention
-                  may still apply. Do not include confidential or personal material.{" "}
+                  Uses public WitnessOps material. Eligible questions may be
+                  sent to OpenAI with <code>store: false</code>; provider
+                  retention may still apply.{" "}
                   <Link href="/privacy">Privacy</Link>
                 </p>
               </div>
@@ -527,7 +580,7 @@ export function DocsAssistantWidget() {
         </section>
       )}
 
-      {shouldShowDocsAssistantTrigger(open) && (
+      {shouldShowDocsAssistantTrigger(open) && !suppressHomeTrigger && (
         <button
           ref={triggerRef}
           onClick={handleOpen}
@@ -536,20 +589,7 @@ export function DocsAssistantWidget() {
           aria-expanded="false"
           aria-label="Open Ask WitnessOps"
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M7 1C3.686 1 1 3.686 1 7c0 1.08.277 2.094.764 2.974L1 13l3.026-.764A5.96 5.96 0 0 0 7 13c3.314 0 6-2.686 6-6S10.314 1 7 1Z"
-              stroke="currentColor"
-              strokeWidth="1.2"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <MessageCircle size={15} strokeWidth={1.7} aria-hidden="true" />
           <span className={styles.triggerLabel}>Ask WitnessOps</span>
           <span className={styles.triggerMeta} aria-hidden="true">
             AI

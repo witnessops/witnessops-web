@@ -33,7 +33,7 @@ test("English public shell mounts the compact Ask WitnessOps launcher", () => {
   assert.doesNotMatch(widget, /provider storage disabled/);
   assert.match(
     widget,
-    /Example: An agent rotates a compromised production key\./,
+    /Example: An agent rotates a compromised key\./,
   );
 });
 

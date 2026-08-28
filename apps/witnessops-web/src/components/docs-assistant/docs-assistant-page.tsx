@@ -183,7 +183,7 @@ export function DocsAssistantPage() {
             type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Example: An agent rotates a compromised production key."
+            placeholder="Example: An agent rotates a compromised key."
             className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
           />
           <button

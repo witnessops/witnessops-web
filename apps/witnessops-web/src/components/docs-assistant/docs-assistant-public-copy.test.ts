@@ -15,7 +15,7 @@ const warning = "Do not paste secrets";
 const providerDisclosure =
   /Eligible questions may be\s+(?:sent to\s+)?OpenAI\s+with.*store: false.*provider\s+retention\s+may\s+still\s+apply/s;
 const placeholder =
-  "Example: An agent rotates a compromised production key.";
+  "Example: An agent rotates a compromised key.";
 
 test("Ask WitnessOps surfaces carry the bounded public-copy contract", () => {
   for (const filename of [
@@ -104,6 +104,9 @@ test("Ask WitnessOps hides its trigger while the dialog owns the floating space"
   const content = source("docs-assistant-widget.tsx");
 
   assert.match(content, /shouldShowDocsAssistantTrigger\(open\)/);
+  assert.match(content, /!suppressHomeTrigger/);
+  assert.match(content, /new IntersectionObserver/);
+  assert.match(content, /document\.querySelector\("\[data-ask-trigger-guard\]"\)/);
   assert.match(content, /aria-controls="ask-witnessops-dialog"/);
   assert.match(content, /triggerRef\.current\?\.focus\(\)/);
   assert.doesNotMatch(content, /aria-label=\{open \?/);
@@ -122,7 +125,8 @@ test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
 
   assert.match(widget, /<DocsAssistantContactHandoff/);
   assert.match(widget, /\{contactMode && \(/);
-  assert.match(widget, /\{!contactMode && \(/);
+  assert.match(widget, /\{!contactMode && answer && !hasPaidScopeCta && \(/);
+  assert.match(widget, /\{!contactMode && !answer && \(/);
   assert.match(widget, /expanded=\{false\}/);
   assert.match(widget, /\s+expanded\s+/);
   assert.match(
@@ -138,7 +142,7 @@ test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
   assert.match(contact, /Note or request/);
   assert.match(contact, /\/api\/contact/);
   assert.match(contact, /\/api\/verify-token/);
-  assert.match(contact, /Follow-up is asynchronous/);
+  assert.match(contact, /Mailbox confirmation starts a fit-and-scope reply only/);
   assert.match(contact, /No review begins here/);
   assert.match(contact, /Do not include secrets/);
 });
@@ -189,7 +193,7 @@ test("Ask WitnessOps uses the proof-object and bounded fit-signal visual contrac
     styles,
     /\[data-ask-contact-form\] textarea:focus\s*\{[\s\S]*?border-color:\s*var\(--proof-accent\)/,
   );
-  assert.match(styles, /border-left:\s*6px solid var\(--proof-accent\)/);
+  assert.match(styles, /border-left:\s*2px solid var\(--proof-accent\)/);
   assert.match(styles, /white-space:\s*pre-line/);
   assert.match(styles, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(styles, /linear-gradient|radial-gradient/);
