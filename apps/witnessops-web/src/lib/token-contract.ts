@@ -160,6 +160,8 @@ export const verifyTokenResponseSchema = z.object({
     .refine((value) => value.startsWith("/") && !value.startsWith("//"), {
       message: "postVerifyPath must be a same-origin path",
     }),
+  requestIntent: z.string().trim().max(240).nullable().optional(),
+  requestLocale: z.enum(["en", "pl"]).optional(),
   run_id: z.string().optional(),
 });
 

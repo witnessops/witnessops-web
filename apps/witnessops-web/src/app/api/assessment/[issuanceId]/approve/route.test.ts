@@ -199,8 +199,12 @@ test("approval route captures explicit approval and hands off to control plane o
   assert.equal(fetchCalls.length, 1);
 });
 
-for (const manualIntent of MANUAL_COMMERCIAL_REQUEST_INTENTS) {
-  test(`approval route cannot start work for manual request intent ${manualIntent}`, async () => {
+for (const manualIntent of [
+  ...MANUAL_COMMERCIAL_REQUEST_INTENTS,
+  "review",
+  "unclassified-request",
+]) {
+  test(`approval route cannot start work for non-recon request intent ${manualIntent}`, async () => {
     const baseDir = await mkdtemp(
       path.join(os.tmpdir(), "witnessops-manual-approval-"),
     );
@@ -241,7 +245,7 @@ for (const manualIntent of MANUAL_COMMERCIAL_REQUEST_INTENTS) {
     const payload = (await response.json()) as { error: string };
     assert.equal(
       payload.error,
-      "Scope approval is not available for manual commercial requests.",
+      "Scope approval is available only for an explicitly identified governed recon request.",
     );
     assert.deepEqual(fetchCalls, []);
 

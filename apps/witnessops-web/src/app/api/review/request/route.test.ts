@@ -90,8 +90,14 @@ test("review request route issues a security-workflow package verification email
   assert.match(mailRaw, /^Verification Code:\s+\S+$/m);
   assert.match(mailRaw, /^Enter the code in the verification box\. No link is required\.$/m);
   assert.match(mailRaw, /^Confirm the mailbox-only boundary before continuing\.$/m);
-  assert.doesNotMatch(mailRaw, /^Open Verification Page:/m);
-  assert.doesNotMatch(mailRaw, /https:\/\/witnessops\.com\/verify-token/);
+  assert.match(
+    mailRaw,
+    /^Open Verification Page: https:\/\/witnessops\.com\/verify-token\?context=[A-Za-z0-9_-]{32,}$/m,
+  );
+  assert.doesNotMatch(
+    mailRaw,
+    /\/verify-token\?[^\n]*(?:email|issuanceId|token)=/,
+  );
   assert.match(mailRaw, /^This confirms mailbox access only\.$/m);
   assert.match(mailRaw, /^It does not start a proof run\.$/m);
   assert.match(mailRaw, /^Do not reply with secrets,/m);

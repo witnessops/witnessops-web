@@ -30,6 +30,9 @@ export const PROFESSIONAL_PUBLIC_FOOTPRINT_AUDIT_INTENT =
 
 export const ASK_AI_CONTACT_INTENT = "ask-ai-contact" as const;
 
+export const GOVERNED_RECON_REQUEST_INTENT =
+  "Third-party assessment" as const;
+
 export const MANUAL_COMMERCIAL_POST_VERIFY_PATH =
   "/review/request/confirmed" as const;
 
@@ -59,9 +62,56 @@ export function isManualCommercialRequestIntent(
   );
 }
 
+/**
+ * Governed Recon is a legacy, explicitly named workflow. Public and
+ * unclassified commercial requests must never inherit its scope-approval or
+ * automated-assessment lane merely because their intent is unknown.
+ */
+export function isGovernedReconRequestIntent(
+  intent: string | null | undefined,
+): boolean {
+  return intent?.trim() === GOVERNED_RECON_REQUEST_INTENT;
+}
+
+export function isOperatorHandledCommercialRequestIntent(
+  intent: string | null | undefined,
+): boolean {
+  return !isGovernedReconRequestIntent(intent);
+}
+
 export function getCommercialRequestLabel(
   intent: string | null | undefined,
+  locale: "en" | "pl" = "en",
 ): string {
+  if (locale === "pl") {
+    switch (intent?.trim()) {
+      case AI_AGENT_ACTION_PROOF_RUN_INTENT:
+        return "Zgłoszenie AI Agent Action Proof Run";
+      case ACCESS_CHANGE_PROOF_RUN_INTENT:
+        return "Zgłoszenie pakietu zmiany dostępu";
+      case EXTERNAL_EXPOSURE_ASSESSMENT_INTENT:
+        return "Zgłoszenie Public Exposure Review";
+      case BOUNDED_WORKFLOW_REVIEW_INTENT:
+        return "Zgłoszenie Agent Risk & Control Review";
+      case CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT:
+        return "Zgłoszenie Customer Security Review Sprint";
+      case ONE_SERVER_SECURITY_CHECK_INTENT:
+        return "Zgłoszenie One Server Security Check";
+      case LAUNCH_READINESS_CHECK_INTENT:
+        return "Zgłoszenie Launch Readiness Check";
+      case KEY_ACCESS_CUSTODY_REVIEW_INTENT:
+        return "Zgłoszenie Key, Access and Custody Review";
+      case INCIDENT_READINESS_REVIEW_INTENT:
+        return "Zgłoszenie Incident Readiness Review";
+      case PROFESSIONAL_PUBLIC_FOOTPRINT_AUDIT_INTENT:
+        return "Zgłoszenie audytu publicznego śladu zawodowego";
+      case ASK_AI_CONTACT_INTENT:
+        return "Zgłoszenie po rozmowie z Ask WitnessOps";
+      default:
+        return "Zgłoszenie pakietu workflow bezpieczeństwa";
+    }
+  }
+
   switch (intent?.trim()) {
     case AI_AGENT_ACTION_PROOF_RUN_INTENT:
       return "AI Agent Action Proof Run request";

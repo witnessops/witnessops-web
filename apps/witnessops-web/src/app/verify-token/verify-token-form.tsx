@@ -4,6 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { verificationLight } from "@/components/shared/verification-light-shell";
+import {
+  buildStandaloneReviewRequestConfirmation,
+  reviewRequestConfirmationPath,
+  storeReviewRequestConfirmation,
+} from "@/lib/review-request-confirmation";
 import type { VerifyTokenResponse } from "@/lib/token-contract";
 import {
   formatInitialVerificationCode,
@@ -56,7 +61,34 @@ export function VerifyTokenForm(props: Props) {
         return;
       }
 
-      router.replace(buildRedirectUrl(payload as VerifyTokenResponse));
+      const verified = payload as VerifyTokenResponse;
+      const usesBrowserHeldRequestRecord =
+        verified.postVerifyPath === reviewRequestConfirmationPath("en") ||
+        verified.postVerifyPath === reviewRequestConfirmationPath("pl");
+
+      if (usesBrowserHeldRequestRecord) {
+        const confirmation =
+          buildStandaloneReviewRequestConfirmation(verified);
+        if (!confirmation) {
+          setError(
+            "Mailbox confirmation completed, but the request boundary could not be confirmed.",
+          );
+          return;
+        }
+        try {
+          storeReviewRequestConfirmation(
+            window.sessionStorage,
+            confirmation,
+          );
+        } catch {
+          setError(
+            "Mailbox confirmation completed, but this browser could not store the request record.",
+          );
+          return;
+        }
+      }
+
+      router.replace(buildRedirectUrl(verified));
     } finally {
       setIsSubmitting(false);
     }
@@ -91,6 +123,8 @@ export function VerifyTokenForm(props: Props) {
           inputMode="text"
           required
           maxLength={80}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "verification-code-error" : undefined}
           placeholder="ABCD-EFGH-JKLM"
           className={`mt-2 ${verificationLight.input}`}
         />
@@ -99,7 +133,13 @@ export function VerifyTokenForm(props: Props) {
         </p>
       </div>
       {error ? (
-        <div className={verificationLight.error}>{error}</div>
+        <div
+          id="verification-code-error"
+          role="alert"
+          className={verificationLight.error}
+        >
+          {error}
+        </div>
       ) : null}
       <button
         type="submit"

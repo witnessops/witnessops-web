@@ -5,7 +5,9 @@ import { getIntakeById, getIssuanceById } from "@/lib/server/token-store";
 import { getAssessmentStatus } from "@/lib/server/assessment-client";
 import { getAssessmentAuthorizationSummary } from "@/lib/server/assessment-authorization-summary";
 import { buildPostApprovalLifecycle } from "@/lib/server/post-approval-lifecycle";
+import { hasAssessmentLifecycleState } from "@/lib/server/assessment-lifecycle-routing";
 import {
+  LEGACY_CLAIMANT_SESSION_COOKIE_NAME,
   claimantSessionCookieName,
   verifyClaimantSessionCookie,
 } from "@/lib/server/claimant-session";
@@ -17,11 +19,11 @@ import { ClaimantActionsForm } from "./claimant-actions-form";
 import { ManualCommercialConfirmation } from "@/components/review-request/manual-commercial-confirmation";
 import {
   getCommercialRequestLabel,
-  isManualCommercialRequestIntent,
+  isGovernedReconRequestIntent,
 } from "@/lib/commercial-request-intents";
 
 export const metadata: Metadata = {
-  title: "Governed Recon",
+  title: "Request status",
   robots: { index: false, follow: false },
 };
 
@@ -43,11 +45,12 @@ export default async function AssessmentPage({ params }: Props) {
 
   const cookieStore = await cookies();
   const claimantSession = cookieStore.get(claimantSessionCookieName(issuanceId))?.value;
+  const legacyClaimantSession = cookieStore.get(
+    LEGACY_CLAIMANT_SESSION_COOKIE_NAME,
+  )?.value;
   if (
-    !verifyClaimantSessionCookie(claimantSession, {
-      issuanceId,
-      email,
-    })
+    !verifyClaimantSessionCookie(claimantSession, { issuanceId, email }) &&
+    !verifyClaimantSessionCookie(legacyClaimantSession, { issuanceId, email })
   ) {
     notFound();
   }
@@ -55,23 +58,35 @@ export default async function AssessmentPage({ params }: Props) {
   const intake = record.intakeId ? await getIntakeById(record.intakeId) : null;
   const approvalStatus = record.approvalStatus ?? "pending";
 
-  const legacyManualRequestWithoutStartedWork =
-    intake &&
-    isManualCommercialRequestIntent(intake.submission.intent) &&
-    intake.state === "admitted" &&
-    approvalStatus === "pending" &&
-    !record.assessmentRunId &&
-    !record.controlPlaneRunId &&
-    (!record.assessmentStatus || record.assessmentStatus === "unavailable");
+  const assessmentLifecycleStarted = hasAssessmentLifecycleState(record);
+  const explicitlyGovernedRecon =
+    intake && isGovernedReconRequestIntent(intake.submission.intent);
 
-  if (legacyManualRequestWithoutStartedWork) {
-    const locale = intake.submission.locale === "pl" ? "pl" : "en";
+  if (!assessmentLifecycleStarted && !explicitlyGovernedRecon) {
+    const locale = intake?.submission.locale === "pl" ? "pl" : "en";
+    const requestRejected =
+      approvalStatus === "approval_denied" ||
+      intake?.state === "rejected" ||
+      intake?.operatorAction?.kind === "reject";
+    const queuedForOperatorReview =
+      !requestRejected &&
+      intake?.channel === "engage" &&
+      intake.state === "admitted";
+    const reviewState = requestRejected
+      ? "rejected"
+      : queuedForOperatorReview
+        ? "queued"
+        : "legacy-review-required";
     return (
       <ManualCommercialConfirmation
         email={email}
         issuanceId={issuanceId}
         locale={locale}
-        requestLabel={getCommercialRequestLabel(intake.submission.intent)}
+        requestLabel={getCommercialRequestLabel(
+          intake?.submission.intent,
+          locale,
+        )}
+        reviewState={reviewState}
         verifiedAt={record.verifiedAt}
       />
     );

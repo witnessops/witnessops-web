@@ -28,3 +28,36 @@ test("proof-run verification email uses light paper theme", () => {
   assert.doesNotMatch(rendered.html!, /background-color:#000000/);
   assert.doesNotMatch(rendered.html!, /color:#faf7f2/);
 });
+
+test("unclassified engage requests use the no-work manual email boundary", () => {
+  const rendered = renderVerificationEmail({
+    channel: "engage",
+    email: "buyer@example-corp.com",
+    intakeId: "intk_unclassified",
+    issuanceId: "iss_unclassified",
+    token: "ABCD-EFGH-JKLM",
+    expiresAt: "2026-07-30T12:00:00Z",
+    verifyUrl: "https://witnessops.com/verify-token?context=opaque",
+    intent: "review",
+  });
+
+  assert.ok(rendered.html);
+  assert.match(rendered.text, /does not start a proof run/);
+  assert.match(rendered.text, /security-workflow package request/);
+});
+
+test("explicit governed recon retains its dedicated verification path", () => {
+  const rendered = renderVerificationEmail({
+    channel: "engage",
+    email: "buyer@example-corp.com",
+    intakeId: "intk_recon",
+    issuanceId: "iss_recon",
+    token: "ABCD-EFGH-JKLM",
+    expiresAt: "2026-07-30T12:00:00Z",
+    verifyUrl: "https://witnessops.com/verify-token?context=opaque",
+    intent: "Third-party assessment",
+  });
+
+  assert.equal(rendered.html, undefined);
+  assert.match(rendered.text, /Open Verification Page:/);
+});

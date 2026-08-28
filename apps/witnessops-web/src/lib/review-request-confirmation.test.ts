@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   buildReviewRequestConfirmation,
   buildReviewRequestConfirmationText,
+  buildStandaloneReviewRequestConfirmation,
   readReviewRequestConfirmation,
   resolveReviewRequestKind,
   REVIEW_REQUEST_CONFIRMATION_STORAGE_KEY,
@@ -39,6 +40,25 @@ test("builds a narrowed confirmation from an admitted manual review request", ()
     requestKind: "agent-risk-control-review",
     source: "ask",
   });
+});
+
+test("builds the browser-held record for standalone email verification", () => {
+  assert.deepEqual(
+    buildStandaloneReviewRequestConfirmation({
+      ...validResponse,
+      requestIntent: "OFFSEC-CUSTODY-OPS",
+      requestLocale: "pl",
+      postVerifyPath: "/pl/review/request/confirmed",
+    }),
+    {
+      schema: "witnessops.review-request-confirmation.v1",
+      requestReference: "intake_public_reference",
+      confirmedAt: "2026-08-28T12:34:56Z",
+      locale: "pl",
+      requestKind: "key-access-custody-review",
+      source: "request-form",
+    },
+  );
 });
 
 test("fails closed for a legacy assessment or unexpected verified state", () => {

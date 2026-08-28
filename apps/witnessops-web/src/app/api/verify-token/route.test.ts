@@ -10,6 +10,7 @@ import {
   clearTokenStore,
   getIntakeById,
   getIssuanceById,
+  updateIntake,
   updateIssuance,
 } from "@/lib/server/token-store";
 import {
@@ -228,6 +229,8 @@ async function assertCurrentCommercialIntentVerification(
     assessmentRunId: string | null;
     assessmentStatus: string;
     postVerifyPath: string;
+    requestIntent?: string | null;
+    requestLocale?: "en" | "pl";
   };
   assert.equal(payload.assessmentRunId, null);
   assert.equal(payload.assessmentStatus, "unavailable");
@@ -346,6 +349,8 @@ test("verify-token route allows repeat verification for the same issuance and to
     assessmentRunId: string | null;
     assessmentStatus: string;
     postVerifyPath: string;
+    requestIntent?: string | null;
+    requestLocale?: "en" | "pl";
   };
   assert.equal(firstPayload.channel, "engage");
   assert.ok(firstPayload.intakeId.startsWith("intk_"));
@@ -354,10 +359,9 @@ test("verify-token route allows repeat verification for the same issuance and to
   assert.ok(firstPayload.threadId?.startsWith("thr_"));
   assert.equal(firstPayload.assessmentRunId, null);
   assert.equal(firstPayload.assessmentStatus, "unavailable");
-  assert.equal(
-    firstPayload.postVerifyPath,
-    `/assessment/${encodeURIComponent(firstPayload.issuanceId)}`,
-  );
+  assert.equal(firstPayload.postVerifyPath, "/review/request/confirmed");
+  assert.equal(firstPayload.requestIntent, "review");
+  assert.equal(firstPayload.requestLocale, "en");
 
   const second = await POST(
     new Request("https://witnessops.com/api/verify-token", {
@@ -386,10 +390,7 @@ test("verify-token route allows repeat verification for the same issuance and to
   assert.equal(secondPayload.threadId, firstPayload.threadId);
   assert.equal(secondPayload.assessmentRunId, null);
   assert.equal(secondPayload.assessmentStatus, "unavailable");
-  assert.equal(
-    secondPayload.postVerifyPath,
-    `/assessment/${encodeURIComponent(secondPayload.issuanceId)}`,
-  );
+  assert.equal(secondPayload.postVerifyPath, "/review/request/confirmed");
 });
 
 test("verified-token replay does not start assessment before scope approval", async () => {
@@ -522,6 +523,91 @@ test("verify-token route returns access-change confirmation path without assessm
   assert.equal(secondPayload.assessmentStatus, "unavailable");
   assert.equal(secondPayload.postVerifyPath, "/review/request/confirmed");
   assert.equal(fetchCalls.length, 0);
+});
+
+test("approved or started legacy manual replay preserves assessment lifecycle without a no-work notification", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-started-manual-replay-"),
+  );
+  const issued = await issueAccessChangeToken(baseDir);
+
+  const first = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(first.status, 200);
+
+  const issuance = await getIssuanceById(issued.issuanceId);
+  assert.ok(issuance?.intakeId);
+  await updateIssuance(issued.issuanceId, (record) => ({
+    ...record,
+    approvalStatus: "approved",
+  }));
+  await updateIntake(issuance.intakeId, (intake) => ({
+    ...intake,
+    operatorNotification: undefined,
+    operatorNotificationAttempt: undefined,
+  }));
+
+  const mailCountBeforeReplay = (
+    await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)
+  ).length;
+  const approvedReplay = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(approvedReplay.status, 200);
+  const approvedPayload = (await approvedReplay.json()) as {
+    assessmentRunId: string | null;
+    assessmentStatus: string;
+    postVerifyPath: string;
+  };
+  assert.equal(approvedPayload.assessmentRunId, null);
+  assert.equal(approvedPayload.assessmentStatus, "unavailable");
+  assert.equal(
+    approvedPayload.postVerifyPath,
+    `/assessment/${encodeURIComponent(issued.issuanceId)}`,
+  );
+  assert.equal(
+    (await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length,
+    mailCountBeforeReplay,
+  );
+
+  await updateIssuance(issued.issuanceId, (record) => ({
+    ...record,
+    assessmentRunId: "run_legacy_started",
+    assessmentStatus: "running",
+  }));
+  const startedReplay = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify(issued),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(startedReplay.status, 200);
+  const startedPayload = (await startedReplay.json()) as {
+    assessmentRunId: string | null;
+    assessmentStatus: string;
+    postVerifyPath: string;
+  };
+  assert.equal(startedPayload.assessmentRunId, "run_legacy_started");
+  assert.equal(startedPayload.assessmentStatus, "running");
+  assert.equal(
+    startedPayload.postVerifyPath,
+    `/assessment/${encodeURIComponent(issued.issuanceId)}`,
+  );
+  assert.equal(
+    (await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length,
+    mailCountBeforeReplay,
+  );
 });
 
 test("Public Exposure Review stays on the locale-specific manual order path", async () => {

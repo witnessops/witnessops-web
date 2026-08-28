@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   ACCESS_CHANGE_PROOF_RUN_INTENT,
   AI_AGENT_ACTION_PROOF_RUN_INTENT,
+  ASK_AI_CONTACT_INTENT,
   BOUNDED_WORKFLOW_REVIEW_INTENT,
   CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT,
   EXTERNAL_EXPOSURE_ASSESSMENT_INTENT,
@@ -122,6 +123,27 @@ export function buildReviewRequestConfirmation(
     locale: context.locale,
     requestKind: context.requestKind,
     source: context.source,
+  });
+}
+
+export function buildStandaloneReviewRequestConfirmation(
+  payload: unknown,
+): ReviewRequestConfirmation | null {
+  const parsed = verifyTokenResponseSchema.safeParse(payload);
+  if (!parsed.success) return null;
+
+  const response = parsed.data;
+  const locale =
+    response.requestLocale ??
+    (response.postVerifyPath === reviewRequestConfirmationPath("pl")
+      ? "pl"
+      : "en");
+  const requestIntent = response.requestIntent ?? "";
+
+  return buildReviewRequestConfirmation(response, {
+    locale,
+    requestKind: resolveReviewRequestKind(requestIntent),
+    source: requestIntent === ASK_AI_CONTACT_INTENT ? "ask" : "request-form",
   });
 }
 
