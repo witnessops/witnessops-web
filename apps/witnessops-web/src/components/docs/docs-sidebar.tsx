@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
 import { docsPathsMatch } from "@/lib/docs-host-routing";
 
 interface NavItem {
@@ -23,6 +24,9 @@ interface DocsSidebarProps {
   sections: NavSection[];
 }
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 /** Status color for section bullets */
 function sectionBulletColor(id: string): string {
   if (id === "concepts" || id === "architecture") return "bg-signal-green";
@@ -32,7 +36,7 @@ function sectionBulletColor(id: string): string {
 
 const desktopSidebarStyle = {
   top: "var(--app-navbar-height, 72px)",
-  height: "calc(100vh - var(--app-navbar-height, 72px))",
+  height: "calc(100dvh - var(--app-navbar-height, 72px))",
 } as React.CSSProperties;
 
 export function DocsSidebar({ sections }: DocsSidebarProps) {
@@ -42,10 +46,22 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
     new Set(sections.map((s) => s.id))
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const [footerClearance, setFooterClearance] = useState(0);
   const drawerRef = useRef<HTMLElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const desktopSearchRef = useRef<HTMLInputElement>(null);
+  const drawerSearchRef = useRef<HTMLInputElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const drawerId = "witnessops-docs-mobile-drawer";
 
-  useEffect(() => { setDrawerOpen(false); }, [pathname]);
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false);
+    setSearchQuery("");
+  }, []);
+
+  useEffect(() => {
+    setDrawerOpen(false);
+    setSearchQuery("");
+  }, [pathname]);
 
   useEffect(() => {
     const activeSection = sections.find((s) => isSectionActive(s));
@@ -56,41 +72,134 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
   }, [pathname]);
 
   useEffect(() => {
-    if (drawerOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
+    if (!drawerOpen) return;
+
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const releaseBodyScrollLock = acquireBodyScrollLock();
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      const drawer = drawerRef.current;
+      const initialFocus = drawer?.querySelector<HTMLElement>(
+        "[data-docs-drawer-initial-focus]",
+      );
+      initialFocus?.focus();
+
+      const activeLink = drawer?.querySelector<HTMLElement>(
+        "[data-active-link='true']",
+      );
+      activeLink?.scrollIntoView({ block: "nearest" });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      releaseBodyScrollLock();
+      if (previousFocusRef.current?.isConnected) {
+        previousFocusRef.current.focus();
+      }
+    };
   }, [drawerOpen]);
 
   useEffect(() => {
-    if (drawerOpen) {
-      requestAnimationFrame(() => {
-        const activeLink = drawerRef.current?.querySelector("[data-active-link='true']");
-        activeLink?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      });
-    }
-  }, [drawerOpen]);
+    const footer = document.querySelector<HTMLElement>(
+      "footer[data-brand-footer]",
+    );
+    if (!footer) return;
 
-  // Keyboard: / to focus search, Escape to close drawer
+    let frame = 0;
+    const visualViewport = window.visualViewport;
+    const updateFooterClearance = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const viewportBottom = visualViewport
+          ? visualViewport.offsetTop + visualViewport.height
+          : window.innerHeight;
+        const overlap = Math.max(
+          0,
+          Math.ceil(viewportBottom - footer.getBoundingClientRect().top),
+        );
+        setFooterClearance(overlap);
+      });
+    };
+
+    const resizeObserver = new ResizeObserver(updateFooterClearance);
+    resizeObserver.observe(footer);
+    window.addEventListener("resize", updateFooterClearance);
+    window.addEventListener("scroll", updateFooterClearance, { passive: true });
+    visualViewport?.addEventListener("resize", updateFooterClearance);
+    visualViewport?.addEventListener("scroll", updateFooterClearance);
+    updateFooterClearance();
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateFooterClearance);
+      window.removeEventListener("scroll", updateFooterClearance);
+      visualViewport?.removeEventListener("resize", updateFooterClearance);
+      visualViewport?.removeEventListener("scroll", updateFooterClearance);
+    };
+  }, []);
+
+  // Keyboard: / to focus the search field for the currently visible sidebar.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "/" && document.activeElement?.tagName !== "INPUT") {
+        const searchInput = drawerOpen
+          ? drawerSearchRef.current
+          : desktopSearchRef.current;
+        if (!searchInput || searchInput.offsetParent === null) return;
         e.preventDefault();
-        searchRef.current?.focus();
+        searchInput.focus();
       }
     }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, []);
+  }, [drawerOpen]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+  const handleDrawerKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
-      setDrawerOpen(false);
-      setSearchQuery("");
+      e.preventDefault();
+      closeDrawer();
+      return;
     }
-  }, []);
+
+    if (e.key !== "Tab") return;
+
+    const drawer = drawerRef.current;
+    if (!drawer) return;
+
+    const focusable = Array.from(
+      drawer.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+    ).filter(
+      (element) =>
+        !element.hasAttribute("disabled") &&
+        element.getAttribute("aria-hidden") !== "true" &&
+        element.offsetParent !== null,
+    );
+
+    if (focusable.length === 0) {
+      e.preventDefault();
+      drawer.focus();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+
+    if (!drawer.contains(active)) {
+      e.preventDefault();
+      first.focus();
+    } else if (e.shiftKey && active === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }, [closeDrawer]);
 
   function toggleSection(id: string) {
     setExpandedSections((prev) => {
@@ -134,7 +243,7 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
       .filter((section) => section.items.length > 0);
   })();
 
-  const sidebarContent = (
+  const renderSidebarContent = (mobile: boolean) => (
     <nav
       aria-label="Documentation navigation"
       className="sidebar-kb"
@@ -143,7 +252,7 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
       {/* Search */}
       <div className="sidebar-kb-search">
         <input
-          ref={searchRef}
+          ref={mobile ? drawerSearchRef : desktopSearchRef}
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -151,6 +260,8 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
           autoComplete="off"
           spellCheck={false}
           className="sidebar-kb-search-input"
+          style={mobile ? { fontSize: "16px" } : undefined}
+          aria-label="Filter documentation navigation"
         />
       </div>
 
@@ -214,9 +325,15 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
       {/* Mobile trigger */}
       <button
         type="button"
-        className="fixed bottom-4 left-16 z-40 flex items-center gap-2 rounded border border-surface-border bg-surface-bg px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-text-primary shadow-lg transition-colors hover:border-brand-accent hover:text-brand-accent lg:hidden"
+        className="fixed z-40 flex items-center gap-2 rounded border border-surface-border bg-surface-bg px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-text-primary shadow-lg transition-colors hover:border-brand-accent hover:text-brand-accent lg:hidden"
+        style={{
+          bottom: `calc(max(1rem, env(safe-area-inset-bottom)) + ${footerClearance}px)`,
+          left: "max(1rem, env(safe-area-inset-left))",
+        }}
         onClick={() => setDrawerOpen(true)}
         aria-label="Open documentation menu"
+        aria-controls={drawerId}
+        aria-expanded={drawerOpen}
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
           <path d="M2 4.5H16M2 9H12M2 13.5H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -230,40 +347,49 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
           className="sticky overflow-y-auto border-r border-surface-border bg-surface-bg-alt sidebar-kb-scroll"
           style={desktopSidebarStyle}
         >
-          {sidebarContent}
+          {renderSidebarContent(false)}
         </div>
       </aside>
 
       {/* Mobile drawer */}
       {drawerOpen && (
         <div
-          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm lg:hidden"
-          onClick={() => setDrawerOpen(false)}
-          onKeyDown={handleKeyDown}
+          className="fixed inset-0 z-[60] h-[100dvh] max-h-[100dvh] overflow-hidden bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={closeDrawer}
+          onKeyDown={handleDrawerKeyDown}
         >
           <aside
             ref={drawerRef}
-            className="absolute inset-y-0 left-0 w-72 overflow-y-auto border-r border-surface-border bg-surface-bg sidebar-kb-scroll"
+            id={drawerId}
+            className="absolute inset-y-0 left-0 flex h-[100dvh] max-h-[100dvh] w-72 max-w-full flex-col overflow-hidden border-r border-surface-border bg-surface-bg pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pt-[env(safe-area-inset-top)]"
             onClick={(e) => e.stopPropagation()}
-            onKeyDown={handleKeyDown}
             role="dialog"
             aria-modal="true"
-            aria-label="Documentation navigation"
+            aria-labelledby="docs-mobile-drawer-title"
+            tabIndex={-1}
           >
-            <div className="flex items-center justify-between border-b border-surface-border px-4 py-3">
-              <span className="text-sm font-semibold text-text-primary">Navigation</span>
+            <div className="flex shrink-0 items-center justify-between border-b border-surface-border px-4 py-3">
+              <span
+                id="docs-mobile-drawer-title"
+                className="text-sm font-semibold text-text-primary"
+              >
+                Navigation
+              </span>
               <button
                 type="button"
-                className="rounded-lg p-1 text-text-muted transition-colors hover:bg-surface-card hover:text-text-primary"
-                onClick={() => setDrawerOpen(false)}
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-card hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                onClick={closeDrawer}
                 aria-label="Close navigation"
+                data-docs-drawer-initial-focus
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               </button>
             </div>
-            {sidebarContent}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain sidebar-kb-scroll">
+              {renderSidebarContent(true)}
+            </div>
           </aside>
         </div>
       )}

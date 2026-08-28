@@ -6,7 +6,7 @@ import {
   buyerServiceByPublicOfferId,
 } from "@/lib/buyer-services";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
-import { POLISH_NO_SECRETS_NOTE, POLISH_OFFERS } from "@/lib/public-i18n";
+import { POLISH_OFFERS } from "@/lib/public-i18n";
 import { getSku } from "@witnessops/catalog";
 import { languageAlternates } from "@/lib/public-seo";
 
@@ -71,7 +71,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
           {publicExposureOrder ? "Public Exposure Review" : "Zgłoszenie przeglądu"}
         </p>
-        <h1 className="mt-3 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">
+        <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">
           {publicExposureOrder
             ? "Rozpocznij Public Exposure Review"
             : "Opowiedz, co wymaga sprawdzenia"}
@@ -79,13 +79,12 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         <p className="mt-4 text-base leading-7 text-text-muted">
           {publicExposureOrder
             ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu."
-            : "To pierwsza rozmowa o dopasowaniu, a nie przekazanie dowodów. Opisz własnymi słowami ankietę, serwer, wdrożenie, incydent, zmianę dostępu lub działanie, które wymaga przeglądu."}
+            : "Zacznij od jednej niepoufnej potrzeby. Przed rozpoczęciem pracy lub przyjęciem materiałów potwierdzimy, czy zakres jest wystarczająco ograniczony."}
         </p>
         {selectedOffer ? <div className="mt-5 border border-brand-accent/30 bg-brand-accent/5 p-4 text-sm leading-6 text-text-secondary"><p className="font-semibold text-brand-accent">Wybrana oferta: {selectedOffer.name}</p><p className="mt-2">Cena: {selectedOffer.price}</p><p>Termin: {selectedOffer.timing}</p></div> : null}
-        <p className="mt-4 text-sm leading-7 text-text-muted">{POLISH_NO_SECRETS_NOTE}</p>
       </header>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="border border-surface-border p-4 sm:p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}><ContactForm locale="pl" intent={sku?.id ?? buyerService?.id ?? "review"} /></section>
+        <section className="self-start border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8"><ContactForm locale="pl" intent={sku?.id ?? buyerService?.id ?? "review"} /></section>
         <aside className="space-y-4">
           <section className="border border-surface-border bg-surface-bg p-5"><h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">Co dalej</h2><ol className="mt-4 space-y-3 text-sm leading-6 text-text-muted"><li>1. Potwierdzimy, która oferta pasuje.</li><li>2. Uzgodnimy zakres, upoważnienie, dostęp, cenę i termin.</li><li>3. Odpowiemy przed przyjęciem materiałów źródłowych.</li></ol></section>
           <section className="border border-surface-border bg-surface-bg p-5"><h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">Ważna granica</h2><p className="mt-3 text-sm leading-6 text-text-muted">Samo zgłoszenie nie rozpoczyna pracy. Nie przyjmujemy materiałów klienta, dopóki nie uzgodnimy zakresu i sposobu ich obsługi.</p></section>

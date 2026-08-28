@@ -11,6 +11,7 @@ import {
   localizedHref,
   POLISH_PUBLIC_NAV,
 } from "@/lib/public-i18n";
+import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 
 const BUYER_NAV_LINKS = [
   { label: "Services", href: "/catalog" },
@@ -66,9 +67,8 @@ export function Navbar({ announcement }: NavbarProps) {
   const polish = isPolishPath(currentPath);
   const homeNav = currentPath === "/" || currentPath === "/pl";
   const productJourneyNav = homeNav;
-  const homepageNativeChrome = homeNav || currentPath === "/media-kit";
 
-  const logoHref = "/";
+  const logoHref = polish ? "/pl" : "/";
   const effectiveLinks = homeNav
     ? polish
       ? HOME_NAV_LINKS_PL
@@ -76,13 +76,23 @@ export function Navbar({ announcement }: NavbarProps) {
     : polish
       ? [...POLISH_PUBLIC_NAV.links]
       : BUYER_NAV_LINKS;
-  const effectiveCta = productJourneyNav
+  const baseCta = productJourneyNav
     ? polish
       ? HOME_NAV_CTA_PL
       : HOME_NAV_CTA
     : polish
       ? POLISH_PUBLIC_NAV.cta
       : BUYER_NAV_CTA;
+  const effectiveCta = productJourneyNav
+    ? baseCta
+    : {
+        ...baseCta,
+        href: reviewRequestHrefForLocation(
+          polish ? "pl" : "en",
+          currentPath,
+          searchParams,
+        ),
+      };
   const effectiveAnnouncement = announcement;
   const languageLink = polish
     ? { label: "EN", href: localizedHref(currentPath, currentSearch, "en") }
@@ -123,10 +133,6 @@ export function Navbar({ announcement }: NavbarProps) {
     const baseClassName =
       "hidden min-h-11 items-center whitespace-nowrap rounded-md px-4 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none lg:inline-flex";
 
-    if (homepageNativeChrome) {
-      return `${baseClassName} border border-brand-accent bg-brand-accent text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.16)] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_30px_rgba(242,122,61,0.28)] active:translate-y-0 active:scale-[0.98] active:shadow-[0_5px_16px_rgba(242,122,61,0.18)]`;
-    }
-
     if (variant === "secondary") {
       return `${baseClassName} border border-surface-border bg-transparent text-text-primary hover:border-brand-accent/40 hover:bg-surface-card`;
     }
@@ -135,7 +141,7 @@ export function Navbar({ announcement }: NavbarProps) {
       return `${baseClassName} text-text-muted hover:bg-surface-bg-alt hover:text-text-primary`;
     }
 
-    return `${baseClassName} bg-text-primary text-surface-bg hover:bg-[#2b2b25] active:bg-[#37372f]`;
+    return `${baseClassName} border border-brand-accent bg-brand-accent text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.16)] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_30px_rgba(242,122,61,0.28)] active:translate-y-0 active:scale-[0.98] active:shadow-[0_5px_16px_rgba(242,122,61,0.18)]`;
   }
 
   const desktopCtaClassName = `${getDesktopCtaClassName(effectiveCta.variant)} ${
@@ -165,11 +171,11 @@ export function Navbar({ announcement }: NavbarProps) {
         data-home-nav={homeNav ? "true" : undefined}
         data-product-journey-nav={productJourneyNav ? "true" : undefined}
       >
-        <div className="mx-auto flex max-w-content flex-wrap items-center justify-between px-4 py-2 sm:px-6 lg:flex-nowrap lg:py-4">
+        <div className="mx-auto flex max-w-content flex-wrap items-center justify-between px-4 py-1.5 sm:px-6 lg:flex-nowrap lg:py-4">
           <Link
             href={logoHref}
             aria-label={polish ? "WitnessOps — strona główna" : "WitnessOps home"}
-            className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-2 rounded text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+            className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-1.5 rounded text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
           >
             <WitnessOpsMark
               variant="mark"
@@ -187,7 +193,7 @@ export function Navbar({ announcement }: NavbarProps) {
             </span>
             <span
               aria-hidden="true"
-              className="inline-block -translate-y-px text-xs font-semibold tracking-[0.055em] text-text-primary transition-colors group-hover:text-brand-accent lg:hidden"
+              className="inline-block -translate-y-px text-[0.7rem] font-semibold tracking-[0.035em] text-text-primary transition-colors group-hover:text-brand-accent lg:hidden"
               style={{ fontFamily: "var(--font-mono)" }}
             >
               {HOME_BRAND_LINE}
@@ -241,6 +247,7 @@ export function Navbar({ announcement }: NavbarProps) {
               {isExternalHref(effectiveCta.href) ? (
                 <a
                   href={effectiveCta.href}
+                  data-public-primary-cta
                   aria-current={currentPath === effectiveCta.href ? "page" : undefined}
                   target="_blank"
                   rel="noreferrer"
@@ -252,6 +259,7 @@ export function Navbar({ announcement }: NavbarProps) {
               ) : (
                 <Link
                   href={effectiveCta.href}
+                  data-public-primary-cta
                   aria-current={currentPath === effectiveCta.href ? "page" : undefined}
                   className={desktopCtaClassName}
                   style={{ fontFamily: "var(--font-display)" }}
@@ -263,6 +271,7 @@ export function Navbar({ announcement }: NavbarProps) {
             <MobileNavbarMenu
               links={effectiveLinks}
               cta={effectiveCta}
+              assistantLink={{ label: "Ask WitnessOps", href: "/docs/assistant" }}
               utilityLink={languageLink}
               currentPath={currentPath}
               openLabel={polish ? "Otwórz główną nawigację" : "Open primary navigation"}

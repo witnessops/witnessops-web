@@ -42,10 +42,8 @@ test("footer keeps readable text contrast and sizing", () => {
     "Footer motto should stay with the copyright instead of becoming an orphaned centered row.",
   );
   assert.match(globals, /footer\.public-shell\.public-footer\[data-brand-footer\]/);
-  assert.match(globals, /--color-surface-bg: #050505/);
-  assert.match(globals, /--color-text-primary: #fafaf7/);
-  assert.match(globals, /--color-text-secondary: #d0ccc4/);
-  assert.match(globals, /--color-text-muted: #a7a39b/);
+  assert.match(globals, /background: var\(--color-surface-bg\)/);
+  assert.match(globals, /color: var\(--color-text-primary\)/);
   assert.doesNotMatch(source, /bg-signal-green/);
   assert.doesNotMatch(source, /Respect the boundary\. Bring receipts\./);
 
@@ -75,6 +73,8 @@ test("footer contact route keeps a concise credential-handling boundary and disp
   assert.doesNotMatch(source, /No secrets|Bez sekretów/);
   assert.match(source, /style=\{\{ fontFamily: "var\(--font-display\)" \}\}/);
   assert.match(source, /min-h-11 w-full/);
+  assert.match(source, /border border-brand-accent bg-brand-accent/);
+  assert.doesNotMatch(source, /border border-text-primary bg-text-primary/);
 });
 
 test("footer brand lockup uses the approved geometric mark without decorative effects", () => {

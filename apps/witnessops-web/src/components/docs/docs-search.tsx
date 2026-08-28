@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
 import { trackDocsPathExit } from "@/lib/docs-nav-analytics";
 
 interface DocEntry {
@@ -53,6 +55,7 @@ function groupBySection(entries: DocEntry[]): Map<string, DocEntry[]> {
 }
 
 export function DocsSearch({ docs, onClose }: DocsSearchProps) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -66,9 +69,10 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
-    requestAnimationFrame(() => inputRef.current?.focus());
+    const focusFrame = window.requestAnimationFrame(() => inputRef.current?.focus());
 
     return () => {
+      window.cancelAnimationFrame(focusFrame);
       if (previousFocusRef.current?.isConnected) {
         previousFocusRef.current.focus();
       }
@@ -79,11 +83,16 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopImmediatePropagation();
         onClose();
+        return;
       }
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
+        e.stopImmediatePropagation();
         onClose();
+        return;
       }
       if (e.key !== "Tab") {
         return;
@@ -132,16 +141,14 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
         first.focus();
       }
     }
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    window.addEventListener("keydown", handleKey, { capture: true });
+    return () => window.removeEventListener("keydown", handleKey, true);
   }, [onClose]);
 
   // Lock scroll
   useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
+    const releaseBodyScrollLock = acquireBodyScrollLock();
+    return releaseBodyScrollLock;
   }, []);
 
   // Filter results
@@ -178,10 +185,10 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
           layerContext: target.layerTitle,
         });
         onClose();
-        window.location.href = target.href;
+        router.push(target.href);
       }
     },
-    [flatResults, activeIndex, onClose]
+    [flatResults, activeIndex, onClose, router]
   );
 
   // Scroll active item into view
@@ -194,20 +201,21 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center bg-black/60 pt-[15vh] backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex h-[100dvh] max-h-[100dvh] items-start justify-center overflow-hidden bg-black/60 pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-sm sm:pt-[max(3rem,env(safe-area-inset-top))]"
       onClick={onClose}
     >
       <div
         ref={dialogRef}
-        className="w-full max-w-xl overflow-hidden rounded-xl border border-surface-border bg-surface-card shadow-2xl"
+        className="flex max-h-full w-full max-w-xl flex-col overflow-hidden rounded-xl border border-surface-border bg-surface-card shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Search documentation"
         data-docs-nav-surface="search"
+        tabIndex={-1}
       >
         {/* Search input */}
-        <div className="flex items-center gap-3 border-b border-surface-border px-4 py-3">
+        <div className="flex shrink-0 items-center gap-3 border-b border-surface-border px-4 py-3">
           <svg
             className="shrink-0 text-text-muted"
             width="16"
@@ -226,7 +234,7 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
           </svg>
           <input
             ref={inputRef}
-            className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted outline-none"
+            className="min-w-0 flex-1 bg-transparent text-base text-text-primary placeholder:text-text-muted outline-none lg:text-sm"
             type="text"
             placeholder="Search docs..."
             value={query}
@@ -243,7 +251,10 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
         </div>
 
         {/* Results */}
-        <div className="max-h-80 overflow-y-auto p-2" ref={panelRef}>
+        <div
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2"
+          ref={panelRef}
+        >
           {flatResults.length === 0 && query.length > 0 && (
             <div className="px-3 py-8 text-center text-sm text-text-muted">
               No results for &ldquo;{query}&rdquo;
@@ -287,7 +298,7 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-4 border-t border-surface-border px-4 py-2 text-[10px] text-text-muted">
+        <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-t border-surface-border px-4 py-2 text-[10px] text-text-muted">
           <span>
             <kbd className="rounded border border-surface-border bg-surface-bg px-1 py-0.5">
               &uarr;

@@ -10,7 +10,6 @@ import { linkedinPremiumCampaignAttribution } from "@/lib/marketing-attribution"
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
-  PUBLIC_NO_SECRETS_NOTE,
   publicContactMailto,
 } from "@/lib/public-contact";
 import { getSku } from "@witnessops/catalog";
@@ -149,7 +148,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           {publicExposureOrder ? "Public Exposure Review" : "Review Request"}
         </div>
         <h1
-          className="mb-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl"
+          className="mb-4 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
           {publicExposureOrder ? "Start your Public Exposure Review" : "Tell us what you need reviewed"}
@@ -157,17 +156,17 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
           {publicExposureOrder
             ? "Tell us what public-facing system you want reviewed. We’ll confirm the exact boundary and authority before any testing begins."
-            : "This is a fit check, not evidence intake. Describe the questionnaire, server, launch, incident, access change or bounded workflow you need reviewed. No files, logs, screenshots, exports, credentials, private keys, MFA codes or customer evidence are needed for the first fit check."}
+            : "Start with one non-secret review need. We’ll confirm whether it is bounded enough to scope before any work or evidence intake begins."}
         </p>
         <p className="mt-3 max-w-[640px] text-sm leading-relaxed text-text-muted">
-          Fallback contact: send the same non-secret fit check to{" "}
+          Prefer email? Send the same non-secret summary to{" "}
           <a
             href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
-            className="text-brand-accent underline-offset-4 hover:underline"
+            className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
           >
             {PUBLIC_CONTACT_EMAIL}
           </a>
-          . {PUBLIC_NO_SECRETS_NOTE}
+          .
         </p>
         {selectedOffer ? (
           <div className="mt-5 border border-brand-accent/30 bg-brand-accent/5 p-4 text-sm leading-6 text-text-secondary">
@@ -181,7 +180,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="self-start border border-surface-border p-4 sm:p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}>
+        <section className="self-start border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
           <ContactForm
             intent={sku?.id ?? selectedOffer?.id ?? "review"}
             campaignAttribution={campaignAttribution}

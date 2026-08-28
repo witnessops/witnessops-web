@@ -12,6 +12,8 @@ import {
 } from "./report";
 import { writeScreenshotGrid } from "./screenshot-grid";
 
+test.describe.configure({ mode: "serial" });
+
 test("homepage hero mobile UI proof", async ({ browser }) => {
   await rm(UI_PROOF_OUTPUT_DIR, { recursive: true, force: true });
   const screenshotDir = path.join(UI_PROOF_OUTPUT_DIR, "screenshots");
@@ -36,6 +38,30 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
       await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       await page.waitForTimeout(350);
+
+      await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
+      const headlineMetrics = await page
+        .locator('[data-ui-proof-id="homepage-hero-headline"]')
+        .evaluate((element) => {
+          const style = getComputedStyle(element);
+          const fontSize = Number.parseFloat(style.fontSize);
+          const lineHeight = Number.parseFloat(style.lineHeight);
+          return {
+            fontSize,
+            lineHeightRatio: lineHeight / fontSize,
+            lineCount: Math.round(element.getBoundingClientRect().height / lineHeight),
+          };
+        });
+      if (scenario.contentVariant === "long") {
+        expect(headlineMetrics.fontSize).toBeGreaterThanOrEqual(37);
+        expect(headlineMetrics.fontSize).toBeLessThanOrEqual(43);
+      } else {
+        expect(headlineMetrics.fontSize).toBeGreaterThanOrEqual(40);
+        expect(headlineMetrics.fontSize).toBeLessThanOrEqual(49);
+        expect(headlineMetrics.lineCount).toBeLessThanOrEqual(4);
+      }
+      expect(headlineMetrics.lineHeightRatio).toBeGreaterThanOrEqual(0.94);
+      expect(headlineMetrics.lineHeightRatio).toBeLessThanOrEqual(1.06);
 
       const { checks, metrics } = await checkHomepageHero(
         page,
@@ -215,13 +241,27 @@ test("Ask WitnessOps keeps the paid-review proof path visible and controlled", a
       expect(response?.status()).toBe(200);
 
       const trigger = page.getByRole("button", { name: "Open Ask WitnessOps" });
+      if (viewport.width < 640) {
+        await expect(trigger).toHaveCount(0);
+        await page.locator("[data-ask-trigger-guard]").evaluate((guard) => {
+          window.scrollTo({
+            top: guard.getBoundingClientRect().bottom + window.scrollY + 8,
+            behavior: "auto",
+          });
+        });
+      }
       await expect(trigger).toBeVisible();
       await trigger.click();
 
       const dialog = page.getByRole("dialog", { name: "ASK WITNESSOPS" });
       const prompt = page.getByLabel("Describe one non-secret workflow");
       await expect(dialog).toBeVisible();
-      await expect(prompt).toBeFocused();
+      if (viewport.width < 640) {
+        await expect(dialog).toBeFocused();
+      } else {
+        await expect(prompt).toBeFocused();
+      }
+      await expect(dialog.locator("[data-ask-composer]")).toHaveCount(1);
 
       if (viewport.width === 390) {
         const screenshotDir = path.join(UI_PROOF_OUTPUT_DIR, "screenshots");
@@ -251,6 +291,8 @@ test("Ask WitnessOps keeps the paid-review proof path visible and controlled", a
       await expect(dialog).toContainText(
         "Fit signal only. No evidence was reviewed and no security, compliance, correctness, or action-outcome conclusion was made.",
       );
+      await expect(dialog.locator("[data-ask-composer]")).toHaveCount(0);
+      await expect(dialog.getByRole("button", { name: "Ask another workflow" })).toBeVisible();
 
       const cta = dialog.getByRole("button", { name: "Request scope for this workflow" });
       await expect(cta).toBeVisible();
@@ -280,6 +322,11 @@ test("Ask WitnessOps keeps the paid-review proof path visible and controlled", a
       await expect(dialog).toHaveAttribute("data-ask-state", "contact");
       await expect(dialog.getByLabel("Public fit signal")).toBeHidden();
       await expect(page.getByLabel("Work email")).toBeFocused();
+      await expect(dialog.locator("[data-ask-contact-region]")).toBeVisible();
+      const contactFontSize = await page.getByLabel("Work email").evaluate((element) =>
+        Number.parseFloat(getComputedStyle(element).fontSize),
+      );
+      expect(contactFontSize).toBeGreaterThanOrEqual(16);
 
       if (viewport.width === 390) {
         await page.screenshot({
@@ -299,6 +346,93 @@ test("Ask WitnessOps keeps the paid-review proof path visible and controlled", a
     } finally {
       await context.close();
     }
+  }
+});
+
+test("public visual review gallery is emitted for mobile and desktop judgment", async ({ browser }) => {
+  const screenshotDir = path.join(UI_PROOF_OUTPUT_DIR, "screenshots");
+  await mkdir(screenshotDir, { recursive: true });
+
+  const pageCaptures = [
+    { name: "homepage-desktop-1440", path: "/", width: 1440, height: 1100 },
+    { name: "request-en-mobile-390", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review", width: 390, height: 844 },
+    { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review", width: 390, height: 844 },
+    { name: "request-desktop-1440", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review", width: 1440, height: 1100 },
+    { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844 },
+    { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100 },
+  ] as const;
+
+  for (const capture of pageCaptures) {
+    const context = await browser.newContext({
+      viewport: { width: capture.width, height: capture.height },
+      reducedMotion: "reduce",
+    });
+    try {
+      const page = await context.newPage();
+      const response = await page.goto(capture.path, { waitUntil: "networkidle" });
+      expect(response?.status(), capture.path).toBe(200);
+      await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
+      const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
+      await page.screenshot({ path: screenshotPath, fullPage: false });
+      await expect(fileExists(screenshotPath)).resolves.toBe(true);
+      if (capture.width < 640 && capture.path !== "/") {
+        await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
+      }
+    } finally {
+      await context.close();
+    }
+  }
+
+  for (const capture of [
+    { name: "footer-mobile-390", width: 390, height: 844 },
+    { name: "footer-desktop-1440", width: 1440, height: 1100 },
+  ] as const) {
+    const context = await browser.newContext({
+      viewport: { width: capture.width, height: capture.height },
+      reducedMotion: "reduce",
+    });
+    try {
+      const page = await context.newPage();
+      await page.goto("/", { waitUntil: "networkidle" });
+      await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
+      const footer = page.locator("footer");
+      await footer.scrollIntoViewIfNeeded();
+      if (capture.width < 640) {
+        await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
+      }
+      const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
+      await footer.screenshot({ path: screenshotPath });
+      await expect(fileExists(screenshotPath)).resolves.toBe(true);
+    } finally {
+      await context.close();
+    }
+  }
+
+  const menuContext = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    reducedMotion: "reduce",
+  });
+  try {
+    const page = await menuContext.newPage();
+    await page.goto("/", { waitUntil: "networkidle" });
+    const menuToggle = page.locator(
+      'button[aria-controls="witnessops-mobile-menu"]',
+    );
+    await menuToggle.click();
+    await expect(menuToggle).toHaveAttribute("aria-expanded", "true");
+    const mobileMenu = page.locator("#witnessops-mobile-menu");
+    await expect(mobileMenu.getByRole("link", { name: "Ask WitnessOps" })).toHaveAttribute(
+      "href",
+      "/docs/assistant",
+    );
+    await mobileMenu.evaluate(async (menu) => {
+      await Promise.all(menu.getAnimations().map((animation) => animation.finished));
+    });
+    const screenshotPath = path.join(screenshotDir, "mobile-menu-open-390.png");
+    await page.screenshot({ path: screenshotPath, fullPage: false });
+    await expect(fileExists(screenshotPath)).resolves.toBe(true);
+  } finally {
+    await menuContext.close();
   }
 });
 
@@ -342,6 +476,7 @@ async function applyContentVariant(
     .evaluate((element) => {
       element.textContent =
         "Proof operations need visible, verifiable evidence across every handoff, exception, and approval boundary";
+      element.setAttribute("data-copy-length", "long");
     });
   await page
     .locator('[data-ui-proof-id="homepage-hero-body"]')

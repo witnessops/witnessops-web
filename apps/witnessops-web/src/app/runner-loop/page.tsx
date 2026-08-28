@@ -219,7 +219,7 @@ export default function RunnerLoopPage() {
         </div>
       </div>
 
-      <main className={styles.layout}>
+      <main id="main-content" tabIndex={-1} className={styles.layout}>
         <section className={styles.intro}>
           <div className={styles.panel}>
             <div className={styles.eyebrow}>Canonical Path</div>

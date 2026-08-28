@@ -60,6 +60,33 @@ async function assertViewportBoundary(page: Page) {
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
+async function assertFocusedStageHeading(
+  page: Page,
+  name: string,
+) {
+  const heading = page.getByRole("heading", { name });
+  await expect(heading).toBeFocused();
+  await expect(heading).toBeInViewport();
+
+  const position = await heading.evaluate((element) => {
+    const headingBox = element.getBoundingClientRect();
+    const navBox = document.querySelector("nav")?.getBoundingClientRect();
+    return {
+      headingTop: headingBox.top,
+      headingBottom: headingBox.bottom,
+      navBottom: navBox?.bottom ?? 0,
+      viewportHeight: window.innerHeight,
+    };
+  });
+
+  expect(position.headingTop, `${name} must clear the sticky navbar`).toBeGreaterThanOrEqual(
+    position.navBottom + 8,
+  );
+  expect(position.headingBottom, `${name} must remain inside the viewport`).toBeLessThanOrEqual(
+    position.viewportHeight,
+  );
+}
+
 async function screenshot(page: Page, name: string) {
   await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
   await page.screenshot({ path: path.join(OUTPUT_DIR, name), fullPage: false });
@@ -170,6 +197,29 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
       await context.close();
     }
   }
+});
+
+test("mobile replay transitions keep each focused heading below the sticky navbar", async ({
+  browser,
+}) => {
+  const { context, page, errors } = await openPage(
+    browser,
+    { width: 390, height: 844 },
+    "/review/sample-cases/witnessed-crm-status-change",
+  );
+
+  await page.locator('[data-ui-proof-id="witnessed-action-replay"]').scrollIntoViewIfNeeded();
+  await page.getByRole("button", { name: "Continue to approval" }).click();
+  await assertFocusedStageHeading(page, "Approve the specimen replay");
+
+  await page.getByRole("button", { name: "Approve scope and replay" }).click();
+  await assertFocusedStageHeading(page, "Watch the recorded execution");
+
+  await page.getByRole("button", { name: "Skip to receipt" }).click();
+  await assertFocusedStageHeading(page, "Inspect what happened");
+
+  await assertNoErrors(errors);
+  await context.close();
 });
 
 test("exact-version binding is valid only for the canonical unedited skill bytes", async ({ page }) => {

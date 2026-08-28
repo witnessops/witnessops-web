@@ -135,6 +135,13 @@ const POLISH_TRANSLATED_PATHS = [
   /^\/contact$/,
 ] as const;
 
+const PAIRED_DOC_PATHS = new Set(["/docs/faq", "/docs/glossary"]);
+
+function isUnpairedPolishDocsLeaf(pathname: string): boolean {
+  if (!pathname.startsWith("/pl/docs/")) return false;
+  return !PAIRED_DOC_PATHS.has(pathname.slice(3));
+}
+
 export function polishOfferRequestHref(productId: CanonicalOffsecProductId): string {
   const sku = getSku(productId);
   if (!sku) return "/pl/review/request";
@@ -160,11 +167,21 @@ export function isPolishPath(pathname: string): boolean {
 export function toEnglishPath(pathname: string): string {
   if (!isPolishPath(pathname)) return pathname || "/";
   const stripped = pathname.slice(3);
-  return stripped || "/";
+  const englishPath = stripped || "/";
+  if (
+    englishPath.startsWith("/docs/") &&
+    !PAIRED_DOC_PATHS.has(englishPath)
+  ) {
+    return "/docs";
+  }
+  return englishPath;
 }
 
 export function toPolishPath(pathname: string): string {
   const englishPath = toEnglishPath(pathname);
+  if (PAIRED_DOC_PATHS.has(englishPath)) {
+    return `/pl${englishPath}`;
+  }
   if (POLISH_TRANSLATED_PATHS.some((pattern) => pattern.test(englishPath))) {
     return englishPath === "/" ? "/pl" : `/pl${englishPath}`;
   }
@@ -178,7 +195,9 @@ export function localizedPath(pathname: string, locale: PublicLocale): string {
 
 export function localizedHref(pathname: string, search: string, locale: PublicLocale): string {
   const target = localizedPath(pathname, locale);
-  const preservesPage = toEnglishPath(target) === toEnglishPath(pathname);
+  const preservesPage =
+    !(locale === "en" && isUnpairedPolishDocsLeaf(pathname)) &&
+    toEnglishPath(target) === toEnglishPath(pathname);
   const normalizedSearch = search && !search.startsWith("?") ? `?${search}` : search;
   return preservesPage ? `${target}${normalizedSearch}` : target;
 }

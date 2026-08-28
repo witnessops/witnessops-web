@@ -1,13 +1,13 @@
 .page {
-  --paper: #050505;
-  --paper-raised: #0d0d0c;
-  --paper-soft: #141413;
-  --ink: #fafaf7;
-  --ink-soft: #d0ccc4;
-  --ink-muted: #9e9a93;
-  --accent: #f27a3d;
-  --rule: #2a2a28;
-  --rule-strong: #474743;
+  --paper: var(--color-surface-bg);
+  --paper-raised: var(--color-surface-card);
+  --paper-soft: var(--color-surface-inset);
+  --ink: var(--color-text-primary);
+  --ink-soft: var(--color-text-secondary);
+  --ink-muted: var(--color-text-muted);
+  --accent: var(--color-brand-accent);
+  --rule: var(--color-surface-border);
+  --rule-strong: var(--color-surface-border-strong);
   min-height: 100vh;
   background:
     radial-gradient(circle at 18% 3%, rgba(242, 122, 61, 0.08), transparent 25rem),
@@ -54,7 +54,7 @@
   color: var(--ink);
   font-size: clamp(3.7rem, 7vw, 6.6rem);
   font-weight: 760;
-  letter-spacing: -0.065em;
+  letter-spacing: -0.055em;
   line-height: 0.91;
   text-wrap: balance;
 }
@@ -86,7 +86,7 @@
 .secondaryCta,
 .closingPrimary {
   min-height: 50px !important;
-  border-radius: 0.55rem !important;
+  border-radius: 4px !important;
   padding-inline: 1.5rem !important;
   font-family: var(--font-mono);
   font-size: 0.71rem !important;
@@ -106,9 +106,7 @@
   border: 1px solid var(--accent) !important;
   background: var(--accent) !important;
   color: #160b05 !important;
-  box-shadow:
-    0 8px 24px rgba(242, 122, 61, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
 }
 
 .primaryCta:hover {
@@ -116,8 +114,8 @@
   filter: none !important;
   transform: translateY(-2px);
   box-shadow:
-    0 14px 34px rgba(242, 122, 61, 0.26),
-    inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
+    0 10px 24px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .primaryCta:active {
@@ -706,25 +704,59 @@
   }
 
   .heroFrame {
-    padding-block: 3.5rem 3.8rem;
+    gap: 2.5rem;
+    padding-block: 2.75rem 3.25rem;
   }
 
   .heroTitle {
-    font-size: clamp(3.15rem, 16vw, 4.5rem);
+    max-width: 11ch;
+    margin-top: 0.9rem;
+    font-size: clamp(2.55rem, 10vw, 3rem);
+    letter-spacing: -0.045em;
+    line-height: 0.96;
+  }
+
+  .heroTitle[data-copy-length="long"] {
+    max-width: none;
+    font-size: clamp(2.35rem, 8.5vw, 2.65rem);
+    letter-spacing: -0.035em;
+    line-height: 1;
   }
 
   .heroBody {
-    margin-top: 1.35rem;
+    margin-top: 1.15rem;
+    font-size: 1rem;
+    line-height: 1.58;
+  }
+
+  .heroIntro {
+    display: none;
   }
 
   .heroActions {
     flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
   }
 
   .primaryCta,
   .secondaryCta,
   .closingPrimary {
     width: 100%;
+    min-height: 48px !important;
+  }
+
+  .secondaryCta {
+    display: none !important;
+  }
+
+  .heroSampleLink {
+    margin-top: 0.8rem;
+    line-height: 1.55;
+  }
+
+  .assuranceLine {
+    margin-top: 0.9rem;
   }
 
   .flowList li {

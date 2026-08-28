@@ -100,7 +100,7 @@ export function askWitnessOpsModeLabel(answer: AskWitnessOpsUiAnswer): string {
     return "Boundary guidance";
   }
 
-  return "Public guide · AI unavailable";
+  return "Deterministic public guide";
 }
 
 const SAME_SITE_HOSTS = new Set(["witnessops.com", "www.witnessops.com"]);

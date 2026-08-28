@@ -91,7 +91,7 @@ test("ask witnessops labels AI, fallback, and boundary responses honestly", () =
   );
   assert.equal(
     askWitnessOpsModeLabel({ ...answer, answer_mode: "deterministic_fallback" }),
-    "Public guide · AI unavailable",
+    "Deterministic public guide",
   );
   assert.equal(
     askWitnessOpsModeLabel({ ...answer, answer_mode: "policy_refusal" }),

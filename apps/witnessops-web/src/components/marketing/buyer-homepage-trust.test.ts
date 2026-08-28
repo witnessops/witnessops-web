@@ -50,6 +50,16 @@ test("homepage connects the agent workflow review to a bounded receipt specimen"
   assert.match(source, /id="evidence-questions"/);
   assert.match(source, /id="agent-action-receipt"/);
   assert.match(source, /id="agent-risk-control"/);
+  assert.equal(
+    source.match(/href: "#agent-action-receipt"/g)?.length,
+    2,
+    "both locales should target the receipt section that exists on initial render",
+  );
+  assert.doesNotMatch(
+    source,
+    /witnessed-crm-status-change#receipt/,
+    "the homepage must not promise a conditional receipt-stage fragment",
+  );
   assert.match(source, /\/review\/sample-cases\/ai-agent-action-proof-run/);
   assert.match(source, /\/review\/sample-cases\/witnessed-crm-status-change/);
   assert.match(source, /\/verify\/skill/);

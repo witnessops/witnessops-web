@@ -81,6 +81,39 @@ test("request language switch preserves the selected workflow offer query", () =
   assert.match(navbar, /localizedHref\(currentPath, currentSearch, "pl"\)/);
 });
 
+test("PL-only docs leaves switch to real English routes", () => {
+  for (const slug of [
+    "understand-the-service",
+    "how-witnessops-works",
+    "what-you-receive",
+    "how-receipts-work",
+    "evidence-and-limitations",
+    "buyer-approver-guide",
+    "is-witnessops-right-for-this",
+    "what-you-need-to-provide",
+  ]) {
+    assert.equal(
+      localizedPath(`/pl/docs/${slug}`, "en"),
+      "/docs",
+      `${slug} must fall back to the real English docs hub`,
+    );
+    assert.equal(
+      localizedHref(`/pl/docs/${slug}`, "source=pl-leaf", "en"),
+      "/docs",
+      `${slug} fallback must not carry leaf-only query context`,
+    );
+  }
+
+  for (const slug of ["faq", "glossary"]) {
+    assert.equal(localizedPath(`/pl/docs/${slug}`, "en"), `/docs/${slug}`);
+    assert.equal(localizedPath(`/docs/${slug}`, "pl"), `/pl/docs/${slug}`);
+  }
+});
+
+test("Polish chrome keeps its logo on the Polish home route", () => {
+  assert.match(navbar, /const logoHref = polish \? "\/pl" : "\/"/);
+});
+
 test("tablet uses the compact navigation instead of overflowing desktop links", () => {
   const mobileNavbar = readFileSync(
     resolve(__dirname, "mobile-navbar-menu.tsx"),
@@ -95,24 +128,32 @@ test("mobile header uses the approved mark and compact brand line", () => {
   assert.match(navbar, /const HOME_BRAND_LINE = "Proof beats memory\."/);
   assert.match(navbar, /aria-label=\{polish \? "WitnessOps — strona główna" : "WitnessOps home"\}/);
   assert.match(navbar, /hidden text-\[11px\][^\n]+lg:inline/);
-  assert.match(navbar, /text-xs font-semibold[^\n]+lg:hidden/);
-  assert.match(navbar, /inline-block -translate-y-px text-xs/);
-  assert.match(navbar, /px-4 py-2[^\n]+lg:py-4/);
+  assert.match(navbar, /text-\[0\.7rem\] font-semibold[^\n]+lg:hidden/);
+  assert.match(navbar, /inline-block -translate-y-px text-\[0\.7rem\]/);
+  assert.match(navbar, /px-4 py-1\.5[^\n]+lg:py-4/);
   assert.match(navbar, /mobile-brand-navbar/);
   assert.doesNotMatch(navbar, /max-\[420px\]:hidden/);
 });
 
-test("mobile menu is an attached 48px-row sheet with one orange action", () => {
+test("mobile menu is a viewport-bounded scrolling sheet with one orange action", () => {
   const mobileNavbar = readFileSync(
     resolve(__dirname, "mobile-navbar-menu.tsx"),
     "utf-8",
   );
 
   assert.match(mobileNavbar, /className="contents"/);
-  assert.match(mobileNavbar, /w-\[calc\(100%\+2rem\)\]/);
-  assert.match(mobileNavbar, /max-h-\[32rem\]/);
+  assert.match(mobileNavbar, /absolute inset-x-0 top-full/);
+  assert.match(
+    mobileNavbar,
+    /max-h-\[calc\(100dvh-var\(--app-navbar-height,72px\)\)\]/,
+  );
+  assert.match(mobileNavbar, /overflow-y-auto overscroll-contain/);
+  assert.match(mobileNavbar, /env\(safe-area-inset-bottom\)/);
+  assert.match(mobileNavbar, /acquireBodyScrollLock/);
+  assert.match(mobileNavbar, /releaseBodyScrollLock\(\)/);
   assert.match(mobileNavbar, /inline-flex h-12 items-center border-l-2/);
   assert.match(mobileNavbar, /inline-flex h-12 items-center border-t/);
+  assert.match(navbar, /assistantLink=\{\{ label: "Ask WitnessOps", href: "\/docs\/assistant" \}\}/);
   assert.equal(
     mobileNavbar.match(/!bg-brand-accent/g)?.length,
     1,
@@ -120,16 +161,19 @@ test("mobile menu is an attached 48px-row sheet with one orange action", () => {
   );
   assert.equal(
     mobileNavbar.match(/inline-block -translate-y-px/g)?.length,
-    3,
+    4,
     "Every mobile menu text treatment must share the optical baseline correction",
   );
   assert.match(mobileNavbar, /labelClassName="inline-block -translate-y-px"/);
 });
 
-test("media kit reuses the homepage-native orange action chrome", () => {
+test("every public route uses the orange primary action chrome", () => {
+  assert.doesNotMatch(navbar, /homepageNativeChrome/);
+  assert.match(navbar, /getDesktopCtaClassName/);
   assert.match(
     navbar,
-    /const homepageNativeChrome = homeNav \|\| currentPath === "\/media-kit"/,
+    /border border-brand-accent bg-brand-accent text-text-inverse/,
   );
-  assert.match(navbar, /getDesktopCtaClassName/);
+  assert.doesNotMatch(navbar, /bg-text-primary text-surface-bg/);
+  assert.doesNotMatch(navbar, /#2b2b25|#37372f/);
 });

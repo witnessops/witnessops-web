@@ -38,17 +38,20 @@ const labelStyle: React.CSSProperties = {
 };
 
 const inputClass =
-  "min-h-12 w-full border border-surface-border-strong bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2";
+  "min-h-12 w-full border border-text-muted bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
 
 const textareaClass =
-  "min-h-32 w-full border border-surface-border-strong bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 md:min-h-24";
+  "min-h-32 w-full border border-text-muted bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg md:min-h-24";
 
 const buttonFocusClass =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2";
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
+
+const lightButtonFocusClass =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b94716] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]";
 
 const inputStyle: React.CSSProperties = {
   fontFamily: "var(--font-sans)",
-  fontSize: 15,
+  fontSize: 16,
   letterSpacing: 0,
   scrollMarginTop: "calc(var(--app-navbar-height) + 16px)",
 };
@@ -101,7 +104,7 @@ export function ContactForm({
         sending: "Wysyłanie...",
         requestSent: "Zgłoszenie wysłane. Wpisz kod z wiadomości e-mail na tej stronie.",
         fitTitle: "Zacznij od krótkiej, niepoufnej oceny dopasowania.",
-        fitBody: "Opisz, co wymaga sprawdzenia, nie wklejaj materiałów. Bez plików i bez przesyłania dowodów. Ankiety, logi, zrzuty ekranu, eksporty, dane uwierzytelniające, klucze prywatne, kody MFA i materiały klienta przekaż dopiero po uzgodnieniu zakresu i sposobu ich obsługi.",
+        fitBody: "Opisz jedną potrzebę na wysokim poziomie. Bez plików i dowodów — najpierw uzgodnimy zakres oraz sposób obsługi materiałów.",
         name: "Imię i nazwisko",
         email: "Służbowy adres e-mail",
         organization: "Firma lub zespół",
@@ -145,7 +148,7 @@ export function ContactForm({
         sending: "Sending...",
         requestSent: "Request sent. Enter the email code on this page.",
         fitTitle: "Start with a short, non-secret fit check.",
-        fitBody: "Describe what you need reviewed; do not paste source material. No files and no evidence upload. Save questionnaires, logs, screenshots, exports, credentials, private keys, MFA codes and customer evidence for the scoped intake after handling is agreed.",
+        fitBody: "Describe one review need at a high level. No files or evidence yet—we’ll agree scope and handling first.",
         name: "Your name",
         email: "Work email",
         organization: "Company or team",
@@ -516,7 +519,7 @@ export function ContactForm({
           <button
             type="submit"
             disabled={verifyStatus === "verifying" || !verificationBoundaryAccepted}
-            className={`min-h-11 ${verificationLight.button} ${buttonFocusClass}`}
+            className={`min-h-11 ${verificationLight.button} ${lightButtonFocusClass}`}
           >
             {verifyStatus === "verifying" ? copy.confirming : copy.confirmMailbox}
           </button>
@@ -530,7 +533,7 @@ export function ContactForm({
               setVerifyStatus("idle");
               setStatus("idle");
             }}
-            className={`min-h-11 ${verificationLight.buttonSecondary} ${buttonFocusClass}`}
+            className={`min-h-11 ${verificationLight.buttonSecondary} ${lightButtonFocusClass}`}
           >
             {copy.newRequest}
           </button>
@@ -580,7 +583,7 @@ export function ContactForm({
             : ""}
       </div>
 
-      <div className="border border-surface-border bg-surface-bg p-4">
+      <div className="border-l-2 border-brand-accent bg-surface-inset p-4">
         <div className="text-sm font-semibold text-text-primary">
           {copy.fitTitle}
         </div>

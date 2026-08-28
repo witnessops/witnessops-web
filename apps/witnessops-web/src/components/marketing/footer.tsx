@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
 import { isPolishPath } from "@/lib/public-i18n";
+import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 
 /** Apex English how-to path (not the legacy docs.witnessops.com host). */
 const DOCS_PUBLIC_HREF = "/docs";
@@ -186,9 +187,15 @@ export function Footer({
   copyright,
 }: FooterProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const path = pathname || "/";
   const isPolishSurface = isPolishPath(path);
   const librarySurface = isLibraryPath(path);
+  const reviewRequestHref = reviewRequestHrefForLocation(
+    isPolishSurface ? "pl" : "en",
+    path,
+    searchParams,
+  );
 
   const content = useMemo((): FooterContent => {
     if (librarySurface) {
@@ -342,7 +349,11 @@ export function Footer({
           </nav>
 
           <div className="min-w-0">
-            <PublicContactRoute compact locale={isPolishSurface ? "pl" : "en"} />
+            <PublicContactRoute
+              compact
+              locale={isPolishSurface ? "pl" : "en"}
+              primaryHref={reviewRequestHref}
+            />
           </div>
         </div>
 

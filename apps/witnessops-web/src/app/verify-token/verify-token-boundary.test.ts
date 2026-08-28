@@ -13,6 +13,7 @@ test("mailbox verification page preserves noindex and proof-run boundary copy", 
   assert.match(source, /accept customer evidence/);
   assert.match(source, /confirm scope/);
   assert.match(source, /approve evidence handling/);
+  assert.match(source, /<main\s+id="main-content"\s+tabIndex=\{-1\}/);
 
   assert.doesNotMatch(source, /Request one proof run|Package one security workflow|ContactForm|SupportIntake/);
   assert.doesNotMatch(source, /verified compliance|certified compliance|audit-ready|guarantees compliance/i);

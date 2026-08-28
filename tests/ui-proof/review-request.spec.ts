@@ -4,9 +4,11 @@ const scenarios = [
   { path: "/review/request", locale: "en", width: 1440, height: 1100 },
   { path: "/review/request", locale: "en", width: 768, height: 1024 },
   { path: "/review/request", locale: "en", width: 390, height: 844 },
+  { path: "/review/request", locale: "en", width: 320, height: 740 },
   { path: "/pl/review/request", locale: "pl", width: 1440, height: 1100 },
   { path: "/pl/review/request", locale: "pl", width: 768, height: 1024 },
   { path: "/pl/review/request", locale: "pl", width: 390, height: 844 },
+  { path: "/pl/review/request", locale: "pl", width: 320, height: 740 },
 ] as const;
 
 const requiredFields = [
@@ -48,6 +50,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
     const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
     expect(response?.status(), `${scenario.path} should return 200`).toBe(200);
     await expect(page.locator("main h1")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
 
     const viewport = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,
@@ -110,7 +113,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
     const submit = form.locator('button[type="submit"]');
     const submitBox = await submit.boundingBox();
     expect(submitBox?.height, `${scenario.path} submit target height`).toBeGreaterThanOrEqual(44);
-    if (scenario.width === 390) {
+    if (scenario.width <= 390) {
       const textareaBox = await form.locator("#workflow").boundingBox();
       expect(textareaBox?.height, `${scenario.path} mobile textarea height`).toBeGreaterThanOrEqual(128);
     }

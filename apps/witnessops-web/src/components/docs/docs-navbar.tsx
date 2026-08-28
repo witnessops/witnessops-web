@@ -42,6 +42,7 @@ export function DocsNavbar({
 }: DocsNavbarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const pathname = usePathname();
+  const searchAvailable = docs.length > 0;
   const utilityLinks = useMemo(() => {
     if (utilityLinksProp) {
       return utilityLinksProp;
@@ -58,6 +59,10 @@ export function DocsNavbar({
   }, [verifyFirstHref, utilityLinksProp]);
 
   useEffect(() => {
+    if (!searchAvailable) {
+      return;
+    }
+
     function handleKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
@@ -66,7 +71,7 @@ export function DocsNavbar({
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, []);
+  }, [searchAvailable]);
 
   return (
     <>
@@ -76,23 +81,25 @@ export function DocsNavbar({
         data-docs-nav-surface="utility-nav"
       >
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-2 px-4 py-3 lg:px-6">
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            className="inline-flex h-8 items-center gap-2 border border-surface-border bg-surface-card px-3 text-xs font-medium uppercase tracking-[0.14em] text-text-primary transition-colors hover:border-brand-accent/50 hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
-            aria-label="Search docs"
-            aria-haspopup="dialog"
-            aria-expanded={searchOpen}
-            aria-keyshortcuts="Meta+K Control+K"
-          >
-            Search
-            <kbd
-              className="rounded border border-surface-border bg-surface-bg px-1 py-0.5 text-[10px] tracking-[0.08em] text-text-muted"
-              aria-hidden="true"
+          {searchAvailable ? (
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              className="inline-flex h-8 items-center gap-2 border border-surface-border bg-surface-card px-3 text-xs font-medium uppercase tracking-[0.14em] text-text-primary transition-colors hover:border-brand-accent/50 hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+              aria-label="Search docs"
+              aria-haspopup="dialog"
+              aria-expanded={searchOpen}
+              aria-keyshortcuts="Meta+K Control+K"
             >
-              ⌘K
-            </kbd>
-          </button>
+              Search
+              <kbd
+                className="rounded border border-surface-border bg-surface-bg px-1 py-0.5 text-[10px] tracking-[0.08em] text-text-muted"
+                aria-hidden="true"
+              >
+                ⌘K
+              </kbd>
+            </button>
+          ) : null}
 
           {utilityLinks.map((link) => {
             const active = isUtilityLinkActive(pathname, link.href);
@@ -115,7 +122,9 @@ export function DocsNavbar({
         </div>
       </nav>
 
-      {searchOpen && <DocsSearch docs={docs} onClose={() => setSearchOpen(false)} />}
+      {searchAvailable && searchOpen ? (
+        <DocsSearch docs={docs} onClose={() => setSearchOpen(false)} />
+      ) : null}
     </>
   );
 }

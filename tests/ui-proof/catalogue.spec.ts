@@ -4,9 +4,11 @@ const scenarios = [
   { path: "/catalog", width: 1440, height: 1100 },
   { path: "/catalog", width: 768, height: 1024 },
   { path: "/catalog", width: 390, height: 844 },
+  { path: "/catalog", width: 320, height: 740 },
   { path: "/pl/catalog", width: 1440, height: 1100 },
   { path: "/pl/catalog", width: 768, height: 1024 },
   { path: "/pl/catalog", width: 390, height: 844 },
+  { path: "/pl/catalog", width: 320, height: 740 },
 ] as const;
 
 const expectedServiceOrder = [
@@ -39,6 +41,35 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
 
     const serviceCards = page.locator("[data-buyer-service]");
     await expect(serviceCards).toHaveCount(8);
+    const firstCardVisuals = await serviceCards.first().evaluate((card) => {
+      const style = getComputedStyle(card);
+      const primaryCta = card.querySelector<HTMLElement>("a");
+      const primaryCtaStyle = primaryCta ? getComputedStyle(primaryCta) : null;
+      return {
+        background: style.backgroundColor,
+        color: style.color,
+        tokens: {
+          background: style.getPropertyValue("--color-surface-bg").trim().toLowerCase(),
+          card: style.getPropertyValue("--color-surface-card").trim().toLowerCase(),
+          primary: style.getPropertyValue("--color-text-primary").trim().toLowerCase(),
+          accent: style.getPropertyValue("--color-brand-accent").trim().toLowerCase(),
+          inverse: style.getPropertyValue("--color-text-inverse").trim().toLowerCase(),
+        },
+        primaryCtaBackground: primaryCtaStyle?.backgroundColor ?? null,
+        primaryCtaColor: primaryCtaStyle?.color ?? null,
+      };
+    });
+    expect(firstCardVisuals.background).toBe("rgb(13, 13, 12)");
+    expect(firstCardVisuals.color).toBe("rgb(250, 250, 247)");
+    expect(firstCardVisuals.tokens).toEqual({
+      background: "#050505",
+      card: "#0d0d0c",
+      primary: "#fafaf7",
+      accent: "#f27a3d",
+      inverse: "#160b05",
+    });
+    expect(firstCardVisuals.primaryCtaBackground).toBe("rgb(242, 122, 61)");
+    expect(firstCardVisuals.primaryCtaColor).toBe("rgb(22, 11, 5)");
     expect(
       await serviceCards.evaluateAll((cards) =>
         cards.map((card) => card.getAttribute("data-buyer-service")),

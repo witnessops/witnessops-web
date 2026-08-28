@@ -163,9 +163,9 @@ const brandAssets: BrandAsset[] = [
 ];
 
 const colours = [
-  { name: "Black", value: "#000000", swatchClass: "bg-black" },
+  { name: "Near Black", value: "#050505", swatchClass: "bg-[#050505]" },
   { name: "Orange", value: "#F27A3D", swatchClass: "bg-[#F27A3D]" },
-  { name: "Warm White", value: "#FAF7F2", swatchClass: "bg-[#FAF7F2]" },
+  { name: "Warm White", value: "#FAFAF7", swatchClass: "bg-[#FAFAF7]" },
 ] as const;
 
 const screenshots = [

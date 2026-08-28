@@ -118,7 +118,7 @@ export function BuyerServiceDetail({
             {service.availability ? (
               <p
                 data-service-availability={service.availability.status}
-                className="inline-flex border border-surface-border bg-neutral-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted"
+                className="inline-flex border border-surface-border bg-surface-inset px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted"
               >
                 {service.availability.label[locale]}
               </p>
@@ -293,6 +293,7 @@ export function BuyerServiceDetail({
             subject="fit-check"
             productName={service.name[locale]}
             locale={locale}
+            primaryHref={requestHref}
           />
         </div>
       </div>

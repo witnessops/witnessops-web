@@ -15,7 +15,7 @@ const warning = "Do not paste secrets";
 const providerDisclosure =
   /Eligible questions may be\s+(?:sent to\s+)?OpenAI\s+with.*store: false.*provider\s+retention\s+may\s+still\s+apply/s;
 const placeholder =
-  "Example: An agent rotates a compromised production key.";
+  "Example: An agent rotates a compromised key.";
 
 test("Ask WitnessOps surfaces carry the bounded public-copy contract", () => {
   for (const filename of [
@@ -104,9 +104,52 @@ test("Ask WitnessOps hides its trigger while the dialog owns the floating space"
   const content = source("docs-assistant-widget.tsx");
 
   assert.match(content, /shouldShowDocsAssistantTrigger\(open\)/);
+  assert.match(content, /!suppressFloatingTrigger/);
+  assert.match(content, /new IntersectionObserver/);
+  assert.match(content, /document\.querySelector\("\[data-ask-trigger-guard\]"\)/);
+  assert.match(content, /footer\[data-brand-footer\]/);
   assert.match(content, /aria-controls="ask-witnessops-dialog"/);
   assert.match(content, /triggerRef\.current\?\.focus\(\)/);
   assert.doesNotMatch(content, /aria-label=\{open \?/);
+});
+
+test("Ask WitnessOps does not cover the dedicated review request form", () => {
+  const content = source("docs-assistant-widget.tsx");
+
+  assert.match(content, /HIDDEN_WIDGET_PATHS/);
+  assert.match(content, /"\/review\/request"/);
+});
+
+test("Ask WitnessOps yields the floating layer while the mobile navigation is open", () => {
+  const styles = source("docs-assistant-widget.module.css");
+  const mobileNavbar = source("../shared/mobile-navbar-menu.tsx");
+
+  assert.match(mobileNavbar, /data-mobile-nav-open/);
+  assert.match(
+    styles,
+    /:global\(html\[data-mobile-nav-open="true"\]\) \.trigger\s*\{\s*display: none;/,
+  );
+});
+
+test("Ask WitnessOps resets across route changes and closes before same-site navigation", () => {
+  const widget = source("docs-assistant-widget.tsx");
+  const routeCta = source("ask-witnessops-route-cta.tsx");
+  const fitCard = source("ask-witnessops-commercial-fit-card.tsx");
+
+  assert.match(widget, /previousPathnameRef\.current === pathname/);
+  assert.match(widget, /previousPathnameRef\.current = pathname;\s*resetAskState\(\)/);
+  assert.match(widget, /requestGenerationRef\.current \+= 1/);
+  assert.match(widget, /setQuestion\(""\)/);
+  assert.match(widget, /setAnswer\(null\)/);
+  assert.match(widget, /setContactMode\(false\)/);
+  assert.match(widget, /onClickCapture=\{handleDialogLinkCapture\}/);
+  assert.match(widget, /destination\.origin === window\.location\.origin/);
+  assert.match(widget, /href="\/privacy"/);
+  assert.match(routeCta, /if \(href\.startsWith\("\/"\)\)/);
+  assert.match(
+    fitCard,
+    /SPECIMEN_HREF\s*=\s*"\/review\/sample-cases\/ai-agent-action-proof-run"/,
+  );
 });
 
 test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
@@ -115,7 +158,8 @@ test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
 
   assert.match(widget, /<DocsAssistantContactHandoff/);
   assert.match(widget, /\{contactMode && \(/);
-  assert.match(widget, /\{!contactMode && \(/);
+  assert.match(widget, /\{!contactMode && answer && !hasPaidScopeCta && \(/);
+  assert.match(widget, /\{!contactMode && !answer && \(/);
   assert.match(widget, /expanded=\{false\}/);
   assert.match(widget, /\s+expanded\s+/);
   assert.match(
@@ -131,7 +175,7 @@ test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
   assert.match(contact, /Note or request/);
   assert.match(contact, /\/api\/contact/);
   assert.match(contact, /\/api\/verify-token/);
-  assert.match(contact, /Follow-up is asynchronous/);
+  assert.match(contact, /Mailbox confirmation starts a fit-and-scope reply only/);
   assert.match(contact, /No review begins here/);
   assert.match(contact, /Do not include secrets/);
 });
@@ -150,15 +194,37 @@ test("Ask WitnessOps uses a full-viewport mobile surface at the shared breakpoin
   assert.match(styles, /env\(safe-area-inset-bottom\)/);
   assert.match(content, /window\.visualViewport/);
   assert.match(content, /--ask-ai-keyboard-cushion/);
-  assert.match(content, /document\.body\.style\.overflow = "hidden"/);
-  assert.match(content, /document\.body\.style\.overflow = previousOverflow/);
+  assert.match(content, /acquireBodyScrollLock\(\)/);
   assert.match(styles, /min-height:\s*44px|height:\s*44px/);
   assert.doesNotMatch(styles, /max-width:\s*390px/);
+});
+
+test("Ask WitnessOps mobile surface is modal without stealing desktop interaction", () => {
+  const content = source("docs-assistant-widget.tsx");
+
+  assert.match(content, /aria-modal=\{mobileModal\}/);
+  assert.match(content, /if \(!mobileModal \|\| event\.key !== "Tab"\) return/);
+  assert.match(content, /\(event\.shiftKey \? last : first\)\.focus\(\)/);
+  assert.match(content, /event\.shiftKey && active === first/);
+  assert.match(content, /!event\.shiftKey && active === last/);
+  assert.match(content, /sibling\.inert = true/);
+  assert.match(content, /sibling\.setAttribute\("aria-hidden", "true"\)/);
+  assert.match(content, /element\.inert = inert/);
+  assert.match(content, /element\.setAttribute\("aria-hidden", ariaHidden\)/);
+  assert.match(
+    content,
+    /if \(!open \|\| !widgetVisible \|\| !mobileModal\) return;\s*\n\s*return acquireBodyScrollLock\(\)/,
+  );
+  assert.match(content, /\[mobileModal, open, widgetVisible\]/);
+  assert.match(content, /const previousFocus = previousFocusRef\.current/);
+  assert.match(content, /previousFocus\?\.isConnected/);
+  assert.match(content, /triggerRef\.current\?\.focus\(\)/);
 });
 
 test("Ask WitnessOps uses the proof-object and bounded fit-signal visual contract", () => {
   const content = source("docs-assistant-widget.tsx");
   const styles = source("docs-assistant-widget.module.css");
+  const fitCard = source("ask-witnessops-commercial-fit-card.tsx");
 
   assert.match(content, /docs-assistant-widget\.module\.css/);
   assert.match(content, /PUBLIC FIT SIGNAL/);
@@ -167,14 +233,29 @@ test("Ask WitnessOps uses the proof-object and bounded fit-signal visual contrac
   assert.match(content, /NO FIT CLAIM/);
   assert.match(content, /data-ask-state/);
   assert.match(content, /aria-label="Describe one non-secret workflow"/);
-  assert.match(styles, /--proof-bg:\s*#050505/);
+  assert.match(styles, /--proof-bg:\s*var\(--color-surface-bg\)/);
+  assert.match(styles, /--proof-accent:\s*var\(--color-brand-accent\)/);
   assert.match(styles, /--receipt-paper:\s*#f3f0e9/);
   assert.match(styles, /--receipt-sheet:\s*#fcfaf5/);
   assert.match(styles, /--receipt-accent-text:\s*#b94716/);
-  assert.match(styles, /border-left:\s*6px solid var\(--proof-accent\)/);
+  assert.match(styles, /border:\s*1px solid var\(--proof-muted\)/);
+  assert.match(
+    styles,
+    /\[data-ask-contact-form\] textarea\s*\{[\s\S]*?border-color:\s*var\(--proof-muted\)/,
+  );
+  assert.match(
+    styles,
+    /\[data-ask-contact-form\] textarea:focus\s*\{[\s\S]*?border-color:\s*var\(--proof-accent\)/,
+  );
+  assert.match(styles, /border-left:\s*2px solid var\(--proof-accent\)/);
   assert.match(styles, /white-space:\s*pre-line/);
   assert.match(styles, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(styles, /linear-gradient|radial-gradient/);
+  assert.doesNotMatch(
+    fitCard,
+    /border-brand-accent\/45 bg-brand-accent/,
+    "The fit card must not tint receipt paper behind its small accent label.",
+  );
 });
 
 test("Ask WitnessOps full page uses mobile document flow and desktop scrolling", () => {
@@ -198,4 +279,11 @@ test("Ask WitnessOps full page uses mobile document flow and desktop scrolling",
     content,
     /flex h-full flex-col items-center justify-center gap-6/,
   );
+  assert.match(content, /ref=\{conversationRef\}/);
+  assert.match(content, /window\.matchMedia\("\(min-width: 48rem\)"\)\.matches/);
+  assert.match(content, /prefers-reduced-motion: reduce/);
+  assert.match(content, /conversation\.scrollTo\(\{/);
+  assert.match(content, /top: conversation\.scrollHeight/);
+  assert.match(content, /behavior: reduceMotion \? "auto" : "smooth"/);
+  assert.doesNotMatch(content, /scrollIntoView/);
 });

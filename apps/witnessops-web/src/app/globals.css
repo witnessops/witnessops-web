@@ -164,28 +164,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Homepage-native public page palette. This is the reusable dark reading mode
-   for public routes that adopt the homepage's black, warm-white and orange
-   grammar without inheriting the homepage's route-specific layout. */
+/* Homepage-native public reading mode. The palette itself is owned by
+   @witnessops/ui/tokens/witnessops.css; this class only adds page treatment. */
 .public-brand-page {
-  --color-brand-primary: #fafaf7;
-  --color-brand-primary-hover: #ffffff;
-  --color-brand-secondary: #d0ccc4;
-  --color-brand-accent: #f27a3d;
-  --color-brand-accent-subtle: rgba(242, 122, 61, 0.14);
-  --color-brand-muted: #9e9a93;
-  --color-surface-bg: #050505;
-  --color-surface-bg-alt: #0d0d0c;
-  --color-surface-inset: #141413;
-  --color-surface-card: #0d0d0c;
-  --color-surface-card-hover: #171716;
-  --color-surface-border: #2a2a28;
-  --color-surface-border-hover: #5c5c57;
-  --color-surface-border-strong: #474743;
-  --color-text-primary: #fafaf7;
-  --color-text-secondary: #d0ccc4;
-  --color-text-muted: #9e9a93;
-  --color-text-inverse: #160b05;
   min-height: 100vh;
   background:
     radial-gradient(circle at 18% 3%, rgba(242, 122, 61, 0.08), transparent 25rem),
@@ -193,56 +174,18 @@ body {
   color: var(--color-text-primary);
 }
 
-/* Legacy public light reading mode. Routes move to the homepage-native system
-   in focused batches so operational and proof surfaces keep their character. */
-.buyer-page,
-body:has(.buyer-page) .public-shell {
-  --color-brand-primary: #050505;
-  --color-brand-primary-hover: #242424;
-  --color-brand-secondary: #f3f3f3;
-  --color-brand-accent: #050505;
-  --color-brand-accent-subtle: rgba(5, 5, 5, 0.07);
-  --color-brand-muted: #3d3d3d;
-  --color-surface-bg: #ffffff;
-  --color-surface-bg-alt: #f6f6f6;
-  --color-surface-inset: #eeeeee;
-  --color-surface-card: #ffffff;
-  --color-surface-card-hover: #f3f3f3;
-  --color-surface-border: #d5d5d5;
-  --color-surface-border-hover: #9a9a9a;
-  --color-surface-border-strong: #737373;
-  --color-text-primary: #050505;
-  --color-text-secondary: #363636;
-  --color-text-muted: #5f5f5f;
-  --color-text-inverse: #ffffff;
+/* Buyer routes use the same dark public contract. Proof records, verification
+   paper and admin surfaces retain their own intentionally scoped palettes. */
+.buyer-page {
+  min-height: 100vh;
   background: var(--color-surface-bg);
   color: var(--color-text-primary);
 }
 
-/* The public footer is a deliberate black closing panel on every route. Keep
-   these tokens on the footer itself so page-local light themes cannot leak into
-   its contrast hierarchy. */
+/* Shared public chrome consumes the canonical token contract on every route. */
 footer.public-shell.public-footer[data-brand-footer] {
-  --color-brand-primary: #fafaf7;
-  --color-brand-primary-hover: #ffffff;
-  --color-brand-secondary: #d0ccc4;
-  --color-brand-accent: #fafaf7;
-  --color-brand-accent-subtle: rgba(250, 250, 247, 0.08);
-  --color-brand-muted: #a7a39b;
-  --color-surface-bg: #050505;
-  --color-surface-bg-alt: #111110;
-  --color-surface-inset: #171716;
-  --color-surface-card: #0d0d0c;
-  --color-surface-card-hover: #171716;
-  --color-surface-border: #2a2a28;
-  --color-surface-border-hover: #5c5c57;
-  --color-surface-border-strong: #74746e;
-  --color-text-primary: #fafaf7;
-  --color-text-secondary: #d0ccc4;
-  --color-text-muted: #a7a39b;
-  --color-text-inverse: #050505;
-  background: #050505;
-  color: #fafaf7;
+  background: var(--color-surface-bg);
+  color: var(--color-text-primary);
 }
 
 footer.public-shell.public-footer[data-brand-footer] .witnessops-mark,
@@ -253,40 +196,8 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
   text-shadow: none;
 }
 
-/* Buyer CTAs inherit the public black action token. Suppress the legacy
-   copper glow without changing the shared component on technical surfaces. */
-.buyer-page .public-cta-button:hover,
-.buyer-page .public-cta-button:active {
-  box-shadow: none;
-}
-
-/* The compact mobile header is one brand surface across public routes. Keep
-   the established dark buyer chrome here so legacy light reading pages do not
-   turn the mobile lockup or attached menu into a different product. */
+/* Keep the compact geometric mark at its established mobile size. */
 @media (max-width: 63.999rem) {
-  nav.mobile-brand-navbar {
-    --color-brand-primary: #fafaf7;
-    --color-brand-primary-hover: #ffffff;
-    --color-brand-secondary: #d0ccc4;
-    --color-brand-accent: #f27a3d;
-    --color-brand-muted: #9e9a93;
-    --color-surface-bg: #050505;
-    --color-surface-bg-alt: #0d0d0c;
-    --color-surface-inset: #141413;
-    --color-surface-card: #0d0d0c;
-    --color-surface-border: #2a2a28;
-    --color-surface-border-strong: #474743;
-    --color-text-primary: #fafaf7;
-    --color-text-secondary: #d0ccc4;
-    --color-text-muted: #9e9a93;
-    --color-text-inverse: #160b05;
-    background: #050505;
-  }
-
-  nav.mobile-brand-navbar .mobile-brand-lockup .witnessops-mark {
-    color: var(--color-text-primary);
-  }
-
   nav.mobile-brand-navbar .mobile-brand-lockup .witnessops-mark svg {
     width: auto;
     height: 22px;

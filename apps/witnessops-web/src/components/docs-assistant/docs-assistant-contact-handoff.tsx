@@ -245,6 +245,7 @@ export function DocsAssistantContactHandoff({
       <div
         id={CONTACT_PANEL_ID}
         data-ask-contact-confirmed
+        data-ask-contact-region
         className="mt-5 border-t border-surface-border pt-4"
         aria-live="polite"
       >
@@ -269,6 +270,7 @@ export function DocsAssistantContactHandoff({
     <div
       id={CONTACT_PANEL_ID}
       data-ask-contact-panel
+      data-ask-contact-region
       className="mt-5 border-t border-surface-border pt-4"
     >
       <div
@@ -285,8 +287,8 @@ export function DocsAssistantContactHandoff({
             {commercialFit?.offer ? (
               <>
                 {commercialFit.offer.name} · {commercialFit.offer.price_label} ·{" "}
-                one workflow. Confirm a work email; no work starts until scope,
-                fee, timing, and evidence handling are agreed.
+                one workflow. Confirm a work email. Work starts only after
+                scope, timing, fee, and evidence handling are agreed.
               </>
             ) : (
               <>
@@ -435,16 +437,15 @@ export function DocsAssistantContactHandoff({
                 );
                 if (inFlightRef.current === null) setErrorMessage("");
               }}
-              rows={3}
+              rows={2}
               maxLength={1_000}
-              placeholder="What would you like to discuss? Keep it high level."
+              placeholder="What should we scope? Keep it high level."
               className="mt-1 w-full resize-y rounded border border-surface-border bg-surface-bg px-2.5 py-2 text-xs leading-relaxed text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
             />
           </div>
           <p className="text-[11px] leading-relaxed text-text-muted">
-            Follow-up is asynchronous. After mailbox confirmation, WitnessOps
-            may assess fit and scope only. No review begins here. Do not include secrets,
-            logs, credentials, screenshots, or customer evidence.
+            Mailbox confirmation starts a fit-and-scope reply only. No review
+            begins here. Do not include secrets or customer evidence.
           </p>
           {status === "error" && (
             <p className="text-xs text-red-400" role="alert">
@@ -454,7 +455,7 @@ export function DocsAssistantContactHandoff({
           <button
             type="submit"
             disabled={status === "sending" || !email.trim()}
-            className="w-full rounded border border-surface-border bg-surface-bg px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent disabled:cursor-not-allowed disabled:opacity-40"
+            className="w-full rounded border border-brand-accent bg-brand-accent px-3 py-2 text-xs font-semibold text-text-inverse transition-colors hover:bg-text-primary disabled:cursor-not-allowed disabled:border-surface-border-strong disabled:bg-surface-inset disabled:text-text-muted disabled:opacity-100"
           >
             {status === "sending" ? "Sending code..." : "Send confirmation code"}
           </button>
