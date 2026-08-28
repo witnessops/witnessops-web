@@ -109,6 +109,13 @@ test("Ask WitnessOps hides its trigger while the dialog owns the floating space"
   assert.doesNotMatch(content, /aria-label=\{open \?/);
 });
 
+test("Ask WitnessOps does not cover the dedicated review request form", () => {
+  const content = source("docs-assistant-widget.tsx");
+
+  assert.match(content, /HIDDEN_WIDGET_PATHS/);
+  assert.match(content, /"\/review\/request"/);
+});
+
 test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
   const widget = source("docs-assistant-widget.tsx");
   const contact = source("docs-assistant-contact-handoff.tsx");
@@ -159,6 +166,7 @@ test("Ask WitnessOps uses a full-viewport mobile surface at the shared breakpoin
 test("Ask WitnessOps uses the proof-object and bounded fit-signal visual contract", () => {
   const content = source("docs-assistant-widget.tsx");
   const styles = source("docs-assistant-widget.module.css");
+  const fitCard = source("ask-witnessops-commercial-fit-card.tsx");
 
   assert.match(content, /docs-assistant-widget\.module\.css/);
   assert.match(content, /PUBLIC FIT SIGNAL/);
@@ -167,14 +175,29 @@ test("Ask WitnessOps uses the proof-object and bounded fit-signal visual contrac
   assert.match(content, /NO FIT CLAIM/);
   assert.match(content, /data-ask-state/);
   assert.match(content, /aria-label="Describe one non-secret workflow"/);
-  assert.match(styles, /--proof-bg:\s*#050505/);
+  assert.match(styles, /--proof-bg:\s*var\(--color-surface-bg\)/);
+  assert.match(styles, /--proof-accent:\s*var\(--color-brand-accent\)/);
   assert.match(styles, /--receipt-paper:\s*#f3f0e9/);
   assert.match(styles, /--receipt-sheet:\s*#fcfaf5/);
   assert.match(styles, /--receipt-accent-text:\s*#b94716/);
+  assert.match(styles, /border:\s*1px solid var\(--proof-muted\)/);
+  assert.match(
+    styles,
+    /\[data-ask-contact-form\] textarea\s*\{[\s\S]*?border-color:\s*var\(--proof-muted\)/,
+  );
+  assert.match(
+    styles,
+    /\[data-ask-contact-form\] textarea:focus\s*\{[\s\S]*?border-color:\s*var\(--proof-accent\)/,
+  );
   assert.match(styles, /border-left:\s*6px solid var\(--proof-accent\)/);
   assert.match(styles, /white-space:\s*pre-line/);
   assert.match(styles, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(styles, /linear-gradient|radial-gradient/);
+  assert.doesNotMatch(
+    fitCard,
+    /border-brand-accent\/45 bg-brand-accent/,
+    "The fit card must not tint receipt paper behind its small accent label.",
+  );
 });
 
 test("Ask WitnessOps full page uses mobile document flow and desktop scrolling", () => {

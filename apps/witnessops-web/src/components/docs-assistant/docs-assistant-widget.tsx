@@ -34,6 +34,7 @@ const HIDDEN_WIDGET_PATHS = [
   "/admin",
   "/assessment",
   "/design",
+  "/review/request",
   "/runner-loop",
 ] as const;
 

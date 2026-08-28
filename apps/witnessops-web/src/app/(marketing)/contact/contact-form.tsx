@@ -38,17 +38,20 @@ const labelStyle: React.CSSProperties = {
 };
 
 const inputClass =
-  "min-h-12 w-full border border-surface-border-strong bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2";
+  "min-h-12 w-full border border-text-muted bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
 
 const textareaClass =
-  "min-h-32 w-full border border-surface-border-strong bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 md:min-h-24";
+  "min-h-32 w-full border border-text-muted bg-surface-card px-3 py-3 text-text-primary placeholder:text-text-secondary transition-colors focus:border-brand-accent focus:bg-surface-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg md:min-h-24";
 
 const buttonFocusClass =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2";
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
+
+const lightButtonFocusClass =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b94716] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f5f1]";
 
 const inputStyle: React.CSSProperties = {
   fontFamily: "var(--font-sans)",
-  fontSize: 15,
+  fontSize: 16,
   letterSpacing: 0,
   scrollMarginTop: "calc(var(--app-navbar-height) + 16px)",
 };
@@ -516,7 +519,7 @@ export function ContactForm({
           <button
             type="submit"
             disabled={verifyStatus === "verifying" || !verificationBoundaryAccepted}
-            className={`min-h-11 ${verificationLight.button} ${buttonFocusClass}`}
+            className={`min-h-11 ${verificationLight.button} ${lightButtonFocusClass}`}
           >
             {verifyStatus === "verifying" ? copy.confirming : copy.confirmMailbox}
           </button>
@@ -530,7 +533,7 @@ export function ContactForm({
               setVerifyStatus("idle");
               setStatus("idle");
             }}
-            className={`min-h-11 ${verificationLight.buttonSecondary} ${buttonFocusClass}`}
+            className={`min-h-11 ${verificationLight.buttonSecondary} ${lightButtonFocusClass}`}
           >
             {copy.newRequest}
           </button>
@@ -580,7 +583,7 @@ export function ContactForm({
             : ""}
       </div>
 
-      <div className="border border-surface-border bg-surface-bg p-4">
+      <div className="border-l-2 border-brand-accent bg-surface-inset p-4">
         <div className="text-sm font-semibold text-text-primary">
           {copy.fitTitle}
         </div>

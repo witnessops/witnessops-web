@@ -126,10 +126,13 @@ test("mobile menu is an attached 48px-row sheet with one orange action", () => {
   assert.match(mobileNavbar, /labelClassName="inline-block -translate-y-px"/);
 });
 
-test("media kit reuses the homepage-native orange action chrome", () => {
+test("every public route uses the orange primary action chrome", () => {
+  assert.doesNotMatch(navbar, /homepageNativeChrome/);
+  assert.match(navbar, /getDesktopCtaClassName/);
   assert.match(
     navbar,
-    /const homepageNativeChrome = homeNav \|\| currentPath === "\/media-kit"/,
+    /border border-brand-accent bg-brand-accent text-text-inverse/,
   );
-  assert.match(navbar, /getDesktopCtaClassName/);
+  assert.doesNotMatch(navbar, /bg-text-primary text-surface-bg/);
+  assert.doesNotMatch(navbar, /#2b2b25|#37372f/);
 });

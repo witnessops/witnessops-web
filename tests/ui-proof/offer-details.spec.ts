@@ -192,13 +192,44 @@ test("reachable offer details use the canonical buyer contract and visual system
 
       const metrics = await main.evaluate((element) => ({
         background: getComputedStyle(element).backgroundColor,
+        color: getComputedStyle(element).color,
+        tokens: {
+          background: getComputedStyle(element)
+            .getPropertyValue("--color-surface-bg")
+            .trim()
+            .toLowerCase(),
+          primary: getComputedStyle(element)
+            .getPropertyValue("--color-text-primary")
+            .trim()
+            .toLowerCase(),
+          accent: getComputedStyle(element)
+            .getPropertyValue("--color-brand-accent")
+            .trim()
+            .toLowerCase(),
+          inverse: getComputedStyle(element)
+            .getPropertyValue("--color-text-inverse")
+            .trim()
+            .toLowerCase(),
+        },
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       }));
-      expect(metrics.background).toBe("rgb(255, 255, 255)");
+      expect(metrics.background).toBe("rgb(5, 5, 5)");
+      expect(metrics.color).toBe("rgb(250, 250, 247)");
+      expect(metrics.tokens).toEqual({
+        background: "#050505",
+        primary: "#fafaf7",
+        accent: "#f27a3d",
+        inverse: "#160b05",
+      });
       expect(metrics.overflow).toBeLessThanOrEqual(1);
 
       const requestLinks = main.locator(`a[href^="${offer.request}"]`);
       expect(await requestLinks.count()).toBeGreaterThanOrEqual(2);
+      await expect(requestLinks.first()).toHaveCSS(
+        "background-color",
+        "rgb(242, 122, 61)",
+      );
+      await expect(requestLinks.first()).toHaveCSS("color", "rgb(22, 11, 5)");
       for (let index = 0; index < 2; index += 1) {
         const link = requestLinks.nth(index);
         const href = await link.getAttribute("href");

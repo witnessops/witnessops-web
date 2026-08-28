@@ -66,7 +66,6 @@ export function Navbar({ announcement }: NavbarProps) {
   const polish = isPolishPath(currentPath);
   const homeNav = currentPath === "/" || currentPath === "/pl";
   const productJourneyNav = homeNav;
-  const homepageNativeChrome = homeNav || currentPath === "/media-kit";
 
   const logoHref = "/";
   const effectiveLinks = homeNav
@@ -123,10 +122,6 @@ export function Navbar({ announcement }: NavbarProps) {
     const baseClassName =
       "hidden min-h-11 items-center whitespace-nowrap rounded-md px-4 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none lg:inline-flex";
 
-    if (homepageNativeChrome) {
-      return `${baseClassName} border border-brand-accent bg-brand-accent text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.16)] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_30px_rgba(242,122,61,0.28)] active:translate-y-0 active:scale-[0.98] active:shadow-[0_5px_16px_rgba(242,122,61,0.18)]`;
-    }
-
     if (variant === "secondary") {
       return `${baseClassName} border border-surface-border bg-transparent text-text-primary hover:border-brand-accent/40 hover:bg-surface-card`;
     }
@@ -135,7 +130,7 @@ export function Navbar({ announcement }: NavbarProps) {
       return `${baseClassName} text-text-muted hover:bg-surface-bg-alt hover:text-text-primary`;
     }
 
-    return `${baseClassName} bg-text-primary text-surface-bg hover:bg-[#2b2b25] active:bg-[#37372f]`;
+    return `${baseClassName} border border-brand-accent bg-brand-accent text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.16)] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_30px_rgba(242,122,61,0.28)] active:translate-y-0 active:scale-[0.98] active:shadow-[0_5px_16px_rgba(242,122,61,0.18)]`;
   }
 
   const desktopCtaClassName = `${getDesktopCtaClassName(effectiveCta.variant)} ${

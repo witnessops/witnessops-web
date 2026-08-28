@@ -36,7 +36,7 @@ test("media kit preserves the approved description, palette and type wording", (
     pageSource,
     /WitnessOps delivers bounded security and operational reviews with[\s\S]*evidence references, clear limits and a practical handover\./,
   );
-  for (const marker of ["#000000", "#F27A3D", "#FAF7F2", "Inter", "IBM Plex Mono"]) {
+  for (const marker of ["#050505", "#F27A3D", "#FAFAF7", "Inter", "IBM Plex Mono"]) {
     assert.ok(pageSource.includes(marker), `Missing Media kit marker: ${marker}`);
   }
   assert.doesNotMatch(pageSource, /Barlow Condensed/);

@@ -227,7 +227,7 @@ export default function SampleCasesIndexPage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`block bg-white p-7 transition-colors hover:bg-brand-accent/5 md:p-9 ${
+                className={`block bg-surface-card p-7 transition-colors hover:bg-brand-accent/5 md:p-9 ${
                   item.emphasize ? "ring-1 ring-inset ring-brand-accent/40" : ""
                 }`}
               >
@@ -288,7 +288,7 @@ export default function SampleCasesIndexPage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="block bg-white p-7 transition-colors hover:bg-brand-accent/5 md:p-9"
+                className="block bg-surface-card p-7 transition-colors hover:bg-brand-accent/5 md:p-9"
               >
                 <h3 className="text-xl font-semibold text-text-primary">{item.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-text-secondary">{item.description}</p>

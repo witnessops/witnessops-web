@@ -143,7 +143,7 @@ export function OffsecSuiteSample({
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href={packHref}
-                className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-neutral-100"
+                className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset"
               >
                 Download proofpack
               </a>

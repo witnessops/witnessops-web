@@ -145,12 +145,12 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                 data-buyer-service={service.id}
                 data-price-contract={service.commercialContract.price}
                 data-timing-contract={service.commercialContract.timing}
-                className="flex h-full flex-col bg-white p-7 md:p-9"
+                className="flex h-full flex-col bg-surface-card p-7 md:p-9"
               >
                 {service.availability ? (
                   <p
                     data-service-availability={service.availability.status}
-                    className="mb-3 inline-flex self-start border border-surface-border bg-neutral-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted"
+                    className="mb-3 inline-flex self-start border border-surface-border bg-surface-inset px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted"
                   >
                     {service.availability.label[locale]}
                   </p>
@@ -183,14 +183,14 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                 <div className="mt-auto flex flex-wrap gap-3 pt-7">
                   <Link
                     href={serviceRequestHref}
-                    className="inline-flex min-h-11 items-center bg-black px-5 text-sm font-semibold text-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                    className="inline-flex min-h-11 items-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
                   >
                     {service.requestCta?.[locale] ?? text.primaryCta}
                   </Link>
                   {detailHref ? (
                     <Link
                       href={detailHref}
-                      className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                      className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
                     >
                       {text.secondaryCta}
                     </Link>
@@ -198,7 +198,7 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                   {externalExposureSample ? (
                     <Link
                       href={externalExposureSample}
-                      className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                      className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
                     >
                       {locale === "pl" ? "Syntetyczny przykład" : "Synthetic sample"}
                     </Link>
@@ -208,7 +208,7 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                       href={onePager}
                       {...ONE_PAGER_LINK_PROPS}
                       data-one-pager={service.id}
-                      className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+                      className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
                     >
                       {text.onePagerCta}
                     </a>
@@ -257,21 +257,21 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
           <div className="mt-8">
             <Link
               href={text.methodsHref}
-              className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
+              className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
             >
               {text.methodsCta}
             </Link>
           </div>
         </section>
 
-        <section className="mt-12 flex flex-col gap-5 bg-black p-7 text-white md:flex-row md:items-center md:justify-between md:p-10">
+        <section className="mt-12 flex flex-col gap-5 border border-surface-border bg-surface-inset p-7 text-text-primary md:flex-row md:items-center md:justify-between md:p-10">
           <div>
             <h2 className="text-2xl font-semibold">{text.unsureTitle}</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-7 text-white/70">{text.unsureBody}</p>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-text-secondary">{text.unsureBody}</p>
           </div>
           <Link
             href={requestHref}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center bg-white px-5 text-sm font-semibold text-black hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
           >
             {text.primaryCta}
           </Link>

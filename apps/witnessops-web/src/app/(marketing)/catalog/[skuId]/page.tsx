@@ -358,7 +358,7 @@ export default async function CatalogSkuDetailPage({ params }: PageProps) {
                     href={primary}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-12 items-center justify-center border border-brand-accent bg-brand-accent px-6 text-sm font-semibold text-white"
+                    className="inline-flex min-h-12 items-center justify-center border border-brand-accent bg-brand-accent px-6 text-sm font-semibold text-text-inverse"
                   >
                     Get started
                   </a>

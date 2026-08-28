@@ -112,6 +112,12 @@ test("Ask contact handoff locks concurrent requests and restores focus", () => {
   assert.match(handoff, /ref=\{launcherRef\}/);
 });
 
-test("light confirmation shell uses a contrast-safe trust color", () => {
+test("light confirmation shell uses contrast-safe controls and scoped paper colors", () => {
   assert.match(verificationShell, /trust:\s*"text-\[#2d777c\]"/);
+  assert.match(verificationShell, /border border-\[#6f6a63\] bg-white/);
+  assert.match(verificationShell, /focus:border-\[#b94716\]/);
+  assert.match(verificationShell, /bg-\[#b94716\][^"]+text-\[#fafaf7\]/);
+  assert.match(verificationShell, /accent:\s*"text-\[#b94716\]"/);
+  assert.match(contactForm, /const lightButtonFocusClass/);
+  assert.match(contactForm, /ring-offset-\[#f7f5f1\]/);
 });

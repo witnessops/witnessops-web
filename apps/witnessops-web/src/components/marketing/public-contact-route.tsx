@@ -55,7 +55,7 @@ export function PublicContactRoute({
         </p>
         <Link
           href={primaryHref}
-          className="mt-1 inline-flex min-h-11 w-full items-center justify-center border border-text-primary bg-text-primary px-4 text-sm font-semibold uppercase tracking-[0.12em] text-text-inverse shadow-[0_8px_24px_rgba(0,0,0,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-accent hover:bg-brand-accent hover:text-text-inverse hover:shadow-[0_12px_30px_rgba(242,122,61,0.22)] active:translate-y-0 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none"
+          className="mt-1 inline-flex min-h-11 w-full items-center justify-center border border-brand-accent bg-brand-accent px-4 text-sm font-semibold uppercase tracking-[0.12em] text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.16)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_30px_rgba(242,122,61,0.28)] active:translate-y-0 active:scale-[0.985] active:shadow-[0_5px_16px_rgba(242,122,61,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none"
           style={{ fontFamily: "var(--font-display)" }}
         >
           {polish ? "Rozpocznij przegląd" : "Start a review"}
@@ -91,7 +91,7 @@ export function PublicContactRoute({
         {polish ? "Główna ścieżka:" : "Primary route:"}{" "}
         <Link
           href={primaryHref}
-          className="text-brand-accent underline-offset-4 hover:underline"
+          className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
         >
           {primaryHref}
         </Link>
@@ -100,7 +100,7 @@ export function PublicContactRoute({
         {polish ? "Kontakt zapasowy:" : "Fallback contact:"}{" "}
         <a
           href={publicContactMailto(mailtoSubject)}
-          className="text-brand-accent underline-offset-4 hover:underline"
+          className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
         >
           {PUBLIC_CONTACT_EMAIL}
         </a>

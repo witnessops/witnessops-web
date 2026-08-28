@@ -39,8 +39,8 @@ export function AskWitnessOpsCommercialFitCard({
     : "It may fit once it is narrowed to one named workflow, owner, consequential action, and system boundary.";
 
   const cardClassName = compact
-    ? "mt-4 border border-brand-accent/45 bg-brand-accent/[0.06] p-3"
-    : "mt-5 border border-brand-accent/45 bg-brand-accent/[0.06] p-4";
+    ? "mt-4 border border-brand-accent/45 p-3"
+    : "mt-5 border border-brand-accent/45 p-4";
   const primaryClassName =
     "inline-flex min-h-10 items-center justify-center rounded bg-brand-accent px-3 py-2 text-center text-xs font-semibold text-text-inverse transition-colors hover:bg-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent";
 

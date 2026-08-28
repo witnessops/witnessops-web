@@ -112,7 +112,7 @@ export function CatalogSkuCard({
   const frame = buyerFrame(sku);
 
   return (
-    <article className="flex h-full flex-col bg-white p-7 md:p-9">
+    <article className="flex h-full flex-col bg-surface-card p-7 md:p-9">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-accent">
           {statusLabel(sku.status)}

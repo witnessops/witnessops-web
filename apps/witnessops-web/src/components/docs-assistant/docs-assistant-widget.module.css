@@ -1,13 +1,13 @@
 .closedLayer,
 .openLayer {
-  --proof-bg: #050505;
-  --proof-raised: #0d0d0c;
-  --proof-ink: #fafaf7;
-  --proof-soft: #d0ccc4;
-  --proof-muted: #9e9a93;
-  --proof-accent: #f27a3d;
-  --proof-rule: #2a2a28;
-  --proof-rule-strong: #474743;
+  --proof-bg: var(--color-surface-bg);
+  --proof-raised: var(--color-surface-card);
+  --proof-ink: var(--color-text-primary);
+  --proof-soft: var(--color-text-secondary);
+  --proof-muted: var(--color-text-muted);
+  --proof-accent: var(--color-brand-accent);
+  --proof-rule: var(--color-surface-border);
+  --proof-rule-strong: var(--color-surface-border-strong);
   --receipt-paper: #f3f0e9;
   --receipt-sheet: #fcfaf5;
   --receipt-ink: #111111;
@@ -45,7 +45,6 @@
   --color-text-primary: var(--proof-ink);
   --color-text-secondary: var(--proof-soft);
   --color-text-muted: var(--proof-muted);
-  --color-text-inverse: #160b05;
   display: flex;
   width: 100%;
   height: var(--ask-ai-mobile-height);
@@ -508,9 +507,14 @@
 .contactScrollRegion [data-ask-contact-form] input:not([type="checkbox"]),
 .contactScrollRegion [data-ask-contact-form] textarea {
   min-height: 44px;
-  border-color: var(--proof-rule-strong);
+  border-color: var(--proof-muted);
   border-radius: 4px;
   background: var(--proof-raised);
+}
+
+.contactScrollRegion [data-ask-contact-form] input:not([type="checkbox"]):focus,
+.contactScrollRegion [data-ask-contact-form] textarea:focus {
+  border-color: var(--proof-accent);
 }
 
 .contactScrollRegion [data-ask-contact-heading] button,
@@ -582,7 +586,7 @@
   min-width: 0;
   min-height: 50px;
   flex: 1;
-  border: 1px solid var(--proof-rule-strong);
+  border: 1px solid var(--proof-muted);
   border-radius: 4px;
   background: var(--proof-raised);
   padding: 0.7rem 0.8rem;

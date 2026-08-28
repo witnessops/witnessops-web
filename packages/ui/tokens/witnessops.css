@@ -1,25 +1,26 @@
 :root {
-  /* WitnessOps brand tokens — pure black institutional */
-  --color-brand-primary: #000000;
-  --color-brand-primary-hover: #0f0f12;
-  --color-brand-secondary: #18181d;
+  /* Canonical WitnessOps public palette. Public pages and shared chrome consume
+     these semantic tokens instead of redefining route-local color systems. */
+  --color-brand-primary: #fafaf7;
+  --color-brand-primary-hover: #fafaf7;
+  --color-brand-secondary: #d0ccc4;
   --color-brand-accent: #f27a3d;
   --color-brand-accent-subtle: rgba(242, 122, 61, 0.14);
-  --color-brand-muted: #8a8680;
+  --color-brand-muted: #9e9a93;
 
-  --color-surface-bg: #000000;
-  --color-surface-bg-alt: #060608;
-  --color-surface-inset: #060608;
-  --color-surface-card: #141419;
-  --color-surface-card-hover: #1d1d24;
-  --color-surface-border: #2e2e36;
-  --color-surface-border-hover: #4a4a55;
-  --color-surface-border-strong: #4a4a55;
+  --color-surface-bg: #050505;
+  --color-surface-bg-alt: #0d0d0c;
+  --color-surface-inset: #141413;
+  --color-surface-card: #0d0d0c;
+  --color-surface-card-hover: #141413;
+  --color-surface-border: #2a2a28;
+  --color-surface-border-hover: #474743;
+  --color-surface-border-strong: #474743;
 
-  --color-text-primary: #faf7f2;
+  --color-text-primary: #fafaf7;
   --color-text-secondary: #d0ccc4;
-  --color-text-muted: #8a8680;
-  --color-text-inverse: #000000;
+  --color-text-muted: #9e9a93;
+  --color-text-inverse: #160b05;
 
   --color-signal-green: #6bc498;
   --color-signal-amber: #e3b060;

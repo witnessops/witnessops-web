@@ -1,13 +1,13 @@
 .page {
-  --paper: #050505;
-  --paper-raised: #0d0d0c;
-  --paper-soft: #141413;
-  --ink: #fafaf7;
-  --ink-soft: #d0ccc4;
-  --ink-muted: #9e9a93;
-  --accent: #f27a3d;
-  --rule: #2a2a28;
-  --rule-strong: #474743;
+  --paper: var(--color-surface-bg);
+  --paper-raised: var(--color-surface-card);
+  --paper-soft: var(--color-surface-inset);
+  --ink: var(--color-text-primary);
+  --ink-soft: var(--color-text-secondary);
+  --ink-muted: var(--color-text-muted);
+  --accent: var(--color-brand-accent);
+  --rule: var(--color-surface-border);
+  --rule-strong: var(--color-surface-border-strong);
   min-height: 100vh;
   background:
     radial-gradient(circle at 18% 3%, rgba(242, 122, 61, 0.08), transparent 25rem),
