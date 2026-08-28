@@ -57,16 +57,17 @@ export interface AskWitnessOpsRequestErrorDetails {
 
 export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
   if (
-    answer.status === "closed" &&
+    (answer.status === "closed" ||
+      answer.answer_mode === "deterministic_fallback") &&
     answer.commercial_fit.offer &&
     (answer.commercial_fit.result === "likely" ||
       answer.commercial_fit.result === "needs_boundary")
   ) {
     if (answer.commercial_fit.result === "needs_boundary") {
-      return "This public guide cannot inspect a whole environment. Narrow the non-secret description to one consequential workflow; the bounded paid-review path is below.";
+      return "This public guide cannot inspect a whole environment. Narrow the non-secret description to one consequential workflow; the bounded paid-review path is shown above.";
     }
 
-    return "This public guide cannot inspect or verify the workflow here. Your non-secret description is enough for a likely commercial-fit signal; the bounded paid-review path is below.";
+    return "This public guide cannot inspect or verify the workflow here. Your non-secret description is enough for a likely commercial-fit signal; the bounded paid-review path is shown above.";
   }
 
   const body = answer.template.body.trim();

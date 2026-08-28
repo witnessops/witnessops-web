@@ -122,6 +122,47 @@ test("commercial fit turns an authority decline into bounded buyer guidance", ()
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /outside the approved/);
 });
 
+test("commercial fit keeps successful public guidance coherent with the live offer", () => {
+  const answer = {
+    schema: "witnessops.ask.assembled-answer.v1" as const,
+    status: "success" as const,
+    template: {
+      template_id: "route.ai_agent_action.v1",
+      body: "A bounded AI-agent action may fit Workflow S.",
+      source_display: null,
+    },
+    route: null,
+    commercial_fit: likelyCommercialFit,
+    presented_sources: [],
+    answer_mode: "deterministic_fallback" as const,
+  };
+
+  assert.match(askWitnessOpsAnswerText(answer), /likely commercial-fit signal/);
+  assert.match(askWitnessOpsAnswerText(answer), /paid-review path is shown above/);
+  assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
+});
+
+test("AI-assisted commercial fit preserves the approved public template body", () => {
+  const answer = {
+    schema: "witnessops.ask.assembled-answer.v1" as const,
+    status: "success" as const,
+    template: {
+      template_id: "route.ai_agent_action.v1",
+      body: "A bounded AI-agent action may fit Workflow S.",
+      source_display: null,
+    },
+    route: null,
+    commercial_fit: likelyCommercialFit,
+    presented_sources: [],
+    answer_mode: "ai_assisted" as const,
+  };
+
+  assert.equal(
+    askWitnessOpsAnswerText(answer),
+    "A bounded AI-agent action may fit Workflow S.",
+  );
+});
+
 test("ask witnessops same-site source links normalize to site-relative paths", () => {
   const source = {
     source_id: "source.fit-check.public-request",

@@ -6,6 +6,7 @@ on:
       - "apps/witnessops-web/src/components/hero/**"
       - "apps/witnessops-web/src/components/marketing/hero.tsx"
       - "apps/witnessops-web/src/components/marketing/buyer-homepage.tsx"
+      - "apps/witnessops-web/src/components/docs-assistant/**"
       - "apps/witnessops-web/src/components/shared/cta-button.tsx"
       - "apps/witnessops-web/src/app/page.tsx"
       - "apps/witnessops-web/src/app/globals.css"
