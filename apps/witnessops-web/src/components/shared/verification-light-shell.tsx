@@ -38,5 +38,5 @@ export const verificationLight = {
   error:
     "rounded border border-[#f0c4c0] bg-[#fdf2f1] px-3 py-2 text-sm text-[#b42318]",
   accent: "text-brand-accent",
-  trust: "text-[#2f7d82]",
+  trust: "text-[#2d777c]",
 } as const;

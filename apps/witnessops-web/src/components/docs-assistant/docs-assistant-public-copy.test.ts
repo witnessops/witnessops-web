@@ -13,7 +13,7 @@ const workflowIntro =
   /Describe one consequential agent(?:ic or automated)? workflow/;
 const warning = "Do not paste secrets";
 const providerDisclosure =
-  /Questions may be processed\s+by\s+OpenAI\s+with provider storage disabled/;
+  /Eligible questions may be\s+(?:sent to\s+)?OpenAI\s+with.*store: false.*provider\s+retention\s+may\s+still\s+apply/s;
 const placeholder =
   "Example: An agent rotates a compromised production key.";
 
@@ -29,6 +29,7 @@ test("Ask WitnessOps surfaces carry the bounded public-copy contract", () => {
     assert.match(content, workflowIntro);
     assert.match(content, new RegExp(warning));
     assert.match(content, providerDisclosure);
+    assert.doesNotMatch(content, /provider storage disabled/);
     assert.match(content, new RegExp(placeholder.replaceAll(".", "\\.")));
     assert.match(content, /Check fit/);
     assert.match(content, /fetchAskWitnessOps/);
@@ -117,9 +118,13 @@ test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
   assert.match(widget, /\{!contactMode && \(/);
   assert.match(widget, /expanded=\{false\}/);
   assert.match(widget, /\s+expanded\s+/);
-  assert.match(widget, /onRequestScope=\{\(\) => setContactMode\(true\)\}/);
+  assert.match(
+    widget,
+    /onRequestScope=\{\(\) => handleContactModeChange\(true\)\}/,
+  );
   assert.match(widget, /commercialFit=\{answer\?\.answer\?\.commercial_fit\}/);
-  assert.match(widget, /onExpandedChange=\{setContactMode\}/);
+  assert.match(widget, /onExpandedChange=\{handleContactModeChange\}/);
+  assert.match(widget, /onBusyChange=\{handleContactBusyChange\}/);
   assert.match(contact, /Request a scoped review/);
   assert.match(contact, /Request scope for this workflow/);
   assert.match(contact, /Work email/);

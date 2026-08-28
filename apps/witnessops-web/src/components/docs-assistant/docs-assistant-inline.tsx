@@ -81,9 +81,9 @@ export function DocsAssistantInline() {
       </form>
 
       <p className="mt-3 text-xs leading-relaxed text-text-muted">
-        AI uses public WitnessOps material. Questions may be processed by OpenAI
-        with provider storage disabled. Do not include confidential or personal
-        material.
+        AI uses public WitnessOps material. Eligible questions may be sent to
+        OpenAI with <code>store: false</code>; provider retention may still apply.
+        Do not include confidential or personal material.
       </p>
 
       {error && (

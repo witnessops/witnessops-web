@@ -1,16 +1,17 @@
-export const AI_AGENT_ACTION_PROOF_RUN_INTENT =
-  "ai-agent-action-proof-run" as const;
+import {
+  AI_AGENT_ACTION_PROOF_RUN_INTENT,
+  MANUAL_COMMERCIAL_POST_VERIFY_PATH,
+  getCommercialRequestLabel,
+  isManualCommercialRequestIntent,
+} from "./commercial-request-intents";
 
-export const ACCESS_CHANGE_PROOF_RUN_INTENT =
-  "access-change-proof-run" as const;
+export * from "./commercial-request-intents";
 
-export const EXTERNAL_EXPOSURE_ASSESSMENT_INTENT =
-  "OFFSEC-EXTERNAL-EXPOSURE" as const;
+// Backward-compatible proof-run names. The canonical classifier now describes
+// the wider manual commercial lane used by proof runs, reviews, and Ask.
+export const PROOF_RUN_POST_VERIFY_PATH = MANUAL_COMMERCIAL_POST_VERIFY_PATH;
 
-export const PROOF_RUN_POST_VERIFY_PATH = "/review/request/confirmed" as const;
-
-// Backward-compatible export for the existing access-change offer while the
-// primary public request lane is AI Agent Action Proof Run.
+// Backward-compatible export for the existing access-change offer.
 export const ACCESS_CHANGE_POST_VERIFY_PATH = PROOF_RUN_POST_VERIFY_PATH;
 
 export function isAiAgentActionProofRunIntent(
@@ -22,11 +23,7 @@ export function isAiAgentActionProofRunIntent(
 export function isManualProofRunIntent(
   intent: string | null | undefined,
 ): boolean {
-  return (
-    isAiAgentActionProofRunIntent(intent) ||
-    intent?.trim() === ACCESS_CHANGE_PROOF_RUN_INTENT ||
-    intent?.trim() === EXTERNAL_EXPOSURE_ASSESSMENT_INTENT
-  );
+  return isManualCommercialRequestIntent(intent);
 }
 
 // Legacy call sites use this name to decide whether an intake should stay on
@@ -35,18 +32,11 @@ export function isManualProofRunIntent(
 export function isAccessChangeProofRunIntent(
   intent: string | null | undefined,
 ): boolean {
-  return isManualProofRunIntent(intent);
+  return isManualCommercialRequestIntent(intent);
 }
 
 export function getProofRunRequestLabel(
   intent: string | null | undefined,
 ): string {
-  const normalized = intent?.trim();
-  if (normalized === ACCESS_CHANGE_PROOF_RUN_INTENT) {
-    return "access-change package request";
-  }
-  if (normalized === EXTERNAL_EXPOSURE_ASSESSMENT_INTENT) {
-    return "Public Exposure Review request";
-  }
-  return "security-workflow package request";
+  return getCommercialRequestLabel(intent);
 }

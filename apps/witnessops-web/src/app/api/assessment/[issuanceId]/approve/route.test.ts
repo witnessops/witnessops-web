@@ -5,7 +5,15 @@ import os from "node:os";
 import path from "node:path";
 import { _resetAllStores } from "@witnessops/config/rate-limit";
 
-import { clearTokenStore } from "@/lib/server/token-store";
+import {
+  ASK_AI_CONTACT_INTENT,
+  BOUNDED_WORKFLOW_REVIEW_INTENT,
+} from "@/lib/commercial-request-intents";
+import { readIntakeEvents } from "@/lib/server/intake-event-ledger";
+import {
+  clearTokenStore,
+  getIssuanceById,
+} from "@/lib/server/token-store";
 import { claimantSessionCookieName } from "@/lib/server/claimant-session";
 
 import { POST as engage } from "../../../engage/route";
@@ -26,14 +34,17 @@ function applyTestEnv(baseDir: string): void {
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
 }
 
-async function issueVerifiedToken(baseDir: string) {
+async function issueVerifiedToken(
+  baseDir: string,
+  intent = "Third-party assessment",
+) {
   applyTestEnv(baseDir);
   const response = await engage(
     new Request("https://witnessops.com/api/engage", {
       method: "POST",
       body: JSON.stringify({
         email: "security@witnessops.com",
-        intent: "Third-party assessment",
+        intent,
         scope: "Passive-only recon of witnessops.com",
       }),
       headers: { "Content-Type": "application/json" },
@@ -190,6 +201,74 @@ test("approval route captures explicit approval and hands off to control plane o
   assert.equal(secondPayload.assessmentStatus, "pending");
   assert.equal(fetchCalls.length, 1);
 });
+
+for (const manualIntent of [
+  BOUNDED_WORKFLOW_REVIEW_INTENT,
+  ASK_AI_CONTACT_INTENT,
+]) {
+  test(`approval route cannot start work for manual request intent ${manualIntent}`, async () => {
+    const baseDir = await mkdtemp(
+      path.join(os.tmpdir(), "witnessops-manual-approval-"),
+    );
+    const issued = await issueVerifiedToken(baseDir, manualIntent);
+    applyTestEnv(baseDir);
+    process.env.CONTROL_PLANE_URL = "http://control-plane.internal";
+    process.env.CONTROL_PLANE_API_KEY = "cp-key";
+
+    const before = await getIssuanceById(issued.issuanceId);
+    assert.ok(before);
+
+    const fetchCalls: string[] = [];
+    global.fetch = (async (input: string | URL | Request) => {
+      fetchCalls.push(input instanceof Request ? input.url : input.toString());
+      return new Response(null, { status: 204 });
+    }) as typeof fetch;
+
+    const response = await POST(
+      new Request(
+        `https://witnessops.com/api/assessment/${encodeURIComponent(issued.issuanceId)}/approve`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            email: issued.email,
+            approverName: "Verified Operator",
+            approvalNote: "Attempted direct approval.",
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: issued.sessionCookie,
+          },
+        },
+      ),
+      { params: Promise.resolve({ issuanceId: issued.issuanceId }) },
+    );
+
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as { error: string };
+    assert.equal(
+      payload.error,
+      "Scope approval is not available for manual commercial requests.",
+    );
+    assert.deepEqual(fetchCalls, []);
+
+    const after = await getIssuanceById(issued.issuanceId);
+    assert.ok(after);
+    assert.equal(after.approvalStatus, before.approvalStatus);
+    assert.equal(after.approvalAt, before.approvalAt);
+    assert.equal(after.approverEmail, before.approverEmail);
+    assert.equal(after.approverName, before.approverName);
+    assert.equal(after.approvalNote, before.approvalNote);
+    assert.equal(after.assessmentStatus, before.assessmentStatus);
+    assert.equal(after.controlPlaneRunId, before.controlPlaneRunId);
+
+    const approvalEvents = (await readIntakeEvents()).filter(
+      (event) =>
+        event.issuance_id === issued.issuanceId &&
+        event.event_type === "INTAKE_SCOPE_APPROVED",
+    );
+    assert.deepEqual(approvalEvents, []);
+  });
+}
 
 test("approval route does not expose control-plane error bodies", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-approval-error-"));

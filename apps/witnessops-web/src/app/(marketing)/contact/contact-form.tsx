@@ -4,6 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { verificationLight } from "@/components/shared/verification-light-shell";
+import {
+  buildReviewRequestConfirmation,
+  resolveReviewRequestKind,
+  reviewRequestConfirmationPath,
+  storeReviewRequestConfirmation,
+} from "@/lib/review-request-confirmation";
 import type { EngageResponse, VerifyTokenResponse } from "@/lib/token-contract";
 import { formatVerificationCode } from "@/lib/verification-code-format";
 import {
@@ -349,6 +355,32 @@ export function ContactForm({
         throw new Error(polish ? copy.verifyError : (payload?.error ?? "Verification failed."));
       }
 
+      if (payload.postVerifyPath === reviewRequestConfirmationPath(locale)) {
+        const confirmation = buildReviewRequestConfirmation(payload, {
+          locale,
+          requestKind: resolveReviewRequestKind(intent),
+          source: "request-form",
+        });
+        if (!confirmation) {
+          throw new Error(
+            polish
+              ? "Skrzynka została potwierdzona, ale nie udało się potwierdzić granicy zgłoszenia."
+              : "Mailbox confirmation completed, but the request boundary could not be confirmed.",
+          );
+        }
+        try {
+          storeReviewRequestConfirmation(window.sessionStorage, confirmation);
+        } catch {
+          throw new Error(
+            polish
+              ? "Skrzynka została potwierdzona, ale ta przeglądarka nie mogła zapisać zapisu zgłoszenia."
+              : "Mailbox confirmation completed, but this browser could not store the request record.",
+          );
+        }
+      }
+
+      setVerificationCode("");
+      setVerificationBoundaryAccepted(false);
       router.replace(payload.postVerifyPath);
     } catch (error) {
       setVerifyStatus("error");

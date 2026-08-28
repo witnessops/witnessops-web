@@ -17,6 +17,7 @@ import {
 } from "@/lib/server/claimant-session";
 
 import { POST as engage } from "../engage/route";
+import { POST as contact } from "../contact/route";
 import { POST as reviewRequest } from "../review/request/route";
 import { POST as support } from "../support/route";
 import { GET, POST } from "./route";
@@ -144,6 +145,115 @@ async function issueExternalExposureToken(baseDir: string, locale: "en" | "pl") 
   const token = mailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
   assert.ok(token);
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
+}
+
+async function issueCurrentCommercialIntentToken(
+  baseDir: string,
+  options: {
+    endpoint: "contact" | "review";
+    intent: "bounded-workflow-review" | "ask-ai-contact";
+    locale: "en" | "pl";
+  },
+) {
+  applyTestEnv(baseDir);
+  const handler = options.endpoint === "contact" ? contact : reviewRequest;
+  const requestPath =
+    options.endpoint === "contact" ? "/api/contact" : "/api/review/request";
+  const response = await handler(
+    new Request(`https://witnessops.com${requestPath}`, {
+      method: "POST",
+      body: JSON.stringify({
+        ...(options.endpoint === "review"
+          ? { name: "Synthetic Buyer", org: "WitnessOps Labs" }
+          : {}),
+        email: "security@witnessops.com",
+        intent: options.intent,
+        locale: options.locale,
+        scope:
+          options.intent === "ask-ai-contact"
+            ? "Contact path: Ask AI panel handoff\nNext step: asynchronous fit and scope review."
+            : "One bounded agent workflow for an Agent Risk & Control Review.",
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  assert.equal(response.status, 201);
+
+  const issuance = (await response.json()) as {
+    intakeId: string;
+    issuanceId: string;
+    email: string;
+  };
+  const [mailFile] = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
+  const mailRaw = await readFile(
+    path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
+    "utf8",
+  );
+  const token = mailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
+  assert.ok(token);
+  return { ...issuance, token, verificationMailRaw: mailRaw };
+}
+
+async function assertCurrentCommercialIntentVerification(
+  issued: Awaited<ReturnType<typeof issueCurrentCommercialIntentToken>>,
+  expected: {
+    postVerifyPath: string;
+    operatorSubject: RegExp;
+    locale: "en" | "pl";
+  },
+): Promise<void> {
+  const fetchCalls: string[] = [];
+  global.fetch = (async (input: string | URL | Request) => {
+    fetchCalls.push(input instanceof Request ? input.url : input.toString());
+    return new Response(
+      JSON.stringify({ run_id: "run_unexpected", status: "pending" }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  }) as typeof fetch;
+  process.env.GES_SERVER_URL = "https://assessment.internal";
+  process.env.GES_ASSESSMENT_KEY = "test-assessment-key";
+
+  const response = await POST(
+    new Request("https://witnessops.com/api/verify-token", {
+      method: "POST",
+      body: JSON.stringify({
+        issuanceId: issued.issuanceId,
+        email: issued.email,
+        token: issued.token,
+      }),
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
+  assert.equal(response.status, 200);
+  const payload = (await response.json()) as {
+    assessmentRunId: string | null;
+    assessmentStatus: string;
+    postVerifyPath: string;
+  };
+  assert.equal(payload.assessmentRunId, null);
+  assert.equal(payload.assessmentStatus, "unavailable");
+  assert.equal(payload.postVerifyPath, expected.postVerifyPath);
+  assert.equal(fetchCalls.length, 0);
+
+  const issuance = await getIssuanceById(issued.issuanceId);
+  assert.equal(issuance?.assessmentRunId, undefined);
+  const intake = await getIntakeById(issued.intakeId);
+  assert.equal(intake?.operatorNotification?.mailbox, "engage@mail.witnessops.com");
+
+  const mailFiles = await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!);
+  assert.equal(mailFiles.length, 2);
+  const mailRaws = await Promise.all(
+    mailFiles.map((file) =>
+      readFile(path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, file), "utf8"),
+    ),
+  );
+  const operatorMailRaw = mailRaws.find((raw) =>
+    /^To: engage@mail\.witnessops\.com$/m.test(raw),
+  );
+  assert.ok(operatorMailRaw);
+  assert.match(operatorMailRaw, expected.operatorSubject);
+  assert.match(operatorMailRaw, new RegExp(`Locale: ${expected.locale}`));
 }
 
 async function verificationContextFromMail(): Promise<string> {
@@ -461,6 +571,48 @@ test("Public Exposure Review stays on the locale-specific manual order path", as
   }
 });
 
+test("Agent Risk & Control Review uses the Polish manual commercial path and operator notification", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-bounded-workflow-review-"),
+  );
+  const issued = await issueCurrentCommercialIntentToken(baseDir, {
+    endpoint: "review",
+    intent: "bounded-workflow-review",
+    locale: "pl",
+  });
+  assert.match(
+    issued.verificationMailRaw,
+    /Confirm your Agent Risk & Control Review request\./,
+  );
+  await assertCurrentCommercialIntentVerification(issued, {
+    postVerifyPath: "/pl/review/request/confirmed",
+    operatorSubject:
+      /^Subject: Verified Agent Risk & Control Review request: WitnessOps Labs$/m,
+    locale: "pl",
+  });
+});
+
+test("Ask WitnessOps contact uses the English manual commercial path and operator notification", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-ask-ai-contact-"),
+  );
+  const issued = await issueCurrentCommercialIntentToken(baseDir, {
+    endpoint: "contact",
+    intent: "ask-ai-contact",
+    locale: "en",
+  });
+  assert.match(
+    issued.verificationMailRaw,
+    /Confirm your Ask WitnessOps follow-up request\./,
+  );
+  await assertCurrentCommercialIntentVerification(issued, {
+    postVerifyPath: "/review/request/confirmed",
+    operatorSubject:
+      /^Subject: Verified Ask WitnessOps follow-up request: security@witnessops\.com$/m,
+    locale: "en",
+  });
+});
+
 test("verify-token route sends a reply-ready operator notification for package requests", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-operator-notify-"));
   applyTestEnv(baseDir);
@@ -530,7 +682,7 @@ test("verify-token route sends a reply-ready operator notification for package r
   assert.match(operatorMailRaw, /^Reply-To: security@witnessops\.com$/m);
   assert.match(
     operatorMailRaw,
-    /^Subject: Verified security-workflow package request: WitnessOps Labs$/m,
+    /^Subject: Verified AI Agent Action Proof Run request: WitnessOps Labs$/m,
   );
   assert.match(operatorMailRaw, /^X-WitnessOps-Message-Class: internal_notification$/m);
   assert.match(operatorMailRaw, /^X-WitnessOps-Signature-Profile: none$/m);

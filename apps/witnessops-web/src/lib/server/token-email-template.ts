@@ -1,8 +1,8 @@
 import type { ChannelName } from "@/lib/channel-policy";
 import {
-  getProofRunRequestLabel,
-  isManualProofRunIntent,
-} from "@/lib/access-change-proof-run";
+  getCommercialRequestLabel,
+  isManualCommercialRequestIntent,
+} from "@/lib/commercial-request-intents";
 import {
   EMAIL_THEME_LIGHT,
   emailBackgroundStyle,
@@ -40,14 +40,14 @@ function escapeHtml(value: string): string {
     .replace(/\"/g, "&quot;");
 }
 
-function renderProofRunVerificationHtml(
+function renderManualCommercialVerificationHtml(
   input: VerificationEmailTemplateInput,
 ): string {
   const code = escapeHtml(input.token);
   const intakeId = escapeHtml(input.intakeId);
   const issuanceId = escapeHtml(input.issuanceId);
   const expiresAt = escapeHtml(input.expiresAt);
-  const requestLabel = escapeHtml(getProofRunRequestLabel(input.intent));
+  const requestLabel = escapeHtml(getCommercialRequestLabel(input.intent));
 
   return [
     '<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">',
@@ -115,8 +115,8 @@ function renderProofRunVerificationHtml(
 export function renderVerificationEmail(
   input: VerificationEmailTemplateInput,
 ): VerificationEmailTemplateOutput {
-  if (isManualProofRunIntent(input.intent)) {
-    const requestLabel = getProofRunRequestLabel(input.intent);
+  if (isManualCommercialRequestIntent(input.intent)) {
+    const requestLabel = getCommercialRequestLabel(input.intent);
 
     return {
       subject: "Your WitnessOps request code",
@@ -142,7 +142,7 @@ export function renderVerificationEmail(
         `Issuance: ${input.issuanceId}`,
         `Expires: ${input.expiresAt}`,
       ].join("\n"),
-      html: renderProofRunVerificationHtml(input),
+      html: renderManualCommercialVerificationHtml(input),
       templateVersion: TOKEN_EMAIL_TEMPLATE_VERSION,
     };
   }
