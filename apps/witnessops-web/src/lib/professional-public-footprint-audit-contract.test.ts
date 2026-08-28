@@ -38,12 +38,18 @@ test("public footprint audit has the exact request-only commercial contract", ()
   assert.equal(audit.pricingVisible, false);
 });
 
-test("public footprint audit uses the existing general request route without payment semantics", () => {
+test("public footprint audit uses an allowlisted selected-offer route without payment semantics", () => {
   assert.equal(audit.productId, undefined);
   assert.equal(buyerRequestHref("en"), "/review/request");
   assert.equal(buyerRequestHref("pl"), "/pl/review/request");
-  assert.equal(buyerServiceRequestHref("en", audit), "/review/request");
-  assert.equal(buyerServiceRequestHref("pl", audit), "/pl/review/request");
+  assert.match(
+    buyerServiceRequestHref("en", audit),
+    /^\/review\/request\?offerId=professional-public-footprint-audit&/,
+  );
+  assert.match(
+    buyerServiceRequestHref("pl", audit),
+    /^\/pl\/review\/request\?offerId=professional-public-footprint-audit&/,
+  );
   assert.doesNotMatch(JSON.stringify(audit), /stripe|checkout|payment[_-]?link/i);
   assert.match(catalogueSource, /buyerServiceRequestHref\(locale, service\)/);
   assert.match(pricingSource, /service\.pricingVisible !== false/);

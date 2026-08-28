@@ -55,5 +55,8 @@ test("paired Sprint layouts preserve responsive hierarchy and accessible actions
 
   assert.ok(english.includes('aria-label="Synthetic example response table"'));
   assert.ok(english.includes("min-w-[640px]"));
-  assert.ok(polish.includes('<PublicContactRoute subject="fit-check" locale="pl" />'));
+  assert.match(
+    polish,
+    /<PublicContactRoute[\s\S]*?subject="fit-check"[\s\S]*?locale="pl"[\s\S]*?primaryHref=\{requestHref\}/,
+  );
 });

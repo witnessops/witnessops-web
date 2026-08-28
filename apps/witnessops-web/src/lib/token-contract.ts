@@ -8,8 +8,20 @@ import {
 
 const rfc3339Schema = z.string().datetime({ offset: true });
 
-const shortTextSchema = z.string().trim().max(240).optional();
-const longTextSchema = z.string().trim().max(8_000).optional();
+export const INTAKE_SHORT_TEXT_MAX_LENGTH = 240;
+export const INTAKE_LONG_TEXT_MAX_LENGTH = 8_000;
+export const REVIEW_REQUEST_FIELD_MAX_LENGTH = 1_500;
+
+const shortTextSchema = z
+  .string()
+  .trim()
+  .max(INTAKE_SHORT_TEXT_MAX_LENGTH)
+  .optional();
+const longTextSchema = z
+  .string()
+  .trim()
+  .max(INTAKE_LONG_TEXT_MAX_LENGTH)
+  .optional();
 
 export const normalizedEmailSchema = z
   .string()
@@ -83,6 +95,11 @@ export const engageRequestSchema = z.object({
   scope: longTextSchema,
 });
 
+export const reviewRequestSchema = engageRequestSchema.extend({
+  name: z.string().trim().min(1).max(INTAKE_SHORT_TEXT_MAX_LENGTH),
+  scope: z.string().trim().min(1).max(INTAKE_LONG_TEXT_MAX_LENGTH),
+});
+
 export const supportRequestSchema = z.object({
   email: normalizedEmailSchema,
   subject: shortTextSchema,
@@ -143,6 +160,8 @@ export const verifyTokenResponseSchema = z.object({
     .refine((value) => value.startsWith("/") && !value.startsWith("//"), {
       message: "postVerifyPath must be a same-origin path",
     }),
+  requestIntent: z.string().trim().max(240).nullable().optional(),
+  requestLocale: z.enum(["en", "pl"]).optional(),
   run_id: z.string().optional(),
 });
 

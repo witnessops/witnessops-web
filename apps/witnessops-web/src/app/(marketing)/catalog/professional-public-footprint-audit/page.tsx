@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 
 import { BuyerServiceDetail } from "@/components/marketing/buyer-service-detail";
-import { buyerRequestHref, buyerServiceById } from "@/lib/buyer-services";
+import {
+  buyerServiceById,
+  buyerServiceRequestHref,
+} from "@/lib/buyer-services";
 import { PROFESSIONAL_PUBLIC_FOOTPRINT_DETAIL } from "@/lib/professional-public-footprint-audit";
 import { languageAlternates } from "@/lib/public-seo";
 
@@ -22,7 +25,7 @@ export default function ProfessionalPublicFootprintAuditPage() {
     <BuyerServiceDetail
       locale="en"
       service={service}
-      requestHref={buyerRequestHref("en")}
+      requestHref={buyerServiceRequestHref("en", service)}
       claim={detail.claim}
       verificationPath={detail.verificationPath}
       notIncluded={[...detail.notIncluded]}

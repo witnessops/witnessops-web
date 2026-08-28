@@ -51,7 +51,19 @@ test("English review intake can preserve the current workflow offer without revi
   assert.equal(offer?.name.en, "Agent Risk & Control Review");
   assert.equal(offer?.price.en, "From €1,500");
   assert.equal(offer?.productId, undefined);
+  assert.equal(
+    buyerServiceByPublicOfferId("customer-security-review-sprint")?.name.en,
+    "Customer Security Review Sprint",
+  );
+  assert.equal(
+    buyerServiceByPublicOfferId("professional-public-footprint-audit")?.name.en,
+    "Professional Public Footprint Audit",
+  );
   assert.equal(buyerServiceByPublicOfferId("one-server-security-check"), undefined);
+  assert.equal(
+    buyerServiceByPublicOfferId("external-exposure-assessment"),
+    undefined,
+  );
   assert.equal(buyerServiceByPublicOfferId("not-a-real-offer"), undefined);
 
   assert.equal(

@@ -168,7 +168,7 @@ test("reachable offer details use the canonical buyer contract and visual system
         await expect(main).toContainText(
           offer.path.startsWith("/pl") ? "Dostępny na zapytanie" : "Available by request",
         );
-        await expect(main.locator(`a[href="${offer.request}"]`).first()).toHaveText(
+        await expect(main.locator(`a[href^="${offer.request}"]`).first()).toHaveText(
           offer.path.startsWith("/pl") ? "Zapytaj o audyt" : "Request this audit",
         );
         await expect(main).toContainText(
@@ -235,15 +235,16 @@ test("reachable offer details use the canonical buyer contract and visual system
         const href = await link.getAttribute("href");
         expect(href).toMatch(new RegExp(`^${offer.request}`));
         if (
-          offer.path.startsWith("/pl") &&
-          offer.service !== "professional-public-footprint-audit"
+          offer.path.startsWith("/pl")
         ) {
           expect(new URL(href ?? "", "http://witnessops.test").searchParams.get("offer")).toBe(
             offer.name,
           );
         }
         if (offer.service === "professional-public-footprint-audit") {
-          expect(href).toBe(offer.request);
+          expect(new URL(href ?? "", "http://witnessops.test").searchParams.get("offerId")).toBe(
+            "professional-public-footprint-audit",
+          );
         }
         if (offer.service === "external-exposure-assessment") {
           expect(new URL(href ?? "", "http://witnessops.test").searchParams.get("productId")).toBe(

@@ -34,6 +34,10 @@ const contactForm = readFileSync(
   "src/app/(marketing)/contact/contact-form.tsx",
   "utf8",
 );
+const standaloneVerificationForm = readFileSync(
+  "src/app/verify-token/verify-token-form.tsx",
+  "utf8",
+);
 
 test("request record states the bounded confirmation and its negative facts", () => {
   assert.match(record, /Mailbox confirmed/);
@@ -75,6 +79,14 @@ test("both conversion paths derive the record from the parsed verification respo
   assert.match(contactForm, /buildReviewRequestConfirmation\(payload/);
   assert.match(contactForm, /storeReviewRequestConfirmation\(window\.sessionStorage/);
   assert.match(contactForm, /router\.replace\(payload\.postVerifyPath\)/);
+  assert.match(
+    standaloneVerificationForm,
+    /buildStandaloneReviewRequestConfirmation\(verified\)/,
+  );
+  assert.match(
+    standaloneVerificationForm,
+    /storeReviewRequestConfirmation\([\s\S]*window\.sessionStorage/,
+  );
 });
 
 test("record controls preserve a minimum 44px target", () => {

@@ -10,7 +10,8 @@ import {
 import {
   MANUAL_COMMERCIAL_POST_VERIFY_PATH,
   getCommercialRequestLabel,
-  isManualCommercialRequestIntent,
+  isGovernedReconRequestIntent,
+  isOperatorHandledCommercialRequestIntent,
 } from "@/lib/commercial-request-intents";
 import type {
   EngageResponse,
@@ -53,6 +54,7 @@ import { notifyScopeApproved } from "./control-plane-client";
 import { claimantActionBlocksApproval } from "./claimant-actions";
 import { operatorRejectionBlocksApproval } from "./operator-actions";
 import { appendIntakeEvent } from "./intake-event-ledger";
+import { hasAssessmentLifecycleState } from "./assessment-lifecycle-routing";
 import { reservePublicIssuanceAdmission } from "./public-issuance-admission";
 
 type VerificationChannel = Exclude<ChannelName, "noreply">;
@@ -487,7 +489,10 @@ async function ensureOperatorNotificationSent(args: {
   const eligible =
     args.intake.channel === "support" ||
     (args.intake.channel === "engage" &&
-      isManualCommercialRequestIntent(args.intake.submission.intent));
+      isOperatorHandledCommercialRequestIntent(args.intake.submission.intent) &&
+      (args.issuance.approvalStatus ?? "pending") === "pending" &&
+      args.intake.operatorAction?.kind !== "reject" &&
+      !hasAssessmentLifecycleState(args.issuance));
   if (!eligible) {
     return args.intake;
   }
@@ -665,6 +670,8 @@ function toVerificationResponse(args: {
     assessmentRunId: args.assessmentRunId,
     assessmentStatus: args.assessmentStatus,
     postVerifyPath: buildPostVerifyPath(args.intake, args.issuance),
+    requestIntent: args.intake.submission.intent?.trim() || null,
+    requestLocale: args.intake.submission.locale === "pl" ? "pl" : "en",
     run_id: args.assessmentRunId ?? undefined,
   };
 }
@@ -677,10 +684,20 @@ function buildPostVerifyPath(
     return "/support?verified=1";
   }
 
-  if (isManualCommercialRequestIntent(intake.submission.intent)) {
-    return intake.submission.locale === "pl"
-      ? "/pl/review/request/confirmed"
-      : MANUAL_COMMERCIAL_POST_VERIFY_PATH;
+  if (hasAssessmentLifecycleState(issuance)) {
+    return `/assessment/${encodeURIComponent(issuance.issuanceId)}`;
+  }
+
+  if (isOperatorHandledCommercialRequestIntent(intake.submission.intent)) {
+    const awaitingOperatorReview =
+      intake.state === "admitted" &&
+      (issuance.approvalStatus ?? "pending") === "pending" &&
+      intake.operatorAction?.kind !== "reject";
+    if (awaitingOperatorReview) {
+      return intake.submission.locale === "pl"
+        ? "/pl/review/request/confirmed"
+        : MANUAL_COMMERCIAL_POST_VERIFY_PATH;
+    }
   }
 
   return `/assessment/${encodeURIComponent(issuance.issuanceId)}`;
@@ -855,9 +872,9 @@ async function approveScopeAndStartReconUnlocked(
     throw new ScopeApprovalInputError("Issuance email mismatch");
   }
 
-  if (isManualCommercialRequestIntent(originalIntake.submission.intent)) {
+  if (!isGovernedReconRequestIntent(originalIntake.submission.intent)) {
     throw new ScopeApprovalInputError(
-      "Scope approval is not available for manual commercial requests.",
+      "Scope approval is available only for an explicitly identified governed recon request.",
     );
   }
 

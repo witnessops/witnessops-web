@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   buildReviewRequestConfirmation,
   buildReviewRequestConfirmationText,
+  buildStandaloneReviewRequestConfirmation,
   readReviewRequestConfirmation,
   resolveReviewRequestKind,
   REVIEW_REQUEST_CONFIRMATION_STORAGE_KEY,
@@ -39,6 +40,25 @@ test("builds a narrowed confirmation from an admitted manual review request", ()
     requestKind: "agent-risk-control-review",
     source: "ask",
   });
+});
+
+test("builds the browser-held record for standalone email verification", () => {
+  assert.deepEqual(
+    buildStandaloneReviewRequestConfirmation({
+      ...validResponse,
+      requestIntent: "OFFSEC-CUSTODY-OPS",
+      requestLocale: "pl",
+      postVerifyPath: "/pl/review/request/confirmed",
+    }),
+    {
+      schema: "witnessops.review-request-confirmation.v1",
+      requestReference: "intake_public_reference",
+      confirmedAt: "2026-08-28T12:34:56Z",
+      locale: "pl",
+      requestKind: "key-access-custody-review",
+      source: "request-form",
+    },
+  );
 });
 
 test("fails closed for a legacy assessment or unexpected verified state", () => {
@@ -136,13 +156,31 @@ test("copy text preserves boundaries without leaking verification inputs", () =>
 });
 
 test("maps public request intents to fixed record labels", () => {
-  assert.equal(
-    resolveReviewRequestKind("bounded-workflow-review"),
-    "agent-risk-control-review",
-  );
-  assert.equal(
-    resolveReviewRequestKind("OFFSEC-EXTERNAL-EXPOSURE"),
-    "public-exposure-review",
+  assert.deepEqual(
+    [
+      "bounded-workflow-review",
+      "ai-agent-action-proof-run",
+      "access-change-proof-run",
+      "OFFSEC-EXTERNAL-EXPOSURE",
+      "customer-security-review-sprint",
+      "OFFSEC-LOCAL-AUDIT",
+      "OFFSEC-LAUNCH-READY",
+      "OFFSEC-CUSTODY-OPS",
+      "OFFSEC-INCIDENT-READY",
+      "professional-public-footprint-audit",
+    ].map(resolveReviewRequestKind),
+    [
+      "agent-risk-control-review",
+      "ai-agent-action-proof-run",
+      "access-change-proof-run",
+      "public-exposure-review",
+      "customer-security-review-sprint",
+      "one-server-security-check",
+      "launch-readiness-check",
+      "key-access-custody-review",
+      "incident-readiness-review",
+      "professional-public-footprint-audit",
+    ],
   );
   assert.equal(resolveReviewRequestKind("review"), "review-request");
 });

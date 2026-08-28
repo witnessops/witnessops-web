@@ -83,7 +83,11 @@ test("every selectable service detail keeps its catalogue-authoritative request"
       if (!detailHref) continue;
 
       const expected = buyerServiceRequestHref(locale, service);
-      if (expected === buyerRequestHref(locale)) continue;
+      assert.notEqual(
+        expected,
+        buyerRequestHref(locale),
+        `${locale} ${service.id} must preserve selection`,
+      );
 
       const fromDetail = reviewRequestHrefForLocation(
         locale,
@@ -106,7 +110,7 @@ test("every selectable service detail keeps its catalogue-authoritative request"
   }
 });
 
-test("review CTA context is allowlisted and preserves intentional generic routes", () => {
+test("review CTA context rejects unknown values and preserves every service detail", () => {
   assert.equal(
     reviewRequestHrefForLocation(
       "en",
@@ -117,21 +121,21 @@ test("review CTA context is allowlisted and preserves intentional generic routes
     ),
     "/review/request",
   );
-  assert.equal(
+  assert.match(
     reviewRequestHrefForLocation(
       "en",
       "/catalog/professional-public-footprint-audit",
       emptySearch,
     ),
-    "/review/request",
+    /^\/review\/request\?offerId=professional-public-footprint-audit&/,
   );
-  assert.equal(
+  assert.match(
     reviewRequestHrefForLocation(
       "en",
       "/customer-security-review",
       emptySearch,
     ),
-    "/review/request",
+    /^\/review\/request\?offerId=customer-security-review-sprint&/,
   );
 });
 

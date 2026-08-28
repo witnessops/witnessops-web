@@ -90,8 +90,14 @@ test("review request route issues a security-workflow package verification email
   assert.match(mailRaw, /^Verification Code:\s+\S+$/m);
   assert.match(mailRaw, /^Enter the code in the verification box\. No link is required\.$/m);
   assert.match(mailRaw, /^Confirm the mailbox-only boundary before continuing\.$/m);
-  assert.doesNotMatch(mailRaw, /^Open Verification Page:/m);
-  assert.doesNotMatch(mailRaw, /https:\/\/witnessops\.com\/verify-token/);
+  assert.match(
+    mailRaw,
+    /^Open Verification Page: https:\/\/witnessops\.com\/verify-token\?context=[A-Za-z0-9_-]{32,}$/m,
+  );
+  assert.doesNotMatch(
+    mailRaw,
+    /\/verify-token\?[^\n]*(?:email|issuanceId|token)=/,
+  );
   assert.match(mailRaw, /^This confirms mailbox access only\.$/m);
   assert.match(mailRaw, /^It does not start a proof run\.$/m);
   assert.match(mailRaw, /^Do not reply with secrets,/m);
@@ -128,6 +134,55 @@ test("review request route preserves the Public Exposure Review SKU and locale",
   assert.match(intake?.submission.scope ?? "", /First-message boundary: no files, secrets/);
 });
 
+test("review request route returns structured validation errors for the shared form contract", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
+  applyTestEnv(baseDir);
+
+  for (const [body, expectedField] of [
+    [
+      {
+        name: "Synthetic Buyer",
+        email: "not-an-email",
+        scope: "One bounded review request.",
+      },
+      "email",
+    ],
+    [
+      {
+        name: "",
+        email: "security@witnessops.com",
+        scope: "One bounded review request.",
+      },
+      "name",
+    ],
+    [
+      {
+        name: "Synthetic Buyer",
+        email: "security@witnessops.com",
+        scope: "",
+      },
+      "scope",
+    ],
+  ] as const) {
+    const response = await POST(
+      new Request("https://witnessops.com/api/review/request", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    assert.equal(response.status, 400);
+    const payload = (await response.json()) as {
+      ok: false;
+      error: string;
+      field: string;
+    };
+    assert.equal(payload.ok, false);
+    assert.equal(payload.field, expectedField);
+    assert.doesNotMatch(payload.error, /valid business email/i);
+  }
+});
+
 test("review request route redacts upstream issuance errors", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
   applyTestEnv(baseDir);
@@ -136,7 +191,11 @@ test("review request route redacts upstream issuance errors", async () => {
   const response = await POST(
     new Request("https://witnessops.com/api/review/request", {
       method: "POST",
-      body: JSON.stringify({ email: "security@witnessops.com" }),
+      body: JSON.stringify({
+        name: "Synthetic Buyer",
+        email: "security@witnessops.com",
+        scope: "One bounded review request.",
+      }),
       headers: { "Content-Type": "application/json" },
     }),
   );
@@ -156,7 +215,11 @@ test("review request enforces the durable public issuance budget before a second
     POST(
       new Request("https://witnessops.com/api/review/request", {
         method: "POST",
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          name: "Synthetic Buyer",
+          email,
+          scope: "One bounded review request.",
+        }),
         headers: { "Content-Type": "application/json" },
       }),
     );

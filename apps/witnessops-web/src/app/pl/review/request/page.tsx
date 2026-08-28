@@ -69,17 +69,19 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-16">
       <header className="mb-8 max-w-[720px]">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-          {publicExposureOrder ? "Public Exposure Review" : "Zgłoszenie przeglądu"}
+          {selectedOffer?.name ?? "Zgłoszenie przeglądu"}
         </p>
         <h1 className="mt-3 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl">
-          {publicExposureOrder
-            ? "Rozpocznij Public Exposure Review"
+          {selectedOffer
+            ? `Zgłoś: ${selectedOffer.name}`
             : "Opowiedz, co wymaga sprawdzenia"}
         </h1>
         <p className="mt-4 text-base leading-7 text-text-muted">
           {publicExposureOrder
             ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu."
-            : "Zacznij od jednej niepoufnej potrzeby. Przed rozpoczęciem pracy lub przyjęciem materiałów potwierdzimy, czy zakres jest wystarczająco ograniczony."}
+            : selectedOffer
+              ? "Podaj jedno niepoufne podsumowanie dla wybranej usługi. Przed rozpoczęciem pracy potwierdzimy dopasowanie, dokładny zakres, wymagane materiały, cenę i termin."
+              : "Zacznij od jednej niepoufnej potrzeby. Przed rozpoczęciem pracy lub przyjęciem materiałów potwierdzimy, czy zakres jest wystarczająco ograniczony."}
         </p>
         {selectedOffer ? <div className="mt-5 border border-brand-accent/30 bg-brand-accent/5 p-4 text-sm leading-6 text-text-secondary"><p className="font-semibold text-brand-accent">Wybrana oferta: {selectedOffer.name}</p><p className="mt-2">Cena: {selectedOffer.price}</p><p>Termin: {selectedOffer.timing}</p></div> : null}
       </header>

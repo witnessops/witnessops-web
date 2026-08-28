@@ -6,5 +6,6 @@ export async function POST(request: Request) {
   return handleReviewRequestIntake(request, {
     rateLimitNamespace: "review-request",
     source: "api/review/request",
+    validation: "review",
   });
 }

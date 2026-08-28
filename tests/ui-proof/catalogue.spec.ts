@@ -126,6 +126,11 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
           new URL(primaryHref ?? "", "http://witnessops.test").searchParams.get("productId"),
         ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
       }
+      if (expectedServiceOrder[index] === "customer-security-review-sprint") {
+        expect(
+          new URL(primaryHref ?? "", "http://witnessops.test").searchParams.get("offerId"),
+        ).toBe("customer-security-review-sprint");
+      }
       await expect(primary).toHaveText(
         expectedServiceOrder[index] === "professional-public-footprint-audit"
           ? scenario.path.startsWith("/pl")
@@ -171,8 +176,15 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
       publicFootprintCard.locator('[data-service-availability="available_by_request"]'),
     ).toHaveCount(1);
     const publicFootprintRequestHref = await publicFootprintCard.locator("a").first().getAttribute("href");
-    expect(publicFootprintRequestHref).toBe(
+    const publicFootprintRequest = new URL(
+      publicFootprintRequestHref ?? "",
+      "http://witnessops.test",
+    );
+    expect(publicFootprintRequest.pathname).toBe(
       scenario.path.startsWith("/pl") ? "/pl/review/request" : "/review/request",
+    );
+    expect(publicFootprintRequest.searchParams.get("offerId")).toBe(
+      "professional-public-footprint-audit",
     );
     await expect(
       page.locator('a[href*="buy.stripe.com"], a[href*="checkout.stripe.com"]'),

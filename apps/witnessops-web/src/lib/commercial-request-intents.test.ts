@@ -5,8 +5,11 @@ import {
   ASK_AI_CONTACT_INTENT,
   BOUNDED_WORKFLOW_REVIEW_INTENT,
   getCommercialRequestLabel,
+  isGovernedReconRequestIntent,
   isManualCommercialRequestIntent,
+  isOperatorHandledCommercialRequestIntent,
 } from "./commercial-request-intents";
+import { BUYER_SERVICES } from "./buyer-services";
 import {
   getProofRunRequestLabel,
   isAccessChangeProofRunIntent,
@@ -14,10 +17,24 @@ import {
 } from "./access-change-proof-run";
 
 test("current commercial request intents use the manual request lane", () => {
-  assert.equal(
-    isManualCommercialRequestIntent(BOUNDED_WORKFLOW_REVIEW_INTENT),
-    true,
-  );
+  for (const service of BUYER_SERVICES) {
+    const intent = service.productId ?? service.id;
+    assert.equal(
+      isManualCommercialRequestIntent(intent),
+      true,
+      intent,
+    );
+    assert.equal(
+      getCommercialRequestLabel(intent),
+      `${service.name.en} request`,
+      intent,
+    );
+    assert.equal(
+      isOperatorHandledCommercialRequestIntent(intent),
+      true,
+      intent,
+    );
+  }
   assert.equal(isManualCommercialRequestIntent(ASK_AI_CONTACT_INTENT), true);
   assert.equal(
     getCommercialRequestLabel(BOUNDED_WORKFLOW_REVIEW_INTENT),
@@ -29,9 +46,28 @@ test("current commercial request intents use the manual request lane", () => {
   );
 });
 
-test("legacy generic engage intent stays outside the manual request lane", () => {
+test("only the explicit legacy recon intent can enter governed recon", () => {
   assert.equal(isManualCommercialRequestIntent("review"), false);
   assert.equal(isManualCommercialRequestIntent("Third-party assessment"), false);
+  assert.equal(isOperatorHandledCommercialRequestIntent("review"), true);
+  assert.equal(isOperatorHandledCommercialRequestIntent(undefined), true);
+  assert.equal(isGovernedReconRequestIntent("review"), false);
+  assert.equal(isGovernedReconRequestIntent("Third-party assessment"), true);
+  assert.equal(
+    isOperatorHandledCommercialRequestIntent("Third-party assessment"),
+    false,
+  );
+});
+
+test("commercial request labels localize the Polish handoff", () => {
+  assert.equal(
+    getCommercialRequestLabel(BOUNDED_WORKFLOW_REVIEW_INTENT, "pl"),
+    "Zgłoszenie Agent Risk & Control Review",
+  );
+  assert.equal(
+    getCommercialRequestLabel("professional-public-footprint-audit", "pl"),
+    "Zgłoszenie audytu publicznego śladu zawodowego",
+  );
 });
 
 test("legacy proof-run exports remain compatible with the commercial lane", () => {

@@ -89,6 +89,11 @@ export function DocsAssistantPage() {
   }
 
   const isEmpty = messages.length === 0;
+  const latestMessage = messages[messages.length - 1];
+  const latestAssistantAnnouncement =
+    latestMessage?.role === "assistant" && !latestMessage.error
+      ? latestMessage.content
+      : "";
 
   return (
     <div className="flex min-h-[calc(100vh-13rem)] flex-col pb-20 md:h-[calc(100vh-13rem)] md:pb-0">
@@ -150,6 +155,7 @@ export function DocsAssistantPage() {
                 <div key={i} className="flex justify-start">
                   <div className="max-w-2xl">
                     <p
+                      role={msg.error ? "alert" : undefined}
                       className={`whitespace-pre-line text-sm leading-relaxed ${
                         msg.error ? "text-red-400" : "text-text-primary"
                       }`}
@@ -186,6 +192,10 @@ export function DocsAssistantPage() {
         )}
       </div>
 
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {latestAssistantAnnouncement}
+      </div>
+
       <div className="border-t border-surface-border pt-4">
         <form
           onSubmit={(e) => {
@@ -197,6 +207,9 @@ export function DocsAssistantPage() {
           <input
             ref={inputRef}
             type="text"
+            name="question"
+            aria-label="Ask WitnessOps question"
+            maxLength={2_000}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Example: An agent rotates a compromised key."

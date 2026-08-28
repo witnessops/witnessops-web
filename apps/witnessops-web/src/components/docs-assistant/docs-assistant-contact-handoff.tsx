@@ -51,9 +51,11 @@ export function DocsAssistantContactHandoff({
   const [confirmationRecord, setConfirmationRecord] =
     useState<ReviewRequestConfirmation | null>(null);
   const emailRef = useRef<HTMLInputElement>(null);
+  const noteRef = useRef<HTMLTextAreaElement>(null);
   const verificationCodeRef = useRef<HTMLInputElement>(null);
   const confirmationHeadingRef = useRef<HTMLHeadingElement>(null);
   const inFlightRef = useRef<"contact" | "verification" | null>(null);
+  const offerRequiresSummary = Boolean(commercialFit?.offer);
 
   useEffect(() => {
     if (!expanded || verificationStep) return;
@@ -97,6 +99,12 @@ export function DocsAssistantContactHandoff({
   async function handleContactSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (inFlightRef.current !== null) return;
+    if (offerRequiresSummary && !note.trim()) {
+      setStatus("error");
+      setErrorMessage("Add a short, non-secret workflow summary.");
+      window.requestAnimationFrame(() => noteRef.current?.focus());
+      return;
+    }
 
     inFlightRef.current = "contact";
     onBusyChange?.(true);
@@ -346,10 +354,13 @@ export function DocsAssistantContactHandoff({
               spellCheck={false}
               required
               maxLength={80}
+              aria-invalid={status === "error" ? true : undefined}
+              aria-describedby={status === "error" ? "ask-ai-contact-code-error ask-ai-contact-code-help" : "ask-ai-contact-code-help"}
+              aria-errormessage={status === "error" ? "ask-ai-contact-code-error" : undefined}
               placeholder="ABCD-EFGH-JKLM"
               className="mt-1 w-full rounded border border-surface-border bg-surface-bg px-2.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
             />
-            <p className="mt-1 text-[11px] leading-relaxed text-text-muted">
+            <p id="ask-ai-contact-code-help" className="mt-1 text-[11px] leading-relaxed text-text-muted">
               The code expires at {verificationStep.expiresAt}.
             </p>
           </div>
@@ -372,7 +383,7 @@ export function DocsAssistantContactHandoff({
             </span>
           </label>
           {status === "error" && (
-            <p className="text-xs text-red-400" role="alert">
+            <p id="ask-ai-contact-code-error" className="text-xs text-red-400" role="alert">
               {errorMessage}
             </p>
           )}
@@ -425,9 +436,13 @@ export function DocsAssistantContactHandoff({
               htmlFor="ask-ai-contact-note"
               className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted"
             >
-              Note or request <span className="normal-case">(optional)</span>
+              Workflow summary or request{" "}
+              <span className="normal-case">
+                ({offerRequiresSummary ? "required" : "optional"})
+              </span>
             </label>
             <textarea
+              ref={noteRef}
               id="ask-ai-contact-note"
               value={note}
               onChange={(event) => {
@@ -438,6 +453,7 @@ export function DocsAssistantContactHandoff({
                 if (inFlightRef.current === null) setErrorMessage("");
               }}
               rows={2}
+              required={offerRequiresSummary}
               maxLength={1_000}
               placeholder="What should we scope? Keep it high level."
               className="mt-1 w-full resize-y rounded border border-surface-border bg-surface-bg px-2.5 py-2 text-xs leading-relaxed text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
@@ -454,7 +470,11 @@ export function DocsAssistantContactHandoff({
           )}
           <button
             type="submit"
-            disabled={status === "sending" || !email.trim()}
+            disabled={
+              status === "sending" ||
+              !email.trim() ||
+              (offerRequiresSummary && !note.trim())
+            }
             className="w-full rounded border border-brand-accent bg-brand-accent px-3 py-2 text-xs font-semibold text-text-inverse transition-colors hover:bg-text-primary disabled:cursor-not-allowed disabled:border-surface-border-strong disabled:bg-surface-inset disabled:text-text-muted disabled:opacity-100"
           >
             {status === "sending" ? "Sending code..." : "Send confirmation code"}

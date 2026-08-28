@@ -34,3 +34,21 @@ test("admin system exposes Google logout without legacy key material", () => {
   assert.match(combinedSource, /action="\/api\/admin\/logout" method="post"/);
   assert.doesNotMatch(combinedSource, /keyHash|Key hash|payload\.hash/);
 });
+
+test("admin separates buyer services from immutable product contracts", () => {
+  const page = readFileSync(resolve(__dirname, "products/page.tsx"), "utf-8");
+  const sidebar = readFileSync(
+    resolve(__dirname, "../../../components/admin/admin-sidebar.tsx"),
+    "utf-8",
+  );
+
+  assert.match(sidebar, /href: "\/admin\/products", label: "Services"/);
+  assert.match(page, /Services & contracts/);
+  assert.match(page, /Buyer-facing services/);
+  assert.match(page, /Immutable product contracts/);
+  assert.match(page, /listAdminBuyerServices/);
+  assert.match(page, /listProductContracts\(await getAdminPageActor\(\)\)/);
+  assert.match(page, /selected-offer handoffs/i);
+  assert.match(page, /generic handoffs/i);
+  assert.doesNotMatch(page, /buyer offer into an immutable execution contract/i);
+});

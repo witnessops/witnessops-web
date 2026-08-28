@@ -5,10 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { _resetAllStores } from "@witnessops/config/rate-limit";
 
-import {
-  ASK_AI_CONTACT_INTENT,
-  BOUNDED_WORKFLOW_REVIEW_INTENT,
-} from "@/lib/commercial-request-intents";
+import { MANUAL_COMMERCIAL_REQUEST_INTENTS } from "@/lib/commercial-request-intents";
 import { readIntakeEvents } from "@/lib/server/intake-event-ledger";
 import {
   clearTokenStore,
@@ -203,10 +200,11 @@ test("approval route captures explicit approval and hands off to control plane o
 });
 
 for (const manualIntent of [
-  BOUNDED_WORKFLOW_REVIEW_INTENT,
-  ASK_AI_CONTACT_INTENT,
+  ...MANUAL_COMMERCIAL_REQUEST_INTENTS,
+  "review",
+  "unclassified-request",
 ]) {
-  test(`approval route cannot start work for manual request intent ${manualIntent}`, async () => {
+  test(`approval route cannot start work for non-recon request intent ${manualIntent}`, async () => {
     const baseDir = await mkdtemp(
       path.join(os.tmpdir(), "witnessops-manual-approval-"),
     );
@@ -247,7 +245,7 @@ for (const manualIntent of [
     const payload = (await response.json()) as { error: string };
     assert.equal(
       payload.error,
-      "Scope approval is not available for manual commercial requests.",
+      "Scope approval is available only for an explicitly identified governed recon request.",
     );
     assert.deepEqual(fetchCalls, []);
 

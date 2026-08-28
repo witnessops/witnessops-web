@@ -53,3 +53,13 @@ test("contact route preserves an explicitly selected offer request", () => {
     /href="\/review\/request\?offerId=bounded-workflow-review&amp;offer=Agent\+Risk\+%26\+Control\+Review"/,
   );
 });
+
+test("non-compact contact route wraps a selected-offer URL on narrow screens", () => {
+  const selectedHref =
+    "/review/request?offerId=customer-security-review-sprint&offer=Customer+Security+Review+Sprint";
+  const html = renderToStaticMarkup(
+    <PublicContactRoute primaryHref={selectedHref} />,
+  );
+
+  assert.match(html, /class="break-all text-brand-accent/);
+});

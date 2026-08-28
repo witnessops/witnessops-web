@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { PUBLIC_NO_SECRETS_NOTE } from "@/lib/public-contact";
 import {
+  normalizedEmailSchema,
   supportResponseSchema,
   verifyTokenResponseSchema,
   type SupportResponse,
@@ -108,12 +109,14 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
     | "verification_error"
   >("idle");
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<typeof KB_ENTRIES>([]);
   const [supportResponse, setSupportResponse] = useState<SupportResponse | null>(null);
   const [verificationCode, setVerificationCode] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
   const verificationHeadingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -149,6 +152,20 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
     ).slice(0, 5);
     setSearchResults(matches);
   }, [searchQuery]);
+
+  function handleEmailStep(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const parsed = normalizedEmailSchema.safeParse(email);
+    if (!parsed.success) {
+      setEmailError("Enter a valid email address.");
+      window.requestAnimationFrame(() => emailRef.current?.focus());
+      return;
+    }
+
+    setEmail(parsed.data);
+    setEmailError("");
+    setStatus("form");
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -277,17 +294,36 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
         {/* ── STEP 1: Email ── */}
         {status === "idle" && (
           <div>
-            <label htmlFor="si-email" style={label}>Work email</label>
-            <input
-              id="si-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={inputClass}
-              style={inputFont}
-              placeholder="you@company.com"
-              autoComplete="email"
-            />
+            <form id="si-email-form" onSubmit={handleEmailStep} noValidate>
+              <label htmlFor="si-email" style={label}>Email address</label>
+              <input
+                ref={emailRef}
+                id="si-email"
+                name="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailError("");
+                }}
+                aria-invalid={emailError ? true : undefined}
+                aria-describedby={emailError ? "si-email-error" : undefined}
+                className={inputClass}
+                style={inputFont}
+                placeholder="you@company.com"
+                autoComplete="email"
+              />
+              {emailError ? (
+                <p
+                  id="si-email-error"
+                  role="alert"
+                  className="mt-2 text-xs text-signal-red"
+                >
+                  {emailError}
+                </p>
+              ) : null}
+            </form>
 
             {/* Knowledge search */}
             <div className="mt-5">
@@ -322,7 +358,8 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
             </div>
 
             <button
-              onClick={() => { if (email.trim()) setStatus("form"); }}
+              type="submit"
+              form="si-email-form"
               disabled={!email.trim()}
               className="mt-5 w-full py-3 border border-surface-border text-text-muted disabled:opacity-30 transition-all hover:border-brand-accent/40 hover:text-text-primary"
               style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}
@@ -371,6 +408,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                 id="si-desc"
                 name="description"
                 required
+                maxLength={8_000}
                 rows={4}
                 className="w-full bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none p-3"
                 style={{ ...inputFont, resize: "vertical", lineHeight: 1.6 }}
@@ -500,15 +538,24 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                 inputMode="text"
                 required
                 maxLength={80}
+                aria-invalid={status === "verification_error" ? true : undefined}
+                aria-describedby={
+                  status === "verification_error"
+                    ? "si-verification-instructions si-verification-error"
+                    : "si-verification-instructions"
+                }
                 placeholder="ABCD-EFGH-JKLM"
               />
-              <p className="mt-2 text-xs leading-5 text-text-muted">
+              <p
+                id="si-verification-instructions"
+                className="mt-2 text-xs leading-5 text-text-muted"
+              >
                 Enter the code exactly as shown in the email. Do not share it.
               </p>
             </div>
 
             {status === "verification_error" && (
-              <div role="alert" className="border-l-2 border-brand-accent px-3 py-2" style={{ ...mono, fontSize: 11, color: "var(--color-text-primary)", letterSpacing: "0.04em" }}>
+              <div id="si-verification-error" role="alert" className="border-l-2 border-brand-accent px-3 py-2" style={{ ...mono, fontSize: 11, color: "var(--color-text-primary)", letterSpacing: "0.04em" }}>
                 {errorMsg}
               </div>
             )}
@@ -533,7 +580,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                 className="w-full py-2 text-text-muted transition-colors hover:text-text-primary"
                 style={{ ...mono, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase" }}
               >
-                Start over with a new code
+                Start a new support request
               </button>
             )}
           </form>

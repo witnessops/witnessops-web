@@ -1,7 +1,7 @@
 import type { ChannelName } from "@/lib/channel-policy";
 import {
   getCommercialRequestLabel,
-  isManualCommercialRequestIntent,
+  isOperatorHandledCommercialRequestIntent,
 } from "@/lib/commercial-request-intents";
 import {
   EMAIL_THEME_LIGHT,
@@ -47,6 +47,7 @@ function renderManualCommercialVerificationHtml(
   const intakeId = escapeHtml(input.intakeId);
   const issuanceId = escapeHtml(input.issuanceId);
   const expiresAt = escapeHtml(input.expiresAt);
+  const verifyUrl = escapeHtml(input.verifyUrl);
   const requestLabel = escapeHtml(getCommercialRequestLabel(input.intent));
 
   return [
@@ -89,6 +90,7 @@ function renderManualCommercialVerificationHtml(
     `<td style="font-family:${EMAIL_FONT_STACK};font-size:14px;line-height:22px;${emailTextStyle(C.textSecondary)}">Confirm the mailbox-only boundary before continuing.</td>`,
     "</tr>",
     "</table>",
+    `<p style="margin:16px 0 0 0;font-family:${EMAIL_FONT_STACK};font-size:13px;line-height:20px;${emailTextStyle(C.textSecondary)}">Request page no longer open? <a href="${verifyUrl}" style="font-weight:700;${emailTextStyle(C.accent)}">Open the secure verification page</a> and enter the code there.</p>`,
     `<div style="margin-top:18px;padding:14px 16px;border:1px solid ${C.border};${emailBackgroundStyle(C.surfaceAlt)}">`,
     `<p style="margin:0;font-family:${EMAIL_FONT_STACK};font-size:13px;line-height:20px;font-weight:700;${emailTextStyle(C.text)}">What this verification means</p>`,
     `<p style="margin:6px 0 0 0;font-family:${EMAIL_FONT_STACK};font-size:13px;line-height:20px;${emailTextStyle(C.textSecondary)}">This confirms mailbox access only. It does not start a proof run. WitnessOps confirms fit, scope, payment, and evidence handling by email before any source materials are accepted.</p>`,
@@ -115,7 +117,10 @@ function renderManualCommercialVerificationHtml(
 export function renderVerificationEmail(
   input: VerificationEmailTemplateInput,
 ): VerificationEmailTemplateOutput {
-  if (isManualCommercialRequestIntent(input.intent)) {
+  if (
+    input.channel === "engage" &&
+    isOperatorHandledCommercialRequestIntent(input.intent)
+  ) {
     const requestLabel = getCommercialRequestLabel(input.intent);
 
     return {
@@ -130,6 +135,7 @@ export function renderVerificationEmail(
         "Return to the WitnessOps request page that is already open in your browser.",
         "Enter the code in the verification box. No link is required.",
         "Confirm the mailbox-only boundary before continuing.",
+        `Open Verification Page: ${input.verifyUrl}`,
         "",
         "This confirms mailbox access only.",
         "It does not start a proof run.",
