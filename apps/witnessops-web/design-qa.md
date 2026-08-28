@@ -2,10 +2,10 @@
 
 ## Comparison target
 
-- Source visual truth: `/workspace/scratch/704377652655/tmp/pdfs/receipt-deck/slide-4.png`
-- Existing-site visual truth: `/workspace/scratch/704377652655/worktrees/free-will-audit/docs/product-decisions/assets/agent-verification-funnel/homepage-desktop.png`
-- Browser-rendered implementation screenshot: `/workspace/scratch/704377652655/request-record-focus-comparison.jpg`
-- Combined comparison evidence: `/workspace/scratch/704377652655/tmp/design-qa/receipt-side-by-side.png`
+- Source visual truth: `SHOW ME THE RECEIPT — WitnessOps Agent Action Proof`, slide 4 (source attachment; not committed to this repository).
+- Existing-site visual truth: `docs/product-decisions/assets/agent-verification-funnel/homepage-desktop.png`.
+- Browser-rendered implementation screenshot: transient QA capture inspected during implementation; not retained in the repository.
+- Combined comparison evidence: transient side-by-side QA artifact inspected during implementation; not retained in the repository.
 - Route and state: `/review/request/confirmed`, English, confirmed mailbox with a synthetic non-secret QA request record. The synthetic seed was used only in the preview build and is absent from the source tree.
 
 ## Viewport and normalization
@@ -22,7 +22,7 @@
 - Focused region: the receipt/request sheet was compared at readable scale for header treatment, typography, fact grid, boundary stripe, footer rail, and button treatment.
 - Browser state: confirmed state, direct-visit empty state, successful copy state, and an intentionally forced clipboard-denied state were inspected.
 - Primary interactions tested: copy request record, selected-text fallback after clipboard denial, specimen link, proof-model link, and direct confirmation-page visit without browser-held state.
-- Console errors checked: no `terminal.local` warnings or errors were present in the confirmed-state walkthrough.
+- Console errors checked: no application-origin warnings or errors were present in the confirmed-state walkthrough.
 
 ## Findings
 
