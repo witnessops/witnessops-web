@@ -168,7 +168,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         );
         const visibleDesktopCta = Array.from(
           navElement.querySelectorAll<HTMLAnchorElement>(
-            'a[href^="/review/request"], a[href^="/pl/review/request"]',
+            "[data-public-primary-cta]",
           ),
         ).find((element) => {
           const box = element.getBoundingClientRect();

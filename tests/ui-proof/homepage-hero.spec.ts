@@ -375,6 +375,9 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
       await page.screenshot({ path: screenshotPath, fullPage: false });
       await expect(fileExists(screenshotPath)).resolves.toBe(true);
+      if (capture.width < 640 && capture.path !== "/") {
+        await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
+      }
     } finally {
       await context.close();
     }
@@ -394,6 +397,9 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       const footer = page.locator("footer");
       await footer.scrollIntoViewIfNeeded();
+      if (capture.width < 640) {
+        await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
+      }
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
       await footer.screenshot({ path: screenshotPath });
       await expect(fileExists(screenshotPath)).resolves.toBe(true);
@@ -409,7 +415,17 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
   try {
     const page = await menuContext.newPage();
     await page.goto("/", { waitUntil: "networkidle" });
-    await page.getByRole("button", { name: "Open primary navigation" }).click();
+    const menuToggle = page.getByRole("button", { name: "Open primary navigation" });
+    await menuToggle.click();
+    await expect(menuToggle).toHaveAttribute("aria-expanded", "true");
+    const mobileMenu = page.locator("#witnessops-mobile-menu");
+    await expect(mobileMenu.getByRole("link", { name: "Ask WitnessOps" })).toHaveAttribute(
+      "href",
+      "/docs/assistant",
+    );
+    await mobileMenu.evaluate(async (menu) => {
+      await Promise.all(menu.getAnimations().map((animation) => animation.finished));
+    });
     const screenshotPath = path.join(screenshotDir, "mobile-menu-open-390.png");
     await page.screenshot({ path: screenshotPath, fullPage: false });
     await expect(fileExists(screenshotPath)).resolves.toBe(true);

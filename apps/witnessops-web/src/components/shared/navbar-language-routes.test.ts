@@ -109,10 +109,11 @@ test("mobile menu is an attached 48px-row sheet with one orange action", () => {
   );
 
   assert.match(mobileNavbar, /className="contents"/);
-  assert.match(mobileNavbar, /w-\[calc\(100%\+2rem\)\]/);
+  assert.match(mobileNavbar, /absolute inset-x-0 top-full/);
   assert.match(mobileNavbar, /max-h-\[32rem\]/);
   assert.match(mobileNavbar, /inline-flex h-12 items-center border-l-2/);
   assert.match(mobileNavbar, /inline-flex h-12 items-center border-t/);
+  assert.match(navbar, /assistantLink=\{\{ label: "Ask WitnessOps", href: "\/docs\/assistant" \}\}/);
   assert.equal(
     mobileNavbar.match(/!bg-brand-accent/g)?.length,
     1,
@@ -120,7 +121,7 @@ test("mobile menu is an attached 48px-row sheet with one orange action", () => {
   );
   assert.equal(
     mobileNavbar.match(/inline-block -translate-y-px/g)?.length,
-    3,
+    4,
     "Every mobile menu text treatment must share the optical baseline correction",
   );
   assert.match(mobileNavbar, /labelClassName="inline-block -translate-y-px"/);

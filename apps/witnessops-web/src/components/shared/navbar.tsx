@@ -236,6 +236,7 @@ export function Navbar({ announcement }: NavbarProps) {
               {isExternalHref(effectiveCta.href) ? (
                 <a
                   href={effectiveCta.href}
+                  data-public-primary-cta
                   aria-current={currentPath === effectiveCta.href ? "page" : undefined}
                   target="_blank"
                   rel="noreferrer"
@@ -247,6 +248,7 @@ export function Navbar({ announcement }: NavbarProps) {
               ) : (
                 <Link
                   href={effectiveCta.href}
+                  data-public-primary-cta
                   aria-current={currentPath === effectiveCta.href ? "page" : undefined}
                   className={desktopCtaClassName}
                   style={{ fontFamily: "var(--font-display)" }}
@@ -258,6 +260,7 @@ export function Navbar({ announcement }: NavbarProps) {
             <MobileNavbarMenu
               links={effectiveLinks}
               cta={effectiveCta}
+              assistantLink={{ label: "Ask WitnessOps", href: "/docs/assistant" }}
               utilityLink={languageLink}
               currentPath={currentPath}
               openLabel={polish ? "Otwórz główną nawigację" : "Open primary navigation"}

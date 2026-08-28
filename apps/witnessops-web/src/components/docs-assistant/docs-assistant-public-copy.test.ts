@@ -104,9 +104,10 @@ test("Ask WitnessOps hides its trigger while the dialog owns the floating space"
   const content = source("docs-assistant-widget.tsx");
 
   assert.match(content, /shouldShowDocsAssistantTrigger\(open\)/);
-  assert.match(content, /!suppressHomeTrigger/);
+  assert.match(content, /!suppressFloatingTrigger/);
   assert.match(content, /new IntersectionObserver/);
   assert.match(content, /document\.querySelector\("\[data-ask-trigger-guard\]"\)/);
+  assert.match(content, /footer\[data-brand-footer\]/);
   assert.match(content, /aria-controls="ask-witnessops-dialog"/);
   assert.match(content, /triggerRef\.current\?\.focus\(\)/);
   assert.doesNotMatch(content, /aria-label=\{open \?/);

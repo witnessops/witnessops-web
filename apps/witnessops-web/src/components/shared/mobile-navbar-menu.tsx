@@ -8,6 +8,7 @@ import { CtaButton } from "./cta-button";
 interface MobileNavbarMenuProps {
   links: { label: string; href: string }[];
   cta: { label: string; href: string; variant: string };
+  assistantLink?: { label: string; href: string };
   utilityLink?: { label: string; href: string };
   currentPath: string;
   openLabel: string;
@@ -17,6 +18,7 @@ interface MobileNavbarMenuProps {
 export function MobileNavbarMenu({
   links,
   cta,
+  assistantLink,
   utilityLink,
   currentPath,
   openLabel,
@@ -121,9 +123,9 @@ export function MobileNavbarMenu({
         id={menuId}
         aria-hidden={!menuOpen}
         inert={!menuOpen}
-        className={`public-shell -mx-4 w-[calc(100%+2rem)] flex-none overflow-hidden bg-surface-bg text-text-primary transition-[max-height,opacity] duration-200 sm:-mx-6 sm:w-[calc(100%+3rem)] lg:hidden ${
+        className={`public-shell absolute inset-x-0 top-full z-50 w-full overflow-hidden bg-surface-bg text-text-primary transition-[max-height,opacity] duration-200 lg:hidden ${
           menuOpen
-            ? "max-h-[32rem] border-t border-surface-border opacity-100"
+            ? "max-h-[32rem] border-y border-surface-border opacity-100"
             : "pointer-events-none max-h-0 border-t border-transparent opacity-0"
         }`}
       >
@@ -143,6 +145,16 @@ export function MobileNavbarMenu({
               <span className="inline-block -translate-y-px">{link.label}</span>
             </Link>
           ))}
+          {assistantLink ? (
+            <Link
+              href={assistantLink.href}
+              data-mobile-assistant-link
+              className="inline-flex h-12 items-center border-t border-surface-border px-3 text-sm font-semibold text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+              onClick={closeMenu}
+            >
+              <span className="inline-block -translate-y-px">{assistantLink.label}</span>
+            </Link>
+          ) : null}
           {utilityLink ? (
             <Link
               href={utilityLink.href}

@@ -84,7 +84,7 @@ export function DocsAssistantWidget() {
   const [loading, setLoading] = useState(false);
   const [contactMode, setContactMode] = useState(false);
   const [contactBusy, setContactBusy] = useState(false);
-  const [suppressHomeTrigger, setSuppressHomeTrigger] = useState(
+  const [suppressFloatingTrigger, setSuppressFloatingTrigger] = useState(
     pathname === "/",
   );
   const [mobileViewport, setMobileViewport] = useState<MobileViewportState>({
@@ -110,31 +110,50 @@ export function DocsAssistantWidget() {
   }, [open]);
 
   useEffect(() => {
+    const mobileViewport = window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY);
+
     if (pathname !== "/") {
-      setSuppressHomeTrigger(false);
-      return;
+      const syncNonHomeTrigger = () => {
+        setSuppressFloatingTrigger(mobileViewport.matches);
+      };
+      mobileViewport.addEventListener("change", syncNonHomeTrigger);
+      syncNonHomeTrigger();
+      return () => {
+        mobileViewport.removeEventListener("change", syncNonHomeTrigger);
+      };
     }
 
-    const mobileViewport = window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY);
     const triggerGuard = document.querySelector("[data-ask-trigger-guard]");
     if (!triggerGuard) {
-      setSuppressHomeTrigger(false);
+      setSuppressFloatingTrigger(mobileViewport.matches);
       return;
     }
 
-    let heroVisible = true;
+    const footer = document.querySelector("footer[data-brand-footer]");
+
+    let guardVisible = true;
+    let footerVisible = false;
     const syncTrigger = () => {
-      setSuppressHomeTrigger(mobileViewport.matches && heroVisible);
+      setSuppressFloatingTrigger(
+        mobileViewport.matches && (guardVisible || footerVisible),
+      );
     };
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        heroVisible = entry.isIntersecting;
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.target === triggerGuard) {
+            guardVisible = entry.isIntersecting;
+          } else if (footer && entry.target === footer) {
+            footerVisible = entry.isIntersecting;
+          }
+        }
         syncTrigger();
       },
       { threshold: 0.05 },
     );
 
     observer.observe(triggerGuard);
+    if (footer) observer.observe(footer);
     mobileViewport.addEventListener("change", syncTrigger);
     syncTrigger();
 
@@ -580,7 +599,7 @@ export function DocsAssistantWidget() {
         </section>
       )}
 
-      {shouldShowDocsAssistantTrigger(open) && !suppressHomeTrigger && (
+      {shouldShowDocsAssistantTrigger(open) && !suppressFloatingTrigger && (
         <button
           ref={triggerRef}
           onClick={handleOpen}
