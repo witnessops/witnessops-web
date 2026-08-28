@@ -415,7 +415,9 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
   try {
     const page = await menuContext.newPage();
     await page.goto("/", { waitUntil: "networkidle" });
-    const menuToggle = page.getByRole("button", { name: "Open primary navigation" });
+    const menuToggle = page.locator(
+      'button[aria-controls="witnessops-mobile-menu"]',
+    );
     await menuToggle.click();
     await expect(menuToggle).toHaveAttribute("aria-expanded", "true");
     const mobileMenu = page.locator("#witnessops-mobile-menu");

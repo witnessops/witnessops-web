@@ -107,7 +107,7 @@ export default async function DocsIndexPage() {
         <div className="kb-section-tag">Docs</div>
 
         <h1
-          className="mt-2 max-w-[18ch] text-4xl font-semibold uppercase leading-none tracking-[0.04em] text-text-primary lg:text-5xl"
+          className="mt-2 max-w-[18ch] break-words text-[2rem] font-semibold uppercase leading-none tracking-[0.02em] text-text-primary min-[360px]:text-4xl min-[360px]:tracking-[0.04em] lg:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
           Documentation
