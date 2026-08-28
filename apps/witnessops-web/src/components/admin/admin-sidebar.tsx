@@ -12,7 +12,7 @@ const navItems = [
   { href: "/admin/inbox", label: "Inbox", icon: Inbox },
   { href: "/admin/review-requests", label: "Review Requests", icon: ClipboardList },
   { href: "/admin/customers", label: "Customers", icon: Users },
-  { href: "/admin/products", label: "Products", icon: Package },
+  { href: "/admin/products", label: "Services", icon: Package },
   { href: "/admin/proof-runs", label: "Proof Runs", icon: PlayCircle },
   { href: "/admin/deliveries", label: "Deliveries", icon: Send },
   { href: "/admin/receipts", label: "Receipts", icon: ReceiptText },

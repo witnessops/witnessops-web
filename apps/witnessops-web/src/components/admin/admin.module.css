@@ -1548,6 +1548,11 @@
 .coreTable th { padding: 11px 16px; color: #858a90; background: #f8f8f5; font-family: var(--font-sans); font-size: 9px; font-weight: 700; letter-spacing: .11em; }
 .coreTable td { padding: 14px 16px; color: var(--admin-text-secondary); border-top-color: #ededE8; }
 .coreTable a { color: var(--admin-text-primary); font-weight: 650; }
+.adminServiceSectionNote { margin: 0; padding: 0 20px 16px; color: var(--admin-text-secondary); font-family: var(--font-sans); font-size: 12px; line-height: 1.55; }
+.adminServiceIdentity, .adminServiceHandoff { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 5px; }
+.adminServiceIdentity { min-width: 176px; }
+.adminServiceIdentity strong { color: var(--admin-text-primary); font-weight: 650; }
+.adminServiceIdentity code, .adminServiceHandoff code { color: var(--admin-text-muted); font-family: var(--font-mono); font-size: 10px; overflow-wrap: anywhere; }
 .coreState { padding: 4px 8px; color: var(--admin-text-secondary); background: #f6f6f2; border-color: var(--admin-border); border-radius: 999px; font-family: var(--font-sans); font-size: 10px; letter-spacing: 0; text-transform: none; }
 .coreHealthGrid { gap: 12px; padding: 18px 20px; }
 .coreHealthState { font-family: var(--font-sans); font-size: 11px; }
