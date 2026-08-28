@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
+import {
+  buyerServiceById,
+  buyerServiceRequestHref,
+} from "@/lib/buyer-services";
 import { languageAlternates } from "@/lib/public-seo";
+
+const service = buyerServiceById("customer-security-review-sprint");
+const requestHref = buyerServiceRequestHref("pl", service);
 
 export const metadata: Metadata = {
   title: "Customer Security Review Sprint",
@@ -48,7 +55,7 @@ export default function PolishCustomerSecurityReviewPage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <CtaButton
-                href="/pl/review/request"
+                href={requestHref}
                 variant="primary"
                 label="Rozpocznij wstępną ocenę bez informacji poufnych"
               />
@@ -115,7 +122,11 @@ export default function PolishCustomerSecurityReviewPage() {
         </section>
 
         <div className="border-t border-surface-border pt-10">
-          <PublicContactRoute subject="fit-check" locale="pl" />
+          <PublicContactRoute
+            subject="fit-check"
+            locale="pl"
+            primaryHref={requestHref}
+          />
         </div>
       </div>
     </main>

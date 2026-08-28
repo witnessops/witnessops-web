@@ -76,10 +76,35 @@ const publicExposureOutputs = [
   },
 ];
 
+const reviewFitOutputs = [
+  {
+    title: "Fit decision",
+    summary: "Whether the request matches a listed service or needs a separately bounded scope.",
+  },
+  {
+    title: "Scope outline",
+    summary: "The named situation or system, authority boundary, exclusions, and input types needed for the next decision.",
+  },
+  {
+    title: "Commercial proposal",
+    summary: "The applicable offer, fee, timing, and evidence-handling conditions before work starts.",
+  },
+  {
+    title: "Start boundary",
+    summary: "A clear statement that the request itself neither starts work nor authorises evidence collection or target-facing checks.",
+  },
+];
+
 const nextSteps = [
   "We check whether the technical action is bounded enough for one review package.",
   "We confirm the system boundary, action path, likely evidence sources, and obvious gaps.",
   "We reply with fit, scope, fee, and next action before any source materials are accepted.",
+];
+
+const selectedServiceNextSteps = [
+  "We check whether the selected service fits one bounded request.",
+  "We confirm the scope owner, consent or authority, exclusions, required inputs, fee, and timing.",
+  "We reply with fit and the next action before any source materials are accepted or work begins.",
 ];
 
 const publicExposureNextSteps = [
@@ -126,9 +151,38 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
     ? buyerServiceByProductId(sku.id)
     : requestedOffer;
   const publicExposureOrder = sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
-  const activeNextSteps = publicExposureOrder ? publicExposureNextSteps : nextSteps;
-  const activeOutputs = publicExposureOrder ? publicExposureOutputs : proofOutputs;
-  const activeArtifacts = publicExposureOrder ? publicExposureArtifacts : sampleArtifacts.slice(0, 5);
+  const agentRiskControlOrder =
+    selectedOffer?.id === "bounded-workflow-review";
+  const selectedServiceOrder =
+    selectedOffer && !publicExposureOrder && !agentRiskControlOrder
+      ? selectedOffer
+      : undefined;
+  const activeNextSteps = publicExposureOrder
+    ? publicExposureNextSteps
+    : selectedServiceOrder
+      ? selectedServiceNextSteps
+      : nextSteps;
+  const activeOutputs = publicExposureOrder
+    ? publicExposureOutputs
+    : agentRiskControlOrder
+      ? proofOutputs
+      : selectedServiceOrder
+        ? [
+            {
+              title: "Expected outcome",
+              summary: selectedServiceOrder.result.en,
+            },
+            {
+              title: "Offer boundary",
+              summary: selectedServiceOrder.boundary.en,
+            },
+          ]
+        : reviewFitOutputs;
+  const activeArtifacts = publicExposureOrder
+    ? publicExposureArtifacts
+    : agentRiskControlOrder
+      ? sampleArtifacts.slice(0, 5)
+      : [];
 
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
@@ -145,18 +199,22 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             color: "var(--color-brand-muted)",
           }}
         >
-          {publicExposureOrder ? "Public Exposure Review" : "Review Request"}
+          {selectedOffer?.name.en ?? "Review Request"}
         </div>
         <h1
           className="mb-4 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {publicExposureOrder ? "Start your Public Exposure Review" : "Tell us what you need reviewed"}
+          {selectedOffer
+            ? `Start your ${selectedOffer.name.en}`
+            : "Tell us what you need reviewed"}
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
           {publicExposureOrder
             ? "Tell us what public-facing system you want reviewed. We’ll confirm the exact boundary and authority before any testing begins."
-            : "Start with one non-secret review need. We’ll confirm whether it is bounded enough to scope before any work or evidence intake begins."}
+            : selectedServiceOrder
+              ? "Give us one non-secret summary for the selected service. We’ll confirm fit, exact scope, required inputs, fee, and timing before work begins."
+              : "Start with one non-secret review need. We’ll confirm whether it is bounded enough to scope before any work or evidence intake begins."}
         </p>
         <p className="mt-3 max-w-[640px] text-sm leading-relaxed text-text-muted">
           Prefer email? Send the same non-secret summary to{" "}
@@ -266,11 +324,12 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
                   ? "€1,900 ex VAT for one authorised public-facing system. Payment is due in full before the delivery clock starts. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance."
                   : "Fee, timing, and evidence handling are confirmed by email after the first fit check."}
               </p>
-              <p>No work starts from this form. No proof run or target-facing check starts from this form.</p>
+              <p>No work or target-facing check starts from this form.</p>
               <p>No customer evidence is accepted until scope is agreed.</p>
             </div>
           </section>
 
+          {activeArtifacts.length > 0 ? (
           <section className="border border-surface-border bg-surface-bg p-5">
             <div
               className="mb-3"
@@ -302,6 +361,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
               {publicExposureOrder ? "Inspect Public Exposure Review sample" : "Inspect sample package"}
             </Link>
           </section>
+          ) : null}
 
           <section className="border border-surface-border bg-surface-bg p-5">
             <div
@@ -324,6 +384,8 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
                   <p>No exploitation, credential testing, destructive activity, or persistence.</p>
                   <p>Not a certification, attestation, completeness claim, or security guarantee.</p>
                 </>
+              ) : selectedOffer ? (
+                <p>{selectedOffer.boundary.en}</p>
               ) : (
                 <>
                   <p>Not a production deployment claim.</p>
@@ -356,7 +418,11 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         >
           {publicExposureOrder
             ? "What the Public Exposure Review delivers"
-            : "What a bounded review package can include"}
+            : agentRiskControlOrder
+              ? "What the Agent Risk & Control Review can include"
+              : selectedServiceOrder
+                ? `What the ${selectedServiceOrder.name.en} is scoped to deliver`
+                : "What the fit check establishes"}
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {activeOutputs.map((item, index) => (

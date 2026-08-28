@@ -23,8 +23,16 @@ export function CoreState({ value }: { value: string }) {
   return <span className={styles.coreState}>{value}</span>;
 }
 
-export function CoreTable({ headers, rows }: { headers: string[]; rows: ReactNode[][] }) {
-  return <div className={styles.coreTableWrap}><table className={styles.coreTable}><thead><tr>{headers.map((header) => <th key={header}>{header}</th>)}</tr></thead><tbody>{rows.length ? rows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>) : <tr><td colSpan={headers.length} className={styles.emptyState}>No records yet.</td></tr>}</tbody></table></div>;
+export function CoreTable({
+  headers,
+  rows,
+  scrollLabel,
+}: {
+  headers: string[];
+  rows: ReactNode[][];
+  scrollLabel?: string;
+}) {
+  return <div className={styles.coreTableWrap} role={scrollLabel ? "region" : undefined} aria-label={scrollLabel} tabIndex={scrollLabel ? 0 : undefined}><table className={styles.coreTable}><thead><tr>{headers.map((header) => <th key={header}>{header}</th>)}</tr></thead><tbody>{rows.length ? rows.map((row, index) => <tr key={index}>{row.map((cell, cellIndex) => <td key={cellIndex}>{cell}</td>)}</tr>) : <tr><td colSpan={headers.length} className={styles.emptyState}>No records yet.</td></tr>}</tbody></table></div>;
 }
 
 export function CoreMeta({ label, value }: { label: string; value: ReactNode }) {

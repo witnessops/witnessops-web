@@ -47,7 +47,7 @@ test("admin separates buyer services from immutable product contracts", () => {
   assert.match(page, /Buyer-facing services/);
   assert.match(page, /Immutable product contracts/);
   assert.match(page, /listAdminBuyerServices/);
-  assert.match(page, /listProductContracts/);
+  assert.match(page, /listProductContracts\(await getAdminPageActor\(\)\)/);
   assert.match(page, /selected-offer handoffs/i);
   assert.match(page, /generic handoffs/i);
   assert.doesNotMatch(page, /buyer offer into an immutable execution contract/i);

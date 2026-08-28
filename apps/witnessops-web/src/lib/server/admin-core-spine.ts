@@ -4,6 +4,7 @@ import { createHash, randomUUID } from "node:crypto";
 
 import { getWorkflowSkus } from "@witnessops/catalog";
 import { listReceipts } from "@/lib/receipts";
+import { listAdminBuyerServices } from "@/lib/admin-service-catalog";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_PRIMARY_HREF,
@@ -2781,7 +2782,7 @@ export async function recordIntegrationFailure(
 }
 
 export interface SearchResult {
-  type: "customer" | "inbox" | "review-request" | "product" | "proof-run" | "delivery" | "receipt";
+  type: "customer" | "inbox" | "review-request" | "service" | "product" | "proof-run" | "delivery" | "receipt";
   id: string;
   label: string;
   href: string;
@@ -2805,6 +2806,18 @@ export async function searchCoreRecords(query: string, actor?: CoreActor): Promi
   for (const request of state.reviewRequests) {
     const field = ["id", "originatingGmailThreadId", "requestText"].find((key) => normalizeSearch(String(request[key as keyof ReviewRequestRecord] ?? "")).includes(needle));
     if (field) results.push({ type: "review-request", id: request.id, label: request.requestText, href: `/admin/review-requests/${request.id}`, matchedField: field });
+  }
+  for (const service of listAdminBuyerServices()) {
+    const field = ["id", "name"].find((key) =>
+      normalizeSearch(String(service[key as "id" | "name"])).includes(needle),
+    );
+    if (field) results.push({
+      type: "service",
+      id: service.id,
+      label: service.name,
+      href: `/admin/products#service-${service.id}`,
+      matchedField: field,
+    });
   }
   for (const product of state.productContracts) {
     const field = ["id", "productId", "productName", "contractVersion"].find((key) => normalizeSearch(String(product[key as keyof ProductContractVersionRecord] ?? "")).includes(needle));

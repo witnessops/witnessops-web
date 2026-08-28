@@ -14,7 +14,7 @@ test("customer security review page keeps the approved commercial boundary", () 
     "proposed answer matrix",
     "evidence index",
     "Start a non-secret fit check",
-    "/review/request",
+    "buyerServiceRequestHref",
     "The customer owns the final answers, approvals and submission.",
     "WitnessOps does not invent evidence",
     "SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE",
@@ -39,5 +39,6 @@ test("customer security review page does not widen the public product boundary",
 
   assert.match(source, /href="\/catalog"/);
   assert.match(source, /View services/);
-  assert.match(source, /href="\/review\/request"/);
+  assert.match(source, /href=\{requestHref\}/);
+  assert.match(source, /primaryHref=\{requestHref\}/);
 });

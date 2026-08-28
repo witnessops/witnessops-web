@@ -136,13 +136,31 @@ test("copy text preserves boundaries without leaking verification inputs", () =>
 });
 
 test("maps public request intents to fixed record labels", () => {
-  assert.equal(
-    resolveReviewRequestKind("bounded-workflow-review"),
-    "agent-risk-control-review",
-  );
-  assert.equal(
-    resolveReviewRequestKind("OFFSEC-EXTERNAL-EXPOSURE"),
-    "public-exposure-review",
+  assert.deepEqual(
+    [
+      "bounded-workflow-review",
+      "ai-agent-action-proof-run",
+      "access-change-proof-run",
+      "OFFSEC-EXTERNAL-EXPOSURE",
+      "customer-security-review-sprint",
+      "OFFSEC-LOCAL-AUDIT",
+      "OFFSEC-LAUNCH-READY",
+      "OFFSEC-CUSTODY-OPS",
+      "OFFSEC-INCIDENT-READY",
+      "professional-public-footprint-audit",
+    ].map(resolveReviewRequestKind),
+    [
+      "agent-risk-control-review",
+      "ai-agent-action-proof-run",
+      "access-change-proof-run",
+      "public-exposure-review",
+      "customer-security-review-sprint",
+      "one-server-security-check",
+      "launch-readiness-check",
+      "key-access-custody-review",
+      "incident-readiness-review",
+      "professional-public-footprint-audit",
+    ],
   );
   assert.equal(resolveReviewRequestKind("review"), "review-request");
 });

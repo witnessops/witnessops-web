@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { _resetAllStores } from "@witnessops/config/rate-limit";
+import type { ManualCommercialRequestIntent } from "@/lib/commercial-request-intents";
 import {
   clearTokenStore,
   getIntakeById,
@@ -151,7 +152,7 @@ async function issueCurrentCommercialIntentToken(
   baseDir: string,
   options: {
     endpoint: "contact" | "review";
-    intent: "bounded-workflow-review" | "ask-ai-contact";
+    intent: ManualCommercialRequestIntent;
     locale: "en" | "pl";
   },
 ) {
@@ -169,10 +170,7 @@ async function issueCurrentCommercialIntentToken(
         email: "security@witnessops.com",
         intent: options.intent,
         locale: options.locale,
-        scope:
-          options.intent === "ask-ai-contact"
-            ? "Contact path: Ask AI panel handoff\nNext step: asynchronous fit and scope review."
-            : "One bounded agent workflow for an Agent Risk & Control Review.",
+        scope: `One bounded request for ${options.intent}.`,
       }),
       headers: { "Content-Type": "application/json" },
     }),
@@ -590,6 +588,67 @@ test("Agent Risk & Control Review uses the Polish manual commercial path and ope
       /^Subject: Verified Agent Risk & Control Review request: WitnessOps Labs$/m,
     locale: "pl",
   });
+});
+
+test("every public service request stays on the bounded manual lane", async () => {
+  for (const options of [
+    {
+      intent: "customer-security-review-sprint" as const,
+      locale: "en" as const,
+      label: "Customer Security Review Sprint",
+    },
+    {
+      intent: "professional-public-footprint-audit" as const,
+      locale: "pl" as const,
+      label: "Professional Public Footprint Audit",
+    },
+    {
+      intent: "OFFSEC-LOCAL-AUDIT" as const,
+      locale: "en" as const,
+      label: "One Server Security Check",
+    },
+    {
+      intent: "OFFSEC-LAUNCH-READY" as const,
+      locale: "pl" as const,
+      label: "Launch Readiness Check",
+    },
+    {
+      intent: "OFFSEC-CUSTODY-OPS" as const,
+      locale: "en" as const,
+      label: "Key, Access and Custody Review",
+    },
+    {
+      intent: "OFFSEC-INCIDENT-READY" as const,
+      locale: "pl" as const,
+      label: "Incident Readiness Review",
+    },
+  ]) {
+    _resetAllStores();
+    const baseDir = await mkdtemp(
+      path.join(os.tmpdir(), `witnessops-${options.intent}-`),
+    );
+    const issued = await issueCurrentCommercialIntentToken(baseDir, {
+      endpoint: "review",
+      intent: options.intent,
+      locale: options.locale,
+    });
+    assert.match(
+      issued.verificationMailRaw,
+      new RegExp(`Confirm your ${options.label} request\\.`),
+    );
+    await assertCurrentCommercialIntentVerification(issued, {
+      postVerifyPath:
+        options.locale === "pl"
+          ? "/pl/review/request/confirmed"
+          : "/review/request/confirmed",
+      operatorSubject: new RegExp(
+        `^Subject: Verified ${options.label} request: WitnessOps Labs$`,
+        "m",
+      ),
+      locale: options.locale,
+    });
+    await clearTokenStore();
+  }
 });
 
 test("Ask WitnessOps contact uses the English manual commercial path and operator notification", async () => {

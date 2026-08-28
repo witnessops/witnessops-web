@@ -31,19 +31,22 @@ export type AdminBuyerServiceRecord = {
   requestContext: AdminServiceRequestContext;
 };
 
-function requestContext(service: BuyerService): AdminServiceRequestContext {
-  if (service.id === "bounded-workflow-review") {
+function requestContext(requestHref: string): AdminServiceRequestContext {
+  const params = new URL(requestHref, "https://witnessops.invalid").searchParams;
+  const offerId = params.get("offerId");
+  if (offerId) {
     return {
       kind: "public_offer",
-      label: `offerId=${service.id}`,
+      label: `offerId=${offerId}`,
       preservesSelection: true,
     };
   }
 
-  if (service.productId) {
+  const productId = params.get("productId");
+  if (productId) {
     return {
       kind: "catalog_sku",
-      label: `productId=${service.productId}`,
+      label: `productId=${productId}`,
       preservesSelection: true,
     };
   }
@@ -63,13 +66,16 @@ function requestContext(service: BuyerService): AdminServiceRequestContext {
  * buyer offer into an immutable execution contract.
  */
 export function listAdminBuyerServices(): AdminBuyerServiceRecord[] {
-  return BUYER_SERVICES.map((service) => ({
-    id: service.id,
-    name: service.name.en,
-    price: service.price.en,
-    timing: service.timing.en,
-    publicHref: service.detailHref.en ?? "/catalog",
-    requestHref: buyerServiceRequestHref("en", service),
-    requestContext: requestContext(service),
-  }));
+  return BUYER_SERVICES.map((service) => {
+    const requestHref = buyerServiceRequestHref("en", service);
+    return {
+      id: service.id,
+      name: service.name.en,
+      price: service.price.en,
+      timing: service.timing.en,
+      publicHref: service.detailHref.en ?? "/catalog",
+      requestHref,
+      requestContext: requestContext(requestHref),
+    };
+  });
 }

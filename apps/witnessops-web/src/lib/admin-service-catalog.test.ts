@@ -20,10 +20,30 @@ test("admin services mirror the canonical public catalogue without inventing con
     assert.equal(service.timing, authority.timing.en);
     assert.equal(service.publicHref, authority.detailHref.en);
     assert.equal(service.requestHref, buyerServiceRequestHref("en", authority));
+    const params = new URL(
+      service.requestHref,
+      "https://witnessops.invalid",
+    ).searchParams;
+    const offerId = params.get("offerId");
+    const productId = params.get("productId");
+    assert.deepEqual(
+      service.requestContext,
+      offerId
+        ? {
+            kind: "public_offer",
+            label: `offerId=${offerId}`,
+            preservesSelection: true,
+          }
+        : {
+            kind: "catalog_sku",
+            label: `productId=${productId}`,
+            preservesSelection: true,
+          },
+    );
   }
 });
 
-test("admin services expose selected-offer and generic request handoffs", () => {
+test("admin services preserve the selected offer for every public service", () => {
   const services = listAdminBuyerServices();
   const contextual = services.filter(
     (service) => service.requestContext.preservesSelection,
@@ -32,16 +52,6 @@ test("admin services expose selected-offer and generic request handoffs", () => 
     (service) => !service.requestContext.preservesSelection,
   );
 
-  assert.equal(contextual.length, 6);
-  assert.deepEqual(
-    generic.map((service) => service.id),
-    [
-      "customer-security-review-sprint",
-      "professional-public-footprint-audit",
-    ],
-  );
-  assert.deepEqual(
-    generic.map((service) => service.requestContext.label),
-    ["generic /review/request", "generic /review/request"],
-  );
+  assert.equal(contextual.length, BUYER_SERVICES.length);
+  assert.deepEqual(generic, []);
 });

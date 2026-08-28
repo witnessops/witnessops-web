@@ -7,6 +7,7 @@ import {
   getCommercialRequestLabel,
   isManualCommercialRequestIntent,
 } from "./commercial-request-intents";
+import { BUYER_SERVICES } from "./buyer-services";
 import {
   getProofRunRequestLabel,
   isAccessChangeProofRunIntent,
@@ -14,10 +15,19 @@ import {
 } from "./access-change-proof-run";
 
 test("current commercial request intents use the manual request lane", () => {
-  assert.equal(
-    isManualCommercialRequestIntent(BOUNDED_WORKFLOW_REVIEW_INTENT),
-    true,
-  );
+  for (const service of BUYER_SERVICES) {
+    const intent = service.productId ?? service.id;
+    assert.equal(
+      isManualCommercialRequestIntent(intent),
+      true,
+      intent,
+    );
+    assert.equal(
+      getCommercialRequestLabel(intent),
+      `${service.name.en} request`,
+      intent,
+    );
+  }
   assert.equal(isManualCommercialRequestIntent(ASK_AI_CONTACT_INTENT), true);
   assert.equal(
     getCommercialRequestLabel(BOUNDED_WORKFLOW_REVIEW_INTENT),

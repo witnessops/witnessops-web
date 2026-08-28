@@ -33,6 +33,7 @@ export default async function AdminProductsPage() {
           href="/catalog"
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Open public catalogue in a new tab"
           className={styles.inlineLink}
         >
           Open public catalogue
@@ -54,18 +55,23 @@ export default async function AdminProductsPage() {
 
       <section className={styles.coreSection} aria-labelledby="buyer-services-title">
         <div className={styles.coreSectionHeader}>
-          <span className={styles.coreSectionTitle} id="buyer-services-title">
+          <h2 className={styles.coreSectionTitle} id="buyer-services-title">
             Buyer-facing services
-          </span>
+          </h2>
         </div>
         <p className={styles.adminServiceSectionNote}>
           Mirrors the public catalogue. A selected handoff carries the named
           offer into review intake; a generic handoff does not.
         </p>
         <CoreTable
+          scrollLabel="Buyer-facing services table"
           headers={["Service", "Commercial terms", "Timing", "Request handoff", "Public page"]}
           rows={services.map((service) => [
-            <span className={styles.adminServiceIdentity} key={service.id}>
+            <span
+              className={styles.adminServiceIdentity}
+              id={`service-${service.id}`}
+              key={service.id}
+            >
               <strong>{service.name}</strong>
               <code>{service.id}</code>
             </span>,
@@ -84,6 +90,7 @@ export default async function AdminProductsPage() {
                 href={service.requestHref}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label={`Open ${service.name} intake in a new tab`}
               >
                 Open intake
               </Link>
@@ -92,6 +99,7 @@ export default async function AdminProductsPage() {
               href={service.publicHref}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label={`View ${service.name} service page in a new tab`}
               key="public"
             >
               View service
@@ -102,15 +110,16 @@ export default async function AdminProductsPage() {
 
       <section className={styles.coreSection} aria-labelledby="product-contracts-title">
         <div className={styles.coreSectionHeader}>
-          <span className={styles.coreSectionTitle} id="product-contracts-title">
+          <h2 className={styles.coreSectionTitle} id="product-contracts-title">
             Immutable product contracts
-          </span>
+          </h2>
         </div>
         <p className={styles.adminServiceSectionNote}>
           Execution contracts stay separate from public offers and remain
           pinned by version on proof runs.
         </p>
         <CoreTable
+          scrollLabel="Immutable product contracts table"
           headers={["Contract", "Product ID", "Version", "Status", "Expected outputs"]}
           rows={products.map((product) => [
             <Link href={`/admin/products/${product.id}`} key={product.id}>

@@ -5,10 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { _resetAllStores } from "@witnessops/config/rate-limit";
 
-import {
-  ASK_AI_CONTACT_INTENT,
-  BOUNDED_WORKFLOW_REVIEW_INTENT,
-} from "@/lib/commercial-request-intents";
+import { MANUAL_COMMERCIAL_REQUEST_INTENTS } from "@/lib/commercial-request-intents";
 import { readIntakeEvents } from "@/lib/server/intake-event-ledger";
 import {
   clearTokenStore,
@@ -202,10 +199,7 @@ test("approval route captures explicit approval and hands off to control plane o
   assert.equal(fetchCalls.length, 1);
 });
 
-for (const manualIntent of [
-  BOUNDED_WORKFLOW_REVIEW_INTENT,
-  ASK_AI_CONTACT_INTENT,
-]) {
+for (const manualIntent of MANUAL_COMMERCIAL_REQUEST_INTENTS) {
   test(`approval route cannot start work for manual request intent ${manualIntent}`, async () => {
     const baseDir = await mkdtemp(
       path.join(os.tmpdir(), "witnessops-manual-approval-"),

@@ -8,8 +8,20 @@ import {
 
 const rfc3339Schema = z.string().datetime({ offset: true });
 
-const shortTextSchema = z.string().trim().max(240).optional();
-const longTextSchema = z.string().trim().max(8_000).optional();
+export const INTAKE_SHORT_TEXT_MAX_LENGTH = 240;
+export const INTAKE_LONG_TEXT_MAX_LENGTH = 8_000;
+export const REVIEW_REQUEST_FIELD_MAX_LENGTH = 1_500;
+
+const shortTextSchema = z
+  .string()
+  .trim()
+  .max(INTAKE_SHORT_TEXT_MAX_LENGTH)
+  .optional();
+const longTextSchema = z
+  .string()
+  .trim()
+  .max(INTAKE_LONG_TEXT_MAX_LENGTH)
+  .optional();
 
 export const normalizedEmailSchema = z
   .string()
@@ -81,6 +93,11 @@ export const engageRequestSchema = z.object({
   intent: shortTextSchema,
   locale: z.enum(["en", "pl"]).optional(),
   scope: longTextSchema,
+});
+
+export const reviewRequestSchema = engageRequestSchema.extend({
+  name: z.string().trim().min(1).max(INTAKE_SHORT_TEXT_MAX_LENGTH),
+  scope: z.string().trim().min(1).max(INTAKE_LONG_TEXT_MAX_LENGTH),
 });
 
 export const supportRequestSchema = z.object({

@@ -917,6 +917,17 @@ test("admin core spine covers the complete message-to-receipt operating path", a
 
   const search = await searchCoreRecords("receipt-002");
   assert.ok(search.some((result) => result.type === "receipt" && result.id === secondReceipt.id));
+  const serviceSearch = await searchCoreRecords("bounded-workflow-review");
+  assert.deepEqual(
+    serviceSearch.find((result) => result.type === "service"),
+    {
+      type: "service",
+      id: "bounded-workflow-review",
+      label: "Agent Risk & Control Review",
+      href: "/admin/products#service-bounded-workflow-review",
+      matchedField: "id",
+    },
+  );
   const before = await listAuditEvents();
   const snapshot = await getAdminCoreState();
   snapshot.auditEvents[0]!.action = "tampered in caller copy";

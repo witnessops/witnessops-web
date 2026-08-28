@@ -9,7 +9,7 @@ import {
 } from "@/lib/buyer-services";
 
 export const metadata: Metadata = {
-  title: "Security Review Pricing | WitnessOps",
+  title: "Security Review Pricing",
   description:
     "Published prices and commercial boundaries for bounded WitnessOps security reviews, including the Public Exposure Review.",
   alternates: { canonical: "/pricing" },

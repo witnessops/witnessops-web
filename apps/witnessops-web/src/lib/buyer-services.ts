@@ -40,6 +40,23 @@ export type BuyerService = {
   onePagerHref?: Partial<Record<BuyerLocale, string>>;
 };
 
+export type BuyerPublicOfferId = Extract<
+  BuyerService["id"],
+  | "customer-security-review-sprint"
+  | "bounded-workflow-review"
+  | "professional-public-footprint-audit"
+>;
+
+const BUYER_PUBLIC_OFFER_IDS = [
+  "customer-security-review-sprint",
+  "bounded-workflow-review",
+  "professional-public-footprint-audit",
+] as const satisfies readonly BuyerPublicOfferId[];
+
+function isBuyerPublicOfferId(id: string): id is BuyerPublicOfferId {
+  return BUYER_PUBLIC_OFFER_IDS.some((offerId) => offerId === id);
+}
+
 /**
  * Canonical public catalogue — situation cards only (v1.6 OffSec index aligned).
  * Operator scripts and checks are methods under a package, not extra cards.
@@ -400,7 +417,7 @@ export function buyerOfferRequestHref(locale: BuyerLocale, productId: string): s
 
 export function buyerPublicOfferRequestHref(
   locale: BuyerLocale,
-  offerId: "bounded-workflow-review",
+  offerId: BuyerPublicOfferId,
 ): string {
   const service = buyerServiceByPublicOfferId(offerId);
   const params = new URLSearchParams({ offerId });
@@ -412,12 +429,13 @@ export function buyerServiceRequestHref(
   locale: BuyerLocale,
   service: BuyerService,
 ): string {
-  if (service.id === "bounded-workflow-review") {
+  if (service.productId) {
+    return buyerOfferRequestHref(locale, service.productId);
+  }
+  if (isBuyerPublicOfferId(service.id)) {
     return buyerPublicOfferRequestHref(locale, service.id);
   }
-  return service.productId
-    ? buyerOfferRequestHref(locale, service.productId)
-    : buyerRequestHref(locale);
+  return buyerRequestHref(locale);
 }
 
 export function buyerCatalogHref(locale: BuyerLocale): string {
@@ -436,7 +454,9 @@ export function buyerServiceByPublicOfferId(
   // `offerId` is an untrusted public query parameter. Keep this allowlist
   // separate from the catalogue/SKU lookup so it cannot revive a withdrawn
   // product or expose another service merely because its internal id is known.
-  if (id !== "bounded-workflow-review") return undefined;
+  if (!isBuyerPublicOfferId(id)) {
+    return undefined;
+  }
   return buyerServiceById(id);
 }
 

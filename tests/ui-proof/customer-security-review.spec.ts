@@ -56,10 +56,11 @@ test("Customer Security Review pages remain responsive and usable", async ({ bro
     const expectedRequestPath = scenario.path.startsWith("/pl/")
       ? "/pl/review/request"
       : "/review/request";
-    await expect(heroCta).toHaveAttribute("href", expectedRequestPath);
+    const expectedRequestHref = `${expectedRequestPath}?offerId=customer-security-review-sprint&offer=Customer+Security+Review+Sprint`;
+    await expect(heroCta).toHaveAttribute("href", expectedRequestHref);
     await expect(page.locator("main [data-public-contact-route] a").first()).toHaveAttribute(
       "href",
-      expectedRequestPath,
+      expectedRequestHref,
     );
     await expect(page.locator("main [data-public-contact-route]")).toContainText(
       "engage@mail.witnessops.com",

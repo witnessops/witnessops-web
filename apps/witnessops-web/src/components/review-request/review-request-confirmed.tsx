@@ -6,11 +6,29 @@ import { useEffect, useState } from "react";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { verificationLight } from "@/components/shared/verification-light-shell";
 import {
+  buyerCatalogHref,
+  buyerServiceById,
+  type BuyerService,
+} from "@/lib/buyer-services";
+import {
   readReviewRequestConfirmation,
   type ReviewRequestConfirmation,
   type ReviewRequestConfirmationLocale,
+  type ReviewRequestKind,
 } from "@/lib/review-request-confirmation";
 import { ReviewRequestRecord } from "./review-request-record";
+
+const serviceIdByRequestKind: Partial<
+  Record<ReviewRequestKind, BuyerService["id"]>
+> = {
+  "customer-security-review-sprint": "customer-security-review-sprint",
+  "one-server-security-check": "one-server-security-check",
+  "launch-readiness-check": "launch-readiness-check",
+  "key-access-custody-review": "key-access-custody-review",
+  "incident-readiness-review": "incident-readiness-review",
+  "professional-public-footprint-audit":
+    "professional-public-footprint-audit",
+};
 
 const copy = {
   en: {
@@ -21,7 +39,7 @@ const copy = {
       "Keep the reference below. WitnessOps now has the non-secret request summary for asynchronous fit and scope review.",
     nextLabel: "What happens next",
     nextSteps: [
-      "We assess whether the named workflow fits one bounded review.",
+      "We assess whether this request fits one bounded review.",
       "We confirm scope, authority, evidence handling, timing, and fee by email.",
       "Work begins only after those terms are explicitly agreed.",
     ],
@@ -31,9 +49,11 @@ const copy = {
       "Target-facing work starts only after every condition above is confirmed.",
     ],
     waitLabel: "Inspect while you wait",
-    specimen: "Challenge the public specimen",
+    specimen: "Inspect a sample review record",
+    accessChangeSpecimen: "Inspect an access-change proof sample",
     publicExposureSpecimen: "Inspect the Public Exposure Review sample",
     proofModel: "Read the proof model",
+    serviceCatalogue: "Explore the service catalogue",
     missingEyebrow: "Review request / no local record",
     missingTitle: "This page alone proves nothing.",
     missingBody:
@@ -48,7 +68,7 @@ const copy = {
       "Zachowaj poniższy numer referencyjny. WitnessOps ma teraz niepoufne podsumowanie zgłoszenia do asynchronicznej oceny dopasowania i zakresu.",
     nextLabel: "Co wydarzy się dalej",
     nextSteps: [
-      "Sprawdzimy, czy wskazany workflow pasuje do jednego ograniczonego przeglądu.",
+      "Sprawdzimy, czy to zgłoszenie pasuje do jednego ograniczonego przeglądu.",
       "Potwierdzimy e-mailem zakres, upoważnienie, obsługę materiałów, termin i cenę.",
       "Praca rozpocznie się dopiero po jednoznacznym uzgodnieniu tych warunków.",
     ],
@@ -58,9 +78,11 @@ const copy = {
       "Praca wobec celu rozpocznie się dopiero po potwierdzeniu wszystkich tych warunków.",
     ],
     waitLabel: "Sprawdź w oczekiwaniu",
-    specimen: "Zakwestionuj publiczny przykład (EN)",
+    specimen: "Sprawdź przykładowy zapis przeglądu (EN)",
+    accessChangeSpecimen: "Sprawdź przykład zmiany dostępu (EN)",
     publicExposureSpecimen: "Sprawdź przykład Public Exposure Review (EN)",
     proofModel: "Przeczytaj model dowodowy",
+    serviceCatalogue: "Zobacz katalog usług",
     missingEyebrow: "Zgłoszenie przeglądu / brak lokalnego zapisu",
     missingTitle: "Ta strona sama niczego nie dowodzi.",
     missingBody:
@@ -131,15 +153,46 @@ export function ReviewRequestConfirmed({
 
   const publicExposureReview =
     confirmation.requestKind === "public-exposure-review";
+  const agentRiskControlReview =
+    confirmation.requestKind === "agent-risk-control-review";
+  const aiAgentActionProofRun =
+    confirmation.requestKind === "ai-agent-action-proof-run";
+  const accessChangeProofRun =
+    confirmation.requestKind === "access-change-proof-run";
   const nextSteps = publicExposureReview
     ? text.publicExposureNextSteps
     : text.nextSteps;
-  const specimenHref = publicExposureReview
-    ? "/review/sample-cases/external-exposure-assessment"
-    : "/review/sample-cases/ai-agent-action-proof-run";
-  const specimenLabel = publicExposureReview
-    ? text.publicExposureSpecimen
-    : text.specimen;
+  const proofResource = publicExposureReview
+    ? {
+        href: "/review/sample-cases/external-exposure-assessment",
+        label: text.publicExposureSpecimen,
+      }
+    : agentRiskControlReview || aiAgentActionProofRun
+      ? {
+          href: "/review/sample-cases/ai-agent-action-proof-run",
+          label: text.specimen,
+        }
+      : accessChangeProofRun
+        ? {
+            href: "/review/sample-cases/access-removed-proof",
+            label: text.accessChangeSpecimen,
+          }
+      : undefined;
+  const serviceId = serviceIdByRequestKind[confirmation.requestKind];
+  const selectedService = serviceId ? buyerServiceById(serviceId) : undefined;
+  const selectedServiceResource = selectedService
+    ? {
+        href:
+          selectedService.detailHref[locale] ?? buyerCatalogHref(locale),
+        label:
+          locale === "pl"
+            ? `Sprawdź usługę: ${selectedService.name.pl}`
+            : `Review ${selectedService.name.en}`,
+      }
+    : {
+        href: buyerCatalogHref(locale),
+        label: text.serviceCatalogue,
+      };
 
   return (
     <main
@@ -192,12 +245,13 @@ export function ReviewRequestConfirmed({
             </h2>
             <div className="space-y-2 text-sm">
               <Link
-                href={specimenHref}
+                href={proofResource?.href ?? selectedServiceResource.href}
                 className={`block min-h-11 border border-[#e4e0d8] bg-[#faf9f7] p-3 font-semibold transition hover:border-[#b94716] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b94716] focus-visible:ring-offset-2 ${verificationLight.title}`}
               >
-                {specimenLabel}
+                {proofResource?.label ?? selectedServiceResource.label}
               </Link>
-              <Link
+              {proofResource ? (
+                <Link
                 href={
                   locale === "pl"
                     ? "/pl/docs/how-receipts-work"
@@ -207,6 +261,7 @@ export function ReviewRequestConfirmed({
               >
                 {text.proofModel}
               </Link>
+              ) : null}
             </div>
           </section>
         </aside>

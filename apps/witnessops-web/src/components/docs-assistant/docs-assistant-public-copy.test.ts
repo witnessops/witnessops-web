@@ -172,7 +172,9 @@ test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
   assert.match(contact, /Request a scoped review/);
   assert.match(contact, /Request scope for this workflow/);
   assert.match(contact, /Work email/);
-  assert.match(contact, /Note or request/);
+  assert.match(contact, /Workflow summary or request/);
+  assert.match(contact, /required=\{offerRequiresSummary\}/);
+  assert.match(contact, /Add a short, non-secret workflow summary/);
   assert.match(contact, /\/api\/contact/);
   assert.match(contact, /\/api\/verify-token/);
   assert.match(contact, /Mailbox confirmation starts a fit-and-scope reply only/);
@@ -286,4 +288,13 @@ test("Ask WitnessOps full page uses mobile document flow and desktop scrolling",
   assert.match(content, /top: conversation\.scrollHeight/);
   assert.match(content, /behavior: reduceMotion \? "auto" : "smooth"/);
   assert.doesNotMatch(content, /scrollIntoView/);
+  assert.match(
+    content,
+    /className="sr-only" aria-live="polite" aria-atomic="true"/,
+  );
+  assert.match(content, /\{latestAssistantAnnouncement\}/);
+  assert.doesNotMatch(
+    content,
+    /ref=\{conversationRef\}[\s\S]{0,180}aria-live=/,
+  );
 });

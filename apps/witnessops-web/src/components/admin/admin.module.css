@@ -945,6 +945,7 @@
 .coreDetail { color: var(--admin-text-secondary); font-size: 10px; line-height: 1.6; margin: 8px 0 0; }
 .coreState { border: 1px solid var(--admin-border); color: var(--admin-accent); display: inline-block; font-size: 9px; padding: 3px 7px; letter-spacing: .08em; text-transform: uppercase; }
 .coreTableWrap { overflow-x: auto; border-bottom: 1px solid var(--admin-border); }
+.coreTableWrap[tabindex="0"]:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: -2px; }
 .coreTable { width: 100%; border-collapse: collapse; font-size: 10px; }
 .coreTable th { background: var(--admin-bg-alt); color: var(--admin-text-faint); font-size: 8px; font-weight: 400; letter-spacing: .1em; padding: 10px 14px; text-align: left; text-transform: uppercase; white-space: nowrap; }
 .coreTable td { border-top: 1px solid var(--admin-border); color: var(--admin-text-secondary); padding: 11px 14px; vertical-align: top; }
@@ -977,7 +978,7 @@
 .coreHealthUnknown { background: var(--admin-warning); }
 .coreSection { border-bottom: 1px solid var(--admin-border); }
 .coreSectionHeader { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 12px 20px; background: var(--admin-bg-alt); }
-.coreSectionTitle { color: var(--admin-text-primary); font-size: 11px; }
+.coreSectionTitle { margin: 0; color: var(--admin-text-primary); font-size: 11px; }
 .coreSectionLink { color: var(--admin-accent); font-size: 9px; text-decoration: none; text-transform: uppercase; letter-spacing: .08em; }
 .coreSectionBody { padding: 0 20px 16px; }
 
@@ -1596,7 +1597,7 @@
   .consoleHeader { padding: 0 16px; }
   .consoleBoundary { display: none; }
   .consoleBreadcrumb { font-size: 11px; }
-  .corePageHeader { padding: 24px 16px 18px; }
+  .corePageHeader { flex-direction: column; align-items: stretch; padding: 24px 16px 18px; }
   .coreGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 16px 14px; }
   .coreSection { margin: 0 16px 14px; }
   .overviewStatGrid, .sectionHeader { padding-left: 16px; padding-right: 16px; }

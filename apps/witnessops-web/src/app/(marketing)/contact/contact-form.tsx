@@ -10,7 +10,12 @@ import {
   reviewRequestConfirmationPath,
   storeReviewRequestConfirmation,
 } from "@/lib/review-request-confirmation";
-import type { EngageResponse, VerifyTokenResponse } from "@/lib/token-contract";
+import {
+  INTAKE_SHORT_TEXT_MAX_LENGTH,
+  REVIEW_REQUEST_FIELD_MAX_LENGTH,
+  type EngageResponse,
+  type VerifyTokenResponse,
+} from "@/lib/token-contract";
 import { formatVerificationCode } from "@/lib/verification-code-format";
 import {
   PUBLIC_CONTACT_EMAIL,
@@ -18,6 +23,11 @@ import {
   PUBLIC_NO_SECRETS_NOTE,
   publicContactMailto,
 } from "@/lib/public-contact";
+import {
+  buyerServiceByProductId,
+  buyerServiceByPublicOfferId,
+} from "@/lib/buyer-services";
+import { BOUNDED_WORKFLOW_REVIEW_INTENT } from "@/lib/commercial-request-intents";
 
 type FieldName =
   | "name"
@@ -80,6 +90,14 @@ export function ContactForm({
   const verificationHeadingRef = useRef<HTMLHeadingElement>(null);
   const polish = locale === "pl";
   const externalExposureOrder = intent === "OFFSEC-EXTERNAL-EXPOSURE";
+  const selectedService =
+    buyerServiceByProductId(intent) ?? buyerServiceByPublicOfferId(intent);
+  const selectedNonAgentService =
+    selectedService &&
+    selectedService.id !== BOUNDED_WORKFLOW_REVIEW_INTENT &&
+    !externalExposureOrder
+      ? selectedService
+      : undefined;
   const baseCopy = polish
     ? {
         sendError: "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
@@ -169,6 +187,93 @@ export function ContactForm({
         received: "Request received. Enter the code from your work email on this page.",
         noSecrets: PUBLIC_NO_SECRETS_NOTE,
       };
+  const selectedServiceCopy = selectedNonAgentService
+    ? {
+        ...baseCopy,
+        fitTitle: polish
+          ? `Zgłoszenie: ${selectedNonAgentService.name.pl}.`
+          : `Request ${selectedNonAgentService.name.en}.`,
+        fitBody: polish
+          ? "Podaj krótkie, niepoufne informacje potrzebne do oceny dopasowania tej usługi. Zakres, wymagane materiały, cena i termin zostaną potwierdzone e-mailem przed rozpoczęciem pracy."
+          : "Give us a short, non-secret summary for this service. We’ll confirm fit, scope, required inputs, fee, and timing by email before any work begins.",
+        workflow:
+          selectedNonAgentService.id === "customer-security-review-sprint"
+            ? polish
+              ? "Kwestionariusz lub prośba klienta"
+              : "Questionnaire or customer request"
+            : selectedNonAgentService.id ===
+                "professional-public-footprint-audit"
+              ? polish
+                ? "Osoba i główna firma objęte audytem"
+                : "Professional and primary firm to review"
+              : polish
+                ? "Co ma zostać sprawdzone?"
+                : "What should this service review?",
+        workflowPlaceholder:
+          selectedNonAgentService.id === "customer-security-review-sprint"
+            ? polish
+              ? "Opisz ogólnie jeden kwestionariusz bezpieczeństwa, prośbę o materiały i zakres produktu."
+              : "Describe one security questionnaire or evidence request and the product scope at a high level."
+            : selectedNonAgentService.id ===
+                "professional-public-footprint-audit"
+              ? polish
+                ? "Wskaż osobę, która wyraziła zgodę, oraz jedną główną firmę. Nie podawaj danych prywatnych."
+                : "Name the consenting professional and one primary firm. Do not include private personal data."
+              : selectedNonAgentService.cardSituation[locale],
+        workflowHelp: polish
+          ? "Podaj wyłącznie niepoufne podsumowanie. Nie wklejaj materiałów źródłowych, danych dostępowych, prywatnych danych ani sekretów."
+          : "Give a non-secret summary only. Do not paste source material, access details, private personal data, or secrets.",
+        actionPath:
+          selectedNonAgentService.id === "customer-security-review-sprint"
+            ? polish
+              ? "Termin klienta i zakres produktu"
+              : "Customer deadline and product scope"
+            : polish
+              ? "Dlaczego teraz?"
+              : "Why now?",
+        actionPathPlaceholder: polish
+          ? "Opisz termin, decyzję lub zdarzenie, które uzasadnia przegląd."
+          : "Describe the deadline, decision, or event driving the request.",
+        approval:
+          selectedNonAgentService.id ===
+          "professional-public-footprint-audit"
+            ? polish
+              ? "Zgoda i granica źródeł publicznych"
+              : "Consent and public-source boundary"
+            : polish
+              ? "Właściciel zakresu i upoważnienie"
+              : "Scope owner and authority",
+        approvalPlaceholder:
+          selectedNonAgentService.id ===
+          "professional-public-footprint-audit"
+            ? polish
+              ? "Potwierdź zgodę wskazanej osoby i opisz granicę publicznych źródeł zawodowych."
+              : "Confirm the named professional’s consent and the boundary of public professional sources."
+            : polish
+              ? "Wskaż właściciela zakresu, osobę zatwierdzającą i granice upoważnienia."
+              : "Name the scope owner, approver, and where the authority stops.",
+        evidence:
+          selectedNonAgentService.id === "customer-security-review-sprint"
+            ? polish
+              ? "Dostępne polityki i rodzaje materiałów"
+              : "Available policies and evidence types"
+            : selectedNonAgentService.id ===
+                "professional-public-footprint-audit"
+              ? polish
+                ? "Znane profile lub rodzaje źródeł publicznych"
+                : "Known profiles or public-source types"
+              : polish
+                ? "Dostępne dane wejściowe"
+                : "Available inputs",
+        evidencePlaceholder: polish
+          ? "Nazwij tylko rodzaje materiałów lub źródeł. Nie przesyłaj ich na tym etapie."
+          : "Name input or source types only. Do not send the materials at this stage.",
+        send: polish ? "Wyślij zgłoszenie usługi" : "Send service request",
+        submitBoundary: polish
+          ? "Wysłanie formularza otwiera wyłącznie ocenę dopasowania i zakresu wybranej usługi. Praca nie rozpoczyna się, dopóki zakres, wymagane materiały, cena, termin i sposób obsługi materiałów nie zostaną uzgodnione."
+          : "Submitting this form opens fit and scope review for the selected service only. Work does not start until scope, required inputs, fee, timing, and evidence handling are agreed.",
+      }
+    : undefined;
   const copy = externalExposureOrder
     ? {
         ...baseCopy,
@@ -207,7 +312,7 @@ export function ContactForm({
           ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, stałego zakresu, wymaganych danych wejściowych i okna zbierania."
           : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, fixed scope, required inputs, and the collection window are confirmed.",
       }
-    : baseCopy;
+    : selectedServiceCopy ?? baseCopy;
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "verifying" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState(copy.sendError);
@@ -253,23 +358,27 @@ export function ContactForm({
     const agentPath = stringField(data, "agentPath");
     const approvalBoundary = stringField(data, "approvalBoundary");
     const evidenceAvailable = stringField(data, "evidenceAvailable");
-    const proofRunScope = [
+    const requestScope = [
       externalExposureOrder
         ? "Request: Public Exposure Review"
-        : "Request: WitnessOps review fit check",
+        : selectedNonAgentService
+          ? `Request: ${selectedNonAgentService.name.en}`
+          : "Request: WitnessOps review fit check",
       `Selected product / intent: ${intent}`,
       `Request locale: ${locale}`,
       ...(campaignAttribution
         ? [`Campaign attribution: ${campaignAttribution}`]
         : []),
-      `${externalExposureOrder ? "Boundary seed / public target" : "Review need"}: ${workflow || "not provided"}`,
-      `${externalExposureOrder ? "Trigger and timing" : "Situation and affected system"}: ${agentPath || "not provided"}`,
-      `${externalExposureOrder ? "Authority statement" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
-      `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
+      `${externalExposureOrder ? "Boundary seed / public target" : selectedNonAgentService ? "Selected-service need" : "Review need"}: ${workflow || "not provided"}`,
+      `${externalExposureOrder ? "Trigger and timing" : selectedNonAgentService ? "Timing and reason" : "Situation and affected system"}: ${agentPath || "not provided"}`,
+      `${externalExposureOrder ? "Authority statement" : selectedNonAgentService ? "Scope owner, consent, and authority" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
+      `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : selectedNonAgentService ? "Available input or source types" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
       externalExposureOrder
         ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
-        : "Follow-up needed: fit, action boundary, authority boundary, likely evidence sources, possible proof pack contents, verifier path, challenge path, fee, and evidence handling",
+        : selectedNonAgentService
+          ? "Follow-up needed: selected-service fit, exact scope, consent or authority, required inputs, fee, timing, and evidence handling"
+          : "Follow-up needed: fit, action boundary, authority boundary, likely evidence sources, possible proof pack contents, verifier path, challenge path, fee, and evidence handling",
     ].join("\n");
 
     try {
@@ -282,14 +391,20 @@ export function ContactForm({
           email: data.get("email"),
           intent,
           locale,
-          scope: proofRunScope,
+          scope: requestScope,
         }),
       });
 
       if (!res.ok) {
-        const payload = await res.json().catch(() => ({ error: "Failed to send." }));
-        if (typeof payload.error === "string" && payload.error.toLowerCase().includes("email")) {
+        const payload = await res.json().catch(() => ({
+          error: "Failed to send.",
+        })) as { error?: string; field?: string };
+        if (payload.field === "email") {
           updateFieldError("email", copy.emailError);
+        } else if (payload.field === "name") {
+          updateFieldError("name", payload.error ?? copy.sendError);
+        } else if (payload.field === "org") {
+          updateFieldError("org", payload.error ?? copy.sendError);
         }
         throw new Error(polish ? copy.sendError : (payload.error ?? copy.sendError));
       }
@@ -488,10 +603,13 @@ export function ContactForm({
               inputMode="text"
               required
               maxLength={80}
+              aria-invalid={verifyStatus === "error" ? true : undefined}
+              aria-describedby={verifyStatus === "error" ? "verification-code-error verification-code-help" : "verification-code-help"}
+              aria-errormessage={verifyStatus === "error" ? "verification-code-error" : undefined}
               placeholder="ABCD-EFGH-JKLM"
               className={verificationLight.input}
             />
-            <p className={`mt-2 text-xs leading-relaxed ${verificationLight.muted}`}>
+            <p id="verification-code-help" className={`mt-2 text-xs leading-relaxed ${verificationLight.muted}`}>
               {copy.codeExpiry} {verificationStep.expiresAt}.
             </p>
           </div>
@@ -511,7 +629,7 @@ export function ContactForm({
           </label>
 
           {verifyStatus === "error" && (
-            <div className={verificationLight.error} role="alert">
+            <div id="verification-code-error" className={verificationLight.error} role="alert">
               {verifyErrorMessage}
             </div>
           )}
@@ -597,6 +715,7 @@ export function ContactForm({
           <label htmlFor="name" className="mb-2 block" style={labelStyle}>{copy.name} <span className="text-text-muted">{copy.required}</span></label>
           <input
             id="name" name="name" type="text" required
+            maxLength={INTAKE_SHORT_TEXT_MAX_LENGTH}
             aria-invalid={fieldErrors.name ? true : undefined}
             aria-describedby={fieldErrors.name ? "name-error" : undefined}
             aria-errormessage={fieldErrors.name ? "name-error" : undefined}
@@ -628,13 +747,16 @@ export function ContactForm({
         <label htmlFor="org" className="mb-2 block" style={labelStyle}>{copy.organization} <span className="text-text-muted">{copy.optional}</span></label>
         <input
           id="org" name="org" type="text"
+          maxLength={INTAKE_SHORT_TEXT_MAX_LENGTH}
           aria-invalid={fieldErrors.org ? true : undefined}
+          aria-describedby={fieldErrors.org ? "org-error" : undefined}
+          aria-errormessage={fieldErrors.org ? "org-error" : undefined}
           onInvalid={handleInvalid} onInput={handleFieldInput}
           className={`${inputClass} ${fieldErrors.org ? "!border-signal-red" : ""}`}
           style={inputStyle}
           placeholder={copy.organizationPlaceholder}
         />
-        {fieldErrors.org && <p className="mt-1 text-xs text-signal-red">{fieldErrors.org}</p>}
+        {fieldErrors.org && <p id="org-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.org}</p>}
       </div>
 
       <div>
@@ -643,6 +765,7 @@ export function ContactForm({
         </label>
         <textarea
           id="workflow" name="workflow" rows={3} required
+          maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
           aria-describedby={fieldErrors.workflow ? "workflow-helper workflow-error" : "workflow-helper"}
           aria-errormessage={fieldErrors.workflow ? "workflow-error" : undefined}
           className={`${textareaClass} ${fieldErrors.workflow ? "!border-signal-red" : ""}`}
@@ -664,6 +787,7 @@ export function ContactForm({
         </label>
         <textarea
           id="agentPath" name="agentPath" rows={3} required={!externalExposureOrder}
+          maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
           className={`${textareaClass} ${fieldErrors.agentPath ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
           placeholder={copy.actionPathPlaceholder}
@@ -682,6 +806,7 @@ export function ContactForm({
         </label>
         <textarea
           id="approvalBoundary" name="approvalBoundary" rows={3} required
+          maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
           className={`${textareaClass} ${fieldErrors.approvalBoundary ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
           placeholder={copy.approvalPlaceholder}
@@ -696,10 +821,11 @@ export function ContactForm({
 
       <div>
         <label htmlFor="evidenceAvailable" className="mb-2 block" style={labelStyle}>
-          {copy.evidence} <span className="text-text-muted">{externalExposureOrder ? copy.optional : copy.required}</span>
+          {copy.evidence} <span className="text-text-muted">{externalExposureOrder || selectedNonAgentService ? copy.optional : copy.required}</span>
         </label>
         <textarea
-          id="evidenceAvailable" name="evidenceAvailable" rows={3} required={!externalExposureOrder}
+          id="evidenceAvailable" name="evidenceAvailable" rows={3} required={!externalExposureOrder && !selectedNonAgentService}
+          maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
           className={`${textareaClass} ${fieldErrors.evidenceAvailable ? "!border-signal-red" : ""}`}
           style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
           placeholder={copy.evidencePlaceholder}
