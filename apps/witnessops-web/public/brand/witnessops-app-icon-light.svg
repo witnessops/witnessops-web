@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1024" height="1024" viewBox="0 0 1024 1024"
+     role="img" aria-label="WitnessOps app icon — light">
+  <title>WitnessOps app icon — light</title>
+
+  <rect x="4" y="4" width="1016" height="1016" rx="220" fill="#FFFFFF" stroke="#0B0D10" stroke-width="8"/>
+    <g transform="translate(182.0 323.112600536193) scale(0.8847184986595175)" fill="#0B0D10" shape-rendering="geometricPrecision">
+      <polygon points="0,0 269,427 372,266 474,427 746,1 663,2 474,298 373,137 270,299 83,1"/>
+      <polygon points="216,0 320,170 358,110 330,65 330,61 418,62 389,111 427,170 531,1"/>
+    </g>
+
+</svg>

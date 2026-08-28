@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="746" height="427" viewBox="0 0 746 427" role="img" aria-label="WitnessOps geometric W mark — black">
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="746" height="427" viewBox="0 0 746 427"
+     role="img" aria-label="WitnessOps geometric W mark — black">
   <title>WitnessOps geometric W mark — black</title>
-  <g fill="#0B0D10" shape-rendering="geometricPrecision">
-    <polygon points="0,0 269,427 372,266 474,427 746,1 663,2 474,298 373,137 270,299 83,1"/>
-    <polygon points="216,0 320,170 358,110 330,65 330,61 418,62 389,111 427,170 531,1"/>
-  </g>
+
+
+    <g transform="translate(0 0) scale(1.0)" fill="#0B0D10" shape-rendering="geometricPrecision">
+      <polygon points="0,0 269,427 372,266 474,427 746,1 663,2 474,298 373,137 270,299 83,1"/>
+      <polygon points="216,0 320,170 358,110 330,65 330,61 418,62 389,111 427,170 531,1"/>
+    </g>
+
 </svg>

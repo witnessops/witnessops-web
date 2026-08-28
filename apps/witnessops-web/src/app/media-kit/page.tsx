@@ -11,12 +11,12 @@ import { canonicalUrl } from "@/lib/public-seo";
 export const metadata: Metadata = {
   title: "Media kit",
   description:
-    "WitnessOps logos, brand colours, product screenshots, company description and general contact details.",
+    "Canonical WitnessOps Logo System v1, integrity metadata, public brand guidance, product screenshots and company description.",
   alternates: { canonical: canonicalUrl("/media-kit") },
   openGraph: {
     title: "Media kit | WitnessOps",
     description:
-      "WitnessOps logos, brand colours, product screenshots, company description and general contact details.",
+      "Canonical WitnessOps Logo System v1, integrity metadata, public brand guidance, product screenshots and company description.",
     siteName: "WitnessOps",
     type: "website",
     url: canonicalUrl("/media-kit"),
@@ -25,9 +25,26 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Media kit | WitnessOps",
     description:
-      "WitnessOps logos, brand colours, product screenshots, company description and general contact details.",
+      "Canonical WitnessOps Logo System v1, integrity metadata, public brand guidance, product screenshots and company description.",
   },
 };
+
+const LOGO_SYSTEM = {
+  version: "v1",
+  status: "Canonical production asset set",
+  href: "/media-kit/logo-system-v1/WitnessOps_Logo_System_v1.zip",
+  fileName: "WitnessOps_Logo_System_v1.zip",
+  bytes: "1,619,826 bytes",
+  sha256: "189edcf511639f5bc54f97dadaa011b9747ef81bc7e3879934784b675cdd6d53",
+  manifestHref: "/media-kit/logo-system-v1/manifest.json",
+  checksumsHref: "/media-kit/logo-system-v1/SHA256SUMS.txt",
+  readmeHref: "/media-kit/logo-system-v1/README.md",
+  brandSheetPngHref: "/media-kit/logo-system-v1/witnessops-brand-sheet.png",
+  brandSheetSvgHref: "/media-kit/logo-system-v1/witnessops-brand-sheet.svg",
+  clearspaceHref: "/media-kit/logo-system-v1/witnessops-clearspace.svg",
+  constructionHref: "/media-kit/logo-system-v1/witnessops-construction-grid.svg",
+  markConstructionHref: "/media-kit/logo-system-v1/mark-construction.json",
+} as const;
 
 type DownloadAsset = {
   href: string;
@@ -48,6 +65,51 @@ type BrandAsset = {
 };
 
 const brandAssets: BrandAsset[] = [
+  {
+    title: "Primary stacked logo — black",
+    description: "Primary lockup for formal covers and large centred placements.",
+    previewSrc: "/brand/witnessops-primary-stacked-black.svg",
+    previewAlt: "Black WitnessOps primary stacked logo",
+    previewWidth: 1000,
+    previewHeight: 640,
+    downloads: [
+      {
+        href: "/brand/witnessops-primary-stacked-black.svg",
+        fileName: "witnessops-primary-stacked-black.svg",
+        format: "SVG",
+        dimensions: "1000 × 640",
+      },
+      {
+        href: "/brand/witnessops-primary-stacked-black-1600px.png",
+        fileName: "witnessops-primary-stacked-black-1600px.png",
+        format: "PNG",
+        dimensions: "1600 × 1024",
+      },
+    ],
+  },
+  {
+    title: "Primary stacked logo — white",
+    description: "Reversed primary lockup for dark formal covers and large placements.",
+    previewSrc: "/brand/witnessops-primary-stacked-white.svg",
+    previewAlt: "White WitnessOps primary stacked logo",
+    previewWidth: 1000,
+    previewHeight: 640,
+    darkPreview: true,
+    downloads: [
+      {
+        href: "/brand/witnessops-primary-stacked-white.svg",
+        fileName: "witnessops-primary-stacked-white.svg",
+        format: "SVG",
+        dimensions: "1000 × 640",
+      },
+      {
+        href: "/brand/witnessops-primary-stacked-white-1600px.png",
+        fileName: "witnessops-primary-stacked-white-1600px.png",
+        format: "PNG",
+        dimensions: "1600 × 1024",
+      },
+    ],
+  },
   {
     title: "Horizontal logo — black",
     description: "Use on warm white or another light, quiet background.",
@@ -107,6 +169,12 @@ const brandAssets: BrandAsset[] = [
         format: "SVG",
         dimensions: "746 × 427",
       },
+      {
+        href: "/brand/witnessops-mark-black-1024px.png",
+        fileName: "witnessops-mark-black-1024px.png",
+        format: "PNG",
+        dimensions: "1024 × 586",
+      },
     ],
   },
   {
@@ -124,17 +192,28 @@ const brandAssets: BrandAsset[] = [
         format: "SVG",
         dimensions: "746 × 427",
       },
+      {
+        href: "/brand/witnessops-mark-white-1024px.png",
+        fileName: "witnessops-mark-white-1024px.png",
+        format: "PNG",
+        dimensions: "1024 × 586",
+      },
     ],
   },
   {
-    title: "App icon",
-    description: "Square dark icon for app and account surfaces.",
+    title: "App icon — dark",
+    description: "Square dark icon for app, account and social-avatar surfaces.",
     previewSrc: "/brand/witnessops-app-icon-dark-1024px.png",
     previewAlt: "Dark square WitnessOps app icon",
     previewWidth: 1024,
     previewHeight: 1024,
-    darkPreview: true,
     downloads: [
+      {
+        href: "/brand/witnessops-app-icon-dark.svg",
+        fileName: "witnessops-app-icon-dark.svg",
+        format: "SVG",
+        dimensions: "1024 × 1024",
+      },
       {
         href: "/brand/witnessops-app-icon-dark-1024px.png",
         fileName: "witnessops-app-icon-dark-1024px.png",
@@ -144,28 +223,38 @@ const brandAssets: BrandAsset[] = [
     ],
   },
   {
-    title: "Company avatar",
-    description: "Square company profile image for account and directory use.",
-    previewSrc: "/brand/witnessops-company-avatar-400x400.png",
-    previewAlt: "WitnessOps company avatar",
-    previewWidth: 400,
-    previewHeight: 400,
-    darkPreview: true,
+    title: "App icon — light",
+    description: "Square light icon for light account and social-avatar surfaces.",
+    previewSrc: "/brand/witnessops-app-icon-light-1024px.png",
+    previewAlt: "Light square WitnessOps app icon",
+    previewWidth: 1024,
+    previewHeight: 1024,
     downloads: [
       {
-        href: "/brand/witnessops-company-avatar-400x400.png",
-        fileName: "witnessops-company-avatar-400x400.png",
+        href: "/brand/witnessops-app-icon-light.svg",
+        fileName: "witnessops-app-icon-light.svg",
+        format: "SVG",
+        dimensions: "1024 × 1024",
+      },
+      {
+        href: "/brand/witnessops-app-icon-light-1024px.png",
+        fileName: "witnessops-app-icon-light-1024px.png",
         format: "PNG",
-        dimensions: "400 × 400",
+        dimensions: "1024 × 1024",
       },
     ],
   },
 ];
 
-const colours = [
-  { name: "Near Black", value: "#050505", swatchClass: "bg-[#050505]" },
-  { name: "Orange", value: "#F27A3D", swatchClass: "bg-[#F27A3D]" },
-  { name: "Warm White", value: "#FAFAF7", swatchClass: "bg-[#FAFAF7]" },
+const identityColours = [
+  { name: "Canonical logo black", value: "#0B0D10", swatchClass: "bg-[#0B0D10]" },
+  { name: "Reversed logo white", value: "#FFFFFF", swatchClass: "bg-white" },
+] as const;
+
+const interfaceColours = [
+  { name: "Surface black", value: "#050505", swatchClass: "bg-[#050505]" },
+  { name: "Action orange", value: "#F27A3D", swatchClass: "bg-[#F27A3D]" },
+  { name: "Warm white", value: "#FAFAF7", swatchClass: "bg-[#FAFAF7]" },
 ] as const;
 
 const screenshots = [
@@ -191,6 +280,8 @@ const screenshots = [
 
 const downloadClassName =
   "inline-flex min-h-[50px] max-w-full items-center justify-center rounded-lg border border-brand-accent bg-brand-accent px-5 py-2 text-center font-mono text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.14)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#FF8A4C] hover:shadow-[0_14px_34px_rgba(242,122,61,0.26)] active:translate-y-0 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none";
+const secondaryDownloadClassName =
+  "inline-flex min-h-[50px] max-w-full items-center justify-center rounded-lg border border-surface-border-strong bg-surface-bg px-5 py-2 text-center font-mono text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
 
 const eyebrowClassName =
   "font-mono text-[0.68rem] font-semibold uppercase leading-6 tracking-[0.16em] text-brand-accent";
@@ -229,10 +320,66 @@ export default function MediaKitPage() {
             Media kit
           </h1>
           <p className="mt-7 max-w-[42rem] text-base leading-8 text-text-secondary sm:text-lg">
-            Current public logos, colours, product screenshots and a short company
-            description for accurate references to WitnessOps.
+            The exact Logo System v1 package, browser-ready exports, public interface
+            colours, product screenshots and company copy for accurate references
+            to WitnessOps.
           </p>
         </div>
+        <article
+          data-ui-proof-id="logo-system-package"
+          className={`${cardClassName} mt-10 grid gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center`}
+        >
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <p className={eyebrowClassName}>Canonical package · {LOGO_SYSTEM.version}</p>
+              <span className="rounded-full border border-brand-accent/50 bg-brand-accent/10 px-3 py-1 font-mono text-[0.64rem] font-semibold uppercase tracking-[0.08em] text-brand-accent">
+                {LOGO_SYSTEM.status}
+              </span>
+            </div>
+            <h2 className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-text-primary sm:text-3xl">
+              WitnessOps Logo System v1
+            </h2>
+            <p className="mt-4 max-w-[680px] text-sm leading-7 text-text-secondary">
+              Forty-six manifest payloads with forty-seven checksum entries: SVG
+              masters, PNG exports, app icons, favicons, clearspace and construction
+              references, plus the canonical geometry source. Use this package
+              instead of redrawing the mark.
+            </p>
+            <p className="mt-3 max-w-[680px] text-xs leading-6 text-text-muted">
+              The ZIP is the byte-for-byte package authority. Loose files below are
+              browser-ready render copies of the supplied assets.
+            </p>
+            <p className="mt-4 font-mono text-xs leading-6 text-text-muted">
+              ZIP · {LOGO_SYSTEM.bytes}
+            </p>
+            <p className="mt-1 break-all font-mono text-xs leading-6 text-text-muted">
+              SHA-256: <code className="select-all text-text-secondary">{LOGO_SYSTEM.sha256}</code>
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2 text-sm">
+              {[
+                [LOGO_SYSTEM.manifestHref, "Package manifest"],
+                [LOGO_SYSTEM.checksumsHref, "File checksums"],
+                [LOGO_SYSTEM.readmeHref, "Usage README"],
+              ].map(([href, label]) => (
+                <a
+                  key={href}
+                  href={href}
+                  className="inline-flex min-h-11 items-center rounded-md border border-surface-border px-4 py-2 font-mono text-xs font-semibold uppercase tracking-[0.06em] text-text-secondary transition-colors hover:border-brand-accent hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+          </div>
+          <a
+            href={LOGO_SYSTEM.href}
+            download={LOGO_SYSTEM.fileName}
+            aria-label={`Download complete WitnessOps Logo System v1 ZIP, ${LOGO_SYSTEM.bytes}`}
+            className={downloadClassName}
+          >
+            Download complete ZIP
+          </a>
+        </article>
       </SectionShell>
 
       <SectionShell id="about" spacing="spacious" className="border-b border-surface-border">
@@ -250,11 +397,12 @@ export default function MediaKitPage() {
         <div className="max-w-[720px]">
           <p className={eyebrowClassName}>Logos and marks</p>
           <h2 className={sectionTitleClassName}>
-            Choose the version that keeps clear contrast
+            Use the supplied masters, not a redraw
           </h2>
           <p className="mt-6 text-base leading-8 text-text-secondary">
-            Preserve each asset&apos;s proportions and clear space. Do not add
-            shadows, bevels, neon effects or unrelated symbols.
+            Choose the black or white version that keeps clear contrast. Preserve
+            the exact proportions, central gate and clearspace; do not add effects
+            or unrelated symbols.
           </p>
         </div>
         <div className="mt-10 grid gap-5 md:grid-cols-2">
@@ -280,17 +428,77 @@ export default function MediaKitPage() {
             </article>
           ))}
         </div>
+        <figure className={`${cardClassName} mt-8`}>
+          <div className="overflow-hidden rounded-md border border-surface-border bg-white p-2 sm:p-4">
+            <Image
+              src={LOGO_SYSTEM.brandSheetPngHref}
+              alt="WitnessOps Logo System v1 brand sheet showing the primary, horizontal and icon treatments with colour and minimum-size rules"
+              width={1800}
+              height={1200}
+              sizes="(max-width: 767px) 90vw, 1100px"
+              className="h-auto w-full object-contain"
+            />
+          </div>
+          <figcaption className="mt-6">
+            <h3 className="text-xl font-semibold tracking-[-0.02em] text-text-primary">
+              Brand sheet and construction references
+            </h3>
+            <p className="mt-3 max-w-[760px] text-sm leading-7 text-text-secondary">
+              Clearspace is X = 1/8 of the mark height. Minimum digital widths are
+              24 px for the mark, 160 px for the stacked lockup and 180 px for the
+              horizontal lockup.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {[
+                [LOGO_SYSTEM.brandSheetPngHref, "witnessops-brand-sheet.png", "Brand sheet PNG"],
+                [LOGO_SYSTEM.brandSheetSvgHref, "witnessops-brand-sheet.svg", "Brand sheet SVG"],
+                [LOGO_SYSTEM.clearspaceHref, "witnessops-clearspace.svg", "Clearspace guide"],
+                [LOGO_SYSTEM.constructionHref, "witnessops-construction-grid.svg", "Construction grid"],
+                [LOGO_SYSTEM.markConstructionHref, "mark-construction.json", "Geometry JSON"],
+              ].map(([href, fileName, label]) => (
+                <a
+                  key={href}
+                  href={href}
+                  download={fileName}
+                  className={secondaryDownloadClassName}
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+          </figcaption>
+        </figure>
       </SectionShell>
 
       <SectionShell id="colour-and-type" spacing="spacious" className="border-b border-surface-border">
         <div className="max-w-[720px]">
           <p className={eyebrowClassName}>Brand colours and typography</p>
           <h2 className={sectionTitleClassName}>
-            A restrained public system
+            Identity first; interface second
           </h2>
+          <p className="mt-6 text-base leading-8 text-text-secondary">
+            The logo identity is monochrome. Orange and warm white belong to the
+            WitnessOps website interface; they do not recolour the master identity.
+          </p>
         </div>
-        <div className="mt-10 grid gap-4 sm:grid-cols-3">
-          {colours.map((colour) => (
+        <h3 className="mt-10 text-lg font-semibold text-text-primary">Logo identity</h3>
+        <div className="mt-4 grid max-w-[760px] gap-4 sm:grid-cols-2">
+          {identityColours.map((colour) => (
+            <div key={colour.name} className={cardClassName}>
+              <div
+                aria-hidden="true"
+                className={`h-28 rounded-md border border-surface-border ${colour.swatchClass}`}
+              />
+              <p className="mt-4 font-semibold text-text-primary">{colour.name}</p>
+              <code className="mt-1 block select-all break-all font-mono text-sm text-text-secondary">
+                {colour.value}
+              </code>
+            </div>
+          ))}
+        </div>
+        <h3 className="mt-8 text-lg font-semibold text-text-primary">Website interface</h3>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          {interfaceColours.map((colour) => (
             <div key={colour.name} className={cardClassName}>
               <div
                 aria-hidden="true"
@@ -322,7 +530,8 @@ export default function MediaKitPage() {
           </article>
         </div>
         <p className="mt-5 max-w-[720px] text-sm leading-7 text-text-muted">
-          Orange is for functional emphasis. Font files are not offered for download here.
+          Orange is for functional interface emphasis, never the logo. Font files are
+          not offered for download here.
         </p>
       </SectionShell>
 
@@ -377,6 +586,8 @@ export default function MediaKitPage() {
           <ul className="mt-7 space-y-3 text-base leading-7 text-text-secondary marker:text-brand-accent">
             <li>Do not stretch, redraw or add decorative effects to the logo or mark.</li>
             <li>Use the black or white version that preserves clear contrast.</li>
+            <li>Keep at least X = 1/8 of the mark height as clearspace.</li>
+            <li>Do not recolour the logo orange; the master identity is monochrome.</li>
             <li>Do not use these assets to imply certification, endorsement or customer status.</li>
           </ul>
         </div>

@@ -1,0 +1,113 @@
+{
+  "schema": "witnessops.logo-construction.v1",
+  "canonical_mark_viewbox": [
+    0,
+    0,
+    746,
+    427
+  ],
+  "aspect_ratio": 1.7470726,
+  "fill_black": "#0B0D10",
+  "fill_white": "#FFFFFF",
+  "polygons": {
+    "main_w": [
+      [
+        0,
+        0
+      ],
+      [
+        269,
+        427
+      ],
+      [
+        372,
+        266
+      ],
+      [
+        474,
+        427
+      ],
+      [
+        746,
+        1
+      ],
+      [
+        663,
+        2
+      ],
+      [
+        474,
+        298
+      ],
+      [
+        373,
+        137
+      ],
+      [
+        270,
+        299
+      ],
+      [
+        83,
+        1
+      ]
+    ],
+    "central_gate": [
+      [
+        216,
+        0
+      ],
+      [
+        320,
+        170
+      ],
+      [
+        358,
+        110
+      ],
+      [
+        330,
+        65
+      ],
+      [
+        330,
+        61
+      ],
+      [
+        418,
+        62
+      ],
+      [
+        389,
+        111
+      ],
+      [
+        427,
+        170
+      ],
+      [
+        531,
+        1
+      ]
+    ]
+  },
+  "wordmark": {
+    "text": "WITNESSOPS",
+    "source_typeface": "Inter Display Medium",
+    "font_source_used_for_outlines": "/usr/share/fonts/opentype/inter/InterDisplay-Medium.otf",
+    "note": "All distributed logo lockups contain outlined paths; the font is not required at runtime."
+  },
+  "clearspace": {
+    "unit": "X",
+    "definition": "1/8 of canonical mark height",
+    "canonical_units": 53.375
+  },
+  "minimum_sizes": {
+    "icon_only_digital_px": 24,
+    "stacked_digital_width_px": 160,
+    "horizontal_digital_width_px": 180,
+    "icon_only_print_mm": 6.5,
+    "stacked_print_width_mm": 42,
+    "horizontal_print_width_mm": 48
+  }
+}

@@ -162,7 +162,7 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
       await page.getByRole("button", { name: "Verify" }).click();
       await expect(page.locator('[data-ui-proof-id="skill-result"]')).toContainText("Pass");
       await expect(page.locator('[data-ui-proof-id="skill-result"]')).toContainText(
-        "This does not prove that the skill or resulting workflow is safe.",
+        "It does not prove the skill or resulting workflow is safe.",
       );
       await screenshot(page, `checker-pass-${viewport.label}.png`);
 
