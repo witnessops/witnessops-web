@@ -95,7 +95,7 @@ export function PublicContactRoute({
         {polish ? "Główna ścieżka:" : "Primary route:"}{" "}
         <Link
           href={primaryHref}
-          className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
+          className="break-all text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
         >
           {primaryHref}
         </Link>

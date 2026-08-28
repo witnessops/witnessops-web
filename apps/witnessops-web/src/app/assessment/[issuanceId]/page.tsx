@@ -14,6 +14,11 @@ import { AssessmentTerminalNotice } from "@/components/assessment-terminal-notic
 import { AssessmentPoller } from "./assessment-poller";
 import { ScopeApprovalForm } from "./scope-approval-form";
 import { ClaimantActionsForm } from "./claimant-actions-form";
+import { ManualCommercialConfirmation } from "@/components/review-request/manual-commercial-confirmation";
+import {
+  getCommercialRequestLabel,
+  isManualCommercialRequestIntent,
+} from "@/lib/commercial-request-intents";
 
 export const metadata: Metadata = {
   title: "Governed Recon",
@@ -49,6 +54,19 @@ export default async function AssessmentPage({ params }: Props) {
 
   const intake = record.intakeId ? await getIntakeById(record.intakeId) : null;
   const approvalStatus = record.approvalStatus ?? "pending";
+
+  if (intake && isManualCommercialRequestIntent(intake.submission.intent)) {
+    const locale = intake.submission.locale === "pl" ? "pl" : "en";
+    return (
+      <ManualCommercialConfirmation
+        email={email}
+        issuanceId={issuanceId}
+        locale={locale}
+        requestLabel={getCommercialRequestLabel(intake.submission.intent)}
+        verifiedAt={record.verifiedAt}
+      />
+    );
+  }
 
   // Extract domain for display
   const domain = record.email.split("@")[1] ?? "";
