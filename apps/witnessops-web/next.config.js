@@ -51,6 +51,28 @@ const nextConfig = {
         ],
       },
       {
+        source: "/samples/governed-agent-verifier-conformance/v1/:artifact*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/media-kit/logo-system-v1/:asset*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+        ],
+      },
+      {
         source: "/.well-known/witnessops-demo-signing-keys.json",
         headers: [
           {

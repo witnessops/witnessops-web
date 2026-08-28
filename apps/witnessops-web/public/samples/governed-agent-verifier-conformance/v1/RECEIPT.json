@@ -1,0 +1,95 @@
+{
+  "schema": "witnessops.governed-agent-verifier-conformance-receipt.v1",
+  "receiptId": "governed-agent-verifier-2026-08-28-v1.0.1",
+  "recordedAt": "2026-08-28",
+  "status": "CONTRACT_CONFORMANT_IN_SOURCE",
+  "decision": {
+    "status": "DECIDED",
+    "authority": "WitnessOps founder",
+    "selectedMaxBytes": 16384,
+    "selectedVersion": "1.0.1"
+  },
+  "historicalMismatch": {
+    "version": "1.0.0",
+    "initiallyConformantCommit": "b2565bd6229440e59827cad7d2cdee0eac4ddb08",
+    "driftIntroducedCommit": "6c0f7140be146842b04cb2752870033dcea1fa0d",
+    "publishedSkillSha256": "2a0b2309a1785081ecc20c7e325b3d23454b2bfd65d9641ea82164bf9298aad5",
+    "declaredMaxBytes": 131072,
+    "enforcedMaxBytes": 16384,
+    "runtimeSourcePath": "apps/witnessops-web/src/lib/skill-verify/run-scan.ts",
+    "finding": "v1.0.0 initially matched the 128 KiB runtime. Runtime commit 6c0f7140 later reduced the enforced boundary to 16 KiB without changing the published skill contract."
+  },
+  "resolution": {
+    "version": "1.0.1",
+    "enforcedMaxBytes": 16384,
+    "executionContext": "dedicated-worker",
+    "workerTimeoutMs": 30000,
+    "outputOverflowResult": "input-not-evaluated",
+    "historicalBytesPreserved": true,
+    "buildFailsOnContractDrift": true
+  },
+  "artifacts": {
+    "contractSha256": "83cead2628c59bea978f58f8c3fdd324126dfecd24f50d9920f33828d8fbf365",
+    "skillV100Sha256": "2a0b2309a1785081ecc20c7e325b3d23454b2bfd65d9641ea82164bf9298aad5",
+    "skillV101Sha256": "ccc325d40dc89823adff2d10f81fb02aa583a4edb5fd19bb1501b8512510bdb0",
+    "offlineVerifierSha256": "92dbcdcd46d66487225d5d37aa5c65f5303ce2f8d38fb6584c390493c994678e",
+    "aegisPackageSha256": "d438853a906de7949e3e476f7ca7c5589dcbd3d1f7d08e62b96d840900d046eb",
+    "aegisVerifierId": "aegis-deterministic@2.0.0-cleanroom.3"
+  },
+  "verification": {
+    "offlineArtifactCheck": {
+      "method": "sha256-exact-bytes-and-public-declarations-v1",
+      "command": "node verify.mjs",
+      "expectedVerdict": "ARTIFACT_SET_CONSISTENT",
+      "checks": [
+        "archived v1.0.0 exact-byte hash and 128 KiB declaration",
+        "current v1.0.1 exact-byte hash and 16 KiB declaration",
+        "machine-readable contract hash, version, strict UTF-8 encoding, and 16,384-byte boundary",
+        "receipt resolution boundary matches the public contract"
+      ],
+      "doesNotCheck": "runtime source, catalogue metadata, repository tests, or deployment"
+    },
+    "repositoryConformanceGate": {
+      "command": "pnpm verify:skill-contract",
+      "requiredBeforeAttestation": true,
+      "checks": [
+        "runtime constants imported from the public contract",
+        "catalogue metadata and immutable version bytes",
+        "pass limitation present in exported pass reports",
+        "research policy semantics match the pinned engine",
+        "output overflow and worker timeout cannot become pass, review, or fail",
+        "non-well-formed UTF-16 paste strings are rejected before hashing or scanning",
+        "same-length valid input mutation changes WitnessOps SHA-256 identity"
+      ]
+    }
+  },
+  "adversarialObservation": {
+    "classification": "FACT_WITH_MEASUREMENT_BOUNDARY",
+    "environment": "Node 24.19.0; direct pinned Aegis scan; performance.now; three runs",
+    "fixture": "16,384 UTF-8 bytes formed by repeating U+200B followed by x",
+    "medianMs": 6710.7,
+    "maxMs": 7004.5,
+    "earlierColdRunMs": 9242.1,
+    "outputObservation": "one finding produced a 94,208-byte evidence snippet and a 111,481-byte raw report",
+    "boundary": "CPU and output measurements only; not a browser or mobile timing claim",
+    "mitigation": "v1.0.1 moves evaluation to a dedicated worker, terminates at 30 seconds, and returns input-not-evaluated when published output bounds are exceeded"
+  },
+  "attestation": {
+    "mechanism": "GitHub Actions OIDC keyless Sigstore signing of the exact receipt bytes and a companion source-binding attestation",
+    "workflow": ".github/workflows/canary-receipt-emit.yml",
+    "signingPrerequisite": "the named repository conformance gate passes in a low-authority prerequisite job and the offline artifact check is repeated before signing the same main revision",
+    "sourceRevisionBinding": "the signed companion attestation names GITHUB_SHA, the prerequisite job's matching verified revision, repository, ref, workflow run, exact receipt SHA-256, and the passed prerequisites",
+    "bundleLocation": "post-merge workflow artifact containing both signed payloads",
+    "embeddedInReceipt": false
+  },
+  "claimBoundary": {
+    "establishes": "After the named repository conformance gate passes, agreement among the named source contract, skill bytes, runtime constants, version metadata, and repository checks for that checked-out source revision.",
+    "doesNotEstablish": [
+      "skill or verifier safety",
+      "completeness or certification",
+      "bounded scan duration on every device",
+      "production deployment of this source revision",
+      "truth of evidence outside the named artifacts"
+    ]
+  }
+}

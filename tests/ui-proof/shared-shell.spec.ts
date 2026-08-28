@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 
 const acceptedRoutes = [
@@ -416,6 +417,60 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
   await englishSwitch.click();
   await expect(page).toHaveURL(/\/catalog$/);
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
+});
+
+test("media kit exposes the exact canonical logo package without mobile overflow", async ({
+  browser,
+}) => {
+  const packagePath =
+    "/media-kit/logo-system-v1/WitnessOps_Logo_System_v1.zip";
+  const packageSha256 =
+    "189edcf511639f5bc54f97dadaa011b9747ef81bc7e3879934784b675cdd6d53";
+
+  for (const viewport of [
+    { width: 1280, height: 900 },
+    { width: 320, height: 740 },
+  ]) {
+    const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
+    const page = await context.newPage();
+    const response = await page.goto("/media-kit", { waitUntil: "networkidle" });
+
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('[data-ui-proof-id="logo-system-package"]')).toBeVisible();
+    await expect(page.getByRole("link", { name: /Download complete WitnessOps Logo System v1 ZIP/ })).toHaveAttribute(
+      "href",
+      packagePath,
+    );
+    await expect(page.locator("main")).toContainText(packageSha256);
+    await expect(page.getByRole("link", { name: "Brand sheet SVG" })).toHaveAttribute(
+      "href",
+      "/media-kit/logo-system-v1/witnessops-brand-sheet.svg",
+    );
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      ),
+    ).toBeLessThanOrEqual(1);
+
+    if (viewport.width === 1280) {
+      const packageResponse = await page.request.get(packagePath);
+      expect(packageResponse.status()).toBe(200);
+      expect(packageResponse.headers()["cache-control"]).toContain("immutable");
+      expect(
+        createHash("sha256").update(await packageResponse.body()).digest("hex"),
+      ).toBe(packageSha256);
+
+      const manifestResponse = await page.request.get(
+        "/media-kit/logo-system-v1/manifest.json",
+      );
+      expect(manifestResponse.status()).toBe(200);
+      const manifest = await manifestResponse.json();
+      expect(manifest.status).toBe("CANONICAL_PRODUCTION_ASSET_SET");
+      expect(manifest.files).toHaveLength(46);
+    }
+
+    await context.close();
+  }
 });
 
 test("mobile review request keeps the conversion form clear and legible", async ({

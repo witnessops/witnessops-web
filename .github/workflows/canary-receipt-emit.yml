@@ -6,8 +6,49 @@ on:
   workflow_dispatch: {}
 
 jobs:
+  verify-conformance:
+    name: Verify governed verifier conformance without signing authority
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      source_revision: ${{ steps.bind-source.outputs.source_revision }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+        with:
+          version: 9.15.4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies from the frozen lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Prove governed verifier conformance
+        run: |
+          set -euo pipefail
+          pnpm verify:skill-contract
+          cd apps/witnessops-web/public/samples/governed-agent-verifier-conformance/v1
+          sha256sum -c MANIFEST.sha256
+          node verify.mjs | tee /tmp/governed-agent-verifier-offline-verdict.json
+          grep -F '"verdict": "ARTIFACT_SET_CONSISTENT"' /tmp/governed-agent-verifier-offline-verdict.json
+
+      - name: Bind passing gate to the event revision
+        id: bind-source
+        run: echo "source_revision=${GITHUB_SHA}" >> "${GITHUB_OUTPUT}"
+
   emit-receipt:
     name: Emit signed receipt for public proof surface manifest
+    needs: verify-conformance
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -17,6 +58,14 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           fetch-depth: 0
+
+      - name: Recheck public artifact integrity before signing
+        run: |
+          set -euo pipefail
+          cd apps/witnessops-web/public/samples/governed-agent-verifier-conformance/v1
+          sha256sum -c MANIFEST.sha256
+          node verify.mjs | tee /tmp/governed-agent-verifier-offline-verdict.json
+          grep -F '"verdict": "ARTIFACT_SET_CONSISTENT"' /tmp/governed-agent-verifier-offline-verdict.json
 
       - name: Install cosign
         uses: sigstore/cosign-installer@ba7bc0a3fef59531c69a25acd34668d6d3fe6f22
@@ -33,11 +82,85 @@ jobs:
           chmod +x tools/emit_receipt.sh
           tools/emit_receipt.sh
 
+      - name: Sign exact governed-agent-verifier conformance receipt
+        env:
+          CONFORMANCE_RECEIPT: apps/witnessops-web/public/samples/governed-agent-verifier-conformance/v1/RECEIPT.json
+          RECEIPT_BASENAME: governed-agent-verifier-conformance-v1.0.1.json
+          SOURCE_BINDING_BASENAME: governed-agent-verifier-conformance-v1.0.1.source-binding.json
+          VERIFIED_SOURCE_REVISION: ${{ needs.verify-conformance.outputs.source_revision }}
+        run: |
+          set -euo pipefail
+          test "${VERIFIED_SOURCE_REVISION}" = "${GITHUB_SHA}"
+          install -m 0644 "${CONFORMANCE_RECEIPT}" "receipts/${RECEIPT_BASENAME}"
+          (
+            cd receipts
+            sha256sum "${RECEIPT_BASENAME}" > "${RECEIPT_BASENAME}.sha256"
+          )
+          RECEIPT_SHA256="$(sha256sum "receipts/${RECEIPT_BASENAME}" | awk '{ print $1 }')" \
+          node <<'NODE'
+          const fs = require("node:fs");
+          const binding = {
+            schema: "witnessops.governed-agent-verifier-source-binding.v1",
+            recordedAt: new Date().toISOString(),
+            repository: process.env.GITHUB_REPOSITORY,
+            sourceRevision: process.env.GITHUB_SHA,
+            verifiedSourceRevision: process.env.VERIFIED_SOURCE_REVISION,
+            sourceRef: process.env.GITHUB_REF,
+            workflowRef: process.env.GITHUB_WORKFLOW_REF,
+            runId: process.env.GITHUB_RUN_ID,
+            runAttempt: process.env.GITHUB_RUN_ATTEMPT,
+            receipt: {
+              filename: process.env.RECEIPT_BASENAME,
+              sha256: process.env.RECEIPT_SHA256,
+            },
+            prerequisites: {
+              repositoryGate: "pnpm verify:skill-contract (low-authority prerequisite job)",
+              offlineArtifactVerdict: "ARTIFACT_SET_CONSISTENT",
+              status: "passed-before-binding",
+            },
+            claimBoundary:
+              "Binds the exact receipt bytes and named passing checks to this GitHub source revision; it does not prove production deployment or safety.",
+          };
+          fs.writeFileSync(
+            `receipts/${process.env.SOURCE_BINDING_BASENAME}`,
+            `${JSON.stringify(binding, null, 2)}\n`,
+            { mode: 0o644 },
+          );
+          NODE
+          (
+            cd receipts
+            sha256sum "${SOURCE_BINDING_BASENAME}" > "${SOURCE_BINDING_BASENAME}.sha256"
+          )
+          cosign sign-blob --yes \
+            --bundle "receipts/${RECEIPT_BASENAME}.sigstore.json" \
+            "receipts/${RECEIPT_BASENAME}"
+          cosign verify-blob \
+            --bundle "receipts/${RECEIPT_BASENAME}.sigstore.json" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/canary-receipt-emit\\.yml@refs/heads/main$" \
+            "receipts/${RECEIPT_BASENAME}"
+          cosign sign-blob --yes \
+            --bundle "receipts/${SOURCE_BINDING_BASENAME}.sigstore.json" \
+            "receipts/${SOURCE_BINDING_BASENAME}"
+          cosign verify-blob \
+            --bundle "receipts/${SOURCE_BINDING_BASENAME}.sigstore.json" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/canary-receipt-emit\\.yml@refs/heads/main$" \
+            "receipts/${SOURCE_BINDING_BASENAME}"
+
       - name: Upload receipt artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: public-proof-surface-receipts
+          retention-days: 90
+          if-no-files-found: error
           path: |
             receipts/public-proof-surface-manifest.diff
             receipts/public-proof-surface-manifest.diff.sha256
             receipts/public-proof-surface-manifest.diff.sigstore.json
+            receipts/governed-agent-verifier-conformance-v1.0.1.json
+            receipts/governed-agent-verifier-conformance-v1.0.1.json.sha256
+            receipts/governed-agent-verifier-conformance-v1.0.1.json.sigstore.json
+            receipts/governed-agent-verifier-conformance-v1.0.1.source-binding.json
+            receipts/governed-agent-verifier-conformance-v1.0.1.source-binding.json.sha256
+            receipts/governed-agent-verifier-conformance-v1.0.1.source-binding.json.sigstore.json

@@ -13,27 +13,46 @@ export type SkillCategory =
   | "handover"
   | "hygiene";
 
+export type SkillVersion = "1.0.0" | "1.0.1";
+
+type SkillConformanceLinks = {
+  contractHref: string;
+  receiptHref: string;
+  verifierHref: string;
+};
+
 type SkillDefinition = {
   slug: string;
   title: string;
   tagline: string;
   description: string;
   category: SkillCategory;
+  version?: SkillVersion;
+  publishedAt?: "2026-08-27" | "2026-08-28";
+  reviewedAt?: "2026-08-27" | "2026-08-28";
   featured?: boolean;
+  conformance?: SkillConformanceLinks;
   related: string[];
 };
 
 export type PublicSkill = SkillDefinition & {
   name: string;
-  version: "1.0.0";
+  version: SkillVersion;
   lifecycle: "maintained" | "reference";
   license: "Apache-2.0";
   sourceRepository: "witnessops/witnessops-web";
   sourcePath: string;
-  publishedAt: "2026-08-27";
-  reviewedAt: "2026-08-27";
+  publishedAt: "2026-08-27" | "2026-08-28";
+  reviewedAt: "2026-08-27" | "2026-08-28";
   sha256: string;
   byteLength: number;
+};
+
+type SkillReleaseDefinition = {
+  version: SkillVersion;
+  publishedAt: "2026-08-27" | "2026-08-28";
+  reviewedAt: "2026-08-27" | "2026-08-28";
+  sourcePath: string;
 };
 
 const DEFINITIONS: readonly SkillDefinition[] = [
@@ -43,7 +62,18 @@ const DEFINITIONS: readonly SkillDefinition[] = [
     tagline: "Check a SKILL.md before an agent loads it.",
     description: "Local, deterministic policy scan for agent skills. A pass is not a safety proof.",
     category: "verifier",
+    version: "1.0.1",
+    publishedAt: "2026-08-28",
+    reviewedAt: "2026-08-28",
     featured: true,
+    conformance: {
+      contractHref:
+        "/samples/governed-agent-verifier-conformance/v1/CONTRACT.json",
+      receiptHref:
+        "/samples/governed-agent-verifier-conformance/v1/RECEIPT.json",
+      verifierHref:
+        "/samples/governed-agent-verifier-conformance/v1/verify.mjs",
+    },
     related: ["claim-boundary-copy", "mcp-tool-hygiene", "receipt-first-verifier"],
   },
   {
@@ -128,6 +158,20 @@ const DEFINITIONS: readonly SkillDefinition[] = [
   },
 ] as const;
 
+const HISTORICAL_RELEASES: Partial<
+  Record<string, readonly SkillReleaseDefinition[]>
+> = {
+  "governed-agent-verifier": [
+    {
+      version: "1.0.0",
+      publishedAt: "2026-08-27",
+      reviewedAt: "2026-08-27",
+      sourcePath:
+        "apps/witnessops-web/public/samples/governed-agent-verifier-conformance/v1/governed-agent-verifier-v1.0.0-SKILL.md",
+    },
+  ],
+};
+
 const CATEGORY_LABELS: Record<SkillCategory, string> = {
   verifier: "Verifier",
   receipts: "Receipts",
@@ -138,13 +182,15 @@ const CATEGORY_LABELS: Record<SkillCategory, string> = {
   hygiene: "Hygiene",
 };
 
-function skillRoot(): string {
+function repositoryRoot(): string {
   const candidates = [
-    resolve(process.cwd(), "../../content/witnessops/skills"),
-    resolve(process.cwd(), "content/witnessops/skills"),
+    resolve(process.cwd(), "../.."),
+    process.cwd(),
   ];
-  const root = candidates.find((candidate) => existsSync(candidate));
-  if (!root) throw new Error("Public skill source directory is unavailable.");
+  const root = candidates.find((candidate) =>
+    existsSync(resolve(candidate, "content/witnessops/skills")),
+  );
+  if (!root) throw new Error("WitnessOps repository root is unavailable.");
   return root;
 }
 
@@ -152,39 +198,86 @@ function definition(slug: string): SkillDefinition | undefined {
   return DEFINITIONS.find((candidate) => candidate.slug === slug);
 }
 
-export function readSkillBytes(slug: string): Buffer {
-  if (!definition(slug)) throw new Error(`Unknown public skill: ${slug}`);
-  return readFileSync(resolve(skillRoot(), slug, "SKILL.md"));
+function currentRelease(item: SkillDefinition): SkillReleaseDefinition {
+  return {
+    version: item.version ?? "1.0.0",
+    publishedAt: item.publishedAt ?? "2026-08-27",
+    reviewedAt: item.reviewedAt ?? "2026-08-27",
+    sourcePath: `content/witnessops/skills/${item.slug}/SKILL.md`,
+  };
 }
 
-export function readSkillMarkdown(slug: string): string {
-  return readSkillBytes(slug).toString("utf8");
+function releaseFor(
+  item: SkillDefinition,
+  version?: string,
+): SkillReleaseDefinition | undefined {
+  const current = currentRelease(item);
+  if (!version || version === current.version) return current;
+  return HISTORICAL_RELEASES[item.slug]?.find(
+    (candidate) => candidate.version === version,
+  );
 }
 
-function materialize(item: SkillDefinition): PublicSkill {
-  const bytes = readSkillBytes(item.slug);
+export function readSkillBytes(slug: string, version?: string): Buffer {
+  const item = definition(slug);
+  if (!item) throw new Error(`Unknown public skill: ${slug}`);
+  const release = releaseFor(item, version);
+  if (!release) throw new Error(`Unknown public skill version: ${slug}@${version}`);
+  return readFileSync(resolve(repositoryRoot(), release.sourcePath));
+}
+
+export function readSkillMarkdown(slug: string, version?: string): string {
+  return readSkillBytes(slug, version).toString("utf8");
+}
+
+function materialize(
+  item: SkillDefinition,
+  release = currentRelease(item),
+): PublicSkill {
+  const bytes = readSkillBytes(item.slug, release.version);
   return {
     ...item,
     name: item.slug,
-    version: "1.0.0",
+    version: release.version,
     lifecycle: item.featured ? "maintained" : "reference",
     license: "Apache-2.0",
     sourceRepository: "witnessops/witnessops-web",
-    sourcePath: `content/witnessops/skills/${item.slug}/SKILL.md`,
-    publishedAt: "2026-08-27",
-    reviewedAt: "2026-08-27",
+    sourcePath: release.sourcePath,
+    publishedAt: release.publishedAt,
+    reviewedAt: release.reviewedAt,
     sha256: createHash("sha256").update(bytes).digest("hex"),
     byteLength: bytes.byteLength,
   };
 }
 
 export function listSkills(): PublicSkill[] {
-  return DEFINITIONS.map(materialize);
+  return DEFINITIONS.map((item) => materialize(item));
 }
 
 export function getSkill(slug: string): PublicSkill | undefined {
   const item = definition(slug);
   return item ? materialize(item) : undefined;
+}
+
+export function getSkillVersion(
+  slug: string,
+  version: string,
+): PublicSkill | undefined {
+  const item = definition(slug);
+  if (!item) return undefined;
+  const release = releaseFor(item, version);
+  return release ? materialize(item, release) : undefined;
+}
+
+export function listSkillVersions(slug: string): PublicSkill[] {
+  const item = definition(slug);
+  if (!item) return [];
+  return [
+    materialize(item),
+    ...(HISTORICAL_RELEASES[item.slug] ?? []).map((release) =>
+      materialize(item, release),
+    ),
+  ];
 }
 
 export function relatedSkills(skill: PublicSkill): PublicSkill[] {

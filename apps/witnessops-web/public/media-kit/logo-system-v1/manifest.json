@@ -1,0 +1,238 @@
+{
+  "schema": "witnessops.logo-package-manifest.v1",
+  "package": "witnessops-logo-system-v1",
+  "status": "CANONICAL_PRODUCTION_ASSET_SET",
+  "canonical_mark": "geometric W with central gate/hourglass",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3573,
+      "sha256": "b6e95628104a777403107be8fb11e376148a6e02a6b4d2a36ddd35af17206dcc"
+    },
+    {
+      "path": "favicon/android-chrome-192x192.png",
+      "bytes": 6794,
+      "sha256": "e36592428d91a56e6063c87d1be072d7b4502c8b7b89ca458773becdec3200ef"
+    },
+    {
+      "path": "favicon/android-chrome-512x512.png",
+      "bytes": 19911,
+      "sha256": "eb74a466382de597d1b0cf0f0f60ae9a272d6f20815078b10dd028473c6bef2e"
+    },
+    {
+      "path": "favicon/apple-touch-icon.png",
+      "bytes": 6355,
+      "sha256": "67a98d4df2a2b729c2d83ebfd2c9b0aa76df0c04ed9a82e61efbee7fce331a8a"
+    },
+    {
+      "path": "favicon/favicon-16x16.png",
+      "bytes": 546,
+      "sha256": "618fe5d029b8b7583f1ea77bde32cedba59e8c410510d62ea7c7561ecd6d706b"
+    },
+    {
+      "path": "favicon/favicon-32x32.png",
+      "bytes": 1128,
+      "sha256": "1f21772423909d45ac8f192e5d77a87d26f1d2e70a2abf9b842ce063e0dfe6b8"
+    },
+    {
+      "path": "favicon/favicon-48x48.png",
+      "bytes": 1745,
+      "sha256": "2e0f5833a77f6c1447a3d27e7de1da13afd51c37902a87c76d42623fd9a13e7e"
+    },
+    {
+      "path": "favicon/favicon-64x64.png",
+      "bytes": 2454,
+      "sha256": "5e74f9e57d592806252beada1f2cdf081c69d2c953bf9b225a36abc87e541967"
+    },
+    {
+      "path": "favicon/favicon.ico",
+      "bytes": 547,
+      "sha256": "3da878fe9ef6f38ada457701106c6c7121747b9088e6623f7a17efa02db0891d"
+    },
+    {
+      "path": "favicon/favicon.svg",
+      "bytes": 611,
+      "sha256": "d99e87ca71fd37df4c4d87ea1846468a913652ea3a41fef4384916f61192b7bf"
+    },
+    {
+      "path": "png/witnessops-app-icon-dark-1024px.png",
+      "bytes": 45151,
+      "sha256": "66439947c2ac1ac869d28c4b8ef3deaf4ee7566379272b882c66812e5777dcae"
+    },
+    {
+      "path": "png/witnessops-app-icon-dark-512px.png",
+      "bytes": 19911,
+      "sha256": "eb74a466382de597d1b0cf0f0f60ae9a272d6f20815078b10dd028473c6bef2e"
+    },
+    {
+      "path": "png/witnessops-app-icon-light-1024px.png",
+      "bytes": 53749,
+      "sha256": "ea91fe587cbd32342ae95cefb230ed19944a617f99088356b2c257cd47d57157"
+    },
+    {
+      "path": "png/witnessops-app-icon-light-512px.png",
+      "bytes": 23945,
+      "sha256": "f873115a05f8cd9cce6b44334f2d233fe9e7ea4002db8d2b0bd66cdfb45e6bc1"
+    },
+    {
+      "path": "png/witnessops-horizontal-black-1200px.png",
+      "bytes": 29548,
+      "sha256": "8a0619a2983d9413fd84637d77cce2b5d165a739b8dd39eea43c554882617b60"
+    },
+    {
+      "path": "png/witnessops-horizontal-black-2400px.png",
+      "bytes": 62186,
+      "sha256": "fd21ea7e8a9d9cb880aa8f9eb7ed67edeafded48d7f44425c5df319952312a2e"
+    },
+    {
+      "path": "png/witnessops-horizontal-white-1200px.png",
+      "bytes": 22507,
+      "sha256": "d02e630c22f475f709f89433cbc672f81177beff5b632ea5ba9e49c9a7358598"
+    },
+    {
+      "path": "png/witnessops-horizontal-white-2400px.png",
+      "bytes": 49444,
+      "sha256": "9240c5025fbbc5d04ff91071b3ac823802640b8d448762bc32f678e36c714be8"
+    },
+    {
+      "path": "png/witnessops-mark-black-1024px.png",
+      "bytes": 41742,
+      "sha256": "d06f0c918cad1d449d10965c509e4bf9707aff7ec396eb7b3cda60370134a9f9"
+    },
+    {
+      "path": "png/witnessops-mark-black-256px.png",
+      "bytes": 8848,
+      "sha256": "0073cee69458d0eaece061ebfbc2ae148e4a7081a0d3d13e58ea8ea8a7fc0b79"
+    },
+    {
+      "path": "png/witnessops-mark-black-512px.png",
+      "bytes": 18422,
+      "sha256": "e0750c9c5b48b399c93065c582c8846060268e90b7c81fca15dbb42315c208c9"
+    },
+    {
+      "path": "png/witnessops-mark-white-1024px.png",
+      "bytes": 32445,
+      "sha256": "9f1724b225129850a1871cd543936fd7bc317c07cc5a99f32f694ce8b753d26c"
+    },
+    {
+      "path": "png/witnessops-mark-white-256px.png",
+      "bytes": 5671,
+      "sha256": "7cd90b616cdb337041d09ca00906a0c955102c2dd2d4b4c332b30dca15b548a0"
+    },
+    {
+      "path": "png/witnessops-mark-white-512px.png",
+      "bytes": 14330,
+      "sha256": "efed66d91e23e66749db5e87392a730521868a09fdfff937432edbed0e057811"
+    },
+    {
+      "path": "png/witnessops-primary-stacked-black-1600px.png",
+      "bytes": 75427,
+      "sha256": "eb1f4944843353eef0f147408088201096b4ee6c2b2940ee5baad29a7dfb8fc5"
+    },
+    {
+      "path": "png/witnessops-primary-stacked-black-800px.png",
+      "bytes": 34577,
+      "sha256": "3bb229568edce9d363be66aa52bd839a80fa0a2dc5c395905e625ee7d3cf7c1b"
+    },
+    {
+      "path": "png/witnessops-primary-stacked-white-1600px.png",
+      "bytes": 59423,
+      "sha256": "a8d9c755d3cf92a767f366082821eb70c242285d02276d4c5f97dbb0920c4635"
+    },
+    {
+      "path": "png/witnessops-primary-stacked-white-800px.png",
+      "bytes": 26585,
+      "sha256": "f203c5633cfa83d8480cb1ba5f1defe1720bd584ce3c13bae93a59daeea004fb"
+    },
+    {
+      "path": "reference/selected-raster-reference.png",
+      "bytes": 749133,
+      "sha256": "69d9bdda62a68934f7940abf840a4663d4b2b0c3e684eda20767a0920470cc30"
+    },
+    {
+      "path": "source/mark-construction.json",
+      "bytes": 1698,
+      "sha256": "58d0722e4bffab1b2bd325ac87978508d72609840ec3b1b93a5d8ac0aad4220d"
+    },
+    {
+      "path": "specification/witnessops-brand-sheet.png",
+      "bytes": 147833,
+      "sha256": "88b487d34acb14a84927afe6644df25cb10558a60862f6000ea8c7bfe2edb862"
+    },
+    {
+      "path": "specification/witnessops-brand-sheet.svg",
+      "bytes": 14023,
+      "sha256": "8df28bfdf4b7ccb2b131397ffc3cf2f3ef2badde75d3043cfef89451d0e08655"
+    },
+    {
+      "path": "specification/witnessops-clearspace.png",
+      "bytes": 52399,
+      "sha256": "ce5900467949ca23df25a6e5bfb16d6a142695d88c0303fd8d6911df96a5be0e"
+    },
+    {
+      "path": "specification/witnessops-clearspace.svg",
+      "bytes": 1468,
+      "sha256": "9d219239113634d6ae265b36ea8793fb25960046fb0df886dd8e23d4837d4b3b"
+    },
+    {
+      "path": "specification/witnessops-construction-grid.png",
+      "bytes": 69054,
+      "sha256": "e19b36558955904b4660030f0fc95053636cae2a0127a20c2bd527dab783db6b"
+    },
+    {
+      "path": "specification/witnessops-construction-grid.svg",
+      "bytes": 3825,
+      "sha256": "255945845adc34ff0f7780158cc14b973442f5b8d22d91c845f6505b9a17c739"
+    },
+    {
+      "path": "svg/witnessops-app-icon-dark.svg",
+      "bytes": 655,
+      "sha256": "3a397f211a678b7a73387659ce459d7366fe1e16cf37d0e69ea3a44f50e1464d"
+    },
+    {
+      "path": "svg/witnessops-app-icon-light.svg",
+      "bytes": 691,
+      "sha256": "204b73fe66f27fb74ca4e15e70f65e29ff8a064dc487d2751cb51fbe70fe59b9"
+    },
+    {
+      "path": "svg/witnessops-horizontal-black.svg",
+      "bytes": 3485,
+      "sha256": "a3e753cd7f3575101d0c0bb497c6bf1c4de5525e9cb9e411d772f8eb97b6a041"
+    },
+    {
+      "path": "svg/witnessops-horizontal-white.svg",
+      "bytes": 3485,
+      "sha256": "551d3071f3a272cdcad82386acdd3c29c990bf291f772457b857a0c8121a64af"
+    },
+    {
+      "path": "svg/witnessops-icon-only-black.svg",
+      "bytes": 561,
+      "sha256": "dac6bdab3c799bbbfaeb298e840dd248e285b7ebccc40010daea08c71066b44b"
+    },
+    {
+      "path": "svg/witnessops-icon-only-white.svg",
+      "bytes": 561,
+      "sha256": "99de0bb3430af340f3c7b9d772b78b7b4f29d396ee1aeb45fd6a926a7276f741"
+    },
+    {
+      "path": "svg/witnessops-mark-black.svg",
+      "bytes": 565,
+      "sha256": "fa7ca892f67cbcc50b3cbab2b633886b963df34118337eeee679096b7be064a1"
+    },
+    {
+      "path": "svg/witnessops-mark-white.svg",
+      "bytes": 565,
+      "sha256": "2df4deaf83cb80c30ca066fbb76649d0802670d463232ef59bbb520f9141d5a8"
+    },
+    {
+      "path": "svg/witnessops-primary-stacked-black.svg",
+      "bytes": 3491,
+      "sha256": "21ab7293f9cac03e617ab4523f97fdc3d7c9d45ff80f477456a924f749e445bc"
+    },
+    {
+      "path": "svg/witnessops-primary-stacked-white.svg",
+      "bytes": 3491,
+      "sha256": "18140eff9932611bc57f9075a42c301c27f31f89ab6ad7a729b3c9100ee400e5"
+    }
+  ]
+}

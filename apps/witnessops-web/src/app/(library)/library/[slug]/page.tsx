@@ -2,7 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { categoryLabel, getSkill, listSkills, readSkillMarkdown, relatedSkills } from "@/lib/skills/catalog";
+import {
+  categoryLabel,
+  getSkill,
+  listSkills,
+  listSkillVersions,
+  readSkillMarkdown,
+  relatedSkills,
+} from "@/lib/skills/catalog";
 import styles from "../skill-library.module.css";
 import { SkillCopyAction } from "./skill-actions";
 
@@ -26,7 +33,13 @@ export default async function SkillDetailPage({ params }: Props) {
   const skill = getSkill((await params).slug);
   if (!skill) notFound();
   const markdown = readSkillMarkdown(skill.slug);
+  const historicalVersions = listSkillVersions(skill.slug).filter(
+    (release) => release.version !== skill.version,
+  );
   const checkHref = `/verify/skill?skill=${encodeURIComponent(skill.slug)}&version=${encodeURIComponent(skill.version)}&sha256=${skill.sha256}`;
+  const downloadHref = skill.conformance
+    ? `/library/${skill.slug}/versions/${skill.version}/download`
+    : `/library/${skill.slug}/download`;
 
   return (
     <main id="main-content" tabIndex={-1} className={styles.page} data-page="skill-detail">
@@ -37,7 +50,7 @@ export default async function SkillDetailPage({ params }: Props) {
           <p className={styles.lead}>{skill.tagline}</p>
           <div className={styles.actions}>
             <Link href={checkHref} className={styles.actionPrimary}>Check this exact version</Link>
-            <a href={`/library/${skill.slug}/download`} className={styles.actionSecondary}>Download SKILL.md</a>
+            <a href={downloadHref} className={styles.actionSecondary}>Download SKILL.md</a>
           </div>
         </div>
         <dl className={styles.detailFacts}>
@@ -67,6 +80,37 @@ export default async function SkillDetailPage({ params }: Props) {
             <h2>Related skills</h2>
             <ul>{relatedSkills(skill).map((item) => <li key={item.slug}><Link href={`/library/${item.slug}`}>{item.name}</Link></li>)}</ul>
           </section>
+          {skill.conformance && historicalVersions.length > 0 ? (
+            <section className={styles.sideCard}>
+              <h2>Contract history</h2>
+              <p>
+                v1.0.0 initially matched a 128 KiB runtime. Later runtime source
+                moved to 16 KiB without a contract update. v1.0.1 records and
+                resolves that source-level drift.
+              </p>
+              <ul>
+                <li><a href={skill.conformance.receiptHref}>Historical drift receipt</a></li>
+                <li><a href={skill.conformance.contractHref}>Machine-readable v1.0.1 contract</a></li>
+                <li><a href={skill.conformance.verifierHref}>Independent verifier</a></li>
+                {historicalVersions.map((release) => {
+                  const historicalCheckHref = `/verify/skill?skill=${encodeURIComponent(release.slug)}&version=${encodeURIComponent(release.version)}&sha256=${release.sha256}`;
+                  return (
+                    <li key={release.version}>
+                      <a href={`/library/${release.slug}/versions/${release.version}/download`}>
+                        Archived {release.version} bytes
+                      </a>
+                      {" · "}
+                      <Link href={historicalCheckHref}>check</Link>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p>
+                This establishes source and contract agreement only. It is not
+                a safety, certification, or production-deployment claim.
+              </p>
+            </section>
+          ) : null}
           <section className={styles.sideCard}>
             <h2>Limitation</h2>
             <p>Source transparency and a matching digest do not prove that a skill or resulting workflow is safe.</p>
