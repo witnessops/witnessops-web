@@ -120,6 +120,27 @@ test("Ask WitnessOps does not cover the dedicated review request form", () => {
   assert.match(content, /"\/review\/request"/);
 });
 
+test("Ask WitnessOps resets across route changes and closes before same-site navigation", () => {
+  const widget = source("docs-assistant-widget.tsx");
+  const routeCta = source("ask-witnessops-route-cta.tsx");
+  const fitCard = source("ask-witnessops-commercial-fit-card.tsx");
+
+  assert.match(widget, /previousPathnameRef\.current === pathname/);
+  assert.match(widget, /previousPathnameRef\.current = pathname;\s*resetAskState\(\)/);
+  assert.match(widget, /requestGenerationRef\.current \+= 1/);
+  assert.match(widget, /setQuestion\(""\)/);
+  assert.match(widget, /setAnswer\(null\)/);
+  assert.match(widget, /setContactMode\(false\)/);
+  assert.match(widget, /onClickCapture=\{handleDialogLinkCapture\}/);
+  assert.match(widget, /destination\.origin === window\.location\.origin/);
+  assert.match(widget, /href="\/privacy"/);
+  assert.match(routeCta, /if \(href\.startsWith\("\/"\)\)/);
+  assert.match(
+    fitCard,
+    /SPECIMEN_HREF\s*=\s*"\/review\/sample-cases\/ai-agent-action-proof-run"/,
+  );
+});
+
 test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
   const widget = source("docs-assistant-widget.tsx");
   const contact = source("docs-assistant-contact-handoff.tsx");
@@ -162,10 +183,31 @@ test("Ask WitnessOps uses a full-viewport mobile surface at the shared breakpoin
   assert.match(styles, /env\(safe-area-inset-bottom\)/);
   assert.match(content, /window\.visualViewport/);
   assert.match(content, /--ask-ai-keyboard-cushion/);
-  assert.match(content, /document\.body\.style\.overflow = "hidden"/);
-  assert.match(content, /document\.body\.style\.overflow = previousOverflow/);
+  assert.match(content, /acquireBodyScrollLock\(\)/);
   assert.match(styles, /min-height:\s*44px|height:\s*44px/);
   assert.doesNotMatch(styles, /max-width:\s*390px/);
+});
+
+test("Ask WitnessOps mobile surface is modal without stealing desktop interaction", () => {
+  const content = source("docs-assistant-widget.tsx");
+
+  assert.match(content, /aria-modal=\{mobileModal\}/);
+  assert.match(content, /if \(!mobileModal \|\| event\.key !== "Tab"\) return/);
+  assert.match(content, /\(event\.shiftKey \? last : first\)\.focus\(\)/);
+  assert.match(content, /event\.shiftKey && active === first/);
+  assert.match(content, /!event\.shiftKey && active === last/);
+  assert.match(content, /sibling\.inert = true/);
+  assert.match(content, /sibling\.setAttribute\("aria-hidden", "true"\)/);
+  assert.match(content, /element\.inert = inert/);
+  assert.match(content, /element\.setAttribute\("aria-hidden", ariaHidden\)/);
+  assert.match(
+    content,
+    /if \(!open \|\| !widgetVisible \|\| !mobileModal\) return;\s*\n\s*return acquireBodyScrollLock\(\)/,
+  );
+  assert.match(content, /\[mobileModal, open, widgetVisible\]/);
+  assert.match(content, /const previousFocus = previousFocusRef\.current/);
+  assert.match(content, /previousFocus\?\.isConnected/);
+  assert.match(content, /triggerRef\.current\?\.focus\(\)/);
 });
 
 test("Ask WitnessOps uses the proof-object and bounded fit-signal visual contract", () => {
@@ -226,4 +268,11 @@ test("Ask WitnessOps full page uses mobile document flow and desktop scrolling",
     content,
     /flex h-full flex-col items-center justify-center gap-6/,
   );
+  assert.match(content, /ref=\{conversationRef\}/);
+  assert.match(content, /window\.matchMedia\("\(min-width: 48rem\)"\)\.matches/);
+  assert.match(content, /prefers-reduced-motion: reduce/);
+  assert.match(content, /conversation\.scrollTo\(\{/);
+  assert.match(content, /top: conversation\.scrollHeight/);
+  assert.match(content, /behavior: reduceMotion \? "auto" : "smooth"/);
+  assert.doesNotMatch(content, /scrollIntoView/);
 });

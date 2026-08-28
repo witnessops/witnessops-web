@@ -81,6 +81,39 @@ test("request language switch preserves the selected workflow offer query", () =
   assert.match(navbar, /localizedHref\(currentPath, currentSearch, "pl"\)/);
 });
 
+test("PL-only docs leaves switch to real English routes", () => {
+  for (const slug of [
+    "understand-the-service",
+    "how-witnessops-works",
+    "what-you-receive",
+    "how-receipts-work",
+    "evidence-and-limitations",
+    "buyer-approver-guide",
+    "is-witnessops-right-for-this",
+    "what-you-need-to-provide",
+  ]) {
+    assert.equal(
+      localizedPath(`/pl/docs/${slug}`, "en"),
+      "/docs",
+      `${slug} must fall back to the real English docs hub`,
+    );
+    assert.equal(
+      localizedHref(`/pl/docs/${slug}`, "source=pl-leaf", "en"),
+      "/docs",
+      `${slug} fallback must not carry leaf-only query context`,
+    );
+  }
+
+  for (const slug of ["faq", "glossary"]) {
+    assert.equal(localizedPath(`/pl/docs/${slug}`, "en"), `/docs/${slug}`);
+    assert.equal(localizedPath(`/docs/${slug}`, "pl"), `/pl/docs/${slug}`);
+  }
+});
+
+test("Polish chrome keeps its logo on the Polish home route", () => {
+  assert.match(navbar, /const logoHref = polish \? "\/pl" : "\/"/);
+});
+
 test("tablet uses the compact navigation instead of overflowing desktop links", () => {
   const mobileNavbar = readFileSync(
     resolve(__dirname, "mobile-navbar-menu.tsx"),
@@ -102,7 +135,7 @@ test("mobile header uses the approved mark and compact brand line", () => {
   assert.doesNotMatch(navbar, /max-\[420px\]:hidden/);
 });
 
-test("mobile menu is an attached 48px-row sheet with one orange action", () => {
+test("mobile menu is a viewport-bounded scrolling sheet with one orange action", () => {
   const mobileNavbar = readFileSync(
     resolve(__dirname, "mobile-navbar-menu.tsx"),
     "utf-8",
@@ -110,7 +143,14 @@ test("mobile menu is an attached 48px-row sheet with one orange action", () => {
 
   assert.match(mobileNavbar, /className="contents"/);
   assert.match(mobileNavbar, /absolute inset-x-0 top-full/);
-  assert.match(mobileNavbar, /max-h-\[32rem\]/);
+  assert.match(
+    mobileNavbar,
+    /max-h-\[calc\(100dvh-var\(--app-navbar-height,72px\)\)\]/,
+  );
+  assert.match(mobileNavbar, /overflow-y-auto overscroll-contain/);
+  assert.match(mobileNavbar, /env\(safe-area-inset-bottom\)/);
+  assert.match(mobileNavbar, /acquireBodyScrollLock/);
+  assert.match(mobileNavbar, /releaseBodyScrollLock\(\)/);
   assert.match(mobileNavbar, /inline-flex h-12 items-center border-l-2/);
   assert.match(mobileNavbar, /inline-flex h-12 items-center border-t/);
   assert.match(navbar, /assistantLink=\{\{ label: "Ask WitnessOps", href: "\/docs\/assistant" \}\}/);

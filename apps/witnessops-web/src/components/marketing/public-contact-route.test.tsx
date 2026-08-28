@@ -40,3 +40,16 @@ test("compact footer contact route exposes a clear primary action", () => {
   assert.match(html, /Do not send passwords/);
   assert.doesNotMatch(html, /No secrets/);
 });
+
+test("contact route preserves an explicitly selected offer request", () => {
+  const selectedHref =
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review";
+  const html = renderToStaticMarkup(
+    <PublicContactRoute compact primaryHref={selectedHref} />,
+  );
+
+  assert.match(
+    html,
+    /href="\/review\/request\?offerId=bounded-workflow-review&amp;offer=Agent\+Risk\+%26\+Control\+Review"/,
+  );
+});

@@ -18,6 +18,7 @@ interface PublicContactRouteProps {
   subject?: "general" | "fit-check";
   compact?: boolean;
   locale?: PublicLocale;
+  primaryHref?: string;
 }
 
 export function PublicContactRoute({
@@ -25,9 +26,12 @@ export function PublicContactRoute({
   subject = "general",
   compact = false,
   locale = "en",
+  primaryHref: primaryHrefOverride,
 }: PublicContactRouteProps) {
   const polish = locale === "pl";
-  const primaryHref = polish ? "/pl/review/request" : PUBLIC_CONTACT_PRIMARY_HREF;
+  const primaryHref =
+    primaryHrefOverride ??
+    (polish ? "/pl/review/request" : PUBLIC_CONTACT_PRIMARY_HREF);
   const mailtoSubject = productName
     ? productContactSubject(productName)
     : subject === "fit-check"

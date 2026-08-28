@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import test from "node:test";
 
 import { POLISH_DOCS_SECTIONS } from "./docs-navigation";
@@ -46,4 +48,17 @@ test("PL docs nav is buyer-oriented without a deep technical stub tree", () => {
     all.some((i) => i.href === "/pl/review/request"),
     "buyer request path missing",
   );
+});
+
+test("PL docs with no search corpus do not expose an inert search control", () => {
+  const layout = readFileSync(resolve(__dirname, "layout.tsx"), "utf-8");
+  const navbar = readFileSync(
+    resolve(__dirname, "../../../components/docs/docs-navbar.tsx"),
+    "utf-8",
+  );
+
+  assert.match(layout, /<DocsNavbar docs=\{\[\]\}/);
+  assert.match(navbar, /const searchAvailable = docs\.length > 0/);
+  assert.match(navbar, /\{searchAvailable \? \(/);
+  assert.match(navbar, /searchAvailable && searchOpen \? \(/);
 });

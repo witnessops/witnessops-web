@@ -5,6 +5,7 @@ import test from "node:test";
 
 const page = readFileSync(resolve(import.meta.dirname, "page.tsx"), "utf8");
 const replay = readFileSync(resolve(import.meta.dirname, "witnessed-action-replay.tsx"), "utf8");
+const styles = readFileSync(resolve(import.meta.dirname, "witnessed-action.module.css"), "utf8");
 
 test("public route is explicitly a recorded synthetic replay", () => {
   assert.match(page, /Recorded specimen\. Demo\. Synthetic data\. This is a replay of one completed run, not live computer use\./);
@@ -43,4 +44,27 @@ test("paid CTA appears only inside the receipt stage", () => {
   assert.ok(paidCta > receiptStart);
   assert.match(replay, /\/review\/request\?offerId=bounded-workflow-review/);
   assert.doesNotMatch(replay, /productId=WORKFLOW-S/);
+});
+
+test("stage changes expose and announce the newly active heading", () => {
+  assert.match(replay, /stageHeadingRef = useRef<HTMLHeadingElement>\(null\)/);
+  assert.equal(
+    replay.match(/ref=\{stageHeadingRef\} tabIndex=\{-1\}/g)?.length,
+    4,
+  );
+  assert.match(replay, /heading\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(replay, /heading\.scrollIntoView\(\{/);
+  assert.match(replay, /block: "nearest"/);
+  assert.match(replay, /role="status"/);
+  assert.match(replay, /aria-live="polite"/);
+  assert.match(replay, /aria-current=\{item\.id === stage \? "step" : undefined\}/);
+  assert.match(
+    styles,
+    /scroll-margin-top:\s*calc\(var\(--app-navbar-height\) \+ 1rem\)/,
+  );
+});
+
+test("stage scrolling honors reduced-motion preferences", () => {
+  assert.match(replay, /"\(prefers-reduced-motion: reduce\)"/);
+  assert.match(replay, /behavior: prefersReducedMotion \? "auto" : "smooth"/);
 });

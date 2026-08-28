@@ -50,8 +50,8 @@ const localizedCopy = {
       {
         step: "Evidence",
         title: "Inspect what happened",
-        body: "Read the before and after state, action log, independent read-back, and receipt.",
-        href: "/review/sample-cases/witnessed-crm-status-change#receipt",
+        body: "Inspect the pinned repository, commit, published manifest, and reported verifier result.",
+        href: "#agent-action-receipt",
       },
       {
         step: "Paid review",
@@ -148,8 +148,8 @@ const localizedCopy = {
       {
         step: "Materiały",
         title: "Sprawdź, co się wydarzyło",
-        body: "Przejrzyj stan przed i po, log działań, niezależny odczyt i zapis.",
-        href: "/review/sample-cases/witnessed-crm-status-change#receipt",
+        body: "Sprawdź przypięte repozytorium, commit, opublikowany manifest i zapisany wynik weryfikatora.",
+        href: "#agent-action-receipt",
       },
       {
         step: "Płatny przegląd",

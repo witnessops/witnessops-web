@@ -8,20 +8,29 @@ on:
       - "apps/witnessops-web/src/components/marketing/buyer-homepage.tsx"
       - "apps/witnessops-web/src/components/marketing/buyer-homepage.module.css"
       - "apps/witnessops-web/src/components/marketing/buyer-catalogue.tsx"
+      - "apps/witnessops-web/src/components/marketing/buyer-service-detail.tsx"
       - "apps/witnessops-web/src/components/marketing/footer.tsx"
       - "apps/witnessops-web/src/components/marketing/public-contact-route.tsx"
       - "apps/witnessops-web/src/components/catalog/**"
+      - "apps/witnessops-web/src/components/docs/**"
       - "apps/witnessops-web/src/components/docs-assistant/**"
       - "apps/witnessops-web/src/components/review-request/**"
       - "apps/witnessops-web/src/components/shared/cta-button.tsx"
       - "apps/witnessops-web/src/components/shared/mobile-navbar-menu.tsx"
       - "apps/witnessops-web/src/components/shared/navbar.tsx"
+      - "apps/witnessops-web/src/components/shared/route-scroll-reset.tsx"
       - "apps/witnessops-web/src/app/(marketing)/catalog/**"
+      - "apps/witnessops-web/src/app/docs/**"
+      - "apps/witnessops-web/src/app/pl/docs/**"
       - "apps/witnessops-web/src/app/review/request/**"
+      - "apps/witnessops-web/src/app/review/sample-cases/ai-agent-action-proof-run/**"
       - "apps/witnessops-web/src/app/pl/review/request/**"
       - "apps/witnessops-web/src/app/page.tsx"
       - "apps/witnessops-web/src/app/globals.css"
       - "apps/witnessops-web/src/lib/asset-foundry-visuals.ts"
+      - "apps/witnessops-web/src/lib/buyer-services.ts"
+      - "apps/witnessops-web/src/lib/public-i18n.ts"
+      - "apps/witnessops-web/src/lib/review-request-context.ts"
       - "apps/witnessops-web/public/visuals/**"
       - "content/witnessops/landing/home.yaml"
       - "tests/ui-proof/**"
@@ -68,7 +77,7 @@ jobs:
       - name: Build witnessops-web
         run: pnpm --filter witnessops-web build
 
-      - name: Run homepage hero UI proof
+      - name: Run homepage and navigation UI proof
         id: ui_proof
         continue-on-error: true
         run: pnpm ui-proof:hero:ci
@@ -124,6 +133,7 @@ jobs:
             artifacts/ui-proof/homepage-hero/latest.json
             artifacts/ui-proof/homepage-hero/grid.png
             artifacts/ui-proof/homepage-hero/screenshots/**
+            artifacts/ui-proof/navigation-integrity/screenshots/**
             artifacts/ui-proof/playwright-report/**
             artifacts/ui-proof/test-results/**
 
@@ -132,9 +142,9 @@ jobs:
         run: |
           test -f artifacts/ui-proof/homepage-hero/latest.json
           if [ "${{ steps.ui_proof.outcome }}" != "success" ]; then
-            echo "Homepage hero UI proof failed a blocking gate."
-            echo "Critical semantic failures, runner failures, or report-generation failures are blocking after calibration."
+            echo "Homepage or navigation UI proof failed a blocking gate."
+            echo "Critical semantic failures, navigation-integrity failures, runner failures, or report-generation failures are blocking after calibration."
             echo "Warning-only scenario failures remain non-blocking because the Playwright spec only fails critical checks."
             exit 1
           fi
-          echo "Homepage hero UI proof blocking policy passed."
+          echo "Homepage and navigation UI proof blocking policy passed."

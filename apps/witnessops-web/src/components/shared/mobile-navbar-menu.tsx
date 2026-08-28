@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
 import { CtaButton } from "./cta-button";
 
 interface MobileNavbarMenuProps {
@@ -39,7 +40,6 @@ export function MobileNavbarMenu({
   useEffect(() => {
     if (!menuOpen) return;
 
-    const previousOverflow = document.body.style.overflow;
     const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
     const focusableElements = () =>
       Array.from(
@@ -49,7 +49,7 @@ export function MobileNavbarMenu({
       focusableElements()[0]?.focus();
     });
 
-    document.body.style.overflow = "hidden";
+    const releaseBodyScrollLock = acquireBodyScrollLock();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -76,7 +76,7 @@ export function MobileNavbarMenu({
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       window.cancelAnimationFrame(focusFrame);
-      document.body.style.overflow = previousOverflow;
+      releaseBodyScrollLock();
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [menuOpen]);
@@ -123,13 +123,13 @@ export function MobileNavbarMenu({
         id={menuId}
         aria-hidden={!menuOpen}
         inert={!menuOpen}
-        className={`public-shell absolute inset-x-0 top-full z-50 w-full overflow-hidden bg-surface-bg text-text-primary transition-[max-height,opacity] duration-200 lg:hidden ${
+        className={`public-shell absolute inset-x-0 top-full z-50 w-full overflow-y-auto overscroll-contain bg-surface-bg text-text-primary transition-[max-height,opacity] duration-200 lg:hidden ${
           menuOpen
-            ? "max-h-[32rem] border-y border-surface-border opacity-100"
+            ? "max-h-[calc(100dvh-var(--app-navbar-height,72px))] border-y border-surface-border opacity-100"
             : "pointer-events-none max-h-0 border-t border-transparent opacity-0"
         }`}
       >
-        <div className="mx-auto flex max-w-content flex-col px-4 py-2 sm:px-6">
+        <div className="mx-auto flex max-w-content flex-col px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-6">
           {links.map((link) => (
             <Link
               key={link.href}

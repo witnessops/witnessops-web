@@ -1,9 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageCircle, X } from "lucide-react";
+
+import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
 
 import {
   askWitnessOpsAnswerText,
@@ -42,6 +51,14 @@ const HIDDEN_WIDGET_PATHS = [
 // Tailwind's shared `sm` breakpoint starts at 40rem. Keep the JavaScript
 // scroll-lock boundary aligned with the responsive layout boundary below.
 const MOBILE_WIDGET_MEDIA_QUERY = "(max-width: 39.999rem)";
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "textarea:not([disabled])",
+  "select:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(", ");
 
 const GUIDED_FIT_QUESTIONS = [
   {
@@ -78,6 +95,7 @@ export function shouldShowDocsAssistantTrigger(open: boolean): boolean {
 
 export function DocsAssistantWidget() {
   const pathname = usePathname();
+  const widgetVisible = shouldShowDocsAssistantWidget(pathname);
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<AnswerState | null>(null);
@@ -91,23 +109,82 @@ export function DocsAssistantWidget() {
     height: null,
     keyboardVisible: false,
   });
+  const [mobileModal, setMobileModal] = useState(false);
+  const layerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const previousPathnameRef = useRef(pathname);
+  const requestGenerationRef = useRef(0);
   const contactLauncherRef = useRef<HTMLButtonElement>(null);
   const restoreContactLauncherFocusRef = useRef(false);
   const contactBusyRef = useRef(false);
 
+  const resetAskState = useCallback(() => {
+    requestGenerationRef.current += 1;
+    contactBusyRef.current = false;
+    restoreContactLauncherFocusRef.current = false;
+    setOpen(false);
+    setQuestion("");
+    setAnswer(null);
+    setLoading(false);
+    setContactMode(false);
+    setContactBusy(false);
+    setMobileViewport({ height: null, keyboardVisible: false });
+  }, []);
+
+  const handleClose = useCallback(() => {
+    if (contactBusyRef.current) return;
+
+    const previousFocus = previousFocusRef.current;
+    resetAskState();
+    window.requestAnimationFrame(() => {
+      if (previousFocus?.isConnected) {
+        previousFocus.focus();
+        return;
+      }
+
+      triggerRef.current?.focus();
+    });
+  }, [resetAskState]);
+
+  const handleNavigation = useCallback(() => {
+    resetAskState();
+  }, [resetAskState]);
+
   useEffect(() => {
-    if (!open) return;
+    if (previousPathnameRef.current === pathname) return;
 
-    if (window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY).matches) {
-      dialogRef.current?.focus();
-      return;
-    }
+    previousPathnameRef.current = pathname;
+    resetAskState();
+  }, [pathname, resetAskState]);
 
-    inputRef.current?.focus();
-  }, [open]);
+  useEffect(() => {
+    const mobileBoundary = window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY);
+    const syncMobileModal = () => setMobileModal(mobileBoundary.matches);
+
+    syncMobileModal();
+    mobileBoundary.addEventListener("change", syncMobileModal);
+    return () => {
+      mobileBoundary.removeEventListener("change", syncMobileModal);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open || !widgetVisible) return;
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      if (mobileModal) {
+        dialogRef.current?.focus();
+        return;
+      }
+
+      inputRef.current?.focus();
+    });
+
+    return () => window.cancelAnimationFrame(focusFrame);
+  }, [mobileModal, open, widgetVisible]);
 
   useEffect(() => {
     const mobileViewport = window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY);
@@ -174,20 +251,61 @@ export function DocsAssistantWidget() {
   }, [contactMode]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !widgetVisible) return;
 
-    function closeOnEscape(event: KeyboardEvent) {
+    function keepMobileFocusInsideDialog(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        event.preventDefault();
         handleClose();
+        return;
+      }
+
+      if (!mobileModal || event.key !== "Tab") return;
+
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      ).filter(
+        (element) =>
+          element.getAttribute("aria-hidden") !== "true" &&
+          element.getClientRects().length > 0,
+      );
+
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (!dialog.contains(active) || active === dialog) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+        return;
+      }
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
       }
     }
 
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [open]);
+    document.addEventListener("keydown", keepMobileFocusInsideDialog);
+    return () => {
+      document.removeEventListener("keydown", keepMobileFocusInsideDialog);
+    };
+  }, [handleClose, mobileModal, open, widgetVisible]);
 
   useEffect(() => {
-    if (!open || !window.visualViewport) return;
+    if (!open || !widgetVisible || !window.visualViewport) return;
 
     const responsiveBoundary = window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY);
     const visualViewport = window.visualViewport;
@@ -221,59 +339,82 @@ export function DocsAssistantWidget() {
       responsiveBoundary.removeEventListener("change", syncVisibleViewport);
       setMobileViewport({ height: null, keyboardVisible: false });
     };
-  }, [open]);
+  }, [open, widgetVisible]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !widgetVisible || !mobileModal) return;
 
-    const mobileViewport = window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY);
-    let previousOverflow = "";
-    let scrollLocked = false;
+    return acquireBodyScrollLock();
+  }, [mobileModal, open, widgetVisible]);
 
-    function syncPageScrollLock() {
-      if (mobileViewport.matches && !scrollLocked) {
-        previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-        scrollLocked = true;
-        return;
+  useEffect(() => {
+    if (!open || !widgetVisible || !mobileModal) return;
+
+    const layer = layerRef.current;
+    if (!layer) return;
+
+    const backgroundState: Array<{
+      element: HTMLElement;
+      inert: boolean;
+      ariaHidden: string | null;
+    }> = [];
+    let activeBranch: HTMLElement | null = layer;
+
+    while (activeBranch && activeBranch !== document.body) {
+      const parent: HTMLElement | null = activeBranch.parentElement;
+      if (!parent) break;
+
+      for (const sibling of Array.from(parent.children)) {
+        if (sibling === activeBranch || !(sibling instanceof HTMLElement)) {
+          continue;
+        }
+
+        backgroundState.push({
+          element: sibling,
+          inert: sibling.inert,
+          ariaHidden: sibling.getAttribute("aria-hidden"),
+        });
+        sibling.inert = true;
+        sibling.setAttribute("aria-hidden", "true");
       }
 
-      if (!mobileViewport.matches && scrollLocked) {
-        document.body.style.overflow = previousOverflow;
-        scrollLocked = false;
-      }
+      activeBranch = parent;
     }
 
-    syncPageScrollLock();
-    mobileViewport.addEventListener("change", syncPageScrollLock);
-
     return () => {
-      mobileViewport.removeEventListener("change", syncPageScrollLock);
-      if (scrollLocked) {
-        document.body.style.overflow = previousOverflow;
+      for (const { element, inert, ariaHidden } of backgroundState) {
+        element.inert = inert;
+        if (ariaHidden === null) {
+          element.removeAttribute("aria-hidden");
+        } else {
+          element.setAttribute("aria-hidden", ariaHidden);
+        }
       }
     };
-  }, [open]);
+  }, [mobileModal, open, widgetVisible]);
 
-  if (!shouldShowDocsAssistantWidget(pathname)) {
+  if (!widgetVisible) {
     return null;
   }
 
   async function handleAsk(questionOverride?: string) {
     const trimmed = (questionOverride ?? question).trim();
     if (!trimmed || loading) return;
+    const requestGeneration = ++requestGenerationRef.current;
     setLoading(true);
     setAnswer(null);
     setContactMode(false);
 
     try {
       const data = await fetchAskWitnessOps(trimmed);
+      if (requestGeneration !== requestGenerationRef.current) return;
       setAnswer({
         content: askWitnessOpsAnswerText(data),
         answer: data,
       });
       setQuestion("");
     } catch (err) {
+      if (requestGeneration !== requestGenerationRef.current) return;
       if (err instanceof Error && err.message.startsWith("Ask WitnessOps request failed")) {
         setAnswer({
           content: err.message,
@@ -288,22 +429,55 @@ export function DocsAssistantWidget() {
         error: true,
       });
     } finally {
-      setLoading(false);
+      if (requestGeneration === requestGenerationRef.current) {
+        setLoading(false);
+      }
     }
   }
 
-  function handleClose() {
-    if (contactBusyRef.current) return;
-
-    setOpen(false);
-    setQuestion("");
-    setAnswer(null);
-    setContactMode(false);
-    window.requestAnimationFrame(() => triggerRef.current?.focus());
+  function handleOpen() {
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    setOpen(true);
   }
 
-  function handleOpen() {
-    setOpen(true);
+  function handleDialogLinkCapture(event: ReactMouseEvent<HTMLElement>) {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    const eventTarget = event.target;
+    if (!(eventTarget instanceof Element)) return;
+
+    const link = eventTarget.closest<HTMLAnchorElement>("a[href]");
+    if (
+      !link ||
+      !event.currentTarget.contains(link) ||
+      link.target === "_blank" ||
+      link.hasAttribute("download")
+    ) {
+      return;
+    }
+
+    const href = link.getAttribute("href");
+    if (!href) return;
+
+    try {
+      const destination = new URL(href, window.location.href);
+      if (destination.origin === window.location.origin) {
+        handleNavigation();
+      }
+    } catch {
+      // Leave malformed or non-navigation hrefs to the browser.
+    }
   }
 
   function handleContactModeChange(expanded: boolean) {
@@ -341,16 +515,17 @@ export function DocsAssistantWidget() {
   const layerClassName = open ? styles.openLayer : styles.closedLayer;
 
   return (
-    <div className={layerClassName}>
+    <div ref={layerRef} className={layerClassName}>
       {open && (
         <section
           ref={dialogRef}
           id="ask-witnessops-dialog"
           role="dialog"
           tabIndex={-1}
-          aria-modal="false"
+          aria-modal={mobileModal}
           aria-labelledby="ask-witnessops-title"
           className={styles.dialog}
+          onClickCapture={handleDialogLinkCapture}
           data-ask-state={
             contactMode
               ? "contact"
@@ -442,7 +617,6 @@ export function DocsAssistantWidget() {
                   <div className={styles.utilityLinks}>
                     <Link
                       href="/review/request?offerId=bounded-workflow-review&source=ask"
-                      onClick={handleClose}
                       className={styles.utilityLink}
                     >
                       Request scope directly <span aria-hidden="true">↗</span>

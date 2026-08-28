@@ -29,7 +29,11 @@ export default async function VerifyTokenPage({ searchParams }: Props) {
 
   return (
     <VerificationLightShell>
-      <div className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-4 py-12">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-4 py-12"
+      >
         <div className={`mb-2 ${verificationLight.label} ${verificationLight.trust}`}>
           WitnessOps mailbox verification
         </div>
@@ -55,7 +59,7 @@ export default async function VerifyTokenPage({ searchParams }: Props) {
             </div>
           )}
         </div>
-      </div>
+      </main>
     </VerificationLightShell>
   );
 }

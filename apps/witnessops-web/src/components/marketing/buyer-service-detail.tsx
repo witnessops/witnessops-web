@@ -293,6 +293,7 @@ export function BuyerServiceDetail({
             subject="fit-check"
             productName={service.name[locale]}
             locale={locale}
+            primaryHref={requestHref}
           />
         </div>
       </div>

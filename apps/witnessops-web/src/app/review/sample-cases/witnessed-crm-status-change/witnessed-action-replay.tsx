@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   createDemoReceipt,
@@ -26,6 +26,13 @@ const STAGES: ReadonlyArray<{ id: Stage; label: string }> = [
   { id: "receipt", label: "Receipt" },
 ];
 
+const STAGE_HEADINGS: Record<Stage, string> = {
+  authority: "Inspect the action contract",
+  approval: "Approve the specimen replay",
+  execution: "Watch the recorded execution",
+  receipt: "Inspect what happened",
+};
+
 function StateList({ phase }: { phase: "before" | "after" }) {
   const records = phase === "before" ? WITNESSED_CRM_SPECIMEN.beforeState : WITNESSED_CRM_SPECIMEN.afterState;
   return (
@@ -46,6 +53,8 @@ export function WitnessedActionReplay() {
   const [activeEventCount, setActiveEventCount] = useState(0);
   const [receiptDigest, setReceiptDigest] = useState<string | null>(null);
   const [byteVerification, setByteVerification] = useState<"idle" | "match" | "mismatch">("idle");
+  const stageHeadingRef = useRef<HTMLHeadingElement>(null);
+  const previousStageRef = useRef<Stage>("authority");
 
   const receipt = useMemo(
     () =>
@@ -62,6 +71,24 @@ export function WitnessedActionReplay() {
   const filename = replayConsentAt && receiptDigest
     ? receiptFilename(replayConsentAt, receiptDigest)
     : "witnessops-demo-receipt.json";
+
+  useEffect(() => {
+    if (previousStageRef.current === stage) return;
+    previousStageRef.current = stage;
+
+    const heading = stageHeadingRef.current;
+    if (!heading) return;
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    heading.focus({ preventScroll: true });
+    heading.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "nearest",
+    });
+  }, [stage]);
 
   useEffect(() => {
     if (stage !== "execution") return;
@@ -120,14 +147,28 @@ export function WitnessedActionReplay() {
   }
 
   const activeStage = STAGES.findIndex((item) => item.id === stage);
+  const stageAnnouncement = `Stage ${activeStage + 1} of ${STAGES.length}: ${STAGE_HEADINGS[stage]}`;
   const selectedEvent = WITNESSED_CRM_SPECIMEN.events[Math.max(0, activeEventCount - 1)];
   const saved = activeEventCount >= 4;
 
   return (
     <div className={styles.replay} data-ui-proof-id="witnessed-action-replay">
+      <p
+        className={styles.stageAnnouncement}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {stageAnnouncement}
+      </p>
       <ol className={styles.stageRail} aria-label="Recorded action stages">
         {STAGES.map((item, index) => (
-          <li key={item.id} data-active={item.id === stage} data-complete={index < activeStage}>
+          <li
+            key={item.id}
+            data-active={item.id === stage}
+            data-complete={index < activeStage}
+            aria-current={item.id === stage ? "step" : undefined}
+          >
             <span>0{index + 1}</span>
             <strong>{item.label}</strong>
           </li>
@@ -137,7 +178,7 @@ export function WitnessedActionReplay() {
       {stage === "authority" ? (
         <section className={styles.stagePanel} aria-labelledby="witness-authority-heading">
           <p className={styles.kicker}>Recorded source run · bounded-computer 0.3.0</p>
-          <h2 id="witness-authority-heading">Inspect the action contract</h2>
+          <h2 id="witness-authority-heading" ref={stageHeadingRef} tabIndex={-1}>{STAGE_HEADINGS.authority}</h2>
           <p className={styles.intro}>
             One catalogued mutation on a synthetic CRM. Original run authority is already recorded.
             A later visitor click can only start this replay.
@@ -185,7 +226,7 @@ export function WitnessedActionReplay() {
       {stage === "approval" ? (
         <section className={styles.stagePanel} aria-labelledby="witness-approval-heading">
           <p className={styles.kicker}>Proposal is not authority</p>
-          <h2 id="witness-approval-heading">Approve the specimen replay</h2>
+          <h2 id="witness-approval-heading" ref={stageHeadingRef} tabIndex={-1}>{STAGE_HEADINGS.approval}</h2>
           <p className={styles.intro}>
             Original run authority already exists for this specimen. Your click is replay consent only.
           </p>
@@ -215,7 +256,7 @@ export function WitnessedActionReplay() {
       {stage === "execution" ? (
         <section className={styles.stagePanel} aria-labelledby="witness-execution-heading">
           <p className={styles.kicker}>{selectedEvent?.command ?? "RECORDED"} · recorded event</p>
-          <h2 id="witness-execution-heading">Watch the recorded execution</h2>
+          <h2 id="witness-execution-heading" ref={stageHeadingRef} tabIndex={-1}>{STAGE_HEADINGS.execution}</h2>
           <p className={styles.intro}>
             {saved ? "Visible success on the authorized record. Independent read-back follows." : "Replaying the fixed catalogued action sequence."}
           </p>
@@ -251,7 +292,7 @@ export function WitnessedActionReplay() {
       {stage === "receipt" && receipt ? (
         <section className={styles.stagePanel} id="receipt" aria-labelledby="witness-receipt-heading">
           <p className={styles.kicker}>PASS · Unsigned demonstration receipt</p>
-          <h2 id="witness-receipt-heading">Inspect what happened</h2>
+          <h2 id="witness-receipt-heading" ref={stageHeadingRef} tabIndex={-1}>{STAGE_HEADINGS.receipt}</h2>
           <p className={styles.intro}>
             Acme changed from NEW to REVIEWED in the recorded source run. Replay consent was granted
             at {replayConsentAt}. No new execution occurred.

@@ -11,6 +11,7 @@ import {
   localizedHref,
   POLISH_PUBLIC_NAV,
 } from "@/lib/public-i18n";
+import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 
 const BUYER_NAV_LINKS = [
   { label: "Services", href: "/catalog" },
@@ -67,7 +68,7 @@ export function Navbar({ announcement }: NavbarProps) {
   const homeNav = currentPath === "/" || currentPath === "/pl";
   const productJourneyNav = homeNav;
 
-  const logoHref = "/";
+  const logoHref = polish ? "/pl" : "/";
   const effectiveLinks = homeNav
     ? polish
       ? HOME_NAV_LINKS_PL
@@ -75,13 +76,23 @@ export function Navbar({ announcement }: NavbarProps) {
     : polish
       ? [...POLISH_PUBLIC_NAV.links]
       : BUYER_NAV_LINKS;
-  const effectiveCta = productJourneyNav
+  const baseCta = productJourneyNav
     ? polish
       ? HOME_NAV_CTA_PL
       : HOME_NAV_CTA
     : polish
       ? POLISH_PUBLIC_NAV.cta
       : BUYER_NAV_CTA;
+  const effectiveCta = productJourneyNav
+    ? baseCta
+    : {
+        ...baseCta,
+        href: reviewRequestHrefForLocation(
+          polish ? "pl" : "en",
+          currentPath,
+          searchParams,
+        ),
+      };
   const effectiveAnnouncement = announcement;
   const languageLink = polish
     ? { label: "EN", href: localizedHref(currentPath, currentSearch, "en") }

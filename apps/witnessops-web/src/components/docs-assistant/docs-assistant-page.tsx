@@ -33,11 +33,25 @@ export function DocsAssistantPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const conversationRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const conversation = conversationRef.current;
+    if (
+      !conversation ||
+      !window.matchMedia("(min-width: 48rem)").matches
+    ) {
+      return;
+    }
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    conversation.scrollTo({
+      top: conversation.scrollHeight,
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
   }, [messages, loading]);
 
   async function ask(q: string) {
@@ -102,7 +116,10 @@ export function DocsAssistantPage() {
         </p>
       </header>
 
-      <div className="overflow-visible md:min-h-0 md:flex-1 md:overflow-y-auto">
+      <div
+        ref={conversationRef}
+        className="overflow-visible md:min-h-0 md:flex-1 md:overflow-y-auto"
+      >
         {isEmpty ? (
           <div className="flex flex-col items-center justify-center gap-4 px-4 py-6 text-center md:h-full md:gap-6 md:py-0">
             <p className="max-w-sm text-sm leading-relaxed text-text-muted">
@@ -165,7 +182,6 @@ export function DocsAssistantPage() {
                 <DocsAssistantLoadingStatus />
               </div>
             )}
-            <div ref={bottomRef} />
           </div>
         )}
       </div>
