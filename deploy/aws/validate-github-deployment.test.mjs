@@ -228,15 +228,29 @@ test("managed-node trust contains only the SSM service principal", () => {
   );
 });
 
-test("production environment cannot enable self-review", () => {
-  for (const value of [true, undefined]) {
+test("production environment preserves single-operator two-step review", () => {
+  const noReviewer = structuredClone(contract);
+  noReviewer.github_environments["aws-production"].required_reviewers_minimum = 0;
+  assert.throws(
+    () => validateGithubDeploymentContract(noReviewer),
+    /production environment has no reviewer gate/,
+  );
+
+  for (const value of [false, undefined]) {
     const changed = structuredClone(contract);
     changed.github_environments["aws-production"].allow_self_review = value;
     assert.throws(
       () => validateGithubDeploymentContract(changed),
-      /production environment allows self-review/,
+      /does not allow the approved single operator to self-review/,
     );
   }
+
+  const changedModel = structuredClone(contract);
+  changedModel.github_environments["aws-production"].approval_model = "automatic";
+  assert.throws(
+    () => validateGithubDeploymentContract(changedModel),
+    /production environment approval model differs/,
+  );
 });
 
 test("deployment contract preserves every non-authorized Phase 2 boundary", () => {

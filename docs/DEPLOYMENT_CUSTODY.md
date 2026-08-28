@@ -1,7 +1,7 @@
 # WitnessOps Web Deployment Custody
 
 Status: GitHub/ECR/SSM to AWS Frankfurt active routine custody
-Last updated: 2026-08-27
+Last updated: 2026-08-28
 
 This document records how the public WitnessOps web surface (and the mesh-only
 dev twin) is served, built, deployed, verified, and rolled back. It is
@@ -93,6 +93,12 @@ Apply receipt must capture:
 - previous digest-qualified image reference (prod; and dev if replaced)
 - publication run ID/attempt and ECR scan evidence
 - protected production environment approval and SSM command result
+
+The approved source contract's founder-operated approval model is
+single-operator/two-step: the same approved GitHub account may dispatch and
+approve, but both actions remain separate and the approval event remains part
+of the apply receipt. Live activation still requires an exact GitHub
+Environment readback.
 
 Do not rely on a mutable tag alone as rollback evidence.
 

@@ -66,9 +66,13 @@ Status: **active routine path**.
 The recommended authentication path is GitHub Actions OIDC. GitHub requests a
 short-lived AWS STS session for one exact role; no `AWS_ACCESS_KEY_ID`,
 `AWS_SECRET_ACCESS_KEY`, private deploy key, or AWS password is stored in GitHub.
-This removes long-lived AWS credentials, but it does not remove authorization:
-the production job must still pass a protected `aws-production` GitHub
-Environment with at least one reviewer and self-review disabled.
+This removes long-lived AWS credentials, but it does not remove authorization.
+The reviewed source contract still requires the production job to pass a
+protected `aws-production` GitHub Environment with at least one reviewer.
+During the current founder-operated phase, the contract permits the same
+approved operator to dispatch and approve in two separate actions. Activating
+that source change still requires a separately authorized Environment update
+and readback.
 
 The source contract splits authority:
 
@@ -83,10 +87,11 @@ Every OIDC trust checks the exact audience, immutable owner/repository subject,
 repository ID, owner ID, `refs/heads/main`, GitHub Environment, and the reserved
 reusable workflow
 `witnessops/witnessops-web/.github/workflows/aws-release-reusable.yml@refs/heads/main`.
-The reserved caller and reusable workflow are active on `main`. The
-`aws-production` GitHub Environment requires a reviewer, prevents self-review,
-and does not allow administrator bypass. Those controls do not themselves
-authorize a specific deployment.
+The reserved caller and reusable workflow are active on `main`. The reviewed
+`aws-production` source contract requires an explicit approval and permits the
+approved founder-operator to self-review. Administrator bypass must remain
+disabled in the live Environment. Those controls do not themselves authorize a
+specific deployment.
 
 The CloudFormation source accepts only the ARN of an existing commercial-
 partition account-level GitHub OIDC provider. It never creates a second
@@ -230,7 +235,9 @@ The existing production hybrid node is not a staging target. Leave
 `AWS_SSM_MANAGED_NODE_ID` unset in `aws-staging` until a distinct managed node
 has the reviewed staging tags. Production stores only its managed-node ID as a
 non-secret environment variable. Production protection must continue to
-require a reviewer with self-review disabled.
+require a separate approval action. The temporary single-operator model may
+allow self-review, but must not remove the review gate or enable administrator
+bypass.
 
 Adapter removal is bounded and does not touch the application: move
 `/usr/local/sbin/witnessops-deploy-v1` and `/etc/witnessops/deploy-v1.json` into
