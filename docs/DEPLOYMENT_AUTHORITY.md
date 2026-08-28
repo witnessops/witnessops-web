@@ -1,7 +1,7 @@
 # Deployment authority
 
 Status: `github_ecr_ssm_frankfurt_active_routine_authority`
-Last updated: 2026-08-27
+Last updated: 2026-08-28
 
 This document classifies deployment-related repository surfaces for
 `witnessops-web`. It is repo-local guidance and is not deploy approval, release
@@ -32,7 +32,7 @@ exact merged main commit
 -> build one linux/amd64 image without AWS authority
 -> aws-image-publish environment and immutable Frankfurt ECR repository
 -> digest-bound ECR scan evidence
--> aws-production protected environment (required reviewer; self-review blocked)
+-> aws-production protected environment (source contract: required approval; initiator approval allowed)
 -> least-privilege production OIDC role
 -> one bounded production SSM document
 -> installed witnessops-deploy-v1 host adapter
@@ -43,6 +43,14 @@ Publication is not deployment authority. The production environment gate and
 the SSM document are required after ECR publication. The workflow requires the
 expected current digest, so a stale or concurrent production state fails
 closed.
+
+The approved source contract for the current founder-operated phase uses one
+operator account for two distinct actions: manual workflow dispatch, then an
+explicit environment approval. It permits self-review to remove account-switch
+friction; the approval gate itself is not removed. Live activation requires a
+separately authorized GitHub Environment update and exact readback. This
+temporary posture does not relax merged-`main`, immutable-image, scan-evidence,
+expected-current-digest, OIDC, bounded-SSM, rollout, smoke, or rollback controls.
 
 ```text
 Public:

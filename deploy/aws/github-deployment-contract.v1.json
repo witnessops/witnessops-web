@@ -1,7 +1,7 @@
 {
   "contract_id": "witnessops.aws_github_deployment.v1",
   "status": "phase_1_pr_only_no_apply_authority",
-  "last_reviewed": "2026-08-24",
+  "last_reviewed": "2026-08-28",
   "authority": {
     "repository": "witnessops/witnessops-web",
     "repository_id": "1200448046",
@@ -88,7 +88,8 @@
     "aws-production": {
       "deployment_branch": "main",
       "required_reviewers_minimum": 1,
-      "allow_self_review": false,
+      "allow_self_review": true,
+      "approval_model": "single_operator_two_step",
       "stores_aws_secrets": false
     }
   },

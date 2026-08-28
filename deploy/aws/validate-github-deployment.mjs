@@ -515,8 +515,13 @@ export function validateGithubDeploymentContract(contract) {
     "production environment has no reviewer gate",
   );
   assert(
-    contract.github_environments?.["aws-production"]?.allow_self_review === false,
-    "production environment allows self-review",
+    contract.github_environments?.["aws-production"]?.allow_self_review === true,
+    "production environment does not allow the approved single operator to self-review",
+  );
+  assert(
+    contract.github_environments?.["aws-production"]?.approval_model ===
+      "single_operator_two_step",
+    "production environment approval model differs",
   );
   for (const environment of Object.values(contract.github_environments ?? {})) {
     assert(environment.deployment_branch === "main", "GitHub environment allows a non-main branch");
