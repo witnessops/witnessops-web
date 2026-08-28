@@ -47,6 +47,11 @@ test("assessment page routes current manual intents before recon rendering", () 
   );
 
   assert.match(source, /isManualCommercialRequestIntent\(intake\.submission\.intent\)/);
+  assert.match(source, /intake\.state === "admitted"/);
+  assert.match(source, /approvalStatus === "pending"/);
+  assert.match(source, /!record\.assessmentRunId/);
+  assert.match(source, /!record\.controlPlaneRunId/);
+  assert.match(source, /record\.assessmentStatus === "unavailable"/);
   assert.match(source, /<ManualCommercialConfirmation/);
   assert.ok(
     source.indexOf("<ManualCommercialConfirmation") <

@@ -55,7 +55,16 @@ export default async function AssessmentPage({ params }: Props) {
   const intake = record.intakeId ? await getIntakeById(record.intakeId) : null;
   const approvalStatus = record.approvalStatus ?? "pending";
 
-  if (intake && isManualCommercialRequestIntent(intake.submission.intent)) {
+  const legacyManualRequestWithoutStartedWork =
+    intake &&
+    isManualCommercialRequestIntent(intake.submission.intent) &&
+    intake.state === "admitted" &&
+    approvalStatus === "pending" &&
+    !record.assessmentRunId &&
+    !record.controlPlaneRunId &&
+    (!record.assessmentStatus || record.assessmentStatus === "unavailable");
+
+  if (legacyManualRequestWithoutStartedWork) {
     const locale = intake.submission.locale === "pl" ? "pl" : "en";
     return (
       <ManualCommercialConfirmation
