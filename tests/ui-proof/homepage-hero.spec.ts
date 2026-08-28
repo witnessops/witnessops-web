@@ -197,6 +197,111 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
   }
 });
 
+test("Ask WitnessOps keeps the paid-review proof path visible and controlled", async ({ browser }) => {
+  for (const viewport of [
+    { width: 1440, height: 936 },
+    { width: 640, height: 844 },
+    { width: 639, height: 844 },
+    { width: 390, height: 844 },
+  ]) {
+    const context = await browser.newContext({
+      viewport,
+      reducedMotion: "reduce",
+    });
+
+    try {
+      const page = await context.newPage();
+      const response = await page.goto("/", { waitUntil: "networkidle" });
+      expect(response?.status()).toBe(200);
+
+      const trigger = page.getByRole("button", { name: "Open Ask WitnessOps" });
+      await expect(trigger).toBeVisible();
+      await trigger.click();
+
+      const dialog = page.getByRole("dialog", { name: "ASK WITNESSOPS" });
+      const prompt = page.getByLabel("Describe one non-secret workflow");
+      await expect(dialog).toBeVisible();
+      await expect(prompt).toBeFocused();
+
+      if (viewport.width === 390) {
+        const screenshotDir = path.join(UI_PROOF_OUTPUT_DIR, "screenshots");
+        await mkdir(screenshotDir, { recursive: true });
+        await page.screenshot({
+          path: path.join(screenshotDir, "ask-witnessops-mobile-prompt.png"),
+          fullPage: false,
+        });
+      }
+
+      if (viewport.width < 640) {
+        await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
+        const dialogBox = await dialog.boundingBox();
+        expect(dialogBox).not.toBeNull();
+        expect(dialogBox?.x).toBe(0);
+        expect(dialogBox?.y).toBe(0);
+        expect(dialogBox?.width).toBe(viewport.width);
+        expect(dialogBox?.height).toBe(viewport.height);
+      } else {
+        await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
+      }
+
+      await dialog.getByText("Agent changed production", { exact: true }).click();
+      await expect(dialog.getByText("PUBLIC FIT SIGNAL", { exact: true })).toBeVisible();
+      await expect(dialog.getByText("NO EVIDENCE REVIEWED", { exact: true })).toBeVisible();
+      await expect(dialog.getByText("From €1,500 · One agentic or automated workflow", { exact: true })).toBeVisible();
+      await expect(dialog).toContainText(
+        "Fit signal only. No evidence was reviewed and no security, compliance, correctness, or action-outcome conclusion was made.",
+      );
+
+      const cta = dialog.getByRole("button", { name: "Request scope for this workflow" });
+      await expect(cta).toBeVisible();
+      const ctaBox = await cta.boundingBox();
+      const scrollRegionBox = await dialog
+        .locator("[data-ask-scroll-region]")
+        .boundingBox();
+      expect(ctaBox).not.toBeNull();
+      expect(scrollRegionBox).not.toBeNull();
+      expect(ctaBox?.height).toBeGreaterThanOrEqual(44);
+      expect((ctaBox?.y ?? 0) + (ctaBox?.height ?? 0)).toBeLessThanOrEqual(
+        (scrollRegionBox?.y ?? 0) + (scrollRegionBox?.height ?? 0),
+      );
+
+      if (viewport.width === 390) {
+        await page.screenshot({
+          path: path.join(
+            UI_PROOF_OUTPUT_DIR,
+            "screenshots",
+            "ask-witnessops-mobile-result.png",
+          ),
+          fullPage: false,
+        });
+      }
+
+      await cta.click();
+      await expect(dialog).toHaveAttribute("data-ask-state", "contact");
+      await expect(dialog.getByLabel("Public fit signal")).toBeHidden();
+      await expect(page.getByLabel("Work email")).toBeFocused();
+
+      if (viewport.width === 390) {
+        await page.screenshot({
+          path: path.join(
+            UI_PROOF_OUTPUT_DIR,
+            "screenshots",
+            "ask-witnessops-mobile-contact.png",
+          ),
+          fullPage: false,
+        });
+      }
+
+      await dialog.press("Escape");
+      await expect(dialog).toBeHidden();
+      await expect(trigger).toBeFocused();
+      await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
+    } finally {
+      await context.close();
+    }
+  }
+});
+
 async function installClsObserver(page: Page): Promise<void> {
   await page.addInitScript(() => {
     const target = window as unknown as {

@@ -74,6 +74,7 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   assert.match(card, /Request scope for this workflow/);
   assert.match(card, /offer\.price_label/);
   assert.match(card, /Fit signal only/);
+  assert.match(card, /Public Workflow labels are request-shape references/);
   assert.match(response, /From €1,500/);
   assert.match(response, /offerId=bounded-workflow-review&source=ask/);
 });
@@ -112,7 +113,11 @@ test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
   const contact = source("docs-assistant-contact-handoff.tsx");
 
   assert.match(widget, /<DocsAssistantContactHandoff/);
-  assert.match(widget, /expanded=\{contactMode\}/);
+  assert.match(widget, /\{contactMode && \(/);
+  assert.match(widget, /\{!contactMode && \(/);
+  assert.match(widget, /expanded=\{false\}/);
+  assert.match(widget, /\s+expanded\s+/);
+  assert.match(widget, /onRequestScope=\{\(\) => setContactMode\(true\)\}/);
   assert.match(widget, /commercialFit=\{answer\?\.answer\?\.commercial_fit\}/);
   assert.match(widget, /onExpandedChange=\{setContactMode\}/);
   assert.match(contact, /Request a scoped review/);
@@ -128,18 +133,43 @@ test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
 
 test("Ask WitnessOps uses a full-viewport mobile surface at the shared breakpoint", () => {
   const content = source("docs-assistant-widget.tsx");
+  const styles = source("docs-assistant-widget.module.css");
 
   assert.match(content, /MOBILE_WIDGET_MEDIA_QUERY = "\(max-width: 39\.999rem\)"/);
-  assert.match(content, /h-\[var\(--ask-ai-mobile-height\)\] w-full max-w-none/);
-  assert.match(content, /sm:h-\[min\(560px,calc\(100vh-8rem\)\)\]/);
-  assert.match(content, /sm:max-w-\[390px\]/);
-  assert.match(content, /env\(safe-area-inset-top\)/);
-  assert.match(content, /env\(safe-area-inset-bottom\)/);
+  assert.match(content, /styles\.dialog/);
+  assert.match(styles, /height:\s*var\(--ask-ai-mobile-height\)/);
+  assert.match(styles, /@media \(min-width: 40rem\)/);
+  assert.match(styles, /height:\s*min\(760px, calc\(100dvh - 3rem\)\)/);
+  assert.match(styles, /width:\s*min\(520px, calc\(100vw - 3rem\)\)/);
+  assert.match(styles, /env\(safe-area-inset-top\)/);
+  assert.match(styles, /env\(safe-area-inset-bottom\)/);
   assert.match(content, /window\.visualViewport/);
   assert.match(content, /--ask-ai-keyboard-cushion/);
   assert.match(content, /document\.body\.style\.overflow = "hidden"/);
   assert.match(content, /document\.body\.style\.overflow = previousOverflow/);
-  assert.doesNotMatch(content, /max-\[420px\]:max-w-none/);
+  assert.match(styles, /min-height:\s*44px|height:\s*44px/);
+  assert.doesNotMatch(styles, /max-width:\s*390px/);
+});
+
+test("Ask WitnessOps uses the proof-object and bounded fit-signal visual contract", () => {
+  const content = source("docs-assistant-widget.tsx");
+  const styles = source("docs-assistant-widget.module.css");
+
+  assert.match(content, /docs-assistant-widget\.module\.css/);
+  assert.match(content, /PUBLIC FIT SIGNAL/);
+  assert.match(content, /NO EVIDENCE REVIEWED/);
+  assert.match(content, /PUBLIC GUIDE UNAVAILABLE/);
+  assert.match(content, /NO FIT CLAIM/);
+  assert.match(content, /data-ask-state/);
+  assert.match(content, /aria-label="Describe one non-secret workflow"/);
+  assert.match(styles, /--proof-bg:\s*#050505/);
+  assert.match(styles, /--receipt-paper:\s*#f3f0e9/);
+  assert.match(styles, /--receipt-sheet:\s*#fcfaf5/);
+  assert.match(styles, /--receipt-accent-text:\s*#b94716/);
+  assert.match(styles, /border-left:\s*6px solid var\(--proof-accent\)/);
+  assert.match(styles, /white-space:\s*pre-line/);
+  assert.match(styles, /prefers-reduced-motion:\s*reduce/);
+  assert.doesNotMatch(styles, /linear-gradient|radial-gradient/);
 });
 
 test("Ask WitnessOps full page uses mobile document flow and desktop scrolling", () => {

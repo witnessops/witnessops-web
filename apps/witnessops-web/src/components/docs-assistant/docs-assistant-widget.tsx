@@ -16,6 +16,7 @@ import { AskWitnessOpsRouteCta } from "./ask-witnessops-route-cta";
 import { AskWitnessOpsSourceLinks } from "./ask-witnessops-source-links";
 import { DocsAssistantContactHandoff } from "./docs-assistant-contact-handoff";
 import { DocsAssistantLoadingStatus } from "./docs-assistant-loading-status";
+import styles from "./docs-assistant-widget.module.css";
 
 interface AnswerState {
   content: string;
@@ -43,16 +44,19 @@ const MOBILE_WIDGET_MEDIA_QUERY = "(max-width: 39.999rem)";
 const GUIDED_FIT_QUESTIONS = [
   {
     label: "Agent changed production",
+    detail: "Action · tool path · touched system",
     question:
       "Can WitnessOps review one bounded AI-agent action that changes a production system?",
   },
   {
     label: "Approval or authority gap",
+    detail: "Owner · scope · policy · approval",
     question:
       "Can WitnessOps review who approved access for one consequential agent workflow?",
   },
   {
     label: "Review scope and price",
+    detail: "Offer · price · paid next step",
     question:
       "What is included in the Agent Risk & Control Review and how much does it cost?",
   },
@@ -232,38 +236,45 @@ export function DocsAssistantWidget() {
   } as CSSProperties;
 
   return (
-    <div
-      className={
-        open
-          ? "fixed inset-0 z-50 flex flex-col items-stretch sm:top-auto sm:right-6 sm:bottom-6 sm:left-auto sm:items-end"
-          : "fixed right-4 bottom-20 z-50 flex flex-col items-end sm:right-6 sm:bottom-6"
-      }
-    >
+    <div className={open ? styles.openLayer : styles.closedLayer}>
       {open && (
         <section
           id="ask-witnessops-dialog"
           role="dialog"
           aria-modal="false"
           aria-labelledby="ask-witnessops-title"
-          className="flex h-[var(--ask-ai-mobile-height)] w-full max-w-none flex-col overflow-hidden border-0 border-surface-border bg-surface-bg shadow-none sm:h-[min(560px,calc(100vh-8rem))] sm:w-[calc(100vw-2rem)] sm:max-w-[390px] sm:rounded-xl sm:border sm:shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+          className={styles.dialog}
+          data-ask-state={
+            contactMode
+              ? "contact"
+              : loading
+                ? "loading"
+                : answer?.error
+                  ? "error"
+                  : answer
+                    ? "result"
+                    : "prompt"
+          }
           style={dialogStyle}
         >
-          <div className="flex shrink-0 items-center justify-between border-b border-surface-border pb-3 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4 sm:py-3">
-            <div>
+          <div className={styles.chrome}>
+            <div className={styles.chromeIdentity}>
               <span
                 id="ask-witnessops-title"
-                className="block text-xs font-semibold uppercase tracking-[0.18em] text-text-primary"
-                style={{ fontFamily: "var(--font-mono)" }}
+                className={styles.chromeTitle}
               >
                 ASK WITNESSOPS
               </span>
-              <span className="block text-xs text-text-muted">
+              <span className={styles.chromeSubtitle}>
                 Bounded proof guide
               </span>
             </div>
+            <div className={styles.chromeMeta} aria-hidden="true">
+              <span>PUBLIC MATERIAL</span>
+            </div>
             <button
               onClick={handleClose}
-              className="flex h-11 w-11 items-center justify-center rounded text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent sm:h-6 sm:w-6"
+              className={styles.closeButton}
               aria-label="Close Ask WitnessOps"
             >
               ✕
@@ -271,120 +282,172 @@ export function DocsAssistantWidget() {
           </div>
 
           <div
-            className="flex min-h-0 flex-1 flex-col pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-4 sm:p-4"
+            className={styles.dialogBody}
             style={{
               paddingBottom:
                 "calc(max(1rem, env(safe-area-inset-bottom)) + var(--ask-ai-keyboard-cushion))",
             }}
           >
             <div
+              data-ask-scroll-region
               className={
                 contactMode
-                  ? "hidden"
-                  : "min-h-0 flex-1 overflow-y-auto overscroll-contain"
+                  ? styles.hidden
+                  : styles.scrollRegion
               }
             >
               {!answer && !loading && (
-                <div>
-                  <h2 className="text-lg font-semibold text-text-primary">
+                <div className={styles.promptStage}>
+                  <p className={styles.promptKicker}>
+                    One workflow · non-secret terms
+                  </p>
+                  <h2 className={styles.promptTitle}>
                     Describe one consequential agent workflow.
                   </h2>
-                  <p className="mt-2 text-xs leading-relaxed text-text-muted">
+                  <p className={styles.promptCopy}>
                     Use non-secret terms. I’ll show whether it fits the Agent
                     Risk &amp; Control Review, what the review would examine, and
                     the paid next step.
                   </p>
-                  <div className="mt-4 grid gap-2">
-                    {GUIDED_FIT_QUESTIONS.map((item) => (
+                  <div className={styles.guidedRows}>
+                    {GUIDED_FIT_QUESTIONS.map((item, index) => (
                       <button
                         key={item.label}
                         type="button"
                         onClick={() => void handleAsk(item.question)}
-                        className="min-h-10 rounded border border-surface-border px-3 py-2 text-left text-xs font-medium text-text-muted transition-colors hover:border-brand-accent hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                        className={styles.guidedRow}
                       >
-                        {item.label}
+                        <span className={styles.guidedIndex} aria-hidden="true">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span className={styles.guidedText}>
+                          <span className={styles.guidedLabel}>{item.label}</span>
+                          <span className={styles.guidedDetail}>{item.detail}</span>
+                        </span>
                       </button>
                     ))}
+                  </div>
+                  <div className={styles.utilityLinks}>
                     <Link
                       href="/docs"
                       onClick={handleClose}
-                      className="flex min-h-10 items-center gap-3 rounded px-2 text-sm text-text-muted transition-colors hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                      className={styles.utilityLink}
                     >
-                      Find a page
+                      Find public material <span aria-hidden="true">↗</span>
                     </Link>
                     <Link
                       href="/review/request?offerId=bounded-workflow-review&source=ask"
                       onClick={handleClose}
-                      className="flex min-h-10 items-center gap-3 rounded px-2 text-sm text-text-muted transition-colors hover:bg-surface-bg-alt hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                      className={styles.utilityLink}
                     >
-                      Request scope directly
+                      Request scope directly <span aria-hidden="true">↗</span>
                     </Link>
                   </div>
                 </div>
               )}
 
-              {loading && <DocsAssistantLoadingStatus compact />}
+              {loading && (
+                <div className={styles.loadingStage}>
+                  <DocsAssistantLoadingStatus compact />
+                </div>
+              )}
 
               {answer && (
-                <div>
-                  <p
-                    className={`whitespace-pre-line text-sm leading-relaxed ${
-                      answer.error ? "text-red-400" : "text-text-primary"
-                    }`}
-                  >
-                    {answer.content}
-                  </p>
+                <div className={styles.answerStage}>
+                  {answer.error ? (
+                    <section
+                      className={styles.errorPanel}
+                      aria-label="Ask WitnessOps unavailable"
+                    >
+                      <div className={styles.errorPanelChrome}>
+                        <span>PUBLIC GUIDE UNAVAILABLE</span>
+                        <span>NO FIT CLAIM</span>
+                      </div>
+                      <p className={styles.errorPanelCopy}>{answer.content}</p>
+                    </section>
+                  ) : (
+                    <section
+                      className={styles.answerSheet}
+                      aria-label="Public fit signal"
+                    >
+                      <div className={styles.answerSheetChrome}>
+                        <span>PUBLIC FIT SIGNAL</span>
+                        <span>NO EVIDENCE REVIEWED</span>
+                      </div>
+                      <div className={styles.answerSheetBody}>
+                        {answer.answer && (
+                          <p className={styles.answerMode}>
+                            {askWitnessOpsModeLabel(answer.answer)}
+                          </p>
+                        )}
+                        {answer.answer?.commercial_fit.offer && (
+                          <AskWitnessOpsCommercialFitCard
+                            answer={answer.answer}
+                            compact
+                            onRequestScope={() => setContactMode(true)}
+                          />
+                        )}
+                        {answer.answer?.commercial_fit.offer && (
+                          <p className={styles.answerRowLabel}>
+                            PUBLIC GUIDANCE
+                          </p>
+                        )}
+                        <p className={styles.answerCopy}>{answer.content}</p>
 
-                  {answer.answer && (
-                    <>
-                      <p
-                        className="mb-2 mt-3 text-[11px] uppercase tracking-[0.08em] text-text-muted"
-                        style={{ fontFamily: "var(--font-mono)" }}
-                      >
-                        {askWitnessOpsModeLabel(answer.answer)}
-                      </p>
-                      <AskWitnessOpsCommercialFitCard
-                        answer={answer.answer}
-                        compact
-                        onRequestScope={() => setContactMode(true)}
-                      />
-                      {!answer.answer.commercial_fit.offer && (
-                        <AskWitnessOpsRouteCta answer={answer.answer} compact />
-                      )}
-                      <AskWitnessOpsSourceLinks
-                        answer={answer.answer}
-                        compact
-                      />
-                      <AskWitnessOpsReceiptMeta
-                        answer={answer.answer}
-                        compact
-                      />
-                    </>
+                        {answer.answer && (
+                          <>
+                            {!answer.answer.commercial_fit.offer && (
+                              <AskWitnessOpsRouteCta
+                                answer={answer.answer}
+                                compact
+                              />
+                            )}
+                            <AskWitnessOpsSourceLinks
+                              answer={answer.answer}
+                              compact
+                            />
+                            <AskWitnessOpsReceiptMeta
+                              answer={answer.answer}
+                              compact
+                            />
+                          </>
+                        )}
+                      </div>
+                    </section>
                   )}
                 </div>
               )}
 
             </div>
 
-            <div
-              className={
-                contactMode
-                  ? "min-h-0 flex-1 overflow-y-auto overscroll-contain"
-                  : "shrink-0"
-              }
-            >
-              <DocsAssistantContactHandoff
-                expanded={contactMode}
-                commercialFit={answer?.answer?.commercial_fit}
-                onExpandedChange={setContactMode}
-              />
-            </div>
+            {contactMode && (
+              <div className={styles.contactScrollRegion}>
+                <DocsAssistantContactHandoff
+                  expanded
+                  commercialFit={answer?.answer?.commercial_fit}
+                  onExpandedChange={setContactMode}
+                />
+              </div>
+            )}
 
             {!contactMode && (
-              <>
-                <p className="mt-3 shrink-0 text-[11px] leading-relaxed text-text-muted">
-                  Do not paste secrets, logs, credentials, private keys, MFA
-                  codes, screenshots, customer evidence, or raw exports.
+              <div className={styles.contactLauncher}>
+                <DocsAssistantContactHandoff
+                  expanded={false}
+                  commercialFit={answer?.answer?.commercial_fit}
+                  onExpandedChange={setContactMode}
+                />
+              </div>
+            )}
+
+            {!contactMode && (
+              <div className={styles.composer}>
+                <p className={styles.safetyLine}>
+                  <strong>PUBLIC INPUT</strong>
+                  <span>
+                    Do not paste secrets, logs, credentials, private keys, MFA
+                    codes, screenshots, customer evidence, or raw exports.
+                  </span>
                 </p>
 
                 <form
@@ -392,7 +455,7 @@ export function DocsAssistantWidget() {
                     e.preventDefault();
                     handleAsk();
                   }}
-                  className="mt-3 flex shrink-0 gap-2 border-t border-surface-border pt-3"
+                  className={styles.askForm}
                 >
                   <input
                     ref={inputRef}
@@ -400,22 +463,23 @@ export function DocsAssistantWidget() {
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     placeholder="Example: An agent rotates a compromised production key."
-                    className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-2.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
+                    aria-label="Describe one non-secret workflow"
+                    className={styles.askInput}
                   />
                   <button
                     type="submit"
                     disabled={loading || !question.trim()}
-                    className="shrink-0 rounded border border-surface-border bg-surface-bg px-3 py-2 text-xs text-text-muted transition-colors hover:border-brand-accent hover:text-brand-accent disabled:opacity-40"
+                    className={styles.askSubmit}
                   >
                     {loading ? "…" : "Check fit"}
                   </button>
                 </form>
-                <p className="mt-2 shrink-0 text-[11px] leading-relaxed text-text-muted">
+                <p className={styles.providerDisclosure}>
                   AI uses public WitnessOps material. Questions may be processed
                   by OpenAI with provider storage disabled. Do not include
                   confidential or personal material. <Link href="/privacy">Privacy</Link>
                 </p>
-              </>
+              </div>
             )}
           </div>
         </section>
@@ -425,7 +489,7 @@ export function DocsAssistantWidget() {
         <button
           ref={triggerRef}
           onClick={handleOpen}
-          className="flex h-11 w-11 items-center justify-center gap-2 rounded-full border border-text-primary bg-text-primary px-0 text-sm font-semibold text-text-inverse shadow-[0_12px_36px_rgba(0,0,0,0.28)] transition-all hover:-translate-y-0.5 hover:border-brand-accent hover:bg-brand-accent hover:text-text-inverse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none sm:w-auto sm:px-5"
+          className={styles.trigger}
           aria-controls="ask-witnessops-dialog"
           aria-expanded="false"
           aria-label="Open Ask WitnessOps"
@@ -444,7 +508,10 @@ export function DocsAssistantWidget() {
               strokeLinejoin="round"
             />
           </svg>
-          <span className="sr-only sm:not-sr-only">Ask AI</span>
+          <span className={styles.triggerLabel}>Ask WitnessOps</span>
+          <span className={styles.triggerMeta} aria-hidden="true">
+            AI
+          </span>
         </button>
       )}
     </div>

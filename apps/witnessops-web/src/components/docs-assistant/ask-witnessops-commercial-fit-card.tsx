@@ -23,6 +23,9 @@ export function AskWitnessOpsCommercialFitCard({
   }
 
   const likely = fit.result === "likely";
+  const usesWorkflowRequestShape = /\bWorkflow [SML]\b/.test(
+    answer.template.body,
+  );
   const fitCheckHref = `/review/request?offerId=bounded-workflow-review&source=ask&result=${fit.result}`;
   const heading = likely
     ? fit.intent === "offer"
@@ -77,11 +80,16 @@ export function AskWitnessOpsCommercialFitCard({
               type="button"
               onClick={onRequestScope}
               className={primaryClassName}
+              data-ask-primary-cta
             >
               Request scope for this workflow
             </button>
           ) : (
-            <Link href={fitCheckHref} className={primaryClassName}>
+            <Link
+              href={fitCheckHref}
+              className={primaryClassName}
+              data-ask-primary-cta
+            >
               Request scope for this workflow
             </Link>
           )}
@@ -96,6 +104,13 @@ export function AskWitnessOpsCommercialFitCard({
           )}
         </div>
       </div>
+
+      {usesWorkflowRequestShape && answer.answer_mode === "ai_assisted" && (
+        <p className="mt-3 text-[11px] leading-relaxed text-text-muted">
+          Public Workflow labels are request-shape references, not the live
+          offer. The paid scope shown here is the {offer.name}.
+        </p>
+      )}
     </section>
   );
 }

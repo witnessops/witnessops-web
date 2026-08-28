@@ -210,3 +210,57 @@ final result: passed
 - The existing fixed Ask AI trigger is visible in the mobile full-page capture; this scoped batch intentionally preserves its behavior and does not reassess that separate surface.
 
 final result: passed
+
+---
+
+# Ask WitnessOps proof-theatre QA
+
+## Comparison target and evidence
+
+- Presentation source: `/workspace/scratch/704377652655/deck-reference-render/slide-4.png` from `SHOW ME THE RECEIPT — WitnessOps Agent Action Proof`.
+- Existing product source: the production homepage and its pre-change Ask WitnessOps drawer.
+- Matched source/implementation comparison: `/workspace/scratch/704377652655/ask-proof-deck-comparison.png`.
+- Prompt-state capture: `/workspace/scratch/704377652655/ask-proof-desktop-prompt-final.jpg`.
+- First result-state capture: `/workspace/scratch/704377652655/ask-proof-desktop-result-final.jpg`.
+- Exact post-fix result and contact states were re-rendered in the cloud browser from the final standalone production build.
+
+The final desktop browser viewport was 1363 × 936 CSS px. The drawer measured 520 × 760px at x=813, y=152. A separate 500 × 872 mobile browser pass confirmed the full-viewport treatment, focused input, visible paid offer and restored page state after dismissal. The checked-in UI proof additionally contracts the prompt, result and contact states at 390, 639, 640 and 1440px.
+
+## Findings and iteration history
+
+1. The original utility drawer did not carry the presentation's proof-object hierarchy. It was rebuilt as a black receipt chassis with a warm-paper fit signal, mono provenance labels, one orange commercial action, 1px rules and the existing homepage typography and tokens.
+2. The primary paid action initially measured 40px. It now measures 44px and retains the full `Agent Risk & Control Review · From €1,500` context.
+3. The provider-error branch initially looked like a fit result. It now states `PUBLIC GUIDE UNAVAILABLE / NO FIT CLAIM`, while the deterministic commercial classifier remains visibly bounded as `PUBLIC FIT SIGNAL / NO EVIDENCE REVIEWED`.
+4. The first visual pass hid the human fallback and let a Workflow S request-shape label collide with the live offer. The fallback is restored, deterministic fallback suppresses that stale label, and AI-assisted success preserves the approved authority template without mutation.
+5. The paid CTA was 6.8px below the result scroller's lower edge in the first production render. The final paper-body offset was reduced by 10px and a scroll-region assertion was added. On the exact final build at initial `scrollTop=0`, the CTA measured y=609.36–653.36, the scroll region ended at y=654.81, and `fullyVisible=true` with 1.45px clearance.
+
+## Required fidelity surfaces
+
+- Typography: existing Inter and IBM Plex Mono families remain in use; the deck's mono receipt labels and bold claim hierarchy are translated into the site's established scale.
+- Layout: the drawer keeps the homepage's fixed desktop trigger and becomes a full-viewport panel on mobile. No homepage section or route was redesigned.
+- Color and rules: site black, warm-white, orange and muted-rule tokens reproduce the presentation's restrained paper/ink system without gradients, glow or fake terminal chrome.
+- Copy and boundaries: `NO EVIDENCE REVIEWED`, the fit-only disclaimer, source links and public-input warning remain explicit. No answer claims that evidence, safety, compliance, correctness or action outcome was verified.
+- Conversion: the €1,500 offer appears before public guidance; its 44px CTA opens the on-page scope form without navigation or raw-prompt transfer.
+
+## Interaction, responsive and accessibility checks
+
+- Prompt → deterministic fit result → on-page work-email handoff works in the final standalone production build.
+- The contact state visually hides the fit result, focuses the email input, stays at the homepage URL and does not submit without user input.
+- Escape closes the drawer and restores focus to `Open Ask WitnessOps`.
+- The close control, primary CTA and desktop trigger meet the 44px target contract; the input retains an accessible label and the drawer exposes named prompt/result/contact states for regression testing.
+- The result starts at `scrollTop=0`; the paid action is visible before scrolling, while lower public guidance remains available in the same bounded scroller.
+- Console inspection found no application error; only unrelated browser-extension metadata noise was present.
+
+## Verification
+
+- Final production build: passed across 173 routes.
+- Web tests: 936 passed.
+- Typecheck and lint: passed.
+- Independent design/revenue review: passed with high confidence and no blocker.
+
+## Evidence limits
+
+- The local runner uses Node 24 while the repository pins Node 22; GitHub's pinned Node 22 and Chromium jobs remain the release-environment confirmation.
+- The browser pass validates rendered layout, focus, keyboard dismissal and the conversion handoff; it does not submit a real contact request or establish screen-reader announcement quality.
+
+final result: passed
