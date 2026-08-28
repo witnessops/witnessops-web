@@ -112,7 +112,8 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       path: "/",
       width: 1440,
       height: 1100,
-      primary: "/review/request?productId=WORKFLOW-S",
+      primary:
+        "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
       methodHeading: "Five questions. One bounded workflow.",
       receiptHeading: "Produce something another party can check.",
     },
@@ -120,7 +121,8 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       path: "/",
       width: 390,
       height: 844,
-      primary: "/review/request?productId=WORKFLOW-S",
+      primary:
+        "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
       methodHeading: "Five questions. One bounded workflow.",
       receiptHeading: "Produce something another party can check.",
     },
@@ -128,7 +130,8 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       path: "/pl",
       width: 1440,
       height: 1100,
-      primary: "/pl/review/request?productId=WORKFLOW-S",
+      primary:
+        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
       methodHeading: "Pięć pytań. Jeden ograniczony workflow.",
       receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
     },
@@ -136,7 +139,8 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       path: "/pl",
       width: 390,
       height: 844,
-      primary: "/pl/review/request?productId=WORKFLOW-S",
+      primary:
+        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
       methodHeading: "Pięć pytań. Jeden ograniczony workflow.",
       receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
     },

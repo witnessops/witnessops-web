@@ -321,7 +321,7 @@ export function WitnessedActionReplay() {
           <aside className={styles.paidCta}>
             <span>Agent Risk &amp; Control Review</span>
             <div><h3>Bring the real workflow.</h3><p>Review one consequential workflow’s authority, execution, evidence, controls, and unresolved gaps.</p></div>
-            <Link href="/review/request?productId=WORKFLOW-S">Bring one real workflow →</Link>
+            <Link href="/review/request?offerId=bounded-workflow-review">Bring one real workflow →</Link>
           </aside>
         </section>
       ) : null}

@@ -6,8 +6,7 @@ import { CtaButton } from "@/components/shared/cta-button";
 import {
   ONE_PAGER_LINK_PROPS,
   buyerCatalogHref,
-  buyerOfferRequestHref,
-  buyerRequestHref,
+  buyerServiceRequestHref,
   type BuyerLocale,
   type BuyerService,
 } from "@/lib/buyer-services";
@@ -85,10 +84,7 @@ export function BuyerServiceDetail({
   const text = ui[locale];
   const landing = getServiceLanding(service.id, locale);
   const requestHref =
-    requestHrefOverride ??
-    (service.productId
-      ? buyerOfferRequestHref(locale, service.productId)
-      : buyerRequestHref(locale));
+    requestHrefOverride ?? buyerServiceRequestHref(locale, service);
   const catalogueHref = buyerCatalogHref(locale);
   const onePager = service.onePagerHref?.[locale] ?? service.onePagerHref?.en;
   const primaryCta = landing.primaryCta ?? text.start;

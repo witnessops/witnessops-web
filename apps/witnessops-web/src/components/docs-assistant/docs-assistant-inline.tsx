@@ -8,6 +8,7 @@ import {
   fetchAskWitnessOps,
   type AskWitnessOpsUiAnswer,
 } from "./ask-witnessops-response";
+import { AskWitnessOpsCommercialFitCard } from "./ask-witnessops-commercial-fit-card";
 import { AskWitnessOpsReceiptMeta } from "./ask-witnessops-receipt-meta";
 import { AskWitnessOpsRouteCta } from "./ask-witnessops-route-cta";
 import { AskWitnessOpsSourceLinks } from "./ask-witnessops-source-links";
@@ -47,8 +48,9 @@ export function DocsAssistantInline() {
         Bounded proof guide
       </p>
       <p className="mt-2 text-xs leading-relaxed text-text-muted">
-        Ask a non-secret question about proof packets, receipts, verification
-        paths, catalog packages, or safe first contact.
+        Describe one consequential agentic or automated workflow in non-secret
+        terms. Ask WitnessOps will show the public guidance, commercial fit, and
+        paid next step it can support.
       </p>
       <p className="mb-3 mt-2 text-xs leading-relaxed text-text-muted">
         Do not paste secrets, logs, credentials, private keys, MFA codes,
@@ -66,7 +68,7 @@ export function DocsAssistantInline() {
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask a non-secret question..."
+          placeholder="Example: An agent rotates a compromised production key."
           className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
         />
         <button
@@ -74,13 +76,14 @@ export function DocsAssistantInline() {
           disabled={loading || !question.trim()}
           className="shrink-0 rounded border border-surface-border bg-surface-bg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent disabled:opacity-40"
         >
-          {loading ? "…" : "Ask"}
+          {loading ? "…" : "Check fit"}
         </button>
       </form>
 
       <p className="mt-3 text-xs leading-relaxed text-text-muted">
-        Answers are based on public WitnessOps material. For private systems,
-        request a fit check.
+        AI uses public WitnessOps material. Questions may be processed by OpenAI
+        with provider storage disabled. Do not include confidential or personal
+        material.
       </p>
 
       {error && (
@@ -101,7 +104,10 @@ export function DocsAssistantInline() {
             {askWitnessOpsAnswerText(response)}
           </p>
 
-          <AskWitnessOpsRouteCta answer={response} />
+          <AskWitnessOpsCommercialFitCard answer={response} />
+          {!response.commercial_fit.offer && (
+            <AskWitnessOpsRouteCta answer={response} />
+          )}
           <AskWitnessOpsSourceLinks answer={response} />
           <AskWitnessOpsReceiptMeta answer={response} />
         </div>

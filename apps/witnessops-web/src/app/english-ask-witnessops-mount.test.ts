@@ -21,9 +21,18 @@ test("English public shell mounts the compact Ask WitnessOps launcher", () => {
 
   assert.match(widget, />Ask AI<\/span>/);
   assert.match(widget, /ASK WITNESSOPS/);
-  assert.match(widget, /What can I help you with\?/);
-  assert.match(widget, /Answers are based on public WitnessOps material/);
-  assert.match(widget, /Ask a non-secret question about proof packets/);
+  assert.match(widget, /Describe one consequential agent workflow\./);
+  assert.match(widget, /Review scope and price/);
+  assert.match(widget, /Check fit/);
+  assert.match(widget, /offerId=bounded-workflow-review&source=ask/);
+  assert.match(
+    widget,
+    /Questions may be processed\s+by\s+OpenAI\s+with provider storage disabled/,
+  );
+  assert.match(
+    widget,
+    /Example: An agent rotates a compromised production key\./,
+  );
 });
 
 test("Ask WitnessOps launcher stays off dedicated and non-buyer surfaces", () => {

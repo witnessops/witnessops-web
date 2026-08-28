@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
+import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
 import { ApiKeyRotationDemo } from "./api-key-rotation-demo";
 import styles from "./api-key-rotation-demo.module.css";
 import {
@@ -9,6 +10,11 @@ import {
   sampleBundleSha256,
   sampleCommitShort,
 } from "./sample-artifact-contract";
+
+const reviewRequestHref = buyerPublicOfferRequestHref(
+  "en",
+  "bounded-workflow-review",
+);
 
 export const metadata: Metadata = {
   title: "Compromised API key rotation — verifiable demo",
@@ -77,7 +83,7 @@ export default function ApiKeyRotationSamplePage() {
             secret or source material is accepted.
           </p>
         </div>
-        <Link href="/review/request">Start a review →</Link>
+        <Link href={reviewRequestHref}>Start a review →</Link>
       </section>
     </main>
   );

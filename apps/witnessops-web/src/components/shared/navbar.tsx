@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { WitnessOpsMark } from "./witnessops-mark";
+import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
 import {
   isPolishPath,
-  localizedPath,
+  localizedHref,
   POLISH_PUBLIC_NAV,
 } from "@/lib/public-i18n";
 
@@ -38,13 +39,13 @@ const BUYER_NAV_CTA = {
 
 const HOME_NAV_CTA = {
   label: "Bring one workflow",
-  href: "/review/request",
+  href: buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
   variant: "primary",
 };
 
 const HOME_NAV_CTA_PL = {
   label: "Zgłoś jeden workflow",
-  href: "/pl/review/request",
+  href: buyerPublicOfferRequestHref("pl", "bounded-workflow-review"),
   variant: "primary",
 };
 
@@ -58,8 +59,10 @@ interface NavbarProps {
 
 export function Navbar({ announcement }: NavbarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const navRef = useRef<HTMLElement>(null);
   const currentPath = pathname || "/";
+  const currentSearch = searchParams.toString();
   const polish = isPolishPath(currentPath);
   const homeNav = currentPath === "/" || currentPath === "/pl";
   const productJourneyNav = homeNav;
@@ -82,8 +85,8 @@ export function Navbar({ announcement }: NavbarProps) {
       : BUYER_NAV_CTA;
   const effectiveAnnouncement = announcement;
   const languageLink = polish
-    ? { label: "EN", href: localizedPath(currentPath, "en") }
-    : { label: "PL", href: localizedPath(currentPath, "pl") };
+    ? { label: "EN", href: localizedHref(currentPath, currentSearch, "en") }
+    : { label: "PL", href: localizedHref(currentPath, currentSearch, "pl") };
   const brandLabel = "WitnessOps";
 
   useLayoutEffect(() => {

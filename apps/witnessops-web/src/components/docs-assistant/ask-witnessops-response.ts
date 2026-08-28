@@ -10,8 +10,29 @@ export interface AskWitnessOpsRoute {
   readonly href: string;
 }
 
+export interface AskWitnessOpsCommercialFit {
+  readonly schema: "witnessops.ask.commercial-fit.v1";
+  readonly result:
+    | "likely"
+    | "needs_boundary"
+    | "not_fit"
+    | "unknown"
+    | "blocked";
+  readonly intent: "workflow" | "offer" | "specimen" | "other";
+  readonly offer_id: "bounded-workflow-review" | null;
+  readonly source: "ask";
+  readonly offer: {
+    readonly name: "Agent Risk & Control Review";
+    readonly price_label: "From €1,500";
+    readonly unit_label: "One agentic or automated workflow";
+  } | null;
+  readonly matching_specimen_id: "ai-agent-action-proof-run" | null;
+}
+
 export interface AskWitnessOpsUiAnswer {
-  readonly schema: "witnessops.ask.assembled-answer.v1";
+  readonly schema:
+    | "witnessops.ask.assembled-answer.v1"
+    | "witnessops.ask.public-boundary-response.v1";
   readonly status: "success" | "closed";
   readonly template: {
     readonly template_id: string;
@@ -19,6 +40,7 @@ export interface AskWitnessOpsUiAnswer {
     readonly source_display: string | null;
   };
   readonly route: AskWitnessOpsRoute | null;
+  readonly commercial_fit: AskWitnessOpsCommercialFit;
   readonly presented_sources: readonly AskWitnessOpsPresentedSource[];
   readonly failure_reason?: string;
   readonly receipt_id?: string;
@@ -34,6 +56,19 @@ export interface AskWitnessOpsRequestErrorDetails {
 }
 
 export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
+  if (
+    answer.status === "closed" &&
+    answer.commercial_fit.offer &&
+    (answer.commercial_fit.result === "likely" ||
+      answer.commercial_fit.result === "needs_boundary")
+  ) {
+    if (answer.commercial_fit.result === "needs_boundary") {
+      return "This public guide cannot inspect a whole environment. Narrow the non-secret description to one consequential workflow; the bounded paid-review path is below.";
+    }
+
+    return "This public guide cannot inspect or verify the workflow here. Your non-secret description is enough for a likely commercial-fit signal; the bounded paid-review path is below.";
+  }
+
   const body = answer.template.body.trim();
   if (body.length > 0) {
     return body;
@@ -47,6 +82,15 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
 }
 
 export function askWitnessOpsModeLabel(answer: AskWitnessOpsUiAnswer): string {
+  if (
+    answer.status === "closed" &&
+    answer.commercial_fit.offer &&
+    (answer.commercial_fit.result === "likely" ||
+      answer.commercial_fit.result === "needs_boundary")
+  ) {
+    return "Commercial fit · public boundary";
+  }
+
   if (answer.answer_mode === "ai_assisted") {
     return "AI-assisted · public WitnessOps material";
   }
@@ -96,6 +140,14 @@ export function askWitnessOpsRouteLabel(routeId: string): string {
   };
 
   return labels[routeId] ?? "Continue";
+}
+
+export function askWitnessOpsRouteHref(route: AskWitnessOpsRoute): string {
+  if (route.route_id === "route.fit-check") {
+    return "/review/request?offerId=bounded-workflow-review&source=ask";
+  }
+
+  return route.href;
 }
 
 export async function fetchAskWitnessOps(
@@ -158,6 +210,10 @@ function parseAssembledAnswer(payload: unknown): AskWitnessOpsUiAnswer {
   }
 
   const record = payload as Record<string, unknown>;
+  if (record.schema === "witnessops.ask.public-boundary-response.v1") {
+    return parsePublicBoundaryAnswer(record);
+  }
+
   if (record.schema !== "witnessops.ask.assembled-answer.v1") {
     throw new Error("Ask WitnessOps returned an unexpected response schema.");
   }
@@ -170,6 +226,7 @@ function parseAssembledAnswer(payload: unknown): AskWitnessOpsUiAnswer {
     status,
     template,
     route: asRoute(record.route),
+    commercial_fit: asCommercialFit(record.commercial_fit),
     presented_sources: asPresentedSources(record.presented_sources),
     failure_reason:
       typeof record.failure_reason === "string" ? record.failure_reason : undefined,
@@ -178,6 +235,149 @@ function parseAssembledAnswer(payload: unknown): AskWitnessOpsUiAnswer {
       record.answer_mode === "policy_refusal"
         ? record.answer_mode
         : "deterministic_fallback",
+  };
+}
+
+function parsePublicBoundaryAnswer(
+  record: Record<string, unknown>,
+): AskWitnessOpsUiAnswer {
+  const authorityAnswer = record.authority_answer;
+  if (
+    !isCoherentNestedAuthorityAnswer(authorityAnswer) ||
+    record.status !== "closed" ||
+    record.route !== null ||
+    !Array.isArray(record.presented_sources) ||
+    record.presented_sources.length !== 0 ||
+    record.answer_mode !== "policy_refusal"
+  ) {
+    throw new Error("Ask WitnessOps returned an invalid boundary response.");
+  }
+
+  return {
+    schema: "witnessops.ask.public-boundary-response.v1",
+    status: "closed",
+    template: asTemplate(record.template),
+    route: null,
+    commercial_fit: asCommercialFit(record.commercial_fit),
+    presented_sources: asPresentedSources(record.presented_sources),
+    failure_reason:
+      typeof record.failure_reason === "string"
+        ? record.failure_reason
+        : "PUBLIC_MATERIAL_BOUNDARY",
+    answer_mode: "policy_refusal",
+  };
+}
+
+function isCoherentNestedAuthorityAnswer(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  const template =
+    record.template && typeof record.template === "object"
+      ? (record.template as Record<string, unknown>)
+      : null;
+  const decision =
+    record.policy_decision && typeof record.policy_decision === "object"
+      ? (record.policy_decision as Record<string, unknown>)
+      : null;
+
+  return (
+    record.schema === "witnessops.ask.assembled-answer.v1" &&
+    record.assembler_contract_id === "ASK_DETERMINISTIC_ANSWER_ASSEMBLER_V1" &&
+    record.assembler_contract_version === 1 &&
+    typeof record.deterministic_replay_hash === "string" &&
+    record.deterministic_replay_hash.length > 0 &&
+    typeof template?.template_id === "string" &&
+    template.template_id === decision?.template_id
+  );
+}
+
+function asCommercialFit(value: unknown): AskWitnessOpsCommercialFit {
+  if (!value || typeof value !== "object") {
+    return unknownCommercialFit();
+  }
+
+  const record = value as Record<string, unknown>;
+  const result = record.result;
+  const intent = record.intent;
+  const validResult =
+    result === "likely" ||
+    result === "needs_boundary" ||
+    result === "not_fit" ||
+    result === "unknown" ||
+    result === "blocked";
+  const validIntent =
+    intent === "workflow" ||
+    intent === "offer" ||
+    intent === "specimen" ||
+    intent === "other";
+
+  if (
+    record.schema !== "witnessops.ask.commercial-fit.v1" ||
+    !validResult ||
+    !validIntent ||
+    record.source !== "ask"
+  ) {
+    return unknownCommercialFit();
+  }
+
+  const offerRecord =
+    record.offer && typeof record.offer === "object"
+      ? (record.offer as Record<string, unknown>)
+      : null;
+  const offerId =
+    record.offer_id === "bounded-workflow-review"
+      ? "bounded-workflow-review"
+      : null;
+  const offer =
+    offerRecord?.name === "Agent Risk & Control Review" &&
+    offerRecord.price_label === "From €1,500" &&
+    offerRecord.unit_label === "One agentic or automated workflow"
+      ? {
+          name: "Agent Risk & Control Review" as const,
+          price_label: "From €1,500" as const,
+          unit_label: "One agentic or automated workflow" as const,
+        }
+      : null;
+
+  const matchingSpecimenId =
+    record.matching_specimen_id === "ai-agent-action-proof-run"
+      ? "ai-agent-action-proof-run"
+      : record.matching_specimen_id === null
+        ? null
+        : undefined;
+  const presentsOffer = result === "likely" || result === "needs_boundary";
+  const validOfferState = presentsOffer
+    ? offerId === "bounded-workflow-review" &&
+      offer !== null &&
+      (result === "likely"
+        ? intent === "workflow" || intent === "offer"
+        : intent === "workflow" || intent === "specimen")
+    : offerId === null && offer === null && intent === "other";
+
+  if (!validOfferState || matchingSpecimenId === undefined) {
+    return unknownCommercialFit();
+  }
+
+  return {
+    schema: "witnessops.ask.commercial-fit.v1",
+    result,
+    intent,
+    offer_id: offerId,
+    source: "ask",
+    offer,
+    matching_specimen_id: matchingSpecimenId,
+  };
+}
+
+function unknownCommercialFit(): AskWitnessOpsCommercialFit {
+  return {
+    schema: "witnessops.ask.commercial-fit.v1",
+    result: "unknown",
+    intent: "other",
+    offer_id: null,
+    source: "ask",
+    offer: null,
+    matching_specimen_id: null,
   };
 }
 

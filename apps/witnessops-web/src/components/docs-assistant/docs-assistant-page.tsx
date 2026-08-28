@@ -8,6 +8,7 @@ import {
   fetchAskWitnessOps,
   type AskWitnessOpsUiAnswer,
 } from "./ask-witnessops-response";
+import { AskWitnessOpsCommercialFitCard } from "./ask-witnessops-commercial-fit-card";
 import { AskWitnessOpsReceiptMeta } from "./ask-witnessops-receipt-meta";
 import { AskWitnessOpsRouteCta } from "./ask-witnessops-route-cta";
 import { AskWitnessOpsSourceLinks } from "./ask-witnessops-source-links";
@@ -21,11 +22,11 @@ interface Message {
 }
 
 const SUGGESTED_QUESTIONS = [
-  "What package fits a launch readiness review?",
-  "What does a proof packet include?",
+  "An AI agent rotates compromised production keys. How can we prove authorization and revocation?",
+  "What is included in the Agent Risk & Control Review?",
+  "How much does one workflow review cost?",
+  "How should one consequential agent workflow be bounded?",
   "Can I send logs or screenshots?",
-  "What is not included in workspace access?",
-  "How do I request a fit check?",
 ];
 
 export function DocsAssistantPage() {
@@ -91,8 +92,9 @@ export function DocsAssistantPage() {
           ASK WITNESSOPS
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-text-muted">
-          Ask a non-secret question about proof packets, receipts, verification
-          paths, catalog packages, or safe first contact.
+          Describe one consequential agentic or automated workflow in non-secret
+          terms. Ask WitnessOps will show the public guidance, commercial fit,
+          and paid next step it can support.
         </p>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-muted md:text-xs">
           Do not paste secrets, logs, credentials, private keys, MFA codes,
@@ -104,7 +106,7 @@ export function DocsAssistantPage() {
         {isEmpty ? (
           <div className="flex flex-col items-center justify-center gap-4 px-4 py-6 text-center md:h-full md:gap-6 md:py-0">
             <p className="max-w-sm text-sm leading-relaxed text-text-muted">
-              Pick a bounded buyer or proof question to start.
+              Pick a bounded workflow or offer question to check fit.
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {SUGGESTED_QUESTIONS.map((q) => (
@@ -145,7 +147,10 @@ export function DocsAssistantPage() {
                         >
                           {askWitnessOpsModeLabel(msg.answer)}
                         </p>
-                        <AskWitnessOpsRouteCta answer={msg.answer} />
+                        <AskWitnessOpsCommercialFitCard answer={msg.answer} />
+                        {!msg.answer.commercial_fit.offer && (
+                          <AskWitnessOpsRouteCta answer={msg.answer} />
+                        )}
                         <AskWitnessOpsSourceLinks answer={msg.answer} />
                         <AskWitnessOpsReceiptMeta answer={msg.answer} />
                       </>
@@ -178,7 +183,7 @@ export function DocsAssistantPage() {
             type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ask a non-secret question..."
+            placeholder="Example: An agent rotates a compromised production key."
             className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
           />
           <button
@@ -186,12 +191,13 @@ export function DocsAssistantPage() {
             disabled={loading || !question.trim()}
             className="shrink-0 rounded border border-surface-border bg-surface-bg px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent disabled:opacity-40"
           >
-            Ask
+            {loading ? "…" : "Check fit"}
           </button>
         </form>
         <p className="mt-2 text-sm leading-relaxed text-text-muted md:text-xs">
-          Answers are based on public WitnessOps material. For private systems,
-          request a fit check.
+          AI uses public WitnessOps material. Questions may be processed by
+          OpenAI with provider storage disabled. Do not include confidential or
+          personal material.
         </p>
       </div>
     </div>

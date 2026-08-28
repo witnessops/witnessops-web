@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { formatVerificationCode } from "@/lib/verification-code-format";
 import type { EngageResponse, VerifyTokenResponse } from "@/lib/token-contract";
+import type { AskWitnessOpsCommercialFit } from "./ask-witnessops-response";
 
 type VerificationStep = Pick<
   EngageResponse,
@@ -12,21 +13,48 @@ type VerificationStep = Pick<
 
 const CONTACT_PANEL_ID = "ask-witnessops-contact-handoff";
 
-export function buildAskAiContactScope(note: string): string {
+export function buildAskAiContactScope(
+  note: string,
+  commercialFit?: AskWitnessOpsCommercialFit,
+): string {
   return [
     "Contact path: Ask AI panel handoff",
+    ...(commercialFit?.offer_id
+      ? [
+          `Offer: ${commercialFit.offer_id}`,
+          `Commercial fit signal: ${commercialFit.result}`,
+          `Commercial intent: ${commercialFit.intent}`,
+          `Source: ${commercialFit.source}`,
+        ]
+      : []),
     `Visitor note: ${note.trim() || "not provided"}`,
     "First-message boundary: no files, secrets, logs, screenshots, credentials, private keys, MFA codes, customer records, or production evidence requested.",
     "Next step: mailbox verification, followed by asynchronous fit and scope review. No review starts from this contact handoff.",
   ].join("\n");
 }
 
+export function buildAskAiContactRequest(
+  email: string,
+  note: string,
+  commercialFit?: AskWitnessOpsCommercialFit,
+) {
+  return {
+    email,
+    intent: "ask-ai-contact",
+    locale: "en",
+    scope: buildAskAiContactScope(note, commercialFit),
+  } as const;
+}
+
 export function DocsAssistantContactHandoff({
+  expanded,
+  commercialFit,
   onExpandedChange,
 }: {
-  onExpandedChange?: (expanded: boolean) => void;
+  expanded: boolean;
+  commercialFit?: AskWitnessOpsCommercialFit;
+  onExpandedChange: (expanded: boolean) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
   const [status, setStatus] = useState<
@@ -57,8 +85,7 @@ export function DocsAssistantContactHandoff({
   }, [verificationStep]);
 
   function reset() {
-    setExpanded(false);
-    onExpandedChange?.(false);
+    onExpandedChange(false);
     setEmail("");
     setNote("");
     setStatus("idle");
@@ -79,12 +106,9 @@ export function DocsAssistantContactHandoff({
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          intent: "ask-ai-contact",
-          locale: "en",
-          scope: buildAskAiContactScope(note),
-        }),
+        body: JSON.stringify(
+          buildAskAiContactRequest(email, note, commercialFit),
+        ),
       });
       const payload = (await response.json().catch(() => null)) as
         | (Partial<EngageResponse> & { error?: string })
@@ -166,14 +190,13 @@ export function DocsAssistantContactHandoff({
         <button
           type="button"
           onClick={() => {
-            setExpanded(true);
-            onExpandedChange?.(true);
+            onExpandedChange(true);
           }}
           aria-expanded="false"
           aria-controls={CONTACT_PANEL_ID}
           className="mt-2 text-xs font-semibold text-brand-accent underline decoration-brand-accent/40 underline-offset-4 transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
         >
-          Leave contact details
+          Request a scoped review
         </button>
       </div>
     );
@@ -209,11 +232,24 @@ export function DocsAssistantContactHandoff({
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-text-primary">
-            Contact handoff
+            {commercialFit?.offer
+              ? "Request scope for this workflow"
+              : "Contact handoff"}
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-text-muted">
-            Leave a work email and an optional short, non-secret note. We use an
-            email code to confirm the mailbox before the request can be handled.
+            {commercialFit?.offer ? (
+              <>
+                {commercialFit.offer.name} · {commercialFit.offer.price_label} ·{" "}
+                one workflow. Confirm a work email; no work starts until scope,
+                fee, timing, and evidence handling are agreed.
+              </>
+            ) : (
+              <>
+                Leave a work email and an optional short, non-secret note. We
+                use an email code to confirm the mailbox before the request can
+                be handled.
+              </>
+            )}
           </p>
         </div>
         <button

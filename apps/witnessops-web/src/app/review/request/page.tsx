@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
-import { buyerServiceByProductId } from "@/lib/buyer-services";
+import {
+  buyerServiceByProductId,
+  buyerServiceByPublicOfferId,
+} from "@/lib/buyer-services";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import { linkedinPremiumCampaignAttribution } from "@/lib/marketing-attribution";
 import {
@@ -111,12 +114,18 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
   const one = (value: string | string[] | undefined) =>
     Array.isArray(value) ? value[0] : value;
   const productId = one(params.productId);
+  const offerId = one(params.offerId);
   const campaignAttribution = linkedinPremiumCampaignAttribution(params);
   const requestedSku = productId ? getSku(productId) : undefined;
   const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
     ? requestedSku
     : undefined;
-  const selectedOffer = sku ? buyerServiceByProductId(sku.id) : undefined;
+  const requestedOffer = offerId
+    ? buyerServiceByPublicOfferId(offerId)
+    : undefined;
+  const selectedOffer = sku
+    ? buyerServiceByProductId(sku.id)
+    : requestedOffer;
   const publicExposureOrder = sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
   const activeNextSteps = publicExposureOrder ? publicExposureNextSteps : nextSteps;
   const activeOutputs = publicExposureOrder ? publicExposureOutputs : proofOutputs;
@@ -174,7 +183,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section className="self-start border border-surface-border p-4 sm:p-6 md:p-8" style={{ background: "var(--color-surface-bg-alt)" }}>
           <ContactForm
-            intent={sku?.id ?? "review"}
+            intent={sku?.id ?? selectedOffer?.id ?? "review"}
             campaignAttribution={campaignAttribution}
           />
         </section>
