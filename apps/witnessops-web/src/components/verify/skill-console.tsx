@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   DEFAULT_SKILL_POLICY_ID,
   SKILL_POLICY_PACKS,
@@ -9,12 +9,17 @@ import {
 import {
   AEGIS_VERIFIER_ID,
   SKILL_MAX_BYTES,
+  SKILL_PASS_LIMITATION,
   SKILL_PASS_SUMMARY,
+} from "@/lib/skill-verify/contract";
+import {
   decodeSkillUtf8,
   normalizeSkillSourceName,
-  runSkillScan,
-  type SkillScanOutcome,
-  type SkillScanResult,
+} from "@/lib/skill-verify/input";
+import { runSkillScanInWorker } from "@/lib/skill-verify/run-scan-in-worker";
+import type {
+  SkillScanOutcome,
+  SkillScanResult,
 } from "@/lib/skill-verify/run-scan";
 import styles from "./skill-console.module.css";
 
@@ -70,6 +75,8 @@ export function SkillConsole({
   const [outcome, setOutcome] = useState<SkillScanOutcome | null>(null);
   const [busy, setBusy] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const activeScan = useRef<AbortController | null>(null);
+  const fileReadGeneration = useRef(0);
 
   useEffect(() => {
     if (!outcome) return;
@@ -78,23 +85,56 @@ export function SkillConsole({
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [outcome]);
 
+  useEffect(
+    () => () => {
+      activeScan.current?.abort();
+      fileReadGeneration.current += 1;
+    },
+    [],
+  );
+
+  function invalidateActiveScan() {
+    activeScan.current?.abort();
+    activeScan.current = null;
+    setBusy(false);
+  }
+
   async function verify(nextContent = content, nextPolicy = policyId, nextName = sourceName) {
+    fileReadGeneration.current += 1;
+    activeScan.current?.abort();
+    const controller = new AbortController();
+    activeScan.current = controller;
     setBusy(true);
     setCopyState("idle");
+    setInputSha256(null);
+    setOutcome(null);
     try {
-      const nextOutcome = await runSkillScan({
-        content: nextContent,
-        policyId: nextPolicy,
-        sourceName: nextName,
-      });
+      const nextOutcome = await runSkillScanInWorker(
+        {
+          content: nextContent,
+          policyId: nextPolicy,
+          sourceName: nextName,
+        },
+        { signal: controller.signal },
+      );
+      if (controller.signal.aborted || activeScan.current !== controller) return;
       setInputSha256(nextOutcome.ok ? nextOutcome.inputSha256 : null);
       setOutcome(nextOutcome);
     } finally {
-      setBusy(false);
+      if (activeScan.current === controller) {
+        activeScan.current = null;
+        setBusy(false);
+      }
     }
   }
 
   async function loadLocalFile(file: File) {
+    const generation = fileReadGeneration.current + 1;
+    fileReadGeneration.current = generation;
+    invalidateActiveScan();
+    setExactBinding(null);
+    setInputSha256(null);
+    setOutcome(null);
     if (!isAcceptedSkillFile(file) || file.size > SKILL_MAX_BYTES) {
       setOutcome({
         ok: false,
@@ -106,11 +146,24 @@ export function SkillConsole({
       });
       return;
     }
-    const bytes = new Uint8Array(await file.arrayBuffer());
+    let bytes: Uint8Array;
+    try {
+      bytes = new Uint8Array(await file.arrayBuffer());
+    } catch {
+      if (fileReadGeneration.current !== generation) return;
+      setOutcome({
+        ok: false,
+        code: "UNSUPPORTED_FILE",
+        message: "The selected file could not be read and was not evaluated.",
+      });
+      return;
+    }
+    if (fileReadGeneration.current !== generation) return;
     let text: string;
     try {
       text = decodeSkillUtf8(bytes);
     } catch {
+      if (fileReadGeneration.current !== generation) return;
       setOutcome({
         ok: false,
         code: "UNSUPPORTED_FILE",
@@ -118,6 +171,7 @@ export function SkillConsole({
       });
       return;
     }
+    if (fileReadGeneration.current !== generation) return;
     setContent(text);
     setSourceName(normalizeSkillSourceName(file.name));
     setExactBinding(null);
@@ -215,7 +269,7 @@ export function SkillConsole({
             <input
               id={fileInputId}
               type="file"
-              accept=".md,.markdown,.txt,text/markdown,text/plain"
+              accept=".md,.markdown,.txt,text/markdown,text/plain,text/x-markdown"
               className="sr-only"
               onChange={handleUpload}
             />
@@ -232,6 +286,8 @@ export function SkillConsole({
             value={content}
             onChange={(event) => {
               const nextContent = event.target.value;
+              fileReadGeneration.current += 1;
+              invalidateActiveScan();
               if (
                 nextContent.length > SKILL_MAX_BYTES ||
                 new TextEncoder().encode(nextContent).byteLength > SKILL_MAX_BYTES
@@ -344,8 +400,7 @@ export function SkillConsole({
               </p>
               {outcome.result.verdict === "pass" ? (
                 <p className={styles.resultLimitation}>
-                  No governed pattern was detected under the selected policy. This does not prove
-                  that the skill or resulting workflow is safe.
+                  {SKILL_PASS_LIMITATION}
                 </p>
               ) : null}
               <code>

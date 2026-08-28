@@ -25,23 +25,19 @@ loads it. This skill is the public contract for WitnessOps Check a Skill.
 | --- | --- | --- |
 | standard | critical | high |
 | enterprise | high | medium |
-| restricted | medium | low |
-| research | critical | none (high tooling permitted) |
+| restricted | medium | remaining operational findings |
+| research | critical | high (tooling permitted) |
 
 ## Workflow
 
 1. Accept only local Markdown or plain text. Reject binaries and NUL bytes.
-2. Bound input to 16 KiB.
-3. Evaluate inside a dedicated browser worker with a 30-second timeout. A
-   timeout is not a verdict.
-4. Scan the paste as path `SKILL.md` regardless of the original filename.
-5. Classify each finding as operational or documentary (labelled examples).
-6. Apply the selected policy pack.
-7. Report a verdict: pass, review, or fail.
-8. Fail closed instead of returning a verdict when complete output exceeds the
-   published output bounds.
-9. Name every finding with rule id, severity, evidence, and remediation.
-10. Repeat the pass limitation on every pass, including exported reports.
+2. Bound input to 128 KiB.
+3. Scan the paste as path `SKILL.md` regardless of the original filename.
+4. Classify each finding as operational or documentary (labelled examples).
+5. Apply the selected policy pack.
+6. Report a verdict: pass, review, or fail.
+7. Name every finding with rule id, severity, evidence, and remediation.
+8. Repeat the pass limitation on every pass.
 
 ## Guardrails
 
@@ -61,4 +57,4 @@ loads it. This skill is the public contract for WitnessOps Check a Skill.
 
 ## Pass limitation
 
-A pass means no policy-blocking operational pattern was detected under the selected policy. Documentary findings may remain. It does not prove the skill or resulting workflow is safe.
+A pass means no governed pattern was detected under the selected policy; it does not prove the skill is safe.

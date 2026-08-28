@@ -51,7 +51,7 @@ The paid offer remains Agent Risk & Control Review. It is not Public Exposure Re
 
 Required public limitation:
 
-> Aegis checks a SKILL.md against explicit deterministic policy rules. A pass means no governed pattern was detected under the selected policy; it does not prove the skill is safe.
+> A pass means no policy-blocking operational pattern was detected under the selected policy. Documentary findings may remain. It does not prove the skill or resulting workflow is safe.
 
 Required local-processing claim:
 
@@ -71,7 +71,12 @@ The production acceptance test must inspect post-load request payloads for the s
 - Editing or replacing the input visibly removes the exact-version binding
 - Runtime image: the canonical public skill files are copied into the existing application image; no registry or remote fetch is introduced
 
-The featured `governed-agent-verifier` production file currently hashes to:
+The featured `governed-agent-verifier` v1.0.1 production file currently hashes to:
+
+`ccc325d40dc89823adff2d10f81fb02aa583a4edb5fd19bb1501b8512510bdb0`
+
+The exact archived v1.0.0 file remains available for historical challenge and
+hashes to:
 
 `2a0b2309a1785081ecc20c7e325b3d23454b2bfd65d9641ea82164bf9298aad5`
 

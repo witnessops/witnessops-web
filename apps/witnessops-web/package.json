@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1 --port 3001",
-    "build": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\" && next build",
+    "build": "pnpm test:skill-contract && node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\" && next build",
     "start": "next start",
     "start:ui-proof": "next start --hostname 127.0.0.1 --port 3001",
     "validate:ask-authority-loader": "node ./scripts/validate-ask-authority-loader-standalone.mjs",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "NODE_ENV=test node --test src/lib/api-key-rotation-demo-verifier.test.mjs && NODE_ENV=test TSX_TSCONFIG_PATH=tsconfig.test.json node --import ./scripts/register-server-only-test-stub.mjs --import tsx --test 'src/**/*.test.ts' 'src/**/*.test.tsx'",
+    "test:skill-contract": "NODE_ENV=test TSX_TSCONFIG_PATH=tsconfig.test.json node --import ./scripts/register-server-only-test-stub.mjs --import tsx --test 'src/lib/skill-verify/contract-conformance.test.ts' 'src/lib/skill-verify/run-scan.test.ts' 'src/lib/skill-verify/run-scan-worker.test.ts'",
     "test:api-key-rotation-demo": "node --test src/lib/api-key-rotation-demo-verifier.test.mjs",
     "test:evidence": "tsx --tsconfig ./tsconfig.json --test 'src/lib/server/*.test.ts' 'src/app/api/provider-events/**/*.test.ts'"
   },

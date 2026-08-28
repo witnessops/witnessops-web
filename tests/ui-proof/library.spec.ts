@@ -77,13 +77,16 @@ test("English Skill Library resolves all exact-byte first-party routes", async (
   for (const slug of skillSlugs) {
     const response = await page.goto(`/library/${slug}`, { waitUntil: "domcontentloaded" });
     expect(response?.status(), slug).toBe(200);
+    const version = slug === "governed-agent-verifier" ? "1.0.1" : "1.0.0";
     await expect(page.getByRole("link", { name: "Check this exact version" })).toHaveAttribute(
       "href",
-      new RegExp(`^/verify/skill\\?skill=${slug}&version=1\\.0\\.0&sha256=[a-f0-9]{64}$`),
+      new RegExp(`^/verify/skill\\?skill=${slug}&version=${version.replaceAll(".", "\\.")}&sha256=[a-f0-9]{64}$`),
     );
     await expect(page.getByRole("link", { name: "Download SKILL.md" })).toHaveAttribute(
       "href",
-      `/library/${slug}/download`,
+      slug === "governed-agent-verifier"
+        ? `/library/${slug}/versions/${version}/download`
+        : `/library/${slug}/download`,
     );
   }
   const missing = await page.goto("/library/not-a-public-skill", { waitUntil: "domcontentloaded" });

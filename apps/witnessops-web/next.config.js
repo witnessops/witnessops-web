@@ -51,6 +51,15 @@ const nextConfig = {
         ],
       },
       {
+        source: "/samples/governed-agent-verifier-conformance/v1/:artifact*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
         source: "/.well-known/witnessops-demo-signing-keys.json",
         headers: [
           {

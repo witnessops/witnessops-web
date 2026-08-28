@@ -6,7 +6,9 @@ import test from "node:test";
 
 import {
   getSkill,
+  getSkillVersion,
   listSkills,
+  listSkillVersions,
   PUBLIC_SKILL_COUNT,
   readSkillBytes,
   readSkillMarkdown,
@@ -35,9 +37,28 @@ test("featured governed-agent-verifier hash is recomputed from production bytes"
   const skill = getSkill("governed-agent-verifier");
   assert.ok(skill);
   assert.equal(skill.featured, true);
+  assert.equal(skill.version, "1.0.1");
   assert.equal(
     skill.sha256,
+    "ccc325d40dc89823adff2d10f81fb02aa583a4edb5fd19bb1501b8512510bdb0",
+  );
+});
+
+test("governed-agent-verifier preserves immutable v1.0.0 history", () => {
+  const historical = getSkillVersion("governed-agent-verifier", "1.0.0");
+  assert.ok(historical);
+  assert.equal(
+    historical.sha256,
     "2a0b2309a1785081ecc20c7e325b3d23454b2bfd65d9641ea82164bf9298aad5",
+  );
+  assert.deepEqual(
+    listSkillVersions("governed-agent-verifier").map(({ version }) => version),
+    ["1.0.1", "1.0.0"],
+  );
+  assert.ok(
+    listSkills()
+      .filter(({ slug }) => slug !== "governed-agent-verifier")
+      .every(({ version }) => version === "1.0.0"),
   );
 });
 

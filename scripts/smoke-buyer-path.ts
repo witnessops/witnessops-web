@@ -179,6 +179,37 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/library/governed-agent-verifier",
+    requiredMarkers: [
+      "governed-agent-verifier",
+      "1.0.1",
+      "Contract history",
+      "Historical drift receipt",
+      "Machine-readable v1.0.1 contract",
+      "source and contract agreement only",
+    ],
+    prohibitedMarkers: [
+      "Verified safe",
+      "Certified safe",
+      "production-deployment proof",
+    ],
+  },
+  {
+    path: "/samples/governed-agent-verifier-conformance/v1/RECEIPT.json",
+    requiredMarkers: [
+      "witnessops.governed-agent-verifier-conformance-receipt.v1",
+      "CONTRACT_CONFORMANT_IN_SOURCE",
+      "2a0b2309a1785081ecc20c7e325b3d23454b2bfd65d9641ea82164bf9298aad5",
+      "ccc325d40dc89823adff2d10f81fb02aa583a4edb5fd19bb1501b8512510bdb0",
+      "production deployment of this source revision",
+    ],
+    prohibitedMarkers: [
+      "CONTRACT_CONFORMANT_IN_PRODUCTION",
+      "skill is safe",
+      "certified safe",
+    ],
+  },
+  {
     path: "/support",
     requiredMarkers: [
       "Get help or start a review",

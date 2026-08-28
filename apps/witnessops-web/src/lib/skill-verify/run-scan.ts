@@ -1,23 +1,33 @@
 import { scanSkill } from "aegis-deterministic";
 import { reportMarkdown } from "aegis-deterministic/report";
+import {
+  AEGIS_VERIFIER_ID,
+  SKILL_CONTRACT_PATH,
+  SKILL_MAX_BYTES,
+  SKILL_MAX_EVIDENCE_BYTES,
+  SKILL_MAX_FINDINGS,
+  SKILL_MAX_REPORT_BYTES,
+  SKILL_PASS_LIMITATION,
+  SKILL_PASS_SUMMARY,
+} from "./contract";
+import { encodeSkillUtf8Strict, normalizeSkillSourceName } from "./input";
 import { DEFAULT_SKILL_POLICY_ID, isSkillPolicyId } from "./policies";
 
-/**
- * Bounded SKILL.md size. The pinned scanner remains synchronous, so keep the
- * accepted input below the measured multi-second main-thread range.
- */
-export const SKILL_MAX_BYTES = 16 * 1024;
-
-/** Hygiene in Aegis keys off this path. Always scan paste/upload as SKILL.md. */
-export const SKILL_CONTRACT_PATH = "SKILL.md";
-
-export const AEGIS_VERIFIER_ID = "aegis-deterministic@2.0.0-cleanroom.3";
-
-export const SKILL_PASS_LIMITATION =
-  "Aegis checks a SKILL.md against explicit deterministic policy rules. A pass means no governed pattern was detected under the selected policy; it does not prove the skill is safe.";
-
-export const SKILL_PASS_SUMMARY =
-  "No policy-blocking operational pattern was detected under the selected policy.";
+export {
+  AEGIS_VERIFIER_ID,
+  SKILL_CONTRACT_PATH,
+  SKILL_MAX_BYTES,
+  SKILL_MAX_EVIDENCE_BYTES,
+  SKILL_MAX_FINDINGS,
+  SKILL_MAX_REPORT_BYTES,
+  SKILL_PASS_LIMITATION,
+  SKILL_PASS_SUMMARY,
+};
+export {
+  decodeSkillUtf8,
+  encodeSkillUtf8Strict,
+  normalizeSkillSourceName,
+} from "./input";
 
 export type SkillScanResult = ReturnType<typeof scanSkill>;
 
@@ -35,30 +45,20 @@ export type SkillScanFailure = {
     | "EMPTY_INPUT"
     | "OVERSIZED"
     | "UNSUPPORTED_FILE"
+    | "OUTPUT_LIMIT_EXCEEDED"
+    | "SCAN_TIMEOUT"
+    | "WORKER_FAILED"
     | "VERIFIER_EXCEPTION"
     | "REPORT_FAILED";
   message: string;
 };
 
 export type SkillScanOutcome = SkillScanSuccess | SkillScanFailure;
-
-export function decodeSkillUtf8(bytes: Uint8Array): string {
-  return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
-}
-
-export function normalizeSkillSourceName(value?: string): string {
-  const basename = (value ?? SKILL_CONTRACT_PATH)
-    .replaceAll("\\", "/")
-    .split("/")
-    .at(-1) ?? SKILL_CONTRACT_PATH;
-  const normalized = basename
-    .replace(/[\u0000-\u001f\u007f]/g, " ")
-    .replace(/[^A-Za-z0-9._ -]/g, "_")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 120);
-  return normalized || SKILL_CONTRACT_PATH;
-}
+export type SkillScanInput = {
+  content: string;
+  policyId?: string;
+  sourceName?: string;
+};
 
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes).buffer);
@@ -75,8 +75,9 @@ function bindReport(
     inputBytes: number;
     policyId: string;
   },
+  verdict: SkillScanResult["verdict"],
 ): string {
-  return [
+  const sections = [
     "<!-- witnessops-skill-report-binding:v1 -->",
     "## WitnessOps input binding",
     "",
@@ -87,14 +88,36 @@ function bindReport(
     `- Policy: \`${identity.policyId}\``,
     "",
     report,
-  ].join("\n");
+  ];
+  if (verdict === "pass") {
+    sections.push(
+      "",
+      "## WitnessOps pass limitation",
+      "",
+      SKILL_PASS_LIMITATION,
+    );
+  }
+  return sections.join("\n");
 }
 
-export async function runSkillScan(input: {
-  content: string;
-  policyId?: string;
-  sourceName?: string;
-}): Promise<SkillScanOutcome> {
+function utf8ByteLength(value: string): number {
+  return new TextEncoder().encode(value).byteLength;
+}
+
+function evidenceByteLength(
+  finding: SkillScanResult["findings"][number],
+): number {
+  return finding.evidence ? utf8ByteLength(JSON.stringify(finding.evidence)) : 0;
+}
+
+function labelEngineCodeUnits(report: string): string {
+  return report.replace(
+    /^- Stats: files=(\d+) lines=(\d+) bytes=(\d+) hidden=(\d+)$/m,
+    "- Engine stats: files=$1 lines=$2 UTF-16-code-units=$3 hidden=$4",
+  );
+}
+
+export async function runSkillScan(input: SkillScanInput): Promise<SkillScanOutcome> {
   const content = input.content;
   if (typeof content !== "string") {
     return {
@@ -125,7 +148,16 @@ export async function runSkillScan(input: {
     };
   }
 
-  const contentBytes = new TextEncoder().encode(content);
+  let contentBytes: Uint8Array;
+  try {
+    contentBytes = encodeSkillUtf8Strict(content);
+  } catch {
+    return {
+      ok: false,
+      code: "UNSUPPORTED_FILE",
+      message: "Only well-formed UTF-8 Markdown or plain-text SKILL.md files are accepted.",
+    };
+  }
   if (contentBytes.byteLength > SKILL_MAX_BYTES) {
     return {
       ok: false,
@@ -133,6 +165,7 @@ export async function runSkillScan(input: {
       message: `This file is larger than ${SKILL_MAX_BYTES} bytes. Trim the skill and try again.`,
     };
   }
+  const inputSha256 = await sha256Hex(contentBytes);
 
   const policyId = isSkillPolicyId(input.policyId ?? "")
     ? input.policyId!
@@ -151,25 +184,51 @@ export async function runSkillScan(input: {
     return { ok: false, code: "VERIFIER_EXCEPTION", message };
   }
 
+  if (
+    result.findings.length > SKILL_MAX_FINDINGS ||
+    result.findings.some(
+      (finding) => evidenceByteLength(finding) > SKILL_MAX_EVIDENCE_BYTES,
+    )
+  ) {
+    return {
+      ok: false,
+      code: "OUTPUT_LIMIT_EXCEEDED",
+      message:
+        "The verifier produced more finding evidence than can be safely presented. Split or simplify the skill and try again.",
+    };
+  }
+
   let report: string;
   try {
-    report = reportMarkdown(result);
+    report = bindReport(
+      labelEngineCodeUnits(reportMarkdown(result)),
+      {
+        sourceName,
+        inputSha256,
+        inputBytes: contentBytes.byteLength,
+        policyId,
+      },
+      result.verdict,
+    );
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Report generation failed.";
     return { ok: false, code: "REPORT_FAILED", message };
   }
 
-  const inputSha256 = await sha256Hex(contentBytes);
+  if (utf8ByteLength(report) > SKILL_MAX_REPORT_BYTES) {
+    return {
+      ok: false,
+      code: "OUTPUT_LIMIT_EXCEEDED",
+      message:
+        "The verifier report is larger than the published output boundary. Split or simplify the skill and try again.",
+    };
+  }
+
   return {
     ok: true,
     result,
-    report: bindReport(report, {
-      sourceName,
-      inputSha256,
-      inputBytes: contentBytes.byteLength,
-      policyId,
-    }),
+    report,
     inputSha256,
     inputBytes: contentBytes.byteLength,
   };

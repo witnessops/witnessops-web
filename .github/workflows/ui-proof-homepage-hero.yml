@@ -20,10 +20,12 @@ on:
       - "apps/witnessops-web/src/components/shared/navbar.tsx"
       - "apps/witnessops-web/src/components/shared/route-scroll-reset.tsx"
       - "apps/witnessops-web/src/app/(marketing)/catalog/**"
+      - "apps/witnessops-web/src/app/(library)/library/**"
       - "apps/witnessops-web/src/app/docs/**"
       - "apps/witnessops-web/src/app/pl/docs/**"
       - "apps/witnessops-web/src/app/review/request/**"
       - "apps/witnessops-web/src/app/review/sample-cases/ai-agent-action-proof-run/**"
+      - "apps/witnessops-web/src/app/verify/skill/**"
       - "apps/witnessops-web/src/app/pl/review/request/**"
       - "apps/witnessops-web/src/app/page.tsx"
       - "apps/witnessops-web/src/app/globals.css"
@@ -31,8 +33,13 @@ on:
       - "apps/witnessops-web/src/lib/buyer-services.ts"
       - "apps/witnessops-web/src/lib/public-i18n.ts"
       - "apps/witnessops-web/src/lib/review-request-context.ts"
+      - "apps/witnessops-web/src/lib/skill-verify/**"
+      - "apps/witnessops-web/src/lib/skills/**"
+      - "apps/witnessops-web/src/components/verify/**"
+      - "apps/witnessops-web/public/samples/governed-agent-verifier-conformance/**"
       - "apps/witnessops-web/public/visuals/**"
       - "content/witnessops/landing/home.yaml"
+      - "content/witnessops/skills/governed-agent-verifier/**"
       - "tests/ui-proof/**"
       - "playwright.config.ts"
       - "package.json"
@@ -81,6 +88,11 @@ jobs:
         id: ui_proof
         continue-on-error: true
         run: pnpm ui-proof:hero:ci
+
+      - name: Run governed verifier conformance UI proof
+        id: skill_ui_proof
+        continue-on-error: true
+        run: pnpm ui-proof:skill-conformance
 
       - name: Require UI proof report
         run: test -f artifacts/ui-proof/homepage-hero/latest.json
@@ -148,3 +160,8 @@ jobs:
             exit 1
           fi
           echo "Homepage and navigation UI proof blocking policy passed."
+          if [ "${{ steps.skill_ui_proof.outcome }}" != "success" ]; then
+            echo "Governed verifier conformance UI proof failed."
+            exit 1
+          fi
+          echo "Governed verifier conformance UI proof passed."

@@ -1,0 +1,86 @@
+{
+  "schema": "witnessops.governed-agent-verifier-contract.v1",
+  "skill": {
+    "name": "governed-agent-verifier",
+    "version": "1.0.1"
+  },
+  "input": {
+    "canonicalPath": "SKILL.md",
+    "acceptedMediaTypes": [
+      "text/markdown",
+      "text/plain",
+      "text/x-markdown"
+    ],
+    "encoding": "utf-8-strict",
+    "maxBytes": 16384,
+    "rejectNulBytes": true,
+    "callerSuppliedLocalContentOnly": true
+  },
+  "processing": {
+    "location": "browser",
+    "executionContext": "dedicated-worker",
+    "maxWorkerDurationMs": 30000,
+    "uploadsInput": false,
+    "storesInput": false,
+    "modelCalls": false,
+    "fetchesRemoteSkills": false,
+    "executesInput": false
+  },
+  "engine": {
+    "id": "aegis-deterministic@2.0.0-cleanroom.3"
+  },
+  "policy": {
+    "defaultId": "standard",
+    "packs": [
+      {
+        "id": "standard",
+        "name": "Standard",
+        "tagline": "Fail on critical. Review highs.",
+        "failAt": "critical",
+        "reviewAt": "high"
+      },
+      {
+        "id": "enterprise",
+        "name": "Enterprise",
+        "tagline": "Fail on high. Review mediums.",
+        "failAt": "high",
+        "reviewAt": "medium"
+      },
+      {
+        "id": "restricted",
+        "name": "Restricted",
+        "tagline": "Air-gapped. Fail on medium.",
+        "failAt": "medium",
+        "reviewAt": "low"
+      },
+      {
+        "id": "research",
+        "name": "Research",
+        "tagline": "Permit high tooling. Still fail criticals.",
+        "failAt": "critical",
+        "reviewAt": "critical"
+      }
+    ]
+  },
+  "outputs": [
+    "verdict",
+    "policy id",
+    "findings",
+    "markdown report"
+  ],
+  "outputBounds": {
+    "maxFindings": 200,
+    "maxEvidenceBytesPerFinding": 8192,
+    "maxReportBytes": 262144,
+    "overflowResult": "input-not-evaluated"
+  },
+  "claims": {
+    "passSummary": "No policy-blocking operational pattern was detected under the selected policy.",
+    "passLimitation": "A pass means no policy-blocking operational pattern was detected under the selected policy. Documentary findings may remain. It does not prove the skill or resulting workflow is safe.",
+    "doesNotEstablish": [
+      "skill safety",
+      "production deployment",
+      "bounded scan duration for every accepted input"
+    ]
+  }
+}

@@ -37,6 +37,18 @@ public_surfaces:
     route: /review/sample-cases/ai-agent-action-proof-run
     contract_path: apps/witnessops-web/src/app/review/sample-cases/ai-agent-action-proof-run/sample-artifact-contract.ts
     boundary: browser and offline verifier recompute the purpose-limited synthetic signer, exact evidence bytes, receipt references, authority, scope, and declared rotation transition; no real provider action or compromise is checked
+  skill_library:
+    route: /library/governed-agent-verifier
+    boundary: current and historical exact skill bytes, version metadata, source-level conformance links, and explicit limitations; not a safety or deployment claim
+  check_a_skill:
+    route: /verify/skill
+    boundary: local deterministic evaluation in a dedicated browser worker; input-not-evaluated on timeout or output overflow; no skill safety claim
+  governed_agent_verifier_conformance:
+    receipt_route: /samples/governed-agent-verifier-conformance/v1/RECEIPT.json
+    contract_route: /samples/governed-agent-verifier-conformance/v1/CONTRACT.json
+    challenge_route: /samples/governed-agent-verifier-conformance/v1/CHALLENGE_PATH.md
+    receipt_sha256: 6d9e17e39a254ea0569a1cdbd3b4e26b3a6fe1b73f7611fa83678f96ccf2c79d
+    boundary: source contract, exact skill bytes, runtime constants, and named repository checks only; production deployment requires separate release and live evidence
 
 non_semantic_canary_boundary:
   changes_to_this_manifest_do_not:

@@ -4,6 +4,15 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 const page = readFileSync(resolve(import.meta.dirname, "page.tsx"), "utf8");
+const contract = JSON.parse(
+  readFileSync(
+    resolve(
+      import.meta.dirname,
+      "../../../../public/samples/governed-agent-verifier-conformance/v1/CONTRACT.json",
+    ),
+    "utf8",
+  ),
+);
 const consoleSrc = readFileSync(
   resolve(import.meta.dirname, "../../../components/verify/skill-console.tsx"),
   "utf8",
@@ -24,10 +33,9 @@ const skillDetail = readFileSync(
 
 test("Check a Skill page renders the required product limitation", () => {
   assert.match(page, /Check an agent skill before you trust it/);
-  assert.match(
-    page,
-    /Aegis checks a SKILL\.md against explicit deterministic policy rules\. A pass means no governed pattern was detected under the selected policy; it does not prove the skill is safe\./,
-  );
+  assert.match(page, /SKILL_PASS_LIMITATION/);
+  assert.match(contract.claims.passLimitation, /policy-blocking operational pattern/);
+  assert.match(contract.claims.passLimitation, /Documentary findings may remain/);
   assert.match(page, /robots:\s*\{\s*index:\s*false/);
   assert.match(page, /Local verification boundary/);
   assert.match(page, /Deterministic policy output · bounded to declared instructions/);
@@ -54,7 +62,8 @@ test("skill console exposes paste, file, policy, verdict, report controls", () =
   assert.match(consoleSrc, /No upload/);
   assert.match(consoleSrc, /No model call/);
   assert.match(consoleSrc, /data-ui-proof-id="skill-result"/);
-  assert.match(consoleSrc, /No governed pattern was detected under the selected policy\. This does not prove/);
+  assert.match(consoleSrc, /SKILL_PASS_LIMITATION/);
+  assert.match(consoleSrc, /runSkillScanInWorker/);
   assert.match(consoleSrc, /input sha256:/);
   assert.doesNotMatch(consoleSrc, /Verified safe/);
   assert.doesNotMatch(consoleSrc, /localStorage/);
@@ -75,7 +84,7 @@ test("Check a Skill remains noindex while the bounded journey can link to it", (
 test("exact-version prefill is server validated and editing invalidates the bind", () => {
   assert.match(page, /skill\.version === requestedVersion/);
   assert.match(page, /skill\.sha256 === requestedSha256/);
-  assert.match(page, /readSkillMarkdown\(exactSkill\.slug\)/);
+  assert.match(page, /readSkillMarkdown\(exactSkill\.slug, exactSkill\.version\)/);
   assert.match(consoleSrc, /data-ui-proof-id="skill-exact-version-binding"/);
   assert.match(consoleSrc, /setExactBinding\(null\)/);
   assert.match(consoleSrc, /Exact-version binding removed because the input changed/);

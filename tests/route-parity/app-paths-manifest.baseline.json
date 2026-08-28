@@ -1,6 +1,7 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/(library)/library/[slug]/download/route": "app/(library)/library/[slug]/download/route.js",
+  "/(library)/library/[slug]/versions/[version]/download/route": "app/(library)/library/[slug]/versions/[version]/download/route.js",
   "/api/admin/google/callback/route": "app/api/admin/google/callback/route.js",
   "/api/admin/google/start/route": "app/api/admin/google/start/route.js",
   "/api/admin/logout/route": "app/api/admin/logout/route.js",

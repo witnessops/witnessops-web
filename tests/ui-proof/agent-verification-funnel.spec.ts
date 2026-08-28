@@ -7,7 +7,8 @@ const OUTPUT_DIR = path.resolve(
   process.cwd(),
   "docs/product-decisions/assets/agent-verification-funnel",
 );
-const FEATURED_SHA256 = "2a0b2309a1785081ecc20c7e325b3d23454b2bfd65d9641ea82164bf9298aad5";
+const FEATURED_SHA256 = "ccc325d40dc89823adff2d10f81fb02aa583a4edb5fd19bb1501b8512510bdb0";
+const HISTORICAL_SHA256 = "2a0b2309a1785081ecc20c7e325b3d23454b2bfd65d9641ea82164bf9298aad5";
 const SENTINEL = "WOPS_BROWSER_SENTINEL_20260827_7F3C91D2";
 const CLEAN_SKILL = `---
 name: browser-sentinel
@@ -148,7 +149,7 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
       await expect(page.locator("main")).toContainText(FEATURED_SHA256);
       await expect(page.getByRole("link", { name: "Check this exact version" })).toHaveAttribute(
         "href",
-        `/verify/skill?skill=governed-agent-verifier&version=1.0.0&sha256=${FEATURED_SHA256}`,
+        `/verify/skill?skill=governed-agent-verifier&version=1.0.1&sha256=${FEATURED_SHA256}`,
       );
       await screenshot(page, `skill-detail-${viewport.label}.png`);
       await assertNoErrors(errors);
@@ -224,11 +225,11 @@ test("mobile replay transitions keep each focused heading below the sticky navba
 
 test("exact-version binding is valid only for the canonical unedited skill bytes", async ({ page }) => {
   await page.goto(
-    `/verify/skill?skill=governed-agent-verifier&version=1.0.0&sha256=${FEATURED_SHA256}`,
+    `/verify/skill?skill=governed-agent-verifier&version=1.0.1&sha256=${FEATURED_SHA256}`,
     { waitUntil: "networkidle" },
   );
   const binding = page.locator('[data-ui-proof-id="skill-exact-version-binding"]');
-  await expect(binding).toContainText("governed-agent-verifier@1.0.0");
+  await expect(binding).toContainText("governed-agent-verifier@1.0.1");
   await expect(binding).toContainText(FEATURED_SHA256);
   const editor = page.getByLabel("Paste SKILL.md");
   const canonical = await editor.inputValue();
@@ -236,6 +237,68 @@ test("exact-version binding is valid only for the canonical unedited skill bytes
   await editor.fill(`${canonical}\n# visitor edit\n`);
   await expect(binding).toHaveCount(0);
   await expect(page.getByText("Exact-version binding removed because the input changed.")).toBeVisible();
+});
+
+test("archived v1.0.0 remains exactly retrievable and checker-bound", async ({ page }) => {
+  await page.goto(
+    `/verify/skill?skill=governed-agent-verifier&version=1.0.0&sha256=${HISTORICAL_SHA256}`,
+    { waitUntil: "networkidle" },
+  );
+  const binding = page.locator('[data-ui-proof-id="skill-exact-version-binding"]');
+  await expect(binding).toContainText("governed-agent-verifier@1.0.0");
+  await expect(binding).toContainText(HISTORICAL_SHA256);
+  const canonical = await page.getByLabel("Paste SKILL.md").inputValue();
+  expect(createHash("sha256").update(canonical).digest("hex")).toBe(HISTORICAL_SHA256);
+  expect(canonical).toContain("Bound input to 128 KiB.");
+});
+
+test("policy changes never leave a completed result under the previous policy", async ({ page }) => {
+  await page.goto("/verify/skill", { waitUntil: "networkidle" });
+  await page.getByLabel("Paste SKILL.md").fill(CLEAN_SKILL);
+  await page.getByRole("button", { name: "Verify" }).click();
+  const result = page.locator('[data-ui-proof-id="skill-result"]');
+  await expect(result).toContainText("policy standard");
+
+  await page.getByLabel("Aegis policy pack").selectOption("restricted");
+  const postChangeText = await result.evaluateAll((elements) =>
+    elements.map((element) => element.textContent ?? "").join("\n"),
+  );
+  expect(postChangeText).not.toContain("policy standard");
+  await expect(result).toContainText("policy restricted");
+});
+
+test("pathological scans leave the main thread responsive and stale results cannot land", async ({ page }) => {
+  await page.goto("/verify/skill", { waitUntil: "networkidle" });
+  const editor = page.getByLabel("Paste SKILL.md");
+  const pathological = "\u200Bx".repeat(2048);
+  expect(new TextEncoder().encode(pathological).byteLength).toBe(8192);
+  await editor.fill(pathological);
+
+  const timing = await page.evaluate(async () => {
+    const button = document.querySelector<HTMLButtonElement>(
+      '[data-ui-proof-id="skill-verify-button"]',
+    );
+    if (!button) throw new Error("verify button unavailable");
+    const started = performance.now();
+    button.click();
+    const dispatchMs = performance.now() - started;
+    const firstFrameMs = await new Promise<number>((resolveFrame) =>
+      requestAnimationFrame(() => resolveFrame(performance.now() - started)),
+    );
+    return { dispatchMs, firstFrameMs };
+  });
+  expect(timing.dispatchMs).toBeLessThan(250);
+  expect(timing.firstFrameMs).toBeLessThan(500);
+  await expect(page.getByRole("button", { name: "Checking…" })).toBeVisible();
+
+  await editor.fill(CLEAN_SKILL);
+  await page.getByRole("button", { name: "Verify" }).click();
+  const result = page.locator('[data-ui-proof-id="skill-result"]');
+  await expect(result).toContainText("Pass");
+  const expectedSha256 = createHash("sha256").update(CLEAN_SKILL).digest("hex");
+  await expect(result).toContainText(`input sha256:${expectedSha256}`);
+  await page.waitForTimeout(500);
+  await expect(result).toContainText(`input sha256:${expectedSha256}`);
 });
 
 test("checker sentinel remains absent from post-load requests and browser storage", async ({ browser }) => {

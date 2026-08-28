@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SkillConsole } from "@/components/verify/skill-console";
-import { getSkill, readSkillMarkdown } from "@/lib/skills/catalog";
+import { SKILL_PASS_LIMITATION } from "@/lib/skill-verify/contract";
+import { getSkillVersion, readSkillMarkdown } from "@/lib/skills/catalog";
 import styles from "@/components/verify/skill-console.module.css";
 
 export const metadata: Metadata = {
@@ -23,7 +24,10 @@ export default async function CheckSkillPage({ searchParams }: Props) {
   const requestedSlug = single(query.skill);
   const requestedVersion = single(query.version);
   const requestedSha256 = single(query.sha256);
-  const skill = requestedSlug ? getSkill(requestedSlug) : undefined;
+  const skill =
+    requestedSlug && requestedVersion
+      ? getSkillVersion(requestedSlug, requestedVersion)
+      : undefined;
   const exactSkill =
     skill && skill.version === requestedVersion && skill.sha256 === requestedSha256
       ? skill
@@ -49,9 +53,7 @@ export default async function CheckSkillPage({ searchParams }: Props) {
               The skill is not uploaded, stored, or sent to a model.
             </p>
             <p className={styles.heroLimit}>
-              {
-                "Aegis checks a SKILL.md against explicit deterministic policy rules. A pass means no governed pattern was detected under the selected policy; it does not prove the skill is safe."
-              }
+              {SKILL_PASS_LIMITATION}
             </p>
           </header>
 
@@ -92,7 +94,11 @@ export default async function CheckSkillPage({ searchParams }: Props) {
       <section className={styles.workspaceSection} aria-label="Aegis skill evaluation workspace">
         <div className={styles.frame} id="skill-console">
           <SkillConsole
-            initialContent={exactSkill ? readSkillMarkdown(exactSkill.slug) : ""}
+            initialContent={
+              exactSkill
+                ? readSkillMarkdown(exactSkill.slug, exactSkill.version)
+                : ""
+            }
             initialSourceName={
               exactSkill ? `${exactSkill.slug}@${exactSkill.version}/SKILL.md` : "SKILL.md"
             }
