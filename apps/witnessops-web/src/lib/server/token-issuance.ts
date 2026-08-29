@@ -773,6 +773,7 @@ async function createReservedVerificationIssuance(
     expiresAt,
     verifyUrl: verifyUrl.toString(),
     intent: normalizedSubmission.intent,
+    locale: normalizedSubmission.locale,
   });
 
   const delivery = await sendVerificationEmail({
