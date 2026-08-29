@@ -45,6 +45,7 @@ const HIDDEN_WIDGET_PATHS = [
   "/assessment",
   "/design",
   "/review/request",
+  "/review/sample-cases/ai-agent-action-proof-run",
   "/runner-loop",
 ] as const;
 

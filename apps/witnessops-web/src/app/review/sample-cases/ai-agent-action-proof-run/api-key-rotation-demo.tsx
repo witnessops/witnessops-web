@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   mutateFirstBase64Byte,
+  sha256HexToIntegrity,
   sha256Utf8,
 } from "@/lib/api-key-rotation-browser-integrity";
 import styles from "./api-key-rotation-demo.module.css";
@@ -17,7 +18,8 @@ const replayEvents = [
     at: "12:00:11",
     operation: "CREATE REPLACEMENT",
     title: "Replacement credential created",
-    detail: "A distinct synthetic fingerprint becomes ACTIVE. Credential material is suppressed at source.",
+    detail:
+      "A distinct synthetic fingerprint becomes ACTIVE. Verifier v1 confirms that the supplied evidence contains no forbidden credential-value fields.",
   },
   {
     at: "12:00:12",
@@ -86,6 +88,62 @@ type ApiKeyRotationDemoProps = {
   sourceHref: string;
 };
 
+const verifierLoadFailure =
+  "PUBLIC_VERIFIER_INTEGRITY_OR_LOAD_FAILURE: the verifier did not load under its displayed SHA-256 pin.";
+
+async function importIntegrityCheckedVerifier(
+  verifierUrl: string,
+  verifierSha256: string,
+): Promise<VerifierModule> {
+  const script = document.createElement("script");
+  script.type = "module";
+  script.src = verifierUrl;
+  script.integrity = sha256HexToIntegrity(verifierSha256);
+  script.crossOrigin = "anonymous";
+  script.dataset.witnessopsVerifierIntegrityGate = "true";
+
+  await new Promise<void>((resolve, reject) => {
+    const onLoad = () => {
+      cleanup();
+      resolve();
+    };
+    const onError = () => {
+      cleanup();
+      script.remove();
+      reject(new Error(verifierLoadFailure));
+    };
+    const cleanup = () => {
+      script.removeEventListener("load", onLoad);
+      script.removeEventListener("error", onError);
+    };
+
+    script.addEventListener("load", onLoad, { once: true });
+    script.addEventListener("error", onError, { once: true });
+    document.head.append(script);
+  });
+
+  try {
+    return (await import(/* webpackIgnore: true */ verifierUrl)) as VerifierModule;
+  } catch {
+    throw new Error(verifierLoadFailure);
+  } finally {
+    script.remove();
+  }
+}
+
+function publicCheckLabel(check: VerificationCheck): string {
+  if (check.id === "secret_material_absent") {
+    return "Credential-value fields absent from the supplied bundle";
+  }
+  if (check.id === "authority_and_scope") {
+    return "Supplied synthetic authority and scope records";
+  }
+  if (check.id === "rotation_semantics") {
+    return "Declared synthetic rotation semantics";
+  }
+  return check.label;
+}
+
 function shortFingerprint(value: string): string {
   return `${value.slice(0, 14)}…${value.slice(-10)}`;
 }
@@ -102,19 +160,21 @@ export function ApiKeyRotationDemo({
   const [isReplaying, setIsReplaying] = useState(false);
   const [tamperResult, setTamperResult] = useState<VerificationResult | null>(null);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [replayAnnouncement, setReplayAnnouncement] = useState("");
   const verifierRef = useRef<VerifierModule["verifyBundle"] | null>(null);
   const specimenTextRef = useRef<{ bundle: string; registry: string } | null>(null);
+  const replayButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function verifyPublicSpecimen() {
       try {
-        const verifierUrl = new URL(verifierHref, window.location.href).href;
-        const [bundleResponse, registryResponse, verifierModule] = await Promise.all([
+        const verifierUrl = new URL(verifierHref, window.location.href);
+        verifierUrl.searchParams.set("sha256", verifierSha256);
+        const [bundleResponse, registryResponse] = await Promise.all([
           fetch(bundleHref, { cache: "force-cache" }),
           fetch(keyRegistryHref, { cache: "no-cache" }),
-          import(/* webpackIgnore: true */ verifierUrl) as Promise<VerifierModule>,
         ]);
 
         if (!bundleResponse.ok || !registryResponse.ok) {
@@ -134,6 +194,10 @@ export function ApiKeyRotationDemo({
           );
         }
 
+        const verifierModule = await importIntegrityCheckedVerifier(
+          verifierUrl.href,
+          verifierSha256,
+        );
         const result = await verifierModule.verifyBundle(bundleText, registryText);
 
         if (!cancelled) {
@@ -155,22 +219,27 @@ export function ApiKeyRotationDemo({
     return () => {
       cancelled = true;
     };
-  }, [bundleSha256]);
+  }, [bundleSha256, verifierSha256]);
 
   useEffect(() => {
     if (!isReplaying) {
       return;
     }
 
-    if (completedEvents >= replayEvents.length) {
-      setIsReplaying(false);
-      return;
-    }
+    const timer = window.setTimeout(() => {
+      const nextEventCount = Math.min(completedEvents + 1, replayEvents.length);
+      setCompletedEvents(nextEventCount);
+      if (nextEventCount === replayEvents.length) {
+        setIsReplaying(false);
+        setReplayAnnouncement("Replay complete: 6 of 6 signed events shown.");
+        window.requestAnimationFrame(() => replayButtonRef.current?.focus());
+        return;
+      }
 
-    const timer = window.setTimeout(
-      () => setCompletedEvents((current) => current + 1),
-      completedEvents === 0 ? 300 : 720,
-    );
+      setReplayAnnouncement(
+        `Replay progress: ${nextEventCount} of ${replayEvents.length} signed events shown. ${replayEvents[nextEventCount - 1].title}.`,
+      );
+    }, completedEvents === 0 ? 300 : 720);
 
     return () => window.clearTimeout(timer);
   }, [completedEvents, isReplaying]);
@@ -194,9 +263,12 @@ export function ApiKeyRotationDemo({
   function startReplay() {
     setTamperResult(null);
     setCompletedEvents(0);
+    setReplayAnnouncement(`Replay started: 0 of ${replayEvents.length} signed events shown.`);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setCompletedEvents(replayEvents.length);
       setIsReplaying(false);
+      setReplayAnnouncement("Replay complete: 6 of 6 signed events shown.");
+      window.requestAnimationFrame(() => replayButtonRef.current?.focus());
       return;
     }
     setIsReplaying(true);
@@ -236,7 +308,7 @@ export function ApiKeyRotationDemo({
 
   return (
     <div className={styles.demo} data-ui-proof-id="api-key-rotation-demo">
-      <section className={styles.verificationBar} aria-live="polite">
+      <section className={styles.verificationBar} role="status" aria-live="polite" aria-atomic="true">
         <div className={styles.verificationIdentity}>
           <span
             className={`${styles.verificationPulse} ${
@@ -271,7 +343,7 @@ export function ApiKeyRotationDemo({
             <span className={styles.syntheticTag}>SYNTHETIC</span>
           </div>
           <div className={styles.panelBody}>
-            <h2 id="rotation-contract-heading">Compromised credential rotation</h2>
+            <h2 id="rotation-contract-heading">Synthetic credential rotation</h2>
             <p className={styles.contractLead}>
               One suspected key. One consumer. Six permitted operations. Stop on any deviation.
             </p>
@@ -291,7 +363,7 @@ export function ApiKeyRotationDemo({
               </div>
               <div>
                 <dt>Authority</dt>
-                <dd>Approved · 12:00:10Z</dd>
+                <dd>Declared approval · 12:00:10Z</dd>
               </div>
               <div className={styles.contractWide}>
                 <dt>Suspected fingerprint</dt>
@@ -315,16 +387,21 @@ export function ApiKeyRotationDemo({
             </div>
 
             <button
+              ref={replayButtonRef}
               className={styles.replayButton}
               type="button"
               onClick={startReplay}
               disabled={!verification?.valid || isReplaying}
+              aria-describedby="rotation-replay-boundary"
             >
               <span>{isReplaying ? "REPLAYING SIGNED RUN" : replayComplete ? "REPLAY SIGNED RUN AGAIN" : "ACKNOWLEDGE SCOPE & REPLAY"}</span>
               <span aria-hidden="true">→</span>
             </button>
-            <p className={styles.buttonBoundary}>
+            <p id="rotation-replay-boundary" className={styles.buttonBoundary}>
               Playback only. This click authorizes nothing and makes no provider call.
+            </p>
+            <p className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">
+              {replayAnnouncement}
             </p>
           </div>
         </section>
@@ -384,7 +461,11 @@ export function ApiKeyRotationDemo({
               <strong>{consumerMigrated ? "MIGRATED BEFORE REVOCATION" : "AWAITING MIGRATION"}</strong>
             </div>
 
-            <ol className={styles.timeline} aria-label="Signed rotation event replay">
+            <ol
+              className={styles.timeline}
+              aria-label="Signed rotation event replay"
+              aria-busy={isReplaying}
+            >
               {replayEvents.map((event, index) => {
                 const complete = index < completedEvents;
                 const active = isReplaying && index === completedEvents;
@@ -422,8 +503,9 @@ export function ApiKeyRotationDemo({
             </h2>
             <p>
               The page downloads a fixed bundle and public demo key, then the same dependency-free
-              verifier available below checks the signature, every evidence digest, every receipt
-              reference, and the rotation state machine locally.
+              verifier available below checks the receipt signature, manifest-bound file digests,
+              receipt references, supplied authority and scope records, forbidden credential-value
+              fields, and the declared synthetic rotation state machine locally.
             </p>
             <dl className={styles.digestList}>
               <div>
@@ -432,7 +514,12 @@ export function ApiKeyRotationDemo({
               </div>
               <div>
                 <dt>Verifier SHA-256</dt>
-                <dd>{verifierSha256}</dd>
+                <dd>
+                  {verifierSha256}
+                  <span className={styles.digestNote}>
+                    Browser execution is gated by Subresource Integrity using this displayed pin.
+                  </span>
+                </dd>
               </div>
               <div>
                 <dt>Demo signer fingerprint</dt>
@@ -466,7 +553,7 @@ export function ApiKeyRotationDemo({
                     {check.status === "pass" ? "✓" : check.status === "fail" ? "×" : "—"}
                   </span>
                   <div>
-                    <strong>{check.label}</strong>
+                    <strong>{publicCheckLabel(check)}</strong>
                     <p>{check.detail}</p>
                   </div>
                   <span className={styles.checkStatus}>{check.status.replace("_", " ")}</span>
@@ -495,7 +582,7 @@ export function ApiKeyRotationDemo({
           >
             RUN ONE-BYTE TAMPER TEST
           </button>
-          <div className={styles.challengeResult} aria-live="polite">
+          <div className={styles.challengeResult} role="status" aria-live="polite" aria-atomic="true">
             {tamperResult ? (
               <>
                 <span className={tamperResult.valid ? styles.challengeUnexpected : styles.challengeExpected}>
@@ -521,40 +608,62 @@ export function ApiKeyRotationDemo({
         </div>
         <div className={styles.commandBlock}>
           <code>node verify.mjs BUNDLE.wops.json DEMO_KEY_REGISTRY.json</code>
-          <button type="button" onClick={() => void copyOfflineCommand()}>
+          <button
+            type="button"
+            onClick={() => void copyOfflineCommand()}
+            aria-label="Copy offline verification command"
+          >
             {copyState === "copied" ? "COPIED" : copyState === "failed" ? "SELECT COMMAND" : "COPY"}
           </button>
         </div>
         <div className={styles.downloadLinks}>
           <a href={bundleHref} download="BUNDLE.wops.json">
             <span>BUNDLE.wops.json</span>
-            <small>SIGNED SPECIMEN ↓</small>
+            <small>REQUIRED · SIGNED SPECIMEN ↓</small>
           </a>
           <a href={verifierHref} download="verify.mjs">
             <span>verify.mjs</span>
-            <small>VERIFIER SOURCE ↓</small>
+            <small>REQUIRED · VERIFIER SOURCE ↓</small>
           </a>
           <a href={keyRegistryHref} download="DEMO_KEY_REGISTRY.json">
             <span>DEMO_KEY_REGISTRY.json</span>
-            <small>PUBLIC KEY ↓</small>
+            <small>REQUIRED · PUBLIC KEY ↓</small>
           </a>
           <a href={`${specimenRoot}/RECEIPT.json`} download="RECEIPT.json">
             <span>RECEIPT.json</span>
-            <small>RAW RECEIPT ↓</small>
+            <small>OPTIONAL · RAW RECEIPT ↓</small>
           </a>
         </div>
         <a className={styles.sourceLink} href={sourceHref} target="_blank" rel="noopener noreferrer">
-          Inspect the immutable source specimen at commit {sourceCommitShort} ↗
+          Inspect the fixed source specimen at commit {sourceCommitShort} ↗
         </a>
+        <p className={styles.sourceBoundary}>
+          The specimen source commit pins the evidence package. The same-origin browser verifier is
+          separately owned by this website and gated by the SHA-256 pin shown above.
+        </p>
+        <p className={styles.runtimeNote}>
+          Reproduced with Node 24.19.0. Exit 0 means valid, 1 means invalid or untrusted, and 2 means
+          malformed or unreadable input.
+        </p>
       </section>
 
       <aside className={styles.truthBoundary}>
         <span>PROOF BOUNDARY</span>
-        <p>
-          <strong>Verified:</strong> cryptographic integrity and the declared synthetic rotation
-          transition. <strong>Not verified:</strong> any real provider action, real credential,
-          real compromise, customer system, or production signing-key custody.
-        </p>
+        <div>
+          <p>
+            <strong>Verified:</strong> receipt signature under the purpose-limited demo key,
+            manifest-bound file digests, receipt references, supplied synthetic authority and scope
+            records, absence of forbidden credential-value fields, and the declared synthetic
+            rotation transition.
+          </p>
+          <p>
+            <strong>Not verified:</strong> that an AI agent caused or authorized the tool calls;
+            real-world actor or approver identity; execution of the declared hard-stop conditions;
+            any real provider action, credential, compromise, customer or production system;
+            source-system truth; production signing-key custody; or overall safety, correctness,
+            compliance, or completeness.
+          </p>
+        </div>
       </aside>
     </div>
   );

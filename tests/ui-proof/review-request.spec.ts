@@ -197,6 +197,86 @@ test("review request routes remain responsive, accessible, and usable", async ({
   }
 });
 
+test("Agent Risk & Control Review starts with one compact non-secret workflow request", async ({ browser }) => {
+  for (const scenario of [
+    { locale: "en", path: "/review/request", fitTitle: "Start your Agent Risk & Control Review." },
+    { locale: "pl", path: "/pl/review/request", fitTitle: "Rozpocznij Agent Risk & Control Review." },
+  ] as const) {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+    });
+    const page = await context.newPage();
+    let submittedPayload: Record<string, unknown> | null = null;
+
+    await page.route("**/api/review/request", async (route) => {
+      submittedPayload = route.request().postDataJSON() as Record<string, unknown>;
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({
+          issuanceId: `iss_agent_risk_${scenario.locale}`,
+          email: "buyer@example.com",
+          expiresAt: "2026-08-29T22:00:00.000Z",
+        }),
+      });
+    });
+
+    const query = new URLSearchParams({
+      offerId: "bounded-workflow-review",
+      offer: "Agent Risk & Control Review",
+    });
+    await page.goto(`${scenario.path}?${query.toString()}`, {
+      waitUntil: "networkidle",
+    });
+
+    const form = page.locator("main form");
+    await expect(form.getByText(scenario.fitTitle, { exact: true })).toBeVisible();
+    await expect(form.locator('input[name="intent"]')).toHaveValue(
+      "bounded-workflow-review",
+    );
+
+    const controlOrder = await form
+      .locator("input:not([type=hidden]), textarea, button[type=submit]")
+      .evaluateAll((controls) =>
+        controls.map(
+          (control) =>
+            control.getAttribute("name") || control.id || control.tagName.toLowerCase(),
+        ),
+      );
+    expect(controlOrder).toEqual(["name", "email", "org", "workflow", "button"]);
+    await expect(form.locator("#agentPath")).toHaveCount(0);
+    await expect(form.locator("#approvalBoundary")).toHaveCount(0);
+    await expect(form.locator("#evidenceAvailable")).toHaveCount(0);
+    await expect(form.locator("#org")).not.toHaveAttribute("required", "");
+
+    for (const fieldName of ["name", "email", "workflow"] as const) {
+      await expect(form.locator(`#${fieldName}`)).toHaveAttribute("required", "");
+    }
+
+    const submit = form.locator('button[type="submit"]');
+    await submit.click();
+    await expect(form.locator("[aria-invalid=true]")).toHaveCount(3);
+    await expect(form.locator("#name")).toBeFocused();
+
+    await form.locator("#name").fill("Synthetic Buyer");
+    await form.locator("#email").fill("buyer@example.com");
+    await form
+      .locator("#workflow")
+      .fill("An agent prepares an API-key rotation after a named human approval.");
+    await submit.click();
+
+    expect(submittedPayload?.intent).toBe("bounded-workflow-review");
+    expect(submittedPayload?.locale).toBe(scenario.locale);
+    expect(submittedPayload?.scope).toContain("Request: Agent Risk & Control Review");
+    expect(submittedPayload?.scope).toContain("Consequential workflow:");
+    expect(submittedPayload?.scope).not.toContain("Situation and affected system:");
+    expect(submittedPayload?.scope).not.toContain("Boundary and approval:");
+    expect(submittedPayload?.scope).not.toContain("Evidence available:");
+
+    await context.close();
+  }
+});
+
 test("Public Exposure Review request preserves SKU, locale, and fit boundary", async ({ browser }) => {
   for (const scenario of [
     { locale: "en", path: "/review/request" },
