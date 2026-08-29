@@ -63,6 +63,25 @@ test("direct confirmation-page visits do not claim a verified request", () => {
   assert.doesNotMatch(confirmed, /Request verified/);
 });
 
+test("recorded confirmation keeps the no-secret and no-conclusion boundary visible", () => {
+  assert.match(
+    confirmed,
+    /Do not send secrets or source materials until scope and evidence handling are agreed\./,
+  );
+  assert.match(
+    confirmed,
+    /No security, legal, or compliance conclusion has been made\./,
+  );
+  assert.match(
+    confirmed,
+    /Nie wysyłaj sekretów ani materiałów źródłowych/,
+  );
+  assert.match(
+    confirmed,
+    /Nie sformułowano żadnych wniosków dotyczących bezpieczeństwa, kwestii prawnych ani zgodności\./,
+  );
+});
+
 test("Public Exposure Review confirmation preserves its start-work gates", () => {
   assert.match(confirmed, /public-exposure-review/);
   assert.match(confirmed, /payment, the SOW, written authority, required inputs/);

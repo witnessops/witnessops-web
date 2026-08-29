@@ -37,6 +37,8 @@ const copy = {
     title: "You have the boundary record.",
     intro:
       "Keep the reference below. WitnessOps now has the non-secret request summary for asynchronous fit and scope review.",
+    boundaryNote:
+      "Do not send secrets or source materials until scope and evidence handling are agreed. No security, legal, or compliance conclusion has been made.",
     nextLabel: "What happens next",
     nextSteps: [
       "We assess whether this request fits one bounded review.",
@@ -66,6 +68,8 @@ const copy = {
     title: "Masz zapis granicy zgłoszenia.",
     intro:
       "Zachowaj poniższy numer referencyjny. WitnessOps ma teraz niepoufne podsumowanie zgłoszenia do asynchronicznej oceny dopasowania i zakresu.",
+    boundaryNote:
+      "Nie wysyłaj sekretów ani materiałów źródłowych, dopóki nie uzgodnimy zakresu i sposobu ich obsługi. Nie sformułowano żadnych wniosków dotyczących bezpieczeństwa, kwestii prawnych ani zgodności.",
     nextLabel: "Co wydarzy się dalej",
     nextSteps: [
       "Sprawdzimy, czy to zgłoszenie pasuje do jednego ograniczonego przeglądu.",
@@ -213,6 +217,9 @@ export function ReviewRequestConfirmed({
         </h1>
         <p className={`mt-5 max-w-[680px] text-base leading-relaxed ${verificationLight.body}`}>
           {text.intro}
+        </p>
+        <p className={`mt-4 max-w-[680px] text-sm leading-relaxed ${verificationLight.muted}`}>
+          {text.boundaryNote}
         </p>
       </section>
 
