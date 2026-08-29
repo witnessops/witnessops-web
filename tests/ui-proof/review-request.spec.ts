@@ -340,3 +340,224 @@ test("Public Exposure Review request preserves SKU, locale, and fit boundary", a
     await context.close();
   }
 });
+
+test("product query routes preserve exposure scope and unresolved pilot fallback", async ({ browser }) => {
+  const routeScenarios = [
+    {
+      path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
+      heading: "Start your Public Exposure Review",
+      intent: "OFFSEC-EXTERNAL-EXPOSURE",
+      selectedOffer: /Selected offer:/,
+      boundary: "No work or target-facing check starts from this form.",
+      authorizationBoundary: null,
+    },
+    {
+      path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
+      heading: "Zgłoś: Public Exposure Review",
+      intent: "OFFSEC-EXTERNAL-EXPOSURE",
+      selectedOffer: /Wybrana oferta:/,
+      boundary: "Samo zgłoszenie nie rozpoczyna pracy.",
+      authorizationBoundary:
+        "Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu.",
+    },
+    {
+      path: "/review/request?productId=OFFSEC-PILOT",
+      heading: "Tell us what you need reviewed",
+      intent: "review",
+      selectedOffer: null,
+      boundary: "No work or target-facing check starts from this form.",
+      authorizationBoundary: null,
+    },
+    {
+      path: "/pl/review/request?productId=OFFSEC-PILOT",
+      heading: "Opowiedz, co wymaga sprawdzenia",
+      intent: "review",
+      selectedOffer: null,
+      boundary: "Samo zgłoszenie nie rozpoczyna pracy.",
+      authorizationBoundary: null,
+    },
+  ] as const;
+
+  for (const viewport of [
+    { width: 1440, height: 1000 },
+    { width: 390, height: 844 },
+  ]) {
+    for (const scenario of routeScenarios) {
+      const context = await browser.newContext({ viewport });
+      const page = await context.newPage();
+      const consoleErrors: string[] = [];
+      const pageErrors: string[] = [];
+      page.on("console", (message) => {
+        if (message.type() === "error") consoleErrors.push(message.text());
+      });
+      page.on("pageerror", (error) => pageErrors.push(error.message));
+
+      const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
+      expect(response?.status(), scenario.path).toBe(200);
+      await expect(page.locator("main h1")).toContainText(scenario.heading);
+
+      const form = page.locator("main form");
+      await expect(form).toBeVisible();
+      await expect(form.locator('input[name="intent"]')).toHaveValue(
+        scenario.intent,
+      );
+      await expect(page.locator("main")).toContainText(scenario.boundary);
+      if (scenario.authorizationBoundary) {
+        await expect(page.locator("main")).toContainText(
+          scenario.authorizationBoundary,
+        );
+      }
+
+      if (scenario.selectedOffer) {
+        await expect(page.getByText(scenario.selectedOffer).first()).toBeVisible();
+      } else {
+        await expect(page.getByText(/Selected offer:|Wybrana oferta:/)).toHaveCount(0);
+        await expect(form.locator("#agentPath")).toHaveCount(1);
+      }
+
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow, scenario.path).toBeLessThanOrEqual(1);
+      expect(consoleErrors).toEqual([]);
+      expect(pageErrors).toEqual([]);
+      await context.close();
+    }
+  }
+});
+
+test("confirmation routes fail closed without a browser-held request record", async ({ browser }) => {
+  const scenarios = [
+    {
+      path: "/review/request/confirmed",
+      title: "This page alone proves nothing.",
+      body: "No confirmed request record is present in this browser session.",
+      restart: "/review/request",
+    },
+    {
+      path: "/pl/review/request/confirmed",
+      title: "Ta strona sama niczego nie dowodzi.",
+      body: "W tej sesji przeglądarki nie ma potwierdzonego zapisu zgłoszenia.",
+      restart: "/pl/review/request",
+    },
+  ] as const;
+
+  for (const viewport of [
+    { width: 1440, height: 1000 },
+    { width: 390, height: 844 },
+  ]) {
+    for (const scenario of scenarios) {
+      const context = await browser.newContext({ viewport });
+      const page = await context.newPage();
+      const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
+      expect(response?.status(), scenario.path).toBe(200);
+
+      const missing = page.locator(
+        '[data-ui-proof-id="review-request-record-missing"]',
+      );
+      await expect(missing).toBeVisible();
+      await expect(missing.locator("h1")).toHaveText(scenario.title);
+      await expect(missing).toContainText(scenario.body);
+      await expect(missing.locator("a")).toHaveAttribute("href", scenario.restart);
+      await expect(
+        page.locator('[data-ui-proof-id="review-request-confirmed"]'),
+      ).toHaveCount(0);
+
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow, scenario.path).toBeLessThanOrEqual(1);
+      await context.close();
+    }
+  }
+});
+
+test("confirmation routes render a bounded browser-held request record", async ({ browser }) => {
+  const scenarios = [
+    {
+      locale: "en",
+      path: "/review/request/confirmed",
+      title: "You have the boundary record.",
+      status: "Mailbox confirmed",
+      reviewStarted: "Review started",
+      evidenceAccepted: "Customer evidence accepted",
+      no: "No",
+      boundary:
+        "Do not send secrets or source materials until scope and evidence handling are agreed.",
+    },
+    {
+      locale: "pl",
+      path: "/pl/review/request/confirmed",
+      title: "Masz zapis granicy zgłoszenia.",
+      status: "Skrzynka potwierdzona",
+      reviewStarted: "Przegląd rozpoczęty",
+      evidenceAccepted: "Materiały klienta przyjęte",
+      no: "Nie",
+      boundary:
+        "Nie wysyłaj sekretów ani materiałów źródłowych, dopóki nie uzgodnimy zakresu i sposobu ich obsługi.",
+    },
+  ] as const;
+
+  for (const viewport of [
+    { width: 1440, height: 1000 },
+    { width: 390, height: 844 },
+  ]) {
+    for (const scenario of scenarios) {
+      const context = await browser.newContext({ viewport });
+      await context.addInitScript(
+        ({ storageKey, record }) => {
+          window.sessionStorage.setItem(storageKey, JSON.stringify(record));
+        },
+        {
+          storageKey: "witnessops.review-request-confirmation.v1",
+          record: {
+            schema: "witnessops.review-request-confirmation.v1",
+            requestReference: `req_ui_proof_${scenario.locale}`,
+            confirmedAt: "2026-08-29T20:00:00.000Z",
+            locale: scenario.locale,
+            requestKind: "public-exposure-review",
+            source: "request-form",
+          },
+        },
+      );
+      const page = await context.newPage();
+      const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
+      expect(response?.status(), scenario.path).toBe(200);
+
+      const confirmed = page.locator(
+        '[data-ui-proof-id="review-request-confirmed"]',
+      );
+      await expect(confirmed).toBeVisible();
+      await expect(confirmed.locator("h1")).toHaveText(scenario.title);
+      await expect(confirmed).toContainText(scenario.status);
+      await expect(confirmed).toContainText(scenario.boundary);
+      await expect(confirmed).toContainText(
+        scenario.locale === "pl"
+          ? "Nie sformułowano żadnych wniosków dotyczących bezpieczeństwa, kwestii prawnych ani zgodności."
+          : "No security, legal, or compliance conclusion has been made.",
+      );
+
+      const record = confirmed.locator(
+        '[data-ui-proof-id="review-request-record"]',
+      );
+      await expect(record).toContainText(scenario.reviewStarted);
+      await expect(record).toContainText(scenario.evidenceAccepted);
+      const negativeFacts = await record.locator("dl dd").allTextContents();
+      expect(negativeFacts.filter((value) => value.trim() === scenario.no)).toHaveLength(2);
+      await expect(
+        confirmed.locator(
+          'a[href="/review/sample-cases/external-exposure-assessment"]',
+        ),
+      ).toHaveCount(1);
+      await expect(
+        page.locator('[data-ui-proof-id="review-request-record-missing"]'),
+      ).toHaveCount(0);
+
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow, scenario.path).toBeLessThanOrEqual(1);
+      await context.close();
+    }
+  }
+});
