@@ -84,6 +84,7 @@ test("materializes inline credentials for one CLI call and removes the file", as
       "process.stdout.write(JSON.stringify({",
       "  credentialFile,",
       "  configDir: process.env.GOOGLE_WORKSPACE_CLI_CONFIG_DIR,",
+      `  inlineCredentialPresent: Boolean(process.env.${GMAIL_CLI_INLINE_CREDENTIALS_ENV}),`,
       "  mode: stat.mode & 0o777,",
       '  credentials: JSON.parse(fs.readFileSync(credentialFile, "utf8")),',
       "}));",
@@ -107,11 +108,13 @@ test("materializes inline credentials for one CLI call and removes the file", as
   ) as {
     credentialFile: string;
     configDir: string;
+    inlineCredentialPresent: boolean;
     mode: number;
     credentials: Record<string, unknown>;
   };
 
   assert.equal(observed.mode, 0o600);
+  assert.equal(observed.inlineCredentialPresent, false);
   assert.equal(observed.credentials.type, "authorized_user");
   assert.equal(path.dirname(observed.credentialFile), observed.configDir);
   await assert.rejects(access(observed.credentialFile));

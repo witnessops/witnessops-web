@@ -77,15 +77,18 @@ export function normalizeInlineGmailCliCredentials(
 async function runWithGmailCliCredentials<T>(
   operation: (env: NodeJS.ProcessEnv) => Promise<T>,
 ): Promise<T> {
+  const childEnv = { ...process.env };
+  delete childEnv[GMAIL_CLI_INLINE_CREDENTIALS_ENV];
+
   if (
     process.env.GOOGLE_WORKSPACE_CLI_TOKEN?.trim() ||
     process.env.GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE?.trim()
   ) {
-    return operation(process.env);
+    return operation(childEnv);
   }
 
   const inlineCredentials = normalizeInlineGmailCliCredentials();
-  if (!inlineCredentials) return operation(process.env);
+  if (!inlineCredentials) return operation(childEnv);
 
   const credentialDirectory = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-gws-"),
@@ -98,7 +101,7 @@ async function runWithGmailCliCredentials<T>(
       mode: 0o600,
     });
     return await operation({
-      ...process.env,
+      ...childEnv,
       GOOGLE_WORKSPACE_CLI_CONFIG_DIR: credentialDirectory,
       GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE: credentialFile,
     });
