@@ -118,6 +118,7 @@ test("Ask WitnessOps does not cover the dedicated review request form", () => {
 
   assert.match(content, /HIDDEN_WIDGET_PATHS/);
   assert.match(content, /"\/review\/request"/);
+  assert.match(content, /"\/review\/sample-cases\/ai-agent-action-proof-run"/);
 });
 
 test("Ask WitnessOps yields the floating layer while the mobile navigation is open", () => {

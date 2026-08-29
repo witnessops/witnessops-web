@@ -109,10 +109,16 @@ test("public page makes replay, local verification, tamper challenge, and limits
   const page = readFileSync(resolve(__dirname, "page.tsx"), "utf8");
   const client = readFileSync(resolve(__dirname, "api-key-rotation-demo.tsx"), "utf8");
 
-  assert.match(page, /The key leaked\./);
-  assert.match(page, /Then verify every byte in the signed bundle yourself\./);
+  assert.match(page, /A synthetic key was flagged\./);
+  assert.match(page, /The authorized rotation tool <em>handled it\.<\/em>/);
+  assert.match(page, /verify the pinned bundle digest,/);
+  assert.match(
+    page,
+    /manifest-bound evidence with the separately pinned public verifier/,
+  );
   assert.match(page, /Published sample — not live customer evidence/);
-  assert.match(page, /No real provider, credential, compromise, customer, or/);
+  assert.match(page, /fixed, hash-pinned synthetic specimen/);
+  assert.match(page, /No real provider, credential, compromise,\s+customer, or/);
   assert.match(page, /sampleBundleSha256/);
   assert.match(page, /publicVerifierSha256/);
 
@@ -126,6 +132,19 @@ test("public page makes replay, local verification, tamper challenge, and limits
   assert.match(client, /sha256Utf8\(bundleText\)/);
   assert.match(client, /actualBundleSha256 !== bundleSha256/);
   assert.match(client, /PUBLIC_BUNDLE_DIGEST_MISMATCH/);
+  assert.match(client, /PUBLIC_VERIFIER_INTEGRITY_OR_LOAD_FAILURE/);
+  assert.match(client, /sha256HexToIntegrity\(verifierSha256\)/);
+  assert.match(client, /script\.integrity/);
+  assert.match(client, /script\.type = "module"/);
+  assert.match(client, /verifierUrl\.searchParams\.set\("sha256", verifierSha256\)/);
+  assert.match(client, /await importIntegrityCheckedVerifier/);
+  assert.match(client, /\[bundleSha256, verifierSha256\]/);
+  assert.match(client, /Replay complete: 6 of 6 signed events shown\./);
+  assert.match(client, /that an AI agent caused or authorized the tool calls/);
+  assert.match(client, /real-world actor or approver identity/);
+  assert.match(client, /execution of the declared hard-stop conditions/);
+  assert.match(client, /separately owned by this website/);
+  assert.doesNotMatch(client, /Credential material is suppressed at source/);
   assert.match(client, /fetch\(bundleHref, \{ cache: "force-cache" \}\)/);
   assert.match(client, /fetch\(keyRegistryHref, \{ cache: "no-cache" \}\)/);
   assert.match(client, /mutateFirstBase64Byte\(afterState\.content\)/);
@@ -141,11 +160,32 @@ test("specimen review CTA preserves the Agent Risk offer selection", () => {
     page,
     /buyerPublicOfferRequestHref\(\s*"en",\s*"bounded-workflow-review",?\s*\)/,
   );
-  assert.match(page, /<Link href=\{reviewRequestHref\}>Start a review →<\/Link>/);
+  assert.match(page, /Agent Risk &amp; Control Review — from €1,500 ex VAT\./);
+  assert.match(page, /authority, permissions, approvals,/);
+  assert.match(page, /proposes a receipt, verifier, and challenge path/);
+  assert.match(page, /example of the proof object a review can shape/);
+  assert.match(
+    page,
+    /<Link href=\{reviewRequestHref\}>Request a non-secret fit check →<\/Link>/,
+  );
   assert.equal(
     buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
     "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
   );
+});
+
+test("specimen metadata uses claim-safe copy and the shared social preview", () => {
+  const page = readFileSync(resolve(__dirname, "page.tsx"), "utf8");
+
+  assert.match(
+    page,
+    /title: "Synthetic API key rotation — verifiable proof specimen"/,
+  );
+  assert.match(page, /url: "\/review\/sample-cases\/ai-agent-action-proof-run"/);
+  assert.match(page, /images: DEFAULT_OPEN_GRAPH_IMAGES/);
+  assert.match(page, /images: DEFAULT_TWITTER_IMAGES/);
+  assert.doesNotMatch(page, /Watch the agent rotate it/);
+  assert.doesNotMatch(page, /Compromised API key rotation — verifiable demo/);
 });
 
 test("versioned specimen bytes are immutable while key discovery revalidates", () => {

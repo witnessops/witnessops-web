@@ -5,6 +5,19 @@ export async function sha256Utf8(value: string): Promise<string> {
     .join("");
 }
 
+export function sha256HexToIntegrity(value: string): string {
+  if (!/^[a-f0-9]{64}$/.test(value)) {
+    throw new Error("Expected a lowercase 32-byte SHA-256 digest.");
+  }
+
+  let binary = "";
+  for (let index = 0; index < value.length; index += 2) {
+    binary += String.fromCharCode(Number.parseInt(value.slice(index, index + 2), 16));
+  }
+
+  return `sha256-${btoa(binary)}`;
+}
+
 export function mutateFirstBase64Byte(value: string): string {
   const decoded = atob(value);
   if (decoded.length === 0) {

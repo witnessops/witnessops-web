@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
+import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 import { ApiKeyRotationDemo } from "./api-key-rotation-demo";
 import styles from "./api-key-rotation-demo.module.css";
 import {
@@ -17,25 +18,28 @@ const reviewRequestHref = buyerPublicOfferRequestHref(
 );
 
 export const metadata: Metadata = {
-  title: "Compromised API key rotation — verifiable demo",
+  title: "Synthetic API key rotation — verifiable proof specimen",
   description:
-    "Replay one signed synthetic API-key rotation, verify its Ed25519 receipt and exact evidence in your browser, then reproduce the verdict offline.",
+    "Replay a fixed synthetic API-key rotation specimen, verify its pinned bundle and manifest-bound evidence in your browser, then reproduce the verifier verdict offline.",
   alternates: getCanonicalAlternates(
     "witnessops",
     "/review/sample-cases/ai-agent-action-proof-run",
   ),
   openGraph: {
-    title: "Synthetic key compromise. Watch the agent rotate it — then verify the proof.",
+    title: "Synthetic API key rotation — verify the pinned proof specimen",
     description:
-      "A public, signed synthetic run with exact evidence, browser verification, an offline verifier, and a one-byte tamper challenge.",
+      "A fixed, hash-pinned synthetic specimen with browser verification, an offline verifier, and a one-byte tamper challenge.",
+    url: "/review/sample-cases/ai-agent-action-proof-run",
     siteName: "WitnessOps",
     type: "website",
+    images: DEFAULT_OPEN_GRAPH_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Compromised API key rotation — verifiable demo",
+    title: "Synthetic API key rotation — verifiable proof specimen",
     description:
-      "Replay the signed run, inspect every check, and reproduce the verdict without trusting WitnessOps.",
+      "Replay the fixed synthetic specimen, inspect the named checks, and reproduce the verifier verdict offline.",
+    images: DEFAULT_TWITTER_IMAGES,
   },
 };
 
@@ -44,25 +48,26 @@ export default function ApiKeyRotationSamplePage() {
     <main id="main-content" tabIndex={-1} className={styles.page}>
       <header className={styles.hero}>
         <div className={styles.heroMeta}>
-          <strong>Compromise signal received</strong>
-          <span>Public synthetic proof</span>
+          <strong>Synthetic compromise flag declared</strong>
+          <span>Public synthetic specimen</span>
           <span>Fixed run · 2026-08-27</span>
         </div>
         <h1>
-          The key leaked.
+          A synthetic key was flagged.
           <br />
-          The agent <em>rotated it.</em>
+          The authorized rotation tool <em>handled it.</em>
         </h1>
         <p className={styles.heroLead}>
-          Replay one bounded response: create a replacement, migrate the consumer, prove the new key
-          works, revoke the old key, and prove it no longer does. Then verify every byte in the signed bundle yourself.
+          Replay one declared synthetic response: create a replacement, migrate the consumer, check
+          the new key, revoke the old key, and check it again. Then verify the pinned bundle digest,
+          receipt signature, and manifest-bound evidence with the separately pinned public verifier.
         </p>
         <div className={styles.heroBoundary}>
           <span>Published sample — not live customer evidence</span>
           <p>
-            This is an immutable synthetic specimen. It contains fingerprints and key identifiers,
-            never credential values. No real provider, credential, compromise, customer, or
-            production system was used or checked.
+            This is a fixed, hash-pinned synthetic specimen. Its evidence contains fingerprints and
+            key identifiers, never credential values. No real provider, credential, compromise,
+            customer, or production system was used or checked.
           </p>
         </div>
       </header>
@@ -75,15 +80,19 @@ export default function ApiKeyRotationSamplePage() {
       />
 
       <section className={styles.nextStep} aria-labelledby="rotation-next-step-heading">
-        <span>YOUR WORKFLOW</span>
+        <span>PAID REVIEW</span>
         <div>
-          <h2 id="rotation-next-step-heading">Bring one consequential agent action.</h2>
+          <h2 id="rotation-next-step-heading">
+            Agent Risk &amp; Control Review — from €1,500 ex VAT.
+          </h2>
           <p>
-            We’ll map its authority, evidence, receipt, public verifier, and challenge path before any
-            secret or source material is accepted.
+            Bring one consequential workflow. The review maps its authority, permissions, approvals,
+            and evidence gaps, then proposes a receipt, verifier, and challenge path. This specimen is
+            an example of the proof object a review can shape; no secret or source material is accepted
+            in the fit check.
           </p>
         </div>
-        <Link href={reviewRequestHref}>Start a review →</Link>
+        <Link href={reviewRequestHref}>Request a non-secret fit check →</Link>
       </section>
     </main>
   );

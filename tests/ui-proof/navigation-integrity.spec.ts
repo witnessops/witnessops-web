@@ -136,7 +136,7 @@ test("route navigation and Back restore scroll without a second-frame snap", asy
 
   await receiptLink.click();
   await expectPath(page, SAMPLE_PATH);
-  await expect(page.locator("main h1")).toContainText(/The key leaked\./);
+  await expect(page.locator("main h1")).toContainText(/A synthetic key was flagged\./);
 
   await page.goBack({ waitUntil: "domcontentloaded" });
   await expectPath(page, "/");
@@ -180,7 +180,7 @@ test("the homepage receipt promise lands on the named signed-rotation specimen",
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: /^The key leaked\. The agent rotated it\.$/,
+      name: /^A synthetic key was flagged\. The authorized rotation tool handled it\.$/,
     }),
   ).toBeVisible();
   await expect(page.getByText("Published sample — not live customer evidence")).toBeVisible();

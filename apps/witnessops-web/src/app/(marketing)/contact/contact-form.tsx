@@ -90,6 +90,7 @@ export function ContactForm({
   const verificationHeadingRef = useRef<HTMLHeadingElement>(null);
   const polish = locale === "pl";
   const externalExposureOrder = intent === "OFFSEC-EXTERNAL-EXPOSURE";
+  const boundedWorkflowReview = intent === BOUNDED_WORKFLOW_REVIEW_INTENT;
   const selectedService =
     buyerServiceByProductId(intent) ?? buyerServiceByPublicOfferId(intent);
   const selectedNonAgentService =
@@ -274,6 +275,27 @@ export function ContactForm({
           : "Submitting this form opens fit and scope review for the selected service only. Work does not start until scope, required inputs, fee, timing, and evidence handling are agreed.",
       }
     : undefined;
+  const boundedWorkflowReviewCopy = boundedWorkflowReview
+    ? {
+        ...baseCopy,
+        fitTitle: polish
+          ? "Rozpocznij Agent Risk & Control Review."
+          : "Start your Agent Risk & Control Review.",
+        fitBody: polish
+          ? "Opisz jeden istotny workflow na wysokim poziomie. Do oceny dopasowania wystarczy niepoufne podsumowanie — szczegóły upoważnienia, zatwierdzeń i materiałów uzgodnimy później."
+          : "Describe one consequential workflow at a high level. A non-secret summary is enough for the fit check—we’ll map authority, approvals, and evidence with you later.",
+        workflow: polish
+          ? "Opisz istotny workflow"
+          : "Describe the consequential workflow",
+        workflowPlaceholder: polish
+          ? "Przykład: agent przygotowuje i wykonuje rotację klucza API po zatwierdzeniu przez człowieka."
+          : "Example: an agent prepares and executes an API-key rotation after human approval.",
+        workflowHelp: polish
+          ? "Podaj system, działanie i główną obawę dotyczącą upoważnienia, jeśli są znane. Nie wklejaj sekretów ani materiałów źródłowych."
+          : "Name the system, action, and main authority concern if known. Do not paste secrets or source material.",
+        send: polish ? "Wyślij ocenę dopasowania" : "Request a fit check",
+      }
+    : undefined;
   const copy = externalExposureOrder
     ? {
         ...baseCopy,
@@ -312,7 +334,7 @@ export function ContactForm({
           ? "Wysłanie formularza rozpoczyna wyłącznie asynchroniczną akceptację zakresu. Praca wobec celu zaczyna się dopiero po potwierdzeniu płatności, SOW, upoważnienia, stałego zakresu, wymaganych danych wejściowych i okna zbierania."
           : "Submitting this form begins asynchronous scope acceptance only. Target-facing work starts only after payment, the SOW, authority, fixed scope, required inputs, and the collection window are confirmed.",
       }
-    : selectedServiceCopy ?? baseCopy;
+    : boundedWorkflowReviewCopy ?? selectedServiceCopy ?? baseCopy;
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [verifyStatus, setVerifyStatus] = useState<"idle" | "verifying" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState(copy.sendError);
@@ -361,6 +383,8 @@ export function ContactForm({
     const requestScope = [
       externalExposureOrder
         ? "Request: Public Exposure Review"
+        : boundedWorkflowReview
+          ? "Request: Agent Risk & Control Review"
         : selectedNonAgentService
           ? `Request: ${selectedNonAgentService.name.en}`
           : "Request: WitnessOps review fit check",
@@ -369,10 +393,14 @@ export function ContactForm({
       ...(campaignAttribution
         ? [`Campaign attribution: ${campaignAttribution}`]
         : []),
-      `${externalExposureOrder ? "Boundary seed / public target" : selectedNonAgentService ? "Selected-service need" : "Review need"}: ${workflow || "not provided"}`,
-      `${externalExposureOrder ? "Trigger and timing" : selectedNonAgentService ? "Timing and reason" : "Situation and affected system"}: ${agentPath || "not provided"}`,
-      `${externalExposureOrder ? "Authority statement" : selectedNonAgentService ? "Scope owner, consent, and authority" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
-      `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : selectedNonAgentService ? "Available input or source types" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
+      `${externalExposureOrder ? "Boundary seed / public target" : selectedNonAgentService ? "Selected-service need" : boundedWorkflowReview ? "Consequential workflow" : "Review need"}: ${workflow || "not provided"}`,
+      ...(boundedWorkflowReview
+        ? []
+        : [
+            `${externalExposureOrder ? "Trigger and timing" : selectedNonAgentService ? "Timing and reason" : "Situation and affected system"}: ${agentPath || "not provided"}`,
+            `${externalExposureOrder ? "Authority statement" : selectedNonAgentService ? "Scope owner, consent, and authority" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
+            `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : selectedNonAgentService ? "Available input or source types" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
+          ]),
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
       externalExposureOrder
         ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
@@ -781,62 +809,66 @@ export function ContactForm({
         {fieldErrors.workflow && <p id="workflow-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.workflow}</p>}
       </div>
 
-      <div>
-        <label htmlFor="agentPath" className="mb-2 block" style={labelStyle}>
-          {copy.actionPath} <span className="text-text-muted">{externalExposureOrder ? copy.optional : copy.required}</span>
-        </label>
-        <textarea
-          id="agentPath" name="agentPath" rows={3} required={!externalExposureOrder}
-          maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
-          className={`${textareaClass} ${fieldErrors.agentPath ? "!border-signal-red" : ""}`}
-          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder={copy.actionPathPlaceholder}
-          onInvalid={handleInvalid}
-          onInput={handleFieldInput}
-          aria-invalid={fieldErrors.agentPath ? true : undefined}
-          aria-describedby={fieldErrors.agentPath ? "agentPath-error" : undefined}
-          aria-errormessage={fieldErrors.agentPath ? "agentPath-error" : undefined}
-        />
-        {fieldErrors.agentPath && <p id="agentPath-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.agentPath}</p>}
-      </div>
+      {!boundedWorkflowReview ? (
+        <>
+          <div>
+            <label htmlFor="agentPath" className="mb-2 block" style={labelStyle}>
+              {copy.actionPath} <span className="text-text-muted">{externalExposureOrder ? copy.optional : copy.required}</span>
+            </label>
+            <textarea
+              id="agentPath" name="agentPath" rows={3} required={!externalExposureOrder}
+              maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
+              className={`${textareaClass} ${fieldErrors.agentPath ? "!border-signal-red" : ""}`}
+              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+              placeholder={copy.actionPathPlaceholder}
+              onInvalid={handleInvalid}
+              onInput={handleFieldInput}
+              aria-invalid={fieldErrors.agentPath ? true : undefined}
+              aria-describedby={fieldErrors.agentPath ? "agentPath-error" : undefined}
+              aria-errormessage={fieldErrors.agentPath ? "agentPath-error" : undefined}
+            />
+            {fieldErrors.agentPath && <p id="agentPath-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.agentPath}</p>}
+          </div>
 
-      <div>
-        <label htmlFor="approvalBoundary" className="mb-2 block" style={labelStyle}>
-          {copy.approval} <span className="text-text-muted">{copy.required}</span>
-        </label>
-        <textarea
-          id="approvalBoundary" name="approvalBoundary" rows={3} required
-          maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
-          className={`${textareaClass} ${fieldErrors.approvalBoundary ? "!border-signal-red" : ""}`}
-          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder={copy.approvalPlaceholder}
-          onInvalid={handleInvalid}
-          onInput={handleFieldInput}
-          aria-invalid={fieldErrors.approvalBoundary ? true : undefined}
-          aria-describedby={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
-          aria-errormessage={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
-        />
-        {fieldErrors.approvalBoundary && <p id="approvalBoundary-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.approvalBoundary}</p>}
-      </div>
+          <div>
+            <label htmlFor="approvalBoundary" className="mb-2 block" style={labelStyle}>
+              {copy.approval} <span className="text-text-muted">{copy.required}</span>
+            </label>
+            <textarea
+              id="approvalBoundary" name="approvalBoundary" rows={3} required
+              maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
+              className={`${textareaClass} ${fieldErrors.approvalBoundary ? "!border-signal-red" : ""}`}
+              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+              placeholder={copy.approvalPlaceholder}
+              onInvalid={handleInvalid}
+              onInput={handleFieldInput}
+              aria-invalid={fieldErrors.approvalBoundary ? true : undefined}
+              aria-describedby={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
+              aria-errormessage={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
+            />
+            {fieldErrors.approvalBoundary && <p id="approvalBoundary-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.approvalBoundary}</p>}
+          </div>
 
-      <div>
-        <label htmlFor="evidenceAvailable" className="mb-2 block" style={labelStyle}>
-          {copy.evidence} <span className="text-text-muted">{externalExposureOrder || selectedNonAgentService ? copy.optional : copy.required}</span>
-        </label>
-        <textarea
-          id="evidenceAvailable" name="evidenceAvailable" rows={3} required={!externalExposureOrder && !selectedNonAgentService}
-          maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
-          className={`${textareaClass} ${fieldErrors.evidenceAvailable ? "!border-signal-red" : ""}`}
-          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-          placeholder={copy.evidencePlaceholder}
-          onInvalid={handleInvalid}
-          onInput={handleFieldInput}
-          aria-invalid={fieldErrors.evidenceAvailable ? true : undefined}
-          aria-describedby={fieldErrors.evidenceAvailable ? "evidenceAvailable-error" : undefined}
-          aria-errormessage={fieldErrors.evidenceAvailable ? "evidenceAvailable-error" : undefined}
-        />
-        {fieldErrors.evidenceAvailable && <p id="evidenceAvailable-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.evidenceAvailable}</p>}
-      </div>
+          <div>
+            <label htmlFor="evidenceAvailable" className="mb-2 block" style={labelStyle}>
+              {copy.evidence} <span className="text-text-muted">{externalExposureOrder || selectedNonAgentService ? copy.optional : copy.required}</span>
+            </label>
+            <textarea
+              id="evidenceAvailable" name="evidenceAvailable" rows={3} required={!externalExposureOrder && !selectedNonAgentService}
+              maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
+              className={`${textareaClass} ${fieldErrors.evidenceAvailable ? "!border-signal-red" : ""}`}
+              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+              placeholder={copy.evidencePlaceholder}
+              onInvalid={handleInvalid}
+              onInput={handleFieldInput}
+              aria-invalid={fieldErrors.evidenceAvailable ? true : undefined}
+              aria-describedby={fieldErrors.evidenceAvailable ? "evidenceAvailable-error" : undefined}
+              aria-errormessage={fieldErrors.evidenceAvailable ? "evidenceAvailable-error" : undefined}
+            />
+            {fieldErrors.evidenceAvailable && <p id="evidenceAvailable-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.evidenceAvailable}</p>}
+          </div>
+        </>
+      ) : null}
 
       <button
         type="submit"
