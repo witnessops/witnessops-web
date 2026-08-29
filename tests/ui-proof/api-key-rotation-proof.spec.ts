@@ -72,7 +72,8 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
     expect(style.color).toBe("rgb(152, 163, 155)");
   }
 
-  const replayButton = page.getByRole("button", { name: /ACKNOWLEDGE SCOPE & REPLAY/ });
+  const replayButton = page.locator('button[aria-describedby="rotation-replay-boundary"]');
+  await expect(replayButton).toHaveText(/ACKNOWLEDGE SCOPE & REPLAY/);
   await replayButton.click();
   await expect(replayButton).toHaveText(/REPLAY SIGNED RUN AGAIN/);
   await expect(replayButton).toBeFocused();
