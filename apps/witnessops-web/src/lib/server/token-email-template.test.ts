@@ -18,8 +18,8 @@ test("proof-run verification email uses light paper theme", () => {
     intent: "ai-agent-action-proof-run",
   });
 
-  assert.equal(rendered.templateVersion, "tier1-code-v3-light");
-  assert.equal(TOKEN_EMAIL_TEMPLATE_VERSION, "tier1-code-v3-light");
+  assert.equal(rendered.templateVersion, "tier1-code-v4-light");
+  assert.equal(TOKEN_EMAIL_TEMPLATE_VERSION, "tier1-code-v4-light");
   assert.ok(rendered.html);
   assert.match(rendered.html!, /background-color:#f7f5f1/);
   assert.match(rendered.html!, /background-color:#ffffff/);
@@ -44,6 +44,30 @@ test("unclassified engage requests use the no-work manual email boundary", () =>
   assert.ok(rendered.html);
   assert.match(rendered.text, /does not start a proof run/);
   assert.match(rendered.text, /security-workflow package request/);
+});
+
+test("Polish engage requests localize the buyer verification boundary", () => {
+  const rendered = renderVerificationEmail({
+    channel: "engage",
+    email: "buyer@example-corp.com",
+    intakeId: "intk_pl",
+    issuanceId: "iss_pl",
+    token: "ABCD-EFGH-JKLM",
+    expiresAt: "2026-07-30T12:00:00Z",
+    verifyUrl: "https://witnessops.com/verify-token?context=opaque",
+    intent: "bounded-workflow-review",
+    locale: "pl",
+  });
+
+  assert.equal(rendered.subject, "Twój kod do zgłoszenia WitnessOps");
+  assert.match(rendered.text, /Weryfikacja WitnessOps/);
+  assert.match(rendered.text, /Potwierdź: Zgłoszenie Agent Risk & Control Review/);
+  assert.match(rendered.text, /Kod weryfikacyjny: ABCD-EFGH-JKLM/);
+  assert.match(rendered.text, /Nie rozpoczyna przeglądu ani pracy/);
+  assert.doesNotMatch(rendered.text, /Confirm your/);
+  assert.ok(rendered.html);
+  assert.match(rendered.html!, /Otwórz bezpieczną stronę weryfikacji/);
+  assert.doesNotMatch(rendered.html!, /What this verification means/);
 });
 
 test("explicit governed recon retains its dedicated verification path", () => {

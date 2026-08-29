@@ -24,6 +24,12 @@ The integration does not use Google Admin SDK, domain-wide delegation, Google
 Groups, group membership, service-account impersonation, refresh tokens,
 offline access, or broader Google API scopes.
 
+That identity boundary is separate from the founder-operated Gmail Inbox
+reconciliation adapter. Manual Inbox Sync uses the installed `gws` CLI and a
+separately custodied `authorized_user` credential limited to the
+`https://www.googleapis.com/auth/gmail.modify` scope. It does not widen the
+admin sign-in scopes or grant Gmail access to the browser session.
+
 ## Runtime configuration and custody
 
 The server requires the existing admin signing secret plus all five Google
@@ -53,6 +59,22 @@ environment-wide authorization setting, so all allowlisted operators receive
 the same effective WitnessOps role. The configured role is captured in the
 signed WitnessOps session at login and is never derived or elevated from Google
 claims. Changing the configured role requires operators to sign in again.
+
+## Gmail Inbox reconciliation credential
+
+Store the exported `authorized_user` credential JSON as
+`WITNESSOPS_GWS_CREDENTIALS_JSON` in the existing `BASE_ENV_SECRET`. Do not add
+a third Secret, Secret volume, sidecar, or service. The runtime validates the
+credential shape, materializes it in an isolated temporary directory with mode
+`0600` for one CLI call, sets `GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE` only for
+that child process, and removes the directory afterward.
+
+The credential must belong to the configured `WITNESSOPS_GMAIL_ACCOUNT` (or
+the default public contact mailbox) and include Gmail modify authority because
+the bounded sync reads message metadata and applies lifecycle labels. Keep the
+JSON outside Git, images, build logs, receipts, screenshots, and browser-visible
+configuration. A credential write remains a separately authorized runtime
+Secret substep; an image deployment must not synthesize or rotate it.
 
 ## Operator verification
 

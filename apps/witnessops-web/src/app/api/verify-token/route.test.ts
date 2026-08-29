@@ -58,7 +58,7 @@ async function issueToken(baseDir: string) {
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
     "utf8",
   );
-  const token = mailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
+  const token = mailRaw.match(/^(?:Verification Code|Kod weryfikacyjny):\s+(.+)$/m)?.[1];
   assert.ok(token);
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
@@ -86,7 +86,7 @@ async function issueSupportToken(baseDir: string) {
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
     "utf8",
   );
-  const token = mailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
+  const token = mailRaw.match(/^(?:Verification Code|Kod weryfikacyjny):\s+(.+)$/m)?.[1];
   assert.ok(token);
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
@@ -114,7 +114,7 @@ async function issueAccessChangeToken(baseDir: string, name = "K. Witness") {
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
     "utf8",
   );
-  const token = mailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
+  const token = mailRaw.match(/^(?:Verification Code|Kod weryfikacyjny):\s+(.+)$/m)?.[1];
   assert.ok(token);
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
@@ -144,7 +144,7 @@ async function issueExternalExposureToken(baseDir: string, locale: "en" | "pl") 
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
     "utf8",
   );
-  const token = mailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
+  const token = mailRaw.match(/^(?:Verification Code|Kod weryfikacyjny):\s+(.+)$/m)?.[1];
   assert.ok(token);
   return { issuanceId: issuance.issuanceId, email: issuance.email, token };
 }
@@ -188,7 +188,7 @@ async function issueCurrentCommercialIntentToken(
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, mailFile),
     "utf8",
   );
-  const token = mailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
+  const token = mailRaw.match(/^(?:Verification Code|Kod weryfikacyjny):\s+(.+)$/m)?.[1];
   assert.ok(token);
   return { ...issuance, token, verificationMailRaw: mailRaw };
 }
@@ -666,7 +666,7 @@ test("Agent Risk & Control Review uses the Polish manual commercial path and ope
   });
   assert.match(
     issued.verificationMailRaw,
-    /Confirm your Agent Risk & Control Review request\./,
+    /Potwierdź: Zgłoszenie Agent Risk & Control Review\./,
   );
   await assertCurrentCommercialIntentVerification(issued, {
     postVerifyPath: "/pl/review/request/confirmed",
@@ -682,31 +682,37 @@ test("every public service request stays on the bounded manual lane", async () =
       intent: "customer-security-review-sprint" as const,
       locale: "en" as const,
       label: "Customer Security Review Sprint",
+      verificationPattern: /Confirm your Customer Security Review Sprint request\./,
     },
     {
       intent: "professional-public-footprint-audit" as const,
       locale: "pl" as const,
       label: "Professional Public Footprint Audit",
+      verificationPattern: /Potwierdź: Zgłoszenie audytu publicznego śladu zawodowego\./,
     },
     {
       intent: "OFFSEC-LOCAL-AUDIT" as const,
       locale: "en" as const,
       label: "One Server Security Check",
+      verificationPattern: /Confirm your One Server Security Check request\./,
     },
     {
       intent: "OFFSEC-LAUNCH-READY" as const,
       locale: "pl" as const,
       label: "Launch Readiness Check",
+      verificationPattern: /Potwierdź: Zgłoszenie Launch Readiness Check\./,
     },
     {
       intent: "OFFSEC-CUSTODY-OPS" as const,
       locale: "en" as const,
       label: "Key, Access and Custody Review",
+      verificationPattern: /Confirm your Key, Access and Custody Review request\./,
     },
     {
       intent: "OFFSEC-INCIDENT-READY" as const,
       locale: "pl" as const,
       label: "Incident Readiness Review",
+      verificationPattern: /Potwierdź: Zgłoszenie Incident Readiness Review\./,
     },
   ]) {
     _resetAllStores();
@@ -720,7 +726,7 @@ test("every public service request stays on the bounded manual lane", async () =
     });
     assert.match(
       issued.verificationMailRaw,
-      new RegExp(`Confirm your ${options.label} request\\.`),
+      options.verificationPattern,
     );
     await assertCurrentCommercialIntentVerification(issued, {
       postVerifyPath:
@@ -788,7 +794,7 @@ test("verify-token route sends a reply-ready operator notification for package r
     path.join(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!, verificationMailFile),
     "utf8",
   );
-  const token = verificationMailRaw.match(/^Verification Code:\s+(.+)$/m)?.[1];
+  const token = verificationMailRaw.match(/^(?:Verification Code|Kod weryfikacyjny):\s+(.+)$/m)?.[1];
   assert.ok(token);
 
   const first = await POST(

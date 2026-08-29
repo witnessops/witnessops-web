@@ -1,4 +1,7 @@
 import { execFile } from "node:child_process";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { promisify } from "node:util";
 
 import { PUBLIC_CONTACT_EMAIL } from "@/lib/public-contact";
@@ -8,6 +11,10 @@ const execFileAsync = promisify(execFile);
 
 const DEFAULT_MAX_RESULTS = 100;
 const DEFAULT_PAGE_LIMIT = 10;
+const MAX_INLINE_CREDENTIAL_BYTES = 64 * 1024;
+
+export const GMAIL_CLI_INLINE_CREDENTIALS_ENV =
+  "WITNESSOPS_GWS_CREDENTIALS_JSON" as const;
 
 export interface GmailCliRunner {
   run(args: string[]): Promise<string>;
@@ -25,6 +32,84 @@ export class GmailCliError extends Error {
   }
 }
 
+function invalidInlineCredentials(): GmailCliError {
+  return new GmailCliError(
+    "GWS_INVALID_CREDENTIALS_CONFIG",
+    `${GMAIL_CLI_INLINE_CREDENTIALS_ENV} must contain one authorized_user OAuth credential with client_id, client_secret, and refresh_token.`,
+    "gws",
+  );
+}
+
+export function normalizeInlineGmailCliCredentials(
+  raw: string | undefined = process.env[GMAIL_CLI_INLINE_CREDENTIALS_ENV],
+): string | null {
+  const trimmed = raw?.trim();
+  if (!trimmed) return null;
+  if (
+    trimmed.includes("\0") ||
+    Buffer.byteLength(trimmed, "utf8") > MAX_INLINE_CREDENTIAL_BYTES
+  ) {
+    throw invalidInlineCredentials();
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(trimmed) as unknown;
+  } catch {
+    throw invalidInlineCredentials();
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw invalidInlineCredentials();
+  }
+
+  const credentials = parsed as Record<string, unknown>;
+  if (
+    credentials.type !== "authorized_user" ||
+    !["client_id", "client_secret", "refresh_token"].every(
+      (key) => typeof credentials[key] === "string" && credentials[key].trim(),
+    )
+  ) {
+    throw invalidInlineCredentials();
+  }
+  return JSON.stringify(credentials);
+}
+
+async function runWithGmailCliCredentials<T>(
+  operation: (env: NodeJS.ProcessEnv) => Promise<T>,
+): Promise<T> {
+  const childEnv = { ...process.env };
+  delete childEnv[GMAIL_CLI_INLINE_CREDENTIALS_ENV];
+
+  if (
+    process.env.GOOGLE_WORKSPACE_CLI_TOKEN?.trim() ||
+    process.env.GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE?.trim()
+  ) {
+    return operation(childEnv);
+  }
+
+  const inlineCredentials = normalizeInlineGmailCliCredentials();
+  if (!inlineCredentials) return operation(childEnv);
+
+  const credentialDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-gws-"),
+  );
+  const credentialFile = path.join(credentialDirectory, "credentials.json");
+  try {
+    await writeFile(credentialFile, inlineCredentials, {
+      encoding: "utf8",
+      flag: "wx",
+      mode: 0o600,
+    });
+    return await operation({
+      ...childEnv,
+      GOOGLE_WORKSPACE_CLI_CONFIG_DIR: credentialDirectory,
+      GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE: credentialFile,
+    });
+  } finally {
+    await rm(credentialDirectory, { recursive: true, force: true });
+  }
+}
+
 function safeErrorText(value: unknown): string {
   const text = value instanceof Error ? value.message : String(value);
   return text.replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [redacted]").slice(0, 1000);
@@ -36,11 +121,14 @@ export function createGmailCliRunner(options: { binary?: string; timeoutMs?: num
   return {
     async run(args: string[]): Promise<string> {
       try {
-        const result = await execFileAsync(binary, args, {
-          timeout: timeoutMs,
-          maxBuffer: 8 * 1024 * 1024,
-          windowsHide: true,
-        });
+        const result = await runWithGmailCliCredentials((env) =>
+          execFileAsync(binary, args, {
+            env,
+            timeout: timeoutMs,
+            maxBuffer: 8 * 1024 * 1024,
+            windowsHide: true,
+          }),
+        );
         return result.stdout;
       } catch (error) {
         const command = [binary, ...args].join(" ");
