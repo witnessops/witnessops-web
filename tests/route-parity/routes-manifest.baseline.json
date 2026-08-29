@@ -152,6 +152,20 @@
       "regex": "^/samples/governed-agent-verifier-conformance/v1(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
     },
     {
+      "source": "/media-kit/logo-system-v1/:asset*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ],
+      "regex": "^/media-kit/logo-system-v1(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    },
+    {
       "source": "/.well-known/witnessops-demo-signing-keys.json",
       "headers": [
         {
