@@ -257,8 +257,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pricing",
     requiredMarkers: [
-      "Clear prices for bounded security reviews.",
+      "Clear prices for bounded agent and security reviews.",
       "Public service lines",
+      "Primary paid entry point",
+      "Agent Risk &amp; Control Review",
+      "From €1,500",
       "Public Exposure Review",
       "€1,900 ex VAT",
       "No sales call required.",
@@ -284,6 +287,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "delivery within 24 hours after accepted start conditions",
       "Full payment is recommended",
       "two €950 instalments",
+      "Primary fixed-scope offer",
     ],
   },
   {
@@ -561,6 +565,22 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     ],
   },
   {
+    path: "/review/request?offerId=bounded-workflow-review",
+    requiredMarkers: [
+      "Start your Agent Risk &amp; Control Review",
+      "From €1,500",
+      "Start with one non-secret review need.",
+      "One agentic or automated workflow needs a defensible authority, control, evidence, receipt, and verification path",
+      "What the Agent Risk &amp; Control Review can include",
+      'name="intent" value="bounded-workflow-review"',
+      "No work or target-facing check starts from this form.",
+    ],
+    prohibitedMarkers: [
+      "What the Public Exposure Review delivers",
+      "€1,900 ex VAT for one authorised public-facing system",
+    ],
+  },
+  {
     path: "/review/request?productId=OFFSEC-PILOT",
     requiredMarkers: [
       "Tell us what you need reviewed",
@@ -601,6 +621,21 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     prohibitedMarkers: [
       "Opowiedz, co wymaga sprawdzenia",
       "This form authorizes testing",
+    ],
+  },
+  {
+    path: "/pl/review/request?offerId=bounded-workflow-review",
+    requiredMarkers: [
+      "Zgłoś: Agent Risk &amp; Control Review",
+      "Od 6 500 zł (ok. €1 500)",
+      "Podaj jedno niepoufne podsumowanie dla wybranej usługi.",
+      "Jeden agentowy lub zautomatyzowany workflow potrzebuje możliwej do obrony ścieżki upoważnień, kontroli, materiałów, zapisu i weryfikacji",
+      'name="intent" value="bounded-workflow-review"',
+      "Samo zgłoszenie nie rozpoczyna pracy.",
+    ],
+    prohibitedMarkers: [
+      "Rozpocznij Public Exposure Review",
+      "€1 900 netto — jeden autoryzowany system publicznie dostępny",
     ],
   },
   {

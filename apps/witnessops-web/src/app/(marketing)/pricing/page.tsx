@@ -9,22 +9,22 @@ import {
 } from "@/lib/buyer-services";
 
 export const metadata: Metadata = {
-  title: "Security Review Pricing",
+  title: "Agent and Security Review Pricing",
   description:
-    "Published prices and commercial boundaries for bounded WitnessOps security reviews, including the Public Exposure Review.",
+    "Published prices and commercial boundaries for bounded WitnessOps reviews, led by the Agent Risk & Control Review from €1,500.",
   alternates: { canonical: "/pricing" },
   openGraph: {
-    title: "Security Review Pricing | WitnessOps",
+    title: "Agent and Security Review Pricing | WitnessOps",
     description:
-      "Published prices and commercial boundaries for bounded WitnessOps security reviews.",
+      "Published prices and commercial boundaries for bounded agent, security, and operational reviews.",
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Security Review Pricing | WitnessOps",
+    title: "Agent and Security Review Pricing | WitnessOps",
     description:
-      "Published prices and commercial boundaries for bounded WitnessOps security reviews.",
+      "Published prices and commercial boundaries for bounded agent, security, and operational reviews.",
   },
 };
 
@@ -35,6 +35,14 @@ const boundaries = [
   "A report, receipt, or verifier does not prove that a system is secure, complete, compliant, or free of vulnerabilities.",
 ];
 
+const pricingServices = BUYER_SERVICES.filter(
+  (service) => service.pricingVisible !== false,
+).sort(
+  (left, right) =>
+    Number(right.homepageFeatured === true) -
+    Number(left.homepageFeatured === true),
+);
+
 export default function PricingPage() {
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
@@ -44,7 +52,7 @@ export default function PricingPage() {
             Pricing
           </p>
           <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
-            Clear prices for bounded security reviews.
+            Clear prices for bounded agent and security reviews.
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">
             Choose the situation that matches your decision. Every engagement starts
@@ -62,21 +70,23 @@ export default function PricingPage() {
             Public service lines
           </h2>
           <div className="mt-7 grid gap-5 md:grid-cols-2">
-            {BUYER_SERVICES.filter((service) => service.pricingVisible !== false).map((service) => {
+            {pricingServices.map((service) => {
               const detailHref = service.detailHref.en ?? "/catalog";
-              const featured = service.id === "external-exposure-assessment";
+              const primary = service.homepageFeatured === true;
+              const publicExposure =
+                service.id === "external-exposure-assessment";
               return (
                 <article
                   key={service.id}
                   data-pricing-service={service.id}
-                  className={`flex h-full flex-col border p-6 ${featured ? "border-brand-accent/60 bg-brand-accent/5" : "border-surface-border bg-surface-card/40"}`}
+                  className={`flex h-full flex-col border p-6 ${primary ? "border-brand-accent/60 bg-brand-accent/5" : "border-surface-border bg-surface-card/40"}`}
                 >
-                  {featured ? (
+                  {primary ? (
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
-                      Primary fixed-scope offer
+                      Primary paid entry point
                     </p>
                   ) : null}
-                  <h3 className={`${featured ? "mt-3" : ""} text-xl font-semibold text-text-primary`}>
+                  <h3 className={`${primary ? "mt-3" : ""} text-xl font-semibold text-text-primary`}>
                     <Link href={detailHref} className="hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
                       {service.name.en}
                     </Link>
@@ -84,7 +94,7 @@ export default function PricingPage() {
                   <p className="mt-3 text-sm leading-7 text-text-secondary">{service.situation.en}</p>
                   <p className="mt-5 text-lg font-semibold text-brand-accent">{service.price.en}</p>
                   <p className="mt-2 text-sm leading-6 text-text-muted">{service.timing.en}</p>
-                  {featured ? (
+                  {publicExposure ? (
                     <p className="mt-3 text-sm leading-6 text-text-muted">
                       No sales call required. Payment is due in full before the delivery clock starts; payment alone does not authorise testing. One focused retest within 30 days is included; an additional or late retest is €550 ex VAT.
                     </p>
@@ -94,7 +104,7 @@ export default function PricingPage() {
                   </p>
                   <div className="mt-auto flex flex-wrap gap-3 pt-6">
                     <CtaButton href={detailHref} variant="secondary" label="View scope" />
-                    {featured ? (
+                    {publicExposure ? (
                       <CtaButton
                         href="/review/sample-cases/external-exposure-assessment"
                         variant="secondary"
@@ -104,7 +114,7 @@ export default function PricingPage() {
                     <CtaButton
                       href={buyerServiceRequestHref("en", service)}
                       variant="primary"
-                      label={featured ? "Request the review" : "Start fit check"}
+                      label={publicExposure ? "Request the review" : "Start fit check"}
                     />
                   </div>
                 </article>

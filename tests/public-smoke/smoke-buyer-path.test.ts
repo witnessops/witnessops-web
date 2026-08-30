@@ -166,6 +166,36 @@ test("request smoke markers use the current fit and start-work boundaries", () =
   }
 });
 
+test("primary offer smoke covers selected English and Polish intake", () => {
+  const english = routeContract(
+    "/review/request?offerId=bounded-workflow-review",
+  );
+  assert.ok(
+    english.requiredMarkers.includes(
+      "Start your Agent Risk &amp; Control Review",
+    ),
+  );
+  assert.ok(english.requiredMarkers.includes("From €1,500"));
+  assert.ok(
+    english.requiredMarkers.includes(
+      'name="intent" value="bounded-workflow-review"',
+    ),
+  );
+
+  const polish = routeContract(
+    "/pl/review/request?offerId=bounded-workflow-review",
+  );
+  assert.ok(
+    polish.requiredMarkers.includes("Zgłoś: Agent Risk &amp; Control Review"),
+  );
+  assert.ok(polish.requiredMarkers.includes("Od 6 500 zł (ok. €1 500)"));
+  assert.ok(
+    polish.requiredMarkers.includes(
+      'name="intent" value="bounded-workflow-review"',
+    ),
+  );
+});
+
 test("stateless confirmation smoke checks loading shells without claiming verification", () => {
   const english = routeContract("/review/request/confirmed");
   assert.ok(
