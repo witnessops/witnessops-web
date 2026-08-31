@@ -49,10 +49,13 @@ test("Polish support uses an explicit support mailbox lane, not the sales contac
 });
 
 test("pricing leaves brand suffixing to the root metadata template", () => {
-  assert.match(pricing, /title: "Security Review Pricing",/);
+  assert.match(pricing, /title: "Agent and Security Review Pricing",/);
   assert.doesNotMatch(
     pricing,
-    /export const metadata: Metadata = \{\s*title: "Security Review Pricing \| WitnessOps",/,
+    /export const metadata: Metadata = \{\s*title: "Agent and Security Review Pricing \| WitnessOps",/,
   );
-  assert.match(pricing, /openGraph:[\s\S]*?title: "Security Review Pricing \| WitnessOps"/);
+  assert.match(
+    pricing,
+    /openGraph:[\s\S]*?title: "Agent and Security Review Pricing \| WitnessOps"/,
+  );
 });

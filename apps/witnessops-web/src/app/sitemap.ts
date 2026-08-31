@@ -1,10 +1,7 @@
-import { statSync } from "node:fs";
-import path from "node:path";
 import type { MetadataRoute } from "next";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
-import { listSignals } from "@witnessops/content/signals";
 import { getDocsSitemapEntries } from "@witnessops/content/sitemap";
-import { loadHomeContent, loadSupportIndex } from "@/lib/content";
+import { loadSupportIndex } from "@/lib/content";
 import { getPolishSkus } from "@/lib/public-i18n";
 import {
   canonicalUrl,
@@ -14,19 +11,14 @@ import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import { BUYER_SERVICES } from "@/lib/buyer-services";
 import { listSkills } from "@/lib/skills/catalog";
 
-const fallbackLastModified = new Date("2026-01-01T00:00:00.000Z");
-
 type StaticRoute = {
   route: string;
+  /** Route ownership reference only. Filesystem mtimes are not freshness authority. */
   sourcePath?: string;
-  lastModified?: () => Date;
 };
 
 const staticRoutes: StaticRoute[] = [
-  {
-    route: "",
-    lastModified: () => new Date(loadHomeContent().status.last_reviewed),
-  },
+  { route: "" },
   { route: "/library", sourcePath: "src/app/(library)/library/page.tsx" },
   ...listSkills().map(({ slug }) => ({
     route: `/library/${slug}`,
@@ -165,50 +157,23 @@ const polishRoutes: StaticRoute[] = [
   { route: "/pl/why-witnessops", sourcePath: "src/app/pl/why-witnessops/page.tsx" },
 ];
 
-export function getSourceLastModified(sourcePath: string) {
-  try {
-    return statSync(path.resolve(process.cwd(), sourcePath)).mtime;
-  } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
-      // Standalone production images do not include source .tsx files.
-      return fallbackLastModified;
-    }
-    throw error;
-  }
-}
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Single sitemap on apex: marketing routes + English /docs corpus.
   const supportDocs = loadSupportIndex();
-  const signals = await listSignals();
-  const latestSignal = signals[0];
   const docs = await getDocsSitemapEntries("witnessops");
 
   return [
-    ...[...staticRoutes, ...polishRoutes].map(({ route, sourcePath, lastModified }) => ({
+    ...[...staticRoutes, ...polishRoutes].map(({ route }) => ({
       url: canonicalUrl(route || "/"),
       alternates: sitemapLanguageAlternates(route || "/"),
-      lastModified:
-        route === "/signals" && latestSignal
-          ? new Date(latestSignal.lastModified)
-          : lastModified
-            ? lastModified()
-            : getSourceLastModified(sourcePath ?? "src/app/page.tsx"),
     })),
     ...supportDocs.map((doc) => ({
       url: canonicalUrl(`/support/${doc.slug}`),
-      lastModified: new Date(doc.lastModified),
     })),
     {
       url: getDocCanonicalUrl("witnessops", []),
-      lastModified: getSourceLastModified("src/app/docs/page.tsx"),
       alternates: sitemapLanguageAlternates("/docs"),
     },
-    ...docs,
+    ...docs.map((doc) => ({ url: doc.url })),
   ];
 }

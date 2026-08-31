@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import sitemap, { getSourceLastModified } from "./sitemap";
+import sitemap from "./sitemap";
 import { canonicalUrl } from "@/lib/public-seo";
 
 const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
@@ -91,9 +91,15 @@ test("sitemap URLs and reciprocal language targets stay on the canonical apex", 
   }
 });
 
-test("sitemap lastModified fallback does not require source files at runtime", () => {
-  assert.equal(
-    getSourceLastModified("src/app/does-not-exist/page.tsx").toISOString(),
-    "2026-01-01T00:00:00.000Z",
-  );
+test("sitemap omits freshness dates without an explicit modification contract", async () => {
+  const entries = await sitemap();
+
+  assert.ok(entries.length > 0, "Sitemap must remain populated");
+  for (const entry of entries) {
+    assert.equal(
+      Object.hasOwn(entry, "lastModified"),
+      false,
+      `${entry.url} must not expose a filesystem or build timestamp as page freshness`,
+    );
+  }
 });
