@@ -120,8 +120,12 @@ test("review request routes remain responsive, accessible, and usable", async ({
 
     if (scenario.locale === "pl") {
       const contactHandoff = page.locator("main [data-public-contact-route]");
-      await expect(contactHandoff).toContainText("Rozpocznij przegląd");
-      await expect(contactHandoff.locator("a").first()).toHaveAttribute("href", "/pl/review/request");
+      await expect(contactHandoff).toContainText("Agent Workflow Reconstruction");
+      await expect(contactHandoff).toContainText("Główny płatny punkt wejścia");
+      await expect(contactHandoff.locator("a").first()).toHaveAttribute(
+        "href",
+        /\/pl\/review\/request\?offerId=bounded-workflow-review/,
+      );
       await expect(contactHandoff).toContainText("engage@mail.witnessops.com");
     }
 
@@ -197,10 +201,32 @@ test("review request routes remain responsive, accessible, and usable", async ({
   }
 });
 
-test("Agent Risk & Control Review starts with one compact non-secret workflow request", async ({ browser }) => {
+test("Agent Workflow Reconstruction starts with one compact non-secret workflow request", async ({ browser }) => {
   for (const scenario of [
-    { locale: "en", path: "/review/request", fitTitle: "Start your Agent Risk & Control Review." },
-    { locale: "pl", path: "/pl/review/request", fitTitle: "Rozpocznij Agent Risk & Control Review." },
+    {
+      locale: "en",
+      path: "/review/request",
+      fitTitle: "Start your Agent Workflow Reconstruction.",
+      contractMarkers: [
+        "Agent Workflow Reconstruction",
+        "€2,500 fixed",
+        "one named workflow (agentic or automated)",
+        "Non-secret fit check first",
+        "Within 10 working days after evidence rules are agreed",
+      ],
+    },
+    {
+      locale: "pl",
+      path: "/pl/review/request",
+      fitTitle: "Rozpocznij Agent Workflow Reconstruction.",
+      contractMarkers: [
+        "Agent Workflow Reconstruction",
+        "€2 500 — cena stała",
+        "jeden nazwany workflow",
+        "bez sekretów",
+        "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych",
+      ],
+    },
   ] as const) {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
@@ -214,7 +240,7 @@ test("Agent Risk & Control Review starts with one compact non-secret workflow re
         status: 201,
         contentType: "application/json",
         body: JSON.stringify({
-          issuanceId: `iss_agent_risk_${scenario.locale}`,
+          issuanceId: `iss_workflow_reconstruction_${scenario.locale}`,
           email: "buyer@example.com",
           expiresAt: "2026-08-29T22:00:00.000Z",
         }),
@@ -223,7 +249,7 @@ test("Agent Risk & Control Review starts with one compact non-secret workflow re
 
     const query = new URLSearchParams({
       offerId: "bounded-workflow-review",
-      offer: "Agent Risk & Control Review",
+      offer: "Agent Workflow Reconstruction",
     });
     await page.goto(`${scenario.path}?${query.toString()}`, {
       waitUntil: "networkidle",
@@ -231,6 +257,11 @@ test("Agent Risk & Control Review starts with one compact non-secret workflow re
 
     const form = page.locator("main form");
     await expect(form.getByText(scenario.fitTitle, { exact: true })).toBeVisible();
+    for (const marker of scenario.contractMarkers) {
+      await expect(page.locator("main")).toContainText(marker);
+    }
+    await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
+    await expect(page.locator("main")).not.toContainText("From €1,500");
     await expect(form.locator('input[name="intent"]')).toHaveValue(
       "bounded-workflow-review",
     );
@@ -267,7 +298,7 @@ test("Agent Risk & Control Review starts with one compact non-secret workflow re
 
     expect(submittedPayload?.intent).toBe("bounded-workflow-review");
     expect(submittedPayload?.locale).toBe(scenario.locale);
-    expect(submittedPayload?.scope).toContain("Request: Agent Risk & Control Review");
+    expect(submittedPayload?.scope).toContain("Request: Agent Workflow Reconstruction");
     expect(submittedPayload?.scope).toContain("Consequential workflow:");
     expect(submittedPayload?.scope).not.toContain("Situation and affected system:");
     expect(submittedPayload?.scope).not.toContain("Boundary and approval:");

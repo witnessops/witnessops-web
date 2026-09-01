@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import { localizedHref, localizedPath } from "@/lib/public-i18n";
 
 const navbar = readFileSync(resolve(__dirname, "navbar.tsx"), "utf-8");
@@ -9,21 +10,25 @@ const navbar = readFileSync(resolve(__dirname, "navbar.tsx"), "utf-8");
 test("primary buyer navigation contains the approved English destinations", () => {
   for (const marker of [
     'label: "Services", href: "/catalog"',
-    'label: "Customer Security Review", href: "/customer-security-review"',
+    "label: PRIMARY_OFFER.name.en, href: PRIMARY_OFFER.route",
     'label: "Skills", href: "/library"',
     'label: "Why WitnessOps", href: "/why-witnessops"',
     'label: "Start a review"',
   ]) {
     assert.ok(navbar.includes(marker), `Missing approved navigation marker: ${marker}`);
   }
+
+  assert.equal(PRIMARY_OFFER.name.en, "Agent Workflow Reconstruction");
+  assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
+  assert.match(navbar, /href: reviewRequestHrefForLocation\(/);
 });
 
 test("homepage navigation follows the offer, evidence, receipt, and workflow path", () => {
   for (const marker of [
-    'label: "Agent Risk & Control Review", href: "/catalog/workflows"',
+    "label: PRIMARY_OFFER.name.en, href: PRIMARY_OFFER.route",
     'label: "How it works", href: "/#evidence-questions"',
     'label: "Action receipt", href: "/#agent-action-receipt"',
-    'label: "Bring one workflow"',
+    'label: "Start non-secret fit check"',
     'Proof beats memory.',
   ]) {
     assert.ok(navbar.includes(marker), `Missing homepage navigation marker: ${marker}`);
@@ -36,11 +41,11 @@ test("homepage navigation follows the offer, evidence, receipt, and workflow pat
   );
   assert.match(
     navbar,
-    /href: buyerPublicOfferRequestHref\("en", "bounded-workflow-review"\)/,
+    /href: buyerPublicOfferRequestHref\("en", PRIMARY_OFFER\.id\)/,
   );
   assert.match(
     navbar,
-    /href: buyerPublicOfferRequestHref\("pl", "bounded-workflow-review"\)/,
+    /href: buyerPublicOfferRequestHref\("pl", PRIMARY_OFFER\.id\)/,
   );
 });
 
@@ -66,7 +71,7 @@ test("language switch preserves every approved paired buyer route", () => {
 
 test("request language switch preserves the selected workflow offer query", () => {
   const offerQuery =
-    "offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review";
+    "offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction";
 
   assert.equal(
     localizedHref("/review/request", offerQuery, "pl"),

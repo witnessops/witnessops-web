@@ -32,8 +32,14 @@ on:
       - "apps/witnessops-web/src/app/globals.css"
       - "apps/witnessops-web/src/lib/asset-foundry-visuals.ts"
       - "apps/witnessops-web/src/lib/buyer-services.ts"
+      - "apps/witnessops-web/src/lib/commercial-truth.ts"
       - "apps/witnessops-web/src/lib/public-i18n.ts"
+      - "apps/witnessops-web/src/lib/public-contact.ts"
+      - "apps/witnessops-web/src/lib/public-seo.ts"
       - "apps/witnessops-web/src/lib/review-request-context.ts"
+      - "apps/witnessops-web/src/lib/review-request-confirmation.ts"
+      - "apps/witnessops-web/src/lib/service-landings.ts"
+      - "apps/witnessops-web/src/lib/server/ask-witnessops/commercial-fit-classifier.ts"
       - "apps/witnessops-web/src/lib/skill-verify/**"
       - "apps/witnessops-web/src/lib/skills/**"
       - "apps/witnessops-web/src/components/verify/**"
@@ -43,7 +49,10 @@ on:
       - "apps/witnessops-web/public/visuals/**"
       - "apps/witnessops-web/next.config.js"
       - "content/witnessops/landing/home.yaml"
+      - "content/witnessops/docs/**"
       - "content/witnessops/skills/governed-agent-verifier/**"
+      - "scripts/smoke-buyer-path.ts"
+      - "tests/public-smoke/**"
       - "tests/ui-proof/**"
       - "playwright.config.ts"
       - "package.json"
@@ -87,6 +96,11 @@ jobs:
 
       - name: Build witnessops-web
         run: pnpm --filter witnessops-web build
+
+      - name: Run commercial-truth regression tests
+        run: |
+          pnpm --filter witnessops-web test
+          pnpm smoke:buyer-path:test
 
       - name: Run homepage and navigation UI proof
         id: ui_proof

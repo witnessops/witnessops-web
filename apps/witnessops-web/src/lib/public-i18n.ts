@@ -1,5 +1,6 @@
 import { getSku, getSkusByTrack } from "@witnessops/catalog";
 import { buyerServiceByProductId } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 
 export type PublicLocale = "en" | "pl";
@@ -11,7 +12,7 @@ export const POLISH_NO_SECRETS_NOTE =
 export const POLISH_PUBLIC_NAV = {
   links: [
     { label: "Usługi", href: "/pl/catalog" },
-    { label: "Customer Security Review", href: "/pl/customer-security-review" },
+    { label: PRIMARY_OFFER.name.pl, href: PRIMARY_OFFER.route },
     { label: "Biblioteka", href: "/pl/library" },
     { label: "Dlaczego WitnessOps", href: "/pl/why-witnessops" },
   ],

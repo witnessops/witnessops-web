@@ -132,14 +132,14 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
   ).toEqual([]);
 });
 
-test("English and Polish homepages share one agent-risk and receipt journey", async ({ browser }) => {
+test("English and Polish homepages share one workflow-reconstruction and receipt journey", async ({ browser }) => {
   for (const scenario of [
     {
       path: "/",
       width: 1440,
       height: 1100,
       primary:
-        "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
+        "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
       methodHeading: "Five questions. One bounded workflow.",
       receiptHeading: "Produce something another party can check.",
     },
@@ -148,7 +148,7 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       width: 390,
       height: 844,
       primary:
-        "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
+        "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
       methodHeading: "Five questions. One bounded workflow.",
       receiptHeading: "Produce something another party can check.",
     },
@@ -157,7 +157,7 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       width: 1440,
       height: 1100,
       primary:
-        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
+        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
       methodHeading: "Pięć pytań. Jeden ograniczony workflow.",
       receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
     },
@@ -166,7 +166,7 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
       width: 390,
       height: 844,
       primary:
-        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
+        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
       methodHeading: "Pięć pytań. Jeden ograniczony workflow.",
       receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
     },
@@ -191,10 +191,35 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
     await expect(page.locator('main[data-home-direction="agent-proof-offer"]')).toHaveCount(1);
     await expect(page.locator("#evidence-questions")).toContainText(scenario.methodHeading);
     await expect(page.locator("#agent-action-receipt")).toContainText(scenario.receiptHeading);
-    await expect(page.locator("#agent-risk-control")).toContainText(
-      "Agent Risk & Control Review",
+    const primaryOffer = page.locator("#agent-workflow-reconstruction");
+    await expect(primaryOffer).toContainText(
+      "Agent Workflow Reconstruction",
     );
-    await expect(page.locator('#agent-risk-control a[href="/catalog/workflows"]')).toHaveCount(1);
+    await expect(primaryOffer).toContainText(
+      scenario.path === "/"
+        ? "€2,500 fixed"
+        : "€2 500 — cena stała",
+    );
+    await expect(primaryOffer).toContainText(
+      scenario.path === "/"
+        ? "One named workflow (agentic or automated)"
+        : "Jeden nazwany workflow (agentowy lub zautomatyzowany)",
+    );
+    await expect(primaryOffer).toContainText(
+      scenario.path === "/"
+        ? "Non-secret fit check first"
+        : "Najpierw wstępna ocena bez informacji poufnych",
+    );
+    await expect(primaryOffer).toContainText(
+      scenario.path === "/"
+        ? "Within 10 working days after evidence rules are agreed"
+        : "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych",
+    );
+    await expect(primaryOffer).not.toContainText("Agent Risk & Control Review");
+    await expect(primaryOffer).not.toContainText("From €1,500");
+    await expect(
+      page.locator('#agent-workflow-reconstruction a[href="/catalog/workflows"]'),
+    ).toHaveCount(1);
     await expect(page.locator('main a[href="/verify/skill"]')).toHaveCount(1);
     await expect(page.locator("main")).toContainText(/Check the agent before it acts|Sprawdź agenta przed działaniem/);
     await expect(page.locator("main")).toContainText(/See one bounded action|Zobacz jedno ograniczone działanie/);
@@ -212,7 +237,7 @@ test("English and Polish homepages share one agent-risk and receipt journey", as
     expect(sectionIds).toEqual([
       "evidence-questions",
       "agent-action-receipt",
-      "agent-risk-control",
+      "agent-workflow-reconstruction",
     ]);
 
     const overflow = await page.evaluate(
@@ -287,7 +312,17 @@ test("Ask WitnessOps keeps the paid-review proof path visible and controlled", a
       await dialog.getByText("Agent changed production", { exact: true }).click();
       await expect(dialog.getByText("PUBLIC FIT SIGNAL", { exact: true })).toBeVisible();
       await expect(dialog.getByText("NO EVIDENCE REVIEWED", { exact: true })).toBeVisible();
-      await expect(dialog.getByText("From €1,500 · One agentic or automated workflow", { exact: true })).toBeVisible();
+      await expect(
+        dialog.getByText("€2,500 fixed · One named workflow (agentic or automated)", {
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(
+        dialog.getByText(
+          "Non-secret fit check first · Within 10 working days after evidence rules are agreed",
+          { exact: true },
+        ),
+      ).toBeVisible();
       await expect(dialog).toContainText(
         "Fit signal only. No evidence was reviewed and no security, compliance, correctness, or action-outcome conclusion was made.",
       );
@@ -355,9 +390,9 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
 
   const pageCaptures = [
     { name: "homepage-desktop-1440", path: "/", width: 1440, height: 1100 },
-    { name: "request-en-mobile-390", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review", width: 390, height: 844 },
-    { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review", width: 390, height: 844 },
-    { name: "request-desktop-1440", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review", width: 1440, height: 1100 },
+    { name: "request-en-mobile-390", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction", width: 390, height: 844 },
+    { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction", width: 390, height: 844 },
+    { name: "request-desktop-1440", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction", width: 1440, height: 1100 },
     { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844 },
     { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100 },
   ] as const;

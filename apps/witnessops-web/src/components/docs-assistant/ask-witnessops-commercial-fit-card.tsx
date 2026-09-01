@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import type { AskWitnessOpsUiAnswer } from "./ask-witnessops-response";
 
 interface Props {
@@ -26,7 +27,7 @@ export function AskWitnessOpsCommercialFitCard({
   const usesWorkflowRequestShape = /\bWorkflow [SML]\b/.test(
     answer.template.body,
   );
-  const fitCheckHref = `/review/request?offerId=bounded-workflow-review&source=ask&result=${fit.result}`;
+  const fitCheckHref = `${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}&source=ask&result=${fit.result}`;
   const heading = likely
     ? fit.intent === "offer"
       ? "This is the live paid offer."
@@ -34,8 +35,8 @@ export function AskWitnessOpsCommercialFitCard({
     : "This needs one bounded workflow.";
   const body = likely
     ? fit.intent === "offer"
-      ? "WitnessOps scopes one consequential agentic or automated workflow, then maps authority, evidence gaps, the proposed receipt shape, and the challenge path."
-      : "Your non-secret description matches the stated shape of the Agent Risk & Control Review: one consequential agent or automation workflow touching a sensitive system."
+      ? "WitnessOps reconstructs one consequential agent or automation workflow, separating what was authorised, executed, observed, and still unresolved."
+      : `Your non-secret description matches the stated shape of ${PRIMARY_OFFER.name.en}: one consequential agent or automation workflow touching a sensitive system.`
     : "It may fit once it is narrowed to one named workflow, owner, consequential action, and system boundary.";
 
   const cardClassName = compact
@@ -73,6 +74,9 @@ export function AskWitnessOpsCommercialFitCard({
         <p className="text-xs font-semibold text-text-primary">{offer.name}</p>
         <p className="mt-1 text-[11px] text-text-muted">
           {offer.price_label} · {offer.unit_label}
+        </p>
+        <p className="mt-1 text-[11px] text-text-muted">
+          {offer.fit_check_label} · {offer.delivery_label}
         </p>
         <div className="mt-3 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
           {onRequestScope ? (

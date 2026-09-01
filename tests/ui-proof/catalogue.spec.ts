@@ -12,10 +12,10 @@ const scenarios = [
 ] as const;
 
 const expectedServiceOrder = [
-  "customer-security-review-sprint",
   "bounded-workflow-review",
-  "one-server-security-check",
   "external-exposure-assessment",
+  "customer-security-review-sprint",
+  "one-server-security-check",
   "launch-readiness-check",
   "key-access-custody-review",
   "incident-readiness-review",
@@ -84,19 +84,22 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
       ),
     ).toEqual([
       {
-        price: "from_eur_1600_after_non_secret_fit_check",
-        timing:
-          "approx_three_working_days_after_scope_owners_inputs_and_evidence_access_confirmed",
-      },
-      { price: "from_eur_1500", timing: "confirmed_during_non_secret_fit_check" },
-      {
-        price: "eur_950_standard_after_fit_check",
-        timing: "within_two_business_days_after_authorised_collection_window",
+        price: "eur_2500_fixed",
+        timing: "within_ten_working_days_after_evidence_rules_are_agreed",
       },
       {
         price: "eur_1900_ex_vat_one_authorised_public_facing_system",
         timing:
           "three_working_days_after_payment_in_full_accepted_sow_written_authority_fixed_scope_required_inputs_and_approved_collection_window_confirmed",
+      },
+      {
+        price: "from_eur_1600_after_non_secret_fit_check",
+        timing:
+          "approx_three_working_days_after_scope_owners_inputs_and_evidence_access_confirmed",
+      },
+      {
+        price: "eur_950_standard_after_fit_check",
+        timing: "within_two_business_days_after_authorised_collection_window",
       },
       {
         price: "eur_2500_to_7500",
@@ -110,6 +113,39 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
           "seven_to_ten_working_days_after_consent_scope_and_public_source_protocol_confirmed",
       },
     ]);
+    const primaryOfferCard = serviceCards.first();
+    await expect(primaryOfferCard).toContainText("Agent Workflow Reconstruction");
+    await expect(primaryOfferCard).toContainText(
+      scenario.path.startsWith("/pl")
+        ? "Główny płatny punkt wejścia"
+        : "Primary paid entry point",
+    );
+    await expect(primaryOfferCard).toContainText(
+      scenario.path.startsWith("/pl") ? "€2 500 — cena stała" : "€2,500 fixed",
+    );
+    await expect(primaryOfferCard).toContainText(
+      scenario.path.startsWith("/pl")
+        ? "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych"
+        : "Within 10 working days after evidence rules are agreed",
+    );
+    await expect(primaryOfferCard).not.toContainText("Agent Risk & Control Review");
+    await expect(primaryOfferCard).not.toContainText("From €1,500");
+
+    const publicExposureCard = serviceCards.nth(1);
+    await expect(publicExposureCard).toContainText("Public Exposure Review");
+    await expect(publicExposureCard).toContainText(
+      scenario.path.startsWith("/pl")
+        ? "Dodatkowa oferta katalogowa"
+        : "Secondary catalogue offer",
+    );
+    await expect(publicExposureCard).toContainText(
+      scenario.path.startsWith("/pl") ? "€1 900 netto" : "€1,900 ex VAT",
+    );
+    await expect(publicExposureCard).toContainText(
+      scenario.path.startsWith("/pl")
+        ? "W ciągu 3 dni roboczych"
+        : "Within 3 working days",
+    );
     await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż|Access Removal/);
 
     for (let index = 0; index < 8; index += 1) {
@@ -126,13 +162,24 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
           new URL(primaryHref ?? "", "http://witnessops.test").searchParams.get("productId"),
         ).toBe("OFFSEC-EXTERNAL-EXPOSURE");
       }
+      if (expectedServiceOrder[index] === "bounded-workflow-review") {
+        const request = new URL(primaryHref ?? "", "http://witnessops.test");
+        expect(request.searchParams.get("offerId")).toBe("bounded-workflow-review");
+        expect(request.searchParams.get("offer")).toBe(
+          "Agent Workflow Reconstruction",
+        );
+      }
       if (expectedServiceOrder[index] === "customer-security-review-sprint") {
         expect(
           new URL(primaryHref ?? "", "http://witnessops.test").searchParams.get("offerId"),
         ).toBe("customer-security-review-sprint");
       }
       await expect(primary).toHaveText(
-        expectedServiceOrder[index] === "professional-public-footprint-audit"
+        expectedServiceOrder[index] === "bounded-workflow-review"
+          ? scenario.path.startsWith("/pl")
+            ? "Rozpocznij wstępną ocenę bez informacji poufnych"
+            : "Start a non-secret fit check"
+          : expectedServiceOrder[index] === "professional-public-footprint-audit"
           ? scenario.path.startsWith("/pl")
             ? "Zapytaj o audyt"
             : "Request this audit"
@@ -141,8 +188,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
             : "Start a review",
       );
       // CSR card has Start + Learn more + locale one-pager PDF.
-      // Bounded workflow PL has Start only (no PL detail page).
-      if (index === 0) {
+      if (expectedServiceOrder[index] === "customer-security-review-sprint") {
         await expect(links).toHaveCount(3);
         await expect(links.nth(2)).toHaveAttribute(
           "href",
@@ -150,8 +196,6 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
             ? "/assets/one-pagers/csr-sprint-pl-a4.pdf"
             : "/assets/one-pagers/csr-sprint-en-a4.pdf",
         );
-      } else if (scenario.path === "/pl/catalog" && index === 1) {
-        await expect(links).toHaveCount(1);
       } else if (expectedServiceOrder[index] === "external-exposure-assessment") {
         await expect(links).toHaveCount(3);
         await expect(links.nth(2)).toHaveAttribute(
@@ -160,6 +204,9 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         );
       } else {
         await expect(links).toHaveCount(2);
+        if (expectedServiceOrder[index] === "bounded-workflow-review") {
+          await expect(links.nth(1)).toHaveAttribute("href", "/catalog/workflows");
+        }
       }
     }
 

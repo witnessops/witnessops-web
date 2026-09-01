@@ -28,9 +28,12 @@ const likelyCommercialFit = {
   offer_id: "bounded-workflow-review" as const,
   source: "ask" as const,
   offer: {
-    name: "Agent Risk & Control Review" as const,
-    price_label: "From €1,500" as const,
-    unit_label: "One agentic or automated workflow" as const,
+    name: "Agent Workflow Reconstruction" as const,
+    price_label: "€2,500 fixed" as const,
+    unit_label: "One named workflow (agentic or automated)" as const,
+    fit_check_label: "Non-secret fit check first" as const,
+    delivery_label:
+      "Within 10 working days after evidence rules are agreed" as const,
   },
   matching_specimen_id: "ai-agent-action-proof-run" as const,
 };
@@ -138,11 +141,13 @@ test("commercial fit keeps successful public guidance coherent with the live off
   };
 
   assert.match(askWitnessOpsAnswerText(answer), /likely commercial-fit signal/);
-  assert.match(askWitnessOpsAnswerText(answer), /paid-review path is shown above/);
+  assert.match(askWitnessOpsAnswerText(answer), /Agent Workflow Reconstruction/);
+  assert.match(askWitnessOpsAnswerText(answer), /€2,500 fixed/);
+  assert.match(askWitnessOpsAnswerText(answer), /One named workflow \(agentic or automated\)/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
 });
 
-test("AI-assisted commercial fit preserves the approved public template body", () => {
+test("AI-assisted commercial fit cannot reintroduce superseded authority-template copy", () => {
   const answer = {
     schema: "witnessops.ask.assembled-answer.v1" as const,
     status: "success" as const,
@@ -157,10 +162,14 @@ test("AI-assisted commercial fit preserves the approved public template body", (
     answer_mode: "ai_assisted" as const,
   };
 
-  assert.equal(
+  assert.match(askWitnessOpsAnswerText(answer), /Agent Workflow Reconstruction/);
+  assert.match(askWitnessOpsAnswerText(answer), /Non-secret fit check first/);
+  assert.match(
     askWitnessOpsAnswerText(answer),
-    "A bounded AI-agent action may fit Workflow S.",
+    /Within 10 working days after evidence rules are agreed/,
   );
+  assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
+  assert.equal(askWitnessOpsModeLabel(answer), "Commercial fit · public boundary");
 });
 
 test("ask witnessops same-site source links normalize to site-relative paths", () => {

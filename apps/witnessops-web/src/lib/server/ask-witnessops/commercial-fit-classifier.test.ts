@@ -4,6 +4,14 @@ import test from "node:test";
 import { classifyQuestion } from "./authority-classifier";
 import { classifyCommercialFit } from "./commercial-fit-classifier";
 
+const CURRENT_PRIMARY_OFFER = {
+  name: "Agent Workflow Reconstruction",
+  price_label: "€2,500 fixed",
+  unit_label: "One named workflow (agentic or automated)",
+  fit_check_label: "Non-secret fit check first",
+  delivery_label: "Within 10 working days after evidence rules are agreed",
+} as const;
+
 function classify(question: string) {
   const authorityClassification = classifyQuestion(question);
   const commercialFit = classifyCommercialFit({
@@ -29,6 +37,7 @@ test("recognizes a natural-language agent key-rotation buyer situation", () => {
   assert.equal(result.commercialFit.result, "likely");
   assert.equal(result.commercialFit.intent, "workflow");
   assert.equal(result.commercialFit.offer_id, "bounded-workflow-review");
+  assert.deepEqual(result.commercialFit.offer, CURRENT_PRIMARY_OFFER);
   assert.equal(
     result.commercialFit.matching_specimen_id,
     "ai-agent-action-proof-run",
@@ -36,18 +45,28 @@ test("recognizes a natural-language agent key-rotation buyer situation", () => {
   assert.equal(result.authorityClassification.fallback_used, true);
 });
 
-test("recognizes an offer and pricing question without inventing a new policy", () => {
+test("recognizes the current offer and pricing question without inventing a new policy", () => {
+  const result = classify(
+    "What is included in Agent Workflow Reconstruction and how much does it cost?",
+  );
+
+  assert.equal(result.commercialFit.result, "likely");
+  assert.equal(result.commercialFit.intent, "offer");
+  assert.deepEqual(result.commercialFit.offer, CURRENT_PRIMARY_OFFER);
+  assert.equal(
+    result.authorityClassification.question_class_id,
+    "outside_approved_public_context",
+  );
+});
+
+test("accepts the former offer name only as an input alias and returns the current offer", () => {
   const result = classify(
     "What is included in the Agent Risk & Control Review and how much does it cost?",
   );
 
   assert.equal(result.commercialFit.result, "likely");
   assert.equal(result.commercialFit.intent, "offer");
-  assert.equal(result.commercialFit.offer?.price_label, "From €1,500");
-  assert.equal(
-    result.authorityClassification.question_class_id,
-    "outside_approved_public_context",
-  );
+  assert.deepEqual(result.commercialFit.offer, CURRENT_PRIMARY_OFFER);
 });
 
 test("keeps an existing governed authority classification unchanged", () => {
@@ -87,7 +106,7 @@ test("marks whole-estate requests as needing a one-workflow boundary", () => {
   const result = classify("Audit our entire cloud environment");
 
   assert.equal(result.commercialFit.result, "needs_boundary");
-  assert.equal(result.commercialFit.offer?.price_label, "From €1,500");
+  assert.deepEqual(result.commercialFit.offer, CURRENT_PRIMARY_OFFER);
 });
 
 test("marks multi-workflow agent requests as needing a one-workflow boundary", () => {

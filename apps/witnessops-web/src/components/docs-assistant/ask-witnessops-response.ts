@@ -1,3 +1,5 @@
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+
 export interface AskWitnessOpsPresentedSource {
   readonly source_id: string;
   readonly public_label: string;
@@ -19,12 +21,14 @@ export interface AskWitnessOpsCommercialFit {
     | "unknown"
     | "blocked";
   readonly intent: "workflow" | "offer" | "specimen" | "other";
-  readonly offer_id: "bounded-workflow-review" | null;
+  readonly offer_id: typeof PRIMARY_OFFER.id | null;
   readonly source: "ask";
   readonly offer: {
-    readonly name: "Agent Risk & Control Review";
-    readonly price_label: "From €1,500";
-    readonly unit_label: "One agentic or automated workflow";
+    readonly name: (typeof PRIMARY_OFFER.name)["en"];
+    readonly price_label: (typeof PRIMARY_OFFER.price)["en"];
+    readonly unit_label: (typeof PRIMARY_OFFER.unit)["en"];
+    readonly fit_check_label: (typeof PRIMARY_OFFER.fitCheck)["en"];
+    readonly delivery_label: (typeof PRIMARY_OFFER.timing)["en"];
   } | null;
   readonly matching_specimen_id: "ai-agent-action-proof-run" | null;
 }
@@ -57,17 +61,18 @@ export interface AskWitnessOpsRequestErrorDetails {
 
 export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
   if (
-    (answer.status === "closed" ||
-      answer.answer_mode === "deterministic_fallback") &&
     answer.commercial_fit.offer &&
     (answer.commercial_fit.result === "likely" ||
       answer.commercial_fit.result === "needs_boundary")
   ) {
+    const offer = answer.commercial_fit.offer;
+    const currentOffer = `${offer.name} is the primary paid path — ${offer.price_label}; ${offer.unit_label}; ${offer.fit_check_label}; ${offer.delivery_label}.`;
+
     if (answer.commercial_fit.result === "needs_boundary") {
-      return "This public guide cannot inspect a whole environment. Narrow the non-secret description to one consequential workflow; the bounded paid-review path is shown above.";
+      return `${currentOffer} This public guide cannot inspect a whole environment. Narrow the non-secret description to one consequential workflow; the fit-check path is shown above.`;
     }
 
-    return "This public guide cannot inspect or verify the workflow here. Your non-secret description is enough for a likely commercial-fit signal; the bounded paid-review path is shown above.";
+    return `${currentOffer} This public guide cannot inspect or verify the workflow here. Your non-secret description is enough for a likely commercial-fit signal; the fit-check path is shown above.`;
   }
 
   const body = answer.template.body.trim();
@@ -84,7 +89,6 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
 
 export function askWitnessOpsModeLabel(answer: AskWitnessOpsUiAnswer): string {
   if (
-    answer.status === "closed" &&
     answer.commercial_fit.offer &&
     (answer.commercial_fit.result === "likely" ||
       answer.commercial_fit.result === "needs_boundary")
@@ -145,7 +149,7 @@ export function askWitnessOpsRouteLabel(routeId: string): string {
 
 export function askWitnessOpsRouteHref(route: AskWitnessOpsRoute): string {
   if (route.route_id === "route.fit-check") {
-    return "/review/request?offerId=bounded-workflow-review&source=ask";
+    return `${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}&source=ask`;
   }
 
   return route.href;
@@ -325,18 +329,19 @@ function asCommercialFit(value: unknown): AskWitnessOpsCommercialFit {
     record.offer && typeof record.offer === "object"
       ? (record.offer as Record<string, unknown>)
       : null;
-  const offerId =
-    record.offer_id === "bounded-workflow-review"
-      ? "bounded-workflow-review"
-      : null;
+  const offerId = record.offer_id === PRIMARY_OFFER.id ? PRIMARY_OFFER.id : null;
   const offer =
-    offerRecord?.name === "Agent Risk & Control Review" &&
-    offerRecord.price_label === "From €1,500" &&
-    offerRecord.unit_label === "One agentic or automated workflow"
+    offerRecord?.name === PRIMARY_OFFER.name.en &&
+    offerRecord.price_label === PRIMARY_OFFER.price.en &&
+    offerRecord.unit_label === PRIMARY_OFFER.unit.en &&
+    offerRecord.fit_check_label === PRIMARY_OFFER.fitCheck.en &&
+    offerRecord.delivery_label === PRIMARY_OFFER.timing.en
       ? {
-          name: "Agent Risk & Control Review" as const,
-          price_label: "From €1,500" as const,
-          unit_label: "One agentic or automated workflow" as const,
+          name: PRIMARY_OFFER.name.en,
+          price_label: PRIMARY_OFFER.price.en,
+          unit_label: PRIMARY_OFFER.unit.en,
+          fit_check_label: PRIMARY_OFFER.fitCheck.en,
+          delivery_label: PRIMARY_OFFER.timing.en,
         }
       : null;
 
@@ -348,7 +353,7 @@ function asCommercialFit(value: unknown): AskWitnessOpsCommercialFit {
         : undefined;
   const presentsOffer = result === "likely" || result === "needs_boundary";
   const validOfferState = presentsOffer
-    ? offerId === "bounded-workflow-review" &&
+    ? offerId === PRIMARY_OFFER.id &&
       offer !== null &&
       (result === "likely"
         ? intent === "workflow" || intent === "offer"

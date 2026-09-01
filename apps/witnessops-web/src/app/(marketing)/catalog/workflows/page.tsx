@@ -1,30 +1,48 @@
 import type { Metadata } from "next";
 
 import { BuyerServiceDetail } from "@/components/marketing/buyer-service-detail";
+import { JsonLd } from "@/components/seo/json-ld";
 import { buyerServiceById } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  primaryOfferBreadcrumbJsonLd,
+  primaryOfferServiceJsonLd,
+} from "@/lib/public-seo";
 
-const service = buyerServiceById("bounded-workflow-review");
+const service = buyerServiceById(PRIMARY_OFFER.id);
 
 export const metadata: Metadata = {
   title: service.name.en,
   description: service.situation.en,
-  alternates: { canonical: "/catalog/workflows" },
+  alternates: { canonical: PRIMARY_OFFER.route },
+  openGraph: {
+    title: `${service.name.en} | WitnessOps`,
+    description: service.situation.en,
+    siteName: "WitnessOps",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${service.name.en} | WitnessOps`,
+    description: service.situation.en,
+  },
 };
 
 export default function CatalogWorkflowsPage() {
   return (
-    <BuyerServiceDetail
-      locale="en"
-      service={service}
-      claim="This review determines whether one named agentic or automated workflow has a defensible authority, control, evidence, receipt, and verification path."
-      verificationPath="The sample proof bundle names the proposed receipt schema, referenced evidence, signer, verifier result, and challenge path. A receipt proves only what that named verifier and referenced evidence support."
-      notIncluded={[
-        "Self-serve checkout",
-        "Compliance certification",
-        "Production deployment of the proposed controls",
-        "Open-ended investigation or whole-environment audit",
-        "Customer evidence intake before scope and handling are agreed",
-      ]}
-    />
+    <>
+      <JsonLd id="primary-offer-service" value={primaryOfferServiceJsonLd()} />
+      <JsonLd
+        id="primary-offer-breadcrumbs"
+        value={primaryOfferBreadcrumbJsonLd()}
+      />
+      <BuyerServiceDetail
+        locale="en"
+        service={service}
+        claim="WitnessOps reconstructs one consequential agent or automation workflow and separates what was authorised, executed, observed, and still unresolved."
+        verificationPath="The proposed receipt shape and sample pack name the evidence references, verifier result, and challenge path. The sample pack can be tested through /verify; a receipt proves only what that verifier and its referenced evidence support. It does not certify compliance or agent safety."
+        notIncluded={[...PRIMARY_OFFER.notIncluded.en]}
+      />
+    </>
   );
 }

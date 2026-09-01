@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { ReviewRequestRecord } from "@/components/review-request/review-request-record";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import {
   buildReviewRequestConfirmation,
   type ReviewRequestConfirmation,
@@ -194,7 +195,7 @@ export function DocsAssistantContactHandoff({
       const record = buildReviewRequestConfirmation(payload, {
         locale: "en",
         requestKind:
-          commercialFit?.offer_id === "bounded-workflow-review"
+          commercialFit?.offer_id === PRIMARY_OFFER.id
             ? "agent-risk-control-review"
             : "review-request",
         source: "ask",
@@ -295,8 +296,10 @@ export function DocsAssistantContactHandoff({
             {commercialFit?.offer ? (
               <>
                 {commercialFit.offer.name} · {commercialFit.offer.price_label} ·{" "}
-                one workflow. Confirm a work email. Work starts only after
-                scope, timing, fee, and evidence handling are agreed.
+                {commercialFit.offer.unit_label}. {commercialFit.offer.fit_check_label}.{" "}
+                {commercialFit.offer.delivery_label}. Confirm a work email.
+                Work starts only after scope, evidence rules, and evidence
+                handling are agreed.
               </>
             ) : (
               <>

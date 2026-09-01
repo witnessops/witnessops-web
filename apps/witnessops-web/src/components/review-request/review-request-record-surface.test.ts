@@ -50,7 +50,7 @@ test("request record states the bounded confirmation and its negative facts", ()
   assert.match(record, /Clipboard blocked/);
   assert.match(record, /<textarea/);
   assert.match(record, /value=\{recordText\}/);
-  assert.doesNotMatch(record, /From €1,500/);
+  assert.doesNotMatch(record, /From €1,500|€2,500 fixed/);
   assert.doesNotMatch(record, /team (?:was |is )?notified/i);
 });
 

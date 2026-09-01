@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 
 const page = readFileSync(resolve(import.meta.dirname, "page.tsx"), "utf8");
 const replay = readFileSync(resolve(import.meta.dirname, "witnessed-action-replay.tsx"), "utf8");
@@ -37,12 +38,17 @@ test("evidence categories and receipt limitations remain visible", () => {
   assert.match(replay, /sha256sum \{filename\}/);
 });
 
-test("paid CTA appears only inside the receipt stage", () => {
+test("paid Agent Workflow Reconstruction CTA appears only inside the receipt stage", () => {
   const receiptStart = replay.indexOf('stage === "receipt"');
-  const paidCta = replay.indexOf("Agent Risk &amp; Control Review");
+  const paidCta = replay.indexOf("{PRIMARY_OFFER.name.en}");
   assert.ok(receiptStart >= 0);
   assert.ok(paidCta > receiptStart);
-  assert.match(replay, /\/review\/request\?offerId=bounded-workflow-review/);
+  assert.equal(PRIMARY_OFFER.id, "bounded-workflow-review");
+  assert.equal(PRIMARY_OFFER.name.en, "Agent Workflow Reconstruction");
+  assert.match(
+    replay,
+    /`\$\{PRIMARY_OFFER\.requestRoute\}\?offerId=\$\{PRIMARY_OFFER\.id\}`/,
+  );
   assert.doesNotMatch(replay, /productId=WORKFLOW-S/);
 });
 

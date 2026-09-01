@@ -6,6 +6,7 @@ import { useLayoutEffect, useRef } from "react";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { WitnessOpsMark } from "./witnessops-mark";
 import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import {
   isPolishPath,
   localizedHref,
@@ -15,19 +16,19 @@ import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 
 const BUYER_NAV_LINKS = [
   { label: "Services", href: "/catalog" },
-  { label: "Customer Security Review", href: "/customer-security-review" },
+  { label: PRIMARY_OFFER.name.en, href: PRIMARY_OFFER.route },
   { label: "Skills", href: "/library" },
   { label: "Why WitnessOps", href: "/why-witnessops" },
 ];
 
 const HOME_NAV_LINKS = [
-  { label: "Agent Risk & Control Review", href: "/catalog/workflows" },
+  { label: PRIMARY_OFFER.name.en, href: PRIMARY_OFFER.route },
   { label: "How it works", href: "/#evidence-questions" },
   { label: "Action receipt", href: "/#agent-action-receipt" },
 ];
 
 const HOME_NAV_LINKS_PL = [
-  { label: "Agent Risk & Control Review", href: "/catalog/workflows" },
+  { label: PRIMARY_OFFER.name.pl, href: PRIMARY_OFFER.route },
   { label: "Jak to działa", href: "/pl#evidence-questions" },
   { label: "Zapis działania", href: "/pl#agent-action-receipt" },
 ];
@@ -39,14 +40,14 @@ const BUYER_NAV_CTA = {
 };
 
 const HOME_NAV_CTA = {
-  label: "Bring one workflow",
-  href: buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
+  label: "Start non-secret fit check",
+  href: buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id),
   variant: "primary",
 };
 
 const HOME_NAV_CTA_PL = {
-  label: "Zgłoś jeden workflow",
-  href: buyerPublicOfferRequestHref("pl", "bounded-workflow-review"),
+  label: "Wstępna ocena",
+  href: buyerPublicOfferRequestHref("pl", PRIMARY_OFFER.id),
   variant: "primary",
 };
 
@@ -83,7 +84,7 @@ export function Navbar({ announcement }: NavbarProps) {
     : polish
       ? POLISH_PUBLIC_NAV.cta
       : BUYER_NAV_CTA;
-  const effectiveCta = productJourneyNav
+  const routedCta = productJourneyNav
     ? baseCta
     : {
         ...baseCta,
@@ -93,6 +94,17 @@ export function Navbar({ announcement }: NavbarProps) {
           searchParams,
         ),
       };
+  const effectiveCta =
+    new URL(routedCta.href, "https://witnessops.com").searchParams.get(
+      "offerId",
+    ) === PRIMARY_OFFER.id
+      ? {
+          ...routedCta,
+          label: polish
+            ? "Rozpocznij wstępną ocenę bez informacji poufnych"
+            : "Start a non-secret fit check",
+        }
+      : routedCta;
   const effectiveAnnouncement = announcement;
   const languageLink = polish
     ? { label: "EN", href: localizedHref(currentPath, currentSearch, "en") }

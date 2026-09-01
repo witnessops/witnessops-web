@@ -655,7 +655,7 @@ test("Public Exposure Review stays on the locale-specific manual order path", as
   }
 });
 
-test("Agent Risk & Control Review uses the Polish manual commercial path and operator notification", async () => {
+test("Agent Workflow Reconstruction uses the Polish manual commercial path and operator notification", async () => {
   const baseDir = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-bounded-workflow-review-"),
   );
@@ -666,12 +666,12 @@ test("Agent Risk & Control Review uses the Polish manual commercial path and ope
   });
   assert.match(
     issued.verificationMailRaw,
-    /Potwierdź: Zgłoszenie Agent Risk & Control Review\./,
+    /Potwierdź: Zgłoszenie Agent Workflow Reconstruction\./,
   );
   await assertCurrentCommercialIntentVerification(issued, {
     postVerifyPath: "/pl/review/request/confirmed",
     operatorSubject:
-      /^Subject: Verified Agent Risk & Control Review request: WitnessOps Labs$/m,
+      /^Subject: Verified Agent Workflow Reconstruction request: WitnessOps Labs$/m,
     locale: "pl",
   });
 });

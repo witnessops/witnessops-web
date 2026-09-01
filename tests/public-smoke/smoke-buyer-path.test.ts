@@ -145,6 +145,33 @@ test("English Skill Library smoke follows the exact-byte library contract", () =
   assert.ok(!route.requiredMarkers.includes("Buyer path"));
 });
 
+test("catalogue smoke preserves the primary and secondary offer hierarchy", () => {
+  for (const path of ["/catalog", "/pricing"] as const) {
+    const route = routeContract(path);
+    for (const marker of [
+      "Primary paid entry point",
+      "Agent Workflow Reconstruction",
+      "€2,500 fixed",
+      "Within 10 working days after evidence rules are agreed",
+      "Secondary catalogue offer",
+      "Public Exposure Review",
+      "€1,900 ex VAT",
+    ]) {
+      assert.ok(
+        route.requiredMarkers.some((candidate) => candidate.includes(marker)),
+        `${path} must include ${marker}`,
+      );
+    }
+  }
+
+  const catalogue = routeContract("/catalog");
+  assert.ok(
+    catalogue.requiredMarkers.some((marker) =>
+      marker.includes("Within 3 working days after payment in full"),
+    ),
+  );
+});
+
 test("request smoke markers use the current fit and start-work boundaries", () => {
   const generic = routeContract("/review/request");
   assert.ok(generic.requiredMarkers.includes("What the fit check establishes"));
@@ -171,29 +198,79 @@ test("primary offer smoke covers selected English and Polish intake", () => {
     "/review/request?offerId=bounded-workflow-review",
   );
   assert.ok(
+    english.requiredMarkers.includes("Start your Agent Workflow Reconstruction"),
+  );
+  assert.ok(english.requiredMarkers.includes("€2,500 fixed"));
+  assert.ok(
     english.requiredMarkers.includes(
-      "Start your Agent Risk &amp; Control Review",
+      "one named workflow (agentic or automated)",
     ),
   );
-  assert.ok(english.requiredMarkers.includes("From €1,500"));
+  assert.ok(english.requiredMarkers.includes("Non-secret fit check first"));
+  assert.ok(
+    english.requiredMarkers.includes(
+      "Within 10 working days after evidence rules are agreed",
+    ),
+  );
   assert.ok(
     english.requiredMarkers.includes(
       'name="intent" value="bounded-workflow-review"',
     ),
   );
+  assert.ok(
+    english.prohibitedMarkers?.includes("Agent Risk &amp; Control Review"),
+  );
+  assert.ok(english.prohibitedMarkers?.includes("From €1,500"));
 
   const polish = routeContract(
     "/pl/review/request?offerId=bounded-workflow-review",
   );
   assert.ok(
-    polish.requiredMarkers.includes("Zgłoś: Agent Risk &amp; Control Review"),
+    polish.requiredMarkers.includes("Zgłoś: Agent Workflow Reconstruction"),
   );
-  assert.ok(polish.requiredMarkers.includes("Od 6 500 zł (ok. €1 500)"));
+  assert.ok(polish.requiredMarkers.includes("€2 500 — cena stała"));
+  assert.ok(
+    polish.requiredMarkers.includes(
+      "Jeden nazwany workflow (agentowy lub zautomatyzowany)",
+    ),
+  );
   assert.ok(
     polish.requiredMarkers.includes(
       'name="intent" value="bounded-workflow-review"',
     ),
   );
+  assert.ok(
+    polish.prohibitedMarkers?.includes("Agent Risk &amp; Control Review"),
+  );
+  assert.ok(polish.prohibitedMarkers?.includes("Od 6 500 zł"));
+});
+
+test("active primary surface smoke rejects former offer positioning", () => {
+  for (const path of [
+    "/",
+    "/catalog",
+    "/catalog/workflows",
+    "/pricing",
+    "/review/request?offerId=bounded-workflow-review",
+    "/pl",
+    "/pl/catalog",
+    "/pl/review/request?offerId=bounded-workflow-review",
+    "/review/sample-cases/ai-agent-action-proof-run",
+  ]) {
+    const route = routeContract(path);
+    assert.ok(
+      route.prohibitedMarkers?.some((marker) =>
+        marker.includes("Agent Risk &"),
+      ),
+      `${path} must reject the former primary name`,
+    );
+    assert.ok(
+      route.prohibitedMarkers?.some((marker) =>
+        marker.includes("€1,500") || marker.includes("€1 500") || marker.includes("6 500"),
+      ),
+      `${path} must reject the former primary price`,
+    );
+  }
 });
 
 test("stateless confirmation smoke checks loading shells without claiming verification", () => {

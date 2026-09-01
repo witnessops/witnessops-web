@@ -1,16 +1,22 @@
 # LinkedIn Premium Company Page experiment
 
 - Experiment: `LINKEDIN-PREMIUM-EXP-001`
-- Status: `ACTIVE`
+- Status: `SUPERSEDED — MANUAL FOLLOW-UP REQUIRED`
 - Start: `2026-08-19`
 - Decision gate: `2026-09-16`
 - Renewal: `2026-09-18`
 - Timezone: `Europe/Warsaw`
 - Owner: founder
 
+> **Commercial target superseded (2026-09-01).** Keep the body below as the immutable
+> 2026-08-19 experiment record; it is not current Company Page instruction. No LinkedIn field was
+> changed by this repository patch. Any manual replacement now requires explicit founder approval
+> and must use Agent Workflow Reconstruction as the primary paid entry point while retaining Public
+> Exposure Review as secondary catalogue work.
+
 ## Commercial authority and boundary
 
-The authoritative offer is the Public Exposure Review under SKU `OFFSEC-EXTERNAL-EXPOSURE`: one authorised public-facing system, fixed scope, €1,900 excluding VAT, unauthenticated outside-in, human-led and manually reviewed. Payment is due in full before the delivery clock starts. The three-working-day delivery clock begins only after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed. A written fee waiver may substitute for payment only for an invitation-only design-partner engagement; it is not a public discount.
+At the experiment start, the authoritative offer was the Public Exposure Review under SKU `OFFSEC-EXTERNAL-EXPOSURE`: one authorised public-facing system, fixed scope, €1,900 excluding VAT, unauthenticated outside-in, human-led and manually reviewed. Payment is due in full before the delivery clock starts. The three-working-day delivery clock begins only after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed. A written fee waiver may substitute for payment only for an invitation-only design-partner engagement; it is not a public discount.
 
 It is not an open-ended penetration test, continuous attack-surface management, automated vulnerability scanning, compliance certification, attestation, completeness claim, or security guarantee. This experiment must not change those semantics.
 

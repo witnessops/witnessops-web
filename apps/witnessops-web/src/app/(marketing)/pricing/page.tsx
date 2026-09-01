@@ -3,15 +3,15 @@ import Link from "next/link";
 
 import { CtaButton } from "@/components/shared/cta-button";
 import {
-  BUYER_SERVICES,
   buyerRequestHref,
   buyerServiceRequestHref,
+  buyerServicesByCommercialPriority,
 } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 
 export const metadata: Metadata = {
   title: "Agent and Security Review Pricing",
-  description:
-    "Published prices and commercial boundaries for bounded WitnessOps reviews, led by the Agent Risk & Control Review from €1,500.",
+  description: `Published prices and commercial boundaries for bounded WitnessOps reviews, led by ${PRIMARY_OFFER.name.en} at ${PRIMARY_OFFER.price.en}.`,
   alternates: { canonical: "/pricing" },
   openGraph: {
     title: "Agent and Security Review Pricing | WitnessOps",
@@ -35,12 +35,8 @@ const boundaries = [
   "A report, receipt, or verifier does not prove that a system is secure, complete, compliant, or free of vulnerabilities.",
 ];
 
-const pricingServices = BUYER_SERVICES.filter(
+const pricingServices = buyerServicesByCommercialPriority().filter(
   (service) => service.pricingVisible !== false,
-).sort(
-  (left, right) =>
-    Number(right.homepageFeatured === true) -
-    Number(left.homepageFeatured === true),
 );
 
 export default function PricingPage() {
@@ -72,7 +68,7 @@ export default function PricingPage() {
           <div className="mt-7 grid gap-5 md:grid-cols-2">
             {pricingServices.map((service) => {
               const detailHref = service.detailHref.en ?? "/catalog";
-              const primary = service.homepageFeatured === true;
+              const primary = service.commercialRole === "primary";
               const publicExposure =
                 service.id === "external-exposure-assessment";
               return (
@@ -84,6 +80,10 @@ export default function PricingPage() {
                   {primary ? (
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
                       Primary paid entry point
+                    </p>
+                  ) : service.commercialRole === "secondary" ? (
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
+                      Secondary catalogue offer
                     </p>
                   ) : null}
                   <h3 className={`${primary ? "mt-3" : ""} text-xl font-semibold text-text-primary`}>

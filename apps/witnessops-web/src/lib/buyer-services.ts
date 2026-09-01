@@ -1,3 +1,5 @@
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+
 export type BuyerLocale = "en" | "pl";
 
 type LocalizedText = Record<BuyerLocale, string>;
@@ -14,6 +16,7 @@ export type BuyerService = {
     | "professional-public-footprint-audit";
   productId?: string;
   homepageFeatured?: boolean;
+  commercialRole?: "primary" | "secondary";
   pricingVisible?: boolean;
   availability?: {
     status: "available_by_request";
@@ -109,42 +112,30 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
   },
 
   {
-    id: "bounded-workflow-review",
+    id: PRIMARY_OFFER.id,
     homepageFeatured: true,
-    commercialContract: {
-      price: "from_eur_1500",
-      timing: "confirmed_during_non_secret_fit_check",
-    },
-    name: {
-      en: "Agent Risk & Control Review",
-      pl: "Agent Risk & Control Review",
-    },
+    commercialRole: "primary",
+    commercialContract: PRIMARY_OFFER.commercialContract,
+    name: PRIMARY_OFFER.name,
     cardSituation: {
-      en: "One agentic or automated workflow touches systems that matter, but its authority and evidence path are unclear.",
-      pl: "Jeden agentowy lub zautomatyzowany workflow działa w istotnych systemach, ale jego upoważnienia i ścieżka dowodowa są niejasne.",
+      en: "One consequential agent or automation workflow needs a reconstructable record.",
+      pl: "Jeden istotny workflow agenta lub automatyzacji wymaga odtwarzalnego zapisu.",
     },
-    situation: {
-      en: "One agentic or automated workflow needs a defensible authority, control, evidence, receipt, and verification path before or after it touches a sensitive system.",
-      pl: "Jeden agentowy lub zautomatyzowany workflow potrzebuje możliwej do obrony ścieżki upoważnień, kontroli, materiałów, zapisu i weryfikacji przed działaniem w systemie wrażliwym lub po nim.",
-    },
-    result: {
-      en: "A workflow map, permission model, approval and evidence gap analysis, receipt schema, sample proof bundle, verifier path, and control recommendations.",
-      pl: "Mapa workflow, model uprawnień, analiza luk w zatwierdzeniach i materiałach, schemat zapisu, przykładowy pakiet dowodowy, ścieżka weryfikacji i zalecenia dotyczące kontroli.",
-    },
-    price: {
-      en: "From €1,500",
-      pl: "Od 6 500 zł (ok. €1 500)",
-    },
-    timing: {
-      en: "Confirmed during the non-secret fit check",
-      pl: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
-    },
+    situation: PRIMARY_OFFER.situation,
+    result: PRIMARY_OFFER.result,
+    price: PRIMARY_OFFER.price,
+    timing: PRIMARY_OFFER.timing,
     boundary: {
       en: "One named workflow only. A receipt proves only what its named verifier and referenced evidence support; it does not certify that the agent was correct, safe, compliant, or complete.",
       pl: "Tylko jeden nazwany workflow. Zapis dowodzi wyłącznie tego, co wspierają wskazany weryfikator i przywołane materiały; nie certyfikuje, że agent działał poprawnie, bezpiecznie, zgodnie z wymaganiami lub kompletnie.",
     },
+    requestCta: {
+      en: "Start a non-secret fit check",
+      pl: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    },
     detailHref: {
-      en: "/catalog/workflows",
+      en: PRIMARY_OFFER.route,
+      pl: PRIMARY_OFFER.route,
     },
   },
   {
@@ -191,6 +182,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     id: "external-exposure-assessment",
     productId: "OFFSEC-EXTERNAL-EXPOSURE",
     homepageFeatured: false,
+    commercialRole: "secondary",
     commercialContract: {
       price: "eur_1900_ex_vat_one_authorised_public_facing_system",
       timing:
@@ -440,6 +432,24 @@ export function buyerServiceRequestHref(
 
 export function buyerCatalogHref(locale: BuyerLocale): string {
   return locale === "pl" ? "/pl/catalog" : "/catalog";
+}
+
+export function buyerServicesByCommercialPriority(): readonly BuyerService[] {
+  const rank: Record<NonNullable<BuyerService["commercialRole"]>, number> = {
+    primary: 0,
+    secondary: 1,
+  };
+
+  return BUYER_SERVICES.map((service, index) => ({ service, index })).sort(
+    (left, right) =>
+      (left.service.commercialRole
+        ? rank[left.service.commercialRole]
+        : 2) -
+        (right.service.commercialRole
+          ? rank[right.service.commercialRole]
+          : 2) ||
+      left.index - right.index,
+  ).map(({ service }) => service);
 }
 
 export function buyerServiceById(id: BuyerService["id"]): BuyerService {

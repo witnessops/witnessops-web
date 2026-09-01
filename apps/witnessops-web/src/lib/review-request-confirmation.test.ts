@@ -152,7 +152,7 @@ test("copy text preserves boundaries without leaking verification inputs", () =>
   assert.match(text, /not a proof receipt, verifier result, identity proof/);
   assert.doesNotMatch(text, /buyer@example\.com/);
   assert.doesNotMatch(text, /iss_private_issuance|thread_private/);
-  assert.doesNotMatch(text, /From €1,500|ABCD-EFGH-JKLM/);
+  assert.doesNotMatch(text, /From €1,500|€2,500 fixed|ABCD-EFGH-JKLM/);
 });
 
 test("maps public request intents to fixed record labels", () => {

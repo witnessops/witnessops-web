@@ -2,10 +2,10 @@ import Link from "next/link";
 
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import {
-  BUYER_SERVICES,
   ONE_PAGER_LINK_PROPS,
   buyerRequestHref,
   buyerServiceRequestHref,
+  buyerServicesByCommercialPriority,
   type BuyerLocale,
 } from "@/lib/buyer-services";
 
@@ -21,6 +21,10 @@ const copy = {
     primaryCta: "Start a review",
     secondaryCta: "Learn more",
     onePagerCta: "One-pager (PDF)",
+    commercialRole: {
+      primary: "Primary paid entry point",
+      secondary: "Secondary catalogue offer",
+    },
     principlesTitle: "Shared service principles",
     principles: [
       [
@@ -70,6 +74,10 @@ const copy = {
     primaryCta: "Rozpocznij przegląd",
     secondaryCta: "Więcej informacji",
     onePagerCta: "One-pager (PDF)",
+    commercialRole: {
+      primary: "Główny płatny punkt wejścia",
+      secondary: "Dodatkowa oferta katalogowa",
+    },
     principlesTitle: "Wspólne zasady usług",
     principles: [
       [
@@ -113,6 +121,7 @@ const copy = {
 export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
   const text = copy[locale];
   const requestHref = buyerRequestHref(locale);
+  const services = buyerServicesByCommercialPriority();
 
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
@@ -131,7 +140,7 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
           aria-label={text.eyebrow}
           className="grid gap-px border border-surface-border bg-surface-border md:grid-cols-2"
         >
-          {BUYER_SERVICES.map((service) => {
+          {services.map((service) => {
             const detailHref = service.detailHref[locale];
             const onePager = service.onePagerHref?.[locale];
             const serviceRequestHref = buyerServiceRequestHref(locale, service);
@@ -147,6 +156,11 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                 data-timing-contract={service.commercialContract.timing}
                 className="flex h-full flex-col bg-surface-card p-7 md:p-9"
               >
+                {service.commercialRole ? (
+                  <p className="mb-3 inline-flex self-start text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
+                    {text.commercialRole[service.commercialRole]}
+                  </p>
+                ) : null}
                 {service.availability ? (
                   <p
                     data-service-availability={service.availability.status}

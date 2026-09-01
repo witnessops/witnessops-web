@@ -1,5 +1,10 @@
 # Offer naming — sampled market comparison
 
+> **Superseded commercial instruction (2026-09-01).** This remains a dated market-research
+> record. Its Agent Risk & Control Review homepage recommendation is no longer current.
+> [`16-agent-workflow-reconstruction-offer.md`](./16-agent-workflow-reconstruction-offer.md)
+> now governs the primary offer. Public Exposure Review remains separate secondary catalogue work.
+
 **Research snapshot:** 2026-08-13 03:30 UTC. Public English and Polish pages sampled; no paid keyword-volume or backlink dataset was available.
 
 | Candidate | Sampled market evidence | Interpretation | Decision |

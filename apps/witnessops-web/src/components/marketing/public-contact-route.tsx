@@ -1,7 +1,10 @@
 import Link from "next/link";
 
+import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
+  PUBLIC_CONTACT_GENERAL_HREF,
   PUBLIC_CONTACT_PRIMARY_HREF,
   PUBLIC_CONTACT_SUBJECTS,
   PUBLIC_NO_SECRETS_NOTE,
@@ -31,7 +34,36 @@ export function PublicContactRoute({
   const polish = locale === "pl";
   const primaryHref =
     primaryHrefOverride ??
-    (polish ? "/pl/review/request" : PUBLIC_CONTACT_PRIMARY_HREF);
+    (productName
+      ? polish
+        ? `/pl${PUBLIC_CONTACT_GENERAL_HREF}`
+        : PUBLIC_CONTACT_GENERAL_HREF
+      : polish
+        ? buyerPublicOfferRequestHref("pl", PRIMARY_OFFER.id)
+        : PUBLIC_CONTACT_PRIMARY_HREF);
+  const primaryOfferSelected =
+    new URL(primaryHref, "https://witnessops.com").searchParams.get(
+      "offerId",
+    ) === PRIMARY_OFFER.id;
+  const routeHeading = primaryOfferSelected
+    ? PRIMARY_OFFER.name[locale]
+    : polish
+      ? "Rozpocznij wybrany przegląd"
+      : "Start the selected review";
+  const routeLabel = primaryOfferSelected
+    ? polish
+      ? "Główny płatny punkt wejścia"
+      : "Primary paid entry point"
+    : polish
+      ? "Ścieżka zgłoszenia"
+      : "Request path";
+  const routeCta = primaryOfferSelected
+    ? polish
+      ? "Rozpocznij wstępną ocenę bez informacji poufnych"
+      : "Start a non-secret fit check"
+    : polish
+      ? "Rozpocznij przegląd"
+      : "Start a review";
   const mailtoSubject = productName
     ? productContactSubject(productName)
     : subject === "fit-check"
@@ -52,17 +84,17 @@ export function PublicContactRoute({
           className="text-sm font-semibold uppercase tracking-[0.14em] text-text-primary"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {polish ? "Rozpocznij przegląd" : "Start a review"}
+          {routeHeading}
         </p>
         <p className="mt-2 text-xs leading-5 text-text-muted">
-          {polish ? "Główna ścieżka" : "Primary route"}
+          {routeLabel}
         </p>
         <Link
           href={primaryHref}
           className="mt-1 inline-flex min-h-11 w-full items-center justify-center border border-brand-accent bg-brand-accent px-4 text-sm font-semibold uppercase tracking-[0.12em] text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.16)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_30px_rgba(242,122,61,0.28)] active:translate-y-0 active:scale-[0.985] active:shadow-[0_5px_16px_rgba(242,122,61,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {polish ? "Rozpocznij przegląd" : "Start a review"}
+          {routeCta}
         </Link>
         <p className="mt-3 text-xs leading-5 text-text-secondary">
           {polish ? "Kontakt zapasowy:" : "Fallback contact:"}{" "}
@@ -89,10 +121,10 @@ export function PublicContactRoute({
         className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent"
         style={{ fontFamily: "var(--font-mono)" }}
       >
-        {polish ? "Rozpocznij przegląd" : "Start a review"}
+        {routeHeading}
       </p>
       <p className="mt-2 text-sm leading-6 text-text-secondary">
-        {polish ? "Główna ścieżka:" : "Primary route:"}{" "}
+        {routeLabel}:{" "}
         <Link
           href={primaryHref}
           className="break-all text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"

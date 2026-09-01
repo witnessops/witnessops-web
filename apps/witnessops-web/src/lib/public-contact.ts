@@ -1,5 +1,12 @@
+import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+
 export const PUBLIC_CONTACT_EMAIL = "engage@mail.witnessops.com";
-export const PUBLIC_CONTACT_PRIMARY_HREF = "/review/request";
+export const PUBLIC_CONTACT_GENERAL_HREF = "/review/request";
+export const PUBLIC_CONTACT_PRIMARY_HREF = buyerPublicOfferRequestHref(
+  "en",
+  PRIMARY_OFFER.id,
+);
 export const PUBLIC_NO_SECRETS_NOTE =
   "Do not send passwords, private keys, API keys, recovery codes, session tokens or other secrets.";
 

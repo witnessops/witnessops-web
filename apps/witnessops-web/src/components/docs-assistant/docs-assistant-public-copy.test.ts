@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+
 function source(filename: string): string {
   return readFileSync(resolve(__dirname, filename), "utf-8");
 }
@@ -46,7 +48,6 @@ test("Ask WitnessOps offers buyer-oriented workflow, scope, and price prompts", 
   const page = source("docs-assistant-page.tsx");
   const prompts = [
     "An AI agent rotates compromised production keys. How can we prove authorization and revocation?",
-    "What is included in the Agent Risk & Control Review?",
     "How much does one workflow review cost?",
     "How should one consequential agent workflow be bounded?",
     "Can I send logs or screenshots?",
@@ -58,13 +59,17 @@ test("Ask WitnessOps offers buyer-oriented workflow, scope, and price prompts", 
       `Missing quick prompt: ${prompt}`,
     );
   }
+  assert.match(
+    page,
+    /`What is included in \$\{PRIMARY_OFFER\.name\.en\}\?`/,
+  );
 
   const widget = source("docs-assistant-widget.tsx");
   assert.match(widget, /Agent changed production/);
   assert.match(widget, /Approval or authority gap/);
   assert.match(widget, /Review scope and price/);
   assert.match(widget, /how much does it cost\?/);
-  assert.match(widget, /offerId=bounded-workflow-review&source=ask/);
+  assert.match(widget, /\$\{PRIMARY_OFFER\.name\.en\}/);
 });
 
 test("Ask WitnessOps presents the paid commercial-fit contract", () => {
@@ -74,10 +79,26 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   assert.match(card, /Commercial fit/);
   assert.match(card, /Request scope for this workflow/);
   assert.match(card, /offer\.price_label/);
+  assert.match(card, /offer\.unit_label/);
+  assert.match(card, /offer\.fit_check_label/);
+  assert.match(card, /offer\.delivery_label/);
   assert.match(card, /Fit signal only/);
   assert.match(card, /Public Workflow labels are request-shape references/);
-  assert.match(response, /From €1,500/);
-  assert.match(response, /offerId=bounded-workflow-review&source=ask/);
+  assert.match(response, /import \{ PRIMARY_OFFER \}/);
+  assert.match(response, /offerId=\$\{PRIMARY_OFFER\.id\}&source=ask/);
+  assert.doesNotMatch(response, /Agent Risk & Control Review|From €1,500/);
+
+  assert.equal(PRIMARY_OFFER.name.en, "Agent Workflow Reconstruction");
+  assert.equal(PRIMARY_OFFER.price.en, "€2,500 fixed");
+  assert.equal(
+    PRIMARY_OFFER.unit.en,
+    "One named workflow (agentic or automated)",
+  );
+  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit check first");
+  assert.equal(
+    PRIMARY_OFFER.timing.en,
+    "Within 10 working days after evidence rules are agreed",
+  );
 });
 
 test("Ask WitnessOps loading copy stays provider-neutral", () => {

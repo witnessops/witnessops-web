@@ -10,6 +10,7 @@ import {
   buyerServiceById,
   type BuyerService,
 } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import {
   readReviewRequestConfirmation,
   type ReviewRequestConfirmation,
@@ -45,6 +46,11 @@ const copy = {
       "We confirm scope, authority, evidence handling, timing, and fee by email.",
       "Work begins only after those terms are explicitly agreed.",
     ],
+    primaryOfferNextSteps: [
+      `We assess whether ${PRIMARY_OFFER.unit.en.toLowerCase()} fits the reconstruction boundary without asking for secrets.`,
+      `If it fits, ${PRIMARY_OFFER.price.en}; we agree scope, evidence rules, exclusions, and evidence handling before source material is accepted.`,
+      `${PRIMARY_OFFER.timing.en}.`,
+    ],
     publicExposureNextSteps: [
       "We assess whether the requested public system fits one authorized, fixed-scope review.",
       "We confirm payment, the SOW, written authority, required inputs, evidence handling, and the collection window by email.",
@@ -75,6 +81,11 @@ const copy = {
       "Sprawdzimy, czy to zgłoszenie pasuje do jednego ograniczonego przeglądu.",
       "Potwierdzimy e-mailem zakres, upoważnienie, obsługę materiałów, termin i cenę.",
       "Praca rozpocznie się dopiero po jednoznacznym uzgodnieniu tych warunków.",
+    ],
+    primaryOfferNextSteps: [
+      `Sprawdzimy bez sekretów, czy ${PRIMARY_OFFER.unit.pl.toLowerCase()} pasuje do zakresu rekonstrukcji.`,
+      `Jeśli pasuje, ${PRIMARY_OFFER.price.pl.toLowerCase()}; przed przyjęciem materiałów uzgodnimy zakres, zasady dowodowe, wyłączenia i sposób obsługi.`,
+      `${PRIMARY_OFFER.timing.pl}.`,
     ],
     publicExposureNextSteps: [
       "Sprawdzimy, czy zgłoszony publiczny system pasuje do jednego autoryzowanego przeglądu o stałym zakresie.",
@@ -157,7 +168,7 @@ export function ReviewRequestConfirmed({
 
   const publicExposureReview =
     confirmation.requestKind === "public-exposure-review";
-  const agentRiskControlReview =
+  const primaryOfferRequest =
     confirmation.requestKind === "agent-risk-control-review";
   const aiAgentActionProofRun =
     confirmation.requestKind === "ai-agent-action-proof-run";
@@ -165,13 +176,15 @@ export function ReviewRequestConfirmed({
     confirmation.requestKind === "access-change-proof-run";
   const nextSteps = publicExposureReview
     ? text.publicExposureNextSteps
-    : text.nextSteps;
+    : primaryOfferRequest
+      ? text.primaryOfferNextSteps
+      : text.nextSteps;
   const proofResource = publicExposureReview
     ? {
         href: "/review/sample-cases/external-exposure-assessment",
         label: text.publicExposureSpecimen,
       }
-    : agentRiskControlReview || aiAgentActionProofRun
+    : primaryOfferRequest || aiAgentActionProofRun
       ? {
           href: "/review/sample-cases/ai-agent-action-proof-run",
           label: text.specimen,

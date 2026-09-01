@@ -5,13 +5,17 @@ import { useMemo } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { WitnessOpsMark } from "@/components/shared/witnessops-mark";
+import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
 import { isPolishPath } from "@/lib/public-i18n";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 
 /** Apex English how-to path (not the legacy docs.witnessops.com host). */
 const DOCS_PUBLIC_HREF = "/docs";
 /** Polish buyer docs island on the same apex origin. */
 const DOCS_PL_HREF = "/pl/docs";
+const PRIMARY_REQUEST_EN = buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id);
+const PRIMARY_REQUEST_PL = buyerPublicOfferRequestHref("pl", PRIMARY_OFFER.id);
 
 const LIBRARY_PRIMARY_HREFS = new Set([
   "/library",
@@ -22,6 +26,8 @@ const LIBRARY_PRIMARY_HREFS = new Set([
   "/review",
   "/review/request",
   "/pl/review/request",
+  PRIMARY_REQUEST_EN,
+  PRIMARY_REQUEST_PL,
   "/review/sample-cases",
   "/review/sample-report",
   "/verify",
@@ -103,7 +109,7 @@ const LIBRARY_FOOTER_EN: FooterContent = {
     { label: "Skills", href: "/library" },
     { label: "Docs", href: DOCS_PUBLIC_HREF },
     { label: "Review", href: "/review" },
-    { label: "Start a review", href: "/review/request" },
+    { label: "Start a non-secret fit check", href: PRIMARY_REQUEST_EN },
     { label: "Sample cases", href: "/review/sample-cases" },
     { label: "Sample report", href: "/review/sample-report" },
     { label: "Verify", href: "/verify" },
@@ -126,7 +132,10 @@ const LIBRARY_FOOTER_PL: FooterContent = {
     { label: "Biblioteka", href: "/pl/library" },
     { label: "Dokumentacja", href: DOCS_PL_HREF },
     { label: "Przegląd", href: "/review" },
-    { label: "Rozpocznij przegląd", href: "/pl/review/request" },
+    {
+      label: "Rozpocznij wstępną ocenę bez informacji poufnych",
+      href: PRIMARY_REQUEST_PL,
+    },
     { label: "Przykładowe przypadki", href: "/review/sample-cases" },
     { label: "Przykładowy raport", href: "/review/sample-report" },
     { label: "Weryfikacja", href: "/pl/verify" },
@@ -148,14 +157,17 @@ const POLISH_FOOTER: FooterContent = {
   links: [
     { label: "Usługi", href: "/pl/catalog" },
     {
-      label: "Agent Risk & Control Review",
-      href: "/catalog/workflows",
+      label: PRIMARY_OFFER.name.pl,
+      href: PRIMARY_OFFER.route,
     },
     { label: "Dlaczego WitnessOps", href: "/pl/why-witnessops" },
     { label: "Weryfikacja", href: "/pl/verify" },
     { label: "Dokumentacja", href: DOCS_PL_HREF },
     { label: "Biblioteka", href: "/pl/library" },
-    { label: "Rozpocznij przegląd", href: "/pl/review/request" },
+    {
+      label: "Rozpocznij wstępną ocenę bez informacji poufnych",
+      href: PRIMARY_REQUEST_PL,
+    },
   ],
   legal_links: [
     { label: "Prywatność", href: "/privacy" },
@@ -208,11 +220,15 @@ export function Footer({
     return {
       brand_line,
       subline,
-      links: links.map((link) =>
-        link.href === "/docs" || link.href.startsWith("/docs/")
-          ? { ...link, href: DOCS_PUBLIC_HREF }
-          : link,
-      ),
+      links: links.map((link) => {
+        if (link.href === PRIMARY_OFFER.route) {
+          return { ...link, label: PRIMARY_OFFER.name.en };
+        }
+        if (link.href === "/docs" || link.href.startsWith("/docs/")) {
+          return { ...link, href: DOCS_PUBLIC_HREF };
+        }
+        return link;
+      }),
       legal_links,
       build_label: isPublicBuildLabel(build_label) ? build_label : "",
       copyright,
