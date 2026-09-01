@@ -1,3 +1,8 @@
+const PRIMARY_OFFER_SAMPLE_PACK = {
+  en: "Sample pack with supported receipt JSON to extract and test through /verify",
+  pl: "Przykładowy pakiet z obsługiwanym zapisem JSON do wyodrębnienia i sprawdzenia przez /verify",
+} as const;
+
 export const PRIMARY_OFFER = {
   id: "bounded-workflow-review",
   route: "/catalog/workflows",
@@ -33,9 +38,10 @@ export const PRIMARY_OFFER = {
     pl: "Jeden istotny workflow agenta lub automatyzacji wymaga odtwarzalnego zapisu tego, co zatwierdzono, wykonano, zaobserwowano i co nadal pozostaje nierozstrzygnięte.",
   },
   result: {
-    en: "A scoped reconstruction that separates authorised, executed, observed, and unresolved facts, with a workflow and permission map, evidence gaps, a proposed receipt shape, a testable sample pack, and a readout.",
-    pl: "Ograniczona rekonstrukcja oddzielająca fakty zatwierdzone, wykonane, zaobserwowane i nierozstrzygnięte, z mapą workflow i uprawnień, lukami dowodowymi, proponowanym kształtem zapisu, testowalnym pakietem przykładowym i omówieniem.",
+    en: "A scoped reconstruction that separates authorised, executed, observed, and unresolved facts, with a workflow and permission map, evidence gaps, a proposed receipt shape, a sample pack containing supported receipt JSON for /verify, and a readout.",
+    pl: "Ograniczona rekonstrukcja oddzielająca fakty zatwierdzone, wykonane, zaobserwowane i nierozstrzygnięte, z mapą workflow i uprawnień, lukami dowodowymi, proponowanym kształtem zapisu, przykładowym pakietem zawierającym obsługiwany zapis JSON dla /verify i omówieniem.",
   },
+  samplePack: PRIMARY_OFFER_SAMPLE_PACK,
   included: {
     en: [
       "Non-secret fit check",
@@ -43,7 +49,7 @@ export const PRIMARY_OFFER = {
       "Workflow and permission map",
       "Evidence-gap list",
       "Proposed receipt shape",
-      "Sample pack that can be tested through /verify",
+      PRIMARY_OFFER_SAMPLE_PACK.en,
       "Readout",
     ],
     pl: [
@@ -52,7 +58,7 @@ export const PRIMARY_OFFER = {
       "Mapa workflow i uprawnień",
       "Lista luk dowodowych",
       "Proponowany kształt zapisu",
-      "Przykładowy pakiet, który można sprawdzić przez /verify",
+      PRIMARY_OFFER_SAMPLE_PACK.pl,
       "Omówienie wyniku",
     ],
   },

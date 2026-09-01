@@ -102,7 +102,7 @@ test("Agent Workflow Reconstruction is the named, priced, bounded homepage offer
     "Workflow and permission map",
     "Evidence-gap list",
     "Proposed receipt shape",
-    "Sample pack that can be tested through /verify",
+    "Sample pack with supported receipt JSON to extract and test through /verify",
     "Readout",
   ]);
   assert.match(source, /offerTitle: PRIMARY_OFFER\.name\.en/);

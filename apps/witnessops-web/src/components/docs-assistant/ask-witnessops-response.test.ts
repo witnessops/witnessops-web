@@ -169,7 +169,53 @@ test("AI-assisted commercial fit cannot reintroduce superseded authority-templat
     /Within 10 working days after evidence rules are agreed/,
   );
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
-  assert.equal(askWitnessOpsModeLabel(answer), "Commercial fit · public boundary");
+  assert.equal(
+    askWitnessOpsModeLabel(answer),
+    "AI-assisted · public WitnessOps material",
+  );
+});
+
+test("AI-assisted commercial fit preserves a current public template body", () => {
+  const answer = {
+    schema: "witnessops.ask.assembled-answer.v1" as const,
+    status: "success" as const,
+    template: {
+      template_id: "route.ai_agent_action.v1",
+      body: "Current grounded guidance from the approved public material.",
+      source_display: null,
+    },
+    route: null,
+    commercial_fit: likelyCommercialFit,
+    presented_sources: [],
+    answer_mode: "ai_assisted" as const,
+  };
+
+  assert.equal(
+    askWitnessOpsAnswerText(answer),
+    "Current grounded guidance from the approved public material.",
+  );
+  assert.equal(
+    askWitnessOpsModeLabel(answer),
+    "AI-assisted · public WitnessOps material",
+  );
+});
+
+test("successful deterministic commercial fit retains its deterministic mode label", () => {
+  const answer = {
+    schema: "witnessops.ask.assembled-answer.v1" as const,
+    status: "success" as const,
+    template: {
+      template_id: "route.ai_agent_action.v1",
+      body: "A bounded AI-agent action may fit Workflow S.",
+      source_display: null,
+    },
+    route: null,
+    commercial_fit: likelyCommercialFit,
+    presented_sources: [],
+    answer_mode: "deterministic_fallback" as const,
+  };
+
+  assert.equal(askWitnessOpsModeLabel(answer), "Deterministic public guide");
 });
 
 test("ask witnessops same-site source links normalize to site-relative paths", () => {

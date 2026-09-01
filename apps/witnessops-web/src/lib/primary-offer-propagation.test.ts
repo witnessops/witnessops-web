@@ -132,7 +132,10 @@ test("the primary detail contract exposes every required inclusion and exclusion
   );
   assert.match(workflowPage, /notIncluded=\{\[\.\.\.PRIMARY_OFFER\.notIncluded\.en\]\}/);
   assert.match(workflowPage, /authorised, executed, observed, and still unresolved/);
-  assert.match(workflowPage, /tested through \/verify/);
+  assert.match(workflowPage, /supported receipt JSON/);
+  assert.match(workflowPage, /test it through \/verify/);
+  assert.match(workflowPage, /\/verify does not accept the whole pack/);
+  assert.doesNotMatch(workflowPage, /The sample pack can be tested through \/verify/i);
 });
 
 test("English and Polish entry links preserve the primary offer selection", () => {

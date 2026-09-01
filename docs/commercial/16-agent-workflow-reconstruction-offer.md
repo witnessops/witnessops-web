@@ -28,7 +28,7 @@ Entry begins with a non-secret fit check. The fixed price is €2,500. Scope is 
 - workflow and permission map
 - evidence-gap list
 - proposed receipt shape
-- sample pack that can be tested through `/verify`
+- sample pack with supported receipt JSON to extract and test through `/verify`
 - readout
 
 ## Not included
@@ -43,7 +43,7 @@ Entry begins with a non-secret fit check. The fixed price is €2,500. Scope is 
 
 The reconstruction distinguishes the authorised state, executed actions, observed evidence and unresolved points. Evidence rules name the accepted evidence classes, handling constraints, exclusions and reconstruction method before the delivery clock begins.
 
-A receipt proves only what its named verifier and referenced evidence support. It does not certify that an agent was correct, safe, compliant or complete. The proposed receipt shape and sample pack are inspection aids; they are not customer evidence and do not establish that a control has been deployed in production.
+A receipt proves only what its named verifier and referenced evidence support. It does not certify that an agent was correct, safe, compliant or complete. The proposed receipt shape and sample pack are inspection aids. Extract the supported receipt JSON from the pack to test it through `/verify`; `/verify` does not accept the whole pack. The pack is not customer evidence and does not establish that a control has been deployed in production.
 
 ## Public paths and continuity
 

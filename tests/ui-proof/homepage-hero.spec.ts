@@ -390,11 +390,16 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
 
   const pageCaptures = [
     { name: "homepage-desktop-1440", path: "/", width: 1440, height: 1100 },
+    { name: "homepage-mobile-390", path: "/", width: 390, height: 844 },
     { name: "request-en-mobile-390", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction", width: 390, height: 844 },
     { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction", width: 390, height: 844 },
     { name: "request-desktop-1440", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction", width: 1440, height: 1100 },
     { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844 },
     { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100 },
+    { name: "workflow-offer-mobile-390", path: "/catalog/workflows", width: 390, height: 844 },
+    { name: "workflow-offer-desktop-1440", path: "/catalog/workflows", width: 1440, height: 1100 },
+    { name: "legacy-workflow-s-mobile-390", path: "/catalog/workflow-s", width: 390, height: 844 },
+    { name: "legacy-workflow-s-desktop-1440", path: "/catalog/workflow-s", width: 1440, height: 1100 },
   ] as const;
 
   for (const capture of pageCaptures) {
@@ -406,6 +411,9 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
       const page = await context.newPage();
       const response = await page.goto(capture.path, { waitUntil: "networkidle" });
       expect(response?.status(), capture.path).toBe(200);
+      if (capture.path === "/catalog/workflow-s") {
+        expect(new URL(page.url()).pathname).toBe("/catalog/workflows");
+      }
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
       await page.screenshot({ path: screenshotPath, fullPage: false });

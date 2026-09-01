@@ -40,7 +40,7 @@ export default function CatalogWorkflowsPage() {
         locale="en"
         service={service}
         claim="WitnessOps reconstructs one consequential agent or automation workflow and separates what was authorised, executed, observed, and still unresolved."
-        verificationPath="The proposed receipt shape and sample pack name the evidence references, verifier result, and challenge path. The sample pack can be tested through /verify; a receipt proves only what that verifier and its referenced evidence support. It does not certify compliance or agent safety."
+        verificationPath="The proposed receipt shape and sample pack name the evidence references, verifier result, and challenge path. Extract the supported receipt JSON from the sample pack to test it through /verify; /verify does not accept the whole pack. A receipt proves only what that verifier and its referenced evidence support. It does not certify compliance or agent safety."
         notIncluded={[...PRIMARY_OFFER.notIncluded.en]}
       />
     </>

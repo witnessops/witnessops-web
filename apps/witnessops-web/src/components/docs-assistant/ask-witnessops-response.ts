@@ -59,8 +59,22 @@ export interface AskWitnessOpsRequestErrorDetails {
   readonly message: string;
 }
 
+const SUPERSEDED_COMMERCIAL_TEMPLATE_IDS = new Set([
+  "route.launch_readiness.v1",
+  "route.vendor_change.v1",
+  "route.ai_agent_action.v1",
+  "route.incident.v1",
+  "route.access_authority.v1",
+  "route.offline_inspection.v1",
+]);
+
 export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
+  const body = answer.template.body.trim();
   if (
+    (answer.status === "closed" ||
+      answer.answer_mode === "deterministic_fallback" ||
+      (SUPERSEDED_COMMERCIAL_TEMPLATE_IDS.has(answer.template.template_id) &&
+        /\bWorkflow [SML]\b/.test(body))) &&
     answer.commercial_fit.offer &&
     (answer.commercial_fit.result === "likely" ||
       answer.commercial_fit.result === "needs_boundary")
@@ -75,7 +89,6 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
     return `${currentOffer} This public guide cannot inspect or verify the workflow here. Your non-secret description is enough for a likely commercial-fit signal; the fit-check path is shown above.`;
   }
 
-  const body = answer.template.body.trim();
   if (body.length > 0) {
     return body;
   }
@@ -88,16 +101,17 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
 }
 
 export function askWitnessOpsModeLabel(answer: AskWitnessOpsUiAnswer): string {
+  if (answer.answer_mode === "ai_assisted") {
+    return "AI-assisted · public WitnessOps material";
+  }
+
   if (
+    answer.status === "closed" &&
     answer.commercial_fit.offer &&
     (answer.commercial_fit.result === "likely" ||
       answer.commercial_fit.result === "needs_boundary")
   ) {
     return "Commercial fit · public boundary";
-  }
-
-  if (answer.answer_mode === "ai_assisted") {
-    return "AI-assisted · public WitnessOps material";
   }
 
   if (answer.answer_mode === "policy_refusal") {
