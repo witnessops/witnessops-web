@@ -25,10 +25,8 @@ const TEXT_SIGNATURES: Record<EmailSignatureProfile, string> = {
   personal_admin: [
     "Karol Stefanski",
     "Founder · WitnessOps",
-    "Dublin, Ireland",
     "ks@witnessops.com",
     "https://witnessops.com",
-    "+353 83 040 1096",
     "Proof beats memory.",
   ].join("\n"),
   founder_default: [
@@ -38,8 +36,6 @@ const TEXT_SIGNATURES: Record<EmailSignatureProfile, string> = {
     "Proof beats memory.",
     "ks@witnessops.com",
     "https://witnessops.com",
-    "+353 83 040 1096",
-    "Dublin, Ireland",
   ].join("\n"),
   security_buyer: [
     "Karol Stefanski",
@@ -48,8 +44,6 @@ const TEXT_SIGNATURES: Record<EmailSignatureProfile, string> = {
     "Proof beats memory.",
     "ks@witnessops.com",
     "https://witnessops.com",
-    "+353 83 040 1096",
-    "Dublin, Ireland",
   ].join("\n"),
 };
 
@@ -113,9 +107,7 @@ const HTML_SIGNATURES: Record<
     contact: [
       { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
       { text: "witnessops.com", href: "https://witnessops.com" },
-      { text: "+353 83 040 1096", href: "tel:+353830401096" },
     ],
-    location: "Dublin, Ireland",
     accentColor: WO_EMAIL_COLORS.textMuted,
   },
   founder_default: {
@@ -127,9 +119,7 @@ const HTML_SIGNATURES: Record<
     contact: [
       { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
       { text: "witnessops.com", href: "https://witnessops.com" },
-      { text: "+353 83 040 1096", href: "tel:+353830401096" },
     ],
-    location: "Dublin, Ireland",
     accentColor: WO_EMAIL_COLORS.accent,
   },
   security_buyer: {
@@ -142,9 +132,7 @@ const HTML_SIGNATURES: Record<
     contact: [
       { text: "ks@witnessops.com", href: "mailto:ks@witnessops.com" },
       { text: "witnessops.com", href: "https://witnessops.com" },
-      { text: "+353 83 040 1096", href: "tel:+353830401096" },
     ],
-    location: "Dublin, Ireland",
     accentColor: WO_EMAIL_COLORS.trust,
     proofColor: WO_EMAIL_COLORS.trust,
   },
