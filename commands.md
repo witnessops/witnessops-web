@@ -1,52 +1,22 @@
 # Commands
 
-Frozen operator entrypoints for `witnessops-web`.
+Frozen contributor entrypoints for `witnessops-web`.
 
-This file documents root `package.json` scripts. If a root script changes, update this contract in the same lane or explicitly state why the command surface is unchanged.
+This file documents public repository commands that are safe to expose as part
+of the product/source surface. If a root script changes, update this contract in
+the same lane or explicitly state why the command surface is unchanged.
 
 ## Deployment command boundary
 
-This repo has no active Azure deployment command surface.
+This repository does not document production host identity, cloud trust policy,
+secret inventories, private network topology, rollback endpoints, or operator
+credential locations.
 
 - `pnpm release` builds the app artifact only.
-- Azure `az`, `azd`, Bicep, ACA, rollback, inventory, cleanup, and restore commands are not repo entrypoints.
-- Archived Azure material under `docs/archive/azure-aca-retired-20260508/` is historical reference only.
-- Any future Azure command requires a separate explicit Azure reopening lane with allowed cloud surfaces, validation commands, receipts, and stop boundary.
-
-### Active AWS production and private mesh-dev boundary
-
-Routine production publication and deployment are available only through a
-manual `.github/workflows/aws-release.yml` dispatch from `refs/heads/main`.
-The workflow operations are `publish-image`, `deploy-staging`, and
-approval-gated `deploy-production`. Merging does not dispatch them.
-
-Retained root entrypoints (also in root `AGENTS.md` /
-`docs/DEPLOYMENT_AUTHORITY.md`):
-
-| Script | Command |
-| --- | --- |
-| Deploy mesh-dev only | `pnpm deploy:k3s:dev` |
-| Status + smoke (image+HTTP+CSS) | `pnpm deploy:k3s:status` or `pnpm deploy:k3s:smoke` |
-| Parity unit tests | `pnpm deploy:k3s:test-parity` |
-| Teardown mesh-dev | `pnpm deploy:k3s:dev:teardown` |
-| Disk hygiene | `pnpm deploy:k3s:hygiene` |
-
-Smoke fails when prod/mesh-dev **image refs differ** (not CSS-only). Intentional
-non-parity: mesh bind/emptyDir/PORT/HOSTNAME/VERIFY_BASE. Shared secrets:
-the `BASE_ENV_SECRET` + `ADMIN_OIDC_SECRET` contract.
-
-`pnpm deploy:k3s:build`, `pnpm deploy:k3s:prod`, and
-`pnpm deploy:k3s:both` are retired aliases that fail closed with
-`RETIRED_PRODUCTION_DEPLOY_PATH`. Production drift is reconciled through the
-AWS workflow; mesh-dev may then be aligned separately.
-
-Env: source the private ignored `deploy/topology.env`; use `ALLOW_DIRTY=1` only for intentional dirty-tree builds.
-
-`deploy:k3s:hygiene` is a destructive disk-maintenance operation with its own
-guards. Run it only under separate authorization after resolving the exact
-private target; it is not part of ordinary build, deploy, smoke, or rollback.
-
-Legacy `deploy/scripts/deploy.sh` (GHCR / Compose) is not live authority.
+- A merge to `main` does **not** itself authorize or perform production publication or deployment.
+- Production mutation requires a separate explicit operator action under separately custodied deployment authority.
+- Retired deployment paths are not valid shortcuts and must not be reactivated from this command contract.
+- Retired cloud material under `docs/archive/` is historical reference only.
 
 ## Health
 
@@ -98,24 +68,30 @@ Validates signal content.
 
 `pnpm release`
 
-Builds the live app artifact for the current internal/manual release process. Promotion beyond the build step remains operator-managed for now.
+Builds the live app artifact for the current internal/manual release process.
+Promotion beyond the build step remains operator-managed and separately
+authorized.
 
 ## Public Buyer-Path Smoke
 
 `pnpm smoke:buyer-path`
 
-Checks the public buyer path with a deterministic Node helper instead of shell text-processing assumptions.
-The command reads `WITNESSOPS_SMOKE_BASE_URL` when set and defaults to `https://witnessops.com`.
+Checks the public buyer path with a deterministic Node helper instead of shell
+text-processing assumptions. The command reads `WITNESSOPS_SMOKE_BASE_URL` when
+set and defaults to `https://witnessops.com`.
 
 `pnpm smoke:buyer-path:test`
 
-Runs the buyer-path smoke test harness without fetching the live site. Use this when public buyer/proof-surface copy, sample markers, route copy, or proof-surface contract markers change.
+Runs the buyer-path smoke test harness without fetching the live site. Use this
+when public buyer/proof-surface copy, sample markers, route copy, or proof-surface
+contract markers change.
 
 ## Homepage Hero UI Proof
 
 `pnpm ui-proof:hero`
 
-Builds `witnessops-web`, runs the homepage hero mobile UI proof locally, and emits generated artifacts under `artifacts/ui-proof/`.
+Builds `witnessops-web`, runs the homepage hero mobile UI proof locally, and
+emits generated artifacts under `artifacts/ui-proof/`.
 
 `pnpm ui-proof:hero:ci`
 
@@ -134,12 +110,13 @@ After calibration, the GitHub Actions `Homepage Hero UI Proof` workflow blocks o
 - missing `artifacts/ui-proof/homepage-hero/latest.json`
 - critical homepage hero semantic failures
 
-Warning-only failures remain non-blocking. The `mobile-280-light-extreme` scenario is warning-only. The supported mobile floor is 320px.
+Warning-only failures remain non-blocking. The `mobile-280-light-extreme`
+scenario is warning-only. The supported mobile floor is 320px.
 
 ### Override process
 
-A blocking homepage hero UI proof failure may only be overridden as a temporary exception.
-The PR must include an explicit override comment with:
+A blocking homepage hero UI proof failure may only be overridden as a temporary
+exception. The PR must include an explicit override comment with:
 
 - reason
 - owner
