@@ -182,8 +182,8 @@ test("publisher must bind reused immutable tags to the verified local build iden
 });
 
 test("AWS image packages must retain reviewed Alpine versions", () => {
-  const mutated = changed("dockerfile", (value) => value.replace("curl=8.21.0-r0", "curl"));
-  assert.throws(() => validatePhase3Sources(mutated), /curl=8\.21\.0-r0/);
+  const mutated = changed("dockerfile", (value) => value.replace("curl=8.22.0-r0", "curl"));
+  assert.throws(() => validatePhase3Sources(mutated), /curl=8\.22\.0-r0/);
 });
 
 test("AWS runtime must retain the patched OpenSSL package versions", () => {

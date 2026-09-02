@@ -336,7 +336,7 @@ export function validatePhase3Sources(sources) {
     "libcrypto3=3.5.8-r0",
     "libssl3=3.5.8-r0",
     "ca-certificates=20260611-r0",
-    "curl=8.21.0-r0",
+    "curl=8.22.0-r0",
   ]) {
     assert(dockerfile.includes(required), `AWS Dockerfile is missing ${required}`);
   }
