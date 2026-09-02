@@ -13,9 +13,12 @@ const likelyWorkflowFit = {
   offer_id: "bounded-workflow-review" as const,
   source: "ask" as const,
   offer: {
-    name: "Agent Risk & Control Review" as const,
-    price_label: "From €1,500" as const,
-    unit_label: "One agentic or automated workflow" as const,
+    name: "Agent Workflow Reconstruction" as const,
+    price_label: "€2,500 fixed" as const,
+    unit_label: "One named workflow (agentic or automated)" as const,
+    fit_check_label: "Non-secret fit check first" as const,
+    delivery_label:
+      "Within 10 working days after evidence rules are agreed" as const,
   },
   matching_specimen_id: "ai-agent-action-proof-run" as const,
 };
@@ -38,7 +41,7 @@ test("Ask AI contact handoff records controlled fit fields and the explicit note
   assert.match(scope, /No review starts/);
   assert.match(scope, /no files, secrets, logs, screenshots/);
   assert.doesNotMatch(scope, new RegExp(rawAskPrompt));
-  assert.doesNotMatch(scope, /From €1,500/);
+  assert.doesNotMatch(scope, /From €1,500|€2,500 fixed/);
   assert.doesNotMatch(scope, /ai-agent-action-proof-run/);
 });
 

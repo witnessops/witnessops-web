@@ -61,7 +61,10 @@ test("Polish engage requests localize the buyer verification boundary", () => {
 
   assert.equal(rendered.subject, "Twój kod do zgłoszenia WitnessOps");
   assert.match(rendered.text, /Weryfikacja WitnessOps/);
-  assert.match(rendered.text, /Potwierdź: Zgłoszenie Agent Risk & Control Review/);
+  assert.match(
+    rendered.text,
+    /Potwierdź: Zgłoszenie Agent Workflow Reconstruction/,
+  );
   assert.match(rendered.text, /Kod weryfikacyjny: ABCD-EFGH-JKLM/);
   assert.match(rendered.text, /Nie rozpoczyna przeglądu ani pracy/);
   assert.doesNotMatch(rendered.text, /Confirm your/);

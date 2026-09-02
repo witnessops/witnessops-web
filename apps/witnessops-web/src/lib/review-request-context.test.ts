@@ -39,17 +39,17 @@ test("shared review CTAs keep the workflow offer selected from its detail route"
 
   assert.equal(
     headerHref,
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
   );
   assert.equal(footerHref, headerHref);
 
   for (const href of [headerHref, footerHref]) {
     const selected = selectedServiceFromHref(href);
-    assert.equal(selected?.name.en, "Agent Risk & Control Review");
-    assert.equal(selected?.price.en, "From €1,500");
+    assert.equal(selected?.name.en, "Agent Workflow Reconstruction");
+    assert.equal(selected?.price.en, "€2,500 fixed");
     assert.equal(
       selected?.timing.en,
-      "Confirmed during the non-secret fit check",
+      "Within 10 working days after evidence rules are agreed",
     );
   }
 });
@@ -110,7 +110,7 @@ test("every selectable service detail keeps its catalogue-authoritative request"
   }
 });
 
-test("review CTA context rejects unknown values and preserves every service detail", () => {
+test("review CTA context rejects unknown values to the canonical primary offer and preserves every service detail", () => {
   assert.equal(
     reviewRequestHrefForLocation(
       "en",
@@ -119,7 +119,15 @@ test("review CTA context rejects unknown values and preserves every service deta
         "offerId=unknown&productId=OFFSEC-PILOT&offer=Fabricated&token=secret",
       ),
     ),
-    "/review/request",
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+  );
+  assert.equal(
+    reviewRequestHrefForLocation("en", "/", emptySearch),
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+  );
+  assert.equal(
+    reviewRequestHrefForLocation("pl", "/pl", emptySearch),
+    "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
   );
   assert.match(
     reviewRequestHrefForLocation(

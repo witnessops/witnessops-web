@@ -1,6 +1,6 @@
 # Public Exposure Review
 
-**Status:** primary public fixed-scope offer under the stable `OFFSEC-EXTERNAL-EXPOSURE` SKU. Acceptance remains subject to scope, authority, and operator capacity.
+**Status:** secondary catalogue offer under the stable `OFFSEC-EXTERNAL-EXPOSURE` SKU. It remains separate from the primary Agent Workflow Reconstruction offer. Acceptance remains subject to scope, authority, and operator capacity.
 
 **Required descriptor:** A fixed-scope external security review of one authorised public-facing system.
 

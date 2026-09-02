@@ -28,6 +28,7 @@ import {
   buyerServiceByPublicOfferId,
 } from "@/lib/buyer-services";
 import { BOUNDED_WORKFLOW_REVIEW_INTENT } from "@/lib/commercial-request-intents";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 
 type FieldName =
   | "name"
@@ -279,11 +280,11 @@ export function ContactForm({
     ? {
         ...baseCopy,
         fitTitle: polish
-          ? "Rozpocznij Agent Risk & Control Review."
-          : "Start your Agent Risk & Control Review.",
+          ? `Rozpocznij ${PRIMARY_OFFER.name.pl}.`
+          : `Start your ${PRIMARY_OFFER.name.en}.`,
         fitBody: polish
-          ? "Opisz jeden istotny workflow na wysokim poziomie. Do oceny dopasowania wystarczy niepoufne podsumowanie — szczegóły upoważnienia, zatwierdzeń i materiałów uzgodnimy później."
-          : "Describe one consequential workflow at a high level. A non-secret summary is enough for the fit check—we’ll map authority, approvals, and evidence with you later.",
+          ? `Opisz jeden istotny workflow na wysokim poziomie. ${PRIMARY_OFFER.fitCheck.pl}. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.timing.pl}.`
+          : `Describe one consequential workflow at a high level. ${PRIMARY_OFFER.fitCheck.en}. ${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.timing.en}.`,
         workflow: polish
           ? "Opisz istotny workflow"
           : "Describe the consequential workflow",
@@ -293,7 +294,12 @@ export function ContactForm({
         workflowHelp: polish
           ? "Podaj system, działanie i główną obawę dotyczącą upoważnienia, jeśli są znane. Nie wklejaj sekretów ani materiałów źródłowych."
           : "Name the system, action, and main authority concern if known. Do not paste secrets or source material.",
-        send: polish ? "Wyślij ocenę dopasowania" : "Request a fit check",
+        send: polish
+          ? "Poproś o wstępną ocenę bez informacji poufnych"
+          : "Request a non-secret fit check",
+        submitBoundary: polish
+          ? `Wysłanie formularza otwiera wyłącznie wstępną ocenę: ${PRIMARY_OFFER.unit.pl.toLowerCase()}. Praca nie rozpoczyna się, dopóki zakres, zasady dowodowe i sposób obsługi materiałów nie zostaną uzgodnione.`
+          : `Submitting this form opens only the non-secret fit check for ${PRIMARY_OFFER.unit.en.toLowerCase()}. Work does not start until scope, evidence rules, and evidence handling are agreed.`,
       }
     : undefined;
   const copy = externalExposureOrder
@@ -384,7 +390,7 @@ export function ContactForm({
       externalExposureOrder
         ? "Request: Public Exposure Review"
         : boundedWorkflowReview
-          ? "Request: Agent Risk & Control Review"
+          ? `Request: ${PRIMARY_OFFER.name.en}`
         : selectedNonAgentService
           ? `Request: ${selectedNonAgentService.name.en}`
           : "Request: WitnessOps review fit check",

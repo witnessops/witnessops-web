@@ -8,6 +8,7 @@ import {
   isLibraryPath,
   resolveFooterHref,
 } from "./footer";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 
 test("footer keeps readable text contrast and sizing", () => {
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
@@ -103,9 +104,10 @@ test("footer provides Polish homepage labels without changing route contracts", 
 
   for (const marker of [
     'label: "Usługi", href: "/pl/catalog"',
-    'label: "Agent Risk & Control Review"',
-    'href: "/catalog/workflows"',
-    'label: "Rozpocznij przegląd", href: "/pl/review/request"',
+    "label: PRIMARY_OFFER.name.pl",
+    "href: PRIMARY_OFFER.route",
+    'label: "Rozpocznij wstępną ocenę bez informacji poufnych"',
+    "href: PRIMARY_REQUEST_PL",
     'label: "Prywatność", href: "/privacy"',
     'label: "Warunki", href: "/terms"',
     'label: "Bezpieczeństwo", href: "/security"',
@@ -115,6 +117,11 @@ test("footer provides Polish homepage labels without changing route contracts", 
   ]) {
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
   }
+
+  assert.equal(PRIMARY_OFFER.name.pl, "Agent Workflow Reconstruction");
+  assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
+  assert.match(source, /reviewRequestHrefForLocation\(/);
+  assert.match(source, /primaryHref=\{reviewRequestHref\}/);
 });
 
 test("library surface includes English and Polish library paths", () => {

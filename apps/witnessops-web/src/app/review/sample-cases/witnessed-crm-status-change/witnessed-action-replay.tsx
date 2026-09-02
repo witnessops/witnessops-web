@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -360,9 +361,9 @@ export function WitnessedActionReplay() {
           </section>
 
           <aside className={styles.paidCta}>
-            <span>Agent Risk &amp; Control Review</span>
-            <div><h3>Bring the real workflow.</h3><p>Review one consequential workflow’s authority, execution, evidence, controls, and unresolved gaps.</p></div>
-            <Link href="/review/request?offerId=bounded-workflow-review">Bring one real workflow →</Link>
+            <span>{PRIMARY_OFFER.name.en}</span>
+            <div><h3>Bring the real workflow.</h3><p>Reconstruct one consequential workflow’s authority, execution, evidence, permissions, and unresolved gaps.</p></div>
+            <Link href={`${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}`}>Start a non-secret fit check →</Link>
           </aside>
         </section>
       ) : null}

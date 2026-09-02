@@ -20,11 +20,11 @@ const confirmationPage = readFileSync(
 );
 
 test("selected non-agent services do not inherit the agent proof bundle", () => {
-  assert.match(requestPage, /const agentRiskControlOrder/);
+  assert.match(requestPage, /const primaryOfferOrder/);
   assert.match(requestPage, /const selectedServiceOrder/);
   assert.match(
     requestPage,
-    /agentRiskControlOrder\s*\? sampleArtifacts\.slice\(0, 5\)\s*:\s*\[\]/,
+    /primaryOfferOrder\s*\? sampleArtifacts\.slice\(0, 5\)\s*:\s*\[\]/,
   );
   assert.match(requestPage, /title: "Expected outcome"/);
   assert.match(requestPage, /title: "Offer boundary"/);

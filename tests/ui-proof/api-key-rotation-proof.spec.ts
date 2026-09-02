@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 const SAMPLE_PATH = "/review/sample-cases/ai-agent-action-proof-run";
 const VERIFIER_PATH = "/samples/api-key-rotation/v1/verify.mjs";
 const REVIEW_HREF =
-  "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review";
+  "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction";
 
 test("the proof page enforces its bounded claim, offer, metadata, and replay contract", async ({
   browser,
@@ -29,9 +29,17 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   await expect(
     page.getByRole("heading", {
       level: 2,
-      name: "Agent Risk & Control Review — from €1,500 ex VAT.",
+      name: "Agent Workflow Reconstruction — €2,500 fixed.",
     }),
   ).toBeVisible();
+  await expect(page.getByText(/Bring one consequential workflow\./)).toBeVisible();
+  await expect(page.getByText(/separates what was authorised, executed, observed, and still unresolved/)).toBeVisible();
+  await expect(page.getByText(/Entry begins with a non-secret fit check/)).toBeVisible();
+  await expect(
+    page.getByText(/delivery is within 10 working days after evidence rules are agreed/),
+  ).toBeVisible();
+  await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
+  await expect(page.locator("main")).not.toContainText("From €1,500");
   await expect(page.getByRole("link", { name: /Request a non-secret fit check/ })).toHaveAttribute(
     "href",
     REVIEW_HREF,

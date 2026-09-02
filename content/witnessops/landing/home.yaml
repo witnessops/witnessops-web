@@ -6,16 +6,16 @@ slug: "/"
 status:
   draft: false
   canonical: true
-  last_reviewed: "2026-08-27"
+  last_reviewed: "2026-09-01"
 
 seo:
-  title: "Proof infrastructure for agentic operations | WitnessOps"
-  description: "Check the agent before it acts, preserve authority and evidence during execution, and produce a bounded record another party can inspect."
+  title: "Agent Workflow Reconstruction | WitnessOps"
+  description: "Agent Workflow Reconstruction: one named workflow, €2,500 fixed, beginning with a non-secret fit check and delivered within 10 working days after evidence rules are agreed."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
   og_title: "Agents act. WitnessOps proves."
-  og_description: "Before execution: inspect the declared agent. After execution: produce a bounded record another party can check."
+  og_description: "WitnessOps reconstructs one consequential agent or automation workflow, separating what was authorised, executed, observed and still unresolved."
   twitter_card: "summary_large_image"
 
 theme:
@@ -29,25 +29,25 @@ navbar:
     text: ""
     href: ""
   links:
-    - label: "Agent Risk & Control Review"
+    - label: "Agent Workflow Reconstruction"
       href: "/catalog/workflows"
     - label: "How it works"
       href: "/#evidence-questions"
     - label: "Action receipt"
       href: "/#agent-action-receipt"
   cta:
-    label: "Bring one workflow"
-    href: "/review/request"
+    label: "Start non-secret fit check"
+    href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction"
     variant: "primary"
 
 hero:
   eyebrow: "Proof infrastructure for agentic operations"
   title: "Agents act. WitnessOps proves."
-  body: "WitnessOps helps security, platform, and compliance teams reconstruct one consequential agent workflow: what was authorized, what ran, what was observed, what remains unresolved, and how the result can be challenged."
+  body: "WitnessOps reconstructs one consequential agent or automation workflow: what was authorised, what executed, what was observed, what remains unresolved, and how the result can be challenged."
   supporting_points: []
   primary_cta:
-    label: "Bring one agentic workflow"
-    href: "/review/request"
+    label: "Start a non-secret fit check"
+    href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction"
     variant: "primary"
   secondary_cta:
     label: "See scope and pricing"
@@ -124,8 +124,8 @@ sections:
         body: "Show what another reviewer can inspect, reject, or strengthen."
     internal_surfaces_disclosure: "Some operational surfaces remain internal, including policy authoring, receipt query, and operator administration."
     ctas:
-      - label: "Start a review"
-        href: "/review/request"
+      - label: "Start a non-secret fit check"
+        href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction"
         variant: "primary"
       - label: "Inspect sample package"
         href: "/review/sample-cases/ai-agent-action-proof-run"
@@ -176,11 +176,11 @@ sections:
 
 final_cta:
   enabled: true
-  title: "Bring one workflow. Make its boundaries and evidence gaps explicit."
-  body: "Start with the workflow name, its owner and the consequential action. Do not include passwords, private keys, API keys, tokens or recovery codes."
+  title: "Reconstruct one consequential workflow."
+  body: "Start with a non-secret fit check. Agent Workflow Reconstruction covers one named workflow for €2,500 fixed and is delivered within 10 working days after evidence rules are agreed."
   ctas:
-    - label: "Review one workflow"
-      href: "/review/request"
+    - label: "Start a non-secret fit check"
+      href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction"
       variant: "primary"
     - label: "View services"
       href: "/catalog"
@@ -192,7 +192,7 @@ footer:
   links:
     - label: "Services"
       href: "/catalog"
-    - label: "Agent Risk & Control Review"
+    - label: "Agent Workflow Reconstruction"
       href: "/catalog/workflows"
     - label: "Why WitnessOps"
       href: "/why-witnessops"
@@ -202,8 +202,8 @@ footer:
       href: "/docs"
     - label: "Skills"
       href: "/library"
-    - label: "Start a review"
-      href: "/review/request"
+    - label: "Start a non-secret fit check"
+      href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction"
   legal_links:
     - label: "Privacy"
       href: "/privacy"

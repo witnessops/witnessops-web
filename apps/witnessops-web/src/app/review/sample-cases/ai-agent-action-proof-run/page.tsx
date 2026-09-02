@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
 import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-metadata";
 import { ApiKeyRotationDemo } from "./api-key-rotation-demo";
 import styles from "./api-key-rotation-demo.module.css";
@@ -14,7 +15,7 @@ import {
 
 const reviewRequestHref = buyerPublicOfferRequestHref(
   "en",
-  "bounded-workflow-review",
+  PRIMARY_OFFER.id,
 );
 
 export const metadata: Metadata = {
@@ -83,13 +84,13 @@ export default function ApiKeyRotationSamplePage() {
         <span>PAID REVIEW</span>
         <div>
           <h2 id="rotation-next-step-heading">
-            Agent Risk &amp; Control Review — from €1,500 ex VAT.
+            {PRIMARY_OFFER.name.en} — {PRIMARY_OFFER.price.en}.
           </h2>
           <p>
-            Bring one consequential workflow. The review maps its authority, permissions, approvals,
-            and evidence gaps, then proposes a receipt, verifier, and challenge path. This specimen is
-            an example of the proof object a review can shape; no secret or source material is accepted
-            in the fit check.
+            Bring one consequential workflow. The reconstruction separates what was authorised,
+            executed, observed, and still unresolved; maps permissions and evidence gaps; and proposes
+            a receipt shape with a testable sample pack. Entry begins with a non-secret fit check, and
+            delivery is within 10 working days after evidence rules are agreed.
           </p>
         </div>
         <Link href={reviewRequestHref}>Request a non-secret fit check →</Link>

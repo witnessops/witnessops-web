@@ -1,12 +1,14 @@
 import {
   BUYER_SERVICES,
   buyerRequestHref,
+  buyerPublicOfferRequestHref,
   buyerServiceByProductId,
   buyerServiceByPublicOfferId,
   buyerServiceRequestHref,
   type BuyerLocale,
   type BuyerService,
 } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 
 type SearchParamsReader = Pick<URLSearchParams, "get">;
 
@@ -58,5 +60,5 @@ export function reviewRequestHrefForLocation(
     }
   }
 
-  return requestHref;
+  return buyerPublicOfferRequestHref(locale, PRIMARY_OFFER.id);
 }

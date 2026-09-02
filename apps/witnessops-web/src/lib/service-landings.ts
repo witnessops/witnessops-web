@@ -1,4 +1,5 @@
 import type { BuyerLocale, BuyerService } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 
 export type ServiceLandingCopy = {
   /** Punchy hero line under the service name (CSR-style). */
@@ -6,13 +7,13 @@ export type ServiceLandingCopy = {
   /** Who the review is for. */
   whoFor: string;
   /** Human deliverable lines (not raw filenames). */
-  deliverables: string[];
+  deliverables: readonly string[];
   /** How the engagement runs. */
   steps: ReadonlyArray<readonly [string, string]>;
   /** Full boundary sentences. */
-  boundaries: string[];
+  boundaries: readonly string[];
   /** Fixed package limits that must remain visible on the buyer page. */
-  scopeLimits?: string[];
+  scopeLimits?: readonly string[];
   /** Optional sample / example link. */
   sampleHref?: string;
   sampleLabel?: string;
@@ -65,49 +66,45 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     sampleLabel: "Inspect CSR sample",
   },
   "bounded-workflow-review": {
-    headline: "Bring one agentic workflow. We’ll show you what proof is missing.",
+    headline: "One consequential workflow. Reconstructed so another person can inspect it.",
     whoFor:
-      "Security teams, platform teams, compliance teams, MSSPs, and AI automation teams that are letting agents or automations touch sensitive systems.",
+      "Security, platform, compliance, MSSP, and AI automation teams that need one consequential agent or automation workflow reconstructed without sending secrets during the fit check.",
     deliverables: [
-      "workflow map",
-      "agent and tool permission model",
-      "approval and policy gap analysis",
-      "evidence requirements",
-      "receipt schema",
-      "sample proof bundle",
-      "verifier path",
-      "control recommendations",
+      "scoped reconstruction separating what was authorised, executed, observed, and still unresolved",
+      "workflow and permission map",
+      "evidence-gap list and proposed receipt shape",
+      PRIMARY_OFFER.samplePack.en,
+      "readout",
     ],
+    scopeLimits: PRIMARY_OFFER.included.en,
     steps: [
       [
         "Fit check",
-        "Name one agentic or automated workflow, its owner, the consequential action, and the sensitive system boundary without sending secrets.",
+        "Name one consequential agentic or automated workflow, its owner, the action, and the system boundary without sending secrets.",
       ],
       [
-        "Map authority and controls",
-        "Map the workflow, agent and tool permissions, approval path, policies, and the points where authority starts and stops.",
+        "Agree scope and evidence rules",
+        "Confirm the named workflow, authority boundary, available evidence classes, handling rules, exclusions, and the reconstruction method.",
       ],
       [
-        "Define the evidence contract",
-        "Identify evidence gaps and define the receipt schema, evidence requirements, signer, and verifier path.",
+        "Reconstruct the workflow",
+        "Separate what was authorised, executed, observed, and still unresolved; map permissions and identify evidence gaps.",
       ],
       [
-        "Build and hand over the sample",
-        "Produce a clearly labelled sample proof bundle and control recommendations so another responsible person can inspect the proposed path.",
+        "Package and read out",
+        "Within 10 working days after evidence rules are agreed, deliver the reconstruction, proposed receipt shape, sample pack with supported receipt JSON, and readout.",
       ],
     ],
     boundaries: [
       "One named agentic or automated workflow only. The exact authority, action, evidence boundary, signer, and verification mechanism are named in the engagement.",
       "A receipt proves only what its named verifier and referenced evidence support. It does not certify that the agent was correct, safe, compliant, or complete.",
-      "The sample proof bundle demonstrates the proposed receipt and verifier path. It is not customer evidence or a claim that the control has been deployed in production.",
-      "This is not open-ended investigation, compliance certification, a whole-environment audit, or implementation of a complete AI governance programme.",
+      "The sample pack demonstrates the proposed receipt and verifier path. Extract its supported receipt JSON to test through /verify; /verify does not accept the whole pack. The pack is not customer evidence or a claim that a control has been deployed in production.",
       "Customer evidence is accepted only after scope and handling are agreed.",
     ],
     sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
     sampleLabel: "Inspect synthetic agent sample",
-    commercialNote:
-      "From €1,500 after a non-secret fit check. One agentic or automated workflow.",
-    primaryCta: "Bring one workflow",
+    commercialNote: `${PRIMARY_OFFER.fitCheck.en}. ${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.unit.en}.`,
+    primaryCta: "Start a non-secret fit check",
   },
   "one-server-security-check": {
     headline: "One authorised Linux host. A clear, read-only security picture.",
@@ -404,49 +401,45 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     sampleLabel: "Zobacz przykład CSR",
   },
   "bounded-workflow-review": {
-    headline: "Przynieś jeden agentowy workflow. Pokażemy, jakiego dowodu brakuje.",
+    headline: "Jeden istotny workflow. Rekonstrukcja, którą może sprawdzić inna osoba.",
     whoFor:
-      "Zespoły bezpieczeństwa, platform, compliance, MSSP i automatyzacji AI, które pozwalają agentom lub automatyzacjom działać w systemach wrażliwych.",
+      "Zespoły bezpieczeństwa, platform, compliance, MSSP i automatyzacji AI, które potrzebują rekonstrukcji jednego istotnego workflow agenta lub automatyzacji bez przekazywania sekretów podczas wstępnej oceny.",
     deliverables: [
-      "mapa workflow",
-      "model uprawnień agenta i narzędzi",
-      "analiza luk w zatwierdzeniach i politykach",
-      "wymagania dowodowe",
-      "schemat zapisu",
-      "przykładowy pakiet dowodowy",
-      "ścieżka weryfikacji",
-      "zalecenia dotyczące kontroli",
+      "ograniczona rekonstrukcja oddzielająca to, co zatwierdzono, wykonano, zaobserwowano i co nadal pozostaje nierozstrzygnięte",
+      "mapa workflow i uprawnień",
+      "lista luk dowodowych i proponowany kształt zapisu",
+      PRIMARY_OFFER.samplePack.pl,
+      "omówienie wyniku",
     ],
+    scopeLimits: PRIMARY_OFFER.included.pl,
     steps: [
       [
         "Wstępna ocena",
-        "Nazwij jeden agentowy lub zautomatyzowany workflow, jego właściciela, istotne działanie i granicę systemu wrażliwego — bez wysyłania sekretów.",
+        "Nazwij jeden istotny agentowy lub zautomatyzowany workflow, jego właściciela, działanie i granicę systemu — bez wysyłania sekretów.",
       ],
       [
-        "Mapa upoważnień i kontroli",
-        "Mapujemy workflow, uprawnienia agenta i narzędzi, ścieżkę zatwierdzeń, polityki oraz punkty, w których upoważnienie zaczyna się i kończy.",
+        "Uzgodnienie zakresu i zasad dowodowych",
+        "Potwierdzamy nazwany workflow, granicę upoważnienia, dostępne klasy materiałów, zasady postępowania, wyłączenia i metodę rekonstrukcji.",
       ],
       [
-        "Kontrakt dowodowy",
-        "Wskazujemy luki i definiujemy schemat zapisu, wymagania dowodowe, podpisującego oraz ścieżkę weryfikacji.",
+        "Rekonstrukcja workflow",
+        "Oddzielamy to, co zatwierdzono, wykonano, zaobserwowano i co nadal pozostaje nierozstrzygnięte; mapujemy uprawnienia i wskazujemy luki dowodowe.",
       ],
       [
-        "Przykład i przekazanie",
-        "Przygotowujemy wyraźnie oznaczony przykładowy pakiet dowodowy i zalecenia, aby inna odpowiedzialna osoba mogła sprawdzić proponowaną ścieżkę.",
+        "Pakiet i omówienie",
+        "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych dostarczamy rekonstrukcję, proponowany kształt zapisu, przykładowy pakiet z obsługiwanym zapisem JSON i omówienie.",
       ],
     ],
     boundaries: [
       "Tylko jeden nazwany agentowy lub zautomatyzowany workflow. Dokładne upoważnienie, działanie, granica dowodowa, podpisujący i mechanizm weryfikacji są nazwane w ustaleniach.",
       "Zapis dowodzi wyłącznie tego, co wspierają wskazany weryfikator i przywołane materiały. Nie certyfikuje, że agent działał poprawnie, bezpiecznie, zgodnie z wymaganiami lub kompletnie.",
-      "Przykładowy pakiet pokazuje proponowany zapis i ścieżkę weryfikacji. Nie jest materiałem klienta ani twierdzeniem, że kontrolę wdrożono produkcyjnie.",
-      "To nie jest otwarte śledztwo, certyfikacja zgodności, audyt całego środowiska ani wdrożenie kompletnego programu governance AI.",
+      "Przykładowy pakiet pokazuje proponowany zapis i ścieżkę weryfikacji. Przez /verify sprawdza się wyodrębniony, obsługiwany zapis JSON, a nie cały pakiet. Pakiet nie jest materiałem klienta ani twierdzeniem, że kontrolę wdrożono produkcyjnie.",
       "Materiały klienta są przyjmowane dopiero po uzgodnieniu zakresu i postępowania.",
     ],
     sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
     sampleLabel: "Zobacz syntetyczny przykład agenta",
-    commercialNote:
-      "Od 6 500 zł (ok. €1 500) po niepoufnej ocenie dopasowania. Jeden agentowy lub zautomatyzowany workflow.",
-    primaryCta: "Przynieś jeden workflow",
+    commercialNote: `${PRIMARY_OFFER.fitCheck.pl}. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.unit.pl}.`,
+    primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
   },
   "one-server-security-check": {
     headline: "Jeden autoryzowany host Linux. Jasny obraz bezpieczeństwa tylko do odczytu.",

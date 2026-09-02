@@ -14,6 +14,7 @@ import {
   PROFESSIONAL_PUBLIC_FOOTPRINT_AUDIT_INTENT,
 } from "@/lib/commercial-request-intents";
 import { verifyTokenResponseSchema } from "@/lib/token-contract";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 
 export const REVIEW_REQUEST_CONFIRMATION_STORAGE_KEY =
   "witnessops.review-request-confirmation.v1" as const;
@@ -184,7 +185,7 @@ export function buildReviewRequestConfirmationText(
     Record<ReviewRequestKind, string>
   > = {
     en: {
-      "agent-risk-control-review": "Agent Risk & Control Review",
+      "agent-risk-control-review": PRIMARY_OFFER.name.en,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",
       "public-exposure-review": "Public Exposure Review",
@@ -198,7 +199,7 @@ export function buildReviewRequestConfirmationText(
       "review-request": "WitnessOps review request",
     },
     pl: {
-      "agent-risk-control-review": "Agent Risk & Control Review",
+      "agent-risk-control-review": PRIMARY_OFFER.name.pl,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",
       "public-exposure-review": "Public Exposure Review",

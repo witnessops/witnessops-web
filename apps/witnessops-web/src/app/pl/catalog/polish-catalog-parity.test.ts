@@ -105,12 +105,12 @@ test("professional public footprint audit keeps its request-only bilingual contr
   assert.equal(audit?.requestCta?.pl, "Zapytaj o audyt");
 });
 
-test("secondary details are exposed only for localized pages that exist", () => {
+test("catalogue details keep the primary canonical route and localized secondary routes", () => {
   const workflow = BUYER_SERVICES.find(
     (service) => service.id === "bounded-workflow-review",
   );
   assert.equal(workflow?.detailHref.en, "/catalog/workflows");
-  assert.equal(workflow?.detailHref.pl, undefined);
+  assert.equal(workflow?.detailHref.pl, "/catalog/workflows");
 
   for (const service of BUYER_SERVICES.filter(
     (candidate) => candidate.id !== "bounded-workflow-review",

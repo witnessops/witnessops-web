@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import {
   buyerWalkthroughHref,
   publicVerifierSha256,
@@ -153,24 +154,42 @@ test("public page makes replay, local verification, tamper challenge, and limits
   assert.doesNotMatch(client, /method:\s*["'](?:POST|PUT|PATCH|DELETE)/);
 });
 
-test("specimen review CTA preserves the Agent Risk offer selection", () => {
+test("specimen review CTA preserves the Agent Workflow Reconstruction selection", () => {
   const page = readFileSync(resolve(__dirname, "page.tsx"), "utf8");
 
   assert.match(
     page,
-    /buyerPublicOfferRequestHref\(\s*"en",\s*"bounded-workflow-review",?\s*\)/,
+    /buyerPublicOfferRequestHref\(\s*"en",\s*PRIMARY_OFFER\.id,?\s*\)/,
   );
-  assert.match(page, /Agent Risk &amp; Control Review — from €1,500 ex VAT\./);
-  assert.match(page, /authority, permissions, approvals,/);
-  assert.match(page, /proposes a receipt, verifier, and challenge path/);
-  assert.match(page, /example of the proof object a review can shape/);
+  assert.match(
+    page,
+    /\{PRIMARY_OFFER\.name\.en\} — \{PRIMARY_OFFER\.price\.en\}\./,
+  );
+  assert.match(page, /what was authorised,/);
+  assert.match(page, /maps permissions and evidence gaps/);
+  assert.match(page, /proposes\s+a receipt shape with a testable sample pack/);
+  assert.match(page, /Bring one consequential workflow/);
+  assert.match(page, /Entry begins with a non-secret fit check/);
+  assert.match(
+    page,
+    /delivery is within 10 working days after evidence rules are agreed/,
+  );
   assert.match(
     page,
     /<Link href=\{reviewRequestHref\}>Request a non-secret fit check →<\/Link>/,
   );
   assert.equal(
     buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+  );
+  assert.equal(PRIMARY_OFFER.id, "bounded-workflow-review");
+  assert.equal(PRIMARY_OFFER.name.en, "Agent Workflow Reconstruction");
+  assert.equal(PRIMARY_OFFER.price.en, "€2,500 fixed");
+  assert.equal(PRIMARY_OFFER.unit.en, "One named workflow (agentic or automated)");
+  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit check first");
+  assert.equal(
+    PRIMARY_OFFER.timing.en,
+    "Within 10 working days after evidence rules are agreed",
   );
 });
 

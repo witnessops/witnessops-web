@@ -923,7 +923,7 @@ test("admin core spine covers the complete message-to-receipt operating path", a
     {
       type: "service",
       id: "bounded-workflow-review",
-      label: "Agent Risk & Control Review",
+      label: "Agent Workflow Reconstruction",
       href: "/admin/products#service-bounded-workflow-review",
       matchedField: "id",
     },

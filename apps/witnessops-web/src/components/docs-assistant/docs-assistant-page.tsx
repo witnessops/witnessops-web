@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import {
   askWitnessOpsAnswerText,
   askWitnessOpsModeLabel,
@@ -23,7 +24,7 @@ interface Message {
 
 const SUGGESTED_QUESTIONS = [
   "An AI agent rotates compromised production keys. How can we prove authorization and revocation?",
-  "What is included in the Agent Risk & Control Review?",
+  `What is included in ${PRIMARY_OFFER.name.en}?`,
   "How much does one workflow review cost?",
   "How should one consequential agent workflow be bounded?",
   "Can I send logs or screenshots?",

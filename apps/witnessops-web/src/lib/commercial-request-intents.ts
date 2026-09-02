@@ -1,3 +1,5 @@
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+
 export const AI_AGENT_ACTION_PROOF_RUN_INTENT =
   "ai-agent-action-proof-run" as const;
 
@@ -92,7 +94,7 @@ export function getCommercialRequestLabel(
       case EXTERNAL_EXPOSURE_ASSESSMENT_INTENT:
         return "Zgłoszenie Public Exposure Review";
       case BOUNDED_WORKFLOW_REVIEW_INTENT:
-        return "Zgłoszenie Agent Risk & Control Review";
+        return `Zgłoszenie ${PRIMARY_OFFER.name.pl}`;
       case CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT:
         return "Zgłoszenie Customer Security Review Sprint";
       case ONE_SERVER_SECURITY_CHECK_INTENT:
@@ -120,7 +122,7 @@ export function getCommercialRequestLabel(
     case EXTERNAL_EXPOSURE_ASSESSMENT_INTENT:
       return "Public Exposure Review request";
     case BOUNDED_WORKFLOW_REVIEW_INTENT:
-      return "Agent Risk & Control Review request";
+      return `${PRIMARY_OFFER.name.en} request`;
     case CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT:
       return "Customer Security Review Sprint request";
     case ONE_SERVER_SECURITY_CHECK_INTENT:

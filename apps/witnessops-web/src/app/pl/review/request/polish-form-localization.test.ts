@@ -21,10 +21,9 @@ test("Polish PER request chrome mirrors the English offer-specific header", () =
 });
 
 test("Polish review request selects the native Polish form copy", () => {
-  assert.ok(
-    page.includes(
-      '<ContactForm locale="pl" intent={sku?.id ?? buyerService?.id ?? "review"} />',
-    ),
+  assert.match(
+    page,
+    /<ContactForm\s+locale="pl"\s+intent=\{sku\?\.id \?\? buyerService\?\.id \?\? "review"\}\s+\/>/,
   );
   assert.match(page, /buyerServiceByPublicOfferId\(offerId\)/);
   for (const marker of [

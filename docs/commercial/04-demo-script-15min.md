@@ -1,5 +1,12 @@
 # 15-minute flagship demo script
 
+> **Superseded demo sequence (2026-09-01).** The current primary demo path is Agent Workflow
+> Reconstruction: one named agentic or automated workflow, €2,500 fixed, beginning with a non-secret
+> fit check and delivered within 10 working days after evidence rules are agreed. Use
+> `/catalog/workflows`, the synthetic agent sample, `/verify`, and the selected request path. The
+> earlier catalogue walkthrough below is retained for reference and must not present One Server or
+> CSR Sprint as the current primary paid entry point.
+
 **Audience:** founder, security buyer, or technical operator.  
 **Goal:** show package shape + boundaries + next step (fit check).  
 **Not a goal:** show every script, pilot, or operator platform.

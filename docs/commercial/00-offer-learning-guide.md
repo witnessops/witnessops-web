@@ -2,6 +2,13 @@
 
 Plain-language map of what WitnessOps sells, what is only a method, and where every real sample lives on this machine and on the public site.
 
+> **Current commercial truth (2026-09-01).** Operate
+> [Agent Workflow Reconstruction](./16-agent-workflow-reconstruction-offer.md) as the primary paid
+> entry point: one named agentic or automated workflow, €2,500 fixed, non-secret fit check first,
+> delivered within 10 working days after evidence rules are agreed. Public Exposure Review remains
+> separate secondary catalogue work. The earlier P0 sections below remain reference material for
+> other catalogue offers; they do not define the current primary.
+
 ---
 
 ## The mental model (learn this once)
@@ -26,7 +33,7 @@ SITUATION (catalog card)
 
 ---
 
-## P0 offers you operate this week
+## Earlier P0 catalogue references
 
 ### 1. Customer Security Review Sprint (CSR)
 

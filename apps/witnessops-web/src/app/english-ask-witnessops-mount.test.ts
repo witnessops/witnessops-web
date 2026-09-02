@@ -25,7 +25,9 @@ test("English public shell mounts the compact Ask WitnessOps launcher", () => {
   assert.match(widget, /Describe one consequential agent workflow\./);
   assert.match(widget, /Review scope and price/);
   assert.match(widget, /Check fit/);
-  assert.match(widget, /offerId=bounded-workflow-review&source=ask/);
+  assert.match(widget, /PRIMARY_OFFER\.requestRoute/);
+  assert.match(widget, /offerId=\$\{PRIMARY_OFFER\.id\}/);
+  assert.match(widget, /source=ask/);
   assert.match(
     widget,
     /Eligible questions may be\s+sent to OpenAI\s+with.*store: false.*provider\s+retention\s+may\s+still\s+apply/s,

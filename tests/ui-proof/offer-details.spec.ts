@@ -4,9 +4,9 @@ const offers = [
   {
     path: "/catalog/workflows",
     service: "bounded-workflow-review",
-    name: "Agent Risk & Control Review",
-    price: "From €1,500",
-    timing: "Confirmed during the non-secret fit check",
+    name: "Agent Workflow Reconstruction",
+    price: "€2,500 fixed",
+    timing: "Within 10 working days after evidence rules are agreed",
     request: "/review/request",
   },
   {
@@ -160,6 +160,18 @@ test("reachable offer details use the canonical buyer contract and visual system
           /\/pl\/catalog\/offsec-external-exposure$/,
         );
       }
+      if (offer.service === "bounded-workflow-review") {
+        await expect(main).toContainText("One named workflow (agentic or automated)");
+        await expect(main).toContainText("Non-secret fit check first");
+        await expect(main).toContainText(
+          "Within 10 working days after evidence rules are agreed",
+        );
+        await expect(main).toContainText(
+          "separates what was authorised, executed, observed, and still unresolved",
+        );
+        await expect(main).not.toContainText("Agent Risk & Control Review");
+        await expect(main).not.toContainText("From €1,500");
+      }
       await expect(main).toContainText(offer.timing);
       await expect(main).toContainText(offer.price);
       await expect(main.locator("h1")).not.toContainText(/OFFSEC-|Proof packages/i);
@@ -251,6 +263,13 @@ test("reachable offer details use the canonical buyer contract and visual system
             "OFFSEC-EXTERNAL-EXPOSURE",
           );
         }
+        if (offer.service === "bounded-workflow-review") {
+          const request = new URL(href ?? "", "http://witnessops.test");
+          expect(request.searchParams.get("offerId")).toBe("bounded-workflow-review");
+          expect(request.searchParams.get("offer")).toBe(
+            "Agent Workflow Reconstruction",
+          );
+        }
         expect((await link.boundingBox())?.height).toBeGreaterThanOrEqual(44);
       }
 
@@ -333,7 +352,7 @@ test("Public Exposure Review synthetic sample is buyer-safe and responsive", asy
 test("Polish offer handoff keeps the canonical contract on the request page", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/pl/catalog/offsec-custody-ops", { waitUntil: "networkidle" });
-  await page.locator('a[href^="/pl/review/request?"]').first().click();
+  await page.locator('main a[href^="/pl/review/request?"]:visible').first().click();
   await expect(page).toHaveURL(/\/pl\/review\/request\?/);
   const selectedOffer = page.getByText(/Wybrana oferta:/).locator("..");
   await expect(selectedOffer).toContainText("Key, Access and Custody Review");

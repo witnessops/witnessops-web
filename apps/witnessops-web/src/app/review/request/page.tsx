@@ -7,6 +7,7 @@ import {
 } from "@/lib/buyer-services";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import { linkedinPremiumCampaignAttribution } from "@/lib/marketing-attribution";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
@@ -17,24 +18,21 @@ import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
   title: "Tell Us What You Need Reviewed",
-  description:
-    "Send a short, non-secret fit request for a questionnaire, server, launch, incident, access change or bounded workflow. No review starts from this form.",
+  description: `Start a non-secret fit check for ${PRIMARY_OFFER.name.en} or another bounded WitnessOps review. No review starts from this form.`,
   alternates: languageAlternates("/review/request", {
     en: "/review/request",
     pl: "/pl/review/request",
   }),
   openGraph: {
     title: "Tell Us What You Need Reviewed | WitnessOps",
-    description:
-      "Send a short, non-secret fit request for a questionnaire, server, launch, incident, access change or bounded workflow. No review starts from this form.",
+    description: `Start a non-secret fit check for ${PRIMARY_OFFER.name.en} or another bounded WitnessOps review. No review starts from this form.`,
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Tell Us What You Need Reviewed | WitnessOps",
-    description:
-      "Send a short, non-secret fit request for a questionnaire, server, launch, incident, access change or bounded workflow. No review starts from this form.",
+    description: `Start a non-secret fit check for ${PRIMARY_OFFER.name.en} or another bounded WitnessOps review. No review starts from this form.`,
   },
 };
 
@@ -101,6 +99,12 @@ const nextSteps = [
   "We reply with fit, scope, fee, and next action before any source materials are accepted.",
 ];
 
+const primaryOfferNextSteps = [
+  `We check whether ${PRIMARY_OFFER.unit.en.toLowerCase()} fits the reconstruction boundary without asking for secrets.`,
+  "If it fits, we agree the scope, evidence rules, exclusions, and evidence handling before accepting source material.",
+  `${PRIMARY_OFFER.timing.en} for the ${PRIMARY_OFFER.price.en} engagement.`,
+];
+
 const selectedServiceNextSteps = [
   "We check whether the selected service fits one bounded request.",
   "We confirm the scope owner, consent or authority, exclusions, required inputs, fee, and timing.",
@@ -151,20 +155,21 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
     ? buyerServiceByProductId(sku.id)
     : requestedOffer;
   const publicExposureOrder = sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
-  const agentRiskControlOrder =
-    selectedOffer?.id === "bounded-workflow-review";
+  const primaryOfferOrder = selectedOffer?.id === PRIMARY_OFFER.id;
   const selectedServiceOrder =
-    selectedOffer && !publicExposureOrder && !agentRiskControlOrder
+    selectedOffer && !publicExposureOrder && !primaryOfferOrder
       ? selectedOffer
       : undefined;
   const activeNextSteps = publicExposureOrder
     ? publicExposureNextSteps
-    : selectedServiceOrder
-      ? selectedServiceNextSteps
-      : nextSteps;
+    : primaryOfferOrder
+      ? primaryOfferNextSteps
+      : selectedServiceOrder
+        ? selectedServiceNextSteps
+        : nextSteps;
   const activeOutputs = publicExposureOrder
     ? publicExposureOutputs
-    : agentRiskControlOrder
+    : primaryOfferOrder
       ? proofOutputs
       : selectedServiceOrder
         ? [
@@ -180,7 +185,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         : reviewFitOutputs;
   const activeArtifacts = publicExposureOrder
     ? publicExposureArtifacts
-    : agentRiskControlOrder
+    : primaryOfferOrder
       ? sampleArtifacts.slice(0, 5)
       : [];
 
@@ -212,6 +217,8 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
           {publicExposureOrder
             ? "Tell us what public-facing system you want reviewed. We’ll confirm the exact boundary and authority before any testing begins."
+            : primaryOfferOrder
+              ? "Name one consequential agent or automation workflow. A non-secret summary is enough for the fit check; evidence is accepted only after scope, evidence rules, and handling are agreed."
             : selectedServiceOrder
               ? "Give us one non-secret summary for the selected service. We’ll confirm fit, exact scope, required inputs, fee, and timing before work begins."
               : "Start with one non-secret review need. We’ll confirm whether it is bounded enough to scope before any work or evidence intake begins."}
@@ -322,7 +329,9 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
               <p>
                 {publicExposureOrder
                   ? "€1,900 ex VAT for one authorised public-facing system. Payment is due in full before the delivery clock starts. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance."
-                  : "Fee, timing, and evidence handling are confirmed by email after the first fit check."}
+                  : primaryOfferOrder
+                    ? `${PRIMARY_OFFER.price.en} for ${PRIMARY_OFFER.unit.en.toLowerCase()}. ${PRIMARY_OFFER.fitCheck.en}. ${PRIMARY_OFFER.timing.en}.`
+                    : "Fee, timing, and evidence handling are confirmed by email after the first fit check."}
               </p>
               <p>No work or target-facing check starts from this form.</p>
               <p>No customer evidence is accepted until scope is agreed.</p>
@@ -418,8 +427,8 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         >
           {publicExposureOrder
             ? "What the Public Exposure Review delivers"
-            : agentRiskControlOrder
-              ? "What the Agent Risk & Control Review can include"
+            : primaryOfferOrder
+              ? `What ${PRIMARY_OFFER.name.en} includes`
               : selectedServiceOrder
                 ? `What the ${selectedServiceOrder.name.en} is scoped to deliver`
                 : "What the fit check establishes"}

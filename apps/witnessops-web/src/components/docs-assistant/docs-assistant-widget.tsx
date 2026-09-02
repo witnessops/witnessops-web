@@ -13,6 +13,7 @@ import { usePathname } from "next/navigation";
 import { MessageCircle, X } from "lucide-react";
 
 import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 
 import {
   askWitnessOpsAnswerText,
@@ -77,8 +78,7 @@ const GUIDED_FIT_QUESTIONS = [
   {
     label: "Review scope and price",
     detail: "Offer · price · paid next step",
-    question:
-      "What is included in the Agent Risk & Control Review and how much does it cost?",
+    question: `What is included in ${PRIMARY_OFFER.name.en} and how much does it cost?`,
   },
 ] as const;
 
@@ -617,7 +617,7 @@ export function DocsAssistantWidget() {
                   </div>
                   <div className={styles.utilityLinks}>
                     <Link
-                      href="/review/request?offerId=bounded-workflow-review&source=ask"
+                      href={`${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}&source=ask`}
                       className={styles.utilityLink}
                     >
                       Request scope directly <span aria-hidden="true">↗</span>

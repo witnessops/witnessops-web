@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   PUBLIC_CONTACT_EMAIL,
+  PUBLIC_CONTACT_GENERAL_HREF,
   PUBLIC_CONTACT_PRIMARY_HREF,
   PUBLIC_CONTACT_SUBJECTS,
   PUBLIC_NO_SECRETS_NOTE,
@@ -10,9 +11,14 @@ import {
   publicContactMailto,
 } from "./public-contact";
 
-test("public contact route uses the canonical request path and fallback email", () => {
+test("public contact route uses the selected primary offer path and fallback email", () => {
   assert.equal(PUBLIC_CONTACT_EMAIL, "engage@mail.witnessops.com");
-  assert.equal(PUBLIC_CONTACT_PRIMARY_HREF, "/review/request");
+  assert.equal(PUBLIC_CONTACT_GENERAL_HREF, "/review/request");
+  assert.equal(
+    PUBLIC_CONTACT_PRIMARY_HREF,
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+  );
+  assert.doesNotMatch(PUBLIC_CONTACT_PRIMARY_HREF, /Agent.Risk|1%2C500/);
   assert.equal(PUBLIC_CONTACT_SUBJECTS.general, "WitnessOps request");
   assert.equal(PUBLIC_CONTACT_SUBJECTS.fitCheck, "WitnessOps fit check");
   assert.equal(

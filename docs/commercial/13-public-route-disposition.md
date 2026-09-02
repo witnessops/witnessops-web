@@ -4,8 +4,8 @@ This record separates confirmed route behavior from unresolved commercial decisi
 
 | Route or family | Classification | Implemented outcome | Evidence |
 | --- | --- | --- | --- |
-| `/` and `/pl` | current | Keep public, indexable, canonical, and paired EN/PL; lead with agent-action receipts and Agent Risk & Control Review | Founder commercial decision dated 2026-08-26 and the bounded offer contract in `15-agent-risk-control-review-offer.md`. |
-| `/catalog/workflows` | current primary offer | Keep public, indexable, and canonical | Agent Risk & Control Review: one agentic or automated workflow, from €1,500 after a non-secret fit check, with explicit evidence and verifier boundaries. |
+| `/` and `/pl` | current | Keep public, indexable, canonical, and paired EN/PL; lead with agent-action receipts and Agent Workflow Reconstruction | Founder commercial decision dated 2026-09-01 and the canonical offer contract in `16-agent-workflow-reconstruction-offer.md`. |
+| `/catalog/workflows` | current primary offer | Keep public, indexable, and canonical | Agent Workflow Reconstruction: one named workflow, €2,500 fixed, beginning with a non-secret fit check and delivered within 10 working days after evidence rules are agreed. |
 | `/catalog/offsec-external-exposure` and `/pl/catalog/offsec-external-exposure` | current | Keep public, indexable, canonical, and paired EN/PL | Authoritative Public Exposure Review contract: €1,900 excluding VAT; one authorised public-facing system; fixed-scope and human-led. |
 | `/catalog/professional-public-footprint-audit` and `/pl/catalog/professional-public-footprint-audit` | current secondary service | Keep public, indexable, canonical, paired EN/PL, and available only by request | Consent-based review of one professional and one primary firm using public professional sources only; €4,900 excluding VAT; general request route; no direct payment or Stripe link. |
 | `/catalog`, `/pricing`, `/review/request` and their genuine Polish equivalents | current | Keep public and indexable | Current buyer path and offer-correction contract. |

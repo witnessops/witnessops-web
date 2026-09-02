@@ -6,6 +6,7 @@ import {
   buildReviewRequestConfirmationText,
   type ReviewRequestConfirmation,
 } from "@/lib/review-request-confirmation";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import styles from "./review-request-record.module.css";
 
 type CopyState = "idle" | "copied" | "failed";
@@ -18,7 +19,7 @@ const copyByLocale = {
     title: "Request captured.",
     requestLabel: "Requested path",
     requestNames: {
-      "agent-risk-control-review": "Agent Risk & Control Review",
+      "agent-risk-control-review": PRIMARY_OFFER.name.en,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",
       "public-exposure-review": "Public Exposure Review",
@@ -53,7 +54,7 @@ const copyByLocale = {
     title: "Zgłoszenie zapisane.",
     requestLabel: "Wybrana ścieżka",
     requestNames: {
-      "agent-risk-control-review": "Agent Risk & Control Review",
+      "agent-risk-control-review": PRIMARY_OFFER.name.pl,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",
       "public-exposure-review": "Public Exposure Review",

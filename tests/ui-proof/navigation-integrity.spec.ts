@@ -38,9 +38,11 @@ const askWorkflowFitResponse = {
     offer_id: "bounded-workflow-review",
     source: "ask",
     offer: {
-      name: "Agent Risk & Control Review",
-      price_label: "From €1,500",
-      unit_label: "One agentic or automated workflow",
+      name: "Agent Workflow Reconstruction",
+      price_label: "€2,500 fixed",
+      unit_label: "One named workflow (agentic or automated)",
+      fit_check_label: "Non-secret fit check first",
+      delivery_label: "Within 10 working days after evidence rules are agreed",
     },
     matching_specimen_id: "ai-agent-action-proof-run",
   },
@@ -202,15 +204,21 @@ test("a selected offer survives the click handoff into the request form", async 
   await page.goto("/catalog/workflows", { waitUntil: "networkidle" });
   const selectedOfferCta = page
     .locator('[data-buyer-service-detail="bounded-workflow-review"]')
-    .getByRole("link", { name: "Bring one workflow", exact: true })
+    .getByRole("link", { name: "Start a non-secret fit check", exact: true })
     .first();
   await selectedOfferCta.click();
 
   await expectPath(page, "/review/request");
   const destination = new URL(page.url());
   expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
-  expect(destination.searchParams.get("offer")).toBe("Agent Risk & Control Review");
-  await expect(page.getByText("Selected offer: Agent Risk & Control Review")).toBeVisible();
+  expect(destination.searchParams.get("offer")).toBe("Agent Workflow Reconstruction");
+  await expect(page.getByText("Selected offer: Agent Workflow Reconstruction")).toBeVisible();
+  await expect(page.locator("main")).toContainText("€2,500 fixed");
+  await expect(page.locator("main")).toContainText(
+    "Within 10 working days after evidence rules are agreed",
+  );
+  await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
+  await expect(page.locator("main")).not.toContainText("From €1,500");
   await expect(page.locator('main form input[name="intent"]')).toHaveValue(
     "bounded-workflow-review",
   );
@@ -269,7 +277,7 @@ test("mobile Ask reaches a scrollable fit-check destination without a stale over
     askRequests += 1;
     expect(route.request().method()).toBe("POST");
     expect(route.request().postDataJSON()).toEqual({
-      question: "What is included in the Agent Risk & Control Review?",
+      question: "What is included in Agent Workflow Reconstruction?",
     });
     await route.fulfill({
       status: 200,
@@ -289,7 +297,7 @@ test("mobile Ask reaches a scrollable fit-check destination without a stale over
 
   await page
     .getByRole("button", {
-      name: "What is included in the Agent Risk & Control Review?",
+      name: "What is included in Agent Workflow Reconstruction?",
     })
     .click();
   const fitCheckCta = page.locator('[data-ask-primary-cta="true"], [data-ask-primary-cta]');
@@ -301,7 +309,11 @@ test("mobile Ask reaches a scrollable fit-check destination without a stale over
   expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
   expect(destination.searchParams.get("source")).toBe("ask");
   expect(destination.searchParams.get("result")).toBe("likely");
-  await expect(page.getByText("Selected offer: Agent Risk & Control Review")).toBeVisible();
+  await expect(page.getByText("Selected offer: Agent Workflow Reconstruction")).toBeVisible();
+  await expect(page.locator("main")).toContainText("€2,500 fixed");
+  await expect(page.locator("main")).toContainText(
+    "Within 10 working days after evidence rules are agreed",
+  );
   await expect(page.locator("#ask-witnessops-dialog")).toHaveCount(0);
   await expect(page.locator("#witnessops-mobile-menu")).toHaveAttribute(
     "aria-hidden",
@@ -338,7 +350,10 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   await page.goto("/catalog", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
-  const lastCta = menu.getByRole("link", { name: "Start a review", exact: true });
+  const lastCta = menu.getByRole("link", {
+    name: "Start a non-secret fit check",
+    exact: true,
+  });
   await expect(menu).toHaveAttribute("aria-hidden", "false");
   await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toBeHidden();
 
@@ -362,7 +377,12 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
 
   await lastCta.click();
   await expectPath(page, "/review/request");
-  await expect(page.locator("main h1")).toContainText("Tell us what you need reviewed");
+  const destination = new URL(page.url());
+  expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
+  expect(destination.searchParams.get("offer")).toBe("Agent Workflow Reconstruction");
+  await expect(page.locator("main h1")).toContainText(
+    "Start your Agent Workflow Reconstruction",
+  );
   await saveEvidence(page, "05-mobile-menu-cta-destination.png");
 
   await context.close();

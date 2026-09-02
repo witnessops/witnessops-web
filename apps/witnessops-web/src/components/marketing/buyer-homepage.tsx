@@ -10,6 +10,7 @@ import {
   buyerPublicOfferRequestHref,
   type BuyerLocale,
 } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import styles from "./buyer-homepage.module.css";
 
 type HeroCopy = {
@@ -28,7 +29,7 @@ const localizedCopy = {
     },
     heroIntro:
       "Produce a bounded record another responsible party can inspect or challenge.",
-    primaryCta: "Bring one agentic workflow",
+    primaryCta: "Start a non-secret fit check",
     sampleLink: "Run and verify the compromised API key rotation demo",
     offerCta: "See scope and pricing",
     handlingBoundary:
@@ -56,8 +57,8 @@ const localizedCopy = {
       {
         step: "Paid review",
         title: "Bring the real workflow",
-        body: "Move from a public specimen to one scoped Agent Risk & Control Review.",
-        href: "/review/request?offerId=bounded-workflow-review",
+        body: `Move from a public specimen to one scoped ${PRIMARY_OFFER.name.en}.`,
+        href: `${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}`,
       },
     ],
     reviewEyebrow: "The evidence questions",
@@ -90,22 +91,16 @@ const localizedCopy = {
     receiptResult: "VALID_SYNTHETIC_SPECIMEN",
     receiptLink: "Replay and verify the signed rotation",
     offerEyebrow: "Paid engagement",
-    offerTitle: "Agent Risk & Control Review",
-    offerLead: "Review the workflow, not only the file.",
+    offerTitle: PRIMARY_OFFER.name.en,
+    offerLead: "Reconstruct the workflow, not only the file.",
     offerBody:
-      "The engagement maps one named workflow, identifies authority and evidence gaps, defines a proposed receipt shape, and produces a clearly labelled sample package with control recommendations.",
+      "WitnessOps reconstructs one consequential agent or automation workflow and separates what was authorised, executed, observed, and still unresolved.",
     bestForTitle: "Best for",
     bestForBody:
       "Security, platform, compliance, MSSP, and AI automation teams letting agents or automations touch sensitive systems.",
     deliverablesTitle: "Deliverables",
-    deliverables: [
-      "Workflow and permission map",
-      "Approval and evidence-gap analysis",
-      "Proposed receipt and verifier path",
-      "Sample package and control recommendations",
-    ],
-    commercialLine:
-      "From €1,500 · Timing confirmed during a fit check · One agentic or automated workflow",
+    deliverables: PRIMARY_OFFER.included.en,
+    commercialLine: `${PRIMARY_OFFER.price.en} · ${PRIMARY_OFFER.fitCheck.en} · ${PRIMARY_OFFER.unit.en} · ${PRIMARY_OFFER.timing.en}`,
     outcomeTitle: "Outcome",
     outcomeBody:
       "A practical handover that separates supported observations, unresolved gaps, and the evidence or controls needed to strengthen the workflow.",
@@ -126,7 +121,7 @@ const localizedCopy = {
     },
     heroIntro:
       "Przygotuj ograniczony zapis, który inna odpowiedzialna osoba może sprawdzić lub zakwestionować.",
-    primaryCta: "Zgłoś jeden workflow agenta",
+    primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
     sampleLink: "Uruchom i zweryfikuj demo rotacji skompromitowanego klucza API",
     offerCta: "Zobacz zakres i cenę",
     handlingBoundary:
@@ -154,8 +149,8 @@ const localizedCopy = {
       {
         step: "Płatny przegląd",
         title: "Przynieś prawdziwy workflow",
-        body: "Przejdź od publicznego przykładu do jednego Agent Risk & Control Review.",
-        href: "/pl/review/request?offerId=bounded-workflow-review",
+        body: `Przejdź od publicznego przykładu do jednego ${PRIMARY_OFFER.name.pl}.`,
+        href: `/pl${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}`,
       },
     ],
     reviewEyebrow: "Pytania dowodowe",
@@ -188,22 +183,16 @@ const localizedCopy = {
     receiptResult: "VALID_SYNTHETIC_SPECIMEN",
     receiptLink: "Odtwórz i zweryfikuj podpisaną rotację",
     offerEyebrow: "Płatny przegląd",
-    offerTitle: "Agent Risk & Control Review",
-    offerLead: "Przejrzyj workflow, nie tylko plik.",
+    offerTitle: PRIMARY_OFFER.name.pl,
+    offerLead: "Odtwórz workflow, nie tylko plik.",
     offerBody:
-      "Przegląd mapuje jeden nazwany workflow, wskazuje luki w upoważnieniach i materiałach, definiuje proponowany kształt zapisu i dostarcza jasno oznaczony przykładowy pakiet z zaleceniami dotyczącymi kontroli.",
+      "WitnessOps rekonstruuje jeden istotny workflow agenta lub automatyzacji i oddziela to, co zatwierdzono, wykonano, zaobserwowano i co nadal pozostaje nierozstrzygnięte.",
     bestForTitle: "Dla kogo",
     bestForBody:
       "Zespoły bezpieczeństwa, platform, compliance, MSSP i automatyzacji AI, które pozwalają agentom lub automatyzacjom działać w systemach wrażliwych.",
     deliverablesTitle: "Zakres dostawy",
-    deliverables: [
-      "Mapa workflow i uprawnień",
-      "Analiza luk w zatwierdzeniach i materiałach",
-      "Proponowany zapis i ścieżka weryfikatora",
-      "Przykładowy pakiet i zalecenia dotyczące kontroli",
-    ],
-    commercialLine:
-      "Od 6 500 zł (ok. €1 500) · Termin potwierdzany podczas oceny dopasowania · Jeden agentowy lub zautomatyzowany workflow",
+    deliverables: PRIMARY_OFFER.included.pl,
+    commercialLine: `${PRIMARY_OFFER.price.pl} · ${PRIMARY_OFFER.fitCheck.pl} · ${PRIMARY_OFFER.unit.pl} · ${PRIMARY_OFFER.timing.pl}`,
     outcomeTitle: "Wynik",
     outcomeBody:
       "Praktyczne przekazanie, które oddziela poparte obserwacje, nierozstrzygnięte luki oraz materiały lub kontrole potrzebne do wzmocnienia workflow.",
@@ -229,9 +218,9 @@ export function BuyerHomepage({
   const sampleHref = "/review/sample-cases/ai-agent-action-proof-run";
   const requestHref = buyerPublicOfferRequestHref(
     locale,
-    "bounded-workflow-review",
+    PRIMARY_OFFER.id,
   );
-  const offerHref = "/catalog/workflows";
+  const offerHref = PRIMARY_OFFER.route;
 
   return (
     <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="agent-proof-offer">
@@ -307,7 +296,7 @@ export function BuyerHomepage({
         </div>
       </section>
 
-      <section id="agent-risk-control" className={styles.offerSection} aria-labelledby="home-offer-heading">
+      <section id="agent-workflow-reconstruction" className={styles.offerSection} aria-labelledby="home-offer-heading">
         <div className={`${styles.frame} ${styles.offerFrame}`}>
           <div className={styles.offerIntro}>
             <p className={styles.eyebrow}>{text.offerEyebrow}</p>

@@ -12,6 +12,7 @@ import {
   buyerServiceByPublicOfferId,
   buyerServiceRequestHref,
 } from "./buyer-services";
+import { PRIMARY_OFFER } from "./commercial-truth";
 
 test("commercial SKU route dispositions preserve current offers and contain drift", () => {
   assert.equal(catalogSkuDisposition("OFFSEC-LOCAL-AUDIT"), "current");
@@ -48,8 +49,15 @@ test("English review intake can preserve the current workflow offer without revi
   assert.doesNotMatch(source, /isCurrentPublicCatalogSku\(requestedOffer/);
 
   const offer = buyerServiceByPublicOfferId("bounded-workflow-review");
-  assert.equal(offer?.name.en, "Agent Risk & Control Review");
-  assert.equal(offer?.price.en, "From €1,500");
+  assert.equal(offer?.name.en, "Agent Workflow Reconstruction");
+  assert.equal(offer?.price.en, "€2,500 fixed");
+  assert.equal(
+    offer?.timing.en,
+    "Within 10 working days after evidence rules are agreed",
+  );
+  assert.equal(offer?.requestCta?.en, "Start a non-secret fit check");
+  assert.equal(PRIMARY_OFFER.unit.en, "One named workflow (agentic or automated)");
+  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit check first");
   assert.equal(offer?.productId, undefined);
   assert.equal(
     buyerServiceByPublicOfferId("customer-security-review-sprint")?.name.en,
@@ -68,11 +76,11 @@ test("English review intake can preserve the current workflow offer without revi
 
   assert.equal(
     buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
   );
   assert.equal(
     buyerServiceRequestHref("pl", offer!),
-    "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Risk+%26+Control+Review",
+    "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
   );
 });
 

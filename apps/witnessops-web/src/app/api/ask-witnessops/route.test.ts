@@ -39,6 +39,14 @@ function askRequest(question: string, ip: string) {
   });
 }
 
+const CURRENT_PRIMARY_OFFER = {
+  name: "Agent Workflow Reconstruction",
+  price_label: "€2,500 fixed",
+  unit_label: "One named workflow (agentic or automated)",
+  fit_check_label: "Non-secret fit check first",
+  delivery_label: "Within 10 working days after evidence rules are agreed",
+} as const;
+
 test("public Ask rejects malformed UTF-8 before JSON parsing", async () => {
   const response = await POST(
     new Request("https://witnessops.com/api/ask-witnessops", {
@@ -250,7 +258,13 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
         intent?: string;
         offer_id?: string;
         matching_specimen_id?: string;
-        offer?: { price_label?: string };
+        offer?: {
+          name?: string;
+          price_label?: string;
+          unit_label?: string;
+          fit_check_label?: string;
+          delivery_label?: string;
+        };
       };
     };
 
@@ -265,7 +279,7 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
       payload.commercial_fit?.offer_id,
       "bounded-workflow-review",
     );
-    assert.equal(payload.commercial_fit?.offer?.price_label, "From €1,500");
+    assert.deepEqual(payload.commercial_fit?.offer, CURRENT_PRIMARY_OFFER);
     assert.equal(
       payload.commercial_fit?.matching_specimen_id,
       "ai-agent-action-proof-run",
@@ -278,7 +292,7 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
 test("public Ask recognizes the paid offer and price", async () => {
   const response = await POST(
     askRequest(
-      "What is included in the Agent Risk & Control Review and how much does it cost?",
+      "What is included in Agent Workflow Reconstruction and how much does it cost?",
       "203.0.113.89",
     ),
   );
@@ -288,7 +302,13 @@ test("public Ask recognizes the paid offer and price", async () => {
     commercial_fit?: {
       result?: string;
       intent?: string;
-      offer?: { name?: string; price_label?: string };
+      offer?: {
+        name?: string;
+        price_label?: string;
+        unit_label?: string;
+        fit_check_label?: string;
+        delivery_label?: string;
+      };
     };
   };
 
@@ -296,11 +316,7 @@ test("public Ask recognizes the paid offer and price", async () => {
   assert.equal(payload.route, null);
   assert.equal(payload.commercial_fit?.result, "likely");
   assert.equal(payload.commercial_fit?.intent, "offer");
-  assert.equal(
-    payload.commercial_fit?.offer?.name,
-    "Agent Risk & Control Review",
-  );
-  assert.equal(payload.commercial_fit?.offer?.price_label, "From €1,500");
+  assert.deepEqual(payload.commercial_fit?.offer, CURRENT_PRIMARY_OFFER);
 });
 
 test("public Ask never sends a secret-bearing buyer question to the provider", async () => {
@@ -566,7 +582,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(broadPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     broadPayload.commercial_fit?.offer?.price_label,
-    "From €1,500",
+    "€2,500 fixed",
   );
 
   const multiResponse = await POST(
@@ -581,7 +597,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(multiPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     multiPayload.commercial_fit?.offer?.price_label,
-    "From €1,500",
+    "€2,500 fixed",
   );
 
   const unrelatedResponse = await POST(
