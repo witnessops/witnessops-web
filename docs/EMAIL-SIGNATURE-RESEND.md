@@ -21,7 +21,7 @@ Do not send passwords, private keys, API keys, recovery codes, session tokens or
 1. **One idea per line.** Never jam brand + tagline + CTA + secrets warning into one paragraph.
 2. Motto is always: `Proof beats memory.`
 3. Prefer `engage@mail.witnessops.com` for public ops mail.
-4. App-sent mail uses `apps/witnessops-web/src/lib/server/email-signatures.ts` (HTML table layout). Keep the public ops signature aligned with the `ops_minimal` profile.
+4. App-sent mail uses `apps/witnessops-web/src/lib/server/email-signatures.ts`. This manual-client signature is a deliberately human-friendly variant of the same public ops identity; it is **not required to be byte-identical** to the generated `ops_minimal` profile.
 5. After editing Resend, send a test to yourself and open on mobile.
 
 ## HTML (optional Resend rich signature)
