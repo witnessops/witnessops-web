@@ -16,7 +16,6 @@ and sample proof-surface pages used to explain artifact inspection boundaries.
 - Returns deterministic verification results for the same receipt input.
 - Provides buyer-facing proof-run, sample-case, docs, support, pricing, library, and legal/security surfaces.
 - Presents the AI Agent Action Proof Run sample with pinned artifact links, manifest provenance, visible artifact digests, and buyer-path smoke coverage.
-- Documents the current public hosting custody in [`docs/DEPLOYMENT_CUSTODY.md`](./docs/DEPLOYMENT_CUSTODY.md) and [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md). Historical lane notes: [`README-LANE.md`](./README-LANE.md).
 
 ## What this repository does not do
 
@@ -27,7 +26,7 @@ and sample proof-surface pages used to explain artifact inspection boundaries.
 - It does not recompute individual source artifact hashes for the external sample repo locally.
 - It does not prove production deployment, legal compliance, source-system truth, or complete AI governance coverage.
 - Public positioning category (working): bounded independent verification of consequential AI and security work—one activity reconstructed (authorized, executed, observed, unresolved); not a whole-environment or GRC replacement.
-- It does not use Azure Container Apps, `azd`, or root Bicep files as active deployment authority.
+- It does not use retired cloud deployment material as active authority.
 
 ## Product governance
 
@@ -36,22 +35,18 @@ All user-facing workflows follow the
 **Easy in the foreground. Reconstructable in the background.** The linked
 decision record is the canonical authority for this product rule.
 
-## Deployment authority
+## Deployment boundary
 
-Deployment guidance lives in [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md).
+This public repository intentionally states only the deployment boundary needed
+for contributors and buyers:
 
-Current repo boundary:
+- merge does **not** itself authorize or perform a production deployment;
+- production publication and deployment require a separate, explicit operator action;
+- deployment credentials, host identity, topology, rollback details, and operator procedures are not part of the public product documentation contract;
+- archived deployment material is historical reference only and is not rollback or production authority.
 
-- active public website runtime: Caddy reverse-proxying to a private k3s deployment; topology is injected from operator custody
-- active app runtime inputs: app source, package scripts, Dockerfile, environment examples, and validation commands
-- retired Azure archive: `docs/archive/azure-aca-retired-20260508/`
-
-The full source-to-runtime custody map, including image custody, verification,
-and rollback expectations, lives in [`docs/DEPLOYMENT_CUSTODY.md`](./docs/DEPLOYMENT_CUSTODY.md).
-
-The archived Azure material is historical reference only. Do not run Azure
-commands, restore Azure deployment paths, or treat the archive as rollback
-authority without a separate explicit Azure reopening lane.
+Do not infer production state from repository prose alone. A production claim
+requires separately captured deployment/runtime evidence for the exact release.
 
 ## Verify a receipt
 
@@ -78,7 +73,7 @@ It exposes three public, read-only tools:
 
 Run locally with `pnpm dev`, then connect MCP Inspector to
 `http://127.0.0.1:3001/mcp`. Production exposure and ChatGPT app connection
-remain separate explicit apply steps under the deployment authority contract.
+remain separate explicit apply steps.
 
 ## Public proof-surface contract
 
@@ -113,7 +108,6 @@ For vulnerability disclosure, see [`SECURITY.md`](./SECURITY.md).
 - Local validation: `pnpm health` (build, lint, typecheck, tests, route parity, receipt smoke, buyer-path smoke).
 - Public buyer/proof-surface validation: `pnpm smoke:buyer-path:test`.
 - Frozen command contract: [`commands.md`](./commands.md).
-- Deployment authority: [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md).
 - Repository-local docs index: [`docs/README.md`](./docs/README.md).
 - Root/subtree authority-file inventory and stale-file deletion gate: [`docs/ROOT_SURFACE_INVENTORY.md`](./docs/ROOT_SURFACE_INVENTORY.md).
 - Agent instructions: [`AGENTS.md`](./AGENTS.md) and [`apps/witnessops-web/AGENTS.md`](./apps/witnessops-web/AGENTS.md).
