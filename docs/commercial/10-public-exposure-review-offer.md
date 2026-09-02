@@ -56,12 +56,12 @@ This is not a penetration test and does not guarantee security, completeness, co
 
 ### Commercial line
 
-- **Fixed fee:** €1,900 excluding VAT for the named package boundary.
+- **Fixed fee:** €1,900 · excluding VAT for the named package boundary.
 - **Ordering:** no sales call is required. The request begins asynchronous scope acceptance; it does not authorise testing.
 - **Payment:** payment of €1,900 in full is due before the delivery clock starts. Payment alone does not authorise testing.
 - **Availability:** subject to written scope acceptance and confirmed operator capacity.
 - **Delivery:** within three working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are all confirmed.
-- **Retest:** one focused retest within 30 days is included; an additional or late retest is €550 excluding VAT.
+- **Retest:** one focused retest within 30 days is included; an additional or late retest is €550 · excluding VAT.
 
 Customer-caused approval, attribution, scheduling, outage, or scope-change delays pause the delivery clock.
 
@@ -81,7 +81,7 @@ The synthetic sample route remains `/review/sample-cases/external-exposure-asses
 
 ## Operator validation boundary — do not include in buyer copy
 
-- **Known:** the public contract fixes the current public name, stable SKU, €1,900 ex-VAT price, full-payment gate, boundary, caps, exclusions, start conditions, handover, and included retest.
+- **Known:** the public contract fixes the current public name, stable SKU, €1,900 excluding VAT price, full-payment gate, boundary, caps, exclusions, start conditions, handover, and included retest.
 - **Owner-authorised commitment:** delivery within three working days when all start conditions are complete, operator capacity is confirmed, and the caps hold. A written fee waiver may substitute for payment only for an invitation-only design-partner engagement. This is a forward-looking service commitment, not past-performance evidence.
 - **Unknown:** actual delivery hours, buyer willingness to pay, close rate, margin, and which trigger produces the strongest qualified demand.
 - **Required evidence:** aggregate enquiry, scope-fit, conversion, delivery-time, and objection data. Do not convert assumptions into public claims.

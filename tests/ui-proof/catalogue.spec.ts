@@ -121,7 +121,9 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         : "Primary paid entry point",
     );
     await expect(primaryOfferCard).toContainText(
-      scenario.path.startsWith("/pl") ? "€2 500 — cena stała" : "€2,500 fixed",
+      scenario.path.startsWith("/pl")
+        ? "€2 500 — cena stała · bez VAT"
+        : "€2,500 fixed · excluding VAT",
     );
     await expect(primaryOfferCard).toContainText(
       scenario.path.startsWith("/pl")
@@ -139,7 +141,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         : "Secondary catalogue offer",
     );
     await expect(publicExposureCard).toContainText(
-      scenario.path.startsWith("/pl") ? "€1 900 netto" : "€1,900 ex VAT",
+      scenario.path.startsWith("/pl") ? "€1 900 · bez VAT" : "€1,900 · excluding VAT",
     );
     await expect(publicExposureCard).toContainText(
       scenario.path.startsWith("/pl")
@@ -187,15 +189,9 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
             ? "Rozpocznij przegląd"
             : "Start a review",
       );
-      // CSR card has Start + Learn more + locale one-pager PDF.
+      // Public buyer cards expose only the request and web-detail paths.
       if (expectedServiceOrder[index] === "customer-security-review-sprint") {
-        await expect(links).toHaveCount(3);
-        await expect(links.nth(2)).toHaveAttribute(
-          "href",
-          scenario.path.startsWith("/pl")
-            ? "/assets/one-pagers/csr-sprint-pl-a4.pdf"
-            : "/assets/one-pagers/csr-sprint-en-a4.pdf",
-        );
+        await expect(links).toHaveCount(2);
       } else if (expectedServiceOrder[index] === "external-exposure-assessment") {
         await expect(links).toHaveCount(3);
         await expect(links.nth(2)).toHaveAttribute(
@@ -209,6 +205,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         }
       }
     }
+    await expect(page.locator('[data-one-pager], main a[href$=".pdf"]')).toHaveCount(0);
 
     const publicFootprintCard = page.locator(
       '[data-buyer-service="professional-public-footprint-audit"]',
@@ -217,7 +214,9 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
       scenario.path.startsWith("/pl") ? "Dostępny na zapytanie" : "Available by request",
     );
     await expect(publicFootprintCard).toContainText(
-      scenario.path.startsWith("/pl") ? "4 900 EUR netto" : "€4,900 excluding VAT",
+      scenario.path.startsWith("/pl")
+        ? "4 900 EUR · bez VAT"
+        : "€4,900 · excluding VAT",
     );
     await expect(
       publicFootprintCard.locator('[data-service-availability="available_by_request"]'),
@@ -282,7 +281,7 @@ test("External Attack Surface Review pricing entry preserves sample and intake l
     '[data-pricing-service="external-exposure-assessment"]',
   );
   await expect(card).toContainText(
-    "€1,900 ex VAT — one authorised public-facing system",
+    "€1,900 · excluding VAT",
   );
   await expect(card).toContainText("One focused retest within 30 days is included");
   await expect(card).toContainText("Payment is due in full before the delivery clock starts");

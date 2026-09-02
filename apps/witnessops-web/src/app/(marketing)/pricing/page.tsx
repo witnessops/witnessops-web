@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 const boundaries = [
   "No review starts from this page or from payment alone.",
   `An ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} can be started without a sales call; authority, scope, price, timing, capacity, and evidence handling are still accepted before work begins. This is not a penetration test.`,
-  "Published figures are fixed prices or starting ranges for the named boundary, excluding VAT where stated.",
+  "Published figures are fixed prices or starting ranges for the named boundary; all are shown excluding VAT.",
   "A report, receipt, or verifier does not prove that a system is secure, complete, compliant, or free of vulnerabilities.",
 ];
 
@@ -99,7 +99,7 @@ export default function PricingPage() {
                   <p className="mt-2 text-sm leading-6 text-text-muted">{service.timing.en}</p>
                   {publicExposure ? (
                     <p className="mt-3 text-sm leading-6 text-text-muted">
-                      No sales call required. Payment is due in full before the delivery clock starts; payment alone does not authorise testing. One focused retest within 30 days is included; an additional or late retest is €550 ex VAT.
+                      No sales call required. Payment is due in full before the delivery clock starts; payment alone does not authorise testing. One focused retest within 30 days is included; an additional or late retest is {EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.en}.
                     </p>
                   ) : null}
                   <p className="mt-4 border-t border-surface-border pt-4 text-sm leading-6 text-text-muted">

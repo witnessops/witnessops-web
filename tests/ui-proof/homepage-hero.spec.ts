@@ -197,8 +197,8 @@ test("English and Polish homepages share one action-security and receipt journey
     );
     await expect(primaryOffer).toContainText(
       scenario.path === "/"
-        ? "€2,500 fixed"
-        : "€2 500 — cena stała",
+        ? "€2,500 fixed · excluding VAT"
+        : "€2 500 — cena stała · bez VAT",
     );
     await expect(primaryOffer).toContainText(
       scenario.path === "/"
@@ -312,7 +312,7 @@ test("Ask WitnessOps keeps the paid-review proof path visible and controlled", a
       await expect(dialog.getByText("PUBLIC FIT SIGNAL", { exact: true })).toBeVisible();
       await expect(dialog.getByText("NO EVIDENCE REVIEWED", { exact: true })).toBeVisible();
       await expect(
-        dialog.getByText("€2,500 fixed · One consequential agent or automation action", {
+        dialog.getByText("€2,500 fixed · excluding VAT · One consequential agent or automation action", {
           exact: true,
         }),
       ).toBeVisible();

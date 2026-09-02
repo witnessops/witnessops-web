@@ -4,7 +4,6 @@ import Link from "next/link";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { CtaButton } from "@/components/shared/cta-button";
 import {
-  ONE_PAGER_LINK_PROPS,
   buyerCatalogHref,
   buyerServiceRequestHref,
   type BuyerLocale,
@@ -30,7 +29,6 @@ const ui = {
     verification: "How to inspect the result",
     start: "Start a non-secret fit check",
     viewServices: "View services",
-    onePager: "One-pager (PDF)",
     reference: "Service reference",
     sampleFallback: "View example",
   },
@@ -49,7 +47,6 @@ const ui = {
     verification: "Jak sprawdzić wynik",
     start: "Rozpocznij wstępną ocenę bez informacji poufnych",
     viewServices: "Zobacz usługi",
-    onePager: "One-pager (PDF)",
     reference: "Identyfikator usługi",
     sampleFallback: "Zobacz przykład",
   },
@@ -58,10 +55,7 @@ const ui = {
 /** Short commercial figure for the accent panel (CSR-style). */
 function commercialPriceLabel(price: string): string {
   // Drop parenthetical FX notes: "… (ok. €950)"
-  const withoutParen = price.replace(/\s*\([^)]*\)\s*/g, " ").trim();
-  const cut = withoutParen.split(/\s+(?:after|po|—)\s+/i)[0]?.trim();
-  // Prefer leading "From/Od … zł/€…" or "Standardowo … zł"
-  return cut || withoutParen || price;
+  return price.replace(/\s*\([^)]*\)\s*/g, " ").trim() || price;
 }
 
 export function BuyerServiceDetail({
@@ -93,7 +87,6 @@ export function BuyerServiceDetail({
   const requestHref =
     requestHrefOverride ?? buyerServiceRequestHref(locale, service);
   const catalogueHref = buyerCatalogHref(locale);
-  const onePager = service.onePagerHref?.[locale] ?? service.onePagerHref?.en;
   const primaryCta = landing.primaryCta ?? text.start;
   const secretsNote = locale === "pl" ? POLISH_NO_SECRETS_NOTE : PUBLIC_NO_SECRETS_NOTE;
   const priceDisplay = commercialPriceLabel(service.price[locale]);
@@ -176,16 +169,6 @@ export function BuyerServiceDetail({
             ) : null}
             <div className="mt-8 flex flex-wrap gap-3">
               <CtaButton href={requestHref} variant="primary" label={primaryCta} />
-              {onePager ? (
-                <a
-                  href={onePager}
-                  {...ONE_PAGER_LINK_PROPS}
-                  data-one-pager={service.id}
-                  className="inline-flex min-h-12 items-center justify-center border border-surface-border px-6 text-center text-sm font-semibold leading-5 text-text-primary transition-colors hover:border-brand-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
-                >
-                  {text.onePager}
-                </a>
-              ) : null}
               {landing.sampleHref ? (
                 <CtaButton
                   href={landing.sampleHref}
@@ -270,7 +253,7 @@ export function BuyerServiceDetail({
             <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
               {text.how}
             </h2>
-            <ol className="mt-6 space-y-4">
+            <ol className="mt-6 list-none space-y-4">
               {landing.steps.map(([title, body], index) => (
                 <li key={title} className="border-t border-surface-border pt-4">
                   <p className="text-sm font-semibold text-text-primary">

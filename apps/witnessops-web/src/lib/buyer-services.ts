@@ -2,6 +2,7 @@ import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
 } from "@/lib/commercial-truth";
+import { publicB2bPrice } from "@/lib/commercial-price";
 
 export type BuyerLocale = "en" | "pl";
 
@@ -39,11 +40,6 @@ export type BuyerService = {
   timing: LocalizedText;
   boundary: LocalizedText;
   detailHref: Partial<Record<BuyerLocale, string>>;
-  /**
-   * Optional public one-pager (PDF) per locale — e.g. CSR EN/PL sales sheets.
-   * Served from /public/assets/one-pagers/.
-   */
-  onePagerHref?: Partial<Record<BuyerLocale, string>>;
 };
 
 export type BuyerPublicOfferId = Extract<
@@ -91,10 +87,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       en: "A response package for one questionnaire and one product scope, including proposed answers, evidence references, qualifications, open items and a cover note for your approval.",
       pl: "Pakiet odpowiedzi dla jednego kwestionariusza i jednego zakresu produktu, obejmujący proponowane odpowiedzi, odwołania do materiałów, zastrzeżenia, otwarte kwestie i notę przewodnią do zatwierdzenia.",
     },
-    price: {
-      en: "From €1,600 after a non-secret fit check",
-      pl: "Od 7 000 zł po wstępnej ocenie bez informacji poufnych (ok. €1 600)",
-    },
+    price: publicB2bPrice("From €1,600", "Od 7 000 zł (ok. €1 600)"),
     timing: {
       en: "Approximately three working days after scope, owners, required inputs and evidence access are confirmed",
       pl: "Około trzech dni roboczych po potwierdzeniu zakresu, właścicieli, wymaganych materiałów i dostępu do dowodów",
@@ -106,11 +99,6 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     detailHref: {
       en: "/customer-security-review",
       pl: "/pl/customer-security-review",
-    },
-    onePagerHref: {
-      // Open inline in a new tab (Content-Disposition: inline via next.config headers).
-      en: "/assets/one-pagers/csr-sprint-en-a4.pdf",
-      pl: "/assets/one-pagers/csr-sprint-pl-a4.pdf",
     },
   },
 
@@ -161,10 +149,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       en: "Posture, findings, report and, where agreed, a signed proof package with offline verification path — what was checked, what evidence supports it, what remains unresolved.",
       pl: "Stan, ustalenia, raport oraz, jeśli uzgodniono, podpisany pakiet ze ścieżką weryfikacji offline — co sprawdzono, jakie materiały to wspierają i co pozostaje otwarte.",
     },
-    price: {
-      en: "€950 standard after a non-secret fit check",
-      pl: "Standardowo 4 100 zł po wstępnej ocenie bez informacji poufnych (ok. €950)",
-    },
+    price: publicB2bPrice("€950 standard", "Standardowo 4 100 zł (ok. €950)"),
     timing: {
       en: "Within two business days after the authorised collection window",
       pl: "W ciągu dwóch dni roboczych po autoryzowanym oknie zbierania danych",
@@ -216,10 +201,10 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       en: "Baseline and candidate snapshots, drift notes, findings, readiness report and, where agreed, a signed proof package with offline verification.",
       pl: "Migawki bazy i kandydata, notatki o dryfie, ustalenia, raport gotowości oraz, jeśli uzgodniono, podpisany pakiet ze weryfikacją offline.",
     },
-    price: {
-      en: "€2,500–€7,500",
-      pl: "11 000–32 000 zł (ok. €2 500–€7 500)",
-    },
+    price: publicB2bPrice(
+      "€2,500–€7,500",
+      "11 000–32 000 zł (ok. €2 500–€7 500)",
+    ),
     timing: {
       en: "Four business days after candidate collection",
       pl: "Cztery dni robocze po zebraniu kandydata do wydania",
@@ -256,10 +241,10 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       en: "Sanitised posture, completeness notes, findings and, where agreed, a signed proof package — supported claims vs gaps, no keys or balances in the package.",
       pl: "Zanonimizowany stan, notatki o kompletności, ustalenia oraz, jeśli uzgodniono, podpisany pakiet — obsługiwane twierdzenia vs luki, bez kluczy i sald w pakiecie.",
     },
-    price: {
-      en: "€3,000–€15,000",
-      pl: "13 000–65 000 zł (ok. €3 000–€15 000)",
-    },
+    price: publicB2bPrice(
+      "€3,000–€15,000",
+      "13 000–65 000 zł (ok. €3 000–€15 000)",
+    ),
     timing: {
       en: "Confirmed during the non-secret fit check",
       pl: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
@@ -296,10 +281,10 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       en: "Sanitised readiness observations, posture, findings and open gaps in a package another owner can inspect — not live incident command.",
       pl: "Zanonimizowane obserwacje gotowości, stan, ustalenia i otwarte luki w pakiecie do wglądu innego właściciela — bez dowodzenia incydentem na żywo.",
     },
-    price: {
-      en: "€5,000–€25,000",
-      pl: "22 000–108 000 zł (ok. €5 000–€25 000)",
-    },
+    price: publicB2bPrice(
+      "€5,000–€25,000",
+      "22 000–108 000 zł (ok. €5 000–€25 000)",
+    ),
     timing: {
       en: "Confirmed during the non-secret fit check",
       pl: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
@@ -349,10 +334,7 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       en: "A concise public-footprint mirror, canonical fact sheet, claim-to-evidence audit, correction register and private evidence appendix, followed by a 60-minute subject review.",
       pl: "Zwięzłe odzwierciedlenie publicznego śladu, kanoniczna karta faktów, audyt twierdzeń względem źródeł, rejestr korekt oraz prywatny załącznik dowodowy, a następnie 60-minutowa sesja weryfikacyjna.",
     },
-    price: {
-      en: "€4,900 excluding VAT",
-      pl: "4 900 EUR netto",
-    },
+    price: publicB2bPrice("€4,900", "4 900 EUR"),
     timing: {
       en: "7–10 working days",
       pl: "7–10 dni roboczych",
@@ -466,10 +448,3 @@ export function buyerServiceFromRequestOffer(
 export function buyerServiceByProductId(productId: string): BuyerService | undefined {
   return BUYER_SERVICES.find((service) => service.productId === productId);
 }
-
-/** Anchor props so one-pager PDFs open in a new tab for viewing, not as a forced download. */
-export const ONE_PAGER_LINK_PROPS = {
-  target: "_blank" as const,
-  rel: "noopener noreferrer",
-  type: "application/pdf",
-} as const;

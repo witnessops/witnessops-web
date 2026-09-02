@@ -59,16 +59,6 @@ export default function PolishCustomerSecurityReviewPage() {
                 variant="primary"
                 label="Rozpocznij wstępną ocenę bez informacji poufnych"
               />
-              <a
-                href="/assets/one-pagers/csr-sprint-pl-a4.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                type="application/pdf"
-                data-one-pager="customer-security-review-sprint"
-                className="inline-flex min-h-12 items-center justify-center border border-surface-border px-6 text-center text-sm font-semibold leading-5 text-text-primary transition-colors hover:border-brand-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
-              >
-                One-pager (PDF)
-              </a>
               <CtaButton href="/pl/catalog" variant="secondary" label="Zobacz usługi" />
             </div>
             <p className="mt-3 max-w-xl text-sm leading-6 text-text-muted">
@@ -81,11 +71,13 @@ export default function PolishCustomerSecurityReviewPage() {
             <div className="sm:grid sm:grid-cols-2 sm:gap-8 lg:block">
               <div>
                 <p className="text-sm font-semibold text-text-muted">Cena i termin</p>
-                <p className="mt-3 text-3xl font-semibold text-text-primary">Od 7 000 zł</p>
+                <p className="mt-3 text-3xl font-semibold text-text-primary">
+                  {service.price.pl}
+                </p>
                 <p className="mt-2 text-sm leading-6 text-text-secondary">
-                  Ok. €1 600. Po wstępnej ocenie bez informacji poufnych. Jeden kwestionariusz.
-                  Jeden zakres produktu. Kwota w zł orientacyjna; oferta i faktura po fit check
-                  (EUR lub ustalony zł).
+                  Po wstępnej ocenie bez informacji poufnych. Jeden kwestionariusz. Jeden zakres
+                  produktu. Kwota w zł orientacyjna; oferta i faktura po fit check (EUR lub ustalony
+                  zł).
                 </p>
               </div>
               <div className="mt-6 border-t border-surface-border pt-5 sm:mt-0 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-8 lg:mt-6 lg:border-t lg:border-l-0 lg:pt-5 lg:pl-0">

@@ -52,7 +52,7 @@ test("English review intake can preserve the current workflow offer without revi
 
   const offer = buyerServiceByPublicOfferId("bounded-workflow-review");
   assert.equal(offer?.name.en, "Agent Action Security Review");
-  assert.equal(offer?.price.en, "€2,500 fixed");
+  assert.equal(offer?.price.en, "€2,500 fixed · excluding VAT");
   assert.equal(
     offer?.timing.en,
     "Within 10 working days after evidence rules are agreed",

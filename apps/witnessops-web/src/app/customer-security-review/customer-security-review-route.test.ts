@@ -2,14 +2,16 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { buyerServiceById } from "@/lib/buyer-services";
 
 const source = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
+const service = buyerServiceById("customer-security-review-sprint");
 
 test("customer security review page keeps the approved commercial boundary", () => {
   for (const marker of [
     "Customer Security Review Sprint",
     "Send us the security questionnaire holding up your deal.",
-    "From €1,600",
+    "service.price.en",
     "Approximately three working days after scope, owners, required inputs and evidence access are confirmed.",
     "proposed answer matrix",
     "evidence index",
@@ -21,6 +23,7 @@ test("customer security review page keeps the approved commercial boundary", () 
   ]) {
     assert.ok(source.includes(marker), `Missing approved page marker: ${marker}`);
   }
+  assert.equal(service.price.en, "From €1,600 · excluding VAT");
 });
 
 test("customer security review page does not widen the public product boundary", () => {

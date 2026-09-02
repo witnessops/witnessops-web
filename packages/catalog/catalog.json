@@ -140,7 +140,7 @@
       "price": {
         "anchor_eur_min": 500,
         "anchor_eur_max": 1500,
-        "display": "\u20ac500\u2013\u20ac1,500",
+        "display": "€500–€1,500 · excluding VAT",
         "billing": "one_time",
         "settlement": [
           "USDC",
@@ -185,7 +185,7 @@
       "price": {
         "anchor_eur_min": 1900,
         "anchor_eur_max": 1900,
-        "display": "€1,900 ex VAT — one authorised public-facing system",
+        "display": "€1,900 · excluding VAT — one authorised public-facing system",
         "billing": "one_time"
       },
       "deliverables": [
@@ -232,7 +232,7 @@
       "price": {
         "anchor_eur_min": 2500,
         "anchor_eur_max": 7500,
-        "display": "\u20ac2,500\u2013\u20ac7,500",
+        "display": "€2,500–€7,500 · excluding VAT",
         "billing": "one_time",
         "settlement": [
           "USDC",
@@ -273,7 +273,7 @@
       "price": {
         "anchor_eur_min": 3000,
         "anchor_eur_max": 15000,
-        "display": "\u20ac3,000\u2013\u20ac15,000",
+        "display": "€3,000–€15,000 · excluding VAT",
         "billing": "one_time",
         "settlement": [
           "USDC",
@@ -312,7 +312,7 @@
       "price": {
         "anchor_eur_min": 5000,
         "anchor_eur_max": 25000,
-        "display": "\u20ac5,000\u2013\u20ac25,000",
+        "display": "€5,000–€25,000 · excluding VAT",
         "billing": "one_time",
         "settlement": [
           "USDC"

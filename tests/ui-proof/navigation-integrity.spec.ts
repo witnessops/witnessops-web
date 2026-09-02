@@ -41,7 +41,7 @@ const askWorkflowFitResponse = {
     source: "ask",
     offer: {
       name: "Agent Action Security Review",
-      price_label: "€2,500 fixed",
+      price_label: "€2,500 fixed · excluding VAT",
       unit_label: "One consequential agent or automation action",
       fit_check_label: "Non-secret fit check first",
       delivery_label: "Within 10 working days after evidence rules are agreed",
@@ -215,7 +215,7 @@ test("a selected offer survives the click handoff into the request form", async 
   expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
   expect(destination.searchParams.get("offer")).toBe("Agent Action Security Review");
   await expect(page.getByText("Selected offer: Agent Action Security Review")).toBeVisible();
-  await expect(page.locator("main")).toContainText("€2,500 fixed");
+  await expect(page.locator("main")).toContainText("€2,500 fixed · excluding VAT");
   await expect(page.locator("main")).toContainText(
     "Within 10 working days after evidence rules are agreed",
   );
@@ -348,7 +348,7 @@ test("mobile Ask reaches a scrollable fit-check destination without a stale over
   expect(destination.searchParams.get("source")).toBe("ask");
   expect(destination.searchParams.get("result")).toBe("likely");
   await expect(page.getByText("Selected offer: Agent Action Security Review")).toBeVisible();
-  await expect(page.locator("main")).toContainText("€2,500 fixed");
+  await expect(page.locator("main")).toContainText("€2,500 fixed · excluding VAT");
   await expect(page.locator("main")).toContainText(
     "Within 10 working days after evidence rules are agreed",
   );

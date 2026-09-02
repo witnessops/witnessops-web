@@ -30,7 +30,7 @@ Typical action classes include a production deployment, account deletion, refund
 
 - **Internal ID:** `bounded-workflow-review`.
 - **Entry:** non-secret fit check first.
-- **Fixed price:** €2,500.
+- **Fixed price:** €2,500 fixed · excluding VAT.
 - **Scope:** one bounded consequential agent or automation action.
 - **Delivery:** within 10 working days after evidence rules are agreed.
 - **Canonical route:** `/catalog/workflows`.

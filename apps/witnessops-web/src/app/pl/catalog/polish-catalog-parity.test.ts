@@ -53,21 +53,24 @@ test("approved server and launch commercial promises are represented once", () =
     (service) => service.id === "launch-readiness-check",
   );
 
-  assert.equal(server?.price.en, "€950 standard after a non-secret fit check");
+  assert.equal(server?.price.en, "€950 standard · excluding VAT");
   assert.equal(
     server?.timing.en,
     "Within two business days after the authorised collection window",
   );
   assert.equal(
     server?.price.pl,
-    "Standardowo 4 100 zł po wstępnej ocenie bez informacji poufnych (ok. €950)",
+    "Standardowo 4 100 zł (ok. €950) · bez VAT",
   );
   assert.equal(
     server?.timing.pl,
     "W ciągu dwóch dni roboczych po autoryzowanym oknie zbierania danych",
   );
-  assert.equal(launch?.price.en, "€2,500–€7,500");
-  assert.equal(launch?.price.pl, "11 000–32 000 zł (ok. €2 500–€7 500)");
+  assert.equal(launch?.price.en, "€2,500–€7,500 · excluding VAT");
+  assert.equal(
+    launch?.price.pl,
+    "11 000–32 000 zł (ok. €2 500–€7 500) · bez VAT",
+  );
   assert.equal(launch?.timing.en, "Four business days after candidate collection");
   assert.equal(
     launch?.timing.pl,
@@ -97,8 +100,8 @@ test("professional public footprint audit keeps its request-only bilingual contr
   assert.equal(audit?.availability?.status, "available_by_request");
   assert.equal(audit?.availability?.label.en, "Available by request");
   assert.equal(audit?.availability?.label.pl, "Dostępny na zapytanie");
-  assert.equal(audit?.price.en, "€4,900 excluding VAT");
-  assert.equal(audit?.price.pl, "4 900 EUR netto");
+  assert.equal(audit?.price.en, "€4,900 · excluding VAT");
+  assert.equal(audit?.price.pl, "4 900 EUR · bez VAT");
   assert.equal(audit?.timing.en, "7–10 working days");
   assert.equal(audit?.timing.pl, "7–10 dni roboczych");
   assert.equal(audit?.requestCta?.en, "Request this audit");

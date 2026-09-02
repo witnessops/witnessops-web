@@ -12,6 +12,16 @@ import { BUYER_SERVICES } from "@/lib/buyer-services";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 
 const source = readFileSync(resolve(__dirname, "buyer-homepage.tsx"), "utf8");
+const catalogueSource = readFileSync(resolve(__dirname, "buyer-catalogue.tsx"), "utf8");
+const detailSource = readFileSync(resolve(__dirname, "buyer-service-detail.tsx"), "utf8");
+const customerReviewSource = readFileSync(
+  resolve(__dirname, "../../app/customer-security-review/page.tsx"),
+  "utf8",
+);
+const polishCustomerReviewSource = readFileSync(
+  resolve(__dirname, "../../app/pl/customer-security-review/page.tsx"),
+  "utf8",
+);
 const onePagerDir = resolve(__dirname, "../../../public/assets/one-pagers");
 
 test("homepage leads with the security review and keeps the receipt specimen lower", () => {
@@ -88,7 +98,7 @@ test("Agent Action Security Review is the named, priced, bounded homepage offer"
   assert.equal(offer?.homepageFeatured, true);
   assert.equal(offer?.commercialRole, "primary");
   assert.equal(offer?.productId, undefined);
-  assert.equal(offer?.price.en, "€2,500 fixed");
+  assert.equal(offer?.price.en, "€2,500 fixed · excluding VAT");
   assert.equal(
     offer?.timing.en,
     "Within 10 working days after evidence rules are agreed",
@@ -138,7 +148,7 @@ test("External Attack Surface Review remains a current catalog offer but is not 
   assert.equal(offer?.name.en, "External Attack Surface Review");
   assert.equal(offer?.commercialRole, "secondary");
   assert.equal(offer?.productId, "OFFSEC-EXTERNAL-EXPOSURE");
-  assert.equal(offer?.price.en, "€1,900 ex VAT — one authorised public-facing system");
+  assert.equal(offer?.price.en, "€1,900 · excluding VAT");
   assert.match(offer?.timing.en ?? "", /Within 3 working days after/);
   assert.match(offer?.boundary.en ?? "", /No exploitation/);
   assert.match(offer?.boundary.en ?? "", /not a penetration test/i);
@@ -156,19 +166,19 @@ test("request-only public footprint audit stays off the homepage", () => {
   assert.doesNotMatch(source, /Professional Public Footprint Audit/);
 });
 
-test("public one-pagers stay the two existing Customer Security Review PDFs", () => {
+test("marketing PDFs remain stored but are absent from public buyer choices", () => {
   const pdfs = readdirSync(onePagerDir)
     .filter((name) => name.endsWith(".pdf"))
     .sort();
 
   assert.deepEqual(pdfs, ["csr-sprint-en-a4.pdf", "csr-sprint-pl-a4.pdf"]);
-  assert.equal(
-    BUYER_SERVICES.filter((service) => service.onePagerHref).map((service) => service.id).join(),
-    "customer-security-review-sprint",
-  );
-  assert.equal(
-    BUYER_SERVICES.find((service) => service.id === "external-exposure-assessment")
-      ?.onePagerHref,
-    undefined,
-  );
+  assert.ok(BUYER_SERVICES.every((service) => !("onePagerHref" in service)));
+  for (const buyerSource of [
+    catalogueSource,
+    detailSource,
+    customerReviewSource,
+    polishCustomerReviewSource,
+  ]) {
+    assert.doesNotMatch(buyerSource, /One-pager|data-one-pager|\.pdf/i);
+  }
 });

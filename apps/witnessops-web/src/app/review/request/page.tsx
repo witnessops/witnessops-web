@@ -293,7 +293,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             >
               What happens next
             </div>
-            <ol className="space-y-3 text-sm leading-relaxed text-text-muted">
+            <ol className="list-none space-y-3 text-sm leading-relaxed text-text-muted">
               {activeNextSteps.map((item, index) => (
                 <li key={item} className="grid grid-cols-[28px_1fr] gap-3">
                   <span style={{ fontFamily: "var(--font-mono)", color: "var(--color-brand-accent)" }}>

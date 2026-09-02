@@ -6,7 +6,7 @@ import { classifyCommercialFit } from "./commercial-fit-classifier";
 
 const CURRENT_PRIMARY_OFFER = {
   name: "Agent Action Security Review",
-  price_label: "€2,500 fixed",
+  price_label: "€2,500 fixed · excluding VAT",
   unit_label: "One consequential agent or automation action",
   fit_check_label: "Non-secret fit check first",
   delivery_label: "Within 10 working days after evidence rules are agreed",

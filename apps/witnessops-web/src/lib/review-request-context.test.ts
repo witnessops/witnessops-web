@@ -47,7 +47,7 @@ test("shared review CTAs keep the workflow offer selected from its detail route"
   for (const href of [headerHref, footerHref]) {
     const selected = selectedServiceFromHref(href);
     assert.equal(selected?.name.en, "Agent Action Security Review");
-    assert.equal(selected?.price.en, "€2,500 fixed");
+    assert.equal(selected?.price.en, "€2,500 fixed · excluding VAT");
     assert.equal(
       selected?.timing.en,
       "Within 10 working days after evidence rules are agreed",
@@ -101,7 +101,7 @@ test("shared review CTAs keep canonical product context on detail and selected r
   assert.equal(selected?.name.pl, "External Attack Surface Review");
   assert.equal(
     selected?.price.pl,
-    "€1 900 netto — jeden autoryzowany system publicznie dostępny",
+    "€1 900 · bez VAT",
   );
 });
 

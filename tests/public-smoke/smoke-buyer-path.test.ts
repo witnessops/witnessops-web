@@ -154,11 +154,11 @@ test("catalogue smoke preserves the primary and secondary offer hierarchy", () =
     for (const marker of [
       "Primary paid entry point",
       "Agent Action Security Review",
-      "€2,500 fixed",
+      "€2,500 fixed · excluding VAT",
       "Within 10 working days after evidence rules are agreed",
       "Secondary catalogue offer",
       "External Attack Surface Review",
-      "€1,900 ex VAT",
+      "€1,900 · excluding VAT",
     ]) {
       assert.ok(
         route.requiredMarkers.some((candidate) => candidate.includes(marker)),
@@ -203,7 +203,7 @@ test("primary offer smoke covers selected English and Polish intake", () => {
   assert.ok(
     english.requiredMarkers.includes("Start your Agent Action Security Review"),
   );
-  assert.ok(english.requiredMarkers.includes("€2,500 fixed"));
+  assert.ok(english.requiredMarkers.includes("€2,500 fixed · excluding VAT"));
   assert.ok(
     english.requiredMarkers.includes(
       "one consequential agent or automation action",
@@ -231,7 +231,7 @@ test("primary offer smoke covers selected English and Polish intake", () => {
   assert.ok(
     polish.requiredMarkers.includes("Zgłoś: Agent Action Security Review"),
   );
-  assert.ok(polish.requiredMarkers.includes("€2 500 — cena stała"));
+  assert.ok(polish.requiredMarkers.includes("€2 500 — cena stała · bez VAT"));
   assert.ok(
     polish.requiredMarkers.includes(
       "Jedno istotne działanie agenta lub automatyzacji",

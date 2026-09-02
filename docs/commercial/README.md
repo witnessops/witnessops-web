@@ -3,7 +3,7 @@
 Operator-facing materials so the live catalog + samples convert into real engagements.
 Written for learning the offers while you sell and deliver them.
 
-**Operate this week:** [Agent Action Security Review](./16-agent-workflow-reconstruction-offer.md) is the canonical primary paid entry point: one consequential agent or automation action, €2,500 fixed, beginning with a non-secret fit check and delivered within 10 working days after evidence rules are agreed. Agent Workflow Reconstruction is the delivery method. [External Attack Surface Review](./10-public-exposure-review-offer.md) remains separate secondary catalogue work at €1,900 excluding VAT with its existing scope, caps, start gates, and retest. Customer Security Review Sprint and One Server Security Check remain available in the broader catalogue.
+**Operate this week:** [Agent Action Security Review](./16-agent-workflow-reconstruction-offer.md) is the canonical primary paid entry point: one consequential agent or automation action, €2,500 fixed · excluding VAT, beginning with a non-secret fit check and delivered within 10 working days after evidence rules are agreed. Agent Workflow Reconstruction is the delivery method. [External Attack Surface Review](./10-public-exposure-review-offer.md) remains separate secondary catalogue work at €1,900 · excluding VAT with its existing scope, caps, start gates, and retest. Customer Security Review Sprint and One Server Security Check remain available in the broader catalogue.
 
 ## Start here
 
