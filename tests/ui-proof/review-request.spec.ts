@@ -209,7 +209,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
       fitTitle: "Start your Agent Action Security Review.",
       contractMarkers: [
         "Agent Action Security Review",
-        "€2,500 fixed",
+        "€2,500 fixed · excluding VAT",
         "one consequential agent or automation action",
         "Non-secret fit check first",
         "Within 10 working days after evidence rules are agreed",
@@ -221,7 +221,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
       fitTitle: "Rozpocznij Agent Action Security Review.",
       contractMarkers: [
         "Agent Action Security Review",
-        "€2 500 — cena stała",
+        "€2 500 — cena stała · bez VAT",
         "jedno istotne działanie agenta lub automatyzacji",
         "Nie wklejaj sekretów",
         "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych",
@@ -341,7 +341,7 @@ test("primary request selection canonicalizes aliases and conflicting query text
     await expect(
       page.getByText("Selected offer: Agent Action Security Review"),
     ).toBeVisible();
-    await expect(main).toContainText("€2,500 fixed");
+    await expect(main).toContainText("€2,500 fixed · excluding VAT");
     await expect(main).toContainText(
       "Within 10 working days after evidence rules are agreed",
     );

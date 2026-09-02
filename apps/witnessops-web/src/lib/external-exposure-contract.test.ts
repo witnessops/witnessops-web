@@ -57,7 +57,7 @@ test("External Attack Surface Review preserves the fixed-price commercial contra
   assert.equal(service.name, EXTERNAL_ATTACK_SURFACE_OFFER.name);
   assert.equal(
     service.price.en,
-    "€1,900 ex VAT — one authorised public-facing system",
+    "€1,900 · excluding VAT",
   );
   assert.equal(sku.price.anchor_eur_min, 1900);
   assert.equal(sku.price.anchor_eur_max, 1900);
@@ -67,7 +67,7 @@ test("External Attack Surface Review preserves the fixed-price commercial contra
   );
 
   const landing = getServiceLanding(service.id, "en");
-  assert.match(landing.commercialNote ?? "", /€1,900 ex VAT/i);
+  assert.match(landing.commercialNote ?? "", /€1,900 · excluding VAT/i);
   assert.match(landing.commercialNote ?? "", /one authorised public-facing system/i);
   assert.match(landing.commercialNote ?? "", /No sales call required/i);
   assert.match(landing.commercialNote ?? "", /Payment is due in full before the delivery clock starts/i);
@@ -148,7 +148,7 @@ test("External Attack Surface Review preserves prohibited methods and claim limi
 
   const polish = POLISH_OFFERS[productId];
   assert.ok(polish);
-  assert.equal(polish.price, "€1 900 netto — jeden autoryzowany system publicznie dostępny");
+  assert.equal(polish.price, "€1 900 · bez VAT");
   assert.match(polish.priceDetail ?? "", /Bez rozmowy sprzedażowej/);
   assert.doesNotMatch(polish.priceDetail ?? "", /pierwsze trzy|€2 500/);
   assert.match(polish.deliverables.join("\n"), /jeden retest w ciągu 30 dni/i);

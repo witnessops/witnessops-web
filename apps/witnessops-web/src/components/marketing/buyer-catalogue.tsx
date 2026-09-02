@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import {
-  ONE_PAGER_LINK_PROPS,
   buyerRequestHref,
   buyerServiceRequestHref,
   buyerServicesByCommercialPriority,
@@ -20,7 +19,6 @@ const copy = {
     boundary: "Boundary",
     primaryCta: "Start a review",
     secondaryCta: "Learn more",
-    onePagerCta: "One-pager (PDF)",
     commercialRole: {
       primary: "Primary paid entry point",
       secondary: "Secondary catalogue offer",
@@ -73,7 +71,6 @@ const copy = {
     boundary: "Ograniczenie",
     primaryCta: "Rozpocznij przegląd",
     secondaryCta: "Więcej informacji",
-    onePagerCta: "One-pager (PDF)",
     commercialRole: {
       primary: "Główny płatny punkt wejścia",
       secondary: "Dodatkowa oferta katalogowa",
@@ -142,7 +139,6 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
         >
           {services.map((service) => {
             const detailHref = service.detailHref[locale];
-            const onePager = service.onePagerHref?.[locale];
             const serviceRequestHref = buyerServiceRequestHref(locale, service);
             const externalExposureSample =
               service.id === "external-exposure-assessment"
@@ -216,16 +212,6 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                     >
                       {locale === "pl" ? "Syntetyczny przykład" : "Synthetic sample"}
                     </Link>
-                  ) : null}
-                  {onePager ? (
-                    <a
-                      href={onePager}
-                      {...ONE_PAGER_LINK_PROPS}
-                      data-one-pager={service.id}
-                      className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
-                    >
-                      {text.onePagerCta}
-                    </a>
                   ) : null}
                 </div>
               </article>

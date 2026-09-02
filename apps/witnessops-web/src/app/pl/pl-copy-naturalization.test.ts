@@ -38,7 +38,7 @@ test("Polish homepage uses action-security positioning and naturalized terminolo
   assert.doesNotMatch(homePage, /Jasny zakres\. Jasny wynik\./);
   assert.doesNotMatch(homePage, /Konkretna dostawa/);
   assert.equal(PRIMARY_OFFER.name.pl, "Agent Action Security Review");
-  assert.equal(PRIMARY_OFFER.price.pl, "€2 500 — cena stała");
+  assert.equal(PRIMARY_OFFER.price.pl, "€2 500 — cena stała · bez VAT");
   assert.equal(
     PRIMARY_OFFER.unit.pl,
     "Jedno istotne działanie agenta lub automatyzacji",

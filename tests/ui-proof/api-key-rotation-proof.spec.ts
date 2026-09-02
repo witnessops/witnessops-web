@@ -29,7 +29,7 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   await expect(
     page.getByRole("heading", {
       level: 2,
-      name: "Agent Action Security Review — €2,500 fixed.",
+      name: "Agent Action Security Review — €2,500 fixed · excluding VAT.",
     }),
   ).toBeVisible();
   await expect(page.getByText(/Bring one consequential agent or automation action\./)).toBeVisible();

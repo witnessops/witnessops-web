@@ -84,16 +84,6 @@ export default function CustomerSecurityReviewPage() {
                 variant="primary"
                 label="Start a non-secret fit check"
               />
-              <a
-                href="/assets/one-pagers/csr-sprint-en-a4.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                type="application/pdf"
-                data-one-pager="customer-security-review-sprint"
-                className="inline-flex min-h-12 items-center justify-center border border-surface-border px-6 text-center text-sm font-semibold leading-5 text-text-primary transition-colors hover:border-brand-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2"
-              >
-                One-pager (PDF)
-              </a>
               <CtaButton
                 href="/review/sample-cases/customer-security-review-sprint"
                 variant="secondary"
@@ -112,7 +102,9 @@ export default function CustomerSecurityReviewPage() {
             <div className="sm:grid sm:grid-cols-2 sm:gap-8 lg:block">
               <div>
                 <p className="text-sm font-semibold text-text-muted">Commercial line</p>
-                <p className="mt-3 text-3xl font-semibold text-text-primary">From €1,600</p>
+                <p className="mt-3 text-3xl font-semibold text-text-primary">
+                  {service.price.en}
+                </p>
                 <p className="mt-2 text-sm leading-6 text-text-secondary">
                   After a non-secret fit check. One questionnaire. One product scope.
                 </p>
@@ -151,7 +143,7 @@ export default function CustomerSecurityReviewPage() {
             <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
               How the sprint works
             </h2>
-            <ol className="mt-6 space-y-4">
+            <ol className="mt-6 list-none space-y-4">
               {steps.map(([title, body], index) => (
                 <li key={title} className="border-t border-surface-border pt-4">
                   <p className="text-sm font-semibold text-text-primary">

@@ -150,7 +150,7 @@ export default async function PolishOfferPage({ params }: PageProps) {
             <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
               Jak to działa
             </h2>
-            <ol className="mt-6 space-y-4">
+            <ol className="mt-6 list-none space-y-4">
               {copy.process.map((item, index) => (
                 <li key={item} className="border-t border-surface-border pt-4">
                   <p className="text-sm font-semibold text-text-primary">

@@ -247,7 +247,7 @@ export function ReviewRequestConfirmed({
             <h2 className={`mb-4 ${verificationLight.label}`}>
               {text.nextLabel}
             </h2>
-            <ol className={`space-y-4 text-sm leading-relaxed ${verificationLight.body}`}>
+            <ol className={`list-none space-y-4 text-sm leading-relaxed ${verificationLight.body}`}>
               {nextSteps.map((item, index) => (
                 <li key={item} className="grid grid-cols-[28px_1fr] gap-2">
                   <span

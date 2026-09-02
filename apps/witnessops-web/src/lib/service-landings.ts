@@ -1,5 +1,8 @@
 import type { BuyerLocale, BuyerService } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 
 export type ServiceLandingCopy = {
   /** Punchy hero line under the service name (CSR-style). */
@@ -179,7 +182,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Targets outside the confirmed first-party scope remain untouched. Third-party or shared infrastructure requires separate written authority.",
     ],
     commercialNote:
-      "€1,900 ex VAT for one authorised public-facing system. No sales call required. Payment is due in full before the delivery clock starts. Payment alone does not authorise testing. One focused retest within 30 days is included; an additional or late retest is €550 ex VAT.",
+      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en} for one authorised public-facing system. No sales call required. Payment is due in full before the delivery clock starts. Payment alone does not authorise testing. One focused retest within 30 days is included; an additional or late retest is ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.en}.`,
     primaryCta: "Start a review",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Inspect synthetic sample",
@@ -514,7 +517,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Cele poza potwierdzonym zakresem first-party pozostają nietknięte. Infrastruktura strony trzeciej lub współdzielona wymaga osobnego pisemnego upoważnienia.",
     ],
     commercialNote:
-      "€1 900 netto za jeden autoryzowany system publicznie dostępny. Bez rozmowy sprzedażowej. Pełna płatność jest wymagana przed rozpoczęciem terminu dostawy. Sama płatność nie upoważnia do testów. Jeden ukierunkowany retest w ciągu 30 dni jest wliczony; dodatkowy lub późny retest kosztuje €550 netto.",
+      `${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl} za jeden autoryzowany system publicznie dostępny. Bez rozmowy sprzedażowej. Pełna płatność jest wymagana przed rozpoczęciem terminu dostawy. Sama płatność nie upoważnia do testów. Jeden ukierunkowany retest w ciągu 30 dni jest wliczony; dodatkowy lub późny retest kosztuje ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.pl}.`,
     primaryCta: "Rozpocznij przegląd",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
     sampleLabel: "Zobacz syntetyczny przykład",

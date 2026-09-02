@@ -29,7 +29,7 @@ const likelyCommercialFit = {
   source: "ask" as const,
   offer: {
     name: "Agent Action Security Review" as const,
-    price_label: "€2,500 fixed" as const,
+    price_label: "€2,500 fixed · excluding VAT" as const,
     unit_label: "One consequential agent or automation action" as const,
     fit_check_label: "Non-secret fit check first" as const,
     delivery_label:

@@ -1,3 +1,5 @@
+import { publicB2bPrice } from "@/lib/commercial-price";
+
 const PRIMARY_OFFER_SAMPLE_PACK = {
   en: "Sample pack with supported receipt JSON to extract and test through /verify",
   pl: "Przykładowy pakiet z obsługiwanym zapisem JSON do wyodrębnienia i sprawdzenia przez /verify",
@@ -26,8 +28,7 @@ export const PRIMARY_OFFER = {
   price: {
     amount: "2500",
     currency: "EUR",
-    en: "€2,500 fixed",
-    pl: "€2 500 — cena stała",
+    ...publicB2bPrice("€2,500 fixed", "€2 500 — cena stała"),
   },
   unit: {
     en: "One consequential agent or automation action",
@@ -143,8 +144,12 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     amount: "1900",
     currency: "EUR",
     vatIncluded: false,
-    en: "€1,900 ex VAT — one authorised public-facing system",
-    pl: "€1 900 netto — jeden autoryzowany system publicznie dostępny",
+    ...publicB2bPrice("€1,900", "€1 900"),
+  },
+  additionalOrLateRetestPrice: {
+    amount: "550",
+    currency: "EUR",
+    ...publicB2bPrice("€550", "€550"),
   },
   timing: {
     en: "Within 3 working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",

@@ -161,7 +161,7 @@ export function ManualCommercialConfirmation({
           <h2 className="font-mono text-xs uppercase tracking-wider text-zinc-400">
             {text.next}
           </h2>
-          <ol className="mt-3 space-y-3 text-sm leading-6 text-zinc-300">
+          <ol className="mt-3 list-none space-y-3 text-sm leading-6 text-zinc-300">
             {steps.map((step, index) => (
               <li key={step} className="border-l border-zinc-800 pl-4">
                 <span className="mr-2 font-mono text-zinc-400">{index + 1}.</span>

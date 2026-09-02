@@ -186,7 +186,7 @@ test("specimen review CTA preserves the Agent Action Security Review selection",
   );
   assert.equal(PRIMARY_OFFER.id, "bounded-workflow-review");
   assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
-  assert.equal(PRIMARY_OFFER.price.en, "€2,500 fixed");
+  assert.equal(PRIMARY_OFFER.price.en, "€2,500 fixed · excluding VAT");
   assert.equal(PRIMARY_OFFER.unit.en, "One consequential agent or automation action");
   assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit check first");
   assert.equal(

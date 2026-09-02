@@ -125,7 +125,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
               Co dalej
             </h2>
             {primaryOfferOrder ? (
-              <ol className="mt-4 space-y-3 text-sm leading-6 text-text-muted">
+              <ol className="mt-4 list-none space-y-3 text-sm leading-6 text-text-muted">
                 <li>
                   1. Sprawdzimy bez sekretów jedno istotne działanie, możliwy
                   skutek błędu, zaangażowane systemy i narzędzia oraz granice bezpieczeństwa.
@@ -139,7 +139,7 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
                 </li>
               </ol>
             ) : (
-              <ol className="mt-4 space-y-3 text-sm leading-6 text-text-muted">
+              <ol className="mt-4 list-none space-y-3 text-sm leading-6 text-text-muted">
                 <li>1. Potwierdzimy, która oferta pasuje.</li>
                 <li>
                   2. Uzgodnimy zakres, upoważnienie, dostęp, cenę i termin.

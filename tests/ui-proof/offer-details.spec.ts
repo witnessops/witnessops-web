@@ -5,7 +5,7 @@ const offers = [
     path: "/catalog/workflows",
     service: "bounded-workflow-review",
     name: "Agent Action Security Review",
-    price: "€2,500 fixed",
+    price: "€2,500 fixed · excluding VAT",
     timing: "Within 10 working days after evidence rules are agreed",
     request: "/review/request",
   },
@@ -13,7 +13,7 @@ const offers = [
     path: "/catalog/offsec-local-audit",
     service: "one-server-security-check",
     name: "One Server Security Check",
-    price: "€950 standard",
+    price: "€950 standard · excluding VAT",
     timing: "Within two business days after the authorised collection window",
     request: "/review/request",
   },
@@ -21,7 +21,7 @@ const offers = [
     path: "/catalog/offsec-launch-ready",
     service: "launch-readiness-check",
     name: "Launch Readiness Check",
-    price: "€2,500–€7,500",
+    price: "€2,500–€7,500 · excluding VAT",
     timing: "Four business days after candidate collection",
     request: "/review/request",
   },
@@ -29,7 +29,7 @@ const offers = [
     path: "/catalog/offsec-external-exposure",
     service: "external-exposure-assessment",
     name: "External Attack Surface Review",
-    price: "€1,900 ex VAT",
+    price: "€1,900 · excluding VAT",
     timing: "Within 3 working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
     request: "/review/request",
   },
@@ -37,7 +37,7 @@ const offers = [
     path: "/catalog/offsec-custody-ops",
     service: "key-access-custody-review",
     name: "Key, Access and Custody Review",
-    price: "€3,000–€15,000",
+    price: "€3,000–€15,000 · excluding VAT",
     timing: "Confirmed during the non-secret fit check",
     request: "/review/request",
   },
@@ -45,7 +45,7 @@ const offers = [
     path: "/catalog/offsec-incident-ready",
     service: "incident-readiness-review",
     name: "Incident Readiness Review",
-    price: "€5,000–€25,000",
+    price: "€5,000–€25,000 · excluding VAT",
     timing: "Confirmed during the non-secret fit check",
     request: "/review/request",
   },
@@ -53,7 +53,7 @@ const offers = [
     path: "/pl/catalog/offsec-local-audit",
     service: "one-server-security-check",
     name: "One Server Security Check",
-    price: "Standardowo 4 100 zł",
+    price: "Standardowo 4 100 zł · bez VAT",
     timing: "W ciągu dwóch dni roboczych po autoryzowanym oknie zbierania danych",
     request: "/pl/review/request",
   },
@@ -61,7 +61,7 @@ const offers = [
     path: "/pl/catalog/offsec-launch-ready",
     service: "launch-readiness-check",
     name: "Launch Readiness Check",
-    price: "11 000–32 000 zł",
+    price: "11 000–32 000 zł · bez VAT",
     timing: "Cztery dni robocze po zebraniu kandydata do wydania",
     request: "/pl/review/request",
   },
@@ -69,7 +69,7 @@ const offers = [
     path: "/pl/catalog/offsec-external-exposure",
     service: "external-exposure-assessment",
     name: "External Attack Surface Review",
-    price: "€1 900 netto",
+    price: "€1 900 · bez VAT",
     timing: "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
     request: "/pl/review/request",
   },
@@ -77,7 +77,7 @@ const offers = [
     path: "/pl/catalog/offsec-custody-ops",
     service: "key-access-custody-review",
     name: "Key, Access and Custody Review",
-    price: "13 000–65 000 zł",
+    price: "13 000–65 000 zł · bez VAT",
     timing: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
     request: "/pl/review/request",
   },
@@ -85,7 +85,7 @@ const offers = [
     path: "/pl/catalog/offsec-incident-ready",
     service: "incident-readiness-review",
     name: "Incident Readiness Review",
-    price: "22 000–108 000 zł",
+    price: "22 000–108 000 zł · bez VAT",
     timing: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
     request: "/pl/review/request",
   },
@@ -93,7 +93,7 @@ const offers = [
     path: "/catalog/professional-public-footprint-audit",
     service: "professional-public-footprint-audit",
     name: "Professional Public Footprint Audit",
-    price: "€4,900 excluding VAT",
+    price: "€4,900 · excluding VAT",
     timing: "7–10 working days",
     request: "/review/request",
   },
@@ -101,7 +101,7 @@ const offers = [
     path: "/pl/catalog/professional-public-footprint-audit",
     service: "professional-public-footprint-audit",
     name: "Audyt publicznego śladu zawodowego",
-    price: "4 900 EUR netto",
+    price: "4 900 EUR · bez VAT",
     timing: "7–10 dni roboczych",
     request: "/pl/review/request",
   },
@@ -134,9 +134,15 @@ test("reachable offer details use the canonical buyer contract and visual system
       await expect(main).toContainText(offer.name);
       await expect(main.locator("h1")).toBeVisible();
       await expect(main).toHaveAttribute("data-price-contract", /.+/);
+      const numberedSteps = main.locator("ol").first();
+      await expect(numberedSteps).toHaveCSS("list-style-type", "none");
+      const firstStep = (await numberedSteps.locator("li").first().innerText()).trim();
+      expect(firstStep).toMatch(/^1\.\s+\S/);
+      expect(firstStep).not.toMatch(/^1\.\s+1\./);
+      await expect(main.locator('[data-one-pager], a[href$=".pdf"]')).toHaveCount(0);
       if (offer.service === "external-exposure-assessment") {
         await expect(main).toContainText(
-          offer.path.startsWith("/pl") ? "€1 900 netto" : "€1,900 ex VAT",
+          offer.path.startsWith("/pl") ? "€1 900 · bez VAT" : "€1,900 · excluding VAT",
         );
         const sampleLink = main.locator(
           'a[href="/review/sample-cases/external-exposure-assessment"]',
@@ -166,7 +172,7 @@ test("reachable offer details use the canonical buyer contract and visual system
         );
         await expect(promotedContract).toBeVisible();
         await expect(promotedContract).toBeInViewport();
-        await expect(promotedContract).toContainText("€2,500 fixed");
+        await expect(promotedContract).toContainText("€2,500 fixed · excluding VAT");
         await expect(promotedContract).toContainText(
           "Within 10 working days after evidence rules are agreed",
         );
@@ -295,6 +301,32 @@ test("reachable offer details use the canonical buyer contract and visual system
   }
 });
 
+test("Customer Security Review Sprint keeps the web-first path and clean numbering", async ({ page }) => {
+  for (const scenario of [
+    {
+      path: "/customer-security-review",
+      price: "From €1,600 · excluding VAT",
+      firstStep: "1. Fit check",
+    },
+    {
+      path: "/pl/customer-security-review",
+      price: "Od 7 000 zł (ok. €1 600) · bez VAT",
+    },
+  ] as const) {
+    const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
+    expect(response?.status()).toBe(200);
+    const main = page.locator("main");
+    await expect(main).toContainText(scenario.price);
+    await expect(main.locator('[data-one-pager], a[href$=".pdf"]')).toHaveCount(0);
+
+    if ("firstStep" in scenario) {
+      const steps = main.locator("ol").first();
+      await expect(steps).toHaveCSS("list-style-type", "none");
+      await expect(steps.locator("li").first()).toContainText(scenario.firstStep);
+    }
+  }
+});
+
 test("External Attack Surface Review synthetic sample is buyer-safe and responsive", async ({ browser }) => {
   const expectedFiles = [
     "README.md",
@@ -372,7 +404,9 @@ test("Polish offer handoff keeps the canonical contract on the request page", as
   await expect(page).toHaveURL(/\/pl\/review\/request\?/);
   const selectedOffer = page.getByText(/Wybrana oferta:/).locator("..");
   await expect(selectedOffer).toContainText("Key, Access and Custody Review");
-  await expect(selectedOffer).toContainText("€3 000–€15 000");
+  await expect(selectedOffer).toContainText(
+    "13 000–65 000 zł (ok. €3 000–€15 000) · bez VAT",
+  );
   await expect(selectedOffer).toContainText(
     "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
   );

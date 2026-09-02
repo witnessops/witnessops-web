@@ -36,6 +36,12 @@ export type PolishOfferCopy = {
   verification: string;
 };
 
+function publicPolishPrice(productId: string): string {
+  const service = buyerServiceByProductId(productId);
+  if (!service) throw new Error(`Missing public buyer service for ${productId}`);
+  return service.price.pl;
+}
+
 export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
   "OFFSEC-LOCAL-AUDIT": {
     name: "Przegląd bezpieczeństwa pojedynczego serwera",
@@ -51,8 +57,8 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     deliverables: ["posture.json", "findings.json", "report.md", "RECEIPT.json", "MANIFEST.sha256", "podpisany pakiet ZIP", "BUYER_WALKTHROUGH.md"],
     inputs: ["Jeden wskazany serwer Linux.", "Autoryzowane okno odczytu bez zmian w systemie.", "Osoba odpowiedzialna za decyzję i podpisane potwierdzenie zakresu.", "Wyłącznie informacje pozbawione danych poufnych; nigdy hasła, klucze ani tokeny."],
     timing: "W ciągu dwóch dni roboczych od zakończenia autoryzowanego okna zbierania danych.",
-    price: "4 100 zł — standardowa cena po wstępnym potwierdzeniu zakresu (ok. €950)",
-    priceDetail: "Dopuszczalny zakres: ok. 2 200–6 500 zł (500–1 500 €)",
+    price: publicPolishPrice("OFFSEC-LOCAL-AUDIT"),
+    priceDetail: "Dopuszczalny zakres: ok. 2 200–6 500 zł (500–1 500 €) · bez VAT",
     exclusions: ["Bez eksploatacji podatności i testów inwazyjnych.", "Bez zbierania sekretów lub danych uwierzytelniających.", "Bez napraw, chyba że zostaną osobno uzgodnione.", "Bez certyfikacji zgodności i bez gwarancji bezpieczeństwa."],
     verification: "Dostawa zawiera podpisany zapis wykonania i instrukcję weryfikacji, dzięki którym inna osoba może sprawdzić, czy pakiet się nie zmienił, oraz zobaczyć, co wynik wspiera, a czego nie wspiera.",
   },
@@ -70,8 +76,8 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     deliverables: ["zapis upoważnienia i stałego zakresu", "mapa ekspozycji zewnętrznej", "ustalenia powiązane z materiałami", "raport wykonawczy i załącznik techniczny", "manifest i hashe artefaktów", "podpisany receipt i weryfikator offline, gdy wspierane", "45-minutowe przekazanie", "jeden retest w ciągu 30 dni"],
     inputs: ["Jeden autoryzowany system publicznie dostępny, wskazany przez domenę, host, aplikację, API, publiczny adres IP, publiczny endpoint chmurowy lub spójne połączenie tych elementów.", "Potwierdzenie własności lub pisemne upoważnienie, lista znanych hostów i adresów IP first-party.", "Zatwierdzone kontrole, okno zbierania, kontakt stop i ograniczenia dostawców zewnętrznych.", "Cel, termin i dokładne wymaganie strony odbierającej wynik — bez sekretów i materiałów produkcyjnych."],
     timing: EXTERNAL_ATTACK_SURFACE_OFFER.timing.pl,
-    price: EXTERNAL_ATTACK_SURFACE_OFFER.price.pl,
-    priceDetail: "Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu. Dodatkowy lub późny retest: €550 netto.",
+    price: publicPolishPrice("OFFSEC-EXTERNAL-EXPOSURE"),
+    priceDetail: `Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu. Dodatkowy lub późny retest: ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.pl}.`,
     exclusions: ["To nie jest test penetracyjny.", "Bez eksploatacji, testowania haseł, brute force, poświadczeń, socjotechniki, odmowy usługi i działań destrukcyjnych.", "Bez uwierzytelnionych testów aplikacji, zbierania danych klientów, kodu źródłowego, aplikacji mobilnych, smart contractów, kont chmurowych i sieci wewnętrznej.", "Bez otwartego wykrywania subdomen lub zakresów IP i bez dotykania niepotwierdzonej infrastruktury strony trzeciej.", "Bez certyfikacji, atestu lub gwarancji bezpieczeństwa, kompletności, zgodności albo braku podatności."],
     verification: "Pakiet wskazuje sprawdzony zakres, materiały wspierające ustalenia, jawne niewiadome oraz — gdy wspierana ścieżka zostanie wytworzona — podpisany receipt i weryfikator offline. Nie dowodzi, że system jest bezpieczny ani wolny od podatności.",
   },
@@ -83,8 +89,8 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     deliverables: ["posture.json", "findings.json", "drift.json", "report.md", "podpisany pakiet ZIP"],
     inputs: ["Jeden wskazany serwer Linux przeznaczony do wdrożenia.", "Zatwierdzony stan bazowy i wersja kandydująca w uzgodnionym oknie.", "Jeden skrót SHA-256 artefaktu wydania i osoba odpowiedzialna za decyzję.", "Podpisane upoważnienie i wyłącznie informacje pozbawione danych poufnych."],
     timing: "Cztery dni robocze od zebrania danych wersji kandydującej.",
-    price: "11 000–32 000 zł (ok. €2 500–€7 500)",
-    priceDetail: "ok. 19 500 zł — cena standardowa po sprawdzeniu dopasowania (ok. €4 500)",
+    price: publicPolishPrice("OFFSEC-LAUNCH-READY"),
+    priceDetail: "ok. 19 500 zł — cena standardowa po sprawdzeniu dopasowania (ok. €4 500) · bez VAT",
     exclusions: ["Bez zatwierdzenia wdrożenia i bez gwarancji bezpieczeństwa.", "Bez napraw i ponownego testu, chyba że zostaną osobno uzgodnione.", "Bez dowolnego przeglądu panelu sterowania chmurą lub kodu źródłowego.", "Bez certyfikacji zgodności."],
     verification: "Podpisany zapis wykonania i instrukcja weryfikacji pozwalają sprawdzić relację między stanem bazowym a wersją kandydującą, powiązanie z wydaniem i wskazane ograniczenia. Wynik nie jest zatwierdzeniem wdrożenia.",
   },
@@ -96,7 +102,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     deliverables: ["posture.json", "findings.json", "report.md", "podpisany pakiet ZIP"],
     inputs: ["Jedno wskazane środowisko operacyjne.", "Osoba odpowiedzialna za decyzję i podpisane upoważnienie.", "Zatwierdzony przez klienta eksport obserwacji kontroli pozbawiony danych poufnych.", "Bez kluczy, fraz seed, sald, adresów portfeli i danych transakcji."],
     timing: "Termin dostawy ustalamy podczas wstępnego potwierdzenia zakresu.",
-    price: "13 000–65 000 zł (ok. €3 000–€15 000)",
+    price: publicPolishPrice("OFFSEC-CUSTODY-OPS"),
     exclusions: ["Bez przechowywania lub przemieszczania środków.", "Bez kluczy, fraz seed, sald i połączeń z aktywnymi portfelami.", "Bez wniosków o wypłacalności, bezpieczeństwie, stanie prawnym lub zgodności.", "Bez napraw, chyba że zostaną osobno uzgodnione."],
     verification: "Dostawa wskazuje podpisany zapis wykonania i weryfikator offline, aby można było sprawdzić dopuszczone obserwacje i ograniczenia. Nie potwierdza pieczy, wypłacalności ani uprawnienia do transakcji.",
   },
@@ -108,7 +114,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     deliverables: ["raport gotowości", "ciąg potwierdzeń", "podpisany pakiet ZIP"],
     inputs: ["Jeden określony incydent i środowisko.", "Osoba odpowiedzialna za decyzję i podpisane upoważnienie.", "Obserwacje gotowości pozbawione danych poufnych, z nieprzejrzystymi odwołaniami do dowodów.", "Bez surowych logów, materiałów do eksploatacji, sekretów, danych uwierzytelniających i danych klientów."],
     timing: "Termin dostawy ustalamy podczas wstępnego potwierdzenia zakresu.",
-    price: "22 000–108 000 zł (ok. €5 000–€25 000)",
+    price: publicPolishPrice("OFFSEC-INCIDENT-READY"),
     exclusions: ["Bez hack-back, eksploatacji podatności i testów destrukcyjnych.", "Bez dowodzenia incydentem na żywo i bez zmian ograniczających skutki.", "Bez twierdzeń o naruszeniu, przyczynie źródłowej lub atrybucji.", "Bez napraw oraz wniosków prawnych lub zgodnościowych."],
     verification: "Podpisany zapis wykonania i wskazany weryfikator offline pozwalają sprawdzić zakres gotowości i braki. Nie potwierdzają naruszenia, przyczyny, atrybucji, opanowania incydentu ani naprawy.",
   },

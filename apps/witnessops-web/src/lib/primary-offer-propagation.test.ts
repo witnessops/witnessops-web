@@ -119,8 +119,8 @@ test("one canonical record defines the primary paid entry point", () => {
     PRIMARY_OFFER.mailSubject,
     "WitnessOps request — Agent Action Security Review",
   );
-  assert.equal(primary.price.en, "€2,500 fixed");
-  assert.equal(primary.price.pl, "€2 500 — cena stała");
+  assert.equal(primary.price.en, "€2,500 fixed · excluding VAT");
+  assert.equal(primary.price.pl, "€2 500 — cena stała · bez VAT");
   assert.equal(
     primary.timing.en,
     "Within 10 working days after evidence rules are agreed",
@@ -225,7 +225,7 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.equal(pricingMetadata.title, "Agent and Security Review Pricing");
   assert.equal(
     pricingMetadata.description,
-    "Published prices and commercial boundaries for bounded WitnessOps reviews, led by Agent Action Security Review at €2,500 fixed.",
+    "Published prices and commercial boundaries for bounded WitnessOps reviews, led by Agent Action Security Review at €2,500 fixed · excluding VAT.",
   );
 
   const serviceJsonLd = primaryOfferServiceJsonLd();
@@ -270,7 +270,7 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.doesNotMatch(publicExposureCard, /Primary paid entry point/);
   assert.match(publicExposureCard, /Secondary catalogue offer/);
   assert.match(publicExposureCard, /External Attack Surface Review/);
-  assert.match(publicExposureCard, /€1,900 ex VAT/);
+  assert.match(publicExposureCard, /€1,900 · excluding VAT/);
   assert.match(publicExposureCard, /not a penetration test/i);
 
   const catalogue = renderToStaticMarkup(
@@ -292,7 +292,7 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   assert.doesNotMatch(primaryCatalogueCard, /Agent Risk &amp; Control Review|€1,500/);
   assert.match(publicExposureCatalogueCard, /Secondary catalogue offer/);
   assert.match(publicExposureCatalogueCard, /External Attack Surface Review/);
-  assert.match(publicExposureCatalogueCard, /€1,900 ex VAT/);
+  assert.match(publicExposureCatalogueCard, /€1,900 · excluding VAT/);
 });
 
 test("Ask WitnessOps presents the same current offer for likely, alias, and narrowed fits", () => {
@@ -376,7 +376,7 @@ test("External Attack Surface Review remains available only as the secondary cat
   assert.equal(secondary.detailHref.en, "/catalog/offsec-external-exposure");
   assert.equal(
     secondary.price.en,
-    "€1,900 ex VAT — one authorised public-facing system",
+    "€1,900 · excluding VAT",
   );
   assert.equal(secondary.timing.en, EXTERNAL_ATTACK_SURFACE_OFFER.timing.en);
   assert.match(secondary.boundary.en, /This is not a penetration test/);

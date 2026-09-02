@@ -89,7 +89,7 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   assert.doesNotMatch(response, /Agent Risk & Control Review|From €1,500/);
 
   assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
-  assert.equal(PRIMARY_OFFER.price.en, "€2,500 fixed");
+  assert.equal(PRIMARY_OFFER.price.en, "€2,500 fixed · excluding VAT");
   assert.equal(
     PRIMARY_OFFER.unit.en,
     "One consequential agent or automation action",

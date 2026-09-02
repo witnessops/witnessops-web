@@ -28,8 +28,8 @@ test("public footprint audit has the exact request-only commercial contract", ()
   assert.equal(audit.availability?.status, "available_by_request");
   assert.equal(audit.availability?.label.en, "Available by request");
   assert.equal(audit.availability?.label.pl, "Dostępny na zapytanie");
-  assert.equal(audit.price.en, "€4,900 excluding VAT");
-  assert.equal(audit.price.pl, "4 900 EUR netto");
+  assert.equal(audit.price.en, "€4,900 · excluding VAT");
+  assert.equal(audit.price.pl, "4 900 EUR · bez VAT");
   assert.equal(audit.timing.en, "7–10 working days");
   assert.equal(audit.timing.pl, "7–10 dni roboczych");
   assert.equal(audit.requestCta?.en, "Request this audit");
@@ -112,7 +112,7 @@ test("External Attack Surface Review remains current, off the homepage, and comm
   assert.equal(publicExposure.productId, "OFFSEC-EXTERNAL-EXPOSURE");
   assert.equal(
     publicExposure.price.en,
-    "€1,900 ex VAT — one authorised public-facing system",
+    "€1,900 · excluding VAT",
   );
   assert.equal(
     publicExposure.commercialContract.price,

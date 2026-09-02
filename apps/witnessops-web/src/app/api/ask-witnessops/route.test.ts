@@ -41,7 +41,7 @@ function askRequest(question: string, ip: string) {
 
 const CURRENT_PRIMARY_OFFER = {
   name: "Agent Action Security Review",
-  price_label: "€2,500 fixed",
+  price_label: "€2,500 fixed · excluding VAT",
   unit_label: "One consequential agent or automation action",
   fit_check_label: "Non-secret fit check first",
   delivery_label: "Within 10 working days after evidence rules are agreed",
@@ -582,7 +582,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(broadPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     broadPayload.commercial_fit?.offer?.price_label,
-    "€2,500 fixed",
+    "€2,500 fixed · excluding VAT",
   );
 
   const multiResponse = await POST(
@@ -597,7 +597,7 @@ test("public Ask keeps broad-scope and unrelated-price signals honest", async ()
   assert.equal(multiPayload.commercial_fit?.result, "needs_boundary");
   assert.equal(
     multiPayload.commercial_fit?.offer?.price_label,
-    "€2,500 fixed",
+    "€2,500 fixed · excluding VAT",
   );
 
   const unrelatedResponse = await POST(
