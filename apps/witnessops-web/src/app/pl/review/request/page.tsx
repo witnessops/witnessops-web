@@ -27,7 +27,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     ? requestedSku
     : undefined;
   const requestedOffer = buyerServiceFromRequestOffer(offerId, offer);
-  const primaryOfferOrder = requestedOffer?.id === PRIMARY_OFFER.id;
+  const primaryOfferOrder =
+    requestedOffer?.id === PRIMARY_OFFER.id &&
+    (offerId !== undefined || !sku);
   const publicExposureOrder =
     !primaryOfferOrder && sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
 
@@ -60,7 +62,9 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
     : undefined;
   const polishOffer = sku ? POLISH_OFFERS[sku.id] : undefined;
   const requestedOffer = buyerServiceFromRequestOffer(offerId, offer);
-  const primaryOfferSelected = requestedOffer?.id === PRIMARY_OFFER.id;
+  const primaryOfferSelected =
+    requestedOffer?.id === PRIMARY_OFFER.id &&
+    (offerId !== undefined || !sku);
   const buyerService = primaryOfferSelected
     ? requestedOffer
     : sku

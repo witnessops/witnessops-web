@@ -24,11 +24,12 @@ function serviceForDetailRoute(
 function selectedServiceFromRequest(
   searchParams: SearchParamsReader,
 ): BuyerService | undefined {
+  const offerId = searchParams.get("offerId");
   const requestedOffer = buyerServiceFromRequestOffer(
-    searchParams.get("offerId"),
+    offerId,
     searchParams.get("offer"),
   );
-  if (requestedOffer?.id === PRIMARY_OFFER.id) {
+  if (offerId !== null && requestedOffer?.id === PRIMARY_OFFER.id) {
     return requestedOffer;
   }
 

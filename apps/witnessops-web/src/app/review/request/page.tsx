@@ -150,7 +150,9 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
     ? requestedSku
     : undefined;
   const requestedOffer = buyerServiceFromRequestOffer(offerId, offer);
-  const primaryOfferSelected = requestedOffer?.id === PRIMARY_OFFER.id;
+  const primaryOfferSelected =
+    requestedOffer?.id === PRIMARY_OFFER.id &&
+    (offerId !== undefined || !sku);
   const selectedOffer = primaryOfferSelected
     ? requestedOffer
     : sku

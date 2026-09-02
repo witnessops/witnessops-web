@@ -383,7 +383,7 @@ test("Public Exposure Review request preserves SKU, locale, and fit boundary", a
 
     const query = new URLSearchParams({
       productId: "OFFSEC-EXTERNAL-EXPOSURE",
-      offer: "Public Exposure Review",
+      offer: "Agent Workflow Reconstruction",
     });
     await page.goto(`${scenario.path}?${query.toString()}`, {
       waitUntil: "networkidle",
@@ -391,7 +391,9 @@ test("Public Exposure Review request preserves SKU, locale, and fit boundary", a
 
     await expect(
       page.getByText(
-        scenario.locale === "pl" ? /Wybrana oferta:/ : /Selected offer:/,
+        scenario.locale === "pl"
+          ? "Wybrana oferta: Public Exposure Review"
+          : "Selected offer: Public Exposure Review",
       ),
     ).toBeVisible();
     const form = page.locator("main form");

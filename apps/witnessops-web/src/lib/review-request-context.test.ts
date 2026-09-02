@@ -74,6 +74,10 @@ test("primary offer selection trusts its stable id before public query text", ()
     undefined,
   );
   assert.equal(
+    buyerServiceFromRequestOffer("", "Agent Workflow Reconstruction"),
+    undefined,
+  );
+  assert.equal(
     buyerServiceFromRequestOffer(null, "Agent Workflow Reconstruction "),
     undefined,
   );
@@ -153,6 +157,16 @@ test("review CTA context rejects unknown values to the canonical primary offer a
       new URLSearchParams("offer=Agent+Workflow+Reconstruction"),
     ),
     "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+  );
+  assert.equal(
+    reviewRequestHrefForLocation(
+      "en",
+      "/review/request",
+      new URLSearchParams(
+        "productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Agent+Workflow+Reconstruction",
+      ),
+    ),
+    "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
   );
   assert.equal(
     reviewRequestHrefForLocation(
