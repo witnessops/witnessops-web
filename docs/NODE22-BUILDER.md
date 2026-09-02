@@ -1,71 +1,40 @@
-# Node 22 builder and runtime custody
+# Node 22 builder guidance
 
-**Status:** operator guidance (2026-07-09)
+**Status:** repository validation guidance
 
-## Node roles
+## Requirement
 
-| Host or path | Typical Node | Role |
-|------|----------------|------|
-| **Fleet VM** (`debian-termux-*`) | 20.x (distro) | Edit working copy, sync lane, targeted tests |
-| **Node 22 container** | 22.x | Release-quality health/build without upgrading host Node |
-| **Historical shared k3s image build** (`deploy/scripts/k3s-lib.sh` generates `deploy/Dockerfile.shared`) | 22 inside container | Retained implementation reference; not routine production authority |
-| **Private staging host** | 22 inside container when used | Optional build/transfer staging only when the lane authorizes it |
-| **Private k3s target** | Container runtime | Current public runtime for `witnessops.com` |
+Release-quality `pnpm health` and `pnpm build` for this repository use **Node 22**.
+Do not treat a partial check on another Node major as equivalent evidence.
 
-Release-quality **`pnpm health`** and **`pnpm build`** for production must use **Node 22**, not the fleet VM’s system Node 20.
+## Supported local path
 
-The current public runtime is private k3s, not Docker Compose. See
-[`DEPLOYMENT_CUSTODY.md`](./DEPLOYMENT_CUSTODY.md).
+From repo root on a machine with Docker:
 
-## Authoritative paths
+```bash
+pnpm health:node22
+# or
+bash scripts/health-on-node22.sh
+```
 
-1. **Production image build** - use the manually dispatched
-   `.github/workflows/aws-release.yml` `publish-image` operation from
-   `refs/heads/main`. It builds and publishes the exact merged source through
-   the immutable Frankfurt ECR path. A merge alone cannot publish.
-
-   The deployment record must include the source commit, OCI manifest digest,
-   digest-qualified deploy reference, manifest-bound config digest, and scan
-   evidence. The retired `pnpm deploy:k3s:build` alias fails closed.
-
-2. **Full health in Node 22 container (any machine with Docker)** - from repo root:
-
-   ```bash
-   pnpm health:node22
-   # or: bash scripts/health-on-node22.sh
-   ```
-
-3. **Remote health on a private staging host** (only when the lane authorizes it):
-
-   ```bash
-   bash scripts/health-on-node22-goal0.sh
-   ```
-
-Historical remote wrappers may still be useful for build or transfer staging
-when named by a lane, but they are not current runtime authority.
-
-Current deploy execution is documented in
-[`DEPLOYMENT_AUTHORITY.md`](./DEPLOYMENT_AUTHORITY.md) and uses the protected
-GitHub/ECR/SSM path. Direct `deploy/scripts/k3s-*.sh` production invocation is
-historical/manual-recovery implementation, not routine authority.
+Production publication and deployment are separate operator actions. A merge or
+successful local build does not establish that a particular release is live.
+Host identity, cloud trust details, private staging paths, credential locations,
+and deployment topology are intentionally outside this public validation guide.
 
 ## Repo pins
 
 - `.nvmrc` → `22`
 - `package.json` `engines.node` → `>=22.0.0 <23`
-- Runtime image: the reviewed `node:22-alpine@sha256:<digest>` pin declared in
-  `deploy/scripts/k3s-lib.sh`, with `deploy/Dockerfile.mesh` retained as a
-  reference/parity Dockerfile, plus
-  `apps/witnessops-web/Dockerfile`, and `scripts/health-on-node22.sh`
+- Application/runtime Dockerfiles pin reviewed Node 22 images where applicable.
 
 ## Do not
 
-- Treat passing `optimize:quick-check` on Node 20 as equivalent to `pnpm health` on Node 22.
-- Use historical Docker Compose docs as current production runtime authority.
-- Use `BUILD_MODE=host` on a staging host unless `node -v` is 22.x and you accept non-container drift from the image build path.
+- Treat passing `optimize:quick-check` on another Node major as equivalent to `pnpm health` on Node 22.
+- Treat historical deployment material as current production authority.
+- Add private host aliases, remote checkout paths, cloud identifiers, or operator credential locations to this public guide.
 
 ## Related
 
 - [`OPTIMIZATION-LANGUAGE.md`](./OPTIMIZATION-LANGUAGE.md)
-- [`DEPLOYMENT_AUTHORITY.md`](./DEPLOYMENT_AUTHORITY.md)
 - `.grok/skills/optimize-witnessops-web/SKILL.md`

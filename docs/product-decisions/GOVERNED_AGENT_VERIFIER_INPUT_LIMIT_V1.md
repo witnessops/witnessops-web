@@ -27,8 +27,6 @@ acceptance boundaries.
 - **FACT:** repository source commit
   `f87bc43abd4f434d4090db44e423a772f923f1cd` enforces
   `16 * 1024` UTF-8 bytes in `run-scan.ts`.
-- **FACT:** `docs/PR321_RECONCILIATION_2026-08-27.md` records the 16 KiB cap as
-  the accepted response to synchronous main-thread scan risk.
 - **INFERENCE:** retaining the already-enforced 16 KiB boundary is lower-risk
   than expanding accepted input to match stale copy.
 - **UNKNOWN:** a byte cap alone does not establish worst-case scan duration for

@@ -2,10 +2,10 @@
 
 ## Scope
 
-This repo is the live authoritative repo for the WitnessOps web surface.
+This repo is the live authoritative repo for the WitnessOps public web surface.
 Published remote: `https://github.com/witnessops/witnessops-web`
 Default branch: `main`
-Release authority: internal/manual for now
+Release authority: explicit operator action; merge alone is not deployment authority.
 
 ## Rules
 
@@ -13,108 +13,34 @@ Release authority: internal/manual for now
 - Keep `packages/proof` limited to the receipt-only lane in this slice.
 - Do not widen into canonical bundle verification or corpus work unless a separate lane explicitly authorizes it.
 - Keep live package names on the `@witnessops/*` surface.
-- Use the published remote as the operating source of truth.
+- Use the published remote as the operating source of truth for product source.
 - Use `pnpm health` for the full local check.
-- Use `pnpm release` as the frozen release entrypoint; release remains manual/internal for now.
+- Use `pnpm release` as the frozen release build entrypoint; promotion remains separately authorized.
 - Prefer route-parity evidence over interpretation.
 - Do not expose internal-only proof details through operator-facing surfaces.
 
-## Deployment authority
+## Deployment boundary
 
-- Use [`docs/DEPLOYMENT_AUTHORITY.md`](./docs/DEPLOYMENT_AUTHORITY.md) before any deploy-adjacent work.
-- Custody map: [`docs/DEPLOYMENT_CUSTODY.md`](./docs/DEPLOYMENT_CUSTODY.md).
-- **Active production target:** AWS Lightsail Frankfurt plane
-  `prod-aws-frankfurt`, selected with
-  `PROD_TARGET_PROFILE=prod-aws-frankfurt`.
-  Canonical shared-build, production status/smoke, production deploy, and
-  production-host hygiene entrypoints must fail closed unless the target
-  contract and read-only remote hostname, AWS instance identity, and region
-  checks all match operator custody. Exact host and instance identifiers stay
-  out of public Git. The old VPS is rollback-only and must not be used as the
-  routine production target.
-- **Accepted claim:** "The witnessops-web apex/www production serving path
-  operates from AWS Lightsail in Frankfurt." Do not expand this to API,
-  mesh-dev, data, rollback-equivalence, or broader production acceptance.
-- The repo retains a dual-lane model in which **prod** is public through Caddy
-  and a loopback app bind, while optional **mesh-dev** uses `hostNetwork` and
-  emptyDir intake. Mesh-dev availability is not implied by the accepted claim.
-- Both lanes must run the **same digest-qualified shared image reference** for fair CSS/UI compare. The source-SHA/time tag is retained only as a human-readable alias. Shared builds always bake `NEXT_PUBLIC_OS_SITE_URL=https://witnessops.com`.
-- **`pnpm deploy:k3s:smoke` enforces** (exit non-zero on failure):
-  1. the exact ordered application-container `envFrom` contract on prod and mesh-dev: `BASE_ENV_SECRET`, then `ADMIN_OIDC_SECRET`, each with an empty prefix and `optional=false`,
-  2. **identical digest-qualified container image refs** on prod and mesh-dev (not CSS-only),
-  3. every ready application pod reports the config digest bound by that OCI manifest,
-  4. HTTP 200 on prod home and mesh-dev home,
-  5. matching primary CSS hash.
-  Unit tests for the image/CSS, `envFrom`, Secret-preflight, and deploy-reconciliation helpers: `pnpm deploy:k3s:test-parity`.
-- **Intentional non-parity (do not “fix” these):**
-  - mesh-dev bind: `hostNetwork` with custodied `MESH_BIND_HOST` and `MESH_BIND_PORT`
-  - mesh-dev `WITNESSOPS_VERIFY_BASE_URL=MESH_DEV_URL`
-  - mesh-dev **emptyDir** intake (never prod PVC)
-  - prod hostPort `127.0.0.1:3000` + Caddy public edge
-- **Secret/envFrom parity:** the application container in both lanes must use exactly two ordered non-lane `secretRef`s named by `BASE_ENV_SECRET`, then `ADMIN_OIDC_SECRET`, both with an empty prefix and `optional=false`. The production SSM host adapter reconciles that contract; smoke detects drift on either lane. The OIDC Secret must contain `WITNESSOPS_ADMIN_SECRET` plus the five configured `WITNESSOPS_GOOGLE_*` key names. Lane-only env keys stay under the mesh-dev env block.
-- **Repo deployment surfaces:**
-
-  | Goal | Command |
-  | --- | --- |
-  | Routine production build/publish/deploy | `.github/workflows/aws-release.yml` → immutable ECR → protected `aws-production` → bounded SSM document → Frankfurt k3s |
-  | Retired direct production path | `pnpm deploy:k3s:build`, `deploy:k3s:prod`, and `deploy:k3s:both` fail closed |
-  | Deploy mesh-dev | `pnpm deploy:k3s:dev` |
-  | Status + envFrom/image/HTTP/CSS smoke | `pnpm deploy:k3s:smoke` or `pnpm deploy:k3s:status` |
-  | Parity unit tests | `pnpm deploy:k3s:test-parity` |
-  | Remove mesh-dev only | `pnpm deploy:k3s:dev:teardown` |
-  | Validate AWS infrastructure source contract | `pnpm deploy:aws:test` |
-  | Validate GitHub OIDC/ECR/SSM source contract | `pnpm deploy:aws:validate-github` |
-  | Read-only AWS candidate acceptance | `pnpm deploy:aws:candidate` (explicit candidate identity required) |
-
-  Scripts live under `deploy/scripts/k3s-*.sh` and source `k3s-lib.sh` / `k3s-parity.sh`.
-- **Env for agents / local Mac:**
-  - Source a private ignored `deploy/topology.env`; the public example lists all required variable names without live values.
-  - Confirm `PROD_TARGET_PROFILE=prod-aws-frankfurt`; keep `DEPLOY_SSH`,
-    `PROD_EXPECTED_HOSTNAME`, and `PROD_EXPECTED_INSTANCE_ID` in ignored
-    operator custody. Read-only status scripts enforce all three identity checks.
-  - Local topology is read-only production status custody, not production mutation authority.
-  - Mesh smoke requires the configured private network path.
-- DNS/Cloudflare, Caddy rewrites, API/app exposure, and OffSec product-surface exposure require separate explicit lanes.
-- A public web deploy does not imply SaaS, app, API, or OffSec readiness.
-- **Do not use** legacy `deploy/scripts/deploy.sh` / GHCR / Docker Compose as live authority (historical only; see INSTALL.md).
-- Azure Container Apps is retired. Root `azure.yaml` and `infra/**` were archived under `docs/archive/azure-aca-retired-20260508/`.
-- Do not run `az`, `azd`, Bicep deployment, Azure inventory, Azure cleanup, Azure rollback, or Azure restore work from this repo unless a separate explicit Azure reopening lane names the allowed cloud surfaces, commands, receipts, and stop boundary.
-- Do not treat archived Azure files as active deploy authority, rollback authority, or evidence that Azure resources exist.
-- **AWS automation source (active routine deploy authority):**
-  [`docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md`](./docs/AWS_LIGHTSAIL_MIGRATION_ARCHITECTURE.md)
-  and [`deploy/aws/`](./deploy/aws/README.md) retain the reviewable Lightsail
-  infrastructure, GitHub OIDC/ECR/SSM, and candidate-acceptance contracts.
-  `.github/workflows/aws-release.yml`, immutable ECR publication, the protected
-  `aws-production` environment, the bounded production SSM document, and the
-  installed host adapter form the active routine deployment path. This does not
-  authorize AWS resource creation, GitHub setting changes, DNS, secret rotation,
-  cutover, or decommissioning.
-- AWS deployment and Public Exposure Review production-key activation are
-  separate authority lanes. Never place a production receipt-signing private
-  key on the web host/pod, add one to the runtime Secrets, change the production
-  key registry, or widen `/verify` trust as part of an AWS migration.
-
-## Local vs mesh-dev vs prod (when working on web)
-
-| Mode | Use when | How |
-| --- | --- | --- |
-| Local dev server | UI/API iteration on laptop | `pnpm dev` (app filter) — never points public DNS at localhost |
-| mesh-dev (k3s) | Shared runtime parity, form/mail, “does it look like prod?” | `pnpm deploy:k3s:dev`; open the private `MESH_DEV_URL` |
-| prod | Buyer-visible public site | Separately authorized `.github/workflows/aws-release.yml`; verify with read-only status/browser gates |
-
-Production and mesh-dev are separate lanes. Never use the retired direct-k3s
-commands as a shortcut around ECR, the protected production environment, or SSM.
+- This public repository is product source, not a public operator handbook.
+- A merge to `main` does not by itself authorize or perform production publication or deployment.
+- Production mutation requires a separate explicit operator action and separately custodied deployment/runtime evidence.
+- Do not add or restate host identity, cloud account identifiers, secret-object/key inventories, private network topology, rollback endpoints, workstation paths, or credential locations in public repo instructions.
+- Do not treat repository prose as evidence that a particular release is live. Production state requires release-specific runtime evidence.
+- DNS, edge/proxy changes, new API/app exposure, and security-product exposure require separate explicit lanes.
+- Never place production receipt-signing private keys, customer secrets, cloud credentials, or private evidence bundles in this repository.
+- Retired cloud/deployment material is historical reference only. Do not reactivate a retired path without a separately authorized reopening lane.
+- Existing production workflow paths and trust bindings must not be renamed, moved, or semantically changed as part of documentation/public-surface cleanup.
 
 ## Public docs host contract
 
-- **Canonical English docs (how-to):** `https://witnessops.com/docs` and `/docs/*` on the apex app (same k3s deployment as the marketing site).
-- **Legacy host:** `https://docs.witnessops.com/*` **308** permanently to `https://witnessops.com/docs…` (short legacy paths become `/docs` + path). Keep DNS/TLS for the legacy host so redirects work.
-- **Polish docs:** `/pl/docs` stays on apex as the localized marketing surface.
+- Canonical English docs are under `https://witnessops.com/docs` and `/docs/*`.
+- Legacy docs-host behavior must remain aligned with the separately maintained edge-routing contract; do not change DNS/TLS/redirect behavior in an unrelated docs patch.
+- Polish docs remain under `/pl/docs`.
 - Helpers: `apps/witnessops-web/src/lib/docs-host-routing.ts` (unit-tested). `getDocsUrl` returns apex `/docs` URLs.
 
 ## Root file hygiene
 
-- Treat project-root files as operator authority surfaces. Do not delete or rename root files unless the PR names the target files and proves they are stale.
+- Treat project-root files as authority surfaces. Do not delete or rename root files unless the PR names the target files and proves they are stale.
 - A root-file deletion PR must include evidence that the file is unused, superseded, or duplicate: search references, command references, package-script references, and replacement location where applicable.
 - Do not remove active root authority files such as repo instructions, command contracts, security policy, workspace/package contracts, or public README material as part of unrelated page work.
 - Keep root cleanup separate from public copy, verifier semantics, receipt semantics, release, or deploy changes.
@@ -148,11 +74,11 @@ For security-sensitive changes, preserve these boundaries:
 - Before proposing a new runtime (Go/Rust sidecar, WASM crypto, full rewrite), read [`docs/OPTIMIZATION-LANGUAGE.md`](./docs/OPTIMIZATION-LANGUAGE.md).
 - Grok project skill: `.grok/skills/optimize-witnessops-web/SKILL.md` (`/optimize-witnessops-web`).
 - Fast regression after proof/verify edits: `pnpm optimize:quick-check` (requires `pnpm install`).
-- **Node 22 builder** may live in a container or staging node rather than the fleet VM (Node 20): see [`docs/NODE22-BUILDER.md`](./docs/NODE22-BUILDER.md). Use `pnpm health:node22` (local Docker) or an explicitly authorized mesh build lane for release-quality validation.
+- Release-quality validation uses Node 22: see [`docs/NODE22-BUILDER.md`](./docs/NODE22-BUILDER.md) and use `pnpm health:node22` when the host is not already on Node 22.
 
 ## Validation
 
-- `pnpm health` — requires **Node 22** on the host (see `.nvmrc`) or run `pnpm health:node22`
-- route parity against the frozen baseline captured at slice start
-- buyer-path smoke when public buyer or proof-surface copy changes: `pnpm smoke:buyer-path:test`
-- after k3s apply: `pnpm deploy:k3s:smoke` (prod + mesh-dev exact `envFrom`, image, HTTP, and CSS parity when both are up)
+- `pnpm health` — full repository health gate on Node 22.
+- route parity against the frozen baseline captured at slice start.
+- buyer-path smoke when public buyer or proof-surface copy changes: `pnpm smoke:buyer-path:test`.
+- Deploy/runtime validation belongs to a separately authorized operator lane; do not infer it from local repository health.

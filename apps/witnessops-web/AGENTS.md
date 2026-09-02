@@ -19,18 +19,11 @@ This subtree contains live WitnessOps web app logic, not canonical public proof 
 
 ## Deployment boundary
 
-- This subtree owns app behavior, not cloud-provider authority.
-- Do not add Azure, `azd`, Bicep, ACA, or provider-specific deployment wiring under this subtree unless a separate explicit Azure reopening lane authorizes it.
-- Active hosting is Frankfurt k3s as classified by
-  `../../docs/DEPLOYMENT_AUTHORITY.md`:
-  - **prod** → public `https://witnessops.com` through Caddy
-  - **mesh-dev** → the custodied private `MESH_DEV_URL`
-- Routine production authority is the root
-  `.github/workflows/aws-release.yml` path through immutable ECR, protected
-  `aws-production`, bounded SSM, and Frankfurt k3s. The root
-  `deploy:k3s:build`, `deploy:k3s:prod`, and `deploy:k3s:both` aliases are
-  retired and fail closed. `pnpm deploy:k3s:dev` remains the mesh-dev command.
-- Archived Azure material under `../../docs/archive/azure-aca-retired-20260508/` is historical reference only.
+- This subtree owns app behavior, not cloud-provider or host authority.
+- A source change or merge does not itself establish production deployment.
+- Do not add production host identity, cloud-account identifiers, private network topology, credential locations, secret inventories, or rollback endpoints to app-subtree instructions.
+- Existing production workflow/trust paths must not be renamed, moved, or semantically changed as part of ordinary app or documentation work.
+- Retired deployment material is historical reference only and must not be reactivated without a separately authorized lane.
 
 ## Public proof-surface rules
 
