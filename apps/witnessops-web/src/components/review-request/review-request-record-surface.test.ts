@@ -82,12 +82,12 @@ test("recorded confirmation keeps the no-secret and no-conclusion boundary visib
   );
 });
 
-test("Public Exposure Review confirmation preserves its start-work gates", () => {
+test("External Attack Surface Review confirmation preserves its start-work gates", () => {
   assert.match(confirmed, /public-exposure-review/);
   assert.match(confirmed, /payment, the SOW, written authority, required inputs/);
   assert.match(confirmed, /collection window/);
   assert.match(confirmed, /external-exposure-assessment/);
-  assert.match(confirmed, /Public Exposure Review sample/);
+  assert.match(confirmed, /EXTERNAL_ATTACK_SURFACE_OFFER\.name/);
 });
 
 test("both conversion paths derive the record from the parsed verification response", () => {

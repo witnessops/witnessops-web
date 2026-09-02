@@ -1,6 +1,6 @@
 ---
 title: "Evidence Bundles"
-description: "The current Public Exposure Review package boundary, reconstructable manifest references, and the separation between producer output and independent verification."
+description: "The current External Attack Surface Review package boundary, reconstructable manifest references, and the separation between producer output and independent verification."
 section: "docs"
 order: 3
 nav_label: "Evidence Bundles"
@@ -11,7 +11,7 @@ draft: false
 
 An evidence bundle is the portable package around a receipt. The package carries the bytes needed to reconstruct evidence references and run checks that a receipt-only surface cannot perform.
 
-## 1. Public Exposure Review package
+## 1. External Attack Surface Review package
 
 The current proof-engine delivery contract uses this layout:
 
@@ -62,7 +62,7 @@ When required evidence or trust inputs are missing, the correct outcome is incom
 
 ## 5. Other package profiles
 
-Older documentation described a universal `CLAIM.json`, DSSE envelope, RFC 3161 token, NDJSON receipt chain, and trust-directory layout. Those artifacts may exist in retained, compatibility, or design lanes, but they are not the canonical Public Exposure Review package and are not required inputs to the current public receipt adapter.
+Older documentation described a universal `CLAIM.json`, DSSE envelope, RFC 3161 token, NDJSON receipt chain, and trust-directory layout. Those artifacts may exist in retained, compatibility, or design lanes, but they are not the canonical External Attack Surface Review package and are not required inputs to the current public receipt adapter.
 
 If a package declares DSSE, RFC 3161, in-toto, continuity, or transparency layers, verify the matching artifacts with tooling that implements that exact profile. Do not infer those layers from filenames or receipt JSON alone.
 

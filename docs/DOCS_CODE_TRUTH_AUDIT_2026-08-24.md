@@ -5,6 +5,8 @@ Scope: `witnessops-web` public docs, public verification surfaces, repository-lo
 deployment instructions, and the adjacent canonical verification repositories.
 Base web commit: `6953794177e5e071874522c9a76071d26d0930d0`
 
+> **Commercial-positioning supersession, 2026-09-02:** the current primary public offer is Agent Action Security Review; Agent Workflow Reconstruction is its delivery method. The current secondary public offer under `OFFSEC-EXTERNAL-EXPOSURE` is External Attack Surface Review. The dated audit and earlier positioning notes below remain historical, while their receipt-profile and verifier facts retain their original technical meaning.
+
 > **Commercial-positioning update, 2026-09-01:** this audit preserves the product and verifier facts observed on 2026-08-24, including the later 2026-08-26 positioning note below. Neither former primary-offer statement is current commercial authority. Agent Workflow Reconstruction is now the primary paid entry point; Public Exposure Review remains separate secondary catalogue work. See [`commercial/16-agent-workflow-reconstruction-offer.md`](./commercial/16-agent-workflow-reconstruction-offer.md).
 
 > **Historical commercial-positioning update, 2026-08-26:** this audit preserves the product and verifier facts observed on 2026-08-24. Its statement that Public Exposure Review was the primary customer workflow was then superseded by Agent Risk & Control Review as the primary homepage offer. Public Exposure Review remained a separate current catalogue offer.

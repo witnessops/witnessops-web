@@ -65,7 +65,7 @@ export default function PolishVerifyPage() {
         </summary>
         <div className="mt-4 space-y-3 text-sm leading-relaxed text-text-muted">
           <p>
-            Dla Public Exposure Review poprawny strukturalnie zapis pozostaje dziś
+            Dla zapisów w profilu zgodności public_exposure_review poprawny strukturalnie wynik pozostaje dziś
             nieokreślony: ta strona nie otrzymuje pełnego pakietu dowodowego, a
             serwerowa polityka kluczy produkcyjnych nie jest aktywna. Strona nie
             przyjmuje danych zaufania ani dowodów dostarczonych przez wywołującego.

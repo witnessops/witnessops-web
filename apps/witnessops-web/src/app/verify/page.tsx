@@ -91,7 +91,7 @@ export default function VerifyPage() {
               independently completed here. The API verdict is `indeterminate`.
             </p>
             <p>
-              For Public Exposure Review receipts, a structurally conforming input
+              For receipts using the legacy public_exposure_review profile, a structurally conforming input
               remains incomplete today because the page does not receive the full
               evidence package and the server-owned production key policy is not
               active. This page does not accept caller-supplied evidence or trust

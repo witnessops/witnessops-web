@@ -610,7 +610,7 @@ test("approved or started legacy manual replay preserves assessment lifecycle wi
   );
 });
 
-test("Public Exposure Review stays on the locale-specific manual order path", async () => {
+test("External Attack Surface Review stays on the locale-specific manual order path", async () => {
   for (const locale of ["en", "pl"] as const) {
     const baseDir = await mkdtemp(
       path.join(os.tmpdir(), `witnessops-external-exposure-${locale}-`),
@@ -655,7 +655,7 @@ test("Public Exposure Review stays on the locale-specific manual order path", as
   }
 });
 
-test("Agent Workflow Reconstruction uses the Polish manual commercial path and operator notification", async () => {
+test("Agent Action Security Review uses the Polish manual commercial path and operator notification", async () => {
   const baseDir = await mkdtemp(
     path.join(os.tmpdir(), "witnessops-bounded-workflow-review-"),
   );
@@ -666,12 +666,12 @@ test("Agent Workflow Reconstruction uses the Polish manual commercial path and o
   });
   assert.match(
     issued.verificationMailRaw,
-    /Potwierdź: Zgłoszenie Agent Workflow Reconstruction\./,
+    /Potwierdź: Zgłoszenie Agent Action Security Review\./,
   );
   await assertCurrentCommercialIntentVerification(issued, {
     postVerifyPath: "/pl/review/request/confirmed",
     operatorSubject:
-      /^Subject: Verified Agent Workflow Reconstruction request: WitnessOps Labs$/m,
+      /^Subject: Verified Agent Action Security Review request: WitnessOps Labs$/m,
     locale: "pl",
   });
 });

@@ -1,13 +1,13 @@
 ---
 title: "How to Verify a Receipt"
-description: "Run the public receipt-only check, understand Public Exposure Review indeterminate semantics, and keep full-package verification separate."
+description: "Run the public receipt-only check, understand legacy public_exposure_review indeterminate semantics, and keep full-package verification separate."
 section: "docs"
 order: 4
 nav_label: "Verify a Receipt"
 draft: false
 trust_boundary_variant: "verification"
 page_answer:
-  question: "What does the public verifier check, why is a Public Exposure Review receipt currently indeterminate, and what would full verification require?"
+  question: "What does the public verifier check, why is a legacy public_exposure_review receipt currently indeterminate, and what would full verification require?"
   links:
     - href: "/docs/evidence/receipt-spec"
       label: "Receipt Spec"
@@ -44,7 +44,7 @@ The public API separates accepted verification results from malformed or unsuppo
 
 An internal verifier result of `limited-pass` maps to public `indeterminate`, never to `valid`.
 
-## 3. Public Exposure Review adapter
+## 3. Legacy `public_exposure_review` adapter
 
 Receipts with workflow class `public_exposure_review` route to `witnessops.verify.public_exposure_review_receipt.v1`.
 
@@ -91,17 +91,17 @@ The adapter explicitly reports these as not checked:
 - cryptographic signature verification
 - production key authorization and revocation state
 
-A well-formed Public Exposure Review receipt therefore currently returns `indeterminate`. A profile conflict returns `invalid`.
+A well-formed receipt using the legacy profile therefore currently returns `indeterminate`. A profile conflict returns `invalid`.
 
 ## 4. Real evidence references
 
-Public Exposure Review claim references are not display labels. The bounded OffSec output adapter precomputes each staged source artifact's future canonical manifest ID in the form `offsec_<24 lowercase hex>`. The proof engine later uses the extensionless staged filename as the artifact ID in the manifest.
+The legacy profile's claim references are not display labels. The bounded OffSec output adapter precomputes each staged source artifact's future canonical manifest ID in the form `offsec_<24 lowercase hex>`. The proof engine later uses the extensionless staged filename as the artifact ID in the manifest.
 
 The web adapter validates only that form. It does not fetch or accept the manifest and cannot prove that an ID resolves, that bytes match, or that the evidence supports a claim. Those conclusions require the package-verification path.
 
 ## 5. Production key-registry acceptance
 
-The server-owned Public Exposure Review trust policy is currently non-authorizing:
+The server-owned `public_exposure_review` trust policy is currently non-authorizing:
 
 - workflow acceptance policy `public_exposure_review.production.v1` is `draft` and has no trusted revision, policy hash, or registry-manifest hash pinned
 - key-trust policy `public_exposure_review.production_signing.v1` is `draft` and has no trusted registry revision or manifest hash pinned
@@ -145,4 +145,4 @@ Verification establishes named relationships over supplied artifacts and trust i
 
 ## 8. Next-page handoff
 
-Read [Receipt Specification](/docs/evidence/receipt-spec) for the exact Public Exposure Review contract and [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the current package boundary.
+Read [Receipt Specification](/docs/evidence/receipt-spec) for the exact legacy-profile contract and [Evidence Bundles](/docs/how-it-works/evidence-bundles) for the current package boundary.

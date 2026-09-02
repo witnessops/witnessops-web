@@ -2,7 +2,7 @@
 
 Status: superseded implementation contract retained for migration provenance
 
-> **Commercial-positioning supersession — 2026-09-01.** This v1 funnel record preserves the route, checker, and implementation decisions made for the 2026-08-27 handoff. Its former offer name, price reference, and statement about the paid offer are not current commercial authority. The stable `/catalog/workflows` route and `bounded-workflow-review` identifier now present [Agent Workflow Reconstruction](../commercial/16-agent-workflow-reconstruction-offer.md): one named workflow, €2,500 fixed, beginning with a non-secret fit check and delivered within 10 working days after evidence rules are agreed.
+> **Commercial-positioning supersession — 2026-09-02.** This v1 funnel record preserves the route, checker, and implementation decisions made for the 2026-08-27 handoff. Its former offer name, price reference, and statement about the paid offer are not current commercial authority. The stable `/catalog/workflows` route and `bounded-workflow-review` identifier now present [Agent Action Security Review](../commercial/16-agent-workflow-reconstruction-offer.md): one consequential agent or automation action, €2,500 fixed, beginning with a non-secret fit check and delivered within 10 working days after evidence rules are agreed. Agent Workflow Reconstruction is the delivery method.
 
 This document preserves the compact product and evidence contract for the WitnessOps agent-verification customer journey. The Grok artifact is a reconstructable design reference, not production code or production authority.
 

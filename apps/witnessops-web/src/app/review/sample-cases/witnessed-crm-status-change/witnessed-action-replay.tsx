@@ -362,7 +362,7 @@ export function WitnessedActionReplay() {
 
           <aside className={styles.paidCta}>
             <span>{PRIMARY_OFFER.name.en}</span>
-            <div><h3>Bring the real workflow.</h3><p>Reconstruct one consequential workflow’s authority, execution, evidence, permissions, and unresolved gaps.</p></div>
+            <div><h3>Bring one consequential action.</h3><p>Review its authority, executing identity, permissions, tools, execution path, evidence chain, and control gaps.</p></div>
             <Link href={`${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}`}>Start a non-secret fit check →</Link>
           </aside>
         </section>

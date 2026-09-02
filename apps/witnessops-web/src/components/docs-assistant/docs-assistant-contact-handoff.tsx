@@ -102,7 +102,7 @@ export function DocsAssistantContactHandoff({
     if (inFlightRef.current !== null) return;
     if (offerRequiresSummary && !note.trim()) {
       setStatus("error");
-      setErrorMessage("Add a short, non-secret workflow summary.");
+      setErrorMessage("Add a short, non-secret summary of the consequential action.");
       window.requestAnimationFrame(() => noteRef.current?.focus());
       return;
     }
@@ -289,7 +289,7 @@ export function DocsAssistantContactHandoff({
         <div>
           <h2 className="text-sm font-semibold text-text-primary">
             {commercialFit?.offer
-              ? "Request scope for this workflow"
+              ? "Request scope for this action"
               : "Contact handoff"}
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-text-muted">
@@ -439,7 +439,7 @@ export function DocsAssistantContactHandoff({
               htmlFor="ask-ai-contact-note"
               className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted"
             >
-              Workflow summary or request{" "}
+              Action summary or request{" "}
               <span className="normal-case">
                 ({offerRequiresSummary ? "required" : "optional"})
               </span>

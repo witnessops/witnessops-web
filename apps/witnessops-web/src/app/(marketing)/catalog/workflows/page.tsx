@@ -39,8 +39,8 @@ export default function CatalogWorkflowsPage() {
       <BuyerServiceDetail
         locale="en"
         service={service}
-        claim="WitnessOps reconstructs one consequential agent or automation workflow and separates what was authorised, executed, observed, and still unresolved."
-        verificationPath="The proposed receipt shape and sample pack name the evidence references, verifier result, and challenge path. Extract the supported receipt JSON from the sample pack to test it through /verify; /verify does not accept the whole pack. A receipt proves only what that verifier and its referenced evidence support. It does not certify compliance or agent safety."
+        claim="WitnessOps reviews one consequential agent or automation action across authority → identity → permissions → tools → execution → evidence. The review identifies over-privileged identities, weak or implicit approval paths, tool access beyond intended scope, broken approval-to-action binding, missing execution evidence, and actions that cannot be independently demonstrated afterward."
+        verificationPath={`${PRIMARY_OFFER.deliveryMethod.en} is the delivery method used to reconstruct the action and test the evidence chain. Where useful, the technical package includes an evidence-gap analysis, proposed receipt shape, and sample pack with supported receipt JSON. Extract that JSON to test it through /verify; /verify does not accept the whole pack. A receipt proves only what its named verifier and referenced evidence support; it does not certify compliance or agent safety.`}
         notIncluded={[...PRIMARY_OFFER.notIncluded.en]}
         promoteCommercialContract
       />

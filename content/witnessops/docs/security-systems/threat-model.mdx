@@ -146,7 +146,7 @@ The control here is auditability and continuity, not magical prevention.
 
 ## Partial bundle risk
 
-A partial package may contain individual checks that pass, but it cannot produce a production-valid Public Exposure Review result while required package or trust inputs are missing.
+A partial package may contain individual checks that pass, but it cannot produce a production-valid `public_exposure_review` profile result while required package or trust inputs are missing.
 
 A verifier may be able to confirm that a presented subset is internally consistent while the overall result remains incomplete or `indeterminate`. The subset does not establish that it represents the whole engagement, chain, or decision path.
 
@@ -160,7 +160,7 @@ Verification should be read precisely.
 - `invalid` means a proof-bearing check failed
 - `indeterminate` means the input may be coherent, but one or more required evidence, workflow, authorization, signature, or trust checks were not independently completed
 
-On the public receipt-only `/verify` surface, an internal `limited-pass` maps to `indeterminate`. Public Exposure Review also remains `indeterminate` until the full evidence and production trust checks are independently completed.
+On the public receipt-only `/verify` surface, an internal `limited-pass` maps to `indeterminate`. The legacy-named `public_exposure_review` profile also remains `indeterminate` until the full evidence and production trust checks are independently completed.
 
 These statuses are more useful than a generic green or red badge because they tell the reviewer what kind of dispute they are actually dealing with.
 

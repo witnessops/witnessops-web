@@ -10,7 +10,7 @@ const SCREENSHOT_DIR = path.join(
 
 const SAMPLE_PATH = "/review/sample-cases/ai-agent-action-proof-run";
 const PRIMARY_REQUEST_PATH =
-  "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction";
+  "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review";
 const FOCUSABLE_SELECTOR = [
   "a[href]:visible",
   "button:not([disabled]):visible",
@@ -40,9 +40,9 @@ const askWorkflowFitResponse = {
     offer_id: "bounded-workflow-review",
     source: "ask",
     offer: {
-      name: "Agent Workflow Reconstruction",
+      name: "Agent Action Security Review",
       price_label: "€2,500 fixed",
-      unit_label: "One named workflow (agentic or automated)",
+      unit_label: "One consequential agent or automation action",
       fit_check_label: "Non-secret fit check first",
       delivery_label: "Within 10 working days after evidence rules are agreed",
     },
@@ -213,8 +213,8 @@ test("a selected offer survives the click handoff into the request form", async 
   await expectPath(page, "/review/request");
   const destination = new URL(page.url());
   expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
-  expect(destination.searchParams.get("offer")).toBe("Agent Workflow Reconstruction");
-  await expect(page.getByText("Selected offer: Agent Workflow Reconstruction")).toBeVisible();
+  expect(destination.searchParams.get("offer")).toBe("Agent Action Security Review");
+  await expect(page.getByText("Selected offer: Agent Action Security Review")).toBeVisible();
   await expect(page.locator("main")).toContainText("€2,500 fixed");
   await expect(page.locator("main")).toContainText(
     "Within 10 working days after evidence rules are agreed",
@@ -229,7 +229,7 @@ test("a selected offer survives the click handoff into the request form", async 
   await context.close();
 });
 
-test("support sends paid-work buyers to the canonical workflow reconstruction", async ({
+test("support sends paid-work buyers to the canonical action security review", async ({
   browser,
 }) => {
   for (const scenario of [
@@ -248,7 +248,7 @@ test("support sends paid-work buyers to the canonical workflow reconstruction", 
     const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
     expect(response?.status(), scenario.path).toBe(200);
     const main = page.locator("main");
-    await expect(main).toContainText("Agent Workflow Reconstruction");
+    await expect(main).toContainText("Agent Action Security Review");
     await expect(main).not.toContainText(
       "Request an AI Agent Action Proof Run",
     );
@@ -258,7 +258,7 @@ test("support sends paid-work buyers to the canonical workflow reconstruction", 
     const offerLinks = main.locator(`a[href="${scenario.requestPath}"]`);
     expect(await offerLinks.count(), scenario.path).toBeGreaterThanOrEqual(1);
     await expect(offerLinks.first()).toContainText(
-      "Agent Workflow Reconstruction",
+      "Agent Action Security Review",
     );
 
     await context.close();
@@ -315,7 +315,7 @@ test("mobile Ask reaches a scrollable fit-check destination without a stale over
     askRequests += 1;
     expect(route.request().method()).toBe("POST");
     expect(route.request().postDataJSON()).toEqual({
-      question: "What is included in Agent Workflow Reconstruction?",
+      question: "What is included in Agent Action Security Review?",
     });
     await route.fulfill({
       status: 200,
@@ -335,7 +335,7 @@ test("mobile Ask reaches a scrollable fit-check destination without a stale over
 
   await page
     .getByRole("button", {
-      name: "What is included in Agent Workflow Reconstruction?",
+      name: "What is included in Agent Action Security Review?",
     })
     .click();
   const fitCheckCta = page.locator('[data-ask-primary-cta="true"], [data-ask-primary-cta]');
@@ -347,7 +347,7 @@ test("mobile Ask reaches a scrollable fit-check destination without a stale over
   expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
   expect(destination.searchParams.get("source")).toBe("ask");
   expect(destination.searchParams.get("result")).toBe("likely");
-  await expect(page.getByText("Selected offer: Agent Workflow Reconstruction")).toBeVisible();
+  await expect(page.getByText("Selected offer: Agent Action Security Review")).toBeVisible();
   await expect(page.locator("main")).toContainText("€2,500 fixed");
   await expect(page.locator("main")).toContainText(
     "Within 10 working days after evidence rules are agreed",
@@ -417,9 +417,9 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   await expectPath(page, "/review/request");
   const destination = new URL(page.url());
   expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
-  expect(destination.searchParams.get("offer")).toBe("Agent Workflow Reconstruction");
+  expect(destination.searchParams.get("offer")).toBe("Agent Action Security Review");
   await expect(page.locator("main h1")).toContainText(
-    "Start your Agent Workflow Reconstruction",
+    "Start your Agent Action Security Review",
   );
   await saveEvidence(page, "05-mobile-menu-cta-destination.png");
 

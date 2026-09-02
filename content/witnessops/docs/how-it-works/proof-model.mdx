@@ -1,6 +1,6 @@
 ---
 title: "Proof Model"
-description: "How Public Exposure Review declarations, evidence bytes, signatures, trust policy, and verifier checks form separate assurance layers."
+description: "How External Attack Surface Review declarations, evidence bytes, signatures, trust policy, and verifier checks form separate assurance layers."
 section: "docs"
 order: 2
 nav_label: "Proof Model"
@@ -13,7 +13,7 @@ WitnessOps proof is layered. A workflow declaration, evidence package, signature
 
 ## 1. Current sequence
 
-1. The approved Public Exposure Review produces source records within its frozen scope and method.
+1. The approved External Attack Surface Review produces source records within its frozen scope and method.
 2. The bounded OffSec adapter exports eligible records, stages actual files, and derives real manifest artifact IDs.
 3. The proof engine normalizes records, compares workflow claims, builds the package, and signs the receipt when an authorized signing input is supplied.
 4. A separate verifier can recompute package bytes, evidence support, signature, workflow checks, and explicit trust policy.
@@ -23,7 +23,7 @@ WitnessOps proof is layered. A workflow declaration, evidence package, signature
 
 | Layer | Input | What a successful check can establish |
 | --- | --- | --- |
-| Receipt profile | `witnessops.receipt.v0` + Public Exposure Review context | Submitted JSON preserves the expected product fields, claims, limitations, method, and relationships |
+| Receipt profile | `witnessops.receipt.v0` + legacy `public_exposure_review` context | Submitted JSON preserves the expected product fields, claims, limitations, method, and relationships |
 | Evidence integrity | Manifest and referenced artifact bytes | Supplied files match declared hashes and references resolve |
 | Evidence support | Claims plus independently inspected artifacts | Supplied artifacts support the recorded claim status under the declared method |
 | Signature | Canonical receipt bytes, Ed25519 signature, public key | The signature matches that key |
@@ -40,13 +40,13 @@ An independent result requires a separate verifier invocation with the package a
 
 ## 4. Public result today
 
-The public adapter checks receipt structure and the exact Public Exposure Review profile. It does not receive package bytes or an active production trust snapshot. A conforming Public Exposure Review receipt therefore returns `indeterminate`; a profile conflict returns `invalid`.
+The public adapter checks receipt structure and the exact legacy-named `public_exposure_review` profile. It does not receive package bytes or an active production trust snapshot. A conforming receipt using that profile therefore returns `indeterminate`; a profile conflict returns `invalid`.
 
 The current production signing policy is draft and allowlists no keys. Signature syntax is not signature verification, and a key included in a package is not automatically trusted.
 
 ## 5. Optional compatibility layers
 
-Some retained or compatibility formats declare timestamps, DSSE envelopes, predecessor chains, Merkle roots, checkpoints, or inclusion proofs. Those layers are testable only when the specific artifacts and trust roots are supplied and the selected verifier implements that profile. They are not universal Public Exposure Review receipt fields.
+Some retained or compatibility formats declare timestamps, DSSE envelopes, predecessor chains, Merkle roots, checkpoints, or inclusion proofs. Those layers are testable only when the specific artifacts and trust roots are supplied and the selected verifier implements that profile. They are not universal `public_exposure_review` receipt fields.
 
 ## 6. Limits
 

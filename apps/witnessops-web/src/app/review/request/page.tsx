@@ -7,7 +7,10 @@ import {
 } from "@/lib/buyer-services";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import { linkedinPremiumCampaignAttribution } from "@/lib/marketing-attribution";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
@@ -38,30 +41,30 @@ export const metadata: Metadata = {
 
 const proofOutputs = [
   {
-    title: "Boundary map",
-    summary: "What action is in scope, who approved it, who acted, and where authority stops.",
+    title: "Authority map",
+    summary: "Who can authorize the action, which identity executes it, and where production authority stops.",
   },
   {
-    title: "Action path",
-    summary: "The one workflow, tool path, or touched system under review.",
+    title: "Execution path",
+    summary: "The one consequential action, connected tools, APIs, MCP integrations, and affected systems.",
   },
   {
-    title: "Evidence manifest",
-    summary: "Available artifact classes, source references, hashes where available, and known gaps.",
+    title: "Permission boundary",
+    summary: "The identity’s effective access, privilege boundary, scope controls, and possible blast radius.",
   },
   {
-    title: "Receipt artifact and verifier path",
-    summary: "Package artifacts that name approval, action, evidence references, limits, and challenge path when the scope supports them.",
+    title: "Evidence chain and control gaps",
+    summary: "What binds authorization to execution and resulting state, what cannot be independently demonstrated, and the practical fixes.",
   },
 ];
 
 const publicExposureOutputs = [
   {
-    title: "Exposure map",
-    summary: "Confirmed public services and assets inside the accepted first-party boundary.",
+    title: "External attack-surface map",
+    summary: "Confirmed attacker-visible hosts, services, and endpoints inside the accepted first-party boundary.",
   },
   {
-    title: "Evidence-linked findings",
+    title: "Evidence-backed findings",
     summary: "Prioritised observations with affected targets and inspectable evidence references.",
   },
   {
@@ -100,8 +103,8 @@ const nextSteps = [
 ];
 
 const primaryOfferNextSteps = [
-  `We check whether ${PRIMARY_OFFER.unit.en.toLowerCase()} fits the reconstruction boundary without asking for secrets.`,
-  "If it fits, we agree the scope, evidence rules, exclusions, and evidence handling before accepting source material.",
+  `${PRIMARY_OFFER.fitCheckQuestion.en} We check the failure impact, systems, tools, and security boundaries without asking for secrets.`,
+  "If it fits, we agree the one action, authority, executing identity, permissions, tool access, evidence rules, exclusions, and evidence handling before accepting source material.",
   `${PRIMARY_OFFER.timing.en} for the ${PRIMARY_OFFER.price.en} engagement.`,
 ];
 
@@ -221,9 +224,9 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
           {publicExposureOrder
-            ? "Tell us what public-facing system you want reviewed. We’ll confirm the exact boundary and authority before any testing begins."
+            ? "Name the authorised internet-facing system and why its external attack surface matters now. We’ll confirm the exact boundary and authority before any target-facing check begins. This is not a penetration test."
             : primaryOfferOrder
-              ? "Name one consequential agent or automation workflow. A non-secret summary is enough for the fit check; evidence is accepted only after scope, evidence rules, and handling are agreed."
+              ? `${PRIMARY_OFFER.fitCheckQuestion.en} Add the failure impact, systems and tools involved, and any production, customer-data, money, account, permission, or external-communication boundary. Keep it non-secret; evidence is accepted only after scope, evidence rules, and handling are agreed.`
             : selectedServiceOrder
               ? "Give us one non-secret summary for the selected service. We’ll confirm fit, exact scope, required inputs, fee, and timing before work begins."
               : "Start with one non-secret review need. We’ll confirm whether it is bounded enough to scope before any work or evidence intake begins."}
@@ -341,7 +344,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
               <p>
                 {publicExposureOrder
-                  ? "€1,900 ex VAT for one authorised public-facing system. Payment is due in full before the delivery clock starts. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance."
+                  ? `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en}. Payment is due in full before the delivery clock starts. Timing, capacity, and evidence handling are confirmed during asynchronous scope acceptance.`
                   : primaryOfferOrder
                     ? `${PRIMARY_OFFER.price.en} for ${PRIMARY_OFFER.unit.en.toLowerCase()}. ${PRIMARY_OFFER.fitCheck.en}. ${PRIMARY_OFFER.timing.en}.`
                     : "Fee, timing, and evidence handling are confirmed by email after the first fit check."}
@@ -380,7 +383,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
                 : "/review/sample-cases/ai-agent-action-proof-run"}
               className="text-sm text-brand-accent underline-offset-4 hover:underline"
             >
-              {publicExposureOrder ? "Inspect Public Exposure Review sample" : "Inspect sample package"}
+              {publicExposureOrder ? `Inspect ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} sample` : "Inspect sample package"}
             </Link>
           </section>
           ) : null}
@@ -402,7 +405,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             <div className="space-y-2 text-sm leading-relaxed text-text-muted">
               {publicExposureOrder ? (
                 <>
-                  <p>Controlled external exposure review, not an open-ended penetration test.</p>
+                  <p>This is not a penetration test.</p>
                   <p>No exploitation, credential testing, destructive activity, or persistence.</p>
                   <p>Not a certification, attestation, completeness claim, or security guarantee.</p>
                 </>
@@ -439,7 +442,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           }}
         >
           {publicExposureOrder
-            ? "What the Public Exposure Review delivers"
+            ? `What the ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} delivers`
             : primaryOfferOrder
               ? `What ${PRIMARY_OFFER.name.en} includes`
               : selectedServiceOrder

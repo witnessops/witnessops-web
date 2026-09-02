@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 import { buyerServiceById } from "./buyer-services";
+import { EXTERNAL_ATTACK_SURFACE_OFFER } from "./commercial-truth";
 import { POLISH_OFFERS } from "./public-i18n";
 import { getServiceLanding } from "./service-landings";
 
@@ -46,13 +47,14 @@ function getExternalExposureSku() {
   return catalog.skus.find((candidate) => candidate.id === productId);
 }
 
-test("Public Exposure Review preserves the fixed-price commercial contract", () => {
+test("External Attack Surface Review preserves the fixed-price commercial contract", () => {
   const service = buyerServiceById("external-exposure-assessment");
   const sku = getExternalExposureSku();
 
   assert.ok(sku);
   assert.equal(service.productId, productId);
-  assert.equal(service.name.en, "Public Exposure Review");
+  assert.equal(service.name.en, "External Attack Surface Review");
+  assert.equal(service.name, EXTERNAL_ATTACK_SURFACE_OFFER.name);
   assert.equal(
     service.price.en,
     "€1,900 ex VAT — one authorised public-facing system",
@@ -74,7 +76,7 @@ test("Public Exposure Review preserves the fixed-price commercial contract", () 
   assert.match(landing.deliverables.join("\n"), /one focused retest within 30 days/i);
 });
 
-test("Public Exposure Review preserves fixed caps and allowed check classes", () => {
+test("External Attack Surface Review preserves fixed caps and allowed check classes", () => {
   const sku = getExternalExposureSku();
   assert.ok(sku);
   assert.deepEqual(sku.limits, {
@@ -99,7 +101,7 @@ test("Public Exposure Review preserves fixed caps and allowed check classes", ()
   assert.match(scope, /unauthenticated, outside-in/i);
 });
 
-test("Public Exposure Review qualifies passive discovery across current authority", () => {
+test("External Attack Surface Review qualifies passive discovery across current authority", () => {
   const english = getServiceLanding("external-exposure-assessment", "en");
   const polish = getServiceLanding("external-exposure-assessment", "pl");
   const englishLanding = [
@@ -131,7 +133,7 @@ test("Public Exposure Review qualifies passive discovery across current authorit
   );
 });
 
-test("Public Exposure Review preserves prohibited methods and claim limits", () => {
+test("External Attack Surface Review preserves prohibited methods and claim limits", () => {
   const english = getServiceLanding("external-exposure-assessment", "en");
   const boundaries = english.boundaries.join("\n");
 
@@ -151,4 +153,5 @@ test("Public Exposure Review preserves prohibited methods and claim limits", () 
   assert.doesNotMatch(polish.priceDetail ?? "", /pierwsze trzy|€2 500/);
   assert.match(polish.deliverables.join("\n"), /jeden retest w ciągu 30 dni/i);
   assert.match(polish.exclusions.join("\n"), /zbierania danych klientów/i);
+  assert.match(polish.exclusions.join("\n"), /To nie jest test penetracyjny/i);
 });

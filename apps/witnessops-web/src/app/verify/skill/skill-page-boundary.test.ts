@@ -70,12 +70,12 @@ test("skill console exposes paste, file, policy, verdict, report controls", () =
   assert.doesNotMatch(consoleSrc, /sessionStorage/);
 });
 
-test("Check a Skill remains noindex while the bounded journey can link to it", () => {
+test("Check a Skill remains noindex and outside active commercial discovery", () => {
   assert.match(page, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false/);
   for (const source of nonDiscoverySurfaces) {
     assert.doesNotMatch(source, /\/verify\/skill/);
   }
-  assert.match(homepage, /href:\s*"\/verify\/skill"/);
+  assert.doesNotMatch(homepage, /href:\s*"\/verify\/skill"/);
   assert.match(skillDetail, /Check this exact version/);
   assert.match(skillDetail, /skill=\$\{encodeURIComponent\(skill\.slug\)\}/);
   assert.match(skillDetail, /sha256=\$\{skill\.sha256\}/);

@@ -1,6 +1,6 @@
 ---
 title: "How It Works"
-description: "How the Public Exposure Review workflow becomes an evidence-linked receipt and a bounded verification result."
+description: "How an External Attack Surface Review becomes an evidence-linked receipt and a bounded verification result."
 section: "docs"
 order: 1
 nav_label: "How It Works"
@@ -9,7 +9,7 @@ draft: false
 
 # How It Works
 
-WitnessOps turns one authorized Public Exposure Review into a scoped record that another reviewer can inspect. The product workflow, evidence producer, receipt builder, trust policy, verifier, and web adapter remain separate components.
+WitnessOps turns one authorized External Attack Surface Review into a scoped record that another reviewer can inspect. The product workflow, evidence producer, receipt builder, trust policy, verifier, and web adapter remain separate components.
 
 ## 1. Product workflow
 
@@ -33,7 +33,7 @@ The pre-signing result uses receipt outcomes `pass`, `partial`, `fail`, or `inco
 | Public request and review workflow | Captures fit, authority, scope, approved checks, timing, limits, and review outcome | Does not establish cryptographic proof by itself |
 | Bounded OffSec adapter | Exports eligible source records, stages evidence, and supplies real manifest artifact IDs and verification context | Does not contact targets, sign receipts, choose trust, or verify packages |
 | Proof engine | Builds deterministic package files and signs receipts when an authorized signer is supplied | Does not independently verify its own output or define production key custody |
-| Key registry and policy | Defines which signer could be accepted for production workflow use | Is currently draft and authorizes no production Public Exposure Review key |
+| Key registry and policy | Defines which signer could be accepted for production workflow use | Is currently draft and authorizes no production key for the legacy `public_exposure_review` profile |
 | Internal verifier | Recomputes package, signature, evidence, workflow, and trust checks from explicit inputs | Is not currently a supported public distribution |
 | Public `/verify` adapter | Runs compatible receipt-only checks and presents `valid`, `invalid`, or `indeterminate` | Does not accept bundles or caller-supplied evidence and trust inputs |
 
@@ -41,7 +41,7 @@ The pre-signing result uses receipt outcomes `pass`, `partial`, `fail`, or `inco
 
 The OffSec adapter deterministically derives each `offsec_<24 lowercase hex>` artifact ID from the source run, normalized source path, and source SHA-256. The proof engine carries those identifiers into the evidence manifest and receipt claim references.
 
-The Public Exposure Review receipt uses `witnessops.receipt.v0` with `witnessops.verification_context.v1`. It preserves the exact method, subject, scope, timestamps, claims, limitations, outcome, manifest digest, and signature declaration.
+The legacy-named `public_exposure_review` receipt uses `witnessops.receipt.v0` with `witnessops.verification_context.v1`. It preserves the exact method, subject, scope, timestamps, claims, limitations, outcome, manifest digest, and signature declaration.
 
 Producer `verification_result.json` records build and comparison checks. It is not an independent verifier result.
 

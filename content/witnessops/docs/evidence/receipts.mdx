@@ -13,7 +13,7 @@ A receipt is a portable signed claim about one bounded workflow result. It carri
 
 ## 1. Current product receipt
 
-The canonical Public Exposure Review receipt uses:
+The canonical legacy-named `public_exposure_review` receipt uses:
 
 - envelope `witnessops.receipt.v0`
 - profile `witnessops.verification_context.v1`
@@ -32,7 +32,7 @@ The receipt binds the final record to the declared subject, scope, method, times
 
 ## 2. What a receipt contains
 
-At a high level, the Public Exposure Review profile contains:
+At a high level, the `public_exposure_review` compatibility profile contains:
 
 1. workflow and proof-run identity
 2. subject and bounded scope
@@ -49,7 +49,7 @@ The exact field contract is in [Receipt Specification](/docs/evidence/receipt-sp
 
 A receipt can declare that evidence was collected, scope was authorized, or artifacts were hash-bound. Those statements become independently testable only when the verifier has the matching request, authority, workflow, manifest, artifact, signature, and trust inputs.
 
-The public `/verify` surface currently receives receipt JSON only. For Public Exposure Review it checks the profile and declared relationships, but it does not receive the full package or an active production trust snapshot. A conforming receipt therefore remains `indeterminate`.
+The public `/verify` surface currently receives receipt JSON only. For the `public_exposure_review` profile it checks the profile and declared relationships, but it does not receive the full package or an active production trust snapshot. A conforming receipt therefore remains `indeterminate`.
 
 ## 4. What stronger verification can establish
 
@@ -77,11 +77,11 @@ A receipt does not by itself prove:
 - that referenced manifest and artifact bytes exist or match
 - that the review is complete outside its declared scope
 
-Public Exposure Review also preserves the explicit non-claims that it is not a penetration test, certification, attestation, compliance determination, proof of security, proof of completeness, proof of third-party acceptance, or proof of absence of vulnerabilities.
+The legacy receipt profile also preserves the explicit non-claims that the associated review is not a penetration test, certification, attestation, compliance determination, proof of security, proof of completeness, proof of third-party acceptance, or proof of absence of vulnerabilities.
 
 ## 6. Compatibility receipt families
 
-The web verifier retains bounded adapters for PV/QV/WV receipts and local-server-audit structural receipts. They are compatibility surfaces, not alternate definitions of the canonical Public Exposure Review receipt.
+The web verifier retains bounded adapters for PV/QV/WV receipts and local-server-audit structural receipts. They are compatibility surfaces, not alternate definitions of the canonical `public_exposure_review` receipt.
 
 Do not infer one universal ledger, timestamp, DSSE, or continuity layout across all accepted families. Read the adapter name, scope, artifact-revalidation field, named checks, and limitations in the actual result.
 

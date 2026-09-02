@@ -17,14 +17,14 @@ test("public contact route uses the selected primary offer path and fallback ema
   assert.equal(PUBLIC_CONTACT_GENERAL_HREF, "/review/request");
   assert.equal(
     PUBLIC_CONTACT_PRIMARY_HREF,
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
   );
   assert.doesNotMatch(PUBLIC_CONTACT_PRIMARY_HREF, /Agent.Risk|1%2C500/);
   assert.equal(PUBLIC_CONTACT_SUBJECTS.general, "WitnessOps request");
   assert.equal(PUBLIC_CONTACT_SUBJECTS.fitCheck, "WitnessOps fit check");
   assert.equal(
     PRIMARY_OFFER.mailSubject,
-    "WitnessOps request — Agent Workflow Reconstruction",
+    "WitnessOps request — Agent Action Security Review",
   );
   assert.equal(
     PUBLIC_NO_SECRETS_NOTE,
@@ -44,6 +44,6 @@ test("public contact route uses the selected primary offer path and fallback ema
   );
   assert.equal(
     publicContactMailto(PRIMARY_OFFER.mailSubject),
-    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20request%20%E2%80%94%20Agent%20Workflow%20Reconstruction",
+    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20request%20%E2%80%94%20Agent%20Action%20Security%20Review",
   );
 });

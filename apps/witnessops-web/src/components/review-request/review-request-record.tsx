@@ -6,7 +6,10 @@ import {
   buildReviewRequestConfirmationText,
   type ReviewRequestConfirmation,
 } from "@/lib/review-request-confirmation";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 import styles from "./review-request-record.module.css";
 
 type CopyState = "idle" | "copied" | "failed";
@@ -22,7 +25,7 @@ const copyByLocale = {
       "agent-risk-control-review": PRIMARY_OFFER.name.en,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",
-      "public-exposure-review": "Public Exposure Review",
+      "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
       "customer-security-review-sprint": "Customer Security Review Sprint",
       "one-server-security-check": "One Server Security Check",
       "launch-readiness-check": "Launch Readiness Check",
@@ -57,7 +60,7 @@ const copyByLocale = {
       "agent-risk-control-review": PRIMARY_OFFER.name.pl,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",
-      "public-exposure-review": "Public Exposure Review",
+      "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
       "customer-security-review-sprint": "Customer Security Review Sprint",
       "one-server-security-check": "One Server Security Check",
       "launch-readiness-check": "Launch Readiness Check",

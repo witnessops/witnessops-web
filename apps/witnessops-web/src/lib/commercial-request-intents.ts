@@ -1,4 +1,7 @@
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 
 export const AI_AGENT_ACTION_PROOF_RUN_INTENT =
   "ai-agent-action-proof-run" as const;
@@ -92,7 +95,7 @@ export function getCommercialRequestLabel(
       case ACCESS_CHANGE_PROOF_RUN_INTENT:
         return "Zgłoszenie pakietu zmiany dostępu";
       case EXTERNAL_EXPOSURE_ASSESSMENT_INTENT:
-        return "Zgłoszenie Public Exposure Review";
+        return `Zgłoszenie ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl}`;
       case BOUNDED_WORKFLOW_REVIEW_INTENT:
         return `Zgłoszenie ${PRIMARY_OFFER.name.pl}`;
       case CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT:
@@ -120,7 +123,7 @@ export function getCommercialRequestLabel(
     case ACCESS_CHANGE_PROOF_RUN_INTENT:
       return "access-change package request";
     case EXTERNAL_EXPOSURE_ASSESSMENT_INTENT:
-      return "Public Exposure Review request";
+      return `${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} request`;
     case BOUNDED_WORKFLOW_REVIEW_INTENT:
       return `${PRIMARY_OFFER.name.en} request`;
     case CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT:

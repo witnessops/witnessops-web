@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 
 export const CANONICAL_ORIGIN = "https://witnessops.com";
 
@@ -122,7 +125,7 @@ export function primaryOfferServiceJsonLd() {
     "@id": `${url}#service`,
     name: PRIMARY_OFFER.name.en,
     description: PRIMARY_OFFER.situation.en,
-    serviceType: "Agent workflow reconstruction",
+    serviceType: "AI agent action security review",
     url,
     provider: { "@id": organizationJsonLd["@id"] },
     offers: {
@@ -155,35 +158,28 @@ export function primaryOfferBreadcrumbJsonLd() {
 }
 
 export function publicExposureServiceJsonLd(locale: "en" | "pl") {
-  const url = canonicalUrl(
-    locale === "pl"
-      ? "/pl/catalog/offsec-external-exposure"
-      : "/catalog/offsec-external-exposure",
-  );
+  const url = canonicalUrl(EXTERNAL_ATTACK_SURFACE_OFFER.route[locale]);
 
   return {
     "@context": "https://schema.org",
     "@type": "Service",
     "@id": `${url}#service`,
-    name: "Public Exposure Review",
-    description:
-      locale === "pl"
-        ? "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego."
-        : "A fixed-scope external security review of one authorised public-facing system.",
-    serviceType: "Fixed-scope external security review",
+    name: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],
+    description: EXTERNAL_ATTACK_SURFACE_OFFER.situation[locale],
+    serviceType: "External attack surface review",
     url,
     provider: { "@id": organizationJsonLd["@id"] },
     offers: {
       "@type": "Offer",
       url,
-      price: "1900",
-      priceCurrency: "EUR",
-      description: "€1,900 excluding VAT for one authorised public-facing system.",
+      price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,
+      priceCurrency: EXTERNAL_ATTACK_SURFACE_OFFER.price.currency,
+      description: `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en}. ${EXTERNAL_ATTACK_SURFACE_OFFER.timing.en}.`,
       priceSpecification: {
         "@type": "UnitPriceSpecification",
-        price: "1900",
-        priceCurrency: "EUR",
-        valueAddedTaxIncluded: false,
+        price: EXTERNAL_ATTACK_SURFACE_OFFER.price.amount,
+        priceCurrency: EXTERNAL_ATTACK_SURFACE_OFFER.price.currency,
+        valueAddedTaxIncluded: EXTERNAL_ATTACK_SURFACE_OFFER.price.vatIncluded,
       },
     },
   } as const;
@@ -201,10 +197,8 @@ export function publicExposureBreadcrumbJsonLd(locale: "en" | "pl") {
       path: isPolish ? "/pl/catalog" : "/catalog",
     },
     {
-      name: "Public Exposure Review",
-      path: isPolish
-        ? "/pl/catalog/offsec-external-exposure"
-        : "/catalog/offsec-external-exposure",
+      name: EXTERNAL_ATTACK_SURFACE_OFFER.name[locale],
+      path: EXTERNAL_ATTACK_SURFACE_OFFER.route[locale],
     },
   ];
 

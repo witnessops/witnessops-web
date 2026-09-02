@@ -1,6 +1,9 @@
 import { getSku, getSkusByTrack } from "@witnessops/catalog";
 import { buyerServiceByProductId } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 
 export type PublicLocale = "en" | "pl";
@@ -54,9 +57,9 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     verification: "Dostawa zawiera podpisany zapis wykonania i instrukcję weryfikacji, dzięki którym inna osoba może sprawdzić, czy pakiet się nie zmienił, oraz zobaczyć, co wynik wspiera, a czego nie wspiera.",
   },
   "OFFSEC-EXTERNAL-EXPOSURE": {
-    name: "Public Exposure Review",
-    situation: "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego przed uruchomieniem, przeglądem klienta, audytem lub zmianą infrastruktury.",
-    result: "Otrzymasz mapę ekspozycji, priorytetyzowane ustalenia powiązane z materiałami, zalecenia naprawcze, jawne niewiadome i pakiet do przekazania kolejnemu właścicielowi.",
+    name: EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
+    situation: EXTERNAL_ATTACK_SURFACE_OFFER.situation.pl,
+    result: EXTERNAL_ATTACK_SURFACE_OFFER.result.pl,
     process: [
       "Potwierdzamy decyzję, odbiorcę wyniku, granicę celu i to, czy ocena podatności jest akceptowana.",
       "Zamrażamy upoważnienie, zakres first-party, zatwierdzone kontrole, okno i warunki zatrzymania.",
@@ -66,10 +69,10 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     ],
     deliverables: ["zapis upoważnienia i stałego zakresu", "mapa ekspozycji zewnętrznej", "ustalenia powiązane z materiałami", "raport wykonawczy i załącznik techniczny", "manifest i hashe artefaktów", "podpisany receipt i weryfikator offline, gdy wspierane", "45-minutowe przekazanie", "jeden retest w ciągu 30 dni"],
     inputs: ["Jeden autoryzowany system publicznie dostępny, wskazany przez domenę, host, aplikację, API, publiczny adres IP, publiczny endpoint chmurowy lub spójne połączenie tych elementów.", "Potwierdzenie własności lub pisemne upoważnienie, lista znanych hostów i adresów IP first-party.", "Zatwierdzone kontrole, okno zbierania, kontakt stop i ograniczenia dostawców zewnętrznych.", "Cel, termin i dokładne wymaganie strony odbierającej wynik — bez sekretów i materiałów produkcyjnych."],
-    timing: "W ciągu 3 dni roboczych po potwierdzeniu płatności, zaakceptowanego zakresu, upoważnienia, wymaganych danych wejściowych i okna zbierania.",
-    price: "€1 900 netto — jeden autoryzowany system publicznie dostępny",
+    timing: EXTERNAL_ATTACK_SURFACE_OFFER.timing.pl,
+    price: EXTERNAL_ATTACK_SURFACE_OFFER.price.pl,
     priceDetail: "Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu. Dodatkowy lub późny retest: €550 netto.",
-    exclusions: ["Bez eksploatacji, testowania haseł, brute force, poświadczeń, socjotechniki, odmowy usługi i działań destrukcyjnych.", "Bez uwierzytelnionych testów aplikacji, zbierania danych klientów, kodu źródłowego, aplikacji mobilnych, smart contractów, kont chmurowych i sieci wewnętrznej.", "Bez otwartego wykrywania subdomen lub zakresów IP i bez dotykania niepotwierdzonej infrastruktury strony trzeciej.", "Bez certyfikacji, atestu lub gwarancji bezpieczeństwa, kompletności, zgodności albo braku podatności."],
+    exclusions: ["To nie jest test penetracyjny.", "Bez eksploatacji, testowania haseł, brute force, poświadczeń, socjotechniki, odmowy usługi i działań destrukcyjnych.", "Bez uwierzytelnionych testów aplikacji, zbierania danych klientów, kodu źródłowego, aplikacji mobilnych, smart contractów, kont chmurowych i sieci wewnętrznej.", "Bez otwartego wykrywania subdomen lub zakresów IP i bez dotykania niepotwierdzonej infrastruktury strony trzeciej.", "Bez certyfikacji, atestu lub gwarancji bezpieczeństwa, kompletności, zgodności albo braku podatności."],
     verification: "Pakiet wskazuje sprawdzony zakres, materiały wspierające ustalenia, jawne niewiadome oraz — gdy wspierana ścieżka zostanie wytworzona — podpisany receipt i weryfikator offline. Nie dowodzi, że system jest bezpieczny ani wolny od podatności.",
   },
   "OFFSEC-LAUNCH-READY": {

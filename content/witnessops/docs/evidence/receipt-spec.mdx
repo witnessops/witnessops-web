@@ -1,12 +1,12 @@
 ---
 title: "Receipt Specification"
-description: "Current WitnessOps receipt contracts, the Public Exposure Review profile, and the bounded checks performed by the public verifier."
+description: "Current WitnessOps receipt contracts, the legacy public_exposure_review profile, and the bounded checks performed by the public verifier."
 section: "docs"
 order: 4
 nav_label: "Receipt Spec"
 draft: false
 page_answer:
-  question: "Which receipt contracts are current, what does the Public Exposure Review profile require, and what can the public verifier assert?"
+  question: "Which receipt contracts are current, what does the legacy public_exposure_review profile require, and what can the public verifier assert?"
   links:
     - href: "/docs/how-it-works/verification"
       label: "Verification"
@@ -18,25 +18,25 @@ page_answer:
 
 # Receipt Specification
 
-This page describes the receipt contracts that the current WitnessOps code accepts. It keeps the canonical Public Exposure Review contract separate from older compatibility receipt families.
+This page describes the receipt contracts that the current WitnessOps code accepts. It keeps the canonical, legacy-named `public_exposure_review` contract separate from older compatibility receipt families.
 
 If you need the concept first, start with [Receipts](/docs/evidence/receipts). If you need the public procedure, go to [Verification](/docs/how-it-works/verification).
 
 ## 1. Current contract boundary
 
-The canonical cross-repository receipt envelope is `witnessops.receipt.v0`. Public Exposure Review applies the additive profile `witnessops.verification_context.v1` and workflow class `public_exposure_review`.
+The canonical cross-repository receipt envelope is `witnessops.receipt.v0`. The `public_exposure_review` compatibility profile applies the additive context `witnessops.verification_context.v1` and workflow class `public_exposure_review`.
 
 The public `/verify` surface also retains bounded compatibility adapters. Acceptance by a compatibility adapter does not make that receipt family the canonical cross-repository contract.
 
 | Receipt family | Current public handling | Boundary |
 | --- | --- | --- |
-| `witnessops.receipt.v0` + `witnessops.verification_context.v1` + `public_exposure_review` | Product-specific receipt-only adapter | Canonical Public Exposure Review profile; currently `indeterminate` when structurally conforming because full evidence and production trust are not checked |
+| `witnessops.receipt.v0` + `witnessops.verification_context.v1` + `public_exposure_review` | Product-specific receipt-only adapter | Canonical legacy profile; currently `indeterminate` when structurally conforming because full evidence and production trust are not checked |
 | PV `1.0.0` / `1.1.0`, QV `2.0.0`, WV `2.1.0` | Generic receipt compatibility adapter | Receipt-only checks; partial artifact coverage maps to `indeterminate` |
 | `witnessops.local_server_audit.receipt.v1` and its exact legacy markers | Structural dual-read adapter | Structural and cross-field checks only; artifact bytes are not checked |
 
 Objects such as a conceptual `witnessops.receipt.v2` ledger envelope are not accepted by the current public API unless they also match one of the executable contracts above. They must not be presented as the universal current receipt format.
 
-The Public Exposure Review identity crosswalk is exact:
+The `public_exposure_review` identity crosswalk is exact:
 
 | Authority layer | Identifier |
 | --- | --- |
@@ -47,9 +47,9 @@ The Public Exposure Review identity crosswalk is exact:
 
 The product ID and hyphenated source-runbook ID belong to the offer and producer context; they are not extra top-level receipt fields.
 
-## 2. Public Exposure Review envelope
+## 2. Legacy `public_exposure_review` envelope
 
-A Public Exposure Review receipt has exactly these top-level fields:
+A receipt using this profile has exactly these top-level fields:
 
 | Field | Purpose |
 | --- | --- |
@@ -176,7 +176,7 @@ The signature block must declare Ed25519, a canonical key identifier, lowercase 
 
 ## 6. Production key acceptance
 
-The current Public Exposure Review trust snapshot is deliberately non-authorizing:
+The current `public_exposure_review` trust snapshot is deliberately non-authorizing:
 
 - workflow acceptance policy `public_exposure_review.production.v1` is `draft`, with no trusted revision, policy hash, or registry-manifest hash pinned
 - key-trust policy `public_exposure_review.production_signing.v1` is `draft`, with no trusted registry revision or manifest hash pinned
@@ -197,7 +197,7 @@ Missing, stale, unavailable, or unconfirmed required trust input is `indetermina
 
 ## 7. Public verification result
 
-For a structurally conforming Public Exposure Review receipt, `/verify` currently reports `indeterminate`, with `scope: receipt-only` and `artifactRevalidation: not_performed`.
+For a structurally conforming `public_exposure_review` receipt, `/verify` currently reports `indeterminate`, with `scope: receipt-only` and `artifactRevalidation: not_performed`.
 
 The adapter checks:
 

@@ -7,11 +7,11 @@ import { PublicContactRoute } from "./public-contact-route";
 test("Polish contact route localizes buyer guidance and preserves contact contracts", () => {
   const html = renderToStaticMarkup(<PublicContactRoute locale="pl" />);
 
-  assert.match(html, /Agent Workflow Reconstruction/);
+  assert.match(html, /Agent Action Security Review/);
   assert.match(html, /Główny płatny punkt wejścia:/);
   assert.match(
     html,
-    /href="\/pl\/review\/request\?offerId=bounded-workflow-review&amp;offer=Agent\+Workflow\+Reconstruction"/,
+    /href="\/pl\/review\/request\?offerId=bounded-workflow-review&amp;offer=Agent\+Action\+Security\+Review"/,
   );
   assert.match(html, /Kontakt zapasowy:/);
   assert.match(html, /engage@mail\.witnessops\.com/);
@@ -23,11 +23,11 @@ test("Polish contact route localizes buyer guidance and preserves contact contra
 test("English contact route keeps the primary paid offer heading and route", () => {
   const html = renderToStaticMarkup(<PublicContactRoute />);
 
-  assert.match(html, /Agent Workflow Reconstruction/);
+  assert.match(html, /Agent Action Security Review/);
   assert.match(html, /Primary paid entry point:/);
   assert.match(
     html,
-    /href="\/review\/request\?offerId=bounded-workflow-review&amp;offer=Agent\+Workflow\+Reconstruction"/,
+    /href="\/review\/request\?offerId=bounded-workflow-review&amp;offer=Agent\+Action\+Security\+Review"/,
   );
   assert.match(html, /engage@mail\.witnessops\.com/);
   assert.match(html, /underline decoration-brand-accent\/50/);
@@ -38,12 +38,12 @@ test("compact footer contact route exposes a clear primary action", () => {
   const html = renderToStaticMarkup(<PublicContactRoute compact />);
 
   assert.match(html, /data-public-contact-variant="footer"/);
-  assert.match(html, /Agent Workflow Reconstruction/);
+  assert.match(html, /Agent Action Security Review/);
   assert.match(html, /Primary paid entry point/);
   assert.match(html, /Start a non-secret fit check/);
   assert.match(
     html,
-    /href="\/review\/request\?offerId=bounded-workflow-review&amp;offer=Agent\+Workflow\+Reconstruction"/,
+    /href="\/review\/request\?offerId=bounded-workflow-review&amp;offer=Agent\+Action\+Security\+Review"/,
   );
   assert.match(html, /w-full/);
   assert.match(html, /border-brand-accent bg-brand-accent/);
@@ -55,14 +55,14 @@ test("compact footer contact route exposes a clear primary action", () => {
 
 test("contact route preserves an explicitly selected offer request", () => {
   const selectedHref =
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction";
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review";
   const html = renderToStaticMarkup(
     <PublicContactRoute compact primaryHref={selectedHref} />,
   );
 
   assert.match(
     html,
-    /href="\/review\/request\?offerId=bounded-workflow-review&amp;offer=Agent\+Workflow\+Reconstruction"/,
+    /href="\/review\/request\?offerId=bounded-workflow-review&amp;offer=Agent\+Action\+Security\+Review"/,
   );
 });
 

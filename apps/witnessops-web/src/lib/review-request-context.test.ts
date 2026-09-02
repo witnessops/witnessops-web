@@ -40,13 +40,13 @@ test("shared review CTAs keep the workflow offer selected from its detail route"
 
   assert.equal(
     headerHref,
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
   );
   assert.equal(footerHref, headerHref);
 
   for (const href of [headerHref, footerHref]) {
     const selected = selectedServiceFromHref(href);
-    assert.equal(selected?.name.en, "Agent Workflow Reconstruction");
+    assert.equal(selected?.name.en, "Agent Action Security Review");
     assert.equal(selected?.price.en, "€2,500 fixed");
     assert.equal(
       selected?.timing.en,
@@ -61,24 +61,24 @@ test("primary offer selection trusts its stable id before public query text", ()
   assert.equal(
     buyerServiceFromRequestOffer(
       "bounded-workflow-review",
-      "Public Exposure Review",
+      "buyer-edited text",
     ),
     primary,
   );
   assert.equal(
-    buyerServiceFromRequestOffer(null, "Agent Workflow Reconstruction"),
+    buyerServiceFromRequestOffer(null, "Agent Action Security Review"),
     primary,
   );
   assert.equal(
-    buyerServiceFromRequestOffer("unknown", "Agent Workflow Reconstruction"),
+    buyerServiceFromRequestOffer("unknown", "Agent Action Security Review"),
     undefined,
   );
   assert.equal(
-    buyerServiceFromRequestOffer("", "Agent Workflow Reconstruction"),
+    buyerServiceFromRequestOffer("", "Agent Action Security Review"),
     undefined,
   );
   assert.equal(
-    buyerServiceFromRequestOffer(null, "Agent Workflow Reconstruction "),
+    buyerServiceFromRequestOffer(null, "Agent Action Security Review "),
     undefined,
   );
 });
@@ -98,7 +98,7 @@ test("shared review CTAs keep canonical product context on detail and selected r
   assert.equal(selectedRequestHref, detailHref);
   assert.match(detailHref, /^\/pl\/review\/request\?productId=OFFSEC-EXTERNAL-EXPOSURE&/);
   const selected = selectedServiceFromHref(selectedRequestHref);
-  assert.equal(selected?.name.pl, "Public Exposure Review");
+  assert.equal(selected?.name.pl, "External Attack Surface Review");
   assert.equal(
     selected?.price.pl,
     "€1 900 netto — jeden autoryzowany system publicznie dostępny",
@@ -148,25 +148,25 @@ test("review CTA context rejects unknown values to the canonical primary offer a
         "offerId=bounded-workflow-review&productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
       ),
     ),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
   );
   assert.equal(
     reviewRequestHrefForLocation(
       "en",
       "/review/request",
-      new URLSearchParams("offer=Agent+Workflow+Reconstruction"),
+      new URLSearchParams("offer=Agent+Action+Security+Review"),
     ),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
   );
   assert.equal(
     reviewRequestHrefForLocation(
       "en",
       "/review/request",
       new URLSearchParams(
-        "productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Agent+Workflow+Reconstruction",
+        "productId=OFFSEC-EXTERNAL-EXPOSURE&offer=buyer-edited-text",
       ),
     ),
-    "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+    "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE&offer=External+Attack+Surface+Review",
   );
   assert.equal(
     reviewRequestHrefForLocation(
@@ -176,15 +176,15 @@ test("review CTA context rejects unknown values to the canonical primary offer a
         "offerId=unknown&productId=OFFSEC-PILOT&offer=Fabricated&token=secret",
       ),
     ),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
   );
   assert.equal(
     reviewRequestHrefForLocation("en", "/", emptySearch),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
   );
   assert.equal(
     reviewRequestHrefForLocation("pl", "/pl", emptySearch),
-    "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+    "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
   );
   assert.match(
     reviewRequestHrefForLocation(

@@ -132,15 +132,15 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
   ).toEqual([]);
 });
 
-test("English and Polish homepages share one workflow-reconstruction and receipt journey", async ({ browser }) => {
+test("English and Polish homepages share one action-security and receipt journey", async ({ browser }) => {
   for (const scenario of [
     {
       path: "/",
       width: 1440,
       height: 1100,
       primary:
-        "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
-      methodHeading: "Five questions. One bounded workflow.",
+        "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+      methodHeading: "Five questions. One consequential action.",
       receiptHeading: "Produce something another party can check.",
     },
     {
@@ -148,8 +148,8 @@ test("English and Polish homepages share one workflow-reconstruction and receipt
       width: 390,
       height: 844,
       primary:
-        "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
-      methodHeading: "Five questions. One bounded workflow.",
+        "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+      methodHeading: "Five questions. One consequential action.",
       receiptHeading: "Produce something another party can check.",
     },
     {
@@ -157,8 +157,8 @@ test("English and Polish homepages share one workflow-reconstruction and receipt
       width: 1440,
       height: 1100,
       primary:
-        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
-      methodHeading: "Pięć pytań. Jeden ograniczony workflow.",
+        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+      methodHeading: "Pięć pytań. Jedno istotne działanie.",
       receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
     },
     {
@@ -166,8 +166,8 @@ test("English and Polish homepages share one workflow-reconstruction and receipt
       width: 390,
       height: 844,
       primary:
-        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
-      methodHeading: "Pięć pytań. Jeden ograniczony workflow.",
+        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+      methodHeading: "Pięć pytań. Jedno istotne działanie.",
       receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
     },
   ]) {
@@ -193,7 +193,7 @@ test("English and Polish homepages share one workflow-reconstruction and receipt
     await expect(page.locator("#agent-action-receipt")).toContainText(scenario.receiptHeading);
     const primaryOffer = page.locator("#agent-workflow-reconstruction");
     await expect(primaryOffer).toContainText(
-      "Agent Workflow Reconstruction",
+      "Agent Action Security Review",
     );
     await expect(primaryOffer).toContainText(
       scenario.path === "/"
@@ -202,8 +202,8 @@ test("English and Polish homepages share one workflow-reconstruction and receipt
     );
     await expect(primaryOffer).toContainText(
       scenario.path === "/"
-        ? "One named workflow (agentic or automated)"
-        : "Jeden nazwany workflow (agentowy lub zautomatyzowany)",
+        ? "One consequential agent or automation action"
+        : "Jedno istotne działanie agenta lub automatyzacji",
     );
     await expect(primaryOffer).toContainText(
       scenario.path === "/"
@@ -220,11 +220,10 @@ test("English and Polish homepages share one workflow-reconstruction and receipt
     await expect(
       page.locator('#agent-workflow-reconstruction a[href="/catalog/workflows"]'),
     ).toHaveCount(1);
-    await expect(page.locator('main a[href="/verify/skill"]')).toHaveCount(1);
-    await expect(page.locator("main")).toContainText(/Check the agent before it acts|Sprawdź agenta przed działaniem/);
-    await expect(page.locator("main")).toContainText(/See one bounded action|Zobacz jedno ograniczone działanie/);
-    await expect(page.locator("main")).toContainText(/Inspect what happened|Sprawdź, co się wydarzyło/);
-    await expect(page.locator("main")).toContainText(/Bring the real workflow|Przynieś prawdziwy workflow/);
+    await expect(page.locator('main a[href="/verify/skill"]')).toHaveCount(0);
+    await expect(page.locator("main")).toContainText(/Authority → identity|Upoważnienie → tożsamość/);
+    await expect(page.locator("main")).toContainText(/Permissions → tools|Uprawnienia → narzędzia/);
+    await expect(page.locator("main")).toContainText(/Execution → evidence|Wykonanie → dowody/);
     await expect(page.locator('nav a[href="/verify/skill"]')).toHaveCount(0);
     await expect(page.locator('footer a[href="/verify/skill"]')).toHaveCount(0);
     await expect(page.locator("main")).not.toContainText(/Aegis/);
@@ -279,7 +278,7 @@ test("Ask WitnessOps keeps the paid-review proof path visible and controlled", a
       await trigger.click();
 
       const dialog = page.getByRole("dialog", { name: "ASK WITNESSOPS" });
-      const prompt = page.getByLabel("Describe one non-secret workflow");
+      const prompt = page.getByLabel("Describe one non-secret action");
       await expect(dialog).toBeVisible();
       if (viewport.width < 640) {
         await expect(dialog).toBeFocused();
@@ -313,7 +312,7 @@ test("Ask WitnessOps keeps the paid-review proof path visible and controlled", a
       await expect(dialog.getByText("PUBLIC FIT SIGNAL", { exact: true })).toBeVisible();
       await expect(dialog.getByText("NO EVIDENCE REVIEWED", { exact: true })).toBeVisible();
       await expect(
-        dialog.getByText("€2,500 fixed · One named workflow (agentic or automated)", {
+        dialog.getByText("€2,500 fixed · One consequential agent or automation action", {
           exact: true,
         }),
       ).toBeVisible();
@@ -327,9 +326,9 @@ test("Ask WitnessOps keeps the paid-review proof path visible and controlled", a
         "Fit signal only. No evidence was reviewed and no security, compliance, correctness, or action-outcome conclusion was made.",
       );
       await expect(dialog.locator("[data-ask-composer]")).toHaveCount(0);
-      await expect(dialog.getByRole("button", { name: "Ask another workflow" })).toBeVisible();
+      await expect(dialog.getByRole("button", { name: "Ask another action" })).toBeVisible();
 
-      const cta = dialog.getByRole("button", { name: "Request scope for this workflow" });
+      const cta = dialog.getByRole("button", { name: "Request scope for this action" });
       await expect(cta).toBeVisible();
       const ctaBox = await cta.boundingBox();
       const scrollRegionBox = await dialog
@@ -391,9 +390,9 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
   const pageCaptures = [
     { name: "homepage-desktop-1440", path: "/", width: 1440, height: 1100 },
     { name: "homepage-mobile-390", path: "/", width: 390, height: 844 },
-    { name: "request-en-mobile-390", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction", width: 390, height: 844 },
-    { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction", width: 390, height: 844 },
-    { name: "request-desktop-1440", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction", width: 1440, height: 1100 },
+    { name: "request-en-mobile-390", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review", width: 390, height: 844 },
+    { name: "request-pl-mobile-390", path: "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review", width: 390, height: 844 },
+    { name: "request-desktop-1440", path: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review", width: 1440, height: 1100 },
     { name: "catalog-mobile-390", path: "/catalog", width: 390, height: 844 },
     { name: "catalog-desktop-1440", path: "/catalog", width: 1440, height: 1100 },
     { name: "workflow-offer-mobile-390", path: "/catalog/workflows", width: 390, height: 844 },
@@ -518,7 +517,7 @@ async function applyContentVariant(
     .first()
     .evaluate((element) => {
       element.textContent =
-        "Proof operations need visible, verifiable evidence across every handoff, exception, and approval boundary";
+        "Review one consequential agent action before it receives production authority";
       element.setAttribute("data-copy-length", "long");
     });
   await page
@@ -526,7 +525,7 @@ async function applyContentVariant(
     .first()
     .evaluate((element) => {
       element.textContent =
-        "Stress-copy variant: every AI-assisted workflow needs a durable public-facing proof surface that remains readable on narrow mobile screens, even when copy expands during localization, policy review, or launch-day edits.";
+        "Stress-copy variant: identify who can authorize the action, which identity executes it, what systems and tools it can reach, what constrains its blast radius, and what can be demonstrated afterward.";
     });
 }
 

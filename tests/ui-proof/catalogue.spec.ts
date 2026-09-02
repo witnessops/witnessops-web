@@ -114,7 +114,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
       },
     ]);
     const primaryOfferCard = serviceCards.first();
-    await expect(primaryOfferCard).toContainText("Agent Workflow Reconstruction");
+    await expect(primaryOfferCard).toContainText("Agent Action Security Review");
     await expect(primaryOfferCard).toContainText(
       scenario.path.startsWith("/pl")
         ? "Główny płatny punkt wejścia"
@@ -132,7 +132,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
     await expect(primaryOfferCard).not.toContainText("From €1,500");
 
     const publicExposureCard = serviceCards.nth(1);
-    await expect(publicExposureCard).toContainText("Public Exposure Review");
+    await expect(publicExposureCard).toContainText("External Attack Surface Review");
     await expect(publicExposureCard).toContainText(
       scenario.path.startsWith("/pl")
         ? "Dodatkowa oferta katalogowa"
@@ -166,7 +166,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         const request = new URL(primaryHref ?? "", "http://witnessops.test");
         expect(request.searchParams.get("offerId")).toBe("bounded-workflow-review");
         expect(request.searchParams.get("offer")).toBe(
-          "Agent Workflow Reconstruction",
+          "Agent Action Security Review",
         );
       }
       if (expectedServiceOrder[index] === "customer-security-review-sprint") {
@@ -273,7 +273,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
   }
 });
 
-test("Public Exposure Review pricing entry preserves sample and intake links", async ({ page }) => {
+test("External Attack Surface Review pricing entry preserves sample and intake links", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const response = await page.goto("/pricing", { waitUntil: "networkidle" });
   expect(response?.status()).toBe(200);
@@ -287,6 +287,7 @@ test("Public Exposure Review pricing entry preserves sample and intake links", a
   await expect(card).toContainText("One focused retest within 30 days is included");
   await expect(card).toContainText("Payment is due in full before the delivery clock starts");
   await expect(card).toContainText("payment alone does not authorise testing");
+  await expect(card).toContainText("This is not a penetration test");
   await expect(
     card.locator('a[href="/review/sample-cases/external-exposure-assessment"]'),
   ).toHaveText("Inspect synthetic sample");

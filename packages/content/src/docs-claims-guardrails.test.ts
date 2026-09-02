@@ -45,7 +45,8 @@ test("buyer-path offer section matches the live catalogue", () => {
     path.join(docsRoot, "getting-started/proof-run-buyer-path.mdx"),
     "utf-8",
   );
-  assert.match(buyer, /Public Exposure Review/);
+  assert.match(buyer, /External Attack Surface Review/);
+  assert.match(buyer, /former Public Exposure Review title as historical artifact identity/);
   assert.match(buyer, /Customer Security Review Sprint/);
   assert.match(buyer, /pinned AI-agent public sample only/i);
   assert.match(buyer, /does not duplicate its inventory or commercial status/i);

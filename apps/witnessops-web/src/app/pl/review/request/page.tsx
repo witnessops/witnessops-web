@@ -6,7 +6,10 @@ import {
   buyerServiceFromRequestOffer,
 } from "@/lib/buyer-services";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 import { POLISH_OFFERS } from "@/lib/public-i18n";
 import { getSku } from "@witnessops/catalog";
 import { languageAlternates } from "@/lib/public-seo";
@@ -37,7 +40,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     title: primaryOfferOrder
       ? `Rozpocznij ${PRIMARY_OFFER.name.pl}`
       : publicExposureOrder
-        ? "Rozpocznij Public Exposure Review"
+        ? `Rozpocznij ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl}`
       : "Opowiedz, co wymaga sprawdzenia",
     description: primaryOfferOrder
       ? `${PRIMARY_OFFER.unit.pl}. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.fitCheck.pl}. ${PRIMARY_OFFER.timing.pl}.`
@@ -96,9 +99,9 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         </h1>
         <p className="mt-4 text-base leading-7 text-text-muted">
           {publicExposureOrder
-            ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu."
+            ? "Wskaż jeden autoryzowany system dostępny z internetu, podstawę upoważnienia i powód, dla którego jego zewnętrzna powierzchnia ataku ma teraz znaczenie. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu. To nie jest test penetracyjny."
             : primaryOfferOrder
-              ? "Nazwij jeden istotny workflow agenta lub automatyzacji. Wystarczy niepoufne podsumowanie; materiały przyjmujemy dopiero po uzgodnieniu zakresu, zasad dowodowych i sposobu obsługi."
+              ? `${PRIMARY_OFFER.fitCheckQuestion.pl} Opisz skutek błędu, zaangażowane systemy i narzędzia oraz granice produkcji, danych klientów, pieniędzy, kont, uprawnień lub komunikacji zewnętrznej. Wystarczy niepoufne podsumowanie; materiały przyjmujemy dopiero po uzgodnieniu zakresu, zasad dowodowych i sposobu obsługi.`
             : selectedOffer
               ? "Podaj jedno niepoufne podsumowanie dla wybranej usługi. Przed rozpoczęciem pracy potwierdzimy dopasowanie, dokładny zakres, wymagane materiały, cenę i termin."
               : "Zacznij od jednej niepoufnej potrzeby. Przed rozpoczęciem pracy lub przyjęciem materiałów potwierdzimy, czy zakres jest wystarczająco ograniczony."}
@@ -124,12 +127,12 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
             {primaryOfferOrder ? (
               <ol className="mt-4 space-y-3 text-sm leading-6 text-text-muted">
                 <li>
-                  1. Sprawdzimy bez sekretów, czy jeden nazwany workflow
-                  pasuje do zakresu rekonstrukcji.
+                  1. Sprawdzimy bez sekretów jedno istotne działanie, możliwy
+                  skutek błędu, zaangażowane systemy i narzędzia oraz granice bezpieczeństwa.
                 </li>
                 <li>
-                  2. Uzgodnimy zakres, zasady dowodowe, wyłączenia i sposób
-                  obsługi materiałów.
+                  2. Uzgodnimy upoważnienie, tożsamość wykonującą, granice
+                  uprawnień, dostęp do narzędzi, zasady dowodowe, wyłączenia i obsługę materiałów.
                 </li>
                 <li>
                   3. {PRIMARY_OFFER.timing.pl}; {PRIMARY_OFFER.price.pl.toLowerCase()}.

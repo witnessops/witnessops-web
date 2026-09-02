@@ -106,7 +106,7 @@ test("review request route issues a security-workflow package verification email
   assert.match(mailRaw, /data-witnessops-signature-profile="ops_minimal"/);
 });
 
-test("review request route preserves the Public Exposure Review SKU and locale", async () => {
+test("review request route preserves the External Attack Surface Review SKU and locale", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-review-"));
   applyTestEnv(baseDir);
 

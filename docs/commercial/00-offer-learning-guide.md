@@ -2,12 +2,13 @@
 
 Plain-language map of what WitnessOps sells, what is only a method, and where every real sample lives on this machine and on the public site.
 
-> **Current commercial truth (2026-09-01).** Operate
-> [Agent Workflow Reconstruction](./16-agent-workflow-reconstruction-offer.md) as the primary paid
-> entry point: one named agentic or automated workflow, €2,500 fixed, non-secret fit check first,
-> delivered within 10 working days after evidence rules are agreed. Public Exposure Review remains
-> separate secondary catalogue work. The earlier P0 sections below remain reference material for
-> other catalogue offers; they do not define the current primary.
+> **Current commercial truth (2026-09-02).** Operate
+> [Agent Action Security Review](./16-agent-workflow-reconstruction-offer.md) as the primary paid
+> entry point: one consequential agent or automation action, €2,500 fixed, non-secret fit check first,
+> delivered within 10 working days after evidence rules are agreed. Agent Workflow Reconstruction is
+> the delivery method. External Attack Surface Review remains separate secondary catalogue work.
+> The earlier P0 sections below remain reference material for other catalogue offers; they do not
+> define the current primary.
 
 ---
 
@@ -86,7 +87,7 @@ SITUATION (catalog card)
 | Launch readiness | `/catalog/offsec-launch-ready` | `/review/sample-cases/launch-readiness-review` | `/samples/offsec-launch-ready/` |
 | Custody / wallet-ops | `/catalog/offsec-custody-ops` | `/review/sample-cases/custody-wallet-ops-review` | `/samples/offsec-custody-ops/` |
 | Incident readiness | `/catalog/offsec-incident-ready` | `/review/sample-cases/incident-readiness-review` | `/samples/offsec-incident-ready/` |
-| Bounded workflow | `/catalog/workflows` | AI agent sample | (GitHub sample-cases) |
+| Agent action security | `/catalog/workflows` | AI agent sample | (GitHub sample-cases) |
 
 ## Methods only (not product cards)
 

@@ -38,13 +38,13 @@ test("evidence categories and receipt limitations remain visible", () => {
   assert.match(replay, /sha256sum \{filename\}/);
 });
 
-test("paid Agent Workflow Reconstruction CTA appears only inside the receipt stage", () => {
+test("paid Agent Action Security Review CTA appears only inside the receipt stage", () => {
   const receiptStart = replay.indexOf('stage === "receipt"');
   const paidCta = replay.indexOf("{PRIMARY_OFFER.name.en}");
   assert.ok(receiptStart >= 0);
   assert.ok(paidCta > receiptStart);
   assert.equal(PRIMARY_OFFER.id, "bounded-workflow-review");
-  assert.equal(PRIMARY_OFFER.name.en, "Agent Workflow Reconstruction");
+  assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
   assert.match(
     replay,
     /`\$\{PRIMARY_OFFER\.requestRoute\}\?offerId=\$\{PRIMARY_OFFER\.id\}`/,

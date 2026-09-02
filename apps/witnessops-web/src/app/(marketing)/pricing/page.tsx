@@ -7,7 +7,10 @@ import {
   buyerServiceRequestHref,
   buyerServicesByCommercialPriority,
 } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 
 export const metadata: Metadata = {
   title: "Agent and Security Review Pricing",
@@ -30,7 +33,7 @@ export const metadata: Metadata = {
 
 const boundaries = [
   "No review starts from this page or from payment alone.",
-  "A Public Exposure Review can be started without a sales call; authority, scope, price, timing, capacity, and evidence handling are still accepted before work begins.",
+  `An ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} can be started without a sales call; authority, scope, price, timing, capacity, and evidence handling are still accepted before work begins. This is not a penetration test.`,
   "Published figures are fixed prices or starting ranges for the named boundary, excluding VAT where stated.",
   "A report, receipt, or verifier does not prove that a system is secure, complete, compliant, or free of vulnerabilities.",
 ];

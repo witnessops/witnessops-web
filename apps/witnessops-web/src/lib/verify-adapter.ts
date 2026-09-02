@@ -294,7 +294,7 @@ export function verifyReceiptPayload(payload: unknown): VerifyResponse {
     if (isPublicExposureReviewReceiptCandidate(parsedReceipt)) {
       if (hasPublicExposureReviewCompanionInput(parsedReceipt)) {
         return unsupported(
-          "Public Exposure Review receipt verification does not accept bundled evidence or caller-supplied trust inputs.",
+          "Legacy public_exposure_review receipt verification does not accept bundled evidence or caller-supplied trust inputs.",
         );
       }
       return verifyPublicExposureReviewReceipt(parsedReceipt);

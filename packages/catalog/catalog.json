@@ -173,8 +173,8 @@
     {
       "id": "OFFSEC-EXTERNAL-EXPOSURE",
       "track": "offsec_proof",
-      "name": "Public Exposure Review",
-      "summary": "A fixed-scope external security review of one authorised public-facing system, with manually reviewed outside-in findings, explicit unknowns, and an inspectable handover package.",
+      "name": "External Attack Surface Review",
+      "summary": "A fixed-scope review of the attacker-visible surface of one authorised internet-facing system, with manually validated, evidence-backed findings, remediation priorities, explicit unknowns, and an inspectable handover package. This is not a penetration test.",
       "status": "ship_today",
       "availability": "witnessops_request",
       "buyer_personas": [
@@ -190,8 +190,8 @@
       },
       "deliverables": [
         "authority and fixed-scope record",
-        "external exposure map",
-        "evidence-linked findings",
+        "external attack-surface map",
+        "evidence-backed findings",
         "executive report and technical appendix",
         "evidence manifest and artifact hashes",
         "signed receipt and offline verifier where supported",

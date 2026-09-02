@@ -50,7 +50,7 @@
 
 .heroTitle {
   max-width: 10ch;
-  margin: 1.15rem 0 0;
+  margin: 0;
   color: var(--ink);
   font-size: clamp(3.7rem, 7vw, 6.6rem);
   font-weight: 760;
@@ -59,9 +59,26 @@
   text-wrap: balance;
 }
 
+.heroTitle[data-copy-length="long"] {
+  max-width: 13ch;
+  font-size: clamp(3.4rem, 6vw, 5.6rem);
+  line-height: 0.94;
+}
+
+.heroOfferName {
+  margin: 1.25rem 0 0;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
 .heroBody {
   max-width: 62ch;
-  margin: 1.8rem 0 0;
+  margin: 0.9rem 0 0;
   color: var(--ink-soft);
   font-size: clamp(1rem, 1.3vw, 1.15rem);
   line-height: 1.7;
@@ -73,6 +90,17 @@
   color: var(--ink-muted);
   font-size: 0.91rem;
   line-height: 1.72;
+}
+
+.heroCommercial {
+  max-width: 70ch;
+  margin: 1.1rem 0 0;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.035em;
+  line-height: 1.7;
 }
 
 .heroActions {
@@ -718,7 +746,7 @@
 
   .heroTitle[data-copy-length="long"] {
     max-width: none;
-    font-size: clamp(2.35rem, 8.5vw, 2.65rem);
+    font-size: clamp(2.5rem, 8.5vw, 2.65rem);
     letter-spacing: -0.035em;
     line-height: 1;
   }

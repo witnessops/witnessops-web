@@ -87,10 +87,12 @@ export default function ApiKeyRotationSamplePage() {
             {PRIMARY_OFFER.name.en} — {PRIMARY_OFFER.price.en}.
           </h2>
           <p>
-            Bring one consequential workflow. The reconstruction separates what was authorised,
-            executed, observed, and still unresolved; maps permissions and evidence gaps; and proposes
-            a receipt shape with a testable sample pack. Entry begins with a non-secret fit check, and
-            delivery is within 10 working days after evidence rules are agreed.
+            Bring one consequential agent or automation action. WitnessOps reviews who can authorize
+            it, what identity executes it, what systems and tools it can reach, what constrains its
+            blast radius, and what evidence binds approval to execution and resulting state. The
+            delivery uses the {PRIMARY_OFFER.deliveryMethod.en} method; technical receipt mechanics
+            sit underneath the buyer-facing security review. Entry begins with a non-secret fit check,
+            and delivery is within 10 working days after evidence rules are agreed.
           </p>
         </div>
         <Link href={reviewRequestHref}>Request a non-secret fit check →</Link>

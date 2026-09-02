@@ -59,11 +59,11 @@ const SECRET_PATTERNS = [
 ] as const;
 
 const NAMED_OFFER_PATTERN =
-  /\b(agent workflow reconstruction|agent risk (?:&|and) control review|what does witnessops do|what can witnessops do)\b/i;
+  /\b(agent action security review|agent workflow reconstruction|agent risk (?:&|and) control review|what does witnessops do|what can witnessops do)\b/i;
 const OFFER_DETAIL_PATTERN =
   /\b(how much|price|pricing|cost|fee|deliverables?|what (?:is|isn't|is not) included|review scope)\b/i;
 const OFFER_CONTEXT_PATTERN =
-  /\b(witnessops|agent workflow reconstruction|agent risk|control review|workflow review|review (?:of )?one (?:agentic |automated |ai[- ]?agent )?workflow)\b/i;
+  /\b(witnessops|agent action security review|agent workflow reconstruction|agent risk|control review|workflow review|review (?:of )?one (?:consequential )?(?:agentic |automated |ai[- ]?agent )?(?:action|workflow))\b/i;
 const AGENT_PATTERN =
   /\b(ai[- ]?agent|agentic|agent workflow|automated workflow|automation|autonomous agent|copilot)\b/i;
 const CONSEQUENTIAL_ACTION_PATTERN =

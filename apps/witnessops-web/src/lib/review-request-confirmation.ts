@@ -14,7 +14,10 @@ import {
   PROFESSIONAL_PUBLIC_FOOTPRINT_AUDIT_INTENT,
 } from "@/lib/commercial-request-intents";
 import { verifyTokenResponseSchema } from "@/lib/token-contract";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 
 export const REVIEW_REQUEST_CONFIRMATION_STORAGE_KEY =
   "witnessops.review-request-confirmation.v1" as const;
@@ -188,7 +191,7 @@ export function buildReviewRequestConfirmationText(
       "agent-risk-control-review": PRIMARY_OFFER.name.en,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",
-      "public-exposure-review": "Public Exposure Review",
+      "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.en,
       "customer-security-review-sprint": "Customer Security Review Sprint",
       "one-server-security-check": "One Server Security Check",
       "launch-readiness-check": "Launch Readiness Check",
@@ -202,7 +205,7 @@ export function buildReviewRequestConfirmationText(
       "agent-risk-control-review": PRIMARY_OFFER.name.pl,
       "ai-agent-action-proof-run": "AI Agent Action Proof Run",
       "access-change-proof-run": "Access Change Proof Run",
-      "public-exposure-review": "Public Exposure Review",
+      "public-exposure-review": EXTERNAL_ATTACK_SURFACE_OFFER.name.pl,
       "customer-security-review-sprint": "Customer Security Review Sprint",
       "one-server-security-check": "One Server Security Check",
       "launch-readiness-check": "Launch Readiness Check",

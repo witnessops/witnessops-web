@@ -13,9 +13,9 @@ const likelyWorkflowFit = {
   offer_id: "bounded-workflow-review" as const,
   source: "ask" as const,
   offer: {
-    name: "Agent Workflow Reconstruction" as const,
+    name: "Agent Action Security Review" as const,
     price_label: "€2,500 fixed" as const,
-    unit_label: "One named workflow (agentic or automated)" as const,
+    unit_label: "One consequential agent or automation action" as const,
     fit_check_label: "Non-secret fit check first" as const,
     delivery_label:
       "Within 10 working days after evidence rules are agreed" as const,

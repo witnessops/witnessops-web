@@ -12,7 +12,8 @@ const form = readFileSync(
 test("Polish PER request chrome mirrors the English offer-specific header", () => {
   assert.match(page, /sku\?\.id === "OFFSEC-EXTERNAL-EXPOSURE"/);
   assert.match(page, /generateMetadata/);
-  assert.match(page, /Rozpocznij Public Exposure Review/);
+  assert.match(page, /EXTERNAL_ATTACK_SURFACE_OFFER\.name\.pl/);
+  assert.match(page, /To nie jest test penetracyjny/);
   assert.match(
     page,
     /Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu/,

@@ -588,10 +588,10 @@ export function DocsAssistantWidget() {
               {!answer && !loading && (
                 <div className={styles.promptStage}>
                   <p className={styles.promptKicker}>
-                    One workflow · no secrets
+                    One action · no secrets
                   </p>
                   <h2 className={styles.promptTitle}>
-                    Describe one consequential agent workflow.
+                    Describe one consequential agent action.
                   </h2>
                   <p className={styles.promptCopy}>
                     See the likely review scope, evidence questions, and paid
@@ -697,7 +697,7 @@ export function DocsAssistantWidget() {
                     onClick={handleResetAnswer}
                     className={styles.resultReset}
                   >
-                    Ask another workflow
+                    Ask another action
                   </button>
                 </div>
               )}
@@ -751,7 +751,7 @@ export function DocsAssistantWidget() {
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     placeholder="Example: An agent rotates a compromised key."
-                    aria-label="Describe one non-secret workflow"
+                    aria-label="Describe one non-secret action"
                     className={styles.askInput}
                   />
                   <button

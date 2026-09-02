@@ -48,7 +48,7 @@ export function DocsAssistantInline() {
         Bounded proof guide
       </p>
       <p className="mt-2 text-xs leading-relaxed text-text-muted">
-        Describe one consequential agentic or automated workflow in non-secret
+        Describe one consequential agent or automation action in non-secret
         terms. Ask WitnessOps will show the public guidance, commercial fit, and
         paid next step it can support.
       </p>

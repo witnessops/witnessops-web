@@ -5,9 +5,9 @@ import { classifyQuestion } from "./authority-classifier";
 import { classifyCommercialFit } from "./commercial-fit-classifier";
 
 const CURRENT_PRIMARY_OFFER = {
-  name: "Agent Workflow Reconstruction",
+  name: "Agent Action Security Review",
   price_label: "€2,500 fixed",
-  unit_label: "One named workflow (agentic or automated)",
+  unit_label: "One consequential agent or automation action",
   fit_check_label: "Non-secret fit check first",
   delivery_label: "Within 10 working days after evidence rules are agreed",
 } as const;
@@ -47,7 +47,7 @@ test("recognizes a natural-language agent key-rotation buyer situation", () => {
 
 test("recognizes the current offer and pricing question without inventing a new policy", () => {
   const result = classify(
-    "What is included in Agent Workflow Reconstruction and how much does it cost?",
+    "What is included in Agent Action Security Review and how much does it cost?",
   );
 
   assert.equal(result.commercialFit.result, "likely");
@@ -62,6 +62,16 @@ test("recognizes the current offer and pricing question without inventing a new 
 test("accepts the former offer name only as an input alias and returns the current offer", () => {
   const result = classify(
     "What is included in the Agent Risk & Control Review and how much does it cost?",
+  );
+
+  assert.equal(result.commercialFit.result, "likely");
+  assert.equal(result.commercialFit.intent, "offer");
+  assert.deepEqual(result.commercialFit.offer, CURRENT_PRIMARY_OFFER);
+});
+
+test("accepts the delivery-method name only as an input alias and returns the public offer", () => {
+  const result = classify(
+    "What is included in Agent Workflow Reconstruction and how much does it cost?",
   );
 
   assert.equal(result.commercialFit.result, "likely");

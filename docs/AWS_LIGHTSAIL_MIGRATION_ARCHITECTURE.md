@@ -4,6 +4,8 @@ Status: **planned candidate; not deployed**
 Decision date: 2026-08-24
 Product authority: **Public Exposure Review remains unchanged**
 
+> **Commercial naming note — 2026-09-02.** External Attack Surface Review is the current public name under the unchanged `OFFSEC-EXTERNAL-EXPOSURE` SKU. References below to Public Exposure Review preserve the decision snapshot and legacy receipt/trust-profile terminology; this naming patch does not change deployment, signing, trust, verification, or service mechanics.
+
 ## Decision
 
 Move the current private WitnessOps web host to one AWS Lightsail Ubuntu 24.04

@@ -134,8 +134,8 @@ export function verifyPublicExposureReviewReceipt(
     proofStageClaimed: "unknown",
     proofStageVerified: "unknown",
     summary: validation.valid
-      ? "The receipt has the recognized Public Exposure Review receipt structure, but its declared scope was not checked against authority records, and production signer trust, request and workflow completeness, manifest and artifact bytes, and evidence support were not independently checked. Verification remains indeterminate."
-      : "The Public Exposure Review receipt conflicts with the required receipt profile or workflow acceptance policy.",
+      ? "The receipt has the recognized legacy public_exposure_review profile structure, but its declared scope was not checked against authority records, and production signer trust, request and workflow completeness, manifest and artifact bytes, and evidence support were not independently checked. Verification remains indeterminate."
+      : "The receipt conflicts with the required legacy public_exposure_review profile or workflow acceptance policy.",
     checks,
     breaches: [],
   };
