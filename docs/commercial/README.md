@@ -3,7 +3,7 @@
 Operator-facing materials so the live catalog + samples convert into real engagements.
 Written for learning the offers while you sell and deliver them.
 
-**Operate this week:** [Agent Workflow Reconstruction](./16-agent-workflow-reconstruction-offer.md) is the canonical primary paid entry point: one named agentic or automated workflow, €2,500 fixed, beginning with a non-secret fit check and delivered within 10 working days after evidence rules are agreed. Public Exposure Review remains separate secondary catalogue work at €1,900 ex VAT with its approved three-working-day delivery contract. Customer Security Review Sprint and One Server Security Check remain available in the broader catalogue.
+**Operate this week:** [Agent Action Security Review](./16-agent-workflow-reconstruction-offer.md) is the canonical primary paid entry point: one consequential agent or automation action, €2,500 fixed, beginning with a non-secret fit check and delivered within 10 working days after evidence rules are agreed. Agent Workflow Reconstruction is the delivery method. [External Attack Surface Review](./10-public-exposure-review-offer.md) remains separate secondary catalogue work at €1,900 excluding VAT with its existing scope, caps, start gates, and retest. Customer Security Review Sprint and One Server Security Check remain available in the broader catalogue.
 
 ## Start here
 
@@ -30,20 +30,20 @@ Then use the paste templates below.
 | 07 | [Operator playbook complete](./07-operator-playbook-complete.md) | Full delivery path |
 | 08 | [Artifact map](./08-artifact-map.md) | Find samples on site + disk |
 | 09 | [Pricing investigation + PLN](./09-pricing-investigation.md) | Market context, zł table, policy |
-| 10 | [Public Exposure Review offer](./10-public-exposure-review-offer.md) | One-page fixed-scope buyer offer and validation boundary |
-| 11 | [Public Exposure Review order and fit check](./11-public-exposure-review-fit-check.md) | Non-secret intake and fit/custom/referral routing |
+| 10 | [External Attack Surface Review offer](./10-public-exposure-review-offer.md) | One-page fixed-scope buyer offer and validation boundary |
+| 11 | [External Attack Surface Review order and fit check](./11-public-exposure-review-fit-check.md) | Non-secret intake and fit/custom/referral routing |
 | 12 | [Offer naming market note](./12-offer-naming-market-note.md) | Short market comparison and naming guardrail |
 | 13 | [Public route disposition](./13-public-route-disposition.md) | Current, replacement, private-preview, and unresolved public route outcomes |
 | 14 | [LinkedIn Premium experiment](./14-linkedin-premium-experiment.md) | Thirty-day commercial test, attribution, weekly scoreboard, and renewal gate |
 | 15 | [Agent Risk & Control Review offer](./15-agent-risk-control-review-offer.md) | Superseded 2026-08-26 positioning retained as a historical commercial record |
-| 16 | [Agent Workflow Reconstruction offer](./16-agent-workflow-reconstruction-offer.md) | Canonical primary paid entry point, delivery contract, and evidence boundary |
+| 16 | [Agent Action Security Review offer](./16-agent-workflow-reconstruction-offer.md) | Canonical primary paid entry point, delivery method, contract, and authority boundary |
 
 ## Public anchors
 
 | Surface | URL |
 | --- | --- |
 | Catalog | https://witnessops.com/catalog |
-| Agent Workflow Reconstruction | https://witnessops.com/catalog/workflows |
+| Agent Action Security Review | https://witnessops.com/catalog/workflows |
 | Synthetic agent sample | https://witnessops.com/review/sample-cases/ai-agent-action-proof-run |
 | CSR service | https://witnessops.com/customer-security-review |
 | CSR sample page | https://witnessops.com/review/sample-cases/customer-security-review-sprint |
@@ -52,8 +52,8 @@ Then use the paste templates below.
 | One Server sample page | https://witnessops.com/review/sample-cases/local-server-security-review |
 | One Server web fixture | https://witnessops.com/samples/offsec-shield-local-server-audit/ |
 | One Server suite sample | https://witnessops.com/samples/offsec-local-audit/ |
-| Public Exposure Review | https://witnessops.com/catalog/offsec-external-exposure |
-| Public Exposure Review sample | https://witnessops.com/review/sample-cases/external-exposure-assessment |
+| External Attack Surface Review | https://witnessops.com/catalog/offsec-external-exposure |
+| External Attack Surface Review sample | https://witnessops.com/review/sample-cases/external-exposure-assessment |
 | Fit check | https://witnessops.com/review/request |
 | All samples | https://witnessops.com/review/sample-cases |
 

@@ -18,7 +18,7 @@ test("primary buyer navigation contains the approved English destinations", () =
     assert.ok(navbar.includes(marker), `Missing approved navigation marker: ${marker}`);
   }
 
-  assert.equal(PRIMARY_OFFER.name.en, "Agent Workflow Reconstruction");
+  assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
   assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
   assert.match(navbar, /href: reviewRequestHrefForLocation\(/);
 });

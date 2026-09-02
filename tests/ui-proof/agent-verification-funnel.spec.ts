@@ -123,10 +123,10 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
   ]) {
     {
       const { context, page, errors } = await openPage(browser, viewport, "/");
-      await expect(page.locator("main")).toContainText(/Check the agent before it acts/);
-      await expect(page.locator("main")).toContainText(/See one bounded action/);
-      await expect(page.locator("main")).toContainText(/Inspect what happened/);
-      await expect(page.locator("main")).toContainText(/Bring the real workflow/);
+      await expect(page.locator("main")).toContainText(/Who approves, and what actually executes/);
+      await expect(page.locator("main")).toContainText(/What can that identity really reach/);
+      await expect(page.locator("main")).toContainText(/What constrains the action and proves the result/);
+      await expect(page.locator("main")).toContainText(/Bring one consequential action/);
       await screenshot(page, `homepage-${viewport.label}.png`);
       await assertNoErrors(errors);
       await context.close();

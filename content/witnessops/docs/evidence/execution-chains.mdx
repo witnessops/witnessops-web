@@ -20,9 +20,9 @@ page_answer:
 
 Execution continuity is an optional proof layer across multiple events or receipts. It is not a universal field group in every current WitnessOps receipt.
 
-## 1. Current Public Exposure Review boundary
+## 1. Current legacy receipt-profile boundary
 
-The canonical Public Exposure Review receipt uses `witnessops.receipt.v0` with `witnessops.verification_context.v1`. It binds one proof run to a manifest digest and real manifest artifact IDs. The profile does not define `ledger.stream`, `ledger.seq`, `ledger.prev_hash`, or `ledger.entry_hash` fields.
+The canonical `public_exposure_review` receipt uses `witnessops.receipt.v0` with `witnessops.verification_context.v1`. It binds one proof run to a manifest digest and real manifest artifact IDs. The profile does not define `ledger.stream`, `ledger.seq`, `ledger.prev_hash`, or `ledger.entry_hash` fields.
 
 Do not add or infer those fields when evaluating this profile. The public `/verify` adapter validates the exact profiled envelope and rejects unsupported top-level fields.
 
@@ -30,7 +30,7 @@ Do not add or infer those fields when evaluating this profile. The public `/veri
 
 Some compatibility receipts, retained packages, or design documents use predecessor digests, sequence numbers, hash-chained records, Merkle roots, log checkpoints, or inclusion proofs. Those mechanisms are meaningful only when the specific receipt or package contract declares them and the verifier checks the matching bytes.
 
-An older documented `ledger.*` Receipt v2 model is not the canonical Public Exposure Review envelope and is not accepted as a standalone current `/verify` format.
+An older documented `ledger.*` Receipt v2 model is not the canonical `public_exposure_review` envelope and is not accepted as a standalone current `/verify` format.
 
 ## 3. Checks for a declared chain
 
@@ -59,4 +59,4 @@ A receipt-only result cannot establish a chain when predecessor records and cont
 
 ## 6. Next-page handoff
 
-Read [Receipt Specification](/docs/evidence/receipt-spec) for the current Public Exposure Review contract and [Evidence Bundles](/docs/how-it-works/evidence-bundles) for reconstructable package references.
+Read [Receipt Specification](/docs/evidence/receipt-spec) for the current legacy-profile contract and [Evidence Bundles](/docs/how-it-works/evidence-bundles) for reconstructable package references.

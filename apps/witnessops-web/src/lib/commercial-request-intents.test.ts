@@ -38,7 +38,7 @@ test("current commercial request intents use the manual request lane", () => {
   assert.equal(isManualCommercialRequestIntent(ASK_AI_CONTACT_INTENT), true);
   assert.equal(
     getCommercialRequestLabel(BOUNDED_WORKFLOW_REVIEW_INTENT),
-    "Agent Workflow Reconstruction request",
+    "Agent Action Security Review request",
   );
   assert.equal(
     getCommercialRequestLabel(ASK_AI_CONTACT_INTENT),
@@ -62,7 +62,7 @@ test("only the explicit legacy recon intent can enter governed recon", () => {
 test("commercial request labels localize the Polish handoff", () => {
   assert.equal(
     getCommercialRequestLabel(BOUNDED_WORKFLOW_REVIEW_INTENT, "pl"),
-    "Zgłoszenie Agent Workflow Reconstruction",
+    "Zgłoszenie Agent Action Security Review",
   );
   assert.equal(
     getCommercialRequestLabel("professional-public-footprint-audit", "pl"),

@@ -8,11 +8,11 @@
 - Timezone: `Europe/Warsaw`
 - Owner: founder
 
-> **Commercial target superseded (2026-09-01).** Keep the body below as the immutable
+> **Commercial target superseded (updated 2026-09-02).** Keep the body below as the immutable
 > 2026-08-19 experiment record; it is not current Company Page instruction. No LinkedIn field was
 > changed by this repository patch. Any manual replacement now requires explicit founder approval
-> and must use Agent Workflow Reconstruction as the primary paid entry point while retaining Public
-> Exposure Review as secondary catalogue work.
+> and must use Agent Action Security Review as the primary paid entry point while retaining External
+> Attack Surface Review as secondary catalogue work. Historical names below remain part of the dated baseline.
 
 ## Commercial authority and boundary
 

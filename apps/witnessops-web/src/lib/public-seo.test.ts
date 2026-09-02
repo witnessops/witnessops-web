@@ -12,6 +12,7 @@ import {
   publicExposureServiceJsonLd,
   websiteJsonLd,
 } from "./public-seo";
+import { EXTERNAL_ATTACK_SURFACE_OFFER } from "./commercial-truth";
 
 test("canonical URLs always use the HTTPS apex and drop query tracking", () => {
   assert.equal(CANONICAL_ORIGIN, "https://witnessops.com");
@@ -63,14 +64,13 @@ test("structured trust data is factual and syntactically serializable", () => {
   assert.equal(organizationJsonLd.name, "WitnessOps");
   assert.equal("legalName" in organizationJsonLd, false);
   assert.equal(service.offers.price, "1900");
-  assert.equal(
-    service.description,
-    "A fixed-scope external security review of one authorised public-facing system.",
-  );
+  assert.equal(service.name, "External Attack Surface Review");
+  assert.equal(service.description, EXTERNAL_ATTACK_SURFACE_OFFER.situation.en);
   assert.equal(
     publicExposureServiceJsonLd("pl").description,
-    "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego.",
+    EXTERNAL_ATTACK_SURFACE_OFFER.situation.pl,
   );
+  assert.match(service.description, /not a penetration test/i);
   assert.equal(service.offers.priceCurrency, "EUR");
   assert.equal(service.offers.priceSpecification.valueAddedTaxIncluded, false);
   assert.equal("inLanguage" in service, false);

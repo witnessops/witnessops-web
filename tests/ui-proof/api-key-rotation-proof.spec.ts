@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 const SAMPLE_PATH = "/review/sample-cases/ai-agent-action-proof-run";
 const VERIFIER_PATH = "/samples/api-key-rotation/v1/verify.mjs";
 const REVIEW_HREF =
-  "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction";
+  "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review";
 
 test("the proof page enforces its bounded claim, offer, metadata, and replay contract", async ({
   browser,
@@ -29,11 +29,13 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   await expect(
     page.getByRole("heading", {
       level: 2,
-      name: "Agent Workflow Reconstruction — €2,500 fixed.",
+      name: "Agent Action Security Review — €2,500 fixed.",
     }),
   ).toBeVisible();
-  await expect(page.getByText(/Bring one consequential workflow\./)).toBeVisible();
-  await expect(page.getByText(/separates what was authorised, executed, observed, and still unresolved/)).toBeVisible();
+  await expect(page.getByText(/Bring one consequential agent or automation action\./)).toBeVisible();
+  await expect(
+    page.getByText(/what identity executes it, what systems and tools it can reach/),
+  ).toBeVisible();
   await expect(page.getByText(/Entry begins with a non-secret fit check/)).toBeVisible();
   await expect(
     page.getByText(/delivery is within 10 working days after evidence rules are agreed/),

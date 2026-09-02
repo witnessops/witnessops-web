@@ -58,7 +58,7 @@ authority without a separate explicit Azure reopening lane.
 Open <https://witnessops.com/verify>, upload a supported receipt `.json` or paste
 the JSON, and read the result. The current example is `indeterminate`: the
 receipt-only checks run, but required artifact bytes are not independently
-checked. Public Exposure Review receipts also remain `indeterminate` while the
+checked. Receipts using the legacy-named `public_exposure_review` profile also remain `indeterminate` while the
 full evidence, workflow, signature, and production trust checks are incomplete.
 
 Programmatic callers can post the same receipt to `/api/verify` and receive the

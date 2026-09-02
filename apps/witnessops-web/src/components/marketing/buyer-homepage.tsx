@@ -22,60 +22,60 @@ type HeroCopy = {
 const localizedCopy = {
   en: {
     hero: {
-      eyebrow: "Proof infrastructure for agentic operations",
-      title: "Agents act. WitnessOps proves.",
+      eyebrow: PRIMARY_OFFER.name.en,
+      title: PRIMARY_OFFER.cardSituation.en,
       body:
-        "Reconstruct one consequential agent workflow: what was authorized, what ran, what was observed, and what remains unresolved.",
+        "Who can authorize it? What identity acts? What can it actually reach? What limits the blast radius? What evidence remains afterward?",
     },
     heroIntro:
-      "Produce a bounded record another responsible party can inspect or challenge.",
+      `${PRIMARY_OFFER.name.en} maps identity, permissions, tools, execution path, blast radius, and evidence before a customer, pentest, or incident finds the gaps for you.`,
     primaryCta: "Start a non-secret fit check",
     sampleLink: "Run and verify the compromised API key rotation demo",
     offerCta: "See scope and pricing",
     handlingBoundary:
-      "Do not send passwords, private keys, API keys, tokens or recovery codes · One workflow · Evidence handling agreed before intake",
-    flowLabel: "The WitnessOps method",
+      "Do not send passwords, private keys, API keys, tokens or recovery codes · One consequential action · Evidence handling agreed before intake",
+    flowLabel: "Security review model",
     flowItems: [
       {
-        step: "Before execution",
-        title: "Check the agent before it acts",
-        body: "Open a public SKILL.md and check its exact bytes locally in your browser.",
-        href: "/verify/skill",
+        step: "Authority → identity",
+        title: "Who approves, and what actually executes?",
+        body: "Trace the approval path to the exact service account, agent identity, or runtime principal.",
+        href: "#evidence-questions",
       },
       {
-        step: "Recorded action",
-        title: "See one bounded action",
-        body: "Approve a recorded synthetic replay and watch only the catalogued sequence.",
-        href: "/review/sample-cases/witnessed-crm-status-change",
+        step: "Permissions → tools",
+        title: "What can that identity really reach?",
+        body: "Map effective permissions, connected tools, APIs, MCP integrations, and privilege boundaries.",
+        href: "#evidence-questions",
       },
       {
-        step: "Evidence",
-        title: "Inspect what happened",
-        body: "Inspect the pinned repository, commit, published manifest, and reported verifier result.",
+        step: "Execution → evidence",
+        title: "What constrains the action and proves the result?",
+        body: "Follow the execution path, blast-radius controls, resulting state, and evidence chain.",
         href: "#agent-action-receipt",
       },
       {
         step: "Paid review",
-        title: "Bring the real workflow",
-        body: `Move from a public specimen to one scoped ${PRIMARY_OFFER.name.en}.`,
+        title: "Bring one consequential action",
+        body: `${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.timing.en}.`,
         href: `${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}`,
       },
     ],
-    reviewEyebrow: "The evidence questions",
-    reviewTitle: "Five questions. One bounded workflow.",
+    reviewEyebrow: "The security questions",
+    reviewTitle: "Five questions. One consequential action.",
     reviewBody:
-      "The paid engagement organizes the workflow around the evidence another responsible person would need to inspect or challenge it.",
+      "The review follows the action from production authority to resulting state without requiring WitnessOps terminology to understand the risk.",
     reviewItems: [
-      { title: "What was authorized?", body: "Owner, scope, policy and approval." },
-      { title: "What was executed?", body: "Action, tool path and touched system." },
-      { title: "What was observed?", body: "Evidence, records and reported result." },
+      { title: "Who can authorize it?", body: "Owner, policy, approval path, and privilege boundary." },
+      { title: "What identity performs it?", body: "Agent identity, service account, runtime principal, or delegated user." },
+      { title: "What can it reach?", body: "Effective permissions, connected tools, APIs, MCP integrations, and systems." },
       {
-        title: "What remains unresolved?",
-        body: "Gaps, exceptions and unsupported conclusions.",
+        title: "What limits the blast radius?",
+        body: "Scope controls, approval gates, tool restrictions, stop conditions, and failure handling.",
       },
       {
-        title: "How can it be challenged?",
-        body: "Named artifacts, verifier output and replay path.",
+        title: "What evidence remains?",
+        body: "A chain binding authorization, execution, resulting state, and unresolved gaps.",
       },
     ],
     receiptEyebrow: "After execution · Public specimen",
@@ -92,9 +92,9 @@ const localizedCopy = {
     receiptLink: "Replay and verify the signed rotation",
     offerEyebrow: "Paid engagement",
     offerTitle: PRIMARY_OFFER.name.en,
-    offerLead: "Reconstruct the workflow, not only the file.",
+    offerLead: "Review production authority before the agent acts.",
     offerBody:
-      "WitnessOps reconstructs one consequential agent or automation workflow and separates what was authorised, executed, observed, and still unresolved.",
+      "WitnessOps reviews one consequential agent or automation action across authority, identity, permissions, tools, execution, and evidence.",
     bestForTitle: "Best for",
     bestForBody:
       "Security, platform, compliance, MSSP, and AI automation teams letting agents or automations touch sensitive systems.",
@@ -103,71 +103,71 @@ const localizedCopy = {
     commercialLine: `${PRIMARY_OFFER.price.en} · ${PRIMARY_OFFER.fitCheck.en} · ${PRIMARY_OFFER.unit.en} · ${PRIMARY_OFFER.timing.en}`,
     outcomeTitle: "Outcome",
     outcomeBody:
-      "A practical handover that separates supported observations, unresolved gaps, and the evidence or controls needed to strengthen the workflow.",
+      "A practical security handover showing the execution path, permission boundary, evidence chain, control gaps, and the smallest useful fixes.",
     boundaryEyebrow: "Proof boundary",
     boundaryTitle: "A receipt is only as strong as its named evidence and verifier.",
     boundaryBody:
       "WitnessOps distinguishes a signed record from a supported claim. A receipt proves only what its named verifier and referenced evidence support. It does not certify that an agent was correct, safe, compliant, or complete. The public receipt specimen is an inspection aid, not customer evidence, and does not establish production deployment, compliance, correctness, safety, or completeness.",
-    closeTitle: "Bring one consequential workflow. Make its authority and evidence reviewable.",
+    closeTitle: "Bring one consequential action. Review its authority, access, blast radius, and evidence.",
     closeBody:
-      "Start with the workflow name, its owner, and the consequential action. Customer evidence is accepted only after scope and handling are agreed.",
+      `${PRIMARY_OFFER.fitCheckQuestion.en} Customer evidence is accepted only after scope and handling are agreed.`,
   },
   pl: {
     hero: {
-      eyebrow: "Infrastruktura dowodowa dla operacji agentowych",
-      title: "Agenci działają. WitnessOps dostarcza dowody.",
+      eyebrow: PRIMARY_OFFER.name.pl,
+      title: PRIMARY_OFFER.cardSituation.pl,
       body:
-        "Odtwórz jeden istotny workflow agenta: co zatwierdzono, co uruchomiono, co zaobserwowano i co pozostaje nierozstrzygnięte.",
+        "Kto może je zatwierdzić? Jaka tożsamość je wykonuje? Do czego agent naprawdę ma dostęp? Co ogranicza zasięg skutków? Jaki ślad dowodowy pozostaje?",
     },
     heroIntro:
-      "Przygotuj ograniczony zapis, który inna odpowiedzialna osoba może sprawdzić lub zakwestionować.",
+      `${PRIMARY_OFFER.name.pl} mapuje tożsamość, uprawnienia, narzędzia, ścieżkę wykonania, zasięg skutków i dowody — zanim luki znajdzie za Ciebie klient, pentest lub incydent.`,
     primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
     sampleLink: "Uruchom i zweryfikuj demo rotacji skompromitowanego klucza API",
     offerCta: "Zobacz zakres i cenę",
     handlingBoundary:
-      "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, tokenów ani kodów odzyskiwania · Jeden workflow · Zasady obsługi materiałów uzgadniane przed przyjęciem",
-    flowLabel: "Metoda WitnessOps",
+      "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, tokenów ani kodów odzyskiwania · Jedno istotne działanie · Zasady obsługi materiałów uzgadniane przed przyjęciem",
+    flowLabel: "Model przeglądu bezpieczeństwa",
     flowItems: [
       {
-        step: "Przed wykonaniem",
-        title: "Sprawdź agenta przed działaniem",
-        body: "Otwórz publiczny SKILL.md i sprawdź lokalnie jego dokładne bajty.",
-        href: "/verify/skill",
+        step: "Upoważnienie → tożsamość",
+        title: "Kto zatwierdza i co naprawdę wykonuje działanie?",
+        body: "Prześledź ścieżkę zatwierdzania do dokładnej tożsamości usługi, agenta lub procesu wykonawczego.",
+        href: "#evidence-questions",
       },
       {
-        step: "Zapisane działanie",
-        title: "Zobacz jedno ograniczone działanie",
-        body: "Zatwierdź odtworzenie syntetycznego przykładu i obejrzyj stałą sekwencję.",
-        href: "/review/sample-cases/witnessed-crm-status-change",
+        step: "Uprawnienia → narzędzia",
+        title: "Do czego ta tożsamość naprawdę ma dostęp?",
+        body: "Zmapuj rzeczywiste uprawnienia, narzędzia, API, integracje MCP i granice uprawnień.",
+        href: "#evidence-questions",
       },
       {
-        step: "Materiały",
-        title: "Sprawdź, co się wydarzyło",
-        body: "Sprawdź przypięte repozytorium, commit, opublikowany manifest i zapisany wynik weryfikatora.",
+        step: "Wykonanie → dowody",
+        title: "Co ogranicza działanie i potwierdza wynik?",
+        body: "Prześledź ścieżkę wykonania, ograniczenia skutków, stan wynikowy i łańcuch dowodowy.",
         href: "#agent-action-receipt",
       },
       {
         step: "Płatny przegląd",
-        title: "Przynieś prawdziwy workflow",
-        body: `Przejdź od publicznego przykładu do jednego ${PRIMARY_OFFER.name.pl}.`,
+        title: "Zgłoś jedno istotne działanie",
+        body: `${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.timing.pl}.`,
         href: `/pl${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}`,
       },
     ],
-    reviewEyebrow: "Pytania dowodowe",
-    reviewTitle: "Pięć pytań. Jeden ograniczony workflow.",
+    reviewEyebrow: "Pytania bezpieczeństwa",
+    reviewTitle: "Pięć pytań. Jedno istotne działanie.",
     reviewBody:
-      "Płatny przegląd porządkuje workflow wokół materiałów, których inna odpowiedzialna osoba potrzebuje, aby go sprawdzić lub zakwestionować.",
+      "Przegląd prowadzi od uprawnienia do działania w produkcji aż do stanu wynikowego, bez potrzeby znajomości terminologii WitnessOps.",
     reviewItems: [
-      { title: "Co zatwierdzono?", body: "Właściciel, zakres, polityka i zgoda." },
-      { title: "Co wykonano?", body: "Działanie, ścieżka narzędzi i dotknięty system." },
-      { title: "Co zaobserwowano?", body: "Materiały, zapisy i odnotowany wynik." },
+      { title: "Kto może je zatwierdzić?", body: "Właściciel, polityka, ścieżka zatwierdzania i granica uprawnień." },
+      { title: "Jaka tożsamość je wykonuje?", body: "Tożsamość agenta, konto usługi, proces wykonawczy lub delegowany użytkownik." },
+      { title: "Do czego ma dostęp?", body: "Rzeczywiste uprawnienia, narzędzia, API, integracje MCP i systemy." },
       {
-        title: "Co pozostaje nierozstrzygnięte?",
-        body: "Luki, wyjątki i niepoparte wnioski.",
+        title: "Co ogranicza zasięg skutków?",
+        body: "Granice zakresu, bramki zatwierdzania, ograniczenia narzędzi, warunki zatrzymania i obsługa błędów.",
       },
       {
-        title: "Jak można to zakwestionować?",
-        body: "Nazwane artefakty, wynik weryfikatora i ścieżka odtworzenia.",
+        title: "Jaki ślad dowodowy pozostaje?",
+        body: "Łańcuch wiążący zatwierdzenie, wykonanie, stan wynikowy i nierozstrzygnięte luki.",
       },
     ],
     receiptEyebrow: "Po wykonaniu · Publiczny wzór",
@@ -184,9 +184,9 @@ const localizedCopy = {
     receiptLink: "Odtwórz i zweryfikuj podpisaną rotację",
     offerEyebrow: "Płatny przegląd",
     offerTitle: PRIMARY_OFFER.name.pl,
-    offerLead: "Odtwórz workflow, nie tylko plik.",
+    offerLead: "Sprawdź uprawnienie produkcyjne, zanim agent zacznie działać.",
     offerBody:
-      "WitnessOps rekonstruuje jeden istotny workflow agenta lub automatyzacji i oddziela to, co zatwierdzono, wykonano, zaobserwowano i co nadal pozostaje nierozstrzygnięte.",
+      "WitnessOps analizuje jedno istotne działanie agenta lub automatyzacji przez ciąg: upoważnienie, tożsamość, uprawnienia, narzędzia, wykonanie i dowody.",
     bestForTitle: "Dla kogo",
     bestForBody:
       "Zespoły bezpieczeństwa, platform, compliance, MSSP i automatyzacji AI, które pozwalają agentom lub automatyzacjom działać w systemach wrażliwych.",
@@ -195,14 +195,14 @@ const localizedCopy = {
     commercialLine: `${PRIMARY_OFFER.price.pl} · ${PRIMARY_OFFER.fitCheck.pl} · ${PRIMARY_OFFER.unit.pl} · ${PRIMARY_OFFER.timing.pl}`,
     outcomeTitle: "Wynik",
     outcomeBody:
-      "Praktyczne przekazanie, które oddziela poparte obserwacje, nierozstrzygnięte luki oraz materiały lub kontrole potrzebne do wzmocnienia workflow.",
+      "Kupujący otrzymuje praktyczny raport i omówienie: ścieżkę wykonania, granicę uprawnień, łańcuch dowodowy, luki kontrolne i najmniejsze użyteczne poprawki.",
     boundaryEyebrow: "Granica dowodu",
     boundaryTitle: "Zapis jest tak mocny, jak wskazane materiały i weryfikator.",
     boundaryBody:
       "WitnessOps odróżnia podpisany zapis od twierdzenia popartego materiałami. Zapis dowodzi wyłącznie tego, co wspierają wskazany weryfikator i przywołane materiały. Nie certyfikuje, że agent działał poprawnie, bezpiecznie, zgodnie z wymaganiami lub kompletnie. Publiczny przykład zapisu pomaga w inspekcji, ale nie jest materiałem klienta i nie potwierdza wdrożenia produkcyjnego, zgodności, poprawności, bezpieczeństwa ani kompletności.",
-    closeTitle: "Zgłoś jeden istotny workflow. Uczyń jego upoważnienie i materiały możliwymi do przeglądu.",
+    closeTitle: "Zgłoś jedno istotne działanie. Sprawdź jego upoważnienie, dostęp, zasięg skutków i dowody.",
     closeBody:
-      "Zacznij od nazwy workflow, jego właściciela i istotnego działania. Materiały klienta są przyjmowane dopiero po uzgodnieniu zakresu i zasad postępowania.",
+      `${PRIMARY_OFFER.fitCheckQuestion.pl} Materiały klienta są przyjmowane dopiero po uzgodnieniu zakresu i zasad postępowania.`,
   },
 } as const;
 
@@ -227,7 +227,6 @@ export function BuyerHomepage({
       <section data-ui-proof-id="homepage-hero" className={styles.heroSection}>
         <header className={`${styles.frame} ${styles.heroFrame}`}>
           <div data-ask-trigger-guard className={styles.heroCopy}>
-            <p className={styles.eyebrow}>{heroCopy.eyebrow}</p>
             <h1
               data-ui-proof-id="homepage-hero-headline"
               data-copy-length={heroCopy.title.length > 36 ? "long" : "standard"}
@@ -235,8 +234,12 @@ export function BuyerHomepage({
             >
               {heroCopy.title}
             </h1>
+            <p className={styles.heroOfferName}>{heroCopy.eyebrow}</p>
             <p data-ui-proof-id="homepage-hero-body" className={styles.heroBody}>{heroCopy.body}</p>
             <p className={styles.heroIntro}>{text.heroIntro}</p>
+            <p className={styles.heroCommercial}>
+              {PRIMARY_OFFER.unit[locale]} · {PRIMARY_OFFER.price[locale]} · {PRIMARY_OFFER.timing[locale]}
+            </p>
             <div className={styles.heroActions}>
               <CtaButton uiProofId="homepage-hero-primary-cta" href={requestHref} variant="primary" label={text.primaryCta} className={styles.primaryCta} />
               <CtaButton href={offerHref} variant="secondary" label={text.offerCta} className={styles.secondaryCta} />

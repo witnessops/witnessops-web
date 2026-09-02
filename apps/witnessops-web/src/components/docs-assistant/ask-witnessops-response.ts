@@ -83,10 +83,10 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
     const currentOffer = `${offer.name} is the primary paid path — ${offer.price_label}; ${offer.unit_label}; ${offer.fit_check_label}; ${offer.delivery_label}.`;
 
     if (answer.commercial_fit.result === "needs_boundary") {
-      return `${currentOffer} This public guide cannot inspect a whole environment. Narrow the non-secret description to one consequential workflow; the fit-check path is shown above.`;
+      return `${currentOffer} This public guide cannot inspect a whole environment. Narrow the non-secret description to one consequential agent or automation action; the fit-check path is shown above.`;
     }
 
-    return `${currentOffer} This public guide cannot inspect or verify the workflow here. Your non-secret description is enough for a likely commercial-fit signal; the fit-check path is shown above.`;
+    return `${currentOffer} This public guide cannot inspect or verify the action here. Your non-secret description is enough for a likely commercial-fit signal; the fit-check path is shown above.`;
   }
 
   if (body.length > 0) {

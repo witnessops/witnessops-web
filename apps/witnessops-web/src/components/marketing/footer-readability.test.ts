@@ -118,7 +118,7 @@ test("footer provides Polish homepage labels without changing route contracts", 
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
   }
 
-  assert.equal(PRIMARY_OFFER.name.pl, "Agent Workflow Reconstruction");
+  assert.equal(PRIMARY_OFFER.name.pl, "Agent Action Security Review");
   assert.equal(PRIMARY_OFFER.route, "/catalog/workflows");
   assert.match(source, /reviewRequestHrefForLocation\(/);
   assert.match(source, /primaryHref=\{reviewRequestHref\}/);

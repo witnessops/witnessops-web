@@ -1,6 +1,6 @@
 # Agent Risk & Control Review
 
-> **Superseded commercial record — 2026-09-01.** This document preserves the former positioning and commercial terms adopted on 2026-08-26. It no longer defines the current primary offer or paid entry point. Use [Agent Workflow Reconstruction](./16-agent-workflow-reconstruction-offer.md) as the canonical current contract. The historical content below is intentionally retained and must not be propagated into active buyer-facing surfaces.
+> **Superseded commercial record — updated 2026-09-02.** This document preserves the former positioning and commercial terms adopted on 2026-08-26. It no longer defines the current primary offer or paid entry point. Use [Agent Action Security Review](./16-agent-workflow-reconstruction-offer.md) as the canonical current contract; Agent Workflow Reconstruction is now its delivery method. The historical content below is intentionally retained and must not be propagated into active buyer-facing surfaces.
 
 **Commercial status:** Primary homepage offer as of 2026-08-26.
 

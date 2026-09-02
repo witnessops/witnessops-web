@@ -22,7 +22,7 @@ test("English public shell mounts the compact Ask WitnessOps launcher", () => {
   assert.match(widget, />Ask WitnessOps<\/span>/);
   assert.match(widget, />\s*AI\s*<\/span>/);
   assert.match(widget, /ASK WITNESSOPS/);
-  assert.match(widget, /Describe one consequential agent workflow\./);
+  assert.match(widget, /Describe one consequential agent action\./);
   assert.match(widget, /Review scope and price/);
   assert.match(widget, /Check fit/);
   assert.match(widget, /PRIMARY_OFFER\.requestRoute/);

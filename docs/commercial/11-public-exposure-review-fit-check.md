@@ -1,15 +1,17 @@
-# Public Exposure Review — non-secret request and fit check
+# External Attack Surface Review — non-secret request and fit check
+
+The path is retained for repository continuity. Public Exposure Review was the former public name; External Attack Surface Review is current as of 2026-09-02. The stable SKU and all service mechanics are unchanged.
 
 Use this before requesting files, logs, screenshots, inventories, credentials, or production evidence. The fit check does not authorise testing and does not start an engagement.
 
 ## Customer questions
 
 ```text
-Public Exposure Review — non-secret request and fit check
+External Attack Surface Review — non-secret request and fit check
 
 1. Your name, role, organisation, and work email:
 
-2. What decision or deadline is driving the review?
+2. What decision or deadline makes the external attack surface important now?
    Examples: enterprise customer request, launch, infrastructure change,
    investor or board review, or an upcoming penetration test.
 
@@ -17,7 +19,7 @@ Public Exposure Review — non-secret request and fit check
    external review, vulnerability assessment, penetration test, accreditation,
    attestation, audit evidence, or something else?
 
-4. What is the proposed public-facing system at a high level?
+4. What is the proposed internet-facing system at a high level?
    Provide one public domain, hostname, application, API, public IP, public cloud
    endpoint, or coherent system seed only if you are comfortable sharing it.
    Do not send credentials, logs, screenshots, inventories, or files.
@@ -25,14 +27,15 @@ Public Exposure Review — non-secret request and fit check
 5. Do you own the target or hold written authority to commission the agreed checks?
    Answer: yes / authority can be obtained / no / unsure.
 
-6. Approximately how many first-party hostnames, public IPs, and service endpoints
-   are likely to be in scope? Estimates only; do not paste an inventory.
+6. Approximately how many first-party root domains, hostnames, public IPs, and
+   service endpoints are likely to be in scope? Estimates only; do not paste an inventory.
 
 7. Are a CDN, hosting provider, shared platform, managed service, or other third party
    part of the boundary? Name the provider class only.
 
-8. Is passive discovery where applicable, followed by approval-gated low-impact checking, sufficient, or do you
-   need exploitation, authenticated testing, password testing, or an accredited pentest?
+8. Is passive discovery where applicable, followed by approval-gated low-impact checking,
+   sufficient, or do you need exploitation, authenticated testing, password testing,
+   or an accredited penetration test?
 
 9. Who can approve scope and stop conditions, and who will own remediation?
 
@@ -50,17 +53,17 @@ customer records, private network details, vulnerability evidence, or production
 
 All of the following should be true:
 
-- One owned or explicitly authorised public-facing system.
+- One owned or explicitly authorised internet-facing system.
 - The buyer accepts a bounded, unauthenticated outside-in review rather than exploitation, certification, or attestation.
-- The estimated system stays within 10 confirmed first-party hostnames, 3 customer-attributed public IPs, and 20 service endpoints.
-- The buyer accepts passive discovery where applicable, followed by named low-impact checks.
+- The estimated system stays within 1 registrable root domain, 10 confirmed first-party hostnames, 3 customer-attributed public IPs, and 20 service endpoints.
+- It uses passive discovery where applicable, followed by explicitly approved, low-impact checks against the signed target schedule.
 - A decision owner can approve scope and stop conditions.
 - An engineering owner can act on findings.
-- The deadline allows three working days after payment in full or a written invitation-only design-partner fee waiver, an accepted SOW, written authority, scope freeze, required inputs, and the approved collection window are confirmed.
+- The deadline allows three working days after payment in full or a written invitation-only design-partner fee waiver, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed.
 
 ### Custom scope or referral
 
-- More than one coherent public-facing system or any cap is likely to be exceeded.
+- More than one coherent internet-facing system or any cap is likely to be exceeded.
 - Authenticated web/API testing, cloud-account review, multiple environments, rush delivery, special data residency, or bespoke contractual handling is required.
 - Shared or third-party infrastructure cannot be cleanly attributed and authorised.
 - The accepting party requires CREST/CHECK or another accreditation, exploitation-led penetration testing, a formal attestation, or compliance certification.
@@ -75,7 +78,7 @@ All of the following should be true:
 ## Fit-check response
 
 ```text
-Subject: Public Exposure Review — scope result
+Subject: External Attack Surface Review — scope result
 
 Hi [Name],
 
@@ -83,8 +86,9 @@ Based on the non-secret information provided, this is [a fit for the fixed-scope
 a custom-scope request / not a fit] because [one specific boundary reason].
 
 [If fit]
-The review covers one authorised public-facing system within the 10-hostname / 3-IP /
-20-endpoint caps. It uses passive discovery where applicable, followed by explicitly approved, low-impact checks against the signed target schedule.
+The review covers one authorised internet-facing system within the 1-root-domain /
+10-hostname / 3-IP / 20-endpoint caps. It uses passive discovery where applicable,
+followed by explicitly approved, low-impact checks against the signed target schedule.
 The fixed fee is €1,900 excluding VAT. Payment is due in full before the delivery clock
 starts. Payment alone does not authorise testing. Delivery is due within three working days
 after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and
@@ -97,7 +101,7 @@ send evidence or access details until that document and the handling route are a
 No sales call is required. This message does not authorise testing or start the delivery
 clock.
 
-This is a fixed-scope external security review, not a penetration test, accreditation,
+This is an External Attack Surface Review, not a penetration test, accreditation,
 compliance certification, attestation, or security guarantee.
 
 — [Operator]

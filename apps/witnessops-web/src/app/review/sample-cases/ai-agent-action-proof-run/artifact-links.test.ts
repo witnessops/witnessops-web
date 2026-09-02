@@ -154,7 +154,7 @@ test("public page makes replay, local verification, tamper challenge, and limits
   assert.doesNotMatch(client, /method:\s*["'](?:POST|PUT|PATCH|DELETE)/);
 });
 
-test("specimen review CTA preserves the Agent Workflow Reconstruction selection", () => {
+test("specimen review CTA preserves the Agent Action Security Review selection", () => {
   const page = readFileSync(resolve(__dirname, "page.tsx"), "utf8");
 
   assert.match(
@@ -165,10 +165,12 @@ test("specimen review CTA preserves the Agent Workflow Reconstruction selection"
     page,
     /\{PRIMARY_OFFER\.name\.en\} — \{PRIMARY_OFFER\.price\.en\}\./,
   );
-  assert.match(page, /what was authorised,/);
-  assert.match(page, /maps permissions and evidence gaps/);
-  assert.match(page, /proposes\s+a receipt shape with a testable sample pack/);
-  assert.match(page, /Bring one consequential workflow/);
+  assert.match(page, /who can authorize/);
+  assert.match(page, /what identity executes/);
+  assert.match(page, /what systems and tools it can reach/);
+  assert.match(page, /what evidence binds approval to execution/);
+  assert.match(page, /PRIMARY_OFFER\.deliveryMethod\.en/);
+  assert.match(page, /Bring one consequential agent or automation action/);
   assert.match(page, /Entry begins with a non-secret fit check/);
   assert.match(
     page,
@@ -180,12 +182,12 @@ test("specimen review CTA preserves the Agent Workflow Reconstruction selection"
   );
   assert.equal(
     buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
   );
   assert.equal(PRIMARY_OFFER.id, "bounded-workflow-review");
-  assert.equal(PRIMARY_OFFER.name.en, "Agent Workflow Reconstruction");
+  assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
   assert.equal(PRIMARY_OFFER.price.en, "€2,500 fixed");
-  assert.equal(PRIMARY_OFFER.unit.en, "One named workflow (agentic or automated)");
+  assert.equal(PRIMARY_OFFER.unit.en, "One consequential agent or automation action");
   assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit check first");
   assert.equal(
     PRIMARY_OFFER.timing.en,

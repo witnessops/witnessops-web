@@ -32,12 +32,12 @@ export function AskWitnessOpsCommercialFitCard({
     ? fit.intent === "offer"
       ? "This is the live paid offer."
       : "This is a paid-review candidate."
-    : "This needs one bounded workflow.";
+    : "This needs one consequential action.";
   const body = likely
     ? fit.intent === "offer"
-      ? "WitnessOps reconstructs one consequential agent or automation workflow, separating what was authorised, executed, observed, and still unresolved."
-      : `Your non-secret description matches the stated shape of ${PRIMARY_OFFER.name.en}: one consequential agent or automation workflow touching a sensitive system.`
-    : "It may fit once it is narrowed to one named workflow, owner, consequential action, and system boundary.";
+      ? "WitnessOps reviews one consequential agent or automation action across authority, identity, permissions, tools, execution, and evidence."
+      : `Your non-secret description matches the stated shape of ${PRIMARY_OFFER.name.en}: one consequential agent or automation action touching a sensitive system.`
+    : "It may fit once it is narrowed to one consequential action, failure impact, approving role, executing identity, tool path, and system boundary.";
 
   const cardClassName = compact
     ? "mt-4 border border-brand-accent/45 p-3"
@@ -60,8 +60,8 @@ export function AskWitnessOpsCommercialFitCard({
 
       {fit.intent === "workflow" && (
         <p className="mt-3 text-xs leading-relaxed text-text-muted">
-          Review focus: authority, exact action path, independent read-back,
-          unresolved gaps, and the challenge path.
+          Review focus: production authority, executing identity, effective
+          permissions, tool access, execution path, blast radius, and evidence chain.
         </p>
       )}
 
@@ -86,7 +86,7 @@ export function AskWitnessOpsCommercialFitCard({
               className={primaryClassName}
               data-ask-primary-cta
             >
-              Request scope for this workflow
+              Request scope for this action
             </button>
           ) : (
             <Link
@@ -94,7 +94,7 @@ export function AskWitnessOpsCommercialFitCard({
               className={primaryClassName}
               data-ask-primary-cta
             >
-              Request scope for this workflow
+              Request scope for this action
             </Link>
           )}
 

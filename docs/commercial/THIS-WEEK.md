@@ -1,7 +1,7 @@
 # Earlier operating pack (superseded)
 
 **Status:** superseded as current commercial instruction on 2026-09-01; the 2026-07-30 public dry-run record remains **PASSED**.
-**Current mode:** operate [Agent Workflow Reconstruction](./16-agent-workflow-reconstruction-offer.md) as the primary paid entry point. Public Exposure Review remains separate secondary catalogue work. The checklist below is retained as an earlier operator rehearsal record and must not be used to reposition CSR Sprint or One Server as the primary entry point.
+**Current mode:** operate [Agent Action Security Review](./16-agent-workflow-reconstruction-offer.md) as the primary paid entry point, using Agent Workflow Reconstruction as its delivery method. External Attack Surface Review remains separate secondary catalogue work. The checklist below is retained as an earlier operator rehearsal record and must not be used to reposition CSR Sprint or One Server as the primary entry point.
 
 ---
 

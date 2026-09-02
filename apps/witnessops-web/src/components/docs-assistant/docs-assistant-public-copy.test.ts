@@ -12,7 +12,7 @@ function source(filename: string): string {
 const title = "ASK WITNESSOPS";
 const subtitle = "Bounded proof guide";
 const workflowIntro =
-  /Describe one consequential agent(?:ic or automated)? workflow/;
+  /Describe one consequential agent(?: or automation)? action/;
 const warning = "Do not paste secrets";
 const providerDisclosure =
   /Eligible questions may be\s+(?:sent to\s+)?OpenAI\s+with.*store: false.*provider\s+retention\s+may\s+still\s+apply/s;
@@ -48,8 +48,8 @@ test("Ask WitnessOps offers buyer-oriented workflow, scope, and price prompts", 
   const page = source("docs-assistant-page.tsx");
   const prompts = [
     "An AI agent rotates compromised production keys. How can we prove authorization and revocation?",
-    "How much does one workflow review cost?",
-    "How should one consequential agent workflow be bounded?",
+    "How much does one agent action security review cost?",
+    "How should one consequential agent action be bounded?",
     "Can I send logs or screenshots?",
   ];
 
@@ -77,7 +77,7 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   const response = source("ask-witnessops-response.ts");
 
   assert.match(card, /Commercial fit/);
-  assert.match(card, /Request scope for this workflow/);
+  assert.match(card, /Request scope for this action/);
   assert.match(card, /offer\.price_label/);
   assert.match(card, /offer\.unit_label/);
   assert.match(card, /offer\.fit_check_label/);
@@ -88,11 +88,11 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
   assert.match(response, /offerId=\$\{PRIMARY_OFFER\.id\}&source=ask/);
   assert.doesNotMatch(response, /Agent Risk & Control Review|From €1,500/);
 
-  assert.equal(PRIMARY_OFFER.name.en, "Agent Workflow Reconstruction");
+  assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
   assert.equal(PRIMARY_OFFER.price.en, "€2,500 fixed");
   assert.equal(
     PRIMARY_OFFER.unit.en,
-    "One named workflow (agentic or automated)",
+    "One consequential agent or automation action",
   );
   assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit check first");
   assert.equal(
@@ -192,11 +192,11 @@ test("Ask WitnessOps provides a non-blocking verified contact handoff", () => {
   assert.match(widget, /onExpandedChange=\{handleContactModeChange\}/);
   assert.match(widget, /onBusyChange=\{handleContactBusyChange\}/);
   assert.match(contact, /Request a scoped review/);
-  assert.match(contact, /Request scope for this workflow/);
+  assert.match(contact, /Request scope for this action/);
   assert.match(contact, /Work email/);
-  assert.match(contact, /Workflow summary or request/);
+  assert.match(contact, /Action summary or request/);
   assert.match(contact, /required=\{offerRequiresSummary\}/);
-  assert.match(contact, /Add a short, non-secret workflow summary/);
+  assert.match(contact, /Add a short, non-secret summary of the consequential action/);
   assert.match(contact, /\/api\/contact/);
   assert.match(contact, /\/api\/verify-token/);
   assert.match(contact, /Mailbox confirmation starts a fit-and-scope reply only/);
@@ -256,7 +256,7 @@ test("Ask WitnessOps uses the proof-object and bounded fit-signal visual contrac
   assert.match(content, /PUBLIC GUIDE UNAVAILABLE/);
   assert.match(content, /NO FIT CLAIM/);
   assert.match(content, /data-ask-state/);
-  assert.match(content, /aria-label="Describe one non-secret workflow"/);
+  assert.match(content, /aria-label="Describe one non-secret action"/);
   assert.match(styles, /--proof-bg:\s*var\(--color-surface-bg\)/);
   assert.match(styles, /--proof-accent:\s*var\(--color-brand-accent\)/);
   assert.match(styles, /--receipt-paper:\s*#f3f0e9/);

@@ -10,7 +10,10 @@ import {
   buyerServiceById,
   type BuyerService,
 } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 import {
   readReviewRequestConfirmation,
   type ReviewRequestConfirmation,
@@ -47,8 +50,8 @@ const copy = {
       "Work begins only after those terms are explicitly agreed.",
     ],
     primaryOfferNextSteps: [
-      `We assess whether ${PRIMARY_OFFER.unit.en.toLowerCase()} fits the reconstruction boundary without asking for secrets.`,
-      `If it fits, ${PRIMARY_OFFER.price.en}; we agree scope, evidence rules, exclusions, and evidence handling before source material is accepted.`,
+      `We assess the consequential action, failure impact, systems, tools, and security boundaries without asking for secrets.`,
+      `If it fits, ${PRIMARY_OFFER.price.en}; we agree authority, executing identity, permission boundary, tool access, evidence rules, exclusions, and evidence handling before source material is accepted.`,
       `${PRIMARY_OFFER.timing.en}.`,
     ],
     publicExposureNextSteps: [
@@ -59,7 +62,7 @@ const copy = {
     waitLabel: "Inspect while you wait",
     specimen: "Inspect a sample review record",
     accessChangeSpecimen: "Inspect an access-change proof sample",
-    publicExposureSpecimen: "Inspect the Public Exposure Review sample",
+    publicExposureSpecimen: `Inspect the ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} sample`,
     proofModel: "Read the proof model",
     serviceCatalogue: "Explore the service catalogue",
     missingEyebrow: "Review request / no local record",
@@ -83,8 +86,8 @@ const copy = {
       "Praca rozpocznie się dopiero po jednoznacznym uzgodnieniu tych warunków.",
     ],
     primaryOfferNextSteps: [
-      `Sprawdzimy bez sekretów, czy ${PRIMARY_OFFER.unit.pl.toLowerCase()} pasuje do zakresu rekonstrukcji.`,
-      `Jeśli pasuje, ${PRIMARY_OFFER.price.pl.toLowerCase()}; przed przyjęciem materiałów uzgodnimy zakres, zasady dowodowe, wyłączenia i sposób obsługi.`,
+      "Sprawdzimy bez sekretów istotne działanie, skutek błędu, systemy, narzędzia i granice bezpieczeństwa.",
+      `Jeśli pasuje, ${PRIMARY_OFFER.price.pl.toLowerCase()}; przed przyjęciem materiałów uzgodnimy upoważnienie, tożsamość wykonującą, granice uprawnień, dostęp do narzędzi, zasady dowodowe, wyłączenia i sposób obsługi.`,
       `${PRIMARY_OFFER.timing.pl}.`,
     ],
     publicExposureNextSteps: [
@@ -95,7 +98,7 @@ const copy = {
     waitLabel: "Sprawdź w oczekiwaniu",
     specimen: "Sprawdź przykładowy zapis przeglądu (EN)",
     accessChangeSpecimen: "Sprawdź przykład zmiany dostępu (EN)",
-    publicExposureSpecimen: "Sprawdź przykład Public Exposure Review (EN)",
+    publicExposureSpecimen: `Sprawdź przykład ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl} (EN)`,
     proofModel: "Przeczytaj model dowodowy",
     serviceCatalogue: "Zobacz katalog usług",
     missingEyebrow: "Zgłoszenie przeglądu / brak lokalnego zapisu",

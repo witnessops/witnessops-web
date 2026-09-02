@@ -11,9 +11,9 @@ draft: false
 
 WitnessOps separates implemented receipt primitives from standards used by compatibility, retained, or future export lanes. A standard named in architecture documentation is not automatically present in every receipt or checked by every verifier.
 
-## 1. Current Public Exposure Review primitives
+## 1. Current legacy receipt-profile primitives
 
-The current canonical Public Exposure Review contract uses:
+The current canonical `public_exposure_review` receipt contract uses:
 
 | Primitive | Contract use | Public `/verify` behavior |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ This receipt is not documented as universally DSSE-wrapped, RFC 3161-timestamped
 | DSSE | Design or compatibility envelope unless a specific emitted artifact and verifier path are named | Do not claim every receipt is DSSE-wrapped |
 | RFC 3161 | Compatibility or optional proof layer where token and chain artifacts are present | Full time proof requires token, imprint, TSA chain, and policy verification |
 | in-toto | Export/alignment target unless a specific statement is emitted | Do not infer it from receipt fields |
-| SLSA | Build-provenance alignment target | Not a core Public Exposure Review receipt primitive |
+| SLSA | Build-provenance alignment target | Not a core `public_exposure_review` receipt primitive |
 | SCITT | Future transparency interoperability target | Not required for current local receipt validation |
 
 ## 3. Why the layers remain separate
@@ -52,7 +52,7 @@ Combining those questions into “the receipt is signed” hides missing inputs.
 
 ## 4. Production key policy
 
-Ed25519 signature syntax alone does not establish a trusted production signer. Public Exposure Review production acceptance requires an active, revision-pinned registry policy, an allowlisted production key with required usage, validity and revocation checks, and recorded custody approval.
+Ed25519 signature syntax alone does not establish a trusted production signer. Production acceptance for the legacy `public_exposure_review` profile requires an active, revision-pinned registry policy, an allowlisted production key with required usage, validity and revocation checks, and recorded custody approval.
 
 The current policy and registry snapshot are `draft` and authorize no production key. The public receipt adapter therefore does not claim cryptographic or production signer verification.
 

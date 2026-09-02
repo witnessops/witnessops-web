@@ -40,9 +40,9 @@ function askRequest(question: string, ip: string) {
 }
 
 const CURRENT_PRIMARY_OFFER = {
-  name: "Agent Workflow Reconstruction",
+  name: "Agent Action Security Review",
   price_label: "€2,500 fixed",
-  unit_label: "One named workflow (agentic or automated)",
+  unit_label: "One consequential agent or automation action",
   fit_check_label: "Non-secret fit check first",
   delivery_label: "Within 10 working days after evidence rules are agreed",
 } as const;
@@ -292,7 +292,7 @@ test("public Ask recognizes a natural agent key-rotation buyer workflow", async 
 test("public Ask recognizes the paid offer and price", async () => {
   const response = await POST(
     askRequest(
-      "What is included in Agent Workflow Reconstruction and how much does it cost?",
+      "What is included in Agent Action Security Review and how much does it cost?",
       "203.0.113.89",
     ),
   );

@@ -28,7 +28,10 @@ import {
   buyerServiceByPublicOfferId,
 } from "@/lib/buyer-services";
 import { BOUNDED_WORKFLOW_REVIEW_INTENT } from "@/lib/commercial-request-intents";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 
 type FieldName =
   | "name"
@@ -283,17 +286,29 @@ export function ContactForm({
           ? `Rozpocznij ${PRIMARY_OFFER.name.pl}.`
           : `Start your ${PRIMARY_OFFER.name.en}.`,
         fitBody: polish
-          ? `Opisz jeden istotny workflow na wysokim poziomie. ${PRIMARY_OFFER.fitCheck.pl}. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.timing.pl}.`
-          : `Describe one consequential workflow at a high level. ${PRIMARY_OFFER.fitCheck.en}. ${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.timing.en}.`,
+          ? `${PRIMARY_OFFER.fitCheckQuestion.pl} Następnie opisz skutek błędu, zaangażowane systemy i narzędzia oraz granice produkcji, danych klientów, pieniędzy, kont, uprawnień lub komunikacji zewnętrznej. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.timing.pl}.`
+          : `${PRIMARY_OFFER.fitCheckQuestion.en} Then describe what happens if it goes wrong, which systems and tools are involved, and whether production, customer-data, money, account, permission, or external-communication boundaries are involved. ${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.timing.en}.`,
         workflow: polish
-          ? "Opisz istotny workflow"
-          : "Describe the consequential workflow",
+          ? PRIMARY_OFFER.fitCheckQuestion.pl
+          : PRIMARY_OFFER.fitCheckQuestion.en,
         workflowPlaceholder: polish
-          ? "Przykład: agent przygotowuje i wykonuje rotację klucza API po zatwierdzeniu przez człowieka."
-          : "Example: an agent prepares and executes an API-key rotation after human approval.",
+          ? "Przykład: wdrożenie produkcyjne, usunięcie konta, zwrot płatności, zmiana rekordu klienta, zmiana uprawnień, zatwierdzenie transakcji lub działanie przez MCP, narzędzie albo API."
+          : "Example: production deployment, account deletion, refund or payment, customer-record change, permission change, transaction approval, or an action through MCP, a tool, or an API.",
         workflowHelp: polish
-          ? "Podaj system, działanie i główną obawę dotyczącą upoważnienia, jeśli są znane. Nie wklejaj sekretów ani materiałów źródłowych."
-          : "Name the system, action, and main authority concern if known. Do not paste secrets or source material.",
+          ? "Opisz działanie na wysokim poziomie. Nie wklejaj sekretów, danych uwierzytelniających, logów, zrzutów ekranu, danych klientów ani materiałów produkcyjnych."
+          : "Describe the action at a high level. Do not paste secrets, credentials, logs, screenshots, customer data, or production evidence.",
+        actionPath: polish ? "Co się stanie, jeśli działanie pójdzie źle?" : "What happens if it goes wrong?",
+        actionPathPlaceholder: polish
+          ? "Opisz możliwy wpływ: awaria produkcji, strata finansowa, zmiana lub ujawnienie danych, utrata dostępu albo niezamierzona komunikacja."
+          : "Describe the likely impact: production outage, financial loss, data change or exposure, account impact, permission escalation, or unintended external communication.",
+        approval: polish ? "Jakie systemy i narzędzia są zaangażowane?" : "Which systems and tools are involved?",
+        approvalPlaceholder: polish
+          ? "Nazwij tylko klasy systemów, narzędzi, API lub integracji MCP oraz osobę albo rolę zatwierdzającą. Bez danych dostępowych."
+          : "Name the system, tool, API, or MCP-integration classes and the approving person or role. Do not include access details.",
+        evidence: polish ? "Jakie granice bezpieczeństwa są zaangażowane?" : "Which security boundaries are involved?",
+        evidencePlaceholder: polish
+          ? "Wskaż ogólnie: produkcja, pieniądze, dane klientów, konta, uprawnienia lub komunikacja zewnętrzna."
+          : "Name any production, money, customer-data, account, permission, or external-communication boundary at a high level.",
         send: polish
           ? "Poproś o wstępną ocenę bez informacji poufnych"
           : "Request a non-secret fit check",
@@ -309,12 +324,12 @@ export function ContactForm({
           ? "Weryfikacja skrzynki nie rozpoczyna przeglądu. Najpierw asynchronicznie potwierdzamy zakres, upoważnienie, dostępność, cenę i warunki startu terminu dostawy."
           : "Mailbox verification does not start the review. Scope, authority, capacity, price, and delivery-clock conditions are accepted asynchronously first.",
         fitTitle: polish
-          ? "Rozpocznij Public Exposure Review."
-          : "Start your Public Exposure Review.",
+          ? `Rozpocznij ${EXTERNAL_ATTACK_SURFACE_OFFER.name.pl}.`
+          : `Start your ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}.`,
         fitBody: polish
-          ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu."
-          : "Tell us what public-facing system you want reviewed. We’ll confirm the exact boundary and authority before any testing begins.",
-        workflow: polish ? "System publicznie dostępny do przeglądu" : "Public target",
+          ? "Wskaż jeden autoryzowany system dostępny z internetu i podstawę upoważnienia. Rozmowa sprzedażowa nie jest wymagana. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów ani nie uruchamia trzydniowego terminu. To nie jest test penetracyjny."
+          : "Tell us which authorised internet-facing system needs an external attack-surface review. We’ll confirm the exact boundary and authority before any target-facing check begins. This is not a penetration test.",
+        workflow: polish ? "System dostępny z internetu" : "Internet-facing system",
         workflowPlaceholder: polish
           ? "example.com, api.example.com, aplikacja, API, publiczny adres IP lub endpoint chmurowy"
           : "example.com or api.example.com",
@@ -330,8 +345,8 @@ export function ContactForm({
           ? "Wskaż, że jesteś właścicielem domeny lub masz pisemne upoważnienie do zamówienia uzgodnionych kontroli."
           : "State that you own the domain or have written authority to commission the agreed checks.",
         evidence: polish
-          ? "Znane granice first-party lub dostawców współdzielonych"
-          : "Related endpoints or exclusions",
+          ? "Znane hosty, usługi, endpointy lub wyłączenia"
+          : "Known hosts, services, endpoints, or exclusions",
         evidencePlaceholder: polish
           ? "Opcjonalnie: znane hosty first-party, CDN, hosting współdzielony lub cele, których nie wolno dotykać."
           : "If the system uses several related public endpoints, list them here. We’ll confirm exactly what’s included before the review starts.",
@@ -388,7 +403,7 @@ export function ContactForm({
     const evidenceAvailable = stringField(data, "evidenceAvailable");
     const requestScope = [
       externalExposureOrder
-        ? "Request: Public Exposure Review"
+        ? `Request: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}`
         : boundedWorkflowReview
           ? `Request: ${PRIMARY_OFFER.name.en}`
         : selectedNonAgentService
@@ -399,20 +414,18 @@ export function ContactForm({
       ...(campaignAttribution
         ? [`Campaign attribution: ${campaignAttribution}`]
         : []),
-      `${externalExposureOrder ? "Boundary seed / public target" : selectedNonAgentService ? "Selected-service need" : boundedWorkflowReview ? "Consequential workflow" : "Review need"}: ${workflow || "not provided"}`,
-      ...(boundedWorkflowReview
-        ? []
-        : [
-            `${externalExposureOrder ? "Trigger and timing" : selectedNonAgentService ? "Timing and reason" : "Situation and affected system"}: ${agentPath || "not provided"}`,
-            `${externalExposureOrder ? "Authority statement" : selectedNonAgentService ? "Scope owner, consent, and authority" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
-            `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : selectedNonAgentService ? "Available input or source types" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
-          ]),
+      `${externalExposureOrder ? "Boundary seed / internet-facing system" : selectedNonAgentService ? "Selected-service need" : boundedWorkflowReview ? "Consequential action" : "Review need"}: ${workflow || "not provided"}`,
+      `${externalExposureOrder ? "Trigger and timing" : selectedNonAgentService ? "Timing and reason" : boundedWorkflowReview ? "Failure impact" : "Situation and affected system"}: ${agentPath || "not provided"}`,
+      `${externalExposureOrder ? "Authority statement" : selectedNonAgentService ? "Scope owner, consent, and authority" : boundedWorkflowReview ? "Systems, tools, and approver" : "Boundary and approval"}: ${approvalBoundary || "not provided"}`,
+      `${externalExposureOrder ? "Proposed accepted asset set / exclusions" : selectedNonAgentService ? "Available input or source types" : boundedWorkflowReview ? "Production, customer-data, money, account, permission, or communication boundaries" : "Evidence available"}: ${evidenceAvailable || "not provided"}`,
       "First-message boundary: no files, secrets, source exports, logs, screenshots, credentials, private keys, MFA codes, customer records, or unrelated production data requested in the form",
       externalExposureOrder
         ? "Follow-up needed: scope acceptance, authority evidence, target and check schedules, capacity, payment, collection window, evidence handling, and stop contact"
         : selectedNonAgentService
           ? "Follow-up needed: selected-service fit, exact scope, consent or authority, required inputs, fee, timing, and evidence handling"
-          : "Follow-up needed: fit, action boundary, authority boundary, likely evidence sources, possible proof pack contents, verifier path, challenge path, fee, and evidence handling",
+          : boundedWorkflowReview
+            ? "Follow-up needed: fit, exact action, authority, executing identity, effective permissions, tool access, execution path, evidence chain, control gaps, fee, and evidence handling"
+            : "Follow-up needed: fit, action boundary, authority boundary, likely evidence sources, possible proof pack contents, verifier path, challenge path, fee, and evidence handling",
     ].join("\n");
 
     try {
@@ -815,8 +828,7 @@ export function ContactForm({
         {fieldErrors.workflow && <p id="workflow-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.workflow}</p>}
       </div>
 
-      {!boundedWorkflowReview ? (
-        <>
+      <>
           <div>
             <label htmlFor="agentPath" className="mb-2 block" style={labelStyle}>
               {copy.actionPath} <span className="text-text-muted">{externalExposureOrder ? copy.optional : copy.required}</span>
@@ -873,8 +885,7 @@ export function ContactForm({
             />
             {fieldErrors.evidenceAvailable && <p id="evidenceAvailable-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.evidenceAvailable}</p>}
           </div>
-        </>
-      ) : null}
+      </>
 
       <button
         type="submit"

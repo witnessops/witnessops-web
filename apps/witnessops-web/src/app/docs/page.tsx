@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { getDocsSidebar } from "@witnessops/content/sidebar";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { CtaButton } from "@/components/shared/cta-button";
+import { EXTERNAL_ATTACK_SURFACE_OFFER } from "@/lib/commercial-truth";
 import {
   normalizeHost,
   toPublicDocsHref,
@@ -166,7 +167,7 @@ export default async function DocsIndexPage() {
             href="/review/sample-cases/external-exposure-assessment"
             className="text-brand-accent underline-offset-2 hover:underline"
           >
-            Public Exposure Review synthetic sample
+            {EXTERNAL_ATTACK_SURFACE_OFFER.name.en} synthetic sample
           </Link>
           . It is not customer evidence.
         </p>

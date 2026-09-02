@@ -120,7 +120,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
 
     if (scenario.locale === "pl") {
       const contactHandoff = page.locator("main [data-public-contact-route]");
-      await expect(contactHandoff).toContainText("Agent Workflow Reconstruction");
+      await expect(contactHandoff).toContainText("Agent Action Security Review");
       await expect(contactHandoff).toContainText("Główny płatny punkt wejścia");
       await expect(contactHandoff.locator("a").first()).toHaveAttribute(
         "href",
@@ -201,16 +201,16 @@ test("review request routes remain responsive, accessible, and usable", async ({
   }
 });
 
-test("Agent Workflow Reconstruction starts with one compact non-secret workflow request", async ({ browser }) => {
+test("Agent Action Security Review gathers one non-secret consequential action", async ({ browser }) => {
   for (const scenario of [
     {
       locale: "en",
       path: "/review/request",
-      fitTitle: "Start your Agent Workflow Reconstruction.",
+      fitTitle: "Start your Agent Action Security Review.",
       contractMarkers: [
-        "Agent Workflow Reconstruction",
+        "Agent Action Security Review",
         "€2,500 fixed",
-        "one named workflow (agentic or automated)",
+        "one consequential agent or automation action",
         "Non-secret fit check first",
         "Within 10 working days after evidence rules are agreed",
       ],
@@ -218,12 +218,12 @@ test("Agent Workflow Reconstruction starts with one compact non-secret workflow 
     {
       locale: "pl",
       path: "/pl/review/request",
-      fitTitle: "Rozpocznij Agent Workflow Reconstruction.",
+      fitTitle: "Rozpocznij Agent Action Security Review.",
       contractMarkers: [
-        "Agent Workflow Reconstruction",
+        "Agent Action Security Review",
         "€2 500 — cena stała",
-        "jeden nazwany workflow",
-        "bez sekretów",
+        "jedno istotne działanie agenta lub automatyzacji",
+        "Nie wklejaj sekretów",
         "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych",
       ],
     },
@@ -249,7 +249,7 @@ test("Agent Workflow Reconstruction starts with one compact non-secret workflow 
 
     const query = new URLSearchParams({
       offerId: "bounded-workflow-review",
-      offer: "Agent Workflow Reconstruction",
+      offer: "Agent Action Security Review",
     });
     await page.goto(`${scenario.path}?${query.toString()}`, {
       waitUntil: "networkidle",
@@ -274,19 +274,25 @@ test("Agent Workflow Reconstruction starts with one compact non-secret workflow 
             control.getAttribute("name") || control.id || control.tagName.toLowerCase(),
         ),
       );
-    expect(controlOrder).toEqual(["name", "email", "org", "workflow", "button"]);
-    await expect(form.locator("#agentPath")).toHaveCount(0);
-    await expect(form.locator("#approvalBoundary")).toHaveCount(0);
-    await expect(form.locator("#evidenceAvailable")).toHaveCount(0);
+    expect(controlOrder).toEqual([
+      "name",
+      "email",
+      "org",
+      "workflow",
+      "agentPath",
+      "approvalBoundary",
+      "evidenceAvailable",
+      "button",
+    ]);
     await expect(form.locator("#org")).not.toHaveAttribute("required", "");
 
-    for (const fieldName of ["name", "email", "workflow"] as const) {
+    for (const fieldName of requiredFields) {
       await expect(form.locator(`#${fieldName}`)).toHaveAttribute("required", "");
     }
 
     const submit = form.locator('button[type="submit"]');
     await submit.click();
-    await expect(form.locator("[aria-invalid=true]")).toHaveCount(3);
+    await expect(form.locator("[aria-invalid=true]")).toHaveCount(requiredFields.length);
     await expect(form.locator("#name")).toBeFocused();
 
     await form.locator("#name").fill("Synthetic Buyer");
@@ -294,15 +300,20 @@ test("Agent Workflow Reconstruction starts with one compact non-secret workflow 
     await form
       .locator("#workflow")
       .fill("An agent prepares an API-key rotation after a named human approval.");
+    await form.locator("#agentPath").fill("The old key may remain active or production access may fail.");
+    await form.locator("#approvalBoundary").fill("Secrets manager, deployment tool, and API provider; security lead approves.");
+    await form.locator("#evidenceAvailable").fill("Production, credential, account, and permission boundaries.");
     await submit.click();
 
     expect(submittedPayload?.intent).toBe("bounded-workflow-review");
     expect(submittedPayload?.locale).toBe(scenario.locale);
-    expect(submittedPayload?.scope).toContain("Request: Agent Workflow Reconstruction");
-    expect(submittedPayload?.scope).toContain("Consequential workflow:");
-    expect(submittedPayload?.scope).not.toContain("Situation and affected system:");
-    expect(submittedPayload?.scope).not.toContain("Boundary and approval:");
-    expect(submittedPayload?.scope).not.toContain("Evidence available:");
+    expect(submittedPayload?.scope).toContain("Request: Agent Action Security Review");
+    expect(submittedPayload?.scope).toContain("Consequential action:");
+    expect(submittedPayload?.scope).toContain("Failure impact:");
+    expect(submittedPayload?.scope).toContain("Systems, tools, and approver:");
+    expect(submittedPayload?.scope).toContain(
+      "Production, customer-data, money, account, permission, or communication boundaries:",
+    );
 
     await context.close();
   }
@@ -318,7 +329,7 @@ test("primary request selection canonicalizes aliases and conflicting query text
   const page = await context.newPage();
 
   for (const query of [
-    "offer=Agent+Workflow+Reconstruction",
+    "offer=Agent+Action+Security+Review",
     "offerId=bounded-workflow-review&offer=Public+Exposure+Review",
     "offerId=bounded-workflow-review&offer=Buyer-edited+title&productId=OFFSEC-EXTERNAL-EXPOSURE",
   ]) {
@@ -328,7 +339,7 @@ test("primary request selection canonicalizes aliases and conflicting query text
     expect(response?.status(), query).toBe(200);
     const main = page.locator("main");
     await expect(
-      page.getByText("Selected offer: Agent Workflow Reconstruction"),
+      page.getByText("Selected offer: Agent Action Security Review"),
     ).toBeVisible();
     await expect(main).toContainText("€2,500 fixed");
     await expect(main).toContainText(
@@ -351,13 +362,13 @@ test("primary request selection canonicalizes aliases and conflicting query text
       .first(),
   ).toHaveAttribute(
     "href",
-    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20request%20%E2%80%94%20Agent%20Workflow%20Reconstruction",
+    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20request%20%E2%80%94%20Agent%20Action%20Security%20Review",
   );
 
   await context.close();
 });
 
-test("Public Exposure Review request preserves SKU, locale, and fit boundary", async ({ browser }) => {
+test("External Attack Surface Review request preserves SKU, locale, and fit boundary", async ({ browser }) => {
   for (const scenario of [
     { locale: "en", path: "/review/request" },
     { locale: "pl", path: "/pl/review/request" },
@@ -383,7 +394,7 @@ test("Public Exposure Review request preserves SKU, locale, and fit boundary", a
 
     const query = new URLSearchParams({
       productId: "OFFSEC-EXTERNAL-EXPOSURE",
-      offer: "Agent Workflow Reconstruction",
+      offer: "buyer-edited query text",
     });
     await page.goto(`${scenario.path}?${query.toString()}`, {
       waitUntil: "networkidle",
@@ -392,8 +403,8 @@ test("Public Exposure Review request preserves SKU, locale, and fit boundary", a
     await expect(
       page.getByText(
         scenario.locale === "pl"
-          ? "Wybrana oferta: Public Exposure Review"
-          : "Selected offer: Public Exposure Review",
+          ? "Wybrana oferta: External Attack Surface Review"
+          : "Selected offer: External Attack Surface Review",
       ),
     ).toBeVisible();
     const form = page.locator("main form");
@@ -418,6 +429,11 @@ test("Public Exposure Review request preserves SKU, locale, and fit boundary", a
     expect(submittedPayload?.scope).toContain(
       "First-message boundary: no files, secrets",
     );
+    await expect(page.locator("main")).toContainText(
+      scenario.locale === "pl"
+        ? "To nie jest test penetracyjny."
+        : "This is not a penetration test.",
+    );
 
     await context.close();
   }
@@ -427,7 +443,7 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
   const routeScenarios = [
     {
       path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      heading: "Start your Public Exposure Review",
+      heading: "Start your External Attack Surface Review",
       intent: "OFFSEC-EXTERNAL-EXPOSURE",
       selectedOffer: /Selected offer:/,
       boundary: "No work or target-facing check starts from this form.",
@@ -435,7 +451,7 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
     },
     {
       path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      heading: "Zgłoś: Public Exposure Review",
+      heading: "Zgłoś: External Attack Surface Review",
       intent: "OFFSEC-EXTERNAL-EXPOSURE",
       selectedOffer: /Wybrana oferta:/,
       boundary: "Samo zgłoszenie nie rozpoczyna pracy.",

@@ -28,9 +28,9 @@ const likelyCommercialFit = {
   offer_id: "bounded-workflow-review" as const,
   source: "ask" as const,
   offer: {
-    name: "Agent Workflow Reconstruction" as const,
+    name: "Agent Action Security Review" as const,
     price_label: "€2,500 fixed" as const,
-    unit_label: "One named workflow (agentic or automated)" as const,
+    unit_label: "One consequential agent or automation action" as const,
     fit_check_label: "Non-secret fit check first" as const,
     delivery_label:
       "Within 10 working days after evidence rules are agreed" as const,
@@ -141,9 +141,9 @@ test("commercial fit keeps successful public guidance coherent with the live off
   };
 
   assert.match(askWitnessOpsAnswerText(answer), /likely commercial-fit signal/);
-  assert.match(askWitnessOpsAnswerText(answer), /Agent Workflow Reconstruction/);
+  assert.match(askWitnessOpsAnswerText(answer), /Agent Action Security Review/);
   assert.match(askWitnessOpsAnswerText(answer), /€2,500 fixed/);
-  assert.match(askWitnessOpsAnswerText(answer), /One named workflow \(agentic or automated\)/);
+  assert.match(askWitnessOpsAnswerText(answer), /One consequential agent or automation action/);
   assert.doesNotMatch(askWitnessOpsAnswerText(answer), /Workflow S/);
 });
 
@@ -162,7 +162,7 @@ test("AI-assisted commercial fit cannot reintroduce superseded authority-templat
     answer_mode: "ai_assisted" as const,
   };
 
-  assert.match(askWitnessOpsAnswerText(answer), /Agent Workflow Reconstruction/);
+  assert.match(askWitnessOpsAnswerText(answer), /Agent Action Security Review/);
   assert.match(askWitnessOpsAnswerText(answer), /Non-secret fit check first/);
   assert.match(
     askWitnessOpsAnswerText(answer),

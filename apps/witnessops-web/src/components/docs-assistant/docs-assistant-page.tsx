@@ -25,8 +25,8 @@ interface Message {
 const SUGGESTED_QUESTIONS = [
   "An AI agent rotates compromised production keys. How can we prove authorization and revocation?",
   `What is included in ${PRIMARY_OFFER.name.en}?`,
-  "How much does one workflow review cost?",
-  "How should one consequential agent workflow be bounded?",
+  "How much does one agent action security review cost?",
+  "How should one consequential agent action be bounded?",
   "Can I send logs or screenshots?",
 ];
 
@@ -112,7 +112,7 @@ export function DocsAssistantPage() {
           ASK WITNESSOPS
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-text-muted">
-          Describe one consequential agentic or automated workflow in non-secret
+          Describe one consequential agent or automation action in non-secret
           terms. Ask WitnessOps will show the public guidance, commercial fit,
           and paid next step it can support.
         </p>

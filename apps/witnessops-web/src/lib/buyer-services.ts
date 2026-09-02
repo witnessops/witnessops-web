@@ -1,4 +1,7 @@
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import {
+  EXTERNAL_ATTACK_SURFACE_OFFER,
+  PRIMARY_OFFER,
+} from "@/lib/commercial-truth";
 
 export type BuyerLocale = "en" | "pl";
 
@@ -117,17 +120,14 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     commercialRole: "primary",
     commercialContract: PRIMARY_OFFER.commercialContract,
     name: PRIMARY_OFFER.name,
-    cardSituation: {
-      en: "One consequential agent or automation workflow needs a reconstructable record.",
-      pl: "Jeden istotny workflow agenta lub automatyzacji wymaga odtwarzalnego zapisu.",
-    },
+    cardSituation: PRIMARY_OFFER.cardSituation,
     situation: PRIMARY_OFFER.situation,
     result: PRIMARY_OFFER.result,
     price: PRIMARY_OFFER.price,
     timing: PRIMARY_OFFER.timing,
     boundary: {
-      en: "One named workflow only. A receipt proves only what its named verifier and referenced evidence support; it does not certify that the agent was correct, safe, compliant, or complete.",
-      pl: "Tylko jeden nazwany workflow. Zapis dowodzi wyłącznie tego, co wspierają wskazany weryfikator i przywołane materiały; nie certyfikuje, że agent działał poprawnie, bezpiecznie, zgodnie z wymaganiami lub kompletnie.",
+      en: "One consequential agent or automation action only. Default operating mode: read, inspect, reconstruct, and report. No production modification, destructive testing, exploitation, credential changes, persistence, continuous monitoring, or safety certification unless separately scoped and explicitly authorised.",
+      pl: "Tylko jedno istotne działanie agenta lub automatyzacji. Domyślny tryb pracy to odczyt, inspekcja, rekonstrukcja i raportowanie. Bez modyfikacji produkcyjnych, testów destrukcyjnych, eksploatacji, zmian danych uwierzytelniających, utrzymywania dostępu, ciągłego monitoringu ani certyfikacji bezpieczeństwa, chyba że zostaną osobno określone i wyraźnie autoryzowane.",
     },
     requestCta: {
       en: "Start a non-secret fit check",
@@ -179,47 +179,19 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     },
   },
   {
-    id: "external-exposure-assessment",
-    productId: "OFFSEC-EXTERNAL-EXPOSURE",
+    id: EXTERNAL_ATTACK_SURFACE_OFFER.id,
+    productId: EXTERNAL_ATTACK_SURFACE_OFFER.productId,
     homepageFeatured: false,
     commercialRole: "secondary",
-    commercialContract: {
-      price: "eur_1900_ex_vat_one_authorised_public_facing_system",
-      timing:
-        "three_working_days_after_payment_in_full_accepted_sow_written_authority_fixed_scope_required_inputs_and_approved_collection_window_confirmed",
-    },
-    name: {
-      en: "Public Exposure Review",
-      pl: "Public Exposure Review",
-    },
-    cardSituation: {
-      en: "See what one public-facing system exposes from the internet.",
-      pl: "Zobacz, co ujawnia jeden autoryzowany system publicznie dostępny, zanim wskaże to klient, audytor lub atakujący.",
-    },
-    situation: {
-      en: "A fixed-scope external security review of one authorised public-facing system.",
-      pl: "Ręczny, ograniczony zakresem przegląd bezpieczeństwa jednego autoryzowanego systemu publicznie dostępnego.",
-    },
-    result: {
-      en: "Manually reviewed, evidence-linked findings with practical remediation guidance.",
-      pl: "Mapa ekspozycji, priorytetyzowane ustalenia powiązane z materiałami, zalecenia naprawcze, jawne niewiadome i pakiet, który może sprawdzić kolejny odpowiedzialny właściciel.",
-    },
-    price: {
-      en: "€1,900 ex VAT — one authorised public-facing system",
-      pl: "€1 900 netto — jeden autoryzowany system publicznie dostępny",
-    },
-    timing: {
-      en: "Within 3 working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
-      pl: "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
-    },
-    boundary: {
-      en: "No exploitation, credentials, destructive testing, certification, or security guarantee. Unauthenticated outside-in checks only, within the agreed fixed scope.",
-      pl: "Bez eksploatacji, danych uwierzytelniających, testów destrukcyjnych, certyfikacji i gwarancji bezpieczeństwa. Wyłącznie nieuwierzytelnione kontrole z zewnątrz w uzgodnionym stałym zakresie.",
-    },
-    detailHref: {
-      en: "/catalog/offsec-external-exposure",
-      pl: "/pl/catalog/offsec-external-exposure",
-    },
+    commercialContract: EXTERNAL_ATTACK_SURFACE_OFFER.commercialContract,
+    name: EXTERNAL_ATTACK_SURFACE_OFFER.name,
+    cardSituation: EXTERNAL_ATTACK_SURFACE_OFFER.cardSituation,
+    situation: EXTERNAL_ATTACK_SURFACE_OFFER.situation,
+    result: EXTERNAL_ATTACK_SURFACE_OFFER.result,
+    price: EXTERNAL_ATTACK_SURFACE_OFFER.price,
+    timing: EXTERNAL_ATTACK_SURFACE_OFFER.timing,
+    boundary: EXTERNAL_ATTACK_SURFACE_OFFER.boundary,
+    detailHref: EXTERNAL_ATTACK_SURFACE_OFFER.route,
   },
   {
     id: "launch-readiness-check",

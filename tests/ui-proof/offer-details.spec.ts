@@ -4,7 +4,7 @@ const offers = [
   {
     path: "/catalog/workflows",
     service: "bounded-workflow-review",
-    name: "Agent Workflow Reconstruction",
+    name: "Agent Action Security Review",
     price: "€2,500 fixed",
     timing: "Within 10 working days after evidence rules are agreed",
     request: "/review/request",
@@ -28,7 +28,7 @@ const offers = [
   {
     path: "/catalog/offsec-external-exposure",
     service: "external-exposure-assessment",
-    name: "Public Exposure Review",
+    name: "External Attack Surface Review",
     price: "€1,900 ex VAT",
     timing: "Within 3 working days after payment in full, an accepted SOW, written authority, fixed scope, required inputs, and the approved collection window are confirmed",
     request: "/review/request",
@@ -68,7 +68,7 @@ const offers = [
   {
     path: "/pl/catalog/offsec-external-exposure",
     service: "external-exposure-assessment",
-    name: "Public Exposure Review",
+    name: "External Attack Surface Review",
     price: "€1 900 netto",
     timing: "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
     request: "/pl/review/request",
@@ -149,7 +149,7 @@ test("reachable offer details use the canonical buyer contract and visual system
         );
         await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
           "content",
-          /Public Exposure Review \| WitnessOps/,
+          /External Attack Surface Review \| WitnessOps/,
         );
         await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute(
           "href",
@@ -170,13 +170,16 @@ test("reachable offer details use the canonical buyer contract and visual system
         await expect(promotedContract).toContainText(
           "Within 10 working days after evidence rules are agreed",
         );
-        await expect(main).toContainText("One named workflow (agentic or automated)");
+        await expect(main).toContainText("One consequential agent or automation action");
         await expect(main).toContainText("Non-secret fit check first");
         await expect(main).toContainText(
           "Within 10 working days after evidence rules are agreed",
         );
         await expect(main).toContainText(
-          "separates what was authorised, executed, observed, and still unresolved",
+          "authority → identity → permissions → tools → execution → evidence",
+        );
+        await expect(main).toContainText(
+          "Agent Workflow Reconstruction is the delivery method",
         );
         await expect(main).not.toContainText("Agent Risk & Control Review");
         await expect(main).not.toContainText("From €1,500");
@@ -279,7 +282,7 @@ test("reachable offer details use the canonical buyer contract and visual system
           const request = new URL(href ?? "", "http://witnessops.test");
           expect(request.searchParams.get("offerId")).toBe("bounded-workflow-review");
           expect(request.searchParams.get("offer")).toBe(
-            "Agent Workflow Reconstruction",
+            "Agent Action Security Review",
           );
         }
         expect((await link.boundingBox())?.height).toBeGreaterThanOrEqual(44);
@@ -292,7 +295,7 @@ test("reachable offer details use the canonical buyer contract and visual system
   }
 });
 
-test("Public Exposure Review synthetic sample is buyer-safe and responsive", async ({ browser }) => {
+test("External Attack Surface Review synthetic sample is buyer-safe and responsive", async ({ browser }) => {
   const expectedFiles = [
     "README.md",
     "external-exposure-assessment.md",
@@ -327,7 +330,8 @@ test("Public Exposure Review synthetic sample is buyer-safe and responsive", asy
     const main = page.locator(
       '[data-page="external-exposure-assessment-sample"]',
     );
-    await expect(main.locator("h1")).toHaveText("Public Exposure Review");
+    await expect(main.locator("h1")).toHaveText("External Attack Surface Review");
+    await expect(main).toContainText("This is not a penetration test");
     await expect(main).toContainText(
       "Synthetic worked example — not customer evidence.",
     );
