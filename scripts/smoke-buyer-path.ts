@@ -267,7 +267,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "Get help or start a review",
       "Ready for a bounded review?",
-      "Start a review",
+      "Agent Workflow Reconstruction",
       "Support is for product help, access issues, and verifier questions.",
       "Choose the right path",
       "Verify a receipt",

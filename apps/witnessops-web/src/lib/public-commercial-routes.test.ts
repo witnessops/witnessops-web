@@ -10,6 +10,7 @@ import {
 import {
   buyerPublicOfferRequestHref,
   buyerServiceByPublicOfferId,
+  buyerServiceFromRequestOffer,
   buyerServiceRequestHref,
 } from "./buyer-services";
 import { PRIMARY_OFFER } from "./commercial-truth";
@@ -42,8 +43,9 @@ test("English review intake can preserve the current workflow offer without revi
   );
 
   assert.match(source, /const offerId = one\(params\.offerId\)/);
-  assert.match(source, /buyerServiceByPublicOfferId\(offerId\)/);
-  assert.match(source, /selectedOffer\?\.id \?\? "review"/);
+  assert.match(source, /const offer = one\(params\.offer\)/);
+  assert.match(source, /buyerServiceFromRequestOffer\(offerId, offer\)/);
+  assert.match(source, /primaryOfferOrder[\s\S]*PRIMARY_OFFER\.id/);
   assert.match(source, /Selected offer: \{selectedOffer\.name\.en\}/);
   assert.match(source, /Price: \{selectedOffer\.price\.en\}/);
   assert.doesNotMatch(source, /isCurrentPublicCatalogSku\(requestedOffer/);
@@ -75,6 +77,26 @@ test("English review intake can preserve the current workflow offer without revi
   assert.equal(buyerServiceByPublicOfferId("not-a-real-offer"), undefined);
 
   assert.equal(
+    buyerServiceFromRequestOffer(
+      PRIMARY_OFFER.id,
+      "Buyer-edited conflicting title",
+    ),
+    offer,
+  );
+  assert.equal(
+    buyerServiceFromRequestOffer(undefined, PRIMARY_OFFER.name.en),
+    offer,
+  );
+  assert.equal(
+    buyerServiceFromRequestOffer("not-a-real-offer", PRIMARY_OFFER.name.en),
+    undefined,
+  );
+  assert.equal(
+    buyerServiceFromRequestOffer(undefined, "Bounded Workflow Review"),
+    undefined,
+  );
+
+  assert.equal(
     buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
     "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
   );
@@ -91,8 +113,9 @@ test("Polish review intake preserves the same public workflow offer", () => {
   );
 
   assert.match(source, /const offerId = oneParam\(params\.offerId\)/);
-  assert.match(source, /buyerServiceByPublicOfferId\(offerId\)/);
-  assert.match(source, /buyerService\?\.id \?\? "review"/);
+  assert.match(source, /const offer = oneParam\(params\.offer\)/);
+  assert.match(source, /buyerServiceFromRequestOffer\(offerId, offer\)/);
+  assert.match(source, /primaryOfferOrder[\s\S]*PRIMARY_OFFER\.id/);
   assert.match(source, /Wybrana oferta: \{selectedOffer\.name\}/);
   assert.match(source, /Cena: \{selectedOffer\.price\}/);
 });

@@ -3,13 +3,16 @@ const PRIMARY_OFFER_SAMPLE_PACK = {
   pl: "Przykładowy pakiet z obsługiwanym zapisem JSON do wyodrębnienia i sprawdzenia przez /verify",
 } as const;
 
+const PRIMARY_OFFER_PUBLIC_NAME = "Agent Workflow Reconstruction";
+
 export const PRIMARY_OFFER = {
   id: "bounded-workflow-review",
   route: "/catalog/workflows",
   requestRoute: "/review/request",
+  mailSubject: `WitnessOps request — ${PRIMARY_OFFER_PUBLIC_NAME}`,
   name: {
-    en: "Agent Workflow Reconstruction",
-    pl: "Agent Workflow Reconstruction",
+    en: PRIMARY_OFFER_PUBLIC_NAME,
+    pl: PRIMARY_OFFER_PUBLIC_NAME,
   },
   commercialContract: {
     price: "eur_2500_fixed",

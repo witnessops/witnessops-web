@@ -9,6 +9,8 @@ const SCREENSHOT_DIR = path.join(
 );
 
 const SAMPLE_PATH = "/review/sample-cases/ai-agent-action-proof-run";
+const PRIMARY_REQUEST_PATH =
+  "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction";
 const FOCUSABLE_SELECTOR = [
   "a[href]:visible",
   "button:not([disabled]):visible",
@@ -225,6 +227,42 @@ test("a selected offer survives the click handoff into the request form", async 
   await saveEvidence(page, "03-desktop-selected-offer-handoff.png");
 
   await context.close();
+});
+
+test("support sends paid-work buyers to the canonical workflow reconstruction", async ({
+  browser,
+}) => {
+  for (const scenario of [
+    { path: "/support", requestPath: PRIMARY_REQUEST_PATH },
+    {
+      path: "/pl/support",
+      requestPath: `/pl${PRIMARY_REQUEST_PATH}`,
+    },
+  ]) {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      reducedMotion: "reduce",
+    });
+    const page = await context.newPage();
+
+    const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
+    expect(response?.status(), scenario.path).toBe(200);
+    const main = page.locator("main");
+    await expect(main).toContainText("Agent Workflow Reconstruction");
+    await expect(main).not.toContainText(
+      "Request an AI Agent Action Proof Run",
+    );
+    await expect(main).not.toContainText("Agent Risk & Control Review");
+    await expect(main).not.toContainText("From €1,500");
+
+    const offerLinks = main.locator(`a[href="${scenario.requestPath}"]`);
+    expect(await offerLinks.count(), scenario.path).toBeGreaterThanOrEqual(1);
+    await expect(offerLinks.first()).toContainText(
+      "Agent Workflow Reconstruction",
+    );
+
+    await context.close();
+  }
 });
 
 test("Polish docs keep the logo local and switch EN stubs to a live docs route", async ({

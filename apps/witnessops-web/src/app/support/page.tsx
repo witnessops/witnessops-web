@@ -5,6 +5,8 @@ import { MarkdownContent } from "@witnessops/ui/mdx";
 import { loadSupportIndex, loadSupportPage } from "@/lib/content";
 import { SupportIntake } from "@/components/support/support-intake";
 import { CtaButton } from "@/components/shared/cta-button";
+import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_SUBJECTS,
@@ -14,6 +16,10 @@ import {
 import { languageAlternates } from "@/lib/public-seo";
 
 const SECURITY_CONTACT_EMAIL = "security@witnessops.com";
+const PRIMARY_OFFER_HREF = buyerPublicOfferRequestHref(
+  "en",
+  PRIMARY_OFFER.id,
+);
 
 const supportDescription =
   "Product help, access issues, and verifier questions — or start a bounded review. Security vulnerabilities use a separate disclosure path.";
@@ -46,8 +52,8 @@ export function generateMetadata(): Metadata {
 
 const situationLanes = [
   {
-    href: "/review/request",
-    title: "Start a review",
+    href: PRIMARY_OFFER_HREF,
+    title: PRIMARY_OFFER.name.en,
     body: "Describe one situation without secrets. We confirm fit, scope, price and evidence handling before work starts.",
     emphasize: true,
   },
@@ -95,13 +101,13 @@ export default function SupportPage() {
           <p className="mt-5 max-w-2xl text-base leading-7 text-text-secondary">
             Support is for product help, access issues, and verifier questions.
             If you want WitnessOps to run a bounded security or operational
-            review, use Start a review.
+            review, use {PRIMARY_OFFER.name.en}.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <CtaButton
-              href="/review/request"
+              href={PRIMARY_OFFER_HREF}
               variant="primary"
-              label="Start a review"
+              label={PRIMARY_OFFER.name.en}
             />
             <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
             <CtaButton href="#contact" variant="secondary" label="Email support" />
@@ -158,10 +164,10 @@ export default function SupportPage() {
                 Support is for product help, access issues, and verifier
                 questions. Need a review instead of product help? Use{" "}
                 <Link
-                  href="/review/request"
+                  href={PRIMARY_OFFER_HREF}
                   className="font-semibold text-brand-accent underline-offset-4 hover:underline"
                 >
-                  Start a review
+                  {PRIMARY_OFFER.name.en}
                 </Link>
                 .
               </p>

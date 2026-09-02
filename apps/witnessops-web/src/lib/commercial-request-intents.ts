@@ -10,7 +10,7 @@ export const EXTERNAL_EXPOSURE_ASSESSMENT_INTENT =
   "OFFSEC-EXTERNAL-EXPOSURE" as const;
 
 export const BOUNDED_WORKFLOW_REVIEW_INTENT =
-  "bounded-workflow-review" as const;
+  PRIMARY_OFFER.id;
 
 export const CUSTOMER_SECURITY_REVIEW_SPRINT_INTENT =
   "customer-security-review-sprint" as const;

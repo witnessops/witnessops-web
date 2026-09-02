@@ -30,9 +30,11 @@ const ACTIVE_PRIMARY_PRESENTATION_SOURCES = [
   "../app/(marketing)/pricing/page.tsx",
   "../app/pl/page.tsx",
   "../app/pl/review/request/page.tsx",
+  "../app/pl/support/page.tsx",
   "../app/review/request/page.tsx",
   "../app/review/sample-cases/ai-agent-action-proof-run/page.tsx",
   "../app/review/sample-cases/witnessed-crm-status-change/witnessed-action-replay.tsx",
+  "../app/support/page.tsx",
   "../components/docs-assistant/ask-witnessops-commercial-fit-card.tsx",
   "../components/docs-assistant/ask-witnessops-response.ts",
   "../components/docs-assistant/docs-assistant-contact-handoff.tsx",
@@ -67,6 +69,7 @@ const FORMER_PRIMARY_MARKERS = [
   "€1,500",
   "Od 6 500 zł",
   "€1 500",
+  "Request an AI Agent Action Proof Run",
 ] as const;
 
 function renderedArticle(html: string, attribute: string, value: string) {
@@ -99,6 +102,10 @@ test("one canonical record defines the primary paid entry point", () => {
   assert.equal(primary.price, PRIMARY_OFFER.price);
   assert.equal(primary.timing, PRIMARY_OFFER.timing);
   assert.equal(primary.name.en, "Agent Workflow Reconstruction");
+  assert.equal(
+    PRIMARY_OFFER.mailSubject,
+    "WitnessOps request — Agent Workflow Reconstruction",
+  );
   assert.equal(primary.price.en, "€2,500 fixed");
   assert.equal(primary.price.pl, "€2 500 — cena stała");
   assert.equal(
@@ -131,6 +138,7 @@ test("the primary detail contract exposes every required inclusion and exclusion
     "utf8",
   );
   assert.match(workflowPage, /notIncluded=\{\[\.\.\.PRIMARY_OFFER\.notIncluded\.en\]\}/);
+  assert.match(workflowPage, /promoteCommercialContract/);
   assert.match(workflowPage, /authorised, executed, observed, and still unresolved/);
   assert.match(workflowPage, /supported receipt JSON/);
   assert.match(workflowPage, /test it through \/verify/);

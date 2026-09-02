@@ -3,7 +3,7 @@ import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import {
   buyerServiceByProductId,
-  buyerServiceByPublicOfferId,
+  buyerServiceFromRequestOffer,
 } from "@/lib/buyer-services";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
@@ -21,23 +21,28 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const params = (await searchParams) ?? {};
   const productId = oneParam(params.productId);
   const offerId = oneParam(params.offerId);
+  const offer = oneParam(params.offer);
   const requestedSku = productId ? getSku(productId) : undefined;
   const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
     ? requestedSku
     : undefined;
-  const publicExposureOrder = sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
-  const primaryOfferOrder = offerId === PRIMARY_OFFER.id;
+  const requestedOffer = buyerServiceFromRequestOffer(offerId, offer);
+  const primaryOfferOrder =
+    requestedOffer?.id === PRIMARY_OFFER.id &&
+    (offerId !== undefined || !sku);
+  const publicExposureOrder =
+    !primaryOfferOrder && sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
 
   return {
-    title: publicExposureOrder
-      ? "Rozpocznij Public Exposure Review"
-      : primaryOfferOrder
-        ? `Rozpocznij ${PRIMARY_OFFER.name.pl}`
+    title: primaryOfferOrder
+      ? `Rozpocznij ${PRIMARY_OFFER.name.pl}`
+      : publicExposureOrder
+        ? "Rozpocznij Public Exposure Review"
       : "Opowiedz, co wymaga sprawdzenia",
-    description: publicExposureOrder
-      ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów."
-      : primaryOfferOrder
-        ? `${PRIMARY_OFFER.unit.pl}. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.fitCheck.pl}. ${PRIMARY_OFFER.timing.pl}.`
+    description: primaryOfferOrder
+      ? `${PRIMARY_OFFER.unit.pl}. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.fitCheck.pl}. ${PRIMARY_OFFER.timing.pl}.`
+      : publicExposureOrder
+        ? "Wskaż jeden system publicznie dostępny i podstawę upoważnienia. Formularz rozpoczyna akceptację zakresu; nie upoważnia do testów."
       : "Opisz niepoufnie ankietę, serwer, wdrożenie, incydent, zmianę dostępu lub działanie, które wymaga sprawdzenia.",
     alternates: languageAlternates("/pl/review/request", {
       en: "/review/request",
@@ -50,17 +55,21 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
   const params = (await searchParams) ?? {};
   const productId = oneParam(params.productId);
   const offerId = oneParam(params.offerId);
+  const offer = oneParam(params.offer);
   const requestedSku = productId ? getSku(productId) : undefined;
   const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
     ? requestedSku
     : undefined;
   const polishOffer = sku ? POLISH_OFFERS[sku.id] : undefined;
-  const requestedOffer = offerId
-    ? buyerServiceByPublicOfferId(offerId)
-    : undefined;
-  const buyerService = sku
-    ? buyerServiceByProductId(sku.id)
-    : requestedOffer;
+  const requestedOffer = buyerServiceFromRequestOffer(offerId, offer);
+  const primaryOfferSelected =
+    requestedOffer?.id === PRIMARY_OFFER.id &&
+    (offerId !== undefined || !sku);
+  const buyerService = primaryOfferSelected
+    ? requestedOffer
+    : sku
+      ? buyerServiceByProductId(sku.id)
+      : requestedOffer;
   const selectedOffer = buyerService
     ? {
         name: buyerService.name.pl,
@@ -69,7 +78,8 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         timing: buyerService.timing.pl,
       }
     : polishOffer;
-  const publicExposureOrder = sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
+  const publicExposureOrder =
+    buyerService?.id === "external-exposure-assessment";
   const primaryOfferOrder = buyerService?.id === PRIMARY_OFFER.id;
 
   return (
@@ -99,7 +109,11 @@ export default async function PolishReviewRequestPage({ searchParams }: Props) {
         <section className="self-start border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
           <ContactForm
             locale="pl"
-            intent={sku?.id ?? buyerService?.id ?? "review"}
+            intent={
+              primaryOfferOrder
+                ? PRIMARY_OFFER.id
+                : sku?.id ?? buyerService?.id ?? "review"
+            }
           />
         </section>
         <aside className="space-y-4">

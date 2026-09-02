@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import {
   buyerServiceByProductId,
-  buyerServiceByPublicOfferId,
+  buyerServiceFromRequestOffer,
 } from "@/lib/buyer-services";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 import { linkedinPremiumCampaignAttribution } from "@/lib/marketing-attribution";
@@ -143,18 +143,23 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
     Array.isArray(value) ? value[0] : value;
   const productId = one(params.productId);
   const offerId = one(params.offerId);
+  const offer = one(params.offer);
   const campaignAttribution = linkedinPremiumCampaignAttribution(params);
   const requestedSku = productId ? getSku(productId) : undefined;
   const sku = requestedSku && isCurrentPublicCatalogSku(requestedSku.id)
     ? requestedSku
     : undefined;
-  const requestedOffer = offerId
-    ? buyerServiceByPublicOfferId(offerId)
-    : undefined;
-  const selectedOffer = sku
-    ? buyerServiceByProductId(sku.id)
-    : requestedOffer;
-  const publicExposureOrder = sku?.id === "OFFSEC-EXTERNAL-EXPOSURE";
+  const requestedOffer = buyerServiceFromRequestOffer(offerId, offer);
+  const primaryOfferSelected =
+    requestedOffer?.id === PRIMARY_OFFER.id &&
+    (offerId !== undefined || !sku);
+  const selectedOffer = primaryOfferSelected
+    ? requestedOffer
+    : sku
+      ? buyerServiceByProductId(sku.id)
+      : requestedOffer;
+  const publicExposureOrder =
+    selectedOffer?.id === "external-exposure-assessment";
   const primaryOfferOrder = selectedOffer?.id === PRIMARY_OFFER.id;
   const selectedServiceOrder =
     selectedOffer && !publicExposureOrder && !primaryOfferOrder
@@ -226,7 +231,11 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
         <p className="mt-3 max-w-[640px] text-sm leading-relaxed text-text-muted">
           Prefer email? Send the same non-secret summary to{" "}
           <a
-            href={publicContactMailto(PUBLIC_CONTACT_SUBJECTS.fitCheck)}
+            href={publicContactMailto(
+              primaryOfferOrder
+                ? PRIMARY_OFFER.mailSubject
+                : PUBLIC_CONTACT_SUBJECTS.fitCheck,
+            )}
             className="text-brand-accent underline decoration-brand-accent/50 underline-offset-4 hover:decoration-brand-accent"
           >
             {PUBLIC_CONTACT_EMAIL}
@@ -247,7 +256,11 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section className="self-start border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
           <ContactForm
-            intent={sku?.id ?? selectedOffer?.id ?? "review"}
+            intent={
+              primaryOfferOrder
+                ? PRIMARY_OFFER.id
+                : sku?.id ?? selectedOffer?.id ?? "review"
+            }
             campaignAttribution={campaignAttribution}
           />
         </section>

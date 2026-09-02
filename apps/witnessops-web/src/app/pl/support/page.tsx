@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
+import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   publicContactMailto,
@@ -9,6 +11,10 @@ import { languageAlternates } from "@/lib/public-seo";
 
 const SECURITY_CONTACT_EMAIL = "security@witnessops.com";
 const SUPPORT_MAILTO = publicContactMailto("WitnessOps support request");
+const PRIMARY_OFFER_HREF = buyerPublicOfferRequestHref(
+  "pl",
+  PRIMARY_OFFER.id,
+);
 
 export const metadata: Metadata = {
   title: "Wsparcie",
@@ -21,8 +27,8 @@ export const metadata: Metadata = {
 
 const routes = [
   [
-    "Chcę rozpocząć przegląd",
-    "/pl/review/request",
+    PRIMARY_OFFER.name.pl,
+    PRIMARY_OFFER_HREF,
     "Opisz sytuację bez danych poufnych i wybierz ofertę.",
   ],
   [

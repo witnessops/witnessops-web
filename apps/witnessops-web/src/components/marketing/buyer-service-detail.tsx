@@ -18,6 +18,8 @@ const ui = {
   en: {
     back: "Back to services",
     commercial: "Commercial line",
+    price: "Price",
+    timing: "Timing",
     whoFor: "Who it is for",
     receive: "What you receive",
     fixedScope: "Fixed scope",
@@ -35,6 +37,8 @@ const ui = {
   pl: {
     back: "Wróć do usług",
     commercial: "Warunki handlowe",
+    price: "Cena",
+    timing: "Termin",
     whoFor: "Dla kogo",
     receive: "Co otrzymasz",
     fixedScope: "Stały zakres",
@@ -68,6 +72,7 @@ export function BuyerServiceDetail({
   claim,
   notIncluded,
   verificationPath,
+  promoteCommercialContract = false,
   children,
 }: {
   locale: BuyerLocale;
@@ -79,6 +84,8 @@ export function BuyerServiceDetail({
   /** Extra not-included lines from catalog frames. */
   notIncluded?: string[];
   verificationPath?: string;
+  /** Keep a selected offer's price and timing in the first-screen reading order. */
+  promoteCommercialContract?: boolean;
   children?: ReactNode;
 }) {
   const text = ui[locale];
@@ -113,7 +120,13 @@ export function BuyerServiceDetail({
           ← {text.back}
         </Link>
 
-        <header className="mt-8 grid gap-8 border-b border-surface-border pb-12 md:gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:items-end">
+        <header
+          className={`mt-8 border-b border-surface-border pb-12 ${
+            promoteCommercialContract
+              ? ""
+              : "grid gap-8 md:gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:items-end"
+          }`}
+        >
           <div>
             {service.availability ? (
               <p
@@ -134,6 +147,33 @@ export function BuyerServiceDetail({
             <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">
               {service.situation[locale]}
             </p>
+            {promoteCommercialContract ? (
+              <section
+                data-promoted-commercial-contract={service.id}
+                className="mt-6 max-w-3xl border border-brand-accent/40 bg-brand-accent/5 p-5 sm:p-6"
+                aria-label={text.commercial}
+              >
+                <dl className="grid gap-4 text-sm sm:grid-cols-2 sm:gap-8">
+                  <div>
+                    <dt className="font-semibold text-text-primary">{text.price}</dt>
+                    <dd className="mt-1 text-xl font-semibold text-text-primary">
+                      {service.price[locale]}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold text-text-primary">{text.timing}</dt>
+                    <dd className="mt-1 leading-6 text-text-secondary">
+                      {service.timing[locale]}
+                    </dd>
+                  </div>
+                </dl>
+                {landing.commercialNote ? (
+                  <p className="mt-4 border-t border-surface-border pt-4 text-sm leading-6 text-text-secondary">
+                    {landing.commercialNote}
+                  </p>
+                ) : null}
+              </section>
+            ) : null}
             <div className="mt-8 flex flex-wrap gap-3">
               <CtaButton href={requestHref} variant="primary" label={primaryCta} />
               {onePager ? (
@@ -158,27 +198,35 @@ export function BuyerServiceDetail({
             <p className="mt-4 max-w-xl text-sm leading-6 text-text-muted">{secretsNote}</p>
           </div>
 
-          <aside className="border border-brand-accent/40 bg-brand-accent/5 p-6 sm:p-7">
-            <div className="sm:grid sm:grid-cols-2 sm:gap-8 lg:block">
-              <div>
-                <p className="text-sm font-semibold text-text-muted">{text.commercial}</p>
-                <p className="mt-3 text-3xl font-semibold text-text-primary">{priceDisplay}</p>
-                {landing.commercialNote ? (
-                  <p className="mt-2 text-sm leading-6 text-text-secondary">
-                    {landing.commercialNote}
+          {!promoteCommercialContract ? (
+            <aside className="border border-brand-accent/40 bg-brand-accent/5 p-6 sm:p-7">
+              <div className="sm:grid sm:grid-cols-2 sm:gap-8 lg:block">
+                <div>
+                  <p className="text-sm font-semibold text-text-muted">
+                    {text.commercial}
                   </p>
-                ) : null}
-              </div>
-              <div className="mt-6 border-t border-surface-border pt-5 sm:mt-0 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-8 lg:mt-6 lg:border-t lg:border-l-0 lg:pt-5 lg:pl-0">
-                <p className="text-sm leading-6 text-text-secondary">{service.timing[locale]}</p>
-                {technicalId ? (
-                  <p className="mt-4 font-mono text-[11px] text-text-muted">
-                    {text.reference}: {technicalId}
+                  <p className="mt-3 text-3xl font-semibold text-text-primary">
+                    {priceDisplay}
                   </p>
-                ) : null}
+                  {landing.commercialNote ? (
+                    <p className="mt-2 text-sm leading-6 text-text-secondary">
+                      {landing.commercialNote}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="mt-6 border-t border-surface-border pt-5 sm:mt-0 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-8 lg:mt-6 lg:border-t lg:border-l-0 lg:pt-5 lg:pl-0">
+                  <p className="text-sm leading-6 text-text-secondary">
+                    {service.timing[locale]}
+                  </p>
+                  {technicalId ? (
+                    <p className="mt-4 font-mono text-[11px] text-text-muted">
+                      {text.reference}: {technicalId}
+                    </p>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          </aside>
+            </aside>
+          ) : null}
         </header>
 
         <section className="border-b border-surface-border py-12">
