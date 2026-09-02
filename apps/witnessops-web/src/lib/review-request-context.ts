@@ -3,7 +3,7 @@ import {
   buyerRequestHref,
   buyerPublicOfferRequestHref,
   buyerServiceByProductId,
-  buyerServiceByPublicOfferId,
+  buyerServiceFromRequestOffer,
   buyerServiceRequestHref,
   type BuyerLocale,
   type BuyerService,
@@ -24,6 +24,14 @@ function serviceForDetailRoute(
 function selectedServiceFromRequest(
   searchParams: SearchParamsReader,
 ): BuyerService | undefined {
+  const requestedOffer = buyerServiceFromRequestOffer(
+    searchParams.get("offerId"),
+    searchParams.get("offer"),
+  );
+  if (requestedOffer?.id === PRIMARY_OFFER.id) {
+    return requestedOffer;
+  }
+
   const productId = searchParams.get("productId");
   const productService = productId
     ? buyerServiceByProductId(productId)
@@ -32,8 +40,7 @@ function selectedServiceFromRequest(
     return productService;
   }
 
-  const offerId = searchParams.get("offerId");
-  return offerId ? buyerServiceByPublicOfferId(offerId) : undefined;
+  return requestedOffer;
 }
 
 /**

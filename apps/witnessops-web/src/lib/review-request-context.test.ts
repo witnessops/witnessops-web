@@ -8,6 +8,7 @@ import {
   buyerRequestHref,
   buyerServiceByProductId,
   buyerServiceByPublicOfferId,
+  buyerServiceFromRequestOffer,
   buyerServiceRequestHref,
   type BuyerLocale,
 } from "@/lib/buyer-services";
@@ -52,6 +53,30 @@ test("shared review CTAs keep the workflow offer selected from its detail route"
       "Within 10 working days after evidence rules are agreed",
     );
   }
+});
+
+test("primary offer selection trusts its stable id before public query text", () => {
+  const primary = buyerServiceByPublicOfferId("bounded-workflow-review");
+
+  assert.equal(
+    buyerServiceFromRequestOffer(
+      "bounded-workflow-review",
+      "Public Exposure Review",
+    ),
+    primary,
+  );
+  assert.equal(
+    buyerServiceFromRequestOffer(null, "Agent Workflow Reconstruction"),
+    primary,
+  );
+  assert.equal(
+    buyerServiceFromRequestOffer("unknown", "Agent Workflow Reconstruction"),
+    undefined,
+  );
+  assert.equal(
+    buyerServiceFromRequestOffer(null, "Agent Workflow Reconstruction "),
+    undefined,
+  );
 });
 
 test("shared review CTAs keep canonical product context on detail and selected request routes", () => {
@@ -111,6 +136,24 @@ test("every selectable service detail keeps its catalogue-authoritative request"
 });
 
 test("review CTA context rejects unknown values to the canonical primary offer and preserves every service detail", () => {
+  assert.equal(
+    reviewRequestHrefForLocation(
+      "en",
+      "/review/request",
+      new URLSearchParams(
+        "offerId=bounded-workflow-review&productId=OFFSEC-EXTERNAL-EXPOSURE&offer=Public+Exposure+Review",
+      ),
+    ),
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+  );
+  assert.equal(
+    reviewRequestHrefForLocation(
+      "en",
+      "/review/request",
+      new URLSearchParams("offer=Agent+Workflow+Reconstruction"),
+    ),
+    "/review/request?offerId=bounded-workflow-review&offer=Agent+Workflow+Reconstruction",
+  );
   assert.equal(
     reviewRequestHrefForLocation(
       "en",

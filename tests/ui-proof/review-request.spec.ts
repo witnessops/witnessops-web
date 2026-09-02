@@ -308,6 +308,55 @@ test("Agent Workflow Reconstruction starts with one compact non-secret workflow 
   }
 });
 
+test("primary request selection canonicalizes aliases and conflicting query text", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    reducedMotion: "reduce",
+  });
+  const page = await context.newPage();
+
+  for (const query of [
+    "offer=Agent+Workflow+Reconstruction",
+    "offerId=bounded-workflow-review&offer=Public+Exposure+Review",
+    "offerId=bounded-workflow-review&offer=Buyer-edited+title&productId=OFFSEC-EXTERNAL-EXPOSURE",
+  ]) {
+    const response = await page.goto(`/review/request?${query}`, {
+      waitUntil: "networkidle",
+    });
+    expect(response?.status(), query).toBe(200);
+    const main = page.locator("main");
+    await expect(
+      page.getByText("Selected offer: Agent Workflow Reconstruction"),
+    ).toBeVisible();
+    await expect(main).toContainText("€2,500 fixed");
+    await expect(main).toContainText(
+      "Within 10 working days after evidence rules are agreed",
+    );
+    await expect(main.locator('form input[name="intent"]')).toHaveValue(
+      "bounded-workflow-review",
+    );
+    await expect(main).not.toContainText("Agent Risk & Control Review");
+    await expect(main).not.toContainText("From €1,500");
+    await expect(main).not.toContainText(
+      "Request an AI Agent Action Proof Run",
+    );
+  }
+
+  await expect(
+    page
+      .locator("main")
+      .getByRole("link", { name: "engage@mail.witnessops.com" })
+      .first(),
+  ).toHaveAttribute(
+    "href",
+    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20request%20%E2%80%94%20Agent%20Workflow%20Reconstruction",
+  );
+
+  await context.close();
+});
+
 test("Public Exposure Review request preserves SKU, locale, and fit boundary", async ({ browser }) => {
   for (const scenario of [
     { locale: "en", path: "/review/request" },

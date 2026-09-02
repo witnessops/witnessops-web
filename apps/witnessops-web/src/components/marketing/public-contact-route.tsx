@@ -64,11 +64,13 @@ export function PublicContactRoute({
     : polish
       ? "Rozpocznij przegląd"
       : "Start a review";
-  const mailtoSubject = productName
-    ? productContactSubject(productName)
-    : subject === "fit-check"
-      ? PUBLIC_CONTACT_SUBJECTS.fitCheck
-      : PUBLIC_CONTACT_SUBJECTS.general;
+  const mailtoSubject = primaryOfferSelected
+    ? PRIMARY_OFFER.mailSubject
+    : productName
+      ? productContactSubject(productName)
+      : subject === "fit-check"
+        ? PUBLIC_CONTACT_SUBJECTS.fitCheck
+        : PUBLIC_CONTACT_SUBJECTS.general;
   const compactSafetyNote = polish
     ? "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, tokenów ani kodów odzyskiwania."
     : "Do not send passwords, private keys, API keys, tokens or recovery codes.";

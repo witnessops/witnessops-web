@@ -161,6 +161,15 @@ test("reachable offer details use the canonical buyer contract and visual system
         );
       }
       if (offer.service === "bounded-workflow-review") {
+        const promotedContract = main.locator(
+          '[data-promoted-commercial-contract="bounded-workflow-review"]',
+        );
+        await expect(promotedContract).toBeVisible();
+        await expect(promotedContract).toBeInViewport();
+        await expect(promotedContract).toContainText("€2,500 fixed");
+        await expect(promotedContract).toContainText(
+          "Within 10 working days after evidence rules are agreed",
+        );
         await expect(main).toContainText("One named workflow (agentic or automated)");
         await expect(main).toContainText("Non-secret fit check first");
         await expect(main).toContainText(
@@ -171,6 +180,9 @@ test("reachable offer details use the canonical buyer contract and visual system
         );
         await expect(main).not.toContainText("Agent Risk & Control Review");
         await expect(main).not.toContainText("From €1,500");
+        await expect(main).not.toContainText(
+          "Request an AI Agent Action Proof Run",
+        );
       }
       await expect(main).toContainText(offer.timing);
       await expect(main).toContainText(offer.price);

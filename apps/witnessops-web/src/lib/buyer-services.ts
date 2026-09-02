@@ -397,7 +397,9 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
 ] as const;
 
 export function buyerRequestHref(locale: BuyerLocale): string {
-  return locale === "pl" ? "/pl/review/request" : "/review/request";
+  return locale === "pl"
+    ? `/pl${PRIMARY_OFFER.requestRoute}`
+    : PRIMARY_OFFER.requestRoute;
 }
 
 export function buyerOfferRequestHref(locale: BuyerLocale, productId: string): string {
@@ -468,6 +470,25 @@ export function buyerServiceByPublicOfferId(
     return undefined;
   }
   return buyerServiceById(id);
+}
+
+/**
+ * Resolve the buyer-visible public-offer selection without trusting display
+ * text as commercial data. A present offer id always wins over `offer=`;
+ * only the exact current public name may act as the primary-offer alias when
+ * the id is absent.
+ */
+export function buyerServiceFromRequestOffer(
+  offerId: string | null | undefined,
+  offer: string | null | undefined,
+): BuyerService | undefined {
+  if (offerId !== null && offerId !== undefined) {
+    return buyerServiceByPublicOfferId(offerId);
+  }
+
+  return offer === PRIMARY_OFFER.name.en
+    ? buyerServiceById(PRIMARY_OFFER.id)
+    : undefined;
 }
 
 export function buyerServiceByProductId(productId: string): BuyerService | undefined {
