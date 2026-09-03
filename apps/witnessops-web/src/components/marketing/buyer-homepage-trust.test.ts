@@ -25,24 +25,34 @@ const polishCustomerReviewSource = readFileSync(
 const onePagerDir = resolve(__dirname, "../../../public/assets/one-pagers");
 
 test("homepage leads with the security review and keeps the receipt specimen lower", () => {
-  assert.match(source, /PRIMARY_OFFER\.cardSituation\.en/);
   assert.equal(
     PRIMARY_OFFER.cardSituation.en,
     "What can your AI agent actually do in production?",
   );
+  assert.match(
+    source,
+    /title: "Your AI agent can act in production\. Can you prove what it was allowed to do\?"/,
+  );
+  assert.match(
+    source,
+    /Review one consequential agent or automation action: who authorizes it, which identity executes it, what it can reach, what limits it, and what evidence remains afterward\./,
+  );
+  assert.match(
+    source,
+    /You get an authority map, execution path, permission boundary, evidence chain, and practical fixes\./,
+  );
+  assert.match(source, /primaryCta: "Check if your workflow fits"/);
   assert.match(source, /className=\{styles\.heroOfferName\}>\{heroCopy\.eyebrow\}/);
-  assert.match(source, /Who can authorize it\?/);
-  assert.match(source, /What identity acts\?/);
-  assert.match(source, /What can it actually reach\?/);
-  assert.match(source, /What limits the blast radius\?/);
-  assert.match(source, /What evidence remains afterward\?/);
-  assert.match(source, /before a customer, pentest, or incident finds the gaps for you/);
   assert.match(source, /Authority → identity/);
+  assert.match(source, /Who approves, and what actually executes\?/);
   assert.match(source, /Permissions → tools/);
+  assert.match(source, /What can that identity really reach\?/);
   assert.match(source, /Execution → evidence/);
+  assert.match(source, /What constrains the action and proves the result\?/);
   assert.match(source, /Paid review/);
   assert.match(source, /Produce something another party can check\./);
   assert.match(source, /Five questions\. One consequential action\./);
+  assert.match(source, /Who can authorize it\?/);
   assert.match(source, /What identity performs it\?/);
   assert.match(source, /What can it reach\?/);
   assert.match(source, /What limits the blast radius\?/);
@@ -85,7 +95,10 @@ test("homepage leads with the security review and keeps the receipt specimen low
   assert.doesNotMatch(source, /Aegis/);
   assert.doesNotMatch(source, /external verification/i);
   assert.doesNotMatch(source, /Every consequential agent action gets a verifiable receipt/i);
-  assert.doesNotMatch(source, /No secrets/i);
+  assert.match(
+    source,
+    /No secrets required for the fit check · Evidence handling agreed before intake · Never send passwords, private keys, API keys, tokens, or recovery codes/,
+  );
 });
 
 test("Agent Action Security Review is the named, priced, bounded homepage offer", () => {
