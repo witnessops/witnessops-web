@@ -1,0 +1,107 @@
+name: One-time route parity baseline repair
+
+on:
+  push:
+    branches:
+      - validation/route-parity-baseline-20260903
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    env:
+      EXPECTED_SOURCE: 775c233a715d6a9d457117eafdb6b7fc5f026d7e
+      TARGET_BRANCH: codex/homepage-language-compression
+    steps:
+      - name: Check out exact PR source head
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: 775c233a715d6a9d457117eafdb6b7fc5f026d7e
+          fetch-depth: 0
+
+      - name: Verify immutable source head
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          printf 'expected_source=%s\nactual_source=%s\n' "$EXPECTED_SOURCE" "$actual"
+          test "$actual" = "$EXPECTED_SOURCE"
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+        with:
+          version: 9.15.4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install frozen dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Build exact source tree
+        shell: bash
+        run: pnpm --filter witnessops-web build
+
+      - name: Refresh only frozen route baselines
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          const pairs = [
+            ['apps/witnessops-web/.next/routes-manifest.json', 'tests/route-parity/routes-manifest.baseline.json'],
+            ['apps/witnessops-web/.next/server/app-paths-manifest.json', 'tests/route-parity/app-paths-manifest.baseline.json'],
+          ];
+          for (const [source, target] of pairs) {
+            const value = JSON.parse(fs.readFileSync(source, 'utf8'));
+            fs.writeFileSync(target, `${JSON.stringify(value, null, 2)}\n`);
+          }
+          NODE
+
+          actual="$(git diff --name-only | sort)"
+          expected="$(printf '%s\n' \
+            'tests/route-parity/app-paths-manifest.baseline.json' \
+            'tests/route-parity/routes-manifest.baseline.json' | sort)"
+          printf 'changed_files:\n%s\n' "$actual"
+          test "$actual" = "$expected"
+          grep -Fq '/articles/when-civilization-can-no-longer-understand-itself' tests/route-parity/routes-manifest.baseline.json
+          grep -Fq '/(marketing)/articles/when-civilization-can-no-longer-understand-itself/page' tests/route-parity/app-paths-manifest.baseline.json
+          git diff --check
+
+      - name: Commit test-only baseline repair locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/route-parity/app-paths-manifest.baseline.json tests/route-parity/routes-manifest.baseline.json
+          git commit -m 'test: refresh route parity for published article'
+          new_head="$(git rev-parse HEAD)"
+          printf 'candidate_head=%s\n' "$new_head"
+          printf 'CANDIDATE_HEAD=%s\n' "$new_head" >> "$GITHUB_ENV"
+          test -z "$(git status --porcelain)"
+
+      - name: Run full Node 22 repository health on candidate head
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          printf 'candidate_head=%s\nactual_head=%s\n' "$CANDIDATE_HEAD" "$actual"
+          test "$actual" = "$CANDIDATE_HEAD"
+          pnpm health
+          test -z "$(git status --porcelain)"
+
+      - name: Fast-forward PR branch only if source head is unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote_head="$(git ls-remote origin "refs/heads/$TARGET_BRANCH" | awk '{print $1}')"
+          printf 'expected_remote=%s\nobserved_remote=%s\ncandidate_head=%s\n' "$EXPECTED_SOURCE" "$remote_head" "$CANDIDATE_HEAD"
+          test "$remote_head" = "$EXPECTED_SOURCE"
+          git push origin "HEAD:refs/heads/$TARGET_BRANCH"
