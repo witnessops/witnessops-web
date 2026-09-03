@@ -6,11 +6,11 @@ slug: "/"
 status:
   draft: false
   canonical: true
-  last_reviewed: "2026-09-02"
+  last_reviewed: "2026-09-03"
 
 seo:
   title: "Agent Action Security Review | WitnessOps"
-  description: "Review one consequential AI-agent or automation action across authority, identity, permissions, tools, execution, and evidence. €2,500 fixed; delivered within 10 working days after evidence rules are agreed."
+  description: "Your AI agent can act in production. Can you prove what it was allowed to do? Review one consequential action across authority, identity, permissions, tools, execution, and evidence."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
@@ -36,17 +36,17 @@ navbar:
     - label: "Action receipt"
       href: "/#agent-action-receipt"
   cta:
-    label: "Start non-secret fit check"
+    label: "Check if your workflow fits"
     href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review"
     variant: "primary"
 
 hero:
   eyebrow: "Agent Action Security Review"
-  title: "What can your AI agent actually do in production?"
-  body: "Who can authorize it? What identity acts? What can it actually reach? What limits the blast radius? What evidence remains afterward?"
+  title: "Can you prove what your AI agent was allowed to do?"
+  body: "Review one consequential agent or automation action: who authorizes it, which identity executes it, what it can reach, what limits it, and what evidence remains afterward."
   supporting_points: []
   primary_cta:
-    label: "Start a non-secret fit check"
+    label: "Check if your workflow fits"
     href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review"
     variant: "primary"
   secondary_cta:
@@ -124,7 +124,7 @@ sections:
         body: "Show what another reviewer can inspect, reject, or strengthen."
     internal_surfaces_disclosure: "Some operational surfaces remain internal, including policy authoring, receipt query, and operator administration."
     ctas:
-      - label: "Start a non-secret fit check"
+      - label: "Check if your workflow fits"
         href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review"
         variant: "primary"
       - label: "Inspect sample package"
@@ -179,7 +179,7 @@ final_cta:
   title: "Review one consequential agent action."
   body: "Start with a non-secret fit check. Agent Action Security Review covers one consequential agent or automation action for €2,500 fixed and is delivered within 10 working days after evidence rules are agreed."
   ctas:
-    - label: "Start a non-secret fit check"
+    - label: "Check if your workflow fits"
       href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review"
       variant: "primary"
     - label: "View services"
@@ -202,7 +202,7 @@ footer:
       href: "/docs"
     - label: "Skills"
       href: "/library"
-    - label: "Start a non-secret fit check"
+    - label: "Check if your workflow fits"
       href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review"
   legal_links:
     - label: "Privacy"

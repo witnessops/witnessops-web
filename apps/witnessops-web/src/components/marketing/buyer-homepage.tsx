@@ -23,17 +23,17 @@ const localizedCopy = {
   en: {
     hero: {
       eyebrow: PRIMARY_OFFER.name.en,
-      title: PRIMARY_OFFER.cardSituation.en,
+      title: "Your AI agent can act in production. Can you prove what it was allowed to do?",
       body:
-        "Who can authorize it? What identity acts? What can it actually reach? What limits the blast radius? What evidence remains afterward?",
+        "Review one consequential agent or automation action: who authorizes it, which identity executes it, what it can reach, what limits it, and what evidence remains afterward.",
     },
     heroIntro:
-      `${PRIMARY_OFFER.name.en} maps identity, permissions, tools, execution path, blast radius, and evidence before a customer, pentest, or incident finds the gaps for you.`,
-    primaryCta: "Start a non-secret fit check",
+      "You get an authority map, execution path, permission boundary, evidence chain, and practical fixes.",
+    primaryCta: "Check if your workflow fits",
     sampleLink: "Run and verify the compromised API key rotation demo",
     offerCta: "See scope and pricing",
     handlingBoundary:
-      "Do not send passwords, private keys, API keys, tokens or recovery codes · One consequential action · Evidence handling agreed before intake",
+      "No secrets required for the fit check · Evidence handling agreed before intake · Never send passwords, private keys, API keys, tokens, or recovery codes",
     flowLabel: "Security review model",
     flowItems: [
       {
@@ -115,17 +115,17 @@ const localizedCopy = {
   pl: {
     hero: {
       eyebrow: PRIMARY_OFFER.name.pl,
-      title: PRIMARY_OFFER.cardSituation.pl,
+      title: "Twój agent AI może działać w produkcji. Czy potrafisz wykazać, do czego był upoważniony?",
       body:
-        "Kto może je zatwierdzić? Jaka tożsamość je wykonuje? Do czego agent naprawdę ma dostęp? Co ogranicza zasięg skutków? Jaki ślad dowodowy pozostaje?",
+        "Sprawdź jedno istotne działanie agenta lub automatyzacji: kto je zatwierdza, jaka tożsamość je wykonuje, do czego ma dostęp, co je ogranicza i jaki ślad dowodowy pozostaje.",
     },
     heroIntro:
-      `${PRIMARY_OFFER.name.pl} mapuje tożsamość, uprawnienia, narzędzia, ścieżkę wykonania, zasięg skutków i dowody — zanim luki znajdzie za Ciebie klient, pentest lub incydent.`,
-    primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
+      "Otrzymujesz mapę upoważnień, ścieżkę wykonania, granicę uprawnień, łańcuch dowodowy i praktyczne poprawki.",
+    primaryCta: "Sprawdź, czy Twój przypadek pasuje",
     sampleLink: "Uruchom i zweryfikuj demo rotacji skompromitowanego klucza API",
     offerCta: "Zobacz zakres i cenę",
     handlingBoundary:
-      "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, tokenów ani kodów odzyskiwania · Jedno istotne działanie · Zasady obsługi materiałów uzgadniane przed przyjęciem",
+      "Do wstępnej oceny nie potrzebujemy informacji poufnych · Zasady obsługi materiałów uzgadniamy przed przyjęciem · Nie wysyłaj haseł, kluczy prywatnych, kluczy API, tokenów ani kodów odzyskiwania",
     flowLabel: "Model przeglądu bezpieczeństwa",
     flowItems: [
       {

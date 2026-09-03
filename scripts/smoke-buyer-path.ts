@@ -30,10 +30,10 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     requiredMarkers: [
       "WitnessOps",
       "<title>Agent Action Security Review | WitnessOps</title>",
-      "What can your AI agent actually do in production?",
+      "Your AI agent can act in production. Can you prove what it was allowed to do?",
       "Agent Action Security Review",
-      "What can it actually reach?",
-      "before a customer, pentest, or incident finds the gaps for you",
+      "who authorizes it",
+      "You get an authority map, execution path, permission boundary, evidence chain, and practical fixes.",
       "Run and verify the compromised API key rotation demo",
       "Verified synthetic specimen — not live customer evidence",
       "witnessops/witnessops-sample-cases",
@@ -62,7 +62,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "A practical security handover showing the execution path, permission boundary, evidence chain, control gaps",
       "A receipt is only as strong as its named evidence and verifier.",
       "Bring one consequential action. Review its authority, access, blast radius, and evidence.",
-      "Start a non-secret fit check",
+      "Check if your workflow fits",
+      "No secrets required for the fit check",
     ],
     prohibitedMarkers: [
       "Current paid entry point",
@@ -394,10 +395,10 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pl",
     requiredMarkers: [
-      "Co Twój agent AI może naprawdę zrobić w produkcji?",
+      "Twój agent AI może działać w produkcji. Czy potrafisz wykazać, do czego był upoważniony?",
       "Agent Action Security Review",
-      "Do czego agent naprawdę ma dostęp?",
-      "zanim luki znajdzie za Ciebie klient, pentest lub incydent",
+      "kto je zatwierdza",
+      "Otrzymujesz mapę upoważnień, ścieżkę wykonania, granicę uprawnień, łańcuch dowodowy i praktyczne poprawki.",
       "Zweryfikowany syntetyczny przykład — nie są to materiały klienta",
       "witnessops/witnessops-sample-cases",
       "d4ad234bd815",
@@ -424,7 +425,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "Kupujący otrzymuje praktyczny raport i omówienie: ścieżkę wykonania, granicę uprawnień, łańcuch dowodowy, luki kontrolne",
       "Zapis jest tak mocny, jak wskazane materiały i weryfikator.",
       "Zgłoś jedno istotne działanie. Sprawdź jego upoważnienie, dostęp, zasięg skutków i dowody.",
-      "Rozpocznij wstępną ocenę bez informacji poufnych",
+      "Sprawdź, czy Twój przypadek pasuje",
+      "Do wstępnej oceny nie potrzebujemy informacji poufnych",
       "Uruchom i zweryfikuj demo rotacji skompromitowanego klucza API",
     ],
     prohibitedMarkers: [

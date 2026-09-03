@@ -550,6 +550,12 @@
       "namedRegex": "^/apple\\-icon\\.png(?:/)?$"
     },
     {
+      "page": "/articles/when-civilization-can-no-longer-understand-itself",
+      "regex": "^/articles/when\\-civilization\\-can\\-no\\-longer\\-understand\\-itself(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/articles/when\\-civilization\\-can\\-no\\-longer\\-understand\\-itself(?:/)?$"
+    },
+    {
       "page": "/catalog",
       "regex": "^/catalog(?:/)?$",
       "routeKeys": {},
