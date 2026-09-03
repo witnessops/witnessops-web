@@ -124,6 +124,11 @@ const staticRoutes: StaticRoute[] = [
     route: "/proof-backed-security-systems",
     sourcePath: "src/app/proof-backed-security-systems/page.tsx",
   },
+  {
+    route: "/articles/when-civilization-can-no-longer-understand-itself",
+    sourcePath:
+      "src/app/(marketing)/articles/when-civilization-can-no-longer-understand-itself/page.tsx",
+  },
   { route: "/media-kit", sourcePath: "src/app/media-kit/page.tsx" },
   { route: "/privacy", sourcePath: "src/app/privacy/page.tsx" },
   { route: "/security", sourcePath: "src/app/security/page.tsx" },
