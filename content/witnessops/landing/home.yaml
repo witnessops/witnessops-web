@@ -14,8 +14,8 @@ seo:
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "Your AI agent can act in production. Can you prove what it was allowed to do?"
-  og_description: "Review one consequential action: who authorizes it, which identity executes it, what it can reach, what limits it, and what evidence remains afterward."
+  og_title: "What can your AI agent actually do in production?"
+  og_description: "Map one consequential action across identity, permissions, tools, execution path, blast radius, and evidence before a customer, pentest, or incident finds the gaps for you."
   twitter_card: "summary_large_image"
 
 theme:
