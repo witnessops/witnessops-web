@@ -18,12 +18,30 @@ test("Polish homepage uses action-security positioning and naturalized terminolo
     PRIMARY_OFFER.cardSituation.pl,
     "Co Twój agent AI może naprawdę zrobić w produkcji?",
   );
-  assert.match(buyerHomepage, /PRIMARY_OFFER\.cardSituation\.pl/);
+  assert.match(
+    buyerHomepage,
+    /title: "Twój agent AI może działać w produkcji\. Czy potrafisz wykazać, do czego był upoważniony\?"/,
+  );
+  assert.match(
+    buyerHomepage,
+    /Sprawdź jedno istotne działanie agenta lub automatyzacji: kto je zatwierdza, jaka tożsamość je wykonuje, do czego ma dostęp, co je ogranicza i jaki ślad dowodowy pozostaje\./,
+  );
+  assert.match(
+    buyerHomepage,
+    /Otrzymujesz mapę upoważnień, ścieżkę wykonania, granicę uprawnień, łańcuch dowodowy i praktyczne poprawki\./,
+  );
+  assert.match(buyerHomepage, /primaryCta: "Sprawdź, czy Twój przypadek pasuje"/);
+  assert.match(
+    buyerHomepage,
+    /Do wstępnej oceny nie potrzebujemy informacji poufnych · Zasady obsługi materiałów uzgadniamy przed przyjęciem/,
+  );
   assert.match(buyerHomepage, /eyebrow: PRIMARY_OFFER\.name\.pl/);
-  assert.match(buyerHomepage, /zanim luki znajdzie za Ciebie klient, pentest lub incydent/);
   assert.match(buyerHomepage, /Upoważnienie → tożsamość/);
+  assert.match(buyerHomepage, /Kto zatwierdza i co naprawdę wykonuje działanie\?/);
   assert.match(buyerHomepage, /Uprawnienia → narzędzia/);
+  assert.match(buyerHomepage, /Do czego ta tożsamość naprawdę ma dostęp\?/);
   assert.match(buyerHomepage, /Wykonanie → dowody/);
+  assert.match(buyerHomepage, /Co ogranicza działanie i potwierdza wynik\?/);
   assert.match(buyerHomepage, /Pięć pytań\. Jedno istotne działanie\./);
   assert.match(buyerHomepage, /Zweryfikowany syntetyczny przykład — nie są to materiały klienta/);
   assert.match(buyerHomepage, /Jaki ślad dowodowy pozostaje\?/);
