@@ -72,11 +72,15 @@ async function findMatchingIssuance(
   return matches[0];
 }
 
-async function findExistingDeliveryEvent(providerEventId: string) {
+async function findExistingDeliveryEvent(
+  provider: string,
+  providerEventId: string,
+) {
   const events = await readIntakeEvents();
   return events.find(
     (event) =>
       event.event_type === "INTAKE_VERIFICATION_DELIVERY_UPDATED" &&
+      event.payload?.provider === provider &&
       event.payload?.providerEventId === providerEventId,
   );
 }
@@ -130,7 +134,10 @@ export async function recordVerificationDeliveryOutcome(
       );
     }
 
-    const existingEvent = await findExistingDeliveryEvent(input.providerEventId);
+    const existingEvent = await findExistingDeliveryEvent(
+      input.provider,
+      input.providerEventId,
+    );
     if (existingEvent) {
       if (existingEvent.issuance_id !== issuance.issuanceId) {
         throw new VerificationDeliveryOutcomeError(

@@ -11,7 +11,7 @@ import {
 
 import {
   IntakeResponseProviderOutcomeError,
-  validateProviderEventSecret,
+  validateResponseOutcomeSecret,
 } from "./intake-response-provider-outcome";
 import type { VerificationDeliveryStatus } from "./verification-delivery-status";
 
@@ -154,7 +154,7 @@ function parseTrustedNormalizedProviderOutcome(
   request: NextRequest,
 ): RecordedProviderOutcomeEvent {
   if (
-    !validateProviderEventSecret(
+    !validateResponseOutcomeSecret(
       request.headers.get("x-witnessops-provider-secret"),
     )
   ) {

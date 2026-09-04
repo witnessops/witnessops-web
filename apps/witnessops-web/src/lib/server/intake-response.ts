@@ -119,7 +119,16 @@ async function reserveFirstResponse(
         issuanceId: intake.latestIssuanceId,
         threadId: intake.threadId,
         email: intake.email,
-        respondedAt: intake.firstResponse.deliveredAt,
+        respondedAt:
+          intake.respondedAt ??
+          intake.firstResponse.providerAcceptedAt ??
+          intake.firstResponse.deliveredAt ??
+          (() => {
+            throw new IntakeResponseError(
+              "A response is recorded without an acceptance timestamp. Reconcile before retrying.",
+              409,
+            );
+          })(),
         admissionState: "responded",
         actor: intake.firstResponse.actor,
         actorAuthSource: intake.firstResponse.actorAuthSource ?? "local_bypass",
@@ -220,8 +229,10 @@ async function markResponseAttemptUnresolved(
 }
 
 /**
- * `responded` means the first external operator reply was delivered for an
- * admitted intake. Opening or viewing an item does not change state.
+ * `responded` means the first external operator reply was accepted by the
+ * configured provider and durably recorded for an admitted intake. It does
+ * not claim recipient-server acceptance or inbox placement. Opening or
+ * viewing an item does not change state.
  */
 export async function respondToIntake(
   input: RespondToIntakeInput,
@@ -258,7 +269,7 @@ export async function respondToIntake(
     );
   }
 
-  const respondedAt = delivery.deliveredAt || nowIso();
+  const respondedAt = delivery.providerAcceptedAt;
   const responseRecord: IntakeResponseRecord = {
     deliveryAttemptId,
     subject,
@@ -269,7 +280,7 @@ export async function respondToIntake(
     mailbox,
     provider: delivery.provider,
     providerMessageId: delivery.providerMessageId,
-    deliveredAt: respondedAt,
+    providerAcceptedAt: respondedAt,
   };
 
   let updatedIntake: IntakeRecord;
@@ -297,6 +308,9 @@ export async function respondToIntake(
         responseAttempt: record.responseAttempt
           ? {
               ...record.responseAttempt,
+              provider: delivery.provider,
+              providerMessageId: delivery.providerMessageId,
+              providerAcceptedAt: respondedAt,
               status: "reserved",
               updatedAt: respondedAt,
             }

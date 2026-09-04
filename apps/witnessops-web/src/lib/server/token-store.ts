@@ -79,7 +79,10 @@ export interface IntakeResponseRecord {
   mailbox: string;
   provider: string;
   providerMessageId: string | null;
-  deliveredAt: string;
+  /** Time the configured provider accepted the outbound response. */
+  providerAcceptedAt?: string | null;
+  /** @deprecated Legacy API-acceptance timestamp; not recipient delivery proof. */
+  deliveredAt?: string;
 }
 
 export interface IntakeReconciliationRecord {
@@ -103,7 +106,10 @@ export interface IntakeOperatorNotificationRecord {
   replyTo: string;
   provider: string;
   providerMessageId: string | null;
-  deliveredAt: string;
+  /** Time the configured provider accepted the outbound notification. */
+  providerAcceptedAt?: string | null;
+  /** @deprecated Legacy API-acceptance timestamp; not recipient delivery proof. */
+  deliveredAt?: string;
 }
 
 export interface IntakeOperatorNotificationAttemptRecord {
@@ -136,6 +142,9 @@ export interface IntakeResponseAttemptRecord {
   actorAuthSource: AdminActorAuthSource;
   actorSessionHash: string | null;
   mailbox: string;
+  provider?: string | null;
+  providerMessageId?: string | null;
+  providerAcceptedAt?: string | null;
   status: "reserved" | "sent" | "needs_reconciliation" | "reconciled";
   reservedAt: string;
   updatedAt: string;

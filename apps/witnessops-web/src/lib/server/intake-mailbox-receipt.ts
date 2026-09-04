@@ -87,6 +87,24 @@ export async function recordIntakeMailboxReceipt(
       );
     }
 
+    if (input.providerMessageId) {
+      const providerMessageMatches = [
+        intake.firstResponse?.deliveryAttemptId === input.deliveryAttemptId
+          ? intake.firstResponse.providerMessageId
+          : null,
+        intake.responseAttempt?.deliveryAttemptId === input.deliveryAttemptId
+          ? intake.responseAttempt.providerMessageId ?? null
+          : null,
+      ].some((providerMessageId) => providerMessageId === input.providerMessageId);
+
+      if (!providerMessageMatches) {
+        throw new IntakeMailboxReceiptError(
+          "Provider message ID does not match the delivery attempt.",
+          409,
+        );
+      }
+    }
+
     const detail = input.detail?.trim() || null;
     const response = (status: MailboxReceiptResponse["status"]): MailboxReceiptResponse => ({
       status,

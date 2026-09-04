@@ -22,7 +22,7 @@ import { POST } from "./route";
 function applyTestEnv(baseDir: string): void {
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
-  process.env.WITNESSOPS_PROVIDER_EVENT_SECRET = "provider-secret";
+  process.env.WITNESSOPS_RESPONSE_OUTCOME_SECRET = "provider-secret";
 }
 
 function buildSvixHeaders(payload: string, secret: string) {
@@ -153,7 +153,8 @@ async function seedProviderOutcomeCase(args?: {
 
 afterEach(async () => {
   await clearTokenStore();
-  delete process.env.WITNESSOPS_PROVIDER_EVENT_SECRET;
+  delete process.env.WITNESSOPS_RESPONSE_OUTCOME_SECRET;
+  delete process.env.WITNESSOPS_MAILBOX_RECEIPT_SECRET;
   delete process.env.WITNESSOPS_RESEND_WEBHOOK_SECRET;
   delete process.env.WITNESSOPS_M365_WEBHOOK_SECRET;
 });
@@ -398,6 +399,115 @@ test("provider outcome route rejects unauthorized event sources", async () => {
   );
 
   assert.equal(response.status, 401);
+});
+
+test("generic provider outcomes require the stored provider and matching identifiers", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-provider-outcome-binding-"),
+  );
+  applyTestEnv(baseDir);
+  await seedProviderOutcomeCase();
+
+  const post = (body: Record<string, unknown>) =>
+    POST(
+      new NextRequest(
+        "http://localhost:3001/api/provider-events/response-outcome",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-witnessops-provider-secret": "provider-secret",
+          },
+          body: JSON.stringify({
+            providerEventId: "evt_provider_binding",
+            outcome: "delivered",
+            observedAt: "2026-03-29T11:06:00Z",
+            source: "provider_webhook",
+            rawEventType: "message.delivered",
+            ...body,
+          }),
+        },
+      ),
+    );
+
+  assert.equal(
+    (await post({ provider: "resend", deliveryAttemptId: "rsp_provider_outcome" })).status,
+    404,
+  );
+  assert.equal(
+    (
+      await post({
+        provider: "file",
+        providerMessageId: "msg_not_stored",
+        deliveryAttemptId: "rsp_provider_outcome",
+      })
+    ).status,
+    404,
+  );
+  assert.equal(
+    (
+      await post({
+        provider: "file",
+        providerMessageId: "msg_provider_outcome",
+        deliveryAttemptId: "rsp_provider_outcome",
+      })
+    ).status,
+    200,
+  );
+});
+
+test("provider event replay keys include the provider namespace", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-provider-outcome-namespace-"),
+  );
+  applyTestEnv(baseDir);
+  await seedProviderOutcomeCase();
+  await appendIntakeEvent({
+    event_type: "INTAKE_RESPONSE_PROVIDER_OUTCOME_RECORDED",
+    occurred_at: "2026-03-29T11:06:00Z",
+    channel: "support",
+    intake_id: "intk_provider_outcome",
+    issuance_id: "iss_provider_outcome",
+    thread_id: "thr_provider_outcome",
+    previous_state: "admitted",
+    next_state: "admitted",
+    source: "test",
+    payload: {
+      provider: "resend",
+      providerEventId: "evt_namespace_collision",
+      providerMessageId: "re_namespace_collision",
+      deliveryAttemptId: "rsp_namespace_collision",
+      outcome: "accepted",
+      source: "provider_webhook",
+      rawEventType: "email.sent",
+    },
+  });
+
+  const response = await POST(
+    new NextRequest(
+      "http://localhost:3001/api/provider-events/response-outcome",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-witnessops-provider-secret": "provider-secret",
+        },
+        body: JSON.stringify({
+          provider: "file",
+          providerEventId: "evt_namespace_collision",
+          providerMessageId: "msg_provider_outcome",
+          deliveryAttemptId: "rsp_provider_outcome",
+          outcome: "accepted",
+          observedAt: "2026-03-29T11:07:00Z",
+          source: "provider_webhook",
+          rawEventType: "message.accepted",
+        }),
+      },
+    ),
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).status, "recorded");
 });
 
 test("provider outcome route rejects an oversized declared body before authentication", async () => {

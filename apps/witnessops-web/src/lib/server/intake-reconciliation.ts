@@ -157,7 +157,11 @@ export async function reconcileIntakeResponse(
           provider: intake.firstResponse.provider,
           providerMessageId: intake.firstResponse.providerMessageId,
           mailbox: intake.firstResponse.mailbox,
-          observedAt: intake.respondedAt ?? intake.firstResponse.deliveredAt,
+          observedAt:
+            intake.respondedAt ??
+            intake.firstResponse.providerAcceptedAt ??
+            intake.firstResponse.deliveredAt ??
+            intake.updatedAt,
         }
       : {
           deliveryAttemptId: intake.responseAttempt!.deliveryAttemptId,

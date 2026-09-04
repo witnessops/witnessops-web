@@ -369,7 +369,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         );
       }
       try {
-        return NextResponse.json({ ok: true, item: await recordDeliverySent(idValue, { ...result, sentAt: result.deliveredAt }, actor, idempotencyKey, reservation.reservationToken) });
+        return NextResponse.json({ ok: true, item: await recordDeliverySent(idValue, { ...result, sentAt: result.providerAcceptedAt }, actor, idempotencyKey, reservation.reservationToken) });
       } catch {
         await markDeliverySendOutcomeUnknown(
           idValue,

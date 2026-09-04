@@ -616,11 +616,11 @@ async function ensureOperatorNotificationSent(args: {
     ...current,
     updatedAt: args.occurredAt,
     operatorNotificationAttempt: current.operatorNotificationAttempt
-      ? {
-          ...current.operatorNotificationAttempt,
-          status: "sent",
-          updatedAt: delivery.deliveredAt,
-        }
+          ? {
+              ...current.operatorNotificationAttempt,
+              status: "sent",
+              updatedAt: delivery.providerAcceptedAt,
+            }
       : undefined,
     operatorNotification: {
       deliveryAttemptId,
@@ -629,13 +629,13 @@ async function ensureOperatorNotificationSent(args: {
       replyTo: args.issuance.email,
       provider: delivery.provider,
       providerMessageId: delivery.providerMessageId,
-      deliveredAt: delivery.deliveredAt,
+      providerAcceptedAt: delivery.providerAcceptedAt,
     },
   }));
 
   await appendIntakeEvent({
     event_type: "INTAKE_OPERATOR_NOTIFICATION_SENT",
-    occurred_at: delivery.deliveredAt,
+    occurred_at: delivery.providerAcceptedAt,
     channel: updated.channel,
     intake_id: updated.intakeId,
     issuance_id: args.issuance.issuanceId,

@@ -17,12 +17,40 @@ import { POST } from "./route";
 function applyTestEnv(baseDir: string): void {
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
-  process.env.WITNESSOPS_PROVIDER_EVENT_SECRET = "provider-secret";
+  process.env.WITNESSOPS_MAILBOX_RECEIPT_SECRET = "provider-secret";
 }
 
 afterEach(async () => {
   await clearTokenStore();
-  delete process.env.WITNESSOPS_PROVIDER_EVENT_SECRET;
+  delete process.env.WITNESSOPS_MAILBOX_RECEIPT_SECRET;
+  delete process.env.WITNESSOPS_RESPONSE_OUTCOME_SECRET;
+});
+
+test("mailbox receipt route does not accept the response-outcome secret", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-mailbox-receipt-secret-boundary-"),
+  );
+  applyTestEnv(baseDir);
+  process.env.WITNESSOPS_RESPONSE_OUTCOME_SECRET = "response-secret";
+  delete process.env.WITNESSOPS_MAILBOX_RECEIPT_SECRET;
+
+  const response = await POST(
+    new NextRequest("http://localhost:3001/api/provider-events/mailbox-receipt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-witnessops-provider-secret": "response-secret",
+      },
+      body: JSON.stringify({
+        deliveryAttemptId: "rsp_mailbox_secret",
+        receiptId: "receipt_secret",
+        status: "delivered",
+        observedAt: "2026-03-29T11:06:00Z",
+      }),
+    }),
+  );
+
+  assert.equal(response.status, 401);
 });
 
 test("mailbox receipt rejects oversized authenticated bodies before JSON parsing", async () => {
@@ -162,6 +190,57 @@ test("concurrent mailbox receipt replays record one receipt and one closure", as
     ).length,
     1,
   );
+});
+
+test("mailbox receipt rejects a mismatched provider message ID", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-mailbox-receipt-binding-"),
+  );
+  applyTestEnv(baseDir);
+  await saveIntake({
+    intakeId: "intk_mailbox_binding",
+    channel: "engage",
+    email: "buyer@example.com",
+    state: "responded",
+    createdAt: "2026-03-29T11:00:00Z",
+    updatedAt: "2026-03-29T11:05:00Z",
+    latestIssuanceId: "iss_mailbox_binding",
+    threadId: "thr_mailbox_binding",
+    submission: {},
+    firstResponse: {
+      deliveryAttemptId: "rsp_mailbox_binding",
+      subject: "Re: mailbox receipt",
+      bodyDigest: "sha256:mailbox-binding",
+      actor: "admin:test",
+      actorAuthSource: "local_bypass",
+      actorSessionHash: null,
+      mailbox: "engage@witnessops.com",
+      provider: "file",
+      providerMessageId: "msg_mailbox_binding",
+      deliveredAt: "2026-03-29T11:05:00Z",
+    },
+    respondedAt: "2026-03-29T11:05:00Z",
+  });
+
+  const response = await POST(
+    new NextRequest("http://localhost:3001/api/provider-events/mailbox-receipt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-witnessops-provider-secret": "provider-secret",
+      },
+      body: JSON.stringify({
+        deliveryAttemptId: "rsp_mailbox_binding",
+        providerMessageId: "msg_not_bound",
+        receiptId: "receipt_binding",
+        status: "delivered",
+        observedAt: "2026-03-29T11:06:00Z",
+      }),
+    }),
+  );
+
+  assert.equal(response.status, 409);
+  assert.equal((await getIntakeById("intk_mailbox_binding"))?.responseMailboxReceipt, undefined);
 });
 
 test("an older offset timestamp cannot replace a newer mailbox receipt", async () => {

@@ -20,13 +20,10 @@ import bouncedFixture from "../../../fixtures/m365/bounced.json";
 import failedFixture from "../../../fixtures/m365/failed.json";
 
 const M365_WEBHOOK_SECRET = "test-m365-hmac-secret";
-const PROVIDER_EVENT_SECRET = "test-provider-secret";
-
 function applyTestEnv(baseDir: string): void {
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
   process.env.WITNESSOPS_M365_WEBHOOK_SECRET = M365_WEBHOOK_SECRET;
-  process.env.WITNESSOPS_PROVIDER_EVENT_SECRET = PROVIDER_EVENT_SECRET;
 }
 
 function hmac(body: string): string {

@@ -33,8 +33,6 @@ export interface VerificationEmailDeliveryResult {
   providerMessageId: string | null;
   /** Time the configured provider accepted the send request. */
   providerAcceptedAt: string;
-  /** @deprecated Compatibility alias used by the response-delivery lane. */
-  deliveredAt: string;
 }
 
 export type TextEmailPayload = VerificationEmailPayload;
@@ -186,7 +184,6 @@ async function sendWithFileProvider(
     provider: "file",
     providerMessageId,
     providerAcceptedAt,
-    deliveredAt: providerAcceptedAt,
   };
 }
 
@@ -263,7 +260,6 @@ async function sendWithResendProvider(
     provider: "resend",
     providerMessageId: body.id ?? null,
     providerAcceptedAt,
-    deliveredAt: providerAcceptedAt,
   };
 }
 
@@ -500,7 +496,6 @@ async function sendWithM365Provider(
       response.headers.get("client-request-id") ??
       null,
     providerAcceptedAt,
-    deliveredAt: providerAcceptedAt,
   };
 }
 
