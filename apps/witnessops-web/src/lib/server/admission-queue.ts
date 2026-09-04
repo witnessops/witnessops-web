@@ -554,8 +554,10 @@ export async function buildAdmissionQueueView(actor?: CoreActor): Promise<Admiss
     const firstResponse = snapshot?.firstResponse;
     const responseAttempt = snapshot?.responseAttempt;
     const evidenceProvider = firstResponse?.provider ??
+      responseAttempt?.provider ??
       (responseAttempt ? "unknown" : null);
     const evidenceObservedAt = snapshot?.respondedAt ??
+      firstResponse?.providerAcceptedAt ??
       firstResponse?.deliveredAt ??
       responseAttempt?.updatedAt ??
       null;
@@ -574,7 +576,10 @@ export async function buildAdmissionQueueView(actor?: CoreActor): Promise<Admiss
       null;
     const responseEvidenceSubcase = classifyDeliveryEvidenceSubcase({
       responseProvider: evidenceProvider,
-      responseProviderMessageId: firstResponse?.providerMessageId ?? null,
+      responseProviderMessageId:
+        firstResponse?.providerMessageId ??
+        responseAttempt?.providerMessageId ??
+        null,
       responseDeliveryAttemptId:
         firstResponse?.deliveryAttemptId ??
         responseAttempt?.deliveryAttemptId ??
@@ -732,8 +737,10 @@ export async function buildAdmissionQueueView(actor?: CoreActor): Promise<Admiss
     const firstResponse = snapshot.firstResponse;
     const responseAttempt = snapshot.responseAttempt;
     const evidenceProvider = firstResponse?.provider ??
+      responseAttempt?.provider ??
       (responseAttempt ? "unknown" : null);
     const evidenceObservedAt = snapshot.respondedAt ??
+      firstResponse?.providerAcceptedAt ??
       firstResponse?.deliveredAt ??
       responseAttempt?.updatedAt ??
       null;
@@ -745,7 +752,10 @@ export async function buildAdmissionQueueView(actor?: CoreActor): Promise<Admiss
       snapshot.responseProviderOutcome?.observedAt ?? null;
     const responseEvidenceSubcase = classifyDeliveryEvidenceSubcase({
       responseProvider: evidenceProvider,
-      responseProviderMessageId: firstResponse?.providerMessageId ?? null,
+      responseProviderMessageId:
+        firstResponse?.providerMessageId ??
+        responseAttempt?.providerMessageId ??
+        null,
       responseDeliveryAttemptId:
         firstResponse?.deliveryAttemptId ??
         responseAttempt?.deliveryAttemptId ??

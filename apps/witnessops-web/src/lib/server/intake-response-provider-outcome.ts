@@ -55,10 +55,10 @@ function shouldReplaceOutcome(
   return outcomeRank(next.status) >= outcomeRank(current.status);
 }
 
-function readProviderEventSecret(): string {
-  const secret = process.env.WITNESSOPS_PROVIDER_EVENT_SECRET?.trim();
+function readConfiguredSecret(envName: string): string {
+  const secret = process.env[envName]?.trim();
   if (!secret) {
-    throw new Error("WITNESSOPS_PROVIDER_EVENT_SECRET is required");
+    throw new Error(`${envName} is required`);
   }
 
   return secret;
@@ -73,35 +73,77 @@ function secretsMatch(expected: string, actual: string): boolean {
   return timingSafeEqual(expectedBuffer, actualBuffer);
 }
 
-export function validateProviderEventSecret(candidate: string | null): boolean {
+function validateConfiguredSecret(
+  envName: string,
+  candidate: string | null,
+): boolean {
   if (!candidate) {
     return false;
   }
 
   try {
-    return secretsMatch(readProviderEventSecret(), candidate);
+    return secretsMatch(readConfiguredSecret(envName), candidate);
   } catch {
     return false;
   }
+}
+
+export function validateResponseOutcomeSecret(candidate: string | null): boolean {
+  return validateConfiguredSecret("WITNESSOPS_RESPONSE_OUTCOME_SECRET", candidate);
+}
+
+export function validateMailboxReceiptSecret(candidate: string | null): boolean {
+  return validateConfiguredSecret("WITNESSOPS_MAILBOX_RECEIPT_SECRET", candidate);
+}
+
+interface ResponseEvidenceCandidate {
+  provider: string | null;
+  providerMessageId: string | null;
+  deliveryAttemptId: string;
+}
+
+function responseEvidenceCandidates(
+  intake: IntakeRecord,
+): ResponseEvidenceCandidate[] {
+  const candidates: ResponseEvidenceCandidate[] = [];
+  if (intake.firstResponse) {
+    candidates.push({
+      provider: intake.firstResponse.provider,
+      providerMessageId: intake.firstResponse.providerMessageId,
+      deliveryAttemptId: intake.firstResponse.deliveryAttemptId,
+    });
+  }
+  if (intake.responseAttempt) {
+    candidates.push({
+      provider: intake.responseAttempt.provider ?? null,
+      providerMessageId: intake.responseAttempt.providerMessageId ?? null,
+      deliveryAttemptId: intake.responseAttempt.deliveryAttemptId,
+    });
+  }
+  return candidates;
+}
+
+function matchingResponseEvidence(
+  intake: IntakeRecord,
+  input: ProviderResponseOutcomeRequest,
+): ResponseEvidenceCandidate[] {
+  return responseEvidenceCandidates(intake).filter(
+    (candidate) =>
+      candidate.provider === input.provider &&
+      (!input.providerMessageId ||
+        candidate.providerMessageId === input.providerMessageId) &&
+      (!input.deliveryAttemptId ||
+        candidate.deliveryAttemptId === input.deliveryAttemptId),
+  );
 }
 
 async function findMatchingIntake(
   input: ProviderResponseOutcomeRequest,
 ): Promise<IntakeRecord> {
   const intakes = await getAllIntakes();
-  const matches = intakes.filter((intake) => {
-    const providerMessageMatch =
-      Boolean(intake.firstResponse) &&
-      intake.firstResponse!.provider === input.provider &&
-      Boolean(input.providerMessageId) &&
-      intake.firstResponse!.providerMessageId === input.providerMessageId;
-    const attemptMatch =
-      Boolean(input.deliveryAttemptId) &&
-      (intake.firstResponse?.deliveryAttemptId === input.deliveryAttemptId ||
-        intake.responseAttempt?.deliveryAttemptId === input.deliveryAttemptId);
-
-    return providerMessageMatch || attemptMatch;
-  });
+  const matches = intakes.filter(
+    (intake) => matchingResponseEvidence(intake, input).length > 0,
+  );
 
   if (matches.length === 0) {
     throw new IntakeResponseProviderOutcomeError(
@@ -122,6 +164,7 @@ async function findMatchingIntake(
 
 async function findExistingProviderOutcomeEvent(args: {
   intakeId: string;
+  provider: string;
   providerEventId: string;
 }) {
   const events = await readIntakeEvents();
@@ -129,6 +172,7 @@ async function findExistingProviderOutcomeEvent(args: {
     (event) =>
       event.intake_id === args.intakeId &&
       event.event_type === "INTAKE_RESPONSE_PROVIDER_OUTCOME_RECORDED" &&
+      event.payload?.provider === args.provider &&
       event.payload?.providerEventId === args.providerEventId,
   );
 }
@@ -155,14 +199,7 @@ export async function recordIntakeResponseProviderOutcome(
         409,
       );
     }
-    const stillMatches =
-      (Boolean(input.providerMessageId) &&
-        intake.firstResponse?.provider === input.provider &&
-        intake.firstResponse.providerMessageId === input.providerMessageId) ||
-      (Boolean(input.deliveryAttemptId) &&
-        (intake.firstResponse?.deliveryAttemptId === input.deliveryAttemptId ||
-          intake.responseAttempt?.deliveryAttemptId === input.deliveryAttemptId));
-    if (!stillMatches) {
+    if (matchingResponseEvidence(intake, input).length === 0) {
       throw new IntakeResponseProviderOutcomeError(
         "Provider response evidence no longer matches this intake.",
         409,
@@ -193,6 +230,7 @@ export async function recordIntakeResponseProviderOutcome(
     });
     if (await findExistingProviderOutcomeEvent({
       intakeId: intake.intakeId,
+      provider: input.provider,
       providerEventId: input.providerEventId,
     })) {
       try {

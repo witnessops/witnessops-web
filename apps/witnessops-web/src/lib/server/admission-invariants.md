@@ -26,8 +26,8 @@ Optional terminal or side-path states are:
 
 - Assessment never starts before `admitted`.
 - Support never redirects to assessment.
-- `responded` means the first external operator reply was successfully delivered for an admitted intake. Viewing, opening, or drafting does not change state.
-- Downstream provider or mailbox outcomes are separate evidence about that reply attempt. They enrich custody but do not rewrite `responded` or create it retroactively.
+- `responded` means the first external operator reply was accepted by the configured provider and durably recorded for an admitted intake. It does not claim recipient-server acceptance or inbox placement. Viewing, opening, or drafting does not change state.
+- Downstream provider or mailbox outcomes are separate evidence about that reply attempt. They enrich delivery custody but do not rewrite `responded` or create it retroactively.
 - Re-submit after the first successful operator reply does not send a second first-response email. It returns the existing response evidence and preserves the original `INTAKE_RESPONDED` event as authority.
 - `intakeId`, `issuanceId`, and `threadId` are distinct identifiers with distinct meanings and must not be reused across domains of meaning.
 - Every material transition emits an append-only event.
@@ -44,7 +44,7 @@ Optional terminal or side-path states are:
 - If a snapshot write succeeds and the corresponding ledger append fails, treat the snapshot as stale and reconcile from the ledger before further processing.
 - If a ledger event exists and a snapshot is missing or behind, rebuild the snapshot from the ledger.
 - If a verification email is delivered without durable ledger evidence of `verification_sent`, treat delivery as an incomplete side effect pending reconciliation, not as authoritative state.
-- If an operator reply is delivered and the snapshot is updated but the `INTAKE_RESPONDED` append fails, surface the divergence and block resend until reconciliation.
+- If a provider accepts an operator reply and the snapshot is updated but the `INTAKE_RESPONDED` append fails, surface the divergence and block resend until reconciliation.
 - If downstream provider evidence arrives later, record it as a separate append-only fact and project it beside the original response attempt rather than mutating admission state.
 - Strong downstream provider outcomes may close a missing-response ambiguity in the derived queue and report, but they still do not create `INTAKE_RESPONDED` or fabricate manual reconciliation.
 - Reconciliation visibility must include the actor, mailbox, provider, provider message ID, and internal delivery attempt ID for the first external reply.
@@ -58,7 +58,8 @@ Optional terminal or side-path states are:
 ### Resend
 - `providerMessageId`: Resend email ID returned at send time (`body.id`).
 - `deliveryAttemptId`: Embedded as `witnessops_delivery_attempt_id` tag at send time.
-- Webhook verification: Svix HMAC (`WITNESSOPS_RESEND_WEBHOOK_SECRET`).
+- Response-outcome webhook verification: Svix HMAC (`WITNESSOPS_RESEND_WEBHOOK_SECRET`).
+- Verification/MFA delivery webhook verification: Svix HMAC (`WITNESSOPS_RESEND_VERIFICATION_WEBHOOK_SECRET`).
 
 ### M365 (Microsoft Graph)
 - `providerMessageId`: Deterministic Internet-Message-ID from `deliveryAttemptId` (`<rsp_…@witnessops.m365>`).
@@ -73,9 +74,10 @@ Optional terminal or side-path states are:
 | Source | Route | Auth | Purpose |
 |--------|-------|------|---------|
 | Resend webhook | `POST /api/provider-events/response-outcome` | Svix | Delivery status |
+| Resend verification webhook | `POST /api/provider-events/verification-delivery` | Svix | Verification/MFA downstream delivery status |
 | M365 webhook | `POST /api/provider-events/response-outcome` | HMAC | Delivery status |
-| Trusted normalized | `POST /api/provider-events/response-outcome` | Secret header | Pre-normalized events |
-| Mailbox receipt | `POST /api/provider-events/mailbox-receipt` | Secret header | End-to-end confirmation |
+| Trusted normalized response outcome | `POST /api/provider-events/response-outcome` | Endpoint-specific secret header (`WITNESSOPS_RESPONSE_OUTCOME_SECRET`) | Pre-normalized events |
+| Mailbox receipt | `POST /api/provider-events/mailbox-receipt` | Endpoint-specific secret header (`WITNESSOPS_MAILBOX_RECEIPT_SECRET`) | End-to-end confirmation |
 
 ## Ambiguity Resolution Hierarchy
 

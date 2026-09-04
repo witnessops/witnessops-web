@@ -4,7 +4,7 @@ import {
   mailboxReceiptRequestSchema,
   mailboxReceiptResponseSchema,
 } from "@/lib/token-contract";
-import { validateProviderEventSecret } from "@/lib/server/intake-response-provider-outcome";
+import { validateMailboxReceiptSecret } from "@/lib/server/intake-response-provider-outcome";
 import {
   IntakeMailboxReceiptError,
   recordIntakeMailboxReceipt,
@@ -26,7 +26,7 @@ function invalid(message: string, status = 400) {
 export async function POST(request: NextRequest) {
   try {
     if (
-      !validateProviderEventSecret(
+      !validateMailboxReceiptSecret(
         request.headers.get("x-witnessops-provider-secret"),
       )
     ) {

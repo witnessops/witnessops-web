@@ -164,6 +164,10 @@ test("admin respond route sends the first external reply and records responded",
   assert.match(intakeRaw, /"actorAuthSource":\s*"local_bypass"/);
   assert.match(intakeRaw, /"subject":\s*"Re: WitnessOps support request"/);
 
+  const stored = await getIntakeById(intake.intakeId);
+  assert.ok(stored?.firstResponse?.providerAcceptedAt);
+  assert.equal(stored?.firstResponse?.deliveredAt, undefined);
+
   const eventLogRaw = await readFile(
     path.join(process.env.WITNESSOPS_TOKEN_AUDIT_DIR!, "events.ndjson"),
     "utf8",
