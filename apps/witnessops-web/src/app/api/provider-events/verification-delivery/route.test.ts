@@ -25,7 +25,8 @@ const RESEND_WEBHOOK_SECRET = `whsec_${Buffer.from(
 function applyTestEnv(baseDir: string): void {
   process.env.WITNESSOPS_TOKEN_STORE_DIR = path.join(baseDir, "store");
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
-  process.env.WITNESSOPS_RESEND_WEBHOOK_SECRET = RESEND_WEBHOOK_SECRET;
+  process.env.WITNESSOPS_RESEND_VERIFICATION_WEBHOOK_SECRET =
+    RESEND_WEBHOOK_SECRET;
 }
 
 function buildSvixHeaders(payload: string, eventId: string) {
@@ -130,7 +131,7 @@ afterEach(async () => {
   await clearTokenStore();
   delete process.env.WITNESSOPS_TOKEN_STORE_DIR;
   delete process.env.WITNESSOPS_TOKEN_AUDIT_DIR;
-  delete process.env.WITNESSOPS_RESEND_WEBHOOK_SECRET;
+  delete process.env.WITNESSOPS_RESEND_VERIFICATION_WEBHOOK_SECRET;
 });
 
 test("records signed Resend delivery status against the MFA issuance", async () => {
@@ -309,4 +310,50 @@ test("requires a valid Resend signature and ignores unrelated signed events", as
     ok: false,
     error: "Unauthorized provider event source.",
   });
+});
+
+test("rejects a malformed Resend event timestamp", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-verification-delivery-timestamp-"),
+  );
+  await seed(baseDir);
+  const body = deliveryBody({
+    type: "email.delivered",
+    createdAt: "not-a-timestamp",
+  });
+
+  const response = await POST(
+    resendRequest(body, "evt_verification_invalid_timestamp"),
+  );
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {
+    ok: false,
+    error: "Resend webhook has an invalid event timestamp.",
+  });
+});
+
+test("backfills provider acceptance from the legacy acceptance timestamp", async () => {
+  const baseDir = await mkdtemp(
+    path.join(os.tmpdir(), "witnessops-verification-delivery-legacy-"),
+  );
+  await seed(baseDir, {
+    delivery: {
+      ...makeIssuance().delivery,
+      providerAcceptedAt: null,
+      status: undefined,
+      statusObservedAt: null,
+      deliveredAt: "2026-09-04T10:01:00Z",
+    },
+  });
+  const body = deliveryBody({
+    type: "email.delivered",
+    createdAt: "2026-09-04T10:02:00Z",
+  });
+
+  const response = await POST(
+    resendRequest(body, "evt_verification_legacy_acceptance"),
+  );
+  assert.equal(response.status, 200);
+  const issuance = await getIssuanceById("iss_verification_delivery");
+  assert.equal(issuance?.delivery.providerAcceptedAt, "2026-09-04T10:01:00Z");
 });

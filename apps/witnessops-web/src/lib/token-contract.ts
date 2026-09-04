@@ -6,7 +6,7 @@ import {
   intakeResponseProviderOutcomeStatuses,
 } from "./provider-outcomes";
 
-const rfc3339Schema = z.string().datetime({ offset: true });
+export const rfc3339Schema = z.string().datetime({ offset: true });
 
 export const INTAKE_SHORT_TEXT_MAX_LENGTH = 240;
 export const INTAKE_LONG_TEXT_MAX_LENGTH = 8_000;
@@ -284,6 +284,28 @@ export const providerResponseOutcomeResponseSchema = z.object({
   source: intakeResponseProviderOutcomeSourceSchema,
   rawEventType: z.string().min(1),
   detail: z.string().nullable(),
+});
+
+export const verificationDeliveryStatusSchema = z.enum([
+  "unknown",
+  "provider_accepted",
+  "delivery_delayed",
+  "delivered",
+  "bounced",
+  "failed",
+  "suppressed",
+]);
+
+export const verificationDeliveryResponseSchema = z.object({
+  status: z.enum(["recorded", "already_recorded"]),
+  issuanceId: z.string().min(1),
+  provider: z.string().min(1),
+  providerEventId: z.string().min(1),
+  providerMessageId: z.string().min(1),
+  deliveryStatus: verificationDeliveryStatusSchema,
+  statusObservedAt: rfc3339Schema.nullable(),
+  observedAt: rfc3339Schema,
+  rawEventType: z.string().min(1),
 });
 
 export const mailboxReceiptRequestSchema = z.object({

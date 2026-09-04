@@ -58,7 +58,8 @@ Optional terminal or side-path states are:
 ### Resend
 - `providerMessageId`: Resend email ID returned at send time (`body.id`).
 - `deliveryAttemptId`: Embedded as `witnessops_delivery_attempt_id` tag at send time.
-- Webhook verification: Svix HMAC (`WITNESSOPS_RESEND_WEBHOOK_SECRET`).
+- Response-outcome webhook verification: Svix HMAC (`WITNESSOPS_RESEND_WEBHOOK_SECRET`).
+- Verification/MFA delivery webhook verification: Svix HMAC (`WITNESSOPS_RESEND_VERIFICATION_WEBHOOK_SECRET`).
 
 ### M365 (Microsoft Graph)
 - `providerMessageId`: Deterministic Internet-Message-ID from `deliveryAttemptId` (`<rsp_…@witnessops.m365>`).

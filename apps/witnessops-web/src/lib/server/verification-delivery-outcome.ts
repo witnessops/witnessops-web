@@ -163,6 +163,7 @@ export async function recordVerificationDeliveryOutcome(
     const detail = normalizedDetail(input.detail);
     const providerAcceptedAt =
       issuance.delivery.providerAcceptedAt ??
+      issuance.delivery.deliveredAt ??
       (input.status === "provider_accepted" ? input.observedAt : null);
 
     const updatedIssuance = await updateIssuance(

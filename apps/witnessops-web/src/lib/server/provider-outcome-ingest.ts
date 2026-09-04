@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import {
   providerResponseOutcomeRequestSchema,
+  rfc3339Schema,
   type ProviderResponseOutcomeRequest,
 } from "@/lib/token-contract";
 
@@ -123,11 +124,14 @@ export type ParsedVerificationDeliveryEvent =
   | IgnoredProviderOutcomeEvent
   | RecordedVerificationDeliveryEvent;
 
-function readResendWebhookSecret(): string {
-  const secret = process.env.WITNESSOPS_RESEND_WEBHOOK_SECRET?.trim();
+function readResendWebhookSecret(
+  envName = "WITNESSOPS_RESEND_WEBHOOK_SECRET",
+): string {
+  const secret = process.env[envName]?.trim();
   if (!secret) {
     console.error("Provider webhook verification is unavailable", {
       provider: "resend",
+      secretEnv: envName,
       errorType: "configuration",
     });
     throw new IntakeResponseProviderOutcomeError(
@@ -248,8 +252,9 @@ function mapResendVerificationDeliveryStatus(
 function verifyAndParseResendWebhookPayload(
   rawBody: string,
   request: NextRequest,
+  secretEnv = "WITNESSOPS_RESEND_WEBHOOK_SECRET",
 ): z.infer<typeof resendWebhookEventSchema> {
-  const webhook = new Webhook(readResendWebhookSecret());
+  const webhook = new Webhook(readResendWebhookSecret(secretEnv));
 
   try {
     webhook.verify(rawBody, {
@@ -346,7 +351,11 @@ export async function parseResendVerificationDeliveryEvent(
     );
   }
 
-  const event = verifyAndParseResendWebhookPayload(rawBody, request);
+  const event = verifyAndParseResendWebhookPayload(
+    rawBody,
+    request,
+    "WITNESSOPS_RESEND_VERIFICATION_WEBHOOK_SECRET",
+  );
   const providerEventId = request.headers.get("svix-id");
   if (!providerEventId) {
     throw new IntakeResponseProviderOutcomeError(
@@ -370,6 +379,13 @@ export async function parseResendVerificationDeliveryEvent(
   if (!providerMessageId) {
     throw new IntakeResponseProviderOutcomeError(
       "Resend webhook is missing the email identifier required to match a verification issuance.",
+      400,
+    );
+  }
+
+  if (!rfc3339Schema.safeParse(event.created_at).success) {
+    throw new IntakeResponseProviderOutcomeError(
+      "Resend webhook has an invalid event timestamp.",
       400,
     );
   }

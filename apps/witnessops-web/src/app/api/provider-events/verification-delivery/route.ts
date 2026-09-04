@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { verificationDeliveryResponseSchema } from "@/lib/token-contract";
 import {
   parseResendVerificationDeliveryEvent,
   type IgnoredProviderOutcomeEvent,
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
       rawEventType: parsed.rawEventType,
       detail: parsed.detail,
     });
-    return NextResponse.json(response);
+    return NextResponse.json(verificationDeliveryResponseSchema.parse(response));
   } catch (error) {
     if (
       error instanceof IntakeResponseProviderOutcomeError ||
