@@ -73,6 +73,7 @@ Optional terminal or side-path states are:
 | Source | Route | Auth | Purpose |
 |--------|-------|------|---------|
 | Resend webhook | `POST /api/provider-events/response-outcome` | Svix | Delivery status |
+| Resend verification webhook | `POST /api/provider-events/verification-delivery` | Svix | Verification/MFA downstream delivery status |
 | M365 webhook | `POST /api/provider-events/response-outcome` | HMAC | Delivery status |
 | Trusted normalized | `POST /api/provider-events/response-outcome` | Secret header | Pre-normalized events |
 | Mailbox receipt | `POST /api/provider-events/mailbox-receipt` | Secret header | End-to-end confirmation |

@@ -22,7 +22,7 @@ export function getMailboxConfig(): MailboxConfig {
     hello: readMailbox("WITNESSOPS_MAILBOX_HELLO", PUBLIC_CONTACT_EMAIL),
     noreply: readMailbox(
       "WITNESSOPS_MAILBOX_NOREPLY",
-      "witnessopsno-reply@witnessops.com",
+      "noreply@send.witnessops.com",
     ),
     outreach: readMailbox("WITNESSOPS_MAILBOX_OUTREACH", "outreach@witnessops.com"),
     support: readMailbox("WITNESSOPS_MAILBOX_SUPPORT", PUBLIC_CONTACT_EMAIL),

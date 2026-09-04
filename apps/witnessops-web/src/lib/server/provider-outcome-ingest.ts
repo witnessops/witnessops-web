@@ -12,6 +12,7 @@ import {
   IntakeResponseProviderOutcomeError,
   validateProviderEventSecret,
 } from "./intake-response-provider-outcome";
+import type { VerificationDeliveryStatus } from "./verification-delivery-status";
 
 const resendWebhookHeaders = [
   "svix-id",
@@ -82,6 +83,11 @@ const resendWebhookEventSchema = z.object({
         reason: z.string().trim().optional(),
       })
       .optional(),
+    suppressed: z
+      .object({
+        reason: z.string().trim().optional(),
+      })
+      .optional(),
   }),
 });
 
@@ -101,6 +107,21 @@ export interface RecordedProviderOutcomeEvent {
 export type ParsedProviderOutcomeEvent =
   | IgnoredProviderOutcomeEvent
   | RecordedProviderOutcomeEvent;
+
+export interface RecordedVerificationDeliveryEvent {
+  kind: "record";
+  provider: "resend";
+  providerEventId: string;
+  providerMessageId: string;
+  status: VerificationDeliveryStatus;
+  observedAt: string;
+  rawEventType: string;
+  detail?: string;
+}
+
+export type ParsedVerificationDeliveryEvent =
+  | IgnoredProviderOutcomeEvent
+  | RecordedVerificationDeliveryEvent;
 
 function readResendWebhookSecret(): string {
   const secret = process.env.WITNESSOPS_RESEND_WEBHOOK_SECRET?.trim();
@@ -178,6 +199,10 @@ function buildResendEventDetail(
     return event.data.failed.reason;
   }
 
+  if (event.type === "email.suppressed" && event.data.suppressed?.reason) {
+    return event.data.suppressed.reason;
+  }
+
   return undefined;
 }
 
@@ -199,10 +224,31 @@ function mapResendWebhookOutcome(
   }
 }
 
-function verifyAndAdaptResendWebhook(
+function mapResendVerificationDeliveryStatus(
+  eventType: string,
+): VerificationDeliveryStatus | null {
+  switch (eventType) {
+    case "email.sent":
+      return "provider_accepted";
+    case "email.delivery_delayed":
+      return "delivery_delayed";
+    case "email.delivered":
+      return "delivered";
+    case "email.bounced":
+      return "bounced";
+    case "email.failed":
+      return "failed";
+    case "email.suppressed":
+      return "suppressed";
+    default:
+      return null;
+  }
+}
+
+function verifyAndParseResendWebhookPayload(
   rawBody: string,
   request: NextRequest,
-): ParsedProviderOutcomeEvent {
+): z.infer<typeof resendWebhookEventSchema> {
   const webhook = new Webhook(readResendWebhookSecret());
 
   try {
@@ -233,23 +279,32 @@ function verifyAndAdaptResendWebhook(
     );
   }
 
+  return parsed.data;
+}
+
+function verifyAndAdaptResendWebhook(
+  rawBody: string,
+  request: NextRequest,
+): ParsedProviderOutcomeEvent {
+  const event = verifyAndParseResendWebhookPayload(rawBody, request);
+
   const providerEventId = request.headers.get("svix-id");
-  const outcome = mapResendWebhookOutcome(parsed.data.type);
+  const outcome = mapResendWebhookOutcome(event.type);
 
   if (!outcome) {
     return {
       kind: "ignored",
       provider: "resend",
       providerEventId,
-      rawEventType: parsed.data.type,
+      rawEventType: event.type,
       reason: "Resend event does not map to a response outcome.",
     };
   }
 
-  const providerMessageId = parsed.data.data.email_id?.trim() || null;
+  const providerMessageId = event.data.email_id?.trim() || null;
   const deliveryAttemptId =
-    parsed.data.data.tags?.witnessops_delivery_attempt_id?.trim() ||
-    parsed.data.data.tags?.deliveryAttemptId?.trim() ||
+    event.data.tags?.witnessops_delivery_attempt_id?.trim() ||
+    event.data.tags?.deliveryAttemptId?.trim() ||
     null;
 
   const normalized = providerResponseOutcomeRequestSchema.safeParse({
@@ -258,10 +313,10 @@ function verifyAndAdaptResendWebhook(
     providerMessageId,
     deliveryAttemptId,
     outcome,
-    observedAt: parsed.data.created_at,
+    observedAt: event.created_at,
     source: "provider_webhook",
-    rawEventType: parsed.data.type,
-    detail: buildResendEventDetail(parsed.data),
+    rawEventType: event.type,
+    detail: buildResendEventDetail(event),
   });
 
   if (!normalized.success) {
@@ -274,6 +329,60 @@ function verifyAndAdaptResendWebhook(
   return {
     kind: "record",
     request: normalized.data,
+  };
+}
+
+export async function parseResendVerificationDeliveryEvent(
+  request: NextRequest,
+): Promise<ParsedVerificationDeliveryEvent> {
+  const rawBody = await readProviderOutcomeBody(request);
+  if (!rawBody.trim()) {
+    throw new IntakeResponseProviderOutcomeError("Invalid request body.", 400);
+  }
+  if (!hasResendWebhookHeaders(request)) {
+    throw new IntakeResponseProviderOutcomeError(
+      "Unauthorized provider event source.",
+      401,
+    );
+  }
+
+  const event = verifyAndParseResendWebhookPayload(rawBody, request);
+  const providerEventId = request.headers.get("svix-id");
+  if (!providerEventId) {
+    throw new IntakeResponseProviderOutcomeError(
+      "Unauthorized provider event source.",
+      401,
+    );
+  }
+
+  const status = mapResendVerificationDeliveryStatus(event.type);
+  if (!status) {
+    return {
+      kind: "ignored",
+      provider: "resend",
+      providerEventId,
+      rawEventType: event.type,
+      reason: "Resend event does not map to verification delivery status.",
+    };
+  }
+
+  const providerMessageId = event.data.email_id?.trim();
+  if (!providerMessageId) {
+    throw new IntakeResponseProviderOutcomeError(
+      "Resend webhook is missing the email identifier required to match a verification issuance.",
+      400,
+    );
+  }
+
+  return {
+    kind: "record",
+    provider: "resend",
+    providerEventId,
+    providerMessageId,
+    status,
+    observedAt: event.created_at,
+    rawEventType: event.type,
+    detail: buildResendEventDetail(event),
   };
 }
 

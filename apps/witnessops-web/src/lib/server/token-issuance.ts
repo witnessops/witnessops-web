@@ -406,7 +406,10 @@ async function ensureIssuanceContext(record: TokenIssuanceRecord): Promise<{
         record.status === "verified"
           ? (inferredThreadId ?? generateThreadId())
           : inferredThreadId,
-      verificationSentAt: record.delivery.deliveredAt,
+      verificationSentAt:
+        record.delivery.providerAcceptedAt ??
+        record.delivery.deliveredAt ??
+        record.createdAt,
       verifiedAt: record.verifiedAt,
       admittedAt:
         record.status === "verified"
@@ -784,6 +787,7 @@ async function createReservedVerificationIssuance(
     html: template.html,
     messageClass: "transactional",
   });
+  const providerAcceptedAt = delivery.providerAcceptedAt;
 
   const issuanceRecord: TokenIssuanceRecord = {
     issuanceId,
@@ -803,7 +807,11 @@ async function createReservedVerificationIssuance(
       templateVersion: template.templateVersion,
       provider: delivery.provider,
       providerMessageId: delivery.providerMessageId,
-      deliveredAt: delivery.deliveredAt,
+      providerAcceptedAt,
+      status: "provider_accepted",
+      statusObservedAt: providerAcceptedAt,
+      providerEventId: null,
+      statusDetail: null,
     },
   };
 
@@ -818,7 +826,7 @@ async function createReservedVerificationIssuance(
     nextState: "verification_sent",
     eventType: "INTAKE_VERIFICATION_SENT",
     source: input.source,
-    occurredAt: delivery.deliveredAt,
+    occurredAt: providerAcceptedAt,
     issuanceId,
     patch: {
       latestIssuanceId: issuanceId,

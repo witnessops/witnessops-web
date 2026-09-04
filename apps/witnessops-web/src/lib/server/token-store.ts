@@ -22,6 +22,7 @@ import type {
 import type { DeliveryEvidenceSubcase } from "./reconciliation-subcases";
 import { getConfiguredEnvPath } from "./storage-config";
 import { withFilesystemLock } from "./filesystem-lock";
+import type { VerificationDeliveryStatus } from "./verification-delivery-status";
 
 /**
  * Intake and issuance JSON files are read models for lookup and operator views.
@@ -45,7 +46,15 @@ export interface TokenDeliveryMetadata {
   templateVersion: string;
   provider: string;
   providerMessageId: string | null;
-  deliveredAt: string;
+  /** Time the configured provider accepted the API request. */
+  providerAcceptedAt?: string | null;
+  /** Latest downstream provider status observed for this message. */
+  status?: VerificationDeliveryStatus;
+  statusObservedAt?: string | null;
+  providerEventId?: string | null;
+  statusDetail?: string | null;
+  /** @deprecated Legacy API-acceptance timestamp; not recipient delivery proof. */
+  deliveredAt?: string;
 }
 
 export interface IntakeSubmissionRecord {

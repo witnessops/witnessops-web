@@ -307,6 +307,12 @@ export const DECLARED_API_ENDPOINTS: ReadonlyArray<DeclaredEndpoint> = [
     summary: "Inbound mailbox receipt event from mail provider",
   },
   {
+    path: "/api/provider-events/verification-delivery",
+    methods: ["POST"],
+    category: "provider-webhook",
+    summary: "Inbound signed Resend delivery status for verification/MFA messages",
+  },
+  {
     path: "/api/provider-events/response-outcome",
     methods: ["POST"],
     category: "provider-webhook",

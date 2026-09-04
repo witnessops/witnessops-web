@@ -39,6 +39,7 @@
   "/api/review/request/route": "app/api/review/request/route.js",
   "/api/provider-events/response-outcome/route": "app/api/provider-events/response-outcome/route.js",
   "/api/package/[issuanceId]/disposition/route": "app/api/package/[issuanceId]/disposition/route.js",
+  "/api/provider-events/verification-delivery/route": "app/api/provider-events/verification-delivery/route.js",
   "/api/verify/route": "app/api/verify/route.js",
   "/api/verify-token/route": "app/api/verify-token/route.js",
   "/api/admin/core/[...path]/route": "app/api/admin/core/[...path]/route.js",

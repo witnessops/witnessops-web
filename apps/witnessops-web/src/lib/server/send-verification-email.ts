@@ -31,6 +31,9 @@ export interface VerificationEmailPayload {
 export interface VerificationEmailDeliveryResult {
   provider: string;
   providerMessageId: string | null;
+  /** Time the configured provider accepted the send request. */
+  providerAcceptedAt: string;
+  /** @deprecated Compatibility alias used by the response-delivery lane. */
   deliveredAt: string;
 }
 
@@ -142,14 +145,14 @@ async function sendWithFileProvider(
   await mkdir(outputDir, { recursive: true });
 
   const providerMessageId = `msg_${randomUUID().replace(/-/g, "")}`;
-  const deliveredAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+  const sentAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
   const boundary = `witnessops-${providerMessageId}`;
   const eml = [
     `From: ${payload.from}`,
     `To: ${payload.to}`,
     ...(payload.replyTo ? [`Reply-To: ${payload.replyTo}`] : []),
     `Subject: ${payload.subject}`,
-    `Date: ${deliveredAt}`,
+    `Date: ${sentAt}`,
     `Message-ID: <${providerMessageId}@witnessops.local>`,
     ...policyHeaders(payload),
     "MIME-Version: 1.0",
@@ -177,10 +180,13 @@ async function sendWithFileProvider(
     "utf8",
   );
 
+  const providerAcceptedAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+
   return {
     provider: "file",
     providerMessageId,
-    deliveredAt,
+    providerAcceptedAt,
+    deliveredAt: providerAcceptedAt,
   };
 }
 
@@ -194,7 +200,6 @@ async function sendWithResendProvider(
     );
   }
 
-  const deliveredAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
   const sendBody: Record<string, unknown> = {
     from: payload.from,
     to: [payload.to],
@@ -253,10 +258,12 @@ async function sendWithResendProvider(
   }
 
   const body = (await response.json()) as { id?: string };
+  const providerAcceptedAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
   return {
     provider: "resend",
     providerMessageId: body.id ?? null,
-    deliveredAt,
+    providerAcceptedAt,
+    deliveredAt: providerAcceptedAt,
   };
 }
 
@@ -398,7 +405,6 @@ async function sendWithM365Provider(
 ): Promise<VerificationEmailDeliveryResult> {
   const config = readM365Config(payload.from);
   const accessToken = await requestM365AccessToken(config);
-  const deliveredAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
 
   const internetMessageHeaders: Array<{ name: string; value: string }> = [
     {
@@ -485,6 +491,7 @@ async function sendWithM365Provider(
     );
   }
 
+  const providerAcceptedAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
   return {
     provider: "m365",
     providerMessageId:
@@ -492,7 +499,8 @@ async function sendWithM365Provider(
       response.headers.get("request-id") ??
       response.headers.get("client-request-id") ??
       null,
-    deliveredAt,
+    providerAcceptedAt,
+    deliveredAt: providerAcceptedAt,
   };
 }
 
