@@ -1,7 +1,6 @@
 """Exercise the actual downloadable verifier, not a substitute implementation."""
 import hashlib
 import json
-import re
 import subprocess
 import sys
 import tempfile
