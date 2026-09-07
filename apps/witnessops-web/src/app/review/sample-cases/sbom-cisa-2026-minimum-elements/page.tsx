@@ -20,7 +20,7 @@ import {
 } from "./sample-contract";
 
 export const metadata: Metadata = {
-  title: "Sample — SBOM minimum-elements check",
+  title: "Sample: SBOM minimum-elements check",
   description:
     "Synthetic sample showing a bounded SBOM package check against the public CISA 2026 minimum elements baseline. Not live customer evidence and not a compliance certificate.",
   alternates: getCanonicalAlternates(
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     "/review/sample-cases/sbom-cisa-2026-minimum-elements",
   ),
   openGraph: {
-    title: "Sample — SBOM minimum-elements check | WitnessOps",
+    title: "Sample: SBOM minimum-elements check | WitnessOps",
     description:
       "Inspect a synthetic SBOM package check with generation context, named gaps, and clear limits. Not a CISA compliance claim.",
     siteName: "WitnessOps",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sample — SBOM minimum-elements check | WitnessOps",
+    title: "Sample: SBOM minimum-elements check | WitnessOps",
     description:
       "Inspect a synthetic SBOM package check with generation context, named gaps, and clear limits.",
   },
@@ -55,7 +55,7 @@ const walkthrough = [
   ],
   [
     "Read the situation",
-    "One named software unit — sample-app — with a tiny dependency set and intentional gaps.",
+    "One named software unit, sample-app, with a tiny dependency set and intentional gaps.",
   ],
   [
     "Check the checklist",
@@ -63,7 +63,7 @@ const walkthrough = [
   ],
   [
     "Stay inside the boundary",
-    "This is package shape and checklist observation only — not compliance certification or vulnerability status.",
+    "This is package shape and checklist observation only, not compliance certification or vulnerability status.",
   ],
 ] as const;
 
@@ -85,7 +85,7 @@ export default function SbomCisa2026SamplePage() {
           </h1>
           <p className="max-w-2xl text-base leading-7 text-text-secondary">
             Situation: you received or produced a software bill of materials and
-            need a bounded answer — which CISA 2026 minimum elements appear
+            need a bounded answer: which CISA 2026 minimum elements appear
             present, partial, missing, or unknown for one named software unit.
           </p>
           <div className="flex flex-wrap gap-2">

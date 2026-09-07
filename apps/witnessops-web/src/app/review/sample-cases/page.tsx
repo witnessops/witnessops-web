@@ -41,7 +41,7 @@ const sampleCases = [
     situation:
       "One launch host needs a before-and-after readiness picture against an approved baseline.",
     youSee:
-      "Baseline/candidate relationship, drift notes, findings, proofpack ZIP, and named limits — not launch approval.",
+      "Baseline/candidate relationship, drift notes, findings, proofpack ZIP, and named limits, not launch approval.",
     tags: ["Full sample package", "OFFSEC-LAUNCH-READY"],
     emphasize: true,
   },
@@ -78,7 +78,7 @@ const sampleCases = [
     situation:
       "A proof-backed review of custody or wallet-operations controls without keys or fund movement.",
     youSee:
-      "Sanitised posture, findings, proofpack, and hard boundaries — no solvency or custody-of-funds claim.",
+      "Sanitised posture, findings, proofpack, and hard boundaries, no solvency or custody-of-funds claim.",
     tags: ["Full sample package", "OFFSEC-CUSTODY-OPS"],
     emphasize: false,
   },
@@ -87,7 +87,7 @@ const sampleCases = [
     href: "/review/sample-cases/incident-readiness-review",
     situation: "A bounded readiness record for one named incident scenario and environment.",
     youSee:
-      "Sanitised readiness observations, open decisions, and proofpack limits — not live IR command.",
+      "Sanitised readiness observations, open decisions, and proofpack limits, not live IR command.",
     tags: ["Full sample package", "OFFSEC-INCIDENT-READY"],
     emphasize: false,
   },
@@ -104,7 +104,7 @@ const sampleCases = [
     title: "SBOM field checklist (method sample)",
     href: "/review/sample-cases/sbom-cisa-2026-minimum-elements",
     situation:
-      "A labelled synthetic package shows how a field checklist can sit inside a delivery — not a public product card.",
+      "A labelled synthetic package shows how a field checklist can sit inside a delivery, not a public product card.",
     youSee:
       "Generation context, present/partial gaps, and limits. Not compliance certification and not a catalogue SKU promotion.",
     tags: ["Method sample", "Not a product card"],
@@ -115,7 +115,7 @@ const sampleCases = [
     href: "/review/sample-cases/privileged-access-grant",
     situation: "Someone requested time-bounded administrative access for one task.",
     youSee:
-      "How approval, provisioning, and entitlement evidence should connect — and where replay often stays weak.",
+      "How approval, provisioning, and entitlement evidence should connect and where replay often stays weak.",
     tags: ["Access path", "Explanatory example only"],
     emphasize: false,
   },
@@ -154,7 +154,7 @@ const nextSteps = [
   },
   {
     title: "Illustrative sample report",
-    description: "A generic report shape for orientation — not a live customer report.",
+    description: "A generic report shape for orientation, not a live customer report.",
     href: "/review/sample-report",
     label: "Open sample report",
   },
@@ -188,7 +188,7 @@ export default function SampleCasesIndexPage() {
             your own environment.
           </p>
           <p className="mt-4 max-w-3xl text-base leading-7 text-text-muted">
-            Operator scripts and checks run inside a scoped package when useful. They are methods —
+            Operator scripts and checks run inside a scoped package when useful. They are methods,
             not a product card for every capability.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">

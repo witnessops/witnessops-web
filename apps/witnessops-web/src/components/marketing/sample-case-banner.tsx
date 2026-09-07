@@ -25,7 +25,7 @@ export function SampleCaseBanner({
       data-sample-banner="not-live-customer"
     >
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
-        Published sample — not live customer evidence
+        Published sample, not live customer evidence
       </p>
       {title ? (
         <p className="mt-2 text-sm font-semibold text-text-primary">{title}</p>

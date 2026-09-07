@@ -8,13 +8,14 @@ import {
 } from "@/lib/commercial-truth";
 
 const expectedPrices = {
+  "automation-repair-handover": { en: "€250 diagnosis · excluding VAT", pl: "€250 za diagnozę · bez VAT" },
   "customer-security-review-sprint": {
     en: "From €1,600 · excluding VAT",
     pl: "Od 7 000 zł (ok. €1 600) · bez VAT",
   },
   "bounded-workflow-review": {
     en: "€2,500 fixed · excluding VAT",
-    pl: "€2 500 — cena stała · bez VAT",
+    pl: "€2 500: cena stała · bez VAT",
   },
   "one-server-security-check": {
     en: "€950 standard · excluding VAT",

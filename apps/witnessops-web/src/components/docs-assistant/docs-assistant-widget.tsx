@@ -5,15 +5,15 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageCircle, X } from "lucide-react";
 
 import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { trackAskEvent } from "@/lib/docs-assistant/ask-analytics";
 
 import {
   askWitnessOpsAnswerText,
@@ -28,10 +28,17 @@ import { AskWitnessOpsSourceLinks } from "./ask-witnessops-source-links";
 import { DocsAssistantContactHandoff } from "./docs-assistant-contact-handoff";
 import { DocsAssistantLoadingStatus } from "./docs-assistant-loading-status";
 import styles from "./docs-assistant-widget.module.css";
+import { AskAiDisclosure } from "./ask-ai-disclosure";
+import {
+  askConversationBrief, askConversationHistory, askFollowUpQuestions, askGuidedQuestions,
+  askPageService, clearAskConversation, getAskConversation, getEmptyAskConversation,
+  rememberAskTurn, subscribeAskConversation,
+} from "./ask-conversation";
 
 interface AnswerState {
   content: string;
   answer?: AskWitnessOpsUiAnswer;
+  question?: string;
   error?: boolean;
 }
 
@@ -55,32 +62,13 @@ const HIDDEN_WIDGET_PATHS = [
 const MOBILE_WIDGET_MEDIA_QUERY = "(max-width: 39.999rem)";
 const FOCUSABLE_SELECTOR = [
   "a[href]",
+  "summary",
   "button:not([disabled])",
   "input:not([disabled])",
   "textarea:not([disabled])",
   "select:not([disabled])",
   '[tabindex]:not([tabindex="-1"])',
 ].join(", ");
-
-const GUIDED_FIT_QUESTIONS = [
-  {
-    label: "Agent changed production",
-    detail: "Action · tool path · touched system",
-    question:
-      "Can WitnessOps review one bounded AI-agent action that changes a production system?",
-  },
-  {
-    label: "Approval or authority gap",
-    detail: "Owner · scope · policy · approval",
-    question:
-      "Can WitnessOps review who approved access for one consequential agent workflow?",
-  },
-  {
-    label: "Review scope and price",
-    detail: "Offer · price · paid next step",
-    question: `What is included in ${PRIMARY_OFFER.name.en} and how much does it cost?`,
-  },
-] as const;
 
 export function shouldShowDocsAssistantWidget(pathname: string): boolean {
   if (pathname === "/docs/assistant") return false;
@@ -98,8 +86,18 @@ export function DocsAssistantWidget() {
   const pathname = usePathname();
   const widgetVisible = shouldShowDocsAssistantWidget(pathname);
   const [open, setOpen] = useState(false);
+  const [focusedControlObscured, setFocusedControlObscured] = useState(false);
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState<AnswerState | null>(null);
+  const [answerState, setAnswer] = useState<AnswerState | null>(null);
+  const completedTurns = useSyncExternalStore(subscribeAskConversation, getAskConversation, getEmptyAskConversation);
+  const lastTurn = completedTurns[completedTurns.length - 1];
+  const answer = answerState ?? (lastTurn ? {
+    content: askWitnessOpsAnswerText(lastTurn.answer), answer: lastTurn.answer, question: lastTurn.question,
+  } : null);
+  const previousTurns = answer?.answer === lastTurn?.answer ? completedTurns.slice(0, -1) : completedTurns;
+  const pageService = askPageService(pathname);
+  const proposedBrief = askConversationBrief(completedTurns);
+  const [feedback, setFeedback] = useState<"helpful" | "not_helpful" | null>(null);
   const [loading, setLoading] = useState(false);
   const [contactMode, setContactMode] = useState(false);
   const [contactBusy, setContactBusy] = useState(false);
@@ -113,6 +111,7 @@ export function DocsAssistantWidget() {
   const [mobileModal, setMobileModal] = useState(false);
   const layerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -122,13 +121,11 @@ export function DocsAssistantWidget() {
   const restoreContactLauncherFocusRef = useRef(false);
   const contactBusyRef = useRef(false);
 
-  const resetAskState = useCallback(() => {
+  const closeAskPanel = useCallback(() => {
     requestGenerationRef.current += 1;
     contactBusyRef.current = false;
     restoreContactLauncherFocusRef.current = false;
     setOpen(false);
-    setQuestion("");
-    setAnswer(null);
     setLoading(false);
     setContactMode(false);
     setContactBusy(false);
@@ -139,7 +136,7 @@ export function DocsAssistantWidget() {
     if (contactBusyRef.current) return;
 
     const previousFocus = previousFocusRef.current;
-    resetAskState();
+    closeAskPanel();
     window.requestAnimationFrame(() => {
       if (previousFocus?.isConnected) {
         previousFocus.focus();
@@ -148,18 +145,24 @@ export function DocsAssistantWidget() {
 
       triggerRef.current?.focus();
     });
-  }, [resetAskState]);
+  }, [closeAskPanel]);
 
   const handleNavigation = useCallback(() => {
-    resetAskState();
-  }, [resetAskState]);
+    closeAskPanel();
+  }, [closeAskPanel]);
 
   useEffect(() => {
     if (previousPathnameRef.current === pathname) return;
 
     previousPathnameRef.current = pathname;
-    resetAskState();
-  }, [pathname, resetAskState]);
+    closeAskPanel();
+    setAnswer(null);
+    setFeedback(null);
+  }, [pathname, closeAskPanel]);
+
+  useEffect(() => {
+    if (open && !contactMode) scrollRef.current?.scrollTo({ top: 0 });
+  }, [answerState, open, contactMode]);
 
   useEffect(() => {
     const mobileBoundary = window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY);
@@ -188,15 +191,61 @@ export function DocsAssistantWidget() {
   }, [mobileModal, open, widgetVisible]);
 
   useEffect(() => {
+    if (open || !widgetVisible) return;
+    let frame = 0;
+    const checkFocus = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const active = document.activeElement;
+        const trigger = triggerRef.current;
+        if (!(active instanceof HTMLElement) || !trigger || active === trigger || active === document.body) {
+          setFocusedControlObscured(false);
+          return;
+        }
+        const editing = active.matches("input, textarea, select, [contenteditable='true']");
+        const field = active.getBoundingClientRect();
+        const button = trigger.getBoundingClientRect();
+        const intersects = field.left < button.right && field.right > button.left && field.top < button.bottom && field.bottom > button.top;
+        const interactive = active.matches("a[href], button, input, textarea, select, summary, [contenteditable='true'], [role='button'], [role='link']");
+        setFocusedControlObscured(editing || (interactive && intersects));
+      });
+    };
+    document.addEventListener("focusin", checkFocus);
+    document.addEventListener("focusout", checkFocus);
+    window.addEventListener("scroll", checkFocus, true);
+    window.addEventListener("resize", checkFocus);
+    checkFocus();
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("focusin", checkFocus);
+      document.removeEventListener("focusout", checkFocus);
+      window.removeEventListener("scroll", checkFocus, true);
+      window.removeEventListener("resize", checkFocus);
+    };
+  }, [open, pathname, widgetVisible, suppressFloatingTrigger]);
+
+  useEffect(() => {
     const mobileViewport = window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY);
 
     if (pathname !== "/") {
+      const offerPage = Boolean(askPageService(pathname));
+      const guards = offerPage ? Array.from(document.querySelectorAll('main a[href^="/review/request"], footer[data-brand-footer]')) : [];
+      const visibleGuards = new Set<Element>();
       const syncNonHomeTrigger = () => {
-        setSuppressFloatingTrigger(mobileViewport.matches);
+        setSuppressFloatingTrigger(mobileViewport.matches && (!offerPage || visibleGuards.size > 0));
       };
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visibleGuards.add(entry.target);
+          else visibleGuards.delete(entry.target);
+        }
+        syncNonHomeTrigger();
+      }, { threshold: 0.05 });
+      guards.forEach((guard) => observer.observe(guard));
       mobileViewport.addEventListener("change", syncNonHomeTrigger);
       syncNonHomeTrigger();
       return () => {
+        observer.disconnect();
         mobileViewport.removeEventListener("change", syncNonHomeTrigger);
       };
     }
@@ -213,7 +262,7 @@ export function DocsAssistantWidget() {
     let footerVisible = false;
     const syncTrigger = () => {
       setSuppressFloatingTrigger(
-        mobileViewport.matches && (guardVisible || footerVisible),
+        guardVisible || (mobileViewport.matches && footerVisible),
       );
     };
     const observer = new IntersectionObserver(
@@ -227,7 +276,7 @@ export function DocsAssistantWidget() {
         }
         syncTrigger();
       },
-      { threshold: 0.05 },
+      { threshold: 0 },
     );
 
     observer.observe(triggerGuard);
@@ -403,36 +452,36 @@ export function DocsAssistantWidget() {
     if (!trimmed || loading) return;
     const requestGeneration = ++requestGenerationRef.current;
     setLoading(true);
-    setAnswer(null);
+    setQuestion(trimmed);
+    setFeedback(null);
     setContactMode(false);
 
     try {
-      const data = await fetchAskWitnessOps(trimmed);
+      const data = await fetchAskWitnessOps(trimmed, {
+        history: askConversationHistory(completedTurns),
+        page_service_id: pageService?.id,
+      });
       if (requestGeneration !== requestGenerationRef.current) return;
       setAnswer({
         content: askWitnessOpsAnswerText(data),
         answer: data,
+        question:
+          data.status === "success" && data.commercial_fit.result !== "blocked"
+            ? trimmed
+            : undefined,
       });
-      setQuestion("");
-    } catch (err) {
+      rememberAskTurn(trimmed, data);
+      setQuestion(data.fallback_reason === "ai_unavailable" ? trimmed : "");
+      trackAskEvent("answered", {
+        surface: "widget", service_id: data.recommendation?.service_id,
+        outcome: data.fallback_reason ? "unavailable" : data.schema === "witnessops.ask.generated-answer.v1" ? "generated" : "guide",
+      });
+    } catch {
       if (requestGeneration !== requestGenerationRef.current) return;
-      if (err instanceof Error && err.message.startsWith("Ask WitnessOps request failed")) {
-        setAnswer({
-          content: err.message,
-          error: true,
-        });
-        setQuestion("");
-        return;
-      }
-
-      setAnswer({
-        content: err instanceof Error ? err.message : "Something went wrong.",
-        error: true,
-      });
+      setAnswer({ content: "The AI could not answer just now. Your question is still here; retry or ask a person.", error: true });
+      trackAskEvent("answered", { surface: "widget", outcome: "unavailable" });
     } finally {
-      if (requestGeneration === requestGenerationRef.current) {
-        setLoading(false);
-      }
+      if (requestGeneration === requestGenerationRef.current) setLoading(false);
     }
   }
 
@@ -442,9 +491,13 @@ export function DocsAssistantWidget() {
         ? document.activeElement
         : null;
     setOpen(true);
+    trackAskEvent("opened", { surface: "widget", service_id: pageService?.id });
   }
 
-  function handleDialogLinkCapture(event: ReactMouseEvent<HTMLElement>) {
+  function handleDialogLinkClick(event: ReactMouseEvent<HTMLElement>) {
+    // Bubble after Next Link has handled the click. Closing in capture removes
+    // the link before client navigation and causes a full reload, losing chat.
+    // Next Link prevents the browser default; that must not skip panel cleanup.
     if (
       event.button !== 0 ||
       event.metaKey ||
@@ -498,8 +551,10 @@ export function DocsAssistantWidget() {
   function handleResetAnswer() {
     if (loading || contactBusyRef.current) return;
 
+    clearAskConversation();
     setAnswer(null);
     setQuestion("");
+    setFeedback(null);
     window.requestAnimationFrame(() => inputRef.current?.focus());
   }
 
@@ -508,15 +563,17 @@ export function DocsAssistantWidget() {
       mobileViewport.height === null
         ? "100dvh"
         : `${mobileViewport.height}px`,
-    "--ask-ai-keyboard-cushion": mobileViewport.keyboardVisible
-      ? "4rem"
-      : "0px",
+    "--ask-ai-keyboard-cushion": "0px",
   } as CSSProperties;
-  const hasPaidScopeCta = Boolean(answer?.answer?.commercial_fit.offer);
+  const hasPaidScopeCta = Boolean(
+    answer?.answer?.schema === "witnessops.ask.generated-answer.v1"
+      ? answer.answer.recommendation
+      : answer?.answer?.commercial_fit.offer,
+  );
   const layerClassName = open ? styles.openLayer : styles.closedLayer;
 
   return (
-    <div ref={layerRef} className={layerClassName}>
+    <div ref={layerRef} className={layerClassName} data-focus-obscured={!open && focusedControlObscured ? "true" : undefined}>
       {open && (
         <section
           ref={dialogRef}
@@ -526,7 +583,7 @@ export function DocsAssistantWidget() {
           aria-modal={mobileModal}
           aria-labelledby="ask-witnessops-title"
           className={styles.dialog}
-          onClickCapture={handleDialogLinkCapture}
+          onClick={handleDialogLinkClick}
           data-ask-state={
             contactMode
               ? "contact"
@@ -549,11 +606,8 @@ export function DocsAssistantWidget() {
                 ASK WITNESSOPS
               </span>
               <span className={styles.chromeSubtitle}>
-                Bounded proof guide
+                Questions about scope, evidence or pricing?
               </span>
-            </div>
-            <div className={styles.chromeMeta} aria-hidden="true">
-              <span>PUBLIC MATERIAL</span>
             </div>
             <button
               type="button"
@@ -578,6 +632,7 @@ export function DocsAssistantWidget() {
             }}
           >
             <div
+              ref={scrollRef}
               data-ask-scroll-region
               className={
                 contactMode
@@ -588,17 +643,16 @@ export function DocsAssistantWidget() {
               {!answer && !loading && (
                 <div className={styles.promptStage}>
                   <p className={styles.promptKicker}>
-                    One action · no secrets
+                    Your question · a useful next step
                   </p>
                   <h2 className={styles.promptTitle}>
-                    Describe one consequential agent action.
+                    Questions about scope, evidence or pricing?
                   </h2>
                   <p className={styles.promptCopy}>
-                    See the likely review scope, evidence questions, and paid
-                    next step using only a short non-secret description.
+                    Ask about security reviews, verification or workflow repair. Start with a short description, without confidential data.
                   </p>
                   <div className={styles.guidedRows}>
-                    {GUIDED_FIT_QUESTIONS.map((item, index) => (
+                    {askGuidedQuestions(pageService).map((item, index) => (
                       <button
                         key={item.label}
                         type="button"
@@ -615,14 +669,6 @@ export function DocsAssistantWidget() {
                       </button>
                     ))}
                   </div>
-                  <div className={styles.utilityLinks}>
-                    <Link
-                      href={`${PRIMARY_OFFER.requestRoute}?offerId=${PRIMARY_OFFER.id}&source=ask`}
-                      className={styles.utilityLink}
-                    >
-                      Request scope directly <span aria-hidden="true">↗</span>
-                    </Link>
-                  </div>
                 </div>
               )}
 
@@ -632,8 +678,20 @@ export function DocsAssistantWidget() {
                 </div>
               )}
 
-              {answer && (
+              {answer && !loading && (
                 <div className={styles.answerStage}>
+                  {previousTurns.length > 0 && (
+                    <details className={styles.earlierTurns}>
+                      <summary>Earlier in this chat ({previousTurns.length})</summary>
+                      {previousTurns.map((turn, index) => (
+                        <div key={index} className={styles.earlierTurn}>
+                          <p><strong>You:</strong> {turn.question}</p>
+                          <p><strong>AI:</strong> {askWitnessOpsAnswerText(turn.answer)}</p>
+                        </div>
+                      ))}
+                    </details>
+                  )}
+                  {answer.question && <p className={styles.visitorQuestion}>{answer.question}</p>}
                   {answer.error ? (
                     <section
                       className={styles.errorPanel}
@@ -643,37 +701,32 @@ export function DocsAssistantWidget() {
                         <span>PUBLIC GUIDE UNAVAILABLE</span>
                         <span>NO FIT CLAIM</span>
                       </div>
-                      <p className={styles.errorPanelCopy}>{answer.content}</p>
+                      <p className={styles.errorPanelCopy} role="alert">{answer.content}</p>
+                      <button type="button" className={styles.retryButton} onClick={() => void handleAsk()} disabled={loading || !question.trim()}>Retry question</button>
                     </section>
                   ) : (
                     <section
                       className={styles.answerSheet}
-                      aria-label="Public fit signal"
+                      aria-label="Ask WitnessOps answer"
                     >
                       <div className={styles.answerSheetChrome}>
-                        <span>PUBLIC FIT SIGNAL</span>
+                        <span>{answer.answer ? askWitnessOpsModeLabel(answer.answer) : "AI answer"}</span>
                         <span>NO EVIDENCE REVIEWED</span>
                       </div>
                       <div className={styles.answerSheetBody}>
+                        <p className={styles.answerCopy}>{answer.content}</p>
                         {answer.answer && (
-                          <p className={styles.answerMode}>
-                            {askWitnessOpsModeLabel(answer.answer)}
-                          </p>
-                        )}
-                        {answer.answer?.commercial_fit.offer && (
                           <AskWitnessOpsCommercialFitCard
                             answer={answer.answer}
                             compact
+                            onOfferSelected={() => trackAskEvent("offer_selected", { surface: "widget", service_id: answer.answer?.recommendation?.service_id })}
                             onRequestScope={() => handleContactModeChange(true)}
                           />
-                        )}
-                        {!answer.answer?.commercial_fit.offer && (
-                          <p className={styles.answerCopy}>{answer.content}</p>
                         )}
 
                         {answer.answer && (
                           <>
-                            {!answer.answer.commercial_fit.offer && (
+                            {!hasPaidScopeCta && (
                               <AskWitnessOpsRouteCta
                                 answer={answer.answer}
                                 compact
@@ -692,13 +745,30 @@ export function DocsAssistantWidget() {
                       </div>
                     </section>
                   )}
-                  <button
-                    type="button"
-                    onClick={handleResetAnswer}
-                    className={styles.resultReset}
-                  >
-                    Ask another action
-                  </button>
+                  {answer.answer?.fallback_reason === "ai_unavailable" && (
+                    <div className={styles.recoveryLine}>
+                      <p>The AI is temporarily unavailable. This is public guide information.</p>
+                      <button type="button" className={styles.resultReset} onClick={() => void handleAsk()} disabled={loading || !question.trim()}>Retry AI answer</button>
+                    </div>
+                  )}
+                  {answer.answer && !answer.answer.fallback_reason && (
+                    <div className={styles.feedbackRow} aria-label="Answer feedback">
+                      <span>{feedback ? "Thanks for the feedback" : "Was this helpful?"}</span>
+                      {!feedback && (["helpful", "not_helpful"] as const).map((value) => (
+                        <button key={value} type="button" onClick={() => {
+                          setFeedback(value);
+                          trackAskEvent("feedback", { surface: "widget", feedback: value, service_id: answer.answer?.recommendation?.service_id });
+                        }}>{value === "helpful" ? "Yes" : "Not quite"}</button>
+                      ))}
+                    </div>
+                  )}
+                  {answer.answer?.status === "success" && !answer.answer.fallback_reason && (
+                    <div className={styles.followUpQuestions} aria-label="Suggested follow-ups">
+                      {askFollowUpQuestions(answer.answer, pageService).map((item) => (
+                        <button key={item.label} type="button" onClick={() => void handleAsk(item.question)}>{item.label}</button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -709,6 +779,9 @@ export function DocsAssistantWidget() {
                 <DocsAssistantContactHandoff
                   expanded
                   commercialFit={answer?.answer?.commercial_fit}
+                  question={answer?.question}
+                  proposedBrief={proposedBrief}
+                  serviceId={answer?.answer?.recommendation?.service_id}
                   launcherRef={contactLauncherRef}
                   onBusyChange={handleContactBusyChange}
                   onExpandedChange={handleContactModeChange}
@@ -716,27 +789,9 @@ export function DocsAssistantWidget() {
               </div>
             )}
 
-            {!contactMode && answer && !hasPaidScopeCta && (
-              <div className={styles.contactLauncher}>
-                <DocsAssistantContactHandoff
-                  expanded={false}
-                  commercialFit={answer?.answer?.commercial_fit}
-                  launcherRef={contactLauncherRef}
-                  onBusyChange={handleContactBusyChange}
-                  onExpandedChange={handleContactModeChange}
-                />
-              </div>
-            )}
-
-            {!contactMode && !answer && (
+            {!contactMode && (
               <div className={styles.composer} data-ask-composer>
-                <p className={styles.safetyLine}>
-                  <strong>PUBLIC INPUT</strong>
-                  <span>
-                    Do not paste secrets, logs, credentials, private keys, MFA
-                    codes, screenshots, customer evidence, or raw exports.
-                  </span>
-                </p>
+                <p className={styles.safetyLine}>Do not paste secrets or private evidence.</p>
 
                 <form
                   onSubmit={(e) => {
@@ -750,8 +805,11 @@ export function DocsAssistantWidget() {
                     type="text"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="Example: An agent rotates a compromised key."
-                    aria-label="Describe one non-secret action"
+                    placeholder={answer ? "Ask a follow-up…" : "Example: Leads stopped reaching our CRM."}
+                    aria-label="Ask WitnessOps question"
+                    maxLength={2_000}
+                    enterKeyHint="send"
+                    disabled={loading}
                     className={styles.askInput}
                   />
                   <button
@@ -759,17 +817,21 @@ export function DocsAssistantWidget() {
                     disabled={loading || !question.trim()}
                     className={styles.askSubmit}
                   >
-                    {loading ? "…" : "Check fit"}
+                    {loading ? "…" : "Ask AI"}
                   </button>
                 </form>
-                <p className={styles.providerDisclosure}>
-                  Uses public WitnessOps material. Eligible questions may be
-                  sent to OpenAI with <code>store: false</code>; provider
-                  retention may still apply.{" "}
-                  <Link href="/privacy">Privacy</Link>
-                </p>
+                <div className={styles.conversationActions}>
+                  <button ref={contactLauncherRef} type="button" onClick={() => handleContactModeChange(true)}>Request a follow-up</button>
+                  {(answer || completedTurns.length > 0) && (
+                    <button type="button" onClick={handleResetAnswer} disabled={loading}>Start over</button>
+                  )}
+                </div>
+                <AskAiDisclosure model={answer?.answer?.model} className={styles.providerDisclosure} />
               </div>
             )}
+          </div>
+          <div className="sr-only" aria-live="polite" aria-atomic="true">
+            {!loading && !contactMode && answer && !answer.error ? answer.content : ""}
           </div>
         </section>
       )}

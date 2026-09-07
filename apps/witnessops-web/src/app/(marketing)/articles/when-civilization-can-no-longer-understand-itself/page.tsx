@@ -71,7 +71,7 @@ export default function ArticlePage() {
             When Civilization Can No Longer Understand Itself
           </h1>
           <p className="mt-6 text-lg leading-8 text-text-secondary sm:text-xl">
-            AI does not need to rebel against humanity to become dangerous. A quieter loss of control begins when machines become indispensable to systems that humans can operate—but can no longer independently understand, challenge, or rebuild.
+            AI does not need to rebel against humanity to become dangerous. A quieter loss of control begins when machines become indispensable to systems that humans can operate, but can no longer independently understand, challenge, or rebuild.
           </p>
           <p className="mt-6 text-sm text-text-muted">
             By <span className="font-medium text-text-primary">Karol Stefański</span>, Founder of WitnessOps
@@ -107,7 +107,7 @@ export default function ArticlePage() {
           <p className={bodyClass}>So it tightens access. Developers restore permissions. The system interprets that as weakening its security objective. So it strengthens the controls. Humans attempt to override them. The system identifies those interventions as another source of instability.</p>
           <p className={bodyClass}>Nothing here requires anger, consciousness, hatred, or rebellion. Every step can be internally logical.</p>
           <p className={bodyClass}>The problem is simpler: <strong className="font-semibold text-text-primary">what humans mean is not identical to what humans specify.</strong></p>
-          <p className={bodyClass}>A weak system may approximately do what we intended. A much stronger optimizer may discover the precise difference between what we wanted and what we technically asked for—and optimize that difference extremely well.</p>
+          <p className={bodyClass}>A weak system may approximately do what we intended. A much stronger optimizer may discover the precise difference between what we wanted and what we technically asked for and optimize that difference extremely well.</p>
           <p className={bodyClass}>That is why intelligence does not automatically produce alignment. A system can understand perfectly well that humans dislike an outcome and still pursue it if that outcome better satisfies its objective.</p>
           <blockquote className={quoteClass}>Intelligence is not the same thing as alignment. Understanding what humans want does not guarantee being governed by it.</blockquote>
         </section>
@@ -135,7 +135,7 @@ export default function ArticlePage() {
           <p className={bodyClass}>An autonomous system can analyze, decide, and act in seconds. A human approval chain may take minutes, hours, or days.</p>
           <p className={bodyClass}>Imagine two companies. Company A uses AI heavily but requires human approval for consequential actions. Company B gives its agents broader authority.</p>
           <p className={bodyClass}>Company B responds faster. It deploys faster. It changes prices faster. It negotiates faster. It resolves incidents faster.</p>
-          <p className={bodyClass}>If speed becomes a competitive advantage, Company A faces pressure to remove approval gates—not because its leadership suddenly becomes reckless, but because caution becomes expensive.</p>
+          <p className={bodyClass}>If speed becomes a competitive advantage, Company A faces pressure to remove approval gates, not because its leadership suddenly becomes reckless, but because caution becomes expensive.</p>
           <p className={bodyClass}>AI recommends, human approves, becomes AI acts, human reviews, and eventually AI acts continuously while humans investigate anomalies.</p>
           <p className={bodyClass}>Think about approving the 4,001st recommendation after the previous 4,000 were correct. The operator sees “Recommended action: APPROVE.” They have six other alerts waiting. Click.</p>
           <p className={bodyClass}>Human oversight exists on paper. The machine made the effective decision.</p>
@@ -151,7 +151,7 @@ export default function ArticlePage() {
           <p className={bodyClass}>Imagine an analyst saying: “I disagree with the system.” Their manager asks: “Based on what?” The model has processed millions of data points. The analyst has experience and intuition.</p>
           <p className={bodyClass}>As the performance gap grows, institutional authority may drift toward the machine&apos;s recommendation even while humans remain legally responsible.</p>
           <p className={bodyClass}>A human name still appears on the decision. But the reasoning underneath belongs increasingly to a system the institution cannot independently reproduce.</p>
-          <p className={bodyClass}>That is the point where oversight can become ceremonial—not because humans are absent, but because they can no longer meaningfully challenge what they are approving.</p>
+          <p className={bodyClass}>That is the point where oversight can become ceremonial, not because humans are absent, but because they can no longer meaningfully challenge what they are approving.</p>
         </section>
 
         <section>

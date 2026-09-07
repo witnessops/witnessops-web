@@ -5,12 +5,12 @@ import { OffsecSuiteSample } from "@/components/marketing/offsec-suite-sample";
 const path = "/review/sample-cases/custody-wallet-ops-review";
 
 export const metadata: Metadata = {
-  title: "Sample — Custody / wallet-ops review",
+  title: "Sample: Custody / wallet-ops review",
   description:
     "Synthetic custody and wallet-ops control review sample with sanitised observations and hard boundaries. Not live customer evidence; no keys, balances, or fund movement.",
   alternates: getCanonicalAlternates("witnessops", path),
   openGraph: {
-    title: "Sample — Custody / wallet-ops review | WitnessOps",
+    title: "Sample: Custody / wallet-ops review | WitnessOps",
     description:
       "Inspect a synthetic custody control package. No keys, balances, fund movement, or solvency claim.",
     siteName: "WitnessOps",
@@ -24,7 +24,7 @@ export default function CustodyWalletOpsSamplePage() {
       title="Custody / wallet-ops review"
       productId="OFFSEC-CUSTODY-OPS"
       runId="pr_custody_demo_20260711130000"
-      situation="Situation: a team needs a proof-backed review of custody or wallet-operations controls using sanitised observations only — without WitnessOps touching funds or secrets."
+      situation="Situation: a team needs a proof-backed review of custody or wallet-operations controls using sanitised observations only, without WitnessOps touching funds or secrets."
       bannerNote="Synthetic public sample from the OffSec suite. Sanitised fixture observations only. Not live customer evidence. No keys, seed phrases, balances, fund movement, custody of funds, or solvency claim."
       catalogHref="/catalog/offsec-custody-ops"
       sampleBase="/samples/offsec-custody-ops"
@@ -37,7 +37,7 @@ export default function CustodyWalletOpsSamplePage() {
         ],
         [
           "Inspect observations",
-          "Review sanitised control observations and completeness notes — opaque references only.",
+          "Review sanitised control observations and completeness notes: opaque references only.",
         ],
         [
           "Separate supported claims",
@@ -58,7 +58,7 @@ export default function CustodyWalletOpsSamplePage() {
       boundaries={[
         "No keys, seed phrases, balances, fund movement, taking custody, or solvency claim.",
         "Not an exchange service or compliance certification.",
-        "Synthetic trust keys only — not production signing custody.",
+        "Synthetic trust keys only, not production signing custody.",
       ]}
       inspectFiles={[
         "BUYER_WALKTHROUGH.md",

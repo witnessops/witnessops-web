@@ -6,16 +6,16 @@ slug: "/"
 status:
   draft: false
   canonical: true
-  last_reviewed: "2026-09-03"
+  last_reviewed: "2026-09-05"
 
 seo:
-  title: "Agent Action Security Review | WitnessOps"
-  description: "Your AI agent can act in production. Can you prove what it was allowed to do? Review one consequential action across authority, identity, permissions, tools, execution, and evidence."
+  title: "Security & Verification for AI and Automation | WitnessOps"
+  description: "Find security gaps in AI and automation. Review one important action, inspect the evidence and get practical recommendations within a clear scope."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "What can your AI agent actually do in production?"
-  og_description: "Map one consequential action across identity, permissions, tools, execution path, blast radius, and evidence before a customer, pentest, or incident finds the gaps for you."
+  og_title: "Find security gaps in your AI and automation."
+  og_description: "Review one important action. Inspect the evidence. Understand what to fix."
   twitter_card: "summary_large_image"
 
 theme:
@@ -29,29 +29,31 @@ navbar:
     text: ""
     href: ""
   links:
-    - label: "Agent Action Security Review"
-      href: "/catalog/workflows"
-    - label: "How it works"
-      href: "/#evidence-questions"
-    - label: "Action receipt"
-      href: "/#agent-action-receipt"
+    - label: "Services"
+      href: "/catalog"
+    - label: "Sample work"
+      href: "/review/sample-cases"
+    - label: "Our approach"
+      href: "/why-witnessops"
+    - label: "Docs"
+      href: "/docs"
   cta:
-    label: "Check if your workflow fits"
-    href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review"
+    label: "Scope a review"
+    href: "/review/request"
     variant: "primary"
 
 hero:
-  eyebrow: "Agent Action Security Review"
-  title: "Can you prove what your AI agent was allowed to do?"
-  body: "Review one consequential agent or automation action: who authorizes it, which identity executes it, what it can reach, what limits it, and what evidence remains afterward."
+  eyebrow: "AI · Automation · Security"
+  title: "Find security gaps in your AI and automation."
+  body: "For product and operations teams whose AI and automations change records, move money or control access. Understand the risks, inspect the evidence and decide what to fix."
   supporting_points: []
   primary_cta:
-    label: "Check if your workflow fits"
-    href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review"
+    label: "Scope a review"
+    href: "/review/request"
     variant: "primary"
   secondary_cta:
-    label: "See scope and pricing"
-    href: "/catalog/workflows"
+    label: "See a sample finding"
+    href: "/catalog/workflows#sample-review"
     variant: "secondary"
   proof_badges: []
   media:
@@ -124,8 +126,8 @@ sections:
         body: "Show what another reviewer can inspect, reject, or strengthen."
     internal_surfaces_disclosure: "Some operational surfaces remain internal, including policy authoring, receipt query, and operator administration."
     ctas:
-      - label: "Check if your workflow fits"
-        href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review"
+      - label: "Scope a review"
+        href: "/review/request"
         variant: "primary"
       - label: "Inspect sample package"
         href: "/review/sample-cases/ai-agent-action-proof-run"
@@ -176,11 +178,11 @@ sections:
 
 final_cta:
   enabled: true
-  title: "Review one consequential agent action."
-  body: "Start with a non-secret fit check. Agent Action Security Review covers one consequential agent or automation action for €2,500 fixed and is delivered within 10 working days after evidence rules are agreed."
+  title: "What does your system do and what needs checking?"
+  body: "Tell us about the system and your concern. We’ll propose a scope and next step. Leave out credentials and customer data."
   ctas:
-    - label: "Check if your workflow fits"
-      href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review"
+    - label: "Scope a review"
+      href: "/review/request"
       variant: "primary"
     - label: "View services"
       href: "/catalog"
@@ -188,13 +190,13 @@ final_cta:
 
 footer:
   brand_line: "WitnessOps"
-  subline: "Scoped reviews of consequential AI and security work with named evidence requirements and explicit limits."
+  subline: "Security reviews and verification for AI, automation and operational systems. Clear findings, supporting evidence and practical next steps."
   links:
     - label: "Services"
       href: "/catalog"
-    - label: "Agent Action Security Review"
-      href: "/catalog/workflows"
-    - label: "Why WitnessOps"
+    - label: "Repair and handover"
+      href: "/catalog/automation-repair"
+    - label: "Our approach"
       href: "/why-witnessops"
     - label: "Verify a receipt"
       href: "/verify"
@@ -202,8 +204,8 @@ footer:
       href: "/docs"
     - label: "Skills"
       href: "/library"
-    - label: "Check if your workflow fits"
-      href: "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review"
+    - label: "More examples"
+      href: "/review/sample-cases"
   legal_links:
     - label: "Privacy"
       href: "/privacy"

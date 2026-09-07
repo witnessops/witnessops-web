@@ -270,7 +270,7 @@ export default function ReviewPage() {
           >
             <h3 className="text-sm font-semibold text-text-primary">Local server security review</h3>
             <p className="mt-2 text-sm leading-6 text-text-secondary">
-              Read-only host package with receipt path — labelled sample only.
+              Read-only host package with receipt path: labelled sample only.
             </p>
           </a>
           <a
@@ -279,7 +279,7 @@ export default function ReviewPage() {
           >
             <h3 className="text-sm font-semibold text-text-primary">Launch readiness review</h3>
             <p className="mt-2 text-sm leading-6 text-text-secondary">
-              Baseline vs candidate, drift, and proofpack limits — not launch approval.
+              Baseline vs candidate, drift, and proofpack limits, not launch approval.
             </p>
           </a>
         </div>

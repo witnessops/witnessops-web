@@ -11,6 +11,7 @@ import {
   sampleBaseUrl,
   sampleBundleSha256,
   sampleCommitShort,
+  sampleSignerFingerprint,
 } from "./sample-artifact-contract";
 
 const reviewRequestHref = buyerPublicOfferRequestHref(
@@ -19,7 +20,7 @@ const reviewRequestHref = buyerPublicOfferRequestHref(
 );
 
 export const metadata: Metadata = {
-  title: "Synthetic API key rotation — verifiable proof specimen",
+  title: "Synthetic API key rotation: verifiable proof specimen",
   description:
     "Replay a fixed synthetic API-key rotation specimen, verify its pinned bundle and manifest-bound evidence in your browser, then reproduce the verifier verdict offline.",
   alternates: getCanonicalAlternates(
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     "/review/sample-cases/ai-agent-action-proof-run",
   ),
   openGraph: {
-    title: "Synthetic API key rotation — verify the pinned proof specimen",
+    title: "Synthetic API key rotation: verify the pinned proof specimen",
     description:
       "A fixed, hash-pinned synthetic specimen with browser verification, an offline verifier, and a one-byte tamper challenge.",
     url: "/review/sample-cases/ai-agent-action-proof-run",
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Synthetic API key rotation — verifiable proof specimen",
+    title: "Synthetic API key rotation: verifiable proof specimen",
     description:
       "Replay the fixed synthetic specimen, inspect the named checks, and reproduce the verifier verdict offline.",
     images: DEFAULT_TWITTER_IMAGES,
@@ -49,28 +50,16 @@ export default function ApiKeyRotationSamplePage() {
     <main id="main-content" tabIndex={-1} className={styles.page}>
       <header className={styles.hero}>
         <div className={styles.heroMeta}>
-          <strong>Synthetic compromise flag declared</strong>
-          <span>Public synthetic specimen</span>
-          <span>Fixed run · 2026-08-27</span>
+          <strong>Synthetic demo</strong>
+          <span>No live systems</span>
         </div>
         <h1>
-          A synthetic key was flagged.
-          <br />
-          The authorized rotation tool <em>handled it.</em>
+          See a key rotation, step by step.
         </h1>
         <p className={styles.heroLead}>
-          Replay one declared synthetic response: create a replacement, migrate the consumer, check
-          the new key, revoke the old key, and check it again. Then verify the pinned bundle digest,
-          receipt signature, and manifest-bound evidence with the separately pinned public verifier.
+          Replay a synthetic run. See what changed, what was checked, and what remains unproven.
         </p>
-        <div className={styles.heroBoundary}>
-          <span>Published sample — not live customer evidence</span>
-          <p>
-            This is a fixed, hash-pinned synthetic specimen. Its evidence contains fingerprints and
-            key identifiers, never credential values. No real provider, credential, compromise,
-            customer, or production system was used or checked.
-          </p>
-        </div>
+        <p className={styles.sampleNote}>Published sample, not live customer evidence</p>
       </header>
 
       <ApiKeyRotationDemo
@@ -78,25 +67,22 @@ export default function ApiKeyRotationSamplePage() {
         verifierSha256={publicVerifierSha256}
         sourceCommitShort={sampleCommitShort}
         sourceHref={sampleBaseUrl}
-      />
-
-      <section className={styles.nextStep} aria-labelledby="rotation-next-step-heading">
-        <span>PAID REVIEW</span>
-        <div>
-          <h2 id="rotation-next-step-heading">
-            {PRIMARY_OFFER.name.en} — {PRIMARY_OFFER.price.en}.
-          </h2>
-          <p>
-            Bring one consequential agent or automation action. WitnessOps reviews who can authorize
-            it, what identity executes it, what systems and tools it can reach, what constrains its
-            blast radius, and what evidence binds approval to execution and resulting state. The
-            delivery uses the {PRIMARY_OFFER.deliveryMethod.en} method; technical receipt mechanics
-            sit underneath the buyer-facing security review. Entry begins with a non-secret fit check,
-            and delivery is within 10 working days after evidence rules are agreed.
-          </p>
-        </div>
-        <Link href={reviewRequestHref}>Request a non-secret fit check →</Link>
-      </section>
+        signerFingerprint={sampleSignerFingerprint}
+      >
+        <section className={styles.nextStep} aria-labelledby="rotation-next-step-heading">
+          <div>
+            <span className={styles.eyebrow}>{PRIMARY_OFFER.name.en}</span>
+            <h2 id="rotation-next-step-heading">Want your own agent action reviewed?</h2>
+            <p>One consequential agent or automation action. Prioritised fixes.</p>
+            <strong className={styles.offerPrice}>{PRIMARY_OFFER.price.en}</strong>
+            <p className={styles.offerTiming}>{PRIMARY_OFFER.timing.en}.</p>
+          </div>
+          <div className={styles.offerAction}>
+            <Link href={reviewRequestHref}>Check fit</Link>
+            <span>Non-secret fit check first.</span>
+          </div>
+        </section>
+      </ApiKeyRotationDemo>
     </main>
   );
 }

@@ -21,21 +21,21 @@ import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
   title: "Tell Us What You Need Reviewed",
-  description: `Start a non-secret fit check for ${PRIMARY_OFFER.name.en} or another bounded WitnessOps review. No review starts from this form.`,
+  description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
   alternates: languageAlternates("/review/request", {
     en: "/review/request",
     pl: "/pl/review/request",
   }),
   openGraph: {
     title: "Tell Us What You Need Reviewed | WitnessOps",
-    description: `Start a non-secret fit check for ${PRIMARY_OFFER.name.en} or another bounded WitnessOps review. No review starts from this form.`,
+    description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
     siteName: "WitnessOps",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Tell Us What You Need Reviewed | WitnessOps",
-    description: `Start a non-secret fit check for ${PRIMARY_OFFER.name.en} or another bounded WitnessOps review. No review starts from this form.`,
+    description: `Describe a security concern, an AI action or an automation that needs checking. We agree scope, fee and access before work begins.`,
   },
 };
 
@@ -154,7 +154,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
     : undefined;
   const requestedOffer = buyerServiceFromRequestOffer(offerId, offer);
   const primaryOfferSelected =
-    requestedOffer?.id === PRIMARY_OFFER.id &&
+    requestedOffer &&
     (offerId !== undefined || !sku);
   const selectedOffer = primaryOfferSelected
     ? requestedOffer
@@ -199,8 +199,8 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
 
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-16">
-      <section className="mb-8 max-w-[720px]">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:py-12">
+      <section className="mb-5 max-w-[720px]">
         <div
           className="mb-4"
           style={{
@@ -218,20 +218,20 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           className="mb-4 text-balance text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {selectedOffer
-            ? `Start your ${selectedOffer.name.en}`
+          {selectedOffer?.id === "automation-repair-handover" ? "What stopped working?" : selectedOffer
+            ? "Tell us what you want to check"
             : "Tell us what you need reviewed"}
         </h1>
         <p className="max-w-[640px] text-base leading-relaxed text-text-muted">
           {publicExposureOrder
             ? "Name the authorised internet-facing system and why its external attack surface matters now. We’ll confirm the exact boundary and authority before any target-facing check begins. This is not a penetration test."
             : primaryOfferOrder
-              ? `${PRIMARY_OFFER.fitCheckQuestion.en} Add the failure impact, systems and tools involved, and any production, customer-data, money, account, permission, or external-communication boundary. Keep it non-secret; evidence is accepted only after scope, evidence rules, and handling are agreed.`
+              ? `Describe one agent action. We’ll confirm fit and scope together. No secrets or evidence yet.`
             : selectedServiceOrder
               ? "Give us one non-secret summary for the selected service. We’ll confirm fit, exact scope, required inputs, fee, and timing before work begins."
               : "Start with one non-secret review need. We’ll confirm whether it is bounded enough to scope before any work or evidence intake begins."}
         </p>
-        <p className="mt-3 max-w-[640px] text-sm leading-relaxed text-text-muted">
+        <p className="mt-3 hidden max-w-[640px] text-sm leading-relaxed text-text-muted md:block">
           Prefer email? Send the same non-secret summary to{" "}
           <a
             href={publicContactMailto(
@@ -246,19 +246,18 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           .
         </p>
         {selectedOffer ? (
-          <div className="mt-5 border border-brand-accent/30 bg-brand-accent/5 p-4 text-sm leading-6 text-text-secondary">
-            <p className="font-semibold text-brand-accent">
-              Selected offer: {selectedOffer.name.en}
-            </p>
-            <p className="mt-2">Price: {selectedOffer.price.en}</p>
+          <div className="mt-4 border-l-2 border-brand-accent pl-4 text-sm leading-6 text-text-secondary">
+            <p className="sr-only">Selected offer: {selectedOffer.name.en}</p>
+            <p>Price: {selectedOffer.price.en}</p>
             <p>Timing: {selectedOffer.timing.en}</p>
           </div>
         ) : null}
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid max-w-3xl gap-6">
         <section className="self-start border border-surface-border-strong bg-surface-bg-alt p-4 sm:p-6 md:p-8">
           <ContactForm
+            compact={Boolean(selectedOffer)}
             intent={
               primaryOfferOrder
                 ? PRIMARY_OFFER.id
@@ -268,7 +267,9 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
           />
         </section>
 
-        <aside className="space-y-4">
+        <details className="border-y border-surface-border">
+          <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">What happens next and scope</summary>
+          <div className="space-y-4 pb-5">
           {selectedOffer ? (
             <section className="border border-surface-border bg-surface-bg p-5">
               <div className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-text-muted">
@@ -426,10 +427,12 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             <span className="mx-2 text-surface-border">/</span>
             Disclosure: <Link href="/security" className="text-brand-accent underline-offset-4 hover:underline">Security</Link>.
           </div>
-        </aside>
+          </div>
+        </details>
       </div>
 
-      <section className="mt-10 border-t border-surface-border pt-8">
+      <details className="mt-5 max-w-3xl border-t border-surface-border">
+        <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">What the review includes</summary>
         <div
           className="mb-4"
           style={{
@@ -468,7 +471,7 @@ export default async function ReviewRequestPage({ searchParams }: Props) {
             </div>
           ))}
         </div>
-      </section>
+      </details>
       </div>
     </main>
   );

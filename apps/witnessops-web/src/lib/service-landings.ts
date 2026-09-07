@@ -9,6 +9,8 @@ export type ServiceLandingCopy = {
   headline: string;
   /** Who the review is for. */
   whoFor: string;
+  /** Essential scope shown before the expandable detail. */
+  scopeNote: string;
   /** Human deliverable lines (not raw filenames). */
   deliverables: readonly string[];
   /** How the engagement runs. */
@@ -27,17 +29,26 @@ export type ServiceLandingCopy = {
 };
 
 const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
+  "automation-repair-handover": {
+    headline: "Restore the workflow your business relies on.",
+    whoFor: "Owners, COOs, operations leads and small delivery teams with an established workflow that has failed or lost its maintainer.",
+    scopeNote: "Start with paid diagnosis: one workflow, one failing path, up to three systems and two hours of investigation.",
+    commercialNote: "Pilot fee. Repair is €750 total including diagnosis only if the agreed correction fits about six total delivery hours. Otherwise, stop after diagnosis or accept a separate fixed quote. Prices exclude VAT and third-party fees.",
+    primaryCta: "Describe the problem",
+    deliverables: ["Diagnosis: reproduced failure or a clear blocker, likely root cause and fixed quote for a bounded repair.", "Accepted repair: the agreed correction and tests of the normal path plus relevant retry, failure and human handoff.", "Evidence of the actual destination result, updated source/export and concise operating and recovery instructions.", "Dependencies, ownership and unresolved limitations, so your team can rerun the acceptance case."],
+    steps: [["Describe the failure", "Tell us what should happen, what happens instead and which systems are involved. No secrets or files in the first message."], ["Diagnose · €250", "After scope and access are agreed, preserve the original source and investigate for up to two hours. You receive findings even if a repair cannot be bounded."], ["Decide on the repair", "If it fits, approve €750 total including the diagnosis already paid. Target: about six total delivery hours. Larger recovery or hardening needs a separate quote; there is no automatic next stage."], ["Restore and hand over", "Make the accepted correction, inspect the actual downstream result and test the relevant exception path. Hand over the updated workflow and instructions to operate and recover it."]],
+    boundaries: ["No promise to fix every automation. Diagnosis can end with a blocker or a recommendation not to proceed.", "Production changes and test actions require agreed scope, appropriate access and your authorization before execution.", "No whole-estate cleanup, unlimited debugging, permanent credential management, 24/7 response, zero-downtime guarantee or vendor-only data recovery.", "Care, larger recovery and security review are separately scoped. No certification or assurance beyond the tested path."],
+  },
+
   "customer-security-review-sprint": {
-    headline: "Send us the security questionnaire holding up your deal.",
-    whoFor:
-      "B2B software, SaaS, AI and technical-service companies facing a live customer security questionnaire, vendor-security review or evidence request.",
+    headline: "Get the questionnaire off your desk.",
+    whoFor: "B2B teams with a customer security questionnaire, a deadline and limited technical time.",
+    scopeNote: "One questionnaire. One product. Your team approves and submits the answers.",
     deliverables: [
-      "proposed answer matrix",
-      "evidence index",
-      "qualifications and unsupported-claim list",
-      "open-item and owner list",
-      "claim map where useful",
-      "cover note for the customer or internal approver",
+      "Proposed answer matrix with evidence references.",
+      "Evidence index and claim map where useful.",
+      "Qualifications, unsupported claims and open items with named owners.",
+      "Cover note for the customer or internal approver.",
     ],
     steps: [
       [
@@ -64,24 +75,31 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Formal certifications and reports remain necessary where the reviewer requires them.",
     ],
     commercialNote: "After a non-secret fit check. One questionnaire. One product scope.",
-    primaryCta: "Start a non-secret fit check",
+    primaryCta: "Scope this review",
     sampleHref: "/review/sample-cases/customer-security-review-sprint",
-    sampleLabel: "Inspect CSR sample",
+    sampleLabel: "See a sample response",
   },
   "bounded-workflow-review": {
-    headline: PRIMARY_OFFER.cardSituation.en,
-    whoFor:
-      "Security, platform, engineering, compliance, MSSP, and AI automation teams moving an agent or automation from suggesting to acting across production, money, customer data, accounts, permissions, or external communications.",
-    deliverables: PRIMARY_OFFER.included.en,
-    scopeLimits: [PRIMARY_OFFER.unit.en, ...PRIMARY_OFFER.included.en],
+    headline: "Understand the controls around one AI action.",
+    whoFor: "AI product teams and automation agencies launching an agent or handing it over to a customer.",
+    scopeNote: "One consequential agent or automation action. Read, inspect, reconstruct and report; no production changes or safety certification.",
+    deliverables: [
+      "Authority map: who can approve the action.",
+      "Execution path: which identity, tools and systems act.",
+      "Permission boundary: what the agent can reach.",
+      "Evidence chain: what supports the outcome and what is unknown.",
+      "Control gaps and practical fixes: recommended changes in priority order.",
+      "Readout: findings and decisions for your team.",
+    ],
+    scopeLimits: [PRIMARY_OFFER.unit.en],
     steps: [
       [
         "Fit check",
-        `${PRIMARY_OFFER.fitCheckQuestion.en} Name the impact if it goes wrong, the systems and tools involved, and any production, customer-data, money, account, permission, or external-communication boundary. Do not send secrets or source material.`,
+        `${PRIMARY_OFFER.fitCheckQuestion.en} A short description is enough to start. Add any deadline or customer handover if known. We clarify missing details together; do not send secrets or source material.`,
       ],
       [
-        "Fix the security boundary",
-        "Confirm the one action, who can authorise it, the executing identity, reachable systems and tools, permission limits, evidence rules, handling rules, and exclusions.",
+        "Agree scope before committing",
+        "Confirm fit, the one action, fixed fee, required inputs, evidence handling and exclusions before work begins. We identify the responsible owner and agree how to inspect the action without installing a new platform.",
       ],
       [
         "Review the action path",
@@ -89,7 +107,7 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       ],
       [
         "Report and read out",
-        "Within 10 working days after evidence rules are agreed, deliver the authority map, execution path, permission boundary, evidence chain, control gaps, practical fixes, and readout. Technical evidence mechanics sit underneath where useful.",
+        "Within 10 working days after evidence rules are agreed, receive the action map, findings, prioritized fixes and readout. Each finding states what supports it and what remains unknown. Your team owns the launch decision and implementation of fixes.",
       ],
     ],
     boundaries: [
@@ -100,21 +118,19 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       `The ${PRIMARY_OFFER.deliveryMethod.en} method can produce an evidence-gap analysis, proposed receipt shape, and sample pack. Extract supported receipt JSON to test through /verify; /verify does not accept the whole pack. The pack is not customer evidence or a claim that a control has been deployed in production.`,
       "Customer evidence is accepted only after scope and handling are agreed.",
     ],
-    sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
-    sampleLabel: "Inspect synthetic agent sample",
-    commercialNote: `${PRIMARY_OFFER.fitCheck.en}. ${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.unit.en}.`,
-    primaryCta: "Start a non-secret fit check",
+    sampleHref: "/catalog/workflows#sample-review",
+    sampleLabel: "See a sample review",
+    commercialNote: `${PRIMARY_OFFER.fitCheck.en}. ${PRIMARY_OFFER.unit.en}.`,
+    primaryCta: "Scope this review",
   },
   "one-server-security-check": {
-    headline: "One authorised Linux host. A clear, read-only security picture.",
-    whoFor:
-      "Founders and operators who need a reliable snapshot of one named Linux host before hardening, migration, a customer ask, or a deeper review — without a penetration test.",
+    headline: "Know what needs attention on one Linux server.",
+    whoFor: "Founders and operators preparing one Linux host for hardening, migration or a customer review.",
+    scopeNote: "One authorised Linux host. Read-only checks; no exploitation or guarantee that the host is secure.",
     deliverables: [
-      "posture from agreed read-only checks",
-      "deterministic findings with evidence references",
-      "report with named limits and unresolved items",
-      "signed proof package where agreed",
-      "buyer walkthrough and offline verification path",
+      "A snapshot from agreed read-only security checks.",
+      "Findings linked to evidence, with limits and unresolved issues.",
+      "A report and walkthrough; signed package and offline verification where agreed.",
     ],
     steps: [
       [
@@ -137,18 +153,18 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     boundaries: [
       "No exploitation, secret collection, compliance certification, or host-security guarantee.",
       "One named host, authorised read-only collection, agreed checks and explicit exclusions.",
-      "valid on a receipt means named verifier checks passed — not that the host is secure or uncompromised.",
+      "valid on a receipt means named verifier checks passed, not that the host is secure or uncompromised.",
       "Secrets, credentials and private keys are never requested in the fit check.",
     ],
     sampleHref: "/review/sample-cases/local-server-security-review",
-    sampleLabel: "Inspect local server sample",
+    sampleLabel: "See a sample review",
     commercialNote: "Standard line after a non-secret fit check for one authorised host.",
-    primaryCta: "Start a non-secret fit check",
+    primaryCta: "Scope this review",
   },
   "external-exposure-assessment": {
-    headline: "What can the internet see that you didn't mean to expose?",
-    whoFor:
-      "SaaS and technology teams facing an enterprise security request, launch, infrastructure change, customer review, upcoming pentest, or another deadline that makes the attacker-visible surface matter now.",
+    headline: "See what your public-facing system exposes.",
+    whoFor: "SaaS and technology teams preparing for a launch, customer security review or infrastructure change.",
+    scopeNote: "One authorised public-facing system. Low-impact, unauthenticated checks. This is not a penetration test.",
     scopeLimits: [
       "One authorised public-facing system, identified by a domain, application, API, public IP, or public cloud endpoint.",
       "Inside that accepted system boundary: up to 1 registrable root domain, up to 10 first-party hostnames, 3 customer-attributed public IP addresses, and 20 public service endpoints.",
@@ -159,15 +175,11 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "unauthenticated, outside-in perspective only",
     ],
     deliverables: [
-      "authority, scope, approved-check, exclusion, and stop-condition record",
-      "external attack-surface map for the confirmed scope",
-      "internet-facing hosts, services, and endpoints you did not expect to be public",
-      "evidence-backed findings covering attacker-visible configuration and externally observable misconfiguration",
-      "prioritised remediation guidance and explicit unknowns",
-      "buyer-readable executive report and technical appendix",
-      "evidence manifest and artifact hashes",
-      "signed receipt and offline verifier where the supported path is produced",
-      "45-minute handover and one focused retest within 30 days",
+      "External attack-surface map: exposed hosts, services and endpoints.",
+      "Evidence-backed findings and prioritised remediation guidance.",
+      "Executive report, technical appendix and explicit unknowns.",
+      "Scope and stop-condition record, evidence manifest and artifact hashes; signed receipt and offline verifier where supported.",
+      "45-minute handover and one focused retest within 30 days.",
     ],
     steps: [
       ["Request", "Name the authorised internet-facing system and why the external attack surface matters now. Provide your authority to request the review, but do not send secrets or production evidence."],
@@ -183,20 +195,18 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote:
       `${EXTERNAL_ATTACK_SURFACE_OFFER.price.en} for one authorised public-facing system. No sales call required. Payment is due in full before the delivery clock starts. Payment alone does not authorise testing. One focused retest within 30 days is included; an additional or late retest is ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.en}.`,
-    primaryCta: "Start a review",
+    primaryCta: "Request this review",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
-    sampleLabel: "Inspect synthetic sample",
+    sampleLabel: "See a sample review",
   },
   "launch-readiness-check": {
-    headline: "One launch host. A before-and-after readiness package against an approved baseline.",
-    whoFor:
-      "Teams that need a before/after decision for one launch host and an approved baseline — drift, findings and open decisions named before go-live pressure peaks.",
+    headline: "See what changed before the launch decision.",
+    whoFor: "Teams with a launch date, one host and an approved baseline to compare against.",
+    scopeNote: "One host and one approved baseline. Your team owns launch approval and remediation.",
     deliverables: [
-      "baseline and candidate snapshots for the admitted host",
-      "drift notes against the approved baseline",
-      "findings and open decisions list",
-      "readiness report with named limits",
-      "signed proof package and offline verification where agreed",
+      "Baseline and candidate snapshots for one agreed host.",
+      "Drift notes, findings and open launch decisions.",
+      "Readiness report with limits; signed package and offline verification where agreed.",
     ],
     steps: [
       [
@@ -223,20 +233,18 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Not compliance certification or continuous monitoring.",
     ],
     commercialNote: "Quoted after fit check within the public range for the agreed host and baseline.",
-    primaryCta: "Start a non-secret fit check",
+    primaryCta: "Scope this review",
     sampleHref: "/review/sample-cases/launch-readiness-review",
-    sampleLabel: "Inspect launch sample",
+    sampleLabel: "See a sample review",
   },
   "key-access-custody-review": {
-    headline: "Custody or wallet-ops controls — reviewed without keys, balances or fund movement.",
-    whoFor:
-      "Teams that need a proof-backed review of custody or wallet-operations controls for a customer, auditor or internal owner — without WitnessOps touching funds or secrets.",
+    headline: "Know which custody controls your evidence supports.",
+    whoFor: "Custody and wallet-operations teams preparing documentation for a customer, auditor or internal review.",
+    scopeNote: "Documentation and agreed non-secret observations only. No keys, seed phrases, balances, fund movement or solvency claim.",
     deliverables: [
-      "sanitised posture for the admitted control surface",
-      "completeness notes on what was supplied",
-      "findings: supported claims vs gaps or unresolved items",
-      "named exclusions and handling limits",
-      "signed proof package where agreed",
+      "Review of the supplied, sanitised control documentation.",
+      "Supported claims, missing evidence and unresolved questions.",
+      "Findings, handling limits and exclusions; signed package where agreed.",
     ],
     steps: [
       [
@@ -263,20 +271,18 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "WitnessOps does not request private keys, seed phrases or recovery codes.",
     ],
     commercialNote: "Quoted after fit check for the agreed custody or wallet-ops surface.",
-    primaryCta: "Start a non-secret fit check",
+    primaryCta: "Scope this review",
     sampleHref: "/review/sample-cases/custody-wallet-ops-review",
-    sampleLabel: "Inspect custody sample",
+    sampleLabel: "See a sample review",
   },
   "incident-readiness-review": {
-    headline: "One named incident scenario. A readiness package — not live incident command.",
-    whoFor:
-      "Security and operations teams that need a bounded readiness record for one named incident class and environment before an event — not emergency IR.",
+    headline: "Find gaps in your plan for one incident scenario.",
+    whoFor: "Security and operations teams preparing for one incident scenario in one environment.",
+    scopeNote: "Preparation review only. No live incident command, emergency response or compromise claim.",
     deliverables: [
-      "sanitised readiness observations for the admitted scenario",
-      "posture and findings against preparation questions",
-      "unknowns, exclusions and open decisions",
-      "evidence references where supplied",
-      "named limits on what the review can conclude",
+      "Readiness observations for one agreed incident scenario.",
+      "Findings and supplied evidence references.",
+      "A report of gaps, unknowns, exclusions and open decisions.",
     ],
     steps: [
       [
@@ -303,22 +309,22 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
       "Not a 24/7 service, compliance certification or continuous monitoring.",
     ],
     commercialNote: "Quoted after fit check for one defined scenario and environment.",
-    primaryCta: "Start a non-secret fit check",
+    primaryCta: "Scope this review",
     sampleHref: "/review/sample-cases/incident-readiness-review",
-    sampleLabel: "Inspect incident-readiness sample",
+    sampleLabel: "See a sample review",
   },
   "professional-public-footprint-audit": {
-    headline: "Know what the public record supports — and where it can mislead.",
-    whoFor:
-      "A professional, partner, founder or executive who wants a bounded, evidence-backed view of their own public professional footprint before clients, counterparties, referrers or automated research systems form conclusions from it.",
+    headline: "Understand your public professional record.",
+    whoFor: "Professionals, founders and executives reviewing their own public record before clients or partners form an opinion.",
+    scopeNote: "One consenting professional and one primary firm. Public professional sources only; no private-competence assessment or legal advice.",
     deliverables: [
-      "concise 3–5 page “what the internet sees” mirror",
-      "canonical professional fact sheet",
-      "public claim-to-evidence audit",
-      "prioritised correction and clarification register",
-      "private evidence appendix",
-      "60-minute subject review and correction session",
-      "password-protected offline report bundle",
+      "A 3–5 page summary of what the internet shows.",
+      "Professional fact sheet.",
+      "Public claim-to-evidence audit.",
+      "Prioritised correction and clarification register.",
+      "Private evidence appendix.",
+      "Password-protected offline report bundle.",
+      "60-minute subject review and correction session.",
     ],
     steps: [
       [
@@ -358,22 +364,31 @@ const EN: Record<BuyerService["id"], ServiceLandingCopy> = {
 };
 
 const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
+  "automation-repair-handover": {
+    headline: "Przywróć proces, od którego zależy Twoja firma.",
+    whoFor: "Właściciele firm, zespoły operacyjne i małe zespoły wdrożeniowe z ważnym procesem, który przestał działać lub stracił opiekuna.",
+    scopeNote: "Zaczynamy od płatnej diagnozy: jeden proces, jedna niedziałająca ścieżka, do trzech systemów i dwóch godzin analizy.",
+    commercialNote: "Cena pilotażowa. €750 łącznie z diagnozą tylko wtedy, gdy uzgodniona naprawa mieści się w około sześciu godzinach całej pracy. W innym przypadku kończymy na diagnozie lub uzgadniamy osobną wycenę. Ceny bez VAT i opłat dostawców.",
+    primaryCta: "Opisz problem",
+    deliverables: ["Diagnoza: odtworzony błąd lub konkretna przeszkoda, prawdopodobna przyczyna i stała wycena naprawy.", "Po akceptacji naprawy: uzgodniona poprawka i testy normalnej ścieżki oraz istotnych ponowień, błędów i przekazania człowiekowi.", "Wynik sprawdzony w systemie docelowym, aktualne źródło lub eksport oraz krótka instrukcja obsługi i odzyskiwania.", "Zależności, odpowiedzialności i pozostałe ograniczenia, aby Twój zespół mógł powtórzyć test odbioru."],
+    steps: [["Opisz awarię", "Co powinno się wydarzyć, co dzieje się zamiast tego i jakie systemy uczestniczą? Bez sekretów i plików w pierwszej wiadomości."], ["Diagnoza · €250", "Po uzgodnieniu zakresu i dostępu zachowujemy oryginał i analizujemy problem przez maksymalnie dwie godziny. Otrzymasz ustalenia również wtedy, gdy nie da się wycenić ograniczonej naprawy."], ["Zdecyduj o naprawie", "Jeśli zakres pasuje, zatwierdzasz €750 łącznie z opłaconą diagnozą. Cel: około sześciu godzin całej pracy. Większe zadania wymagają osobnej wyceny."], ["Naprawa i przekazanie", "Wprowadzamy uzgodnioną poprawkę, sprawdzamy rzeczywisty wynik i istotną ścieżkę błędu. Przekazujemy aktualny proces i instrukcje obsługi oraz odzyskiwania."]],
+    boundaries: ["Diagnoza może zakończyć się przeszkodą lub rekomendacją, aby nie kontynuować. Nie obiecujemy naprawy każdego procesu.", "Zmiany produkcyjne i działania testowe wymagają uzgodnionego zakresu, odpowiedniego dostępu i Twojej zgody przed wykonaniem.", "Bez porządkowania całej firmy za małą stałą cenę, nielimitowanej analizy błędów, stałego zarządzania danymi logowania, obsługi 24/7 i gwarancji braku przestojów.", "Opieka, większe zadania i przeglądy bezpieczeństwa są wyceniane osobno. Bez certyfikacji i zapewnień wykraczających poza sprawdzoną ścieżkę."],
+  },
+
   "customer-security-review-sprint": {
-    headline: "Prześlij kwestionariusz bezpieczeństwa, który blokuje transakcję.",
-    whoFor:
-      "Firmy B2B software, SaaS, AI i usług technicznych, które dostały kwestionariusz bezpieczeństwa klienta, ocenę dostawcy lub prośbę o materiały.",
+    headline: "Zdejmij kwestionariusz z listy zaległości.",
+    whoFor: "Zespoły B2B z kwestionariuszem bezpieczeństwa klienta, terminem i ograniczonym czasem zespołu technicznego.",
+    scopeNote: "Jeden kwestionariusz. Jeden produkt. Twój zespół zatwierdza i wysyła odpowiedzi.",
     deliverables: [
-      "proponowana macierz odpowiedzi",
-      "indeks materiałów",
-      "lista zastrzeżeń i nieobsługiwanych twierdzeń",
-      "lista otwartych kwestii i właścicieli",
-      "mapa twierdzeń, jeśli jest przydatna",
-      "nota przewodnia dla klienta lub wewnętrznego zatwierdzającego",
+      "Proponowane odpowiedzi z odwołaniami do materiałów.",
+      "Indeks materiałów i mapa twierdzeń, jeśli przydatna.",
+      "Zastrzeżenia, niepoparte twierdzenia i otwarte kwestie z przypisanymi osobami.",
+      "Nota przewodnia dla klienta lub osoby zatwierdzającej.",
     ],
     steps: [
       [
         "Wstępna ocena",
-        "Potwierdź kwestionariusz, zakres produktu, termin, właścicieli i ograniczenia postępowania — bez wysyłania sekretów.",
+        "Potwierdź kwestionariusz, zakres produktu, termin, właścicieli i ograniczenia postępowania, bez wysyłania sekretów.",
       ],
       [
         "Uzgodnienie zakresu",
@@ -396,24 +411,31 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote:
       "Po wstępnej ocenie bez informacji poufnych. Jeden kwestionariusz. Jeden zakres produktu.",
-    primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    primaryCta: "Omów zakres przeglądu",
     sampleHref: "/review/sample-cases/customer-security-review-sprint",
-    sampleLabel: "Zobacz przykład CSR",
+    sampleLabel: "Zobacz przykładowe odpowiedzi (EN)",
   },
   "bounded-workflow-review": {
-    headline: PRIMARY_OFFER.cardSituation.pl,
-    whoFor:
-      "Zespoły bezpieczeństwa, platform, inżynierii, compliance, MSSP i automatyzacji AI, które pozwalają agentowi lub automatyzacji przejść od sugerowania do działania w produkcji, finansach, danych klientów, kontach, uprawnieniach lub komunikacji zewnętrznej.",
-    deliverables: PRIMARY_OFFER.included.pl,
-    scopeLimits: [PRIMARY_OFFER.unit.pl, ...PRIMARY_OFFER.included.pl],
+    headline: "Poznaj zabezpieczenia jednego działania AI.",
+    whoFor: "Zespoły tworzące produkty AI i agencje automatyzacji przed wdrożeniem agenta lub przekazaniem klientowi.",
+    scopeNote: "Jedno istotne działanie agenta lub automatyzacji. Odczyt, inspekcja, rekonstrukcja i raport; bez zmian produkcyjnych i certyfikacji bezpieczeństwa.",
+    deliverables: [
+      "Mapa upoważnień: kto może zatwierdzić działanie.",
+      "Ścieżka wykonania: tożsamość, narzędzia i systemy.",
+      "Granica uprawnień: do czego agent ma dostęp.",
+      "Łańcuch dowodowy: co wspiera wynik, a co pozostaje nieznane.",
+      "Luki kontrolne i praktyczne poprawki: zmiany według priorytetu.",
+      "Omówienie wyniku: ustalenia i decyzje dla zespołu.",
+    ],
+    scopeLimits: [PRIMARY_OFFER.unit.pl],
     steps: [
       [
         "Wstępna ocena",
-        `${PRIMARY_OFFER.fitCheckQuestion.pl} Opisz skutek błędu, zaangażowane systemy i narzędzia oraz granice produkcji, danych klientów, pieniędzy, kont, uprawnień lub komunikacji zewnętrznej. Nie wysyłaj sekretów ani materiałów źródłowych.`,
+        `${PRIMARY_OFFER.fitCheckQuestion.pl} Na początek wystarczy krótki opis. Jeśli znasz termin wdrożenia lub przekazania klientowi, dodaj go. Brakujące szczegóły wyjaśnimy razem; nie wysyłaj sekretów ani materiałów źródłowych.`,
       ],
       [
-        "Ustalenie granicy bezpieczeństwa",
-        "Potwierdzamy jedno działanie, kto może je zatwierdzić, tożsamość wykonującą, dostępne systemy i narzędzia, granice uprawnień, zasady dowodowe, sposób obsługi materiałów i wyłączenia.",
+        "Uzgodnienie zakresu przed decyzją",
+        "Przed pracą potwierdzamy dopasowanie, jedno działanie, stałą cenę, wymagane materiały, sposób ich obsługi i wyłączenia. Wskazujemy odpowiedzialną osobę i uzgadniamy sposób przeglądu bez instalowania nowej platformy.",
       ],
       [
         "Przegląd ścieżki wykonania",
@@ -421,7 +443,7 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       ],
       [
         "Raport i omówienie",
-        "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych dostarczamy mapę upoważnień, ścieżkę wykonania, granicę uprawnień, łańcuch dowodowy, luki kontrolne, praktyczne poprawki i omówienie. Techniczne mechanizmy dowodowe pozostają warstwą pomocniczą.",
+        "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych otrzymasz mapę działania, ustalenia, poprawki według priorytetu i omówienie. Każde ustalenie wskazuje materiały, które je wspierają, oraz niewiadome. Decyzja o wdrożeniu i realizacja poprawek należą do Twojego zespołu.",
       ],
     ],
     boundaries: [
@@ -432,21 +454,19 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       `Metoda ${PRIMARY_OFFER.deliveryMethod.pl} może obejmować analizę luk dowodowych, proponowany kształt zapisu i przykładowy pakiet. Przez /verify sprawdza się wyodrębniony, obsługiwany zapis JSON, a nie cały pakiet. Pakiet nie jest materiałem klienta ani twierdzeniem, że kontrolę wdrożono produkcyjnie.`,
       "Materiały klienta są przyjmowane dopiero po uzgodnieniu zakresu i postępowania.",
     ],
-    sampleHref: "/review/sample-cases/ai-agent-action-proof-run",
-    sampleLabel: "Zobacz syntetyczny przykład agenta",
-    commercialNote: `${PRIMARY_OFFER.fitCheck.pl}. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.unit.pl}.`,
-    primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    sampleHref: "/catalog/workflows#sample-review",
+    sampleLabel: "Zobacz przykładowy przegląd (EN)",
+    commercialNote: `${PRIMARY_OFFER.fitCheck.pl}. ${PRIMARY_OFFER.unit.pl}.`,
+    primaryCta: "Omów zakres przeglądu",
   },
   "one-server-security-check": {
-    headline: "Jeden autoryzowany host Linux. Jasny obraz bezpieczeństwa tylko do odczytu.",
-    whoFor:
-      "Założyciele i operatorzy, którzy potrzebują wiarygodnego snapshota jednego wskazanego hosta Linux przed hardeningiem, migracją, prośbą klienta lub głębszym przeglądem — bez testu penetracyjnego.",
+    headline: "Sprawdź, co poprawić na serwerze.",
+    whoFor: "Założyciele i operatorzy przygotowujący serwer Linux do wzmocnienia zabezpieczeń, migracji lub przeglądu klienta.",
+    scopeNote: "Jeden autoryzowany host Linux. Tylko odczyt, bez eksploatacji i gwarancji bezpieczeństwa hosta.",
     deliverables: [
-      "stan z uzgodnionych kontroli tylko do odczytu",
-      "deterministyczne ustalenia z odwołaniami do materiałów",
-      "raport z nazwanymi limitami i otwartymi punktami",
-      "podpisany pakiet, jeśli uzgodniono",
-      "przewodnik kupującego i ścieżka weryfikacji offline",
+      "Stan zabezpieczeń z uzgodnionych kontroli tylko do odczytu.",
+      "Ustalenia ze źródłami, ograniczeniami i otwartymi kwestiami.",
+      "Raport i omówienie; podpisany pakiet i weryfikacja offline, jeśli uzgodniono.",
     ],
     steps: [
       [
@@ -469,19 +489,19 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     boundaries: [
       "Bez eksploatacji, zbierania sekretów, certyfikacji zgodności i gwarancji, że host jest bezpieczny.",
       "Jeden wskazany host, autoryzowane zbieranie tylko do odczytu, uzgodnione kontrole i jawne wyłączenia.",
-      "valid na receipt oznacza przejście nazwanych kontroli weryfikatora — nie to, że host jest bezpieczny lub nieprzekompromitowany.",
+      "valid na receipt oznacza przejście nazwanych kontroli weryfikatora, nie to, że host jest bezpieczny lub nieprzekompromitowany.",
       "Sekrety, poświadczenia i klucze prywatne nie są proszone na etapie wstępnej oceny.",
     ],
     sampleHref: "/review/sample-cases/local-server-security-review",
-    sampleLabel: "Zobacz przykład serwera lokalnego",
+    sampleLabel: "Zobacz przykładowy przegląd (EN)",
     commercialNote:
       "Linia standardowa po wstępnej ocenie bez informacji poufnych dla jednego autoryzowanego hosta.",
-    primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    primaryCta: "Omów zakres przeglądu",
   },
   "external-exposure-assessment": {
-    headline: "Co internet widzi, choć nie miało być publiczne?",
-    whoFor:
-      "Zespoły SaaS i technologiczne przed wymaganiem klienta enterprise, uruchomieniem, zmianą infrastruktury, przeglądem klienta, planowanym pentestem lub innym terminem, który sprawia, że powierzchnia widoczna dla atakującego ma znaczenie właśnie teraz.",
+    headline: "Sprawdź, co nie powinno być publiczne.",
+    whoFor: "Zespoły SaaS i technologiczne przed wdrożeniem, przeglądem bezpieczeństwa klienta lub zmianą infrastruktury.",
+    scopeNote: "Jeden autoryzowany system publiczny. Kontrole o niskim wpływie, bez logowania. To nie jest test penetracyjny.",
     scopeLimits: [
       "jeden autoryzowany system publicznie dostępny, wskazany przez domenę, host, aplikację, API, publiczny adres IP, publiczny endpoint chmurowy lub spójne połączenie tych elementów",
       "do 1 rejestrowalnej domeny głównej",
@@ -494,15 +514,11 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "wyłącznie nieuwierzytelniona perspektywa z zewnątrz",
     ],
     deliverables: [
-      "zapis upoważnienia, zakresu, zatwierdzonych kontroli, wyłączeń i warunków zatrzymania",
-      "mapa zewnętrznej powierzchni ataku dla potwierdzonego zakresu",
-      "hosty, usługi i endpointy dostępne z internetu, które nie miały być publiczne",
-      "ustalenia poparte dowodami dotyczące konfiguracji widocznej dla atakującego i błędów obserwowalnych z zewnątrz",
-      "priorytety napraw i jawne niewiadome",
-      "raport wykonawczy i załącznik techniczny",
-      "manifest materiałów i hashe artefaktów",
-      "podpisany receipt i weryfikator offline, gdy wspierana ścieżka zostanie wytworzona",
-      "45-minutowe przekazanie i jeden ukierunkowany retest w ciągu 30 dni",
+      "Mapa zewnętrznej powierzchni ataku: publiczne hosty, usługi i endpointy.",
+      "Ustalenia ze źródłami i priorytety napraw.",
+      "Raport dla osób decyzyjnych, załącznik techniczny i jawne niewiadome.",
+      "Zapis zakresu i warunków zatrzymania, manifest i skróty plików; podpisany zapis i weryfikator offline, jeśli obsługiwane.",
+      "45-minutowe omówienie i jedno sprawdzenie poprawek w ciągu 30 dni.",
     ],
     steps: [
       ["Zamówienie", "Wskaż autoryzowany system dostępny z internetu i powód, dla którego jego zewnętrzna powierzchnia ataku ma teraz znaczenie. Podaj podstawę upoważnienia, ale nie wysyłaj sekretów ani materiałów produkcyjnych."],
@@ -518,20 +534,18 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
     ],
     commercialNote:
       `${EXTERNAL_ATTACK_SURFACE_OFFER.price.pl} za jeden autoryzowany system publicznie dostępny. Bez rozmowy sprzedażowej. Pełna płatność jest wymagana przed rozpoczęciem terminu dostawy. Sama płatność nie upoważnia do testów. Jeden ukierunkowany retest w ciągu 30 dni jest wliczony; dodatkowy lub późny retest kosztuje ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.pl}.`,
-    primaryCta: "Rozpocznij przegląd",
+    primaryCta: "Zapytaj o przegląd",
     sampleHref: "/review/sample-cases/external-exposure-assessment",
-    sampleLabel: "Zobacz syntetyczny przykład",
+    sampleLabel: "Zobacz przykładowy przegląd (EN)",
   },
   "launch-readiness-check": {
-    headline: "Jeden host startu. Pakiet gotowości before/after względem zatwierdzonej bazy.",
-    whoFor:
-      "Zespoły, które potrzebują decyzji before/after dla jednego hosta startu i zatwierdzonej bazy — dryf, ustalenia i otwarte decyzje nazwane zanim narasta presja go-live.",
+    headline: "Sprawdź zmiany przed wdrożeniem.",
+    whoFor: "Zespoły z terminem wdrożenia, jednym serwerem i zatwierdzonym stanem odniesienia.",
+    scopeNote: "Jeden host i zatwierdzony stan odniesienia. Zatwierdzenie wdrożenia i poprawki należą do Twojego zespołu.",
     deliverables: [
-      "migawki bazy i kandydata dla dopuszczonego hosta",
-      "notatki o dryfie względem zatwierdzonej bazy",
-      "lista ustaleń i otwartych decyzji",
-      "raport gotowości z nazwanymi limitami",
-      "podpisany pakiet i weryfikacja offline, jeśli uzgodniono",
+      "Migawki uzgodnionego stanu odniesienia i wersji przed wdrożeniem.",
+      "Opis zmian, ustalenia i otwarte decyzje.",
+      "Raport z ograniczeniami; podpisany pakiet i weryfikacja offline, jeśli uzgodniono.",
     ],
     steps: [
       [
@@ -558,20 +572,18 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "To nie certyfikacja zgodności ani ciągły monitoring.",
     ],
     commercialNote: "Wycena po wstępnej ocenie w publicznym zakresie dla uzgodnionego hosta i bazy.",
-    primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    primaryCta: "Omów zakres przeglądu",
     sampleHref: "/review/sample-cases/launch-readiness-review",
-    sampleLabel: "Zobacz przykład launch",
+    sampleLabel: "Zobacz przykładowy przegląd (EN)",
   },
   "key-access-custody-review": {
-    headline: "Kontrole custody lub wallet-ops — bez kluczy, sald i ruchu środków.",
-    whoFor:
-      "Zespoły, które potrzebują przeglądu z pakietem kontroli custody lub wallet-ops dla klienta, audytora lub właściciela — bez tego, by WitnessOps dotykał środków lub sekretów.",
+    headline: "Uporządkuj obraz kontroli nad aktywami.",
+    whoFor: "Zespoły operacji powierniczych i obsługi portfeli przygotowujące dokumentację dla klienta, audytora lub osoby odpowiedzialnej.",
+    scopeNote: "Tylko dokumentacja i uzgodnione niepoufne obserwacje. Bez kluczy, fraz seed, sald, ruchu środków i oceny wypłacalności.",
     deliverables: [
-      "zanonimizowany stan dopuszczonej powierzchni kontrolnej",
-      "notatki o kompletności dostarczonych materiałów",
-      "ustalenia: obsługiwane twierdzenia vs luki lub nierozwiązane",
-      "nazwane wyłączenia i limity postępowania",
-      "podpisany pakiet, jeśli uzgodniono",
+      "Przegląd dostarczonej dokumentacji kontroli bez danych poufnych.",
+      "Poparte twierdzenia, brakujące dowody i otwarte pytania.",
+      "Ustalenia, zasady obsługi i wyłączenia; podpisany pakiet, jeśli uzgodniono.",
     ],
     steps: [
       [
@@ -598,20 +610,18 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "WitnessOps nie prosi o klucze prywatne, frazy seed ani kody odzyskiwania.",
     ],
     commercialNote: "Wycena po wstępnej ocenie dla uzgodnionej powierzchni custody lub wallet-ops.",
-    primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    primaryCta: "Omów zakres przeglądu",
     sampleHref: "/review/sample-cases/custody-wallet-ops-review",
-    sampleLabel: "Zobacz przykład custody",
+    sampleLabel: "Zobacz przykładowy przegląd (EN)",
   },
   "incident-readiness-review": {
-    headline: "Jeden nazwany scenariusz incydentu. Pakiet gotowości — nie żywe dowodzenie IR.",
-    whoFor:
-      "Zespoły security i operations, które potrzebują ograniczonego zapisu gotowości dla jednej nazwanej klasy incydentu i środowiska przed zdarzeniem — nie awaryjnego IR.",
+    headline: "Poznaj braki przed incydentem.",
+    whoFor: "Zespoły bezpieczeństwa i operacji przygotowujące się do jednego scenariusza incydentu w jednym środowisku.",
+    scopeNote: "Przegląd przygotowania. Bez dowodzenia incydentem na żywo, interwencji awaryjnej i twierdzeń o naruszeniu.",
     deliverables: [
-      "zanonimizowane obserwacje gotowości dla dopuszczonego scenariusza",
-      "stan i ustalenia względem pytań o przygotowanie",
-      "niewiadome, wyłączenia i otwarte decyzje",
-      "odwołania do materiałów, jeśli dostarczono",
-      "nazwane limity tego, co przegląd może stwierdzić",
+      "Obserwacje gotowości dla uzgodnionego scenariusza.",
+      "Ustalenia i odwołania do dostarczonych źródeł.",
+      "Raport braków, niewiadomych, wyłączeń i otwartych decyzji.",
     ],
     steps: [
       [
@@ -638,22 +648,22 @@ const PL: Record<BuyerService["id"], ServiceLandingCopy> = {
       "To nie usługa 24/7, certyfikacja zgodności ani ciągły monitoring.",
     ],
     commercialNote: "Wycena po wstępnej ocenie dla jednego zdefiniowanego scenariusza i środowiska.",
-    primaryCta: "Rozpocznij wstępną ocenę bez informacji poufnych",
+    primaryCta: "Omów zakres przeglądu",
     sampleHref: "/review/sample-cases/incident-readiness-review",
-    sampleLabel: "Zobacz przykład gotowości",
+    sampleLabel: "Zobacz przykładowy przegląd (EN)",
   },
   "professional-public-footprint-audit": {
-    headline: "Sprawdź, co potwierdza publiczny obraz — i gdzie może wprowadzać w błąd.",
-    whoFor:
-      "Dla osoby wykonującej zawód, partnera, założyciela lub osoby zarządzającej, która chce poznać ograniczony i oparty na źródłach obraz własnego publicznego śladu zawodowego, zanim klienci, kontrahenci, osoby polecające lub systemy AI wyciągną z niego wnioski.",
+    headline: "Zobacz swój profil oczami klienta.",
+    whoFor: "Specjaliści, założyciele i menedżerowie sprawdzający własny publiczny profil przed oceną klienta lub partnera.",
+    scopeNote: "Jedna osoba za jej zgodą i jedna główna firma. Tylko publiczne źródła zawodowe; bez oceny prywatnych kompetencji i porady prawnej.",
     deliverables: [
-      "zwięzłe, 3–5-stronicowe odzwierciedlenie „co widzi internet”",
-      "kanoniczna karta faktów zawodowych",
-      "audyt publicznych twierdzeń względem źródeł",
-      "priorytetowy rejestr korekt i wyjaśnień",
-      "prywatny załącznik dowodowy",
-      "60-minutowa sesja weryfikacji i korekty z osobą objętą audytem",
-      "chroniony hasłem pakiet raportów offline",
+      "3–5 stron podsumowania tego, co pokazuje internet.",
+      "Karta faktów zawodowych.",
+      "Porównanie publicznych twierdzeń ze źródłami.",
+      "Lista korekt i wyjaśnień według priorytetu.",
+      "Prywatny załącznik źródłowy.",
+      "Pakiet raportu offline chroniony hasłem.",
+      "60-minutowe omówienie i sesja korekt.",
     ],
     steps: [
       [

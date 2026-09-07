@@ -34,6 +34,38 @@ def run(command: list[str], cwd: Path, check: bool = True) -> subprocess.Complet
     return subprocess.run(command, cwd=cwd, check=check, text=True, capture_output=True)
 
 
+class PnpmSerializationBoundaryTests(unittest.TestCase):
+    def test_rejects_unrecognized_package_serialization(self):
+        clean = (FIXTURES / "clean-pnpm-lock.yaml").read_text()
+        cases = [
+            clean.replace("  safe-package@1.0.0:\n    resolution: {integrity: sha512-inert-fixture}", "  safe-package@1.0.0: {resolution: {integrity: sha512-inert-fixture}}"),
+            clean.replace("  safe-package@", "    safe-package@").replace("    resolution:", "      resolution:"),
+            clean.replace("  safe-package@1.0.0:", "  safe-package@1.0.0: &entry"),
+            clean + "\n'packages': {hidden@1.0.0: {}}\n",
+            clean + "\npackages:\n  hidden@1.0.0:\n    resolution: {integrity: sha512-inert}\n",
+            clean.replace("  safe-package@1.0.0:", "  <<: *hidden\n  safe-package@1.0.0:"),
+        ]
+        cases.extend([
+            clean.replace("    resolution:", "    'resolution':"),
+            clean.replace("    resolution:", "    \"resolution\":"),
+            clean.replace("{integrity: sha512-inert-fixture}", "*resolution"),
+            clean.replace("    resolution: {integrity: sha512-inert-fixture}", "    <<: *source"),
+            clean.replace("{integrity: sha512-inert-fixture}", "{integrity: sha512-inert-fixture, <<: *source}"),
+            clean.replace("{integrity: sha512-inert-fixture}", "{integrity: sha512-inert-fixture, tarball: https://attacker.invalid/p.tgz}"),
+            clean.replace("{integrity: sha512-inert-fixture}", '{integrity: sha512-inert-fixture, "\\u0074arball": "https://attacker.invalid/p.tgz"}'),
+            clean.replace("    resolution: {integrity: sha512-inert-fixture}", "    resolution:\n      integrity: sha512-inert-fixture\n      <<: *source"),
+        ])
+        for text in cases:
+            for parser in [GATE.parse_pnpm_lock, GATE.parse_pnpm_resolution_map]:
+                with self.subTest(text=text, parser=parser.__name__):
+                    with self.assertRaises(GATE.GateError):
+                        parser(text.encode())
+
+    def test_accepts_standard_registry_and_empty_lockfiles(self):
+        self.assertEqual(GATE.parse_pnpm_lock((FIXTURES / "clean-pnpm-lock.yaml").read_bytes()), {("safe-package", "1.0.0")})
+        self.assertEqual(GATE.parse_pnpm_lock((FIXTURES / "empty-pnpm-lock.yaml").read_bytes()), set())
+
+
 class SyntheticRepository:
     def __init__(self, lock_fixture: str, dependencies: dict[str, str] | None = None):
         self._temp = tempfile.TemporaryDirectory(prefix="witnessops-supply-chain-test-")

@@ -6,12 +6,12 @@ import { CtaButton } from "@/components/shared/cta-button";
 const path = "/review/sample-cases/customer-security-review-sprint";
 
 export const metadata: Metadata = {
-  title: "Sample — Customer Security Review Sprint",
+  title: "Sample: Customer Security Review Sprint",
   description:
     "Synthetic demonstration of a customer security questionnaire response package: proposed answers, evidence references, qualifications, and open items. Not live customer evidence.",
   alternates: getCanonicalAlternates("witnessops", path),
   openGraph: {
-    title: "Sample — Customer Security Review Sprint | WitnessOps",
+    title: "Sample: Customer Security Review Sprint | WitnessOps",
     description:
       "Inspect a synthetic questionnaire response package shape. Not live customer evidence or certification.",
     siteName: "WitnessOps",
@@ -43,7 +43,7 @@ const boundaries = [
   "WitnessOps does not certify compliance or guarantee that a customer, auditor or procurement team will accept the package.",
   "WitnessOps does not invent evidence or turn an unsupported claim into a supported one.",
   "Formal certifications and reports remain necessary where the reviewer requires them.",
-  "This page is a synthetic demonstration — not live customer evidence.",
+  "This page is a synthetic demonstration, not live customer evidence.",
 ] as const;
 
 export default function CustomerSecurityReviewSamplePage() {
@@ -70,13 +70,13 @@ export default function CustomerSecurityReviewSamplePage() {
           <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">
             Situation: a security questionnaire is holding up a deal. The package maps supplied
             material to questions, separates supported answers from open items, and returns a
-            response for the customer’s approval — not WitnessOps submission on their behalf.
+            response for the customer’s approval, not WitnessOps submission on their behalf.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <CtaButton
               href="/review/request"
               variant="primary"
-              label="Start a non-secret fit check"
+              label="Ask about this review"
             />
             <CtaButton
               href="/customer-security-review"
@@ -107,7 +107,7 @@ export default function CustomerSecurityReviewSamplePage() {
         <section className="border-b border-surface-border py-12">
           <div className="border border-surface-border">
             <p className="border-b border-surface-border bg-surface-card/50 px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-brand-accent">
-              SYNTHETIC DEMONSTRATION — NOT CUSTOMER EVIDENCE
+              SYNTHETIC DEMONSTRATION, NOT CUSTOMER EVIDENCE
             </p>
             <div className="grid gap-8 p-6 lg:grid-cols-[0.75fr_1.25fr] lg:p-8">
               <div>
@@ -118,9 +118,9 @@ export default function CustomerSecurityReviewSamplePage() {
                 </p>
                 <h3 className="mt-6 font-semibold text-text-primary">Example evidence references</h3>
                 <ul className="mt-3 space-y-2 text-sm text-text-muted">
-                  <li>Architecture standard — current approved version</li>
-                  <li>Access review procedure — product scope</li>
-                  <li>Incident response policy — owner-confirmed</li>
+                  <li>Architecture standard: current approved version</li>
+                  <li>Access review procedure: product scope</li>
+                  <li>Incident response policy: owner-confirmed</li>
                 </ul>
               </div>
               <div
@@ -201,7 +201,7 @@ export default function CustomerSecurityReviewSamplePage() {
             <CtaButton
               href="/review/request"
               variant="primary"
-              label="Start a non-secret fit check"
+              label="Ask about this review"
             />
             <CtaButton
               href="/customer-security-review"

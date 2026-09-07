@@ -232,7 +232,7 @@ export function WitnessedActionReplay() {
             Original run authority already exists for this specimen. Your click is replay consent only.
           </p>
           <div className={styles.boundaryNotice}>
-            <strong>Recorded specimen — approving starts the replay. No live system or record will be changed.</strong>
+            <strong>Recorded specimen: approving starts the replay. No live system or record will be changed.</strong>
             <p>No live CRM record, credential, customer data, or model will be contacted.</p>
           </div>
           <div className={styles.columnsTwo}>

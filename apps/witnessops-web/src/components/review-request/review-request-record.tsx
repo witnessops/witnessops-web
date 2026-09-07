@@ -47,7 +47,7 @@ const copyByLocale = {
     copy: "Copy request record",
     copied: "Record copied",
     failed: "Select record below",
-    fallbackLabel: "Clipboard blocked — select and copy this bounded record",
+    fallbackLabel: "Clipboard blocked. Select and copy this bounded record",
     footer: ["Mailbox", "Intake", "Boundary", "Next step"],
   },
   pl: {
@@ -82,7 +82,7 @@ const copyByLocale = {
     copy: "Kopiuj zapis zgłoszenia",
     copied: "Zapis skopiowany",
     failed: "Zaznacz zapis poniżej",
-    fallbackLabel: "Schowek zablokowany — zaznacz i skopiuj ten ograniczony zapis",
+    fallbackLabel: "Schowek zablokowany. Zaznacz i skopiuj ten ograniczony zapis",
     footer: ["Skrzynka", "Zgłoszenie", "Granica", "Następny krok"],
   },
 } as const;

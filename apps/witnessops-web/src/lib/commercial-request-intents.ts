@@ -1,6 +1,7 @@
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  AUTOMATION_REPAIR_OFFER,
 } from "@/lib/commercial-truth";
 
 export const AI_AGENT_ACTION_PROOF_RUN_INTENT =
@@ -42,6 +43,7 @@ export const MANUAL_COMMERCIAL_POST_VERIFY_PATH =
   "/review/request/confirmed" as const;
 
 export const MANUAL_COMMERCIAL_REQUEST_INTENTS = [
+  AUTOMATION_REPAIR_OFFER.id,
   AI_AGENT_ACTION_PROOF_RUN_INTENT,
   ACCESS_CHANGE_PROOF_RUN_INTENT,
   EXTERNAL_EXPOSURE_ASSESSMENT_INTENT,
@@ -90,6 +92,8 @@ export function getCommercialRequestLabel(
 ): string {
   if (locale === "pl") {
     switch (intent?.trim()) {
+      case AUTOMATION_REPAIR_OFFER.id:
+        return `Zgłoszenie: ${AUTOMATION_REPAIR_OFFER.name.pl}`;
       case AI_AGENT_ACTION_PROOF_RUN_INTENT:
         return "Zgłoszenie AI Agent Action Proof Run";
       case ACCESS_CHANGE_PROOF_RUN_INTENT:
@@ -118,6 +122,8 @@ export function getCommercialRequestLabel(
   }
 
   switch (intent?.trim()) {
+    case AUTOMATION_REPAIR_OFFER.id:
+      return `${AUTOMATION_REPAIR_OFFER.name.en} request`;
     case AI_AGENT_ACTION_PROOF_RUN_INTENT:
       return "AI Agent Action Proof Run request";
     case ACCESS_CHANGE_PROOF_RUN_INTENT:

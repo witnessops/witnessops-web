@@ -100,18 +100,23 @@ test("public Ask OpenAI config uses a separate exact production gate", () => {
   const config = readAskWitnessOpsOpenAiRuntimeConfig({
     WITNESSOPS_ASK_OPENAI_ENABLED: "true",
     WITNESSOPS_ASK_OPENAI_STAGE: "production",
-    WITNESSOPS_DOCS_ASSISTANT_VECTOR_STORE_ID:
-      DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID,
-    WITNESSOPS_DOCS_ASSISTANT_MODEL: DOCS_ASSISTANT_STAGING_MODEL,
     OPENAI_API_KEY: "test-key",
   });
 
   assert.equal(config.enabled, true);
   if (config.enabled) {
     assert.equal(config.stage, "production");
-    assert.equal(config.vectorStoreId, DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID);
+    assert.equal("vectorStoreId" in config, false);
     assert.equal(config.model, DOCS_ASSISTANT_STAGING_MODEL);
   }
+});
+
+test("public Ask development needs a key and accepts only the supported public model", () => {
+  assert.deepEqual(readAskWitnessOpsOpenAiRuntimeConfig({ NODE_ENV: "development" }), { enabled: false, reason: "missing_api_key" });
+  const configured = readAskWitnessOpsOpenAiRuntimeConfig({ NODE_ENV: "development", OPENAI_API_KEY: "test-key" });
+  assert.equal(configured.enabled, true);
+  if (configured.enabled) assert.equal(configured.model, "gpt-5.4-mini");
+  assert.deepEqual(readAskWitnessOpsOpenAiRuntimeConfig({ NODE_ENV: "development", OPENAI_API_KEY: "test-key", WITNESSOPS_ASK_OPENAI_MODEL: "unknown-model" }), { enabled: false, reason: "model_not_allowed" });
 });
 
 test("public Ask OpenAI config fails closed for missing and staging-only gates", () => {

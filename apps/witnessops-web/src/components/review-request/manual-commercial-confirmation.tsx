@@ -11,7 +11,7 @@ interface ManualCommercialConfirmationProps {
 
 const copy = {
   en: {
-    eyebrow: "WitnessOps — manual review request",
+    eyebrow: "WitnessOps: manual review request",
     title: "Your request is queued for operator review.",
     verified: "Mailbox verified",
     request: "Requested path",
@@ -25,7 +25,7 @@ const copy = {
     boundary:
       "No automated assessment, target-facing action, or other work has started from this mailbox confirmation.",
     catalogue: "Review the service catalogue",
-    legacyEyebrow: "WitnessOps — legacy request status",
+    legacyEyebrow: "WitnessOps: legacy request status",
     legacyTitle: "This legacy request needs manual review.",
     legacySteps: [
       "Keep the reference below and contact WitnessOps if you want to continue.",
@@ -34,7 +34,7 @@ const copy = {
     ],
     legacyBoundary:
       "This unclassified legacy request cannot start an automated assessment. No target-facing action or other work has started from this mailbox confirmation.",
-    rejectedEyebrow: "WitnessOps — manual review request / closed",
+    rejectedEyebrow: "WitnessOps: manual review request / closed",
     rejectedTitle: "This request was closed without starting work.",
     rejectedSteps: [
       "The request is not proceeding on its original terms.",
@@ -45,7 +45,7 @@ const copy = {
       "Mailbox confirmation remains recorded, but it does not override the closed status or prove that review work took place.",
   },
   pl: {
-    eyebrow: "WitnessOps — zgłoszenie do ręcznego przeglądu",
+    eyebrow: "WitnessOps: zgłoszenie do ręcznego przeglądu",
     title: "Twoje zgłoszenie oczekuje na przegląd operatora.",
     verified: "Skrzynka e-mail potwierdzona",
     request: "Wybrana ścieżka",
@@ -59,7 +59,7 @@ const copy = {
     boundary:
       "Potwierdzenie skrzynki nie uruchomiło automatycznej oceny, działań wobec celu ani żadnej innej pracy.",
     catalogue: "Zobacz katalog usług",
-    legacyEyebrow: "WitnessOps — status starszego zgłoszenia",
+    legacyEyebrow: "WitnessOps: status starszego zgłoszenia",
     legacyTitle: "To starsze zgłoszenie wymaga ręcznego przeglądu.",
     legacySteps: [
       "Zachowaj poniższy numer i skontaktuj się z WitnessOps, jeśli chcesz kontynuować.",
@@ -68,7 +68,7 @@ const copy = {
     ],
     legacyBoundary:
       "To niesklasyfikowane starsze zgłoszenie nie może uruchomić automatycznej oceny. Potwierdzenie skrzynki nie uruchomiło działań wobec celu ani żadnej innej pracy.",
-    rejectedEyebrow: "WitnessOps — zgłoszenie do ręcznego przeglądu / zamknięte",
+    rejectedEyebrow: "WitnessOps: zgłoszenie do ręcznego przeglądu / zamknięte",
     rejectedTitle: "To zgłoszenie zamknięto bez rozpoczęcia pracy.",
     rejectedSteps: [
       "Zgłoszenie nie będzie realizowane na pierwotnych warunkach.",

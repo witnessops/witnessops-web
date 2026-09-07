@@ -1,14 +1,12 @@
 import {
   BUYER_SERVICES,
   buyerRequestHref,
-  buyerPublicOfferRequestHref,
   buyerServiceByProductId,
   buyerServiceFromRequestOffer,
   buyerServiceRequestHref,
   type BuyerLocale,
   type BuyerService,
 } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 
 type SearchParamsReader = Pick<URLSearchParams, "get">;
 
@@ -29,7 +27,7 @@ function selectedServiceFromRequest(
     offerId,
     searchParams.get("offer"),
   );
-  if (offerId !== null && requestedOffer?.id === PRIMARY_OFFER.id) {
+  if (offerId !== null && requestedOffer) {
     return requestedOffer;
   }
 
@@ -68,5 +66,5 @@ export function reviewRequestHrefForLocation(
     }
   }
 
-  return buyerPublicOfferRequestHref(locale, PRIMARY_OFFER.id);
+  return requestHref;
 }

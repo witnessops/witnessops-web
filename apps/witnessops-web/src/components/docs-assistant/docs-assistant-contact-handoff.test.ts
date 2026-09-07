@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { BUYER_SERVICES, type BuyerService } from "@/lib/buyer-services";
 
 import {
+  ASK_CONTACT_NOTE_MAX_LENGTH,
+  ASK_CONTACT_QUESTION_MAX_LENGTH,
   buildAskAiContactRequest,
   buildAskAiContactScope,
 } from "./docs-assistant-contact-handoff-contract";
@@ -36,6 +39,9 @@ test("Ask AI contact handoff records controlled fit fields and the explicit note
   assert.match(scope, /Commercial fit signal: likely/);
   assert.match(scope, /Commercial intent: workflow/);
   assert.match(scope, /Source: ask/);
+  assert.match(scope, /Follow-up requested: reply by email about this request/);
+  assert.match(scope, /No mailing list signup/);
+  assert.match(scope, /Question sharing: not requested/);
   assert.match(scope, /Visitor note: Discuss one agent workflow\./);
   assert.match(scope, /mailbox verification/);
   assert.match(scope, /No review starts/);
@@ -46,7 +52,10 @@ test("Ask AI contact handoff records controlled fit fields and the explicit note
 });
 
 test("Ask AI contact handoff keeps an omitted note explicit", () => {
-  assert.match(buildAskAiContactScope("   "), /Visitor note: not provided/);
+  const scope = buildAskAiContactScope("   ");
+  assert.match(scope, /Visitor note: not provided/);
+  assert.match(scope, /Source: ask/);
+  assert.match(scope, /Question sharing: not requested/);
 });
 
 test("the actual contact request body excludes the raw Ask question", () => {
@@ -56,6 +65,7 @@ test("the actual contact request body excludes the raw Ask question", () => {
     "buyer@example.com",
     "Review one key-rotation workflow.",
     likelyWorkflowFit,
+    { question: rawAskPrompt },
   );
   const serialized = JSON.stringify(requestBody);
 
@@ -65,4 +75,67 @@ test("the actual contact request body excludes the raw Ask question", () => {
   assert.match(requestBody.scope, /Commercial fit signal: likely/);
   assert.doesNotMatch(serialized, new RegExp(rawAskPrompt));
   assert.doesNotMatch(serialized, /ai-agent-action-proof-run/);
+});
+
+test("Ask contact includes only the explicitly approved question text", () => {
+  const request = buildAskAiContactRequest(
+    "buyer@example.com",
+    "Review one workflow.",
+    likelyWorkflowFit,
+    { includeQuestion: true, question: "  Does this agent need an approval step?  " },
+  );
+
+  assert.match(request.scope, /Question sharing: visitor opted in/);
+  assert.match(request.scope, /Visitor-approved question: Does this agent need an approval step\?/);
+  assert.deepEqual(Object.keys(request), ["email", "intent", "locale", "scope"]);
+  assert.doesNotMatch(request.scope, /AI answer:|Generated answer:/);
+});
+
+test("Ask contact bounds the shared question and note within the existing intake limit", () => {
+  const scope = buildAskAiContactScope("n".repeat(9_000), likelyWorkflowFit, {
+    includeQuestion: true,
+    question: "q".repeat(9_000),
+  });
+
+  assert.equal(scope.match(/Visitor note: (.+)/)?.[1].length, ASK_CONTACT_NOTE_MAX_LENGTH);
+  assert.equal(scope.match(/Visitor-approved question: (.+)/)?.[1].length, ASK_CONTACT_QUESTION_MAX_LENGTH);
+  assert.ok(scope.length < 8_000);
+});
+
+test("removing question-sharing permission excludes the edited question", () => {
+  const scope = buildAskAiContactScope("Only use this note.", undefined, {
+    includeQuestion: false,
+    question: "Previously selected question",
+  });
+
+  assert.match(scope, /Question sharing: not requested/);
+  assert.doesNotMatch(scope, /Previously selected question|Visitor-approved question:/);
+});
+
+test("Ask follow-up records every supported service using canonical catalog names", () => {
+  for (const service of BUYER_SERVICES) {
+    const scope = buildAskAiContactScope("Discuss this review.", undefined, { serviceId: service.id });
+    assert.ok(scope.includes(`Offer: ${service.id}\n`));
+    assert.ok(scope.includes(`Offer name: ${service.name.en}\n`));
+    assert.match(scope, /Source: ask/);
+  }
+});
+
+test("an explicit catalog service does not inherit a different legacy offer's fit signal", () => {
+  const scope = buildAskAiContactScope("Review our server.", likelyWorkflowFit, {
+    serviceId: "one-server-security-check",
+  });
+
+  assert.match(scope, /Offer: one-server-security-check/);
+  assert.match(scope, /Offer name: One Server Security Check/);
+  assert.doesNotMatch(scope, /bounded-workflow-review|Commercial fit signal:/);
+});
+
+test("unknown runtime service values cannot become offer identities or names", () => {
+  const scope = buildAskAiContactScope("Discuss a review.", undefined, {
+    serviceId: "provider-invented-service" as BuyerService["id"],
+  });
+
+  assert.doesNotMatch(scope, /Offer:|Offer name:|provider-invented-service/);
+  assert.match(scope, /Source: ask/);
 });

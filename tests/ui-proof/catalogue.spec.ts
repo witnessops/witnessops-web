@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { buyerServiceById, buyerServiceCta } from "../../apps/witnessops-web/src/lib/buyer-services";
 
 const scenarios = [
   { path: "/catalog", width: 1440, height: 1100 },
@@ -12,14 +13,9 @@ const scenarios = [
 ] as const;
 
 const expectedServiceOrder = [
-  "bounded-workflow-review",
-  "external-exposure-assessment",
-  "customer-security-review-sprint",
-  "one-server-security-check",
-  "launch-readiness-check",
-  "key-access-custody-review",
-  "incident-readiness-review",
-  "professional-public-footprint-audit",
+  "bounded-workflow-review", "one-server-security-check", "external-exposure-assessment",
+  "automation-repair-handover", "customer-security-review-sprint", "launch-readiness-check",
+  "key-access-custody-review", "incident-readiness-review", "professional-public-footprint-audit",
 ] as const;
 
 test("catalogue routes remain responsive and usable", async ({ browser }) => {
@@ -40,7 +36,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
     await expect(page.locator("main h1")).toBeVisible();
 
     const serviceCards = page.locator("[data-buyer-service]");
-    await expect(serviceCards).toHaveCount(8);
+    await expect(serviceCards).toHaveCount(9);
     const firstCardVisuals = await serviceCards.first().evaluate((card) => {
       const style = getComputedStyle(card);
       const primaryCta = card.querySelector<HTMLElement>("a");
@@ -82,47 +78,19 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
           timing: card.getAttribute("data-timing-contract"),
         })),
       ),
-    ).toEqual([
-      {
-        price: "eur_2500_fixed",
-        timing: "within_ten_working_days_after_evidence_rules_are_agreed",
-      },
-      {
-        price: "eur_1900_ex_vat_one_authorised_public_facing_system",
-        timing:
-          "three_working_days_after_payment_in_full_accepted_sow_written_authority_fixed_scope_required_inputs_and_approved_collection_window_confirmed",
-      },
-      {
-        price: "from_eur_1600_after_non_secret_fit_check",
-        timing:
-          "approx_three_working_days_after_scope_owners_inputs_and_evidence_access_confirmed",
-      },
-      {
-        price: "eur_950_standard_after_fit_check",
-        timing: "within_two_business_days_after_authorised_collection_window",
-      },
-      {
-        price: "eur_2500_to_7500",
-        timing: "four_business_days_after_candidate_collection",
-      },
-      { price: "eur_3000_to_15000", timing: "confirmed_during_non_secret_fit_check" },
-      { price: "eur_5000_to_25000", timing: "confirmed_during_non_secret_fit_check" },
-      {
-        price: "eur_4900_excluding_vat",
-        timing:
-          "seven_to_ten_working_days_after_consent_scope_and_public_source_protocol_confirmed",
-      },
-    ]);
+    ).toEqual(expectedServiceOrder.map(id => ({
+      price: buyerServiceById(id).commercialContract.price,
+      timing: buyerServiceById(id).commercialContract.timing,
+    })));
+    if (scenario.width >= 768) {
+      const geometry = await serviceCards.last().evaluate(card => ({ card: card.getBoundingClientRect().width, grid: card.parentElement!.getBoundingClientRect().width }));
+      expect(Math.abs(geometry.grid - geometry.card)).toBeLessThanOrEqual(2);
+    }
     const primaryOfferCard = serviceCards.first();
     await expect(primaryOfferCard).toContainText("Agent Action Security Review");
     await expect(primaryOfferCard).toContainText(
       scenario.path.startsWith("/pl")
-        ? "Główny płatny punkt wejścia"
-        : "Primary paid entry point",
-    );
-    await expect(primaryOfferCard).toContainText(
-      scenario.path.startsWith("/pl")
-        ? "€2 500 — cena stała · bez VAT"
+        ? "€2 500: cena stała · bez VAT"
         : "€2,500 fixed · excluding VAT",
     );
     await expect(primaryOfferCard).toContainText(
@@ -133,13 +101,8 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
     await expect(primaryOfferCard).not.toContainText("Agent Risk & Control Review");
     await expect(primaryOfferCard).not.toContainText("From €1,500");
 
-    const publicExposureCard = serviceCards.nth(1);
+    const publicExposureCard = page.locator('[data-buyer-service="external-exposure-assessment"]');
     await expect(publicExposureCard).toContainText("External Attack Surface Review");
-    await expect(publicExposureCard).toContainText(
-      scenario.path.startsWith("/pl")
-        ? "Dodatkowa oferta katalogowa"
-        : "Secondary catalogue offer",
-    );
     await expect(publicExposureCard).toContainText(
       scenario.path.startsWith("/pl") ? "€1 900 · bez VAT" : "€1,900 · excluding VAT",
     );
@@ -150,7 +113,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
     );
     await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż|Access Removal/);
 
-    for (let index = 0; index < 8; index += 1) {
+    for (let index = 0; index < expectedServiceOrder.length; index += 1) {
       const card = serviceCards.nth(index);
       const links = card.locator("a");
       const primary = links.first();
@@ -176,19 +139,7 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
           new URL(primaryHref ?? "", "http://witnessops.test").searchParams.get("offerId"),
         ).toBe("customer-security-review-sprint");
       }
-      await expect(primary).toHaveText(
-        expectedServiceOrder[index] === "bounded-workflow-review"
-          ? scenario.path.startsWith("/pl")
-            ? "Rozpocznij wstępną ocenę bez informacji poufnych"
-            : "Start a non-secret fit check"
-          : expectedServiceOrder[index] === "professional-public-footprint-audit"
-          ? scenario.path.startsWith("/pl")
-            ? "Zapytaj o audyt"
-            : "Request this audit"
-          : scenario.path.startsWith("/pl")
-            ? "Rozpocznij przegląd"
-            : "Start a review",
-      );
+      await expect(primary).toHaveText(buyerServiceCta(scenario.path.startsWith("/pl") ? "pl" : "en", buyerServiceById(expectedServiceOrder[index])));
       // Public buyer cards expose only the request and web-detail paths.
       if (expectedServiceOrder[index] === "customer-security-review-sprint") {
         await expect(links).toHaveCount(2);
@@ -289,10 +240,10 @@ test("External Attack Surface Review pricing entry preserves sample and intake l
   await expect(card).toContainText("This is not a penetration test");
   await expect(
     card.locator('a[href="/review/sample-cases/external-exposure-assessment"]'),
-  ).toHaveText("Inspect synthetic sample");
+  ).toHaveText("See sample");
 
   const fitHref = await card
-    .getByRole("link", { name: "Request the review" })
+    .getByRole("link", { name: "Scope this review" })
     .getAttribute("href");
   expect(
     new URL(fitHref ?? "", "http://witnessops.test").searchParams.get(

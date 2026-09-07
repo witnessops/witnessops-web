@@ -5,6 +5,7 @@ import test from "node:test";
 
 import {
   isExternalFooterHref,
+  isFooterRequestHref,
   isLibraryPath,
   resolveFooterHref,
 } from "./footer";
@@ -21,7 +22,7 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.match(source, /FOOTER_LEGAL_LINK_CLASS/);
   assert.match(source, /text-text-secondary/);
   assert.match(source, /text-xs leading-5 text-text-secondary/);
-  assert.match(source, /rounded-full bg-text-muted/);
+  assert.doesNotMatch(source, /Bounded reconstruction|Ograniczona rekonstrukcja/);
   assert.match(source, /max-w-\[320px\] text-sm leading-relaxed text-text-secondary/);
   assert.match(source, /data-footer-motto="proof-beats-memory"/);
   assert.match(source, /Proof beats memory\./);
@@ -35,7 +36,7 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.match(source, /md:pr-32/);
   assert.match(
     source,
-    /lg:grid-cols-\[minmax\(0,4fr\)_minmax\(0,3fr\)_minmax\(280px,3fr\)\]/,
+    /lg:grid-cols-\[minmax\(0,1fr\)_minmax\(0,1\.15fr\)_minmax\(0,1fr\)\]/,
   );
   assert.doesNotMatch(
     source,
@@ -104,16 +105,14 @@ test("footer provides Polish homepage labels without changing route contracts", 
 
   for (const marker of [
     'label: "Usługi", href: "/pl/catalog"',
-    "label: PRIMARY_OFFER.name.pl",
-    "href: PRIMARY_OFFER.route",
-    'label: "Rozpocznij wstępną ocenę bez informacji poufnych"',
-    "href: PRIMARY_REQUEST_PL",
+    'label: "Naprawa i przekazanie"',
+    'href: "/pl/catalog/automation-repair"',
+    'label: "Podejście"',
     'label: "Prywatność", href: "/privacy"',
     'label: "Warunki", href: "/terms"',
     'label: "Bezpieczeństwo", href: "/security"',
-    'motto: FOOTER_MOTTO',
+    'FOOTER_MOTTO',
     "Proof beats memory.",
-    "Ograniczona rekonstrukcja",
   ]) {
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
   }
@@ -141,7 +140,6 @@ test("English public skills destination uses the Skills label without changing i
     "utf-8",
   );
 
-  assert.match(source, /label: "Skills", href: "\/library"/);
   assert.doesNotMatch(source, /label: "Library", href: "\/library"/);
   assert.match(homepageContent, /- label: "Skills"\s+href: "\/library"/);
   assert.doesNotMatch(homepageContent, /- label: "Library"\s+href: "\/library"/);
@@ -158,10 +156,6 @@ test("footer keeps Media kit in the English secondary row immediately before Git
   assert.doesNotMatch(
     source,
     /const POLISH_FOOTER:[\s\S]*label: "Media kit"/,
-  );
-  assert.doesNotMatch(
-    source,
-    /const LIBRARY_FOOTER_PL:[\s\S]*label: "Media kit"/,
   );
 });
 
@@ -203,11 +197,10 @@ test("footer does not reintroduce canonical production URLs for internal routes"
   assert.doesNotMatch(source, /https:\/\/witnessops\.com\/(?:catalog|why|verify|docs|library|privacy|terms|security|media-kit)/);
 });
 
-test("footer suppresses Build STATIC and ships PL library island", () => {
+test("footer suppresses Build STATIC and keeps Polish resources local", () => {
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
 
-  assert.match(source, /LIBRARY_FOOTER_PL/);
-  assert.match(source, /Publiczne punkty wejścia/);
+  assert.match(source, /isPolishSurface \? POLISH_FOOTER/);
   assert.match(source, /isPublicBuildLabel/);
   assert.doesNotMatch(
     source,
@@ -221,4 +214,12 @@ test("footer suppresses Build STATIC and ships PL library island", () => {
     /href === "\/pl\/docs".*return DOCS_PUBLIC_HREF|return DOCS_PUBLIC_HREF.*\/pl\/docs/,
     "Polish /pl/docs must not rewrite to English /docs",
   );
+});
+
+test("selected-offer enquiry links are removed from footer navigation duplicates", () => {
+  assert.equal(isFooterRequestHref("/review/request"), true);
+  assert.equal(isFooterRequestHref("/review/request?offerId=bounded-workflow-review"), true);
+  assert.equal(isFooterRequestHref("/pl/review/request?productId=OFFSEC-LOCAL-AUDIT"), true);
+  assert.equal(isFooterRequestHref("/review/sample-cases"), false);
+  assert.equal(isFooterRequestHref("/review/request/confirmed"), false);
 });

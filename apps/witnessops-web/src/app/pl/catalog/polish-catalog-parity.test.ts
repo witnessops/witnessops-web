@@ -12,6 +12,7 @@ const englishPage = readFileSync(
 const polishPage = readFileSync(resolve(__dirname, "page.tsx"), "utf-8");
 
 const expectedOrder = [
+  "automation-repair-handover",
   "customer-security-review-sprint",
   "bounded-workflow-review",
   "one-server-security-check",
@@ -25,7 +26,7 @@ const expectedOrder = [
 test("English and Polish catalogue pages render one shared offer contract", () => {
   assert.match(englishPage, /BuyerCatalogue locale="en"/);
   assert.match(polishPage, /<BuyerCatalogue locale="pl" \/>/);
-  assert.equal(BUYER_SERVICES.length, 8);
+  assert.equal(BUYER_SERVICES.length, 9);
   assert.deepEqual(BUYER_SERVICES.map((service) => service.id), expectedOrder);
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "OFFSEC-PILOT"));
   assert.ok(!BUYER_SERVICES.some((service) => service.productId === "SBOM-MIN-ELEMENTS"));

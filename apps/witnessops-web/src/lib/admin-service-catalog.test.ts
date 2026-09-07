@@ -11,7 +11,7 @@ test("admin services mirror the canonical public catalogue without inventing con
     services.map((service) => service.id),
     BUYER_SERVICES.map((service) => service.id),
   );
-  assert.equal(services.length, 8);
+  assert.equal(services.length, 9);
 
   for (const [index, service] of services.entries()) {
     const authority = BUYER_SERVICES[index]!;

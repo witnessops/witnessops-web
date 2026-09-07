@@ -5,12 +5,12 @@ import { OffsecSuiteSample } from "@/components/marketing/offsec-suite-sample";
 const path = "/review/sample-cases/access-removed-proof";
 
 export const metadata: Metadata = {
-  title: "Sample — Access removed proof (method)",
+  title: "Sample: Access removed proof (method)",
   description:
-    "Synthetic access-removal package sample: sanitised before/after observations for one named event. Method sample only — not a public product card, not universal access-elimination.",
+    "Synthetic access-removal package sample: sanitised before/after observations for one named event. Method sample only, not a public product card, not universal access-elimination.",
   alternates: getCanonicalAlternates("witnessops", path),
   openGraph: {
-    title: "Sample — Access removed proof | WitnessOps",
+    title: "Sample: Access removed proof | WitnessOps",
     description:
       "Method sample for one named access-removal event. Not a product card and not proof that every shadow path is gone.",
     siteName: "WitnessOps",
@@ -24,7 +24,7 @@ export default function AccessRemovedProofSamplePage() {
       title="Access removed proof"
       productId="OFFSEC-ACCESS-REMOVED"
       runId="pr_access_removed_demo_20260711130000"
-      situation="Situation: prove one named access-removal event with sanitised before/after observations — without claiming every shadow path is gone or that a credential can never still be used."
+      situation="Situation: prove one named access-removal event with sanitised before/after observations, without claiming every shadow path is gone or that a credential can never still be used."
       bannerNote="Synthetic method sample from the OffSec suite. Not a public buyer product card on the catalogue. Not live customer evidence, not access mutation, and not universal access-elimination."
       methodOnly
       sampleBase="/samples/offsec-access-removed"
@@ -41,7 +41,7 @@ export default function AccessRemovedProofSamplePage() {
         ],
         [
           "Read findings",
-          "Findings name remaining or unresolved scope — not that every possible path was discovered.",
+          "Findings name remaining or unresolved scope, not that every possible path was discovered.",
         ],
         [
           "Stay inside the boundary",
@@ -56,9 +56,9 @@ export default function AccessRemovedProofSamplePage() {
       ]}
       boundaries={[
         "No access mutation, credential validation, secrets, or universal access-elimination claim.",
-        "Not a public catalogue product card — method/example only.",
+        "Not a public catalogue product card: method/example only.",
         "Not a compromise claim or compliance certification.",
-        "Synthetic trust keys only — not production signing custody.",
+        "Synthetic trust keys only, not production signing custody.",
       ]}
       inspectFiles={[
         "BUYER_WALKTHROUGH.md",

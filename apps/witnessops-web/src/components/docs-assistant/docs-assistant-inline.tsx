@@ -1,6 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { trackAskEvent } from "@/lib/docs-assistant/ask-analytics";
+import { AskAiDisclosure } from "./ask-ai-disclosure";
+import { askConversationHistory, askPageService, clearAskConversation, getAskConversation,
+  getEmptyAskConversation, rememberAskTurn, subscribeAskConversation } from "./ask-conversation";
 
 import {
   askWitnessOpsAnswerText,
@@ -15,6 +21,8 @@ import { AskWitnessOpsSourceLinks } from "./ask-witnessops-source-links";
 
 export function DocsAssistantInline() {
   const [question, setQuestion] = useState("");
+  const completedTurns = useSyncExternalStore(subscribeAskConversation, getAskConversation, getEmptyAskConversation);
+  const pageService = askPageService(usePathname());
   const [response, setResponse] = useState<AskWitnessOpsUiAnswer | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,10 +35,15 @@ export function DocsAssistantInline() {
     setResponse(null);
 
     try {
-      setResponse(await fetchAskWitnessOps(trimmed));
-      setQuestion("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      const data = await fetchAskWitnessOps(trimmed, { history: askConversationHistory(completedTurns), page_service_id: pageService?.id });
+      setResponse(data);
+      rememberAskTurn(trimmed, data);
+      setQuestion(data.fallback_reason ? trimmed : "");
+      trackAskEvent("answered", { surface: "inline", service_id: data.recommendation?.service_id,
+        outcome: data.fallback_reason ? "unavailable" : data.schema === "witnessops.ask.generated-answer.v1" ? "generated" : "guide" });
+    } catch {
+      setError("The AI could not answer just now. Your question is still here; retry or ask a person.");
+      trackAskEvent("answered", { surface: "inline", outcome: "unavailable" });
     } finally {
       setLoading(false);
     }
@@ -45,12 +58,10 @@ export function DocsAssistantInline() {
         ASK WITNESSOPS
       </p>
       <p className="mt-1 text-sm font-medium text-text-primary">
-        Bounded proof guide
+        Questions about scope, evidence or pricing?
       </p>
       <p className="mt-2 text-xs leading-relaxed text-text-muted">
-        Describe one consequential agent or automation action in non-secret
-        terms. Ask WitnessOps will show the public guidance, commercial fit, and
-        paid next step it can support.
+        Ask about security reviews, verification or workflow repair. Start with a short description, without confidential data.
       </p>
       <p className="mb-3 mt-2 text-xs leading-relaxed text-text-muted">
         Do not paste secrets, logs, credentials, private keys, MFA codes,
@@ -66,9 +77,11 @@ export function DocsAssistantInline() {
       >
         <input
           type="text"
+          aria-label="Ask WitnessOps question"
+          maxLength={2_000}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Example: An agent rotates a compromised key."
+          placeholder="Example: Leads stopped reaching our CRM."
           className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
         />
         <button
@@ -76,19 +89,22 @@ export function DocsAssistantInline() {
           disabled={loading || !question.trim()}
           className="shrink-0 rounded border border-surface-border bg-surface-bg px-4 py-2 text-xs font-semibold uppercase tracking-wider text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent disabled:opacity-40"
         >
-          {loading ? "…" : "Check fit"}
+          {loading ? "…" : "Ask AI"}
         </button>
       </form>
 
-      <p className="mt-3 text-xs leading-relaxed text-text-muted">
-        AI uses public WitnessOps material. Eligible questions may be sent to
-        OpenAI with <code>store: false</code>; provider retention may still apply.
-        Do not include confidential or personal material.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-text-muted">
+        <Link href={response?.recommendation?.request_href ?? "/review/request?source=ask"} className="inline-flex min-h-11 items-center text-brand-accent underline underline-offset-4">Request a follow-up</Link>
+        {(response || completedTurns.length > 0) && <button type="button" disabled={loading} className="min-h-11 underline underline-offset-4" onClick={() => {
+          clearAskConversation(); setResponse(null); setError(null); setQuestion("");
+        }}>Start over</button>}
+      </div>
+      <AskAiDisclosure model={response?.model} />
 
       {error && (
         <div className="mt-3">
-          <p className="text-sm text-red-400">{error}</p>
+          <p role="alert" className="text-sm text-red-400">{error}</p>
+          <button type="button" onClick={handleAsk} disabled={loading || !question.trim()} className="min-h-11 text-sm text-text-primary underline underline-offset-4">Retry question</button>
         </div>
       )}
 
@@ -105,10 +121,13 @@ export function DocsAssistantInline() {
           </p>
 
           <AskWitnessOpsCommercialFitCard answer={response} />
-          {!response.commercial_fit.offer && (
+          {!(response.schema === "witnessops.ask.generated-answer.v1"
+            ? response.recommendation
+            : response.commercial_fit.offer) && (
             <AskWitnessOpsRouteCta answer={response} />
           )}
-          <AskWitnessOpsSourceLinks answer={response} />
+          <AskWitnessOpsSourceLinks answer={response} compact />
+          {response.fallback_reason && <button type="button" onClick={handleAsk} disabled={loading || !question.trim()} className="min-h-11 text-sm text-text-primary underline underline-offset-4">Retry AI answer</button>}
           <AskWitnessOpsReceiptMeta answer={response} />
         </div>
       )}

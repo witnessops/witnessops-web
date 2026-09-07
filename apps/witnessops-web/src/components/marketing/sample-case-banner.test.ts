@@ -22,7 +22,7 @@ const samplePages = [
 ] as const;
 
 test("sample case banner is the shared not-live boundary with primary CTAs", () => {
-  assert.match(banner, /Published sample — not live customer evidence/);
+  assert.match(banner, /Published sample, not live customer evidence/);
   assert.match(banner, /showActions = true/);
   assert.match(banner, /showActions \?/);
   assert.match(banner, /Start a review/);
@@ -36,7 +36,7 @@ test("all published sample surfaces render the shared or an explicit not-live bo
     const hasBanner =
       /SampleCaseBanner/.test(source) ||
       /OffsecSuiteSample/.test(source) ||
-      /Published sample — not live customer evidence/.test(source);
+      /Published sample, not live customer evidence/.test(source);
     assert.ok(
       hasBanner,
       `${rel} should include the shared banner or an explicit not-live boundary`,

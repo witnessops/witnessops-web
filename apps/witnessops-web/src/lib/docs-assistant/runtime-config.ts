@@ -86,44 +86,32 @@ export function readDocsAssistantRuntimeConfig(
   };
 }
 
-/**
- * The public Ask surface has its own explicit production gate so enabling the
- * browser-visible experience does not also enable the separate staging probe.
- * It reuses the exact approved model, vector store, and server-only key.
- */
+export interface AskWitnessOpsRuntimeEnabledConfig {
+  enabled: true;
+  stage: "production" | "development";
+  model: typeof DOCS_ASSISTANT_STAGING_MODEL;
+  apiKey: string;
+}
+
+export type AskWitnessOpsRuntimeConfig =
+  | DocsAssistantRuntimeDisabledConfig
+  | AskWitnessOpsRuntimeEnabledConfig;
+
+/** Public Ask uses current public catalogue context, independently of the staging corpus. */
 export function readAskWitnessOpsOpenAiRuntimeConfig(
   env: DocsAssistantRuntimeEnv = process.env,
-): DocsAssistantRuntimeConfig {
-  if (env.NODE_ENV === "development") {
-    const apiKey = env.OPENAI_API_KEY?.trim();
-    if (!apiKey) {
-      return { enabled: false, reason: "missing_api_key" };
-    }
-    return {
-      enabled: true,
-      stage: "development",
-      vectorStoreId: DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID,
-      model: DOCS_ASSISTANT_STAGING_MODEL,
-      apiKey,
-    };
-  }
-
-  if (env.WITNESSOPS_ASK_OPENAI_ENABLED !== "true") {
+): AskWitnessOpsRuntimeConfig {
+  const development = env.NODE_ENV === "development";
+  if (!development && env.WITNESSOPS_ASK_OPENAI_ENABLED !== "true") {
     return { enabled: false, reason: "gate_not_enabled" };
   }
 
-  if (env.WITNESSOPS_ASK_OPENAI_STAGE !== "production") {
+  if (!development && env.WITNESSOPS_ASK_OPENAI_STAGE !== "production") {
     return { enabled: false, reason: "stage_not_production" };
   }
 
-  if (
-    env.WITNESSOPS_DOCS_ASSISTANT_VECTOR_STORE_ID !==
-    DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID
-  ) {
-    return { enabled: false, reason: "vector_store_not_allowed" };
-  }
-
-  if (env.WITNESSOPS_DOCS_ASSISTANT_MODEL !== DOCS_ASSISTANT_STAGING_MODEL) {
+  const model = env.WITNESSOPS_ASK_OPENAI_MODEL?.trim() || DOCS_ASSISTANT_STAGING_MODEL;
+  if (model !== DOCS_ASSISTANT_STAGING_MODEL) {
     return { enabled: false, reason: "model_not_allowed" };
   }
 
@@ -134,9 +122,8 @@ export function readAskWitnessOpsOpenAiRuntimeConfig(
 
   return {
     enabled: true,
-    stage: "production",
-    vectorStoreId: DOCS_ASSISTANT_STAGING_VECTOR_STORE_ID,
-    model: DOCS_ASSISTANT_STAGING_MODEL,
+    stage: development ? "development" : "production",
+    model,
     apiKey,
   };
 }

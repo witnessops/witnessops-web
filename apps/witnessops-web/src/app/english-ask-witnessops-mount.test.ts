@@ -13,6 +13,8 @@ const widget = readFileSync(
   resolve(__dirname, "../components/docs-assistant/docs-assistant-widget.tsx"),
   "utf-8",
 );
+const conversation = readFileSync(resolve(__dirname, "../components/docs-assistant/ask-conversation.ts"), "utf-8");
+const disclosure = readFileSync(resolve(__dirname, "../components/docs-assistant/ask-ai-disclosure.tsx"), "utf-8");
 
 test("English public shell mounts the compact Ask WitnessOps launcher", () => {
   assert.match(rootLayout, /import\s+{\s*DocsAssistantWidget\s*}/);
@@ -22,20 +24,26 @@ test("English public shell mounts the compact Ask WitnessOps launcher", () => {
   assert.match(widget, />Ask WitnessOps<\/span>/);
   assert.match(widget, />\s*AI\s*<\/span>/);
   assert.match(widget, /ASK WITNESSOPS/);
-  assert.match(widget, /Describe one consequential agent action\./);
-  assert.match(widget, /Review scope and price/);
-  assert.match(widget, /Check fit/);
-  assert.match(widget, /PRIMARY_OFFER\.requestRoute/);
-  assert.match(widget, /offerId=\$\{PRIMARY_OFFER\.id\}/);
-  assert.match(widget, /source=ask/);
+  assert.match(widget, /Questions about scope, evidence or pricing/);
+  assert.match(widget, /Ask about security reviews, verification or workflow repair/);
+  assert.match(widget, /Questions about scope, evidence or pricing\?/);
+  assert.match(widget, /askGuidedQuestions\(pageService\)/);
+  assert.match(conversation, /Can you diagnose a broken workflow?/);
+  assert.match(conversation, /What does an agent review cover?/);
+  assert.match(widget, /Ask AI/);
+  assert.match(widget, /aria-label="Ask WitnessOps question"/);
+  // Canonical offer destinations are exercised by ask-witnessops-response.test;
+  // this shell test checks that the owning recommendation component is mounted.
+  assert.match(widget, /AskWitnessOpsCommercialFitCard/);
   assert.match(
-    widget,
-    /Eligible questions may be\s+sent to OpenAI\s+with.*store: false.*provider\s+retention\s+may\s+still\s+apply/s,
+    disclosure,
+    /Eligible questions and recent conversation are sent to OpenAI with.*store: false.*provider\s+retention\s+may\s+still\s+apply/s,
   );
+  assert.match(widget, /AskAiDisclosure/);
   assert.doesNotMatch(widget, /provider storage disabled/);
   assert.match(
     widget,
-    /Example: An agent rotates a compromised key\./,
+    /Example: Leads stopped reaching our CRM\./,
   );
 });
 

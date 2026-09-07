@@ -57,7 +57,7 @@ test("English review intake can preserve the current workflow offer without revi
     offer?.timing.en,
     "Within 10 working days after evidence rules are agreed",
   );
-  assert.equal(offer?.requestCta?.en, "Start a non-secret fit check");
+  assert.equal(offer?.requestCta?.en, "Scope this review");
   assert.equal(PRIMARY_OFFER.unit.en, "One consequential agent or automation action");
   assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit check first");
   assert.equal(offer?.productId, undefined);

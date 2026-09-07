@@ -12,12 +12,12 @@ import {
 } from "./public-contact";
 import { PRIMARY_OFFER } from "./commercial-truth";
 
-test("public contact route uses the selected primary offer path and fallback email", () => {
+test("public contact route uses a general inquiry path and fallback email", () => {
   assert.equal(PUBLIC_CONTACT_EMAIL, "engage@mail.witnessops.com");
   assert.equal(PUBLIC_CONTACT_GENERAL_HREF, "/review/request");
   assert.equal(
     PUBLIC_CONTACT_PRIMARY_HREF,
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+    "/review/request",
   );
   assert.doesNotMatch(PUBLIC_CONTACT_PRIMARY_HREF, /Agent.Risk|1%2C500/);
   assert.equal(PUBLIC_CONTACT_SUBJECTS.general, "WitnessOps request");

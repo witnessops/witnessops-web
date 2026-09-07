@@ -5,51 +5,12 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { WitnessOpsMark } from "./witnessops-mark";
-import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
 import {
   isPolishPath,
   localizedHref,
   POLISH_PUBLIC_NAV,
 } from "@/lib/public-i18n";
 import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
-
-const BUYER_NAV_LINKS = [
-  { label: "Services", href: "/catalog" },
-  { label: PRIMARY_OFFER.name.en, href: PRIMARY_OFFER.route },
-  { label: "Skills", href: "/library" },
-  { label: "Why WitnessOps", href: "/why-witnessops" },
-];
-
-const HOME_NAV_LINKS = [
-  { label: PRIMARY_OFFER.name.en, href: PRIMARY_OFFER.route },
-  { label: "How it works", href: "/#evidence-questions" },
-  { label: "Action receipt", href: "/#agent-action-receipt" },
-];
-
-const HOME_NAV_LINKS_PL = [
-  { label: PRIMARY_OFFER.name.pl, href: PRIMARY_OFFER.route },
-  { label: "Jak to działa", href: "/pl#evidence-questions" },
-  { label: "Zapis działania", href: "/pl#agent-action-receipt" },
-];
-
-const BUYER_NAV_CTA = {
-  label: "Start a review",
-  href: "/review/request",
-  variant: "primary",
-};
-
-const HOME_NAV_CTA = {
-  label: "Start non-secret fit check",
-  href: buyerPublicOfferRequestHref("en", PRIMARY_OFFER.id),
-  variant: "primary",
-};
-
-const HOME_NAV_CTA_PL = {
-  label: "Wstępna ocena",
-  href: buyerPublicOfferRequestHref("pl", PRIMARY_OFFER.id),
-  variant: "primary",
-};
 
 const HOME_BRAND_LINE = "Proof beats memory.";
 
@@ -59,52 +20,24 @@ interface NavbarProps {
   announcement: { enabled: boolean; text: string; href: string };
 }
 
-export function Navbar({ announcement }: NavbarProps) {
+export function Navbar({ links, announcement }: NavbarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const navRef = useRef<HTMLElement>(null);
   const currentPath = pathname || "/";
   const currentSearch = searchParams.toString();
   const polish = isPolishPath(currentPath);
-  const homeNav = currentPath === "/" || currentPath === "/pl";
-  const productJourneyNav = homeNav;
-
   const logoHref = polish ? "/pl" : "/";
-  const effectiveLinks = homeNav
-    ? polish
-      ? HOME_NAV_LINKS_PL
-      : HOME_NAV_LINKS
-    : polish
-      ? [...POLISH_PUBLIC_NAV.links]
-      : BUYER_NAV_LINKS;
-  const baseCta = productJourneyNav
-    ? polish
-      ? HOME_NAV_CTA_PL
-      : HOME_NAV_CTA
-    : polish
-      ? POLISH_PUBLIC_NAV.cta
-      : BUYER_NAV_CTA;
-  const routedCta = productJourneyNav
-    ? baseCta
-    : {
-        ...baseCta,
-        href: reviewRequestHrefForLocation(
-          polish ? "pl" : "en",
-          currentPath,
-          searchParams,
-        ),
-      };
-  const effectiveCta =
-    new URL(routedCta.href, "https://witnessops.com").searchParams.get(
-      "offerId",
-    ) === PRIMARY_OFFER.id
-      ? {
-          ...routedCta,
-          label: polish
-            ? "Rozpocznij wstępną ocenę bez informacji poufnych"
-            : "Start a non-secret fit check",
-        }
-      : routedCta;
+  const effectiveLinks = polish ? [...POLISH_PUBLIC_NAV.links] : links;
+  const effectiveCta = {
+    label: polish ? "Omów zakres przeglądu" : "Scope a review",
+    href: reviewRequestHrefForLocation(
+      polish ? "pl" : "en",
+      currentPath,
+      searchParams,
+    ),
+    variant: "primary",
+  };
   const effectiveAnnouncement = announcement;
   const languageLink = polish
     ? { label: "EN", href: localizedHref(currentPath, currentSearch, "en") }
@@ -143,7 +76,7 @@ export function Navbar({ announcement }: NavbarProps) {
 
   function getDesktopCtaClassName(variant: string) {
     const baseClassName =
-      "hidden min-h-11 items-center whitespace-nowrap rounded-md px-4 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none lg:inline-flex";
+      "hidden min-h-11 items-center whitespace-nowrap rounded-md px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none lg:inline-flex";
 
     if (variant === "secondary") {
       return `${baseClassName} border border-surface-border bg-transparent text-text-primary hover:border-brand-accent/40 hover:bg-surface-card`;
@@ -179,14 +112,13 @@ export function Navbar({ announcement }: NavbarProps) {
       )}
       <nav
         ref={navRef}
+        aria-label={polish ? "Nawigacja główna" : "Primary navigation"}
         className="mobile-brand-navbar public-shell sticky top-0 z-50 border-b border-surface-border bg-surface-bg pt-[env(safe-area-inset-top)] text-text-primary lg:pt-0"
-        data-home-nav={homeNav ? "true" : undefined}
-        data-product-journey-nav={productJourneyNav ? "true" : undefined}
       >
-        <div className="mx-auto flex max-w-content flex-wrap items-center justify-between px-4 py-1.5 sm:px-6 lg:flex-nowrap lg:py-4">
+        <div className="mx-auto flex max-w-content flex-wrap items-center justify-between px-4 py-2 sm:px-6 lg:flex-nowrap lg:py-4">
           <Link
             href={logoHref}
-            aria-label={polish ? "WitnessOps — strona główna" : "WitnessOps home"}
+            aria-label={polish ? "WitnessOps: strona główna" : "WitnessOps home"}
             className="mobile-brand-lockup group flex min-h-11 shrink-0 items-center gap-1.5 rounded text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
           >
             <WitnessOpsMark
@@ -197,7 +129,7 @@ export function Navbar({ announcement }: NavbarProps) {
               className="text-text-primary"
             />
             <span
-              className="hidden text-[11px] font-semibold uppercase leading-none tracking-[0.14em] text-text-primary lg:inline"
+              className="hidden text-sm font-semibold uppercase leading-none tracking-[0.14em] text-text-primary lg:inline"
               style={{ fontFamily: "var(--font-display)" }}
               aria-hidden="true"
             >
@@ -210,19 +142,17 @@ export function Navbar({ announcement }: NavbarProps) {
             >
               {HOME_BRAND_LINE}
             </span>
-            {productJourneyNav ? (
-              <span
-                aria-hidden="true"
-                className="ml-2 hidden border-l border-surface-border pl-4 text-[0.68rem] font-medium tracking-[0.04em] text-text-muted transition-colors group-hover:text-text-secondary lg:inline"
-                style={{ fontFamily: "var(--font-mono)" }}
-              >
-                {HOME_BRAND_LINE}
-              </span>
-            ) : null}
+            <span
+              aria-hidden="true"
+              className="ml-2 hidden border-l border-surface-border pl-4 text-[0.68rem] font-medium tracking-[0.04em] text-text-muted transition-colors group-hover:text-text-secondary 2xl:inline"
+              style={{ fontFamily: "var(--font-mono)" }}
+            >
+              {HOME_BRAND_LINE}
+            </span>
           </Link>
 
           <div className="contents lg:flex lg:items-center lg:gap-3">
-            <div className="hidden items-center gap-4 lg:flex lg:gap-6 xl:gap-8">
+            <div className="hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5">
               {effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a
@@ -230,7 +160,7 @@ export function Navbar({ announcement }: NavbarProps) {
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex min-h-11 items-center whitespace-nowrap rounded-md border border-transparent px-3 text-[0.78rem] font-medium text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none"
+                    className="inline-flex min-h-11 items-center whitespace-nowrap rounded-md border border-transparent px-3 text-sm font-medium text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none"
                   >
                     {link.label}
                   </a>
@@ -239,7 +169,7 @@ export function Navbar({ announcement }: NavbarProps) {
                     key={link.href}
                     href={link.href}
                     aria-current={currentPath === link.href ? "page" : undefined}
-                    className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-md border px-3 text-[0.78rem] font-medium transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none ${
+                    className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-md border px-3 text-sm font-medium transition-all duration-200 hover:-translate-y-px hover:border-surface-border-strong hover:bg-surface-card hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none ${
                       currentPath === link.href
                         ? "border-surface-border-strong bg-surface-inset text-text-primary"
                         : "border-transparent text-text-secondary"
@@ -252,7 +182,7 @@ export function Navbar({ announcement }: NavbarProps) {
               <Link
                 href={languageLink.href}
                 hrefLang={polish ? "en" : "pl"}
-                className="inline-flex min-h-11 items-center rounded-md border border-surface-border-strong px-2.5 text-[11px] font-semibold text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-brand-accent hover:bg-brand-accent/10 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none"
+                className="inline-flex min-h-11 items-center rounded-md border border-surface-border-strong px-2.5 text-sm font-semibold text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-brand-accent hover:bg-brand-accent/10 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none"
               >
                 {languageLink.label}
               </Link>

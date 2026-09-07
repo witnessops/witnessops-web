@@ -10,6 +10,7 @@ import {
 } from "@/lib/server/token-store";
 
 import { POST } from "./route";
+import { POST as verifyMailbox } from "@/app/api/verify-token/route";
 
 function applyTestEnv(baseDir: string): void {
   process.env.WITNESSOPS_TOKEN_SIGNING_SECRET = "test-secret";
@@ -240,4 +241,41 @@ test("review request enforces the durable public issuance budget before a second
     1,
   );
   assert.equal((await readdir(process.env.WITNESSOPS_MAIL_OUTPUT_DIR!)).length, 1);
+});
+
+
+test("short inquiry reaches stored intake and operator notification through local mail capture", async () => {
+  const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-buyer-journey-"));
+  applyTestEnv(baseDir);
+  const summary = "Our support agent can issue refunds. We need its approval boundary checked.";
+  const issued = await POST(new Request("http://localhost/api/review/request", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: "Synthetic Buyer", email: "buyer@example.org", intent: "review", locale: "en", scope: summary }),
+  }));
+  assert.equal(issued.status, 201);
+  const payload = await issued.json() as { intakeId: string; issuanceId: string; email: string };
+  const outbox = process.env.WITNESSOPS_MAIL_OUTPUT_DIR!;
+  const files = await readdir(outbox);
+  assert.equal(files.length, 1);
+  const mail = await readFile(path.join(outbox, files[0]), "utf8");
+  const code = /^Verification Code:\s+(\S+)$/m.exec(mail)?.[1];
+  assert.ok(code);
+  const verify = await verifyMailbox(new Request("http://localhost/api/verify-token", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ issuanceId: payload.issuanceId, email: payload.email, token: code }),
+  }));
+  assert.equal(verify.status, 200);
+  const confirmed = await verify.json() as { postVerifyPath: string; assessmentRunId: string | null };
+  assert.equal(confirmed.postVerifyPath, "/review/request/confirmed");
+  assert.equal(confirmed.assessmentRunId, null);
+  const intake = await getIntakeById(payload.intakeId);
+  assert.equal(intake?.state, "admitted");
+  assert.equal(intake?.submission.scope, summary);
+  assert.equal(intake?.operatorNotification?.provider, "file");
+  assert.equal(intake?.operatorNotificationAttempt?.status, "sent");
+  const after = await readdir(outbox);
+  assert.equal(after.length, 2);
+  const notification = await readFile(path.join(outbox, after.find((f) => !files.includes(f))!), "utf8");
+  assert.match(notification, /Reply-To: buyer@example.org/);
+  assert.ok(notification.includes(summary));
 });

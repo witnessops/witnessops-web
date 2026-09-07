@@ -53,7 +53,7 @@ export const POLISH_DOCS_SECTIONS = [
     id: "technical-en",
     title: "DOKUMENTACJA TECHNICZNA",
     description:
-      "Pełna dokumentacja techniczna (EN) na witnessops.com/docs — nie jest to kopia PL stubów.",
+      "Pełna dokumentacja techniczna (EN) na witnessops.com/docs, nie jest to kopia PL stubów.",
     items: [
       ["Dokumentacja techniczna (EN)", EN_TECHNICAL_DOCS_HREF],
     ],

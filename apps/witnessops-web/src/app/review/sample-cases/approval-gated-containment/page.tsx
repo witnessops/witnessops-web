@@ -5,7 +5,7 @@ import { CtaButton } from "@/components/shared/cta-button";
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 
 export const metadata: Metadata = {
-  title: "Sample Case — Approval-Gated Containment",
+  title: "Sample Case: Approval-Gated Containment",
   description:
     "Named sample case showing how WitnessOps reviews an approval-gated containment path: authority, execution, evidence, replayability, and failure modes. This is a published explanatory sample case, not a live customer artifact.",
   alternates: getCanonicalAlternates(
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     "/review/sample-cases/approval-gated-containment",
   ),
   openGraph: {
-    title: "Sample Case — Approval-Gated Containment | WitnessOps",
+    title: "Sample Case: Approval-Gated Containment | WitnessOps",
     description:
       "Named sample case showing how WitnessOps reviews an approval-gated containment path: authority, execution, evidence, replayability, and failure modes. This is a published explanatory sample case, not a live customer artifact.",
     siteName: "WitnessOps",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sample Case — Approval-Gated Containment | WitnessOps",
+    title: "Sample Case: Approval-Gated Containment | WitnessOps",
     description:
       "Named sample case showing how WitnessOps reviews an approval-gated containment path: authority, execution, evidence, replayability, and failure modes. This is a published explanatory sample case, not a live customer artifact.",
   },
@@ -182,7 +182,7 @@ export default function ApprovalGatedContainmentSampleCasePage() {
               inspection path should include afterwards.
             </p>
             <p className="text-sm leading-7 text-text-muted">
-              Explanatory example only — not a downloadable full package and not a
+              Explanatory example only, not a downloadable full package and not a
               live customer artifact or completed verification for your environment.
             </p>
             <div className="flex flex-wrap gap-2 pt-1">

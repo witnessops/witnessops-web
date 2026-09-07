@@ -24,11 +24,11 @@ const sampleFiles = [
 ] as const;
 
 export const metadata: Metadata = {
-  title: `Synthetic sample — ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}`,
+  title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en}`,
   description: `Inspect a synthetic ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} package with a fixed attacker-visible surface, evidence-backed findings, remediation priorities, a focused retest, hashes, and explicit claim limitations. Not customer evidence.`,
   alternates: { canonical: samplePath },
   openGraph: {
-    title: `Synthetic sample — ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} | WitnessOps`,
+    title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} | WitnessOps`,
     description:
       "Inspect a synthetic outside-in assessment package and its evidence, retest, integrity, and claim boundaries.",
     siteName: "WitnessOps",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `Synthetic sample — ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} | WitnessOps`,
+    title: `Synthetic sample: ${EXTERNAL_ATTACK_SURFACE_OFFER.name.en} | WitnessOps`,
     description:
       "Inspect a synthetic outside-in assessment package and its evidence, retest, integrity, and claim boundaries.",
   },
@@ -62,7 +62,7 @@ const walkthrough = [
 ] as const;
 
 const boundaries = [
-  "Synthetic worked example — not customer evidence.",
+  "Synthetic worked example, not customer evidence.",
   "Not a live customer artifact or production verification result.",
   "No public company or customer was assessed to produce this package.",
   "This is not a penetration test, certification, attestation, or security guarantee.",
@@ -82,7 +82,7 @@ export default function ExternalExposureAssessmentSamplePage() {
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
         <SampleCaseBanner
           title={EXTERNAL_ATTACK_SURFACE_OFFER.name.en}
-          note="Synthetic worked example — not customer evidence. Local fixture observations only; no public company or customer was assessed. The preserved package files retain the former Public Exposure Review title as historical artifact identity."
+          note="Synthetic worked example, not customer evidence. Local fixture observations only; no public company or customer was assessed. The preserved package files retain the former Public Exposure Review title as historical artifact identity."
         />
 
         <header className="mt-8 max-w-4xl border-b border-surface-border pb-12">

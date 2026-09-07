@@ -55,7 +55,7 @@ test("External Attack Surface Review sample surface expects only the sanitized b
 });
 
 test("External Attack Surface Review sample preserves the synthetic and integrity boundaries", () => {
-  assert.match(page, /Synthetic worked example — not customer evidence\./);
+  assert.match(page, /Synthetic worked example, not customer evidence\./);
   assert.match(page, /Neither result proves that\s+observations are complete/);
   assert.match(page, /does not prove.*system is secure/is);
   assert.match(page, /OFFSEC-EXTERNAL-EXPOSURE/);

@@ -139,7 +139,7 @@ test("every selectable service detail keeps its catalogue-authoritative request"
   }
 });
 
-test("review CTA context rejects unknown values to the canonical primary offer and preserves every service detail", () => {
+test("review CTA context drops unknown values into a neutral enquiry and preserves every service detail", () => {
   assert.equal(
     reviewRequestHrefForLocation(
       "en",
@@ -176,15 +176,15 @@ test("review CTA context rejects unknown values to the canonical primary offer a
         "offerId=unknown&productId=OFFSEC-PILOT&offer=Fabricated&token=secret",
       ),
     ),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+    "/review/request",
   );
   assert.equal(
     reviewRequestHrefForLocation("en", "/", emptySearch),
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+    "/review/request",
   );
   assert.equal(
     reviewRequestHrefForLocation("pl", "/pl", emptySearch),
-    "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
+    "/pl/review/request",
   );
   assert.match(
     reviewRequestHrefForLocation(
@@ -221,5 +221,5 @@ test("header, footer, and service contact CTA use the shared context contract", 
   assert.match(navbar, /reviewRequestHrefForLocation\(/);
   assert.match(footer, /reviewRequestHrefForLocation\(/);
   assert.match(footer, /primaryHref=\{reviewRequestHref\}/);
-  assert.match(serviceDetail, /primaryHref=\{requestHref\}/);
+  assert.match(serviceDetail, /href=\{requestHref\}/);
 });

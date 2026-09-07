@@ -13,12 +13,10 @@ import {
   evaluateDocsAssistantRefusalPolicy,
 } from "@/lib/docs-assistant/refusal-policy";
 import { readAskWitnessOpsOpenAiRuntimeConfig } from "@/lib/docs-assistant/runtime-config";
-import {
-  isDocsAssistantRuntimeUnavailable,
-  runDocsAssistantServerRuntime,
-} from "@/lib/docs-assistant/server-runtime";
+import { runPublicAskRuntime } from "@/lib/server/ask-witnessops/public-answer-runtime";
 import type { DocsAssistantAnswer } from "@/lib/docs-assistant/answer-contract";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
+import { isAskTelemetryRequest, recordAskTelemetry } from "@/lib/server/ask-witnessops/ask-telemetry";
 import {
   findDuplicateJsonObjectKey,
   JsonAmbiguityScanLimitError,
@@ -31,7 +29,8 @@ import {
 
 export const runtime = "nodejs";
 
-const ASK_REQUEST_BODY_LIMIT_BYTES = 8 * 1024; // generous for questions + small context
+const ASK_REQUEST_BODY_LIMIT_BYTES = 32 * 1024; // bounded question + multilingual recent context
+const ASK_TELEMETRY_BODY_LIMIT_BYTES = 2 * 1024;
 const NO_STORE_HEADERS = {
   "Cache-Control": "no-store",
 };
@@ -52,25 +51,29 @@ function invalidRequest(message: string) {
   );
 }
 
-function bodyTooLargeRequest() {
+function bodyTooLargeRequest(limit: number) {
   return NextResponse.json(
     {
       ok: false,
       failureClass: "FAILURE_INPUT_MALFORMED",
-      message: `request body must not exceed ${ASK_REQUEST_BODY_LIMIT_BYTES} bytes.`,
+      message: `request body must not exceed ${limit} bytes.`,
     },
     { status: 413, headers: NO_STORE_HEADERS },
   );
 }
 
 export async function POST(request: Request) {
-  const rateLimitedResponse = enforcePublicIntakeRateLimit(request, "ask-witnessops");
+  const telemetryTransport = request.headers.get("X-WitnessOps-Event") === "1";
+  const bodyLimit = telemetryTransport ? ASK_TELEMETRY_BODY_LIMIT_BYTES : ASK_REQUEST_BODY_LIMIT_BYTES;
+  const rateLimitedResponse = telemetryTransport
+    ? enforcePublicIntakeRateLimit(request, "ask-witnessops-telemetry", { limit: 60, windowMs: 60_000 })
+    : enforcePublicIntakeRateLimit(request, "ask-witnessops");
   if (rateLimitedResponse) return rateLimitedResponse;
 
   try {
     const rawBody = await readBoundedRequestText(
       request,
-      ASK_REQUEST_BODY_LIMIT_BYTES,
+      bodyLimit,
     );
 
     if (findDuplicateJsonObjectKey(rawBody) !== null) {
@@ -83,6 +86,12 @@ export async function POST(request: Request) {
     } catch {
       return invalidRequest("request body must be valid JSON.");
     }
+
+    const telemetryBody = isAskTelemetryRequest(parsed);
+    if (telemetryTransport !== telemetryBody) {
+      return invalidRequest("event transport and request body must match.");
+    }
+    if (telemetryBody) return recordAskTelemetry(parsed, request);
 
     const normalized = normalizeAskRequest(parsed);
     if (!normalized.ok) {
@@ -107,6 +116,40 @@ export async function POST(request: Request) {
     const decision = executePolicy({ classification: authorityClassification });
     const deterministicAnswer = assembleAnswer({ policyDecision: decision });
 
+    // Browser-held history is not trusted, including messages labeled
+    // "assistant". Screen all history for secrets/unauthorized input, and apply
+    // the existing request boundaries to prior visitor questions as well.
+    // A history boundary wraps the CURRENT question's unchanged assembly.
+    for (const message of normalized.request.history ?? []) {
+      const historyClassification = classifyQuestion(message.content);
+      const historyFit = classifyCommercialFit({
+        question: message.content,
+        authorityQuestionClassId: message.role === "user" ? historyClassification.question_class_id : "",
+      });
+      if (historyFit.result === "blocked" || (message.role === "user" && historyFit.result === "not_fit")) {
+        return NextResponse.json(withCommercialFit(withPublicBoundaryResponse({
+          deterministicAnswer,
+          docsAnswer: buildCommercialInputBoundaryAnswer(historyFit),
+          templateId: "boundary.public_input.v1",
+          failureReason: "PUBLIC_INPUT_BOUNDARY",
+        }), historyFit), { headers: NO_STORE_HEADERS });
+      }
+      if (message.role === "user") {
+        const historyDecision = evaluateDocsAssistantRefusalPolicy(message.content);
+        const findings = historyDecision.boundary_findings.filter((finding) => finding !== "customer_specific_claim_not_allowed");
+        const priorAnswer = assembleAnswer({ policyDecision: executePolicy({ classification: historyClassification }) });
+        if (findings.length > 0 || (priorAnswer.status === "closed" && historyClassification.question_class_id !== "outside_approved_public_context")) {
+          return NextResponse.json(withCommercialFit(withPublicBoundaryResponse({
+            deterministicAnswer,
+            docsAnswer: buildDocsAssistantRefusalAnswer({
+              question: "[public input withheld]",
+              decision: { ...historyDecision, blocked: true, reason: findings[0] ?? "public_input_boundary", boundary_findings: findings },
+            }),
+          }), suppressCommercialOffer(commercialFit)), { headers: NO_STORE_HEADERS });
+        }
+      }
+    }
+
     // Commercial-fit matching has deliberately broader secret, unauthorized,
     // certification, and active-incident boundaries than the immutable V1
     // phrase classifier. If one fires, wrap the actual V1 decision in a public
@@ -130,7 +173,15 @@ export async function POST(request: Request) {
       );
     }
 
-    if (deterministicAnswer.status === "closed") {
+    // An unmatched V1 phrase is not a safety refusal. The independent public
+    // answer may explain current public material without rewriting that V1
+    // decline. Actual refusals and broken authority bindings still stop here.
+    const unmatchedPublicQuestion =
+      authorityClassification.question_class_id === "outside_approved_public_context" &&
+      decision.authorized_action === "bounded_decline" &&
+      deterministicAnswer.template.template_id === "decline.outside_public_context.v1" &&
+      deterministicAnswer.failure_reason === "POLICY_REFUSAL_OR_DECLINE";
+    if (deterministicAnswer.status === "closed" && !unmatchedPublicQuestion) {
       return NextResponse.json(
         withCommercialFit(
           withAnswerMode(deterministicAnswer, "policy_refusal"),
@@ -140,9 +191,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const refusalDecision = evaluateDocsAssistantRefusalPolicy(
+    const docsRefusalDecision = evaluateDocsAssistantRefusalPolicy(
       normalized.request.question,
     );
+    // "Our company" is ordinary fit-check context, not itself a request to
+    // assert private facts. The staging probe's lexical rule is deliberately
+    // omitted; all of its security/proof/claim restrictions remain in force.
+    const boundaryFindings = docsRefusalDecision.boundary_findings.filter(
+      (finding) => finding !== "customer_specific_claim_not_allowed",
+    );
+    const refusalDecision = {
+      ...docsRefusalDecision,
+      blocked: boundaryFindings.length > 0,
+      reason: boundaryFindings[0] ?? null,
+      boundary_findings: boundaryFindings,
+    };
     if (refusalDecision.blocked) {
       return NextResponse.json(
         withCommercialFit(
@@ -170,15 +233,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const docsAnswer = await runDocsAssistantServerRuntime({
-      payload: { question: normalized.request.question },
+    const generatedAnswer = await runPublicAskRuntime({
+      ...normalized.request,
       config,
     });
 
-    if (
-      isDocsAssistantRuntimeUnavailable(docsAnswer) ||
-      !isDocsAssistantSupported(docsAnswer)
-    ) {
+    if (!generatedAnswer) {
       return NextResponse.json(
         withCommercialFit(
           withAnswerMode(deterministicAnswer, "deterministic_fallback"),
@@ -188,20 +248,34 @@ export async function POST(request: Request) {
       );
     }
 
-    // Public Ask is answer-only. It does not place unauthenticated questions
-    // into durable receipt custody or advertise a receipt identifier. The
-    // model may confirm retrieved support, but buyer-visible claims, routes,
-    // and source labels remain deterministic and policy-owned.
+    // Generated guidance has its own presentation envelope, not a V1 replay
+    // identity or a verification receipt. Preserve the original assembly.
     return NextResponse.json(
       withCommercialFit(
-        withAnswerMode(deterministicAnswer, "ai_assisted"),
+        {
+          schema: "witnessops.ask.generated-answer.v1",
+          status: "success",
+          answer_mode: "ai_assisted",
+          model: config.model,
+          authority_answer: deterministicAnswer,
+          template: {
+            template_id: "answer.public_ai.v1",
+            body: generatedAnswer.text,
+            source_display: null,
+          },
+          presented_sources: generatedAnswer.presented_sources,
+          recommendation: generatedAnswer.recommendation,
+          route: generatedAnswer.recommendation
+            ? { route_id: "route.fit-check", href: generatedAnswer.recommendation.request_href }
+            : deterministicAnswer.route,
+        },
         commercialFit,
       ),
       { headers: NO_STORE_HEADERS },
     );
   } catch (error) {
     if (error instanceof RequestBodyTooLargeError) {
-      return bodyTooLargeRequest();
+      return bodyTooLargeRequest(bodyLimit);
     }
     if (error instanceof InvalidRequestBodyEncodingError) {
       return invalidRequest("request body must be valid UTF-8.");
@@ -217,7 +291,7 @@ function withAnswerMode<T extends object>(
   answer: T,
   answerMode: AskWitnessOpsAnswerMode,
 ) {
-  return { ...answer, answer_mode: answerMode };
+  return { ...answer, answer_mode: answerMode, ...(answerMode === "deterministic_fallback" ? { fallback_reason: "ai_unavailable" as const } : {}) };
 }
 
 function withCommercialFit<T extends object>(
@@ -238,13 +312,6 @@ function suppressCommercialOffer(
     offer: null,
     matching_specimen_id: null,
   };
-}
-
-function isDocsAssistantSupported(answer: DocsAssistantAnswer) {
-  return (
-    answer.answer_status === "supported_by_docs" ||
-    answer.answer_status === "partially_supported"
-  );
 }
 
 function buildCommercialInputBoundaryAnswer(
@@ -290,7 +357,9 @@ function withPublicBoundaryResponse(args: {
     authority_answer: args.deterministicAnswer,
     template: {
       template_id: args.templateId ?? "refuse.public_material_boundary.v1",
-      body: docsAssistantAnswerText(args.docsAnswer),
+      body: args.docsAnswer.unsupported_reason === "commercial_fit_boundary"
+        ? "That request falls outside our review services. We can assess a defined action or system and explain findings and limitations, but cannot provide a security guarantee, certification or active incident response."
+        : docsAssistantAnswerText(args.docsAnswer),
       source_display: "Public WitnessOps material",
     },
     route: null,

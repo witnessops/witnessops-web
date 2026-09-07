@@ -56,7 +56,7 @@ test("request record states the bounded confirmation and its negative facts", ()
 
 test("direct confirmation-page visits do not claim a verified request", () => {
   assert.doesNotMatch(confirmed, /NEXT_PUBLIC_REVIEW_REQUEST_RECORD_UI_PROOF/);
-  assert.match(confirmed, /This page alone proves nothing/);
+  assert.match(confirmed, /No request record in this browser/);
   assert.match(confirmed, /No confirmed request record is present/);
   assert.match(confirmed, /readReviewRequestConfirmation/);
   assert.doesNotMatch(confirmed, /Your mailbox is verified/);

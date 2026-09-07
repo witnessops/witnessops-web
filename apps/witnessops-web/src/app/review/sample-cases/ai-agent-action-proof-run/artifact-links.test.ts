@@ -110,22 +110,23 @@ test("public page makes replay, local verification, tamper challenge, and limits
   const page = readFileSync(resolve(__dirname, "page.tsx"), "utf8");
   const client = readFileSync(resolve(__dirname, "api-key-rotation-demo.tsx"), "utf8");
 
-  assert.match(page, /A synthetic key was flagged\./);
-  assert.match(page, /The authorized rotation tool <em>handled it\.<\/em>/);
-  assert.match(page, /verify the pinned bundle digest,/);
-  assert.match(
-    page,
-    /manifest-bound evidence with the separately pinned public verifier/,
-  );
-  assert.match(page, /Published sample — not live customer evidence/);
-  assert.match(page, /fixed, hash-pinned synthetic specimen/);
-  assert.match(page, /No real provider, credential, compromise,\s+customer, or/);
+  assert.match(page, /See a key rotation, step by step\./);
+  assert.match(page, /Synthetic demo/);
+  assert.match(page, /No live systems/);
+  assert.match(page, /Published sample, not live customer evidence/);
+  assert.match(client, /fixed, hash-pinned synthetic specimen/);
+  assert.match(client, /No real provider, credential, compromise, customer, or/);
+  assert.match(client, /with the separately pinned public verifier/);
   assert.match(page, /sampleBundleSha256/);
   assert.match(page, /publicVerifierSha256/);
+  assert.match(page, /signerFingerprint=\{sampleSignerFingerprint\}/);
 
-  assert.match(client, /ACKNOWLEDGE SCOPE & REPLAY/);
-  assert.match(client, /Don’t trust the animation\. Verify the bytes\./);
-  assert.match(client, /RUN ONE-BYTE TAMPER TEST/);
+  assert.match(client, /Play example/);
+  assert.match(client, /Inspect the evidence/);
+  assert.match(client, /Try changing one byte/);
+  assert.match(client, /Checks cover this synthetic specimen only/);
+  assert.match(client, /No real provider action was checked/);
+  assert.match(client, /When verification passes:/);
   assert.match(client, /node verify\.mjs BUNDLE\.wops\.json DEMO_KEY_REGISTRY\.json/);
   assert.match(client, /proves_real_provider_action/);
   assert.match(client, /No WitnessOps API/);
@@ -161,25 +162,13 @@ test("specimen review CTA preserves the Agent Action Security Review selection",
     page,
     /buyerPublicOfferRequestHref\(\s*"en",\s*PRIMARY_OFFER\.id,?\s*\)/,
   );
-  assert.match(
-    page,
-    /\{PRIMARY_OFFER\.name\.en\} — \{PRIMARY_OFFER\.price\.en\}\./,
-  );
-  assert.match(page, /who can authorize/);
-  assert.match(page, /what identity executes/);
-  assert.match(page, /what systems and tools it can reach/);
-  assert.match(page, /what evidence binds approval to execution/);
-  assert.match(page, /PRIMARY_OFFER\.deliveryMethod\.en/);
-  assert.match(page, /Bring one consequential agent or automation action/);
-  assert.match(page, /Entry begins with a non-secret fit check/);
-  assert.match(
-    page,
-    /delivery is within 10 working days after evidence rules are agreed/,
-  );
-  assert.match(
-    page,
-    /<Link href=\{reviewRequestHref\}>Request a non-secret fit check →<\/Link>/,
-  );
+  assert.match(page, /Want your own agent action reviewed\?/);
+  assert.match(page, /PRIMARY_OFFER\.name\.en/);
+  assert.match(page, /PRIMARY_OFFER\.price\.en/);
+  assert.match(page, /PRIMARY_OFFER\.timing\.en/);
+  assert.match(page, /One consequential agent or automation action\. Prioritised fixes\./);
+  assert.match(page, /Non-secret fit check first\./);
+  assert.match(page, /<Link href=\{reviewRequestHref\}>Check fit<\/Link>/);
   assert.equal(
     buyerPublicOfferRequestHref("en", "bounded-workflow-review"),
     "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
@@ -200,7 +189,7 @@ test("specimen metadata uses claim-safe copy and the shared social preview", () 
 
   assert.match(
     page,
-    /title: "Synthetic API key rotation — verifiable proof specimen"/,
+    /title: "Synthetic API key rotation: verifiable proof specimen"/,
   );
   assert.match(page, /url: "\/review\/sample-cases\/ai-agent-action-proof-run"/);
   assert.match(page, /images: DEFAULT_OPEN_GRAPH_IMAGES/);

@@ -1,4 +1,15 @@
+import type { AskConversationMessage } from "@/lib/docs-assistant/conversation-contract";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { BUYER_SERVICES, buyerServiceRequestHref, type BuyerService } from "@/lib/buyer-services";
+
+export interface AskWitnessOpsRecommendation {
+  readonly service_id: BuyerService["id"];
+  readonly name: string;
+  readonly price_label: string;
+  readonly delivery_label: string;
+  readonly detail_href: string;
+  readonly request_href: string;
+}
 
 export interface AskWitnessOpsPresentedSource {
   readonly source_id: string;
@@ -36,7 +47,8 @@ export interface AskWitnessOpsCommercialFit {
 export interface AskWitnessOpsUiAnswer {
   readonly schema:
     | "witnessops.ask.assembled-answer.v1"
-    | "witnessops.ask.public-boundary-response.v1";
+    | "witnessops.ask.public-boundary-response.v1"
+    | "witnessops.ask.generated-answer.v1";
   readonly status: "success" | "closed";
   readonly template: {
     readonly template_id: string;
@@ -46,7 +58,10 @@ export interface AskWitnessOpsUiAnswer {
   readonly route: AskWitnessOpsRoute | null;
   readonly commercial_fit: AskWitnessOpsCommercialFit;
   readonly presented_sources: readonly AskWitnessOpsPresentedSource[];
+  readonly recommendation?: AskWitnessOpsRecommendation | null;
+  readonly model?: string;
   readonly failure_reason?: string;
+  readonly fallback_reason?: "ai_unavailable";
   readonly receipt_id?: string;
   readonly receipt_status?: "durable" | "ephemeral";
   readonly answer_mode:
@@ -69,7 +84,11 @@ const SUPERSEDED_COMMERCIAL_TEMPLATE_IDS = new Set([
 ]);
 
 export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
+  if (answer.fallback_reason === "ai_unavailable") {
+    return "I couldn't generate an answer just now. Try again, or request a follow-up about your question.";
+  }
   const body = answer.template.body.trim();
+  if (answer.schema === "witnessops.ask.generated-answer.v1") return body;
   if (
     (answer.status === "closed" ||
       answer.answer_mode === "deterministic_fallback" ||
@@ -80,7 +99,7 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
       answer.commercial_fit.result === "needs_boundary")
   ) {
     const offer = answer.commercial_fit.offer;
-    const currentOffer = `${offer.name} is the primary paid path — ${offer.price_label}; ${offer.unit_label}; ${offer.fit_check_label}; ${offer.delivery_label}.`;
+    const currentOffer = `${offer.name} is the primary paid path: ${offer.price_label}; ${offer.unit_label}; ${offer.fit_check_label}; ${offer.delivery_label}.`;
 
     if (answer.commercial_fit.result === "needs_boundary") {
       return `${currentOffer} This public guide cannot inspect a whole environment. Narrow the non-secret description to one consequential agent or automation action; the fit-check path is shown above.`;
@@ -101,6 +120,9 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
 }
 
 export function askWitnessOpsModeLabel(answer: AskWitnessOpsUiAnswer): string {
+  if (answer.schema === "witnessops.ask.generated-answer.v1") {
+    return "AI-generated answer";
+  }
   if (answer.answer_mode === "ai_assisted") {
     return "AI-assisted · public WitnessOps material";
   }
@@ -118,7 +140,9 @@ export function askWitnessOpsModeLabel(answer: AskWitnessOpsUiAnswer): string {
     return "Boundary guidance";
   }
 
-  return "Deterministic public guide";
+  return answer.fallback_reason === "ai_unavailable"
+    ? "AI unavailable · public guide"
+    : "Public WitnessOps guide";
 }
 
 const SAME_SITE_HOSTS = new Set(["witnessops.com", "www.witnessops.com"]);
@@ -171,11 +195,16 @@ export function askWitnessOpsRouteHref(route: AskWitnessOpsRoute): string {
 
 export async function fetchAskWitnessOps(
   question: string,
+  context: {
+    history?: readonly AskConversationMessage[];
+    page_service_id?: BuyerService["id"];
+  } = {},
 ): Promise<AskWitnessOpsUiAnswer> {
   const res = await fetch("/api/ask-witnessops", {
     method: "POST",
+    signal: AbortSignal.timeout(20_000),
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, history: context.history, page_service_id: context.page_service_id }),
   });
 
   if (!res.ok) {
@@ -184,6 +213,8 @@ export async function fetchAskWitnessOps(
 
   const payload: unknown = await res.json();
   const answer = parseAssembledAnswer(payload);
+  // Generated guidance has no deterministic replay or verification receipt.
+  if (answer.schema === "witnessops.ask.generated-answer.v1") return answer;
   const receiptId = res.headers.get("X-Ask-Receipt-Id") ?? undefined;
   const receiptStatus = res.headers.get("X-Ask-Receipt-Status");
 
@@ -220,7 +251,11 @@ export async function askWitnessOpsRequestErrorDetails(
     // Fall back to a status-based message when the response body is not JSON.
   }
 
-  return { message: `Ask WitnessOps request failed (${response.status}).` };
+  return {
+    message: response.status === 429
+      ? "Too many questions at once. Wait a moment, then retry, or ask a person."
+      : "The AI could not answer just now. Your question is still here; retry or ask a person.",
+  };
 }
 
 function parseAssembledAnswer(payload: unknown): AskWitnessOpsUiAnswer {
@@ -229,6 +264,9 @@ function parseAssembledAnswer(payload: unknown): AskWitnessOpsUiAnswer {
   }
 
   const record = payload as Record<string, unknown>;
+  if (record.schema === "witnessops.ask.generated-answer.v1") {
+    return parseGeneratedAnswer(record);
+  }
   if (record.schema === "witnessops.ask.public-boundary-response.v1") {
     return parsePublicBoundaryAnswer(record);
   }
@@ -242,6 +280,7 @@ function parseAssembledAnswer(payload: unknown): AskWitnessOpsUiAnswer {
 
   return {
     schema: "witnessops.ask.assembled-answer.v1",
+    fallback_reason: record.fallback_reason === "ai_unavailable" ? "ai_unavailable" : undefined,
     status,
     template,
     route: asRoute(record.route),
@@ -255,6 +294,57 @@ function parseAssembledAnswer(payload: unknown): AskWitnessOpsUiAnswer {
         ? record.answer_mode
         : "deterministic_fallback",
   };
+}
+
+function parseGeneratedAnswer(record: Record<string, unknown>): AskWitnessOpsUiAnswer {
+  if (
+    record.status !== "success" ||
+    record.answer_mode !== "ai_assisted" ||
+    !isCoherentNestedAuthorityAnswer(record.authority_answer) ||
+    typeof record.model !== "string" ||
+    !/^[a-zA-Z0-9._-]{1,80}$/.test(record.model)
+  ) {
+    throw new Error("Ask WitnessOps returned an invalid generated answer.");
+  }
+  const template = asTemplate(record.template);
+  if (!template.body.trim() || template.body.length > 4_000) {
+    throw new Error("Ask WitnessOps returned an invalid generated answer.");
+  }
+  return {
+    schema: "witnessops.ask.generated-answer.v1",
+    status: "success",
+    answer_mode: "ai_assisted",
+    template,
+    model: record.model,
+    route: asRoute(record.route),
+    recommendation: asRecommendation(record.recommendation),
+    commercial_fit: asCommercialFit(record.commercial_fit),
+    presented_sources: asPresentedSources(record.presented_sources),
+  };
+}
+
+function asRecommendation(value: unknown): AskWitnessOpsRecommendation | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "object") throw new Error("Invalid review recommendation.");
+  const record = value as Record<string, unknown>;
+  const service = BUYER_SERVICES.find((item) => item.id === record.service_id);
+  if (!service) throw new Error("Invalid review recommendation.");
+  const requestUrl = new URL(buyerServiceRequestHref("en", service), "https://witnessops.com");
+  requestUrl.searchParams.set("source", "ask");
+  const expected = {
+    service_id: service.id,
+    name: service.name.en,
+    price_label: service.pricingVisible === false
+      ? (service.availability?.label.en ?? "Available by request")
+      : service.price.en,
+    delivery_label: service.timing.en,
+    detail_href: service.detailHref.en ?? "/catalog",
+    request_href: `${requestUrl.pathname}${requestUrl.search}`,
+  };
+  if (Object.entries(expected).some(([key, entry]) => record[key] !== entry)) {
+    throw new Error("Ask WitnessOps returned an outdated review recommendation.");
+  }
+  return expected;
 }
 
 function parsePublicBoundaryAnswer(
