@@ -5,6 +5,8 @@ import sitemap from "./sitemap";
 import { canonicalUrl } from "@/lib/public-seo";
 
 const REQUIRED_PUBLIC_SITEMAP_ROUTES = [
+  "/catalog/automation-repair",
+  "/pl/catalog/automation-repair",
   "/catalog",
   "/catalog/workflows",
   "/catalog/offsec-external-exposure",

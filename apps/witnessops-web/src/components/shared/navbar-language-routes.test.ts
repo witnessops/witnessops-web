@@ -3,19 +3,25 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
-import { localizedHref, localizedPath } from "@/lib/public-i18n";
+import { localizedHref, localizedPath, POLISH_PUBLIC_NAV } from "@/lib/public-i18n";
 
 const navbar = readFileSync(resolve(__dirname, "navbar.tsx"), "utf-8");
+const homepageContent = readFileSync(
+  resolve(__dirname, "../../../../../content/witnessops/landing/home.yaml"), "utf-8",
+);
 
 test("primary buyer navigation contains the approved English destinations", () => {
   for (const marker of [
-    'label: "Services", href: "/catalog"',
-    "label: PRIMARY_OFFER.name.en, href: PRIMARY_OFFER.route",
-    'label: "Skills", href: "/library"',
-    'label: "Why WitnessOps", href: "/why-witnessops"',
-    'label: "Start a review"',
+    'label: "Services"',
+    'href: "/catalog"',
+    'label: "Sample work"',
+    'href: "/catalog/automation-repair"',
+    'label: "Our approach"',
+    'href: "/why-witnessops"',
+    'label: "Docs"',
+    'label: "Scope a review"',
   ]) {
-    assert.ok(navbar.includes(marker), `Missing approved navigation marker: ${marker}`);
+    assert.ok(homepageContent.includes(marker), `Missing navigation marker: ${marker}`);
   }
 
   assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
@@ -23,36 +29,21 @@ test("primary buyer navigation contains the approved English destinations", () =
   assert.match(navbar, /href: reviewRequestHrefForLocation\(/);
 });
 
-test("homepage navigation follows the offer, evidence, receipt, and workflow path", () => {
-  for (const marker of [
-    "label: PRIMARY_OFFER.name.en, href: PRIMARY_OFFER.route",
-    'label: "How it works", href: "/#evidence-questions"',
-    'label: "Action receipt", href: "/#agent-action-receipt"',
-    'label: "Start non-secret fit check"',
-    'Proof beats memory.',
-  ]) {
-    assert.ok(navbar.includes(marker), `Missing homepage navigation marker: ${marker}`);
-  }
-
-  assert.match(navbar, /data-home-nav=\{homeNav \? "true" : undefined\}/);
-  assert.match(
-    navbar,
-    /data-product-journey-nav=\{productJourneyNav \? "true" : undefined\}/,
-  );
-  assert.match(
-    navbar,
-    /href: buyerPublicOfferRequestHref\("en", PRIMARY_OFFER\.id\)/,
-  );
-  assert.match(
-    navbar,
-    /href: buyerPublicOfferRequestHref\("pl", PRIMARY_OFFER\.id\)/,
-  );
+test("home and inner pages share navigation while preserving the selected enquiry", () => {
+  assert.match(navbar, /const effectiveLinks = polish \? \[\.\.\.POLISH_PUBLIC_NAV.links\] : links/);
+  assert.doesNotMatch(navbar, /HOME_NAV_LINKS|productJourneyNav/);
+  assert.match(navbar, /href: reviewRequestHrefForLocation\(/);
+  assert.match(navbar, /label: polish \? "Omów zakres przeglądu" : "Scope a review"/);
+  assert.deepEqual(POLISH_PUBLIC_NAV.links.map((link) => link.href), [
+    "/pl/catalog", "/review/sample-cases", "/pl/why-witnessops", "/pl/docs",
+  ]);
+  assert.equal(POLISH_PUBLIC_NAV.links[1].label, "Przykłady (EN)");
 });
 
 test("Check a Skill remains absent from shared navigation", () => {
   assert.doesNotMatch(navbar, /\/verify\/skill/);
   assert.doesNotMatch(navbar, /Check a skill/i);
-  assert.match(navbar, /const productJourneyNav = homeNav/);
+  assert.doesNotMatch(navbar, /productJourneyNav/);
 });
 
 test("language switch preserves every approved paired buyer route", () => {
@@ -131,11 +122,11 @@ test("tablet uses the compact navigation instead of overflowing desktop links", 
 
 test("mobile header uses the approved mark and compact brand line", () => {
   assert.match(navbar, /const HOME_BRAND_LINE = "Proof beats memory\."/);
-  assert.match(navbar, /aria-label=\{polish \? "WitnessOps — strona główna" : "WitnessOps home"\}/);
-  assert.match(navbar, /hidden text-\[11px\][^\n]+lg:inline/);
+  assert.match(navbar, /aria-label=\{polish \? "WitnessOps: strona główna" : "WitnessOps home"\}/);
+  assert.match(navbar, /hidden text-sm[^\n]+lg:inline/);
   assert.match(navbar, /text-\[0\.7rem\] font-semibold[^\n]+lg:hidden/);
   assert.match(navbar, /inline-block -translate-y-px text-\[0\.7rem\]/);
-  assert.match(navbar, /px-4 py-1\.5[^\n]+lg:py-4/);
+  assert.match(navbar, /px-4 py-2[^\n]+lg:py-4/);
   assert.match(navbar, /mobile-brand-navbar/);
   assert.doesNotMatch(navbar, /max-\[420px\]:hidden/);
 });

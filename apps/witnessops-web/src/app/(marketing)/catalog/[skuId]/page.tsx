@@ -90,7 +90,7 @@ function detailFrame(sku: CatalogSku): DetailFrame {
       claim:
         "This review produces a bounded outside-in picture of one authorised public-facing system: what was checked, which observations support the findings, and what remains unknown. It is not a penetration test, certification, or proof that the system is secure.",
       verificationPath:
-        "Inspect the delivered scope record, reports, evidence manifest, artifact hashes, and — where the supported path is produced — the signed receipt and offline verifier. Package integrity does not prove security or completeness.",
+        "Inspect the delivered scope record, reports, evidence manifest, artifact hashes, and, where the supported path is produced, the signed receipt and offline verifier. Package integrity does not prove security or completeness.",
       notIncluded: [
         "exploitation or credential attacks",
         "authenticated application testing",

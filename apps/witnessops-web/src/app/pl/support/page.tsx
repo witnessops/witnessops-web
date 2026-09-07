@@ -39,7 +39,7 @@ const routes = [
   [
     "Potrzebuję pomocy ze sprawdzeniem dostawy",
     "/pl/verify",
-    "Prześlij lub wklej JSON zapisu i odczytaj wynik — albo zadaj pytanie o ograniczenia.",
+    "Prześlij lub wklej JSON zapisu i odczytaj wynik albo zadaj pytanie o ograniczenia.",
   ],
   [
     "Otrzymałem nieoczekiwaną wiadomość od WitnessOps",

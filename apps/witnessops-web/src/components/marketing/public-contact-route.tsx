@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PRIMARY_OFFER, AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_GENERAL_HREF,
@@ -39,17 +38,18 @@ export function PublicContactRoute({
         ? `/pl${PUBLIC_CONTACT_GENERAL_HREF}`
         : PUBLIC_CONTACT_GENERAL_HREF
       : polish
-        ? buyerPublicOfferRequestHref("pl", PRIMARY_OFFER.id)
+        ? `/pl${PUBLIC_CONTACT_GENERAL_HREF}`
         : PUBLIC_CONTACT_PRIMARY_HREF);
   const primaryOfferSelected =
     new URL(primaryHref, "https://witnessops.com").searchParams.get(
       "offerId",
     ) === PRIMARY_OFFER.id;
-  const routeHeading = primaryOfferSelected
+  const repairSelected = new URL(primaryHref, "https://witnessops.com").searchParams.get("offerId") === AUTOMATION_REPAIR_OFFER.id;
+  const routeHeading = repairSelected ? AUTOMATION_REPAIR_OFFER.name[locale] : primaryOfferSelected
     ? PRIMARY_OFFER.name[locale]
     : polish
-      ? "Rozpocznij wybrany przegląd"
-      : "Start the selected review";
+      ? "Omów zakres przeglądu"
+      : "Scope a review";
   const routeLabel = primaryOfferSelected
     ? polish
       ? "Główny płatny punkt wejścia"
@@ -57,13 +57,8 @@ export function PublicContactRoute({
     : polish
       ? "Ścieżka zgłoszenia"
       : "Request path";
-  const routeCta = primaryOfferSelected
-    ? polish
-      ? "Rozpocznij wstępną ocenę bez informacji poufnych"
-      : "Start a non-secret fit check"
-    : polish
-      ? "Rozpocznij przegląd"
-      : "Start a review";
+  const generalEnquiry = !new URL(primaryHref, "https://witnessops.com").search;
+  const routeCta = generalEnquiry ? (polish ? "Omów zakres przeglądu" : "Scope a review") : repairSelected ? (polish ? "Opisz problem" : "Describe the problem") : (polish ? "Omów zakres przeglądu" : "Scope this review");
   const mailtoSubject = primaryOfferSelected
     ? PRIMARY_OFFER.mailSubject
     : productName
@@ -78,7 +73,7 @@ export function PublicContactRoute({
   if (compact) {
     return (
       <section
-        className="border-t border-surface-border pt-4 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0"
+        className="border-t border-surface-border pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0"
         data-public-contact-route
         data-public-contact-variant="footer"
       >
@@ -86,20 +81,23 @@ export function PublicContactRoute({
           className="text-sm font-semibold uppercase tracking-[0.14em] text-text-primary"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {routeHeading}
+          {polish ? "W czym możemy pomóc?" : "What do you need help with?"}
         </p>
-        <p className="mt-2 text-xs leading-5 text-text-muted">
-          {routeLabel}
+        <p className="mt-2 text-sm leading-6 text-text-secondary">
+          {polish
+            ? "Zakres i cenę uzgodnimy przed rozpoczęciem pracy."
+            : "We agree scope and price before work begins."}
         </p>
         <Link
           href={primaryHref}
-          className="mt-1 inline-flex min-h-11 w-full items-center justify-center border border-brand-accent bg-brand-accent px-4 text-sm font-semibold uppercase tracking-[0.12em] text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.16)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_30px_rgba(242,122,61,0.28)] active:translate-y-0 active:scale-[0.985] active:shadow-[0_5px_16px_rgba(242,122,61,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none"
+          data-footer-review-cta
+          className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-md border border-brand-accent bg-brand-accent px-4 text-sm font-semibold uppercase tracking-[0.12em] text-text-inverse transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
           style={{ fontFamily: "var(--font-display)" }}
         >
           {routeCta}
         </Link>
-        <p className="mt-3 text-xs leading-5 text-text-secondary">
-          {polish ? "Kontakt zapasowy:" : "Fallback contact:"}{" "}
+        <p className="mt-1 text-xs leading-5 text-text-secondary">
+          {polish ? "Lub napisz:" : "Or email:"}{" "}
           <a
             href={publicContactMailto(mailtoSubject)}
             className="inline-flex min-h-11 items-center text-text-primary underline decoration-surface-border-strong underline-offset-4 hover:decoration-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"

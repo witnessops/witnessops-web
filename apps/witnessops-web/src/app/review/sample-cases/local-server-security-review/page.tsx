@@ -13,7 +13,7 @@ import {
 } from "./shield-sample-contract";
 
 export const metadata: Metadata = {
-  title: "Sample — Local server security review",
+  title: "Sample: Local server security review",
   description:
     "Synthetic public sample of a local server security review package: posture, findings, receipt, and hash checks. Not a live customer audit or production verification result.",
   alternates: getCanonicalAlternates(
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     "/review/sample-cases/local-server-security-review",
   ),
   openGraph: {
-    title: "Sample — Local server security review | WitnessOps",
+    title: "Sample: Local server security review | WitnessOps",
     description:
       "Inspect a synthetic local server security review package and its honest verification limits.",
     siteName: "WitnessOps",

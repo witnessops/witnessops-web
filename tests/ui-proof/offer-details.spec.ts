@@ -53,7 +53,7 @@ const offers = [
     path: "/pl/catalog/offsec-local-audit",
     service: "one-server-security-check",
     name: "One Server Security Check",
-    price: "Standardowo 4 100 zł · bez VAT",
+    price: "Standardowo 4 100 zł (ok. €950) · bez VAT",
     timing: "W ciągu dwóch dni roboczych po autoryzowanym oknie zbierania danych",
     request: "/pl/review/request",
   },
@@ -61,7 +61,7 @@ const offers = [
     path: "/pl/catalog/offsec-launch-ready",
     service: "launch-readiness-check",
     name: "Launch Readiness Check",
-    price: "11 000–32 000 zł · bez VAT",
+    price: "11 000–32 000 zł (ok. €2 500–€7 500) · bez VAT",
     timing: "Cztery dni robocze po zebraniu kandydata do wydania",
     request: "/pl/review/request",
   },
@@ -77,7 +77,7 @@ const offers = [
     path: "/pl/catalog/offsec-custody-ops",
     service: "key-access-custody-review",
     name: "Key, Access and Custody Review",
-    price: "13 000–65 000 zł · bez VAT",
+    price: "13 000–65 000 zł (ok. €3 000–€15 000) · bez VAT",
     timing: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
     request: "/pl/review/request",
   },
@@ -85,7 +85,7 @@ const offers = [
     path: "/pl/catalog/offsec-incident-ready",
     service: "incident-readiness-review",
     name: "Incident Readiness Review",
-    price: "22 000–108 000 zł · bez VAT",
+    price: "22 000–108 000 zł (ok. €5 000–€25 000) · bez VAT",
     timing: "Potwierdzany podczas wstępnej oceny bez informacji poufnych",
     request: "/pl/review/request",
   },
@@ -134,6 +134,10 @@ test("reachable offer details use the canonical buyer contract and visual system
       await expect(main).toContainText(offer.name);
       await expect(main.locator("h1")).toBeVisible();
       await expect(main).toHaveAttribute("data-price-contract", /.+/);
+      if (offer.service === "bounded-workflow-review") {
+        await expect(main.locator('[data-promoted-commercial-contract="bounded-workflow-review"]')).toBeInViewport();
+      }
+      await main.locator("summary").filter({ hasText: offer.path.startsWith("/pl") ? "Jak przebiega współpraca" : "How the engagement works" }).click();
       const numberedSteps = main.locator("ol").first();
       await expect(numberedSteps).toHaveCSS("list-style-type", "none");
       const firstStep = (await numberedSteps.locator("li").first().innerText()).trim();
@@ -148,10 +152,10 @@ test("reachable offer details use the canonical buyer contract and visual system
           'a[href="/review/sample-cases/external-exposure-assessment"]',
         );
         await expect(sampleLink).toHaveCount(1);
-        await expect(sampleLink).toHaveText(
+        await expect(sampleLink).toContainText(
           offer.path.startsWith("/pl")
-            ? "Zobacz syntetyczny przykład"
-            : "Inspect synthetic sample",
+            ? "Zobacz przykładowy przegląd (EN)"
+            : "See a sample review",
         );
         await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
           "content",
@@ -171,7 +175,6 @@ test("reachable offer details use the canonical buyer contract and visual system
           '[data-promoted-commercial-contract="bounded-workflow-review"]',
         );
         await expect(promotedContract).toBeVisible();
-        await expect(promotedContract).toBeInViewport();
         await expect(promotedContract).toContainText("€2,500 fixed · excluding VAT");
         await expect(promotedContract).toContainText(
           "Within 10 working days after evidence rules are agreed",
@@ -365,7 +368,7 @@ test("External Attack Surface Review synthetic sample is buyer-safe and responsi
     await expect(main.locator("h1")).toHaveText("External Attack Surface Review");
     await expect(main).toContainText("This is not a penetration test");
     await expect(main).toContainText(
-      "Synthetic worked example — not customer evidence.",
+      "Synthetic worked example, not customer evidence.",
     );
     await expect(main).toContainText(
       "Neither result proves that observations are complete",

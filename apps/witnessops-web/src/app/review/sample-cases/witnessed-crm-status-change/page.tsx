@@ -5,7 +5,7 @@ import { WitnessedActionReplay } from "./witnessed-action-replay";
 import styles from "./witnessed-action.module.css";
 
 export const metadata: Metadata = {
-  title: "Run a witnessed action — recorded CRM specimen",
+  title: "Run a witnessed action: recorded CRM specimen",
   description:
     "Replay one completed synthetic CRM action under an explicit boundary, inspect the independent read-back, and verify an unsigned demonstration receipt.",
   alternates: getCanonicalAlternates(

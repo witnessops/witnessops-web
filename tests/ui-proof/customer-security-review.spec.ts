@@ -58,14 +58,11 @@ test("Customer Security Review pages remain responsive and usable", async ({ bro
       : "/review/request";
     const expectedRequestHref = `${expectedRequestPath}?offerId=customer-security-review-sprint&offer=Customer+Security+Review+Sprint`;
     await expect(heroCta).toHaveAttribute("href", expectedRequestHref);
-    await expect(page.locator("main [data-public-contact-route] a").first()).toHaveAttribute(
-      "href",
-      expectedRequestHref,
-    );
-    await expect(page.locator("main [data-public-contact-route]")).toContainText(
-      "engage@mail.witnessops.com",
-    );
+    const requestLinks = page.locator(`main a[href="${expectedRequestHref}"]`);
+    expect(await requestLinks.count()).toBeGreaterThanOrEqual(2);
+    await expect(page.locator('footer a[href^="mailto:engage@mail.witnessops.com"]')).toBeVisible();
     if (scenario.path === "/customer-security-review" && scenario.width === 390) {
+      await page.locator("main summary").filter({ hasText: "Example and technical details" }).click();
       const tableScroller = page.getByLabel("Synthetic example response table");
       await expect(tableScroller).toHaveAttribute("tabindex", "0");
       const scrollMetrics = await tableScroller.evaluate((element) => ({

@@ -10,6 +10,8 @@ import {
 
 import { ReviewRequestRecord } from "@/components/review-request/review-request-record";
 import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { BUYER_SERVICES, type BuyerService } from "@/lib/buyer-services";
+import { trackAskEvent } from "@/lib/docs-assistant/ask-analytics";
 import {
   buildReviewRequestConfirmation,
   type ReviewRequestConfirmation,
@@ -17,7 +19,11 @@ import {
 import { formatVerificationCode } from "@/lib/verification-code-format";
 import type { EngageResponse, VerifyTokenResponse } from "@/lib/token-contract";
 import type { AskWitnessOpsCommercialFit } from "./ask-witnessops-response";
-import { buildAskAiContactRequest } from "./docs-assistant-contact-handoff-contract";
+import {
+  ASK_CONTACT_NOTE_MAX_LENGTH,
+  ASK_CONTACT_QUESTION_MAX_LENGTH,
+  buildAskAiContactRequest,
+} from "./docs-assistant-contact-handoff-contract";
 
 type VerificationStep = Pick<
   EngageResponse,
@@ -29,18 +35,30 @@ const CONTACT_PANEL_ID = "ask-witnessops-contact-handoff";
 export function DocsAssistantContactHandoff({
   expanded,
   commercialFit,
+  question,
+  proposedBrief,
+  surface = "widget",
+  serviceId,
   launcherRef,
   onBusyChange,
   onExpandedChange,
 }: {
   expanded: boolean;
   commercialFit?: AskWitnessOpsCommercialFit;
+  question?: string;
+  proposedBrief?: string;
+  surface?: "widget" | "page" | "inline";
+  serviceId?: BuyerService["id"];
   launcherRef?: Ref<HTMLButtonElement>;
   onBusyChange?: (busy: boolean) => void;
   onExpandedChange: (expanded: boolean) => void;
 }) {
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
+  const [includeQuestion, setIncludeQuestion] = useState(false);
+  const [sharedQuestion, setSharedQuestion] = useState(
+    (proposedBrief ?? question)?.trim().slice(0, ASK_CONTACT_QUESTION_MAX_LENGTH) ?? "",
+  );
   const [status, setStatus] = useState<
     "idle" | "sending" | "verifying" | "confirmed" | "error"
   >("idle");
@@ -56,7 +74,25 @@ export function DocsAssistantContactHandoff({
   const verificationCodeRef = useRef<HTMLInputElement>(null);
   const confirmationHeadingRef = useRef<HTMLHeadingElement>(null);
   const inFlightRef = useRef<"contact" | "verification" | null>(null);
-  const offerRequiresSummary = Boolean(commercialFit?.offer);
+  const service = BUYER_SERVICES.find(
+    (candidate) => candidate.id === (serviceId ?? commercialFit?.offer_id),
+  );
+  const offerRequiresSummary = Boolean(service);
+  const summary = includeQuestion ? sharedQuestion : note;
+  const hasConversation = Boolean((proposedBrief ?? question)?.trim());
+  const wasExpandedRef = useRef(false);
+
+  useEffect(() => {
+    setIncludeQuestion(false);
+    setSharedQuestion((proposedBrief ?? question)?.trim().slice(0, ASK_CONTACT_QUESTION_MAX_LENGTH) ?? "");
+  }, [proposedBrief, question]);
+
+  useEffect(() => {
+    if (expanded && !wasExpandedRef.current) {
+      trackAskEvent("contact_started", { service_id: service?.id, surface });
+    }
+    wasExpandedRef.current = expanded;
+  }, [expanded, service?.id, surface]);
 
   useEffect(() => {
     if (!expanded || verificationStep) return;
@@ -89,6 +125,8 @@ export function DocsAssistantContactHandoff({
     onExpandedChange(false);
     setEmail("");
     setNote("");
+    setIncludeQuestion(false);
+    setSharedQuestion((proposedBrief ?? question)?.trim().slice(0, ASK_CONTACT_QUESTION_MAX_LENGTH) ?? "");
     setStatus("idle");
     setErrorMessage("");
     setVerificationStep(null);
@@ -100,9 +138,9 @@ export function DocsAssistantContactHandoff({
   async function handleContactSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (inFlightRef.current !== null) return;
-    if (offerRequiresSummary && !note.trim()) {
+    if (offerRequiresSummary && !summary.trim()) {
       setStatus("error");
-      setErrorMessage("Add a short, non-secret summary of the consequential action.");
+      setErrorMessage("Add a short, non-secret summary of what you need reviewed.");
       window.requestAnimationFrame(() => noteRef.current?.focus());
       return;
     }
@@ -117,7 +155,11 @@ export function DocsAssistantContactHandoff({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          buildAskAiContactRequest(email, note, commercialFit),
+          buildAskAiContactRequest(email, includeQuestion ? "" : note, commercialFit, {
+            includeQuestion,
+            question: sharedQuestion,
+            serviceId,
+          }),
         ),
       });
       const payload = (await response.json().catch(() => null)) as
@@ -195,7 +237,7 @@ export function DocsAssistantContactHandoff({
       const record = buildReviewRequestConfirmation(payload, {
         locale: "en",
         requestKind:
-          commercialFit?.offer_id === PRIMARY_OFFER.id
+          service?.id === PRIMARY_OFFER.id
             ? "agent-risk-control-review"
             : "review-request",
         source: "ask",
@@ -207,8 +249,11 @@ export function DocsAssistantContactHandoff({
       }
 
       setConfirmationRecord(record);
+      trackAskEvent("mailbox_confirmed", { service_id: service?.id, surface });
       setEmail("");
       setNote("");
+      setIncludeQuestion(false);
+      setSharedQuestion("");
       setVerificationStep(null);
       setVerificationCode("");
       setBoundaryAccepted(false);
@@ -230,8 +275,7 @@ export function DocsAssistantContactHandoff({
     return (
       <div className="mt-5 border-t border-surface-border pt-4">
         <p className="text-xs leading-relaxed text-text-muted">
-          Want a human follow-up? Leave a work email after—or instead of—asking
-          AI.
+          Prefer a person? Request a follow-up about fit and scope.
         </p>
         <button
           ref={launcherRef}
@@ -243,7 +287,7 @@ export function DocsAssistantContactHandoff({
           aria-controls={CONTACT_PANEL_ID}
           className="mt-2 text-xs font-semibold text-brand-accent underline decoration-brand-accent/40 underline-offset-4 transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
         >
-          Request a scoped review
+          Request a follow-up
         </button>
       </div>
     );
@@ -288,24 +332,16 @@ export function DocsAssistantContactHandoff({
       >
         <div>
           <h2 className="text-sm font-semibold text-text-primary">
-            {commercialFit?.offer
-              ? "Request scope for this action"
-              : "Contact handoff"}
+            Request a follow-up
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-text-muted">
-            {commercialFit?.offer ? (
+            {service ? (
               <>
-                {commercialFit.offer.name} · {commercialFit.offer.price_label} ·{" "}
-                {commercialFit.offer.unit_label}. {commercialFit.offer.fit_check_label}.{" "}
-                {commercialFit.offer.delivery_label}. Confirm a work email.
-                Work starts only after scope, evidence rules, and evidence
-                handling are agreed.
+                About {service.name.en}. Share a short summary for a fit-and-scope reply.
               </>
             ) : (
               <>
-                Leave a work email and an optional short, non-secret note. We
-                use an email code to confirm the mailbox before the request can
-                be handled.
+                Leave your work email and a short question for a fit-and-scope reply.
               </>
             )}
           </p>
@@ -314,7 +350,7 @@ export function DocsAssistantContactHandoff({
           type="button"
           onClick={reset}
           disabled={status === "sending" || status === "verifying"}
-          className="shrink-0 text-xs text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent disabled:cursor-not-allowed disabled:opacity-40"
+          className="min-h-11 min-w-11 shrink-0 text-xs text-text-muted transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent disabled:cursor-not-allowed disabled:opacity-40"
         >
           Back
         </button>
@@ -361,7 +397,7 @@ export function DocsAssistantContactHandoff({
               aria-describedby={status === "error" ? "ask-ai-contact-code-error ask-ai-contact-code-help" : "ask-ai-contact-code-help"}
               aria-errormessage={status === "error" ? "ask-ai-contact-code-error" : undefined}
               placeholder="ABCD-EFGH-JKLM"
-              className="mt-1 w-full rounded border border-surface-border bg-surface-bg px-2.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
+              className="mt-1 min-h-11 w-full rounded border border-surface-border bg-surface-bg px-3 py-2 text-base text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
             />
             <p id="ask-ai-contact-code-help" className="mt-1 text-[11px] leading-relaxed text-text-muted">
               The code expires at {verificationStep.expiresAt}.
@@ -397,7 +433,7 @@ export function DocsAssistantContactHandoff({
               !boundaryAccepted ||
               !verificationCode.trim()
             }
-            className="w-full rounded border border-brand-accent bg-brand-accent px-3 py-2 text-xs font-semibold text-text-inverse transition-colors hover:bg-text-primary disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 w-full rounded border border-brand-accent bg-brand-accent px-3 py-2 text-sm font-semibold text-text-inverse transition-colors hover:bg-text-primary disabled:cursor-not-allowed disabled:opacity-40"
           >
             {status === "verifying" ? "Confirming..." : "Confirm work email"}
           </button>
@@ -431,15 +467,27 @@ export function DocsAssistantContactHandoff({
               autoComplete="email"
               required
               placeholder="you@company.com"
-              className="mt-1 w-full rounded border border-surface-border bg-surface-bg px-2.5 py-2 text-xs text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
+              className="mt-1 min-h-11 w-full rounded border border-surface-border bg-surface-bg px-3 py-2 text-base text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
             />
           </div>
+          {hasConversation && (
+            <label className="flex min-h-11 items-center gap-2 text-sm leading-relaxed text-text-muted">
+              <input
+                type="checkbox"
+                checked={includeQuestion}
+                onChange={(event) => setIncludeQuestion(event.currentTarget.checked)}
+                disabled={status === "sending"}
+                className="h-4 w-4 shrink-0 accent-brand-accent"
+              />
+              <span>Use my questions as the request summary.</span>
+            </label>
+          )}
           <div>
             <label
               htmlFor="ask-ai-contact-note"
               className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted"
             >
-              Action summary or request{" "}
+              Request summary{" "}
               <span className="normal-case">
                 ({offerRequiresSummary ? "required" : "optional"})
               </span>
@@ -447,24 +495,29 @@ export function DocsAssistantContactHandoff({
             <textarea
               ref={noteRef}
               id="ask-ai-contact-note"
-              value={note}
+              value={summary}
               onChange={(event) => {
-                setNote(event.currentTarget.value);
+                if (includeQuestion) setSharedQuestion(event.currentTarget.value);
+                else setNote(event.currentTarget.value);
                 setStatus((current) =>
                   current === "sending" ? current : "idle",
                 );
                 if (inFlightRef.current === null) setErrorMessage("");
               }}
-              rows={2}
+              rows={4}
               required={offerRequiresSummary}
-              maxLength={1_000}
-              placeholder="What should we scope? Keep it high level."
-              className="mt-1 w-full resize-y rounded border border-surface-border bg-surface-bg px-2.5 py-2 text-xs leading-relaxed text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
+              maxLength={includeQuestion ? ASK_CONTACT_QUESTION_MAX_LENGTH : ASK_CONTACT_NOTE_MAX_LENGTH}
+              placeholder="What would you like help with?"
+              aria-describedby="ask-ai-contact-summary-help"
+              className="mt-1 w-full resize-y rounded border border-surface-border bg-surface-bg px-3 py-2 text-base leading-relaxed text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
             />
+            <p id="ask-ai-contact-summary-help" className="mt-1 text-xs leading-relaxed text-text-muted">
+              Edit what WitnessOps will receive. AI answers are not shared. Do not include secrets or customer evidence.
+            </p>
           </div>
-          <p className="text-[11px] leading-relaxed text-text-muted">
-            Mailbox confirmation starts a fit-and-scope reply only. No review
-            begins here. Do not include secrets or customer evidence.
+          <p className="text-xs leading-relaxed text-text-muted">
+            Your email and summary are saved for this reply. Confirm your mailbox next.
+            No mailing list or review booking.
           </p>
           {status === "error" && (
             <p className="text-xs text-red-400" role="alert">
@@ -476,9 +529,10 @@ export function DocsAssistantContactHandoff({
             disabled={
               status === "sending" ||
               !email.trim() ||
-              (offerRequiresSummary && !note.trim())
+              (offerRequiresSummary && !summary.trim()) ||
+              (includeQuestion && !sharedQuestion.trim())
             }
-            className="w-full rounded border border-brand-accent bg-brand-accent px-3 py-2 text-xs font-semibold text-text-inverse transition-colors hover:bg-text-primary disabled:cursor-not-allowed disabled:border-surface-border-strong disabled:bg-surface-inset disabled:text-text-muted disabled:opacity-100"
+            className="min-h-11 w-full rounded border border-brand-accent bg-brand-accent px-3 py-2 text-sm font-semibold text-text-inverse transition-colors hover:bg-text-primary disabled:cursor-not-allowed disabled:border-surface-border-strong disabled:bg-surface-inset disabled:text-text-muted disabled:opacity-100"
           >
             {status === "sending" ? "Sending code..." : "Send confirmation code"}
           </button>

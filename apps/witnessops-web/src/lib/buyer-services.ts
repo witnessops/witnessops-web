@@ -1,6 +1,7 @@
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
   PRIMARY_OFFER,
+  AUTOMATION_REPAIR_OFFER,
 } from "@/lib/commercial-truth";
 import { publicB2bPrice } from "@/lib/commercial-price";
 
@@ -10,6 +11,7 @@ type LocalizedText = Record<BuyerLocale, string>;
 
 export type BuyerService = {
   id:
+    | "automation-repair-handover"
     | "customer-security-review-sprint"
     | "bounded-workflow-review"
     | "one-server-security-check"
@@ -44,12 +46,14 @@ export type BuyerService = {
 
 export type BuyerPublicOfferId = Extract<
   BuyerService["id"],
+  | "automation-repair-handover"
   | "customer-security-review-sprint"
   | "bounded-workflow-review"
   | "professional-public-footprint-audit"
 >;
 
 const BUYER_PUBLIC_OFFER_IDS = [
+  "automation-repair-handover",
   "customer-security-review-sprint",
   "bounded-workflow-review",
   "professional-public-footprint-audit",
@@ -66,6 +70,12 @@ function isBuyerPublicOfferId(id: string): id is BuyerPublicOfferId {
  */
 export const BUYER_SERVICES: readonly BuyerService[] = [
   {
+    ...AUTOMATION_REPAIR_OFFER,
+    homepageFeatured: false,
+    requestCta: { en: "Describe the problem", pl: "Opisz problem" },
+    detailHref: { en: AUTOMATION_REPAIR_OFFER.route, pl: `/pl${AUTOMATION_REPAIR_OFFER.route}` },
+  },
+  {
     id: "customer-security-review-sprint",
     commercialContract: {
       price: "from_eur_1600_after_non_secret_fit_check",
@@ -76,16 +86,16 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Customer Security Review Sprint",
     },
     cardSituation: {
-      en: "A customer security questionnaire is delaying a sale or vendor review.",
-      pl: "Kwestionariusz bezpieczeństwa klienta opóźnia sprzedaż lub ocenę dostawcy.",
+      en: "A customer security questionnaire is holding up your deal.",
+      pl: "Kwestionariusz bezpieczeństwa wstrzymuje transakcję.",
     },
     situation: {
-      en: "A customer, buyer or procurement team has sent a security questionnaire or evidence request that is delaying a deal or consuming senior technical time.",
-      pl: "Klient, kupujący lub dział zakupów przesłał kwestionariusz bezpieczeństwa albo prośbę o materiały, która opóźnia transakcję lub zajmuje czas seniorów technicznych.",
+      en: "A customer questionnaire is taking your team away from product work. Get proposed answers and evidence references for one questionnaire and one product, ready for your approval.",
+      pl: "Kwestionariusz klienta odciąga zespół od pracy nad produktem. Otrzymasz proponowane odpowiedzi i źródła dla jednego kwestionariusza i produktu, do Twojego zatwierdzenia.",
     },
     result: {
-      en: "A response package for one questionnaire and one product scope, including proposed answers, evidence references, qualifications, open items and a cover note for your approval.",
-      pl: "Pakiet odpowiedzi dla jednego kwestionariusza i jednego zakresu produktu, obejmujący proponowane odpowiedzi, odwołania do materiałów, zastrzeżenia, otwarte kwestie i notę przewodnią do zatwierdzenia.",
+      en: "Get proposed answers linked to available evidence, with gaps clearly marked for your team to resolve and approve.",
+      pl: "Otrzymasz proponowane odpowiedzi ze źródłami i jasno wskazane braki do uzupełnienia i zatwierdzenia przez Twój zespół.",
     },
     price: publicB2bPrice("From €1,600", "Od 7 000 zł (ok. €1 600)"),
     timing: {
@@ -104,8 +114,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
 
   {
     id: PRIMARY_OFFER.id,
-    homepageFeatured: true,
     commercialRole: "primary",
+    homepageFeatured: true,
     commercialContract: PRIMARY_OFFER.commercialContract,
     name: PRIMARY_OFFER.name,
     cardSituation: PRIMARY_OFFER.cardSituation,
@@ -118,8 +128,8 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Tylko jedno istotne działanie agenta lub automatyzacji. Domyślny tryb pracy to odczyt, inspekcja, rekonstrukcja i raportowanie. Bez modyfikacji produkcyjnych, testów destrukcyjnych, eksploatacji, zmian danych uwierzytelniających, utrzymywania dostępu, ciągłego monitoringu ani certyfikacji bezpieczeństwa, chyba że zostaną osobno określone i wyraźnie autoryzowane.",
     },
     requestCta: {
-      en: "Start a non-secret fit check",
-      pl: "Rozpocznij wstępną ocenę bez informacji poufnych",
+      en: "Scope this review",
+      pl: "Opisz swój przypadek",
     },
     detailHref: {
       en: PRIMARY_OFFER.route,
@@ -138,16 +148,16 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "One Server Security Check",
     },
     cardSituation: {
-      en: "You need a clear, read-only picture of one authorised Linux host.",
-      pl: "Potrzebujesz jasnego obrazu jednego autoryzowanego hosta Linux — tylko do odczytu.",
+      en: "Know what needs attention on one Linux server.",
+      pl: "Sprawdź, co wymaga uwagi na serwerze Linux.",
     },
     situation: {
-      en: "You need a clear, read-only security picture of one authorised Linux host before a customer ask, hardening step, or internal review.",
-      pl: "Potrzebujesz jasnego, nieinwazyjnego obrazu bezpieczeństwa jednego autoryzowanego hosta Linux przed prośbą klienta, hardeningiem lub przeglądem wewnętrznym.",
+      en: "Preparing a Linux server for a customer review or hardening? Get a read-only security snapshot of one authorised host, with findings and clear next steps.",
+      pl: "Przygotowujesz serwer Linux do przeglądu klienta lub wzmocnienia zabezpieczeń? Sprawdzimy jeden autoryzowany host w trybie tylko do odczytu i wskażemy ustalenia oraz kolejne kroki.",
     },
     result: {
-      en: "Posture, findings, report and, where agreed, a signed proof package with offline verification path — what was checked, what evidence supports it, what remains unresolved.",
-      pl: "Stan, ustalenia, raport oraz, jeśli uzgodniono, podpisany pakiet ze ścieżką weryfikacji offline — co sprawdzono, jakie materiały to wspierają i co pozostaje otwarte.",
+      en: "Get a read-only review with findings, supporting evidence, unresolved issues and a practical list of next steps.",
+      pl: "Raport z przeglądu jednego hosta Linux: ustalenia, źródła i nierozstrzygnięte kwestie, bez zmian w systemie.",
     },
     price: publicB2bPrice("€950 standard", "Standardowo 4 100 zł (ok. €950)"),
     timing: {
@@ -190,16 +200,16 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Launch Readiness Check",
     },
     cardSituation: {
-      en: "You need a before/after decision for one launch host and an approved baseline.",
-      pl: "Potrzebujesz decyzji before/after dla jednego hosta startu i zatwierdzonej bazy.",
+      en: "See what changed before the launch decision.",
+      pl: "Sprawdź zmiany przed wdrożeniem.",
     },
     situation: {
-      en: "You need a before-and-after readiness picture for one launch host against an approved baseline, including drift and open decisions.",
-      pl: "Potrzebujesz obrazu gotowości before/after dla jednego hosta startu względem zatwierdzonej bazy, z dryfem i otwartymi decyzjami.",
+      en: "Compare one launch host with your approved baseline. See what changed, which findings need attention and which decisions remain before go-live.",
+      pl: "Porównaj jeden serwer przed wdrożeniem z zatwierdzonym stanem odniesienia. Zobacz zmiany, kwestie wymagające uwagi i decyzje pozostające przed uruchomieniem.",
     },
     result: {
-      en: "Baseline and candidate snapshots, drift notes, findings, readiness report and, where agreed, a signed proof package with offline verification.",
-      pl: "Migawki bazy i kandydata, notatki o dryfie, ustalenia, raport gotowości oraz, jeśli uzgodniono, podpisany pakiet ze weryfikacją offline.",
+      en: "Compare one launch host with its approved baseline. Identify findings, evidence gaps and decisions that still need an owner.",
+      pl: "Porównaj jeden serwer z zatwierdzonym stanem odniesienia. Poznaj ustalenia, braki źródeł i decyzje, które wciąż wymagają właściciela.",
     },
     price: publicB2bPrice(
       "€2,500–€7,500",
@@ -230,16 +240,16 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Key, Access and Custody Review",
     },
     cardSituation: {
-      en: "You need a bounded review of custody or wallet-operations controls without touching funds.",
-      pl: "Potrzebujesz ograniczonego przeglądu kontroli custody lub wallet-ops bez dotykania środków.",
+      en: "Know which custody-control claims your evidence supports.",
+      pl: "Sprawdź, które twierdzenia o kontroli nad aktywami potwierdzają Twoje materiały.",
     },
     situation: {
-      en: "You need a proof-backed review of how custody or wallet-operations controls are documented, using sanitised observations only.",
-      pl: "Potrzebujesz przeglądu z pakietem, jak udokumentowano kontrole custody lub wallet-ops, wyłącznie na zanonimizowanych obserwacjach.",
+      en: "Preparing custody or wallet operations for a review? See which control claims your documentation supports and where evidence is missing. No keys or funds are shared.",
+      pl: "Przygotowujesz operacje powiernicze lub obsługę portfeli do przeglądu? Sprawdź, które kontrole potwierdza dokumentacja i gdzie brakuje dowodów. Bez udostępniania kluczy i środków.",
     },
     result: {
-      en: "Sanitised posture, completeness notes, findings and, where agreed, a signed proof package — supported claims vs gaps, no keys or balances in the package.",
-      pl: "Zanonimizowany stan, notatki o kompletności, ustalenia oraz, jeśli uzgodniono, podpisany pakiet — obsługiwane twierdzenia vs luki, bez kluczy i sald w pakiecie.",
+      en: "Review sanitized custody or wallet-operation material. Identify documented controls, missing evidence and unresolved questions.",
+      pl: "Przegląd kontroli: potwierdzone ustalenia, braki dowodów i otwarte pytania, wyłącznie na podstawie materiałów bez danych poufnych.",
     },
     price: publicB2bPrice(
       "€3,000–€15,000",
@@ -270,16 +280,16 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Incident Readiness Review",
     },
     cardSituation: {
-      en: "You need a bounded readiness record for one named incident scenario and environment.",
-      pl: "Potrzebujesz ograniczonego zapisu gotowości dla jednego nazwanego scenariusza i środowiska.",
+      en: "Find the gaps in your plan for one incident scenario.",
+      pl: "Znajdź braki w planie dla jednego scenariusza incydentu.",
     },
     situation: {
-      en: "You need a bounded readiness record for one named incident class and environment — preparation, unknowns and open decisions on the package.",
-      pl: "Potrzebujesz ograniczonego zapisu gotowości dla jednej nazwanej klasy incydentu i środowiska — przygotowanie, niewiadome i otwarte decyzje w pakiecie.",
+      en: "Choose one incident scenario and one environment. Review your preparation, identify gaps and give the responsible team a clear record of open decisions.",
+      pl: "Wybierz jeden scenariusz incydentu i jedno środowisko. Sprawdź przygotowanie, poznaj braki i przekaż odpowiedzialnemu zespołowi jasną listę otwartych decyzji.",
     },
     result: {
-      en: "Sanitised readiness observations, posture, findings and open gaps in a package another owner can inspect — not live incident command.",
-      pl: "Zanonimizowane obserwacje gotowości, stan, ustalenia i otwarte luki w pakiecie do wglądu innego właściciela — bez dowodzenia incydentem na żywo.",
+      en: "Review the preparation, evidence and open decisions for one named scenario and environment.",
+      pl: "Raport gotowości dla jednego scenariusza: przygotowanie, źródła, braki i otwarte decyzje.",
     },
     price: publicB2bPrice(
       "€5,000–€25,000",
@@ -323,16 +333,16 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
       pl: "Audyt publicznego śladu zawodowego",
     },
     cardSituation: {
-      en: "See what clients, counterparties and AI systems can actually verify, infer or misunderstand about your professional footprint.",
-      pl: "Zobacz, co klienci, kontrahenci i systemy AI mogą rzeczywiście zweryfikować, wywnioskować lub błędnie zrozumieć na podstawie Twojego publicznego śladu zawodowego.",
+      en: "Know what a client can learn from your public professional record.",
+      pl: "Sprawdź, czego klient może dowiedzieć się z Twojego publicznego profilu zawodowego.",
     },
     situation: {
-      en: "Understand what a careful outsider can currently establish about one professional’s identity, work, public claims and visible expertise — and identify material inaccuracies, ambiguity and evidence gaps.",
-      pl: "Dowiedz się, co uważny odbiorca może obecnie ustalić o tożsamości zawodowej, pracy, publicznych twierdzeniach i widocznej wiedzy jednej osoby — oraz wskaż istotne nieścisłości, niejednoznaczności i luki dowodowe.",
+      en: "Review your own public professional record before a client or partner does. Find inaccuracies, unclear claims and evidence gaps, with a prioritized correction list.",
+      pl: "Sprawdź swój publiczny profil zawodowy, zanim zrobi to klient lub partner. Poznaj nieścisłości, niejasne twierdzenia i braki źródeł oraz listę korekt według priorytetu.",
     },
     result: {
-      en: "A concise public-footprint mirror, canonical fact sheet, claim-to-evidence audit, correction register and private evidence appendix, followed by a 60-minute subject review.",
-      pl: "Zwięzłe odzwierciedlenie publicznego śladu, kanoniczna karta faktów, audyt twierdzeń względem źródeł, rejestr korekt oraz prywatny załącznik dowodowy, a następnie 60-minutowa sesja weryfikacyjna.",
+      en: "A public-profile summary, fact sheet and correction list, plus a private evidence appendix and 60-minute review.",
+      pl: "Podsumowanie publicznego profilu, karta faktów, lista korekt, prywatny załącznik źródłowy i 60-minutowe omówienie.",
     },
     price: publicB2bPrice("€4,900", "4 900 EUR"),
     timing: {
@@ -349,6 +359,12 @@ export const BUYER_SERVICES: readonly BuyerService[] = [
     },
   },
 ] as const;
+
+/** Buyer-facing action labels; routing remains governed by the service identifiers. */
+export function buyerServiceCta(locale: BuyerLocale, service: BuyerService): string {
+  if (service.id === "customer-security-review-sprint") return locale === "pl" ? "Omów kwestionariusz" : "Discuss your questionnaire";
+  return service.requestCta?.[locale] ?? (locale === "pl" ? "Omów zakres przeglądu" : "Scope this review");
+}
 
 export function buyerRequestHref(locale: BuyerLocale): string {
   return locale === "pl"
@@ -439,6 +455,8 @@ export function buyerServiceFromRequestOffer(
   if (offerId !== null && offerId !== undefined) {
     return buyerServiceByPublicOfferId(offerId);
   }
+
+  if (offer === AUTOMATION_REPAIR_OFFER.name.en || offer === AUTOMATION_REPAIR_OFFER.name.pl) return buyerServiceById(AUTOMATION_REPAIR_OFFER.id);
 
   return offer === PRIMARY_OFFER.name.en
     ? buyerServiceById(PRIMARY_OFFER.id)

@@ -1110,3 +1110,84 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--color-surface-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+/* Shared buyer reading scale; evidence viewers keep their own density. */
+.buyer-page .text-xs { font-size: .875rem; line-height: 1.5; }
+.buyer-page :is(p, dd, li).text-sm,
+.buyer-page :is(dl, ul, ol, details > div).text-sm { font-size: 1rem; line-height: 1.65; }
+.buyer-page :is(a, button, summary):focus-visible { outline: 3px solid var(--color-brand-accent); outline-offset: 3px; }
+.sidebar-kb-item { min-height: 44px; font-size: .875rem; line-height: 1.5; }
+.sidebar-kb-section-header { min-height: 44px; font-size: .875rem; line-height: 1.5; }
+.sidebar-kb-search-input { min-height: 44px; font-size: 1rem; }
+
+/* Shared fictional finding excerpt; these styles do not apply to verifier results. */
+.reviewFinding_finding {
+  --finding-paper: #131312;
+  --finding-ink: #e4e1da;
+  --finding-muted: #b7b3aa;
+  --finding-accent: #f27a3d;
+  --finding-rule: #30302c;
+  min-width: 0;
+  padding: clamp(1.25rem, 2.5vw, 2.25rem);
+  border: 1px solid var(--finding-rule);
+  border-left: 2px solid var(--finding-accent);
+  border-radius: 4px;
+  background: var(--finding-paper);
+  color: var(--finding-ink);
+  color-scheme: dark;
+}
+.reviewFinding_specimenLabel, .reviewFinding_findingMeta, .reviewFinding_findingFacts dt {
+  font-family: var(--font-mono);
+  font-size: .875rem;
+  line-height: 1.65;
+  font-weight: 500;
+  letter-spacing: .025em;
+  text-transform: uppercase;
+}
+.reviewFinding_specimenLabel { margin: 0 0 1.75rem; color: var(--finding-accent); }
+.reviewFinding_findingMeta { margin: 0; color: var(--finding-muted); }
+.reviewFinding_findingTitle {
+  margin: 1.5rem 0 0;
+  font-family: var(--font-sans);
+  font-size: clamp(1.5rem, 2.7vw, 2.5rem);
+  font-weight: 500;
+  letter-spacing: -.025em;
+  line-height: 1.3;
+  text-wrap: pretty;
+}
+.reviewFinding_findingFacts { margin: 2rem 0 0; }
+.reviewFinding_findingFacts > div { padding-block: 1.5rem; border-top: 1px solid var(--finding-rule); }
+.reviewFinding_findingFacts dt { color: var(--finding-accent); }
+.reviewFinding_findingFacts dd { margin: .625rem 0 0; font-family: var(--font-sans); font-size: 1.25rem; line-height: 1.6; }
+.reviewFinding_findingEvidence { margin-top: .25rem; border-top: 1px solid var(--finding-rule); }
+.reviewFinding_findingEvidence summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 44px;
+  padding-block: 1.5rem 0;
+  list-style: none;
+  cursor: pointer;
+  color: var(--finding-ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.reviewFinding_findingEvidence summary::-webkit-details-marker { display: none; }
+.reviewFinding_findingEvidence summary svg { flex-shrink: 0; color: var(--finding-muted); }
+.reviewFinding_findingEvidence[open] summary svg { transform: rotate(90deg); }
+.reviewFinding_findingEvidence summary:hover { color: var(--finding-accent); }
+.reviewFinding_findingEvidence dl { padding-top: 1.5rem; font-size: .9375rem; line-height: 1.7; }
+.reviewFinding_findingEvidence :is(dt, dd) { color: var(--finding-muted); }
+.reviewFinding_findingEvidence dt { color: var(--finding-ink); }
+.reviewFinding_findingEvidence summary:focus-visible { outline: 2px solid var(--finding-accent); outline-offset: 6px; border-radius: 2px; }
+@media (max-width: 700px) {
+  .reviewFinding_specimenLabel, .reviewFinding_findingMeta, .reviewFinding_findingFacts dt { font-size: .75rem; }
+  .reviewFinding_specimenLabel { margin-bottom: 1.25rem; }
+  .reviewFinding_findingTitle { margin-top: 1rem; font-size: 1.5rem; }
+  .reviewFinding_findingFacts { margin-top: 1.5rem; }
+  .reviewFinding_findingFacts > div { padding-block: 1.25rem; }
+  .reviewFinding_findingFacts dd { font-size: 1rem; }
+  .reviewFinding_findingEvidence summary { padding-top: 1.25rem; font-size: .875rem; }
+}

@@ -12,70 +12,21 @@ const buyerHomepage = readFileSync(
   "utf-8",
 );
 
-test("Polish homepage uses action-security positioning and naturalized terminology", () => {
+test("Polish homepage leads with security and verification", () => {
   assert.match(homePage, /<BuyerHomepage locale="pl" \/>/);
-  assert.equal(
-    PRIMARY_OFFER.cardSituation.pl,
-    "Co Twój agent AI może naprawdę zrobić w produkcji?",
-  );
-  assert.match(
-    buyerHomepage,
-    /title: "Twój agent AI może działać w produkcji\. Czy potrafisz wykazać, do czego był upoważniony\?"/,
-  );
-  assert.match(
-    buyerHomepage,
-    /Sprawdź jedno istotne działanie agenta lub automatyzacji: kto je zatwierdza, jaka tożsamość je wykonuje, do czego ma dostęp, co je ogranicza i jaki ślad dowodowy pozostaje\./,
-  );
-  assert.match(
-    buyerHomepage,
-    /Otrzymujesz mapę upoważnień, ścieżkę wykonania, granicę uprawnień, łańcuch dowodowy i praktyczne poprawki\./,
-  );
-  assert.match(buyerHomepage, /primaryCta: "Sprawdź, czy Twój przypadek pasuje"/);
-  assert.match(
-    buyerHomepage,
-    /Do wstępnej oceny nie potrzebujemy informacji poufnych · Zasady obsługi materiałów uzgadniamy przed przyjęciem/,
-  );
-  assert.match(buyerHomepage, /eyebrow: PRIMARY_OFFER\.name\.pl/);
-  assert.match(buyerHomepage, /Upoważnienie → tożsamość/);
-  assert.match(buyerHomepage, /Kto zatwierdza i co naprawdę wykonuje działanie\?/);
-  assert.match(buyerHomepage, /Uprawnienia → narzędzia/);
-  assert.match(buyerHomepage, /Do czego ta tożsamość naprawdę ma dostęp\?/);
-  assert.match(buyerHomepage, /Wykonanie → dowody/);
-  assert.match(buyerHomepage, /Co ogranicza działanie i potwierdza wynik\?/);
-  assert.match(buyerHomepage, /Pięć pytań\. Jedno istotne działanie\./);
-  assert.match(buyerHomepage, /Zweryfikowany syntetyczny przykład — nie są to materiały klienta/);
-  assert.match(buyerHomepage, /Jaki ślad dowodowy pozostaje\?/);
-  assert.match(buyerHomepage, /granice uprawnień/);
-  assert.doesNotMatch(buyerHomepage, /granica przywilejów|granice przywilejów/);
-  assert.match(buyerHomepage, /offerTitle: PRIMARY_OFFER\.name\.pl/);
-  assert.match(buyerHomepage, /Zgłoś jedno istotne działanie/);
-  assert.match(buyerHomepage, /Uruchom i zweryfikuj demo rotacji skompromitowanego klucza API/);
-  assert.doesNotMatch(buyerHomepage, /Agent Workflow Reconstruction/);
-  assert.doesNotMatch(buyerHomepage, /Aegis/);
-  assert.doesNotMatch(buyerHomepage, /zewnętrzna weryfikacja/i);
-  assert.doesNotMatch(homePage, /Jasny zakres\. Jasny wynik\./);
-  assert.doesNotMatch(homePage, /Konkretna dostawa/);
-  assert.equal(PRIMARY_OFFER.name.pl, "Agent Action Security Review");
-  assert.equal(PRIMARY_OFFER.price.pl, "€2 500 — cena stała · bez VAT");
-  assert.equal(
-    PRIMARY_OFFER.unit.pl,
-    "Jedno istotne działanie agenta lub automatyzacji",
-  );
-  assert.equal(
-    PRIMARY_OFFER.fitCheck.pl,
-    "Najpierw wstępna ocena bez informacji poufnych",
-  );
-  assert.equal(
-    PRIMARY_OFFER.timing.pl,
-    "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych",
-  );
+  assert.match(buyerHomepage, /Znajdź luki w bezpieczeństwie/);
+  assert.match(buyerHomepage, /Sprawdź działanie AI/);
+  assert.match(buyerHomepage, /Przywróć działanie procesu/);
+  assert.match(buyerHomepage, /Bez haseł, kluczy API i danych klientów/);
+  assert.equal(PRIMARY_OFFER.price.pl, "€2 500: cena stała · bez VAT");
 });
 
 test("public catalogue uses the approved service names in Polish", () => {
-  assert.equal(BUYER_SERVICES.length, 8);
+  assert.equal(BUYER_SERVICES.length, 9);
   assert.deepEqual(
     BUYER_SERVICES.map((service) => service.name.pl),
     [
+      "Naprawa i przejęcie automatyzacji",
       "Customer Security Review Sprint",
       "Agent Action Security Review",
       "One Server Security Check",

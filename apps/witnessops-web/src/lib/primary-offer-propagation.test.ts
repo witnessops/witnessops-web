@@ -107,8 +107,8 @@ test("one canonical record defines the primary paid entry point", () => {
   assert.equal(primaries.length, 1, "Exactly one offer may be commercially primary");
 
   const primary = buyerServiceById(PRIMARY_OFFER.id);
-  assert.equal(featured[0], primary);
-  assert.equal(primaries[0], primary);
+  assert.equal(featured[0]?.id, PRIMARY_OFFER.id);
+  assert.equal(primaries[0], featured[0]);
   assert.equal(primary.name, PRIMARY_OFFER.name);
   assert.equal(primary.commercialContract, PRIMARY_OFFER.commercialContract);
   assert.equal(primary.price, PRIMARY_OFFER.price);
@@ -120,7 +120,7 @@ test("one canonical record defines the primary paid entry point", () => {
     "WitnessOps request — Agent Action Security Review",
   );
   assert.equal(primary.price.en, "€2,500 fixed · excluding VAT");
-  assert.equal(primary.price.pl, "€2 500 — cena stała · bez VAT");
+  assert.equal(primary.price.pl, "€2 500: cena stała · bez VAT");
   assert.equal(
     primary.timing.en,
     "Within 10 working days after evidence rules are agreed",
@@ -134,16 +134,16 @@ test("one canonical record defines the primary paid entry point", () => {
   assert.equal(PRIMARY_OFFER.unit.en, "One consequential agent or automation action");
   assert.equal(
     primary.cardSituation.en,
-    "What can your AI agent actually do in production?",
+    "Before an agent changes records, issues refunds or grants access, understand the controls around that action.",
   );
-  assert.match(primary.situation.en, /moves from suggesting to acting/i);
-  assert.match(primary.requestCta?.en ?? "", /non-secret fit check/i);
+  assert.match(primary.situation.en, /launch or customer handover/i);
+  assert.equal(primary.requestCta?.en, "Scope this review");
   assert.match(primary.boundary.en, /One consequential agent or automation action only/);
   assert.match(primary.boundary.en, /read, inspect, reconstruct, and report/i);
-  assert.match(primary.situation.en, /authority, identity, permissions, tools, execution path, blast radius, and evidence/i);
+  assert.match(primary.situation.en, /approvals, permissions and execution evidence/i);
 
   const [first, second] = buyerServicesByCommercialPriority();
-  assert.equal(first, primary);
+  assert.equal(first?.id, PRIMARY_OFFER.id);
   assert.equal(second?.id, "external-exposure-assessment");
   assert.equal(second?.commercialRole, "secondary");
 });
@@ -151,7 +151,7 @@ test("one canonical record defines the primary paid entry point", () => {
 test("the primary detail contract exposes every required inclusion and exclusion", () => {
   const landing = getServiceLanding(PRIMARY_OFFER.id, "en");
   for (const item of PRIMARY_OFFER.included.en) {
-    assert.ok(landing.scopeLimits?.includes(item), `Missing included item: ${item}`);
+    assert.ok(landing.deliverables.some((line) => line.startsWith(item)), `Missing included item: ${item}`);
   }
   assert.match(landing.steps.flat().join(" "), /10 working days after evidence rules are agreed/);
 
@@ -188,11 +188,11 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   const home = loadHomeContent();
   assert.equal(
     home.seo.title,
-    "Agent Action Security Review | WitnessOps",
+    "Security & Verification for AI and Automation | WitnessOps",
   );
   assert.equal(
     home.seo.og_title,
-    "What can your AI agent actually do in production?",
+    "Find security gaps in your AI and automation.",
   );
 
   const workflowPage = readFileSync(
@@ -210,23 +210,11 @@ test("primary metadata, structured data, and offer ownership stay current", () =
     resolve(__dirname, "../../../../content/witnessops/landing/home.yaml"),
     "utf8",
   );
-  assert.match(homepageSource, /What can your AI agent actually do in production\?/);
-  assert.match(homepageSource, /before a customer, pentest, or incident finds the gaps for you/);
-  assert.match(homepageSource, /Agent Action Security Review/);
-  assert.match(homepageSource, /€2,500 fixed/);
-  assert.match(homepageSource, /one consequential agent or automation action/i);
-  assert.match(homepageSource, /non-secret fit check/);
-  assert.match(homepageSource, /authority, identity, permissions, tools, execution, and evidence/i);
-  assert.match(
-    homepageSource,
-    /within 10 working days after evidence rules are agreed/,
-  );
-
-  assert.equal(pricingMetadata.title, "Agent and Security Review Pricing");
-  assert.equal(
-    pricingMetadata.description,
-    "Published prices and commercial boundaries for bounded WitnessOps reviews, led by Agent Action Security Review at €2,500 fixed · excluding VAT.",
-  );
+  assert.match(homepageSource, /Find security gaps in your AI and automation/);
+  assert.match(homepageSource, /Scope a review/);
+  assert.doesNotMatch(homepageSource, /€250|€750|Meet Karol/);
+  assert.equal(pricingMetadata.title, "Security Review and Automation Pricing");
+  assert.match(String(pricingMetadata.description), /AI action reviews, system security reviews/);
 
   const serviceJsonLd = primaryOfferServiceJsonLd();
   assert.equal(serviceJsonLd.name, PRIMARY_OFFER.name.en);
@@ -262,13 +250,13 @@ test("primary metadata, structured data, and offer ownership stay current", () =
     [PRIMARY_OFFER.id, "external-exposure-assessment"],
     "Primary and secondary offers must lead the pricing order",
   );
-  assert.match(primaryCard, /Primary paid entry point/);
+  assert.doesNotMatch(primaryCard, /Start with a broken workflow/);
   assert.match(primaryCard, /Agent Action Security Review/);
   assert.match(primaryCard, /€2,500 fixed/);
   assert.doesNotMatch(primaryCard, /External Attack Surface Review/);
   assert.doesNotMatch(primaryCard, /Agent Risk &amp; Control Review|€1,500/);
-  assert.doesNotMatch(publicExposureCard, /Primary paid entry point/);
-  assert.match(publicExposureCard, /Secondary catalogue offer/);
+  assert.doesNotMatch(publicExposureCard, /For AI agent launches/);
+  assert.match(publicExposureCard, /For public-facing systems/);
   assert.match(publicExposureCard, /External Attack Surface Review/);
   assert.match(publicExposureCard, /€1,900 · excluding VAT/);
   assert.match(publicExposureCard, /not a penetration test/i);
@@ -286,11 +274,11 @@ test("primary metadata, structured data, and offer ownership stay current", () =
     "data-buyer-service",
     "external-exposure-assessment",
   );
-  assert.match(primaryCatalogueCard, /Primary paid entry point/);
+  assert.doesNotMatch(primaryCatalogueCard, /Start with a broken workflow/);
   assert.match(primaryCatalogueCard, /Agent Action Security Review/);
   assert.match(primaryCatalogueCard, /€2,500 fixed/);
   assert.doesNotMatch(primaryCatalogueCard, /Agent Risk &amp; Control Review|€1,500/);
-  assert.match(publicExposureCatalogueCard, /Secondary catalogue offer/);
+  assert.match(catalogue, /id="system-reviews"/);
   assert.match(publicExposureCatalogueCard, /External Attack Surface Review/);
   assert.match(publicExposureCatalogueCard, /€1,900 · excluding VAT/);
 });

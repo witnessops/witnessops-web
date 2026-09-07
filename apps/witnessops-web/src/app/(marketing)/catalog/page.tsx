@@ -4,9 +4,9 @@ import { BuyerCatalogue } from "@/components/marketing/buyer-catalogue";
 import { languageAlternates } from "@/lib/public-seo";
 
 export const metadata: Metadata = {
-  title: "Security and Operational Review Services",
+  title: "Security Reviews, Verification and Workflow Repair",
   description:
-    "Choose a bounded WitnessOps review by situation, result, price and timing. Non-secret fit check first; no compliance certification claims.",
+    "Review one AI action, examine one system or restore a workflow. Compare the scope, deliverables and prices of WitnessOps services.",
   alternates: languageAlternates("/catalog", {
     en: "/catalog",
     pl: "/pl/catalog",

@@ -50,7 +50,7 @@ const secondaryGroups = [
       [
         "Rozpocznij przegląd",
         "/pl/review/request",
-        "Krótka, niepoufna ocena dopasowania — bez plików i sekretów.",
+        "Krótka, niepoufna ocena dopasowania, bez plików i sekretów.",
       ],
     ],
   },
@@ -67,12 +67,12 @@ const secondaryGroups = [
   },
   {
     title: "Przykłady (EN)",
-    description: "Oznaczone przykłady przeglądów — nie dane klientów.",
+    description: "Oznaczone przykłady przeglądów, nie dane klientów.",
     links: [
       [
         "Przykłady przeglądów",
         "/review/sample-cases",
-        "Sytuacje, materiały i granice — treść przykładowa po angielsku.",
+        "Sytuacje, materiały i granice: treść przykładowa po angielsku.",
       ],
       [
         "Pakiet zmiany agenta AI",
@@ -82,7 +82,7 @@ const secondaryGroups = [
       [
         "Kontrola elementów SBOM (CISA 2026)",
         "/review/sample-cases/sbom-cisa-2026-minimum-elements",
-        "Lista kontrolna na syntetycznym SBOM — nie certyfikat.",
+        "Lista kontrolna na syntetycznym SBOM, nie certyfikat.",
       ],
     ],
   },
@@ -103,14 +103,14 @@ const secondaryGroups = [
       [
         "Dokumentacja (EN hubs)",
         "/docs",
-        "Model i granice — pełna treść techniczna po angielsku.",
+        "Model i granice: pełna treść techniczna po angielsku.",
       ],
     ],
   },
 ] as const;
 
 const exampleBoundary =
-  "Przykłady są oznaczone jako demonstracje lub ilustracje. Nie są materiałem klienta ani certyfikacją zgodności. Ważny wynik publicznej weryfikacji potwierdza kontrole wskazane w zapisie — nie to, że każde działanie leżące u podstaw było poprawne.";
+  "Przykłady są oznaczone jako demonstracje lub ilustracje. Nie są materiałem klienta ani certyfikacją zgodności. Ważny wynik publicznej weryfikacji potwierdza kontrole wskazane w zapisie, nie to, że każde działanie leżące u podstaw było poprawne.";
 
 export const metadata: Metadata = {
   title: "Biblioteka WitnessOps",

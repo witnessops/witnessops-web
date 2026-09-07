@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { trackAskEvent } from "@/lib/docs-assistant/ask-analytics";
 import {
   askWitnessOpsAnswerText,
   askWitnessOpsModeLabel,
@@ -15,6 +15,12 @@ import { AskWitnessOpsRouteCta } from "./ask-witnessops-route-cta";
 import { AskWitnessOpsSourceLinks } from "./ask-witnessops-source-links";
 import { DocsAssistantLoadingStatus } from "./docs-assistant-loading-status";
 
+import { AskAiDisclosure } from "./ask-ai-disclosure";
+import { DocsAssistantContactHandoff } from "./docs-assistant-contact-handoff";
+import { askConversationBrief, askConversationHistory, askFollowUpQuestions, askGuidedQuestions,
+  clearAskConversation, getAskConversation, getEmptyAskConversation,
+  rememberAskTurn, subscribeAskConversation } from "./ask-conversation";
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -22,16 +28,22 @@ interface Message {
   error?: boolean;
 }
 
-const SUGGESTED_QUESTIONS = [
-  "An AI agent rotates compromised production keys. How can we prove authorization and revocation?",
-  `What is included in ${PRIMARY_OFFER.name.en}?`,
-  "How much does one agent action security review cost?",
-  "How should one consequential agent action be bounded?",
-  "Can I send logs or screenshots?",
-];
-
 export function DocsAssistantPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const completedTurns = useSyncExternalStore(subscribeAskConversation, getAskConversation, getEmptyAskConversation);
+  const [currentResponse, setCurrentResponse] = useState<Message | null>(null);
+  const messages = useMemo(() => {
+    const entries: Message[] = completedTurns.flatMap((turn) => [
+      { role: "user", content: turn.question },
+      { role: "assistant", content: askWitnessOpsAnswerText(turn.answer), answer: turn.answer },
+    ]);
+    if (currentResponse) entries.push(currentResponse);
+    return entries;
+  }, [completedTurns, currentResponse]);
+  const [contactMode, setContactMode] = useState(false);
+  const [contactAnswer, setContactAnswer] = useState<AskWitnessOpsUiAnswer | undefined>();
+  const [feedback, setFeedback] = useState<"helpful" | "not_helpful" | null>(null);
+  const contactLauncherRef = useRef<HTMLButtonElement>(null);
+  const requestGenerationRef = useRef(0);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const conversationRef = useRef<HTMLDivElement>(null);
@@ -55,38 +67,46 @@ export function DocsAssistantPage() {
     });
   }, [messages, loading]);
 
+  useEffect(() => {
+    trackAskEvent("opened", { surface: "page" });
+    return () => { requestGenerationRef.current += 1; };
+  }, []);
+
   async function ask(q: string) {
     const trimmed = q.trim();
     if (!trimmed || loading) return;
-
-    setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
-    setQuestion("");
+    const generation = ++requestGenerationRef.current;
+    setQuestion(trimmed);
+    setCurrentResponse(null);
+    setFeedback(null);
     setLoading(true);
 
     try {
-      const data = await fetchAskWitnessOps(trimmed);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: askWitnessOpsAnswerText(data),
-          answer: data,
-        },
-      ]);
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content:
-            err instanceof Error ? err.message : "Something went wrong.",
-          error: true,
-        },
-      ]);
+      const data = await fetchAskWitnessOps(trimmed, { history: askConversationHistory(completedTurns) });
+      if (generation !== requestGenerationRef.current) return;
+      rememberAskTurn(trimmed, data);
+      if (data.status !== "success" || data.commercial_fit.result === "blocked" || data.fallback_reason) {
+        setCurrentResponse({ role: "assistant", content: askWitnessOpsAnswerText(data), answer: data });
+      }
+      setQuestion(data.fallback_reason ? trimmed : "");
+      trackAskEvent("answered", { surface: "page", service_id: data.recommendation?.service_id,
+        outcome: data.fallback_reason ? "unavailable" : data.schema === "witnessops.ask.generated-answer.v1" ? "generated" : "guide" });
+    } catch {
+      if (generation !== requestGenerationRef.current) return;
+      setCurrentResponse({ role: "assistant", content: "The AI could not answer just now. Your question is still here; retry or ask a person.", error: true });
+      trackAskEvent("answered", { surface: "page", outcome: "unavailable" });
     } finally {
-      setLoading(false);
-      inputRef.current?.focus();
+      if (generation === requestGenerationRef.current) setLoading(false);
     }
+  }
+
+  function startOver() {
+    if (loading) return;
+    clearAskConversation();
+    setCurrentResponse(null);
+    setQuestion("");
+    setFeedback(null);
+    inputRef.current?.focus();
   }
 
   const isEmpty = messages.length === 0;
@@ -103,7 +123,7 @@ export function DocsAssistantPage() {
           className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-accent"
           style={{ fontFamily: "var(--font-mono)" }}
         >
-          Bounded proof guide
+          Questions about scope, evidence or pricing?
         </div>
         <h1
           className="mt-1 text-2xl font-semibold uppercase tracking-tight text-text-primary"
@@ -112,16 +132,22 @@ export function DocsAssistantPage() {
           ASK WITNESSOPS
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-text-muted">
-          Describe one consequential agent or automation action in non-secret
-          terms. Ask WitnessOps will show the public guidance, commercial fit,
-          and paid next step it can support.
+          Ask about security reviews, verification or workflow repair. Describe your situation
+          in non-secret terms and find the right next step.
         </p>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-muted md:text-xs">
-          Do not paste secrets, logs, credentials, private keys, MFA codes,
-          screenshots, customer evidence, or raw exports.
+          Do not paste secrets or private evidence.
         </p>
       </header>
 
+      {contactMode ? (
+        <DocsAssistantContactHandoff expanded surface="page" commercialFit={contactAnswer?.commercial_fit}
+          serviceId={contactAnswer?.recommendation?.service_id} proposedBrief={askConversationBrief(completedTurns)}
+          launcherRef={contactLauncherRef} onExpandedChange={(expanded) => {
+            setContactMode(expanded);
+            if (!expanded) window.requestAnimationFrame(() => contactLauncherRef.current?.focus());
+          }} />
+      ) : <>
       <div
         ref={conversationRef}
         className="overflow-visible md:min-h-0 md:flex-1 md:overflow-y-auto"
@@ -129,16 +155,16 @@ export function DocsAssistantPage() {
         {isEmpty ? (
           <div className="flex flex-col items-center justify-center gap-4 px-4 py-6 text-center md:h-full md:gap-6 md:py-0">
             <p className="max-w-sm text-sm leading-relaxed text-text-muted">
-              Pick a bounded workflow or offer question to check fit.
+              Pick a question below or write your own.
             </p>
             <div className="flex flex-wrap justify-center gap-2">
-              {SUGGESTED_QUESTIONS.map((q) => (
+              {askGuidedQuestions().map((item) => (
                 <button
-                  key={q}
-                  onClick={() => ask(q)}
+                  key={item.label}
+                  onClick={() => ask(item.question)}
                   className="rounded border border-surface-border bg-surface-bg px-3 py-2 text-sm text-text-muted transition-colors hover:border-brand-accent hover:text-text-primary"
                 >
-                  {q}
+                  {item.label}
                 </button>
               ))}
             </div>
@@ -171,11 +197,17 @@ export function DocsAssistantPage() {
                         >
                           {askWitnessOpsModeLabel(msg.answer)}
                         </p>
-                        <AskWitnessOpsCommercialFitCard answer={msg.answer} />
-                        {!msg.answer.commercial_fit.offer && (
+                        {i === messages.length - 1 && <AskWitnessOpsCommercialFitCard answer={msg.answer}
+                          onOfferSelected={() => trackAskEvent("offer_selected", { surface: "page", service_id: msg.answer?.recommendation?.service_id })}
+                          onRequestScope={() => {
+                          setContactAnswer(msg.answer); setContactMode(true);
+                        }} />}
+                        {!(msg.answer.schema === "witnessops.ask.generated-answer.v1"
+                          ? msg.answer.recommendation
+                          : msg.answer.commercial_fit.offer) && (
                           <AskWitnessOpsRouteCta answer={msg.answer} />
                         )}
-                        <AskWitnessOpsSourceLinks answer={msg.answer} />
+                        <AskWitnessOpsSourceLinks answer={msg.answer} compact />
                         <AskWitnessOpsReceiptMeta answer={msg.answer} />
                       </>
                     )}
@@ -197,6 +229,29 @@ export function DocsAssistantPage() {
         {latestAssistantAnnouncement}
       </div>
 
+      {!loading && latestMessage?.answer?.status === "success" && !latestMessage.answer.fallback_reason && (
+        <div className="flex flex-wrap items-center gap-2 py-3" aria-label="Suggested follow-ups">
+          {askFollowUpQuestions(latestMessage.answer).map((item) => (
+            <button type="button" key={item.label} onClick={() => ask(item.question)} className="min-h-11 rounded border border-surface-border px-3 text-sm text-text-muted">{item.label}</button>
+          ))}
+        </div>
+      )}
+      {!loading && latestMessage?.answer && !latestMessage.answer.fallback_reason && (
+        <div className="flex items-center gap-3 text-xs text-text-muted" aria-label="Answer feedback">
+          <span>{feedback ? "Thanks for the feedback" : "Was this helpful?"}</span>
+          {!feedback && (["helpful", "not_helpful"] as const).map((value) => (
+            <button type="button" key={value} className="min-h-11 underline underline-offset-4" onClick={() => {
+              setFeedback(value); trackAskEvent("feedback", { surface: "page", feedback: value, service_id: latestMessage.answer?.recommendation?.service_id });
+            }}>{value === "helpful" ? "Yes" : "Not quite"}</button>
+          ))}
+        </div>
+      )}
+      {(latestMessage?.error || latestMessage?.answer?.fallback_reason) && !loading && (
+        <div className="py-2 text-sm text-text-muted">
+          {latestMessage.answer?.fallback_reason && <p>The AI is temporarily unavailable. This is public guide information.</p>}
+          <button type="button" onClick={() => ask(question)} disabled={!question.trim()} className="min-h-11 underline underline-offset-4">Retry question</button>
+        </div>
+      )}
       <div className="border-t border-surface-border pt-4">
         <form
           onSubmit={(e) => {
@@ -211,9 +266,11 @@ export function DocsAssistantPage() {
             name="question"
             aria-label="Ask WitnessOps question"
             maxLength={2_000}
+            enterKeyHint="send"
+            disabled={loading}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Example: An agent rotates a compromised key."
+            placeholder={isEmpty ? "Example: Leads stopped reaching our CRM." : "Ask a follow-up…"}
             className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
           />
           <button
@@ -221,15 +278,18 @@ export function DocsAssistantPage() {
             disabled={loading || !question.trim()}
             className="shrink-0 rounded border border-surface-border bg-surface-bg px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent disabled:opacity-40"
           >
-            {loading ? "…" : "Check fit"}
+            {loading ? "…" : "Ask AI"}
           </button>
         </form>
-        <p className="mt-2 text-sm leading-relaxed text-text-muted md:text-xs">
-          AI uses public WitnessOps material. Eligible questions may be sent to
-          OpenAI with <code>store: false</code>; provider retention may still
-          apply. Do not include confidential or personal material.
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-text-muted">
+          <button ref={contactLauncherRef} type="button" className="min-h-11 text-brand-accent underline underline-offset-4" onClick={() => {
+            setContactAnswer(latestMessage?.answer); setContactMode(true);
+          }}>Request a follow-up</button>
+          {!isEmpty && <button type="button" onClick={startOver} disabled={loading} className="min-h-11 underline underline-offset-4">Start over</button>}
+        </div>
+        <AskAiDisclosure model={latestMessage?.answer?.model} />
       </div>
+      </>}
     </div>
   );
 }

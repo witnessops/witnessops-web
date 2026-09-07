@@ -125,16 +125,14 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
   assert.equal(results[0]?.ok, true);
 });
 
-test("homepage contracts lead with security-native action-review language", () => {
+test("homepage contracts preserve security positioning and fictional-evidence labels", () => {
   const english = routeContract("/");
-  assert.ok(english.requiredMarkers.includes("Agent Action Security Review"));
-  assert.ok(english.requiredMarkers.includes("Who can authorize it?"));
-  assert.ok(english.requiredMarkers.includes("What identity performs it?"));
-
+  assert.ok(english.requiredMarkers.includes("Find security gaps in your AI and automation."));
+  assert.ok(english.requiredMarkers.includes("Restore a workflow"));
+  assert.ok(english.requiredMarkers.includes("Fictional example · No system tested"));
   const polish = routeContract("/pl");
-  assert.ok(polish.requiredMarkers.includes("Agent Action Security Review"));
-  assert.ok(polish.requiredMarkers.includes("Kto może je zatwierdzić?"));
-  assert.ok(polish.requiredMarkers.includes("Jaka tożsamość je wykonuje?"));
+  assert.ok(polish.requiredMarkers.includes("Sprawdź działanie AI"));
+  assert.ok(polish.requiredMarkers.includes("Fikcyjny przykład · Nie testowano systemu"));
 });
 
 test("English Skill Library smoke follows the exact-byte library contract", () => {
@@ -152,11 +150,10 @@ test("catalogue smoke preserves the primary and secondary offer hierarchy", () =
   for (const path of ["/catalog", "/pricing"] as const) {
     const route = routeContract(path);
     for (const marker of [
-      "Primary paid entry point",
+      "Scope a review",
       "Agent Action Security Review",
       "€2,500 fixed · excluding VAT",
       "Within 10 working days after evidence rules are agreed",
-      "Secondary catalogue offer",
       "External Attack Surface Review",
       "€1,900 · excluding VAT",
     ]) {
@@ -201,7 +198,7 @@ test("primary offer smoke covers selected English and Polish intake", () => {
     "/review/request?offerId=bounded-workflow-review",
   );
   assert.ok(
-    english.requiredMarkers.includes("Start your Agent Action Security Review"),
+    english.requiredMarkers.includes("Tell us what you want to check"),
   );
   assert.ok(english.requiredMarkers.includes("€2,500 fixed · excluding VAT"));
   assert.ok(
@@ -229,9 +226,9 @@ test("primary offer smoke covers selected English and Polish intake", () => {
     "/pl/review/request?offerId=bounded-workflow-review",
   );
   assert.ok(
-    polish.requiredMarkers.includes("Zgłoś: Agent Action Security Review"),
+    polish.requiredMarkers.includes("Opisz, co chcesz sprawdzić"),
   );
-  assert.ok(polish.requiredMarkers.includes("€2 500 — cena stała · bez VAT"));
+  assert.ok(polish.requiredMarkers.includes("€2 500: cena stała · bez VAT"));
   assert.ok(
     polish.requiredMarkers.includes(
       "Jedno istotne działanie agenta lub automatyzacji",

@@ -1,85 +1,61 @@
 import Link from "next/link";
 
-import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import {
   buyerRequestHref,
   buyerServiceRequestHref,
-  buyerServicesByCommercialPriority,
+  buyerServiceById,
+  buyerServiceCta,
+  type BuyerService,
   type BuyerLocale,
 } from "@/lib/buyer-services";
 
 const copy = {
   en: {
-    eyebrow: "WitnessOps reviews",
-    title: "Start with the situation you need to resolve.",
+    eyebrow: "WitnessOps services",
+    title: "What do you need to check?",
     intro:
-      "Choose one bounded problem. We agree the authority, inputs, scope, result, price, timing and evidence handling before review work begins. Start with a non-secret fit check. These reviews do not grant compliance certification.",
+      "Review an AI action, examine a system or restore a workflow. See what each engagement includes and costs.",
     price: "Price",
     timing: "Timing",
-    boundary: "Boundary",
-    primaryCta: "Start a review",
-    secondaryCta: "Learn more",
-    commercialRole: {
-      primary: "Primary paid entry point",
-      secondary: "Secondary catalogue offer",
-    },
+    boundary: "Scope and exclusions",
+    primaryCta: "Scope a review",
+    secondaryCta: "See scope and deliverables",
     principlesTitle: "Shared service principles",
     principles: [
       [
-        "One bounded scope",
-        "The engagement names what is included, what is excluded and where authority stops.",
+        "Know what is included",
+        "Agree the scope, exclusions, price and access before work starts.",
       ],
       [
         "No secrets first",
         "The fit check uses plain-language, sanitised information only.",
       ],
       [
-        "A checkable result",
-        "The delivery names the evidence references, receipt or verifier where one exists, and the limitations that still apply.",
+        "Findings you can inspect",
+        "See the finding, its supporting evidence and what remains uncertain.",
       ],
     ],
-    methodsTitle: "Methods under the package — not infinite product cards",
-    methodsIntro:
-      "WitnessOps maintains a large operator toolkit: collectors, validators, feed cross-checks, dependency lookups, receipt packaging and more. Those scripts are methods. The catalog only lists buyer situations with a handover package — not one card per capability.",
-    methods: [
-      [
-        "Choose by situation",
-        "Pick the bounded problem you need to resolve. Scope, authority, price and exclusions are agreed before substantive work.",
-      ],
-      [
-        "Tools stay inside the package",
-        "Whatever checks run for the engagement stay named in the deliverable with limits. A script is never sold as “you are safe.”",
-      ],
-      [
-        "Inspect labelled examples",
-        "Samples show how methods land in a package. They are not live customer evidence or a product catalogue of every tool.",
-      ],
-    ],
-    methodsCta: "Inspect example reviews",
+    methodsCta: "See example reviews",
     methodsHref: "/review/sample-cases",
-    unsureTitle: "Not sure which review fits?",
+    unsureTitle: "Not sure which service fits?",
     unsureBody:
-      "Describe the situation without files, secrets, credentials, logs, screenshots or customer evidence. The first step only checks fit.",
+      "Start with a short description. We’ll confirm fit, scope and price before work begins. No credentials or customer records needed.",
   },
   pl: {
-    eyebrow: "Przeglądy WitnessOps",
-    title: "Zacznij od sytuacji, którą trzeba rozwiązać.",
+    eyebrow: "Usługi WitnessOps",
+    title: "Co chcesz sprawdzić?",
     intro:
-      "Wybierz jeden ograniczony problem. Przed rozpoczęciem pracy uzgadniamy upoważnienie, materiały wejściowe, zakres, wynik, cenę, termin i sposób postępowania z materiałami. Te przeglądy nie przyznają certyfikacji zgodności.",
+      "Sprawdź działanie AI, przyjrzyj się systemowi lub przywróć proces. Poznaj zakres i cenę każdej usługi.",
     price: "Cena",
     timing: "Termin",
-    boundary: "Ograniczenie",
-    primaryCta: "Rozpocznij przegląd",
-    secondaryCta: "Więcej informacji",
-    commercialRole: {
-      primary: "Główny płatny punkt wejścia",
-      secondary: "Dodatkowa oferta katalogowa",
-    },
+    boundary: "Zakres i wyłączenia",
+    primaryCta: "Omów zakres przeglądu",
+    secondaryCta: "Zobacz zakres i wyniki",
     principlesTitle: "Wspólne zasady usług",
     principles: [
       [
-        "Jeden ograniczony zakres",
-        "Ustalenia wskazują, co jest objęte pracą, czego nie obejmują i gdzie kończy się upoważnienie.",
+        "Wiesz, co obejmuje usługa",
+        "Zakres, wyłączenia, cenę i dostęp uzgadniamy przed rozpoczęciem pracy.",
       ],
       [
         "Najpierw bez informacji poufnych",
@@ -87,57 +63,51 @@ const copy = {
       ],
       [
         "Wynik, który można sprawdzić",
-        "Dostawa nazywa odwołania do materiałów, receipt lub weryfikator, jeśli istnieją, oraz ograniczenia, które nadal obowiązują.",
-      ],
-    ],
-    methodsTitle: "Metody w pakiecie — nie nieskończone karty produktu",
-    methodsIntro:
-      "WitnessOps utrzymuje duży zestaw narzędzi operatorskich: kolektory, walidatory, cross-checki, zależności, pakowanie receipt i inne. Skrypty to metody. Katalog wymienia tylko sytuacje kupującego z pakietem do przekazania — nie jedną kartę na każdą zdolność.",
-    methods: [
-      [
-        "Wybór według sytuacji",
-        "Wybierz ograniczony problem do rozwiązania. Zakres, upoważnienie, cenę i wyłączenia uzgadniamy przed właściwą pracą.",
-      ],
-      [
-        "Narzędzia zostają w pakiecie",
-        "Kontrole wykonane w zakresie są nazwane w dostawie z limitami. Skrypt nigdy nie jest sprzedawany jako „jesteście bezpieczni”.",
-      ],
-      [
-        "Oznaczone przykłady",
-        "Przykłady pokazują, jak metody lądują w pakiecie. Nie są żywymi materiałami klienta ani katalogiem każdego narzędzia.",
+        "Poznaj ustalenia, materiały, które je wspierają, i kwestie pozostające niepewne.",
       ],
     ],
     methodsCta: "Zobacz przykładowe przeglądy",
     methodsHref: "/review/sample-cases",
-    unsureTitle: "Nie wiesz, który przegląd wybrać?",
+    unsureTitle: "Nie wiesz, którą usługę wybrać?",
     unsureBody:
-      "Opisz sytuację bez plików, sekretów, danych logowania, logów, zrzutów ekranu ani materiałów klienta. Pierwszy krok służy wyłącznie ocenie dopasowania.",
+      "Zacznij od krótkiego opisu. Zakres i cenę uzgodnimy przed pracą. Bez danych logowania i danych klientów.",
   },
 } as const;
+
+const serviceGroups: { id: string; title: [string, string]; description: [string, string]; services: BuyerService["id"][] }[] = [
+  { id: "ai-reviews", title: ["Review an AI action", "Sprawdź działanie AI"], description: ["Permissions, approvals and evidence behind one important action.", "Uprawnienia, zatwierdzanie i dowody jednego ważnego działania."], services: ["bounded-workflow-review"] },
+  { id: "system-reviews", title: ["Review a system", "Sprawdź system"], description: ["A focused review of one Linux host or one public-facing system.", "Przegląd jednego serwera Linux lub systemu dostępnego z internetu."], services: ["one-server-security-check", "external-exposure-assessment"] },
+  { id: "workflow-recovery", title: ["Restore a workflow", "Przywróć działanie procesu"], description: ["Start with diagnosis. Agree the repair once the failing path is understood.", "Zacznij od diagnozy. Uzgodnij naprawę po poznaniu zawodnej ścieżki."], services: ["automation-repair-handover"] },
+  { id: "specialist-reviews", title: ["Specialist reviews", "Przeglądy specjalistyczne"], description: ["A customer questionnaire, launch decision, custody controls, incident plan or professional record.", "Kwestionariusz klienta, decyzja o wdrożeniu, kontrola nad aktywami, plan na incydent lub profil zawodowy."], services: ["customer-security-review-sprint", "launch-readiness-check", "key-access-custody-review", "incident-readiness-review", "professional-public-footprint-audit"] },
+];
 
 export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
   const text = copy[locale];
   const requestHref = buyerRequestHref(locale);
-  const services = buyerServicesByCommercialPriority();
+  const languageIndex = locale === "pl" ? 1 : 0;
 
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page">
-      <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
-        <header className="max-w-4xl border-b border-surface-border pb-12">
+      <div className="mx-auto max-w-6xl px-6 py-8 lg:py-12">
+        <header className="max-w-4xl pb-7 md:pb-10">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
             {text.eyebrow}
           </p>
-          <h1 className="mt-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
+          <h1 className="mt-3 text-[2.1rem] font-semibold leading-[1.08] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
             {text.title}
           </h1>
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">{text.intro}</p>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-text-secondary">{text.intro}</p>
         </header>
 
-        <section
-          aria-label={text.eyebrow}
-          className="grid gap-px border border-surface-border bg-surface-border md:grid-cols-2"
-        >
-          {services.map((service) => {
+        <nav aria-label={locale === "pl" ? "Znajdź przegląd" : "Find your review"} className="mb-8 flex flex-wrap gap-2">
+          {serviceGroups.map(group => <a key={group.id} href={`#${group.id}`} className="inline-flex min-h-11 items-center rounded border border-surface-border px-3 py-2 text-sm text-text-secondary transition-colors hover:border-brand-accent hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">{group.title[languageIndex]}</a>)}
+        </nav>
+
+        {serviceGroups.map(group => <section key={group.id} id={group.id} aria-labelledby={`${group.id}-heading`} className="scroll-mt-28 mb-10">
+          <h2 id={`${group.id}-heading`} className="text-2xl font-semibold tracking-tight text-text-primary">{group.title[languageIndex]}</h2>
+          <p className="mt-2 mb-5 max-w-2xl text-sm leading-6 text-text-secondary">{group.description[languageIndex]}</p>
+          <div className={`grid gap-px border border-surface-border bg-surface-border ${group.services.length > 1 ? "md:grid-cols-2" : "max-w-3xl"}`}>
+          {group.services.map(id => buyerServiceById(id)).map((service) => {
             const detailHref = service.detailHref[locale];
             const serviceRequestHref = buyerServiceRequestHref(locale, service);
             const externalExposureSample =
@@ -147,16 +117,12 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
             return (
               <article
                 key={service.id}
+                id={service.id}
                 data-buyer-service={service.id}
                 data-price-contract={service.commercialContract.price}
                 data-timing-contract={service.commercialContract.timing}
-                className="flex h-full flex-col bg-surface-card p-7 md:p-9"
+                className="scroll-mt-28 flex h-full min-w-0 flex-col bg-surface-card p-5 md:p-7 md:last:odd:col-span-2"
               >
-                {service.commercialRole ? (
-                  <p className="mb-3 inline-flex self-start text-xs font-semibold uppercase tracking-[0.16em] text-brand-accent">
-                    {text.commercialRole[service.commercialRole]}
-                  </p>
-                ) : null}
                 {service.availability ? (
                   <p
                     data-service-availability={service.availability.status}
@@ -165,37 +131,33 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
                     {service.availability.label[locale]}
                   </p>
                 ) : null}
-                <p className="text-sm leading-6 text-text-muted">
+                <h3 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
+                  {service.name[locale]}
+                </h3>
+                <p className="mt-3 text-lg font-semibold leading-6 text-text-primary">
+                  <span className="sr-only">{text.price}: </span>{service.price[locale]}
+                </p>
+                <p className="mt-4 text-sm leading-6 text-text-muted">
                   {service.cardSituation[locale]}
                 </p>
-                <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] text-text-primary">
-                  {service.name[locale]}
-                </h2>
-                <p className="mt-4 text-base leading-7 text-text-secondary">
+                <p className="mt-3 text-sm leading-6 text-text-secondary">
                   {service.result[locale]}
                 </p>
-                <dl className="mt-7 grid gap-4 border-t border-surface-border pt-5 text-sm sm:grid-cols-2">
-                  <div>
-                    <dt className="font-semibold text-text-primary">{text.price}</dt>
-                    <dd className="mt-1 leading-6 text-text-muted">{service.price[locale]}</dd>
-                  </div>
-                  <div>
-                    <dt className="font-semibold text-text-primary">{text.timing}</dt>
-                    <dd className="mt-1 leading-6 text-text-muted">{service.timing[locale]}</dd>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <dt className="font-semibold text-text-primary">{text.boundary}</dt>
-                    <dd className="mt-1 leading-6 text-text-muted">
-                      {service.boundary[locale]}
-                    </dd>
-                  </div>
-                </dl>
-                <div className="mt-auto flex flex-wrap gap-3 pt-7">
+                <p className="mt-2 text-sm leading-6 text-text-secondary"><span className="sr-only">{text.timing}: </span>{service.timing[locale]}</p>
+                <details className="mt-3 border-t border-surface-border">
+                  <summary className="cursor-pointer py-3 text-sm text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+                    {text.boundary}
+                  </summary>
+                  <dl className="space-y-3 pb-3 text-sm leading-6 text-text-muted">
+                    <div><dt className="font-semibold">{text.boundary}</dt><dd>{service.boundary[locale]}</dd></div>
+                  </dl>
+                </details>
+                <div className="mt-auto flex flex-wrap gap-3 pt-3">
                   <Link
                     href={serviceRequestHref}
                     className="inline-flex min-h-11 items-center border border-brand-accent bg-brand-accent px-5 text-sm font-semibold text-text-inverse transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
                   >
-                    {service.requestCta?.[locale] ?? text.primaryCta}
+                    {buyerServiceCta(locale, service)}
                   </Link>
                   {detailHref ? (
                     <Link
@@ -217,9 +179,11 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
               </article>
             );
           })}
-        </section>
+          </div>
+        </section>)}
 
-        <section className="mt-12 border-b border-surface-border py-12" aria-labelledby="shared-principles">
+        <p className="mt-5 text-sm leading-6 text-text-muted">{locale === "pl" ? "Przeglądy nie przyznają certyfikacji zgodności." : "These reviews do not grant compliance certification."}</p>
+        <section className="mt-6 border-b border-surface-border py-7 md:py-10" aria-labelledby="shared-principles">
           <h2
             id="shared-principles"
             className="text-3xl font-semibold tracking-[-0.02em] text-text-primary"
@@ -236,33 +200,17 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
           </div>
         </section>
 
-        <section className="border-b border-surface-border py-12" aria-labelledby="methods-not-cards">
-          <h2
-            id="methods-not-cards"
-            className="text-3xl font-semibold tracking-[-0.02em] text-text-primary"
-          >
-            {text.methodsTitle}
-          </h2>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
-            {text.methodsIntro}
+        <details className="border-b border-surface-border py-2">
+          <summary className="cursor-pointer py-4 text-base font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+            {locale === "pl" ? "Jak sprawdzić nasze przykłady" : "How to inspect our examples"}
+          </summary>
+          <p className="max-w-2xl pb-4 text-sm leading-6 text-text-secondary">
+            {locale === "pl"
+              ? "Przykłady pokazują format wyniku i jego ograniczenia. Są syntetyczne i nie stanowią materiałów klienta."
+              : "Samples show the deliverable and its limits. They are synthetic demonstrations, not live customer evidence."}
           </p>
-          <div className="mt-8 grid gap-8 md:grid-cols-3">
-            {text.methods.map(([title, body]) => (
-              <article key={title} className="border-t border-surface-border pt-4">
-                <h3 className="font-semibold text-text-primary">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-text-secondary">{body}</p>
-              </article>
-            ))}
-          </div>
-          <div className="mt-8">
-            <Link
-              href={text.methodsHref}
-              className="inline-flex min-h-11 items-center border border-surface-border px-5 text-sm font-semibold text-text-primary hover:bg-surface-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
-            >
-              {text.methodsCta}
-            </Link>
-          </div>
-        </section>
+          <Link href={text.methodsHref} className="mb-4 inline-flex min-h-11 items-center text-sm text-brand-accent underline underline-offset-4">{text.methodsCta}</Link>
+        </details>
 
         <section className="mt-12 flex flex-col gap-5 border border-surface-border bg-surface-inset p-7 text-text-primary md:flex-row md:items-center md:justify-between md:p-10">
           <div>
@@ -277,9 +225,7 @@ export function BuyerCatalogue({ locale }: { locale: BuyerLocale }) {
           </Link>
         </section>
 
-        <div className="mt-10">
-          <PublicContactRoute locale={locale} />
-        </div>
+
       </div>
     </main>
   );

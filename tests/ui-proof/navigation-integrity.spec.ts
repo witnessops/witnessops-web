@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Route } from "@playwright/test";
 
 const SCREENSHOT_DIR = path.join(
   process.cwd(),
@@ -17,6 +17,7 @@ const FOCUSABLE_SELECTOR = [
   "input:not([disabled]):visible",
   "textarea:not([disabled]):visible",
   "select:not([disabled]):visible",
+  "summary:visible",
   '[tabindex]:not([tabindex="-1"]):visible',
 ].join(", ");
 
@@ -48,8 +49,27 @@ const askWorkflowFitResponse = {
     },
     matching_specimen_id: "ai-agent-action-proof-run",
   },
-  presented_sources: [],
+  presented_sources: [{
+    source_id: "service.bounded-workflow-review",
+    public_label: "Agent Action Security Review",
+    canonical_href: "https://witnessops.com/catalog/workflows",
+    href_class: "same_site",
+  }],
 } as const;
+
+async function fulfillAskTelemetry(route: Route): Promise<boolean> {
+  if (route.request().headers()["x-witnessops-event"] !== "1") return false;
+  const payload = route.request().postDataJSON();
+  expect(route.request().method()).toBe("POST");
+  expect(Object.keys(payload)).toEqual(["telemetry"]);
+  expect(Object.keys(payload.telemetry).every((key) =>
+    ["event", "surface", "service_id", "outcome", "feedback"].includes(key),
+  )).toBe(true);
+  expect(["opened", "answered", "offer_selected", "contact_started", "mailbox_confirmed", "feedback"])
+    .toContain(payload.telemetry.event);
+  await route.fulfill({ status: 204 });
+  return true;
+}
 
 async function saveEvidence(page: Page, filename: string) {
   await mkdir(SCREENSHOT_DIR, { recursive: true });
@@ -91,7 +111,7 @@ async function expectBelowStickyHeader(page: Page, selector: string) {
   );
 }
 
-test("a real homepage fragment link lands below the sticky header", async ({
+test("the shared sample-review link lands below the sticky header", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -102,20 +122,20 @@ test("a real homepage fragment link lands below the sticky header", async ({
 
   await page.goto("/", { waitUntil: "networkidle" });
   const fragmentLink = page.locator(
-    'nav.public-shell a[href="/#evidence-questions"]:visible',
+    'main a[data-ui-proof-id="homepage-sample-review-cta"]',
   );
   await expect(fragmentLink).toHaveCount(1);
   await fragmentLink.click();
 
-  await expect(page).toHaveURL(/\/#evidence-questions$/);
-  await expect(page.locator("#evidence-questions")).toBeVisible();
+  await expect(page).toHaveURL(/\/catalog\/workflows#sample-review$/);
+  await expect(page.locator("#sample-review")).toBeVisible();
   await page.waitForFunction(() => {
-    const target = document.querySelector("#evidence-questions");
+    const target = document.querySelector("#sample-review");
     const nav = document.querySelector("nav.public-shell");
     if (!target || !nav) return false;
     return target.getBoundingClientRect().top >= nav.getBoundingClientRect().bottom + 8;
   });
-  await expectBelowStickyHeader(page, "#evidence-questions");
+  await expectBelowStickyHeader(page, "#sample-review");
   await saveEvidence(page, "01-desktop-fragment-landing.png");
 
   await context.close();
@@ -132,15 +152,15 @@ test("route navigation and Back restore scroll without a second-frame snap", asy
 
   await page.goto("/", { waitUntil: "networkidle" });
   const receiptLink = page
-    .locator("#agent-action-receipt")
-    .getByRole("link", { name: /Replay and verify the signed rotation/ });
+    .locator("main")
+    .getByRole("link", { name: "Explore the verification demo", exact: true });
   await receiptLink.scrollIntoViewIfNeeded();
   const expectedScrollY = await page.evaluate(() => window.scrollY);
   expect(expectedScrollY).toBeGreaterThan(0);
 
   await receiptLink.click();
   await expectPath(page, SAMPLE_PATH);
-  await expect(page.locator("main h1")).toContainText(/A synthetic key was flagged\./);
+  await expect(page.locator("main h1")).toContainText(/See a key rotation, step by step\./);
 
   await page.goBack({ waitUntil: "domcontentloaded" });
   await expectPath(page, "/");
@@ -176,18 +196,20 @@ test("the homepage receipt promise lands on the named signed-rotation specimen",
 
   await page.goto("/", { waitUntil: "networkidle" });
   const receiptLink = page
-    .locator("#agent-action-receipt")
-    .getByRole("link", { name: /Replay and verify the signed rotation/ });
+    .locator("main")
+    .getByRole("link", { name: "Explore the verification demo", exact: true });
   await receiptLink.click();
 
   await expectPath(page, SAMPLE_PATH);
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: /^A synthetic key was flagged\. The authorized rotation tool handled it\.$/,
+      name: /^See a key rotation, step by step\.$/,
     }),
   ).toBeVisible();
-  await expect(page.getByText("Published sample — not live customer evidence")).toBeVisible();
+  await expect(page.getByText("Synthetic demo", { exact: true })).toBeVisible();
+  await expect(page.getByText("No live systems", { exact: true })).toBeVisible();
+  await expect(page.locator("main")).toContainText("Published sample, not live customer evidence");
   await expect(page.locator('[data-ui-proof-id="api-key-rotation-demo"]')).toBeVisible();
   await saveEvidence(page, "02-desktop-receipt-landing.png");
 
@@ -206,7 +228,7 @@ test("a selected offer survives the click handoff into the request form", async 
   await page.goto("/catalog/workflows", { waitUntil: "networkidle" });
   const selectedOfferCta = page
     .locator('[data-buyer-service-detail="bounded-workflow-review"]')
-    .getByRole("link", { name: "Start a non-secret fit check", exact: true })
+    .getByRole("link", { name: "Scope this review", exact: true })
     .first();
   await selectedOfferCta.click();
 
@@ -214,7 +236,7 @@ test("a selected offer survives the click handoff into the request form", async 
   const destination = new URL(page.url());
   expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
   expect(destination.searchParams.get("offer")).toBe("Agent Action Security Review");
-  await expect(page.getByText("Selected offer: Agent Action Security Review")).toBeVisible();
+  await expect(page.locator("main").getByText("Agent Action Security Review", { exact: true }).first()).toBeVisible();
   await expect(page.locator("main")).toContainText("€2,500 fixed · excluding VAT");
   await expect(page.locator("main")).toContainText(
     "Within 10 working days after evidence rules are agreed",
@@ -276,8 +298,8 @@ test("Polish docs keep the logo local and switch EN stubs to a live docs route",
   const polishStubPath = "/pl/docs/understand-the-service";
 
   await page.goto(polishStubPath, { waitUntil: "networkidle" });
-  const polishLogo = page.getByRole("link", {
-    name: "WitnessOps — strona główna",
+  const polishLogo = page.locator("nav.public-shell").getByRole("link", {
+    name: "WitnessOps: strona główna",
     exact: true,
   });
   await expect(polishLogo).toHaveAttribute("href", "/pl");
@@ -301,7 +323,7 @@ test("Polish docs keep the logo local and switch EN stubs to a live docs route",
   await context.close();
 });
 
-test("mobile Ask reaches a scrollable fit-check destination without a stale overlay", async ({
+test("mobile Ask offers a human reply and source navigation without a stale overlay", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -312,10 +334,12 @@ test("mobile Ask reaches a scrollable fit-check destination without a stale over
   let askRequests = 0;
 
   await page.route("**/api/ask-witnessops", async (route) => {
+    if (await fulfillAskTelemetry(route)) return;
     askRequests += 1;
     expect(route.request().method()).toBe("POST");
     expect(route.request().postDataJSON()).toEqual({
-      question: "What is included in Agent Action Security Review?",
+      question: "What does an Agent Action Security Review cover, and what do we receive?",
+      history: [],
     });
     await route.fulfill({
       status: 200,
@@ -335,19 +359,45 @@ test("mobile Ask reaches a scrollable fit-check destination without a stale over
 
   await page
     .getByRole("button", {
-      name: "What is included in Agent Action Security Review?",
+      name: "What does an agent review cover?",
     })
     .click();
-  const fitCheckCta = page.locator('[data-ask-primary-cta="true"], [data-ask-primary-cta]');
-  await expect(fitCheckCta).toBeVisible();
-  await fitCheckCta.click();
+  const fit = page.getByRole("region", { name: "Commercial fit", exact: true });
+  await expect(fit).toContainText("€2,500 fixed · excluding VAT");
+  await expect(fit).toContainText("Within 10 working days after evidence rules are agreed");
+  await expect(fit).toContainText("No evidence was reviewed");
+  await expect(page.getByLabel("Ask WitnessOps question")).toBeVisible();
+  await expect(page.getByLabel("Ask WitnessOps question")).toHaveAttribute("placeholder", "Ask a follow-up…");
+  await fit.getByRole("button", { name: "Request scope for this action", exact: true }).click();
+
+  await expectPath(page, "/docs/assistant");
+  const contact = page.locator("[data-ask-contact-region]");
+  await expect(contact.getByRole("heading", { name: "Request a follow-up" })).toBeVisible();
+  await expect(contact).toContainText("Agent Action Security Review");
+  await expect(contact.getByLabel("Work email")).toBeFocused();
+  await expect(contact.getByRole("checkbox", { name: "Use my questions as the request summary." })).not.toBeChecked();
+  await expect(contact.getByLabel(/^Request summary/)).toHaveValue("");
+  await expect(contact).toContainText("No mailing list or review booking");
+  await contact.getByRole("button", { name: "Back", exact: true }).click();
+
+  // Sources are compact until opened, and canonical in-app navigation is usable.
+  const sources = page.locator("main details").filter({ has: page.locator("summary").filter({ hasText: "Sources (1)" }) });
+  const source = sources.getByRole("link", { name: "Agent Action Security Review", exact: true });
+  await expect(source).toBeHidden();
+  await sources.locator("summary").click();
+  await expect(source).toHaveAttribute("href", "/catalog/workflows");
+  await source.click();
+  await expectPath(page, "/catalog/workflows");
+  await expect(page.locator("#ask-witnessops-dialog")).toHaveCount(0);
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
+  await page.locator('[data-buyer-service-detail="bounded-workflow-review"]')
+    .getByRole("link", { name: "Scope this review", exact: true }).first().click();
 
   await expectPath(page, "/review/request");
   const destination = new URL(page.url());
   expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
-  expect(destination.searchParams.get("source")).toBe("ask");
-  expect(destination.searchParams.get("result")).toBe("likely");
-  await expect(page.getByText("Selected offer: Agent Action Security Review")).toBeVisible();
+  expect(destination.searchParams.get("offer")).toBe("Agent Action Security Review");
+  await expect(page.locator("main").getByText("Agent Action Security Review", { exact: true }).first()).toBeVisible();
   await expect(page.locator("main")).toContainText("€2,500 fixed · excluding VAT");
   await expect(page.locator("main")).toContainText(
     "Within 10 working days after evidence rules are agreed",
@@ -389,7 +439,7 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
   await page.getByRole("button", { name: "Open primary navigation" }).click();
   const menu = page.locator("#witnessops-mobile-menu");
   const lastCta = menu.getByRole("link", {
-    name: "Start a non-secret fit check",
+    name: "Scope a review",
     exact: true,
   });
   await expect(menu).toHaveAttribute("aria-hidden", "false");
@@ -415,72 +465,35 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
 
   await lastCta.click();
   await expectPath(page, "/review/request");
-  const destination = new URL(page.url());
-  expect(destination.searchParams.get("offerId")).toBe("bounded-workflow-review");
-  expect(destination.searchParams.get("offer")).toBe("Agent Action Security Review");
-  await expect(page.locator("main h1")).toContainText(
-    "Start your Agent Action Security Review",
-  );
+  expect(new URL(page.url()).search).toBe("");
+  await expect(page.locator("main h1")).toHaveText("Tell us what you need reviewed");
+  await expect(page.locator('main form input[name="intent"]')).toHaveValue("review");
   await saveEvidence(page, "05-mobile-menu-cta-destination.png");
 
   await context.close();
 });
 
-test("the mobile Ask overlay contains focus and Escape restores its trigger", async ({
-  browser,
-}) => {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    reducedMotion: "reduce",
-  });
+test("desktop Ask is non-modal and Escape restores its trigger", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 936 }, reducedMotion: "reduce" });
   const page = await context.newPage();
-
-  await page.goto("/", { waitUntil: "networkidle" });
-  await page.locator("#evidence-questions").scrollIntoViewIfNeeded();
+  await page.route("**/api/ask-witnessops", async route => { expect(await fulfillAskTelemetry(route)).toBe(true); });
+  await page.goto("/catalog", { waitUntil: "networkidle" });
   const trigger = page.getByRole("button", { name: "Open Ask WitnessOps" });
-  await expect(trigger).toBeVisible();
   await trigger.click();
-
   const dialog = page.locator("#ask-witnessops-dialog");
   await expect(dialog).toBeVisible();
-  await expect(dialog).toHaveAttribute("aria-modal", "true");
-  const focusable = dialog.locator(FOCUSABLE_SELECTOR);
-  expect(await focusable.count()).toBeGreaterThan(1);
-  const first = focusable.first();
-  const last = focusable.last();
-
-  await first.focus();
-  await expect(first).toBeFocused();
-  await page.keyboard.press("Shift+Tab");
-  await expect(last).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(first).toBeFocused();
-
+  await expect(dialog).toHaveAttribute("aria-modal", "false");
+  await expect(dialog.getByLabel("Ask WitnessOps question")).toBeFocused();
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
-  await expect(trigger).toBeVisible();
   await expect(trigger).toBeFocused();
-  expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
-
   await trigger.click();
-  await expect(dialog).toBeVisible();
+  await dialog.locator("summary").filter({ hasText: "About this AI" }).click();
   await dialog.getByRole("link", { name: "Privacy", exact: true }).click();
   await expectPath(page, "/privacy");
   await expect(dialog).toHaveCount(0);
-  const privacyScrollState = await page.evaluate(() => ({
-    inlineOverflow: document.body.style.overflow,
-    computedOverflowY: getComputedStyle(document.body).overflowY,
-    scrollHeight: document.documentElement.scrollHeight,
-    viewportHeight: window.innerHeight,
-  }));
-  expect(privacyScrollState.inlineOverflow).not.toBe("hidden");
-  expect(privacyScrollState.computedOverflowY).not.toBe("hidden");
-  expect(privacyScrollState.scrollHeight).toBeGreaterThan(
-    privacyScrollState.viewportHeight,
-  );
-  await page.evaluate(() => window.scrollTo(0, 500));
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
-
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
   await context.close();
 });
 

@@ -2,7 +2,6 @@ import { getSku, getSkusByTrack } from "@witnessops/catalog";
 import { buyerServiceByProductId } from "@/lib/buyer-services";
 import {
   EXTERNAL_ATTACK_SURFACE_OFFER,
-  PRIMARY_OFFER,
 } from "@/lib/commercial-truth";
 import { isCurrentPublicCatalogSku } from "@/lib/public-commercial-routes";
 
@@ -15,11 +14,11 @@ export const POLISH_NO_SECRETS_NOTE =
 export const POLISH_PUBLIC_NAV = {
   links: [
     { label: "Usługi", href: "/pl/catalog" },
-    { label: PRIMARY_OFFER.name.pl, href: PRIMARY_OFFER.route },
-    { label: "Biblioteka", href: "/pl/library" },
-    { label: "Dlaczego WitnessOps", href: "/pl/why-witnessops" },
+    { label: "Przykłady (EN)", href: "/review/sample-cases" },
+    { label: "Podejście", href: "/pl/why-witnessops" },
+    { label: "Dokumentacja", href: "/pl/docs" },
   ],
-  cta: { label: "Rozpocznij przegląd", href: "/pl/review/request", variant: "primary" },
+  cta: { label: "Opisz swój system", href: "/pl/review/request", variant: "primary" },
 } as const;
 
 export type PolishOfferCopy = {
@@ -74,12 +73,12 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
       "Przekazujemy raporty i pakiet do sprawdzenia oraz wykonujemy jeden ukierunkowany retest w ciągu 30 dni.",
     ],
     deliverables: ["zapis upoważnienia i stałego zakresu", "mapa ekspozycji zewnętrznej", "ustalenia powiązane z materiałami", "raport wykonawczy i załącznik techniczny", "manifest i hashe artefaktów", "podpisany receipt i weryfikator offline, gdy wspierane", "45-minutowe przekazanie", "jeden retest w ciągu 30 dni"],
-    inputs: ["Jeden autoryzowany system publicznie dostępny, wskazany przez domenę, host, aplikację, API, publiczny adres IP, publiczny endpoint chmurowy lub spójne połączenie tych elementów.", "Potwierdzenie własności lub pisemne upoważnienie, lista znanych hostów i adresów IP first-party.", "Zatwierdzone kontrole, okno zbierania, kontakt stop i ograniczenia dostawców zewnętrznych.", "Cel, termin i dokładne wymaganie strony odbierającej wynik — bez sekretów i materiałów produkcyjnych."],
+    inputs: ["Jeden autoryzowany system publicznie dostępny, wskazany przez domenę, host, aplikację, API, publiczny adres IP, publiczny endpoint chmurowy lub spójne połączenie tych elementów.", "Potwierdzenie własności lub pisemne upoważnienie, lista znanych hostów i adresów IP first-party.", "Zatwierdzone kontrole, okno zbierania, kontakt stop i ograniczenia dostawców zewnętrznych.", "Cel, termin i dokładne wymaganie strony odbierającej wynik, bez sekretów i materiałów produkcyjnych."],
     timing: EXTERNAL_ATTACK_SURFACE_OFFER.timing.pl,
     price: publicPolishPrice("OFFSEC-EXTERNAL-EXPOSURE"),
     priceDetail: `Bez rozmowy sprzedażowej. Płatność potwierdzamy po akceptacji zakresu. Dodatkowy lub późny retest: ${EXTERNAL_ATTACK_SURFACE_OFFER.additionalOrLateRetestPrice.pl}.`,
     exclusions: ["To nie jest test penetracyjny.", "Bez eksploatacji, testowania haseł, brute force, poświadczeń, socjotechniki, odmowy usługi i działań destrukcyjnych.", "Bez uwierzytelnionych testów aplikacji, zbierania danych klientów, kodu źródłowego, aplikacji mobilnych, smart contractów, kont chmurowych i sieci wewnętrznej.", "Bez otwartego wykrywania subdomen lub zakresów IP i bez dotykania niepotwierdzonej infrastruktury strony trzeciej.", "Bez certyfikacji, atestu lub gwarancji bezpieczeństwa, kompletności, zgodności albo braku podatności."],
-    verification: "Pakiet wskazuje sprawdzony zakres, materiały wspierające ustalenia, jawne niewiadome oraz — gdy wspierana ścieżka zostanie wytworzona — podpisany receipt i weryfikator offline. Nie dowodzi, że system jest bezpieczny ani wolny od podatności.",
+    verification: "Pakiet wskazuje sprawdzony zakres, materiały wspierające ustalenia, jawne niewiadome oraz (gdy wspierana ścieżka zostanie wytworzona) podpisany receipt i weryfikator offline. Nie dowodzi, że system jest bezpieczny ani wolny od podatności.",
   },
   "OFFSEC-LAUNCH-READY": {
     name: "Ocena gotowości do wdrożenia",
@@ -90,7 +89,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     inputs: ["Jeden wskazany serwer Linux przeznaczony do wdrożenia.", "Zatwierdzony stan bazowy i wersja kandydująca w uzgodnionym oknie.", "Jeden skrót SHA-256 artefaktu wydania i osoba odpowiedzialna za decyzję.", "Podpisane upoważnienie i wyłącznie informacje pozbawione danych poufnych."],
     timing: "Cztery dni robocze od zebrania danych wersji kandydującej.",
     price: publicPolishPrice("OFFSEC-LAUNCH-READY"),
-    priceDetail: "ok. 19 500 zł — cena standardowa po sprawdzeniu dopasowania (ok. €4 500) · bez VAT",
+    priceDetail: "ok. 19 500 zł: cena standardowa po sprawdzeniu dopasowania (ok. €4 500) · bez VAT",
     exclusions: ["Bez zatwierdzenia wdrożenia i bez gwarancji bezpieczeństwa.", "Bez napraw i ponownego testu, chyba że zostaną osobno uzgodnione.", "Bez dowolnego przeglądu panelu sterowania chmurą lub kodu źródłowego.", "Bez certyfikacji zgodności."],
     verification: "Podpisany zapis wykonania i instrukcja weryfikacji pozwalają sprawdzić relację między stanem bazowym a wersją kandydującą, powiązanie z wydaniem i wskazane ograniczenia. Wynik nie jest zatwierdzeniem wdrożenia.",
   },
@@ -126,7 +125,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
     deliverables: ["podpisane upoważnienie i decyzja dopuszczająca pilotaż", "macierz dwóch przebiegów dla dziesięciu hostów", "dziesięć podpisanych pakietów podrzędnych", "zbiorczy manifest dowodów", "podpisany zbiorczy zapis wykonania pilotażu", "zbiorczy weryfikator offline", "report.md", "BUYER_WALKTHROUGH.md"],
     inputs: ["Dokładnie dziesięć wskazanych serwerów.", "Jeden upoważniony operator i jedna osoba odpowiedzialna za decyzję.", "Podpisany zakres z oknem nie dłuższym niż czternaście dni.", "Wyłącznie informacje pozbawione danych poufnych; bez danych uwierzytelniających, kluczy, logów i zrzutów ekranu."],
     timing: "Termin dostawy ustalamy podczas wstępnego potwierdzenia zakresu.",
-    price: "Stała wycena w zł (równowartość EUR) — po uzgodnieniu zakresu",
+    price: "Stała wycena w zł (równowartość EUR): po uzgodnieniu zakresu",
     exclusions: ["Bez wykrywania zasobów, monitorowania i utrzymywania dostępu.", "Bez zbierania sekretów lub danych uwierzytelniających, eksploatacji i napraw.", "Bez zatwierdzenia uruchomienia, certyfikacji zgodności i twierdzenia, że host jest bezpieczny.", "Bez programu wykraczającego poza zakres dziesięciu serwerów."],
     verification: "Zbiorczy podpisany zapis wykonania i weryfikator odtwarzają dziesięć pakietów podrzędnych oraz ich powiązania. Nie dowodzą, że którykolwiek host jest bezpieczny, ani nie tworzą uprawnienia do monitorowania.",
   },
@@ -134,7 +133,7 @@ export const POLISH_OFFERS: Record<string, PolishOfferCopy> = {
 
 const POLISH_TRANSLATED_PATHS = [
   /^\/$/,
-  /^\/catalog(?:\/(?:offsec-local-audit|offsec-external-exposure|offsec-launch-ready|offsec-custody-ops|offsec-incident-ready|professional-public-footprint-audit))?$/,
+  /^\/catalog(?:\/(?:automation-repair|offsec-local-audit|offsec-external-exposure|offsec-launch-ready|offsec-custody-ops|offsec-incident-ready|professional-public-footprint-audit))?$/,
   /^\/review\/request(?:\/confirmed)?$/,
   /^\/why-witnessops$/,
   /^\/customer-security-review$/,

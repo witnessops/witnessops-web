@@ -19,33 +19,35 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "A synthetic key was flagged. The authorized rotation tool handled it.",
+      name: "See a key rotation, step by step.",
     }),
   ).toBeVisible();
   await expect(page.getByText("VALID SYNTHETIC SPECIMEN", { exact: true })).toBeVisible();
+  const replayButton = page.locator('button[aria-describedby="rotation-replay-boundary"]');
+  const initialReplayBox = await replayButton.boundingBox();
+  expect(initialReplayBox).not.toBeNull();
+  expect(initialReplayBox!.y + initialReplayBox!.height).toBeLessThan(1000);
+  await expect(replayButton).toHaveText("Play example");
+  await replayButton.click();
+  await expect(replayButton).toHaveText("Replay example");
+  await expect(replayButton).toBeFocused();
+  await expect(page.getByText("Replay complete: 6 of 6 signed events shown.", { exact: true }))
+    .toHaveText("Replay complete: 6 of 6 signed events shown.");
+
+  await page.getByText("Full verification limits", { exact: true }).click();
   await expect(page.getByText(/that an AI agent caused or authorized the tool calls/)).toBeVisible();
   await expect(page.getByText(/real-world actor or approver identity/)).toBeVisible();
   await expect(page.getByText(/execution of the declared hard-stop conditions/)).toBeVisible();
-  await expect(
-    page.getByRole("heading", {
-      level: 2,
-      name: "Agent Action Security Review — €2,500 fixed · excluding VAT.",
-    }),
-  ).toBeVisible();
-  await expect(page.getByText(/Bring one consequential agent or automation action\./)).toBeVisible();
-  await expect(
-    page.getByText(/what identity executes it, what systems and tools it can reach/),
-  ).toBeVisible();
-  await expect(page.getByText(/Entry begins with a non-secret fit check/)).toBeVisible();
-  await expect(
-    page.getByText(/delivery is within 10 working days after evidence rules are agreed/),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Want your own agent action reviewed?" })).toBeVisible();
+  await expect(page.locator("main")).toContainText("Agent Action Security Review");
+  await expect(page.locator("main")).toContainText("€2,500 fixed · excluding VAT");
+  await expect(page.locator("main")).toContainText("One consequential agent or automation action. Prioritised fixes.");
+  await expect(page.locator("main")).toContainText("Non-secret fit check first.");
+  await expect(page.locator("main")).toContainText("Within 10 working days after evidence rules are agreed");
   await expect(page.locator("main")).not.toContainText("Agent Risk & Control Review");
   await expect(page.locator("main")).not.toContainText("From €1,500");
-  await expect(page.getByRole("link", { name: /Request a non-secret fit check/ })).toHaveAttribute(
-    "href",
-    REVIEW_HREF,
-  );
+  await expect(page.locator("main").getByRole("link", { name: "Check fit", exact: true }))
+    .toHaveAttribute("href", REVIEW_HREF);
 
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
     "content",
@@ -62,34 +64,16 @@ test("the proof page enforces its bounded claim, offer, metadata, and replay con
   await expect(page.locator("#ask-witnessops-dialog")).toHaveCount(0);
   await expect(page.locator('[aria-controls="ask-witnessops-dialog"]')).toHaveCount(0);
 
-  const pendingTypography = await page
-    .locator('ol[aria-label="Signed rotation event replay"] li')
-    .first()
-    .evaluate((row) => {
-      const elements = [
-        row.children.item(0),
-        row.children.item(1),
-        row.children.item(2)?.children.item(0),
-      ].filter((element): element is Element => element instanceof Element);
-      return elements.map((element) => {
-        const style = getComputedStyle(element);
-        return { fontSize: Number.parseFloat(style.fontSize), color: style.color };
-      });
-    });
-  expect(pendingTypography).toHaveLength(3);
-  for (const style of pendingTypography) {
-    expect(style.fontSize).toBeGreaterThanOrEqual(12);
-    expect(style.color).toBe("rgb(152, 163, 155)");
+  const stepControls = page.locator('ol[aria-label="Signed rotation event replay"] button');
+  await expect(stepControls).toHaveCount(6);
+  for (const button of await stepControls.all()) {
+    const box = await button.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
   }
-
-  const replayButton = page.locator('button[aria-describedby="rotation-replay-boundary"]');
-  await expect(replayButton).toHaveText(/ACKNOWLEDGE SCOPE & REPLAY/);
-  await replayButton.click();
-  await expect(replayButton).toHaveText(/REPLAY SIGNED RUN AGAIN/);
-  await expect(replayButton).toBeFocused();
-  await expect(
-    page.getByText("Replay complete: 6 of 6 signed events shown.", { exact: true }),
-  ).toHaveText("Replay complete: 6 of 6 signed events shown.");
+  await stepControls.first().click();
+  await expect(page.locator("#rotation-event-detail")).toContainText("Replacement credential created");
+  await page.getByText("Evidence for this step", { exact: true }).click();
+  await expect(page.locator("#rotation-event-detail")).toContainText("forbidden credential-value fields");
 
   await context.close();
 });
@@ -146,6 +130,10 @@ for (const viewport of [
     const page = await context.newPage();
     await page.goto(SAMPLE_PATH, { waitUntil: "networkidle" });
     await expect(page.getByText("VALID SYNTHETIC SPECIMEN", { exact: true })).toBeVisible();
+
+    const replayBox = await page.locator('button[aria-describedby="rotation-replay-boundary"]').boundingBox();
+    expect(replayBox).not.toBeNull();
+    expect(replayBox!.y + replayBox!.height).toBeLessThan(viewport.height);
 
     const dimensions = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,

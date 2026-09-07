@@ -37,6 +37,7 @@ type FieldName =
   | "name"
   | "email"
   | "org"
+  | "decisionTiming"
   | "workflow"
   | "agentPath"
   | "approvalBoundary"
@@ -84,17 +85,23 @@ export function ContactForm({
   locale = "en",
   intent = "review",
   campaignAttribution,
+  compact = false,
 }: {
   locale?: "en" | "pl";
   intent?: string;
   campaignAttribution?: string;
+  compact?: boolean;
 }) {
   const router = useRouter();
   const invalidScrollScheduled = useRef(false);
   const verificationHeadingRef = useRef<HTMLHeadingElement>(null);
+  const errorSummaryRef = useRef<HTMLDivElement>(null);
+  const submissionBusyRef = useRef(false);
   const polish = locale === "pl";
   const externalExposureOrder = intent === "OFFSEC-EXTERNAL-EXPOSURE";
   const boundedWorkflowReview = intent === BOUNDED_WORKFLOW_REVIEW_INTENT;
+  const automationRepair = intent === "automation-repair-handover";
+  const optionalContext = boundedWorkflowReview || automationRepair || intent === "review";
   const selectedService =
     buyerServiceByProductId(intent) ?? buyerServiceByPublicOfferId(intent);
   const selectedNonAgentService =
@@ -127,13 +134,16 @@ export function ContactForm({
         sending: "Wysyłanie...",
         requestSent: "Zgłoszenie wysłane. Wpisz kod z wiadomości e-mail na tej stronie.",
         fitTitle: "Zacznij od krótkiej, niepoufnej oceny dopasowania.",
-        fitBody: "Opisz jedną potrzebę na wysokim poziomie. Bez plików i dowodów — najpierw uzgodnimy zakres oraz sposób obsługi materiałów.",
+        fitBody: "Opisz jedną potrzebę na wysokim poziomie. Bez plików i dowodów. Najpierw uzgodnimy zakres oraz sposób obsługi materiałów.",
         name: "Imię i nazwisko",
         email: "Służbowy adres e-mail",
         organization: "Firma lub zespół",
         required: "(wymagane)",
         optional: "(opcjonalnie)",
         organizationPlaceholder: "Firma, zespół lub projekt",
+        decisionTiming: "Co ma się wydarzyć i do kiedy?",
+        decisionTimingPlaceholder: "Np. dostęp agenta do produkcji w przyszły piątek albo decyzja klienta do końca miesiąca.",
+        decisionTimingHelp: "Przybliżony termin wystarczy. Termin realizacji potwierdzimy po uzgodnieniu zakresu.",
         workflow: "Co wymaga sprawdzenia?",
         workflowPlaceholder: "Przykład: ankieta bezpieczeństwa, jeden serwer, planowane wdrożenie, zmiana dostępu, incydent lub jedno działanie techniczne.",
         workflowHelp: "Opisz jedną potrzebę ogólnie. Nie wklejaj danych poufnych, eksportów kodu, pełnych logów, zrzutów ekranu, danych uwierzytelniających, kluczy prywatnych, kodów MFA ani materiałów klienta.",
@@ -171,13 +181,16 @@ export function ContactForm({
         sending: "Sending...",
         requestSent: "Request sent. Enter the email code on this page.",
         fitTitle: "Start with a short, non-secret fit check.",
-        fitBody: "Describe one review need at a high level. No files or evidence yet—we’ll agree scope and handling first.",
+        fitBody: "Describe one review need at a high level. No files or evidence yet. We’ll agree scope and handling first.",
         name: "Your name",
         email: "Work email",
         organization: "Company or team",
         required: "(required)",
         optional: "(optional)",
         organizationPlaceholder: "Company, team, or project",
+        decisionTiming: "What needs to happen, and by when?",
+        decisionTimingPlaceholder: "For example: production access next Friday, or a customer decision by the end of the month.",
+        decisionTimingHelp: "An approximate date is enough. We’ll confirm delivery timing after agreeing scope.",
         workflow: "What do you need reviewed?",
         workflowPlaceholder: "Example: a security questionnaire, one server, a planned launch, an access change, an incident scenario, or one technical action.",
         workflowHelp: "Describe one review need at a high level. Do not paste secrets, source exports, full logs, screenshots, credentials, private keys, MFA codes, or customer evidence.",
@@ -202,6 +215,7 @@ export function ContactForm({
           ? "Podaj krótkie, niepoufne informacje potrzebne do oceny dopasowania tej usługi. Zakres, wymagane materiały, cena i termin zostaną potwierdzone e-mailem przed rozpoczęciem pracy."
           : "Give us a short, non-secret summary for this service. We’ll confirm fit, scope, required inputs, fee, and timing by email before any work begins.",
         workflow:
+          selectedNonAgentService.id === "automation-repair-handover" ? (polish ? "Co powinno się wydarzyć, a co dzieje się teraz?" : "What should happen, and what happens instead?") :
           selectedNonAgentService.id === "customer-security-review-sprint"
             ? polish
               ? "Kwestionariusz lub prośba klienta"
@@ -215,6 +229,7 @@ export function ContactForm({
                 ? "Co ma zostać sprawdzone?"
                 : "What should this service review?",
         workflowPlaceholder:
+          selectedNonAgentService.id === "automation-repair-handover" ? (polish ? "Np. formularz → n8n → HubSpot. Proces zgłasza sukces, ale nowe kontakty nie pojawiają się w CRM." : "For example: form → n8n → HubSpot. Runs say success, but new contacts never appear in the CRM.") :
           selectedNonAgentService.id === "customer-security-review-sprint"
             ? polish
               ? "Opisz ogólnie jeden kwestionariusz bezpieczeństwa, prośbę o materiały i zakres produktu."
@@ -286,14 +301,14 @@ export function ContactForm({
           ? `Rozpocznij ${PRIMARY_OFFER.name.pl}.`
           : `Start your ${PRIMARY_OFFER.name.en}.`,
         fitBody: polish
-          ? `${PRIMARY_OFFER.fitCheckQuestion.pl} Następnie opisz skutek błędu, zaangażowane systemy i narzędzia oraz granice produkcji, danych klientów, pieniędzy, kont, uprawnień lub komunikacji zewnętrznej. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.timing.pl}.`
-          : `${PRIMARY_OFFER.fitCheckQuestion.en} Then describe what happens if it goes wrong, which systems and tools are involved, and whether production, customer-data, money, account, permission, or external-communication boundaries are involved. ${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.timing.en}.`,
+          ? `Na początek wystarczy imię, e-mail i krótki opis jednego działania. Pozostałe szczegóły są opcjonalne. Możemy wyjaśnić je razem. ${PRIMARY_OFFER.price.pl}. ${PRIMARY_OFFER.timing.pl}.`
+          : `Start with your name, work email and a short description of one action. The other details are optional; we can clarify them together. ${PRIMARY_OFFER.price.en}. ${PRIMARY_OFFER.timing.en}.`,
         workflow: polish
           ? PRIMARY_OFFER.fitCheckQuestion.pl
           : PRIMARY_OFFER.fitCheckQuestion.en,
         workflowPlaceholder: polish
-          ? "Przykład: wdrożenie produkcyjne, usunięcie konta, zwrot płatności, zmiana rekordu klienta, zmiana uprawnień, zatwierdzenie transakcji lub działanie przez MCP, narzędzie albo API."
-          : "Example: production deployment, account deletion, refund or payment, customer-record change, permission change, transaction approval, or an action through MCP, a tool, or an API.",
+          ? "Np. nasz agent obsługi klienta może zlecać zwroty płatności. Chcemy sprawdzić to działanie przed przekazaniem klientowi w przyszłym miesiącu."
+          : "For example: our support agent can issue refunds. We want to review that action before handing it over to a customer next month.",
         workflowHelp: polish
           ? "Opisz działanie na wysokim poziomie. Nie wklejaj sekretów, danych uwierzytelniających, logów, zrzutów ekranu, danych klientów ani materiałów produkcyjnych."
           : "Describe the action at a high level. Do not paste secrets, credentials, logs, screenshots, customer data, or production evidence.",
@@ -378,6 +393,10 @@ export function ContactForm({
     return () => window.cancelAnimationFrame(frame);
   }, [verificationStep]);
 
+  useEffect(() => {
+    if (status === "error") errorSummaryRef.current?.focus();
+  }, [status]);
+
   function updateFieldError(name: FieldName, message: string) {
     setFieldErrors((current) => {
       if (!message) {
@@ -391,6 +410,8 @@ export function ContactForm({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submissionBusyRef.current) return;
+    submissionBusyRef.current = true;
     setFieldErrors({});
     setStatus("sending");
     setErrorMessage(copy.sendError);
@@ -398,6 +419,7 @@ export function ContactForm({
     const form = e.currentTarget;
     const data = new FormData(form);
     const workflow = stringField(data, "workflow");
+    const decisionTiming = stringField(data, "decisionTiming");
     const agentPath = stringField(data, "agentPath");
     const approvalBoundary = stringField(data, "approvalBoundary");
     const evidenceAvailable = stringField(data, "evidenceAvailable");
@@ -411,6 +433,7 @@ export function ContactForm({
           : "Request: WitnessOps review fit check",
       `Selected product / intent: ${intent}`,
       `Request locale: ${locale}`,
+      ...(decisionTiming ? [`Decision and target date: ${decisionTiming}`] : []),
       ...(campaignAttribution
         ? [`Campaign attribution: ${campaignAttribution}`]
         : []),
@@ -482,6 +505,8 @@ export function ContactForm({
           ? error.message
           : copy.sendError,
       );
+    } finally {
+      submissionBusyRef.current = false;
     }
   }
 
@@ -560,12 +585,13 @@ export function ContactForm({
   function handleInvalid(
     e: React.InvalidEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
+    e.preventDefault();
     const field = e.currentTarget;
     if (!invalidScrollScheduled.current) {
       invalidScrollScheduled.current = true;
       window.requestAnimationFrame(() => {
         field.scrollIntoView({ block: "start", behavior: "auto" });
-        field.focus({ preventScroll: true });
+        errorSummaryRef.current?.focus();
         invalidScrollScheduled.current = false;
       });
     }
@@ -589,6 +615,67 @@ export function ContactForm({
     }
     updateFieldError(field.name as FieldName, field.validity.valid ? "" : field.validationMessage);
   }
+
+  const additionalContextFields = (
+      <>
+          <div>
+            <label htmlFor="agentPath" className="mb-2 block" style={labelStyle}>
+              {copy.actionPath} <span className="text-text-muted">{externalExposureOrder || optionalContext ? copy.optional : copy.required}</span>
+            </label>
+            <textarea
+              id="agentPath" name="agentPath" rows={3} required={!externalExposureOrder && !optionalContext}
+              maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
+              className={`${textareaClass} ${fieldErrors.agentPath ? "!border-signal-red" : ""}`}
+              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+              placeholder={copy.actionPathPlaceholder}
+              onInvalid={handleInvalid}
+              onInput={handleFieldInput}
+              aria-invalid={fieldErrors.agentPath ? true : undefined}
+              aria-describedby={fieldErrors.agentPath ? "agentPath-error" : undefined}
+              aria-errormessage={fieldErrors.agentPath ? "agentPath-error" : undefined}
+            />
+            {fieldErrors.agentPath && <p id="agentPath-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.agentPath}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="approvalBoundary" className="mb-2 block" style={labelStyle}>
+              {copy.approval} <span className="text-text-muted">{optionalContext ? copy.optional : copy.required}</span>
+            </label>
+            <textarea
+              id="approvalBoundary" name="approvalBoundary" rows={3} required={!optionalContext}
+              maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
+              className={`${textareaClass} ${fieldErrors.approvalBoundary ? "!border-signal-red" : ""}`}
+              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+              placeholder={copy.approvalPlaceholder}
+              onInvalid={handleInvalid}
+              onInput={handleFieldInput}
+              aria-invalid={fieldErrors.approvalBoundary ? true : undefined}
+              aria-describedby={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
+              aria-errormessage={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
+            />
+            {fieldErrors.approvalBoundary && <p id="approvalBoundary-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.approvalBoundary}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="evidenceAvailable" className="mb-2 block" style={labelStyle}>
+              {copy.evidence} <span className="text-text-muted">{externalExposureOrder || selectedNonAgentService || optionalContext ? copy.optional : copy.required}</span>
+            </label>
+            <textarea
+              id="evidenceAvailable" name="evidenceAvailable" rows={3} required={!externalExposureOrder && !selectedNonAgentService && !optionalContext}
+              maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
+              className={`${textareaClass} ${fieldErrors.evidenceAvailable ? "!border-signal-red" : ""}`}
+              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+              placeholder={copy.evidencePlaceholder}
+              onInvalid={handleInvalid}
+              onInput={handleFieldInput}
+              aria-invalid={fieldErrors.evidenceAvailable ? true : undefined}
+              aria-describedby={fieldErrors.evidenceAvailable ? "evidenceAvailable-error" : undefined}
+              aria-errormessage={fieldErrors.evidenceAvailable ? "evidenceAvailable-error" : undefined}
+            />
+            {fieldErrors.evidenceAvailable && <p id="evidenceAvailable-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.evidenceAvailable}</p>}
+          </div>
+      </>
+  );
 
   if (verificationStep) {
     return (
@@ -740,6 +827,26 @@ export function ContactForm({
       aria-busy={status === "sending"}
     >
       <input type="hidden" name="intent" value={intent} />
+      {(status === "error" || Object.keys(fieldErrors).length > 0) && (
+        <div ref={errorSummaryRef} tabIndex={-1} role="alert" className="scroll-mt-24 border-l-2 border-signal-red bg-surface-inset p-4 text-sm leading-6 focus:outline focus:outline-2 focus:outline-brand-accent">
+          <h2 className="font-semibold">{polish ? "Sprawdź zgłoszenie" : "Check your request"}</h2>
+          {status === "error" && <p className="mt-2">{errorMessage} {polish ? "Twoje odpowiedzi pozostają w formularzu. Popraw je lub spróbuj ponownie." : "Your answers are still in the form. Correct them or try again."}</p>}
+          <ul className="mt-2 space-y-1">
+            {Object.entries(fieldErrors).map(([field, message]) => (
+              <li key={field}><a className="underline underline-offset-4" href={`#${field}`} onClick={(event) => {
+                event.preventDefault();
+                const target = event.currentTarget.closest("form")?.elements.namedItem(field);
+                if (target instanceof HTMLElement) {
+                  const details = target.closest("details");
+                  if (details) details.open = true;
+                  target.focus();
+                  target.scrollIntoView({ block: "center" });
+                }
+              }}>{({ name: copy.name, email: copy.email, org: copy.organization, workflow: copy.workflow, decisionTiming: copy.decisionTiming, agentPath: copy.actionPath, approvalBoundary: copy.approval, evidenceAvailable: copy.evidence } as Record<string, string>)[field]}: {message}</a></li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div id="witnessops-contact-status" className="sr-only" aria-live="polite" aria-atomic="true">
         {status === "sending"
           ? copy.sending
@@ -748,20 +855,20 @@ export function ContactForm({
             : ""}
       </div>
 
-      <div className="border-l-2 border-brand-accent bg-surface-inset p-4">
+      {!compact && <div className="border-l-2 border-brand-accent bg-surface-inset p-4">
         <div className="text-sm font-semibold text-text-primary">
           {copy.fitTitle}
         </div>
         <p className="mt-2 text-sm leading-relaxed text-text-muted">
           {copy.fitBody}
         </p>
-      </div>
+      </div>}
 
       <div className="grid gap-5 md:grid-cols-2">
         <div>
           <label htmlFor="name" className="mb-2 block" style={labelStyle}>{copy.name} <span className="text-text-muted">{copy.required}</span></label>
           <input
-            id="name" name="name" type="text" required
+            id="name" name="name" type="text" autoComplete="name" required
             maxLength={INTAKE_SHORT_TEXT_MAX_LENGTH}
             aria-invalid={fieldErrors.name ? true : undefined}
             aria-describedby={fieldErrors.name ? "name-error" : undefined}
@@ -777,7 +884,7 @@ export function ContactForm({
         <div>
           <label htmlFor="email" className="mb-2 block" style={labelStyle}>{copy.email} <span className="text-text-muted">{copy.required}</span></label>
           <input
-            id="email" name="email" type="email" required
+            id="email" name="email" type="email" autoComplete="email" inputMode="email" required
             aria-invalid={fieldErrors.email ? true : undefined}
             aria-describedby={fieldErrors.email ? "email-error" : undefined}
             aria-errormessage={fieldErrors.email ? "email-error" : undefined}
@@ -793,7 +900,7 @@ export function ContactForm({
       <div>
         <label htmlFor="org" className="mb-2 block" style={labelStyle}>{copy.organization} <span className="text-text-muted">{copy.optional}</span></label>
         <input
-          id="org" name="org" type="text"
+          id="org" name="org" type="text" autoComplete="organization"
           maxLength={INTAKE_SHORT_TEXT_MAX_LENGTH}
           aria-invalid={fieldErrors.org ? true : undefined}
           aria-describedby={fieldErrors.org ? "org-error" : undefined}
@@ -828,65 +935,35 @@ export function ContactForm({
         {fieldErrors.workflow && <p id="workflow-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.workflow}</p>}
       </div>
 
-      <>
-          <div>
-            <label htmlFor="agentPath" className="mb-2 block" style={labelStyle}>
-              {copy.actionPath} <span className="text-text-muted">{externalExposureOrder ? copy.optional : copy.required}</span>
-            </label>
-            <textarea
-              id="agentPath" name="agentPath" rows={3} required={!externalExposureOrder}
-              maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
-              className={`${textareaClass} ${fieldErrors.agentPath ? "!border-signal-red" : ""}`}
-              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-              placeholder={copy.actionPathPlaceholder}
-              onInvalid={handleInvalid}
-              onInput={handleFieldInput}
-              aria-invalid={fieldErrors.agentPath ? true : undefined}
-              aria-describedby={fieldErrors.agentPath ? "agentPath-error" : undefined}
-              aria-errormessage={fieldErrors.agentPath ? "agentPath-error" : undefined}
-            />
-            {fieldErrors.agentPath && <p id="agentPath-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.agentPath}</p>}
-          </div>
+      <div>
+        <label htmlFor="decisionTiming" className="mb-2 block" style={labelStyle}>
+          {copy.decisionTiming} <span className="text-text-muted">{copy.optional}</span>
+        </label>
+        <textarea
+          id="decisionTiming" name="decisionTiming" rows={2}
+          maxLength={INTAKE_SHORT_TEXT_MAX_LENGTH}
+          aria-describedby={fieldErrors.decisionTiming ? "decisionTiming-helper decisionTiming-error" : "decisionTiming-helper"}
+          aria-errormessage={fieldErrors.decisionTiming ? "decisionTiming-error" : undefined}
+          aria-invalid={fieldErrors.decisionTiming ? true : undefined}
+          className={`${inputClass} ${fieldErrors.decisionTiming ? "!border-signal-red" : ""}`}
+          style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
+          placeholder={copy.decisionTimingPlaceholder}
+          onInvalid={handleInvalid} onInput={handleFieldInput}
+        />
+        <p id="decisionTiming-helper" className="mt-2 text-xs leading-relaxed text-text-muted">{copy.decisionTimingHelp}</p>
+        {fieldErrors.decisionTiming && <p id="decisionTiming-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.decisionTiming}</p>}
+      </div>
 
-          <div>
-            <label htmlFor="approvalBoundary" className="mb-2 block" style={labelStyle}>
-              {copy.approval} <span className="text-text-muted">{copy.required}</span>
-            </label>
-            <textarea
-              id="approvalBoundary" name="approvalBoundary" rows={3} required
-              maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
-              className={`${textareaClass} ${fieldErrors.approvalBoundary ? "!border-signal-red" : ""}`}
-              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-              placeholder={copy.approvalPlaceholder}
-              onInvalid={handleInvalid}
-              onInput={handleFieldInput}
-              aria-invalid={fieldErrors.approvalBoundary ? true : undefined}
-              aria-describedby={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
-              aria-errormessage={fieldErrors.approvalBoundary ? "approvalBoundary-error" : undefined}
-            />
-            {fieldErrors.approvalBoundary && <p id="approvalBoundary-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.approvalBoundary}</p>}
-          </div>
+      {optionalContext ? (
+        <details className="border-t border-surface-border pt-4">
+          <summary className="cursor-pointer text-sm font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+            {polish ? "Dodaj kontekst (opcjonalnie)" : "Add context (optional)"}
+          </summary>
+          <div className="mt-4 space-y-5">{additionalContextFields}</div>
+        </details>
+      ) : additionalContextFields}
 
-          <div>
-            <label htmlFor="evidenceAvailable" className="mb-2 block" style={labelStyle}>
-              {copy.evidence} <span className="text-text-muted">{externalExposureOrder || selectedNonAgentService ? copy.optional : copy.required}</span>
-            </label>
-            <textarea
-              id="evidenceAvailable" name="evidenceAvailable" rows={3} required={!externalExposureOrder && !selectedNonAgentService}
-              maxLength={REVIEW_REQUEST_FIELD_MAX_LENGTH}
-              className={`${textareaClass} ${fieldErrors.evidenceAvailable ? "!border-signal-red" : ""}`}
-              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }}
-              placeholder={copy.evidencePlaceholder}
-              onInvalid={handleInvalid}
-              onInput={handleFieldInput}
-              aria-invalid={fieldErrors.evidenceAvailable ? true : undefined}
-              aria-describedby={fieldErrors.evidenceAvailable ? "evidenceAvailable-error" : undefined}
-              aria-errormessage={fieldErrors.evidenceAvailable ? "evidenceAvailable-error" : undefined}
-            />
-            {fieldErrors.evidenceAvailable && <p id="evidenceAvailable-error" className="mt-1 text-xs text-signal-red" role="alert">{fieldErrors.evidenceAvailable}</p>}
-          </div>
-      </>
-
+      <p className="text-sm leading-6 text-text-secondary">{polish ? "Następnie potwierdzisz adres kodem z wiadomości e-mail. Potem ocenimy dopasowanie i odpowiemy z kolejnym krokiem." : "Next, confirm your email with a code. We’ll then review the fit and reply with the next step."}</p>
       <button
         type="submit"
         disabled={status === "sending"}
@@ -915,15 +992,7 @@ export function ContactForm({
           <span>&#10003;</span> {copy.received}
         </div>
       )}
-      {status === "error" && (
-        <div
-          className="flex items-center gap-2 py-3"
-          style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-signal-red)" }}
-          role="alert"
-        >
-          {errorMessage}
-        </div>
-      )}
+
 
       <div
         className="pt-4 border-t border-surface-border"

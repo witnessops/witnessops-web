@@ -15,9 +15,6 @@ const requiredFields = [
   "name",
   "email",
   "workflow",
-  "agentPath",
-  "approvalBoundary",
-  "evidenceAvailable",
 ] as const;
 
 test("review request routes remain responsive, accessible, and usable", async ({ browser }) => {
@@ -79,6 +76,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
       "email",
       "org",
       "workflow",
+      "decisionTiming",
       "agentPath",
       "approvalBoundary",
       "evidenceAvailable",
@@ -118,15 +116,9 @@ test("review request routes remain responsive, accessible, and usable", async ({
       expect(textareaBox?.height, `${scenario.path} mobile textarea height`).toBeGreaterThanOrEqual(128);
     }
 
-    if (scenario.locale === "pl") {
-      const contactHandoff = page.locator("main [data-public-contact-route]");
-      await expect(contactHandoff).toContainText("Agent Action Security Review");
-      await expect(contactHandoff).toContainText("Główny płatny punkt wejścia");
-      await expect(contactHandoff.locator("a").first()).toHaveAttribute(
-        "href",
-        /\/pl\/review\/request\?offerId=bounded-workflow-review/,
-      );
-      await expect(contactHandoff).toContainText("engage@mail.witnessops.com");
+    await expect(page.locator("main")).toContainText("engage@mail.witnessops.com");
+    for (const name of ["decisionTiming", "agentPath", "approvalBoundary", "evidenceAvailable"]) {
+      await expect(form.locator(`#${name}`)).not.toHaveAttribute("required", "");
     }
 
     await submit.click();
@@ -139,11 +131,15 @@ test("review request routes remain responsive, accessible, and usable", async ({
       expect(describedBy?.split(/\s+/)).toContain(errorId);
       await expect(form.locator(`#${errorId}[role=alert]`)).toContainText(/\S/);
     }
+    const errorSummary = form.locator('[role="alert"][tabindex="-1"]');
+    await expect(errorSummary).toBeFocused();
+    await errorSummary.locator('a[href="#name"]').click();
     await expect(firstField).toBeFocused();
 
     await form.locator("#name").fill("Buyer Name");
     await form.locator("#email").fill("buyer@example.com");
     await form.locator("#workflow").fill("One bounded technical action");
+    await form.locator("summary").filter({ hasText: /Add context|Dodaj kontekst/ }).click();
     await form.locator("#agentPath").fill("Issue to reviewed patch");
     await form.locator("#approvalBoundary").fill("Approved action with a named stopping point");
     await form.locator("#evidenceAvailable").fill("Ticket and commit record types only");
@@ -221,7 +217,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
       fitTitle: "Rozpocznij Agent Action Security Review.",
       contractMarkers: [
         "Agent Action Security Review",
-        "€2 500 — cena stała · bez VAT",
+        "€2 500: cena stała · bez VAT",
         "jedno istotne działanie agenta lub automatyzacji",
         "Nie wklejaj sekretów",
         "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych",
@@ -256,7 +252,8 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     });
 
     const form = page.locator("main form");
-    await expect(form.getByText(scenario.fitTitle, { exact: true })).toBeVisible();
+    // Selected-offer forms omit the repeated intro and retain the canonical intent.
+    await expect(form.getByText(scenario.fitTitle, { exact: true })).toHaveCount(0);
     for (const marker of scenario.contractMarkers) {
       await expect(page.locator("main")).toContainText(marker);
     }
@@ -279,6 +276,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
       "email",
       "org",
       "workflow",
+      "decisionTiming",
       "agentPath",
       "approvalBoundary",
       "evidenceAvailable",
@@ -293,6 +291,9 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     const submit = form.locator('button[type="submit"]');
     await submit.click();
     await expect(form.locator("[aria-invalid=true]")).toHaveCount(requiredFields.length);
+    const errorSummary = form.locator('[role="alert"][tabindex="-1"]');
+    await expect(errorSummary).toBeFocused();
+    await errorSummary.locator('a[href="#name"]').click();
     await expect(form.locator("#name")).toBeFocused();
 
     await form.locator("#name").fill("Synthetic Buyer");
@@ -300,6 +301,7 @@ test("Agent Action Security Review gathers one non-secret consequential action",
     await form
       .locator("#workflow")
       .fill("An agent prepares an API-key rotation after a named human approval.");
+    await form.locator("summary").filter({ hasText: /Add context|Dodaj kontekst/ }).click();
     await form.locator("#agentPath").fill("The old key may remain active or production access may fail.");
     await form.locator("#approvalBoundary").fill("Secrets manager, deployment tool, and API provider; security lead approves.");
     await form.locator("#evidenceAvailable").fill("Production, credential, account, and permission boundaries.");
@@ -362,7 +364,7 @@ test("primary request selection canonicalizes aliases and conflicting query text
       .first(),
   ).toHaveAttribute(
     "href",
-    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20request%20%E2%80%94%20Agent%20Action%20Security%20Review",
+    "mailto:engage@mail.witnessops.com?subject=WitnessOps%20fit%20check",
   );
 
   await context.close();
@@ -443,7 +445,7 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
   const routeScenarios = [
     {
       path: "/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      heading: "Start your External Attack Surface Review",
+      heading: "Tell us what you want to check",
       intent: "OFFSEC-EXTERNAL-EXPOSURE",
       selectedOffer: /Selected offer:/,
       boundary: "No work or target-facing check starts from this form.",
@@ -451,7 +453,7 @@ test("product query routes preserve exposure scope and unresolved pilot fallback
     },
     {
       path: "/pl/review/request?productId=OFFSEC-EXTERNAL-EXPOSURE",
-      heading: "Zgłoś: External Attack Surface Review",
+      heading: "Opisz, co chcesz sprawdzić",
       intent: "OFFSEC-EXTERNAL-EXPOSURE",
       selectedOffer: /Wybrana oferta:/,
       boundary: "Samo zgłoszenie nie rozpoczyna pracy.",
@@ -528,13 +530,13 @@ test("confirmation routes fail closed without a browser-held request record", as
   const scenarios = [
     {
       path: "/review/request/confirmed",
-      title: "This page alone proves nothing.",
+      title: "No request record in this browser.",
       body: "No confirmed request record is present in this browser session.",
       restart: "/review/request",
     },
     {
       path: "/pl/review/request/confirmed",
-      title: "Ta strona sama niczego nie dowodzi.",
+      title: "Brak zapisu zgłoszenia w tej przeglądarce.",
       body: "W tej sesji przeglądarki nie ma potwierdzonego zapisu zgłoszenia.",
       restart: "/pl/review/request",
     },
@@ -575,7 +577,7 @@ test("confirmation routes render a bounded browser-held request record", async (
     {
       locale: "en",
       path: "/review/request/confirmed",
-      title: "You have the boundary record.",
+      title: "Your request is recorded.",
       status: "Mailbox confirmed",
       reviewStarted: "Review started",
       evidenceAccepted: "Customer evidence accepted",
@@ -586,7 +588,7 @@ test("confirmation routes render a bounded browser-held request record", async (
     {
       locale: "pl",
       path: "/pl/review/request/confirmed",
-      title: "Masz zapis granicy zgłoszenia.",
+      title: "Twoje zgłoszenie zostało zapisane.",
       status: "Skrzynka potwierdzona",
       reviewStarted: "Przegląd rozpoczęty",
       evidenceAccepted: "Materiały klienta przyjęte",

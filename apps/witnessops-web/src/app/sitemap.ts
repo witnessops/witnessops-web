@@ -18,6 +18,8 @@ type StaticRoute = {
 };
 
 const staticRoutes: StaticRoute[] = [
+  { route: "/catalog/automation-repair", sourcePath: "src/app/(marketing)/catalog/automation-repair/page.tsx" },
+  { route: "/pl/catalog/automation-repair", sourcePath: "src/app/pl/catalog/automation-repair/page.tsx" },
   { route: "" },
   { route: "/library", sourcePath: "src/app/(library)/library/page.tsx" },
   ...listSkills().map(({ slug }) => ({

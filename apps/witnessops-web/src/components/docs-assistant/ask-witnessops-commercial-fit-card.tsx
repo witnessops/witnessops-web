@@ -1,12 +1,13 @@
 import Link from "next/link";
 
-import { PRIMARY_OFFER } from "@/lib/commercial-truth";
+import { PRIMARY_OFFER, AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
 import type { AskWitnessOpsUiAnswer } from "./ask-witnessops-response";
 
 interface Props {
   answer: AskWitnessOpsUiAnswer;
   compact?: boolean;
   onRequestScope?: () => void;
+  onOfferSelected?: () => void;
 }
 
 const SPECIMEN_HREF =
@@ -16,7 +17,42 @@ export function AskWitnessOpsCommercialFitCard({
   answer,
   compact = false,
   onRequestScope,
+  onOfferSelected,
 }: Props) {
+  if (answer.schema === "witnessops.ask.generated-answer.v1") {
+    const recommendation = answer.recommendation;
+    if (!recommendation) return null;
+    return (
+      <section
+        className={compact ? "mt-4 border-t border-surface-border pt-4" : "mt-5 rounded border border-surface-border p-4"}
+        aria-label="Suggested service"
+      >
+        <p className="text-xs font-semibold text-brand-accent">A practical next step</p>
+        <h3 className="mt-2 text-base font-semibold text-text-primary">{recommendation.name}</h3>
+        <p className="mt-2 text-sm font-semibold text-text-primary">{recommendation.price_label}</p>
+        <p className="mt-1 text-xs leading-relaxed text-text-muted">{recommendation.delivery_label}</p>
+        {recommendation.service_id === AUTOMATION_REPAIR_OFFER.id ? <p className="mt-2 text-sm leading-6 text-text-secondary">{AUTOMATION_REPAIR_OFFER.repairPrice.en}. You can stop after diagnosis.</p> : null}
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          {onRequestScope ? (
+            <button type="button" onClick={() => { onOfferSelected?.(); onRequestScope(); }} data-ask-primary-cta
+              className="inline-flex min-h-11 items-center justify-center rounded bg-brand-accent px-3 py-2 text-sm font-semibold text-text-inverse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+              Discuss this service
+            </button>
+          ) : (
+            <Link href={recommendation.request_href} onClick={onOfferSelected} data-ask-primary-cta
+              className="inline-flex min-h-11 items-center justify-center rounded bg-brand-accent px-3 py-2 text-sm font-semibold text-text-inverse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+              Discuss this service
+            </Link>
+          )}
+          <Link href={recommendation.detail_href} onClick={onOfferSelected}
+            className="inline-flex min-h-11 items-center justify-center px-3 py-2 text-sm text-brand-accent underline underline-offset-4">
+            See scope
+          </Link>
+        </div>
+        <p className="mt-3 text-xs leading-relaxed text-text-muted">We confirm fit, scope and price before work begins.</p>
+      </section>
+    );
+  }
   const fit = answer.commercial_fit;
   const offer = fit.offer;
   if (!offer || (fit.result !== "likely" && fit.result !== "needs_boundary")) {
@@ -82,7 +118,7 @@ export function AskWitnessOpsCommercialFitCard({
           {onRequestScope ? (
             <button
               type="button"
-              onClick={onRequestScope}
+              onClick={() => { onOfferSelected?.(); onRequestScope(); }}
               className={primaryClassName}
               data-ask-primary-cta
             >

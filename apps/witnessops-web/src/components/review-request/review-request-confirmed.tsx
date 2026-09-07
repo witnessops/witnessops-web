@@ -38,7 +38,7 @@ const copy = {
   en: {
     loading: "Loading the browser-held request record…",
     eyebrow: "Review request / recorded",
-    title: "You have the boundary record.",
+    title: "Your request is recorded.",
     intro:
       "Keep the reference below. WitnessOps now has the non-secret request summary for asynchronous fit and scope review.",
     boundaryNote:
@@ -66,7 +66,7 @@ const copy = {
     proofModel: "Read the proof model",
     serviceCatalogue: "Explore the service catalogue",
     missingEyebrow: "Review request / no local record",
-    missingTitle: "This page alone proves nothing.",
+    missingTitle: "No request record in this browser.",
     missingBody:
       "No confirmed request record is present in this browser session. Open this page through the mailbox-verification flow; a direct visit does not establish that a mailbox or request was verified.",
     restart: "Start a scoped request",
@@ -74,7 +74,7 @@ const copy = {
   pl: {
     loading: "Wczytywanie zapisu zgłoszenia przechowywanego w przeglądarce…",
     eyebrow: "Zgłoszenie przeglądu / zapisane",
-    title: "Masz zapis granicy zgłoszenia.",
+    title: "Twoje zgłoszenie zostało zapisane.",
     intro:
       "Zachowaj poniższy numer referencyjny. WitnessOps ma teraz niepoufne podsumowanie zgłoszenia do asynchronicznej oceny dopasowania i zakresu.",
     boundaryNote:
@@ -102,7 +102,7 @@ const copy = {
     proofModel: "Przeczytaj model dowodowy",
     serviceCatalogue: "Zobacz katalog usług",
     missingEyebrow: "Zgłoszenie przeglądu / brak lokalnego zapisu",
-    missingTitle: "Ta strona sama niczego nie dowodzi.",
+    missingTitle: "Brak zapisu zgłoszenia w tej przeglądarce.",
     missingBody:
       "W tej sesji przeglądarki nie ma potwierdzonego zapisu zgłoszenia. Otwórz tę stronę przez proces weryfikacji skrzynki; bezpośrednia wizyta nie potwierdza skrzynki ani zgłoszenia.",
     restart: "Rozpocznij zgłoszenie zakresu",
@@ -291,7 +291,7 @@ export function ReviewRequestConfirmed({
       </div>
 
       <div className="mt-10">
-        <PublicContactRoute locale={locale} subject="fit-check" />
+        <PublicContactRoute locale={locale} subject="fit-check" compact primaryHref={locale === "pl" ? "/pl/review/request" : "/review/request"} />
       </div>
     </main>
   );

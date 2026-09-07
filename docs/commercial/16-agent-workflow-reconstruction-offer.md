@@ -12,9 +12,13 @@ The file path is retained for repository continuity. Before 2026-09-02, Agent Wo
 
 ## Buyer promise
 
-### What can your AI agent actually do in production?
+### Know what to fix before your AI agent acts.
 
-Before an AI agent or automation gets production authority, WitnessOps maps one consequential action end to end — before a customer, pentest, or incident finds the gaps for you:
+For AI product teams and automation agencies preparing a production launch or customer handover, WitnessOps reviews one consequential action and returns an action map, findings, prioritized fixes and a readout.
+
+The buying decision is concrete: understand which approval, access and evidence gaps need attention before handing that action to an agent. The review supports the customer's decision; it does not approve a launch or certify an agent as safe.
+
+We trace the action end to end:
 
 1. Who can authorise the action?
 2. What identity actually performs it?
@@ -22,9 +26,19 @@ Before an AI agent or automation gets production authority, WitnessOps maps one 
 4. What prevents the action going beyond its intended scope?
 5. What evidence binds authorisation to execution and resulting state?
 
-The trigger is an agent or automation moving from suggesting to acting, especially where the action can affect production, money, customer data, accounts, permissions, or external communications.
+The trigger is a named launch, customer handover or access expansion where an agent or automation moves from suggesting to acting. The action can affect production, money, customer data, accounts, permissions, or external communications.
 
 Typical action classes include a production deployment, account deletion, refund or payment action, customer-record change, permission change, transaction approval or escalation, or an action through an MCP, tool, or API integration. These are examples of fit, not claims of past customer engagements.
+
+### Examples a buyer can recognize
+
+| One action | Review question | Useful output |
+| --- | --- | --- |
+| A support agent issues a refund | Does the approval restrict the amount, customer and payment action the tool can perform? | The approval-to-action path, relevant permission limits, supporting evidence and prioritized gaps. |
+| An agent updates a customer record | Can it write beyond the intended records or fields, and can the change be reconstructed? | The write boundary, execution path, evidence gaps and recommended restrictions. |
+| An automation grants account access | Who approves the grant, which identity performs it, and what stops a broader grant? | The authority map, effective access boundary and recommended control changes. |
+
+These are illustrative questions and outputs, not observed findings or customer results. Report actual findings, including no identified gap where supported; do not promise a finding.
 
 ## Commercial contract
 
@@ -40,12 +54,14 @@ Typical action classes include a production deployment, account deletion, refund
 
 ## Buyer-facing outputs
 
-- authority map
-- execution path
-- permission boundary
-- evidence chain
-- control gaps and practical fixes
-- readout
+- **Authority map:** who can approve this action and under which conditions.
+- **Execution path:** the agent identity, tools and systems involved in that action.
+- **Permission boundary:** what the identity can reach and what restricts it.
+- **Evidence chain:** what supports the reported action and outcome, and what remains unknown.
+- **Control gaps and practical fixes:** each finding's consequence and recommended changes in priority order.
+- **Readout:** walk through the report, recommended fixes and decisions that remain with the buyer's team.
+
+The customer receives a practical report and action map, not just a set of technical artifacts. The customer owns the launch decision and implementation of fixes. Prioritization and plain-language explanations clarify the existing deliverables; they do not add remediation, retesting or wider scope.
 
 Security findings may include over-privileged identities, weak or implicit approval paths, tool access beyond intended scope, broken approval-to-action binding, missing execution evidence, and actions that cannot be independently demonstrated afterward.
 
@@ -95,11 +111,13 @@ Lead with:
 
 > What consequential action can the agent or automation take?
 
-Then gather only high-level, non-secret context:
+The initial form requires only name, work email and a short description of the action. Mailbox verification remains required. The following context is optional at first contact and is clarified during the fit check:
 
 - what happens if the action goes wrong;
 - which systems, tools, APIs, or MCP integrations are involved;
 - whether production, customer-data, money, account, permission, or external-communication boundaries are involved.
+
+If known, include the launch or customer-handover deadline in the action description. Buyers do not need to prepare a full system inventory or evidence package to ask about fit. Exact scope, fixed fee, required inputs and evidence handling are agreed before work starts. A short first message is not authority to access or test a system.
 
 Do not request secrets, credentials, logs, screenshots, customer data, source material, or production evidence at this stage.
 

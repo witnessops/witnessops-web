@@ -1,5 +1,20 @@
 import { publicB2bPrice } from "@/lib/commercial-price";
 
+/** Pilot commercial terms: diagnosis is paid; repair requires an accepted bounded quote. */
+export const AUTOMATION_REPAIR_OFFER = {
+  id: "automation-repair-handover",
+  route: "/catalog/automation-repair",
+  name: { en: "Automation Repair & Handover", pl: "Naprawa i przejęcie automatyzacji" },
+  commercialContract: { price: "eur_250_diagnosis_750_total_if_bounded", timing: "up_to_two_hours_diagnosis_schedule_agreed" },
+  price: publicB2bPrice("€250 diagnosis", "€250 za diagnozę"),
+  repairPrice: publicB2bPrice("€750 total, including diagnosis, if the repair fits", "€750 łącznie z diagnozą, jeśli naprawa mieści się w zakresie"),
+  timing: { en: "Up to 2 hours of diagnosis · start date agreed", pl: "Do 2 godzin diagnozy · termin ustalamy wspólnie" },
+  cardSituation: { en: "Restore the workflow your business relies on.", pl: "Przywróć proces, od którego zależy Twoja firma." },
+  situation: { en: "Broken or inherited automation? Start with one failing path. We diagnose it, restore it where feasible and test the actual business result.", pl: "Dla właścicieli firm i zespołów operacyjnych z niedziałającym lub odziedziczonym procesem. Diagnozujemy jedną ścieżkę, naprawiamy ją tam, gdzie to wykonalne, i sprawdzamy wynik w systemie docelowym." },
+  result: { en: "Diagnosis: reproduced failure or clear blocker, likely cause and a fixed repair quote. Accepted repair: tested result, updated source and operating instructions.", pl: "Diagnoza: odtworzony błąd lub konkretna przeszkoda, prawdopodobna przyczyna i stała wycena naprawy. Uzgodniona naprawa: sprawdzony wynik, aktualne źródło i instrukcja obsługi." },
+  boundary: { en: "One workflow, one failing path, up to 3 systems and 2 diagnosis hours. The €750 total applies only to an agreed repair that fits about 6 total delivery hours. If it does not fit, stop after diagnosis or accept a separate quote. No guaranteed fix, unlimited support or third-party fees included.", pl: "Jeden proces, jedna niedziałająca ścieżka, do 3 systemów i 2 godzin diagnozy. Cena €750 łącznie dotyczy tylko uzgodnionej naprawy mieszczącej się w około 6 godzinach całej pracy. Jeśli zakres jest większy, kończymy na diagnozie lub uzgadniamy osobną wycenę. Bez gwarancji naprawy, nielimitowanego wsparcia i opłat dostawców." },
+} as const;
+
 const PRIMARY_OFFER_SAMPLE_PACK = {
   en: "Sample pack with supported receipt JSON to extract and test through /verify",
   pl: "Przykładowy pakiet z obsługiwanym zapisem JSON do wyodrębnienia i sprawdzenia przez /verify",
@@ -28,15 +43,15 @@ export const PRIMARY_OFFER = {
   price: {
     amount: "2500",
     currency: "EUR",
-    ...publicB2bPrice("€2,500 fixed", "€2 500 — cena stała"),
+    ...publicB2bPrice("€2,500 fixed", "€2 500: cena stała"),
   },
   unit: {
     en: "One consequential agent or automation action",
     pl: "Jedno istotne działanie agenta lub automatyzacji",
   },
   cardSituation: {
-    en: "What can your AI agent actually do in production?",
-    pl: "Co Twój agent AI może naprawdę zrobić w produkcji?",
+    en: "Before an agent changes records, issues refunds or grants access, understand the controls around that action.",
+    pl: "Zanim agent zmieni dane, wykona zwrot lub nada dostęp, poznaj zabezpieczenia tego działania.",
   },
   fitCheck: {
     en: "Non-secret fit check first",
@@ -51,12 +66,12 @@ export const PRIMARY_OFFER = {
     pl: "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych",
   },
   situation: {
-    en: "When an AI agent or automation moves from suggesting to acting across production, money, customer data, accounts, permissions, or external communications, map one consequential action across authority, identity, permissions, tools, execution path, blast radius, and evidence before a customer, pentest, or incident finds the gaps for you.",
-    pl: "Gdy agent AI lub automatyzacja przechodzi od sugerowania do działania w produkcji, finansach, danych klientów, kontach, uprawnieniach lub komunikacji zewnętrznej, zmapuj jedno istotne działanie pod kątem upoważnienia, tożsamości, uprawnień, narzędzi, ścieżki wykonania, zasięgu skutków i dowodów — zanim luki znajdzie za Ciebie klient, pentest lub incydent.",
+    en: "Review one agent action before launch or customer handover. Find gaps in approvals, permissions and execution evidence, with practical fixes for your team to prioritize.",
+    pl: "Sprawdź jedno działanie agenta przed wdrożeniem lub przekazaniem klientowi. Poznaj luki w zatwierdzaniu, uprawnieniach i dowodach wykonania oraz priorytety poprawek.",
   },
   result: {
-    en: "An authority map, execution path, permission boundary, evidence chain, and practical fixes for over-privileged identities, weak approval paths, excessive tool access, broken approval-to-action binding, and missing execution evidence.",
-    pl: "Mapa upoważnień, ścieżka wykonania, granica uprawnień, łańcuch dowodowy i praktyczne poprawki dotyczące nadmiernych uprawnień, słabych ścieżek zatwierdzania, zbyt szerokiego dostępu do narzędzi, zerwanego powiązania zgody z działaniem i brakujących dowodów wykonania.",
+    en: "Review one action’s permissions, approvals and execution evidence. Receive an action map, findings with sources, prioritized recommendations and a readout.",
+    pl: "Sprawdź uprawnienia, zatwierdzanie i dowody wykonania jednego działania. Otrzymasz mapę działania, ustalenia ze źródłami, zalecenia według priorytetu i omówienie.",
   },
   samplePack: PRIMARY_OFFER_SAMPLE_PACK,
   included: {
@@ -156,16 +171,16 @@ export const EXTERNAL_ATTACK_SURFACE_OFFER = {
     pl: "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności, zaakceptowanego SOW, pisemnego upoważnienia, stałego zakresu, wymaganych danych wejściowych i zatwierdzonego okna zbierania",
   },
   cardSituation: {
-    en: "What can the internet see that you didn't mean to expose?",
-    pl: "Co internet widzi, choć nie miało być publiczne?",
+    en: "See what your public-facing system exposes.",
+    pl: "Sprawdź, co ujawnia Twój system dostępny z internetu.",
   },
   situation: {
-    en: "Find it before your customer, pentester, or incident does. WitnessOps inspects one authorised internet-facing system from the outside and shows you exposed hosts, services, endpoints, and attacker-visible configuration worth reviewing. No exploitation. This is not a penetration test.",
-    pl: "Znajdź to, zanim znajdzie to za Ciebie klient, pentest lub incydent. WitnessOps sprawdza z zewnątrz jeden autoryzowany system dostępny z internetu i pokazuje hosty, usługi, endpointy oraz konfigurację widoczną dla atakującego, które warto przeanalizować. Bez eksploatacji. To nie jest test penetracyjny.",
+    en: "Review one authorised internet-facing system. Find unexpected exposure and misconfiguration, with evidence and remediation priorities. No exploitation. This is not a penetration test.",
+    pl: "Sprawdź jeden autoryzowany system dostępny z internetu. Poznaj niezamierzoną ekspozycję, błędy konfiguracji i priorytety napraw. Bez eksploatacji. To nie jest test penetracyjny.",
   },
   result: {
-    en: "An external attack-surface map, evidence-backed findings, and remediation priorities for internet-facing hosts, services, and endpoints you did not expect to be public, plus attacker-visible misconfiguration.",
-    pl: "Mapa zewnętrznej powierzchni ataku, ustalenia poparte dowodami i priorytety napraw dla hostów, usług i endpointów dostępnych z internetu, które nie miały być publiczne, oraz błędów konfiguracji widocznych dla atakującego.",
+    en: "An external attack-surface map, evidence-backed findings, remediation priorities and one focused retest within 30 days.",
+    pl: "Mapa zewnętrznej powierzchni ataku, ustalenia ze źródłami, priorytety napraw i jedno sprawdzenie poprawek w ciągu 30 dni.",
   },
   boundary: {
     en: "This is not a penetration test. No exploitation, authenticated testing, brute force, credential collection, social engineering, denial of service, destructive activity, persistence, malware, exfiltration, certification, or security guarantee.",

@@ -14,7 +14,7 @@ export async function checkHomepageHero(
   checks.push(await selectorExists(page, "homepage-hero-headline", severity));
   checks.push(await selectorExists(page, "homepage-hero-body", severity));
   checks.push(await selectorExists(page, "homepage-hero-primary-cta", severity));
-  checks.push(await selectorExists(page, "homepage-demo-cta", severity));
+  checks.push(await selectorExists(page, "homepage-sample-review-cta", severity));
   checks.push(
     await selectorVisible(page, "homepage-hero-headline", "headline visible", severity),
   );
@@ -28,7 +28,7 @@ export async function checkHomepageHero(
     ),
   );
   checks.push(
-    await selectorVisible(page, "homepage-demo-cta", "demo CTA visible", severity),
+    await selectorVisible(page, "homepage-sample-review-cta", "sample CTA visible", severity),
   );
 
   const ctaBox = await page
@@ -70,7 +70,7 @@ export async function checkHomepageHero(
     .getAttribute("href")
     .catch(() => null);
   const expectedFitCheckHref =
-    "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review";
+    "/review/request";
   checks.push({
     name: "primary CTA opens the non-secret action-security fit check",
     status: primaryCtaHref === expectedFitCheckHref ? "pass" : "fail",
@@ -80,13 +80,13 @@ export async function checkHomepageHero(
   });
 
   const demoCtaHref = await page
-    .locator(uiProofSelector("homepage-demo-cta"))
+    .locator(uiProofSelector("homepage-sample-review-cta"))
     .first()
     .getAttribute("href")
     .catch(() => null);
-  const expectedDemoHref = "/review/sample-cases/ai-agent-action-proof-run";
+  const expectedDemoHref = "/catalog/workflows#sample-review";
   checks.push({
-    name: "demo CTA opens the verifiable key-rotation specimen",
+    name: "sample CTA opens the sample review finding",
     status: demoCtaHref === expectedDemoHref ? "pass" : "fail",
     severity,
     expected: expectedDemoHref,

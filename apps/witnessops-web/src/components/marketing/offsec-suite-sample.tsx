@@ -71,7 +71,7 @@ export function OffsecSuiteSample({
               <span className="font-mono">{runId}</span>
             </span>
             <span className="border border-surface-border px-3 py-1 text-xs text-text-muted">
-              <span className="font-semibold text-text-primary">Status:</span> Synthetic — not live
+              <span className="font-semibold text-text-primary">Status:</span> Synthetic, not live
             </span>
             {methodOnly ? (
               <span className="border border-brand-accent/40 bg-brand-accent/5 px-3 py-1 text-xs text-text-muted">
@@ -202,7 +202,7 @@ export function OffsecSuiteSample({
 
         <div className="border-t border-surface-border pt-10">
           <div className="flex flex-wrap gap-3">
-            <CtaButton href="/review/request" variant="primary" label="Start a non-secret fit check" />
+            <CtaButton href="/review/request" variant="primary" label="Ask about a review" />
             <CtaButton href="/review/sample-cases" variant="secondary" label="More examples" />
             {catalogHref ? (
               <CtaButton href={catalogHref} variant="secondary" label="Back to service" />

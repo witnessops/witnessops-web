@@ -38,7 +38,7 @@ const PUBLIC_CLAIM_SOURCES = [
   "src/components/marketing/offsec-suite-sample.tsx",
   "src/app/support/page.tsx",
   "src/app/verify/page.tsx",
-  "src/app/why-witnessops/page.tsx",
+  "src/components/marketing/why-witnessops.tsx",
   "src/app/customer-security-review/page.tsx",
   "../../content/witnessops/legal/privacy.mdx",
   "../../content/witnessops/legal/security.mdx",
@@ -113,6 +113,7 @@ const REQUIRED_BOUNDARY_MARKERS = [
 ] as const;
 
 const ALLOWED_NON_APP_CLAIM_SOURCES = new Set([
+  "src/components/marketing/why-witnessops.tsx",
   "src/lib/buyer-services.ts",
   "src/lib/professional-public-footprint-audit.ts",
   "src/components/marketing/buyer-catalogue.tsx",
@@ -174,8 +175,8 @@ test("homepage synthetic preview preserves English and Polish customer-evidence 
     "utf8",
   );
 
-  assert.match(source, /Synthetic example — not customer evidence/);
-  assert.match(source, /Syntetyczny przykład — nie są to materiały klienta/);
+  assert.match(source, /Synthetic example, not customer evidence/);
+  assert.match(source, /Syntetyczny przykład, nie są to materiały klienta/);
 });
 
 test("claim-boundary guard scans only public presentation sources", () => {

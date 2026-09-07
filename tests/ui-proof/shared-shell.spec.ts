@@ -60,11 +60,12 @@ const canonicalChrome = {
 } as const;
 
 const activeNavigationHref = new Map<string, string>([
+  ["/review/request", "/review/request"],
+  ["/pl/review/request", "/pl/review/request"],
   ["/catalog", "/catalog"],
   ["/pl/catalog", "/pl/catalog"],
-  ["/catalog/workflows", "/catalog/workflows"],
-  ["/library", "/library"],
-  ["/pl/library", "/pl/library"],
+  ["/docs", "/docs"],
+  ["/pl/docs", "/pl/docs"],
   ["/why-witnessops", "/why-witnessops"],
   ["/pl/why-witnessops", "/pl/why-witnessops"],
 ]);
@@ -366,7 +367,7 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
       '#witnessops-mobile-menu [aria-current="page"]',
     );
     const cta = document.querySelector<HTMLElement>(
-      '#witnessops-mobile-menu a[href^="/pl/review/request?offerId=bounded-workflow-review"]',
+      '#witnessops-mobile-menu a[href^="/pl/review/request"]',
     );
     return {
       currentBackground: current ? getComputedStyle(current).backgroundColor : null,

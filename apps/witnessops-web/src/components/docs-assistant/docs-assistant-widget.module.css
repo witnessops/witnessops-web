@@ -8,12 +8,12 @@
   --proof-accent: var(--color-brand-accent);
   --proof-rule: var(--color-surface-border);
   --proof-rule-strong: var(--color-surface-border-strong);
-  --receipt-paper: #f3f0e9;
-  --receipt-sheet: #fcfaf5;
-  --receipt-ink: #111111;
-  --receipt-muted: #625f59;
-  --receipt-rule: #cbc5ba;
-  --receipt-accent-text: #b94716;
+  --receipt-paper: #151512;
+  --receipt-sheet: #1b1b17;
+  --receipt-ink: #f3f0e9;
+  --receipt-muted: #b7b5aa;
+  --receipt-rule: #393a31;
+  --receipt-accent-text: #df874d;
 }
 
 .closedLayer {
@@ -356,11 +356,11 @@
 .answerSheet {
   --color-brand-accent: var(--receipt-accent-text);
   --color-surface-bg: var(--receipt-sheet);
-  --color-surface-bg-alt: #ebe6dd;
+  --color-surface-bg-alt: #1b1b17;
   --color-surface-border: var(--receipt-rule);
-  --color-surface-border-strong: #9e978c;
+  --color-surface-border-strong: #737466;
   --color-text-primary: var(--receipt-ink);
-  --color-text-secondary: #34322f;
+  --color-text-secondary: #d0cdc3;
   --color-text-muted: var(--receipt-muted);
   --color-text-inverse: #160b05;
   overflow: hidden;
@@ -678,6 +678,129 @@
   text-underline-offset: 0.2rem;
 }
 
+.providerDisclosure {
+  margin-top: 0;
+  max-height: 10rem;
+  overflow-y: auto;
+}
+
+.safetyLine {
+  display: block;
+  font-size: 0.72rem;
+}
+
+.answerSheetBody {
+  padding-top: 0.65rem;
+}
+
+.conversationActions,
+.feedbackRow,
+.followUpQuestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.85rem;
+}
+
+.conversationActions {
+  justify-content: space-between;
+}
+
+.conversationActions button,
+.feedbackRow button,
+.followUpQuestions button,
+.retryButton,
+.earlierTurns summary {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--proof-soft);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+  cursor: pointer;
+}
+
+.conversationActions button:first-child {
+  color: var(--proof-accent);
+}
+
+.conversationActions button:disabled {
+  opacity: 0.4;
+}
+
+.conversationActions button:focus-visible,
+.feedbackRow button:focus-visible,
+.followUpQuestions button:focus-visible,
+.retryButton:focus-visible,
+.earlierTurns summary:focus-visible {
+  outline: 3px solid var(--proof-accent);
+  outline-offset: 2px;
+}
+
+.feedbackRow {
+  margin-top: 0.25rem;
+  color: var(--proof-muted);
+  font-size: 0.7rem;
+}
+
+.followUpQuestions {
+  gap: 0.5rem;
+  padding-block: 0.25rem 0.75rem;
+}
+
+.followUpQuestions button {
+  border: 1px solid var(--proof-rule-strong);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  text-decoration: none;
+}
+
+.retryButton {
+  margin: 0 1rem 0.75rem;
+}
+
+.visitorQuestion,
+.earlierTurn,
+.recoveryLine {
+  color: var(--proof-soft);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.visitorQuestion {
+  margin: 0 0 0.75rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--proof-rule-strong);
+}
+
+.earlierTurn {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--proof-rule);
+}
+
+.earlierTurn p + p {
+  margin-top: 0.4rem;
+}
+
+.recoveryLine {
+  padding-top: 0.75rem;
+}
+
+.answerCopy {
+  overflow-wrap: anywhere;
+}
+
+@media (max-height: 34rem) {
+  .composer { margin-top: 0.4rem; padding-top: 0.4rem; }
+  .composer > .providerDisclosure { display: none; }
+  .chromeMeta { display: none; }
+  .chrome { grid-template-columns: minmax(0, 1fr) auto; }
+}
+
 .trigger {
   display: inline-flex;
   width: 44px;
@@ -822,3 +945,25 @@
     transform: none;
   }
 }
+
+/* Read answers as prose; keep controls distinct from the answer itself. */
+.chrome { grid-template-columns: minmax(0, 1fr) auto; }
+.answerCopy { font-size: 1rem; font-weight: 400; line-height: 1.7; }
+.answerSheetChrome { font-size: .75rem; letter-spacing: .025em; }
+.conversationActions button,
+.feedbackRow button,
+.followUpQuestions button,
+.earlierTurns summary { font-size: .875rem; }
+.conversationActions button:first-child { border: 1px solid var(--proof-rule-strong); border-radius: 4px; padding: .4rem .75rem; text-decoration: none; }
+.visitorQuestion, .earlierTurn, .recoveryLine { font-size: .875rem; line-height: 1.6; }
+
+@media (min-width: 701px) {
+  .trigger { background: var(--proof-bg); color: var(--proof-accent); border-color: var(--proof-rule-strong); box-shadow: none; }
+  .trigger:hover { background: var(--color-surface-card); color: var(--proof-accent); }
+}
+
+/* Below desktop, Ask remains available in the navigation menu without covering content. */
+@media (max-width: 63.999rem) {
+  .closedLayer { display: none; }
+}
+.closedLayer[data-focus-obscured="true"] { visibility: hidden; }

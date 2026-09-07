@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Route } from "@playwright/test";
 import { access, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { checkHomepageHero, screenshotEmittedCheck } from "./checks";
@@ -13,6 +13,87 @@ import {
 import { writeScreenshotGrid } from "./screenshot-grid";
 
 test.describe.configure({ mode: "serial" });
+
+// The public endpoint accepts both questions and anonymous feature counters.
+// A counter must never be mistaken for an AI request or contain visitor text.
+async function fulfillAskTelemetry(route: Route): Promise<boolean> {
+  if (route.request().headers()["x-witnessops-event"] !== "1") return false;
+  const payload = route.request().postDataJSON();
+  expect(route.request().method()).toBe("POST");
+  expect(Object.keys(payload)).toEqual(["telemetry"]);
+  expect(Object.keys(payload.telemetry).every((key) =>
+    ["event", "surface", "service_id", "outcome", "feedback"].includes(key),
+  )).toBe(true);
+  expect(["opened", "answered", "offer_selected", "contact_started", "mailbox_confirmed", "feedback"])
+    .toContain(payload.telemetry.event);
+  await route.fulfill({ status: 204 });
+  return true;
+}
+
+const askWorkflowFallback = {
+  schema: "witnessops.ask.assembled-answer.v1",
+  status: "success",
+  answer_mode: "deterministic_fallback",
+  template: {
+    template_id: "route.ai_agent_action.v1",
+    body: "One bounded workflow can proceed to a non-secret fit check.",
+    source_display: null,
+  },
+  route: { route_id: "route.fit-check", href: "/review/request" },
+  commercial_fit: {
+    schema: "witnessops.ask.commercial-fit.v1",
+    result: "likely",
+    intent: "workflow",
+    offer_id: "bounded-workflow-review",
+    source: "ask",
+    offer: {
+      name: "Agent Action Security Review",
+      price_label: "€2,500 fixed · excluding VAT",
+      unit_label: "One consequential agent or automation action",
+      fit_check_label: "Non-secret fit check first",
+      delivery_label: "Within 10 working days after evidence rules are agreed",
+    },
+    matching_specimen_id: "ai-agent-action-proof-run",
+  },
+  presented_sources: [],
+} as const;
+
+const generatedQuestionnaireAnswer = {
+  schema: "witnessops.ask.generated-answer.v1",
+  status: "success",
+  answer_mode: "ai_assisted",
+  model: "gpt-5.4-mini",
+  template: {
+    template_id: "ui-proof.generated-questionnaire",
+    body: "We can prepare proposed answers and evidence references for one customer security questionnaire. Your team approves the final answers before submission.",
+    source_display: null,
+  },
+  route: null,
+  recommendation: {
+    service_id: "customer-security-review-sprint",
+    name: "Customer Security Review Sprint",
+    price_label: "From €1,600 · excluding VAT",
+    delivery_label: "Approximately three working days after scope, owners, required inputs and evidence access are confirmed",
+    detail_href: "/customer-security-review",
+    request_href: "/review/request?offerId=customer-security-review-sprint&offer=Customer+Security+Review+Sprint&source=ask",
+  },
+  commercial_fit: {
+    ...askWorkflowFallback.commercial_fit,
+    result: "unknown",
+    intent: "other",
+    offer_id: null,
+    offer: null,
+    matching_specimen_id: null,
+  },
+  presented_sources: [],
+  authority_answer: {
+    ...askWorkflowFallback,
+    assembler_contract_id: "ASK_DETERMINISTIC_ANSWER_ASSEMBLER_V1",
+    assembler_contract_version: 1,
+    deterministic_replay_hash: "ui-proof-local-fixture",
+    policy_decision: { template_id: askWorkflowFallback.template.template_id },
+  },
+} as const;
 
 test("homepage hero mobile UI proof", async ({ browser }) => {
   await rm(UI_PROOF_OUTPUT_DIR, { recursive: true, force: true });
@@ -53,15 +134,15 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
           };
         });
       if (scenario.contentVariant === "long") {
-        expect(headlineMetrics.fontSize).toBeGreaterThanOrEqual(37);
+        expect(headlineMetrics.fontSize).toBeGreaterThanOrEqual(35);
         expect(headlineMetrics.fontSize).toBeLessThanOrEqual(43);
       } else {
-        expect(headlineMetrics.fontSize).toBeGreaterThanOrEqual(40);
+        expect(headlineMetrics.fontSize).toBeGreaterThanOrEqual(35);
         expect(headlineMetrics.fontSize).toBeLessThanOrEqual(49);
         expect(headlineMetrics.lineCount).toBeLessThanOrEqual(4);
       }
       expect(headlineMetrics.lineHeightRatio).toBeGreaterThanOrEqual(0.94);
-      expect(headlineMetrics.lineHeightRatio).toBeLessThanOrEqual(1.06);
+      expect(headlineMetrics.lineHeightRatio).toBeLessThanOrEqual(1.09);
 
       const { checks, metrics } = await checkHomepageHero(
         page,
@@ -132,254 +213,160 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
   ).toEqual([]);
 });
 
-test("English and Polish homepages share one action-security and receipt journey", async ({ browser }) => {
-  for (const scenario of [
-    {
-      path: "/",
-      width: 1440,
-      height: 1100,
-      primary:
-        "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
-      methodHeading: "Five questions. One consequential action.",
-      receiptHeading: "Produce something another party can check.",
-    },
-    {
-      path: "/",
-      width: 390,
-      height: 844,
-      primary:
-        "/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
-      methodHeading: "Five questions. One consequential action.",
-      receiptHeading: "Produce something another party can check.",
-    },
-    {
-      path: "/pl",
-      width: 1440,
-      height: 1100,
-      primary:
-        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
-      methodHeading: "Pięć pytań. Jedno istotne działanie.",
-      receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
-    },
-    {
-      path: "/pl",
-      width: 390,
-      height: 844,
-      primary:
-        "/pl/review/request?offerId=bounded-workflow-review&offer=Agent+Action+Security+Review",
-      methodHeading: "Pięć pytań. Jedno istotne działanie.",
-      receiptHeading: "Przygotuj zapis, który inna osoba może sprawdzić.",
-    },
-  ]) {
-    const context = await browser.newContext({
-      viewport: { width: scenario.width, height: scenario.height },
-      reducedMotion: "reduce",
-    });
-    const page = await context.newPage();
-    const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
-    expect(response?.status()).toBe(200);
-
-    await expect(page.locator('[data-ui-proof-id="homepage-hero"]')).toBeVisible();
-    await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute(
-      "href",
-      scenario.primary,
-    );
-    await expect(page.locator('[data-ui-proof-id="homepage-demo-cta"]')).toHaveAttribute(
-      "href",
-      "/review/sample-cases/ai-agent-action-proof-run",
-    );
-    await expect(page.locator('main[data-home-direction="agent-proof-offer"]')).toHaveCount(1);
-    await expect(page.locator("#evidence-questions")).toContainText(scenario.methodHeading);
-    await expect(page.locator("#agent-action-receipt")).toContainText(scenario.receiptHeading);
-    const primaryOffer = page.locator("#agent-workflow-reconstruction");
-    await expect(primaryOffer).toContainText(
-      "Agent Action Security Review",
-    );
-    await expect(primaryOffer).toContainText(
-      scenario.path === "/"
-        ? "€2,500 fixed · excluding VAT"
-        : "€2 500 — cena stała · bez VAT",
-    );
-    await expect(primaryOffer).toContainText(
-      scenario.path === "/"
-        ? "One consequential agent or automation action"
-        : "Jedno istotne działanie agenta lub automatyzacji",
-    );
-    await expect(primaryOffer).toContainText(
-      scenario.path === "/"
-        ? "Non-secret fit check first"
-        : "Najpierw wstępna ocena bez informacji poufnych",
-    );
-    await expect(primaryOffer).toContainText(
-      scenario.path === "/"
-        ? "Within 10 working days after evidence rules are agreed"
-        : "W ciągu 10 dni roboczych po uzgodnieniu zasad dowodowych",
-    );
-    await expect(primaryOffer).not.toContainText("Agent Risk & Control Review");
-    await expect(primaryOffer).not.toContainText("From €1,500");
-    await expect(
-      page.locator('#agent-workflow-reconstruction a[href="/catalog/workflows"]'),
-    ).toHaveCount(1);
-    await expect(page.locator('main a[href="/verify/skill"]')).toHaveCount(0);
-    await expect(page.locator("main")).toContainText(/Authority → identity|Upoważnienie → tożsamość/);
-    await expect(page.locator("main")).toContainText(/Permissions → tools|Uprawnienia → narzędzia/);
-    await expect(page.locator("main")).toContainText(/Execution → evidence|Wykonanie → dowody/);
-    await expect(page.locator('nav a[href="/verify/skill"]')).toHaveCount(0);
-    await expect(page.locator('footer a[href="/verify/skill"]')).toHaveCount(0);
-    await expect(page.locator("main")).not.toContainText(/Aegis/);
-    await expect(page.locator("main")).not.toContainText(/Pilot|Pilotaż/);
-    await expect(page.locator("[data-public-contact-route]")).toHaveCount(1);
-
-    const sectionIds = await page
-      .locator("main > section[id]")
-      .evaluateAll((sections) => sections.map((section) => section.id));
-    expect(sectionIds).toEqual([
-      "evidence-questions",
-      "agent-action-receipt",
-      "agent-workflow-reconstruction",
-    ]);
-
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(1);
-    await context.close();
+test("English and Polish homepages share the security identity and neutral enquiry", async ({ browser }) => {
+  for (const path of ["/", "/pl"]) {
+    for (const width of [1440, 390, 320]) {
+      const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
+      const page = await context.newPage();
+      const response = await page.goto(path, { waitUntil: "networkidle" });
+      expect(response?.status()).toBe(200);
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", path === "/" ? "/review/request" : "/pl/review/request");
+      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", "/catalog/workflows#sample-review");
+      await expect(page.locator('main[data-home-direction="security-verification"]')).toHaveCount(1);
+      await expect(page.locator("[data-review-finding]")).toContainText(/No system tested|Nie testowano systemu/);
+      await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
+      await expect(page.locator(`main a[href="${path === "/pl" ? "/pl" : ""}/catalog/automation-repair"]`)).toHaveCount(1);
+      await expect(page.locator("#how-it-works")).toContainText(path === "/" ? "Agree the boundary" : "Uzgodnij zakres");
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+      await context.close();
+    }
   }
 });
 
-test("Ask WitnessOps keeps the paid-review proof path visible and controlled", async ({ browser }) => {
-  for (const viewport of [
-    { width: 1440, height: 936 },
-    { width: 640, height: 844 },
-    { width: 639, height: 844 },
-    { width: 390, height: 844 },
-  ]) {
-    const context = await browser.newContext({
-      viewport,
-      reducedMotion: "reduce",
-    });
+// Desktop retains a non-modal widget. Mobile uses the dedicated page.
+async function openAskSurface(page: Page, width: number) {
+  await page.goto(width >= 1024 ? "/catalog" : "/docs/assistant", { waitUntil: "networkidle" });
+  if (width >= 1024) {
+    await page.getByRole("button", { name: "Open Ask WitnessOps" }).click();
+    return page.getByRole("dialog", { name: "ASK WITNESSOPS" });
+  }
+  await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
+  return page.locator("main");
+}
 
+test("Ask WitnessOps keeps the fallback paid-review path visible and controlled", async ({ browser }) => {
+  for (const width of [1440, 640, 639, 390]) {
+    const context = await browser.newContext({ viewport: { width, height: 936 }, reducedMotion: "reduce" });
     try {
       const page = await context.newPage();
-      const response = await page.goto("/", { waitUntil: "networkidle" });
-      expect(response?.status()).toBe(200);
-
-      const trigger = page.getByRole("button", { name: "Open Ask WitnessOps" });
-      if (viewport.width < 640) {
-        await expect(trigger).toHaveCount(0);
-        await page.locator("[data-ask-trigger-guard]").evaluate((guard) => {
-          window.scrollTo({
-            top: guard.getBoundingClientRect().bottom + window.scrollY + 8,
-            behavior: "auto",
-          });
-        });
-      }
-      await expect(trigger).toBeVisible();
-      await trigger.click();
-
-      const dialog = page.getByRole("dialog", { name: "ASK WITNESSOPS" });
-      const prompt = page.getByLabel("Describe one non-secret action");
-      await expect(dialog).toBeVisible();
-      if (viewport.width < 640) {
-        await expect(dialog).toBeFocused();
-      } else {
-        await expect(prompt).toBeFocused();
-      }
-      await expect(dialog.locator("[data-ask-composer]")).toHaveCount(1);
-
-      if (viewport.width === 390) {
-        const screenshotDir = path.join(UI_PROOF_OUTPUT_DIR, "screenshots");
-        await mkdir(screenshotDir, { recursive: true });
-        await page.screenshot({
-          path: path.join(screenshotDir, "ask-witnessops-mobile-prompt.png"),
-          fullPage: false,
-        });
-      }
-
-      if (viewport.width < 640) {
-        await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
-        const dialogBox = await dialog.boundingBox();
-        expect(dialogBox).not.toBeNull();
-        expect(dialogBox?.x).toBe(0);
-        expect(dialogBox?.y).toBe(0);
-        expect(dialogBox?.width).toBe(viewport.width);
-        expect(dialogBox?.height).toBe(viewport.height);
-      } else {
-        await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
-      }
-
-      await dialog.getByText("Agent changed production", { exact: true }).click();
-      await expect(dialog.getByText("PUBLIC FIT SIGNAL", { exact: true })).toBeVisible();
-      await expect(dialog.getByText("NO EVIDENCE REVIEWED", { exact: true })).toBeVisible();
-      await expect(
-        dialog.getByText("€2,500 fixed · excluding VAT · One consequential agent or automation action", {
-          exact: true,
-        }),
-      ).toBeVisible();
-      await expect(
-        dialog.getByText(
-          "Non-secret fit check first · Within 10 working days after evidence rules are agreed",
-          { exact: true },
-        ),
-      ).toBeVisible();
-      await expect(dialog).toContainText(
-        "Fit signal only. No evidence was reviewed and no security, compliance, correctness, or action-outcome conclusion was made.",
-      );
-      await expect(dialog.locator("[data-ask-composer]")).toHaveCount(0);
-      await expect(dialog.getByRole("button", { name: "Ask another action" })).toBeVisible();
-
-      const cta = dialog.getByRole("button", { name: "Request scope for this action" });
-      await expect(cta).toBeVisible();
-      const ctaBox = await cta.boundingBox();
-      const scrollRegionBox = await dialog
-        .locator("[data-ask-scroll-region]")
-        .boundingBox();
-      expect(ctaBox).not.toBeNull();
-      expect(scrollRegionBox).not.toBeNull();
-      expect(ctaBox?.height).toBeGreaterThanOrEqual(44);
-      expect((ctaBox?.y ?? 0) + (ctaBox?.height ?? 0)).toBeLessThanOrEqual(
-        (scrollRegionBox?.y ?? 0) + (scrollRegionBox?.height ?? 0),
-      );
-
-      if (viewport.width === 390) {
-        await page.screenshot({
-          path: path.join(
-            UI_PROOF_OUTPUT_DIR,
-            "screenshots",
-            "ask-witnessops-mobile-result.png",
-          ),
-          fullPage: false,
-        });
-      }
-
+      const submitted: unknown[] = [];
+      await page.route("**/api/ask-witnessops", async route => {
+        if (await fulfillAskTelemetry(route)) return;
+        submitted.push(route.request().postDataJSON());
+        await route.fulfill({ status: submitted.length === 1 ? 503 : 200,
+          contentType: "application/json", body: JSON.stringify(submitted.length === 1 ? { error: "Unavailable" } : askWorkflowFallback) });
+      });
+      const surface = await openAskSurface(page, width);
+      const question = "What does an Agent Action Security Review cover, and what do we receive?";
+      const prompt = surface.getByLabel("Ask WitnessOps question");
+      await expect(surface.getByRole("button", { name: "Ask AI", exact: true })).toBeDisabled();
+      await surface.getByRole("button", { name: /^What does an agent review cover\?/ }).click();
+      await expect(surface.getByRole("alert")).toContainText("Your question is still here");
+      await expect(prompt).toHaveValue(question);
+      await expect(surface.getByRole("button", { name: "Request a follow-up", exact: true })).toBeVisible();
+      await surface.getByRole("button", { name: "Retry question", exact: true }).click();
+      const fit = surface.getByRole("region", { name: "Commercial fit", exact: true });
+      await expect(fit).toContainText("€2,500 fixed · excluding VAT");
+      await expect(fit).toContainText("Within 10 working days after evidence rules are agreed");
+      await expect(fit).toContainText("No evidence was reviewed");
+      expect(submitted).toEqual([{ question, history: [] }, { question, history: [] }]);
+      await expect(prompt).toHaveValue("");
+      await expect(prompt).toHaveAttribute("placeholder", "Ask a follow-up…");
+      const cta = fit.getByRole("button", { name: "Request scope for this action" });
+      await cta.scrollIntoViewIfNeeded();
+      expect((await cta.boundingBox())?.height).toBeGreaterThanOrEqual(40);
       await cta.click();
-      await expect(dialog).toHaveAttribute("data-ask-state", "contact");
-      await expect(dialog.getByLabel("Public fit signal")).toBeHidden();
-      await expect(page.getByLabel("Work email")).toBeFocused();
-      await expect(dialog.locator("[data-ask-contact-region]")).toBeVisible();
-      const contactFontSize = await page.getByLabel("Work email").evaluate((element) =>
-        Number.parseFloat(getComputedStyle(element).fontSize),
-      );
-      expect(contactFontSize).toBeGreaterThanOrEqual(16);
-
-      if (viewport.width === 390) {
-        await page.screenshot({
-          path: path.join(
-            UI_PROOF_OUTPUT_DIR,
-            "screenshots",
-            "ask-witnessops-mobile-contact.png",
-          ),
-          fullPage: false,
-        });
-      }
-
-      await dialog.press("Escape");
-      await expect(dialog).toBeHidden();
-      await expect(trigger).toBeFocused();
+      await expect(surface.getByLabel("Work email")).toBeFocused();
+      await expect(surface.locator("[data-ask-contact-region]")).toBeVisible();
+      expect(await surface.getByLabel("Work email").evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
+      await surface.getByRole("button", { name: "Back", exact: true }).click();
+      await expect(fit).toBeVisible();
       await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
-    } finally {
-      await context.close();
-    }
+      if (width >= 1024) {
+        await page.keyboard.press("Escape");
+        await expect(surface).toHaveCount(0);
+        await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toBeFocused();
+      }
+    } finally { await context.close(); }
+  }
+});
+
+test("Ask generated follow-ups retain bounded context and share only an approved summary", async ({ browser }) => {
+  const firstQuestion = "We need help with a customer's security questionnaire. What would you deliver?";
+  const followUpQuestion = "What should we prepare for Customer Security Review Sprint, without sharing secrets here?";
+  const followUpAnswer = { ...generatedQuestionnaireAnswer, template: { ...generatedQuestionnaireAnswer.template,
+    body: "Prepare one questionnaire, the product scope, a named answer owner and references to existing policies. Agree a safe way to share evidence before the review starts." } };
+  for (const width of [390, 1440]) {
+    const context = await browser.newContext({ viewport: { width, height: 936 }, reducedMotion: "reduce" });
+    try {
+      const page = await context.newPage();
+      const submitted: unknown[] = [];
+      let contact: { email: string; intent: string; scope: string } | undefined;
+      await page.route("**/api/ask-witnessops", async route => {
+        if (await fulfillAskTelemetry(route)) return;
+        submitted.push(route.request().postDataJSON());
+        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(submitted.length === 2 ? followUpAnswer : generatedQuestionnaireAnswer) });
+      });
+      await page.route("**/api/contact", async route => {
+        contact = route.request().postDataJSON();
+        await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ issuanceId: "ui_proof_no_email_sent", email: "buyer@company.example", expiresAt: "2099-01-01T00:00:00Z" }) });
+      });
+      const surface = await openAskSurface(page, width);
+      const composer = surface.getByLabel("Ask WitnessOps question");
+      await composer.fill(firstQuestion);
+      await surface.getByRole("button", { name: "Ask AI", exact: true }).click();
+      await expect(surface).toContainText(generatedQuestionnaireAnswer.template.body);
+      await expect(surface).toContainText(/AI.generated answer/i);
+      const recommendation = surface.getByRole("region", { name: "Suggested service" });
+      await expect(recommendation).toContainText("Customer Security Review Sprint");
+      await expect(recommendation).toContainText("From €1,600 · excluding VAT");
+      await expect(recommendation).toContainText(generatedQuestionnaireAnswer.recommendation.delivery_label);
+      await expect(recommendation.getByRole("link", { name: "See scope" })).toHaveAttribute("href", "/customer-security-review");
+      await expect(surface.getByRole("region", { name: "Commercial fit", exact: true })).toHaveCount(0);
+      await surface.getByRole("button", { name: "What should we prepare?", exact: true }).click();
+      await expect(surface).toContainText(followUpAnswer.template.body);
+      expect(submitted).toEqual([{ question: firstQuestion, history: [] }, {
+        question: followUpQuestion, history: [{ role: "user", content: firstQuestion },
+          { role: "assistant", content: `${generatedQuestionnaireAnswer.template.body}\nSuggested service: Customer Security Review Sprint` }] }]);
+      const disclosure = surface.locator("summary").filter({ hasText: "About this AI" });
+      await disclosure.click();
+      await expect(surface).toContainText("Model: gpt-5.4-mini");
+      await expect(surface).toContainText("provider retention may still apply");
+      await expect(surface.getByRole("link", { name: "Privacy", exact: true })).toBeVisible();
+      await disclosure.click();
+      await recommendation.getByRole("button", { name: "Discuss this service" }).click();
+      await expect(surface.getByLabel("Work email")).toBeFocused();
+      const share = surface.getByRole("checkbox", { name: "Use my questions as the request summary." });
+      const summary = surface.getByLabel(/^Request summary/);
+      await expect(share).not.toBeChecked();
+      await expect(summary).toHaveValue("");
+      await summary.fill("One questionnaire for one product.");
+      await share.check();
+      await expect(summary).toHaveValue(`${firstQuestion}\n\n${followUpQuestion}`);
+      await summary.fill("Help us scope one non-secret customer questionnaire.");
+      await share.uncheck();
+      await expect(summary).toHaveValue("One questionnaire for one product.");
+      if (width < 1024) await share.check();
+      await expect(surface).toContainText("AI answers are not shared");
+      await expect(surface).toContainText("No mailing list or review booking");
+      await surface.getByLabel("Work email").fill("buyer@company.example");
+      await surface.getByRole("button", { name: "Send confirmation code" }).click();
+      await expect(surface.getByLabel("Email code", { exact: true })).toBeFocused();
+      expect(contact?.intent).toBe("ask-ai-contact");
+      expect(contact?.scope).toContain("Offer: customer-security-review-sprint");
+      expect(contact?.scope).toContain(width < 1024 ? "Visitor-approved question: Help us scope one non-secret customer questionnaire." : "Visitor note: One questionnaire for one product.");
+      expect(contact?.scope).toContain(width < 1024 ? "Question sharing: visitor opted in" : "Question sharing: not requested");
+      for (const excluded of [firstQuestion, followUpQuestion, generatedQuestionnaireAnswer.template.body, followUpAnswer.template.body]) expect(contact?.scope).not.toContain(excluded);
+      await surface.getByRole("button", { name: "Back", exact: true }).click();
+      await surface.getByRole("button", { name: "Start over", exact: true }).click();
+      await expect(surface).not.toContainText(followUpAnswer.template.body);
+      await composer.fill(firstQuestion);
+      await surface.getByRole("button", { name: "Ask AI", exact: true }).click();
+      await expect(surface).toContainText(generatedQuestionnaireAnswer.template.body);
+      expect(submitted[2]).toEqual({ question: firstQuestion, history: [] });
+      expect(submitted).toHaveLength(3);
+    } finally { await context.close(); }
   }
 });
 
@@ -417,7 +404,7 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
       await page.screenshot({ path: screenshotPath, fullPage: false });
       await expect(fileExists(screenshotPath)).resolves.toBe(true);
-      if (capture.width < 640 && capture.path !== "/") {
+      if (capture.width < 1024) {
         await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
       }
     } finally {

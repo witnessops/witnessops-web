@@ -10,7 +10,7 @@ const styles = readFileSync(resolve(import.meta.dirname, "witnessed-action.modul
 
 test("public route is explicitly a recorded synthetic replay", () => {
   assert.match(page, /Recorded specimen\. Demo\. Synthetic data\. This is a replay of one completed run, not live computer use\./);
-  assert.match(replay, /Recorded specimen — approving starts the replay\. No live system or record will be changed\./);
+  assert.match(replay, /Recorded specimen: approving starts the replay\. No live system or record will be changed\./);
   assert.match(replay, /Approve scope and replay/);
   assert.match(replay, /Original run authority/);
   assert.match(replay, /Visitor replay consent/);

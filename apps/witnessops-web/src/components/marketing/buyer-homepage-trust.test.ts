@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+import CatalogWorkflowsPage from "@/app/(marketing)/catalog/workflows/page";
 
 import {
   sampleCommitShort,
@@ -24,133 +28,41 @@ const polishCustomerReviewSource = readFileSync(
 );
 const onePagerDir = resolve(__dirname, "../../../public/assets/one-pagers");
 
-test("homepage leads with the security review and keeps the receipt specimen lower", () => {
-  assert.equal(
-    PRIMARY_OFFER.cardSituation.en,
-    "What can your AI agent actually do in production?",
-  );
-  assert.match(
-    source,
-    /title: "Your AI agent can act in production\. Can you prove what it was allowed to do\?"/,
-  );
-  assert.match(
-    source,
-    /Review one consequential agent or automation action: who authorizes it, which identity executes it, what it can reach, what limits it, and what evidence remains afterward\./,
-  );
-  assert.match(
-    source,
-    /You get an authority map, execution path, permission boundary, evidence chain, and practical fixes\./,
-  );
-  assert.match(source, /primaryCta: "Check if your workflow fits"/);
-  assert.match(source, /className=\{styles\.heroOfferName\}>\{heroCopy\.eyebrow\}/);
-  assert.match(source, /Authority → identity/);
-  assert.match(source, /Who approves, and what actually executes\?/);
-  assert.match(source, /Permissions → tools/);
-  assert.match(source, /What can that identity really reach\?/);
-  assert.match(source, /Execution → evidence/);
-  assert.match(source, /What constrains the action and proves the result\?/);
-  assert.match(source, /Paid review/);
-  assert.match(source, /Produce something another party can check\./);
-  assert.match(source, /Five questions\. One consequential action\./);
-  assert.match(source, /Who can authorize it\?/);
-  assert.match(source, /What identity performs it\?/);
-  assert.match(source, /What can it reach\?/);
-  assert.match(source, /What limits the blast radius\?/);
-  assert.match(source, /What evidence remains\?/);
-  assert.match(source, /Verified synthetic specimen — not live customer evidence/);
-  assert.match(source, /sampleSourceRepository/);
-  assert.match(source, /sampleCommitShort/);
-  assert.match(source, /sampleManifestSha256/);
-  assert.equal(sampleSourceRepository, "witnessops/witnessops-sample-cases");
-  assert.equal(sampleCommitShort, "d4ad234bd815");
-  assert.equal(
-    sampleManifestSha256,
-    "9d8668507f3da027886a1847a92b705671063ed89cbb354d45909c119bb414e7",
-  );
-  assert.match(source, /VALID_SYNTHETIC_SPECIMEN/);
-  assert.match(source, /does not establish production deployment, compliance/);
-  assert.match(source, /A receipt is only as strong as its named evidence and verifier/);
-  assert.match(source, /Run and verify the compromised API key rotation demo/);
-  assert.match(source, /data-ui-proof-id="homepage-demo-cta"/);
-  assert.match(source, /id="evidence-questions"/);
-  assert.match(source, /id="agent-action-receipt"/);
-  assert.match(source, /id="agent-workflow-reconstruction"/);
-  assert.equal(
-    source.match(/href: "#agent-action-receipt"/g)?.length,
-    2,
-    "both locales should target the receipt section that exists on initial render",
-  );
-  assert.doesNotMatch(
-    source,
-    /witnessed-crm-status-change#receipt/,
-    "the homepage must not promise a conditional receipt-stage fragment",
-  );
-  assert.match(source, /\/review\/sample-cases\/ai-agent-action-proof-run/);
-  assert.doesNotMatch(source, /\/verify\/skill/);
-  assert.match(
-    source,
-    /buyerPublicOfferRequestHref\(\s*locale,\s*PRIMARY_OFFER\.id,\s*\)/,
-  );
-  assert.doesNotMatch(source, /productId=WORKFLOW-S/);
-  assert.doesNotMatch(source, /Aegis/);
-  assert.doesNotMatch(source, /external verification/i);
-  assert.doesNotMatch(source, /Every consequential agent action gets a verifiable receipt/i);
-  assert.match(
-    source,
-    /No secrets required for the fit check · Evidence handling agreed before intake · Never send passwords, private keys, API keys, tokens, or recovery codes/,
-  );
+test("the sample-review link reaches a fictional review with evidence limits, not a verifier verdict", () => {
+  const html = renderToStaticMarkup(createElement(CatalogWorkflowsPage));
+  assert.match(html, /href="\/catalog\/workflows#sample-review"/);
+  assert.match(html, /id="sample-review"/);
+  assert.match(html, /Synthetic example · Not customer evidence/);
+  assert.match(html, /All inputs and findings below are fictional; no system was tested/);
+  assert.match(html, /document-level inconsistency, not an observed unauthorized refund/);
+  assert.match(html, /No execution log or provider result is supplied/);
+  assert.match(html, /No fix or retest has been performed in this illustration/);
+  assert.match(html, /href="\/review\/sample-cases\/ai-agent-action-proof-run"/);
+  assert.doesNotMatch(html.slice(html.indexOf('id="sample-review"'), html.indexOf('aria-labelledby="buyer-preparation-heading"')), /VALID_SYNTHETIC_SPECIMEN|data-verdict="valid"/);
 });
 
-test("Agent Action Security Review is the named, priced, bounded homepage offer", () => {
-  const offer = BUYER_SERVICES.find(
-    (service) => service.id === "bounded-workflow-review",
-  );
+test("homepage leads with security and evidence while keeping repair accessible", () => {
+  assert.match(source, /Find security gaps in your AI and automation/);
+  assert.match(source, /ReviewFinding/);
+  assert.match(source, /buyerRequestHref\(locale\)/);
+  assert.match(source, /\/catalog\/automation-repair/);
+  assert.match(source, /not customer evidence/);
+  assert.match(source, /does not establish a real provider action/);
+  assert.doesNotMatch(source, /€250|€750|Meet Karol|Work directly with|RepairOptions|VALID_SYNTHETIC_SPECIMEN/);
+});
 
-  assert.equal(offer?.name.en, "Agent Action Security Review");
-  assert.equal(offer?.name.pl, "Agent Action Security Review");
-  assert.equal(offer?.homepageFeatured, true);
-  assert.equal(offer?.commercialRole, "primary");
-  assert.equal(offer?.productId, undefined);
-  assert.equal(offer?.price.en, "€2,500 fixed · excluding VAT");
-  assert.equal(
-    offer?.timing.en,
-    "Within 10 working days after evidence rules are agreed",
-  );
-  assert.match(offer?.boundary.en ?? "", /One consequential agent or automation action only/);
-  assert.equal(PRIMARY_OFFER.fitCheck.en, "Non-secret fit check first");
-  assert.equal(
-    PRIMARY_OFFER.unit.en,
-    "One consequential agent or automation action",
-  );
-  assert.deepEqual(PRIMARY_OFFER.included.en, [
-    "Authority map",
-    "Execution path",
-    "Permission boundary",
-    "Evidence chain",
-    "Control gaps and practical fixes",
-    "Readout",
-  ]);
-  assert.match(source, /offerTitle: PRIMARY_OFFER\.name\.en/);
-  assert.match(source, /Review production authority before the agent acts\./);
-  assert.match(source, /deliverables: PRIMARY_OFFER\.included\.en/);
-  assert.match(
-    source,
-    /WitnessOps reviews one consequential agent or automation action across authority, identity, permissions, tools, execution, and evidence\./,
-  );
-  assert.match(
-    source,
-    /\$\{PRIMARY_OFFER\.price\.en\} · \$\{PRIMARY_OFFER\.fitCheck\.en\} · \$\{PRIMARY_OFFER\.unit\.en\} · \$\{PRIMARY_OFFER\.timing\.en\}/,
-  );
-  assert.match(
-    source,
-    /A practical security handover showing the execution path, permission boundary, evidence chain, control gaps, and the smallest useful fixes\./,
-  );
-  assert.match(
-    source,
-    /Bring one consequential action\. Review its authority, access, blast radius, and evidence\./,
-  );
-  assert.match(source, /See scope and pricing/);
-  assert.doesNotMatch(source, /Agent Risk & Control Review|From €1,500/);
+test("security leads while the repair contract stays intact", () => {
+  const lead = BUYER_SERVICES.find(service => service.commercialRole === "primary");
+  assert.equal(lead?.id, PRIMARY_OFFER.id);
+  const repair = BUYER_SERVICES.find(service => service.id === "automation-repair-handover");
+  assert.equal(repair?.price.en, "€250 diagnosis · excluding VAT");
+  assert.match(repair?.boundary.en ?? "", /stop after diagnosis or accept a separate quote/);
+  const specialist = BUYER_SERVICES.find(service => service.id === PRIMARY_OFFER.id);
+  assert.equal(specialist?.homepageFeatured, true);
+  assert.equal(specialist?.price.en, "€2,500 fixed · excluding VAT");
+  assert.equal(sampleSourceRepository, "witnessops/witnessops-sample-cases");
+  assert.equal(sampleCommitShort, "d4ad234bd815");
+  assert.equal(sampleManifestSha256, "9d8668507f3da027886a1847a92b705671063ed89cbb354d45909c119bb414e7");
 });
 
 test("External Attack Surface Review remains a current catalog offer but is not the homepage lead", () => {

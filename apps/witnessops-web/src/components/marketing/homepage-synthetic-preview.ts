@@ -26,7 +26,7 @@ export const HOMEPAGE_SYNTHETIC_PREVIEW = {
   ],
   localized: {
     en: {
-      panelLabel: "Synthetic example — not customer evidence",
+      panelLabel: "Synthetic example, not customer evidence",
       priority: "Informational",
       title: "Synthetic public metadata marker is exposed",
       observedLabel: "Observed",
@@ -39,7 +39,7 @@ export const HOMEPAGE_SYNTHETIC_PREVIEW = {
       sampleAction: "View the full sample →",
     },
     pl: {
-      panelLabel: "Syntetyczny przykład — nie są to materiały klienta",
+      panelLabel: "Syntetyczny przykład, nie są to materiały klienta",
       priority: "Informacyjne",
       title: "Ujawniono syntetyczny znacznik publicznych metadanych",
       observedLabel: "Zaobserwowano",
