@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { generateKeyPairSync, sign } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { verifyReceipt, verifyReceiptVerdict } from "./verify-receipt";
@@ -296,4 +297,46 @@ describe("structured verdict — verifyReceiptVerdict", () => {
     assert.equal(verdict.proof_stage_verified, "unknown");
     assert.equal(verdict.result, "limited-pass");
   });
+});
+
+
+describe("signature subject binding", () => {
+  function resign(receipt: any, witness = false) {
+    const { privateKey, publicKey } = generateKeyPairSync("ed25519");
+    const subject = witness ? receipt.witnesses[0].subject : receipt.attestation.signed_subject;
+    const payload = JSON.stringify({ type: subject.type ?? "record_digest", algorithm: subject.algorithm, value: subject.value });
+    const signature = sign(null, Buffer.from(payload), privateKey).toString("base64");
+    const key = publicKey.export({ format: "der", type: "spki" }).toString("base64");
+    if (witness) Object.assign(receipt.witnesses[0].signature, { value: signature, public_key: key });
+    else { receipt.attestation.signature = signature; receipt.attestation.signing_key.public_key = key; }
+  }
+
+  it("rejects unsigned record algorithm changes with an intact valid signature", () => {
+    const receipt: any = loadFixture("pv-valid");
+    assert.equal(verifyReceipt(receipt).checks.local_signature.status, "pass");
+    receipt.integrity.record_digest.algorithm = "blake3";
+    receipt.integrity.primary_digest_algorithm = "blake3";
+    assert.equal(verifyReceipt(receipt).checks.local_signature.status, "fail");
+  });
+
+  for (const stage of ["pv", "qv", "wv"]) {
+    for (const type of ["artifact_digest", undefined, null]) {
+      it(`rejects ${stage} signed subject type ${String(type)} even with a valid signature`, () => {
+        const receipt: any = loadFixture(`${stage}-valid`);
+        receipt.attestation.signed_subject.type = type;
+        resign(receipt);
+        assert.equal(verifyReceipt(receipt).checks.local_signature.status, "fail");
+      });
+    }
+  }
+
+  for (const mutation of [{ type: "artifact_digest" }, { algorithm: "sha256" }, { type: undefined }]) {
+    it(`rejects a witness subject mismatch ${JSON.stringify(mutation)}`, () => {
+      const receipt: any = loadFixture("wv-valid");
+      Object.assign(receipt.witnesses[0].subject, mutation);
+      resign(receipt, true);
+      const result: any = verifyReceipt(receipt);
+      assert.equal(result.checks.witness_subject_matches.status, "fail");
+    });
+  }
 });

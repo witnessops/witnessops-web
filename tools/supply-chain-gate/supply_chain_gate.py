@@ -626,22 +626,63 @@ def pnpm_package_blocks(text: str) -> list[tuple[str, list[str]]]:
             blocks.append((current_key, current_lines))
         current_key, current_lines = None, []
 
-    for line in text.splitlines():
-        top = re.match(r"^([A-Za-z][A-Za-z0-9_-]*):\s*$", line)
-        if top:
+    seen_sections: set[str] = set()
+    seen_packages: set[str] = set()
+    package_fields: set[str] = set()
+    resolution_fields: set[str] = set()
+    in_resolution = False
+    for line_number, line in enumerate(text.splitlines(), 1):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if "\t" in line:
+            raise GateError(f"unsupported pnpm YAML at line {line_number}: tab")
+        if not line.startswith(" "):
+            # Accept pnpm's emitted top-level form only. Quoted/aliased keys,
+            # duplicate maps and flow-style packages must never be skipped.
+            top = re.fullmatch(r"([A-Za-z][A-Za-z0-9_-]*):(?: +(.*))?", line.rstrip())
+            if not top or top.group(1) in seen_sections:
+                raise GateError(f"unsupported or duplicate pnpm section at line {line_number}")
             flush()
             section = top.group(1)
+            seen_sections.add(section)
+            if section == "packages" and top.group(2) is not None:
+                raise GateError("unsupported pnpm packages serialization; regenerate with pnpm")
             continue
         if section != "packages":
             continue
-        entry = re.match(r"^  (\S.*):\s*$", line)
+        entry = re.fullmatch(r"  (\S.*):\s*", line)
         if entry:
             flush()
             current_key = decode_yaml_scalar(entry.group(1))
+            if current_key in seen_packages:
+                raise GateError(f"duplicate pnpm package entry at line {line_number}")
+            seen_packages.add(current_key)
+            package_fields = set()
+            resolution_fields = set()
+            in_resolution = False
             continue
-        if current_key is not None:
-            current_lines.append(line)
+        if current_key is None or not line.startswith("    "):
+            raise GateError(f"unsupported pnpm package serialization at line {line_number}; regenerate with pnpm")
+        if not line.startswith("     "):
+            field = re.fullmatch(r"    ([A-Za-z][A-Za-z0-9_-]*):(?: +(.*))?", line.rstrip())
+            if not field or field[1] in package_fields:
+                raise GateError(f"unsupported or duplicate pnpm package field at line {line_number}")
+            package_fields.add(field[1])
+            in_resolution = field[1] == "resolution" and field[2] is None
+            if field[1] == "resolution" and field[2] is not None:
+                parse_inline_resolution(field[2])
+        elif in_resolution:
+            field = re.fullmatch(r"      ['\"]?(integrity|tarball|type|repo|commit|path)['\"]?: +(.+)", line)
+            if not field or field[1] in resolution_fields:
+                raise GateError(f"unsupported or duplicate pnpm resolution field at line {line_number}")
+            resolution_fields.add(field[1])
+            # Aliases, tags, multiline and nested values are outside this parser.
+            if field[2].startswith(("*", "&", "!", "|", ">", "{", "[")):
+                raise GateError(f"unsupported pnpm resolution value at line {line_number}")
+        current_lines.append(line)
     flush()
+    if "packages" not in seen_sections:
+        raise GateError("missing packages section")
     return blocks
 
 
@@ -893,21 +934,8 @@ def parse_pnpm_lock(
     }
     if importer_records != package_records:
         raise GateError(f"{label}: local tarball importer and package identities differ")
-    section = ""
     pairs: set[Pair] = set()
-    saw_packages = False
-    for line in text.splitlines():
-        top = re.match(r"^([A-Za-z][A-Za-z0-9_-]*):\s*$", line)
-        if top:
-            section = top.group(1)
-            saw_packages = saw_packages or section == "packages"
-            continue
-        if section != "packages":
-            continue
-        entry = re.match(r"^  (\S.*):\s*$", line)
-        if not entry:
-            continue
-        package_key = decode_yaml_scalar(entry.group(1))
+    for package_key, _ in pnpm_package_blocks(text):
         if package_key in local_records:
             record = local_records[package_key]
             pairs.add((record["package"], record["version"]))
@@ -917,8 +945,6 @@ def parse_pnpm_lock(
             raise unsupported_source(f"{label}: pnpm package entry", package_key)
         pairs.add(pair)
 
-    if not saw_packages:
-        raise GateError(f"{label}: missing packages section")
     validate_pnpm_resolution_sources(data, label, local_records)
     return pairs
 
@@ -1080,19 +1106,25 @@ def parse_lockfile_bytes(
 def parse_inline_resolution(raw: str) -> dict[str, str]:
     value = raw.strip()
     if not (value.startswith("{") and value.endswith("}")):
-        return {}
+        raise GateError("unsupported pnpm inline resolution; regenerate with pnpm")
     fields: dict[str, str] = {}
-    content = value[1:-1]
-    for key in ("integrity", "tarball", "type", "repo", "commit", "path"):
-        matches = list(re.finditer(
-            rf"(?:^|,)\s*['\"]?{key}['\"]?\s*:\s*"
-            rf"(\"(?:\\.|[^\"])*\"|'(?:''|[^'])*'|[^,}}]+)",
-            content,
-        ))
-        if len(matches) > 1:
+    content = value[1:-1].strip()
+    scalar = r'("(?:\\.|[^"\\])*"|\'(?:\'\'|[^\'])*\'|[^,{}\s][^,{}]*)'
+    pair = re.compile(r"\s*(" + r'"(?:\\.|[^"\\])*"|\'(?:\'\'|[^\'])*\'|[A-Za-z][A-Za-z0-9_-]*' + r")\s*:\s*" + scalar + r"\s*(,|$)")
+    while content:
+        match = pair.match(content)
+        if not match:
+            raise GateError("unsupported pnpm inline resolution syntax")
+        key = decode_yaml_scalar(match[1])
+        if key in fields:
             raise GateError(f"pnpm inline resolution contains duplicate {key} field")
-        if matches:
-            fields[key] = decode_yaml_scalar(matches[0].group(1))
+        if key not in {"integrity", "tarball", "type", "repo", "commit", "path"}:
+            raise GateError("unsupported pnpm inline resolution field")
+        raw_value = match[2].strip()
+        if raw_value.startswith(("*", "&", "!", "|", ">", "[")):
+            raise GateError("unsupported pnpm inline resolution value")
+        fields[key] = decode_yaml_scalar(raw_value)
+        content = content[match.end():]
     return fields
 
 
@@ -1119,6 +1151,7 @@ def validate_pnpm_resolution_sources(
     except UnicodeDecodeError as exc:
         raise GateError(f"{label}: lockfile is not UTF-8") from exc
 
+    pnpm_package_blocks(text)  # Validate the shared serialization boundary first.
     section = ""
     in_resolution = False
     current_local_tarball: str | None = None

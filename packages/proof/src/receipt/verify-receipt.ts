@@ -155,6 +155,17 @@ function mapTier1FreezeV2_1VerdictToReceiptResult(
   };
 }
 
+/** Bind the whole typed statement, not only its digest bytes. */
+function subjectMatchesRecord(subject: unknown, digest: Digest | undefined): boolean {
+  if (!subject || typeof subject !== "object" || Array.isArray(subject)) return false;
+  const value = subject as Record<string, unknown>;
+  return value.type === "record_digest" &&
+    (value.algorithm === "sha256" || value.algorithm === "blake3") &&
+    value.algorithm === digest?.algorithm &&
+    typeof value.value === "string" && isHexDigest(value.value) &&
+    value.value === digest?.value;
+}
+
 /**
  * Verify an Ed25519 signature over a canonical signing payload.
  */
@@ -163,7 +174,7 @@ function verifyEd25519Signature(
   signature: string | undefined,
   signedSubject: { type?: string; algorithm?: string; value?: string } | undefined,
 ): boolean {
-  if (!signature || !signedSubject?.value || !signedSubject?.algorithm) {
+  if (!signature || signedSubject?.type !== "record_digest" || !signedSubject?.value || !signedSubject?.algorithm) {
     return false;
   }
 
@@ -173,7 +184,7 @@ function verifyEd25519Signature(
 
   try {
     // Reconstruct canonical signing payload
-    const payload = `{"type":"${signedSubject.type ?? "record_digest"}","algorithm":"${signedSubject.algorithm}","value":"${signedSubject.value}"}`;
+    const payload = `{"type":"${signedSubject.type}","algorithm":"${signedSubject.algorithm}","value":"${signedSubject.value}"}`;
 
     // Import public key from base64 DER (SPKI format)
     const keyObject = createPublicKey({
@@ -256,7 +267,7 @@ function verifyPV(receipt: Record<string, unknown>): PVVerificationResult {
     }
 
     const subjectMatch =
-      r.attestation.signed_subject?.value === r.integrity?.record_digest?.value;
+      subjectMatchesRecord(r.attestation.signed_subject, r.integrity?.record_digest);
 
     if (!subjectMatch) {
       return check(
@@ -392,7 +403,7 @@ function verifyQV(receipt: Record<string, unknown>): QVVerificationResult {
       return check("ed25519_signature_verifies", false, "signature not over blake3 primary digest", "ATTESTATION_SIGNATURE_INVALID");
     }
 
-    if (r.attestation.signed_subject?.value !== r.integrity?.record_digest?.value) {
+    if (!subjectMatchesRecord(r.attestation.signed_subject, r.integrity?.record_digest)) {
       return check("ed25519_signature_verifies", false, "signed_subject does not match record_digest", "ATTESTATION_SUBJECT_MISMATCH");
     }
 
@@ -489,9 +500,9 @@ function verifyWV(receipt: Record<string, unknown>): WVVerificationResult {
   const witness_subject_matches = firstWitness
     ? check(
         "witness_subject_matches",
-        firstWitness.subject?.value === r.integrity?.record_digest?.value &&
+        subjectMatchesRecord(firstWitness.subject, r.integrity?.record_digest) &&
           firstWitness.verification?.subject_match === true,
-        firstWitness.subject?.value === r.integrity?.record_digest?.value
+        subjectMatchesRecord(firstWitness.subject, r.integrity?.record_digest)
           ? "witness subject matches record_digest"
           : "witness subject does NOT match record_digest",
         "WITNESS_SUBJECT_MISMATCH",
