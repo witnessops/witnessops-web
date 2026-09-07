@@ -842,6 +842,28 @@ export async function initializeAdminCoreStore(): Promise<void> {
   });
 }
 
+/** Operator-only upgrade of an existing store; never called by request handlers. */
+export async function prepareAdminSessionStorage(previousSessionsInvalidated: boolean): Promise<void> {
+  if (process.env.NODE_ENV !== "production" || !previousSessionsInvalidated) {
+    throw new Error("Rotate the admin session signing secret before preparing session storage. Keep traffic stopped until all replicas use the new secret.");
+  }
+  await withCoreStoreLock(async () => {
+    const file = coreStoreFile();
+    if (!(await lstat(file)).isFile()) throw new Error("Admin business state must be a regular file.");
+    await readState();
+    const directory = path.join(path.dirname(file), "revoked-sessions");
+    try {
+      await mkdir(directory, { mode: 0o700 });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      if (!(await lstat(directory)).isDirectory()) throw new Error("Admin session storage must be a directory.");
+    }
+    // Existing markers and core bytes are never rewritten, removed or copied.
+    const handle = await open(path.dirname(file), "r");
+    try { await handle.sync(); } finally { await handle.close(); }
+  });
+}
+
 /** Core business state only. Restores require session-key rotation and external archives. */
 export async function snapshotAdminCoreStore(destination: string): Promise<string> {
   if (!path.isAbsolute(destination)) throw new Error("Snapshot destination must be absolute.");

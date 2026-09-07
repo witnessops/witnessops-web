@@ -17,16 +17,16 @@ async function revocationDirectory(): Promise<string> {
   const root = configured || path.join(getAdmissionStoreDir(), "admin-core");
   // A missing production volume is an error, not an empty revocation list.
   if (process.env.NODE_ENV === "production") {
-    if (!configured || !(await stat(root)).isDirectory()) {
-      throw new Error("Admin session storage is unavailable.");
-    }
+    try {
+      if (!configured || !(await stat(root)).isDirectory()) throw new Error();
+    } catch { throw new Error("Admin session storage is unavailable."); }
   }
   const directory = path.join(root, "revoked-sessions");
   if (process.env.NODE_ENV === "production") {
     // Losing the marker directory must not revive logged-out grants.
-    if (!(await stat(directory)).isDirectory() || !(await stat(path.join(root, "core-state.json"))).isFile()) {
-      throw new Error("Admin session storage is unavailable.");
-    }
+    try {
+      if (!(await stat(directory)).isDirectory() || !(await stat(path.join(root, "core-state.json"))).isFile()) throw new Error();
+    } catch { throw new Error("Admin session storage is unavailable."); }
   } else {
     await mkdir(directory, { recursive: true, mode: 0o700 });
   }

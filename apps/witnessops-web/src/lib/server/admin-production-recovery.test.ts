@@ -73,6 +73,66 @@ test("failed write before rename preserves committed bytes and removes temporary
   run("assert.equal((await core.getAdminCoreState()).inboxItems.length, 1);");
 });
 
+test("existing-store session upgrade preserves business bytes and is idempotent", async () => {
+  await initialize();
+  run("await core.importGmailInboxItem(message, actor);");
+  const file = path.join(directory, "core-state.json");
+  const original = await readFile(file);
+  const markers = path.join(directory, "revoked-sessions");
+  await rm(markers, { recursive: true });
+  run("await assert.rejects(core.prepareAdminSessionStorage(false), /Rotate the admin session/);");
+  await assert.rejects(stat(markers), { code: "ENOENT" });
+  run("await core.prepareAdminSessionStorage(true); await revocations.requireAdminSessionStorage();");
+  assert.equal((await stat(markers)).mode & 0o777, 0o700);
+  assert.deepEqual(await readFile(file), original);
+  run(`
+    const token = await cookie();
+    await revocations.revokeAdminSessionCookie(token);
+    const before = await fs.readdir(process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR + '/revoked-sessions');
+    assert.equal(before.length, 1);
+    await core.prepareAdminSessionStorage(true);
+    await core.prepareAdminSessionStorage(true);
+    assert.deepEqual(await fs.readdir(process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR + '/revoked-sessions'), before);
+    assert.equal(await session.getVerifiedAdminSession(request(token)), null);
+  `);
+  assert.deepEqual(await readFile(file), original);
+});
+
+test("session upgrade refuses missing or corrupt business state and unsafe marker paths", async () => {
+  run("await assert.rejects(core.prepareAdminSessionStorage(true));");
+  assert.deepEqual(await readdir(directory), []);
+  await initialize();
+  const file = path.join(directory, "core-state.json");
+  const original = await readFile(file);
+  const markers = path.join(directory, "revoked-sessions");
+  await rm(markers, { recursive: true });
+  await writeFile(file, "corrupt synthetic state");
+  run("await assert.rejects(core.prepareAdminSessionStorage(true));");
+  await assert.rejects(stat(markers), { code: "ENOENT" });
+  await writeFile(file, original);
+  await writeFile(markers, "not a directory");
+  run("await assert.rejects(core.prepareAdminSessionStorage(true), /must be a directory/);");
+  assert.equal(await readFile(markers, "utf8"), "not a directory");
+  await rm(markers);
+  run(`
+    await fs.symlink(process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR, process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR + '/revoked-sessions');
+    await assert.rejects(core.prepareAdminSessionStorage(true), /must be a directory/);
+  `);
+  assert.deepEqual(await readFile(file), original);
+});
+
+test("production storage outages use the stable unavailable error", async () => {
+  run("await assert.rejects(revocations.requireAdminSessionStorage(), {message:'Admin session storage is unavailable.'});");
+  run("await assert.rejects(revocations.requireAdminSessionStorage(), {message:'Admin session storage is unavailable.'});", path.join(directory, "absent"));
+  await initialize();
+  run(`
+    const {mock} = await import('node:test');
+    mock.method(fs, 'stat', async () => { throw Object.assign(new Error('private path'), {code:'EACCES'}); });
+    await assert.rejects(revocations.requireAdminSessionStorage(), {message:'Admin session storage is unavailable.'});
+    mock.restoreAll();
+  `);
+});
+
 test("missing production revocation storage denies cookies without recreating lost markers", async () => {
   await initialize();
   run(`
