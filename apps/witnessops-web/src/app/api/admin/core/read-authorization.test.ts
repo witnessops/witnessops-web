@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test, { afterEach } from "node:test";
@@ -204,7 +204,11 @@ test("admin core API requires an explicit receipt structural-validity assertion"
 
 test("admin core API contains unexpected storage errors", async () => {
   const originalStoreDir = process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR;
-  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = "/dev/null/private-admin-core";
+  const directory = await mkdtemp(path.join(os.tmpdir(), "private-admin-core-"));
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = directory;
+  // Keep authentication storage available; exercise failure in the business
+  // state reader after authentication rather than failing the session guard.
+  await writeFile(path.join(directory, "core-state.json"), "invalid JSON");
   const sessionCookie = await cookieFor("founder", "Founder");
   const originalConsoleError = console.error;
   const logged: unknown[][] = [];
@@ -221,6 +225,7 @@ test("admin core API contains unexpected storage errors", async () => {
     );
   } finally {
     console.error = originalConsoleError;
+    await rm(directory, { recursive: true, force: true });
     if (originalStoreDir === undefined) {
       delete process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR;
     } else {

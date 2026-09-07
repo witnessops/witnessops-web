@@ -13,6 +13,7 @@ import {
   createAdminSessionCookie,
 } from "@/lib/server/admin-session";
 import { adminRoleFromEnvironment } from "@/lib/server/admin-authorization";
+import { requireAdminSessionStorage } from "@/lib/server/admin-session-revocation";
 
 const MAX_CALLBACK_BODY_BYTES = 16 * 1024;
 const MAX_CALLBACK_PARAMETERS = 16;
@@ -178,6 +179,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const identity = await verifyGoogleOidcCode(code, transaction);
+    await requireAdminSessionStorage();
     const issuedAt = Date.now();
     const sessionCookie = await createAdminSessionCookie({
       version: 3,

@@ -22,6 +22,14 @@ test("admin console layout remains noindex and admin-console only", () => {
   assert.doesNotMatch(combinedSource, /verified compliance|certified compliance|audit-ready|guarantees compliance/i);
 });
 
+test("settings and system authorize at the leaf because partial RSC requests can skip the layout", () => {
+  for (const page of ["settings", "system"]) {
+    const source = readFileSync(resolve(__dirname, page, "page.tsx"), "utf-8");
+    assert.match(source, /import \{ getAdminPageActor \} from "@\/lib\/server\/admin-page-session"/);
+    assert.match(source, /export default async function \w+\(\) \{\s*await getAdminPageActor\(\);\s*return/);
+  }
+});
+
 test("admin system exposes Google logout without legacy key material", () => {
   const systemPage = readFileSync(resolve(__dirname, "system/page.tsx"), "utf-8");
   const authInfo = readFileSync(

@@ -13,14 +13,19 @@ export async function AdminCoreDashboard() {
   return <CorePage title="Dashboard" eyebrow="Core operating spine">
     {queue ? <AdminWizBrief input={{ total: queue.summary.total, ready: queue.summary.ready, reconciliationPending: queue.summary.reconciliationPending, divergent: queue.summary.divergent }} /> : null}
     <div className={styles.coreGrid}>
-      {Object.entries({
-        "Inbox to triage": dashboard.counts.inbox,
-        "Review requests": dashboard.counts.reviewRequests,
-        "Waiting for customer": dashboard.counts.waitingForCustomer,
-        "Needs review": dashboard.counts.needsReview,
-        "Ready to deliver": dashboard.counts.readyToDeliver,
-        Receipts: dashboard.counts.receipts,
-      }).map(([label, value]) => <CoreCard key={label} title={label}><div className={styles.coreCardValue}>{value}</div></CoreCard>)}
+      {[
+        { label: "Inbox to triage", value: dashboard.counts.inbox, href: "/admin/inbox" },
+        { label: "Review requests", value: dashboard.counts.reviewRequests, href: "/admin/review-requests" },
+        { label: "Waiting for customer", value: dashboard.counts.waitingForCustomer, href: "/admin/review-requests?stage=needs_customer_information" },
+        { label: "Needs review", value: dashboard.counts.needsReview, href: "/admin/proof-runs" },
+        { label: "Ready to deliver", value: dashboard.counts.readyToDeliver, href: "/admin/deliveries" },
+        { label: "Receipts", value: dashboard.counts.receipts, href: "/admin/receipts" },
+      ].map(({ label, value, href }) => <CoreCard key={label} title={label} href={href}><div className={styles.coreCardValue}>{value}</div></CoreCard>)}
+    </div>
+    <div className={styles.coreSection}>
+      <div className={styles.coreSectionHeader}><span className={styles.coreSectionTitle}>Enquiries to move forward</span><Link href="/admin/review-requests" className={styles.coreSectionLink}>All requests</Link></div>
+      <p className={styles.coreFormNote}>Open requests with the oldest updates first.</p>
+      <CoreTable scrollLabel="Enquiry next actions" emptyMessage="No open enquiries need qualification. Check Inbox for new requests." headers={["Customer", "Next action", "Timing", "Stage"]} rows={dashboard.nextReviewRequests.map((request) => [<Link href={`/admin/review-requests/${request.id}`} key={request.id}>{request.customerName}</Link>, request.nextAction, request.timing || "Not recorded", <CoreState value={request.state} key="state" />])} />
     </div>
     <div className={styles.coreSection}>
       <div className={styles.coreSectionHeader}><span className={styles.coreSectionTitle}>Today’s work</span></div>

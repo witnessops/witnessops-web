@@ -1,0 +1,151 @@
+import { ADMIN_ROLES, type AdminRole } from "./admin-authorization";
+
+/**
+ * Length-checked constant-time compare that stays off `node:crypto`.
+ * Middleware imports this module, so Node-scheme imports fail the webpack build.
+ */
+function signaturesMatch(expectedB64: string, actualB64: string): boolean {
+  if (expectedB64.length !== actualB64.length) {
+    return false;
+  }
+  let mismatch = 0;
+  for (let i = 0; i < expectedB64.length; i += 1) {
+    mismatch |= expectedB64.charCodeAt(i) ^ actualB64.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
+
+interface AdminSessionPayload {
+  version: 3;
+  identityProvider: "google";
+  issuer: "https://accounts.google.com";
+  subject: string;
+  actor: string;
+  actorAuthSource: "oidc_session";
+  actorSessionHash: string;
+  role: AdminRole;
+  iat: number;
+  exp: number;
+}
+
+export const ADMIN_SESSION_COOKIE_NAME = "witnessops-admin-session";
+const GOOGLE_OIDC_ISSUER = "https://accounts.google.com";
+const GOOGLE_ADMIN_ACTOR_PREFIX = `oidc:${GOOGLE_OIDC_ISSUER}#`;
+const SESSION_HASH_PATTERN = /^[a-f0-9]{16}$/;
+
+function testAdminBypassEnabled(): boolean {
+  return (
+    process.env.NODE_ENV === "test" &&
+    process.env.WITNESSOPS_LOCAL_ADMIN_BYPASS === "1"
+  );
+}
+
+async function signPayload(payloadB64: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(payloadB64),
+  );
+
+  return btoa(String.fromCharCode(...new Uint8Array(signature)));
+}
+
+export async function createAdminSessionCookie(
+  payload: AdminSessionPayload,
+): Promise<string> {
+  const secret = process.env.WITNESSOPS_ADMIN_SECRET;
+  if (!secret) {
+    throw new Error("WITNESSOPS_ADMIN_SECRET is not configured");
+  }
+
+  const payloadB64 = btoa(JSON.stringify(payload));
+  const signature = await signPayload(payloadB64, secret);
+  return `${payloadB64}.${signature}`;
+}
+
+/** Test scaffolding only; runtime development and production always use sessions. */
+export function isTestAdminRequest(): boolean {
+  return testAdminBypassEnabled();
+}
+
+/** Cryptographic prefilter only. Node page/API guards also check revocation. */
+export async function verifyAdminSessionCookie(
+  cookie: string,
+): Promise<AdminSessionPayload | null> {
+  const secret = process.env.WITNESSOPS_ADMIN_SECRET;
+  if (!secret) return null;
+
+  const dotIndex = cookie.lastIndexOf(".");
+  if (dotIndex === -1) return null;
+
+  const payloadB64 = cookie.slice(0, dotIndex);
+  const signatureB64 = cookie.slice(dotIndex + 1);
+
+  try {
+    const expectedB64 = await signPayload(payloadB64, secret);
+
+    if (!signaturesMatch(expectedB64, signatureB64)) {
+      return null;
+    }
+
+    const payload = JSON.parse(
+      atob(payloadB64),
+    ) as Partial<AdminSessionPayload>;
+    const now = Date.now();
+    if (
+      payload.version !== 3 ||
+      typeof payload.iat !== "number" ||
+      !Number.isSafeInteger(payload.iat) ||
+      typeof payload.exp !== "number" ||
+      !Number.isSafeInteger(payload.exp) ||
+      payload.iat > now + 60_000 ||
+      payload.exp <= now ||
+      payload.exp <= payload.iat ||
+      payload.exp - payload.iat > 8 * 60 * 60 * 1000
+    ) {
+      return null;
+    }
+
+    if (
+      payload.issuer !== GOOGLE_OIDC_ISSUER ||
+      payload.identityProvider !== "google" ||
+      payload.actorAuthSource !== "oidc_session" ||
+      typeof payload.subject !== "string" ||
+      !payload.subject ||
+      payload.subject.length > 255 ||
+      !/^[\x20-\x7e]+$/.test(payload.subject) ||
+      typeof payload.actor !== "string" ||
+      payload.actor !== `${GOOGLE_ADMIN_ACTOR_PREFIX}${payload.subject}` ||
+      typeof payload.actorSessionHash !== "string" ||
+      !SESSION_HASH_PATTERN.test(payload.actorSessionHash) ||
+      !ADMIN_ROLES.includes(payload.role as AdminRole)
+    ) {
+      return null;
+    }
+
+    return {
+      version: 3,
+      identityProvider: "google",
+      issuer: GOOGLE_OIDC_ISSUER,
+      subject: payload.subject,
+      actor: payload.actor,
+      actorAuthSource: "oidc_session",
+      actorSessionHash: payload.actorSessionHash,
+      role: payload.role as AdminRole,
+      iat: payload.iat,
+      exp: payload.exp,
+    };
+  } catch {
+    return null;
+  }
+}
+

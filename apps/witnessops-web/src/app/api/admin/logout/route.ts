@@ -5,6 +5,7 @@ import {
 } from "@/lib/admin-auth-origin";
 import { GOOGLE_OIDC_TRANSACTION_COOKIE_NAME } from "@/lib/server/admin-google-oidc";
 import { ADMIN_SESSION_COOKIE_NAME } from "@/lib/server/admin-session";
+import { revokeAdminSessionCookie } from "@/lib/server/admin-session-revocation";
 
 export async function POST(request: NextRequest) {
   if (!isTrustedAdminMutationOrigin(request)) {
@@ -14,6 +15,16 @@ export async function POST(request: NextRequest) {
         status: 403,
         headers: { "Cache-Control": "no-store" },
       },
+    );
+  }
+
+  const cookie = request.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value;
+  try {
+    if (cookie) await revokeAdminSessionCookie(cookie);
+  } catch {
+    return NextResponse.json(
+      { ok: false, error: "Unable to end the session. Please retry logout." },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 
