@@ -189,6 +189,9 @@ test("oversized queue bodies are rejected before state mutation", async () => {
 test("queue command route contains unexpected storage errors", async () => {
   const baseDir = await mkdtemp(path.join(os.tmpdir(), "witnessops-queue-error-"));
   const originalStoreDir = process.env.WITNESSOPS_TOKEN_STORE_DIR;
+  const originalAdminStoreDir = process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR;
+  // Authentication must succeed before testing the queue storage failure.
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = path.join(baseDir, "admin");
   process.env.WITNESSOPS_TOKEN_STORE_DIR = "/dev/null/private-queue-store";
   process.env.WITNESSOPS_TOKEN_AUDIT_DIR = path.join(baseDir, "audit");
   const cookie = await founderCookie();
@@ -218,6 +221,11 @@ test("queue command route contains unexpected storage errors", async () => {
     );
   } finally {
     console.error = originalConsoleError;
+    if (originalAdminStoreDir === undefined) {
+      delete process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR;
+    } else {
+      process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = originalAdminStoreDir;
+    }
     if (originalStoreDir === undefined) {
       delete process.env.WITNESSOPS_TOKEN_STORE_DIR;
     } else {

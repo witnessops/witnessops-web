@@ -53,6 +53,8 @@ import {
   transitionReviewRequest,
   updateDeliveryDraft,
   updateProofRun,
+  updateReviewRequestBrief,
+  reviewRequestEditVersion,
   type CoreActor,
   type DeliveryState,
   type EvidenceState,
@@ -247,6 +249,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       const status = stringValue(body, "status") as "succeeded" | "failed" | "retryable";
       if (!["succeeded", "failed", "retryable"].includes(status)) throw new AdminCoreError("INVALID_INPUT", "Unknown Gmail label sync status.");
       return NextResponse.json({ ok: true, item: await recordGmailLabelSync(idValue, stringArray(body, "labels"), { status, error: stringValue(body, "error", false) || null }, actor) });
+    }
+    if (resource === "review-requests" && idValue && action === "brief") {
+      const item = await updateReviewRequestBrief(idValue, body, actor);
+      return NextResponse.json({ ok: true, item, version: reviewRequestEditVersion(item) });
     }
     if (resource === "review-requests" && idValue && action === "transition") {
       return NextResponse.json({ ok: true, item: await transitionReviewRequest(idValue, stringValue(body, "nextState") as ReviewRequestState, actor) });

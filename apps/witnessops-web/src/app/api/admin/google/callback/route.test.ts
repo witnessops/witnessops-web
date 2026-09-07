@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
 import { exportJWK, generateKeyPair, SignJWT } from "jose";
 import { NextRequest } from "next/server";
@@ -24,6 +27,7 @@ const trackedEnv = [
   "WITNESSOPS_GOOGLE_WORKSPACE_DOMAIN",
   "WITNESSOPS_GOOGLE_ADMIN_EMAIL_ALLOWLIST",
   "WITNESSOPS_ADMIN_ROLE",
+  "WITNESSOPS_ADMIN_CORE_STORE_DIR",
 ] as const;
 
 const originals = Object.fromEntries(
@@ -173,6 +177,19 @@ test("Google callback verifies identity, rotates the session, and returns safely
   assert.match(setCookie, /SameSite=lax/i);
   assert.match(setCookie, /SameSite=none/i);
   assert.match(setCookie, /Max-Age=28800/i);
+
+  const unavailableStore = await mkdtemp(path.join(tmpdir(), "callback-storage-outage-"));
+  try {
+    const blocker = path.join(unavailableStore, "not-a-directory");
+    await writeFile(blocker, "synthetic storage failure");
+    process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = blocker;
+    console.warn = () => {};
+    const denied = await POST(callbackRequest(transaction.state, transaction.cookieValue, "code=single-use-code"));
+    assert.match(denied.headers.get("location") ?? "", /google_auth_failed/);
+    assert.equal(denied.cookies.get(ADMIN_SESSION_COOKIE_NAME), undefined, "verified provider identity cannot issue a session while storage is unavailable");
+  } finally {
+    await rm(unavailableStore, { recursive: true, force: true });
+  }
 });
 
 test("Google callback validates provider denial without exposing provider details", async () => {

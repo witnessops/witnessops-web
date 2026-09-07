@@ -1575,6 +1575,8 @@
 .queueActionTitle, .queueSectionTitle { color: var(--admin-text-primary); font-family: var(--font-sans); }
 .queueActionInput, .queueActionSelect, .queueComposerInput, .queueComposerTextarea { color: var(--admin-text-primary); background: #fff; border-color: var(--admin-border-strong); border-radius: 8px; font-family: var(--font-sans); font-size: 13px; }
 .queueActionPrimaryButton, .rowAction { color: #fff; background: #ea5b2a; border-color: #ea5b2a; border-radius: 8px; font-family: var(--font-sans); font-size: 12px; font-weight: 700; }
+.rowAction:hover:not(:disabled), .rowAction:focus-visible { color: #fff; background: #b94721; border-color: #b94721; }
+.rowAction:disabled { opacity: .6; cursor: wait; }
 .queueActionSecondaryButton, .queueActionCancel { color: var(--admin-text-secondary); background: #fff; border-color: var(--admin-border); border-radius: 8px; font-family: var(--font-sans); }
 .queueBadgeReady { color: var(--admin-success); background: var(--admin-success-subtle); border-color: #a9d8d1; }
 .queueBadgeAlert { color: var(--admin-danger); background: var(--admin-danger-subtle); border-color: #e5aaa5; }
@@ -1605,4 +1607,54 @@
   .queueListPane { width: 100%; flex: 0 0 auto; border-right: 0; border-bottom: 1px solid var(--admin-border); }
   .queueDetailPane { width: 100%; min-width: 0; flex: 0 0 auto; }
   .queueDetailPanel { width: 100%; }
+}
+.briefField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.briefFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.briefSummary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px 0;
+}
+
+.reviewQueueFilters {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0 52px 16px;
+}
+
+.reviewQueueFilters + p { margin: 0 52px 16px; }
+
+@media (max-width: 700px) {
+  .briefFormGrid { grid-template-columns: minmax(0, 1fr); }
+  .reviewQueueFilters { margin-inline: 20px; }
+  .reviewQueueFilters + p { margin-inline: 20px; }
+}
+
+.reviewQueueFilters > label {
+  flex: 1 1 220px;
+}
+
+.reviewQueueFilters > button,
+.reviewQueueFilters > a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.briefField textarea {
+  min-height: 90px;
 }

@@ -9,7 +9,7 @@ import {
 import {
   isTestAdminRequest,
   verifyAdminSessionCookie,
-} from "@/lib/server/admin-session";
+} from "@/lib/server/admin-session-cookie";
 import {
   legacyDocsHostRedirectLocation,
   normalizeHost,
@@ -53,7 +53,8 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // Admin route protection (skip login page)
+  // Edge prefilter only. Admin server pages and APIs enforce durable revocation.
+  // Skip the public login page.
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
     if (!isTestAdminRequest()) {
       const sessionCookie = request.cookies.get(

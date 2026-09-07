@@ -1,10 +1,12 @@
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdir, open, readFile, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 
 import { getWorkflowSkus } from "@witnessops/catalog";
 import { listReceipts } from "@/lib/receipts";
 import { listAdminBuyerServices } from "@/lib/admin-service-catalog";
+import { REVIEW_BRIEF_FIELDS, type ReviewBriefValues } from "@/lib/admin-review-brief";
+import type { ReviewQueueItem } from "@/lib/admin-review-queue";
 import {
   PUBLIC_CONTACT_EMAIL,
   PUBLIC_CONTACT_PRIMARY_HREF,
@@ -746,11 +748,24 @@ async function readState(): Promise<CoreState> {
   try {
     const raw = await readFile(coreStoreFile(), "utf8");
     const parsed = JSON.parse(raw) as CoreState;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new AdminCoreError("STORE_CORRUPT", "Admin storage is invalid.", 500);
+    }
     if (parsed.schemaVersion !== ADMIN_CORE_SCHEMA_VERSION) {
       throw new AdminCoreError("STORE_VERSION", "Admin core store version is unsupported.", 500);
     }
     parsed.gmailSyncReceipts ??= [];
     parsed.deliverySendReservations ??= {};
+    for (const key of ["inboxItems", "customers", "productContracts", "reviewRequests", "proofRuns", "deliveries", "receipts", "auditEvents", "integrationAttempts", "gmailSyncReceipts"] as const) {
+      if (!Array.isArray(parsed[key]) || parsed[key].some((record) => !record || typeof record !== "object" || Array.isArray(record))) {
+        throw new AdminCoreError("STORE_CORRUPT", "Admin storage collections are invalid.", 500);
+      }
+    }
+    for (const key of ["idempotency", "deliverySendReservations"] as const) {
+      if (!parsed[key] || typeof parsed[key] !== "object" || Array.isArray(parsed[key])) {
+        throw new AdminCoreError("STORE_CORRUPT", "Admin storage indexes are invalid.", 500);
+      }
+    }
     for (const delivery of parsed.deliveries) {
       delivery.contentRevision ??= 1;
       delivery.sentContentRevision ??= null;
@@ -769,17 +784,84 @@ async function readState(): Promise<CoreState> {
     return parsed;
   } catch (error) {
     if (error instanceof AdminCoreError) throw error;
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return emptyState();
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      if (process.env.NODE_ENV === "production") {
+        throw new AdminCoreError("STORE_UNAVAILABLE", "Admin storage is missing. Restore it or explicitly initialize a new store.", 503);
+      }
+      return emptyState();
+    }
     throw error;
   }
 }
 
 async function writeState(state: CoreState): Promise<void> {
   const file = coreStoreFile();
-  await mkdir(path.dirname(file), { recursive: true });
+  await requireCoreStoreDirectory();
   const temp = `${file}.${process.pid}.${randomUUID()}.tmp`;
-  await writeFile(temp, JSON.stringify(state, null, 2) + "\n", "utf8");
-  await rename(temp, file);
+  try {
+    const handle = await open(temp, "wx", 0o600);
+    try {
+      await handle.writeFile(JSON.stringify(state, null, 2) + "\n", "utf8");
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
+    await rename(temp, file);
+    // A failure here is an uncertain commit, not permission to retry a send.
+    const directory = await open(path.dirname(file), "r");
+    try { await directory.sync(); } finally { await directory.close(); }
+  } finally {
+    await rm(temp, { force: true });
+  }
+}
+
+async function requireCoreStoreDirectory(): Promise<void> {
+  const directory = path.dirname(coreStoreFile());
+  if (process.env.NODE_ENV !== "production") {
+    await mkdir(directory, { recursive: true, mode: 0o700 });
+    return;
+  }
+  try {
+    if ((await stat(directory)).isDirectory()) return;
+  } catch { /* An absent/unavailable mount must not be recreated by a request. */ }
+  throw new AdminCoreError("STORE_UNAVAILABLE", "Admin storage directory is unavailable.", 503);
+}
+
+/** Operator-only bootstrap. No request handler calls this function. */
+export async function initializeAdminCoreStore(): Promise<void> {
+  await withCoreStoreLock(async () => {
+    try {
+      await lstat(coreStoreFile());
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      await mkdir(path.join(path.dirname(coreStoreFile()), "revoked-sessions"), { recursive: true, mode: 0o700 });
+      await writeState(emptyState());
+      return;
+    }
+    throw new AdminCoreError("STORE_EXISTS", "Admin storage already exists; initialization will not overwrite it.", 409);
+  });
+}
+
+/** Core business state only. Restores require session-key rotation and external archives. */
+export async function snapshotAdminCoreStore(destination: string): Promise<string> {
+  if (!path.isAbsolute(destination)) throw new Error("Snapshot destination must be absolute.");
+  return withCoreStoreLock(async () => {
+    await readState();
+    const bytes = await readFile(coreStoreFile());
+    const handle = await open(destination, "wx", 0o600);
+    let complete = false;
+    try {
+      await handle.writeFile(bytes);
+      await handle.sync();
+      complete = true;
+    } finally {
+      await handle.close();
+      if (!complete) await rm(destination, { force: true });
+    }
+    const directory = await open(path.dirname(destination), "r");
+    try { await directory.sync(); } finally { await directory.close(); }
+    return createHash("sha256").update(bytes).digest("hex");
+  });
 }
 
 const CORE_LOCK_WAIT_MS = 25;
@@ -792,6 +874,7 @@ function coreLockFile(): string {
 }
 
 async function withCoreStoreLock<T>(action: () => Promise<T>): Promise<T> {
+  await requireCoreStoreDirectory();
   try {
     return await withFilesystemLock(
       {
@@ -1639,6 +1722,58 @@ export async function convertInboxItemToReviewRequest(
       lineageId: item.lineageId,
     });
     return { reviewRequest: clone(request), customer: clone(customer), created: true };
+  });
+}
+
+export function reviewRequestEditVersion(request: ReviewRequestRecord): string {
+  return createHash("sha256").update(JSON.stringify(request)).digest("hex");
+}
+
+export async function updateReviewRequestBrief(
+  reviewRequestId: string,
+  input: Record<string, unknown>,
+  actor: CoreActor,
+): Promise<ReviewRequestRecord> {
+  requireRole(actor, "business-authority");
+  const allowed = new Set<string>(["expectedVersion", "missingInformation", ...REVIEW_BRIEF_FIELDS.map((field) => field.name)]);
+  if (Object.keys(input).some((key) => !allowed.has(key))) {
+    throw new AdminCoreError("INVALID_INPUT", "Only qualification fields can be edited.");
+  }
+  if (typeof input.expectedVersion !== "string" || !/^[a-f0-9]{64}$/.test(input.expectedVersion)) {
+    throw new AdminCoreError("INVALID_INPUT", "Reload the request before editing.");
+  }
+  const brief = {} as ReviewBriefValues;
+  for (const field of REVIEW_BRIEF_FIELDS) {
+    const value = input[field.name];
+    if (typeof value !== "string" || value.length > 4096 || (field.required && !value.trim())) {
+      throw new AdminCoreError("INVALID_INPUT", `${field.label} must be ${field.required ? "non-empty text" : "text"} of at most 4096 characters.`);
+    }
+    brief[field.name] = value.trim();
+  }
+  if (!Array.isArray(input.missingInformation) || input.missingInformation.length > 16 ||
+      input.missingInformation.some((item) => typeof item !== "string" || item.length > 500)) {
+    throw new AdminCoreError("INVALID_INPUT", "Missing information must contain at most 16 text items of 500 characters each.");
+  }
+  brief.missingInformation = (input.missingInformation as string[]).map((item) => item.trim()).filter(Boolean);
+  return mutateState((state) => {
+    const request = state.reviewRequests.find((candidate) => candidate.id === reviewRequestId);
+    if (!request) throw new AdminCoreError("NOT_FOUND", "Review request not found.", 404);
+    requireAssignedBusinessRecord(actor, request.owner);
+    if (request.productContractVersionId || request.proofRunId || ["declined", "closed"].includes(request.state)) {
+      throw new AdminCoreError("BRIEF_LOCKED", "This request is approved or closed. Its qualification brief is read-only.", 409);
+    }
+    if (reviewRequestEditVersion(request) !== input.expectedVersion) {
+      throw new AdminCoreError("STALE_REQUEST", "This request changed while you were editing. Copy your changes, reload, and review the latest version before saving.", 409);
+    }
+    Object.assign(request, brief);
+    request.updatedAt = isoNow();
+    appendAudit(state, {
+      recordType: "review_request", recordId: request.id, action: "update_qualification_brief",
+      actor: actor.actor, previousState: request.state, resultingState: request.state,
+      integrationResult: null, linkedExternalIds: [request.originatingGmailThreadId],
+      failureDetails: null, lineageId: request.lineageId,
+    });
+    return clone(request);
   });
 }
 
@@ -2849,6 +2984,7 @@ export async function getAdminCoreDashboard(actor?: CoreActor): Promise<{
   counts: Record<string, number>;
   today: { inbox: number; review: number; proofs: number; deliveries: number };
   recentProofRuns: ProofRunRecord[];
+  nextReviewRequests: ReviewQueueItem[];
   health: ReturnType<typeof getAdminCoreHealth>;
 }> {
   const fullState = await readState();
@@ -2856,7 +2992,7 @@ export async function getAdminCoreDashboard(actor?: CoreActor): Promise<{
   const today = new Date().toISOString().slice(0, 10);
   return {
     counts: {
-      inbox: state.inboxItems.filter((item) => !["archived", "excluded", "security-routed"].includes(item.state)).length,
+      inbox: state.inboxItems.filter((item) => ["new", "reviewed"].includes(item.state)).length,
       reviewRequests: state.reviewRequests.filter((request) => !["closed", "declined"].includes(request.state)).length,
       waitingForCustomer: state.reviewRequests.filter((request) => request.state === "needs_customer_information").length,
       needsReview: state.proofRuns.filter((run) => run.state === "operator_review").length,
@@ -2870,6 +3006,14 @@ export async function getAdminCoreDashboard(actor?: CoreActor): Promise<{
       deliveries: state.deliveries.filter((delivery) => delivery.createdAt.startsWith(today)).length,
     },
     recentProofRuns: clone(state.proofRuns.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 5)),
+    nextReviewRequests: state.reviewRequests.filter((request) => !["closed", "declined", "converted_to_proof_run"].includes(request.state))
+      .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt)).slice(0, 5)
+      .map((request) => {
+        const customer = state.customers.find((candidate) => candidate.id === request.customerId);
+        return { id: request.id, requestText: request.requestText, state: request.state,
+          customerName: customer?.name ?? "Customer unavailable", customerEmail: customer?.email ?? "",
+          nextAction: request.nextAction, timing: request.timing };
+      }),
     health: getAdminCoreHealth(),
   };
 }

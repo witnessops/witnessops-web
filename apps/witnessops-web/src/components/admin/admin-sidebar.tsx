@@ -40,7 +40,7 @@ export function AdminSidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; on
       <div className={styles.sidebarNav}>
         <form className={styles.adminGlobalSearch} action="/admin/search">
           <Search size={13} aria-hidden />
-          <input name="q" placeholder="Search exact ID…" aria-label="Global admin search" />
+          <input name="q" placeholder="Search names, email, IDs…" aria-label="Global admin search" />
         </form>
         {navItems.map((item) => {
           const active =
