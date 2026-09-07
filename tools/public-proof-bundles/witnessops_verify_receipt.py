@@ -232,7 +232,8 @@ def load_trusted_signer(registry_path: Optional[str], signer_id: str, key_id: st
 
 
 def read_signature_bytes(signature_path: str, encoding: str) -> bytes:
-    data = open(signature_path, "rb").read()
+    with open(signature_path, "rb") as signature_file:
+        data = signature_file.read()
     if encoding == "base64":
         return base64.b64decode(data.strip(), validate=True)
     if encoding == "hex":

@@ -702,7 +702,7 @@ export function DocsAssistantWidget() {
                         <span>NO FIT CLAIM</span>
                       </div>
                       <p className={styles.errorPanelCopy} role="alert">{answer.content}</p>
-                      <button type="button" className={styles.retryButton} onClick={() => void handleAsk()} disabled={loading || !question.trim()}>Retry question</button>
+                      <button type="button" className={styles.retryButton} onClick={() => void handleAsk()} disabled={!question.trim()}>Retry question</button>
                     </section>
                   ) : (
                     <section
@@ -748,7 +748,7 @@ export function DocsAssistantWidget() {
                   {answer.answer?.fallback_reason === "ai_unavailable" && (
                     <div className={styles.recoveryLine}>
                       <p>The AI is temporarily unavailable. This is public guide information.</p>
-                      <button type="button" className={styles.resultReset} onClick={() => void handleAsk()} disabled={loading || !question.trim()}>Retry AI answer</button>
+                      <button type="button" className={styles.resultReset} onClick={() => void handleAsk()} disabled={!question.trim()}>Retry AI answer</button>
                     </div>
                   )}
                   {answer.answer && !answer.answer.fallback_reason && (

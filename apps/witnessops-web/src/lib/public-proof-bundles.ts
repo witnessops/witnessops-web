@@ -23,7 +23,7 @@ export const publicProofBundles: PublicProofBundle[] = [
     artifactPath:
       "/bundles/external-exposure-proof-bundle-external-exposure-20260427T140210Z.zip",
     manifestSha256:
-      "d9702c5f3b8479d94949e025d15715094535a437535f7c6f8d5a26c2623d0453",
+      "1f98b08d0e2c28b7b92c7fcf41b8b612955bf09c428008f88f587977079cf478",
     verifierResult: "valid",
   },
   {
@@ -36,7 +36,7 @@ export const publicProofBundles: PublicProofBundle[] = [
     artifactPath:
       "/bundles/api-authorization-proof-bundle-api-authorization-20260427T161038Z.zip",
     manifestSha256:
-      "67916b84a85862e274698f2036f9b8e6421fffaf71a39bd5e087ead7b3e954db",
+      "4c17cc84b7b0766cc29dc30e765fd263b4b20c31e1bf905bcef8daea3ae23e96",
     verifierResult: "valid",
   },
 ];
