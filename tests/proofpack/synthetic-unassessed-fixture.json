@@ -1,0 +1,12 @@
+{
+  "mixed": [
+    { "id": "unassessed-first", "title": "First fixture finding has no severity assessment", "severity": null, "state": "needs_attention", "recommendation": "Assess this fixture finding before assigning a priority." },
+    { "id": "assessed-low", "title": "Low severity fixture finding", "severity": "low", "state": "needs_attention", "recommendation": "Review the low severity fixture comparison." },
+    { "id": "assessed-high", "title": "High severity fixture finding", "severity": "high", "state": "needs_attention", "recommendation": "Review the high severity fixture comparison first." },
+    { "id": "assessed-medium", "title": "Medium severity fixture finding", "severity": "medium", "state": "needs_attention", "recommendation": "Review the medium severity fixture comparison." }
+  ],
+  "only": [
+    { "id": "unassessed-attention", "title": "Fixture finding awaiting severity assessment", "severity": null, "state": "needs_attention", "recommendation": "Assess this fixture finding before assigning a priority." },
+    { "id": "unassessed-informational", "title": "Informational disposition with no severity assessment", "severity": null, "state": "informational", "recommendation": null }
+  ]
+}

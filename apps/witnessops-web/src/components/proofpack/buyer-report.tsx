@@ -29,16 +29,20 @@ export function BuyerReportDocument({ model, className = '' }: { model: Proofpac
     const complete = model.summary.coverage.complete;
     const gaps = model.collectionGaps;
     const findings = model.findings;
+    const assessed = findings.filter((finding): finding is typeof finding & { severity: string } => finding.severity !== null);
+    const unassessed = findings.filter(finding => finding.severity === null);
+    const displayedFindings = unassessed.length ? [...assessed, ...unassessed] : findings;
     const product = `${model.identity.productName} ${model.identity.productVersion}`;
     const severityOrder = ['critical', 'high', 'medium', 'low', 'informational'];
     const counts = [...severityOrder, ...Object.keys(model.summary.findings.severities).filter(s => !severityOrder.includes(s))].filter(s => model.summary.findings.severities[s] > 0);
-    const priorities = [...findings].sort((a, b) => {
+    const priorities = [...assessed].sort((a, b) => {
         const rank = (severity: string) => { const index = severityOrder.indexOf(severity); return index < 0 ? severityOrder.length : index; };
         return rank(a.severity) - rank(b.severity);
     }).slice(0, 3);
     const nextAction = priorities.length
         ? priorities[0].recommendation ?? 'Review the recorded finding with the responsible owner.'
-        : gaps.length ? 'Arrange follow-up collection for the named gaps with the responsible operator.'
+        : unassessed.length ? 'Review the findings with the responsible owner. Their severity has not been assessed.'
+            : gaps.length ? 'Arrange follow-up collection for the named gaps with the responsible operator.'
             : 'Review the scope and limitations with the responsible owner, then record their decision.';
     return <article className={`${styles.document} ${className}`} aria-label="Derived buyer report">
         <style>{reportPageIdentityStyle(model.subject.label, model.identity.sourceDigest)}</style>
@@ -53,18 +57,19 @@ export function BuyerReportDocument({ model, className = '' }: { model: Proofpac
             <div className={styles.resultGrid}>
                 <div><span>{model.verification.label}</span><strong>Passed</strong><small>{model.verification.method}</small></div>
                 <div><span>Collection</span><strong>{complete} / {sections.length}</strong><small>Collection: {complete} / {sections.length} complete</small></div>
-                <div><span>Findings</span><strong>{findings.length}</strong><small>{counts.map(s => `${model.summary.findings.severities[s]} ${s}`).join(' · ') || 'No findings recorded'}</small></div>
+                <div><span>Findings</span><strong>{findings.length}</strong><small>{[...counts.map(s => `${model.summary.findings.severities[s]} ${s}`), ...(unassessed.length ? [`${unassessed.length} severity not assessed`] : [])].join(' · ') || 'No findings recorded'}</small></div>
                 <div><span>Owner decision</span><strong>Not recorded</strong><small>Verification does not grant approval</small></div>
             </div>
             {model.summary.checks && <p className={styles.fine}>Recorded checks: {model.summary.checks.total} total · {model.summary.checks.passed} passed · {model.summary.checks.needsAttention} need attention · {model.summary.checks.informational} informational · {model.summary.checks.undetermined} undetermined. These are individual results, not an overall security grade.</p>}
-            <section className={styles.prioritySummary} aria-label="Priority findings">
+            {assessed.length > 0 || !unassessed.length ? <section className={styles.prioritySummary} aria-label="Priority findings">
                 <h3>Review first</h3>
-                <p className={styles.fine}>Up to three findings by recorded severity. Full observations and limitations are in chapter 03.</p>
+                <p className={styles.fine}>{unassessed.length ? 'Up to three severity-assessed findings by recorded severity. Unassessed findings are listed separately in chapter 03.' : 'Up to three findings by recorded severity. Full observations and limitations are in chapter 03.'}</p>
                 {priorities.length ? <ol>{priorities.map(finding => <li key={finding.id}><span>{readable(finding.severity)}</span><strong>{finding.title}</strong></li>)}</ol> : <p>No findings were recorded. This does not establish overall security.</p>}
-            </section>
+            </section> : null}
+            {unassessed.length > 0 && <section className={styles.prioritySummary} aria-label="Unassessed findings"><h3>Severity not assessed</h3><p>{unassessed.length} {unassessed.length === 1 ? 'finding is' : 'findings are'} recorded without an assessed severity. They are not severity-ranked. Read their observations and limitations in chapter 03.</p></section>}
             <div className={styles.decisionSummary}>
                 <section aria-label="Summary collection gaps"><h3>Collection gaps</h3><p>{gaps.length ? gaps.map(g => readable(g.label)).join(', ') + '. Review these gaps before deciding whether to collect more evidence.' : 'No collection gaps were recorded.'}</p></section>
-                <section aria-label="Suggested next action"><h3>Suggested next action</h3><p>{nextAction}{priorities.length > 0 && gaps.length > 0 ? ' Also arrange follow-up collection for the named gaps.' : ''}</p><p className={styles.fine}>Agree any changes with the responsible owner. No remediation is established here.</p></section>
+                <section aria-label="Suggested next action"><h3>Suggested next action</h3><p>{nextAction}{(priorities.length > 0 || unassessed.length > 0) && gaps.length > 0 ? ' Also arrange follow-up collection for the named gaps.' : ''}</p><p className={styles.fine}>Agree any changes with the responsible owner. No remediation is established here.</p></section>
             </div>
             <p className={styles.callout}>{model.verification.boundary}</p>
             <p className={styles.fine}>This report is a derived presentation of the source evidence.</p>
@@ -79,17 +84,19 @@ export function BuyerReportDocument({ model, className = '' }: { model: Proofpac
             <p className={styles.callout}>{gaps.length ? `${gaps.length} collection ${gaps.length === 1 ? 'gap is' : 'gaps are'} recorded. See The proof boundary for the recorded limitations.` : 'All listed coverage items are complete. Completeness is a collection result, not a security grade.'}</p>
         </Chapter>
 
-        <Chapter product={product} number="03" label="THE FINDINGS" title="What needs attention?">
+        <Chapter product={product} number="03" label="THE FINDINGS" title={unassessed.length ? 'Recorded findings' : 'What needs attention?'}>
             <p className={styles.lead}>{findings.length ? `${findings.length} recorded findings, with observations and proposed next steps.` : 'No findings were recorded.'}</p>
             <p className={styles.fine}>Recommendations are proposed follow-up work. No remediation is established by this report.</p>
-            {findings.map((finding, i) => <section key={finding.id} className={styles.finding}>
-                <div className={styles.findingMeta}><span>{number(i + 1)} / {number(findings.length)}</span><span data-severity={finding.severity}>{readable(finding.severity)}</span><span>{readable(finding.state)}</span></div>
+            {displayedFindings.map((finding, i) => <Fragment key={finding.id}>
+                {unassessed.length > 0 && (i === 0 || i === assessed.length) && <h3>{finding.severity === null ? 'Severity not assessed' : 'Severity-assessed findings'}</h3>}
+                <section className={styles.finding}>
+                <div className={styles.findingMeta}><span>{number(i + 1)} / {number(findings.length)}</span>{finding.severity === null ? <span>Severity not assessed</span> : <span data-severity={finding.severity}>{readable(finding.severity)}</span>}<span>{readable(finding.state)}</span></div>
                 <h3>{finding.title}</h3>
                 <div className={styles.findingBody}><div><h4>Observed</h4><pre>{observation(finding.observation)}</pre></div><div><h4>Recommended next step</h4><p>{finding.recommendation ?? 'No recommended action recorded.'}</p></div></div>
                 {finding.interpretation && <div className={styles.findingLimit}><h4>Interpretation</h4><p>{finding.interpretation}</p></div>}
                 <div className={styles.findingLimit}><h4>What this establishes</h4><p>{finding.limitations.join(" ")}</p></div>
                 <p className={styles.evidenceRef}><strong>{finding.checkId ?? finding.id}</strong> · Evidence: {finding.evidence.join(', ')}</p>
-            </section>)}
+            </section></Fragment>)}
             {!findings.length && <p className={styles.callout}>An absence of findings does not establish overall security. Read the scope and proof boundary alongside this result.</p>}
         </Chapter>
 
