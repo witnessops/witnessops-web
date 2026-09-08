@@ -230,3 +230,48 @@ for (const name of ['complete', 'synthetic']) test(`Adapter independence through
     }
     expect(requests).toEqual([]);
 });
+
+for (const variant of ['mixed', 'only']) test(`Unassessed severity stays separate in browser and print: ${variant}`, async ({ page, browserName }) => {
+    const name = `synthetic-unassessed-${variant}`;
+    const html = execFileSync(process.execPath, ['--import', 'tsx', 'apps/witnessops-web/src/lib/proofpack/test-support/render-fixture.tsx', name], {
+        encoding: 'utf8', env: { ...process.env, TSX_TSCONFIG_PATH: resolve('apps/witnessops-web/tsconfig.test.json') },
+    });
+    const requests: string[] = [], runtimeErrors: string[] = [];
+    page.on('request', request => requests.push(request.url()));
+    page.on('pageerror', error => runtimeErrors.push(error.message));
+    await page.setContent(html);
+    const report = page.getByRole('article', { name: 'Derived buyer report' });
+    await expect(report).toBeVisible();
+    await expect(report.getByRole('region', { name: 'Unassessed findings', exact: true })).toContainText('not severity-ranked');
+    const findingCards = report.locator('section.finding');
+    const nullCards = findingCards.filter({ has: page.locator('.findingMeta').getByText('Severity not assessed', { exact: true }) });
+    await expect(nullCards).toHaveCount(variant === 'mixed' ? 1 : 2);
+    await expect(nullCards.locator('[data-severity]')).toHaveCount(0);
+    await expect(report.locator('[data-severity="informational"], [data-severity="null"]')).toHaveCount(0);
+    const priorities = report.getByRole('region', { name: 'Priority findings', exact: true });
+    if (variant === 'mixed') {
+        await expect(priorities.locator('li strong')).toHaveText(['High severity fixture finding', 'Medium severity fixture finding', 'Low severity fixture finding']);
+        await expect(priorities).not.toContainText('First fixture finding has no severity assessment');
+        await expect(report.getByRole('region', { name: 'Suggested next action', exact: true })).toContainText('Review the high severity fixture comparison first.');
+    } else {
+        await expect(priorities).toHaveCount(0);
+        await expect(report).not.toContainText('No findings were recorded');
+        await expect(report.getByRole('region', { name: 'Suggested next action', exact: true })).toContainText('Their severity has not been assessed.');
+        await expect(nullCards.nth(1).locator('.findingMeta')).toContainText('informational');
+    }
+    const screenHtml = await report.innerHTML();
+    for (const width of [390, 1440]) {
+        await page.setViewportSize({ width, height: 1000 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+    await page.emulateMedia({ media: 'print' });
+    expect(await report.innerHTML()).toBe(screenHtml);
+    await expect(nullCards.first()).toBeVisible();
+    await expect(report.getByRole('heading', { name: 'Verification appendix', exact: true })).toBeVisible();
+    if (browserName === 'chromium') {
+        mkdirSync(output, { recursive: true });
+        await page.pdf({ path: `${output}/model-${name}.pdf`, format: 'A4', printBackground: true });
+    }
+    expect(requests).toEqual([]);
+    expect(runtimeErrors).toEqual([]);
+});

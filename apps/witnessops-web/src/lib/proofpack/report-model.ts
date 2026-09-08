@@ -4,7 +4,8 @@ export const REPORT_TEMPLATE = 'proofpack-report/1.4';
 type Immutable<T> = T extends object ? { readonly [K in keyof T]: Immutable<T[K]> } : T;
 export type CoverageItem = { id: string; label: string; complete: boolean; observedState: string | null; observation: unknown };
 export type ReportFinding = {
-    id: string; checkId?: string; title: string; severity: string; state: string;
+    /** Null explicitly means severity was not assessed; it does not describe disposition. */
+    id: string; checkId?: string; title: string; severity: string | null; state: string;
     observation: unknown; evidence: string[]; interpretation: string | null;
     recommendation: string | null; limitations: string[]; sourceRefs: string[];
 };
@@ -27,7 +28,8 @@ export type ReportModelInput = {
         /** Null means the producer has no complete individual-check ledger. Never infer passes from absent findings. */
         checks: { total: number; passed: number; needsAttention: number; informational: number; undetermined: number } | null;
         coverage: { total: number; complete: number; undetermined: number };
-        findings: { total: number; needsAttention: number; informational: number; severities: Record<string, number> };
+        /** Unassessed is independent of disposition. Omitted means zero for existing V1 models. */
+        findings: { total: number; needsAttention: number; informational: number; severities: Record<string, number>; unassessed?: number };
     };
     coverage: CoverageItem[]; findings: ReportFinding[]; unknowns: UnknownItem[]; collectionGaps: GapItem[];
     provenance: ProvenanceRecord[]; verificationChecks: VerificationCheck[]; sourceArtifacts: SourceArtifact[];
@@ -44,12 +46,22 @@ export function isBuyerReport(model: ProofpackReportV1 | null | undefined): mode
 export function createReportModel(input: ReportModelInput): ProofpackReportV1 {
     if (!isBuyerReport(input)) throw new Error('Buyer report requires passed verification.');
     const { coverage, findings, checks } = input.summary;
-    const totals = [coverage.total, coverage.complete, coverage.undetermined, findings.total, findings.needsAttention, findings.informational, ...Object.values(findings.severities), ...Object.values(checks ?? {})];
+    const unassessed = findings.unassessed === undefined ? 0 : findings.unassessed;
+    const assessedCounts = new Map<string, number>();
+    for (const finding of input.findings) {
+        if (finding.severity === null) continue;
+        if (typeof finding.severity !== 'string' || !finding.severity.trim()) throw new Error('Inconsistent report model.');
+        assessedCounts.set(finding.severity, (assessedCounts.get(finding.severity) ?? 0) + 1);
+    }
+    const totals = [coverage.total, coverage.complete, coverage.undetermined, findings.total, findings.needsAttention, findings.informational, unassessed, ...Object.values(findings.severities), ...Object.values(checks ?? {})];
     if (totals.some(n => !Number.isSafeInteger(n) || n < 0) || coverage.total !== input.coverage.length || coverage.complete !== input.coverage.filter(c => c.complete).length
         || coverage.undetermined !== coverage.total - coverage.complete
         || input.collectionGaps.length !== coverage.undetermined
         || findings.total !== input.findings.length || findings.total !== findings.needsAttention + findings.informational
-        || Object.values(findings.severities).reduce((a, b) => a + b, 0) !== findings.total
+        || unassessed !== input.findings.filter(f => f.severity === null).length
+        || Object.values(findings.severities).reduce((a, b) => a + b, 0) + unassessed !== findings.total
+        || [...assessedCounts].some(([severity, count]) => !Object.hasOwn(findings.severities, severity) || findings.severities[severity] !== count)
+        || Object.entries(findings.severities).some(([severity, count]) => count !== (assessedCounts.get(severity) ?? 0))
         || (checks && checks.total !== checks.passed + checks.needsAttention + checks.informational + checks.undetermined)
         || !Number.isFinite(Date.parse(input.identity.generatedAt))) throw new Error('Inconsistent report model.');
     // Detach from mutable verifier output, preserving source order and supplied generation time.
