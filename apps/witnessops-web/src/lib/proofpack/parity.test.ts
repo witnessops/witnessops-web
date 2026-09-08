@@ -31,27 +31,29 @@ test('JSON duplicate keys, excess depth and unsafe numbers are rejected', () => 
 test('canonical JSON orders Unicode keys by codepoint like Python', () => { assert.equal(canonical({ '\u{1f600}': 1, '\ufffd': 2 }), '{' + '"\ufffd":2,"😀":1}'); });
 test('resource admission precedes ZIP extraction', async () => { await assert.rejects(unzip(new Uint8Array(22))); });
 
-test('report records follow manifest-selected paths and retain checked object identity', async () => {
+test('report records follow manifest-selected paths and are read once for checking and presentation', async () => {
     const archive = await unzip(input('partial').proofpack!.bytes);
-    const records = new Map([...archive].filter(([name]) => name.endsWith('.json')).map(([name, bytes]) => [name, json(bytes)]));
-    const manifest = records.get('evidence_manifest.json');
+    const manifest = json(archive.get('evidence_manifest.json'));
     const selected = new Map<string, unknown>();
     for (const id of ['authority_record', 'collection_completeness']) {
         const artifact = manifest.artifacts.find((a: { artifact_id: string }) => a.artifact_id === id);
-        const record = records.get(artifact.path);
-        selected.set(id, record);
-        records.delete(artifact.path);
+        const bytes = archive.get(artifact.path);
+        selected.set(id, json(bytes));
+        archive.delete(artifact.path);
         artifact.path = `evidence/selected-${id}.json`;
-        records.set(artifact.path, record);
+        archive.set(artifact.path, bytes);
     }
     // Scope is a presentation of checked authority, not another independently selected file.
-    records.delete('evidence/scope.json');
+    archive.delete('evidence/scope.json');
+    const reads: string[] = [];
     const checked = await verifySemantics(name => {
-        assert.ok(records.has(name), `Unexpected record lookup: ${name}`);
-        return records.get(name);
-    }, manifest, records.get('receipt.json'));
-    assert.strictEqual(checked.authority, selected.get('authority_record'));
-    assert.strictEqual(checked.completeness, selected.get('collection_completeness'));
+        assert.ok(archive.has(name), `Unexpected record lookup: ${name}`);
+        reads.push(name);
+        return archive.get(name);
+    }, manifest, json(archive.get('receipt.json')));
+    assert.deepEqual(checked.authority, selected.get('authority_record'));
+    assert.deepEqual(checked.completeness, selected.get('collection_completeness'));
+    assert.equal(reads.length, new Set(reads).size, 'Checked records must not be reopened for presentation');
     assert.equal(checked.completeness.section_results.filter(s => s.complete).length, 10);
     assert.deepEqual(checked.completeness.section_results.filter(s => !s.complete).map(s => s.section), ['updates']);
     assert.deepEqual(checked.scope, JSON.parse(readFileSync(resolve(root, 'partial/scope.json'), 'utf8')));
