@@ -1,10 +1,10 @@
 'use client';
-/* eslint-disable @next/next/no-html-link-for-pages */
 import { useEffect, useRef, useState } from 'react';
 import { BuyerReportDocument } from '@/components/proofpack/buyer-report';
 import { createReportModel, printBuyerReport, type ProofpackReportV1, type ReportModelInput } from '@/lib/proofpack/report-model';
 import { EXCLUSIONS, EXTERNAL_VERSION, SNAPSHOT_BOUNDARY, type ExternalSnapshotV1, type CheckStatus } from '@/lib/external-exposure/contracts';
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from '@/lib/commercial-truth';
+import { buyerOfferRequestHref } from '@/lib/buyer-services';
 import styles from './external-exposure.module.css';
 
 const statusLabels: Record<CheckStatus, string> = {
@@ -71,41 +71,48 @@ export function ExternalExposureWorkspace() {
     }
   }
 
+  const attention = result?.snapshot.checks.filter(check => check.status === 'NEEDS_ATTENTION') ?? [];
+  const unknowns = result?.snapshot.checks.filter(check => check.status === 'UNDETERMINED' || check.status === 'CHECK_ERROR') ?? [];
+  const information = result?.snapshot.checks.filter(check => check.status === 'INFORMATIONAL') ?? [];
+  const IntroHeading = reportOpen ? 'h2' : 'h1';
+
   return <main id="main-content" className={styles.workspace}>
     <div className={styles.screen}>
-      <header className={styles.header}><a href="/" className={styles.brand}>WITNESSOPS</a><span>PUBLIC OBSERVATIONS · FREE CHECK</span></header>
       <section className={styles.intro}>
-        <p className={styles.eyebrow}>ONE HOSTNAME. TEN OBSERVATIONS.</p>
-        <h1>External Exposure Snapshot</h1>
-        <p className={styles.lead}>See what a few public signals reveal about your hostname. Get the observations, their limits and a report you can keep.</p>
-        <p className={styles.muted}>Free. No email or account. Results stay in this page until you clear or leave it.</p>
+        <p className={styles.eyebrow}>FREE · NO EMAIL REQUIRED</p>
+        <IntroHeading className={styles.title}>External Exposure Snapshot</IntroHeading>
+        <p className={styles.lead}>See what your company exposes publicly.</p>
       </section>
       <form className={styles.form} onSubmit={submit} aria-label="Run an external exposure snapshot">
         <label htmlFor="external-hostname">Public hostname</label>
-        <div className={styles.inputRow}><input id="external-hostname" name="hostname" type="text" autoComplete="off" spellCheck={false} autoCapitalize="none" maxLength={253} placeholder="example.com" aria-describedby="hostname-help" value={hostname} onChange={event => clearResult(event.target.value)} required /><button type="submit" disabled={busy || !hostname.trim()}>{busy ? 'Collecting observations…' : 'Run free snapshot'}</button></div>
+        <div className={styles.inputRow}><input id="external-hostname" name="hostname" type="text" autoComplete="off" spellCheck={false} autoCapitalize="none" maxLength={253} placeholder="example.com" aria-describedby="hostname-help" value={hostname} onChange={event => clearResult(event.target.value)} required /><button type="submit" disabled={busy || !hostname.trim()}>{busy ? 'Collecting observations…' : 'Run free check'}</button></div>
         <p id="hostname-help">Enter a hostname you own or are authorized to check. Use only the hostname, without https://, a path or a port.</p>
-        <p className={styles.muted}>WitnessOps sends bounded public DNS queries and TLS/HTTP requests on ports 80/443. No credentials, login, subdomain enumeration or exploitation. No result storage by this feature.</p>
+        <p className={styles.promise}>10 bounded public checks. No exploitation. No credentials. Ports 80/443 only.</p>
+        <details className={styles.executionDetails}><summary>How this check works</summary><p>WitnessOps servers make bounded public DNS, TLS and HTTP observations. Results stay in this page until you clear or leave it. This feature does not store results.</p></details>
         <div className={styles.actions}>{busy && <button type="button" onClick={() => clearResult()}>Cancel</button>}{(result || error) && <button type="button" onClick={() => clearResult('')}>Clear</button>}</div>
         {busy && <p role="status">Collection is limited to 30 seconds, followed by brief report processing. Cancel hides the result; the bounded server run may finish.</p>}
         {error && <p className={styles.error} role="alert">{error}</p>}
       </form>
-      {!result && <section className={styles.included}><h2>What is included?</h2><ul>{CHECK_TOPICS.map(topic => <li key={topic}>{topic}</li>)}</ul><p>{SNAPSHOT_BOUNDARY}</p><details><summary>What is excluded?</summary><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details></section>}
+      {!result && <section className={styles.included}><h2>One hostname. Ten observations.</h2><ul>{CHECK_TOPICS.map(topic => <li key={topic}>{topic}</li>)}</ul><details><summary>Scope and limitations</summary><p>{SNAPSHOT_BOUNDARY}</p><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details></section>}
       {result && <>
         <section className={styles.result} aria-label="Snapshot results">
-          <p className={styles.eyebrow}>UNSIGNED OBSERVATIONS</p>
+          <p className={styles.eyebrow}>YOUR SNAPSHOT</p>
           <h2 ref={resultHeading} tabIndex={-1}>{result.snapshot.target}</h2>
-          <p className={styles.muted}>Observed {result.snapshot.finished_at} · {((Date.parse(result.snapshot.finished_at) - Date.parse(result.snapshot.started_at)) / 1000).toFixed(1)} seconds · {EXTERNAL_VERSION}</p>
-          <div className={styles.counts}>{(Object.keys(statusLabels) as CheckStatus[]).map(status => <div key={status}><strong>{result.snapshot.checks.filter(check => check.status === status).length}</strong><span>{statusLabels[status]}</span></div>)}</div>
+          <p className={styles.muted}>{result.snapshot.checks.length} checks returned · {result.snapshot.finished_at} · {((Date.parse(result.snapshot.finished_at) - Date.parse(result.snapshot.started_at)) / 1000).toFixed(1)} seconds</p>
+          <div className={styles.counts}><div><strong>{attention.length}</strong><span>Needs attention</span></div><div><strong>{result.snapshot.checks.filter(check => check.status === 'OBSERVED_EXPECTED').length}</strong><span>Observed as expected</span></div><div><strong>{information.length}</strong><span>Informational</span></div><div><strong>{unknowns.length}</strong><span>Could not determine</span></div></div>
           <p>No score or severity ranking is assigned. “Observed as expected” describes a named check, not overall security.</p>
-          <div className={styles.checks}>{result.snapshot.checks.map(check => <details key={check.check_id} className={styles.check} data-status={check.status}><summary><span>{check.title}</span><strong>{statusLabels[check.status]}</strong></summary><p><strong>Method:</strong> {check.method}</p><p>{check.interpretation}</p><pre>{typeof check.observation === 'string' ? check.observation : JSON.stringify(check.observation, null, 2)}</pre>{check.recommendation && <p><strong>Next step:</strong> {check.recommendation}</p>}<p className={styles.muted}>{check.limitations.join(' ')}</p><p className={styles.evidence}>{check.check_id} · {check.status} · Evidence: {check.evidence.join(', ')}</p></details>)}</div>
-          <div className={styles.actions}><button type="button" onClick={() => setReportOpen(value => !value)}>{reportOpen ? 'Hide report preview' : 'Preview buyer report'}</button><button type="button" onClick={() => printBuyerReport(result.model, () => window.print())}>Save report as PDF</button><button type="button" onClick={() => saveSource(result.snapshot)}>Download source JSON</button></div>
-          <p className={styles.muted}>PDF uses your browser’s print dialog. Its “Snapshot data checks: Passed” label means the report data passed structural checks. The observations are unsigned.</p>
+          <div className={styles.resultColumns}>
+            <section aria-labelledby="attention-heading"><h3 id="attention-heading">What needs attention?</h3>{attention.length ? <ul className={styles.observations}>{attention.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{check.interpretation}</p>{check.recommendation && <p className={styles.muted}>{check.recommendation}</p>}</li>)}</ul> : <p>No needs-attention items were observed under these ten checks. This does not establish the absence of vulnerabilities.</p>}</section>
+            <section aria-labelledby="unknown-heading"><h3 id="unknown-heading">What remains unknown?</h3>{unknowns.length ? <ul className={styles.observations}>{unknowns.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{statusLabels[check.status]}: {check.interpretation}</p></li>)}</ul> : <p>No check returned an unknown or collection error.</p>}<p className={styles.muted}>Authenticated functionality, internal infrastructure and application vulnerabilities were not tested.</p></section>
+          </div>
+          {information.length > 0 && <details className={styles.information}><summary>{information.length} informational observations</summary><ul>{information.map(check => <li key={check.check_id}><strong>{check.title}</strong><p>{check.interpretation}</p></li>)}</ul></details>}
+          <section className={styles.evidence} aria-label="Full evidence"><div><h3>Full evidence</h3><p>Inspect all ten observations, methods, source references and limitations in the buyer report.</p></div><div className={styles.actions}><button type="button" aria-expanded={reportOpen} aria-controls="external-buyer-report" onClick={() => setReportOpen(value => !value)}>{reportOpen ? 'Hide full report' : 'View full report'}</button><button type="button" onClick={() => printBuyerReport(result.model, () => window.print())}>Export PDF</button></div><details><summary>Source data and report details</summary><button type="button" onClick={() => saveSource(result.snapshot)}>Download source JSON</button><p className={styles.muted}>{EXTERNAL_VERSION}. PDF uses your browser’s print dialog. “Snapshot data checks: Passed” means the report data passed structural checks. The observations are unsigned.</p></details></section>
         </section>
-        <section className={styles.boundary} aria-label="Snapshot scope and limits"><h2>Read the limits alongside the result.</h2><p>{SNAPSHOT_BOUNDARY}</p><details><summary>Declared exclusions</summary><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details></section>
+        <section className={styles.nextStep} aria-label="Discuss your next step"><div><p className={styles.eyebrow}>WHAT NEXT?</p><h2>Make sense of the next step.</h2><p>Talk through what needs attention and whether a deeper review would help. Request a 30-minute conversation; we’ll confirm a time with you.</p></div><a className={styles.primaryLink} href={EXTERNAL_ATTACK_SURFACE_OFFER.requestRoute}>Request a 30-minute review call</a></section>
+        <details className={styles.boundary}><summary>Snapshot scope and limits</summary><p>{SNAPSHOT_BOUNDARY}</p><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details>
       </>}
-      <aside className={styles.offer}><div><p className={styles.eyebrow}>FOR A BROADER, AUTHORIZED REVIEW</p><h2>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en}</h2><p>{EXTERNAL_ATTACK_SURFACE_OFFER.result.en}</p><p><strong>{EXTERNAL_ATTACK_SURFACE_OFFER.price.en}</strong> for one authorized public-facing system.</p></div><a href={EXTERNAL_ATTACK_SURFACE_OFFER.route.en}>See the review scope →</a></aside>
-      <footer className={styles.footer}>A bounded observation supports a next decision. It does not certify a system.</footer>
+      <aside className={styles.offer}><div><p className={styles.eyebrow}>NEED US TO INVESTIGATE FURTHER?</p><h2>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en}</h2><p>A bounded, authorized, human-reviewed investigation with validated findings and an evidence-backed buyer report.</p><p><strong>{EXTERNAL_ATTACK_SURFACE_OFFER.price.en}</strong> for one authorized public-facing system.</p><a className={styles.textLink} href={EXTERNAL_ATTACK_SURFACE_OFFER.route.en}>See the review scope →</a></div><a className={styles.secondaryLink} href={buyerOfferRequestHref('en', EXTERNAL_ATTACK_SURFACE_OFFER.productId)}>Request review</a></aside>
     </div>
-    {result && <BuyerReportDocument model={result.model} className={`${styles.report} ${reportOpen ? styles.preview : ''}`} />}
+    {result && <div id="external-buyer-report"><BuyerReportDocument model={result.model} className={`${styles.report} ${reportOpen ? styles.preview : ''}`} /></div>}
   </main>;
 }

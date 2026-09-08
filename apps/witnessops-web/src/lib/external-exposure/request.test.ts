@@ -183,9 +183,10 @@ test('a valid snapshot for another hostname cannot satisfy this request', async 
   assert.doesNotMatch(await response.text(), /other\.example\.com|"model"/);
 });
 
-test('route and page remain bounded and unannounced', () => {
+test('acquisition page is canonical while the bounded request route stays unchanged', () => {
   const page = readFileSync(new URL('../../app/check/page.tsx', import.meta.url), 'utf8');
-  assert.match(page, /robots: \{ index: false, follow: false \}/);
+  assert.match(page, /robots: \{ index: true, follow: true \}/);
+  assert.match(page, /alternates: \{ canonical: '\/check' \}/);
   const route = readFileSync(new URL('../../app/api/external-exposure/route.ts', import.meta.url), 'utf8');
   assert.match(route, /runtime = 'nodejs'/);
   assert.match(route, /createExternalExposureHandler\(runSnapshot\)/);

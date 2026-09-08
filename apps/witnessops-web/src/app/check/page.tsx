@@ -3,8 +3,9 @@ import { ExternalExposureWorkspace } from '@/components/external-exposure/extern
 
 export const metadata: Metadata = {
   title: 'External Exposure Snapshot',
-  description: 'Ten bounded public observations of one hostname, with explicit limitations and an unsigned report.',
-  robots: { index: false, follow: false },
+  description: 'Run a free external exposure check for your company hostname. Ten bounded public observations, clear limitations and a report. No email required.',
+  alternates: { canonical: '/check' },
+  robots: { index: true, follow: true },
 };
 
 export default function CheckPage() { return <ExternalExposureWorkspace />; }

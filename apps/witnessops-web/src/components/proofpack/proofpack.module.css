@@ -7,3 +7,40 @@
 
 /* Bundle V1 intake. Report and print presentation remain unchanged. */
 .bundleIntake{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}.trustSource{display:flex;flex-direction:column;gap:10px;justify-content:center;min-width:0}.trustSource code,.selectedFile{overflow-wrap:anywhere;word-break:break-word}.trustSource small{color:var(--proof-muted,#b1b9c5)}.file .fileInput{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.file:focus-within{outline:2px solid currentColor;outline-offset:4px}.bundleDetails{margin-top:20px}.bundleDetails summary{cursor:pointer;min-height:44px;display:flex;align-items:center}.bundleDetails p{max-width:70ch}.selectedFile{font-size:.875rem}@media(max-width:640px){.bundleIntake{grid-template-columns:minmax(0,1fr);gap:20px}}
+
+/* Website workspace only; the BuyerReportDocument rules above are preserved. */
+@media screen {
+.workspace{--pp-ink:var(--color-text-primary);--pp-muted:var(--color-text-secondary);--pp-line:var(--color-surface-border);--pp-panel:var(--color-surface-card);background:var(--color-surface-bg);padding-inline:max(20px,calc((100vw - 1280px)/2))}
+.screen{padding-top:12px}
+.screen .intro{max-width:860px;padding:clamp(40px,6vw,68px) 0 28px}
+.screen .eyebrow{font:500 13px/1.5 var(--font-mono);letter-spacing:.14em;color:var(--color-brand-accent)}
+.screen h1{font-size:clamp(36px,5.3vw,64px);font-weight:500;letter-spacing:-.05em;line-height:1.08}
+.screen .intro>p{font-size:clamp(18px,2vw,23px)}
+.screen .intro .privacy{font-size:14px}
+.screen :is(h2,h3){font-weight:500}
+.screen .inputPanel{max-width:1060px;border-color:var(--color-surface-border-strong);border-radius:4px}
+.screen .overview,.screen .failure,.screen .finding{border-radius:4px}
+.screen .file{border:0;border-radius:0;padding:0}
+.screen .file>button{align-self:flex-start}
+.screen .file .actions{margin-top:8px}
+.screen button,.screen select{font:500 14px/1.5 var(--font-mono);border-color:var(--color-surface-border-strong);border-radius:4px;background:var(--color-surface-inset);color:var(--color-text-primary);min-height:48px}
+.screen button:disabled{opacity:.5}
+.screen button:hover:not(:disabled){filter:brightness(1.15)}
+.screen .primary{background:var(--color-brand-accent);border-color:var(--color-brand-accent);color:var(--color-text-inverse)}
+.screen :is(button,a,input,select,summary):focus-visible{outline-color:var(--color-brand-accent)}
+.screen .trustSource{border-left:1px solid var(--pp-line);padding-left:24px;gap:8px}
+.screen .trustSource>span{font-size:13px;color:var(--pp-muted)}
+.screen .trustSource small{color:var(--pp-muted)}
+.screen .bundleDetails{margin-top:24px}
+.screen .tabs{background:var(--color-surface-card);border-radius:4px}
+.screen .tabs button[aria-selected=true]{background:var(--color-surface-inset);color:var(--color-brand-accent)}
+.screen pre{background:var(--color-surface-inset);border-radius:4px}
+.screen .tags span{background:var(--color-surface-inset);color:var(--color-text-secondary)}
+.screen .tags [data-severity=high],.screen .tags [data-severity=critical]{color:var(--color-signal-red)}
+.screen .tags [data-severity=medium]{color:var(--color-signal-amber)}
+.screen .passed{color:var(--color-signal-green)}
+.screen .synthetic{border-color:var(--color-signal-amber);color:var(--color-signal-amber)}
+.screen .titleRow :is(h1,h2){font-size:36px;overflow-wrap:anywhere;margin:12px 0 18px}
+@media(max-width:700px){.screen .intro{padding:28px 0 22px}.screen .intro h1{font-size:38px}.screen .inputPanel{padding:20px}.screen .titleRow :is(h1,h2){font-size:30px}.screen .tabs button{font-size:12px;padding:10px 4px}}
+@media(max-width:640px){.screen .trustSource{border-left:0;border-top:1px solid var(--pp-line);padding:18px 0 0}.screen .bundleIntake{gap:18px}}
+}

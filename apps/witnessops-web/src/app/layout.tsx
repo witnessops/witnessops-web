@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Footer } from "@/components/marketing/footer";
 import { Navbar } from "@/components/shared/navbar";
+import { DocumentNavigation } from "@/components/shared/document-navigation";
+import documentNavigationStyles from "@/components/shared/document-navigation.module.css";
 import { DocsAssistantWidget } from "@/components/docs-assistant/docs-assistant-widget";
 import { loadHomeContent } from "@/lib/content";
 import { KonamiPenguin } from "@/components/shared/konami-penguin";
@@ -63,12 +65,32 @@ export default async function RootLayout({
     headerStore.get(DOCUMENT_LANGUAGE_HEADER),
   );
 
-  if (headerStore.get("x-witnessops-local-workspace") === "proofpack") {
-    return <html lang={documentLanguage} className="dark"><body><a href="#main-content" className="skip-link">Skip to proofpack</a>{children}</body></html>;
-  }
-
-  if (headerStore.get("x-witnessops-local-workspace") === "external-check") {
-    return <html lang={documentLanguage} className="dark"><body><a href="#main-content" className="skip-link">Skip to snapshot</a>{children}</body></html>;
+  const localWorkspace = headerStore.get("x-witnessops-local-workspace");
+  if (localWorkspace === "proofpack" || localWorkspace === "external-check") {
+    return (
+      <html lang={documentLanguage} className="dark" style={appShellStyle}>
+        <body className="min-h-screen bg-surface-bg text-text-primary antialiased">
+          <a href="#main-content" className="skip-link">
+            {localWorkspace === "proofpack" ? "Skip to proofpack" : "Skip to snapshot"}
+          </a>
+          <div className={documentNavigationStyles.chrome}>
+            <DocumentNavigation>
+              <Navbar
+                links={content.navbar.links}
+                cta={content.navbar.cta}
+                announcement={content.navbar.announcement}
+              />
+            </DocumentNavigation>
+          </div>
+          {children}
+          <div className={documentNavigationStyles.chrome}>
+            <DocumentNavigation>
+              <Footer {...content.footer} />
+            </DocumentNavigation>
+          </div>
+        </body>
+      </html>
+    );
   }
 
   return (

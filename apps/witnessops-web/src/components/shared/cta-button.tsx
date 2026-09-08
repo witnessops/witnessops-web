@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PublicNavigationLink as Link } from "./document-navigation";
 import type { MouseEventHandler } from "react";
 
 type Variant = "primary" | "secondary" | "ghost";
