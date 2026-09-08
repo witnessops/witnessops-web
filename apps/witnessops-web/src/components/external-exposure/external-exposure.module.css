@@ -44,7 +44,9 @@
 .observations li { padding:18px 0; border-top:1px solid var(--color-surface-border); }
 .observations h4 { margin:0 0 8px; font-size:17px; font-weight:600; }
 .observations p { margin:8px 0; overflow-wrap:anywhere; }
-.information { border-top:1px solid var(--color-surface-border); }
+.unknowns { margin:28px 0; }
+.unknowns p { font-size:15px; color:var(--color-text-secondary); }
+.information { overflow-wrap:anywhere; border-top:1px solid var(--color-surface-border); }
 .evidence { border:1px solid var(--color-surface-border); background:var(--color-surface-card); padding:24px; margin:24px 0; border-radius:4px; }
 .evidence p { font-size:14px; color:var(--color-text-secondary); }
 .evidence details { margin-top:18px; }
@@ -63,6 +65,8 @@
 .report.preview { display:block; max-width:960px; margin:30px auto 0; }
 @media(max-width:700px) {
   .intro { padding:40px 0 22px; }
+  /* Reserve the two-line lead while the site font loads on narrow screens. */
+  .lead { min-height:3.2em; }
   .screen .title { font-size:38px; }
   .form { padding:20px; }
   .inputRow { flex-direction:column; }

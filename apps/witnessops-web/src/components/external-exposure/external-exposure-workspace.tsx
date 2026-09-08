@@ -30,7 +30,9 @@ export function ExternalExposureWorkspace() {
   const active = useRef<{ id: number; controller: AbortController } | null>(null);
   const sequence = useRef(0);
   const resultHeading = useRef<HTMLHeadingElement>(null);
+  const hostnameInput = useRef<HTMLInputElement>(null);
   useEffect(() => () => { active.current?.controller.abort(); }, []);
+  useEffect(() => { if (result) resultHeading.current?.focus(); }, [result]);
 
   function clearResult(nextHostname = hostname) {
     sequence.current += 1;
@@ -63,7 +65,6 @@ export function ExternalExposureWorkspace() {
       if (payload.snapshot?.version !== EXTERNAL_VERSION || payload.model?.identity?.productId !== 'external-exposure-snapshot' || payload.model?.subject?.label !== payload.snapshot?.target) throw new Error('The returned snapshot data could not be admitted.');
       const model = createReportModel(payload.model as ReportModelInput);
       setResult({ snapshot: payload.snapshot, model });
-      requestAnimationFrame(() => resultHeading.current?.focus());
     } catch (cause) {
       if (id === sequence.current && !controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'The snapshot could not be completed.');
     } finally {
@@ -72,6 +73,7 @@ export function ExternalExposureWorkspace() {
   }
 
   const attention = result?.snapshot.checks.filter(check => check.status === 'NEEDS_ATTENTION') ?? [];
+  const expected = result?.snapshot.checks.filter(check => check.status === 'OBSERVED_EXPECTED') ?? [];
   const unknowns = result?.snapshot.checks.filter(check => check.status === 'UNDETERMINED' || check.status === 'CHECK_ERROR') ?? [];
   const information = result?.snapshot.checks.filter(check => check.status === 'INFORMATIONAL') ?? [];
   const IntroHeading = reportOpen ? 'h2' : 'h1';
@@ -81,15 +83,15 @@ export function ExternalExposureWorkspace() {
       <section className={styles.intro}>
         <p className={styles.eyebrow}>FREE · NO EMAIL REQUIRED</p>
         <IntroHeading className={styles.title}>External Exposure Snapshot</IntroHeading>
-        <p className={styles.lead}>See what your company exposes publicly.</p>
+        <p className={styles.lead}>See what ten public checks observe about your hostname.</p>
       </section>
       <form className={styles.form} onSubmit={submit} aria-label="Run an external exposure snapshot">
         <label htmlFor="external-hostname">Public hostname</label>
-        <div className={styles.inputRow}><input id="external-hostname" name="hostname" type="text" autoComplete="off" spellCheck={false} autoCapitalize="none" maxLength={253} placeholder="example.com" aria-describedby="hostname-help" value={hostname} onChange={event => clearResult(event.target.value)} required /><button type="submit" disabled={busy || !hostname.trim()}>{busy ? 'Collecting observations…' : 'Run free check'}</button></div>
+        <div className={styles.inputRow}><input ref={hostnameInput} id="external-hostname" name="hostname" type="text" autoComplete="off" spellCheck={false} autoCapitalize="none" maxLength={253} placeholder="example.com" aria-describedby="hostname-help" value={hostname} onChange={event => clearResult(event.target.value)} required /><button type="submit" disabled={busy || !hostname.trim()}>{busy ? 'Collecting observations…' : 'Run free check'}</button></div>
         <p id="hostname-help">Enter a hostname you own or are authorized to check. Use only the hostname, without https://, a path or a port.</p>
         <p className={styles.promise}>10 bounded public checks. No exploitation. No credentials. Ports 80/443 only.</p>
         <details className={styles.executionDetails}><summary>How this check works</summary><p>WitnessOps servers make bounded public DNS, TLS and HTTP observations. Results stay in this page until you clear or leave it. This feature does not store results.</p></details>
-        <div className={styles.actions}>{busy && <button type="button" onClick={() => clearResult()}>Cancel</button>}{(result || error) && <button type="button" onClick={() => clearResult('')}>Clear</button>}</div>
+        <div className={styles.actions}>{busy && <button type="button" onClick={() => { clearResult(); hostnameInput.current?.focus(); }}>Cancel</button>}{(result || error) && <button type="button" onClick={() => { clearResult(''); hostnameInput.current?.focus(); }}>Clear</button>}</div>
         {busy && <p role="status">Collection is limited to 30 seconds, followed by brief report processing. Cancel hides the result; the bounded server run may finish.</p>}
         {error && <p className={styles.error} role="alert">{error}</p>}
       </form>
@@ -99,14 +101,15 @@ export function ExternalExposureWorkspace() {
           <p className={styles.eyebrow}>YOUR SNAPSHOT</p>
           <h2 ref={resultHeading} tabIndex={-1}>{result.snapshot.target}</h2>
           <p className={styles.muted}>{result.snapshot.checks.length} checks returned · {result.snapshot.finished_at} · {((Date.parse(result.snapshot.finished_at) - Date.parse(result.snapshot.started_at)) / 1000).toFixed(1)} seconds</p>
-          <div className={styles.counts}><div><strong>{attention.length}</strong><span>Needs attention</span></div><div><strong>{result.snapshot.checks.filter(check => check.status === 'OBSERVED_EXPECTED').length}</strong><span>Observed as expected</span></div><div><strong>{information.length}</strong><span>Informational</span></div><div><strong>{unknowns.length}</strong><span>Could not determine</span></div></div>
+          <div className={styles.counts}><div><strong>{attention.length}</strong><span>Needs attention</span></div><div><strong>{expected.length}</strong><span>Observed as expected</span></div><div><strong>{information.length}</strong><span>Informational</span></div><div><strong>{unknowns.length}</strong><span>Could not determine</span></div></div>
           <p>No score or severity ranking is assigned. “Observed as expected” describes a named check, not overall security.</p>
           <div className={styles.resultColumns}>
             <section aria-labelledby="attention-heading"><h3 id="attention-heading">What needs attention?</h3>{attention.length ? <ul className={styles.observations}>{attention.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{check.interpretation}</p>{check.recommendation && <p className={styles.muted}>{check.recommendation}</p>}</li>)}</ul> : <p>No needs-attention items were observed under these ten checks. This does not establish the absence of vulnerabilities.</p>}</section>
-            <section aria-labelledby="unknown-heading"><h3 id="unknown-heading">What remains unknown?</h3>{unknowns.length ? <ul className={styles.observations}>{unknowns.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{statusLabels[check.status]}: {check.interpretation}</p></li>)}</ul> : <p>No check returned an unknown or collection error.</p>}<p className={styles.muted}>Authenticated functionality, internal infrastructure and application vulnerabilities were not tested.</p></section>
+            <section aria-labelledby="expected-heading"><h3 id="expected-heading">What was observed as expected?</h3><p>{expected.length} of the ten checks returned an expected observation. This is not an overall security assessment.</p>{expected.length > 0 && <details className={styles.information}><summary>Inspect expected observations</summary><ul>{expected.map(check => <li key={check.check_id} data-status={check.status}><strong>{check.title}</strong><p>{check.interpretation}</p></li>)}</ul></details>}</section>
           </div>
           {information.length > 0 && <details className={styles.information}><summary>{information.length} informational observations</summary><ul>{information.map(check => <li key={check.check_id}><strong>{check.title}</strong><p>{check.interpretation}</p></li>)}</ul></details>}
-          <section className={styles.evidence} aria-label="Full evidence"><div><h3>Full evidence</h3><p>Inspect all ten observations, methods, source references and limitations in the buyer report.</p></div><div className={styles.actions}><button type="button" aria-expanded={reportOpen} aria-controls="external-buyer-report" onClick={() => setReportOpen(value => !value)}>{reportOpen ? 'Hide full report' : 'View full report'}</button><button type="button" onClick={() => printBuyerReport(result.model, () => window.print())}>Export PDF</button></div><details><summary>Source data and report details</summary><button type="button" onClick={() => saveSource(result.snapshot)}>Download source JSON</button><p className={styles.muted}>{EXTERNAL_VERSION}. PDF uses your browser’s print dialog. “Snapshot data checks: Passed” means the report data passed structural checks. The observations are unsigned.</p></details></section>
+          <div className={styles.unknowns}><section aria-labelledby="unknown-heading"><h3 id="unknown-heading">What remains unknown?</h3>{unknowns.length ? <ul className={styles.observations}>{unknowns.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{statusLabels[check.status]}: {check.interpretation}</p></li>)}</ul> : <p>No check returned an unknown or collection error.</p>}<p className={styles.muted}>Authenticated functionality, internal infrastructure and application vulnerabilities were not tested.</p></section></div>
+          <section className={styles.evidence} aria-label="Full evidence"><div><h3>Full evidence</h3><p>Inspect all ten observations, methods, source references and limitations in the buyer report.</p></div><div className={styles.actions}><button type="button" aria-expanded={reportOpen} aria-controls="external-buyer-report" onClick={() => setReportOpen(value => !value)}>{reportOpen ? 'Hide full report' : 'View full report'}</button><button type="button" onClick={() => printBuyerReport(result.model, () => window.print())}>Export PDF</button></div><details><summary>Source data and report details</summary><button type="button" onClick={() => saveSource(result.snapshot)}>Download source JSON</button><p className={styles.muted}>{EXTERNAL_VERSION}. PDF uses your browser’s print dialog. “Snapshot data validation: Passed” means the report data passed structural checks. The observations are unsigned.</p></details></section>
         </section>
         <section className={styles.nextStep} aria-label="Discuss your next step"><div><p className={styles.eyebrow}>WHAT NEXT?</p><h2>Make sense of the next step.</h2><p>Talk through what needs attention and whether a deeper review would help. Request a 30-minute conversation; we’ll confirm a time with you.</p></div><a className={styles.primaryLink} href={EXTERNAL_ATTACK_SURFACE_OFFER.requestRoute}>Request a 30-minute review call</a></section>
         <details className={styles.boundary}><summary>Snapshot scope and limits</summary><p>{SNAPSHOT_BOUNDARY}</p><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details>

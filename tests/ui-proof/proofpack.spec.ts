@@ -109,6 +109,8 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
             await expectReportTypography(page);
             const printed = page.getByRole('article', { name: 'Derived buyer report' });
             expect(await printed.innerHTML()).toBe(previewHtml);
+            expect(await printed.locator('[class*="chapterFooter"]').evaluateAll(elements =>
+                elements.map(element => getComputedStyle(element).display !== 'none'))).toEqual([true, false, false, false, false]);
             await expect(printed.getByRole('heading', { name: 'Verification appendix', exact: true })).toBeVisible();
             const logos = printed.locator('.witnessops-mark--geometric svg');
             await expect(logos).toHaveCount(5);
@@ -305,6 +307,7 @@ for (const variant of ['mixed', 'only']) test(`Unassessed severity stays separat
     const findingCards = report.locator('section.finding');
     const nullCards = findingCards.filter({ has: page.locator('.findingMeta').getByText('Severity not assessed', { exact: true }) });
     await expect(nullCards).toHaveCount(variant === 'mixed' ? 1 : 2);
+    await expect(report.getByRole('region', { name: 'Unassessed findings', exact: true }).locator('strong')).toHaveText(await nullCards.locator('h3').allTextContents());
     await expect(nullCards.locator('[data-severity]')).toHaveCount(0);
     await expect(report.locator('[data-severity="informational"], [data-severity="null"]')).toHaveCount(0);
     const priorities = report.getByRole('region', { name: 'Priority findings', exact: true });

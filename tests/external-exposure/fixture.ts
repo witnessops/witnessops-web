@@ -18,3 +18,12 @@ export function snapshotFixture(target = 'example.com'): ExternalSnapshotV1 {
     network: [{ kind: 'connect', hostname: target, detail: 'Mock public address selection', address: '93.184.216.34', port: 443 }],
   };
 }
+
+/** Clean-result disposition fixture: eight expected and two informational, all collected. */
+export function cleanSnapshotFixture(target = 'example.com'): ExternalSnapshotV1 {
+  const snapshot = snapshotFixture(target);
+  snapshot.checks = snapshot.checks.map(check => ({ ...check, collected: true, recommendation: null,
+    status: check.check_id === 'web.security_txt.v1' || check.check_id === 'dns.caa.v1' ? 'INFORMATIONAL' : 'OBSERVED_EXPECTED',
+  }));
+  return snapshot;
+}

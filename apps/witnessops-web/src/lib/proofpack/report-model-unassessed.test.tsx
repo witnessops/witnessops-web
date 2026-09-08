@@ -112,6 +112,7 @@ test('Mixed reports keep unassessed findings outside severity priority and badge
     assert.ok(!region(html, 'Suggested next action').includes(unassessed.recommendation!));
     assert.ok(region(html, 'Suggested next action').includes(model.findings.find(finding => finding.severity === 'high')!.recommendation!));
     assert.match(region(html, 'Unassessed findings'), /1 finding is recorded without an assessed severity/);
+    assert.ok(region(html, 'Unassessed findings').includes(`<strong>${unassessed.title}</strong>`));
     assert.match(html, /1 high · 1 medium · 1 low · 1 severity not assessed/);
     const sections = findingSections(html);
     assert.equal(sections.length, 4);
@@ -129,6 +130,7 @@ test('Only unassessed findings remain readable without a ranked summary or an em
     const html = render(model);
     assert.doesNotMatch(html, /aria-label="Priority findings"|Review first|No findings (?:were )?recorded|data-severity=/);
     assert.match(region(html, 'Unassessed findings'), /2 findings are recorded without an assessed severity/);
+    assert.deepEqual([...region(html, 'Unassessed findings').matchAll(/<strong>(.*?)<\/strong>/g)].map(match => match[1]), model.findings.map(finding => finding.title));
     assert.match(region(html, 'Suggested next action'), /Their severity has not been assessed/);
     assert.match(html, /2 severity not assessed/);
     assert.match(html, /<h2>Recorded findings<\/h2>/);
@@ -140,6 +142,18 @@ test('Only unassessed findings remain readable without a ranked summary or an em
         assert.match(sections[index], /<span>Severity not assessed<\/span>/);
     });
     assert.match(sections[1], /<span>informational<\/span>/, 'The recorded disposition is preserved');
+});
+
+test('The cover names up to three unassessed findings in recorded order without hiding the full set', () => {
+    const input = mutable(syntheticUnassessedAdapter(GENERATED_AT, 'only'));
+    input.findings = Array.from({ length: 5 }, (_, index) => ({ ...input.findings[0], id: `unassessed-${index}`, title: `Recorded finding ${index + 1}` }));
+    input.summary.findings = { total: 5, needsAttention: 5, informational: 0, unassessed: 5, severities: {} };
+    const model = createReportModel(input), html = render(model), cover = region(html, 'Unassessed findings');
+    assert.deepEqual([...cover.matchAll(/<strong>(.*?)<\/strong>/g)].map(match => match[1]), model.findings.slice(0, 3).map(finding => finding.title));
+    assert.ok(cover.includes('Showing 3 of 5 in recorded order, not severity-ranked'));
+    assert.ok(!cover.includes(model.findings[3].title) && !cover.includes(model.findings[4].title));
+    assert.equal(findingSections(html).length, 5);
+    assert.ok(!cover.includes('data-severity='));
 });
 
 test('Unassessed finding text stays escaped in the document', () => {

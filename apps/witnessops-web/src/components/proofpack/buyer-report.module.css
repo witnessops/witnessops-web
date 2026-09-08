@@ -131,8 +131,12 @@
     .document .receipt { grid-template-columns: 28mm minmax(0, 1fr); font-size: 7pt; gap: 4mm; padding: 5mm; }
     .document .receipt dd { margin: 0; }
     .document .chapterFooter { font-size: 7pt; margin-top: 8mm; break-inside: avoid; }
+    /* Per-page identity already labels print pages; repeated chapter footers can orphan. */
+    .document .chapter:not(.cover) > .chapterFooter { display: none; }
     .document .checks p, .document .steps p { font-size: 8pt; }
     .document .findingLimit { font-size: 9pt; }
+    .document .gap { margin-top: 3mm; }
+    .document .gap > p, .document .gap > pre { margin-bottom: 3mm; }
     .document li { margin-bottom: 4mm; }
     .document .cover .running { margin-bottom: 4mm; }
     .document .cover .kicker { margin-bottom: 2mm; font-size: 7pt; }
@@ -158,10 +162,12 @@
     .document .decisionSummary p { font-size: 9pt; margin-bottom: 2mm; }
     .document .decisionSummary .fine { font-size: 8pt; }
     .document .cover .callout { margin: 4mm 0; padding: 2mm 0 2mm 4mm; font-size: 8pt; }
-    .document .cover .chapterFooter { margin-top: 4mm; padding-top: 3mm; }
+    .document .cover .chapterFooter { margin-top: 2mm; padding-top: 2mm; }
 }
 
 @media print {
-    /* Keep short artifact identities together; oversized source blocks may still span pages. */
-    .document .sourceArtifact { break-inside: avoid; }
+    /* Large source appendices flow across pages without reserving an empty page. */
+    .document .sourceArtifact { break-inside: auto; }
+    .document .sourceArtifact > pre { line-height: 1.5; margin-bottom: 2mm; widows: 8; orphans: 8; }
+    .document .sourceArtifact > p { margin-bottom: 2mm; }
 }

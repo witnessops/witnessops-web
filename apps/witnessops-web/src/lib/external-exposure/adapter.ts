@@ -86,7 +86,7 @@ export function externalExposureAdapter(input: unknown): ProofpackReportV1 {
       kicker: 'EXTERNAL EXPOSURE SNAPSHOT. UNSIGNED OBSERVATIONS.',
     },
     verification: {
-      status: 'VERIFIED', label: 'Snapshot data checks', method: 'Structure, check ledger and collection consistency',
+      status: 'VERIFIED', label: 'Snapshot data validation', method: 'Structure, check ledger and collection consistency',
       verifierVersion: `${EXTERNAL_VERSION}/data-admission`,
       boundary: `Only the snapshot data checks passed. These observations are unsigned. No signature, signer identity or source-system truth was verified. ${SNAPSHOT_BOUNDARY}`,
       established: [

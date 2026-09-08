@@ -31,6 +31,8 @@ navbar:
   links:
     - label: "Services"
       href: "/catalog"
+    - label: "Free check"
+      href: "/check"
     - label: "Sample work"
       href: "/review/sample-cases"
     - label: "Our approach"
