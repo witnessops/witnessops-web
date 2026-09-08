@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { BuyerReportDocument } from '../../components/proofpack/buyer-report';
 import { createReportModel, printBuyerReport, type ReportModelInput } from '../proofpack/report-model';
-import { snapshotFixture } from '../../../../../tests/external-exposure/fixture';
+import { cleanSnapshotFixture, snapshotFixture } from '../../../../../tests/external-exposure/fixture';
 import { externalExposureAdapter, validateExternalSnapshot } from './adapter';
 import { CHECK_IDS, EXCLUSIONS, SNAPSHOT_BOUNDARY } from './contracts';
 
@@ -16,7 +16,7 @@ test('external adapter separates status, collection, unassessed severity and dat
   assert.deepEqual(model.summary.findings, { total: 2, needsAttention: 1, informational: 1, severities: {}, unassessed: 2 });
   assert.ok(model.findings.every(finding => finding.severity === null));
   assert.equal(model.findings[1].state, 'informational');
-  assert.equal(model.verification.label, 'Snapshot data checks');
+  assert.equal(model.verification.label, 'Snapshot data validation');
   assert.ok(model.verificationChecks.every(check => check.status === 'passed'));
   assert.equal(model.coverage[4].observedState, 'CHECK_ERROR');
   assert.equal(model.coverage[3].complete, true, 'An ambiguous result can have collected evidence');
@@ -44,7 +44,7 @@ test('unsigned report renders original states and prints the same admitted immut
   const serverModel = externalExposureAdapter(snapshotFixture());
   const browserModel = createReportModel(JSON.parse(JSON.stringify(serverModel)) as ReportModelInput);
   const html = renderToStaticMarkup(<BuyerReportDocument model={browserModel} />);
-  assert.match(html, /Snapshot data checks/);
+  assert.match(html, /Snapshot data validation/);
   assert.match(html, /observations are unsigned/i);
   assert.match(html, /Severity not assessed/);
   assert.match(html, /CHECK_ERROR/);
@@ -56,6 +56,29 @@ test('unsigned report renders original states and prints the same admitted immut
     assert.equal(renderToStaticMarkup(<BuyerReportDocument model={browserModel} />), html);
   }), true);
   assert.equal(prints, 1);
+});
+
+for (const [name, source, expected] of [
+  ['clean', cleanSnapshotFixture(), [0, 2, '10 / 10', 0]],
+  ['attention and uncertainty', snapshotFixture(), [1, 1, '8 / 10', 3]],
+] as const) test(`cover leads with check outcomes, not validation success: ${name}`, () => {
+  const model = externalExposureAdapter(source);
+  const html = renderToStaticMarkup(<BuyerReportDocument model={model} />);
+  const start = html.indexOf('aria-label="Check outcomes"');
+  const end = html.indexOf('aria-label="Data validation and check summary"');
+  assert.ok(start > 0 && end > start);
+  const outcomes = html.slice(start, end);
+  for (const [index, label] of ['Needs attention', 'Informational', 'Observations completed', 'Undetermined'].entries())
+    assert.ok(outcomes.includes(`<span>${label}</span><strong>${expected[index]}</strong>`));
+  assert.ok(!outcomes.includes('Passed'));
+  assert.ok(html.includes('Snapshot data validation: Passed. Structure, check ledger and collection consistency.'));
+  assert.ok(html.includes('These are individual results, not an overall security grade.'));
+  assert.ok(html.includes('Collected observations, not a security grade'));
+  assert.ok(!html.includes('<strong>Passed</strong>'));
+  assert.ok(model.findings.filter(finding => finding.state === 'informational').every(finding => html.includes(finding.title)));
+  assert.equal(Object.hasOwn(model.summary, 'score'), false);
+  assert.equal(Object.hasOwn(model.summary, 'grade'), false);
+  assert.equal(printBuyerReport(model, () => assert.equal(renderToStaticMarkup(<BuyerReportDocument model={model} />), html)), true);
 });
 
 const invalidCases: [string, (input: ReturnType<typeof snapshotFixture>) => void][] = [

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { PublicNavigationLink as Link } from "@/components/shared/document-navigation";
 import { usePathname, useSearchParams } from "next/navigation";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 import { WitnessOpsMark } from "@/components/shared/witnessops-mark";

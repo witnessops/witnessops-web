@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { PublicNavigationLink as Link } from "./document-navigation";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";

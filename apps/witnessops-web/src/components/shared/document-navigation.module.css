@@ -1,0 +1,9 @@
+.chrome {
+  display: contents;
+}
+
+@media print {
+  .chrome {
+    display: none !important;
+  }
+}

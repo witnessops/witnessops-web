@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PublicNavigationLink as Link } from "@/components/shared/document-navigation";
 
 import { PRIMARY_OFFER, AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
 import {

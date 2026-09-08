@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { PublicNavigationLink as Link } from "./document-navigation";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { acquireBodyScrollLock } from "@/lib/body-scroll-lock";
@@ -57,11 +57,33 @@ export function MobileNavbarMenu({
       Array.from(
         menuRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
       );
-    const focusFrame = window.requestAnimationFrame(() => {
-      focusableElements()[0]?.focus();
-    });
-
+    const openingWidth = window.innerWidth;
+    const toggleIsHidden = () =>
+      toggleRef.current !== null &&
+      window.getComputedStyle(toggleRef.current).display === "none";
+    const toggleWasVisible = !toggleIsHidden();
     const releaseBodyScrollLock = acquireBodyScrollLock();
+    const preserveVisibleMenu = () => {
+      // WebKit can cross the desktop breakpoint when its scrollbar disappears.
+      // In that narrow band, allow background scrolling rather than hide the menu.
+      if (toggleWasVisible && window.innerWidth === openingWidth && toggleIsHidden()) {
+        releaseBodyScrollLock();
+      }
+    };
+    preserveVisibleMenu();
+    let focusAfterLayout = 0;
+    const focusFrame = window.requestAnimationFrame(() => {
+      preserveVisibleMenu();
+      focusAfterLayout = window.requestAnimationFrame(() => focusableElements()[0]?.focus());
+    });
+    let resizeFrame = 0;
+    const handleResize = () => {
+      if (window.innerWidth === openingWidth) return;
+      window.cancelAnimationFrame(resizeFrame);
+      resizeFrame = window.requestAnimationFrame(() => {
+        if (toggleIsHidden()) setMenuOpen(false);
+      });
+    };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -86,10 +108,14 @@ export function MobileNavbarMenu({
     };
 
     document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", handleResize);
     return () => {
       window.cancelAnimationFrame(focusFrame);
+      window.cancelAnimationFrame(focusAfterLayout);
+      window.cancelAnimationFrame(resizeFrame);
       releaseBodyScrollLock();
       document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleResize);
     };
   }, [menuOpen]);
 

@@ -8,6 +8,10 @@ import { execFileSync } from 'node:child_process';
 const fixtures = resolve('tests/proofpack/fixtures');
 const productionFixtures = resolve('tests/proofpack/production-fixtures');
 const output = resolve(process.env.PROOFPACK_ARTIFACT_DIR ?? '/tmp/witnessops-bundle-browser');
+const localFontPaths = new Set([
+    '/fonts/inter-400.woff2', '/fonts/inter-500.woff2', '/fonts/inter-600.woff2',
+    '/fonts/ibm-plex-mono-300.woff2', '/fonts/ibm-plex-mono-400.woff2', '/fonts/ibm-plex-mono-500.woff2',
+]);
 async function expectReportTypography(page: Page) {
     const report = page.getByRole('article', { name: 'Derived buyer report' });
     // fonts.ready/check alone succeed when no font faces exist. Require the
@@ -40,6 +44,8 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
         page.on('pageerror', error => runtimeErrors.push(error.message));
         await page.goto('/proofpack');
         await expect(page.getByRole('heading', { name: 'Open your proofpack.' })).toBeVisible();
+        await expect(page.getByRole('navigation', { name: 'Primary navigation', exact: true })).toBeVisible();
+        await expect(page.locator('#site-footer')).toBeVisible();
         expect(await page.locator('script[src*="witnessops-manual"]').count()).toBe(0);
         await expect(page.getByRole('button', { name: 'Ask WitnessOps' })).toHaveCount(0);
         const requests: {
@@ -58,6 +64,8 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
             const gaps = coverage.section_results.filter((s: { complete: boolean }) => !s.complete);
             await expect(page.getByRole('region', { name: 'Audit summary' })).toContainText(`${completed} / ${coverage.section_results.length} complete`);
             await expect(page.getByRole('region', { name: 'Audit summary' })).toContainText('Owner decisionNot recorded');
+            await expect(page.getByRole('button', { name: 'View report', exact: true })).toBeVisible();
+            await expect(page.getByRole('button', { name: 'Export buyer PDF', exact: true })).toHaveCount(1);
             const scopeToggle = page.getByRole('tabpanel').getByText('Scope from checked authority', { exact: true });
             await scopeToggle.click();
             expect(JSON.parse((await scopeToggle.locator('..').locator('pre').textContent())!)).toEqual(scope);
@@ -76,6 +84,8 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
             for (const section of coverage.section_results)
                 await expect(page.getByRole('tabpanel').locator('summary').filter({ hasText: new RegExp(`^${section.section.replaceAll('_', ' ')}\\s*${section.complete ? 'Complete' : 'Incomplete'}$`) })).toBeVisible();
             await page.getByRole('tab', { name: 'Report', exact: true }).click();
+            await expect(page.getByRole('button', { name: 'View report', exact: true })).toHaveCount(0);
+            await expect(page.getByRole('button', { name: 'Export buyer PDF', exact: true })).toHaveCount(1);
             await expectReportTypography(page);
             const downloadPromise = page.waitForEvent('download');
             await page.getByRole('button', { name: 'Download verification results', exact: true }).click();
@@ -94,9 +104,13 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
             await page.getByRole('button', { name: 'Export buyer PDF', exact: true }).click();
             await expect(page.locator('html')).toHaveAttribute('data-print-requested', 'true');
             await page.emulateMedia({ media: 'print' });
+            await expect(page.locator('nav[aria-label="Primary navigation"]')).not.toBeVisible();
+            await expect(page.locator('#site-footer')).not.toBeVisible();
             await expectReportTypography(page);
             const printed = page.getByRole('article', { name: 'Derived buyer report' });
             expect(await printed.innerHTML()).toBe(previewHtml);
+            expect(await printed.locator('[class*="chapterFooter"]').evaluateAll(elements =>
+                elements.map(element => getComputedStyle(element).display !== 'none'))).toEqual([true, false, false, false, false]);
             await expect(printed.getByRole('heading', { name: 'Verification appendix', exact: true })).toBeVisible();
             const logos = printed.locator('.witnessops-mark--geometric svg');
             await expect(logos).toHaveCount(5);
@@ -165,7 +179,7 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
         expect(requests.every(r => {
             const url = new URL(r.url);
             const localDownload = url.protocol === 'blob:' && url.origin === new URL(page.url()).origin;
-            const staticAsset = url.protocol === 'http:' && url.origin === new URL(page.url()).origin && (url.pathname.startsWith('/_next/static/') || url.pathname === '/fonts/inter-500.woff2');
+            const staticAsset = url.protocol === 'http:' && url.origin === new URL(page.url()).origin && (url.pathname.startsWith('/_next/static/') || localFontPaths.has(url.pathname));
             return r.method === 'GET' && !url.search && (localDownload || staticAsset);
         }), JSON.stringify(requests)).toBe(true);
         expect(await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }))).toEqual({ local: 0, session: 0 });
@@ -173,18 +187,38 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
         mkdirSync(output, { recursive: true });
         writeFileSync(resolve(output, `${browserName}-${name}-network.json`), JSON.stringify({ requests, runtimeErrors }, null, 2));
     });
-test('one-file intake shows independent trust and rejects stale reports on valid-invalid-valid transitions', async ({ page }) => {
+test('one-file intake shows independent trust and rejects stale reports on valid-invalid-valid transitions', async ({ page, browserName }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/proofpack');
+    await expect(page.getByRole('navigation', { name: 'Primary navigation', exact: true })).toBeVisible();
+    await expect(page.locator('#site-footer')).toBeVisible();
+    expect(await page.evaluate(async () => {
+        const inter = await document.fonts.load('400 16px Inter');
+        await document.fonts.ready;
+        return inter.length > 0 && inter.every(font => font.family.replaceAll('"', '') === 'Inter' && font.status === 'loaded')
+            && getComputedStyle(document.querySelector('main h1')!).fontFamily.includes('Inter');
+    })).toBe(true);
+    const menu = page.getByRole('button', { name: 'Open primary navigation', exact: true });
+    await menu.click();
+    await expect(page.getByRole('link', { name: 'Services', exact: true }).first()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeFocused();
     await expect(page.locator('input[type=file]')).toHaveCount(1);
     await expect(page.getByRole('button', { name: 'Verify locally', exact: true })).toBeDisabled();
     await expect(page.getByRole('tab', { name: 'Report', exact: true })).toHaveCount(0);
     await expect(page.getByText(`${LOCAL_AUDIT_TRUST.name} · v1`, { exact: true })).toBeVisible();
+    await expect(page.getByText(`sha256:${LOCAL_AUDIT_TRUST.sha256.slice(0, 16)}…`, { exact: true })).toBeVisible();
+    await expect(page.getByText(`sha256:${LOCAL_AUDIT_TRUST.sha256}`, { exact: true })).not.toBeVisible();
+    await page.getByText('Verification details', { exact: true }).click();
     await expect(page.getByText(`sha256:${LOCAL_AUDIT_TRUST.sha256}`, { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const chooser = page.getByLabel('Proofpack file', { exact: true });
     const valid = bundleFixture('complete').file;
     await chooser.setInputFiles(valid);
     await page.getByRole('button', { name: 'Verify locally', exact: true }).click();
-    await page.getByRole('tab', { name: 'Report', exact: true }).click();
+    await page.getByRole('button', { name: 'View report', exact: true }).click();
+    await expect(page.getByRole('tab', { name: 'Report', exact: true })).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByRole('article', { name: 'Derived buyer report' })).toBeVisible();
     const { raw } = bundleFixture('complete');
     const signature = JSON.parse(raw.signature.bytes.toString()); signature.signature = '0'.repeat(128);
@@ -209,8 +243,11 @@ test('one-file intake shows independent trust and rejects stale reports on valid
     await expect(page.getByRole('article', { name: 'Derived buyer report' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Verify locally', exact: true })).toBeDisabled();
     await page.getByRole('button', { name: 'Choose Proofpack', exact: true }).focus();
-    await page.keyboard.press('Tab');
-    await expect(page.locator('summary').first()).toBeFocused();
+    const nextControl = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
+    await page.keyboard.press(nextControl);
+    await expect(page.getByRole('button', { name: 'Clear', exact: true })).toBeFocused();
+    await page.keyboard.press(nextControl);
+    await expect(page.getByText('Verification details', { exact: true })).toBeFocused();
 });
 
 for (const name of ['complete', 'synthetic']) test(`Adapter independence through actual report CSS and PDF: ${name}`, async ({ page, browserName }) => {
@@ -270,6 +307,7 @@ for (const variant of ['mixed', 'only']) test(`Unassessed severity stays separat
     const findingCards = report.locator('section.finding');
     const nullCards = findingCards.filter({ has: page.locator('.findingMeta').getByText('Severity not assessed', { exact: true }) });
     await expect(nullCards).toHaveCount(variant === 'mixed' ? 1 : 2);
+    await expect(report.getByRole('region', { name: 'Unassessed findings', exact: true }).locator('strong')).toHaveText(await nullCards.locator('h3').allTextContents());
     await expect(nullCards.locator('[data-severity]')).toHaveCount(0);
     await expect(report.locator('[data-severity="informational"], [data-severity="null"]')).toHaveCount(0);
     const priorities = report.getByRole('region', { name: 'Priority findings', exact: true });
