@@ -20,13 +20,21 @@ function trustedKey(registry, id, purpose) {
     hex(k.public_key, 32);
     return k.public_key;
 }
-export async function verifySemantics(get, manifest, receipt) {
-    const byId = Object.fromEntries(manifest.artifacts.map(a => [a.artifact_id, a]));
-    for (const key of ['admission_decision', 'authority_record', 'collection_completeness', 'host_observations', 'host_posture'])
-        demand(byId[key], 'Required semantic artifact missing');
-    const posture = get('posture.json'), observations = get(byId.host_observations.path), authority = get(byId.authority_record.path), admission = get(byId.admission_decision.path), completeness = get(byId.collection_completeness.path);
+async function resolveManifestArtifact(bytes, manifest, artifactId) {
+    const matches = manifest.artifacts.filter(a => a.artifact_id === artifactId);
+    demand(matches.length === 1, 'Required semantic artifact must resolve to exactly one manifest entry: ' + artifactId);
+    const { path, sha256 } = matches[0];
+    // Archive admission guarantees unique entries. Snapshot the selected bytes
+    // so the digest check and parser consume the same content.
+    const content = new Uint8Array(bytes(safePath(path)));
+    demand('sha256:' + await hash(content) === sha256, 'Evidence artifact hash mismatch: ' + path);
+    return json(content);
+}
+export async function verifySemantics(bytes, manifest, receipt) {
+    const get = id => resolveManifestArtifact(bytes, manifest, id);
+    const posture = await get('host_posture'), observations = await get('host_observations'), authority = await get('authority_record'), admission = await get('admission_decision'), completeness = await get('collection_completeness');
     demand(same(buildPosture(observations), posture), 'Posture does not reconstruct from observations');
-    const findings = get('findings.json');
+    const findings = await get('posture_findings');
     demand(same(deriveFindings(posture), findings), 'Findings do not reconstruct from posture');
     await authorityAdmission(authority, observations.target.hostname, authority.operator_id, observations.observed_at_utc);
     demand(same(await authorityAdmission(authority, admission.observed_hostname, admission.operator_id, admission.evaluated_at_utc), admission), 'Admission does not reconstruct to ADMIT');
@@ -102,7 +110,7 @@ async function core(files, registry, requireTrust) {
                 demand('sha256:' + await hash(bytes(a.path)) === a.sha256, 'Evidence artifact hash mismatch: ' + a.path);
             for (const c of state.receipt.claims)
                 demand(c.evidence_refs.every(id => Object.hasOwn(byId, id)), 'Claim references an unknown artifact');
-            state.verified = await verifySemantics(get, m, state.receipt);
+            state.verified = await verifySemantics(bytes, m, state.receipt);
             return `${m.artifacts.length} evidence artifacts and all claim references matched`;
         });
     else
