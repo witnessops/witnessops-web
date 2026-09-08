@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { readFileSync, readdirSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createBundle } from '../proofpack/create-bundle';
@@ -8,6 +8,25 @@ import { execFileSync } from 'node:child_process';
 const fixtures = resolve('tests/proofpack/fixtures');
 const productionFixtures = resolve('tests/proofpack/production-fixtures');
 const output = resolve(process.env.PROOFPACK_ARTIFACT_DIR ?? '/tmp/witnessops-bundle-browser');
+async function expectReportTypography(page: Page) {
+    const report = page.getByRole('article', { name: 'Derived buyer report' });
+    // fonts.ready/check alone succeed when no font faces exist. Require the
+    // actual local faces to load as well as the inherited application stack.
+    const faces = await page.evaluate(async () => {
+        const loaded = await Promise.all([400, 500, 600].map(weight => document.fonts.load(`${weight} 15px "Inter"`, 'Report findings')));
+        await document.fonts.ready;
+        return { status: document.fonts.status, weights: loaded.map(fonts => fonts.map(font => ({ family: font.family, status: font.status }))) };
+    });
+    expect(faces.status).toBe('loaded');
+    for (const weight of faces.weights) {
+        expect(weight.length).toBeGreaterThan(0);
+        expect(weight.every(font => font.family.replaceAll('"', '') === 'Inter' && font.status === 'loaded')).toBe(true);
+    }
+    const families = await report.locator('h1, [class*="coverTitle"], [class*="lead"], [class*="finding"] > h3').evaluateAll(elements => elements.map(element => getComputedStyle(element).fontFamily));
+    expect(families.length).toBeGreaterThan(2);
+    for (const family of families) expect(family.replaceAll('"', '')).toBe('Inter, system-ui, -apple-system, sans-serif');
+    await expect(report.locator('[class*="chapterFooter"]').first()).toHaveCSS('font-family', 'ui-monospace, SFMono-Regular, Menlo, monospace');
+}
 function bundleFixture(name: string) {
     const dir = resolve(['complete', 'adverse', 'partial'].includes(name) ? productionFixtures : fixtures, name);
     const filename = readdirSync(dir).find(n => n.endsWith('.zip'))!;
@@ -57,6 +76,7 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
             for (const section of coverage.section_results)
                 await expect(page.getByRole('tabpanel').locator('summary').filter({ hasText: new RegExp(`^${section.section.replaceAll('_', ' ')}\\s*${section.complete ? 'Complete' : 'Incomplete'}$`) })).toBeVisible();
             await page.getByRole('tab', { name: 'Report', exact: true }).click();
+            await expectReportTypography(page);
             const downloadPromise = page.waitForEvent('download');
             await page.getByRole('button', { name: 'Download verification results', exact: true }).click();
             const downloaded = await downloadPromise;
@@ -74,6 +94,7 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
             await page.getByRole('button', { name: 'Export buyer PDF', exact: true }).click();
             await expect(page.locator('html')).toHaveAttribute('data-print-requested', 'true');
             await page.emulateMedia({ media: 'print' });
+            await expectReportTypography(page);
             const printed = page.getByRole('article', { name: 'Derived buyer report' });
             expect(await printed.innerHTML()).toBe(previewHtml);
             await expect(printed.getByRole('heading', { name: 'Verification appendix', exact: true })).toBeVisible();
@@ -201,6 +222,7 @@ for (const name of ['complete', 'synthetic']) test(`Adapter independence through
     await page.setContent(html);
     const report = page.getByRole('article', { name: 'Derived buyer report' });
     await expect(report).toBeVisible();
+    await expectReportTypography(page);
     await expect(report).toContainText(name === 'synthetic' ? 'demo-target' : 'demo-host');
     await expect(report.getByRole('heading', { name: 'Verification appendix', exact: true })).toBeVisible();
     if (name === 'synthetic') {
@@ -223,6 +245,7 @@ for (const name of ['complete', 'synthetic']) test(`Adapter independence through
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
     await page.emulateMedia({ media: 'print' });
+    await expectReportTypography(page);
     expect(await report.textContent()).toBe(screenContent);
     if (browserName === 'chromium') {
         mkdirSync(output, { recursive: true });
@@ -242,6 +265,7 @@ for (const variant of ['mixed', 'only']) test(`Unassessed severity stays separat
     await page.setContent(html);
     const report = page.getByRole('article', { name: 'Derived buyer report' });
     await expect(report).toBeVisible();
+    await expectReportTypography(page);
     await expect(report.getByRole('region', { name: 'Unassessed findings', exact: true })).toContainText('not severity-ranked');
     const findingCards = report.locator('section.finding');
     const nullCards = findingCards.filter({ has: page.locator('.findingMeta').getByText('Severity not assessed', { exact: true }) });
@@ -265,6 +289,7 @@ for (const variant of ['mixed', 'only']) test(`Unassessed severity stays separat
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
     await page.emulateMedia({ media: 'print' });
+    await expectReportTypography(page);
     expect(await report.innerHTML()).toBe(screenHtml);
     await expect(nullCards.first()).toBeVisible();
     await expect(report.getByRole('heading', { name: 'Verification appendix', exact: true })).toBeVisible();
