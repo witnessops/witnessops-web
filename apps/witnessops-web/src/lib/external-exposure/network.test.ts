@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Duplex } from 'node:stream';
-import { inspectHsts } from './checks';
+import { inspectCertificate, inspectHsts } from './checks';
+import { runSnapshot } from './runner';
+import { externalExposureAdapter } from './adapter';
 import type { Socket, TcpNetConnectOpts } from 'node:net';
-import type { ConnectionOptions, TLSSocket } from 'node:tls';
+import { checkServerIdentity, type ConnectionOptions, type PeerCertificate, type TLSSocket } from 'node:tls';
 import { createObservationTransport, isPublicAddress, ObservationError, UnsafeTargetError, type ExternalResolver, type NetworkOptions } from './network';
 
 function resolver(overrides: Partial<ExternalResolver> = {}): ExternalResolver {
@@ -73,11 +75,19 @@ test('mixed A/AAAA answers are rejected before any socket exists', async () => {
 });
 
 test('actual connector receives the validated literal address; logical Host and SNI survive', async () => {
-  const { transport, tcpOptions, tlsOptions, sockets } = harness();
+  let aQueries = 0, aaaaQueries = 0;
+  const { transport, tcpOptions, tlsOptions, sockets } = harness({ resolver: resolver({
+    resolve4: async () => ++aQueries === 1 ? ['93.184.215.14'] : ['169.254.169.254'],
+    resolve6: async () => { aaaaQueries++; return []; },
+  }) });
   try {
     assert.equal((await transport.certificate('public.com')).authorized, true);
     assert.deepEqual(tcpOptions, [{ host: '93.184.215.14', family: 4, port: 443 }]);
     assert.equal(tlsOptions[0].servername, 'public.com');
+    assert.equal(tlsOptions[0].rejectUnauthorized, true);
+    assert.equal(tlsOptions[0].checkServerIdentity, checkServerIdentity);
+    assert.equal(checkServerIdentity(tlsOptions[0].servername!, { subjectaltname: 'DNS:public.com' } as PeerCertificate), undefined);
+    assert.ok(checkServerIdentity(tlsOptions[0].servername!, { subjectaltname: 'DNS:other.com' } as PeerCertificate) instanceof Error);
     assert.equal(tlsOptions[0].socket, sockets[0]);
     const result = await transport.request('https://public.com/', 1024);
     assert.equal(result.body, 'ok');
@@ -90,6 +100,8 @@ test('actual connector receives the validated literal address; logical Host and 
     assert.equal(tlsOptions.length, 1);
     assert.equal(tcpOptions.length, 1);
     assert.equal(transport.usage.normalTls, 1);
+    assert.equal(aQueries, 1);
+    assert.equal(aaaaQueries, 1);
     assert.equal(sockets[0].requests.length, 2);
   } finally { transport.close(); assert.ok(sockets.every(socket => socket.destroyed)); }
 });
@@ -105,7 +117,7 @@ test('closed HTTPS connection cannot cause another normal TLS handshake', async 
   } finally { transport.close(); }
 });
 
-test('untrusted certificate can be inspected but never carries an HTTP request', async () => {
+test('an inconsistent injected secureConnect still cannot authorize HTTP', async () => {
   const setup = harness({ connectTls: args => {
     const socket = args.socket as unknown as InertSocket;
     socket.authorized = false;
@@ -119,6 +131,58 @@ test('untrusted certificate can be inspected but never carries an HTTP request',
     assert.equal(setup.sockets[0].requests.length, 0);
     assert.equal(setup.sockets[0].destroyed, true);
   } finally { setup.transport.close(); }
+});
+
+test('successful strict validation preserves available certificate metadata and expected interpretation', async () => {
+  const { transport } = harness({ connectTls: args => {
+    const socket = args.socket as unknown as InertSocket;
+    const cert = socket.getPeerCertificate();
+    socket.getPeerCertificate = () => ({ ...cert, valid_to: new Date(Date.now() + 60 * 86_400_000).toUTCString() });
+    assert.equal(args.rejectUnauthorized, true);
+    queueMicrotask(() => socket.emit('secureConnect'));
+    return socket as unknown as TLSSocket;
+  } });
+  try {
+    const observation = await transport.certificate('public.com');
+    assert.equal(observation.validationFailure, undefined);
+    assert.equal(observation.handshake, true);
+    assert.equal(observation.authorized, true);
+    assert.equal(Reflect.get(observation, 'hostnameMatch'), true);
+    assert.deepEqual(Reflect.get(observation, 'issuer'), { CN: 'Fixture issuer' });
+    assert.deepEqual(Reflect.get(observation, 'sans'), ['DNS:public.com']);
+    assert.equal(Reflect.get(observation, 'fingerprint'), 'AB:CD');
+    assert.equal(inspectCertificate(observation, new Date()).status, 'OBSERVED_EXPECTED');
+  } finally { transport.close(); }
+});
+
+test('TCP refusal and elapsed TLS deadline remain uncollected uncertainty', async () => {
+  for (const mode of ['refused', 'timeout']) {
+    const setup = mode === 'refused' ? harness({ connectTcp: () => {
+      const socket = new InertSocket();
+      queueMicrotask(() => socket.emit('error', Object.assign(new Error('Connection refused'), { code: 'ECONNREFUSED' })));
+      return socket as unknown as Socket;
+    } }) : harness({ connectTls: args => args.socket as TLSSocket, timeouts: { tls: 5 } });
+    const snapshot = await runSnapshot('public.com', { transport: setup.transport });
+    const certificate = snapshot.checks.find(check => check.check_id === 'tls.certificate.v1')!;
+    assert.equal(certificate.status, 'UNDETERMINED');
+    assert.equal(certificate.collected, false);
+    assert.equal(snapshot.usage.normalTls, 1);
+  }
+});
+
+test('legacy certificate rejection never claims that the peer disabled the protocol', async () => {
+  const { transport, sockets } = harness({ connectTls: args => {
+    assert.equal(args.rejectUnauthorized, true);
+    const socket = args.socket as unknown as InertSocket;
+    queueMicrotask(() => socket.emit('error', Object.assign(new Error('self-signed'), { code: 'DEPTH_ZERO_SELF_SIGNED_CERT' })));
+    return socket as unknown as TLSSocket;
+  } });
+  try {
+    assert.equal((await transport.legacy('public.com', 'TLSv1')).outcome, 'undetermined');
+    assert.equal((await transport.legacy('public.com', 'TLSv1.1')).outcome, 'undetermined');
+    assert.equal(transport.usage.legacyTls, 2);
+    assert.ok(sockets.every(socket => socket.destroyed && socket.requests.length === 0));
+  } finally { transport.close(); }
 });
 
 test('HTTP reconnect revalidates DNS and blocks rebinding before creating another socket', async () => {
@@ -201,6 +265,7 @@ test('HTTP timeout destroys the active socket and the redirect/HTTP budgets are 
 test('legacy success, explicit peer protocol rejection, and local policy failure remain distinct', async () => {
   let attempt = 0;
   const { transport } = harness({ connectTls: args => {
+    assert.equal(args.rejectUnauthorized, true);
     const socket = args.socket as unknown as InertSocket;
     queueMicrotask(() => socket.emit('error', Object.assign(new Error('fixture'), { code: ++attempt === 1 ? 'ERR_SSL_TLSV1_ALERT_PROTOCOL_VERSION' : 'ERR_SSL_NO_PROTOCOLS_AVAILABLE' })));
     return socket as unknown as TLSSocket;
@@ -275,6 +340,7 @@ test('a negotiated legacy protocol is reported only after the requested handshak
     const socket = args.socket as unknown as InertSocket;
     assert.equal(args.minVersion, 'TLSv1.1');
     assert.equal(args.maxVersion, 'TLSv1.1');
+    assert.equal(args.rejectUnauthorized, true);
     socket.getProtocol = () => 'TLSv1.1';
     queueMicrotask(() => socket.emit('secureConnect'));
     return socket as unknown as TLSSocket;
@@ -286,6 +352,60 @@ test('a negotiated legacy protocol is reported only after the requested handshak
     assert.deepEqual(tcpOptions, [{ host: '93.184.215.14', family: 4, port: 443 }]);
   } finally { transport.close(); }
 });
+
+for (const errorCode of ['CERT_HAS_EXPIRED', 'CERT_NOT_YET_VALID', 'ERR_TLS_CERT_ALTNAME_INVALID', 'DEPTH_ZERO_SELF_SIGNED_CERT', 'SELF_SIGNED_CERT_IN_CHAIN', 'UNABLE_TO_VERIFY_LEAF_SIGNATURE']) {
+  test('strict certificate rejection is a collected diagnostic with no permissive retry: ' + errorCode, async () => {
+    const options: ConnectionOptions[] = [];
+    const { transport, sockets, tcpOptions } = harness({ connectTls: args => {
+      options.push(args);
+      const socket = args.socket as unknown as InertSocket;
+      socket.getPeerCertificate = () => { throw new Error('Rejected handshakes must not collect peer metadata'); };
+      queueMicrotask(() => socket.emit('error', Object.assign(new Error('Synthetic validation failure'), { code: errorCode })));
+      return socket as unknown as TLSSocket;
+    } });
+    try {
+      const observation = await transport.certificate('public.com');
+      assert.equal(observation.handshake, false);
+      assert.equal(observation.authorized, false);
+      assert.deepEqual(Reflect.get(observation, 'validationFailure'), { code: errorCode, message: 'Synthetic validation failure' });
+      assert.equal(Reflect.get(observation, 'certificateMetadata'), null);
+      for (const field of ['hostnameMatch', 'validFrom', 'validTo', 'issuer', 'sans', 'fingerprint']) assert.equal(Object.hasOwn(observation, field), false);
+      assert.equal(inspectCertificate(observation, new Date()).status, 'NEEDS_ATTENTION');
+      assert.deepEqual(await transport.certificate('public.com'), observation);
+      await assert.rejects(transport.request('https://public.com/', 1024), code('tls_invalid_certificate'));
+      assert.equal(options.length, 1);
+      assert.equal(options[0].rejectUnauthorized, true);
+      assert.equal(options[0].servername, 'public.com');
+      assert.equal(options[0].socket, sockets[0]);
+      assert.deepEqual(tcpOptions, [{ host: '93.184.215.14', family: 4, port: 443 }]);
+      assert.equal(transport.usage.normalTls, 1);
+      assert.equal(transport.usage.http, 0);
+      assert.ok(sockets.every(socket => socket.destroyed && socket.requests.length === 0));
+    } finally { transport.close(); }
+  });
+}
+
+for (const errorCode of ['CERT_HAS_EXPIRED', 'ECONNREFUSED', 'ECONNRESET', 'ENETUNREACH', 'ETIMEDOUT', 'ERR_SSL_TLSV1_ALERT_PROTOCOL_VERSION', 'ERR_SSL_NO_PROTOCOLS_AVAILABLE', 'OUT_OF_MEM', 'unrecognized']) {
+  test('runner separates concrete validation failure from connection/protocol uncertainty: ' + errorCode, async () => {
+    const { transport } = harness({ connectTls: args => {
+      const socket = args.socket as unknown as InertSocket;
+      // Message text alone must never classify an arbitrary runtime/network error as a certificate finding.
+      queueMicrotask(() => socket.emit('error', Object.assign(new Error('certificate has expired'), { code: errorCode })));
+      return socket as unknown as TLSSocket;
+    } });
+    const snapshot = await runSnapshot('public.com', { transport });
+    const certificate = snapshot.checks.find(check => check.check_id === 'tls.certificate.v1')!;
+    const concrete = errorCode === 'CERT_HAS_EXPIRED';
+    assert.equal(certificate.status, concrete ? 'NEEDS_ATTENTION' : 'UNDETERMINED');
+    assert.equal(certificate.collected, concrete);
+    assert.equal(snapshot.checks.length, 10);
+    assert.equal(snapshot.usage.normalTls, 1);
+    const report = externalExposureAdapter(snapshot);
+    const finding = report.findings.find(item => item.title === certificate.title);
+    assert.equal(!!finding, concrete);
+    if (finding) assert.equal(finding.severity, null);
+  });
+}
 
 
 test('selected headers retain security-relevant suffixes beneath the native header cap', async () => {

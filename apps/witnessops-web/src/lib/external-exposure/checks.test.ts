@@ -173,7 +173,7 @@ test('interpreters preserve untrusted text as data without mutating or aliasing 
   const interpretation = inspectCertificate(original, now);
   assert.deepEqual(original.issuer, { CN: '<img src=x onerror=alert(1)>' });
   original.issuer.CN = 'changed';
-  assert.equal((interpretation.observation as TlsObservation).issuer.CN, '<img src=x onerror=alert(1)>');
+  assert.equal((interpretation.observation as typeof original).issuer.CN, '<img src=x onerror=alert(1)>');
   assert.ok(interpretation.limitations.length);
   assert.equal(interpretation.recommendation, null);
 });

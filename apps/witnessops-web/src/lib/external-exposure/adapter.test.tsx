@@ -91,11 +91,14 @@ for (const [label, mutate] of invalidCases) test(`adapter rejects ${label}`, () 
   assert.throws(() => externalExposureAdapter(input));
 });
 
-test('untrusted observation text remains escaped', () => {
+for (const script of ['<script>bad()</script>', '<SCRIPT>bad()</SCRIPT>']) test('untrusted observation text remains escaped: ' + script, () => {
   const input = snapshotFixture();
-  input.checks[1].observation = '<script>bad()</script>';
+  input.checks[1].observation = script;
   input.checks[1].title = '<img src=x onerror=bad()>';
   const html = renderToStaticMarkup(<BuyerReportDocument model={externalExposureAdapter(input)} />);
-  assert.doesNotMatch(html, /<script>|<img src=x/);
-  assert.match(html, /&lt;script&gt;bad\(\)&lt;\/script&gt;/);
+  const escapedScript = script === '<script>bad()</script>' ? '&lt;script&gt;bad()&lt;/script&gt;' : '&lt;SCRIPT&gt;bad()&lt;/SCRIPT&gt;';
+  assert.ok(html.includes(escapedScript));
+  assert.ok(html.includes('&lt;img src=x onerror=bad()&gt;'));
+  assert.equal(html.includes(script), false);
+  assert.equal(html.includes(input.checks[1].title), false);
 });

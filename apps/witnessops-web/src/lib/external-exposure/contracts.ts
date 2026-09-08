@@ -29,6 +29,12 @@ export type TlsObservation = {
   handshake: boolean; authorized: boolean; authorizationError: string | null; hostnameMatch: boolean;
   validFrom: string; validTo: string; issuer: Record<string, string>; sans: string[];
   fingerprint: string; address: string; protocol: string | null;
+  validationFailure?: never;
+} | {
+  /** Strict validation stopped the handshake; peer metadata was not collected. */
+  handshake: false; authorized: false; authorizationError: string;
+  validationFailure: { code: string; message: string };
+  certificateMetadata: null;
 };
 export type LegacyObservation = { protocol: 'TLSv1' | 'TLSv1.1'; outcome: 'negotiated' | 'peer_rejected' | 'undetermined'; detail: string };
 export type HttpObservation = { url: string; statusCode: number; headers: Record<string, string>; body: string; bodyBytes: number; utf8Valid: boolean; address: string };

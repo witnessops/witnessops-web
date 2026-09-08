@@ -87,6 +87,21 @@ function boundedDns<K extends keyof DnsRecords>(kind: K, value: DnsRecords[K]): 
 function failure(error: unknown, code: string): Error {
   return error instanceof UnsafeTargetError || error instanceof ObservationError ? error : new ObservationError(code);
 }
+// Concrete Node/OpenSSL certificate validation codes only. Network/protocol errors,
+// local runtime failures and certificate-like message text are not certificate findings.
+const CERTIFICATE_VALIDATION_ERRORS = new Set([
+  'UNABLE_TO_GET_ISSUER_CERT', 'UNABLE_TO_DECRYPT_CERT_SIGNATURE', 'UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY',
+  'CERT_SIGNATURE_FAILURE', 'CERT_NOT_YET_VALID', 'CERT_HAS_EXPIRED',
+  'ERROR_IN_CERT_NOT_BEFORE_FIELD', 'ERROR_IN_CERT_NOT_AFTER_FIELD',
+  'DEPTH_ZERO_SELF_SIGNED_CERT', 'SELF_SIGNED_CERT_IN_CHAIN', 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
+  'UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'CERT_CHAIN_TOO_LONG', 'CERT_REVOKED', 'INVALID_CA',
+  'PATH_LENGTH_EXCEEDED', 'INVALID_PURPOSE', 'CERT_UNTRUSTED', 'CERT_REJECTED',
+  'HOSTNAME_MISMATCH', 'ERR_TLS_CERT_ALTNAME_INVALID',
+]);
+function certificateValidationFailure(error: unknown): { code: string; message: string } | null {
+  if (!(error instanceof Error) || !('code' in error) || typeof error.code !== 'string' || !CERTIFICATE_VALIDATION_ERRORS.has(error.code)) return null;
+  return { code: error.code, message: error.message.slice(0, 240) };
+}
 function peerProtocolRejection(error: unknown): boolean {
   const value = error as { code?: string; message?: string };
   return /ALERT_PROTOCOL_VERSION$/u.test(value.code ?? '') || /alert protocol version.*SSL alert number 70/isu.test(value.message ?? '');
@@ -240,7 +255,7 @@ class BoundedObservationTransport implements ObservationTransport {
     const tcp = await this.dial(hostname, 443);
     this.checkpoint();
     return new Promise<TLSSocket>((resolve, reject) => {
-      const options: ConnectionOptions = { socket: tcp, servername: hostname, rejectUnauthorized: false, ALPNProtocols: ['http/1.1'],
+      const options: ConnectionOptions = { socket: tcp, servername: hostname, rejectUnauthorized: true, checkServerIdentity, ALPNProtocols: ['http/1.1'],
         ...(protocol ? { minVersion: protocol, maxVersion: protocol, ciphers: 'DEFAULT:@SECLEVEL=0' } : { minVersion: 'TLSv1.2' }) };
       let socket: TLSSocket;
       try { socket = this.track((this.options.connectTls ?? tlsConnect)(options), this.addresses.get(tcp)!); }
@@ -271,7 +286,15 @@ class BoundedObservationTransport implements ObservationTransport {
     this.certificateHostname = name;
     let socket: TLSSocket;
     try { socket = await this.handshake(name); }
-    catch (error) { throw failure(error, 'tls_error'); }
+    catch (error) {
+      const validationFailure = certificateValidationFailure(error);
+      if (!validationFailure) throw failure(error, 'tls_error');
+      this.certificateValue = {
+        handshake: false, authorized: false, authorizationError: validationFailure.code,
+        validationFailure, certificateMetadata: null,
+      };
+      return this.certificateValue;
+    }
     const cert = socket.getPeerCertificate();
     let hostnameMatch = false;
     try { hostnameMatch = !checkServerIdentity(name, cert); } catch { /* Missing/malformed certificates do not match. */ }

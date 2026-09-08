@@ -24,6 +24,8 @@ function uri(value: string): URL | null {
 
 export function inspectCertificate(tls: TlsObservation, now: Date): Interpretation {
   const limit = 'One TLS handshake and the local trust store were used; revocation, all endpoints and all cipher suites were not assessed.';
+  if (tls.validationFailure) return result(ATTENTION, tls, `Strict TLS certificate verification failed: ${tls.validationFailure.code}.`,
+    `${limit} Complete peer certificate metadata was not established after strict validation rejected the connection.`, 'Review the reported certificate validation error, chain and hostname coverage.');
   const start = Date.parse(tls.validFrom), end = Date.parse(tls.validTo), current = now.getTime();
   const observation = { ...tls, daysRemaining: Number.isFinite(end - current) ? (end - current) / 86_400_000 : null };
   if (!tls.handshake) return result(UND, observation, 'No completed handshake supplied a certificate for interpretation.', limit);
