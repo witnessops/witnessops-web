@@ -85,8 +85,8 @@ export async function middleware(request: NextRequest) {
   }
 
   const requestHeaders = new Headers(request.headers);
-  // Always overwrite the client value; this selects a minimal local-file workspace shell.
-  requestHeaders.set("x-witnessops-local-workspace", pathname === "/proofpack" ? "proofpack" : "none");
+  // Always overwrite the client value; this selects a minimal isolated workspace shell.
+  requestHeaders.set("x-witnessops-local-workspace", pathname === "/proofpack" ? "proofpack" : pathname === "/check" ? "external-check" : "none");
   requestHeaders.set(
     DOCUMENT_LANGUAGE_HEADER,
     documentLanguageForPathname(pathname),

@@ -6,7 +6,7 @@ import test from "node:test";
 const repoRoot = resolve(__dirname, "../..");
 const baselineRoot = __dirname;
 
-const addedOfferRoutes = ["/catalog/automation-repair", "/pl/catalog/automation-repair", "/proofpack"] as const;
+const addedOfferRoutes = ["/catalog/automation-repair", "/check", "/pl/catalog/automation-repair", "/proofpack"] as const;
 
 function loadJson(path: string) {
   return JSON.parse(readFileSync(path, "utf-8")) as unknown;
@@ -36,7 +36,16 @@ test("routes-manifest matches the frozen baseline", () => {
       { key: "Cache-Control", value: "no-store" },
     ],
   });
-  assert.deepEqual({ ...manifest, headers: manifest.headers.filter(header => header.source !== "/proofpack"), staticRoutes: manifest.staticRoutes.filter(route => !addedOfferRoutes.some(path => path === route.page)) }, expected);
+  const checkHeaders = manifest.headers.filter(header => header.source === "/check");
+  assert.deepEqual(checkHeaders, [{
+    source: "/check", regex: "^/check(?:/)?$", headers: [
+      { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self' 'unsafe-inline'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" },
+      { key: "Referrer-Policy", value: "no-referrer" },
+      { key: "Cache-Control", value: "no-store" },
+      { key: "X-Robots-Tag", value: "noindex, nofollow" },
+    ],
+  }]);
+  assert.deepEqual({ ...manifest, headers: manifest.headers.filter(header => !["/proofpack", "/check"].includes(header.source)), staticRoutes: manifest.staticRoutes.filter(route => !addedOfferRoutes.some(path => path === route.page)) }, expected);
 });
 
 test("app-paths-manifest matches the frozen baseline", () => {
@@ -48,7 +57,7 @@ test("app-paths-manifest matches the frozen baseline", () => {
   );
 
   const manifest = { ...(actual as Record<string, string>) };
-  for (const route of ["/(marketing)/catalog/automation-repair/page", "/pl/catalog/automation-repair/page", "/proofpack/page"]) {
+  for (const route of ["/(marketing)/catalog/automation-repair/page", "/pl/catalog/automation-repair/page", "/proofpack/page", "/check/page", "/api/external-exposure/route"]) {
     assert.equal(manifest[route], `app${route}.js`);
     delete manifest[route];
   }
