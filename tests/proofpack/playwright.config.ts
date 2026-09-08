@@ -1,0 +1,3 @@
+import { defineConfig } from '@playwright/test';
+const baseURL = process.env.PROOFPACK_BASE_URL ?? 'http://127.0.0.1:3012';
+export default defineConfig({ testDir: '../ui-proof', testMatch: 'proofpack.spec.ts', timeout: 60000, workers: 1, outputDir: process.env.PROOFPACK_TEST_OUTPUT ?? '/tmp/witnessops-bundle-playwright', use: { baseURL, browserName: process.env.PROOFPACK_BROWSER === 'webkit' ? 'webkit' : 'chromium', viewport: {width:390,height:844} }, webServer: process.env.PROOFPACK_BASE_URL ? undefined : { command: 'pnpm --filter witnessops-web exec next start --hostname 127.0.0.1 --port 3012', url: `${baseURL}/proofpack`, reuseExistingServer: false, timeout: 60000 } });

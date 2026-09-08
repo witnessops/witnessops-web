@@ -1,0 +1,296 @@
+{
+  "claim_boundary": "deterministic posture findings only; no secure, compromised, or compliant conclusion",
+  "counts": {
+    "critical": 0,
+    "high": 5,
+    "informational": 1,
+    "low": 7,
+    "medium": 6
+  },
+  "findings": [
+    {
+      "claim_limit": "Key contents, validity and authentication activity were not collected.",
+      "evidence_refs": [
+        "posture.sections.privileged_access"
+      ],
+      "finding_id": "lsa_authorized_keys_metadata",
+      "observed_value": {
+        "root_authorized_keys": {
+          "admitted": false,
+          "mode": "0666",
+          "owner_uid": 0,
+          "status": "observed"
+        },
+        "unsafe_file_count": 1
+      },
+      "recommendation": "Review ownership and permissions separately before changing SSH access.",
+      "severity": "high",
+      "state": "observed",
+      "title": "Authorized-key file metadata fell outside the admitted baseline"
+    },
+    {
+      "claim_limit": "File contents and distribution-specific policy were not assessed.",
+      "evidence_refs": [
+        "posture.sections.critical_files.files"
+      ],
+      "finding_id": "lsa_critical_file_metadata",
+      "observed_value": [
+        {
+          "admitted": false,
+          "group": "root",
+          "mode": "0666",
+          "owner": "root",
+          "path": "/etc/passwd",
+          "status": "observed"
+        }
+      ],
+      "recommendation": "Review ownership and permissions before changing them; preserve service-specific exceptions.",
+      "severity": "high",
+      "state": "observed",
+      "title": "Critical account or privilege file metadata fell outside the admitted baseline"
+    },
+    {
+      "claim_limit": "The supplied posture does not record a confirmed root/loopback evaluation context. This does not prove that root login was used or externally reachable.",
+      "evidence_refs": [
+        "posture.sections.ssh.permit_root_login"
+      ],
+      "finding_id": "lsa_ssh_root_login",
+      "observed_value": "yes",
+      "recommendation": "Review an attributable administrator account, working privilege elevation and recovery access before considering disabling direct root SSH login.",
+      "severity": "high",
+      "state": "observed",
+      "title": "SSH configuration permits direct root login in an unconfirmed evaluation context"
+    },
+    {
+      "claim_limit": "Sudoers contents and effective direct grants were not assessed.",
+      "evidence_refs": [
+        "posture.sections.privileged_access.unsafe_sudoers_metadata_count"
+      ],
+      "finding_id": "lsa_sudoers_dropin_metadata",
+      "observed_value": 1,
+      "recommendation": "Review affected metadata and validate syntax before making any privilege change.",
+      "severity": "high",
+      "state": "observed",
+      "title": "Sudoers drop-in metadata fell outside the admitted baseline"
+    },
+    {
+      "claim_limit": "Account names and authentication activity were not collected.",
+      "evidence_refs": [
+        "posture.sections.accounts.uid0_account_count"
+      ],
+      "finding_id": "lsa_uid0_multiple",
+      "observed_value": 2,
+      "recommendation": "Review whether every UID 0 account is required and separately attributable.",
+      "severity": "high",
+      "state": "observed",
+      "title": "More than one UID 0 account was observed"
+    },
+    {
+      "claim_limit": "A failed unit is not by itself evidence of compromise or business impact.",
+      "evidence_refs": [
+        "posture.sections.services.failed_units"
+      ],
+      "finding_id": "lsa_failed_services",
+      "observed_value": [
+        "backup.service"
+      ],
+      "recommendation": "Review each failed unit against the host's intended service inventory.",
+      "severity": "medium",
+      "state": "observed",
+      "title": "Failed system services were observed"
+    },
+    {
+      "claim_limit": "Rule order, upstream controls and external reachability were not tested.",
+      "evidence_refs": [
+        "posture.sections.firewall.inbound_policy"
+      ],
+      "finding_id": "lsa_firewall_default_allow",
+      "observed_value": "allow",
+      "recommendation": "Confirm that every inbound service is intended and change the default policy only with a recovery path.",
+      "severity": "medium",
+      "state": "observed",
+      "title": "Host firewall default inbound policy allows traffic"
+    },
+    {
+      "claim_limit": "The marker does not identify the package or guarantee that a reboot resolves every pending update.",
+      "evidence_refs": [
+        "posture.sections.updates.reboot_required"
+      ],
+      "finding_id": "lsa_reboot_required",
+      "observed_value": true,
+      "recommendation": "Schedule a controlled reboot with service and recovery checks.",
+      "severity": "medium",
+      "state": "observed",
+      "title": "The host reports a pending reboot"
+    },
+    {
+      "claim_limit": "The scan used local cached metadata and did not refresh repositories or install packages.",
+      "evidence_refs": [
+        "posture.sections.updates.security_update_count"
+      ],
+      "finding_id": "lsa_security_updates_available",
+      "observed_value": 2,
+      "recommendation": "Review and schedule the security updates through the host's normal change process.",
+      "severity": "medium",
+      "state": "observed",
+      "title": "Cached package metadata reports available security updates"
+    },
+    {
+      "claim_limit": "The supplied posture does not record a confirmed root/loopback evaluation context. This does not prove weak passwords, exposure, or successful authentication.",
+      "evidence_refs": [
+        "posture.sections.ssh.password_authentication"
+      ],
+      "finding_id": "lsa_ssh_password_auth",
+      "observed_value": "yes",
+      "recommendation": "Review attributable administrator access, working privilege elevation and key-based recovery before considering disabling password authentication.",
+      "severity": "medium",
+      "state": "observed",
+      "title": "SSH password authentication is enabled in an unconfirmed evaluation context"
+    },
+    {
+      "claim_limit": "The declared listener baseline does not independently establish service intent. Process identifiers and external reachability were not collected.",
+      "evidence_refs": [
+        "posture.sections.listeners.unexpected_endpoints"
+      ],
+      "finding_id": "lsa_unexpected_listener",
+      "observed_value": [
+        {
+          "address": "0.0.0.0",
+          "port": 22,
+          "transport": "tcp"
+        },
+        {
+          "address": "0.0.0.0",
+          "port": 8080,
+          "transport": "tcp"
+        },
+        {
+          "address": "::",
+          "port": 443,
+          "transport": "tcp"
+        },
+        {
+          "address": "0.0.0.0",
+          "port": 53,
+          "transport": "udp"
+        }
+      ],
+      "recommendation": "Identify the owning service and confirm each endpoint before changing or stopping it.",
+      "severity": "medium",
+      "state": "observed",
+      "title": "Listening endpoints fell outside the declared listener baseline"
+    },
+    {
+      "claim_limit": "The collector did not compare the clock against an independent time authority.",
+      "evidence_refs": [
+        "posture.sections.clock.ntp_synchronized"
+      ],
+      "finding_id": "lsa_clock_unsynchronized",
+      "observed_value": false,
+      "recommendation": "Restore approved time synchronization and record the source used.",
+      "severity": "low",
+      "state": "observed",
+      "title": "Host clock reported not synchronized"
+    },
+    {
+      "claim_limit": "This is a posture observation, not proof that workload isolation is ineffective.",
+      "evidence_refs": [
+        "posture.sections.hardening"
+      ],
+      "finding_id": "lsa_mandatory_access_control",
+      "observed_value": {
+        "apparmor_enabled": false,
+        "selinux_enforcing": false
+      },
+      "recommendation": "Confirm the host's intended mandatory-access-control policy and platform support.",
+      "severity": "low",
+      "state": "observed",
+      "title": "No enabled AppArmor or enforcing SELinux state was established"
+    },
+    {
+      "claim_limit": "A bounded configuration observation; platform exceptions and exploitability require analyst review.",
+      "evidence_refs": [
+        "posture.sections.hardening.sysctl.fs.protected_hardlinks"
+      ],
+      "finding_id": "lsa_sysctl_fs_protected_hardlinks",
+      "observed_value": "0",
+      "recommendation": "Review enabling this protection against the host's workload and recovery requirements.",
+      "severity": "low",
+      "state": "observed",
+      "title": "Kernel protection is disabled: fs.protected_hardlinks"
+    },
+    {
+      "claim_limit": "A bounded configuration observation; platform exceptions and exploitability require analyst review.",
+      "evidence_refs": [
+        "posture.sections.hardening.sysctl.fs.protected_symlinks"
+      ],
+      "finding_id": "lsa_sysctl_fs_protected_symlinks",
+      "observed_value": "0",
+      "recommendation": "Review enabling this protection against the host's workload and recovery requirements.",
+      "severity": "low",
+      "state": "observed",
+      "title": "Kernel protection is disabled: fs.protected_symlinks"
+    },
+    {
+      "claim_limit": "A bounded configuration observation; platform exceptions and exploitability require analyst review.",
+      "evidence_refs": [
+        "posture.sections.hardening.sysctl.kernel.dmesg_restrict"
+      ],
+      "finding_id": "lsa_sysctl_kernel_dmesg_restrict",
+      "observed_value": "0",
+      "recommendation": "Review enabling this protection against the host's workload and recovery requirements.",
+      "severity": "low",
+      "state": "observed",
+      "title": "Kernel protection is disabled: kernel.dmesg_restrict"
+    },
+    {
+      "claim_limit": "A bounded configuration observation; platform exceptions and exploitability require analyst review.",
+      "evidence_refs": [
+        "posture.sections.hardening.sysctl.kernel.kptr_restrict"
+      ],
+      "finding_id": "lsa_sysctl_kernel_kptr_restrict",
+      "observed_value": "0",
+      "recommendation": "Review enabling this protection against the host's workload and recovery requirements.",
+      "severity": "low",
+      "state": "observed",
+      "title": "Kernel protection is disabled: kernel.kptr_restrict"
+    },
+    {
+      "claim_limit": "A bounded configuration observation; platform exceptions and exploitability require analyst review.",
+      "evidence_refs": [
+        "posture.sections.hardening.sysctl.kernel.unprivileged_bpf_disabled"
+      ],
+      "finding_id": "lsa_sysctl_kernel_unprivileged_bpf_disabled",
+      "observed_value": "0",
+      "recommendation": "Review enabling this protection against the host's workload and recovery requirements.",
+      "severity": "low",
+      "state": "observed",
+      "title": "Kernel protection is disabled: kernel.unprivileged_bpf_disabled"
+    },
+    {
+      "claim_limit": "A point-in-time local socket view does not establish service availability over time.",
+      "evidence_refs": [
+        "posture.sections.listeners.missing_endpoints"
+      ],
+      "finding_id": "lsa_expected_listener_missing",
+      "observed_value": [
+        {
+          "address": "127.0.0.1",
+          "port": 22,
+          "transport": "tcp"
+        }
+      ],
+      "recommendation": "Confirm whether the endpoint in the declared listener baseline is intentionally absent or bound to a different address.",
+      "severity": "informational",
+      "state": "observed",
+      "title": "Expected listening endpoints were not observed"
+    }
+  ],
+  "observed_at_utc": "2026-07-10T12:00:00Z",
+  "profile_id": "linux_baseline_v1",
+  "schema": "witnessops.local_server_audit.findings.v1",
+  "target": {
+    "asset_id": "asset-demo-host-001",
+    "hostname": "demo-host"
+  }
+}

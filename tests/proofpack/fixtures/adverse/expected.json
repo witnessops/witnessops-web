@@ -1,0 +1,72 @@
+{
+  "verifier_version": "witnessops.local_server_audit.verifier.v1.2.2",
+  "status": "valid",
+  "proof_run_id": "pr_lsa_20260710120000_198fd7aceb",
+  "workflow_class": "host_triage_evidence_collection",
+  "checks": {
+    "verification_inputs": {
+      "status": "passed",
+      "detail": "proofpack, signature, and trust registry were captured as bounded private snapshots"
+    },
+    "proofpack_detached_signature": {
+      "status": "passed",
+      "detail": "detached ZIP signature and external trust-registry admission passed"
+    },
+    "safe_zip_structure": {
+      "status": "passed",
+      "detail": "safely extracted 17 files totaling 57740 bytes"
+    },
+    "transport_receipt_signer_continuity": {
+      "status": "passed",
+      "detail": "detached ZIP signer and receipt signer key ids match"
+    },
+    "core.package_tree": {
+      "status": "passed",
+      "detail": "package tree contains only bounded regular files and directories"
+    },
+    "core.core_manifest": {
+      "status": "passed",
+      "detail": "15 core package files matched MANIFEST.sha256"
+    },
+    "core.receipt_signature_and_manifest_binding": {
+      "status": "passed",
+      "detail": "receipt signature verified with an externally admitted trust-registry key"
+    },
+    "core.evidence_artifact_hashes_and_claim_refs": {
+      "status": "passed",
+      "detail": "10 evidence artifacts and all claim references matched"
+    },
+    "core.receipt_compatibility_projection": {
+      "status": "passed",
+      "detail": "canonical and compatibility receipt bytes are identical"
+    },
+    "core.signer_trust": {
+      "status": "passed",
+      "detail": "external trust registry required and compared"
+    },
+    "core.embedded_core_verifier_result": {
+      "status": "passed",
+      "detail": "embedded producer core result matched fresh reconstruction"
+    }
+  },
+  "outcome": "pass",
+  "failure_states": [],
+  "proof_boundary": "package integrity and declared bindings only; no host security, compromise, completeness, or compliance conclusion",
+  "verification_inputs": {
+    "proofpack": {
+      "name": "proofpack-pr_lsa_20260710120000_198fd7aceb.zip",
+      "sha256": "493c9f476ed8ba0d55eb3157698c48ee03566bd2c29e50d645b2721be55de4a3",
+      "size_bytes": 18375
+    },
+    "signature": {
+      "name": "proofpack-pr_lsa_20260710120000_198fd7aceb.zip.sig.json",
+      "sha256": "5bfd7598bd4e643c4ee221e7d27cc2c5fd4e2fb153e1729e8becb4039117e421",
+      "size_bytes": 508
+    },
+    "trust_registry": {
+      "name": "trusted-keys.json",
+      "sha256": "fd329d6063a66ca2813ff85429c03c563236445e8d35867d4a2c0fd517653487",
+      "size_bytes": 499
+    }
+  }
+}

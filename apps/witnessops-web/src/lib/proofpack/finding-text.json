@@ -1,0 +1,210 @@
+{
+  "lsa_uid0_multiple": {
+    "finding_id": "lsa_uid0_multiple",
+    "severity": "high",
+    "title": "More than one UID 0 account was observed",
+    "state": "observed",
+    "evidence_ref": "posture.sections.accounts.uid0_account_count",
+    "recommendation": "Review whether every UID 0 account is required and separately attributable.",
+    "limit": "Account names and authentication activity were not collected."
+  },
+  "lsa_ssh_root_login": {
+    "finding_id": "lsa_ssh_root_login",
+    "severity": "high",
+    "state": "observed",
+    "evidence_ref": "posture.sections.ssh.permit_root_login",
+    "recommendation": "Review an attributable administrator account, working privilege elevation and recovery access before considering disabling direct root SSH login.",
+    "title": "SSH configuration permits direct root login in {context_label}",
+    "limit": "{context_limit} This does not prove that root login was used or externally reachable."
+  },
+  "lsa_ssh_password_auth": {
+    "finding_id": "lsa_ssh_password_auth",
+    "severity": "medium",
+    "state": "observed",
+    "evidence_ref": "posture.sections.ssh.password_authentication",
+    "recommendation": "Review attributable administrator access, working privilege elevation and key-based recovery before considering disabling password authentication.",
+    "title": "SSH password authentication is enabled in {context_label}",
+    "limit": "{context_limit} This does not prove weak passwords, exposure, or successful authentication."
+  },
+  "lsa_host_firewall_inactive": {
+    "finding_id": "lsa_host_firewall_inactive",
+    "severity": "medium",
+    "title": "Queried host-firewall controls reported inactive",
+    "state": "observed",
+    "evidence_ref": "posture.sections.firewall.status",
+    "recommendation": "Confirm the intended network-control boundary and enable a host firewall where required.",
+    "limit": "The collector queried supported local providers; upstream controls and actual reachability were not tested."
+  },
+  "lsa_firewall_default_allow": {
+    "finding_id": "lsa_firewall_default_allow",
+    "severity": "medium",
+    "title": "Host firewall default inbound policy allows traffic",
+    "state": "observed",
+    "evidence_ref": "posture.sections.firewall.inbound_policy",
+    "recommendation": "Confirm that every inbound service is intended and change the default policy only with a recovery path.",
+    "limit": "Rule order, upstream controls and external reachability were not tested."
+  },
+  "lsa_unexpected_listener": {
+    "finding_id": "lsa_unexpected_listener",
+    "severity": "medium",
+    "title": "Listening endpoints fell outside the declared listener baseline",
+    "state": "observed",
+    "evidence_ref": "posture.sections.listeners.unexpected_endpoints",
+    "recommendation": "Identify the owning service and confirm each endpoint before changing or stopping it.",
+    "limit": "The declared listener baseline does not independently establish service intent. Process identifiers and external reachability were not collected."
+  },
+  "lsa_expected_listener_missing": {
+    "finding_id": "lsa_expected_listener_missing",
+    "severity": "informational",
+    "title": "Expected listening endpoints were not observed",
+    "state": "observed",
+    "evidence_ref": "posture.sections.listeners.missing_endpoints",
+    "recommendation": "Confirm whether the endpoint in the declared listener baseline is intentionally absent or bound to a different address.",
+    "limit": "A point-in-time local socket view does not establish service availability over time."
+  },
+  "lsa_authorized_keys_metadata": {
+    "finding_id": "lsa_authorized_keys_metadata",
+    "severity": "high",
+    "title": "Authorized-key file metadata fell outside the admitted baseline",
+    "state": "observed",
+    "evidence_ref": "posture.sections.privileged_access",
+    "recommendation": "Review ownership and permissions separately before changing SSH access.",
+    "limit": "Key contents, validity and authentication activity were not collected."
+  },
+  "lsa_authorized_keys_metadata_unknown": {
+    "finding_id": "lsa_authorized_keys_metadata_unknown",
+    "severity": "informational",
+    "title": "Root authorized-key metadata could not be read",
+    "state": "unresolved",
+    "evidence_ref": "posture.sections.privileged_access.root_authorized_keys",
+    "recommendation": "Review root SSH access metadata separately with approved read authority before changing access.",
+    "limit": "Unreadable metadata is not evidence of unsafe ownership, permissions, or key content."
+  },
+  "lsa_sudoers_dropin_metadata": {
+    "finding_id": "lsa_sudoers_dropin_metadata",
+    "severity": "high",
+    "title": "Sudoers drop-in metadata fell outside the admitted baseline",
+    "state": "observed",
+    "evidence_ref": "posture.sections.privileged_access.unsafe_sudoers_metadata_count",
+    "recommendation": "Review affected metadata and validate syntax before making any privilege change.",
+    "limit": "Sudoers contents and effective direct grants were not assessed."
+  },
+  "lsa_security_updates_available": {
+    "finding_id": "lsa_security_updates_available",
+    "severity": "medium",
+    "title": "Cached package metadata reports available security updates",
+    "state": "observed",
+    "evidence_ref": "posture.sections.updates.security_update_count",
+    "recommendation": "Review and schedule the security updates through the host's normal change process.",
+    "limit": "The scan used local cached metadata and did not refresh repositories or install packages."
+  },
+  "lsa_reboot_required": {
+    "finding_id": "lsa_reboot_required",
+    "severity": "medium",
+    "title": "The host reports a pending reboot",
+    "state": "observed",
+    "evidence_ref": "posture.sections.updates.reboot_required",
+    "recommendation": "Schedule a controlled reboot with service and recovery checks.",
+    "limit": "The marker does not identify the package or guarantee that a reboot resolves every pending update."
+  },
+  "lsa_failed_services": {
+    "finding_id": "lsa_failed_services",
+    "severity": "medium",
+    "title": "Failed system services were observed",
+    "state": "observed",
+    "evidence_ref": "posture.sections.services.failed_units",
+    "recommendation": "Review each failed unit against the host's intended service inventory.",
+    "limit": "A failed unit is not by itself evidence of compromise or business impact."
+  },
+  "lsa_clock_unsynchronized": {
+    "finding_id": "lsa_clock_unsynchronized",
+    "severity": "low",
+    "title": "Host clock reported not synchronized",
+    "state": "observed",
+    "evidence_ref": "posture.sections.clock.ntp_synchronized",
+    "recommendation": "Restore approved time synchronization and record the source used.",
+    "limit": "The collector did not compare the clock against an independent time authority."
+  },
+  "lsa_critical_file_metadata": {
+    "finding_id": "lsa_critical_file_metadata",
+    "severity": "high",
+    "title": "Critical account or privilege file metadata fell outside the admitted baseline",
+    "state": "observed",
+    "evidence_ref": "posture.sections.critical_files.files",
+    "recommendation": "Review ownership and permissions before changing them; preserve service-specific exceptions.",
+    "limit": "File contents and distribution-specific policy were not assessed."
+  },
+  "lsa_mandatory_access_control": {
+    "finding_id": "lsa_mandatory_access_control",
+    "severity": "low",
+    "title": "No enabled AppArmor or enforcing SELinux state was established",
+    "evidence_ref": "posture.sections.hardening",
+    "recommendation": "Confirm the host's intended mandatory-access-control policy and platform support.",
+    "limit": "This is a posture observation, not proof that workload isolation is ineffective."
+  },
+  "lsa_ssh_password_auth_unknown": {
+    "finding_id": "lsa_ssh_password_auth_unknown",
+    "severity": "informational",
+    "state": "unresolved",
+    "evidence_ref": "posture.sections.ssh.password_authentication",
+    "recommendation": "Resolve the effective configuration within the approved scope.",
+    "title": "SSH password authentication could not be resolved in {context_label}",
+    "limit": "{context_limit} Unknown does not establish enabled or disabled authentication."
+  },
+  "lsa_ssh_root_login_unknown": {
+    "finding_id": "lsa_ssh_root_login_unknown",
+    "severity": "informational",
+    "state": "unresolved",
+    "evidence_ref": "posture.sections.ssh.status",
+    "recommendation": "Resolve effective SSH configuration in a separately authorized follow-up.",
+    "title": "SSH root-login setting could not be resolved in {context_label}",
+    "limit": "{context_limit} Unknown is not evidence that root login is enabled."
+  },
+  "lsa_host_firewall_unknown": {
+    "finding_id": "lsa_host_firewall_unknown",
+    "severity": "informational",
+    "title": "Host firewall state could not be established",
+    "state": "unresolved",
+    "evidence_ref": "posture.sections.firewall.status",
+    "recommendation": "Confirm the intended firewall provider and collect its state with suitable read authority.",
+    "limit": "Unknown is not evidence that no firewall exists."
+  },
+  "lsa_updates_available": {
+    "finding_id": "lsa_updates_available",
+    "severity": "low",
+    "title": "Cached package metadata reports available updates",
+    "state": "observed",
+    "evidence_ref": "posture.sections.updates.available_update_count",
+    "recommendation": "Review the available updates through the host's normal change process.",
+    "limit": "The scan used local cached metadata and did not refresh repositories or install packages."
+  },
+  "lsa_updates_unknown": {
+    "finding_id": "lsa_updates_unknown",
+    "severity": "informational",
+    "title": "Security-update classification could not be established",
+    "state": "unresolved",
+    "evidence_ref": "posture.sections.updates.security_classification",
+    "recommendation": "Review security advisory metadata in a separately authorized follow-up; the successful query established a planned update count without classifying security updates.",
+    "limit": "The planned update count uses local cached metadata. Security-update classification and cache freshness were not established."
+  },
+  "lsa_updates_unknown__fallback": {
+    "finding_id": "lsa_updates_unknown",
+    "severity": "informational",
+    "title": "Available update status could not be established",
+    "state": "unresolved",
+    "evidence_ref": "posture.sections.updates.status",
+    "recommendation": "Confirm the package manager and refresh policy in a separately authorized maintenance window.",
+    "limit": "Unknown is not evidence that the host is current or outdated."
+  },
+  "critical_file": {
+    "evidence_ref": "posture.sections.critical_files.files",
+    "recommendation": "Confirm the file's expected presence and approved read access before changing anything.",
+    "limit": "Unreadable metadata is not evidence of unsafe permissions."
+  },
+  "sysctl": {
+    "severity": "low",
+    "state": "observed",
+    "recommendation": "Review enabling this protection against the host's workload and recovery requirements.",
+    "limit": "A bounded configuration observation; platform exceptions and exploitability require analyst review."
+  }
+}

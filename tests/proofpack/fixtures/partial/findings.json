@@ -1,0 +1,38 @@
+{
+  "claim_boundary": "deterministic posture findings only; no secure, compromised, or compliant conclusion",
+  "counts": {
+    "critical": 0,
+    "high": 0,
+    "informational": 1,
+    "low": 0,
+    "medium": 0
+  },
+  "findings": [
+    {
+      "claim_limit": "The planned update count uses local cached metadata. Security-update classification and cache freshness were not established.",
+      "evidence_refs": [
+        "posture.sections.updates.security_classification"
+      ],
+      "finding_id": "lsa_updates_unknown",
+      "observed_value": {
+        "cache_freshness": "unknown",
+        "command_status": "captured",
+        "diagnostic_reason": "Cached update plan does not classify security updates.",
+        "provider": "apt",
+        "returncode": 0,
+        "security_classification": "unavailable"
+      },
+      "recommendation": "Review security advisory metadata in a separately authorized follow-up; the successful query established a planned update count without classifying security updates.",
+      "severity": "informational",
+      "state": "unresolved",
+      "title": "Security-update classification could not be established"
+    }
+  ],
+  "observed_at_utc": "2026-07-10T12:00:00Z",
+  "profile_id": "linux_baseline_v1",
+  "schema": "witnessops.local_server_audit.findings.v1",
+  "target": {
+    "asset_id": "asset-demo-host-001",
+    "hostname": "demo-host"
+  }
+}

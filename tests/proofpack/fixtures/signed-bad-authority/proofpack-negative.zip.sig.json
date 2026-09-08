@@ -1,0 +1,10 @@
+{
+  "algorithm": "ed25519",
+  "encoding": "hex",
+  "public_key_id": "witnessops_lsa_synthetic_test_001",
+  "purpose": "witnessops_local_server_audit_proofpack",
+  "schema": "witnessops.detached_signature.v1",
+  "signature": "0d30798c7b328caf46e015140b4d737a0d8438636e287a88ab379fbf011d4114abeed66e77163d2e4a72c633a633312915c0b337e796e9de3e6aa0ceaafe4202",
+  "subject": "proofpack-negative.zip",
+  "subject_sha256": "7479cf57e23623b032c9e05fb480e27c3b0295bb3553d703d6cb6b2f30add898"
+}

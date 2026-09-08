@@ -1,0 +1,18 @@
+{
+  "keys": [
+    {
+      "algorithm": "ed25519",
+      "encoding": "hex",
+      "public_key": "0000000000000000000000000000000000000000000000000000000000000000",
+      "public_key_id": "witnessops_lsa_synthetic_test_001",
+      "purposes": [
+        "witnessops_local_server_audit_receipt",
+        "witnessops_local_server_audit_proofpack"
+      ],
+      "status": "active"
+    }
+  ],
+  "registry_id": "synthetic_test_registry",
+  "schema": "witnessops.key_registry.snapshot.v1",
+  "version": 1
+}
