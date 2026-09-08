@@ -1,0 +1,74 @@
+{
+  "verifier_version": "witnessops.local_server_audit.verifier.v1.2.2",
+  "status": "invalid",
+  "proof_run_id": "pr_lsa_20260710120000_198fd7aceb",
+  "workflow_class": "host_triage_evidence_collection",
+  "checks": {
+    "verification_inputs": {
+      "status": "passed",
+      "detail": "proofpack, signature, and trust registry were captured as bounded private snapshots"
+    },
+    "proofpack_detached_signature": {
+      "status": "passed",
+      "detail": "detached ZIP signature and external trust-registry admission passed"
+    },
+    "safe_zip_structure": {
+      "status": "passed",
+      "detail": "safely extracted 17 files totaling 36931 bytes"
+    },
+    "transport_receipt_signer_continuity": {
+      "status": "passed",
+      "detail": "detached ZIP signer and receipt signer key ids match"
+    },
+    "core.package_tree": {
+      "status": "passed",
+      "detail": "package tree contains only bounded regular files and directories"
+    },
+    "core.core_manifest": {
+      "status": "passed",
+      "detail": "15 core package files matched MANIFEST.sha256"
+    },
+    "core.receipt_signature_and_manifest_binding": {
+      "status": "passed",
+      "detail": "receipt signature verified with an externally admitted trust-registry key"
+    },
+    "core.evidence_artifact_hashes_and_claim_refs": {
+      "status": "failed",
+      "detail": "collection completeness boolean is wrong for section: accounts"
+    },
+    "core.receipt_compatibility_projection": {
+      "status": "passed",
+      "detail": "canonical and compatibility receipt bytes are identical"
+    },
+    "core.signer_trust": {
+      "status": "passed",
+      "detail": "external trust registry required and compared"
+    },
+    "core.embedded_core_verifier_result": {
+      "status": "failed",
+      "detail": "embedded core verifier result differs from fresh reconstruction"
+    }
+  },
+  "outcome": "pass",
+  "failure_states": [
+    "verification_check_failed"
+  ],
+  "proof_boundary": "package integrity and declared bindings only; no host security, compromise, completeness, or compliance conclusion",
+  "verification_inputs": {
+    "proofpack": {
+      "name": "proofpack-negative.zip",
+      "sha256": "a8cc1ae31924c663b569f9ccc45f5b94927aa448f651e5367c2043597eeffea8",
+      "size_bytes": 14304
+    },
+    "signature": {
+      "name": "proofpack-negative.zip.sig.json",
+      "sha256": "0f8874d81ec01e04ad8a78d21f57f01bc22c72491ca8914f30ece802efbc73c7",
+      "size_bytes": 484
+    },
+    "trust_registry": {
+      "name": "trusted-keys.json",
+      "sha256": "fd329d6063a66ca2813ff85429c03c563236445e8d35867d4a2c0fd517653487",
+      "size_bytes": 499
+    }
+  }
+}

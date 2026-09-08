@@ -1,0 +1,193 @@
+{
+  "claim_boundary": "bounded local posture observations; not a security, compromise, or compliance conclusion",
+  "data_classification": "synthetic_non_customer",
+  "declared_exclusions": [
+    "processes",
+    "process_command_lines",
+    "process_environment",
+    "credentials",
+    "browser_data",
+    "tokens",
+    "private_keys",
+    "user_documents",
+    "event_logs",
+    "memory",
+    "network_discovery"
+  ],
+  "declared_side_effects": [
+    "local_process_execution",
+    "local_file_reads",
+    "local_output_file_creation"
+  ],
+  "observed_at_utc": "2026-07-10T12:00:00Z",
+  "profile_id": "linux_baseline_v1",
+  "schema": "witnessops.local_server_audit.posture.v1",
+  "sections": {
+    "accounts": {
+      "account_names_collected": false,
+      "collector_method": "fixture",
+      "interactive_shell_account_count": 2,
+      "status": "observed",
+      "total_account_count": 24,
+      "uid0_account_count": 1
+    },
+    "clock": {
+      "ntp_synchronized": true,
+      "status": "observed"
+    },
+    "critical_files": {
+      "file_contents_collected": false,
+      "files": [
+        {
+          "admitted": true,
+          "group": "root",
+          "mode": "0644",
+          "owner": "root",
+          "path": "/etc/passwd",
+          "status": "observed"
+        },
+        {
+          "admitted": true,
+          "group": "root",
+          "mode": "0644",
+          "owner": "root",
+          "path": "/etc/group",
+          "status": "observed"
+        },
+        {
+          "admitted": true,
+          "group": "root",
+          "mode": "0640",
+          "owner": "root",
+          "path": "/etc/shadow",
+          "status": "observed"
+        },
+        {
+          "admitted": true,
+          "group": "root",
+          "mode": "0640",
+          "owner": "root",
+          "path": "/etc/gshadow",
+          "status": "observed"
+        },
+        {
+          "admitted": true,
+          "group": "root",
+          "mode": "0440",
+          "owner": "root",
+          "path": "/etc/sudoers",
+          "status": "observed"
+        }
+      ],
+      "status": "observed"
+    },
+    "firewall": {
+      "inbound_allow_rule_count": 1,
+      "inbound_policy": "deny",
+      "inbound_rule_count": 1,
+      "policy_source": "ufw",
+      "provider": "ufw",
+      "rule_contents_collected": true,
+      "status": "active"
+    },
+    "hardening": {
+      "apparmor_enabled": true,
+      "selinux_enforcing": null,
+      "status": "observed",
+      "sysctl": {
+        "fs.protected_hardlinks": "1",
+        "fs.protected_symlinks": "1",
+        "kernel.dmesg_restrict": "1",
+        "kernel.kptr_restrict": "2",
+        "kernel.unprivileged_bpf_disabled": "1"
+      }
+    },
+    "host_identity": {
+      "architecture": "x86_64",
+      "hostname": "demo-host",
+      "kernel": "6.12.0-fixture",
+      "machine_identity": {
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "source": "/etc/machine-id",
+        "status": "observed"
+      },
+      "os_release": {
+        "id": "debian",
+        "pretty_name": "Debian Fixture",
+        "version_id": "13"
+      },
+      "status": "observed"
+    },
+    "listeners": {
+      "actual_endpoints": [
+        {
+          "address": "127.0.0.1",
+          "port": 22,
+          "transport": "tcp"
+        }
+      ],
+      "expected_endpoints": [
+        {
+          "address": "127.0.0.1",
+          "port": 22,
+          "transport": "tcp"
+        }
+      ],
+      "listener_count": 1,
+      "missing_endpoints": [],
+      "process_identifiers_collected": false,
+      "status": "observed",
+      "unexpected_endpoints": [],
+      "unparsed_line_count": 0
+    },
+    "privileged_access": {
+      "authorized_key_file_count": 1,
+      "direct_sudo_grants_assessed": false,
+      "key_contents_collected": false,
+      "non_root_admin_group_member_count": 1,
+      "root_authorized_keys": {
+        "admitted": true,
+        "mode": null,
+        "owner_uid": null,
+        "status": "missing"
+      },
+      "status": "observed",
+      "sudoers_contents_collected": false,
+      "sudoers_dropin_file_count": 2,
+      "unsafe_authorized_key_file_count": 0,
+      "unsafe_sudoers_metadata_count": 0
+    },
+    "services": {
+      "failed_unit_count": 0,
+      "failed_units": [],
+      "status": "observed",
+      "truncated": false
+    },
+    "ssh": {
+      "effective_configuration": true,
+      "password_authentication": "no",
+      "permit_root_login": "no",
+      "pubkey_authentication": "yes",
+      "status": "observed"
+    },
+    "updates": {
+      "available_update_count": 0,
+      "cache_freshness": "unknown",
+      "cache_only": true,
+      "command_status": "captured",
+      "diagnostic_reason": "Cached update plan does not classify security updates.",
+      "package_names_collected": true,
+      "provider": "apt",
+      "reboot_required": false,
+      "returncode": 0,
+      "security_classification": "unavailable",
+      "security_update_count": null,
+      "status": "partial"
+    }
+  },
+  "synthetic": true,
+  "target": {
+    "asset_id": "asset-demo-host-001",
+    "hostname": "demo-host"
+  }
+}

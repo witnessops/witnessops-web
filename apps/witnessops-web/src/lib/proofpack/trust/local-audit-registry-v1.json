@@ -1,0 +1,18 @@
+{
+  "keys": [
+    {
+      "algorithm": "ed25519",
+      "encoding": "hex",
+      "public_key": "6a356407058ab89bc4ce05e2dff8e47aa098e34417e0071fafb8460fbab915db",
+      "public_key_id": "witnessops_local_audit_prod_2026_01",
+      "purposes": [
+        "witnessops_local_server_audit_receipt",
+        "witnessops_local_server_audit_proofpack"
+      ],
+      "status": "active"
+    }
+  ],
+  "registry_id": "witnessops_local_audit_registry",
+  "schema": "witnessops.key_registry.snapshot.v1",
+  "version": 1
+}

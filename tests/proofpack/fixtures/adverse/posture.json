@@ -1,0 +1,231 @@
+{
+  "claim_boundary": "bounded local posture observations; not a security, compromise, or compliance conclusion",
+  "data_classification": "synthetic_non_customer",
+  "declared_exclusions": [
+    "processes",
+    "process_command_lines",
+    "process_environment",
+    "credentials",
+    "browser_data",
+    "tokens",
+    "private_keys",
+    "user_documents",
+    "event_logs",
+    "memory",
+    "network_discovery"
+  ],
+  "declared_side_effects": [
+    "local_process_execution",
+    "local_file_reads",
+    "local_output_file_creation"
+  ],
+  "observed_at_utc": "2026-07-10T12:00:00Z",
+  "profile_id": "linux_baseline_v1",
+  "schema": "witnessops.local_server_audit.posture.v1",
+  "sections": {
+    "accounts": {
+      "account_names_collected": false,
+      "interactive_shell_account_count": 5,
+      "status": "observed",
+      "total_account_count": 30,
+      "uid0_account_count": 2
+    },
+    "clock": {
+      "ntp_synchronized": false,
+      "status": "observed"
+    },
+    "critical_files": {
+      "file_contents_collected": false,
+      "files": [
+        {
+          "admitted": false,
+          "group": "root",
+          "mode": "0666",
+          "owner": "root",
+          "path": "/etc/passwd",
+          "status": "observed"
+        },
+        {
+          "admitted": true,
+          "group": "root",
+          "mode": "0644",
+          "owner": "root",
+          "path": "/etc/group",
+          "status": "observed"
+        },
+        {
+          "admitted": true,
+          "group": "root",
+          "mode": "0640",
+          "owner": "root",
+          "path": "/etc/shadow",
+          "status": "observed"
+        },
+        {
+          "admitted": true,
+          "group": "root",
+          "mode": "0640",
+          "owner": "root",
+          "path": "/etc/gshadow",
+          "status": "observed"
+        },
+        {
+          "admitted": true,
+          "group": "root",
+          "mode": "0440",
+          "owner": "root",
+          "path": "/etc/sudoers",
+          "status": "observed"
+        }
+      ],
+      "status": "observed"
+    },
+    "firewall": {
+      "inbound_allow_rule_count": 4,
+      "inbound_policy": "allow",
+      "inbound_rule_count": 4,
+      "policy_source": "ufw",
+      "provider": "ufw",
+      "rule_contents_collected": true,
+      "status": "active"
+    },
+    "hardening": {
+      "apparmor_enabled": false,
+      "selinux_enforcing": false,
+      "status": "observed",
+      "sysctl": {
+        "fs.protected_hardlinks": "0",
+        "fs.protected_symlinks": "0",
+        "kernel.dmesg_restrict": "0",
+        "kernel.kptr_restrict": "0",
+        "kernel.unprivileged_bpf_disabled": "0"
+      }
+    },
+    "host_identity": {
+      "architecture": "x86_64",
+      "hostname": "demo-host",
+      "kernel": "6.12.0-fixture",
+      "machine_identity": {
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "source": "/etc/machine-id",
+        "status": "observed"
+      },
+      "os_release": {
+        "id": "debian",
+        "pretty_name": "Debian Fixture",
+        "version_id": "13"
+      },
+      "status": "observed"
+    },
+    "listeners": {
+      "actual_endpoints": [
+        {
+          "address": "0.0.0.0",
+          "port": 22,
+          "transport": "tcp"
+        },
+        {
+          "address": "0.0.0.0",
+          "port": 8080,
+          "transport": "tcp"
+        },
+        {
+          "address": "::",
+          "port": 443,
+          "transport": "tcp"
+        },
+        {
+          "address": "0.0.0.0",
+          "port": 53,
+          "transport": "udp"
+        }
+      ],
+      "expected_endpoints": [
+        {
+          "address": "127.0.0.1",
+          "port": 22,
+          "transport": "tcp"
+        }
+      ],
+      "listener_count": 4,
+      "missing_endpoints": [
+        {
+          "address": "127.0.0.1",
+          "port": 22,
+          "transport": "tcp"
+        }
+      ],
+      "process_identifiers_collected": false,
+      "status": "observed",
+      "unexpected_endpoints": [
+        {
+          "address": "0.0.0.0",
+          "port": 22,
+          "transport": "tcp"
+        },
+        {
+          "address": "0.0.0.0",
+          "port": 8080,
+          "transport": "tcp"
+        },
+        {
+          "address": "::",
+          "port": 443,
+          "transport": "tcp"
+        },
+        {
+          "address": "0.0.0.0",
+          "port": 53,
+          "transport": "udp"
+        }
+      ],
+      "unparsed_line_count": 0
+    },
+    "privileged_access": {
+      "authorized_key_file_count": 3,
+      "direct_sudo_grants_assessed": false,
+      "key_contents_collected": false,
+      "non_root_admin_group_member_count": 0,
+      "root_authorized_keys": {
+        "admitted": false,
+        "mode": "0666",
+        "owner_uid": 0,
+        "status": "observed"
+      },
+      "status": "observed",
+      "sudoers_contents_collected": false,
+      "sudoers_dropin_file_count": 2,
+      "unsafe_authorized_key_file_count": 1,
+      "unsafe_sudoers_metadata_count": 1
+    },
+    "services": {
+      "failed_unit_count": 1,
+      "failed_units": [
+        "backup.service"
+      ],
+      "status": "observed",
+      "truncated": false
+    },
+    "ssh": {
+      "effective_configuration": true,
+      "password_authentication": "yes",
+      "permit_root_login": "yes",
+      "pubkey_authentication": "yes",
+      "status": "observed"
+    },
+    "updates": {
+      "available_update_count": 3,
+      "cache_only": true,
+      "package_names_collected": true,
+      "provider": "apt",
+      "reboot_required": true,
+      "security_update_count": 2,
+      "status": "observed"
+    }
+  },
+  "synthetic": true,
+  "target": {
+    "asset_id": "asset-demo-host-001",
+    "hostname": "demo-host"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "version": "1.2.2",
+  "kind": "synthetic_only",
+  "source_hashes": {
+    "src/witnessops_local_audit/__init__.py": "90eb67ca67b2ded095dc5a5a0f4977a9ba7d260056a6aa24c321ed4617761bd9",
+    "src/witnessops_local_audit/__main__.py": "11cf323249f4ba4e79c9fb7660c0979fc91a3822bc5362286376b69808b41195",
+    "src/witnessops_local_audit/assessment.py": "d3a01042425a5f2dec6bf3563373ad9d4db52ad012d7fc792f345717bafdebf3",
+    "src/witnessops_local_audit/authority.py": "90ec623becf0ae2f2569b769a5cf82491ae21a6c2f35b1b695d35795eabe6536",
+    "src/witnessops_local_audit/canonical.py": "f06df932e488063b8997f439b0d3dec6d4a9fdf077600bdaef3dc05261d5b0e7",
+    "src/witnessops_local_audit/cli.py": "6ce596531b0bf1f26d03bcbd1257a29531d63b29206275eafceaf1278d23951e",
+    "src/witnessops_local_audit/collector.py": "060e3ce868f897ce309e7e7293fcc54f24f0c088cf01d07724d6ebe593b6e253",
+    "src/witnessops_local_audit/contracts.py": "48e1ef12db4646f93a27f973a8f946ea73979d35b65222cb1a232d1904da5992",
+    "src/witnessops_local_audit/crypto.py": "b594923729a1a67c88727f3c4aaf87eb6224a4f91d6542aa1cfec0260ee39709",
+    "src/witnessops_local_audit/findings.py": "9b6eb691566f68fb7d903fe1576425fe4210aa69b280e190452e82a8e0500386",
+    "src/witnessops_local_audit/operator.py": "c3aac492323a114c6a68ba1359682947eb9bdab7eec4376620c7d84cc1d7c7c0",
+    "src/witnessops_local_audit/package.py": "0f6f9f044690626cb8af38a8ee38944a8ae75d134d6fb03c07ae103acc4584e6",
+    "src/witnessops_local_audit/report.py": "9ee50bc80a62cdfa80bebedecfd99d43680e0b8f60df763f695d0332a7cc289f",
+    "src/witnessops_local_audit/verifier.py": "35fb377fdb72dd427f9c3f65d4a8b499b886ca484d2ee31a19aea7ba8b4334f1"
+  },
+  "private_key_retained": false
+}

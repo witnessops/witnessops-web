@@ -63,6 +63,10 @@ export default async function RootLayout({
     headerStore.get(DOCUMENT_LANGUAGE_HEADER),
   );
 
+  if (headerStore.get("x-witnessops-local-workspace") === "proofpack") {
+    return <html lang={documentLanguage} className="dark"><body><a href="#main-content" className="skip-link">Skip to proofpack</a>{children}</body></html>;
+  }
+
   return (
     <html lang={documentLanguage} className="dark" style={appShellStyle}>
       <head>

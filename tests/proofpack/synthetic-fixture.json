@@ -1,0 +1,1 @@
+{"synthetic":true,"subject":"demo-target","observedAt":"2026-09-08T12:00:00.000Z","checks":[{"id":"fixture.expected","state":"passed","observation":"fixture value: expected"},{"id":"fixture.baseline","state":"needsAttention","observation":"fixture value: disabled"},{"id":"fixture.runtime","state":"undetermined","observation":null}]}

@@ -48,6 +48,7 @@ interface MobileViewportState {
 }
 
 const HIDDEN_WIDGET_PATHS = [
+  "/proofpack",
   "/pl",
   "/admin",
   "/assessment",
