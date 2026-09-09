@@ -14,6 +14,7 @@ export type ExternalCheckResultV1 = {
   limitations: string[]; recommendation: string | null; collected: boolean;
 };
 export type BudgetUsage = { dns: number; normalTls: number; legacyTls: number; http: number; redirects: number };
+/** Operation/attempt ledger, not proof of returned DNS records, connected sockets or HTTP responses. */
 export type NetworkEvent = { kind: 'dns' | 'connect' | 'http' | 'redirect'; hostname: string; detail: string; address?: string; port?: 80 | 443 };
 export type ExternalSnapshotV1 = {
   version: typeof EXTERNAL_VERSION; target: string; started_at: string; finished_at: string;
@@ -37,6 +38,7 @@ export type TlsObservation = {
   certificateMetadata: null;
 };
 export type LegacyObservation = { protocol: 'TLSv1' | 'TLSv1.1'; outcome: 'negotiated' | 'peer_rejected' | 'undetermined'; detail: string };
+/** A collected HTTP response; request attempts alone never produce this observation. */
 export type HttpObservation = { url: string; statusCode: number; headers: Record<string, string>; body: string; bodyBytes: number; utf8Valid: boolean; address: string };
 export interface ObservationTransport {
   query<K extends keyof DnsRecords>(kind: K, hostname: string): Promise<DnsRecords[K]>;
@@ -44,7 +46,7 @@ export interface ObservationTransport {
   certificate(hostname: string): Promise<TlsObservation>;
   legacy(hostname: string, protocol: 'TLSv1' | 'TLSv1.1'): Promise<LegacyObservation>;
   request(url: string, bodyLimit: number): Promise<HttpObservation>;
-  followRedirect(): void;
+  followRedirect(fromHostname: string, toHostname: string, destinationPort: 80 | 443): void;
   checkpoint(): void;
   readonly usage: BudgetUsage;
   readonly events: NetworkEvent[];

@@ -57,6 +57,79 @@ function harness(options: NetworkOptions = {}) {
   return { transport, sockets, tcpOptions, tlsOptions };
 }
 
+/** Real Node HTTP agents run over inert sockets; no public target is contacted. */
+function crossHostRedirectHarness(mode: 'queued' | 'public' | 'private') {
+  let plainConnections = 0;
+  const tcp: TcpNetConnectOpts[] = [];
+  const setup = harness({
+    resolver: resolver({ resolve4: async hostname =>
+      hostname === 'www.public.com' && mode === 'private' ? ['93.184.215.14', '169.254.169.254'] : ['93.184.215.14'] }),
+    timeouts: { http: 30 },
+    connectTcp: options => {
+      tcp.push(options);
+      const socket = new InertSocket();
+      if (options.port === 80 && ++plainConnections === 1) {
+        socket.response = `HTTP/1.1 301 Moved Permanently\r\nLocation: http://www.public.com/\r\nContent-Length: 0\r\nConnection: ${mode === 'queued' ? 'keep-alive' : 'close'}\r\n\r\n`;
+        if (mode !== 'queued') socket.once('finish', () => socket.destroy());
+      }
+      queueMicrotask(() => socket.emit('connect'));
+      return socket as unknown as Socket;
+    },
+  });
+  return { ...setup, tcp };
+}
+
+test('redirect queued before dial records only destination acceptance and HTTP attempt, not connectivity', async () => {
+  const { transport, tcp } = crossHostRedirectHarness('queued');
+  const snapshot = await runSnapshot('public.com', { transport });
+  const transition = snapshot.checks.find(check => check.check_id === 'web.https_redirect.v1')!;
+  assert.equal(transition.status, 'UNDETERMINED');
+  assert.deepEqual(snapshot.network.filter(event => event.hostname === 'www.public.com'), [
+    { kind: 'redirect', hostname: 'www.public.com', detail: 'Redirect target accepted from public.com; destination scheme: http', port: 80 },
+    { kind: 'http', hostname: 'www.public.com', detail: 'GET attempt', port: 80 },
+  ]);
+  assert.equal(tcp.filter(options => options.port === 80).length, 1, 'The queued cross-host request never reached dial');
+  assert.equal(snapshot.usage.redirects, 1);
+  assert.equal(transition.collected, true, 'Only the initial redirect response was collected.');
+  assert.deepEqual((transition.observation as { chain: unknown[] }).chain, [
+    { url: 'http://public.com/', status: 301, address: '93.184.215.14' },
+  ]);
+});
+
+test('cross-host redirect with any private answer fails closed before a destination TCP attempt', async () => {
+  const { transport, tcp } = crossHostRedirectHarness('private');
+  await assert.rejects(runSnapshot('public.com', { transport }), UnsafeTargetError);
+  assert.deepEqual(transport.events.filter(event => event.hostname === 'www.public.com'), [
+    { kind: 'redirect', hostname: 'www.public.com', detail: 'Redirect target accepted from public.com; destination scheme: http', port: 80 },
+    { kind: 'http', hostname: 'www.public.com', detail: 'GET attempt', port: 80 },
+    { kind: 'dns', hostname: 'www.public.com', detail: 'A' },
+    { kind: 'dns', hostname: 'www.public.com', detail: 'AAAA' },
+  ]);
+  assert.deepEqual(tcp, [
+    { host: '93.184.215.14', family: 4, port: 443 },
+    { host: '93.184.215.14', family: 4, port: 80 },
+  ]);
+});
+
+test('successful cross-host HTTP redirect records actual DNS validation before the pinned TCP attempt', async () => {
+  const { transport, tcp } = crossHostRedirectHarness('public');
+  const snapshot = await runSnapshot('public.com', { transport });
+  assert.deepEqual(snapshot.network.filter(event => event.hostname === 'www.public.com'), [
+    { kind: 'redirect', hostname: 'www.public.com', detail: 'Redirect target accepted from public.com; destination scheme: http', port: 80 },
+    { kind: 'http', hostname: 'www.public.com', detail: 'GET attempt', port: 80 },
+    { kind: 'dns', hostname: 'www.public.com', detail: 'A' },
+    { kind: 'dns', hostname: 'www.public.com', detail: 'AAAA' },
+    { kind: 'connect', hostname: 'www.public.com', detail: 'TCP connect attempt to validated public address', address: '93.184.215.14', port: 80 },
+  ]);
+  const transition = snapshot.checks.find(check => check.check_id === 'web.https_redirect.v1')!;
+  assert.equal(transition.status, 'NEEDS_ATTENTION', 'The observed final HTTP response retains its existing disposition');
+  assert.deepEqual((transition.observation as { chain: unknown[] }).chain, [
+    { url: 'http://public.com/', status: 301, address: '93.184.215.14' },
+    { url: 'http://www.public.com/', status: 200, address: '93.184.215.14' },
+  ]);
+  assert.equal(tcp.filter(options => options.port === 80).length, 2);
+});
+
 test('conservative classifier rejects every special IPv4 class and mapped/non-global IPv6', () => {
   const blocked = ['0.0.0.0', '0.1.2.3', '10.1.2.3', '100.64.0.1', '100.127.255.255', '127.255.255.254', '169.254.169.254',
     '172.16.0.1', '172.31.255.254', '192.0.0.9', '192.0.2.1', '192.88.99.1', '192.168.1.1', '198.18.0.1', '198.19.255.254',
@@ -251,8 +324,8 @@ test('HTTP timeout destroys the active socket and the redirect/HTTP budgets are 
     sockets[0].shouldRespond = false;
     await assert.rejects(transport.request('https://public.com/', 1024), code('http_timeout'));
     assert.equal(sockets[0].destroyed, true);
-    for (let index = 0; index < 3; index++) transport.followRedirect();
-    assert.throws(() => transport.followRedirect(), code('redirect_budget'));
+    for (let index = 0; index < 3; index++) transport.followRedirect('public.com', 'www.public.com', 80);
+    assert.throws(() => transport.followRedirect('public.com', 'www.public.com', 80), code('redirect_budget'));
   } finally { transport.close(); }
   const bounded = harness();
   try {
