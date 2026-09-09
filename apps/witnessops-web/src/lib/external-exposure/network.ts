@@ -228,7 +228,7 @@ class BoundedObservationTransport implements ObservationTransport {
     this.checkpoint();
     if (signal?.aborted) throw new ObservationError('http_aborted');
     const selected = target.addresses[0];
-    this.event({ kind: 'connect', hostname, detail: 'Pinned public address', address: selected.address, port });
+    this.event({ kind: 'connect', hostname, detail: 'TCP connect attempt to validated public address', address: selected.address, port });
     return new Promise<Socket>((resolve, reject) => {
       const socket = this.track((this.options.connectTcp ?? netConnect)({ host: selected.address, family: selected.family, port }), selected.address);
       let settled = false;
@@ -329,11 +329,14 @@ class BoundedObservationTransport implements ObservationTransport {
       return { protocol, outcome: peerProtocolRejection(error) ? 'peer_rejected' : 'undetermined', detail: peerProtocolRejection(error) ? 'The peer sent an explicit protocol-version rejection.' : 'The probe did not establish whether the server accepts this protocol.' };
     }
   }
-  followRedirect(): void {
+  followRedirect(fromHostname: string, toHostname: string, destinationPort: 80 | 443): void {
     this.checkpoint();
     if (this.usage.redirects >= 3) throw new ObservationError('redirect_budget');
+    const from = normalizeExternalHostname(fromHostname);
+    const hostname = normalizeExternalHostname(toHostname);
     this.usage.redirects++;
-    this.event({ kind: 'redirect', hostname: this.certificateHostname ?? '', detail: 'One permitted redirect hop' });
+    // Receipt context only. Actual destination authorization remains in request/dial.
+    this.event({ kind: 'redirect', hostname, detail: `Redirect target accepted from ${from}; destination scheme: ${destinationPort === 443 ? 'https' : 'http'}`, port: destinationPort });
   }
   async request(urlString: string, bodyLimit: number): Promise<HttpObservation> {
     if (this.requestInFlight) throw new ObservationError('concurrency_limit');
@@ -358,7 +361,7 @@ class BoundedObservationTransport implements ObservationTransport {
     }
     this.checkpoint();
     this.usage.http++;
-    this.event({ kind: 'http', hostname, detail: 'GET', port: secure ? 443 : 80 });
+    this.event({ kind: 'http', hostname, detail: 'GET attempt', port: secure ? 443 : 80 });
     return new Promise<HttpObservation>((resolve, reject) => {
       const controller = new AbortController();
       this.activeHttpSignal = controller.signal;

@@ -4,7 +4,7 @@ import { runSnapshot, observeCaa } from './runner';
 import { externalExposureAdapter } from './adapter';
 import { ObservationError } from './network';
 import { UnsafeTargetError } from './input';
-import { CHECK_IDS, type BudgetUsage, type DnsRecords, type HttpObservation, type LegacyObservation, type NetworkEvent, type ObservationTransport, type PublicTarget, type TlsObservation } from './contracts';
+import { CHECK_IDS, type BudgetUsage, type DnsRecords, type ExternalSnapshotV1, type HttpObservation, type LegacyObservation, type NetworkEvent, type ObservationTransport, type PublicTarget, type TlsObservation } from './contracts';
 
 const NOW = new Date('2026-09-08T12:00:00Z');
 const CERTIFICATE: TlsObservation = {
@@ -23,6 +23,7 @@ class FixtureTransport implements ObservationTransport {
   closed = false;
   queryCalls: string[] = [];
   requestCalls: { url: string; limit: number }[] = [];
+  redirectCalls: { fromHostname: string; toHostname: string; destinationPort: 80 | 443 }[] = [];
   records = new Map<string, unknown>([
     ['MX example.com', [{ exchange: 'mail.example.com', priority: 10 }]],
     ['TXT example.com', [['v=spf1 -all']]], ['TXT _dmarc.example.com', [['v=DMARC1; p=reject']]],
@@ -54,7 +55,11 @@ class FixtureTransport implements ObservationTransport {
       body, bodyBytes: Buffer.byteLength(body), utf8Valid: true, address: '93.184.216.34', ...override,
     };
   }
-  followRedirect() { if (this.usage.redirects >= 3) throw new ObservationError('redirect_budget'); this.usage.redirects += 1; }
+  followRedirect(fromHostname: string, toHostname: string, destinationPort: 80 | 443) {
+    if (this.usage.redirects >= 3) throw new ObservationError('redirect_budget');
+    this.usage.redirects += 1;
+    this.redirectCalls.push({ fromHostname, toHostname, destinationPort });
+  }
   checkpoint() { if (this.checkpointError) throw this.checkpointError; }
   close() { this.closed = true; }
 }
@@ -131,6 +136,37 @@ test('redirect count is globally bounded and limit exhaustion is undetermined', 
   assert.equal(result.usage.redirects, 3);
   assert.equal(transport.requestCalls.filter(item => item.url.startsWith('http:')).length, 4);
   assert.equal(result.checks.find(check => check.check_id === 'web.https_redirect.v1')!.status, 'UNDETERMINED');
+});
+
+test('redirect metadata follows the immediate source and normalized destination without URL material', async () => {
+  const transport = new FixtureTransport();
+  const first = 'http://first.example.com/private-path?token=first';
+  const second = 'https://second.example.com/final-path?token=second';
+  transport.responses.set('http://example.com/', { headers: { location: 'http://FIRST.Example.COM/private-path?token=first#fragment' } });
+  transport.responses.set(first, { statusCode: 302, headers: { location: 'https://SECOND.Example.COM/final-path?token=second#fragment' } });
+  const snapshot = await run(transport);
+  assert.deepEqual(transport.redirectCalls, [
+    { fromHostname: 'example.com', toHostname: 'first.example.com', destinationPort: 80 },
+    { fromHostname: 'first.example.com', toHostname: 'second.example.com', destinationPort: 443 },
+  ]);
+  assert.deepEqual(transport.requestCalls.map(call => call.url), ['http://example.com/', first, second, 'https://example.com/.well-known/security.txt']);
+  for (const excluded of ['private-path', 'final-path', 'token=', 'fragment']) assert.equal(JSON.stringify(transport.redirectCalls).includes(excluded), false);
+  assert.equal(snapshot.usage.redirects, 2);
+  assert.equal(snapshot.checks.find(check => check.check_id === 'web.https_redirect.v1')!.status, 'OBSERVED_EXPECTED');
+});
+
+test('cross-host redirect request timeout remains undetermined after destination acceptance', async () => {
+  const transport = new FixtureTransport();
+  transport.responses.set('http://example.com/', { headers: { location: 'http://www.example.com/' } });
+  transport.responses.set('http://www.example.com/', new ObservationError('http_timeout'));
+  const snapshot = await run(transport);
+  const transition = snapshot.checks.find(check => check.check_id === 'web.https_redirect.v1')!;
+  assert.deepEqual(transport.redirectCalls, [{ fromHostname: 'example.com', toHostname: 'www.example.com', destinationPort: 80 }]);
+  assert.deepEqual(transport.requestCalls.map(call => call.url), ['http://example.com/', 'http://www.example.com/', 'https://example.com/', 'https://example.com/.well-known/security.txt']);
+  assert.equal(transition.status, 'UNDETERMINED');
+  assert.equal(transition.collected, true, 'The initial redirect response was collected; the destination response was not.');
+  assert.deepEqual((transition.observation as { chain: unknown[] }).chain, [{ url: 'http://example.com/', status: 301, address: '93.184.216.34' }]);
+  assert.equal(snapshot.checks.some(check => check.status === 'NEEDS_ATTENTION'), false);
 });
 
 test('explicit IP, local host, unsupported scheme, credentials and ports in redirects reject the run', async () => {
@@ -213,5 +249,40 @@ test('actual runner output is admitted without inventing severity across expecte
     assert.equal(model.summary.findings.needsAttention, snapshot.checks.filter(check => check.status === 'NEEDS_ATTENTION').length, scenario);
     assert.ok(model.findings.every(finding => finding.severity === null), scenario);
     assert.deepEqual(model.summary.findings.severities, {}, scenario);
+  }
+});
+
+test('ledger clarification changes source identity and evidence only, preserving every buyer conclusion', async () => {
+  for (const scenario of ['expected', 'attention', 'timeout', 'dns-error', 'legacy-ambiguous'] as const) {
+    const transport = new FixtureTransport();
+    if (scenario === 'attention') transport.responses.set('http://example.com/', { statusCode: 200, headers: {} });
+    if (scenario === 'timeout') transport.checkpointError = new ObservationError('run_timeout');
+    if (scenario === 'dns-error') transport.queryError = new ObservationError('dns_error');
+    if (scenario === 'legacy-ambiguous') transport.legacyResult = 'undetermined';
+    const before = await run(transport);
+    // Synthetic ledger inputs isolate wording/metadata from identical check outcomes.
+    before.network = [
+      { kind: 'redirect', hostname: 'example.com', detail: 'One permitted redirect hop' },
+      { kind: 'http', hostname: 'www.example.com', detail: 'GET', port: 80 },
+      { kind: 'connect', hostname: 'www.example.com', detail: 'Pinned public address', address: '93.184.216.34', port: 80 },
+    ];
+    const after = structuredClone(before);
+    after.network = [
+      { kind: 'redirect', hostname: 'www.example.com', detail: 'Redirect target accepted from example.com; destination scheme: http', port: 80 },
+      { kind: 'http', hostname: 'www.example.com', detail: 'GET attempt', port: 80 },
+      { kind: 'connect', hostname: 'www.example.com', detail: 'TCP connect attempt to validated public address', address: '93.184.216.34', port: 80 },
+    ];
+    const original = externalExposureAdapter(before);
+    const revised = externalExposureAdapter(after);
+    assert.notEqual(revised.identity.sourceDigest, original.identity.sourceDigest, scenario);
+    assert.notEqual(revised.identity.reportId, original.identity.reportId, scenario);
+    assert.deepEqual(revised.sourceArtifacts[0].content, after, scenario);
+    // Restore only the intentionally changed source-byte identities and ledger for comparison.
+    assert.deepEqual({
+      ...revised,
+      identity: { ...revised.identity, reportId: original.identity.reportId, sourceDigest: original.identity.sourceDigest },
+      provenance: revised.provenance.map(record => record.id === 'source' ? { ...record, value: original.provenance[0].value, digest: original.provenance[0].digest } : record),
+      sourceArtifacts: revised.sourceArtifacts.map(source => ({ ...source, digest: original.sourceArtifacts[0].digest, content: { ...(source.content as ExternalSnapshotV1), network: before.network } })),
+    }, original, scenario);
   }
 });

@@ -151,7 +151,8 @@ export async function runSnapshot(rawTarget: unknown, options: { transport?: Obs
           if (usableHttps(final)) httpsResponse = final;
           if (![301, 302, 303, 307, 308].includes(final.statusCode) || !final.headers.location) break;
           const next = redirectUrl(final.headers.location, final.url);
-          transport.followRedirect();
+          const destination = new URL(next);
+          transport.followRedirect(new URL(final.url).hostname, destination.hostname, destination.protocol === 'https:' ? 443 : 80);
           final = await transport.request(next, BODY_LIMIT);
         }
       } catch (error) {
