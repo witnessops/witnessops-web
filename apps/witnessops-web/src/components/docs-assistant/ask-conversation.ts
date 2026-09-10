@@ -90,7 +90,19 @@ export function askFollowUpQuestions(answer?: AskWitnessOpsUiAnswer, service?: B
     .map((label) => ({ label, question: label }));
 }
 
-export function shouldShowServiceCard(completed: readonly AskCompletedTurn[], index: number) {
-  const id = completed[index]?.answer.recommendation?.service_id;
-  return Boolean(id && completed[index - 1]?.answer.recommendation?.service_id !== id);
+/** Card identity comes from the answer's own commercial authority, not its prose. */
+export function askServiceCardIdentity(answer?: AskWitnessOpsUiAnswer): string | undefined {
+  if (!answer || answer.status !== "success" || answer.commercial_fit.result === "blocked") return undefined;
+  if (answer.schema === "witnessops.ask.generated-answer.v1") return answer.recommendation?.service_id;
+  const fit = answer.commercial_fit;
+  return fit.offer && (fit.result === "likely" || fit.result === "needs_boundary")
+    ? fit.offer_id ?? fit.offer.name
+    : undefined;
+}
+
+export function shouldShowServiceCard(answer: AskWitnessOpsUiAnswer, previous?: AskWitnessOpsUiAnswer) {
+  const id = askServiceCardIdentity(answer);
+  // An unavailable answer is displayed outside retained history. Keep its safe
+  // scope action reachable even if the prior retained turn named the same offer.
+  return Boolean(id && (answer.fallback_reason === "ai_unavailable" || askServiceCardIdentity(previous) !== id));
 }

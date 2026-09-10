@@ -87,7 +87,7 @@ export function AskWitnessOpsCommercialFitCard({
     ? "mt-4 border border-brand-accent/45 p-3"
     : "mt-5 border border-brand-accent/45 p-4";
   const primaryClassName =
-    "inline-flex min-h-10 items-center justify-center rounded bg-brand-accent px-3 py-2 text-center text-xs font-semibold text-text-inverse transition-colors hover:bg-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent";
+    "inline-flex min-h-11 items-center justify-center rounded bg-brand-accent px-3 py-2 text-center text-xs font-semibold text-text-inverse transition-colors hover:bg-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent";
 
   return (
     <section className={cardClassName} aria-label="Commercial fit">

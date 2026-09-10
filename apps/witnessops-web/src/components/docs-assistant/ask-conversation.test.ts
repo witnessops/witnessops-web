@@ -3,7 +3,7 @@ import test, { afterEach } from "node:test";
 import { BUYER_SERVICES } from "@/lib/buyer-services";
 import { askConversationBrief, askConversationHistory, askFollowUpQuestions, askPageService,
   clearAskConversation, getAskConversation, getEmptyAskConversation, rememberAskTurn,
-  subscribeAskConversation } from "./ask-conversation";
+  subscribeAskConversation, askServiceCardIdentity, shouldShowServiceCard } from "./ask-conversation";
 import type { AskWitnessOpsUiAnswer } from "./ask-witnessops-response";
 
 function answer(body = "You receive a scoped findings report."): AskWitnessOpsUiAnswer {
@@ -112,3 +112,47 @@ for (const continuation of ['Already issuing refunds.', 'We are checking before 
     assert.equal(getAskConversation().length,0);
   });
 }
+
+function paidFallback(): AskWitnessOpsUiAnswer {
+  return { ...answer(), schema: "witnessops.ask.assembled-answer.v1", answer_mode: "deterministic_fallback", fallback_reason: "ai_unavailable",
+    commercial_fit: { ...answer().commercial_fit, result: "likely", offer_id: "bounded-workflow-review", offer: {
+      name: "Agent Action Security Review", price_label: "€2,500 fixed · excluding VAT", unit_label: "One consequential agent or automation action",
+      fit_check_label: "Non-secret fit check first", delivery_label: "Within 10 working days after evidence rules are agreed",
+    } } };
+}
+
+test("assembled paid fallback remains visible without becoming history or a proposed human brief", () => {
+  const fallback = paidFallback();
+  assert.equal(askServiceCardIdentity(fallback), "bounded-workflow-review");
+  assert.equal(shouldShowServiceCard(fallback), true);
+  assert.equal(shouldShowServiceCard(fallback, fallback), true, "unretained current outage must retain its scope action");
+  assert.equal(rememberAskTurn("Our failed question must not be shared.", fallback), false);
+  assert.deepEqual(askConversationHistory(getAskConversation()), []);
+  assert.equal(askConversationBrief(getAskConversation()), "");
+  assert.equal(shouldShowServiceCard({ ...fallback, commercial_fit: { ...fallback.commercial_fit, result: "needs_boundary" } }), true);
+});
+
+test("card identity deduplicates generated recommendations and distinguishes assembled offers", () => {
+  const fallback = paidFallback();
+  const generated = { ...answer(), recommendation: { service_id: "bounded-workflow-review", name: "Agent Action Security Review",
+    price_label: "€2,500", delivery_label: "By agreement", detail_href: "/catalog/workflows", request_href: "/review/request" } } satisfies AskWitnessOpsUiAnswer;
+  assert.equal(shouldShowServiceCard(generated), true);
+  assert.equal(shouldShowServiceCard(generated, generated), false);
+  assert.equal(shouldShowServiceCard(generated, fallback), false);
+  assert.equal(shouldShowServiceCard(fallback, generated), true);
+  const other = { ...generated, recommendation: { ...generated.recommendation, service_id: "customer-security-review-sprint" } } satisfies AskWitnessOpsUiAnswer;
+  assert.equal(shouldShowServiceCard(other, generated), true);
+  const assembled = { ...fallback, fallback_reason: undefined };
+  assert.equal(shouldShowServiceCard(assembled), true);
+  assert.equal(shouldShowServiceCard(assembled, assembled), false);
+});
+
+test("absent offers, blocked answers and refusals cannot acquire a commercial card", () => {
+  const fallback = paidFallback();
+  for (const result of ["blocked", "not_fit", "unknown"] as const) {
+    assert.equal(shouldShowServiceCard({ ...fallback, commercial_fit: { ...fallback.commercial_fit, result } }), false);
+  }
+  assert.equal(shouldShowServiceCard({ ...fallback, status: "closed" }), false);
+  assert.equal(shouldShowServiceCard({ ...fallback, commercial_fit: { ...fallback.commercial_fit, offer: null } }), false);
+  assert.equal(shouldShowServiceCard(answer()), false);
+});

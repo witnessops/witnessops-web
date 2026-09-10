@@ -59,6 +59,11 @@ const askWorkflowFallback = {
   presented_sources: [],
 } as const;
 
+const questionnaireService = BUYER_SERVICES.find(service => service.id === "customer-security-review-sprint")!;
+const questionnaireRequest = new URL(buyerServiceRequestHref("en", questionnaireService), "https://witnessops.com");
+questionnaireRequest.searchParams.set("source", "ask");
+const questionnaireRequestHref = `${questionnaireRequest.pathname}${questionnaireRequest.search}`;
+
 const generatedQuestionnaireAnswer = {
   schema: "witnessops.ask.generated-answer.v1",
   status: "success",
@@ -69,14 +74,14 @@ const generatedQuestionnaireAnswer = {
     body: "We can prepare proposed answers and evidence references for one customer security questionnaire. Your team approves the final answers before submission.",
     source_display: null,
   },
-  route: null,
+  route: { route_id: "route.fit-check", href: questionnaireRequestHref },
   recommendation: {
     service_id: "customer-security-review-sprint",
     name: "Customer Security Review Sprint",
     price_label: "From €1,600 · excluding VAT",
     delivery_label: "Approximately three working days after scope, owners, required inputs and evidence access are confirmed",
     detail_href: "/customer-security-review",
-    request_href: "/review/request?offerId=customer-security-review-sprint&offer=Customer+Security+Review+Sprint&source=ask",
+    request_href: questionnaireRequestHref,
   },
   commercial_fit: {
     ...askWorkflowFallback.commercial_fit,
@@ -93,24 +98,6 @@ const generatedQuestionnaireAnswer = {
     assembler_contract_version: 1,
     deterministic_replay_hash: "ui-proof-local-fixture",
     policy_decision: { template_id: askWorkflowFallback.template.template_id },
-  },
-} as const;
-
-// Current Ask replies carry a catalogue-backed recommendation. The legacy
-// assembled answer is retained only as the nested deterministic authority.
-const agentService = BUYER_SERVICES.find(service => service.id === "bounded-workflow-review")!;
-const agentRequest = new URL(buyerServiceRequestHref("en", agentService), "https://witnessops.com");
-agentRequest.searchParams.set("source", "ask");
-const askWorkflowAnswer = {
-  ...generatedQuestionnaireAnswer,
-  template: { template_id: "answer.public_ai.v1", body: "A review can examine the controls for the agent you are launching. No evidence was reviewed in this chat.", source_display: null },
-  recommendation: {
-    service_id: agentService.id,
-    name: agentService.name.en,
-    price_label: agentService.price.en,
-    delivery_label: agentService.timing.en,
-    detail_href: agentService.detailHref.en,
-    request_href: `${agentRequest.pathname}${agentRequest.search}`,
   },
 } as const;
 
@@ -274,7 +261,7 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
         if (await fulfillAskTelemetry(route)) return;
         submitted.push(route.request().postDataJSON());
         await route.fulfill({ status: submitted.length === 1 ? 503 : 200,
-          contentType: "application/json", body: JSON.stringify(submitted.length === 1 ? { error: "Unavailable" } : askWorkflowAnswer) });
+          contentType: "application/json", body: JSON.stringify(submitted.length === 1 ? { error: "Unavailable" } : { ...askWorkflowFallback, fallback_reason: "ai_unavailable" }) });
       });
       const surface = await openAskSurface(page, width);
       const question = "We're launching an AI agent.";
@@ -285,25 +272,34 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
       await expect(prompt).toHaveValue(question);
       await expect(surface.getByRole("button", { name: "Prepare my request", exact: true })).toHaveCount(0);
       await surface.getByRole("button", { name: "Retry question", exact: true }).click();
-      const fit = surface.getByRole("region", { name: "Suggested service", exact: true });
+      await expect(surface).toContainText("I couldn't generate an answer just now. Try again, or request a follow-up about your question.");
+      await expect(surface).not.toContainText(askWorkflowFallback.template.body);
+      await expect(surface).toContainText("The AI is temporarily unavailable. This is public guide information.");
+      const fit = surface.getByRole("region", { name: "Commercial fit", exact: true });
       await expect(fit).toContainText("€2,500 fixed · excluding VAT");
       await expect(fit).toContainText("Within 10 working days after evidence rules are agreed");
       await expect(surface).toContainText("No evidence was reviewed");
-      await expect(fit).toContainText("A person confirms fit, scope, price and availability before work begins.");
+      await expect(fit).toContainText("Fit signal only.");
       expect(submitted).toEqual([{ question, history: [] }, { question, history: [] }]);
-      await expect(prompt).toHaveValue("");
+      await expect(prompt).toHaveValue(question);
       await expect(prompt).toHaveAttribute("placeholder", "Ask a follow-up…");
-      const cta = surface.getByRole("button", { name: "Prepare my request", exact: true });
+      const cta = fit.getByRole("button", { name: "Request scope for this action", exact: true });
       await cta.scrollIntoViewIfNeeded();
       expect((await cta.boundingBox())?.height).toBeGreaterThanOrEqual(44);
       await cta.click();
       await expect(surface.getByLabel("Work email")).toBeFocused();
       await expect(surface.locator("[data-ask-contact-region]")).toBeVisible();
-      await expect(surface.getByLabel(/^Draft request/)).toHaveValue(question);
+      await expect(surface.getByLabel(/^Request summary/)).toHaveValue("");
+      await expect(surface.getByRole("checkbox", { name: "Use this editable draft as my request summary." })).toHaveCount(0);
       await expect(surface.getByRole("button", { name: "Send confirmation code" })).toBeDisabled();
       expect(await surface.getByLabel("Work email").evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
       await surface.getByRole("button", { name: "Back", exact: true }).click();
       await expect(fit).toBeVisible();
+      await expect(cta).toBeFocused();
+      await surface.locator("[data-ask-composer] button[type=submit]").click();
+      await expect.poll(() => submitted.length).toBe(3);
+      expect(submitted[2]).toEqual({ question, history: [] });
+      await expect(fit).toHaveCount(1);
       await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
       if (width >= 1024) {
         await page.keyboard.press("Escape");
@@ -315,6 +311,8 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
 });
 
 test("Ask generated follow-ups retain bounded context and share only an approved summary", async ({ browser }) => {
+  expect(generatedQuestionnaireAnswer.route.href).toBe(generatedQuestionnaireAnswer.recommendation.request_href);
+  expect(new URL(generatedQuestionnaireAnswer.route.href, "https://witnessops.com").searchParams.get("source")).toBe("ask");
   const firstQuestion = "We need help with a customer's security questionnaire. What would you deliver?";
   const followUpQuestion = "What should we prepare for Customer Security Review Sprint, without sharing secrets here?";
   const visitorFact = "We need help with a customer's security questionnaire.";

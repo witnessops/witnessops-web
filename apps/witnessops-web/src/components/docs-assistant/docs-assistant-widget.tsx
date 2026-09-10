@@ -33,7 +33,7 @@ import { DocsAssistantLoadingStatus } from "./docs-assistant-loading-status";
 import styles from "./docs-assistant-widget.module.css";
 import { AskAiDisclosure } from "./ask-ai-disclosure";
 import {
-  askConversationBrief, askConversationHistory, askFollowUpQuestions, askGuidedQuestions,
+  askServiceCardIdentity, shouldShowServiceCard, askConversationBrief, askConversationHistory, askFollowUpQuestions, askGuidedQuestions,
   askPageService, clearAskConversation, getAskConversation, getEmptyAskConversation,
   rememberAskTurn, subscribeAskConversation,
 } from "./ask-conversation";
@@ -231,7 +231,8 @@ export function DocsAssistantWidget() {
     if (contactMode || !restoreContactLauncherFocusRef.current) return;
 
     const frame = window.requestAnimationFrame(() => {
-      contactLauncherRef.current?.focus();
+      if (contactLauncherRef.current) contactLauncherRef.current?.focus();
+      else dialogRef.current?.querySelector<HTMLButtonElement>("[data-ask-primary-cta]")?.focus();
       restoreContactLauncherFocusRef.current = false;
     });
     return () => window.cancelAnimationFrame(frame);
@@ -499,11 +500,7 @@ export function DocsAssistantWidget() {
         : `${mobileViewport.height}px`,
     "--ask-ai-keyboard-cushion": "0px",
   } as CSSProperties;
-  const hasPaidScopeCta = Boolean(
-    answer?.answer?.schema === "witnessops.ask.generated-answer.v1"
-      ? answer.answer.recommendation
-      : answer?.answer?.commercial_fit.offer,
-  );
+  const hasPaidScopeCta = Boolean(askServiceCardIdentity(answer?.answer));
   const layerClassName = open ? styles.openLayer : styles.closedLayer;
 
   return (
@@ -649,7 +646,7 @@ export function DocsAssistantWidget() {
                       </div>
                       <div className={styles.answerSheetBody}>
                         <p className={styles.answerCopy}>{answer.content}</p>
-                        {answer.answer && previousTurns.at(-1)?.answer.recommendation?.service_id !== answer.answer.recommendation?.service_id && (
+                        {answer.answer && shouldShowServiceCard(answer.answer, previousTurns.at(-1)?.answer) && (
                           <AskWitnessOpsCommercialFitCard
                             answer={answer.answer}
                             showRequestAction={false}
@@ -716,7 +713,7 @@ export function DocsAssistantWidget() {
                 <DocsAssistantContactHandoff
                   expanded
                   commercialFit={answer?.answer?.commercial_fit}
-                  question={answer?.question}
+                  question={answer?.answer?.fallback_reason ? undefined : answer?.question}
                   proposedBrief={proposedBrief}
                   language={askLanguage(answer?.question ?? "")}
                   serviceId={answer?.answer?.recommendation?.service_id}
@@ -760,7 +757,7 @@ export function DocsAssistantWidget() {
                   </button>
                 </form>
                 <div className={styles.conversationActions}>
-                  {proposedBrief.trim() && <button ref={contactLauncherRef} type="button" onClick={() => handleContactModeChange(true)}>{askLanguage(answer?.question ?? "") === "pl" ? "Przygotuj moją prośbę" : "Prepare my request"}</button>}
+                  {proposedBrief.trim() && !(answer?.answer?.fallback_reason && hasPaidScopeCta) && <button ref={contactLauncherRef} type="button" onClick={() => handleContactModeChange(true)}>{askLanguage(answer?.question ?? "") === "pl" ? "Przygotuj moją prośbę" : "Prepare my request"}</button>}
                   {(answer || completedTurns.length > 0) && (
                     <button type="button" onClick={handleResetAnswer} disabled={loading}>Start over</button>
                   )}

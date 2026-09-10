@@ -18,7 +18,7 @@ import { DocsAssistantLoadingStatus } from "./docs-assistant-loading-status";
 
 import { AskAiDisclosure } from "./ask-ai-disclosure";
 import { DocsAssistantContactHandoff } from "./docs-assistant-contact-handoff";
-import { askConversationContext, shouldShowServiceCard, askConversationBrief, askConversationHistory, askFollowUpQuestions, askGuidedQuestions,
+import { askConversationContext, askServiceCardIdentity, shouldShowServiceCard, askConversationBrief, askConversationHistory, askFollowUpQuestions, askGuidedQuestions,
   clearAskConversation, getAskConversation, getEmptyAskConversation,
   rememberAskTurn, subscribeAskConversation } from "./ask-conversation";
 
@@ -129,7 +129,7 @@ export function DocsAssistantPage() {
           language={language} serviceId={contactAnswer?.recommendation?.service_id} proposedBrief={askConversationBrief(completedTurns)}
           launcherRef={contactLauncherRef} onExpandedChange={(expanded) => {
             setContactMode(expanded);
-            if (!expanded) window.requestAnimationFrame(() => contactLauncherRef.current?.focus());
+            if (!expanded) window.requestAnimationFrame(() => (contactLauncherRef.current ?? conversationRef.current?.querySelector<HTMLButtonElement>("[data-ask-primary-cta]"))?.focus());
           }} />
       ) : <>
       <div
@@ -174,7 +174,7 @@ export function DocsAssistantPage() {
                     {msg.answer && (
                       <>
                         <AskWitnessOpsSourceLinks answer={msg.answer} compact />
-                        {shouldShowServiceCard(completedTurns, Math.floor(i / 2)) && <AskWitnessOpsCommercialFitCard answer={msg.answer}
+                        {shouldShowServiceCard(msg.answer, messages.slice(0, i).reverse().find((entry) => entry.answer)?.answer) && <AskWitnessOpsCommercialFitCard answer={msg.answer}
                           showRequestAction={false} compact language={askLanguage(messages[i - 1]?.content ?? "")}
                           onOfferSelected={() => trackAskEvent("offer_selected", { surface: "page", service_id: msg.answer?.recommendation?.service_id })}
                           onRequestScope={() => { setContactAnswer(msg.answer); setContactMode(true); }} />}
@@ -263,7 +263,7 @@ export function DocsAssistantPage() {
         </form>
         <p className="mt-2 text-xs text-text-muted">{pl ? "Nie wklejaj sekretów. Shift+Enter: nowy wiersz." : "Do not paste secrets. Shift+Enter for a new line."}</p>
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-text-muted">
-          {askConversationBrief(completedTurns).trim() && <button ref={contactLauncherRef} type="button" className="min-h-11 text-brand-accent underline underline-offset-4" onClick={() => {
+          {askConversationBrief(completedTurns).trim() && !(latestMessage?.answer?.fallback_reason && askServiceCardIdentity(latestMessage.answer)) && <button ref={contactLauncherRef} type="button" className="min-h-11 text-brand-accent underline underline-offset-4" onClick={() => {
             setContactAnswer(latestMessage?.answer); setContactMode(true);
           }}>{pl ? "Przygotuj moją prośbę" : "Prepare my request"}</button>}
           {!isEmpty && <button type="button" onClick={startOver} disabled={loading} className="min-h-11 underline underline-offset-4">Start over</button>}

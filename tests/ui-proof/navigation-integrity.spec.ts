@@ -66,6 +66,7 @@ const askWorkflowFitResponse = {
   schema: "witnessops.ask.generated-answer.v1",
   answer_mode: "ai_assisted",
   model: "gpt-5.4-mini",
+  route: { route_id: "route.fit-check", href: `${agentRequest.pathname}${agentRequest.search}` },
   template: { template_id: "answer.public_ai.v1", body: "A review can examine the controls for the agent you are launching. No evidence was reviewed in this chat.", source_display: null },
   authority_answer: {
     ...askWorkflowAuthority,
@@ -85,6 +86,8 @@ const askWorkflowFitResponse = {
 } as const;
 
 async function fulfillAskTelemetry(route: Route): Promise<boolean> {
+  expect(askWorkflowFitResponse.route.href).toBe(askWorkflowFitResponse.recommendation.request_href);
+  expect(agentRequest.searchParams.get("source")).toBe("ask");
   if (route.request().headers()["x-witnessops-event"] !== "1") return false;
   const payload = route.request().postDataJSON();
   expect(route.request().method()).toBe("POST");
