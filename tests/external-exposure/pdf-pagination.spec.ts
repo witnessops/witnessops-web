@@ -48,7 +48,10 @@ async function assertReportPdf(page: Page, info: TestInfo) {
   await expect(root).toBeVisible();
   await expect(root).toContainText('Verification appendix');
   await expect(root).toContainText('This report is a derived presentation of the source evidence.');
-  expect(await page.locator('body > :not([data-buyer-print-root])').evaluateAll(nodes => nodes.every(n => getComputedStyle(n).display === 'none'))).toBe(true);
+  await expect.poll(
+    () => page.locator('body > :not([data-buyer-print-root])').evaluateAll(nodes => nodes.every(n => getComputedStyle(n).display === 'none')),
+    { message: 'Non-report body children must be hidden in print media', timeout: 2000 },
+  ).toBe(true);
   expect(await root.locator('article').innerHTML()).toBe(before);
   // Fresh browser contexts do not always reproduce the trailing anonymous page.
   // Keep the causal layout boundary covered independently of engine pagination.
