@@ -137,10 +137,8 @@ test("Ask WitnessOps hides its trigger while the dialog owns the floating space"
   const content = source("docs-assistant-widget.tsx");
 
   assert.match(content, /shouldShowDocsAssistantTrigger\(open\)/);
-  assert.match(content, /!suppressFloatingTrigger/);
-  assert.match(content, /new IntersectionObserver/);
-  assert.match(content, /document\.querySelector\("\[data-ask-trigger-guard\]"\)/);
-  assert.match(content, /footer\[data-brand-footer\]/);
+  assert.doesNotMatch(content, /suppressFloatingTrigger|visibleGuards|guardVisible/);
+  assert.doesNotMatch(content, /new IntersectionObserver/);
   assert.match(content, /aria-controls="ask-witnessops-dialog"/);
   assert.match(content, /triggerRef\.current\?\.focus\(\)/);
   assert.doesNotMatch(content, /aria-label=\{open \?/);
@@ -335,4 +333,15 @@ test("Ask WitnessOps full page uses mobile document flow and desktop scrolling",
     content,
     /ref=\{conversationRef\}[\s\S]{0,180}aria-live=/,
   );
+});
+
+test("mobile launcher is compact and is not hidden by route or footer blanket rules", () => {
+  const content = source("docs-assistant-widget.tsx");
+  const css = source("docs-assistant-widget.module.css");
+  assert.doesNotMatch(content, /suppressFloatingTrigger|visibleGuards|guardVisible/);
+  assert.doesNotMatch(css, /\.closedLayer\s*\{\s*display:\s*none/);
+  assert.match(css, /width: 48px;\s*height: 48px;/);
+  assert.match(content, /aria-label="Ask WitnessOps"/);
+  assert.match(content, /keyboardCollision \|\| \(interactive && intersects\)/);
+  assert.match(css, /env\(safe-area-inset-bottom\)/);
 });

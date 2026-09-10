@@ -14,6 +14,7 @@ import {
   fetchAskWitnessOps,
   type AskWitnessOpsUiAnswer,
 } from "./ask-witnessops-response";
+import { AskFreeCheckCard } from "./ask-free-check-card";
 import { AskWitnessOpsCommercialFitCard } from "./ask-witnessops-commercial-fit-card";
 import { AskWitnessOpsReceiptMeta } from "./ask-witnessops-receipt-meta";
 import { AskWitnessOpsRouteCta } from "./ask-witnessops-route-cta";
@@ -68,6 +69,7 @@ export function DocsAssistantInline() {
         screenshots, customer evidence, or raw exports.
       </p>
 
+      <AskFreeCheckCard />
       <form
         onSubmit={(e) => {
           e.preventDefault();

@@ -443,7 +443,7 @@ test("the final CTA remains reachable in a short landscape mobile menu", async (
     exact: true,
   });
   await expect(menu).toHaveAttribute("aria-hidden", "false");
-  await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeHidden();
 
   await menu.hover();
   await page.mouse.wheel(0, 1000);
@@ -478,7 +478,7 @@ test("desktop Ask is non-modal and Escape restores its trigger", async ({ browse
   const page = await context.newPage();
   await page.route("**/api/ask-witnessops", async route => { expect(await fulfillAskTelemetry(route)).toBe(true); });
   await page.goto("/catalog", { waitUntil: "networkidle" });
-  const trigger = page.getByRole("button", { name: "Open Ask WitnessOps" });
+  const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
   await trigger.click();
   const dialog = page.locator("#ask-witnessops-dialog");
   await expect(dialog).toBeVisible();

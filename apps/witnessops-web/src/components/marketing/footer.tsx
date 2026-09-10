@@ -34,13 +34,14 @@ interface FooterProps {
 const POLISH_FOOTER = {
   subline: "Przeglądy bezpieczeństwa i weryfikacja AI, automatyzacji i systemów operacyjnych. Jasne ustalenia, materiały źródłowe i praktyczne kolejne kroki.",
   links: [
-    { label: "Usługi", href: "/pl/catalog" },
-    { label: "Naprawa i przekazanie", href: "/pl/catalog/automation-repair" },
+    { label: "Agent Action Security Review (EN)", href: "/catalog/workflows" },
+    { label: "External Attack Surface Review", href: "/pl/catalog/offsec-external-exposure" },
     { label: "Podejście", href: "/pl/why-witnessops" },
-    { label: "Sprawdź zapis", href: "/pl/verify" },
+    { label: "Badania i artykuły (EN)", href: "/research" },
+    { label: "Przykłady (EN)", href: "/review/sample-cases" },
+    { label: "Bezpłatne sprawdzenie (EN)", href: "/check" },
     { label: "Dokumentacja", href: DOCS_PL_HREF },
-    { label: "Biblioteka", href: "/pl/library" },
-    { label: "Więcej przykładów (EN)", href: "/review/sample-cases" },
+    { label: "Sprawdź zapis", href: "/pl/verify" },
   ],
   legal_links: [
     { label: "Prywatność", href: "/privacy" },
@@ -50,10 +51,8 @@ const POLISH_FOOTER = {
 };
 
 const SERVICE_NAV_HREFS = new Set([
-  "/catalog/automation-repair",
-  "/pl/catalog/automation-repair",
-  "/catalog",
-  "/pl/catalog",
+  "/catalog/offsec-external-exposure",
+  "/pl/catalog/offsec-external-exposure",
   PRIMARY_OFFER.route,
   PRIMARY_OFFER.route + "#sample-review",
   "/why-witnessops",

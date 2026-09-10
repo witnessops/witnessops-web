@@ -21,6 +21,7 @@ import {
   fetchAskWitnessOps,
   type AskWitnessOpsUiAnswer,
 } from "./ask-witnessops-response";
+import { AskFreeCheckCard } from "./ask-free-check-card";
 import { AskWitnessOpsCommercialFitCard } from "./ask-witnessops-commercial-fit-card";
 import { AskWitnessOpsReceiptMeta } from "./ask-witnessops-receipt-meta";
 import { AskWitnessOpsRouteCta } from "./ask-witnessops-route-cta";
@@ -102,9 +103,6 @@ export function DocsAssistantWidget() {
   const [loading, setLoading] = useState(false);
   const [contactMode, setContactMode] = useState(false);
   const [contactBusy, setContactBusy] = useState(false);
-  const [suppressFloatingTrigger, setSuppressFloatingTrigger] = useState(
-    pathname === "/",
-  );
   const [mobileViewport, setMobileViewport] = useState<MobileViewportState>({
     height: null,
     keyboardVisible: false,
@@ -204,17 +202,19 @@ export function DocsAssistantWidget() {
           return;
         }
         const editing = active.matches("input, textarea, select, [contenteditable='true']");
+        const keyboardCollision = editing && window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY).matches && Boolean(window.visualViewport && window.innerHeight - window.visualViewport.height > 120);
         const field = active.getBoundingClientRect();
         const button = trigger.getBoundingClientRect();
         const intersects = field.left < button.right && field.right > button.left && field.top < button.bottom && field.bottom > button.top;
         const interactive = active.matches("a[href], button, input, textarea, select, summary, [contenteditable='true'], [role='button'], [role='link']");
-        setFocusedControlObscured(editing || (interactive && intersects));
+        setFocusedControlObscured(keyboardCollision || (interactive && intersects));
       });
     };
     document.addEventListener("focusin", checkFocus);
     document.addEventListener("focusout", checkFocus);
     window.addEventListener("scroll", checkFocus, true);
     window.addEventListener("resize", checkFocus);
+    window.visualViewport?.addEventListener("resize", checkFocus);
     checkFocus();
     return () => {
       window.cancelAnimationFrame(frame);
@@ -222,74 +222,9 @@ export function DocsAssistantWidget() {
       document.removeEventListener("focusout", checkFocus);
       window.removeEventListener("scroll", checkFocus, true);
       window.removeEventListener("resize", checkFocus);
+      window.visualViewport?.removeEventListener("resize", checkFocus);
     };
-  }, [open, pathname, widgetVisible, suppressFloatingTrigger]);
-
-  useEffect(() => {
-    const mobileViewport = window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY);
-
-    if (pathname !== "/") {
-      const offerPage = Boolean(askPageService(pathname));
-      const guards = offerPage ? Array.from(document.querySelectorAll('main a[href^="/review/request"], footer[data-brand-footer]')) : [];
-      const visibleGuards = new Set<Element>();
-      const syncNonHomeTrigger = () => {
-        setSuppressFloatingTrigger(mobileViewport.matches && (!offerPage || visibleGuards.size > 0));
-      };
-      const observer = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) visibleGuards.add(entry.target);
-          else visibleGuards.delete(entry.target);
-        }
-        syncNonHomeTrigger();
-      }, { threshold: 0.05 });
-      guards.forEach((guard) => observer.observe(guard));
-      mobileViewport.addEventListener("change", syncNonHomeTrigger);
-      syncNonHomeTrigger();
-      return () => {
-        observer.disconnect();
-        mobileViewport.removeEventListener("change", syncNonHomeTrigger);
-      };
-    }
-
-    const triggerGuard = document.querySelector("[data-ask-trigger-guard]");
-    if (!triggerGuard) {
-      setSuppressFloatingTrigger(mobileViewport.matches);
-      return;
-    }
-
-    const footer = document.querySelector("footer[data-brand-footer]");
-
-    let guardVisible = true;
-    let footerVisible = false;
-    const syncTrigger = () => {
-      setSuppressFloatingTrigger(
-        guardVisible || (mobileViewport.matches && footerVisible),
-      );
-    };
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.target === triggerGuard) {
-            guardVisible = entry.isIntersecting;
-          } else if (footer && entry.target === footer) {
-            footerVisible = entry.isIntersecting;
-          }
-        }
-        syncTrigger();
-      },
-      { threshold: 0 },
-    );
-
-    observer.observe(triggerGuard);
-    if (footer) observer.observe(footer);
-    mobileViewport.addEventListener("change", syncTrigger);
-    syncTrigger();
-
-    return () => {
-      observer.disconnect();
-      mobileViewport.removeEventListener("change", syncTrigger);
-    };
-  }, [pathname]);
+  }, [open, pathname, widgetVisible]);
 
   useEffect(() => {
     if (contactMode || !restoreContactLauncherFocusRef.current) return;
@@ -487,10 +422,7 @@ export function DocsAssistantWidget() {
   }
 
   function handleOpen() {
-    previousFocusRef.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
+    previousFocusRef.current = triggerRef.current;
     setOpen(true);
     trackAskEvent("opened", { surface: "widget", service_id: pageService?.id });
   }
@@ -641,6 +573,7 @@ export function DocsAssistantWidget() {
                   : styles.scrollRegion
               }
             >
+              <AskFreeCheckCard />
               {!answer && !loading && (
                 <div className={styles.promptStage}>
                   <p className={styles.promptKicker}>
@@ -837,14 +770,14 @@ export function DocsAssistantWidget() {
         </section>
       )}
 
-      {shouldShowDocsAssistantTrigger(open) && !suppressFloatingTrigger && (
+      {shouldShowDocsAssistantTrigger(open) && (
         <button
           ref={triggerRef}
           onClick={handleOpen}
           className={styles.trigger}
           aria-controls="ask-witnessops-dialog"
           aria-expanded="false"
-          aria-label="Open Ask WitnessOps"
+          aria-label="Ask WitnessOps"
         >
           <MessageCircle size={15} strokeWidth={1.7} aria-hidden="true" />
           <span className={styles.triggerLabel}>Ask WitnessOps</span>

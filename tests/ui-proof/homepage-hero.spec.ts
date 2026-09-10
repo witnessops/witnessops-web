@@ -120,7 +120,7 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       await page.waitForTimeout(350);
 
-      await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeVisible();
       const headlineMetrics = await page
         .locator('[data-ui-proof-id="homepage-hero-headline"]')
         .evaluate((element) => {
@@ -238,10 +238,10 @@ test("English and Polish homepages share the security identity and neutral enqui
 async function openAskSurface(page: Page, width: number) {
   await page.goto(width >= 1024 ? "/catalog" : "/docs/assistant", { waitUntil: "networkidle" });
   if (width >= 1024) {
-    await page.getByRole("button", { name: "Open Ask WitnessOps" }).click();
+    await page.getByRole("button", { name: "Ask WitnessOps" }).click();
     return page.getByRole("dialog", { name: "ASK WITNESSOPS" });
   }
-  await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
   return page.locator("main");
 }
 
@@ -286,7 +286,7 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
       if (width >= 1024) {
         await page.keyboard.press("Escape");
         await expect(surface).toHaveCount(0);
-        await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toBeFocused();
+        await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeFocused();
       }
     } finally { await context.close(); }
   }
@@ -404,8 +404,10 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
       await page.screenshot({ path: screenshotPath, fullPage: false });
       await expect(fileExists(screenshotPath)).resolves.toBe(true);
-      if (capture.width < 1024) {
-        await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
+      if (capture.path.startsWith("/review/request") || capture.path.startsWith("/pl/")) {
+        await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
+      } else {
+        await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeVisible();
       }
     } finally {
       await context.close();
@@ -426,9 +428,7 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
       await page.evaluate(() => document.fonts?.ready).catch(() => undefined);
       const footer = page.locator("footer");
       await footer.scrollIntoViewIfNeeded();
-      if (capture.width < 640) {
-        await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
-      }
+      await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toBeVisible();
       const screenshotPath = path.join(screenshotDir, `${capture.name}.png`);
       await footer.screenshot({ path: screenshotPath });
       await expect(fileExists(screenshotPath)).resolves.toBe(true);

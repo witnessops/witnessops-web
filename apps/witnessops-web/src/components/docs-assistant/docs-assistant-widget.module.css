@@ -20,7 +20,7 @@
   position: fixed;
   right: max(1rem, env(safe-area-inset-right));
   bottom: max(1rem, env(safe-area-inset-bottom));
-  z-index: 70;
+  z-index: 40;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
@@ -803,8 +803,8 @@
 
 .trigger {
   display: inline-flex;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   align-items: center;
   justify-content: center;
   gap: 0.65rem;
@@ -962,8 +962,4 @@
   .trigger:hover { background: var(--color-surface-card); color: var(--proof-accent); }
 }
 
-/* Below desktop, Ask remains available in the navigation menu without covering content. */
-@media (max-width: 63.999rem) {
-  .closedLayer { display: none; }
-}
 .closedLayer[data-focus-obscured="true"] { visibility: hidden; }

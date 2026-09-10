@@ -9,6 +9,7 @@ import {
   fetchAskWitnessOps,
   type AskWitnessOpsUiAnswer,
 } from "./ask-witnessops-response";
+import { AskFreeCheckCard } from "./ask-free-check-card";
 import { AskWitnessOpsCommercialFitCard } from "./ask-witnessops-commercial-fit-card";
 import { AskWitnessOpsReceiptMeta } from "./ask-witnessops-receipt-meta";
 import { AskWitnessOpsRouteCta } from "./ask-witnessops-route-cta";
@@ -140,6 +141,7 @@ export function DocsAssistantPage() {
         </p>
       </header>
 
+      {!contactMode && <AskFreeCheckCard />}
       {contactMode ? (
         <DocsAssistantContactHandoff expanded surface="page" commercialFit={contactAnswer?.commercial_fit}
           serviceId={contactAnswer?.recommendation?.service_id} proposedBrief={askConversationBrief(completedTurns)}

@@ -1,3 +1,4 @@
+import { editorialArticles } from '@/lib/research';
 import type { MetadataRoute } from "next";
 import { getDocCanonicalUrl } from "@witnessops/content/docs";
 import { getDocsSitemapEntries } from "@witnessops/content/sitemap";
@@ -18,6 +19,8 @@ type StaticRoute = {
 };
 
 const staticRoutes: StaticRoute[] = [
+  { route: "/research", sourcePath: "src/app/research/page.tsx" },
+  ...editorialArticles.map(entry => ({ route: entry.href, sourcePath: entry.contentReference })),
   { route: "/catalog/automation-repair", sourcePath: "src/app/(marketing)/catalog/automation-repair/page.tsx" },
   { route: "/pl/catalog/automation-repair", sourcePath: "src/app/pl/catalog/automation-repair/page.tsx" },
   { route: "" },
@@ -126,11 +129,7 @@ const staticRoutes: StaticRoute[] = [
     route: "/proof-backed-security-systems",
     sourcePath: "src/app/proof-backed-security-systems/page.tsx",
   },
-  {
-    route: "/articles/when-civilization-can-no-longer-understand-itself",
-    sourcePath:
-      "src/app/(marketing)/articles/when-civilization-can-no-longer-understand-itself/page.tsx",
-  },
+
   { route: "/media-kit", sourcePath: "src/app/media-kit/page.tsx" },
   { route: "/privacy", sourcePath: "src/app/privacy/page.tsx" },
   { route: "/security", sourcePath: "src/app/security/page.tsx" },

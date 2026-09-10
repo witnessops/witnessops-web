@@ -13,16 +13,20 @@ for (const viewport of [
     await page.route("**/api/ask-witnessops", route => route.fulfill({ status: 204 }));
     await page.goto("/");
     const hero = page.locator('[data-ui-proof-id="homepage-hero"]');
-    const trigger = page.getByRole("button", { name: "Open Ask WitnessOps" });
+    const trigger = page.getByRole("button", { name: "Ask WitnessOps" });
     await expect(hero).toContainText("For product and operations teams");
-    await expect(trigger).toBeHidden();
+    await expect(trigger).toBeVisible();
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
     const example = page.getByRole("complementary", { name: "Example review finding" });
     await example.locator("summary").click();
-    await expect(trigger).toBeHidden();
+    // A focused disclosure can overlap the launcher at this viewport; protect it.
+    const collision = await page.locator('[data-focus-obscured="true"]').count();
+    if (collision) await expect(trigger).toBeHidden();
+    await example.locator("summary").blur();
+    await expect(trigger).toBeVisible();
 
     await hero.evaluate(element => window.scrollTo(0, element.getBoundingClientRect().bottom + window.scrollY + 8));
-    if (viewport.width >= 1024) {
+    if (viewport.width >= 640) {
       await expect(trigger).toBeVisible();
       await trigger.click();
       const dialog = page.getByRole("dialog", { name: "ASK WITNESSOPS" });
@@ -32,7 +36,7 @@ for (const viewport of [
       await expect(dialog).toBeHidden();
       await expect(trigger).toBeFocused();
     } else {
-      await expect(trigger).toBeHidden();
+      await expect(trigger).toBeVisible();
     }
 
     const evidence = page.getByRole("article", { name: "Can a request without credentials reach an admin function?" });

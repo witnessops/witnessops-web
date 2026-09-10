@@ -15,7 +15,7 @@ test("primary buyer navigation contains the approved English destinations", () =
     'label: "Services"',
     'href: "/catalog"',
     'label: "Sample work"',
-    'href: "/catalog/automation-repair"',
+    'href: "/catalog/offsec-external-exposure"',
     'label: "Our approach"',
     'href: "/why-witnessops"',
     'label: "Docs"',

@@ -34,6 +34,7 @@ const CONTACT_PANEL_ID = "ask-witnessops-contact-handoff";
 
 export function DocsAssistantContactHandoff({
   expanded,
+  initialEmail = "",
   commercialFit,
   question,
   proposedBrief,
@@ -44,6 +45,7 @@ export function DocsAssistantContactHandoff({
   onExpandedChange,
 }: {
   expanded: boolean;
+  initialEmail?: string;
   commercialFit?: AskWitnessOpsCommercialFit;
   question?: string;
   proposedBrief?: string;
@@ -53,7 +55,7 @@ export function DocsAssistantContactHandoff({
   onBusyChange?: (busy: boolean) => void;
   onExpandedChange: (expanded: boolean) => void;
 }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [note, setNote] = useState("");
   const [includeQuestion, setIncludeQuestion] = useState(false);
   const [sharedQuestion, setSharedQuestion] = useState(

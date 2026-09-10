@@ -104,9 +104,9 @@ test("footer provides Polish homepage labels without changing route contracts", 
   const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
 
   for (const marker of [
-    'label: "Usługi", href: "/pl/catalog"',
-    'label: "Naprawa i przekazanie"',
-    'href: "/pl/catalog/automation-repair"',
+    'label: "Agent Action Security Review (EN)"',
+    'href: "/pl/catalog/offsec-external-exposure"',
+    'label: "Badania i artykuły (EN)"',
     'label: "Podejście"',
     'label: "Prywatność", href: "/privacy"',
     'label: "Warunki", href: "/terms"',
@@ -133,16 +133,10 @@ test("library surface includes English and Polish library paths", () => {
   assert.equal(isLibraryPath("/pl/catalog"), false);
 });
 
-test("English public skills destination uses the Skills label without changing its route", () => {
-  const source = readFileSync(resolve(__dirname, "footer.tsx"), "utf-8");
-  const homepageContent = readFileSync(
-    resolve(__dirname, "../../../../../content/witnessops/landing/home.yaml"),
-    "utf-8",
-  );
-
-  assert.doesNotMatch(source, /label: "Library", href: "\/library"/);
-  assert.match(homepageContent, /- label: "Skills"\s+href: "\/library"/);
-  assert.doesNotMatch(homepageContent, /- label: "Library"\s+href: "\/library"/);
+test("footer uses the bounded public funnel without deleting repair services", () => {
+  const home = readFileSync(resolve(__dirname, "../../../../../content/witnessops/landing/home.yaml"), "utf-8").split("footer:")[1];
+  for (const label of ["Agent Action Security Review", "External Attack Surface Review", "Our approach", "Research & articles", "Sample work", "Free check", "Docs", "Verify a receipt"]) assert.ok(home.includes(label));
+  assert.doesNotMatch(home, /Repair and handover|automation-repair|label: "Services"/);
 });
 
 test("footer keeps Media kit in the English secondary row immediately before GitHub", () => {

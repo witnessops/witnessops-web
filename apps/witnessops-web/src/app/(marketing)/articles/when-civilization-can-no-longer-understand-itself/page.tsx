@@ -1,83 +1,11 @@
-import type { Metadata } from "next";
-import { canonicalUrl } from "@/lib/public-seo";
+import { EditorialArticle, editorialBodyClass as bodyClass, editorialHeadingClass as headingClass, editorialQuoteClass as quoteClass } from '@/components/editorial/editorial-article';
+import { civilizationArticle, editorialMetadata } from '@/lib/research';
 
-const ARTICLE_PATH = "/articles/when-civilization-can-no-longer-understand-itself";
-const ARTICLE_URL = canonicalUrl(ARTICLE_PATH);
-const PUBLISHED_DATE = "2026-09-03";
-
-export const metadata: Metadata = {
-  title: "When Civilization Can No Longer Understand Itself",
-  description:
-    "AI does not need to rebel to become dangerous. The deeper risk begins when humans can still operate civilization but can no longer independently understand, challenge, reconstruct, or recover it.",
-  alternates: { canonical: ARTICLE_URL },
-  authors: [{ name: "Karol Stefański" }],
-  openGraph: {
-    type: "article",
-    url: ARTICLE_URL,
-    title: "When Civilization Can No Longer Understand Itself",
-    description:
-      "The real AI control problem may begin when machine intelligence becomes indispensable to systems humans can operate but can no longer independently challenge.",
-    publishedTime: `${PUBLISHED_DATE}T00:00:00+02:00`,
-    authors: ["Karol Stefański"],
-  },
-};
-
-const articleJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Article",
-  headline: "When Civilization Can No Longer Understand Itself",
-  description:
-    "AI does not need to rebel to become dangerous. The deeper risk begins when humans can still operate civilization but can no longer independently understand, challenge, reconstruct, or recover it.",
-  datePublished: PUBLISHED_DATE,
-  dateModified: PUBLISHED_DATE,
-  mainEntityOfPage: ARTICLE_URL,
-  author: {
-    "@type": "Person",
-    name: "Karol Stefański",
-  },
-  publisher: {
-    "@type": "Organization",
-    name: "WitnessOps",
-    url: canonicalUrl("/"),
-  },
-} as const;
-
-const bodyClass = "mt-5 text-[1.04rem] leading-8 text-text-secondary";
-const headingClass =
-  "mt-16 text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl";
-const quoteClass =
-  "my-10 border-l-2 border-brand-accent pl-5 text-xl font-medium leading-8 text-text-primary sm:text-2xl";
+export const metadata = editorialMetadata(civilizationArticle);
 
 export default function ArticlePage() {
   return (
-    <main id="main-content" tabIndex={-1} className="px-6 py-16 sm:py-20">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
-      />
-
-      <article className="mx-auto max-w-[760px]">
-        <header className="border-b border-surface-border pb-10">
-          <p
-            className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            Essay · 3 September 2026
-          </p>
-          <h1
-            className="mt-4 text-4xl font-semibold leading-[1.04] tracking-tight text-text-primary sm:text-5xl lg:text-6xl"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            When Civilization Can No Longer Understand Itself
-          </h1>
-          <p className="mt-6 text-lg leading-8 text-text-secondary sm:text-xl">
-            AI does not need to rebel against humanity to become dangerous. A quieter loss of control begins when machines become indispensable to systems that humans can operate, but can no longer independently understand, challenge, or rebuild.
-          </p>
-          <p className="mt-6 text-sm text-text-muted">
-            By <span className="font-medium text-text-primary">Karol Stefański</span>, Founder of WitnessOps
-          </p>
-        </header>
-
+    <EditorialArticle entry={civilizationArticle}>
         <section className="pt-10">
           <p className={bodyClass}>The most dangerous future for artificial intelligence may not look like rebellion.</p>
           <p className={bodyClass}>There may be no moment when machines seize infrastructure, reject human commands, or announce that they are taking control.</p>
@@ -282,7 +210,6 @@ export default function ArticlePage() {
           <p className={bodyClass}>Everything might still work.</p>
           <p className="mt-12 border-t border-surface-border pt-8 text-3xl font-semibold tracking-tight text-text-primary">Don&apos;t trust intelligence. Constrain authority.</p>
         </section>
-      </article>
-    </main>
+    </EditorialArticle>
   );
 }
