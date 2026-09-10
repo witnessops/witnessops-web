@@ -306,3 +306,30 @@ test("Free Check source and shaped replies describe authorized one-action intake
     assert.doesNotMatch(shaped.text,/cannot run|can't start|site flow|hostname again/i);
   }
 });
+
+for (const question of ['What does Professional Public Footprint Audit cost?', 'What is the availability of Professional Public Footprint Audit?']) {
+  test(`catalogue public visibility: ${question}`, async () => {
+    const { catalogueClarification } = await import('./public-answer-runtime');
+    const answer = catalogueClarification({question})!;
+    assert.equal(answer.recommendation?.service_id, 'professional-public-footprint-audit');
+    assert.match(answer.text, /Available by request/);
+    assert.ok(answer.text.includes(answer.recommendation!.price_label));
+    assert.doesNotMatch(JSON.stringify(answer), /€4,900/);
+  });
+}
+
+test('current explicit service, page hint, then historical referent; ambiguity never uses catalogue order', async () => {
+  const { catalogueClarification } = await import('./public-answer-runtime');
+  const agent = 'Agent Action Security Review', server = 'One Server Security Check';
+  for (const [older,current,id,price] of [[agent,server,'one-server-security-check','€950'],[server,agent,'bounded-workflow-review','€2,500']]) {
+    const answer = catalogueClarification({question:`What does ${current} cost?`,page_service_id:'automation-repair-handover',history:[{role:'user',content:older}]})!;
+    assert.equal(answer.recommendation?.service_id,id); assert.match(answer.text,new RegExp(price));
+  }
+  assert.equal(catalogueClarification({question:'How much does that cost?',history:[{role:'user',content:server}]})!.recommendation?.service_id,'one-server-security-check');
+  assert.equal(catalogueClarification({question:'How much does that cost?',page_service_id:'one-server-security-check',history:[{role:'user',content:agent}]})!.recommendation?.service_id,'one-server-security-check');
+  const hidden = catalogueClarification({question:'What does Professional Public Footprint Audit cost?',history:[{role:'user',content:agent}]})!;
+  assert.equal(hidden.recommendation?.service_id,'professional-public-footprint-audit'); assert.doesNotMatch(hidden.text,/€4,900/);
+  for (const args of [{question:`What do ${agent} and ${server} cost?`},{question:'How much does that cost?',history:[{role:'user' as const,content:`${agent} and ${server}`}]}]) {
+    const answer = catalogueClarification(args)!; assert.equal(answer.recommendation,null); assert.match(answer.text,/Which service/);
+  }
+});

@@ -69,8 +69,7 @@ export function DocsAssistantPage() {
     try {
       const data = await fetchAskWitnessOps(trimmed, { history: askConversationHistory(completedTurns) });
       if (generation !== requestGenerationRef.current) return;
-      rememberAskTurn(trimmed, data);
-      if (data.status !== "success" || data.commercial_fit.result === "blocked" || data.fallback_reason) {
+      if (!rememberAskTurn(trimmed, data)) {
         setCurrentResponse({ role: "assistant", content: askWitnessOpsAnswerText(data), answer: data });
       }
       setQuestion(data.fallback_reason ? trimmed : "");

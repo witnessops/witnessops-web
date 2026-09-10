@@ -94,3 +94,21 @@ test("five turns retain a visitor correction and deadline inside the unchanged A
   assert.ok(context.reduce((n,m) => n + m.content.length, 0) <= 6_000);
   assert.doesNotMatch(askConversationBrief(getAskConversation()), /scoped findings report/);
 });
+
+for (const continuation of ['Already issuing refunds.', 'We are checking before launch.']) {
+  test(`only marked refund claim repairs retain safe continuation: ${continuation}`, () => {
+    const original = 'Can I tell my customer you verified our refund agent is safe?';
+    const repaired: AskWitnessOpsUiAnswer = {...answer('No review or test has happened. Is the agent live or pre-launch?'),
+      schema:'witnessops.ask.public-boundary-response.v1',status:'closed',answer_mode:'policy_refusal',
+      template:{template_id:'boundary.refund_claim_repair.v1',body:'No review or test has happened. Is the agent live or pre-launch?',source_display:null},
+      commercial_fit:{...answer().commercial_fit,result:'not_fit'}};
+    rememberAskTurn(original,repaired); rememberAskTurn(continuation,answer());
+    assert.equal(getAskConversation()[0].question,'Refund agent.','only the safe subject is retained, not rejected claim text');
+    const history=askConversationHistory(getAskConversation());
+    assert.equal(history[0].content,'Refund agent.');assert.match(history[1].content,/No review or test/);assert.equal(history[2].content,continuation);
+    clearAskConversation();assert.deepEqual(askConversationHistory(getAskConversation()),[]);
+    rememberAskTurn('blocked input',{...repaired,commercial_fit:{...repaired.commercial_fit,result:'blocked'}});
+    rememberAskTurn('ordinary refusal',{...repaired,template:{...repaired.template,template_id:'boundary.public_input.v1'}});
+    assert.equal(getAskConversation().length,0);
+  });
+}

@@ -1,4 +1,4 @@
-import { contextualSuggestions, visitorStatements } from "@/lib/docs-assistant/conversation-guidance";
+import { askLanguage, contextualSuggestions, visitorStatements } from "@/lib/docs-assistant/conversation-guidance";
 import { BUYER_SERVICES, type BuyerService } from "@/lib/buyer-services";
 import { keepRecentAskHistory, type AskConversationMessage } from "@/lib/docs-assistant/conversation-contract";
 import { askWitnessOpsAnswerText, type AskWitnessOpsUiAnswer } from "./ask-witnessops-response";
@@ -22,9 +22,16 @@ export function subscribeAskConversation(listener: () => void) {
 }
 
 export function rememberAskTurn(question: string, answer: AskWitnessOpsUiAnswer) {
-  if (answer.status !== "success" || answer.commercial_fit.result === "blocked" || answer.fallback_reason) return;
-  turns = [...turns, { question: question.trim().slice(0, 2_000), answer }].slice(-12);
+  const repairedClaim = answer.schema === "witnessops.ask.public-boundary-response.v1" &&
+    answer.status === "closed" && answer.answer_mode === "policy_refusal" &&
+    answer.commercial_fit.result === "not_fit" && answer.template.template_id === "boundary.refund_claim_repair.v1";
+  if ((!repairedClaim && answer.status !== "success") || answer.commercial_fit.result === "blocked" || answer.fallback_reason) return false;
+  // Retain only the subject of this narrowly marked refused claim, never the
+  // rejected prompt or appended material. The canonical answer preserves the
+  // no-verification boundary. This is session context, not a verified fact.
+  turns = [...turns, { question: repairedClaim ? (askLanguage(question) === "pl" ? "Agent zwrotów." : "Refund agent.") : question.trim().slice(0, 2_000), answer }].slice(-12);
   listeners.forEach((listener) => listener());
+  return true;
 }
 
 export function clearAskConversation() {

@@ -13,10 +13,10 @@ const CANONICAL_NO_BOUNDARIES = new Set(BUYER_SERVICES.flatMap((service) =>
   service.boundary.en.split(/[.!?;]/).map((sentence) => sentence.trim().toLowerCase()).filter((sentence) => /^no\s/.test(sentence)),
 ));
 
-function publicPrice(service: (typeof BUYER_SERVICES)[number]) {
+function publicPrice(service: (typeof BUYER_SERVICES)[number], language: "en" | "pl" = "en") {
   return service.pricingVisible === false
-    ? (service.availability?.label.en ?? "Available by request")
-    : service.price.en;
+    ? (service.availability?.label[language] ?? "Available by request")
+    : service.price[language];
 }
 
 // Only public buyer material is supplied to the model. No authority artifacts,
@@ -334,14 +334,25 @@ export function applyConversationContract(answer: NonNullable<ReturnType<typeof 
 /** Published terms do not depend on a provider response. Input safety gates run first. */
 export function catalogueClarification(args: NormalizedAskRequest) {
   if (!/[€]|\b(price|pricing|cost|guarantee|today|fee|availability|deadline|fit|cena|koszt|dzisiaj|gwarancja)\b/i.test(args.question)) return null;
+  const matches = (text: string) => BUYER_SERVICES.filter(service =>
+    [service.name.en, service.name.pl].some(name => text.toLowerCase().includes(name.toLowerCase())));
+  // Resolve each level independently. Multiple explicit names are ambiguous,
+  // never an invitation to choose whichever service is first in the catalogue.
+  const current = matches(args.question);
+  const page = BUYER_SERVICES.find(service => service.id === args.page_service_id);
+  const historical = matches((args.history ?? []).filter(m => m.role === "user").map(m => m.content).join("\n"));
+  const candidates = current.length ? current : page ? [page] : historical;
+  if (candidates.length > 1) {
+    return normalizePublicAskResponse({output_text: JSON.stringify({answer: askLanguage(args.question) === "pl"
+      ? "O którą usługę pytasz?" : "Which service do you mean?", service_id: null, source_ids: ["public.overview"]})});
+  }
   const context = [...(args.history ?? []).filter(m => m.role === "user").map(m => m.content), args.question].join("\n");
-  const service = BUYER_SERVICES.find(s => context.toLowerCase().includes(s.name.en.toLowerCase()) || context.toLowerCase().includes(s.name.pl.toLowerCase()));
   const repair = /\b(n8n|workflow|automation|zapier|hubspot|automatyzac\w*)\b/i.test(context) && /stopped|broken|missing|failure|repair|napraw|nie działa/i.test(context);
-  const selected = service ?? (repair ? BUYER_SERVICES.find(s => s.id === AUTOMATION_REPAIR_OFFER.id) : undefined);
+  const selected = candidates[0] ?? (repair ? BUYER_SERVICES.find(s => s.id === AUTOMATION_REPAIR_OFFER.id) : undefined);
   if (!selected) return null;
   const base = normalizePublicAskResponse({output_text:JSON.stringify({answer:"A person must confirm fit and availability.",service_id:selected.id,source_ids:[`service.${selected.id}`]})});
   if (!base) return null;
   if (selected.id === AUTOMATION_REPAIR_OFFER.id) return applyConversationContract(base, args);
   const lang = askLanguage(args.question);
-  return {...base, text: lang === "pl" ? `${selected.price.pl}. Człowiek musi potwierdzić zakres i dostępność. Czat nie gwarantuje terminu ani dopasowania zlecenia.` : `${selected.price.en}. A person must confirm fit and availability. This chat does not guarantee a start date or that your job fits.`};
+  return {...base, text: lang === "pl" ? `${publicPrice(selected, "pl")}. Człowiek musi potwierdzić zakres i dostępność. Czat nie gwarantuje terminu ani dopasowania zlecenia.` : `${publicPrice(selected)}. A person must confirm fit and availability. This chat does not guarantee a start date or that your job fits.`};
 }

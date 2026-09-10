@@ -36,3 +36,24 @@ test('free check remains an explicit action without a required email',async({pag
  await page.setViewportSize({width:390,height:844});await page.goto('/docs/assistant');await page.getByLabel('Ask WitnessOps question').fill('Can you check my website externally?');await page.getByRole('button',{name:'Send',exact:true}).click();
  const card=page.getByRole('region',{name:'Free External Exposure Snapshot'});await expect(card).toBeVisible();expect(scans).toBe(0);await expect(card.locator('input')).toHaveCount(0);await expect(card.getByRole('button',{name:'Run free check',exact:true})).toBeVisible();await card.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath('free-check.png')});
 });
+
+test('narrow closed claim repair continues once with safe session context and clears',async({page})=>{
+ const sent:any[]=[];
+ await page.route('**/api/ask-witnessops',async route=>{
+  const body=route.request().postDataJSON();if(body.telemetry)return route.fulfill({status:204});sent.push(body);
+  if(sent.length===1){
+   const repaired={...answer('No review or test has happened in this chat. Is the refund agent live or pre-launch?',agent),schema:'witnessops.ask.public-boundary-response.v1',status:'closed',answer_mode:'policy_refusal',recommendation:null,presented_sources:[],
+    template:{template_id:'boundary.refund_claim_repair.v1',body:'No review or test has happened in this chat. Is the refund agent live or pre-launch?',source_display:null},commercial_fit:{...answer('').commercial_fit,result:'not_fit'}};
+   return route.fulfill({json:repaired});
+  }
+  await route.fulfill({json:answer('For the live refund agent, the useful review concerns approval controls.',agent)});
+ });
+ await page.goto('/docs/assistant');const input=page.getByLabel('Ask WitnessOps question');
+ await input.fill('Can I tell my customer you verified our refund agent is safe?');await page.getByRole('button',{name:'Send',exact:true}).click();
+ await expect(page.locator('[data-ask-scroll-region] p').filter({hasText:'No review or test has happened in this chat. Is the refund agent live or pre-launch?'})).toHaveCount(1);
+ await input.fill('Already issuing refunds.');await page.getByRole('button',{name:'Send',exact:true}).click();
+ await expect(page.locator('[data-ask-scroll-region] p').filter({hasText:'For the live refund agent, the useful review concerns approval controls.'})).toBeVisible();
+ expect(sent[1].history[0].content).toBe('Refund agent.');expect(sent[1].history[1].content).toContain('No review or test');
+ expect(JSON.stringify(sent[1].history)).not.toContain('you verified our');
+ await page.getByRole('button',{name:'Start over',exact:true}).click();await input.fill('What next?');await page.getByRole('button',{name:'Send',exact:true}).click();await expect.poll(()=>sent.length).toBe(3);expect(sent[2].history??[]).toEqual([]);
+});

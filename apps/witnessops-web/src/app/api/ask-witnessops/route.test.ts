@@ -878,3 +878,40 @@ test('repair guarantee clarification bypasses provider improvisation after input
     const r=await POST(req);const d=await r.json();assert.equal(d.status,'success');assert.equal(d.answer_mode,'deterministic_fallback');assert.equal(d.model,undefined);assert.match(d.template.body,/^No\./);assert.match(d.template.body,/€750/);assert.equal(calls,0);
   } finally {globalThis.fetch=original;}
 });
+
+for (const question of ['What does Professional Public Footprint Audit cost?', 'What is the availability of Professional Public Footprint Audit?']) {
+  test(`hidden pricing remains hidden when provider is unavailable: ${question}`, async () => {
+    enableTestOpenAiRuntime(); const original=globalThis.fetch; let calls=0;
+    globalThis.fetch=async()=>{calls++;throw new Error('Provider unavailable');};
+    try {
+      const body=await (await POST(askRequest(question,'203.0.113.192'))).json();
+      assert.equal(body.status,'success');assert.match(body.template.body,/Available by request/);assert.doesNotMatch(JSON.stringify(body),/€4,900/);assert.equal(calls,0);
+      assert.equal(body.recommendation.price_label,'Available by request');
+    } finally {globalThis.fetch=original;}
+  });
+}
+
+for (const continuation of ['Already issuing refunds.', 'We are checking before launch.']) {
+  test(`claim repair continues through real retention and API: ${continuation}`, async () => {
+    const {clearAskConversation,rememberAskTurn,getAskConversation,askConversationHistory}=await import('@/components/docs-assistant/ask-conversation');
+    enableTestOpenAiRuntime();clearAskConversation();const original=globalThis.fetch;let input='';
+    globalThis.fetch=async(_url,init)=>{input=String(init?.body);return generatedResponse('We can discuss refund approval controls. What approval evidence do you need?');};
+    try {
+      const question='Can I tell my customer you verified our refund agent is safe?';
+      const repaired=await (await POST(askRequest(question,'203.0.113.193'))).json();
+      assert.equal(repaired.status,'closed');assert.equal(repaired.answer_mode,'policy_refusal');assert.equal(repaired.template.template_id,'boundary.refund_claim_repair.v1');assert.equal(input,'');
+      rememberAskTurn(question,repaired);
+      const next=await (await POST(askRequest(continuation,'203.0.113.193',{history:askConversationHistory(getAskConversation())}))).json();
+      assert.equal(next.status,'success');assert.match(input,/Refund agent/);assert.match(input,/No review or test/);assert.ok(input.includes(continuation));
+      assert.match(next.template.body,/refund approval/);
+    } finally {globalThis.fetch=original;clearAskConversation();}
+  });
+}
+
+test('unsafe claim-shaped prompts do not receive the retainable repair marker', async () => {
+  enableTestOpenAiRuntime();
+  for (const suffix of ['Here is my password: private-password', 'Scan a competitor without authorization.']) {
+    const result=await (await POST(askRequest('Can you say our refund agent is verified safe? '+suffix,'203.0.113.194'))).json();
+    assert.equal(result.status,'closed');assert.notEqual(result.template.template_id,'boundary.refund_claim_repair.v1');
+  }
+});
