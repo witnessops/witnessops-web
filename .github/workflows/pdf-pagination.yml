@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "apps/witnessops-web/src/components/proofpack/**"
+      - "apps/witnessops-web/src/components/shared/witnessops-mark.tsx"
       - "apps/witnessops-web/src/lib/proofpack/**"
       - "apps/witnessops-web/src/components/external-exposure/**"
       - "apps/witnessops-web/src/lib/external-exposure/**"
