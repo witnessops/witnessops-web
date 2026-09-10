@@ -1,7 +1,6 @@
 import { test, expect, type Page, type Locator } from '@playwright/test';
 import { BUYER_SERVICES, buyerServiceRequestHref } from '../../apps/witnessops-web/src/lib/buyer-services';
 const repair=BUYER_SERVICES.find(s=>s.id==='automation-repair-handover')!;
-const agent=BUYER_SERVICES.find(s=>s.id==='bounded-workflow-review')!;
 function answer(text:string,service=repair,free=false) {
  const url=new URL(buyerServiceRequestHref('en',service),'https://witnessops.com');url.searchParams.set('source','ask');
  return {model:'test-model',authority_answer:{schema:'witnessops.ask.assembled-answer.v1',assembler_contract_id:'ASK_DETERMINISTIC_ANSWER_ASSEMBLER_V1',assembler_contract_version:1,deterministic_replay_hash:'local-browser-fixture',template:{template_id:'fixture'},policy_decision:{template_id:'fixture'}},schema:'witnessops.ask.generated-answer.v1',status:'success',answer_mode:'ai_assisted',template:{template_id:'answer.public_ai.v1',body:text,source_display:null},route:null,

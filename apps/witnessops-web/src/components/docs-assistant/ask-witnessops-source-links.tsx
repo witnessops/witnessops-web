@@ -19,7 +19,7 @@ export function AskWitnessOpsSourceLinks({ answer, compact = false }: Props) {
   return (
     <div className={compact ? "mt-2" : "mt-3"}>
       <span
-        className="inline-flex min-h-8 cursor-pointer items-center text-xs text-text-muted underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="inline-flex min-h-8 items-center text-xs text-text-muted"
         style={{ fontFamily: "var(--font-mono)" }}
       >
         Sources:
