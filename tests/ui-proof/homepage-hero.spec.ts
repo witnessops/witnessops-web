@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { BUYER_SERVICES, buyerServiceRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { access, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { checkHomepageHero, screenshotEmittedCheck } from "./checks";
@@ -58,6 +59,11 @@ const askWorkflowFallback = {
   presented_sources: [],
 } as const;
 
+const questionnaireService = BUYER_SERVICES.find(service => service.id === "customer-security-review-sprint")!;
+const questionnaireRequest = new URL(buyerServiceRequestHref("en", questionnaireService), "https://witnessops.com");
+questionnaireRequest.searchParams.set("source", "ask");
+const questionnaireRequestHref = `${questionnaireRequest.pathname}${questionnaireRequest.search}`;
+
 const generatedQuestionnaireAnswer = {
   schema: "witnessops.ask.generated-answer.v1",
   status: "success",
@@ -68,14 +74,14 @@ const generatedQuestionnaireAnswer = {
     body: "We can prepare proposed answers and evidence references for one customer security questionnaire. Your team approves the final answers before submission.",
     source_display: null,
   },
-  route: null,
+  route: { route_id: "route.fit-check", href: questionnaireRequestHref },
   recommendation: {
     service_id: "customer-security-review-sprint",
     name: "Customer Security Review Sprint",
     price_label: "From €1,600 · excluding VAT",
     delivery_label: "Approximately three working days after scope, owners, required inputs and evidence access are confirmed",
     detail_href: "/customer-security-review",
-    request_href: "/review/request?offerId=customer-security-review-sprint&offer=Customer+Security+Review+Sprint&source=ask",
+    request_href: questionnaireRequestHref,
   },
   commercial_fit: {
     ...askWorkflowFallback.commercial_fit,
@@ -255,33 +261,45 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
         if (await fulfillAskTelemetry(route)) return;
         submitted.push(route.request().postDataJSON());
         await route.fulfill({ status: submitted.length === 1 ? 503 : 200,
-          contentType: "application/json", body: JSON.stringify(submitted.length === 1 ? { error: "Unavailable" } : askWorkflowFallback) });
+          contentType: "application/json", body: JSON.stringify(submitted.length === 1 ? { error: "Unavailable" } : { ...askWorkflowFallback, fallback_reason: "ai_unavailable" }) });
       });
       const surface = await openAskSurface(page, width);
-      const question = "What does an Agent Action Security Review cover, and what do we receive?";
+      const question = "We're launching an AI agent.";
       const prompt = surface.getByLabel("Ask WitnessOps question");
-      await expect(surface.getByRole("button", { name: "Ask AI", exact: true })).toBeDisabled();
-      await surface.getByRole("button", { name: /^What does an agent review cover\?/ }).click();
+      await expect(surface.locator("[data-ask-composer] button[type=submit]")).toBeDisabled();
+      await surface.getByRole("button", { name: "We're launching an AI agent", exact: true }).click();
       await expect(surface.getByRole("alert")).toContainText("Your question is still here");
       await expect(prompt).toHaveValue(question);
-      await expect(surface.getByRole("button", { name: "Request a follow-up", exact: true })).toBeVisible();
+      await expect(surface.getByRole("button", { name: "Prepare my request", exact: true })).toHaveCount(0);
       await surface.getByRole("button", { name: "Retry question", exact: true }).click();
+      await expect(surface).toContainText("I couldn't generate an answer just now. Try again, or request a follow-up about your question.");
+      await expect(surface).not.toContainText(askWorkflowFallback.template.body);
+      await expect(surface).toContainText("The AI is temporarily unavailable. This is public guide information.");
       const fit = surface.getByRole("region", { name: "Commercial fit", exact: true });
       await expect(fit).toContainText("€2,500 fixed · excluding VAT");
       await expect(fit).toContainText("Within 10 working days after evidence rules are agreed");
-      await expect(fit).toContainText("No evidence was reviewed");
+      await expect(surface).toContainText("No evidence was reviewed");
+      await expect(fit).toContainText("Fit signal only.");
       expect(submitted).toEqual([{ question, history: [] }, { question, history: [] }]);
-      await expect(prompt).toHaveValue("");
+      await expect(prompt).toHaveValue(question);
       await expect(prompt).toHaveAttribute("placeholder", "Ask a follow-up…");
-      const cta = fit.getByRole("button", { name: "Request scope for this action" });
+      const cta = fit.getByRole("button", { name: "Request scope for this action", exact: true });
       await cta.scrollIntoViewIfNeeded();
-      expect((await cta.boundingBox())?.height).toBeGreaterThanOrEqual(40);
+      expect((await cta.boundingBox())?.height).toBeGreaterThanOrEqual(44);
       await cta.click();
       await expect(surface.getByLabel("Work email")).toBeFocused();
       await expect(surface.locator("[data-ask-contact-region]")).toBeVisible();
+      await expect(surface.getByLabel(/^Request summary/)).toHaveValue("");
+      await expect(surface.getByRole("checkbox", { name: "Use this editable draft as my request summary." })).toHaveCount(0);
+      await expect(surface.getByRole("button", { name: "Send confirmation code" })).toBeDisabled();
       expect(await surface.getByLabel("Work email").evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
       await surface.getByRole("button", { name: "Back", exact: true }).click();
       await expect(fit).toBeVisible();
+      await expect(cta).toBeFocused();
+      await surface.locator("[data-ask-composer] button[type=submit]").click();
+      await expect.poll(() => submitted.length).toBe(3);
+      expect(submitted[2]).toEqual({ question, history: [] });
+      await expect(fit).toHaveCount(1);
       await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
       if (width >= 1024) {
         await page.keyboard.press("Escape");
@@ -293,8 +311,11 @@ test("Ask WitnessOps keeps the fallback paid-review path visible and controlled"
 });
 
 test("Ask generated follow-ups retain bounded context and share only an approved summary", async ({ browser }) => {
+  expect(generatedQuestionnaireAnswer.route.href).toBe(generatedQuestionnaireAnswer.recommendation.request_href);
+  expect(new URL(generatedQuestionnaireAnswer.route.href, "https://witnessops.com").searchParams.get("source")).toBe("ask");
   const firstQuestion = "We need help with a customer's security questionnaire. What would you deliver?";
   const followUpQuestion = "What should we prepare for Customer Security Review Sprint, without sharing secrets here?";
+  const visitorFact = "We need help with a customer's security questionnaire.";
   const followUpAnswer = { ...generatedQuestionnaireAnswer, template: { ...generatedQuestionnaireAnswer.template,
     body: "Prepare one questionnaire, the product scope, a named answer owner and references to existing policies. Agree a safe way to share evidence before the review starts." } };
   for (const width of [390, 1440]) {
@@ -315,35 +336,42 @@ test("Ask generated follow-ups retain bounded context and share only an approved
       const surface = await openAskSurface(page, width);
       const composer = surface.getByLabel("Ask WitnessOps question");
       await composer.fill(firstQuestion);
-      await surface.getByRole("button", { name: "Ask AI", exact: true }).click();
+      await surface.locator("[data-ask-composer] button[type=submit]").click();
       await expect(surface).toContainText(generatedQuestionnaireAnswer.template.body);
-      await expect(surface).toContainText(/AI.generated answer/i);
+      await expect(surface.locator("summary").filter({ hasText: "About this AI" })).toBeVisible();
       const recommendation = surface.getByRole("region", { name: "Suggested service" });
       await expect(recommendation).toContainText("Customer Security Review Sprint");
       await expect(recommendation).toContainText("From €1,600 · excluding VAT");
       await expect(recommendation).toContainText(generatedQuestionnaireAnswer.recommendation.delivery_label);
       await expect(recommendation.getByRole("link", { name: "See scope" })).toHaveAttribute("href", "/customer-security-review");
       await expect(surface.getByRole("region", { name: "Commercial fit", exact: true })).toHaveCount(0);
-      await surface.getByRole("button", { name: "What should we prepare?", exact: true }).click();
+      await expect(surface.getByRole("button", { name: "What should we prepare?", exact: true })).toHaveCount(0);
+      await composer.fill(followUpQuestion);
+      await surface.locator("[data-ask-composer] button[type=submit]").click();
       await expect(surface).toContainText(followUpAnswer.template.body);
       expect(submitted).toEqual([{ question: firstQuestion, history: [] }, {
         question: followUpQuestion, history: [{ role: "user", content: firstQuestion },
-          { role: "assistant", content: `${generatedQuestionnaireAnswer.template.body}\nSuggested service: Customer Security Review Sprint` }] }]);
+          { role: "assistant", content: generatedQuestionnaireAnswer.template.body }] }]);
       const disclosure = surface.locator("summary").filter({ hasText: "About this AI" });
       await disclosure.click();
+      await expect(surface).toContainText("AI can make mistakes; a person confirms fit and scope.");
       await expect(surface).toContainText("Model: gpt-5.4-mini");
       await expect(surface).toContainText("provider retention may still apply");
       await expect(surface.getByRole("link", { name: "Privacy", exact: true })).toBeVisible();
       await disclosure.click();
-      await recommendation.getByRole("button", { name: "Discuss this service" }).click();
+      expect(contact).toBeUndefined();
+      await surface.getByRole("button", { name: "Prepare my request", exact: true }).click();
       await expect(surface.getByLabel("Work email")).toBeFocused();
-      const share = surface.getByRole("checkbox", { name: "Use my questions as the request summary." });
-      const summary = surface.getByLabel(/^Request summary/);
-      await expect(share).not.toBeChecked();
+      const share = surface.getByRole("checkbox", { name: "Use this editable draft as my request summary." });
+      const summary = surface.getByLabel(/^Draft request/);
+      await expect(share).toBeChecked();
+      await expect(summary).toHaveValue(visitorFact);
+      await expect(summary).not.toHaveValue(/What would you deliver|What should we prepare/);
+      await share.uncheck();
       await expect(summary).toHaveValue("");
       await summary.fill("One questionnaire for one product.");
       await share.check();
-      await expect(summary).toHaveValue(`${firstQuestion}\n\n${followUpQuestion}`);
+      await expect(summary).toHaveValue(visitorFact);
       await summary.fill("Help us scope one non-secret customer questionnaire.");
       await share.uncheck();
       await expect(summary).toHaveValue("One questionnaire for one product.");
@@ -362,7 +390,7 @@ test("Ask generated follow-ups retain bounded context and share only an approved
       await surface.getByRole("button", { name: "Start over", exact: true }).click();
       await expect(surface).not.toContainText(followUpAnswer.template.body);
       await composer.fill(firstQuestion);
-      await surface.getByRole("button", { name: "Ask AI", exact: true }).click();
+      await surface.locator("[data-ask-composer] button[type=submit]").click();
       await expect(surface).toContainText(generatedQuestionnaireAnswer.template.body);
       expect(submitted[2]).toEqual({ question: firstQuestion, history: [] });
       expect(submitted).toHaveLength(3);
