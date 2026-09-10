@@ -1,5 +1,5 @@
 // Browser-only convenience validation. The unchanged server validator and public-IP
-// gate remain authoritative. Nothing in this handoff authorizes a network request.
+// gate remain authoritative. Only an explicitly authorized, matching, unexpired handoff can initiate one normal check.
 export const ASK_CHECK_KEY = 'witnessops.ask-check.v1';
 export const ASK_CHECK_TTL = 10 * 60 * 1000;
 export function normalizeAskHostname(input: string): string {

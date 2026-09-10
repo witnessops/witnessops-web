@@ -9,7 +9,7 @@ function source(filename: string): string {
   return readFileSync(resolve(__dirname, filename), "utf-8");
 }
 
-const title = "ASK WITNESSOPS";
+
 const subtitle = "Questions about scope, evidence or pricing";
 const questionIntro = /Ask about security reviews, verification or workflow repair/;
 const warning = "Do not paste secrets";
@@ -25,15 +25,15 @@ test("Ask WitnessOps surfaces describe AI questions within the public-input boun
     "docs-assistant-inline.tsx",
   ]) {
     const content = source(filename);
-    assert.match(content, new RegExp(title));
-    assert.match(content, new RegExp(subtitle));
-    assert.match(content, questionIntro);
+    assert.match(content, /Ask WitnessOps|ASK WITNESSOPS/);
+    assert.match(content, filename === "docs-assistant-page.tsx" ? /AI guide to finding the right next step/ : filename === "docs-assistant-widget.tsx" ? /Tell me what happened/ : new RegExp(subtitle));
+    assert.match(content, filename !== "docs-assistant-inline.tsx" ? /Tell me what happened/ : questionIntro);
     assert.match(content, new RegExp(warning));
     assert.match(content, /AskAiDisclosure/);
     assert.match(source("ask-ai-disclosure.tsx"), providerDisclosure);
     assert.doesNotMatch(content, /provider storage disabled/);
     assert.match(content, new RegExp(placeholder.replaceAll(".", "\\.")));
-    assert.match(content, /Ask AI/);
+    assert.match(content, filename === "docs-assistant-page.tsx" ? /"Send"/ : /Ask AI/);
     assert.match(content, /aria-label="Ask WitnessOps question"/);
     assert.match(content, /maxLength=\{2_000\}/);
     assert.match(content, /fetchAskWitnessOps/);
@@ -48,7 +48,7 @@ test("Ask WitnessOps surfaces describe AI questions within the public-input boun
 
 test("Ask WitnessOps offers page-aware buyer prompts and follow-ups", () => {
   const prompts = source("ask-conversation.ts");
-  for (const text of ["What does an agent review cover?", "How do you check a result?", "Can you review one server?", "Can you diagnose a broken workflow?", "What do I get?", "Price and timing", "Is this right for us?"]) {
+  for (const text of ["An automation stopped working", "We\'re launching an AI agent", "A customer needs security evidence", "I want to check a server", "Check my public exposure"]) {
     assert.ok(prompts.includes(text), `Missing buyer prompt: ${text}`);
   }
   assert.match(source("docs-assistant-widget.tsx"), /askGuidedQuestions\(pageService\)/);
@@ -60,11 +60,11 @@ test("Ask WitnessOps retains the answer text when a suggested review is shown", 
   const page = source("docs-assistant-page.tsx");
   const inline = source("docs-assistant-inline.tsx");
 
-  assert.match(widget, /<p className=\{styles\.answerCopy\}>\{answer\.content\}<\/p>\s*\{answer\.answer && \(\s*<AskWitnessOpsCommercialFitCard/);
+  assert.match(widget, /<p className=\{styles\.answerCopy\}>\{answer\.content\}<\/p>\s*\{answer\.answer && [^\n]+\(\s*<AskWitnessOpsCommercialFitCard/);
   assert.doesNotMatch(widget, /!hasPaidScopeCta\s*&&\s*\(\s*<p className=\{styles\.answerCopy\}/);
   assert.match(page, /\{msg\.content\}\s*<\/p>\s*\{msg\.answer && \(/);
   assert.match(inline, /\{askWitnessOpsAnswerText\(response\)\}\s*<\/p>\s*<AskWitnessOpsCommercialFitCard/);
-  assert.match(widget, /Questions about scope, evidence or pricing\?/);
+  assert.match(widget, /Tell me what happened/);
   assert.match(widget, /Ask a follow-up/);
   assert.match(widget, /Start over/);
 });
@@ -75,13 +75,13 @@ test("generated recommendations have a distinct review card and canonical naviga
   assert.match(card, /answer\.schema === "witnessops\.ask\.generated-answer\.v1"/);
   assert.match(card, /if \(!recommendation\) return null/);
   assert.match(card, /aria-label="Suggested service"/);
-  assert.match(card, /recommendation\.name/);
-  assert.match(card, /recommendation\.price_label/);
-  assert.match(card, /recommendation\.delivery_label/);
-  assert.match(card, /Discuss this service/);
-  assert.match(card, /href=\{recommendation\.request_href\}/);
-  assert.match(card, /href=\{recommendation\.detail_href\}/);
-  assert.match(card, /We confirm fit, scope and price before work begins/);
+  assert.match(card, /service\.name\[language\]/);
+  assert.match(card, /service\.price\[language\]/);
+  assert.match(card, /service\.timing\[language\]/);
+  assert.match(card, /Prepare my request/);
+  assert.match(card, /buyerServiceRequestHref\(language, service\)/);
+  assert.match(card, /service\.detailHref\[language\]/);
+  assert.match(card, /confirms fit, scope, price and availability before work begins/);
 });
 
 test("Ask WitnessOps presents the paid commercial-fit contract", () => {
@@ -115,7 +115,7 @@ test("Ask WitnessOps presents the paid commercial-fit contract", () => {
 
 test("Ask WitnessOps loading copy stays provider-neutral", () => {
   const content = source("docs-assistant-loading-status.tsx");
-  assert.match(content, /Checking public WitnessOps material/);
+  assert.match(content, /Responding/);
   assert.doesNotMatch(content, /Searching docs/);
   assert.doesNotMatch(content, /Calling OpenAI/);
 });
@@ -196,9 +196,9 @@ test("Ask WitnessOps cleans up after the client link handler while retaining tem
 test("Ask WitnessOps keeps a human handoff available alongside the composer and after failure", () => {
   const widget = source("docs-assistant-widget.tsx");
   const contact = source("docs-assistant-contact-handoff.tsx");
-  assert.match(widget, /\{!contactMode && \(/);
+  assert.match(widget, /\{!contactMode && !freeCheckIntake && \(/);
   assert.doesNotMatch(widget, /!contactMode && !answer/);
-  assert.match(widget, /Request a follow-up/);
+  assert.match(widget, /Prepare my request/);
   assert.match(widget, /Retry question/);
   assert.match(widget, /\s+expanded\s+/);
   assert.match(widget, /proposedBrief=\{proposedBrief\}/);
@@ -208,8 +208,8 @@ test("Ask WitnessOps keeps a human handoff available alongside the composer and 
   assert.match(widget, /onBusyChange=\{handleContactBusyChange\}/);
   assert.match(widget, /data\.status === "success" && data\.commercial_fit\.result !== "blocked"\s*\? trimmed\s*: undefined/);
   assert.match(contact, /Work email/);
-  assert.match(contact, /Use my questions as the request summary/);
-  assert.match(contact, /\[includeQuestion, setIncludeQuestion\] = useState\(false\)/);
+  assert.match(contact, /Use this editable draft as my request summary/);
+  assert.match(contact, /\[includeQuestion, setIncludeQuestion\] = useState\(Boolean\(proposedBrief\)\)/);
   assert.match(contact, /AI answers are not shared/);
   assert.match(contact, /\/api\/contact/);
   assert.match(contact, /\/api\/verify-token/);
@@ -296,43 +296,17 @@ test("Ask WitnessOps keeps answer, unavailable, and evidence-boundary states dis
   );
 });
 
-test("Ask WitnessOps full page uses mobile document flow and desktop scrolling", () => {
+test("Ask dedicated page uses one bounded history scroll region and accessible reply navigation", () => {
   const content = source("docs-assistant-page.tsx");
-
-  assert.match(content, /min-h-\[calc\(100vh-13rem\)\]/);
-  assert.match(content, /md:h-\[calc\(100vh-13rem\)\]/);
-  assert.match(
-    content,
-    /overflow-visible md:min-h-0 md:flex-1 md:overflow-y-auto/,
-  );
-  assert.match(
-    content,
-    /gap-4 px-4 py-6 text-center md:h-full md:gap-6 md:py-0/,
-  );
-  assert.doesNotMatch(
-    content,
-    /flex h-\[calc\(100vh-13rem\)\] flex-col/,
-  );
-  assert.doesNotMatch(
-    content,
-    /flex h-full flex-col items-center justify-center gap-6/,
-  );
-  assert.match(content, /ref=\{conversationRef\}/);
-  assert.match(content, /window\.matchMedia\("\(min-width: 48rem\)"\)\.matches/);
-  assert.match(content, /prefers-reduced-motion: reduce/);
-  assert.match(content, /conversation\.scrollTo\(\{/);
-  assert.match(content, /top: conversation\.scrollHeight/);
-  assert.match(content, /behavior: reduceMotion \? "auto" : "smooth"/);
-  assert.doesNotMatch(content, /scrollIntoView/);
-  assert.match(
-    content,
-    /className="sr-only" aria-live="polite" aria-atomic="true"/,
-  );
-  assert.match(content, /\{latestAssistantAnnouncement\}/);
-  assert.doesNotMatch(
-    content,
-    /ref=\{conversationRef\}[\s\S]{0,180}aria-live=/,
-  );
+  assert.match(content, /max-w-\[768px\]/);
+  assert.equal((content.match(/overflow-y-auto/g) ?? []).length, 1);
+  assert.match(content, /<textarea/);
+  assert.match(content, /event.shiftKey/);
+  assert.match(content, /event.nativeEvent.isComposing/);
+  assert.match(content, /New reply ↓/);
+  assert.match(content, /useConversationFollow/);
+  assert.match(source("use-conversation-follow.ts"), /following.current/);
+  assert.match(content, /className="sr-only" aria-live="polite" aria-atomic="true"/);
 });
 
 test("mobile launcher is compact and is not hidden by route or footer blanket rules", () => {

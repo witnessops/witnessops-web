@@ -1,3 +1,4 @@
+import { contextualSuggestions, visitorStatements } from "@/lib/docs-assistant/conversation-guidance";
 import { BUYER_SERVICES, type BuyerService } from "@/lib/buyer-services";
 import { keepRecentAskHistory, type AskConversationMessage } from "@/lib/docs-assistant/conversation-contract";
 import { askWitnessOpsAnswerText, type AskWitnessOpsUiAnswer } from "./ask-witnessops-response";
@@ -22,7 +23,7 @@ export function subscribeAskConversation(listener: () => void) {
 
 export function rememberAskTurn(question: string, answer: AskWitnessOpsUiAnswer) {
   if (answer.status !== "success" || answer.commercial_fit.result === "blocked" || answer.fallback_reason) return;
-  turns = [...turns, { question: question.trim().slice(0, 2_000), answer }].slice(-3);
+  turns = [...turns, { question: question.trim().slice(0, 2_000), answer }].slice(-12);
   listeners.forEach((listener) => listener());
 }
 
@@ -32,18 +33,32 @@ export function clearAskConversation() {
 }
 
 export function askConversationHistory(completed: readonly AskCompletedTurn[]): AskConversationMessage[] {
-  return keepRecentAskHistory(completed.flatMap(({ question, answer }) => [
+  const pairs = completed.flatMap(({ question, answer }) => [
     { role: "user" as const, content: question },
-    {
-      role: "assistant" as const,
-      content: `${askWitnessOpsAnswerText(answer)}${answer.recommendation ? `\nSuggested service: ${answer.recommendation.name}` : ""}`.slice(0, 4_000),
-    },
-  ]));
+    { role: "assistant" as const, content: askWitnessOpsAnswerText(answer).slice(0, 4_000) },
+  ]);
+  if (completed.length <= 3) return keepRecentAskHistory(pairs);
+  // Keep the existing six-message / 6,000-character API boundary. Older context
+  // is inspectable quoted visitor material, not a hidden model-generated memory.
+  const older = completed.slice(0, -2);
+  const context = askConversationContext(older);
+  const questions = older.map(({ answer }) => askWitnessOpsAnswerText(answer).match(/[^.!?]*\?/g)?.join(" ") ?? "").join(" ").trim().slice(0, 1_000);
+  return keepRecentAskHistory([
+    { role: "user", content: context },
+    { role: "assistant", content: questions || "Earlier answers omitted; no factual authority is implied." },
+    ...pairs.slice(-4),
+  ]);
+}
+
+export function askConversationContext(completed: readonly AskCompletedTurn[]): string {
+  return "Earlier visitor statements, in order; later corrections take precedence:\n" +
+    visitorStatements(completed.map(({ question }) => question)).join("\n").slice(0, 1_850);
+
 }
 
 /** Only the visitor's accepted words may be proposed for a human handoff. */
 export function askConversationBrief(completed: readonly AskCompletedTurn[]): string {
-  return completed.map(({ question }) => question).join("\n\n").slice(0, 1_000);
+  return visitorStatements(completed.map(({ question }) => question)).join("\n").slice(0, 1_000);
 }
 
 export function askPageService(pathname: string): BuyerService | undefined {
@@ -52,28 +67,23 @@ export function askPageService(pathname: string): BuyerService | undefined {
 }
 
 export function askGuidedQuestions(service?: BuyerService) {
-  if (service) return [
-    { label: "What do I get?", detail: "Deliverables and scope", question: `What do we receive from ${service.name.en}?` },
-    { label: "Price and timing", detail: "Fee and delivery", question: `What does ${service.name.en} cost and how long does it take?` },
-    { label: "Is this right for us?", detail: "Find out if it fits", question: `Who is ${service.name.en} for, and when is it not a fit?` },
-  ];
+  void service; // Starters describe situations; the page still supplies a service hint to the API.
   return [
-    { label: "What does an agent review cover?", detail: "Scope and deliverables", question: "What does an Agent Action Security Review cover, and what do we receive?" },
-    { label: "How do you check a result?", detail: "Evidence and limitations", question: "How does WitnessOps check a result, and what does the evidence establish?" },
-    { label: "Can you review one server?", detail: "System security", question: "Can you review one Linux server, and what are the scope and price?" },
-    { label: "Can you diagnose a broken workflow?", detail: "Diagnosis and repair", question: "How do diagnosis and repair work for a broken workflow, and what do they cost?" },
+    { label: "An automation stopped working", detail: "", question: "An automation stopped working." },
+    { label: "We're launching an AI agent", detail: "", question: "We're launching an AI agent." },
+    { label: "A customer needs security evidence", detail: "", question: "A customer needs security evidence." },
+    { label: "I want to check a server", detail: "", question: "I want to check a server." },
+    { label: "Check my public exposure", detail: "", question: "Can you check my website externally?" },
   ];
 }
 
 export function askFollowUpQuestions(answer?: AskWitnessOpsUiAnswer, service?: BuyerService) {
-  const serviceId = answer?.recommendation?.service_id;
-  const selected = BUYER_SERVICES.find((item) => item.id === serviceId) ?? service;
-  if (selected) return [
-    { label: "What should we prepare?", question: `What should we prepare for ${selected.name.en}, without sharing secrets here?` },
-    { label: "Is this right for us?", question: `Help me decide whether ${selected.name.en} fits our situation. Ask one useful question.` },
-  ];
-  return [
-    { label: "Help me choose", question: "Help me choose a WitnessOps service. Ask one useful question about our situation." },
-    { label: "What happens next?", question: "What happens when I request a service from WitnessOps?" },
-  ];
+  void service; // Retain the existing call signature; page context no longer creates generic chips.
+  return contextualSuggestions(answer ? askWitnessOpsAnswerText(answer) : "")
+    .map((label) => ({ label, question: label }));
+}
+
+export function shouldShowServiceCard(completed: readonly AskCompletedTurn[], index: number) {
+  const id = completed[index]?.answer.recommendation?.service_id;
+  return Boolean(id && completed[index - 1]?.answer.recommendation?.service_id !== id);
 }

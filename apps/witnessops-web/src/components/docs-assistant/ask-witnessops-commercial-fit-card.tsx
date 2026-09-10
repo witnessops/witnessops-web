@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { BUYER_SERVICES, buyerServiceRequestHref } from "@/lib/buyer-services";
+import type { AskLanguage } from "@/lib/docs-assistant/conversation-guidance";
 
 import { PRIMARY_OFFER, AUTOMATION_REPAIR_OFFER } from "@/lib/commercial-truth";
 import type { AskWitnessOpsUiAnswer } from "./ask-witnessops-response";
@@ -6,6 +8,8 @@ import type { AskWitnessOpsUiAnswer } from "./ask-witnessops-response";
 interface Props {
   answer: AskWitnessOpsUiAnswer;
   compact?: boolean;
+  showRequestAction?: boolean;
+  language?: AskLanguage;
   onRequestScope?: () => void;
   onOfferSelected?: () => void;
 }
@@ -16,40 +20,44 @@ const SPECIMEN_HREF =
 export function AskWitnessOpsCommercialFitCard({
   answer,
   compact = false,
+  showRequestAction = true,
+  language = "en",
   onRequestScope,
   onOfferSelected,
 }: Props) {
   if (answer.schema === "witnessops.ask.generated-answer.v1") {
     const recommendation = answer.recommendation;
     if (!recommendation) return null;
+    const service = BUYER_SERVICES.find((item) => item.id === recommendation.service_id)!;
+    const pl = language === "pl";
     return (
       <section
         className={compact ? "mt-4 border-t border-surface-border pt-4" : "mt-5 rounded border border-surface-border p-4"}
         aria-label="Suggested service"
       >
-        <p className="text-xs font-semibold text-brand-accent">A practical next step</p>
-        <h3 className="mt-2 text-base font-semibold text-text-primary">{recommendation.name}</h3>
-        <p className="mt-2 text-sm font-semibold text-text-primary">{recommendation.price_label}</p>
-        <p className="mt-1 text-xs leading-relaxed text-text-muted">{recommendation.delivery_label}</p>
-        {recommendation.service_id === AUTOMATION_REPAIR_OFFER.id ? <p className="mt-2 text-sm leading-6 text-text-secondary">{AUTOMATION_REPAIR_OFFER.repairPrice.en}. You can stop after diagnosis.</p> : null}
+        <p className="text-xs font-semibold text-brand-accent">{pl ? "Praktyczny następny krok" : "A practical next step"}</p>
+        <h3 className="mt-2 text-base font-semibold text-text-primary">{service.name[language]}</h3>
+        <p className="mt-2 text-sm font-semibold text-text-primary">{service.pricingVisible === false ? service.availability?.label[language] : service.price[language]}</p>
+        <p className="mt-1 text-xs leading-relaxed text-text-muted">{service.timing[language]}</p>
+        {recommendation.service_id === AUTOMATION_REPAIR_OFFER.id ? <p className="mt-2 text-sm leading-6 text-text-secondary">{AUTOMATION_REPAIR_OFFER.repairPrice[language]}. {pl ? "Możesz zakończyć po diagnozie." : "You can stop after diagnosis."}</p> : null}
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-          {onRequestScope ? (
+          {showRequestAction && (onRequestScope ? (
             <button type="button" onClick={() => { onOfferSelected?.(); onRequestScope(); }} data-ask-primary-cta
-              className="inline-flex min-h-11 items-center justify-center rounded bg-brand-accent px-3 py-2 text-sm font-semibold text-text-inverse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
-              Discuss this service
+              className="inline-flex min-h-11 items-center justify-center rounded border border-surface-border px-3 py-2 text-sm font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+              {pl ? "Przygotuj moją prośbę" : "Prepare my request"}
             </button>
           ) : (
-            <Link href={recommendation.request_href} onClick={onOfferSelected} data-ask-primary-cta
-              className="inline-flex min-h-11 items-center justify-center rounded bg-brand-accent px-3 py-2 text-sm font-semibold text-text-inverse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
-              Discuss this service
+            <Link href={buyerServiceRequestHref(language, service)} onClick={onOfferSelected} data-ask-primary-cta
+              className="inline-flex min-h-11 items-center justify-center rounded border border-surface-border px-3 py-2 text-sm font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+              {pl ? "Przygotuj moją prośbę" : "Prepare my request"}
             </Link>
-          )}
-          <Link href={recommendation.detail_href} onClick={onOfferSelected}
+          ))}
+          <Link href={service.detailHref[language] ?? service.detailHref.en!} onClick={onOfferSelected}
             className="inline-flex min-h-11 items-center justify-center px-3 py-2 text-sm text-brand-accent underline underline-offset-4">
-            See scope
+            {pl ? "Zobacz zakres" : "See scope"}
           </Link>
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-text-muted">We confirm fit, scope and price before work begins.</p>
+        <p className="mt-3 text-xs leading-relaxed text-text-muted">{pl ? "Człowiek potwierdza zakres, cenę i dostępność przed rozpoczęciem pracy." : "A person confirms fit, scope, price and availability before work begins."}</p>
       </section>
     );
   }

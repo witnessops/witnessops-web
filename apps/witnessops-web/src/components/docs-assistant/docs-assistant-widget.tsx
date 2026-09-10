@@ -21,6 +21,8 @@ import {
   fetchAskWitnessOps,
   type AskWitnessOpsUiAnswer,
 } from "./ask-witnessops-response";
+import { askLanguage } from "@/lib/docs-assistant/conversation-guidance";
+import { useConversationFollow } from "./use-conversation-follow";
 import { AskFreeCheckCard } from "./ask-free-check-card";
 import { AskWitnessOpsCommercialFitCard } from "./ask-witnessops-commercial-fit-card";
 import { AskWitnessOpsReceiptMeta } from "./ask-witnessops-receipt-meta";
@@ -107,6 +109,7 @@ export function DocsAssistantWidget() {
     height: null,
     keyboardVisible: false,
   });
+  const [freeCheckIntake, setFreeCheckIntake] = useState(false);
   const [mobileModal, setMobileModal] = useState(false);
   const layerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -159,9 +162,7 @@ export function DocsAssistantWidget() {
     setFeedback(null);
   }, [pathname, closeAskPanel]);
 
-  useEffect(() => {
-    if (open && !contactMode) scrollRef.current?.scrollTo({ top: 0 });
-  }, [answerState, open, contactMode]);
+  const { reveal, resume, newReply } = useConversationFollow(scrollRef, open && !contactMode ? answerState ?? lastTurn : null);
 
   useEffect(() => {
     const mobileBoundary = window.matchMedia(MOBILE_WIDGET_MEDIA_QUERY);
@@ -516,6 +517,7 @@ export function DocsAssistantWidget() {
           aria-modal={mobileModal}
           aria-labelledby="ask-witnessops-title"
           className={styles.dialog}
+          data-ask-fresh={!answer && !loading && !contactMode || undefined}
           onClick={handleDialogLinkClick}
           data-ask-state={
             contactMode
@@ -539,7 +541,7 @@ export function DocsAssistantWidget() {
                 ASK WITNESSOPS
               </span>
               <span className={styles.chromeSubtitle}>
-                Questions about scope, evidence or pricing?
+                Tell me what happened, or what you need to check.
               </span>
             </div>
             <button
@@ -573,17 +575,16 @@ export function DocsAssistantWidget() {
                   : styles.scrollRegion
               }
             >
-              <AskFreeCheckCard />
               {!answer && !loading && (
                 <div className={styles.promptStage}>
                   <p className={styles.promptKicker}>
                     Your question · a useful next step
                   </p>
                   <h2 className={styles.promptTitle}>
-                    Questions about scope, evidence or pricing?
+                    Tell me what happened, or what you need to check.
                   </h2>
                   <p className={styles.promptCopy}>
-                    Ask about security reviews, verification or workflow repair. Start with a short description, without confidential data.
+                    I’ll help you find the right next step.
                   </p>
                   <div className={styles.guidedRows}>
                     {askGuidedQuestions(pageService).map((item, index) => (
@@ -612,18 +613,17 @@ export function DocsAssistantWidget() {
                 </div>
               )}
 
-              {answer && !loading && (
+              {answer && (
                 <div className={styles.answerStage}>
                   {previousTurns.length > 0 && (
-                    <details className={styles.earlierTurns}>
-                      <summary>Earlier in this chat ({previousTurns.length})</summary>
+                    <div className={styles.earlierTurns} aria-label="Earlier in this chat">
                       {previousTurns.map((turn, index) => (
                         <div key={index} className={styles.earlierTurn}>
                           <p><strong>You:</strong> {turn.question}</p>
                           <p><strong>AI:</strong> {askWitnessOpsAnswerText(turn.answer)}</p>
                         </div>
                       ))}
-                    </details>
+                    </div>
                   )}
                   {answer.question && <p className={styles.visitorQuestion}>{answer.question}</p>}
                   {answer.error ? (
@@ -639,7 +639,7 @@ export function DocsAssistantWidget() {
                       <button type="button" className={styles.retryButton} onClick={() => void handleAsk()} disabled={!question.trim()}>Retry question</button>
                     </section>
                   ) : (
-                    <section
+                    <section data-ask-latest
                       className={styles.answerSheet}
                       aria-label="Ask WitnessOps answer"
                     >
@@ -649,9 +649,11 @@ export function DocsAssistantWidget() {
                       </div>
                       <div className={styles.answerSheetBody}>
                         <p className={styles.answerCopy}>{answer.content}</p>
-                        {answer.answer && (
+                        {answer.answer && previousTurns.at(-1)?.answer.recommendation?.service_id !== answer.answer.recommendation?.service_id && (
                           <AskWitnessOpsCommercialFitCard
                             answer={answer.answer}
+                            showRequestAction={false}
+                            language={askLanguage(answer.question ?? "")}
                             compact
                             onOfferSelected={() => trackAskEvent("offer_selected", { surface: "widget", service_id: answer.answer?.recommendation?.service_id })}
                             onRequestScope={() => handleContactModeChange(true)}
@@ -679,6 +681,7 @@ export function DocsAssistantWidget() {
                       </div>
                     </section>
                   )}
+              {answer?.answer?.presented_sources.some((source) => source.source_id === "public.external-exposure-snapshot") && <AskFreeCheckCard onStepChange={reveal} onIntakeChange={setFreeCheckIntake} />}
                   {answer.answer?.fallback_reason === "ai_unavailable" && (
                     <div className={styles.recoveryLine}>
                       <p>The AI is temporarily unavailable. This is public guide information.</p>
@@ -715,6 +718,7 @@ export function DocsAssistantWidget() {
                   commercialFit={answer?.answer?.commercial_fit}
                   question={answer?.question}
                   proposedBrief={proposedBrief}
+                  language={askLanguage(answer?.question ?? "")}
                   serviceId={answer?.answer?.recommendation?.service_id}
                   launcherRef={contactLauncherRef}
                   onBusyChange={handleContactBusyChange}
@@ -723,7 +727,8 @@ export function DocsAssistantWidget() {
               </div>
             )}
 
-            {!contactMode && (
+            {!contactMode && newReply && <button type="button" className="min-h-11 shrink-0 text-sm underline" onClick={resume}>New reply ↓</button>}
+            {!contactMode && !freeCheckIntake && (
               <div className={styles.composer} data-ask-composer>
                 <p className={styles.safetyLine}>Do not paste secrets or private evidence.</p>
 
@@ -755,7 +760,7 @@ export function DocsAssistantWidget() {
                   </button>
                 </form>
                 <div className={styles.conversationActions}>
-                  <button ref={contactLauncherRef} type="button" onClick={() => handleContactModeChange(true)}>Request a follow-up</button>
+                  {proposedBrief.trim() && <button ref={contactLauncherRef} type="button" onClick={() => handleContactModeChange(true)}>{askLanguage(answer?.question ?? "") === "pl" ? "Przygotuj moją prośbę" : "Prepare my request"}</button>}
                   {(answer || completedTurns.length > 0) && (
                     <button type="button" onClick={handleResetAnswer} disabled={loading}>Start over</button>
                   )}

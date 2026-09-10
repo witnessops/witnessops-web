@@ -201,9 +201,10 @@ test("public Ask sends bounded follow-up history without changing current-questi
     assert.equal(body.answer_mode, "ai_assisted");
     assert.equal(body.recommendation.service_id, "one-server-security-check");
     assert.equal(body.authority_answer.policy_decision.question_class_id, "outside_approved_public_context");
-    assert.deepEqual(input.map((message) => message.role), ["developer", "user", "user"]);
+    assert.deepEqual(input.map((message) => message.role), ["developer", "user", "user", "user"]);
+    assert.match(input[2].content, /^KNOWN VISITOR QUALIFICATION FACTS/);
     assert.match(input[1].content, /I have one Linux host/);
-    assert.equal(input[2].content, "How long does that take?");
+    assert.equal(input.at(-1)?.content, "How long does that take?");
     assert.equal("history" in body, false);
   } finally { globalThis.fetch = originalFetch; }
 });
@@ -329,9 +330,11 @@ test("public Ask answers ordinary buyer questions with canonical service routing
       }) as typeof fetch;
       const result = await POST(askRequest(item.question, `203.0.113.${140 + index}`));
       const body = await result.json();
-      assert.equal(calls, 1, item.question);
-      assert.equal(body.answer_mode, "ai_assisted", item.question);
-      assert.equal(body.template.body, item.words);
+      const publishedPrice = item.question === "What does One Server Security Check cost?";
+      assert.equal(calls, publishedPrice ? 0 : 1, item.question);
+      assert.equal(body.answer_mode, publishedPrice ? "deterministic_fallback" : "ai_assisted", item.question);
+      if (publishedPrice) assert.match(body.template.body, /€950.*confirm fit and availability/);
+      else assert.equal(body.template.body, item.words);
       assert.equal(body.recommendation?.service_id ?? null, item.id);
       assert.equal(body.recommendation?.price_label, item.price);
       assert.equal(body.authority_answer.schema, "witnessops.ask.assembled-answer.v1");
@@ -847,4 +850,31 @@ test("guarantee questions receive a useful scope explanation without a model cal
     assert.doesNotMatch(payload.template.body, /commercial_fit_boundary|Boundary reason/);
     assert.equal(calls, 0);
   } finally { globalThis.fetch = originalFetch; }
+});
+
+test("refund-agent claim repair preserves the closed authority decision and never invokes the provider", async () => {
+  enableTestOpenAiRuntime();
+  const original = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = async () => { called = true; throw new Error("must not run"); };
+  try {
+    const result = await POST(askRequest("Can I tell my customer you verified our refund agent is safe?", "203.0.113.92"));
+    const body = await result.json();
+    assert.equal(result.status, 200);
+    assert.equal(body.status, "closed");
+    assert.equal(body.answer_mode, "policy_refusal");
+    assert.match(body.template.body, /No review or test has happened/);
+    assert.match(body.template.body, /exploring a review/);
+    assert.ok(body.authority_answer);
+    assert.equal(called, false);
+  } finally { globalThis.fetch = original; }
+});
+
+test('repair guarantee clarification bypasses provider improvisation after input gates', async () => {
+  enableTestOpenAiRuntime();const original=globalThis.fetch;let calls=0;
+  globalThis.fetch=async()=>{calls++;throw new Error('Provider unavailable');};
+  try {
+    const req=new Request('http://localhost/api/ask-witnessops',{method:'POST',headers:{'Content-Type':'application/json','x-forwarded-for':'203.0.113.187'},body:JSON.stringify({question:'Can you guarantee today for €250?',history:[{role:'user',content:'Our n8n workflow stopped reaching HubSpot.'},{role:'user',content:'Missing. It is live and we need it today.'}]})});
+    const r=await POST(req);const d=await r.json();assert.equal(d.status,'success');assert.equal(d.answer_mode,'deterministic_fallback');assert.equal(d.model,undefined);assert.match(d.template.body,/^No\./);assert.match(d.template.body,/€750/);assert.equal(calls,0);
+  } finally {globalThis.fetch=original;}
 });

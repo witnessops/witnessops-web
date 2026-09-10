@@ -7,6 +7,7 @@ import {
 } from "@witnessops/content/docs";
 import { getDocsSidebar } from "@witnessops/content/sidebar";
 
+import { DocsLayoutFrame } from "@/components/docs/docs-layout-frame";
 import { DocsNavbar } from "@/components/docs/docs-navbar";
 import { DocsPathExitTracker } from "@/components/docs/docs-path-exit-tracker";
 import { DocsSidebar } from "@/components/docs/docs-sidebar";
@@ -112,17 +113,9 @@ export default async function DocsLayout({
   const searchDocs = buildSearchEntries(sidebar, docs, host, docsHost);
 
   return (
-    <div className="min-h-screen">
-      <DocsPathExitTracker />
-      <DocsNavbar docs={searchDocs} />
-
-      <div className="flex min-h-screen">
-        <DocsSidebar sections={publicSidebar} />
-
-        <div className="min-w-0 flex-1 px-6 py-10 lg:px-12 lg:py-12">
-          {children}
-        </div>
-      </div>
-    </div>
+    <DocsLayoutFrame
+      navigation={<><DocsPathExitTracker /><DocsNavbar docs={searchDocs} /></>}
+      sidebar={<DocsSidebar sections={publicSidebar} />}
+    >{children}</DocsLayoutFrame>
   );
 }

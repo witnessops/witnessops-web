@@ -49,8 +49,11 @@ export function ExternalExposureWorkspace() {
     try {
       const host = normalizeAskHostname(params.get('hostname')!);
       setHostname(host);
-      setAskContext(takeAskCheck(window.sessionStorage, host));
-      requestAnimationFrame(() => runButton.current?.focus());
+      const context = takeAskCheck(window.sessionStorage, host);
+      setAskContext(context);
+      // Defer until after mount cleanup/replay; the consumed marker is never retried.
+      if (context) queueMicrotask(() => { void collect(host); });
+      else requestAnimationFrame(() => runButton.current?.focus());
     } catch { /* The normal hostname form remains available. */ }
   }, []);
   useEffect(() => {
@@ -72,6 +75,9 @@ export function ExternalExposureWorkspace() {
   }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    await collect(hostname);
+  }
+  async function collect(target: string) {
     if (active.current) return;
     const id = ++sequence.current;
     const controller = new AbortController();
@@ -83,7 +89,7 @@ export function ExternalExposureWorkspace() {
     try {
       const response = await fetch('/api/external-exposure', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hostname }), cache: 'no-store', signal: controller.signal,
+        body: JSON.stringify({ hostname: target }), cache: 'no-store', signal: controller.signal,
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(typeof payload.error === 'string' ? payload.error : 'The snapshot could not be completed.');
