@@ -1,3 +1,4 @@
+import { BUYER_SERVICES, buyerServiceRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
@@ -21,7 +22,7 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"]):visible',
 ].join(", ");
 
-const askWorkflowFitResponse = {
+const askWorkflowAuthority = {
   schema: "witnessops.ask.assembled-answer.v1",
   status: "success",
   answer_mode: "deterministic_fallback",
@@ -55,6 +56,32 @@ const askWorkflowFitResponse = {
     canonical_href: "https://witnessops.com/catalog/workflows",
     href_class: "same_site",
   }],
+} as const;
+
+const agentService = BUYER_SERVICES.find(service => service.id === "bounded-workflow-review")!;
+const agentRequest = new URL(buyerServiceRequestHref("en", agentService), "https://witnessops.com");
+agentRequest.searchParams.set("source", "ask");
+const askWorkflowFitResponse = {
+  ...askWorkflowAuthority,
+  schema: "witnessops.ask.generated-answer.v1",
+  answer_mode: "ai_assisted",
+  model: "gpt-5.4-mini",
+  template: { template_id: "answer.public_ai.v1", body: "A review can examine the controls for the agent you are launching. No evidence was reviewed in this chat.", source_display: null },
+  authority_answer: {
+    ...askWorkflowAuthority,
+    assembler_contract_id: "ASK_DETERMINISTIC_ANSWER_ASSEMBLER_V1",
+    assembler_contract_version: 1,
+    deterministic_replay_hash: "ui-proof-local-fixture",
+    policy_decision: { template_id: askWorkflowAuthority.template.template_id },
+  },
+  recommendation: {
+    service_id: agentService.id,
+    name: agentService.name.en,
+    price_label: agentService.price.en,
+    delivery_label: agentService.timing.en,
+    detail_href: agentService.detailHref.en,
+    request_href: `${agentRequest.pathname}${agentRequest.search}`,
+  },
 } as const;
 
 async function fulfillAskTelemetry(route: Route): Promise<boolean> {
@@ -338,7 +365,7 @@ test("mobile Ask offers a human reply and source navigation without a stale over
     askRequests += 1;
     expect(route.request().method()).toBe("POST");
     expect(route.request().postDataJSON()).toEqual({
-      question: "What does an Agent Action Security Review cover, and what do we receive?",
+      question: "We're launching an AI agent.",
       history: [],
     });
     await route.fulfill({
@@ -359,32 +386,32 @@ test("mobile Ask offers a human reply and source navigation without a stale over
 
   await page
     .getByRole("button", {
-      name: "What does an agent review cover?",
+      name: "We're launching an AI agent",
     })
     .click();
-  const fit = page.getByRole("region", { name: "Commercial fit", exact: true });
+  const fit = page.getByRole("region", { name: "Suggested service", exact: true });
   await expect(fit).toContainText("€2,500 fixed · excluding VAT");
   await expect(fit).toContainText("Within 10 working days after evidence rules are agreed");
-  await expect(fit).toContainText("No evidence was reviewed");
+  await expect(page.locator("main")).toContainText("No evidence was reviewed");
+  await expect(fit).toContainText("A person confirms fit, scope, price and availability before work begins.");
   await expect(page.getByLabel("Ask WitnessOps question")).toBeVisible();
   await expect(page.getByLabel("Ask WitnessOps question")).toHaveAttribute("placeholder", "Ask a follow-up…");
-  await fit.getByRole("button", { name: "Request scope for this action", exact: true }).click();
+  await page.getByRole("button", { name: "Prepare my request", exact: true }).click();
 
   await expectPath(page, "/docs/assistant");
   const contact = page.locator("[data-ask-contact-region]");
-  await expect(contact.getByRole("heading", { name: "Request a follow-up" })).toBeVisible();
+  await expect(contact.getByRole("heading", { name: "Prepare my request" })).toBeVisible();
   await expect(contact).toContainText("Agent Action Security Review");
   await expect(contact.getByLabel("Work email")).toBeFocused();
-  await expect(contact.getByRole("checkbox", { name: "Use my questions as the request summary." })).not.toBeChecked();
-  await expect(contact.getByLabel(/^Request summary/)).toHaveValue("");
+  await expect(contact.getByRole("checkbox", { name: "Use this editable draft as my request summary." })).toBeChecked();
+  await expect(contact.getByLabel(/^Draft request/)).toHaveValue("We're launching an AI agent.");
+  await expect(contact.getByRole("button", { name: "Send confirmation code" })).toBeDisabled();
   await expect(contact).toContainText("No mailing list or review booking");
   await contact.getByRole("button", { name: "Back", exact: true }).click();
 
-  // Sources are compact until opened, and canonical in-app navigation is usable.
-  const sources = page.locator("main details").filter({ has: page.locator("summary").filter({ hasText: "Sources (1)" }) });
-  const source = sources.getByRole("link", { name: "Agent Action Security Review", exact: true });
-  await expect(source).toBeHidden();
-  await sources.locator("summary").click();
+  // Sources are directly visible beside the answer, not hidden in a disclosure.
+  const source = page.locator("main").getByRole("link", { name: "Agent Action Security Review", exact: true });
+  await expect(source).toBeVisible();
   await expect(source).toHaveAttribute("href", "/catalog/workflows");
   await source.click();
   await expectPath(page, "/catalog/workflows");
