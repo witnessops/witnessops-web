@@ -218,22 +218,22 @@ export default function SbomCisa2026SamplePage() {
           <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-text-muted">
             Sample package lineage
           </h2>
-          <dl className="mt-4 grid gap-4 text-sm md:grid-cols-2">
+          <dl className="mt-4 grid gap-4 text-sm md:grid-cols-2 [&>div]:min-w-0">
             <div>
               <dt className="text-text-muted">Sample ID</dt>
-              <dd className="mt-1 font-mono text-text-primary">{sampleId}</dd>
+              <dd className="mt-1 [overflow-wrap:anywhere] font-mono text-text-primary">{sampleId}</dd>
             </div>
             <div>
               <dt className="text-text-muted">Source repository</dt>
-              <dd className="mt-1 font-mono text-text-primary">{sampleSourceRepository}</dd>
+              <dd className="mt-1 [overflow-wrap:anywhere] font-mono text-text-primary">{sampleSourceRepository}</dd>
             </div>
             <div>
               <dt className="text-text-muted">Package path</dt>
-              <dd className="mt-1 font-mono text-text-primary">{sampleSourcePath}</dd>
+              <dd className="mt-1 [overflow-wrap:anywhere] font-mono text-text-primary">{sampleSourcePath}</dd>
             </div>
             <div>
               <dt className="text-text-muted">Pinned commit</dt>
-              <dd className="mt-1 font-mono text-text-primary">{sampleCommitShort}</dd>
+              <dd className="mt-1 [overflow-wrap:anywhere] font-mono text-text-primary">{sampleCommitShort}</dd>
             </div>
           </dl>
           <div className="mt-5 flex flex-wrap gap-3">

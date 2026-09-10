@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { CtaButton } from "@/components/shared/cta-button";
 
@@ -19,7 +17,6 @@ export type OffsecSuiteSampleProps = {
   deliverables: readonly string[];
   boundaries: readonly string[];
   inspectFiles: readonly string[];
-  offlineVerifyHint: string;
 };
 
 export function OffsecSuiteSample({
@@ -37,7 +34,6 @@ export function OffsecSuiteSample({
   deliverables,
   boundaries,
   inspectFiles,
-  offlineVerifyHint,
 }: OffsecSuiteSampleProps) {
   const packHref = `${sampleBase}/${proofpackName}`;
   const packageHref = `${sampleBase}/${packageDir}`;
@@ -52,7 +48,7 @@ export function OffsecSuiteSample({
       data-method-only={methodOnly ? "true" : "false"}
     >
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
-        <SampleCaseBanner title={title} note={bannerNote} />
+        <SampleCaseBanner title={title} note={bannerNote} showActions={false} />
 
         <header className="mt-8 max-w-4xl border-b border-surface-border pb-12">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
@@ -81,7 +77,6 @@ export function OffsecSuiteSample({
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
             <CtaButton href="/review/request" variant="primary" label="Start a review" />
-            <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
             {catalogHref ? (
               <CtaButton href={catalogHref} variant="secondary" label="View service" />
             ) : null}
@@ -169,19 +164,13 @@ export function OffsecSuiteSample({
 
         <section className="border-b border-surface-border py-12">
           <h2 className="text-3xl font-semibold tracking-[-0.02em] text-text-primary">
-            Offline verification
+            Legacy proofpack format
           </h2>
           <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
-            {offlineVerifyHint}
-          </p>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-text-muted">
-            Trust registries for this sample are synthetic and test-only. Obtain any production
-            trust material through a channel separate from the proofpack.{" "}
-            <Link href="/verify" className="text-brand-accent underline">
-              /verify
-            </Link>{" "}
-            is for supported public receipt types; this suite sample is inspected primarily via the
-            package files and offline product verifier.
+            This sample uses an earlier proofpack format. It is not compatible with the
+            current Bundle V1 verifier. A pinned historical verifier is not presently
+            available. Downloads are preserved for historical inspection, not as a current
+            verification result.
           </p>
         </section>
 

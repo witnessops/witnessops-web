@@ -206,10 +206,10 @@ export default function LocalServerSecurityReviewSamplePage() {
               ))}
             </ul>
             <p className="text-xs leading-6 text-text-muted">
-              Offline product verifier path (suite):{" "}
-              <code className="font-mono">witnessops-local-audit verify</code> with the
-              proofpack, detached signature, and a trust registry obtained separately.{" "}
-              <code className="font-mono">valid</code> is not a host-security grade.
+              This sample uses an earlier proofpack format. It is not compatible with the
+              current Bundle V1 verifier. A pinned historical verifier is not presently
+              available. Downloads are preserved for historical inspection, not as a current
+              verification result.
             </p>
           </section>
 
@@ -227,9 +227,8 @@ export default function LocalServerSecurityReviewSamplePage() {
                 production hosts match this fixture.
               </li>
               <li>
-                Web fixture receipt is structural; full suite sample uses offline product
-                verify. A public verifier path must be named before any verification claim
-                is made. Neither sample is live customer evidence.
+                Web fixture receipt is structural; the full suite proofpack is a historical
+                artifact without an available pinned verifier. Neither sample is live customer evidence.
               </li>
             </ul>
           </section>

@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCanonicalAlternates } from "@witnessops/config";
-import { CtaButton } from "@/components/shared/cta-button";
-import { SampleCaseBanner } from "@/components/marketing/sample-case-banner";
 import { PublicContactRoute } from "@/components/marketing/public-contact-route";
 
 export const metadata: Metadata = {
@@ -26,6 +24,14 @@ export const metadata: Metadata = {
 };
 
 const sampleCases = [
+  {
+    title: "External Exposure assessment",
+    href: "/review/sample-cases/external-exposure-assessment",
+    situation: "A bounded external review is documented in a synthetic sample report.",
+    youSee: "The existing report, findings, evidence references and limits. Not a live assessment of your environment.",
+    tags: ["Synthetic sample report", "External Exposure"],
+    emphasize: true,
+  },
   {
     title: "Local server security review",
     href: "/review/sample-cases/local-server-security-review",
@@ -130,21 +136,6 @@ const sampleCases = [
   },
 ] as const;
 
-const howToUse = [
-  [
-    "Start with the situation",
-    "Each example names one bounded problem a buyer might have, not a product feature list.",
-  ],
-  [
-    "Inspect what was checked",
-    "Look for who authorized the work, what evidence is referenced, and how results are handed over.",
-  ],
-  [
-    "Read the limits",
-    "Samples are labelled. They are not live customer evidence, production verification, or certification.",
-  ],
-] as const;
-
 const nextSteps = [
   {
     title: "Verify a receipt",
@@ -171,51 +162,18 @@ export default function SampleCasesIndexPage() {
   return (
     <main id="main-content" tabIndex={-1} className="buyer-page" data-page="sample-cases-index">
       <div className="mx-auto max-w-6xl px-6 py-12 lg:py-20">
-        <SampleCaseBanner
-          note="These pages are labelled samples and illustrations for orientation only. They are not live customer artifacts, production verification results, or certifications."
-        />
-
-        <header className="mt-8 max-w-4xl border-b border-surface-border pb-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
-            Examples
-          </p>
+        <header className="max-w-4xl border-b border-surface-border pb-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">Examples</p>
           <h1 className="mt-4 text-4xl font-semibold leading-[1.03] tracking-[-0.04em] text-text-primary md:text-5xl lg:text-6xl">
             Example reviews you can inspect
           </h1>
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">
-            See how WitnessOps packages a bounded review: the situation, what was checked, which
-            evidence is referenced, and what remains unproven. Use these before you request work for
-            your own environment.
+          <p className="mt-4 max-w-3xl text-base leading-7 text-text-secondary">
+            Inspect the evidence, findings and limits of a bounded review.
+            Published sample, not live customer evidence. No production verification or certification.
           </p>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-text-muted">
-            Operator scripts and checks run inside a scoped package when useful. They are methods,
-            not a product card for every capability.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <CtaButton href="/review/request" variant="primary" label="Start a review" />
-            <CtaButton href="/verify" variant="secondary" label="Verify a receipt" />
-            <CtaButton href="/catalog" variant="secondary" label="View services" />
-          </div>
         </header>
 
-        <section className="border-b border-surface-border py-12" aria-labelledby="sample-cases-how-heading">
-          <h2
-            id="sample-cases-how-heading"
-            className="text-3xl font-semibold tracking-[-0.02em] text-text-primary"
-          >
-            How to use these pages
-          </h2>
-          <div className="mt-8 grid gap-8 md:grid-cols-3">
-            {howToUse.map(([title, body]) => (
-              <article key={title} className="border-t border-surface-border pt-4">
-                <h3 className="font-semibold text-text-primary">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-text-secondary">{body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="border-b border-surface-border py-12" aria-labelledby="sample-cases-list-heading">
+        <section className="border-b border-surface-border py-6" aria-labelledby="sample-cases-list-heading">
           <h2
             id="sample-cases-list-heading"
             className="text-3xl font-semibold tracking-[-0.02em] text-text-primary"
