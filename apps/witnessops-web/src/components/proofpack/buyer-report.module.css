@@ -99,6 +99,9 @@
     .document .prioritySummary li { grid-template-columns: minmax(0, 1fr); gap: 4px; }
 }
 @media print {
+    /* Keep the root in the report's page context: returning to an anonymous
+       page after the named report can otherwise create a blank final page. */
+    :global(html):has(.document) { page: proofpackBuyerReport; }
     @page proofpackBuyerReport { size: A4; margin: 14mm 14mm 18mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font: 7pt ui-monospace, monospace; color: #44443d; } }
     .document.document { page: proofpackBuyerReport; font-size: 10pt; line-height: 1.5; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     .document .chapter { background: #f3f1eb !important; color: #181816; margin: 0; padding: 6mm 6mm 4mm; break-before: page; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
