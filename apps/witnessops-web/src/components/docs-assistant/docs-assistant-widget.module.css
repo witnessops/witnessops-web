@@ -20,7 +20,7 @@
   position: fixed;
   right: max(1rem, env(safe-area-inset-right));
   bottom: max(1rem, env(safe-area-inset-bottom));
-  z-index: 70;
+  z-index: 40;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
@@ -37,14 +37,6 @@
 }
 
 .dialog {
-  --color-brand-accent: var(--proof-accent);
-  --color-surface-bg: var(--proof-bg);
-  --color-surface-bg-alt: var(--proof-raised);
-  --color-surface-border: var(--proof-rule);
-  --color-surface-border-strong: var(--proof-rule-strong);
-  --color-text-primary: var(--proof-ink);
-  --color-text-secondary: var(--proof-soft);
-  --color-text-muted: var(--proof-muted);
   display: flex;
   width: 100%;
   height: var(--ask-ai-mobile-height);
@@ -803,8 +795,8 @@
 
 .trigger {
   display: inline-flex;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   align-items: center;
   justify-content: center;
   gap: 0.65rem;
@@ -962,8 +954,20 @@
   .trigger:hover { background: var(--color-surface-card); color: var(--proof-accent); }
 }
 
-/* Below desktop, Ask remains available in the navigation menu without covering content. */
-@media (max-width: 63.999rem) {
-  .closedLayer { display: none; }
-}
 .closedLayer[data-focus-obscured="true"] { visibility: hidden; }
+
+/* Keep welcome content and composer within the visible panel; only history scrolls. */
+.promptKicker { display: none; }
+.promptTitle { max-width: none; margin-top: 0; font-size: 1.25rem; line-height: 1.3; }
+.promptCopy { margin-top: .5rem; font-size: .875rem; }
+.guidedRows { margin-top: .75rem; }
+.guidedRow { min-height: 44px; padding-block: .4rem; }
+.guidedDetail { display: none; }
+.guidedLabel { font-size: .875rem; }
+.composer { flex-shrink: 0; }
+.scrollRegion { overflow-anchor: none; }
+
+/* Fresh mobile welcome needs breathing room, not a full-screen empty spacer. */
+@media (max-width: 767px) {
+  .dialog[data-ask-fresh] { max-height: 650px; }
+}

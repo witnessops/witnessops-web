@@ -24,12 +24,12 @@ test("English public shell mounts the compact Ask WitnessOps launcher", () => {
   assert.match(widget, />Ask WitnessOps<\/span>/);
   assert.match(widget, />\s*AI\s*<\/span>/);
   assert.match(widget, /ASK WITNESSOPS/);
-  assert.match(widget, /Questions about scope, evidence or pricing/);
-  assert.match(widget, /Ask about security reviews, verification or workflow repair/);
-  assert.match(widget, /Questions about scope, evidence or pricing\?/);
+  assert.match(widget, /Tell me what happened/);
+  assert.match(widget, /I’ll help you find the right next step/);
+  assert.match(widget, /Tell me what happened/);
   assert.match(widget, /askGuidedQuestions\(pageService\)/);
-  assert.match(conversation, /Can you diagnose a broken workflow?/);
-  assert.match(conversation, /What does an agent review cover?/);
+  assert.match(conversation, /An automation stopped working/);
+  assert.match(conversation, /launching an AI agent/);
   assert.match(widget, /Ask AI/);
   assert.match(widget, /aria-label="Ask WitnessOps question"/);
   // Canonical offer destinations are exercised by ask-witnessops-response.test;
@@ -62,4 +62,8 @@ test("Ask WitnessOps launcher stays off dedicated and non-buyer surfaces", () =>
 
 test("dedicated Ask WitnessOps route remains available for separate gating", () => {
   assert.match(dedicatedAskPage, /<DocsAssistantPage\s*\/>/);
+});
+
+test("External check mounts Ask while the local proofpack shell stays isolated", () => {
+  assert.ok(rootLayout.includes('localWorkspace === "external-check" && <DocsAssistantWidget />'));
 });

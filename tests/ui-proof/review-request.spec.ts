@@ -47,7 +47,7 @@ test("review request routes remain responsive, accessible, and usable", async ({
     const response = await page.goto(scenario.path, { waitUntil: "networkidle" });
     expect(response?.status(), `${scenario.path} should return 200`).toBe(200);
     await expect(page.locator("main h1")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
 
     const viewport = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,

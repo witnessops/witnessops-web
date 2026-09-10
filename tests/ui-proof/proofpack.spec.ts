@@ -65,7 +65,7 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
             await expect(page.getByRole('region', { name: 'Audit summary' })).toContainText(`${completed} / ${coverage.section_results.length} complete`);
             await expect(page.getByRole('region', { name: 'Audit summary' })).toContainText('Owner decisionNot recorded');
             await expect(page.getByRole('button', { name: 'View report', exact: true })).toBeVisible();
-            await expect(page.getByRole('button', { name: 'Export buyer PDF', exact: true })).toHaveCount(1);
+            await expect(page.getByRole('button', { name: 'Save report as PDF', exact: true })).toHaveCount(1);
             const scopeToggle = page.getByRole('tabpanel').getByText('Scope from checked authority', { exact: true });
             await scopeToggle.click();
             expect(JSON.parse((await scopeToggle.locator('..').locator('pre').textContent())!)).toEqual(scope);
@@ -85,7 +85,7 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
                 await expect(page.getByRole('tabpanel').locator('summary').filter({ hasText: new RegExp(`^${section.section.replaceAll('_', ' ')}\\s*${section.complete ? 'Complete' : 'Incomplete'}$`) })).toBeVisible();
             await page.getByRole('tab', { name: 'Report', exact: true }).click();
             await expect(page.getByRole('button', { name: 'View report', exact: true })).toHaveCount(0);
-            await expect(page.getByRole('button', { name: 'Export buyer PDF', exact: true })).toHaveCount(1);
+            await expect(page.getByRole('button', { name: 'Save report as PDF', exact: true })).toHaveCount(1);
             await expectReportTypography(page);
             const downloadPromise = page.waitForEvent('download');
             await page.getByRole('button', { name: 'Download verification results', exact: true }).click();
@@ -101,9 +101,11 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
                 }).status])));
             const previewHtml = await page.getByRole('article', { name: 'Derived buyer report' }).innerHTML();
             await page.evaluate(() => { window.print = () => { document.documentElement.dataset.printRequested = 'true'; }; });
-            await page.getByRole('button', { name: 'Export buyer PDF', exact: true }).click();
+            await page.getByRole('button', { name: 'Save report as PDF', exact: true }).click();
             await expect(page.locator('html')).toHaveAttribute('data-print-requested', 'true');
             await page.emulateMedia({ media: 'print' });
+            await expect(page.locator('body > [data-buyer-print-root] article')).toBeVisible();
+            expect(await page.locator('body > :not([data-buyer-print-root])').evaluateAll(elements => elements.every(element => getComputedStyle(element).display === 'none'))).toBe(true);
             await expect(page.locator('nav[aria-label="Primary navigation"]')).not.toBeVisible();
             await expect(page.locator('#site-footer')).not.toBeVisible();
             await expectReportTypography(page);
@@ -166,7 +168,7 @@ for (const name of ['complete', 'adverse', 'partial', 'tampered', 'wrong-registr
         }
         else {
             await expect(page.getByRole('heading', { name: 'Package checks did not pass', exact: true })).toBeVisible();
-            await expect(page.getByRole('button', { name: 'Export buyer PDF' })).toHaveCount(0);
+            await expect(page.getByRole('button', { name: 'Save report as PDF' })).toHaveCount(0);
             const downloadPromise = page.waitForEvent('download');
             await page.getByRole('button', { name: 'Download diagnostics', exact: true }).click();
             const downloaded = await downloadPromise;
@@ -226,7 +228,7 @@ test('one-file intake shows independent trust and rejects stale reports on valid
     await chooser.setInputFiles(invalid);
     await expect(page.getByRole('article', { name: 'Derived buyer report' })).toHaveCount(0);
     await expect(page.getByRole('tablist')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Export buyer PDF' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Save report as PDF' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Verify locally', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Package checks did not pass' })).toBeVisible();
     await expect(page.getByRole('article', { name: 'Derived buyer report' })).toHaveCount(0);

@@ -40,7 +40,7 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   await expect(page.getByRole('navigation', { name: 'Primary navigation', exact: true })).toBeVisible();
   await expect(page.locator('#site-footer')).toBeVisible();
   await expect(page.locator('script[src*="witnessops-manual"]')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Ask WitnessOps', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Ask WitnessOps', exact: true })).toBeVisible();
   expect(await page.evaluate(async () => {
     const inter = await document.fonts.load('400 16px Inter');
     const mono = await document.fonts.load('500 14px "IBM Plex Mono"');
@@ -116,7 +116,7 @@ test('source download and the immutable report use the same identity and print d
   const desktopWidth = await page.evaluate(() => document.documentElement.clientWidth);
   expect(await report.boundingBox()).toMatchObject({ x: (desktopWidth - 960) / 2, width: 960 });
   const before = await report.innerHTML();
-  await page.getByRole('button', { name: 'Export PDF', exact: true }).click();
+  await page.getByRole('button', { name: 'Save report as PDF', exact: true }).click();
   expect(await page.evaluate(() => (window as unknown as { __snapshotPrints: number }).__snapshotPrints)).toBe(1);
   expect(await report.innerHTML()).toBe(before);
   await page.screenshot({ path: testInfo.outputPath('report-desktop.png'), fullPage: true });
@@ -125,7 +125,8 @@ test('source download and the immutable report use the same identity and print d
   await expect(page.locator('#site-footer')).not.toBeVisible();
   await expect(page.getByRole('form', { name: 'Run an external exposure snapshot' })).not.toBeVisible();
   await expect(report).toBeVisible();
-  await expectChapterTypography();
+  // The print root uses the report's 27pt heading, not the workspace's 27px override.
+  await expect(chapterHeading).toHaveCSS('font-size', '36px');
   expect(await report.innerHTML()).toBe(before);
   expect(await report.locator('[class*="chapterFooter"]').evaluateAll(elements =>
     elements.map(element => getComputedStyle(element).display !== 'none'))).toEqual([true, false, false, false, false]);
@@ -220,7 +221,7 @@ for (const rejection of [
   await expect(page.getByRole('article', { name: 'Derived buyer report' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Run free check', exact: true }).click();
   await expect(page.getByRole('form', { name: 'Run an external exposure snapshot' }).getByRole('alert')).toHaveText(rejection.error);
-  await expect(page.getByRole('button', { name: 'Export PDF', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Save report as PDF', exact: true })).toHaveCount(0);
   await page.getByLabel('Public hostname', { exact: true }).fill('example.com');
   await expect(page.getByRole('form', { name: 'Run an external exposure snapshot' }).getByRole('alert')).toHaveCount(0);
   await page.route('**/api/external-exposure', route => route.fulfill({ status: 200, json: payload }));

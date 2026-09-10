@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { unsupportedClaimRepair } from "@/lib/docs-assistant/conversation-guidance";
 import { normalizeAskRequest } from "@/lib/server/ask-witnessops/ask-request-normalizer";
 import { classifyQuestion } from "@/lib/server/ask-witnessops/authority-classifier";
 import { executePolicy } from "@/lib/server/ask-witnessops/authority-policy-executor";
@@ -13,7 +14,7 @@ import {
   evaluateDocsAssistantRefusalPolicy,
 } from "@/lib/docs-assistant/refusal-policy";
 import { readAskWitnessOpsOpenAiRuntimeConfig } from "@/lib/docs-assistant/runtime-config";
-import { runPublicAskRuntime } from "@/lib/server/ask-witnessops/public-answer-runtime";
+import { catalogueClarification, runPublicAskRuntime } from "@/lib/server/ask-witnessops/public-answer-runtime";
 import type { DocsAssistantAnswer } from "@/lib/docs-assistant/answer-contract";
 import { enforcePublicIntakeRateLimit } from "@/lib/server/public-intake-rate-limit";
 import { isAskTelemetryRequest, recordAskTelemetry } from "@/lib/server/ask-witnessops/ask-telemetry";
@@ -163,6 +164,7 @@ export async function POST(request: Request) {
         withCommercialFit(
           withPublicBoundaryResponse({
             deterministicAnswer,
+            question: commercialFit.result === "not_fit" ? normalized.request.question : undefined,
             docsAnswer: buildCommercialInputBoundaryAnswer(commercialFit),
             templateId: "boundary.public_input.v1",
             failureReason: "PUBLIC_INPUT_BOUNDARY",
@@ -233,7 +235,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const generatedAnswer = await runPublicAskRuntime({
+    const catalogueAnswer = catalogueClarification(normalized.request);
+    const generatedAnswer = catalogueAnswer ?? await runPublicAskRuntime({
       ...normalized.request,
       config,
     });
@@ -255,11 +258,11 @@ export async function POST(request: Request) {
         {
           schema: "witnessops.ask.generated-answer.v1",
           status: "success",
-          answer_mode: "ai_assisted",
-          model: config.model,
+          answer_mode: catalogueAnswer ? "deterministic_fallback" : "ai_assisted",
+          model: catalogueAnswer ? undefined : config.model,
           authority_answer: deterministicAnswer,
           template: {
-            template_id: "answer.public_ai.v1",
+            template_id: catalogueAnswer ? "answer.public_catalogue.v1" : "answer.public_ai.v1",
             body: generatedAnswer.text,
             source_display: null,
           },
@@ -347,7 +350,9 @@ function withPublicBoundaryResponse(args: {
   docsAnswer: DocsAssistantAnswer;
   templateId?: string;
   failureReason?: string;
+  question?: string;
 }) {
+  const repair = args.question ? unsupportedClaimRepair(args.question) : null;
   return {
     schema: "witnessops.ask.public-boundary-response.v1" as const,
     answer_mode: "policy_refusal" satisfies AskWitnessOpsAnswerMode,
@@ -356,10 +361,10 @@ function withPublicBoundaryResponse(args: {
     // so no V1 template/hash/route provenance is rewritten in place.
     authority_answer: args.deterministicAnswer,
     template: {
-      template_id: args.templateId ?? "refuse.public_material_boundary.v1",
-      body: args.docsAnswer.unsupported_reason === "commercial_fit_boundary"
+      template_id: repair ? "boundary.refund_claim_repair.v1" : args.templateId ?? "refuse.public_material_boundary.v1",
+      body: repair ?? (args.docsAnswer.unsupported_reason === "commercial_fit_boundary"
         ? "That request falls outside our review services. We can assess a defined action or system and explain findings and limitations, but cannot provide a security guarantee, certification or active incident response."
-        : docsAssistantAnswerText(args.docsAnswer),
+        : docsAssistantAnswerText(args.docsAnswer)),
       source_display: "Public WitnessOps material",
     },
     route: null,

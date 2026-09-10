@@ -1,0 +1,11 @@
+.root { display: none; }
+@media print {
+  /* One structural boundary excludes all current and future website chrome. */
+  :global(body):has(> .root) > :not(.root) { display: none !important; }
+  :global(html):has(.root), :global(body):has(> .root) {
+    display: block !important; background: white !important; color: #181816 !important;
+    color-scheme: light !important; margin: 0 !important; padding: 0 !important;
+    height: auto !important; min-height: 0 !important; overflow: visible !important;
+  }
+  .root { display: block !important; margin: 0; padding: 0; }
+}

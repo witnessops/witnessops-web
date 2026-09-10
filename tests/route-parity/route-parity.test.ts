@@ -6,7 +6,7 @@ import test from "node:test";
 const repoRoot = resolve(__dirname, "../..");
 const baselineRoot = __dirname;
 
-const addedOfferRoutes = ["/catalog/automation-repair", "/check", "/pl/catalog/automation-repair", "/proofpack"] as const;
+const addedOfferRoutes = ["/catalog/automation-repair", "/check", "/pl/catalog/automation-repair", "/proofpack", "/research", "/research/reading-a-public-exposure-snapshot"] as const;
 
 function loadJson(path: string) {
   return JSON.parse(readFileSync(path, "utf-8")) as unknown;
@@ -24,7 +24,7 @@ test("routes-manifest matches the frozen baseline", () => {
   const additions = manifest.staticRoutes.filter(route => addedOfferRoutes.some(path => path === route.page));
   assert.deepEqual(additions.map(route => route.page), [...addedOfferRoutes]);
   for (const route of additions) {
-    const pattern = `^${route.page.replace("automation-repair", "automation\\-repair")}(?:/)?$`;
+    const pattern = `^${route.page.replaceAll("-", "\\-")}(?:/)?$`;
     assert.deepEqual(route, { page: route.page, regex: pattern, routeKeys: {}, namedRegex: pattern });
   }
   const proofpackHeaders = manifest.headers.filter(header => header.source === "/proofpack");
@@ -56,7 +56,7 @@ test("app-paths-manifest matches the frozen baseline", () => {
   );
 
   const manifest = { ...(actual as Record<string, string>) };
-  for (const route of ["/(marketing)/catalog/automation-repair/page", "/pl/catalog/automation-repair/page", "/proofpack/page", "/check/page", "/api/external-exposure/route"]) {
+  for (const route of ["/(marketing)/catalog/automation-repair/page", "/pl/catalog/automation-repair/page", "/proofpack/page", "/check/page", "/api/external-exposure/route", "/research/page", "/research/reading-a-public-exposure-snapshot/page"]) {
     assert.equal(manifest[route], `app${route}.js`);
     delete manifest[route];
   }

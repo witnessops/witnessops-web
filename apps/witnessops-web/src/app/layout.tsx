@@ -88,6 +88,7 @@ export default async function RootLayout({
               <Footer {...content.footer} />
             </DocumentNavigation>
           </div>
+          {localWorkspace === "external-check" && <DocsAssistantWidget />}
         </body>
       </html>
     );

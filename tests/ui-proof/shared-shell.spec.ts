@@ -485,7 +485,7 @@ test("mobile review request keeps the conversion form clear and legible", async 
 
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("heading", { name: "Tell us what you need reviewed" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Open Ask WitnessOps" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
 
     const headerGeometry = await page.locator("nav.public-shell").evaluate((nav) => {
       const logo = nav.querySelector<HTMLElement>('a[aria-label="WitnessOps home"]');

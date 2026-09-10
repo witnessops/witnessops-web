@@ -34,6 +34,8 @@ const CONTACT_PANEL_ID = "ask-witnessops-contact-handoff";
 
 export function DocsAssistantContactHandoff({
   expanded,
+  initialEmail = "",
+  language = "en",
   commercialFit,
   question,
   proposedBrief,
@@ -44,6 +46,8 @@ export function DocsAssistantContactHandoff({
   onExpandedChange,
 }: {
   expanded: boolean;
+  initialEmail?: string;
+  language?: "en" | "pl";
   commercialFit?: AskWitnessOpsCommercialFit;
   question?: string;
   proposedBrief?: string;
@@ -53,9 +57,9 @@ export function DocsAssistantContactHandoff({
   onBusyChange?: (busy: boolean) => void;
   onExpandedChange: (expanded: boolean) => void;
 }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [note, setNote] = useState("");
-  const [includeQuestion, setIncludeQuestion] = useState(false);
+  const [includeQuestion, setIncludeQuestion] = useState(Boolean(proposedBrief));
   const [sharedQuestion, setSharedQuestion] = useState(
     (proposedBrief ?? question)?.trim().slice(0, ASK_CONTACT_QUESTION_MAX_LENGTH) ?? "",
   );
@@ -83,7 +87,7 @@ export function DocsAssistantContactHandoff({
   const wasExpandedRef = useRef(false);
 
   useEffect(() => {
-    setIncludeQuestion(false);
+    setIncludeQuestion(Boolean(proposedBrief));
     setSharedQuestion((proposedBrief ?? question)?.trim().slice(0, ASK_CONTACT_QUESTION_MAX_LENGTH) ?? "");
   }, [proposedBrief, question]);
 
@@ -125,7 +129,7 @@ export function DocsAssistantContactHandoff({
     onExpandedChange(false);
     setEmail("");
     setNote("");
-    setIncludeQuestion(false);
+    setIncludeQuestion(Boolean(proposedBrief));
     setSharedQuestion((proposedBrief ?? question)?.trim().slice(0, ASK_CONTACT_QUESTION_MAX_LENGTH) ?? "");
     setStatus("idle");
     setErrorMessage("");
@@ -332,12 +336,12 @@ export function DocsAssistantContactHandoff({
       >
         <div>
           <h2 className="text-sm font-semibold text-text-primary">
-            Request a follow-up
+            {language === "pl" ? "Przygotuj moją prośbę" : "Prepare my request"}
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-text-muted">
             {service ? (
               <>
-                About {service.name.en}. Share a short summary for a fit-and-scope reply.
+                About {service.name[language]}. Share a short summary for a fit-and-scope reply.
               </>
             ) : (
               <>
@@ -479,7 +483,7 @@ export function DocsAssistantContactHandoff({
                 disabled={status === "sending"}
                 className="h-4 w-4 shrink-0 accent-brand-accent"
               />
-              <span>Use my questions as the request summary.</span>
+              <span>Use this editable draft as my request summary.</span>
             </label>
           )}
           <div>
@@ -487,7 +491,7 @@ export function DocsAssistantContactHandoff({
               htmlFor="ask-ai-contact-note"
               className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted"
             >
-              Request summary{" "}
+              {proposedBrief ? (language === "pl" ? "Szkic prośby" : "Draft request") : "Request summary"}{" "}
               <span className="normal-case">
                 ({offerRequiresSummary ? "required" : "optional"})
               </span>

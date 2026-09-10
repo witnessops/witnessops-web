@@ -121,7 +121,7 @@ export function askWitnessOpsAnswerText(answer: AskWitnessOpsUiAnswer): string {
 
 export function askWitnessOpsModeLabel(answer: AskWitnessOpsUiAnswer): string {
   if (answer.schema === "witnessops.ask.generated-answer.v1") {
-    return "AI-generated answer";
+    return answer.answer_mode === "deterministic_fallback" ? "Published service information" : "AI-generated answer";
   }
   if (answer.answer_mode === "ai_assisted") {
     return "AI-assisted · public WitnessOps material";
@@ -297,12 +297,14 @@ function parseAssembledAnswer(payload: unknown): AskWitnessOpsUiAnswer {
 }
 
 function parseGeneratedAnswer(record: Record<string, unknown>): AskWitnessOpsUiAnswer {
+  const catalogue = record.answer_mode === "deterministic_fallback" &&
+    (record.template as Record<string, unknown> | null)?.template_id === "answer.public_catalogue.v1" && record.model === undefined;
   if (
     record.status !== "success" ||
-    record.answer_mode !== "ai_assisted" ||
+    (!catalogue && record.answer_mode !== "ai_assisted") ||
     !isCoherentNestedAuthorityAnswer(record.authority_answer) ||
-    typeof record.model !== "string" ||
-    !/^[a-zA-Z0-9._-]{1,80}$/.test(record.model)
+    (!catalogue && (typeof record.model !== "string" ||
+    !/^[a-zA-Z0-9._-]{1,80}$/.test(record.model)))
   ) {
     throw new Error("Ask WitnessOps returned an invalid generated answer.");
   }
@@ -313,9 +315,9 @@ function parseGeneratedAnswer(record: Record<string, unknown>): AskWitnessOpsUiA
   return {
     schema: "witnessops.ask.generated-answer.v1",
     status: "success",
-    answer_mode: "ai_assisted",
+    answer_mode: catalogue ? "deterministic_fallback" : "ai_assisted",
     template,
-    model: record.model,
+    model: catalogue ? undefined : record.model as string,
     route: asRoute(record.route),
     recommendation: asRecommendation(record.recommendation),
     commercial_fit: asCommercialFit(record.commercial_fit),

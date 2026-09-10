@@ -258,3 +258,78 @@ test("every AI service card retains canonical price, timing and selected inquiry
     assert.equal(answer.recommendation.request_href, expected.pathname + expected.search);
   }
 });
+
+for (const correction of ['No, nothing changed.', 'No, it is already live.', 'No, I meant the production agent, not staging.']) {
+  test(`explicit visitor correction stays separately identified after two turns: ${correction}`, () => {
+    const history = [{role:'user' as const,content:correction},{role:'assistant' as const,content:'What outcome do you need?'},{role:'user' as const,content:'Leads reaching HubSpot.'},{role:'assistant' as const,content:'What is the deadline?'},{role:'user' as const,content:'Today.'}];
+    const request = buildPublicAskResponsesRequest({question:'What should we prepare?',history,config});
+    const block = request.input.find(x => x.content.startsWith('EXPLICIT VISITOR CORRECTIONS'));
+    assert.ok(block?.content.includes(correction));
+    assert.match(block!.content,/newer corrections supersede/);
+    assert.equal(block!.role,'user');
+    assert.doesNotMatch(block!.content,/What outcome|What is the deadline/);
+  });
+}
+test('catalogue guarantee clarification needs no generated fees or provider availability', async () => {
+  const {catalogueClarification}=await import('./public-answer-runtime');
+  const answer=catalogueClarification({question:'Can you guarantee today for €250?',history:[{role:'user',content:'Our n8n workflow stopped reaching HubSpot.'},{role:'user',content:'Missing. It is live and we need it today.'}]});
+  assert.match(answer!.text,/^No\./);assert.match(answer!.text,/€250/);assert.match(answer!.text,/€750/);assert.match(answer!.text,/confirm fit and availability/);
+  assert.equal(catalogueClarification({question:'Can you guarantee today for €250?'}),null);
+});
+
+
+test("provider context carries only visitor qualification facts and no retired Free Check action", () => {
+  const request=buildPublicAskResponsesRequest({question:"What should we prepare?",history:[{role:"user",content:"Missing. It is live and we need it today."},{role:"assistant",content:"It is staging."}],config});
+  const block=request.input.find(m=>m.content.startsWith("KNOWN VISITOR QUALIFICATION FACTS"));
+  assert.ok(block);assert.equal(block.role,"user");assert.match(block.content,/lifecycle.*live/);assert.match(block.content,/deadline/);assert.doesNotMatch(block.content,/staging/);
+  assert.doesNotMatch(request.input[0].content,/Open free check/i);
+  assert.match(request.input[0].content,/application-owned progressive controls/);
+});
+
+
+test("no-change qualification reaches model context as visitor data after two later turns", () => {
+  const request=buildPublicAskResponsesRequest({question:"What should we prepare?",history:[{role:"user",content:"Nothing changed."},{role:"assistant",content:"There was a deployment."},{role:"user",content:"Missing."},{role:"assistant",content:"What deadline?"},{role:"user",content:"Today."}],config});
+  const block=request.input.find(m=>m.content.startsWith("KNOWN VISITOR QUALIFICATION FACTS"));
+  assert.ok(block);assert.equal(block.role,"user");assert.match(block.content,/no_known_change/);assert.doesNotMatch(block.content,/There was a deployment/);
+});
+
+
+test("Free Check source and shaped replies describe authorized one-action intake", async () => {
+  const {applyConversationContract}=await import('./public-answer-runtime');
+  const request=buildPublicAskResponsesRequest({question:"Can you check my website?",config});
+  assert.doesNotMatch(request.input[0].content,/Chat itself does not run checks/);
+  assert.match(request.input[0].content,/without another initiation click/);
+  for(const text of ["This chat cannot run the check here, so please use the site flow.", "I can't start the check. Open the Free Check page.", "Submit your hostname again."]) {
+    const a=normalizePublicAskResponse({output_text:JSON.stringify({answer:text,service_id:null,source_ids:["public.external-exposure-snapshot"]})})!;
+    const shaped=applyConversationContract(a,{question:"Can you check my website?"});
+    assert.match(shaped.text,/guide you through/);assert.match(shaped.text,/authorization/);
+    assert.doesNotMatch(shaped.text,/cannot run|can't start|site flow|hostname again/i);
+  }
+});
+
+for (const question of ['What does Professional Public Footprint Audit cost?', 'What is the availability of Professional Public Footprint Audit?']) {
+  test(`catalogue public visibility: ${question}`, async () => {
+    const { catalogueClarification } = await import('./public-answer-runtime');
+    const answer = catalogueClarification({question})!;
+    assert.equal(answer.recommendation?.service_id, 'professional-public-footprint-audit');
+    assert.match(answer.text, /Available by request/);
+    assert.ok(answer.text.includes(answer.recommendation!.price_label));
+    assert.doesNotMatch(JSON.stringify(answer), /€4,900/);
+  });
+}
+
+test('current explicit service, page hint, then historical referent; ambiguity never uses catalogue order', async () => {
+  const { catalogueClarification } = await import('./public-answer-runtime');
+  const agent = 'Agent Action Security Review', server = 'One Server Security Check';
+  for (const [older,current,id,price] of [[agent,server,'one-server-security-check','€950'],[server,agent,'bounded-workflow-review','€2,500']]) {
+    const answer = catalogueClarification({question:`What does ${current} cost?`,page_service_id:'automation-repair-handover',history:[{role:'user',content:older}]})!;
+    assert.equal(answer.recommendation?.service_id,id); assert.match(answer.text,new RegExp(price));
+  }
+  assert.equal(catalogueClarification({question:'How much does that cost?',history:[{role:'user',content:server}]})!.recommendation?.service_id,'one-server-security-check');
+  assert.equal(catalogueClarification({question:'How much does that cost?',page_service_id:'one-server-security-check',history:[{role:'user',content:agent}]})!.recommendation?.service_id,'one-server-security-check');
+  const hidden = catalogueClarification({question:'What does Professional Public Footprint Audit cost?',history:[{role:'user',content:agent}]})!;
+  assert.equal(hidden.recommendation?.service_id,'professional-public-footprint-audit'); assert.doesNotMatch(hidden.text,/€4,900/);
+  for (const args of [{question:`What do ${agent} and ${server} cost?`},{question:'How much does that cost?',history:[{role:'user' as const,content:`${agent} and ${server}`}]}]) {
+    const answer = catalogueClarification(args)!; assert.equal(answer.recommendation,null); assert.match(answer.text,/Which service/);
+  }
+});

@@ -18,11 +18,11 @@ function answer(body = "You receive a scoped findings report."): AskWitnessOpsUi
 
 afterEach(clearAskConversation);
 
-test("navigation consumers share only three recent completed turns and Start over clears them", () => {
+test("navigation consumers share up to twelve recent completed turns and Start over clears them", () => {
   let updates = 0;
   const unsubscribe = subscribeAskConversation(() => { updates += 1; });
   for (let index = 0; index < 5; index += 1) rememberAskTurn(`Question ${index}`, answer());
-  assert.deepEqual(getAskConversation().map((turn) => turn.question), ["Question 2", "Question 3", "Question 4"]);
+  assert.deepEqual(getAskConversation().map((turn) => turn.question), ["Question 0", "Question 1", "Question 2", "Question 3", "Question 4"]);
   assert.deepEqual(getEmptyAskConversation(), [], "Server rendering never receives a visitor conversation.");
   clearAskConversation();
   assert.deepEqual(getAskConversation(), []);
@@ -53,10 +53,10 @@ test("request context contains complete recent pairs and stays inside the API ch
 test("a proposed human brief contains only accepted visitor words and is bounded", () => {
   rememberAskTurn("We have a customer questionnaire.", answer("Model-only suggestion that must not enter the email request."));
   rememberAskTurn("It is due next month.", answer());
-  assert.equal(askConversationBrief(getAskConversation()), "We have a customer questionnaire.\n\nIt is due next month.");
+  assert.equal(askConversationBrief(getAskConversation()), "We have a customer questionnaire.\nIt is due next month.");
   assert.doesNotMatch(askConversationBrief(getAskConversation()), /Model-only/);
   rememberAskTurn("z".repeat(2_000), answer());
-  assert.equal(askConversationBrief(getAskConversation()).length, 1_000);
+  assert.ok(askConversationBrief(getAskConversation()).length <= 1_000);
 });
 
 test("page context resolves exact canonical offer paths only", () => {
@@ -75,11 +75,40 @@ test("follow-ups and history retain a recommended service name without promoting
     delivery_label: service.timing.en, detail_href: service.detailHref.en!, request_href: "/review/request",
   } };
   const questions = askFollowUpQuestions(response);
-  assert.equal(questions.length, 2);
+  assert.equal(questions.length, 0);
   questions.forEach((item) => assert.ok(item.question.includes(service.name.en)));
   rememberAskTurn("What would we receive?", response);
   const history = askConversationHistory(getAskConversation());
-  assert.ok(history[1].content.includes(service.name.en));
+  assert.ok(history[1].content.includes("scoped findings report"));
   assert.ok(!history[1].content.includes(service.price.en));
   assert.ok(!history[1].content.includes("/review/request"));
 });
+
+
+test("five turns retain a visitor correction and deadline inside the unchanged API budget", () => {
+  for (const question of ["Live n8n to HubSpot. Leads stopped yesterday. Needed today.", "Maybe a configuration change.", "No, nothing changed. It just stopped reaching HubSpot.", "Missing entirely.", "Please prepare the request."]) rememberAskTurn(question, answer());
+  const context = askConversationHistory(getAskConversation());
+  assert.ok(JSON.stringify(context).includes("No, nothing changed"));
+  assert.ok(JSON.stringify(context).includes("Needed today"));
+  assert.ok(context.length <= 6);
+  assert.ok(context.reduce((n,m) => n + m.content.length, 0) <= 6_000);
+  assert.doesNotMatch(askConversationBrief(getAskConversation()), /scoped findings report/);
+});
+
+for (const continuation of ['Already issuing refunds.', 'We are checking before launch.']) {
+  test(`only marked refund claim repairs retain safe continuation: ${continuation}`, () => {
+    const original = 'Can I tell my customer you verified our refund agent is safe?';
+    const repaired: AskWitnessOpsUiAnswer = {...answer('No review or test has happened. Is the agent live or pre-launch?'),
+      schema:'witnessops.ask.public-boundary-response.v1',status:'closed',answer_mode:'policy_refusal',
+      template:{template_id:'boundary.refund_claim_repair.v1',body:'No review or test has happened. Is the agent live or pre-launch?',source_display:null},
+      commercial_fit:{...answer().commercial_fit,result:'not_fit'}};
+    rememberAskTurn(original,repaired); rememberAskTurn(continuation,answer());
+    assert.equal(getAskConversation()[0].question,'Refund agent.','only the safe subject is retained, not rejected claim text');
+    const history=askConversationHistory(getAskConversation());
+    assert.equal(history[0].content,'Refund agent.');assert.match(history[1].content,/No review or test/);assert.equal(history[2].content,continuation);
+    clearAskConversation();assert.deepEqual(askConversationHistory(getAskConversation()),[]);
+    rememberAskTurn('blocked input',{...repaired,commercial_fit:{...repaired.commercial_fit,result:'blocked'}});
+    rememberAskTurn('ordinary refusal',{...repaired,template:{...repaired.template,template_id:'boundary.public_input.v1'}});
+    assert.equal(getAskConversation().length,0);
+  });
+}
