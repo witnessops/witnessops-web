@@ -3,6 +3,14 @@ name: Homepage Hero UI Proof
 on:
   pull_request:
     paths:
+      - "apps/witnessops-web/src/components/proofpack/**"
+      - "apps/witnessops-web/src/lib/proofpack/**"
+      - "apps/witnessops-web/src/components/external-exposure/**"
+      - "apps/witnessops-web/src/lib/external-exposure/**"
+      - "apps/witnessops-web/src/app/check/**"
+      - "apps/witnessops-web/src/app/proofpack/**"
+      - "tests/external-exposure/**"
+      - "tests/proofpack/**"
       - "apps/witnessops-web/src/components/hero/**"
       - "apps/witnessops-web/src/components/marketing/hero.tsx"
       - "apps/witnessops-web/src/components/marketing/buyer-homepage.tsx"
@@ -96,6 +104,10 @@ jobs:
 
       - name: Build witnessops-web
         run: pnpm --filter witnessops-web build
+
+      # Blocking, fixture-only gate; Playwright owns server startup and cleanup.
+      - name: Gate A4 PDF pagination
+        run: pnpm test:pdf-pagination
 
       - name: Run commercial-truth regression tests
         run: |
