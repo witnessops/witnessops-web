@@ -72,3 +72,69 @@ for(const widget of [true,false])test(`long Free Check reply starts at its begin
  await expect.poll(()=>reply.evaluate(el=>{const r=el.getBoundingClientRect(),b=el.closest('[data-ask-scroll-region]')!.getBoundingClientRect();return r.top>=b.top-1&&r.top<b.bottom})).toBe(true);
  await page.screenshot({path:info.outputPath('long-answer-start.png')});
 });
+
+async function expectMobileSurface(page: Page, height: number) {
+ const dialog=page.locator('#ask-witnessops-dialog');
+ await expect(dialog).toHaveAttribute('aria-modal','true');
+ await expect.poll(()=>dialog.evaluate(e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};})).toEqual({x:0,y:0,width:page.viewportSize()!.width,height});
+ await expect(dialog).toHaveCSS('border-radius','0px');
+ await expect(dialog).toHaveCSS('max-height','none');
+ await expect(dialog).toHaveCSS('overflow-y','hidden');
+ await expect(dialog.locator('[data-ask-chrome]')).toBeInViewport();
+ expect(await dialog.evaluate(root=>Array.from(root.querySelectorAll('*')).filter(e=>{const s=getComputedStyle(e);return ['auto','scroll'].includes(s.overflowY)&&e.scrollHeight>e.clientHeight+1&&e.getBoundingClientRect().height>0;}).length)).toBeLessThanOrEqual(1);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await expect(page.getByRole('button',{name:'Ask WitnessOps',exact:true})).toHaveCount(0);
+}
+
+for(const viewport of [{width:390,height:844},{width:390,height:667},{width:430,height:932}])test(`mobile full viewport, inert background and focus return ${viewport.width}x${viewport.height}`,async({page},info)=>{
+ await page.setViewportSize(viewport);await mock(page);await page.goto('/');
+ await page.evaluate(()=>window.scrollTo(0,400));
+ const before=await page.evaluate(()=>scrollY), launcher=page.getByRole('button',{name:'Ask WitnessOps',exact:true});
+ await launcher.click();await expectMobileSurface(page,viewport.height);
+ await expect(page.locator('[data-ask-composer]')).toBeInViewport();
+ expect(await page.locator('main').evaluate(e=>Boolean(e.closest('[inert]')))).toBe(true);
+ await expect(page.locator('body')).toHaveCSS('overflow','hidden');
+ for(const [x,y] of [[1,1],[viewport.width-2,viewport.height-2]])expect(await page.evaluate(({x,y})=>Boolean(document.elementFromPoint(x,y)?.closest('#ask-witnessops-dialog')),{x,y})).toBe(true);
+ await page.screenshot({path:info.outputPath('mobile-fullscreen-fresh.png')});
+ // Both forward and backward focus navigation remain inside the existing modal.
+ await page.getByRole('button',{name:'Close Ask WitnessOps',exact:true}).focus();
+ await page.keyboard.press('Shift+Tab');expect(await page.locator('#ask-witnessops-dialog').evaluate(e=>e.contains(document.activeElement))).toBe(true);
+ await page.mouse.move(10,viewport.height-10);await page.mouse.wheel(0,300);
+ expect(await page.evaluate(()=>scrollY)).toBe(before);
+ await page.getByRole('button',{name:'Close Ask WitnessOps',exact:true}).click();
+ await expect(launcher).toBeFocused();expect(await page.evaluate(()=>scrollY)).toBe(before);
+ expect(await page.locator('main').evaluate(e=>Boolean(e.closest('[inert]')))).toBe(false);
+});
+
+for(const width of [768,1440])test(`larger Ask remains a floating panel ${width}`,async({page},info)=>{
+ await page.setViewportSize({width,height:900});await open(page,true);
+ const dialog=page.locator('#ask-witnessops-dialog');await expect(dialog).toHaveAttribute('aria-modal','false');
+ await expect(dialog).toHaveCSS('border-radius','8px');
+ // WebKit's page scrollbar can put a 768px window below the existing 767px content breakpoint.
+ const expectedHeight=await page.evaluate(()=>matchMedia('(max-width: 767px)').matches?650:760);
+ await expect.poll(async()=>Math.round((await dialog.boundingBox())!.height)).toBe(expectedHeight);
+ const bounds=await dialog.boundingBox();expect(bounds!.width).toBe(520);expect(bounds!.x).toBeGreaterThan(0);expect(bounds!.y).toBeGreaterThan(0);
+ await page.screenshot({path:info.outputPath('desktop-floating-panel.png')});
+});
+
+test('mobile full-screen conversation, structured steps, draft and keyboard geometry',async({page},info)=>{
+ await page.setViewportSize({width:390,height:844});let free=false;
+ await page.route('**/api/ask-witnessops',r=>r.request().postDataJSON().telemetry?r.fulfill({status:204}):r.fulfill({json:answer(free?'Ten bounded observations after explicit authorization.':'A person needs to confirm fit and availability.',repair,free)}));
+ await open(page,true);const input=page.getByLabel('Ask WitnessOps question');
+ for(const question of ['Our live workflow stopped sending leads yesterday.','We need diagnosis today.']){await input.fill(question);await input.press('Enter');await expect(input).toHaveValue('');await expect(page.getByRole('button',{name:'Prepare my request',exact:true})).toBeVisible();}
+ await expectMobileSurface(page,844);await page.screenshot({path:info.outputPath('mobile-fullscreen-conversation.png')});
+ await page.getByRole('button',{name:'Prepare my request',exact:true}).click();const draft=page.getByLabel(/Draft request/);await expect(draft).toBeVisible();await draft.scrollIntoViewIfNeeded();await expectMobileSurface(page,844);await page.screenshot({path:info.outputPath('mobile-fullscreen-draft.png')});
+ await page.getByRole('button',{name:'Close Ask WitnessOps',exact:true}).click();await page.getByRole('button',{name:'Ask WitnessOps',exact:true}).click();
+ // A fresh page resets only the fixture session for the independent structured flow.
+ await page.reload();free=true;await page.getByRole('button',{name:'Ask WitnessOps',exact:true}).click();
+ await page.getByRole('button',{name:'Check my public exposure',exact:true}).click();const card=page.getByRole('region',{name:'Free External Exposure Snapshot'});
+ await card.getByRole('button',{name:'Run free check',exact:true}).click();const host=card.getByLabel('Public hostname');await visibleInHistory(host);await expectMobileSurface(page,844);await page.screenshot({path:info.outputPath('mobile-fullscreen-hostname.png')});
+ // Emulate the existing visualViewport resize event, without changing application logic.
+ await page.evaluate(()=>{Object.defineProperty(window.visualViewport!,'height',{configurable:true,value:480});window.visualViewport!.dispatchEvent(new Event('resize'));});
+ await expectMobileSurface(page,480);await visibleInHistory(host);
+ expect(await page.evaluate(()=>getComputedStyle(document.elementFromPoint(5,700)!).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
+ await page.screenshot({path:info.outputPath('mobile-keyboard-simulation.png')});
+ await page.evaluate(()=>{delete (window.visualViewport as unknown as Record<string,unknown>).height;window.visualViewport!.dispatchEvent(new Event('resize'));});
+ await host.fill('example.com');await card.getByRole('button',{name:'Continue',exact:true}).click();await card.getByRole('button',{name:'Add email',exact:true}).click();await visibleInHistory(card.getByLabel('Work email (optional)'));await expectMobileSurface(page,844);await page.screenshot({path:info.outputPath('mobile-fullscreen-email.png')});
+ await card.getByRole('button',{name:'Continue',exact:true}).click();await visibleInHistory(card.getByRole('button',{name:'I’m authorized — run check',exact:true}));await expectMobileSurface(page,844);await page.screenshot({path:info.outputPath('mobile-fullscreen-authorization.png')});
+});

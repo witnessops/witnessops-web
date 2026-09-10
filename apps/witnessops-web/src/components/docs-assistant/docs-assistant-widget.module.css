@@ -967,7 +967,25 @@
 .composer { flex-shrink: 0; }
 .scrollRegion { overflow-anchor: none; }
 
-/* Fresh mobile welcome needs breathing room, not a full-screen empty spacer. */
-@media (max-width: 767px) {
+/* Retain the compact floating welcome above the mobile modal breakpoint. */
+@media (min-width: 40rem) and (max-width: 767px) {
   .dialog[data-ask-fresh] { max-height: 650px; }
+}
+
+/* Mobile Ask owns the viewport; the existing visualViewport value shrinks the
+   dialog above the keyboard while this opaque layer continues to cover the page. */
+@media (max-width: 39.999rem) {
+  .openLayer { padding: 0; background: var(--proof-bg); pointer-events: auto; }
+  .dialog {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: var(--ask-ai-mobile-height, 100dvh);
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    animation: none;
+  }
 }

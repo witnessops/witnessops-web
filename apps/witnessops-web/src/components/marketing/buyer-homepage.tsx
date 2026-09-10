@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { CtaButton } from "@/components/shared/cta-button";
 import { buyerRequestHref, type BuyerLocale } from "@/lib/buyer-services";
 import { OwnSystemCase } from "./own-system-case";
-import { ReviewFinding } from "./agent-review-sample";
+import { HeroGap } from "./hero-gap";
 import styles from "./buyer-homepage.module.css";
 
 type HeroCopy = { eyebrow: string; title: string; body: string };
@@ -41,13 +41,12 @@ export function BuyerHomepage({ locale, hero }: { locale: BuyerLocale; hero?: He
           <p className={styles.eyebrow}>{hero?.eyebrow ?? (pl ? "AI · Automatyzacja · Bezpieczeństwo" : "AI · Automation · Security")}</p>
           <h1 data-ui-proof-id="homepage-hero-headline" data-copy-length="long" className={styles.heroTitle}>{title}</h1>
           <p data-ui-proof-id="homepage-hero-body" className={styles.heroBody}>{body}</p>
-          <div className={styles.heroActions}>
-            <CtaButton uiProofId="homepage-hero-primary-cta" href={requestHref} variant="primary" label={cta} className={styles.primaryCta} />
-            <Link data-ui-proof-id="homepage-sample-review-cta" className={styles.heroSampleLink} href="/catalog/workflows#sample-review">{pl ? "Zobacz przykładowe ustalenie (EN)" : "See a sample finding"}<ArrowRight size={18} aria-hidden="true" /></Link>
-          </div>
-          <p className={styles.heroNote}>{pl ? "Zacznij od krótkiego opisu. Zakres i cenę uzgodnimy przed rozpoczęciem pracy. Bez danych logowania i danych klientów." : "Start with a short description. We’ll confirm fit, scope and price before work begins. No credentials or customer records needed."}</p>
+          <p data-ui-proof-id="homepage-hero-mobile-body" className={styles.heroMobileBody}>{pl ? "Dla zespołów, których AI i automatyzacje zmieniają dane, realizują płatności lub nadają dostęp. Dowiedz się, co poprawić." : "For teams whose AI and automations change records, move money or control access. Know what to fix."}</p>
         </div>
-        <aside aria-label={pl ? "Przykładowe ustalenie przeglądu" : "Example review finding"}><h2 className="sr-only">{pl ? "Przykładowe ustalenie przeglądu" : "Example review finding"}</h2><ReviewFinding locale={locale} /></aside>
+        <CtaButton uiProofId="homepage-hero-primary-cta" href={requestHref} variant="primary" label={cta} className={styles.primaryCta} />
+        <aside aria-label={pl ? "Przykładowe ustalenie przeglądu" : "Example review finding"}><h2 className="sr-only">{pl ? "Przykładowe ustalenie przeglądu" : "Example review finding"}</h2><HeroGap locale={locale} /></aside>
+        <Link data-ui-proof-id="homepage-sample-review-cta" className={styles.heroSampleLink} href="/catalog/workflows#sample-review">{pl ? "Zobacz przykładowe ustalenie (EN)" : "See a sample finding"}<ArrowRight size={18} aria-hidden="true" /></Link>
+        <p className={styles.heroNote}>{pl ? "Zacznij od krótkiego opisu. Zakres i cenę uzgodnimy przed rozpoczęciem pracy. Bez danych logowania i danych klientów." : "Start with a short description. We’ll confirm fit, scope and price before work begins. No credentials or customer records needed."}</p>
       </header>
       <div className={styles.frame}>
         <ul className={styles.deliverableStrip} aria-label={pl ? "Podejście" : "Our approach"}>{(pl ? ["Uprawnienia", "Zatwierdzanie", "Wykonanie", "Zaobserwowane wyniki"] : ["Permissions", "Approvals", "Execution", "Observed results"]).map(item => <li key={item}>{item}</li>)}</ul>
