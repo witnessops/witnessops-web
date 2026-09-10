@@ -64,6 +64,20 @@ not scan repository-local `docs/*.md`.
 
 Validates signal content.
 
+## PDF Pagination Gate
+
+`pnpm build && pnpm test:pdf-pagination`
+
+Builds the app and runs the four fixture-only A4 PDF regressions (clean External
+Exposure, attention, long finding, and Local Audit). Install Chromium first with
+`pnpm exec playwright install chromium --with-deps`.
+
+The dedicated `PDF Pagination Gate` CI workflow runs these cases after its build.
+Playwright owns the loopback server and cleans it up after success or failure.
+No live hostname collection occurs. This browser gate is separate from the
+browser-free `pnpm health` / `pnpm health:node22` contract. A failed PDF test fails
+its workflow; repository branch-protection requirements are configured separately.
+
 ## Release
 
 `pnpm release`

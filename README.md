@@ -105,8 +105,8 @@ For vulnerability disclosure, see [`SECURITY.md`](./SECURITY.md).
 
 ## Contributors
 
-- Local validation: `pnpm health` (build, lint, typecheck, tests, route parity, receipt smoke, buyer-path smoke, and A4 PDF pagination).
-- Browser prerequisite: `pnpm exec playwright install chromium --with-deps`. To run only the four fixture-based PDF regressions: `pnpm build && pnpm test:pdf-pagination`. The existing UI-proof workflow runs the same command after its build as a blocking step. Playwright starts the built app on loopback port 3019, refuses an already-running server, and stops its server after success or failure. No public hostname collection is performed.
+- Local validation: `pnpm health` (build, lint, typecheck, tests, route parity, receipt smoke, buyer-path smoke). Browser installation is not required by this health command.
+- Separate A4 PDF pagination gate: install Chromium with `pnpm exec playwright install chromium --with-deps`, then run `pnpm build && pnpm test:pdf-pagination`. The dedicated **PDF Pagination Gate** CI workflow builds the app and runs the same four fixture-based cases. Playwright starts the built app on loopback port 3019, refuses an already-running server, and stops its server after success or failure. No public hostname collection is performed. This browser gate is separate from `pnpm health`.
 - Public buyer/proof-surface validation: `pnpm smoke:buyer-path:test`.
 - Frozen command contract: [`commands.md`](./commands.md).
 - Repository-local docs index: [`docs/README.md`](./docs/README.md).

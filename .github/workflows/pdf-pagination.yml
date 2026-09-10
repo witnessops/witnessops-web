@@ -1,0 +1,63 @@
+name: PDF Pagination Gate
+
+on:
+  pull_request:
+    paths:
+      - "apps/witnessops-web/src/components/proofpack/**"
+      - "apps/witnessops-web/src/lib/proofpack/**"
+      - "apps/witnessops-web/src/components/external-exposure/**"
+      - "apps/witnessops-web/src/lib/external-exposure/**"
+      - "apps/witnessops-web/src/app/check/**"
+      - "apps/witnessops-web/src/app/proofpack/**"
+      - "apps/witnessops-web/src/app/globals.css"
+      - "apps/witnessops-web/src/app/layout.tsx"
+      - "apps/witnessops-web/package.json"
+      - "apps/witnessops-web/next.config.js"
+      - "tests/external-exposure/**"
+      - "tests/proofpack/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/pdf-pagination.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pdf-pagination-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pdf-pagination:
+    name: PDF Pagination Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 9.15.4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Build witnessops-web
+        run: pnpm --filter witnessops-web build
+
+      - name: Gate A4 PDF pagination
+        run: pnpm test:pdf-pagination
