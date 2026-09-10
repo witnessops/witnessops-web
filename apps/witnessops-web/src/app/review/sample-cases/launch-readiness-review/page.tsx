@@ -45,7 +45,7 @@ export default function LaunchReadinessSamplePage() {
         ],
         [
           "Stay inside the boundary",
-          "valid means package and verifier checks passed, not that the launch is secure, ready, or approved.",
+          "Historical verification output is a reference, not a current verification result or launch approval.",
         ],
       ]}
       deliverables={[
@@ -53,7 +53,7 @@ export default function LaunchReadinessSamplePage() {
         "drift notes for admitted v1 changes",
         "findings and readiness report",
         "receipt, evidence manifest, and hash sidecars",
-        "buyer walkthrough and offline verification path",
+        "buyer walkthrough and historical reference output",
       ]}
       boundaries={[
         "No launch approval, security guarantee, remediation, or arbitrary cloud review.",
@@ -70,7 +70,6 @@ export default function LaunchReadinessSamplePage() {
         "evidence_manifest.json",
         "verification_result.json",
       ]}
-      offlineVerifyHint="Offline product verifier path: witnessops-launch-ready verify with the proofpack ZIP, detached signature, and a separately obtained trust registry. Require exit code 0 and status: valid for the named checks only."
     />
   );
 }

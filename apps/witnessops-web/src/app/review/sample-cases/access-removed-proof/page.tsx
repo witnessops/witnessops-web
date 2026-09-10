@@ -52,7 +52,7 @@ export default function AccessRemovedProofSamplePage() {
         "sanitised before/after observations for one named event",
         "findings for remaining or unresolved scope",
         "receipt, evidence manifest, and hash sidecars",
-        "buyer walkthrough and offline verification path",
+        "buyer walkthrough and historical reference output",
       ]}
       boundaries={[
         "No access mutation, credential validation, secrets, or universal access-elimination claim.",
@@ -68,7 +68,6 @@ export default function AccessRemovedProofSamplePage() {
         "report.md",
         "verification_result.json",
       ]}
-      offlineVerifyHint="Offline product verifier path: witnessops-access-removed verify with the proofpack ZIP, detached signature, and separately obtained trust registries. Require status: valid for named checks only."
     />
   );
 }

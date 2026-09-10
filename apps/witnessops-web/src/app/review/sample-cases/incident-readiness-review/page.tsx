@@ -53,7 +53,7 @@ export default function IncidentReadinessSamplePage() {
         "posture and findings against preparation questions",
         "unknowns, exclusions, and open decisions",
         "receipt, evidence manifest, and hash sidecars",
-        "buyer walkthrough and offline verification path",
+        "buyer walkthrough and historical reference output",
       ]}
       boundaries={[
         "No hack-back, exploitation, destructive testing, or live incident command.",
@@ -69,7 +69,6 @@ export default function IncidentReadinessSamplePage() {
         "report.md",
         "verification_result.json",
       ]}
-      offlineVerifyHint="Offline product verifier path: witnessops-incident-ready verify with the proofpack ZIP, detached signature, and separately obtained trust registries. Require status: valid for named checks only."
     />
   );
 }

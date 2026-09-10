@@ -53,7 +53,7 @@ export default function CustodyWalletOpsSamplePage() {
         "completeness notes on what was supplied",
         "findings: supported claims vs gaps",
         "receipt, evidence manifest, and hash sidecars",
-        "buyer walkthrough and offline verification path",
+        "buyer walkthrough and historical reference output",
       ]}
       boundaries={[
         "No keys, seed phrases, balances, fund movement, taking custody, or solvency claim.",
@@ -68,7 +68,6 @@ export default function CustodyWalletOpsSamplePage() {
         "report.md",
         "verification_result.json",
       ]}
-      offlineVerifyHint="Offline product verifier path: witnessops-custody-ops verify with the proofpack ZIP, detached signature, and separately obtained trust registries (including customer-authority trust when named). Require status: valid for named checks only."
     />
   );
 }
