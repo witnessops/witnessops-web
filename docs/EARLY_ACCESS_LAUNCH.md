@@ -5,9 +5,10 @@ Audit source: `af6ae2fc957cc15b6b496fedab45d9244476c2f2`, branch
 `feat/witnessops-app-foundation`. Target: `https://app.witnessops.com`, initially
 3–5 named users, at most 20 before an operational review.
 
-This is a plan, not permission to publish, provision, migrate production, send
-invitations, change WorkOS/DNS, or deploy. No such operation was performed for
-this audit. See [deployment authority](DEPLOYMENT_AUTHORITY.md) and
+This plan is not permission to publish, provision, migrate production, send
+invitations, change WorkOS/DNS, or deploy. The initial audit performed no such
+operation. The separately authorized non-public foundation is recorded in
+section 2.1 below. See [deployment authority](DEPLOYMENT_AUTHORITY.md) and
 [custody boundary](DEPLOYMENT_CUSTODY.md). Actual host addresses, credential
 locations, cloud identifiers, backup destinations and deployment coordinates
 belong in restricted operator custody. Names in command examples below are
@@ -75,6 +76,82 @@ per minute, one start per hostname per minute. Restart resets these counters.
 One replica is a scope constraint, not a distributed quota guarantee. An
 app-specific image/deployment path and resource/drain policy are launch blockers;
 do not repoint the protected web workflow to this app.
+
+## 2.1. Non-public foundation status — 2026-09-11
+
+The separately authorized foundation was provisioned and remains non-public.
+Its infrastructure identities, administrative-access details, role/credential
+custody, firewall evidence, backup configuration and recovery commands remain
+in restricted operator record `EA-PROD-FOUNDATION-20260911`, outside this public
+repository.
+
+The original migrations and synthetic recovery rehearsal passed, including
+runtime-role authorization, immutable source digests, history and buyer-report
+HTML rendering without recollection. This does not establish whole-host RTO,
+production authentication or browser/PDF fidelity. The original image failed
+its package-security gate and was kept inactive. The subsequent remediation
+candidate and deliberately generic network model are described below.
+
+## 2.2. Runtime remediation candidate — 2026-09-11
+
+The original image remains rejected evidence, without relabeling:
+`sha256:6d7f2d301ad33c5d7ccc35915615acc8d8a4a4c9de646572609c6cc627273a46`
+from source `8f6311f40ce04310631df2772bab58a24ee3620a`. Its scan reported three
+Critical and thirteen High advisory records. The earlier infrastructure source
+review did not clear those package advisories.
+
+Replacement transport/runtime manifest:
+`sha256:b955c711888fdde7e28bb8a682d51645a762d96c0582ad2097b798e32712a62a`.
+The local OCI manifest is
+`sha256:c79e5a5d8ca4f1df25dfc0cac1c0ccb6a05620709b372c00983e188e16536f18`;
+Docker-archive transport changes manifest serialization. The source labels,
+image configuration identity and transferred archive checksum match.
+This is a pre-commit candidate built from that source plus the reviewed patch;
+its labels explicitly record dirty source and a build-input SHA-256. Do not
+represent it as the unchanged ancestor or a clean committed release. The exact
+input inventory, lockfile hash, scan and later commit correspondence belong in
+restricted operator custody.
+
+[The app Dockerfile](../deploy/app/Dockerfile) keeps the pinned Node 22.23.2
+Alpine base, updates only libcrypto3/libssl3 to 3.5.8-r0, and removes global
+npm/Corepack/Yarn tooling from the runtime filesystem. Next.js changes only in
+the authenticated app: 15.5.21 → 15.5.24. A scoped override selects Sharp 0.35.4
+for that Next version. Public web dependencies and application behavior code
+are unchanged. Alpine's ordinary runtime utilities remain; this is not a
+custom distroless image or a promise that every utility has been removed.
+
+Trivy 0.74.0 scanned the replacement with vulnerability and secret detection,
+without severity suppression: **0 Critical, 0 High, 0 Medium, 0 Low, 0 secret
+findings**, with 62 inventoried packages. Eleven old records disappear because
+unused npm tooling is absent; five are fixed by the OS/Next/Sharp patches.
+The full inventory/SBOM and per-advisory disposition are retained privately.
+These scan results are not application deployment or exploitability claims.
+
+The disabled service now uses a dedicated Podman bridge network rather than
+host networking. Its future listener binds within the container, published only
+on host loopback for a later reverse proxy. PostgreSQL is reached through a
+read-only-mounted local Unix socket using runtime credentials; no database TCP
+publication or broad tailnet access is introduced. This replaces the previous
+host-network service configuration. Target validation, redirect revalidation and connection
+pinning remain authoritative; the container network is an additional containment
+boundary, not authorization. Preserve one fixed container name, no rolling
+overlap, and both startup approval markers. Temporary connectivity checks must
+exit and leave the production app service disabled/inactive.
+
+Controlled checks passed all nine runtime connectivity/privilege assertions and
+all 43 unchanged hostname/network safety tests in the replacement image. The
+bridge permits only the necessary gateway DNS input. The service selects the
+maintained Ubuntu `runc` runtime after isolating a `crun`/AppArmor socket denial
+with `no-new-privileges`; AppArmor enforcement, dropped capabilities, non-root
+execution and `no-new-privileges` all remain enabled. Temporary probes were
+removed; the production app remains disabled and inactive.
+
+The operator reports Cloudflare configuration, and read-only DNS now resolves
+the app hostname. **No DNS change was made in this remediation.** DNS existence
+is not public application acceptance: origin ingress remains closed and no
+production WorkOS configuration, app startup or external-user admission is
+included. Before startup, require the finalized candidate review and obtain
+the separate production authentication and launch authorizations. Before public routing/user #1, complete section 10 acceptance.
 
 ## 3. WorkOS production configuration
 
