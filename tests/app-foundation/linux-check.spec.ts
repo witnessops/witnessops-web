@@ -9,11 +9,11 @@ import { linuxServerSnapshotFromVerifiedResult as project } from '../../apps/wit
 import { compareLinuxRuns } from '../../apps/witnessops-app/src/lib/linux-comparison';
 const name='proofpack-pr_lsa_20260710120000_198fd7aceb.zip';
 const path=resolve('tests/proofpack/production-fixtures/complete',name);
-for(const width of [1440,390]) test(`Linux import and existing report UI ${width}`,async({page},info)=>{
+for(const synthetic of [true,false]) for(const width of [1440,390]) test(`Linux import and existing report UI ${width} synthetic=${synthetic}`,async({page},info)=>{
   const checked=await verifyProofpack({proofpack:{name,bytes:readFileSync(path)},signature:{name:name+'.sig.json',bytes:readFileSync(path+'.sig.json')},trust_registry:pinnedRegistryInput()});
   expect(checked.status).toBe('valid');
   const model=localAuditAdapter(checked,'2026-09-11T12:00:00Z')!;
-  const run:LinuxCheckRun={id:'linux-run',assetId:'linux-asset',createdAt:'2026-09-11T12:00:00Z',sourceDigest:model.identity.sourceDigest,proofRunId:checked.proof_run_id,verifierVersion:checked.verifier_version,profileId:'linux_baseline_v1',outcome:checked.outcome,synthetic:true,observedHostname:'demo-host',observedAt:model.subject.observedAt,sourceAssetId:'asset-demo-host-001',machineIdentity:null};
+  const run:LinuxCheckRun={id:'linux-run',assetId:'linux-asset',createdAt:'2026-09-11T12:00:00Z',sourceDigest:model.identity.sourceDigest,proofRunId:checked.proof_run_id,verifierVersion:checked.verifier_version,profileId:'linux_baseline_v1',outcome:checked.outcome,synthetic,observedHostname:'demo-host',observedAt:model.subject.observedAt,sourceAssetId:'asset-demo-host-001',machineIdentity:null};
   const ws:Workspace={id:'workspace-a',name:'Synthetic workspace',slug:'workspace-a',role:'owner',assets:[],runs:[],linuxRuns:[],members:[]};
   let imports=0,reopens=0,collections=0;
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
@@ -42,6 +42,9 @@ for(const width of [1440,390]) test(`Linux import and existing report UI ${width
   await page.screenshot({path:info.outputPath('linux-import.png'),fullPage:true});
   await page.getByRole('button',{name:'Import Security Check',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Saved check',exact:true})).toBeVisible();
+  // Presentation-only response variants; this does not reclassify the signed fixture.
+  await expect(page.locator('main')).toContainText(synthetic ? 'Synthetic check' : 'Live server check');
+  await expect(page.locator('main')).not.toContainText(synthetic ? 'Live server check' : 'Synthetic check');
   await expect(page.locator('main')).toContainText('does not establish');
   await expect(page.locator('main')).toContainText(model.identity.sourceDigest);
   await page.screenshot({path:info.outputPath('linux-reopened-report.png'),fullPage:true});
