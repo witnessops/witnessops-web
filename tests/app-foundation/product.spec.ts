@@ -30,7 +30,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       if (path === "/api/runs") {
         requests.push(request.postDataJSON());
         const snapshot = structuredClone(source);
-        if (ws.runs.length) snapshot.checks.find(c => c.check_id === "web.hsts.v1")!.observation = { header: "max-age=300", maxAge: 300 };
+        if (ws.runs.length) snapshot.checks.find(c => c.check_id === "web.hsts.v1")!.observation = { url: "https://witnessops.com/", statusCode: 200, hsts: "max-age=300", maxAge: 300, includeSubDomains: false, preload: false };
         const run: Run = { id: `run-${ws.runs.length + 1}`, assetId: "hostname-asset", createdAt: `2026-09-11T12:0${ws.runs.length}:00.000Z`, profile: structuredClone(RECOMMENDED_PROFILE), snapshot, sourceDigest: createHash("sha256").update(canonicalSource(snapshot)).digest("hex") };
         ws.runs.push(run); return route.fulfill({ status: 201, json: run });
       }
@@ -42,34 +42,65 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.screenshot({ path: info.outputPath("welcome-viewport.png") });
     await page.getByLabel("Workspace name", { exact: true }).fill("Acme Ltd");
     await page.getByRole("button", { name: "Create workspace", exact: true }).click();
-    await page.getByRole("link", { name: "Add asset", exact: true }).first().click();
+    await expect(page.getByRole("heading", { name: "Start with one public hostname" })).toBeVisible();
+    await expect(page.locator("main")).toContainText("Adding it does not start collection.");
+    await expect(page.getByRole("link", { name: "Add asset", exact: true })).toHaveCount(1);
+    await expect(page.locator(".overview-stats")).toHaveCount(0);
+    await page.screenshot({ path: info.outputPath("empty-workspace.png"), fullPage: true });
+    await page.getByRole("link", { name: "Add asset", exact: true }).click();
+    await expect(page.locator(".check-list li")).toHaveCount(10);
+    await expect(page.locator(".check-list")).toBeVisible();
+    await expect(page.locator("main")).toContainText("Adding saves the hostname only.");
     await page.getByLabel("Public hostname", { exact: true }).fill("witnessops.com");
-    await page.getByRole("button", { name: "Add asset", exact: true }).click();
+    await page.getByRole("button", { name: "Add without scanning", exact: true }).click();
     await expect(page.getByRole("heading", { name: "witnessops.com", exact: true })).toBeVisible();
     expect(requests).toHaveLength(0);
-    await page.getByText("Edit checks", { exact: false }).first().click();
+    await page.getByRole("link", { name: "Run observation ↓", exact: true }).click();
+    await expect(page.getByRole("checkbox")).toBeInViewport();
+    expect(requests).toHaveLength(0);
+    await page.evaluate(() => window.scrollTo(0, 0));
     await expect(page.locator(".check-list li")).toHaveCount(10);
     await expect(page.locator(".method-panel")).toContainText("Individual check selection is not available");
-    await expect(page.getByRole("button", { name: "Observe", exact: true })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Run observation", exact: true })).toBeDisabled();
     await page.screenshot({ path: info.outputPath("asset-recommended.png"), fullPage: true });
     await page.getByRole("checkbox", { name: "I own this hostname or am authorized to check it.", exact: true }).check();
-    await page.getByRole("button", { name: "Observe", exact: true }).click();
+    await page.getByRole("button", { name: "Run observation", exact: true }).click();
     await expect(page).toHaveURL(/\/runs\/run-1$/);
     expect(requests).toEqual([{ assetId: "hostname-asset", authorized: true }]);
     await expect(page.locator(".observations > li")).toHaveCount(10);
+    await expect(page.getByRole("region", { name: "Observation summary" })).toBeVisible();
+    await page.goto("/assets/hostname-asset");
+    await expect(page.getByRole("heading", { name: "Recorded result", exact: true })).toBeInViewport();
+    await page.screenshot({ path: info.outputPath("completed-asset.png"), fullPage: true });
+    await page.screenshot({ path: info.outputPath("completed-asset-viewport.png") });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     await page.getByRole("link").filter({ hasText: "TLS certificate state" }).click();
-    for (const text of ["Contract ID", "Version", "Recorded status", "Collection state", "tls.certificate.v1", "What remains unknown", "Evidence references", "Interpretation"]) await expect(page.locator("main")).toContainText(text);
+    await expect(page.getByRole("heading", { name: "What we observed", exact: true })).toBeVisible();
+    await expect(page.locator(".evidence-facts")).toContainText("Certificate expires");
+    await expect(page.locator("pre")).not.toBeVisible();
+    await expect(page.getByRole("heading", { name: "What this means" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What you can do next" })).toBeVisible();
+    await page.screenshot({ path: info.outputPath("evidence-readable.png"), fullPage: true });
+    await page.getByText("Method and provenance", { exact: true }).click();
+    for (const text of ["Contract ID", "Version", "Recorded status", "Collection state", "tls.certificate.v1", "What remains unknown", "Evidence references"]) await expect(page.locator("main")).toContainText(text);
+    await expect(page.locator("details .facts")).toContainText("external-demo-v0.1");
+    await page.getByText("Raw source observation", { exact: true }).click();
+    await expect(page.locator("pre")).toHaveText(JSON.stringify(source.checks.find(check => check.check_id === "tls.certificate.v1")!.observation, null, 2));
     await page.screenshot({ path: info.outputPath("observation-provenance.png"), fullPage: true });
     await page.goto("/runs/run-1");
+    await page.getByText("Method and source evidence", { exact: true }).click();
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("button", { name: "Download source JSON", exact: true }).click();
     const download = await downloadPromise, file = await download.path();
     expect(readFileSync(file!, "utf8")).toBe(canonicalSource(source));
+    const firstSource = canonicalSource(ws!.runs[0]);
     await page.goto("/assets/hostname-asset");
     await expect(page.getByRole("button", { name: "Run again", exact: true })).toBeDisabled();
     await page.getByRole("checkbox", { name: "I own this hostname or am authorized to check it.", exact: true }).check();
     await page.getByRole("button", { name: "Run again", exact: true }).click();
     await expect(page).toHaveURL(/\/runs\/run-2$/);
+    expect(canonicalSource(ws!.runs[0])).toBe(firstSource);
+    expect(ws!.runs.map(run => run.id)).toEqual(["run-1", "run-2"]);
     await expect(page.locator("main")).toContainText("HTTP Strict Transport Security: observed state changed.");
     await expect(page.locator("main")).toContainText("The check set and method are unchanged.");
     await page.screenshot({ path: info.outputPath("run-comparison.png"), fullPage: true });
@@ -112,7 +143,99 @@ test("Viewer UI has read-only asset/history access", async ({ page }) => {
   await page.route("**/api/workspace", route => route.fulfill({ json: { user: { id: "viewer", displayName: "Viewer" }, workspaces: [{ id: "workspace", name: "Acme", slug: "acme", role: "viewer" }], workspace: { id: "workspace", name: "Acme", slug: "acme", role: "viewer", assets: [{ id: "asset", type: "hostname", hostname: "example.com", createdAt: source.finished_at }], runs: [], members: [] } } }));
   await page.goto("/assets/asset");
   await expect(page.locator("main")).toContainText("Only an Owner can start an observation.");
-  await expect(page.getByRole("button", { name: "Observe", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Run observation", exact: true })).toHaveCount(0);
   await page.goto("/assets/new");
   await expect(page.getByRole("heading", { name: "Owner access required" })).toBeVisible();
+});
+
+function recordedRun(id: string): Run {
+  const snapshot = structuredClone(source);
+  return { id, assetId: "asset", createdAt: id === "previous" ? "2026-09-11T10:00:00Z" : "2026-09-11T11:00:00Z", profile: structuredClone(RECOMMENDED_PROFILE), snapshot, sourceDigest: createHash("sha256").update(canonicalSource(snapshot)).digest("hex") };
+}
+
+function customerWorkspace(runs: Run[]): Workspace {
+  return { id: "workspace", name: "Acme", slug: "acme", role: "owner", assets: [{ id: "asset", type: "hostname", hostname: source.target, createdAt: source.finished_at }], runs, members: [] };
+}
+
+for (const width of [1440, 390]) {
+  test(`attention and undetermined evidence remain distinct at ${width}`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 844 });
+    const run = recordedRun("current");
+    const hsts = run.snapshot.checks.find(check => check.check_id === "web.hsts.v1")!;
+    hsts.status = "NEEDS_ATTENTION"; hsts.observation = { hsts: null, url: "https://witnessops.com/", statusCode: 200 };
+    hsts.interpretation = "No HSTS header was observed on this HTTPS response.";
+    hsts.recommendation = "Review the HTTPS response configuration before deciding whether to publish HSTS.";
+    const tls = run.snapshot.checks.find(check => check.check_id === "tls.certificate.v1")!;
+    tls.status = "CHECK_ERROR"; tls.collected = false; tls.observation = { reason: "COLLECTION_TIMEOUT" };
+    tls.interpretation = "A certificate observation could not be collected.";
+    run.sourceDigest = createHash("sha256").update(canonicalSource(run.snapshot)).digest("hex");
+    const ws = customerWorkspace([run]);
+    await page.route("**/api/workspace", route => route.fulfill({ json: { user: { id: "owner" }, workspaces: [ws], workspace: ws } }));
+    await page.goto("/assets/asset");
+    const summary = page.getByRole("region", { name: "Observation summary" });
+    await expect(summary.getByRole("heading", { name: "1 check is Undetermined" })).toBeVisible();
+    await expect(summary.getByRole("link", { name: "HTTP Strict Transport Security →" })).toBeVisible();
+    await expect(page.locator(".observations > li")).toHaveCount(10);
+    await expect(page.locator(".status-check_error")).toHaveText("Undetermined");
+    await expect(page.locator(".status-needs_attention")).toHaveText("Needs attention");
+    await expect(page.locator(".status-observed_expected")).toHaveCount(6);
+    await expect(page.locator("main")).not.toContainText("No attention flags in this snapshot");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: info.outputPath("attention-completed-asset.png"), fullPage: true });
+    await page.screenshot({ path: info.outputPath("attention-completed-viewport.png") });
+    await summary.getByRole("link", { name: "HTTP Strict Transport Security →" }).click();
+    await expect(page.locator(".evidence-facts")).toContainText("Not recorded");
+    await expect(page.locator("main")).toContainText(hsts.recommendation);
+    await expect(page.locator("main")).toContainText(hsts.limitations[0]);
+    await expect(page.locator("pre")).not.toBeVisible();
+    await page.goto("/runs/current/observations/tls.certificate.v1");
+    await expect(page.locator("main")).toContainText("COLLECTION_TIMEOUT");
+    await expect(page.locator("main")).toContainText("A collection error is Undetermined, not evidence of a vulnerability.");
+  });
+}
+
+test("unchanged evidence is useful; a method update is Coverage without an Environment claim", async ({ page }, info) => {
+  const previous = recordedRun("previous"), current = recordedRun("current");
+  const ws = customerWorkspace([previous, current]);
+  await page.route("**/api/workspace", route => route.fulfill({ json: { user: { id: "owner" }, workspaces: [ws], workspace: ws } }));
+  await page.goto("/runs/current");
+  await expect(page.locator("main")).toContainText("No change in comparable target observations.");
+  await expect(page.locator("main")).toContainText("The check set and method are unchanged.");
+  await expect(page.locator("main")).toContainText("Keep this baseline and run again later to compare.");
+  await page.screenshot({ path: info.outputPath("unchanged-comparison.png"), fullPage: true });
+  const original = canonicalSource(previous);
+  current.profile.version = "new-method-fixture";
+  await page.reload();
+  await expect(page.locator("main")).toContainText("Recommended-check method or version changed.");
+  await expect(page.locator("main")).toContainText("No change in comparable target observations.");
+  await expect(page.locator("main")).not.toContainText("observed state changed.");
+  expect(canonicalSource(previous)).toBe(original);
+});
+
+test("recorded strings render as inert text in readable evidence and raw disclosure", async ({ page }) => {
+  const run = recordedRun("current"), check = run.snapshot.checks.find(item => item.check_id === "mail.spf.v1")!;
+  const literal = '<img src=x onerror="alert(1)">';
+  check.observation = { records: [literal] };
+  const ws = customerWorkspace([run]);
+  await page.route("**/api/workspace", route => route.fulfill({ json: { user: { id: "owner" }, workspaces: [ws], workspace: ws } }));
+  await page.goto("/runs/current/observations/mail.spf.v1");
+  await expect(page.locator(".evidence-facts")).toContainText(literal);
+  await expect(page.locator("main img")).toHaveCount(0);
+  await page.getByText("Raw source observation", { exact: true }).click();
+  await expect(page.locator("pre")).toHaveText(JSON.stringify(check.observation, null, 2));
+});
+
+test("overview guides the next visit without treating unobserved or uncertain assets as clear", async ({ page }) => {
+  const unknown = recordedRun("current");
+  unknown.snapshot.checks[0].status = "UNDETERMINED";
+  unknown.snapshot.checks[0].collected = false;
+  const ws = customerWorkspace([unknown]);
+  ws.assets.unshift({ id: "unobserved", type: "hostname", hostname: "new.example.com", createdAt: source.finished_at });
+  await page.route("**/api/workspace", route => route.fulfill({ json: { user: { id: "owner" }, workspaces: [ws], workspace: ws } }));
+  await page.goto("/");
+  await expect(page.locator(".overview-note")).toContainText("1 asset has undetermined checks.");
+  await expect(page.locator(".overview-note")).toContainText("1 asset has not been observed yet.");
+  await expect(page.locator(".ledger > li").first()).toContainText("1 undetermined");
+  await expect(page.locator(".ledger > li").last()).toContainText("Not observed yet");
+  await expect(page.locator("main")).toContainText("rerun to see what changed");
 });
