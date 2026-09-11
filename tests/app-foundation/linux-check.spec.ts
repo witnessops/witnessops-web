@@ -5,6 +5,8 @@ import { verifyProofpack } from '../../apps/witnessops-web/src/lib/proofpack/ver
 import { pinnedRegistryInput } from '../../apps/witnessops-web/src/lib/proofpack/pinned-registry';
 import { localAuditAdapter } from '../../apps/witnessops-web/src/lib/proofpack/local-audit-adapter';
 import type { LinuxCheckRun, Workspace } from '../../apps/witnessops-app/src/lib/model';
+import { linuxServerSnapshotFromVerifiedResult as project } from '../../apps/witnessops-app/src/lib/linux-snapshot';
+import { compareLinuxRuns } from '../../apps/witnessops-app/src/lib/linux-comparison';
 const name='proofpack-pr_lsa_20260710120000_198fd7aceb.zip';
 const path=resolve('tests/proofpack/production-fixtures/complete',name);
 for(const width of [1440,390]) test(`Linux import and existing report UI ${width}`,async({page},info)=>{
@@ -48,4 +50,34 @@ for(const width of [1440,390]) test(`Linux import and existing report UI ${width
   expect(reopens).toBeGreaterThanOrEqual(2);expect(imports).toBe(1);expect(collections).toBe(0);expect(errors).toEqual([]);
   ws.role='viewer';await page.goto('/assets/linux-asset');await expect(page.getByText('Viewer access · Only an Owner can import a check.')).toBeVisible();await expect(page.getByRole('button',{name:'Import Security Check'})).toHaveCount(0);
   await page.goto('/runs/foreign-run');await expect(page.getByRole('heading',{name:'Run not found'})).toBeVisible();
+});
+
+for(const width of [1440,390]) test(`Linux comparison qualification and three lanes ${width}`,async({page},info)=>{
+  const load=async(kind:string)=>verifyProofpack({proofpack:{name,bytes:readFileSync(resolve('tests/proofpack/production-fixtures',kind,name))},signature:{name:name+'.sig.json',bytes:readFileSync(resolve('tests/proofpack/production-fixtures',kind,name+'.sig.json'))},trust_registry:pinnedRegistryInput()});
+  const first=await load('complete'),second=await load('adverse');
+  const baseline={id:'baseline',assetId:'linux-asset',workspaceId:'workspace-a',createdAt:'2026-09-11T12:00:00Z',snapshot:project(first)};
+  const current={...baseline,id:'current',createdAt:'2026-09-11T12:01:00Z',snapshot:project(second)};
+  const comparison=compareLinuxRuns(current,baseline);
+  const metadata=(r:typeof current):LinuxCheckRun=>({id:r.id,assetId:r.assetId,createdAt:r.createdAt,sourceDigest:r.snapshot.source.sourceDigest,proofRunId:r.snapshot.source.proofRunId,verifierVersion:r.snapshot.source.verifierVersion,profileId:r.snapshot.source.profileId,outcome:'pass',synthetic:true,observedHostname:'demo-host',observedAt:r.snapshot.source.observedAt,sourceAssetId:'asset-demo-host-001',machineIdentity:null});
+  const ws:Workspace={id:'workspace-a',name:'Synthetic comparison',slug:'comparison',role:'owner',assets:[{id:'linux-asset',hostname:'demo-host',type:'linux_server',createdAt:baseline.createdAt}],runs:[],linuxRuns:[metadata(baseline),metadata(current)],members:[]};
+  let calls=0;
+  await page.route('**/api/**',route=>{
+    const url=new URL(route.request().url());
+    if(route.request().method()!=='GET')throw new Error('Comparison must not write or recollect');
+    if(url.pathname==='/api/workspace')return route.fulfill({json:{user:{id:'owner',displayName:'Owner'},workspace:ws,workspaces:[ws]}});
+    if(url.pathname==='/api/feedback')return route.fulfill({json:[]});
+    if(url.pathname==='/api/linux-checks'){calls++;return route.fulfill({json:{run:metadata(current),model:localAuditAdapter(second,current.createdAt),snapshot:current.snapshot,comparison}});}
+    throw new Error('Unexpected route');
+  });
+  await page.setViewportSize({width,height:1000});await page.goto('/assets/linux-asset');
+  await expect(page.getByRole('heading',{name:'What changed since the previous check?'})).toBeVisible();
+  await expect(page.locator('.change-panel')).toContainText('Listener added: udp/0.0.0.0:53');
+  for(const name of ['Environment','Coverage','Uncertainty'])await expect(page.getByRole('heading',{name,exact:true})).toBeVisible();
+  await expect(page.locator('.change-panel')).toContainText('Update cache freshness is not established');
+  await expect(page.getByRole('link',{name:'Open comparison baseline →'})).toHaveAttribute('href','/runs/baseline');
+  await page.screenshot({path:info.outputPath('linux-comparison.png'),fullPage:true});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  // Next dev/React Strict Mode may replay the mount effect once. Both requests
+  // are read-only; subsequent rerenders must not create a request loop.
+  expect(calls).toBeGreaterThanOrEqual(1);expect(calls).toBeLessThanOrEqual(2);
 });

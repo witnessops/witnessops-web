@@ -95,13 +95,13 @@ export function createFoundationService(options: {
           if (importing) throw new ApiError(429, 'Another package is being checked. Try again shortly.');
           importing = true;
           try {
-            const reopened = await linux.reopen(user, workspaceId, requireId(new URL(request.url).searchParams.get('id')));
+            const reopened = await linux.comparison(user, workspaceId, requireId(new URL(request.url).searchParams.get('id')));
             const artifact = request.headers.get('x-witnessops-artifact');
             if (artifact !== null) {
               if (artifact !== 'zip' && artifact !== 'signature') throw new ApiError(400, 'Choose an original source artifact.');
               return new Response(new Uint8Array(reopened.source[artifact]), { headers: { ...headers, 'Content-Type': 'application/octet-stream', 'X-Content-Type-Options': 'nosniff', 'Content-Disposition': `attachment; filename="${reopened.source.zipName}${artifact === 'zip' ? '' : '.sig.json'}"` } });
             }
-            return json({ run: reopened.run, model: reopened.model });
+            return json({ run: reopened.run, model: reopened.model, snapshot: reopened.snapshot, comparison: reopened.comparison, projectionMatches: reopened.projectionMatches });
           } finally { importing = false; }
         }
         if (request.method === 'POST') {

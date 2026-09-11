@@ -491,6 +491,49 @@ test('Linux: synthetic signed import, byte custody, reopen, report, restart and 
     const response = await service.handle(req,'linux-checks'); assert.equal(response.status,200);
     assert.deepEqual(Buffer.from(await response.arrayBuffer()), artifact==='zip'?zip:signature);
   }
+  const derived = (await pool.query('SELECT derived_snapshot FROM linux_check_sources WHERE run_id=$1',[run.id])).rows[0].derived_snapshot;
+  assert.equal(derived.schema,'witnessops.linux_server_snapshot.v1');
+  assert.deepEqual(derived,reopened.snapshot);
+  assert.equal(reopened.projectionMatches,true);
+  await assert.rejects(pool.query("UPDATE linux_check_sources SET derived_snapshot='{}'::jsonb WHERE run_id=$1",[run.id]),/immutable/);
+  const second = await linux.import(owner,workspace,asset.id,zip,signature,zipName);
+  const comparison = await linux.comparison(owner,workspace,second.id);
+  assert.equal(comparison.comparison.baselineId,run.id);
+  assert.deepEqual(comparison.comparison.environment,[]);
+  assert.deepEqual((await linux.reopen(owner,workspace,run.id)).source.zip,zip);
+  const adversePath = new URL('../../../../../tests/proofpack/production-fixtures/adverse/'+zipName,import.meta.url);
+  const third = await linux.import(owner,workspace,asset.id,readFileSync(adversePath),readFileSync(new URL(adversePath.href+'.sig.json')),zipName);
+  const changes = await linux.comparison(owner,workspace,third.id);
+  assert.equal(changes.comparison.baselineId,second.id);
+  assert.ok(changes.comparison.environment.some(line=>line.startsWith('Listener added:')));
+  await assert.rejects(linux.comparison(b,wb,third.id),/not found/);
+  const reconnect = connect();
+  try { assert.deepEqual((await new LinuxCheckStore(reconnect).comparison(owner,workspace,third.id)).comparison,changes.comparison); }
+  finally { await reconnect.end(); }
+  // Existing P1 rows have no projection. A mismatched cache must never replace
+  // fresh verification, and a different asset must never supply a baseline.
+  const otherAsset = await store.addAsset(owner,workspace,'other-host','linux_server');
+  async function persistedSource(cache: unknown, targetAsset = asset.id) {
+    const id=randomUUID();
+    await pool.query(`INSERT INTO runs (id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version,created_at)
+      SELECT $1,workspace_id,$2,initiated_by,source_type,'running',method_id,method_version,$4 FROM runs WHERE id=$3`,[id,targetAsset,run.id,new Date().toISOString()]);
+    await pool.query(`INSERT INTO linux_check_sources (run_id,workspace_id,zip_name,zip_bytes,signature_bytes,registry_bytes,signature_digest,registry_digest,metadata,verification,derived_snapshot)
+      SELECT $1,workspace_id,zip_name,zip_bytes,signature_bytes,registry_bytes,signature_digest,registry_digest,metadata,verification,$2::jsonb FROM linux_check_sources WHERE run_id=$3`,[id,cache===null?null:JSON.stringify(cache),run.id]);
+    await pool.query("UPDATE runs SET status='completed',source_digest=$2,finished_at=created_at WHERE id=$1",[id,run.sourceDigest]);
+    return id;
+  }
+  const legacyId=await persistedSource(null);
+  const legacy=await linux.reopen(owner,workspace,legacyId);
+  assert.equal(legacy.projectionMatches,null);assert.deepEqual(legacy.snapshot,reopened.snapshot);
+  const staleId=await persistedSource({...derived,values:{...derived.values,kernel:'incorrect cached value'}});
+  const stale=await linux.reopen(owner,workspace,staleId);
+  assert.equal(stale.projectionMatches,false);assert.deepEqual(stale.snapshot,reopened.snapshot);assert.deepEqual(stale.source.zip,zip);
+  const differentAssetId=await persistedSource(derived,otherAsset.id);
+  assert.equal((await linux.comparison(owner,workspace,differentAssetId)).comparison.baselineId,null);
+  const foreignAsset=await store.addAsset(b,wb,'demo-host','linux_server');
+  await linux.import(b,wb,foreignAsset.id,zip,signature,zipName);
+  const fourth=await linux.import(owner,workspace,asset.id,zip,signature,zipName);
+  assert.equal((await linux.comparison(owner,workspace,fourth.id)).comparison.baselineId,staleId);
   const foreign = createFoundationService({pool,origin,identity:async()=>identity('user_b')});
   assert.equal((await foreign.handle(request(`linux-checks?id=${run.id}`,wb),'linux-checks')).status,404);
   const anonymous = createFoundationService({pool,origin,identity:async()=>null});

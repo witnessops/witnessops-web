@@ -82,3 +82,60 @@ they are not production authentication or database browser acceptance.
 Slice 2 is **LinuxServerSnapshotV1 and second-run comparison only**, derived from
 these preserved originals. No live execution, SSH, scheduler, Watch/Update, cloud,
 Windows, billing, EE proofpack, public `/verify` change or deployment is included.
+
+## Slice 2 — derived Linux snapshot and comparison
+
+`src/lib/linux-snapshot.ts` defines the strict `witnessops.linux_server_snapshot.v1`
+contract and pure projection. Its exported `LINUX_FIELDS` table is the exact source
+map for every scalar: section, structured field path and allowed type. It selects
+OS ID/version, kernel, architecture, reboot requirement, failed-unit count, pending
+and security update counts, firewall provider/policy/rule counts, effective SSH
+settings, account counts, authorized-key/sudoers counts and root-key metadata,
+AppArmor/SELinux and five explicitly named sysctls. It never parses a report/PDF.
+
+Other mappings and normalization:
+
+| Projection | Verified-result location | Rule / unknown |
+|---|---|---|
+| Source identity/digest/version | `proof_run_id`, `verification_inputs.proofpack.sha256`, `verifier_version` | Exact recorded values; product version fixed to accepted 1.2.2 lane |
+| Collector version/hash | `report.manifest.collector.version/hash` | Recorded manifest metadata; strip `sha256:` only from a valid hash; otherwise null. Not independent proof of executed code |
+| Profile/time/synthetic | `report.scope.profile_id`, `report.posture.observed_at_utc/synthetic` | Exact values; no import/current time injected |
+| Hostname/machine ID | `report.posture.target.hostname`, `sections.host_identity.machine_identity` | Exact hostname; machine hash only when status observed and SHA-256 valid, else null |
+| Listeners | `sections.listeners.actual_endpoints` | Sorted unique transport/address/port strings; preserve TCP/UDP and recorded address spelling; no DNS or PID lookup |
+| Failed services | `sections.services.failed_units` | Sorted unique recorded unit strings; null if missing/unsupported |
+| Critical files | `sections.critical_files.files` | Sort by path; retain status/owner/group/mode only; absent metadata null. No file contents or invented hashes |
+| Collection | `report.completeness.section_results` plus section status/diagnostic_reason/collector_method | Eleven fixed sections; missing completeness false; missing strings null |
+| Updates context | `sections.updates.security_classification/cache_freshness/cache_only` | Exact typed value or null; unavailable classification forces security count null, never zero |
+
+Scalars preserve strings/booleans; counts must be nonnegative integers, otherwise
+null. A known cached pending-update count survives a partial APT classification.
+Incomplete sections are not used to assert host-value changes. Freshness uncertainty
+remains separate from update counts. No new source digest exists for this cache.
+
+Migration `0008_linux_snapshots.sql` adds nullable `derived_snapshot` only to the
+Linux child. New imports persist it before immutable completion. P1 rows remain
+untouched and derive on reopen. Freshly verified package projection always wins;
+a cache disagreement is reported, never repaired by rewriting original evidence.
+
+The server selects the nearest earlier completed admitted Linux run by
+`(created_at,id)` in the **same workspace and asset UUID**. This is import order,
+not an assertion that host observations happened in that order. It never chooses
+by hostname or skips an incompatible predecessor. Both sources are reverified.
+
+Comparability requires hostname, known matching machine-id and OS-ID continuity.
+Mismatch/missing identity withholds host conclusions. OS version/kernel remain
+explicit comparable platform values where identity continuity holds. This does not
+prove physical-machine identity. Profile, product/verifier/collector version or
+collector-hash changes withhold host deltas and appear under Coverage. Section
+method changes suppress that section's host deltas. Partial/unavailable/recovered
+collection and unknown fields appear under Uncertainty. New scalar availability
+and critical-file metadata surfaces appear under Coverage, never host exposure.
+
+The comparator uses explicit fields and listener/unit sets, not recursive JSON or
+LLM diff. No causality, risk increase, reachability, vulnerability or security grade
+is inferred. The three lanes appear on the Linux asset and saved check pages.
+Single-run BuyerReportDocument and PDF remain unchanged; comparison PDF is deferred.
+
+Next remaining slice: first explicitly authorized real local One Server Security
+Check pilot, including deliberate admission of non-synthetic sources (P1's synthetic
+restriction remains). No Watch, Update, remote execution or scheduling yet.

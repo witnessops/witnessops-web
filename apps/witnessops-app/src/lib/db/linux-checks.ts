@@ -11,6 +11,9 @@ import { transaction } from './pool';
 import type { AppUser } from './identity';
 import type { LinuxCheckRun } from '../model';
 import { linuxHostname } from '../linux-hostname';
+import { linuxServerSnapshotFromVerifiedResult, isLinuxServerSnapshot } from '../linux-snapshot';
+import { compareLinuxRuns, type LinuxComparison } from '../linux-comparison';
+import { canonicalSource } from '../source-digest';
 import { ApiError, requireId } from '../errors';
 
 export const sha256 = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
@@ -30,7 +33,7 @@ async function verify(source: LinuxSource, generatedAt: string) {
   // Import verification context, not another copy of the source/report.
   const { report: _report, ...verification } = result;
   void _report;
-  return { model, metadata, verification };
+  return { model, metadata, verification, snapshot: linuxServerSnapshotFromVerifiedResult(result) };
 }
 type Row = { id: string; asset_id: string; created_at: Date; source_digest: string; metadata: Omit<LinuxCheckRun, 'id' | 'assetId' | 'createdAt' | 'sourceDigest'> };
 const projection = (r: Row): LinuxCheckRun => ({ ...r.metadata, id: r.id, assetId: r.asset_id, createdAt: r.created_at.toISOString(), sourceDigest: r.source_digest });
@@ -59,7 +62,7 @@ export class LinuxCheckStore {
       if (linuxHostname(checked.metadata.observedHostname) !== asset.rows[0].normalized_value) throw new ApiError(422, 'The package hostname does not match this Linux server asset.');
       const id = randomUUID(), digest = sha256(source.zip);
       await client.query(`INSERT INTO runs (id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version,created_at) VALUES ($1,$2,$3,$4,'local-audit-1.2.2','running',$5,$6,$7)`, [id,workspaceId,assetId,user.id,checked.metadata.profileId,checked.metadata.verifierVersion,createdAt]);
-      await client.query(`INSERT INTO linux_check_sources (run_id,workspace_id,zip_bytes,signature_bytes,registry_bytes,signature_digest,registry_digest,metadata,verification,zip_name) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10)`, [id,workspaceId,source.zip,source.signature,source.registry,sha256(source.signature),sha256(source.registry),JSON.stringify(checked.metadata),JSON.stringify(checked.verification),zipName]);
+      await client.query(`INSERT INTO linux_check_sources (run_id,workspace_id,zip_bytes,signature_bytes,registry_bytes,signature_digest,registry_digest,metadata,verification,zip_name,derived_snapshot) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11::jsonb)`, [id,workspaceId,source.zip,source.signature,source.registry,sha256(source.signature),sha256(source.registry),JSON.stringify(checked.metadata),JSON.stringify(checked.verification),zipName,JSON.stringify(checked.snapshot)]);
       await client.query("UPDATE runs SET status='completed',source_digest=$3,finished_at=$4 WHERE workspace_id=$1 AND id=$2", [workspaceId,id,digest,createdAt]);
       return { ...checked.metadata, id, assetId, createdAt, sourceDigest: digest } satisfies LinuxCheckRun;
     });
@@ -67,13 +70,38 @@ export class LinuxCheckStore {
   async reopen(user: AppUser, workspaceId: string, runId: string) {
     return transaction(this.pool, async client => {
       await requireWorkspaceMembership(client, user, workspaceId);
-      const result = await client.query<Row & { zip_name: string; zip_bytes: Buffer; signature_bytes: Buffer; registry_bytes: Buffer; signature_digest: string; registry_digest: string }>(select.replace('s.metadata FROM', 's.metadata,s.zip_name,s.zip_bytes,s.signature_bytes,s.registry_bytes,s.signature_digest,s.registry_digest FROM') + ' AND r.id=$2', [workspaceId,requireId(runId)]);
+      const result = await client.query<Row & { derived_snapshot: unknown; zip_name: string; zip_bytes: Buffer; signature_bytes: Buffer; registry_bytes: Buffer; signature_digest: string; registry_digest: string }>(select.replace('s.metadata FROM', 's.metadata,s.derived_snapshot,s.zip_name,s.zip_bytes,s.signature_bytes,s.registry_bytes,s.signature_digest,s.registry_digest FROM') + ' AND r.id=$2', [workspaceId,requireId(runId)]);
       const row = result.rows[0];
       if (!row) throw new ApiError(404, 'Run not found in this workspace.');
       const source = { zipName: row.zip_name, zip: row.zip_bytes, signature: row.signature_bytes, registry: row.registry_bytes };
       if (sha256(source.zip) !== row.source_digest || sha256(source.signature) !== row.signature_digest || sha256(source.registry) !== row.registry_digest) throw new ApiError(422, 'Stored source correspondence failed.');
       const checked = await verify(source, row.created_at.toISOString());
-      return { run: projection(row), model: checked.model, source };
+      return { run: projection(row), model: checked.model, source, snapshot: checked.snapshot,
+        projectionMatches: row.derived_snapshot === null ? null : isLinuxServerSnapshot(row.derived_snapshot) && canonicalSource(row.derived_snapshot) === canonicalSource(checked.snapshot) };
     });
   }
+  async comparison(user: AppUser, workspaceId: string, runId: string) {
+    const current = await this.reopen(user, workspaceId, runId);
+    // Never accept a baseline from the browser or fall back to hostname matching.
+    const priorId = await transaction(this.pool, async client => {
+      await requireWorkspaceMembership(client, user, workspaceId);
+      const prior = await client.query<{id:string}>(`SELECT p.id FROM runs p JOIN runs c ON c.workspace_id=p.workspace_id AND c.asset_id=p.asset_id
+        WHERE c.workspace_id=$1 AND c.id=$2 AND p.source_type='local-audit-1.2.2' AND p.status='completed'
+        AND (p.created_at,p.id)<(c.created_at,c.id) ORDER BY p.created_at DESC,p.id DESC LIMIT 1`,[workspaceId,requireId(runId)]);
+      return prior.rows[0]?.id;
+    });
+    const asRun = (value: typeof current) => ({...value.run,workspaceId,snapshot:value.snapshot});
+    let comparison: LinuxComparison;
+    if (!priorId) comparison=compareLinuxRuns(asRun(current));
+    else {
+      try { comparison=compareLinuxRuns(asRun(current),asRun(await this.reopen(user,workspaceId,priorId))); }
+      catch(error) {
+        if (!(error instanceof ApiError) || error.status!==422) throw error;
+        comparison={baselineId:priorId,qualification:'COLLECTION_GAP',environment:[],coverage:[],uncertainty:['The nearest earlier source could not be reverified. Comparison is not established; no older run was substituted.']};
+      }
+    }
+    if(current.projectionMatches===false)comparison.uncertainty.push('Stored derived projection differs; comparison uses the freshly verified package projection.');
+    return {...current,comparison};
+  }
+
 }
