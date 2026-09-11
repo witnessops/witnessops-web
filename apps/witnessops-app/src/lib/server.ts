@@ -1,4 +1,6 @@
 import "server-only";
+import { LinuxCheckStore } from "./db/linux-checks";
+import { linuxUpload } from "./linux-upload";
 import type { Pool } from "pg";
 import { runSnapshot } from "../../../witnessops-web/src/lib/external-exposure/runner";
 import { readExternalRequestBody } from "../../../witnessops-web/src/lib/external-exposure/request";
@@ -33,7 +35,7 @@ export function admitRequest(request: Request, origin: string, proxyMode?: strin
   if (request.headers.has("origin") && request.headers.get("origin") !== origin) throw new ApiError(403, "Use the app origin.");
   if (![null, "same-origin", "none"].includes(request.headers.get("sec-fetch-site"))) throw new ApiError(403, "Use the app origin.");
   if (request.method !== "GET" && request.headers.get("origin") !== origin) throw new ApiError(403, "Use the app origin.");
-  if (url.search && (request.method !== "GET" || !["/api/assets", "/api/runs"].includes(url.pathname) || [...url.searchParams.keys()].join() !== "id")) throw new ApiError(400, "Unexpected query parameters.");
+  if (url.search && (request.method !== "GET" || !["/api/assets", "/api/runs", "/api/linux-checks"].includes(url.pathname) || [...url.searchParams.keys()].join() !== "id")) throw new ApiError(400, "Unexpected query parameters.");
 }
 const headers = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex, nofollow" };
 function json(value: unknown, status = 200) { return Response.json(value, { status, headers }); }
@@ -56,7 +58,8 @@ export function createFoundationService(options: {
   const recentHosts = new Map<string, number>(), recentRuns: number[] = [];
   const now = options.now ?? Date.now, execute = options.run ?? runSnapshot;
   let active = 0;
-  async function handle(request: Request, endpoint: "workspace" | "assets" | "runs" | "early-access" | "events" | "feedback"): Promise<Response> {
+  let importing = false;
+  async function handle(request: Request, endpoint: "workspace" | "assets" | "runs" | "early-access" | "events" | "feedback" | "linux-checks"): Promise<Response> {
     try {
       admitRequest(request, options.origin ?? authConfiguration().origin, options.proxyMode ?? process.env.WITNESSOPS_APP_PROXY_MODE);
       const identity = await (options.identity ? options.identity() : (await import("./auth")).authenticatedIdentity());
@@ -83,9 +86,37 @@ export function createFoundationService(options: {
       const selected = request.headers.get("x-witnessops-workspace");
       const workspaceId = selected === null ? (workspaces.length === 1 ? workspaces[0].id : null) : requireId(selected);
       if (endpoint === "workspace" && request.method === "GET") {
-        return json({ user, workspaces, workspace: workspaceId ? await store.read(user, workspaceId) : null } satisfies WorkspaceState);
+        return json({ user, workspaces, workspace: workspaceId ? { ...await store.read(user, workspaceId), linuxRuns: await new LinuxCheckStore(pool).list(user, workspaceId) } : null } satisfies WorkspaceState);
       }
       if (!workspaceId) throw new ApiError(400, "Select a workspace.");
+      if (endpoint === 'linux-checks') {
+        const linux = new LinuxCheckStore(pool);
+        if (request.method === 'GET') {
+          if (importing) throw new ApiError(429, 'Another package is being checked. Try again shortly.');
+          importing = true;
+          try {
+            const reopened = await linux.reopen(user, workspaceId, requireId(new URL(request.url).searchParams.get('id')));
+            const artifact = request.headers.get('x-witnessops-artifact');
+            if (artifact !== null) {
+              if (artifact !== 'zip' && artifact !== 'signature') throw new ApiError(400, 'Choose an original source artifact.');
+              return new Response(new Uint8Array(reopened.source[artifact]), { headers: { ...headers, 'Content-Type': 'application/octet-stream', 'X-Content-Type-Options': 'nosniff', 'Content-Disposition': `attachment; filename="${reopened.source.zipName}${artifact === 'zip' ? '' : '.sig.json'}"` } });
+            }
+            return json({ run: reopened.run, model: reopened.model });
+          } finally { importing = false; }
+        }
+        if (request.method === 'POST') {
+          // Authorize before buffering an upload. One verification/import at a time.
+          const member = await store.read(user, workspaceId);
+          if (member.role !== 'owner') throw new ApiError(403, 'An Owner is required for this action.');
+          if (importing) throw new ApiError(429, 'Another import is being checked. Try again shortly.');
+          importing = true;
+          try {
+            const input = await linuxUpload(request);
+            return json(await linux.import(user, workspaceId, input.assetId, input.zip, input.signature, input.zipName), 201);
+          } finally { importing = false; }
+        }
+        throw new ApiError(405, 'Method not supported.');
+      }
       if (endpoint === 'feedback' && request.method === 'GET') return json(await activity.decisions(user, workspaceId));
       if (endpoint === 'feedback' && request.method === 'POST') {
         const input = await body(request, ['surface', 'runId', 'response', 'comment']);
@@ -111,6 +142,7 @@ export function createFoundationService(options: {
         const input = await body(request, ["assetId", "authorized"]);
         if (input.authorized !== true) throw new ApiError(400, "Confirm that you own this hostname or are authorized to observe it.");
         const asset = await store.asset(user, workspaceId, input.assetId, true);
+        if (asset.type === "linux_server") throw new ApiError(400, "Import an existing Linux Proofpack; app collection is not available.");
         for (const [h, t] of recentHosts) if (now() - t >= 60_000) recentHosts.delete(h);
         while (recentRuns.length && now() - recentRuns[0] >= 60_000) recentRuns.shift();
         if (active >= 2 || recentRuns.length >= 10 || recentHosts.has(asset.hostname)) throw new ApiError(429, "Collection is bounded. Wait one minute before rerunning this hostname.");

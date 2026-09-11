@@ -7,6 +7,7 @@ export const DECLARED_APP_ENDPOINTS: ReadonlyArray<{ path: string; methods: read
   { path: "/api/feedback", methods: ["GET", "POST"], summary: "Read own feedback suppression state or submit one answer/dismissal in an authorized workspace" },
   { path: "/api/workspace", methods: ["GET", "POST"], summary: "Read authorized workspace data or atomically create a workspace and Owner membership" },
   { path: "/api/assets", methods: ["GET", "POST"], summary: "Read a known asset in the authorized workspace; Owner-only bounded hostname creation" },
+  { path: "/api/linux-checks", methods: ["GET", "POST"], summary: "Owner-only synthetic Local Audit import; member-scoped reverified report and original source downloads" },
   { path: "/api/runs", methods: ["GET", "POST"], summary: "Read a known immutable run in the authorized workspace; Owner-only authorized hostname execution" },
 ];
 export const DECLARED_APP_AUTH_ROUTES = [

@@ -6,12 +6,13 @@ import { ApiError, requireId } from "../errors";
 import { normalizeExternalHostname } from "../../../../witnessops-web/src/lib/external-exposure/input";
 import { validateExternalSnapshot } from "../../../../witnessops-web/src/lib/external-exposure/adapter";
 import { RECOMMENDED_PROFILE, type Workspace, type Run, type Asset, type WorkspaceSummary } from "../model";
+import { linuxHostname } from "../linux-hostname";
 import { canonicalSource } from "../source-digest";
 import type { AppUser } from "./identity";
 import { requireEarlyAccess } from './access';
 
 type MemberRow = { id: string; name: string; slug: string; role: "owner" | "viewer" };
-type AssetRow = { id: string; normalized_value: string; type: "domain" | "hostname"; created_at: Date };
+type AssetRow = { id: string; normalized_value: string; type: Asset["type"]; created_at: Date };
 type RunRow = { id: string; asset_id: string; created_at: Date; source_snapshot: unknown; source_digest: string; method_id: string; method_version: string };
 const assetProjection = (row: AssetRow): Asset => ({ id: row.id, hostname: row.normalized_value, type: row.type, createdAt: row.created_at.toISOString() });
 function runProjection(row: RunRow): Run {
@@ -71,7 +72,7 @@ export class WorkspaceStore {
   async read(user: AppUser, workspaceId: string): Promise<Workspace> {
     return this.within(user, workspaceId, false, async (client, member) => {
       const assets = await client.query<AssetRow>("SELECT * FROM assets WHERE workspace_id=$1 ORDER BY created_at,id", [member.id]);
-      const runs = await client.query<RunRow>("SELECT * FROM runs WHERE workspace_id=$1 AND status='completed' ORDER BY created_at,id", [member.id]);
+      const runs = await client.query<RunRow>("SELECT * FROM runs WHERE workspace_id=$1 AND status='completed' AND source_type='external-snapshot-v1' ORDER BY created_at,id", [member.id]);
       const members = await client.query<{ id: string; displayName: string | null; role: "owner" | "viewer" }>(`SELECT u.id,u.display_name AS "displayName",m.role FROM memberships m JOIN users u ON u.id=m.user_id
         WHERE m.workspace_id=$1 AND m.status='active' AND m.revoked_at IS NULL AND u.status='active' ORDER BY m.joined_at,u.id`, [member.id]);
       return { ...member, assets: assets.rows.map(assetProjection), runs: runs.rows.map(runProjection), members: members.rows };
@@ -86,15 +87,15 @@ export class WorkspaceStore {
   }
   async run(user: AppUser, workspaceId: string, runId: unknown): Promise<Run> {
     return this.within(user, workspaceId, false, async client => {
-      const result = await client.query<RunRow>("SELECT * FROM runs WHERE workspace_id=$1 AND id=$2 AND status='completed'", [workspaceId, requireId(runId)]);
+      const result = await client.query<RunRow>("SELECT * FROM runs WHERE workspace_id=$1 AND id=$2 AND status='completed' AND source_type='external-snapshot-v1'", [workspaceId, requireId(runId)]);
       if (!result.rows[0]) throw new ApiError(404, "Run not found in this workspace.");
       return runProjection(result.rows[0]);
     });
   }
   async addAsset(user: AppUser, workspaceId: string, input: unknown, type: unknown): Promise<Asset> {
     let hostname: string;
-    try { hostname = normalizeExternalHostname(input); } catch { throw new ApiError(400, "Enter one public hostname, without a URL, IP address, path, credentials or port."); }
-    if (type !== "hostname" && type !== "domain") throw new ApiError(400, "Only hostname and domain assets are supported.");
+    try { hostname = type === "linux_server" ? linuxHostname(input) : normalizeExternalHostname(input); } catch { throw new ApiError(400, "Enter one public hostname, without a URL, IP address, path, credentials or port."); }
+    if (type !== "hostname" && type !== "domain" && type !== "linux_server") throw new ApiError(400, "Choose a hostname, domain or Linux server asset.");
     return this.within(user, workspaceId, true, async client => {
       // Serialize asset additions to enforce the bounded workspace capacity.
       await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [workspaceId]);
@@ -108,7 +109,7 @@ export class WorkspaceStore {
   }
   async beginRun(user: AppUser, workspaceId: string, assetId: string): Promise<string> {
     return this.within(user, workspaceId, true, async client => {
-      const asset = await client.query("SELECT id FROM assets WHERE workspace_id=$1 AND id=$2", [workspaceId, assetId]);
+      const asset = await client.query("SELECT id FROM assets WHERE workspace_id=$1 AND id=$2 AND type IN ('hostname','domain')", [workspaceId, assetId]);
       if (!asset.rowCount) throw new ApiError(404, "Asset not found in this workspace.");
       await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [workspaceId]);
       const capacity = await client.query<{ count: string; bytes: string }>("SELECT count(*),coalesce(sum(octet_length(source_snapshot::text)),0) AS bytes FROM runs WHERE workspace_id=$1 AND status IN ('completed','running')", [workspaceId]);

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LinuxAsset, LinuxCheckPage, LinuxHistory } from "./linux-check";
 import { AccessGate, ComparisonViewed, DeeperReview, ProductActivity, RunFeedback, useProductActivity } from "./early-access";
 import { EARLY_ACCESS_DATA_NOTE, type EarlyAccessState } from "../lib/early-access";
 import { publicContactMailto } from "../../../witnessops-web/src/lib/public-contact";
@@ -139,20 +140,22 @@ function AssetList({ workspace }: { workspace: Workspace }) {
     const priority = latest?.snapshot.checks.some(check => check.status === "NEEDS_ATTENTION") ? 0 : latest?.snapshot.checks.some(check => !check.collected || ["UNDETERMINED", "CHECK_ERROR"].includes(check.status)) ? 1 : !latest ? 2 : changes?.environment.length ? 3 : 4;
     return { asset, latest, changes, priority };
   }).sort((a, b) => a.priority - b.priority);
-  return <ul className="ledger">{rows.map(({ asset, latest, changes }) => <li key={asset.id}><Link className="ledger-row" href={`/assets/${asset.id}`}><div><strong className="mono">{asset.hostname}</strong><span>{latest ? `Last observed ${date(latest.snapshot.finished_at)}` : "Ready for its first observation"}</span>{changes && !changes.baseline ? <span>{changes.environment.length} Environment · {changes.coverage.length} Coverage changes{changes.uncertainty.length ? ` · ${changes.uncertainty.length} not comparable` : ""}</span> : null}</div><span className="attention-label">{attention(latest)} <span aria-hidden="true">→</span></span></Link></li>)}</ul>;
+  return <ul className="ledger">{rows.map(({ asset, latest, changes }) => <li key={asset.id}><Link className="ledger-row" href={`/assets/${asset.id}`}><div><strong className="mono">{asset.hostname}</strong><span>{asset.type === "linux_server" ? "One Server Security Check · import existing source" : latest ? `Last observed ${date(latest.snapshot.finished_at)}` : "Ready for its first observation"}</span>{changes && !changes.baseline ? <span>{changes.environment.length} Environment · {changes.coverage.length} Coverage changes{changes.uncertainty.length ? ` · ${changes.uncertainty.length} not comparable` : ""}</span> : null}</div><span className="attention-label">{asset.type === "linux_server" ? `${(workspace.linuxRuns ?? []).filter(run => run.assetId === asset.id).length} saved checks` : attention(latest)} <span aria-hidden="true">→</span></span></Link></li>)}</ul>;
 }
 
 function Overview({ workspace }: { workspace: Workspace }) {
-  const latest = workspace.assets.map(asset => orderedRuns(workspace, asset.id)[0]).filter((run): run is Run => Boolean(run));
+  const exposureAssets = workspace.assets.filter(asset => asset.type !== "linux_server");
+  const latest = exposureAssets.map(asset => orderedRuns(workspace, asset.id)[0]).filter((run): run is Run => Boolean(run));
   const needsAttention = latest.filter(run => run.snapshot.checks.some(check => check.status === "NEEDS_ATTENTION")).length;
   const unresolved = latest.filter(run => run.snapshot.checks.some(check => !check.collected || ["CHECK_ERROR", "UNDETERMINED"].includes(check.status))).length;
   const comparisons = latest.map(run => compareRuns(run, previousRun(workspace, run)));
-  return <><Header title={workspace.name} action={workspace.assets.length && workspace.role === "owner" ? <Link className="button" href="/assets/new">Add asset</Link> : undefined}><p>See what your public hostname exposes. Inspect the evidence, then rerun to see what changed.</p></Header>{workspace.assets.length ? <><dl className="overview-stats"><div><dt>Assets</dt><dd>{workspace.assets.length}</dd></div><div><dt>Need attention</dt><dd>{needsAttention || "None"}</dd></div><div><dt>Environment changes</dt><dd>{comparisons.filter(change => change.environment.length).length} assets</dd></div><div><dt>Coverage changes</dt><dd>{comparisons.filter(change => change.coverage.length).length} assets</dd></div></dl>{unresolved || latest.length < workspace.assets.length ? <p className="overview-note">{unresolved ? `${unresolved} ${unresolved === 1 ? "asset has" : "assets have"} undetermined checks. ` : ""}{latest.length < workspace.assets.length ? `${workspace.assets.length - latest.length} ${workspace.assets.length - latest.length === 1 ? "asset has" : "assets have"} not been observed yet.` : ""}</p> : null}<section className="section"><div className="section-heading"><h2>Your assets</h2><Link href="/assets">View all assets →</Link></div><AssetList workspace={workspace} /></section></> : <AssetList workspace={workspace} />}<p className="quiet boundary">Each run records one hostname at one point in time. A clear observation does not mean the asset is safe or free of vulnerabilities.</p></>;
+  return <><Header title={workspace.name} action={workspace.assets.length && workspace.role === "owner" ? <Link className="button" href="/assets/new">Add asset</Link> : undefined}><p>See what your public hostname exposes. Inspect the evidence, then rerun to see what changed.</p></Header>{workspace.assets.length ? <><dl className="overview-stats"><div><dt>Assets</dt><dd>{workspace.assets.length}</dd></div><div><dt>Need attention</dt><dd>{needsAttention || "None"}</dd></div><div><dt>Environment changes</dt><dd>{comparisons.filter(change => change.environment.length).length} assets</dd></div><div><dt>Coverage changes</dt><dd>{comparisons.filter(change => change.coverage.length).length} assets</dd></div></dl>{unresolved || latest.length < exposureAssets.length ? <p className="overview-note">{unresolved ? `${unresolved} ${unresolved === 1 ? "asset has" : "assets have"} undetermined checks. ` : ""}{latest.length < exposureAssets.length ? `${exposureAssets.length - latest.length} ${exposureAssets.length - latest.length === 1 ? "asset has" : "assets have"} not been observed yet.` : ""}</p> : null}<section className="section"><div className="section-heading"><h2>Your assets</h2><Link href="/assets">View all assets →</Link></div><AssetList workspace={workspace} /></section></> : <AssetList workspace={workspace} />}<p className="quiet boundary">Each run records one hostname at one point in time. A clear observation does not mean the asset is safe or free of vulnerabilities.</p></>;
 }
 
-function AddAsset({ busy, onAdd }: { busy: boolean; onAdd: (hostname: string) => Promise<void> }) {
+function AddAsset({ busy, onAdd }: { busy: boolean; onAdd: (hostname: string, type: Asset["type"]) => Promise<void> }) {
+  const [type, setType] = useState<Asset["type"]>("hostname");
   const [hostname, setHostname] = useState("");
-  return <div className="narrow"><Header title="Add asset"><p>Start with a public domain or hostname you are authorized to observe. Each asset covers one hostname, not all of its subdomains.</p></Header><form className="asset-form" onSubmit={event => { event.preventDefault(); if (hostname.trim() && !busy) void onAdd(hostname); }}><label htmlFor="asset-hostname">Public hostname</label><input id="asset-hostname" value={hostname} onChange={event => setHostname(event.target.value)} placeholder="example.com" autoCapitalize="none" autoCorrect="off" spellCheck={false} required maxLength={253} disabled={busy} /><p className="quiet">For example, example.com or app.example.com. No URL path, port or IP address. Adding an asset does not prove ownership.</p><RecommendedChecks expanded /><p className="add-boundary">Adding saves the hostname only. You will authorize collection separately on the asset page.</p><div className="actions"><button className="button" disabled={busy || !hostname.trim()}>{busy ? "Adding…" : "Add without scanning"}</button><Link className="button secondary" href="/assets">Cancel</Link></div></form></div>;
+  return <div className="narrow"><Header title="Add asset"><p>Start with a public domain or hostname you are authorized to observe. Each asset covers one hostname, not all of its subdomains.</p></Header><form className="asset-form" onSubmit={event => { event.preventDefault(); if (hostname.trim() && !busy) void onAdd(hostname, type); }}><label htmlFor="asset-type">Asset type</label><select id="asset-type" value={type} disabled={busy} onChange={event => setType(event.target.value as Asset["type"])}><option value="hostname">Public hostname · External Exposure</option><option value="linux_server">Linux server · One Server Security Check</option></select><label htmlFor="asset-hostname">{type === "linux_server" ? "Recorded Linux hostname" : "Public hostname"}</label><input id="asset-hostname" value={hostname} onChange={event => setHostname(event.target.value)} placeholder="example.com" autoCapitalize="none" autoCorrect="off" spellCheck={false} required maxLength={253} disabled={busy} /><p className="quiet">For example, example.com or app.example.com. No URL path, port or IP address. Adding an asset does not prove ownership.</p>{type === "linux_server" ? <p>Use the hostname recorded in an existing synthetic Local Audit 1.2.2 Proofpack. Import its ZIP and detached signature on the asset page; no app collector runs.</p> : <RecommendedChecks expanded />}<p className="add-boundary">Adding saves the hostname only. You will authorize collection separately on the asset page.</p><div className="actions"><button className="button" disabled={busy || !hostname.trim()}>{busy ? "Adding…" : "Add without scanning"}</button><Link className="button secondary" href="/assets">Cancel</Link></div></form></div>;
 }
 
 function AssetPage({ workspace, asset, busy, onRun }: { workspace: Workspace; asset: Asset; busy: boolean; onRun: (asset: Asset) => Promise<void> }) {
@@ -239,9 +242,9 @@ export function ProductApp() {
   async function refresh() {
     setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, workspace?.id));
   }
-  async function onAdd(hostname: string) {
+  async function onAdd(hostname: string, type: Asset["type"]) {
     await perform(async () => {
-      const asset = await request<Asset>("/api/assets", "POST", { hostname, type: "hostname" }, workspace?.id);
+      const asset = await request<Asset>("/api/assets", "POST", { hostname, type }, workspace?.id);
       await refresh();
       router.push(`/assets/${asset.id}`);
     });
@@ -270,19 +273,19 @@ export function ProductApp() {
     content = workspace.role === "owner" ? <AddAsset busy={busy} onAdd={onAdd} /> : <Missing title="Owner access required" />;
   } else if (parts[0] === "assets" && parts.length === 2) {
     const asset = workspace.assets.find((item) => item.id === parts[1]);
-    content = asset ? <AssetPage key={asset.id} workspace={workspace} asset={asset} busy={busy} onRun={onRun} /> : <Missing title="Asset not found" />;
+    content = asset?.type === "linux_server" ? <LinuxAsset key={asset.id} workspace={workspace} asset={asset} imported={async run => { await refresh(); router.push(`/runs/${run.id}`); }} /> : asset ? <AssetPage key={asset.id} workspace={workspace} asset={asset} busy={busy} onRun={onRun} /> : <Missing title="Asset not found" />;
   } else if (parts[0] === "runs" && parts.length === 2) {
     const run = workspace.runs.find((item) => item.id === parts[1]);
-    content = run ? <RunPage key={run.id} workspace={workspace} run={run} busy={busy} onRun={onRun} /> : <Missing title="Run not found" />;
+    content = (workspace.linuxRuns ?? []).some(run => run.id === parts[1]) ? <LinuxCheckPage key={parts[1]} runId={parts[1]} workspaceId={workspace.id} /> : run ? <RunPage key={run.id} workspace={workspace} run={run} busy={busy} onRun={onRun} /> : <Missing title="Run not found" />;
   } else if (parts[0] === "runs" && parts[2] === "observations" && parts.length === 4) {
     const run = workspace.runs.find((item) => item.id === parts[1]);
     const check = run?.snapshot.checks.find((item) => item.check_id === parts[3]);
     content = run && check ? <ObservationPage run={run} check={check} /> : <Missing title="Observation not found" />;
   } else if (pathname === "/reports") {
-    content = <><Header title="Reports"><p>A report is a readable snapshot of one observation. It is not a security score.</p></Header><History workspace={workspace} report /></>;
+    content = <><Header title="Reports"><p>A report is a readable snapshot of one observation. It is not a security score.</p></Header><History workspace={workspace} report /><LinuxHistory workspace={workspace} /></>;
   } else if (parts[0] === "reports" && parts.length === 2) {
     const run = workspace.runs.find((item) => item.id === parts[1]);
-    content = run ? <ReportPage workspace={workspace} run={run} /> : <Missing title="Report not found" />;
+    content = (workspace.linuxRuns ?? []).some(run => run.id === parts[1]) ? <LinuxCheckPage key={parts[1]} runId={parts[1]} workspaceId={workspace.id} /> : run ? <ReportPage workspace={workspace} run={run} /> : <Missing title="Report not found" />;
   } else if (pathname === "/members") {
     content = <><Header title="Members"><p>Access is explicit. An email domain or workspace name does not establish membership.</p></Header>{workspace.members.map(member => <div className="member-row" key={member.id}><div><strong>{member.displayName || "Workspace member"}</strong></div><span className="status">{member.role === "owner" ? "Owner" : "Viewer"}</span></div>)}<p className="boundary">Invitations are not available yet. No invitation will be sent.</p></>;
   } else if (pathname === "/settings") {

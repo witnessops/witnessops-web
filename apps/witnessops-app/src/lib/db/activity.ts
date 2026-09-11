@@ -12,8 +12,8 @@ import { CHECK_IDS } from '../model';
 type RunRef = { id: string; asset_id: string; status: string; prior: boolean; first: boolean; check_ids: string[] };
 async function runRef(client: PoolClient, workspaceId: string, runId: unknown): Promise<RunRef> {
   const result = await client.query<RunRef>(`SELECT r.id,r.asset_id,r.status,
-    EXISTS (SELECT 1 FROM runs p WHERE p.workspace_id=r.workspace_id AND p.asset_id=r.asset_id AND p.status='completed' AND (p.created_at,p.id)<(r.created_at,r.id)) AS prior,
-    NOT EXISTS (SELECT 1 FROM runs p WHERE p.workspace_id=r.workspace_id AND p.status='completed' AND (p.created_at,p.id)<(r.created_at,r.id)) AS first,
+    EXISTS (SELECT 1 FROM runs p WHERE p.workspace_id=r.workspace_id AND p.source_type=r.source_type AND p.asset_id=r.asset_id AND p.status='completed' AND (p.created_at,p.id)<(r.created_at,r.id)) AS prior,
+    NOT EXISTS (SELECT 1 FROM runs p WHERE p.workspace_id=r.workspace_id AND p.source_type=r.source_type AND p.status='completed' AND (p.created_at,p.id)<(r.created_at,r.id)) AS first,
     ARRAY(SELECT c->>'check_id' FROM jsonb_array_elements(coalesce(r.source_snapshot->'checks','[]'::jsonb)) c) AS check_ids
     FROM runs r WHERE r.workspace_id=$1 AND r.id=$2`, [workspaceId, requireId(runId)]);
   if (!result.rows[0]) throw new ApiError(404, 'Run not found in this workspace.');

@@ -427,3 +427,74 @@ test('Events: fixed metadata, deduplication, A/B denial, comparison eligibility 
     assert.equal(history.runs.length, 2); assert.deepEqual(history.runs[0].snapshot, source);
   } finally { await pool.query('DROP TRIGGER fail_events_fixture ON product_events'); await pool.query('DROP FUNCTION fail_events_fixture()'); }
 });
+
+test('Linux: synthetic signed import, byte custody, reopen, report, restart and tenant fences', async () => {
+  const { LinuxCheckStore, sha256 } = await import('./linux-checks');
+  const { pinnedRegistryInput } = await import('../../../../witnessops-web/src/lib/proofpack/pinned-registry');
+  const { verifyProofpack } = await import('../../../../witnessops-web/src/lib/proofpack/verify.mjs');
+  const { isBuyerReport } = await import('../../../../witnessops-web/src/lib/proofpack/report-model');
+  const fixture = new URL('../../../../../tests/proofpack/production-fixtures/complete/proofpack-pr_lsa_20260710120000_198fd7aceb.zip', import.meta.url);
+  const zipName = 'proofpack-pr_lsa_20260710120000_198fd7aceb.zip';
+  const zip = readFileSync(fixture), signature = readFileSync(new URL(fixture.href + '.sig.json'));
+  const linux = new LinuxCheckStore(pool);
+  const owner = await resolveIdentity(pool, identity('linux_owner'));
+  const workspace = await store.create(owner, 'Synthetic Linux import', randomUUID());
+  await pool.query("INSERT INTO memberships (user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id,workspace]);
+  const asset = await store.addAsset(owner, workspace, 'demo-host', 'linux_server');
+  const before = await pool.query('SELECT id,source_digest,source_snapshot FROM runs ORDER BY id');
+  const service = createFoundationService({ pool, origin, identity: async () => identity('linux_owner'), run: async () => { throw new Error('Collector must not be called'); } });
+  function upload(bytes = zip, sig = signature, extra = false) {
+    const form = new FormData(); form.set('assetId',asset.id); form.set('zip',new Blob([bytes]),zipName); form.set('signature',new Blob([sig]),zipName+'.sig.json');
+    if (extra) form.set('trust_registry',new Blob(['{}']),'attacker.json');
+    return new Request(`${origin}/api/linux-checks`, { method:'POST',headers:{host:'127.0.0.1:3020',origin,'x-witnessops-workspace':workspace},body:form });
+  }
+  assert.equal((await verifyProofpack({proofpack:{name:zipName,bytes:zip},signature:{name:zipName+'.sig.json',bytes:signature},trust_registry:pinnedRegistryInput()})).status,'valid');
+  await assert.rejects(linux.import(viewer,workspace,asset.id,zip,signature,zipName), /Owner/);
+  await assert.rejects(linux.import(b,workspace,asset.id,zip,signature,zipName), /not found/);
+  assert.equal((await service.handle(upload(zip, signature, true),'linux-checks')).status,400);
+  const untrusted = new URL('../../../../../tests/proofpack/fixtures/complete/proofpack-pr_lsa_20260710120000_198fd7aceb.zip', import.meta.url);
+  assert.equal((await service.handle(upload(readFileSync(untrusted),readFileSync(new URL(untrusted.href+'.sig.json'))),'linux-checks')).status,422);
+  const corrupt = Buffer.from(zip); corrupt[100] ^= 1;
+  assert.equal((await service.handle(upload(corrupt),'linux-checks')).status,422);
+  assert.equal((await service.handle(upload(zip,Buffer.from('{}')),'linux-checks')).status,422);
+  assert.equal((await pool.query('SELECT count(*) FROM runs WHERE workspace_id=$1',[workspace])).rows[0].count,'0');
+  const wrongTrust = await verifyProofpack({proofpack:{name:zipName,bytes:zip},signature:{name:zipName+'.sig.json',bytes:signature},trust_registry:{name:'wrong.json',bytes:Buffer.from('{}')}});
+  assert.equal(wrongTrust.status,'invalid');
+  const imported = await service.handle(upload(),'linux-checks');
+  assert.equal(imported.status,201, await imported.clone().text());
+  const run = await imported.json();
+  assert.equal(run.sourceDigest,sha256(zip)); assert.equal(run.observedHostname,'demo-host'); assert.equal(run.synthetic,true);
+  assert.equal((await service.handle(request('runs',workspace,{assetId:asset.id,authorized:true}),'runs')).status,400);
+  await assert.rejects(store.beginRun(owner,workspace,asset.id), /not found/);
+  const reopened = await linux.reopen(owner,workspace,run.id);
+  assert.deepEqual(reopened.source.zip,zip); assert.deepEqual(reopened.source.signature,signature);
+  assert.deepEqual(reopened.source.registry,Buffer.from(pinnedRegistryInput().bytes));
+  assert.equal(isBuyerReport(reopened.model),true); assert.equal(reopened.model.identity.sourceDigest,sha256(zip));
+  assert.equal(reopened.model.identity.productVersion,'1.2.2');
+  assert.equal((await linux.reopen(viewer,workspace,run.id)).run.id,run.id);
+  await assert.rejects(linux.reopen(b,wb,run.id), /not found/);
+  await assert.rejects(linux.reopen(b,workspace,run.id), /not found/);
+  await assert.rejects(pool.query("UPDATE runs SET source_digest=$2 WHERE id=$1",[run.id,'0'.repeat(64)]), /immutable/);
+  await assert.rejects(pool.query('UPDATE linux_check_sources SET zip_bytes=$2 WHERE run_id=$1',[run.id,corrupt]), /immutable/);
+  await assert.rejects(pool.query('DELETE FROM linux_check_sources WHERE run_id=$1',[run.id]), /immutable/);
+  const fresh = connect();
+  try {
+    const again = await new LinuxCheckStore(fresh).reopen(owner,workspace,run.id);
+    assert.deepEqual(again.source.zip,zip); assert.deepEqual(again.model,reopened.model);
+  } finally { await fresh.end(); }
+  const after = await pool.query('SELECT id,source_digest,source_snapshot FROM runs WHERE workspace_id<>$1 ORDER BY id',[workspace]);
+  assert.deepEqual(after.rows,before.rows);
+  const state = await service.handle(request('workspace',workspace),'workspace');
+  const body = await state.json(); assert.equal(body.workspace.runs.length,0); assert.equal(body.workspace.linuxRuns.length,1);
+  for (const artifact of ['zip','signature']) {
+    const req = new Request(`${origin}/api/linux-checks?id=${run.id}`,{headers:{host:'127.0.0.1:3020','x-witnessops-workspace':workspace,'x-witnessops-artifact':artifact}});
+    const response = await service.handle(req,'linux-checks'); assert.equal(response.status,200);
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), artifact==='zip'?zip:signature);
+  }
+  const foreign = createFoundationService({pool,origin,identity:async()=>identity('user_b')});
+  assert.equal((await foreign.handle(request(`linux-checks?id=${run.id}`,wb),'linux-checks')).status,404);
+  const anonymous = createFoundationService({pool,origin,identity:async()=>null});
+  assert.equal((await anonymous.handle(request(`linux-checks?id=${run.id}`,workspace),'linux-checks')).status,401);
+  await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE user_id=$1 AND workspace_id=$2",[viewer.id,workspace]);
+  await assert.rejects(linux.reopen(viewer,workspace,run.id), /not found/);
+});
