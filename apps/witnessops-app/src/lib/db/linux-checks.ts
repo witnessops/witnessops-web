@@ -13,6 +13,7 @@ import type { LinuxCheckRun } from '../model';
 import { linuxHostname } from '../linux-hostname';
 import { linuxServerSnapshotFromVerifiedResult, isLinuxServerSnapshot } from '../linux-snapshot';
 import { compareLinuxRuns, type LinuxComparison } from '../linux-comparison';
+import { requireLinuxClassification } from '../linux-admission';
 import { canonicalSource } from '../source-digest';
 import { ApiError, requireId } from '../errors';
 
@@ -25,8 +26,7 @@ async function verify(source: LinuxSource, generatedAt: string) {
   const result = await verifyProofpack({ proofpack: { name: source.zipName, bytes: source.zip }, signature: { name: `${source.zipName}.sig.json`, bytes: source.signature }, trust_registry: { name: pinnedRegistryInput().name, bytes: source.registry } });
   const model = localAuditAdapter(result, generatedAt);
   if (result.status !== 'valid' || !result.report || !model || !isBuyerReport(model)) throw new ApiError(422, 'Local Audit package verification did not pass. No run was admitted.');
-  // P1 accepts synthetic sources only. Customer/server collection is a later lane.
-  if (result.report.posture.synthetic !== true) throw new ApiError(422, 'This import slice accepts synthetic Local Audit checks only.');
+  await requireLinuxClassification(result, source.zip);
   const metadata = { proofRunId: result.proof_run_id, verifierVersion: result.verifier_version, profileId: String(result.report.scope.profile_id), outcome: result.outcome,
     synthetic: result.report.posture.synthetic, observedHostname: result.report.posture.target.hostname, observedAt: result.report.posture.observed_at_utc,
     sourceAssetId: result.report.posture.target.asset_id, machineIdentity: result.report.posture.sections.host_identity?.machine_identity ?? null };

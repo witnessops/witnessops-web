@@ -1,0 +1,54 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { parseEnv } from 'node:util';
+import { randomUUID } from 'node:crypto';
+import { Pool } from 'pg';
+import { migrate } from '../../../scripts/migrate.mjs';
+import { resolveIdentity } from './identity';
+import { WorkspaceStore } from './workspaces';
+import { LinuxCheckStore, sha256 } from './linux-checks';
+const env=parseEnv(readFileSync(new URL('../../../.env.test.local',import.meta.url),'utf8'));
+if(!env.TEST_DATABASE_URL)throw new Error('TEST_DATABASE_URL is required');
+const url=new URL(env.TEST_DATABASE_URL);
+if(!['127.0.0.1','localhost'].includes(url.hostname)||!/^\/[a-z0-9_]+_test$/.test(url.pathname))throw new Error('Isolated test DB required');
+const root=new URL('../../../../../tests/proofpack/live-classified/',import.meta.url);
+const name='proofpack-pr_lsa_20260710120000_198fd7aceb.zip';
+test('live-classified disposable pack: owner admission, custody, reopen, baseline and tenant fences',async()=>{
+ const schema='live_'+randomUUID().replaceAll('-','');const admin=new Pool({connectionString:env.TEST_DATABASE_URL,max:1});
+ await admin.query(`CREATE SCHEMA ${schema}`);
+ const connect=()=>new Pool({connectionString:env.TEST_DATABASE_URL,options:`-c search_path=${schema},public`,max:2});
+ let pool=connect();
+ try {
+  await migrate(pool);
+  const user=async(subject:string)=>{
+   const u=await resolveIdentity(pool,{provider:'workos',issuer:'https://api.workos.com/user_management/client_fixture',subject,email:subject+'@example.test',displayName:subject});
+   await pool.query("UPDATE users SET early_access_state='active' WHERE id=$1",[u.id]);return u;
+  };
+  const owner=await user('owner'),viewer=await user('viewer'),foreign=await user('foreign');
+  const workspaces=new WorkspaceStore(pool),workspace=await workspaces.create(owner,'Disposable live classification',randomUUID()),other=await workspaces.create(foreign,'Other',randomUUID());
+  await pool.query("INSERT INTO memberships (user_id,workspace_id,role) VALUES ($1,$2,'viewer')",[viewer.id,workspace]);
+  const asset=await workspaces.addAsset(owner,workspace,'demo-host','linux_server');
+  const wrong=await workspaces.addAsset(owner,workspace,'other-host','linux_server');
+  const zip=readFileSync(new URL('live-classified/'+name,root)),sig=readFileSync(new URL('live-classified/'+name+'.sig.json',root));
+  let linux=new LinuxCheckStore(pool);
+  await assert.rejects(linux.import(viewer,workspace,asset.id,zip,sig,name),/Owner/);
+  await assert.rejects(linux.import(foreign,workspace,asset.id,zip,sig,name),/not found/);
+  await assert.rejects(linux.import(owner,workspace,wrong.id,zip,sig,name),/hostname/);
+  const corrupt=Buffer.from(zip);corrupt[30]^=1;
+  await assert.rejects(linux.import(owner,workspace,asset.id,corrupt,sig,name),/verification/);
+  assert.equal((await pool.query('SELECT count(*) FROM runs')).rows[0].count,'0');
+  const first=await linux.import(owner,workspace,asset.id,zip,sig,name);assert.equal(first.synthetic,false);assert.equal(first.sourceDigest,sha256(zip));
+  const reopened=await linux.reopen(owner,workspace,first.id);
+  assert.deepEqual(reopened.source.zip,zip);assert.deepEqual(reopened.source.signature,sig);assert.equal(reopened.snapshot.source.synthetic,false);assert.equal(reopened.model.identity.synthetic,false);
+  await assert.rejects(linux.reopen(foreign,other,first.id),/not found/);
+  assert.equal((await linux.reopen(viewer,workspace,first.id)).run.id,first.id);
+  await pool.query("DELETE FROM memberships WHERE user_id=$1 AND workspace_id=$2",[viewer.id,workspace]);
+  await assert.rejects(linux.reopen(viewer,workspace,first.id),/not found/);
+  await assert.rejects(pool.query("UPDATE linux_check_sources SET zip_bytes=$2 WHERE run_id=$1",[first.id,corrupt]),/immutable/);
+  await pool.end();pool=connect();linux=new LinuxCheckStore(pool);
+  assert.deepEqual((await linux.reopen(owner,workspace,first.id)).source.zip,zip);
+  const second=await linux.import(owner,workspace,asset.id,zip,sig,name);const comparison=await linux.comparison(owner,workspace,second.id);
+  assert.equal(comparison.comparison.baselineId,first.id);assert.deepEqual(comparison.comparison.environment,[]);
+ } finally {await pool.end();await admin.query(`DROP SCHEMA ${schema} CASCADE`);await admin.end();}
+});
