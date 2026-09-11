@@ -1,5 +1,31 @@
 # External Exposure Early Access launch
 
+## Boot and public routing acceptance — 2026-09-11
+
+Explicit operator authority approved boot enablement and public routing for
+`app.witnessops.com`, without external user admission. The existing DNS-only A
+record was retained unchanged. A certificate-valid exact-host HTTPS listener was
+added alongside the private operator listener. Only public TCP 443 was opened;
+SSH, HTTP, PostgreSQL and the app backend remain closed publicly. The backend
+remains loopback-only, with the same bridge, immutable image and runtime controls.
+
+App and proxy boot enablement passed a real reboot: both returned automatically,
+with exactly one app process. Public-address requests (bypassing the operator's
+local hosts override) returned home 200, unauthenticated workspace 401 and login
+307, with successful TLS validation. Wrong Host returned 421; wrong Origin and
+spoofed forwarding metadata returned 403. The public `/check` page returned 200;
+no collection was invoked. Three saved operator runs and their digest set remained
+unchanged. No external users were admitted, no observations ran, and no WorkOS
+configuration or application image changed. Logs had zero runtime-secret matches.
+
+Operational review is retained in restricted operator custody. Rollback closes
+public 443, restores the prior validated private proxy configuration and optionally
+disables boot startup; it preserves database, evidence and image. The temporary
+operator hosts/tunnel override must be removed with the existing privileged
+helper's `disable` operation before that browser uses public routing. Certificate
+renewal remains operator-assisted DNS-01. Cohort admission remains separately
+authorized. Historical private-only status below describes earlier gates.
+
 ## Deterministic private app lifecycle — 2026-09-11
 
 The lifecycle helper and systemd unit in `deploy/app/host/` replace reliance on
