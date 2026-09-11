@@ -439,3 +439,59 @@ label assertions were updated to the new collected-evidence wording; numerical
 assertions remain unchanged. `git diff --check`: PASS. Security diff review found
 no new findings; original scan snapshot and later test/docs addenda were reviewed
 separately. This records local acceptance only, not deployment or customer validation.
+
+## Post-P0/P1 Recheck
+
+**READY FOR DISCOVERY.** Rechecked clean product HEAD
+`2257215f80b1a5bc98b957c36f90bb84f9b5604c` in the authenticated local runtime.
+No new P0/P1 regression found. This permits the next discovery decision, not
+implementation, deployment or a claim of externally validated demand.
+
+| Original item | Running UI result |
+| --- | --- |
+| P0 F1 overview scope | RESOLVED: attention, denominator and change labels explicitly say External Exposure; Linux remains a separate asset/check path. |
+| P1 F2 Linux creation | RESOLVED: recorded-hostname examples, no network scan, next step import. EE public-hostname instructions and ten-check preview remain. |
+| P1 F3 source/trust copy | RESOLVED: unsigned EE, signed Local Audit under pinned policy, derived reports and no host-security/source-truth inference. |
+| P1 A1 acquisition | RESOLVED: operator-assisted local capture and off-host signing explained before upload; existing contact link present; no fictional installer. |
+| P1 F4 report wording | RESOLVED: actual EE report shows 6/10 collected versus 5 determined, 1 informational and 5 undetermined; informational is explicitly context, not an attention flag. |
+
+First-run check: EE **OK** (add hostname → preview → explicit observation);
+Linux **OK for the stated assisted workflow** (record hostname → obtain signed
+files with operator help → import). Purpose, first CTA, execution difference and
+next step are visible. No new asset/import/collection was performed. Fresh
+WorkOS sign-in and full empty-workspace onboarding were not repeated.
+
+Saved-run check: EE **OK**, with reachable report/evidence and named unknowns;
+Linux **P2 only**, with correct Live server check, reachable report, explicit
+collection gap and unknown security-update count. Existing first Linux run says
+no baseline; second run references the first and separates Environment/Coverage/
+Uncertainty. No fabricated comparison or positive conclusion from partial data.
+
+| Known polish | Classification after recheck |
+| --- | --- |
+| History ordering | STILL P2 |
+| Report self-links | STILL P2 |
+| Comparison headings / no-baseline phrasing | STILL P2 |
+| Feedback placement | STILL P2 |
+| Empty states | STILL P2 (source/fixture spot-check; no new empty workspace) |
+| Raw diagnostic language | STILL P2 |
+| Result hierarchy | STILL P2 |
+| Recovery copy | STILL P2 |
+
+Error spot-check: actual missing run returns scoped not-found plus recovery link;
+actual no-baseline and partial Linux states remain explicit. Deterministic browser
+fixtures confirm verification-busy retry succeeds and budget exhaustion becomes
+terminal; unit tests retain no-retry behavior for access/verification failures.
+No forced real membership changes, malformed upload or production error injection.
+
+Desktop and 390px review: no new overflow, clipped action, unreadable count or
+competing primary action; Linux guidance wraps before upload. Fresh screenshots
+remain outside Git. Browser fixtures cover all six affected screens at both widths.
+
+Fresh checks on Node 22: `pnpm app:test` **54/54**; `pnpm test:app-browser
+ux-p0-p1.spec.ts linux-check.spec.ts` **20/20** across Chromium/WebKit; web report
+and EE adapter tests (`report*.test.tsx`, `external-exposure/adapter.test.tsx`)
+**91/91**; `pnpm --filter @witnessops/app typecheck` **PASS**;
+`git diff --check` **PASS**. No shared code changed, so full health was not rerun.
+Only this short audit addendum changed. Discovery/onboarding implementation and
+all P2 work remain unstarted. No push, merge or deployment.
