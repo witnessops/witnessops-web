@@ -62,6 +62,18 @@ in any artifact intended for publication, verification, or redistribution.
 
 ## Retention
 
+### Authenticated External Exposure Early Access
+
+The authenticated workspace stores account identity mappings, workspace membership, saved hostnames and completed observation sources. These saved observations are private workspace data, not public verification artifacts. They are unsigned. Opening a public `/check` result does not automatically import it into a workspace.
+
+First-party product events record bounded action names, user/workspace/asset/run IDs, check IDs where applicable, timestamps and an app event version. They do not include hostnames, raw evidence, source bodies or feedback comments. Events help us understand activation and repeat use; they are behavior records, not security evidence. A PDF export event records the print action being requested, not confirmation that a file was saved.
+
+Optional result and comparison feedback stores the submitted answer and comment separately from completed evidence. Do not include secrets or confidential information in feedback. Authorized WitnessOps operators may review it to improve the product.
+
+No automatic retention period or deletion job is implemented for authenticated Early Access data yet. Signing out does not delete it, and rerunning does not rewrite previous completed sources. Contact WitnessOps about access or removal; a removal request is not a promise of automatic or immediate deletion.
+
+### Public site and correspondence
+
 Submitted information is retained only as long as necessary for:
 
 - correspondence

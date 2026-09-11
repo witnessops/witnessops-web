@@ -17,6 +17,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     page.on("pageerror", e => errors.push(e.message));
     await page.route("**/api/**", async route => {
       const request = route.request(), path = new URL(request.url()).pathname;
+      if (path === "/api/feedback" && request.method() === "GET") return route.fulfill({ json: [] });
+      if (path === "/api/events" && request.method() === "POST") return route.fulfill({ json: { recorded: true } });
       if (path === "/api/workspace" && request.method() === "POST") {
         ws = { id: "workspace-fixture", name: request.postDataJSON().name, slug: "workspace-fixture", role: "owner", assets: [], runs: [], members: [{ ...user, role: "owner" }] };
         return route.fulfill({ status: 201, json: state() });
@@ -137,7 +139,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
 }
 
 test("real HTTP API rejects unauthenticated, forged and cross-origin access without collection", async ({ request }) => {
-  expect((await request.get("/api/workspace")).status()).toBe(401);
+  for (const endpoint of ["workspace", "early-access", "feedback"]) expect((await request.get(`/api/${endpoint}`)).status()).toBe(401);
+  expect((await request.post("/api/events", { headers: { Origin: "http://127.0.0.1:3022" }, data: {} })).status()).toBe(401);
   expect((await request.get("/api/workspace", { headers: { Cookie: "wos-session=invalid", "x-workos-session": "forged", "x-workos-middleware": "true" } })).status()).toBe(401);
   expect((await request.post("/api/workspace", { headers: { Origin: "https://foreign.example" }, data: {} })).status()).toBe(403);
   expect((await request.post("/api/runs", { headers: { Origin: "http://127.0.0.1:3022" }, data: { authorized: true } })).status()).toBe(401);

@@ -4,10 +4,14 @@ import { fileURLToPath } from 'node:url';
 import { parseEnv } from 'node:util';
 import pg from 'pg';
 
-export async function migrate(pool) {
+export async function migrate(pool, { preserveMember } = {}) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    if (preserveMember) {
+      if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(preserveMember)) throw new Error('Expected internal user UUID');
+      await client.query("SELECT set_config('witnessops.preserve_member', $1, true)", [preserveMember]);
+    }
     await client.query("SELECT pg_advisory_xact_lock(941071, 1)");
     await client.query('CREATE TABLE IF NOT EXISTS app_migrations (name text PRIMARY KEY, sha256 text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())');
     const dir = new URL('../db/migrations/', import.meta.url);
@@ -33,7 +37,9 @@ async function main() {
     const connectionString = local.DATABASE_MIGRATION_URL;
     if (!connectionString) throw new Error('DATABASE_MIGRATION_URL required');
     pool = new pg.Pool({ connectionString, max: 1, connectionTimeoutMillis: 5000 });
-    await migrate(pool);
+    const args = process.argv.slice(2);
+    if (args.length && (args.length !== 2 || args[0] !== '--preserve-member')) throw new Error('Use --preserve-member USER_UUID only');
+    await migrate(pool, { preserveMember: args[1] });
     console.log('Application SQL migrations: PASS');
   } catch { console.error('Migration failed. Check the local migration connection and schema; no credentials logged.'); process.exitCode = 1; }
   finally { await pool?.end(); }

@@ -1,4 +1,4 @@
-import { publicB2bPrice } from "@/lib/commercial-price";
+import { publicB2bPrice } from "./commercial-price";
 
 /** Pilot commercial terms: diagnosis is paid; repair requires an accepted bounded quote. */
 export const AUTOMATION_REPAIR_OFFER = {

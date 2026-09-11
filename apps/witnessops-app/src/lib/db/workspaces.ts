@@ -8,6 +8,7 @@ import { validateExternalSnapshot } from "../../../../witnessops-web/src/lib/ext
 import { RECOMMENDED_PROFILE, type Workspace, type Run, type Asset, type WorkspaceSummary } from "../model";
 import { canonicalSource } from "../source-digest";
 import type { AppUser } from "./identity";
+import { requireEarlyAccess } from './access';
 
 type MemberRow = { id: string; name: string; slug: string; role: "owner" | "viewer" };
 type AssetRow = { id: string; normalized_value: string; type: "domain" | "hostname"; created_at: Date };
@@ -25,6 +26,7 @@ const digest = (source: string) => createHash("sha256").update(source, "utf8").d
  * Every resource query below has a workspace predicate after current membership.
  * Shared membership/user/workspace locks prevent revocation racing a transaction. */
 export async function requireWorkspaceMembership(client: PoolClient, user: AppUser, workspaceId: string, owner = false): Promise<MemberRow> {
+  await requireEarlyAccess(client, user, true);
   const result = await client.query<MemberRow>(`SELECT w.id, w.name, w.slug, m.role FROM memberships m
     JOIN workspaces w ON w.id=m.workspace_id JOIN users u ON u.id=m.user_id
     WHERE m.user_id=$1 AND m.workspace_id=$2 AND m.status='active' AND m.revoked_at IS NULL
@@ -36,9 +38,10 @@ export async function requireWorkspaceMembership(client: PoolClient, user: AppUs
 export class WorkspaceStore {
   constructor(readonly pool: Pool) {}
   async list(user: AppUser): Promise<WorkspaceSummary[]> {
+    await requireEarlyAccess(this.pool, user);
     const result = await this.pool.query<MemberRow>(`SELECT w.id,w.name,w.slug,m.role FROM memberships m
       JOIN workspaces w ON w.id=m.workspace_id JOIN users u ON u.id=m.user_id
-      WHERE m.user_id=$1 AND m.status='active' AND m.revoked_at IS NULL AND w.status='active' AND u.status='active'
+      WHERE m.user_id=$1 AND m.status='active' AND m.revoked_at IS NULL AND w.status='active' AND u.status='active' AND u.early_access_state='active'
       ORDER BY w.created_at,w.id`, [user.id]);
     return result.rows;
   }
@@ -46,7 +49,8 @@ export class WorkspaceStore {
     if (typeof name !== "string" || !name.trim() || name.trim().length > 100) throw new ApiError(400, "Enter a workspace name of 1–100 characters.");
     const key = requireId(requestId), displayName = name.trim();
     return transaction(this.pool, async client => {
-      const active = await client.query("SELECT id FROM users WHERE id=$1 AND status='active' FOR UPDATE", [user.id]);
+      await requireEarlyAccess(client, user);
+      const active = await client.query("SELECT id FROM users WHERE id=$1 AND status='active' AND early_access_state='active' FOR UPDATE", [user.id]);
       if (!active.rowCount) throw new ApiError(403, "This account is not active.");
       const retry = await client.query<{ id: string; name: string }>("SELECT id,name FROM workspaces WHERE created_by=$1 AND creation_key=$2", [user.id, key]);
       if (retry.rows[0]) {

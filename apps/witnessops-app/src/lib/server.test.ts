@@ -10,7 +10,7 @@ function request(path = "/api/workspace", headers = {}, method = "GET") {
 }
 test("unauthenticated product reads and writes fail before database or runner access", async () => {
   const api = createFoundationService({ origin, identity: async () => null, run: async () => { throw new Error("Must not execute"); } });
-  for (const endpoint of ["workspace", "assets", "runs"] as const) for (const method of ["GET", "POST"]) {
+  for (const endpoint of ["workspace", "assets", "runs", "early-access", "feedback", "events"] as const) for (const method of ["GET", "POST"]) {
     const response = await api.handle(request(`/api/${endpoint}`, {}, method), endpoint);
     assert.equal(response.status, 401);
     assert.equal(response.headers.get("cache-control"), "no-store");
@@ -24,6 +24,10 @@ test("mutation admission rejects cross-origin, forwarded host spoofing and unexp
     request("/api/runs?hostname=other.com", {}, "POST"),
     request("/api/runs?id=a&id=b"), request("/api/workspace?id=a"),
   ]) assert.throws(() => admitRequest(candidate, origin));
+  for (const endpoint of ['events', 'feedback', 'early-access']) {
+    assert.throws(() => admitRequest(request(`/api/${endpoint}`, { origin: 'https://evil.test' }, 'POST'), origin));
+    assert.throws(() => admitRequest(request(`/api/${endpoint}?userId=other`), origin));
+  }
   assert.doesNotThrow(() => admitRequest(request("/api/runs?id=a"), origin));
   assert.doesNotThrow(() => admitRequest(new Request("http://localhost:3020/api/workspace", { headers: { host: "127.0.0.1:3020" } }), origin));
 });

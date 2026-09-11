@@ -26,11 +26,21 @@ for (const shape of ["clean", "attention", "long-evidence"] as const) {
     const run: Run = { id: "saved-run-fixture", assetId: "asset", createdAt: "2026-09-11T11:00:00Z", profile: structuredClone(RECOMMENDED_PROFILE), snapshot, sourceDigest: createHash("sha256").update(canonicalSource(snapshot), "utf8").digest("hex") };
     const before = canonicalSource(run);
     const ws: Workspace = { id: "workspace", name: "PDF Workspace", slug: "workspace", role: "viewer", members: [], assets: [{ id: "asset", hostname: snapshot.target, type: "hostname", createdAt: run.createdAt }], runs: [run] };
-    const unexpected: string[] = [], errors: string[] = [];
+    const unexpected: string[] = [], errors: string[] = [], events: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.route("**/*", route => new URL(route.request().url()).origin === new URL(baseURL!).origin ? route.continue() : route.abort());
     await page.route("**/api/**", route => {
       if (new URL(route.request().url()).pathname === "/api/workspace" && route.request().method() === "GET") return route.fulfill({ json: { user: { id: "viewer" }, workspaces: [ws], workspace: ws } });
+      const path = new URL(route.request().url()).pathname;
+      if (path === "/api/feedback" && route.request().method() === "GET") return route.fulfill({ json: [] });
+      if (path === "/api/events" && route.request().method() === "POST") {
+        const payload = route.request().postDataJSON();
+        expect(payload.runId).toBe(run.id); expect(payload.checkId).toBeNull();
+        expect(Object.keys(payload).sort()).toEqual(["checkId", "name", "runId"]);
+        expect(["report_opened", "source_json_downloaded", "pdf_export_requested"]).toContain(payload.name);
+        events.push(payload.name);
+        return route.fulfill({ json: { recorded: true } });
+      }
       unexpected.push(route.request().method() + " " + new URL(route.request().url()).pathname);
       return route.abort();
     });
@@ -65,6 +75,7 @@ for (const shape of ["clean", "attention", "long-evidence"] as const) {
     expect(textRuns.length).toBeGreaterThan(5);
     expect(canonicalSource(run)).toBe(before);
     expect(unexpected).toEqual([]);
+    expect(events.sort()).toEqual(["pdf_export_requested", "report_opened", "source_json_downloaded"]);
     expect(errors).toEqual([]);
   });
 }

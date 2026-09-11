@@ -12,7 +12,35 @@ Use Node 22 and pnpm 9.15.4 from the monorepo root:
 4. Run `pnpm --filter @witnessops/app db:migrate`. This explicitly loads `.env.local` and uses **only DATABASE_MIGRATION_URL**. No migrations run on application startup. Ordered SQL files and their SHA-256 checksums are applied transactionally under a migration lock. Changed already-applied migrations fail. These additive migrations have no automatic destructive down command.
 5. Run `pnpm dev` for the public app and, separately, `pnpm app:dev` for the product. The default origins are `http://127.0.0.1:3001` and `http://127.0.0.1:3020`.
 6. Register the WorkOS staging callback `http://127.0.0.1:3020/callback`, initiate login `http://127.0.0.1:3020/login`, homepage and sign-out return `http://127.0.0.1:3020/`. Enable Google and Magic Auth (email one-time code) in the intended development identity environment. The two app entry links lead to the hosted method chooser; the app does not collect credentials or implement passwords. Do not change another application's shared provider settings inadvertently.
-7. Sign in, create a workspace, then add a hostname. Adding it does not collect anything. Confirm ownership/authorization and choose Observe. Rerun after one minute. Logout/login and application restart preserve assets and runs.
+7. Sign in and request Early Access. The operator explicitly invites the internal user UUID using the local command below; the user chooses Activate Early Access, then creates a workspace and adds a hostname. Adding it does not collect anything. Confirm ownership/authorization and choose Observe. Rerun after one minute. Logout/login and application restart preserve assets and runs.
+
+## Early Access cohort
+
+Early Access belongs to the internal user, separately from workspace membership. New identities have no cohort access. An operator can set `invited` or `paused`; an invited user explicitly activates. Active access never creates membership or upgrades Viewer to Owner. Paused access denies reads, writes and in-flight source completion; it does not delete previous evidence. WorkOS Organizations remain outside workspace authority.
+
+Migration `0005_early_access.sql` is additive. If existing active members are present, the migration refuses to proceed without `--preserve-member USER_UUID`. Supply the explicitly accepted existing internal member to preserve, for example `pnpm --filter @witnessops/app db:migrate --preserve-member USER_UUID`. No UUID is inferred from a name, email or all members. Other accounts require explicit invitation. Empty test databases need no preservation argument. Already applied migration checksums remain frozen.
+
+From the app directory, local operator commands are:
+
+```sh
+node scripts/early-access.mjs set USER_UUID invited
+node scripts/early-access.mjs set USER_UUID paused
+node scripts/early-access.mjs report
+```
+
+These use the local migration connection and reject non-loopback databases. They do not send email, create memberships or expose an admin HTTP route. Identify the internal user through the existing database identity mapping after they sign in; do not enroll by matching an email domain. Requests use the existing public contact mailbox, and follow-up is manual. No user invitation or provider production configuration is created by this slice.
+
+`/early-access` on the public app explains the cohort and uses the existing contact mailto path. `Save this baseline` transfers no snapshot, source, email or hostname. The user signs in, adds the hostname and explicitly authorizes a **fresh** saved observation. The public site's optional server variable `WITNESSOPS_EARLY_ACCESS_APP_URL` enables a sign-in link to an already authorized app origin (root URL, HTTPS; loopback HTTP allowed locally). Without it, a production build offers request access only. Development defaults to the existing local app. Configuring or publishing a live app origin is a separate deployment action.
+
+## Behavior events and feedback
+
+`product_events` records only a fixed event name, internal user/workspace/asset/run IDs, an optional known check ID, server timestamp and event-contract version. No hostname, source evidence, URL, comment or arbitrary metadata is accepted. Workspace membership is rechecked for each event. Lifecycle events are server-owned; clients can report only the seven declared view/export/escalation actions. One event per user/object/check/action avoids re-render/reload inflation; it measures adoption, not total click counts. The bound is 250 distinct records per user/hour. Recording is best-effort and uses short transaction timeouts; failure cannot roll back an asset or successful run.
+
+`pdf_export_requested` means the browser print action was requested. It cannot prove a file was saved. `comparison_viewed` is sent when the comparison enters the viewport. Neither is security evidence. The local `report` command returns aggregate access state, event/adopting-user and feedback-answer counts, without source data or free-text comments. Analysts can inspect bounded feedback directly using the administrative database connection; no customer endpoint exposes a cohort feed.
+
+`product_feedback` stores at most one answer or dismissal per user/workspace/context: the first completed saved run, and a completed run with an earlier same-asset comparison. Feedback is optional, workspace-authorized (including Viewers), and separate from immutable snapshots. Only the user's own prompt-suppression state is readable through the app. The two prompts do not become a recurring survey. Comments allow at most 500 characters within the existing 1 KiB request bound; no secrets or confidential data should be submitted. Failed feedback never blocks evidence/report navigation; failed state loading suppresses prompts.
+
+Automatic retention/deletion is not implemented for product data, events or feedback. Signing out does not delete them. Privacy copy states that boundary and directs data requests to the existing contact channel. There is no analytics vendor, scheduler, billing or automatic public-result import.
 
 `WORKOS_COOKIE_DOMAIN` must remain unset. AuthKit owns sealed HttpOnly, SameSite=Lax cookies, PKCE/state checking, signature/subject validation and refresh. HTTPS callbacks use Secure; HTTP is admitted only for the local loopback origin. Callback and sign-out return origins come from server configuration, not request headers or user input. Sign-out is a Next server action with explicit same-origin admission. The app CSP permits that form's WorkOS logout destination; public web CSP is unchanged. The public site does not use the app session. Browser cookies have no port boundary, so local apps on the same loopback hostname receive the host cookie; use only trusted local services. Production requires the separate app hostname and a host-only cookie, without a parent-domain cookie.
 
@@ -52,6 +80,6 @@ pnpm health
 
 ## Deferred and production prerequisites
 
-No invitations, billing, schedules, Public Services/IP/ports, OFFSEC, SSO/SCIM, advanced RBAC, notifications, PDF generation or public report sharing. Members are read-only. Edit checks explains the fixed ten-check method.
+No team invitations, billing, schedules, Public Services/IP/ports, OFFSEC, SSO/SCIM, advanced RBAC, notifications or public report sharing. Saved-run PDFs reuse the shared buyer-report pipeline. Members are read-only. Edit checks explains the fixed ten-check method.
 
 Before `app.witnessops.com`: separately authorize DNS/TLS/app routing, runtime/image publication and deployment; configure the production WorkOS client and exact HTTPS callbacks/sign-out URLs; custody runtime secrets separately; provision PostgreSQL backups/recovery/retention and migration grants; establish production session/operational limits and multi-worker execution admission. RLS is a later hardening layer. Public release commands still target witnessops-web; this slice does not deploy either application.
