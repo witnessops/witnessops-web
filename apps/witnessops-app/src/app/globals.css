@@ -265,3 +265,13 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .feedback-panel button.text-action { background: transparent; border: 0; color: var(--muted); min-height: 44px; padding: 8px 0; }
 .deeper-review { margin-top: 28px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+.check-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin-top: 20px; }
+.check-choice { border: 1px solid var(--border); border-radius: 6px; padding: 20px; font-size: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.check-choice h3 { font-size: 20px; }
+.check-choice dl { display: grid; gap: 12px; }
+.check-choice dt { font-size: 12px; color: var(--muted); }
+.check-choice dd { margin: 3px 0 0; }
+.check-choice .button { margin-top: auto; white-space: normal; text-align: center; }
+.check-choice [aria-pressed="true"] { border-color: var(--attention); }
+@media (max-width: 700px) { .check-choice-grid { grid-template-columns: 1fr; } }

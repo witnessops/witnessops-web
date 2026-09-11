@@ -38,10 +38,10 @@ for (const width of [1440, 390]) test(`P0/P1 product copy and report outcomes ${
   await expect(page.getByLabel('Public hostname', { exact: true })).toHaveAttribute('placeholder', 'example.com');
   await expect(page.locator('.check-list li')).toHaveCount(10);
   await capture('ee-add');
-  await page.getByLabel('Asset type').selectOption('linux_server');
-  await expect(page.locator('main')).not.toContainText('public domain');
-  await expect(page.locator('main')).not.toContainText('No URL path, port or IP address');
-  await expect(page.locator('main')).not.toContainText('authorize collection separately');
+  await page.getByRole('button', { name: 'Choose One Server Security Check', exact: true }).click();
+  await expect(page.locator('.discovery-create .narrow')).not.toContainText('public domain');
+  await expect(page.locator('.discovery-create .narrow')).not.toContainText('No URL path, port or IP address');
+  await expect(page.locator('.discovery-create .narrow')).not.toContainText('authorize collection separately');
   await expect(page.getByLabel('Recorded Linux hostname')).toHaveAttribute('placeholder', 'ip-172-26-9-158');
   await expect(page.locator('main')).toContainText('does not run a network scan');
   await capture('linux-add');

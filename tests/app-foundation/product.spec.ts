@@ -44,12 +44,12 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.screenshot({ path: info.outputPath("welcome-viewport.png") });
     await page.getByLabel("Workspace name", { exact: true }).fill("Acme Ltd");
     await page.getByRole("button", { name: "Create workspace", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Start with one public hostname" })).toBeVisible();
-    await expect(page.locator("main")).toContainText("Adding it does not start collection.");
-    await expect(page.getByRole("link", { name: "Add asset", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("heading", { name: "What do you want to check?" })).toBeVisible();
+    await expect(page.locator("main")).toContainText("Adding an asset does not start collection.");
+    await expect(page.getByRole("link", { name: "Choose External Exposure Check", exact: true })).toHaveCount(1);
     await expect(page.locator(".overview-stats")).toHaveCount(0);
     await page.screenshot({ path: info.outputPath("empty-workspace.png"), fullPage: true });
-    await page.getByRole("link", { name: "Add asset", exact: true }).click();
+    await page.getByRole("link", { name: "Choose External Exposure Check", exact: true }).click();
     await expect(page.locator(".check-list li")).toHaveCount(10);
     await expect(page.locator(".check-list")).toBeVisible();
     await expect(page.locator("main")).toContainText("Adding saves the hostname only.");
@@ -255,5 +255,5 @@ test("overview guides the next visit without treating unobserved or uncertain as
   await expect(page.locator(".overview-note")).toContainText("1 asset has not been observed yet.");
   await expect(page.locator(".ledger > li").first()).toContainText("1 undetermined");
   await expect(page.locator(".ledger > li").last()).toContainText("Not observed yet");
-  await expect(page.locator("main")).toContainText("rerun to see what changed");
+  await expect(page.locator("main")).toContainText("compare later checks");
 });

@@ -34,7 +34,7 @@ for(const synthetic of [true,false]) for(const width of [1440,390]) test(`Linux 
     throw new Error('Unexpected product call '+url.pathname);
   });
   await page.setViewportSize({width,height:1000});await page.goto('/assets/new');
-  await page.getByLabel('Asset type').selectOption('linux_server');await page.getByLabel('Recorded Linux hostname').fill('demo-host');
+  await page.getByRole('button', { name: 'Choose One Server Security Check', exact: true }).click();await page.getByLabel('Recorded Linux hostname').fill('demo-host');
   await page.getByRole('button',{name:'Add without scanning',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Import Security Check'})).toBeVisible();
   await page.getByLabel('Original Proofpack ZIP').setInputFiles(path);await page.getByLabel('Detached signature (.zip.sig.json)').setInputFiles(path+'.sig.json');

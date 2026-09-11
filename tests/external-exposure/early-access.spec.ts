@@ -19,7 +19,7 @@ for (const width of [1440, 390]) {
       unexpected.push(path); return route.abort();
     });
     await page.goto('/check');
-    const save = page.getByRole('link', { name: 'Save this baseline', exact: true });
+    const save = page.getByRole('link', { name: 'Start a saved check', exact: true });
     await expect(save).toHaveCount(0); expect(collections).toBe(0);
     await page.getByLabel('Public hostname', { exact: true }).fill(snapshot.target);
     await page.getByRole('button', { name: 'Run free check', exact: true }).click();
@@ -48,5 +48,5 @@ test('failed public collection does not offer a saved baseline', async ({ page }
   await page.getByLabel('Public hostname', { exact: true }).fill('example.com');
   await page.getByRole('button', { name: 'Run free check', exact: true }).click();
   await expect(page.locator('main').getByRole('alert')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Save this baseline', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Start a saved check', exact: true })).toHaveCount(0);
 });
