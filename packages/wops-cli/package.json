@@ -1,0 +1,9 @@
+{
+  "name": "@witnessops/cli",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22 <23" },
+  "bin": { "wops": "src/main.mjs" },
+  "scripts": { "test": "node --test src/*.test.mjs" }
+}

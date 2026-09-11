@@ -36,5 +36,5 @@ test("all app API route files and methods exactly match the declared authenticat
   for (const endpoint of DECLARED_APP_ENDPOINTS) assert.ok(endpoint.summary.trim());
   const byPath = (a: { path: string }, b: { path: string }) => a.path.localeCompare(b.path);
   assert.deepEqual(actual.sort(byPath), declared.sort(byPath));
-  assert.deepEqual(actual.map(endpoint => endpoint.path).sort(), ["/api/assets", "/api/early-access", "/api/events", "/api/feedback", "/api/linux-checks", "/api/runs", "/api/workspace", "/callback", "/login"]);
+  assert.deepEqual(actual.map(endpoint => endpoint.path).sort(), ["/api/assets", "/api/cli/authorize", "/api/cli/login", "/api/cli/poll", "/api/cli/session", "/api/early-access", "/api/events", "/api/feedback", "/api/linux-checks", "/api/runs", "/api/workspace", "/callback", "/cli/login", "/login"]);
 });

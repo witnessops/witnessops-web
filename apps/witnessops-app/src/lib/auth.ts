@@ -5,16 +5,21 @@ import type { Identity } from "./db/identity";
 import { database } from "./db/pool";
 import { requireUnrevokedSession, revokeSession, sessionKey } from "./db/sessions";
 
-export async function authenticatedIdentity(): Promise<Identity | null> {
+export async function authenticatedWebSession(): Promise<{ identity: Identity; session: ReturnType<typeof sessionKey> } | null> {
   const { issuer } = authConfiguration();
   // AuthKit checks the sealed session, verifies the access-token signature and
   // binds its subject to the user. Middleware handles provider token refresh.
   const { user, impersonator, sessionId } = await withAuth();
   if (!user || impersonator) return null;
-  await requireUnrevokedSession(database(), sessionKey(issuer, sessionId, user.id));
-  return { provider: "workos", issuer, subject: user.id,
+  const session = sessionKey(issuer, sessionId, user.id);
+  await requireUnrevokedSession(database(), session);
+  return { session, identity: { provider: "workos", issuer, subject: user.id,
     email: user.emailVerified ? user.email : null,
-    displayName: [user.firstName, user.lastName].filter(Boolean).join(" ") || null };
+    displayName: [user.firstName, user.lastName].filter(Boolean).join(" ") || null } };
+}
+
+export async function authenticatedIdentity(): Promise<Identity | null> {
+  return (await authenticatedWebSession())?.identity ?? null;
 }
 
 export async function revokeCurrentSession(): Promise<void> {

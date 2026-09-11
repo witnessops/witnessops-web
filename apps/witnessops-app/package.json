@@ -11,7 +11,8 @@
     "test": "NODE_ENV=test node --import ../witnessops-web/scripts/register-server-only-test-stub.mjs --import tsx --test 'src/**/*.test.ts'",
     "db:migrate": "node scripts/migrate.mjs",
     "test:db": "NODE_ENV=test node --import ../witnessops-web/scripts/register-server-only-test-stub.mjs --import tsx --test src/lib/db/database.integration.ts",
-    "test:db:live": "NODE_ENV=test node --import ../witnessops-web/scripts/register-server-only-test-stub.mjs --import ../../tests/proofpack/live-classified/register-test-trust.mjs --import tsx --test src/lib/db/linux-live.integration.ts"
+    "test:db:live": "NODE_ENV=test node --import ../witnessops-web/scripts/register-server-only-test-stub.mjs --import ../../tests/proofpack/live-classified/register-test-trust.mjs --import tsx --test src/lib/db/linux-live.integration.ts",
+    "test:db:cli": "NODE_ENV=test node --import ../witnessops-web/scripts/register-server-only-test-stub.mjs --import tsx --test src/lib/db/cli-auth.integration.ts"
   },
   "dependencies": {
     "@witnessops/config": "workspace:*",

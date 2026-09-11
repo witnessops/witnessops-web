@@ -2,6 +2,10 @@ import type { HttpMethod } from "../../../witnessops-web/src/lib/server/api-cont
 /** Cookie-authenticated product endpoints. WorkOS authenticates; the database
  * owns active workspace membership. These are separate from the public API. */
 export const DECLARED_APP_ENDPOINTS: ReadonlyArray<{ path: string; methods: readonly HttpMethod[]; summary: string }> = [
+  { path: "/api/cli/login", methods: ["POST"], summary: "Create bounded app-mediated CLI login; no identity or product access granted" },
+  { path: "/api/cli/poll", methods: ["POST"], summary: "One-time CLI credential redemption using a secret device credential" },
+  { path: "/api/cli/authorize", methods: ["GET", "POST"], summary: "Web-authenticated explicit CLI session authorization for a current workspace" },
+  { path: "/api/cli/session", methods: ["GET", "POST"], summary: "Dedicated CLI session status or revocation; no product execution" },
   { path: "/api/early-access", methods: ["GET", "POST"], summary: "Read own cohort state; an invited identity may explicitly activate. No enrollment or administration API." },
   { path: "/api/events", methods: ["POST"], summary: "Record a bounded product event for an authorized saved run; never evidence or hostname metadata" },
   { path: "/api/feedback", methods: ["GET", "POST"], summary: "Read own feedback suppression state or submit one answer/dismissal in an authorized workspace" },
@@ -11,6 +15,7 @@ export const DECLARED_APP_ENDPOINTS: ReadonlyArray<{ path: string; methods: read
   { path: "/api/runs", methods: ["GET", "POST"], summary: "Read a known immutable run in the authorized workspace; Owner-only authorized hostname execution" },
 ];
 export const DECLARED_APP_AUTH_ROUTES = [
+  { path: "/cli/login", methods: ["GET"], summary: "AuthKit login with fixed CLI confirmation return path" },
   { path: "/login", methods: ["GET"], summary: "Begin hosted AuthKit sign-in with fixed return target" },
   { path: "/callback", methods: ["GET"], summary: "AuthKit PKCE/state-validated authorization callback" },
 ] as const;
