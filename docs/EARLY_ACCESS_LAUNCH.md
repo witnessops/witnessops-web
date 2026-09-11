@@ -1,5 +1,79 @@
 # External Exposure Early Access launch
 
+## Logout replay repair — private acceptance passed
+
+Private browser acceptance reproduced a session replay: the workspace endpoint
+returned 401 after normal logout, but returned 200 after restoring the prior
+sealed cookie. AuthKit stores the user, access token and refresh token in an
+encrypted/sealed HttpOnly cookie. Its middleware validates the access-token JWT;
+`withAuth()` supplies its `sid` and binds the user to its subject. A valid JWT can
+remain locally acceptable after provider logout until refresh/expiry.
+
+Migration `0006_revoked_sessions.sql` adds durable, workspace-independent
+revocation keyed by configured WorkOS issuer/client namespace and session ID.
+The subject is metadata, not an email identity key. Logout affects **the current
+session only**, including all refreshed access tokens with that session ID.
+Other sessions for the same user remain valid.
+
+`revokeCurrentSession()` persists an idempotent tombstone before AuthKit clears
+the cookie and redirects to provider logout. Database write failure reports
+failure instead of acknowledging logout. Provider failure after persistence
+cannot restore app access. Logout does not require active workspace membership.
+`authenticatedIdentity()` retains AuthKit validation, then queries revocation
+before internal identity/membership/product access. Missing/malformed session
+IDs are denied; database lookup failure cannot grant access. There is no cache.
+Requests already authorized before the logout commit may finish; subsequent
+authorization checks deny the session. This is not cancellation of in-flight work.
+
+Tombstones are retained without automatic expiry for this slice. JWT expiry is
+not a safe cleanup bound because a session can refresh. Define and verify the
+provider's maximum session lifetime before adding a deletion policy. Runtime
+needs SELECT/INSERT on this table, not UPDATE/DELETE/TRUNCATE; backup needs SELECT.
+No token, cookie, refresh secret or raw evidence is stored in the table.
+
+Local Node 22 validation: app tests 35/35, PostgreSQL tests 26/26, Chromium/WebKit
+product and report fixtures 37/37, full `pnpm health` PASS. The database replay
+test uses validated-claim fixtures and a new connection pool; it does not claim
+real Google/OTP, sealed-cookie or container-replacement acceptance.
+
+Separate private production browser acceptance passed on 2026-09-11:
+
+- Real session: workspace 200 before logout, normal browser 401 after logout,
+  preserved-cookie replay 401, and replay 401 after container replacement.
+- Fresh Google login after revocation returned 200 for the same user/workspace.
+  Google and email OTP resolved the same WorkOS/internal identity; the database
+  retained one identity mapping. Private replay references were cleared.
+- Current-session versus other-session isolation passed with explicit distinct
+  session IDs in the PostgreSQL/runtime-boundary test. Different sealed cookie
+  values alone do not establish distinct provider sessions; the browser's first
+  two cookie references were both denied after logout, so that attempt is not
+  presented as an independent-session proof.
+- Browser Viewer reads returned 200; add/run writes returned 403. After membership
+  revocation the same browser returned 404. Known foreign asset/run IDs, feedback
+  reads/writes and event writes returned 404. Direct foreign asset/run/report
+  pages displayed not-found states. Event reads are not exposed (405).
+- Execution-denial probes used a nonexistent asset ID, so even an unexpected
+  authorization failure could not trigger collection. Zero observations were
+  initiated; the single existing operator run and its digest remained unchanged.
+- Cookie metadata remained Secure, HttpOnly, SameSite=Lax, path `/`, exact app
+  host scope. No credential-header patterns were found in acceptance service logs.
+- The app ended disabled/inactive with zero running containers and no backend
+  listener. Public routing, DNS, WorkOS settings and invitations were unchanged.
+
+The replacement image scan reported zero Critical/High/Medium/Low advisories and
+zero secrets. Security diff review `6e7d923e-34ac-4629-b2ec-546ab74eafe8` finalized
+with zero findings against the six matching source/migration/test files; this
+acceptance documentation was reviewed separately. Runtime image and operational
+records remain in restricted operator custody. A previously exited named
+container interfered with one restart attempt; the successful replacement was
+verified separately before the 401 replay result was recorded.
+
+Database outage behavior was tested through injected query failures, not a
+production outage. Revocation retention remains indefinite; cleanup and
+in-flight request cancellation are not implemented. Remaining gate: controlled
+production product/two-run/persistence/comparison/report acceptance under a
+separate explicit instruction.
+
 Status: **local product accepted; production launch blocked on the prerequisites below**.
 Audit source: `af6ae2fc957cc15b6b496fedab45d9244476c2f2`, branch
 `feat/witnessops-app-foundation`. Target: `https://app.witnessops.com`, initially

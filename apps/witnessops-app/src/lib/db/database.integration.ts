@@ -11,6 +11,7 @@ import { createFoundationService } from "../server";
 import { canonicalSource } from "../source-digest";
 import { ActivityStore } from "./activity";
 import { activateEarlyAccess, earlyAccess } from "./access";
+import { requireUnrevokedSession, revokeSession, sessionKey } from "./sessions";
 import { compareRuns, CHECK_IDS, type Run, type ExternalSnapshotV1 } from "../model";
 
 // Only the explicit isolated test URL; never fall back to DATABASE_URL.
@@ -45,6 +46,35 @@ before(async () => {
   await pool.query("INSERT INTO memberships (user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, wa]);
 });
 after(async () => { await pool?.end(); await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`); await admin.end(); });
+
+test("session replay: 200 before logout, 401 after replay and fresh connection; other session stays valid", async () => {
+  const providerIdentity = identity("user_sessionUser");
+  const user = await resolveIdentity(pool, providerIdentity);
+  const workspace = await store.create(user, "Session acceptance", randomUUID());
+  const keyA = sessionKey(providerIdentity.issuer, "session_A", providerIdentity.subject);
+  const keyB = sessionKey(providerIdentity.issuer, "session_B", providerIdentity.subject);
+  // The provider fixture stands in for already-verified AuthKit claims. It does
+  // not replace real browser/cookie acceptance or claim to test JWT verification.
+  const boundary = (db: Pool, key: typeof keyA) => createFoundationService({ pool: db, origin, identity: async () => {
+    await requireUnrevokedSession(db, key); return providerIdentity;
+  } });
+  assert.equal((await boundary(pool, keyA).handle(request("workspace", workspace), "workspace")).status, 200);
+  await revokeSession(pool, keyA);
+  await revokeSession(pool, keyA); // Retry is idempotent.
+  assert.equal((await boundary(pool, keyA).handle(request("workspace", workspace), "workspace")).status, 401);
+  assert.equal((await boundary(pool, keyB).handle(request("workspace", workspace), "workspace")).status, 200);
+  const fresh = connect();
+  try {
+    assert.equal((await boundary(fresh, keyA).handle(request("workspace", workspace), "workspace")).status, 401);
+    assert.equal((await fresh.query("SELECT count(*) FROM revoked_sessions WHERE issuer=$1 AND session_id=$2", [keyA.issuer, keyA.sessionId])).rows[0].count, "1");
+  } finally { await fresh.end(); }
+  // Membership/entitlement is deliberately irrelevant to logout.
+  await pool.query("UPDATE memberships SET status='revoked', revoked_at=now() WHERE user_id=$1", [user.id]);
+  await revokeSession(pool, keyB);
+  await assert.rejects(requireUnrevokedSession(pool, keyB), /Sign in/);
+  // Same session ID under another provider client does not collide.
+  await requireUnrevokedSession(pool, { ...keyA, issuer: keyA.issuer + "_other" });
+});
 
 test("identity: same provider subject and changed email retain the internal user", async () => {
   const again = await resolveIdentity(pool, { ...identity("user_a"), email: "changed@example.test" });
