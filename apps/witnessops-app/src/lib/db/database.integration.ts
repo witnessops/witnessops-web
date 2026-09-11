@@ -463,6 +463,28 @@ test('Linux: synthetic signed import, byte custody, reopen, report, restart and 
   const imported = await service.handle(upload(),'linux-checks');
   assert.equal(imported.status,201, await imported.clone().text());
   const run = await imported.json();
+  // Hold the real comparison at its boundary to reproduce the process slot collision.
+  const originalComparison = LinuxCheckStore.prototype.comparison;
+  let entered!: () => void, release!: () => void, verifications = 0;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const held = new Promise<void>(resolve => { release = resolve; });
+  LinuxCheckStore.prototype.comparison = async function(...args) {
+    verifications++; entered(); await held;
+    return originalComparison.apply(this,args);
+  };
+  try {
+    const first = service.handle(request(`linux-checks?id=${run.id}`,workspace),'linux-checks');
+    await started;
+    const busy = await service.handle(request(`linux-checks?id=${run.id}`,workspace),'linux-checks');
+    assert.equal(busy.status,429);
+    assert.deepEqual(await busy.json(),{error:'Another package is being checked. Try again shortly.',code:'verification_busy',retryable:true});
+    assert.equal(busy.headers.get('Retry-After'),'1');
+    assert.equal((await service.handle(request(`linux-checks?id=${randomUUID()}`,workspace),'linux-checks')).status,429);
+    release(); assert.equal((await first).status,200);
+    assert.equal(verifications,1);
+    assert.equal((await service.handle(request(`linux-checks?id=${run.id}`,workspace),'linux-checks')).status,200);
+    assert.equal(verifications,2); // A later reopen is fresh, not a cached result.
+  } finally { release(); LinuxCheckStore.prototype.comparison = originalComparison; }
   assert.equal(run.sourceDigest,sha256(zip)); assert.equal(run.observedHostname,'demo-host'); assert.equal(run.synthetic,true);
   assert.equal((await service.handle(request('runs',workspace,{assetId:asset.id,authorized:true}),'runs')).status,400);
   await assert.rejects(store.beginRun(owner,workspace,asset.id), /not found/);

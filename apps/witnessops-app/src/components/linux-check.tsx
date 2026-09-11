@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { fetchLinuxCheck } from '../lib/linux-reopen';
 import { useEffect, useState, type FormEvent } from 'react';
 import type { LinuxComparison } from '../lib/linux-comparison';
 import type { Asset, LinuxCheckRun, Workspace } from '../lib/model';
@@ -47,18 +48,20 @@ function LinuxReport({ model, run, workspaceId, comparison }: { model: Proofpack
 
 export function LinuxCheckPage({ runId, workspaceId }: { runId: string; workspaceId: string }) {
   const [loaded, setLoaded] = useState<{ model: ProofpackReportV1; run: LinuxCheckRun; comparison?: LinuxComparison } | null>(null), [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
     let active = true;
-    setLoaded(null); setError('');
-    fetch(`/api/linux-checks?id=${runId}`, { cache: 'no-store', credentials: 'same-origin', headers: { 'X-WitnessOps-Workspace': workspaceId } }).then(async response => {
+    const controller = new AbortController();
+    setLoaded(null); setError(''); setBusy(false);
+    fetchLinuxCheck(runId, workspaceId, controller.signal, () => { if (active) setBusy(true); }).then(async response => {
       const payload = await response.json();
       if (!response.ok || !isBuyerReport(payload.model)) throw new Error('This saved check could not be accessed or reverified.');
       if (active) setLoaded(payload);
     }).catch(() => { if (active) setError('This saved check could not be accessed or reverified.'); });
-    return () => { active = false; };
+    return () => { active = false; controller.abort(); };
   }, [runId, workspaceId]);
   if (error) return <p role="alert">{error}</p>;
-  return loaded ? <LinuxReport model={loaded.model} run={loaded.run} workspaceId={workspaceId} comparison={loaded.comparison} /> : <p role="status">Reopening and verifying original source…</p>;
+  return loaded ? <LinuxReport model={loaded.model} run={loaded.run} workspaceId={workspaceId} comparison={loaded.comparison} /> : <p role="status">{busy ? 'Verification is busy. Retrying…' : 'Reopening and verifying original source…'}</p>;
 }
 
 function LinuxChanges({comparison}:{comparison?:LinuxComparison}) {
@@ -68,9 +71,10 @@ function LinuxChanges({comparison}:{comparison?:LinuxComparison}) {
 function LinuxChangesLoader({workspaceId,runId}:{workspaceId:string;runId:string}) {
   const [comparison,setComparison]=useState<LinuxComparison>();
   const [error,setError]=useState(false);
-  useEffect(()=>{let active=true;setComparison(undefined);setError(false);
-    fetch(`/api/linux-checks?id=${runId}`,{cache:'no-store',credentials:'same-origin',headers:{'X-WitnessOps-Workspace':workspaceId}}).then(async r=>{if(!r.ok)throw new Error();const data=await r.json();if(active)setComparison(data.comparison);}).catch(()=>{if(active)setError(true);});
-    return()=>{active=false;};
+  const [busy,setBusy]=useState(false);
+  useEffect(()=>{let active=true;const controller=new AbortController();setComparison(undefined);setError(false);setBusy(false);
+    fetchLinuxCheck(runId,workspaceId,controller.signal,()=>{if(active)setBusy(true);}).then(async r=>{if(!r.ok)throw new Error();const data=await r.json();if(active)setComparison(data.comparison);}).catch(()=>{if(active)setError(true);});
+    return()=>{active=false;controller.abort();};
   },[workspaceId,runId]);
-  return error?<p role="alert">Comparison could not be reverified.</p>:<LinuxChanges comparison={comparison}/>;
+  return error?<p role="alert">Comparison could not be reverified.</p>:!comparison&&busy?<p role="status">Verification is busy. Retrying…</p>:<LinuxChanges comparison={comparison}/>;
 }

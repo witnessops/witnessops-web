@@ -92,7 +92,7 @@ export function createFoundationService(options: {
       if (endpoint === 'linux-checks') {
         const linux = new LinuxCheckStore(pool);
         if (request.method === 'GET') {
-          if (importing) throw new ApiError(429, 'Another package is being checked. Try again shortly.');
+          if (importing) return Response.json({ error: 'Another package is being checked. Try again shortly.', code: 'verification_busy', retryable: true }, { status: 429, headers: { ...headers, 'Retry-After': '1' } });
           importing = true;
           try {
             const reopened = await linux.comparison(user, workspaceId, requireId(new URL(request.url).searchParams.get('id')));

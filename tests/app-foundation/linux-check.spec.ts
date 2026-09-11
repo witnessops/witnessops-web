@@ -84,3 +84,26 @@ for(const width of [1440,390]) test(`Linux comparison qualification and three la
   // are read-only; subsequent rerenders must not create a request loop.
   expect(calls).toBeGreaterThanOrEqual(1);expect(calls).toBeLessThanOrEqual(2);
 });
+
+// Regression: a verifier slot collision is not an access/verification failure.
+for(const exhaust of [false,true]) test(`Linux reopen retries explicit verification backpressure exhaust=${exhaust}`,async({page})=>{
+  const checked=await verifyProofpack({proofpack:{name,bytes:readFileSync(path)},signature:{name:name+'.sig.json',bytes:readFileSync(path+'.sig.json')},trust_registry:pinnedRegistryInput()});
+  const model=localAuditAdapter(checked,'2026-09-11T12:00:00Z')!;
+  const run={id:'busy-run',assetId:'linux-asset',synthetic:true,sourceDigest:model.identity.sourceDigest};
+  const ws={id:'workspace-a',name:'Test',role:'owner',assets:[],runs:[],members:[],linuxRuns:[run]};
+  let calls=0;
+  await page.route('**/api/**',route=>{
+    const url=new URL(route.request().url());
+    if(url.pathname==='/api/workspace')return route.fulfill({json:{user:{id:'owner'},workspace:ws,workspaces:[ws]}});
+    if(url.pathname==='/api/feedback')return route.fulfill({json:[]});
+    if(url.pathname==='/api/linux-checks')return (++calls<=2||exhaust)
+      ?route.fulfill({status:429,json:{error:'Another package is being checked. Try again shortly.',code:'verification_busy',retryable:true}})
+      :route.fulfill({json:{run,model}});
+    throw new Error('Unexpected route');
+  });
+  await page.goto('/runs/busy-run');
+  await expect(page.getByRole('status')).toHaveText('Verification is busy. Retrying…');
+  if(exhaust)await expect(page.locator('p[role="alert"]')).toHaveText('This saved check could not be accessed or reverified.',{timeout:7000});
+  else await expect(page.getByRole('heading',{name:'Saved check',exact:true})).toBeVisible({timeout:7000});
+  expect(calls).toBeLessThanOrEqual(5);
+});
