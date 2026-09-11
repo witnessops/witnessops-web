@@ -20,6 +20,6 @@
       "@content/*": ["../../content/witnessops/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next-dev/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next-dev/types/**/*.ts", ".next-browser/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
