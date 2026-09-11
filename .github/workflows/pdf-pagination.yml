@@ -12,6 +12,8 @@ on:
       - "apps/witnessops-web/src/app/proofpack/**"
       - "apps/witnessops-web/src/app/globals.css"
       - "apps/witnessops-web/src/app/layout.tsx"
+      - "packages/ui/tokens/witnessops.css"
+      - "apps/witnessops-web/public/fonts/**"
       - "apps/witnessops-web/package.json"
       - "apps/witnessops-web/next.config.js"
       - "tests/external-exposure/**"
