@@ -3,9 +3,11 @@ export { CHECK_IDS, EXTERNAL_VERSION, SNAPSHOT_BOUNDARY } from "../../../witness
 export type { ExternalSnapshotV1, ExternalCheckResultV1 } from "../../../witnessops-web/src/lib/external-exposure/contracts";
 
 export const RECOMMENDED_PROFILE = { id: "bounded-hostname", version: EXTERNAL_VERSION, checkIds: [...CHECK_IDS] } as const;
-export type Asset = { id: string; hostname: string; createdAt: string };
+export type Asset = { id: string; hostname: string; type: "domain" | "hostname"; createdAt: string };
 export type Run = { id: string; assetId: string; createdAt: string; sourceDigest: string; profile: { id: string; version: string; checkIds: readonly string[] }; snapshot: ExternalSnapshotV1 };
-export type Workspace = { id: string; name: string; expiresAt: string; assets: Asset[]; runs: Run[] };
+export type WorkspaceSummary = { id: string; name: string; slug: string; role: "owner" | "viewer" };
+export type Workspace = WorkspaceSummary & { assets: Asset[]; runs: Run[]; members: Array<{ id: string; displayName: string | null; role: "owner" | "viewer" }> };
+export type WorkspaceState = { user: { id: string; displayName: string | null }; workspaces: WorkspaceSummary[]; workspace: Workspace | null };
 export const STATUS_LABEL: Record<CheckStatus, string> = { OBSERVED_EXPECTED: "Clear", NEEDS_ATTENTION: "Needs attention", INFORMATIONAL: "Informational", UNDETERMINED: "Undetermined", CHECK_ERROR: "Undetermined" };
 export const CHECK_LABELS: Record<typeof CHECK_IDS[number], string> = {
   "dns.public_target.v1": "Public DNS target", "tls.certificate.v1": "TLS certificate state",

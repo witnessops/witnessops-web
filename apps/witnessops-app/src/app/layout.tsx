@@ -1,3 +1,4 @@
+import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -8,4 +9,4 @@ const sans = localFont({ src: [
 ], variable: "--app-font-sans", display: "swap" });
 const mono = localFont({ src: "../../../witnessops-web/public/fonts/ibm-plex-mono-400.woff2", variable: "--app-font-mono", display: "swap" });
 export const metadata: Metadata = { title: "WitnessOps · External Exposure", robots: { index: false, follow: false } };
-export default function Layout({ children }: { children: React.ReactNode }) { return <html lang="en"><body className={`${sans.variable} ${mono.variable}`}>{children}</body></html>; }
+export default function Layout({ children }: { children: React.ReactNode }) { return <html lang="en"><body className={`${sans.variable} ${mono.variable}`}><AuthKitProvider>{children}</AuthKitProvider></body></html>; }
