@@ -112,6 +112,12 @@ async function expectRefinedStructure(figure: Locator, width: number) {
   await expect(point).toHaveCSS("fill", "none");
   await expect(point).toHaveCSS("opacity", "1");
   await expect(figure.getByText(/^(?:REFUND\s*€4,800|ZWROT\s*4 800 €)$/i)).toBeVisible();
+  const checkpoint = figure.locator("[data-hero-checkpoint]:visible");
+  await expect(checkpoint).toHaveCount(1);
+  await expect(checkpoint.locator("circle")).toHaveCount(4);
+  const token = figure.locator("[data-hero-token]:visible");
+  await expect(token).toHaveCount(1);
+  await expect(token.locator("text")).toHaveText("€");
   const context = figure.locator("[data-hero-context]");
   await expect(context).toHaveCount(1);
   if (width <= 700) {
@@ -283,4 +289,35 @@ test("homepage has no concept controls and preserves keyboard access to both CTA
   // This macOS WebKit uses Option-Tab to include links, including in a plain HTML fixture.
   await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");
   await expect(sample).toBeFocused();
+});
+
+test("refund marker passes through the checkpoint and settles on both trace axes", async ({ page }) => {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const trace = page.locator(`[data-hero-trace="${viewport.width < 700 ? "vertical" : "horizontal"}"]`);
+    const checkpoint = await trace.locator("[data-hero-checkpoint]").boundingBox();
+    const positions: number[] = [];
+    for (const time of [400, viewport.width < 700 ? 1150 : 1200, 2100]) {
+      await trace.locator("[data-hero-token]").evaluate((element, currentTime) => {
+        for (const animation of element.getAnimations()) {
+          animation.pause();
+          animation.currentTime = currentTime;
+        }
+      }, time);
+      const token = await trace.locator("[data-hero-token] circle").boundingBox();
+      positions.push(viewport.width < 700 ? token!.y + token!.height / 2 : token!.x + token!.width / 2);
+    }
+    const centre = viewport.width < 700 ? checkpoint!.y + checkpoint!.height / 2 : checkpoint!.x + checkpoint!.width / 2;
+    expect(positions[0]).toBeLessThan(centre - 20);
+    expect(Math.abs(positions[1] - centre)).toBeLessThan(2);
+    expect(positions[2]).toBeGreaterThan(centre + 20);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(trace.locator("[data-hero-token]")).toHaveCSS("animation-name", "none");
+    // A live media switch updates WebKit's animation list on the next render.
+    await expect.poll(() => runningAnimations(page.locator("[data-hero-gap]")), { timeout: 1_000 }).toBe(0);
+    await expect(trace.locator("[data-hero-token]")).toBeVisible();
+    await expectEnglishFinding(page.locator("[data-hero-gap]"));
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+  }
 });
