@@ -18,11 +18,13 @@ for (const viewport of [
     await expect(trigger).toBeVisible();
     await page.screenshot({ path: `artifacts/ui-proof/priorities/hero-${viewport.width}.png` });
     const example = page.getByRole("complementary", { name: "Example review finding" });
-    await example.locator("summary").click();
-    // A focused disclosure can overlap the launcher at this viewport; protect it.
+    await expect(example.locator("[data-hero-gap]")).toContainText("Approval not evidenced.");
+    const sampleLink = hero.getByRole("link", { name: "See a sample finding" });
+    await sampleLink.focus();
+    // Keep the remaining hero action reachable beside the launcher.
     const collision = await page.locator('[data-focus-obscured="true"]').count();
     if (collision) await expect(trigger).toBeHidden();
-    await example.locator("summary").blur();
+    await sampleLink.blur();
     await expect(trigger).toBeVisible();
 
     await hero.evaluate(element => window.scrollTo(0, element.getBoundingClientRect().bottom + window.scrollY + 8));

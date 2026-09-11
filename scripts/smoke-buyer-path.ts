@@ -27,7 +27,7 @@ export type BuyerPathSmokeResult = {
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "Security &amp; Verification for AI and Automation", "Find security gaps in your AI and automation.", "Fictional example · No system tested", "The refund tool does not enforce the approval policy.", "Scope a review", "Restore a workflow"],
+    requiredMarkers: ["WitnessOps", "Security &amp; Verification for AI and Automation", "Find security gaps in your AI and automation.", "Fictional example · No system tested", "Approval not evidenced.", "Scope a review", "Restore a workflow"],
     prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500"],
   },
   {

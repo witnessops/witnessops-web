@@ -4,6 +4,16 @@ import type { ReducedMotion, ScenarioSeverity } from "./scenarios";
 
 const uiProofSelector = (id: string) => `[data-ui-proof-id="${id}"]`;
 
+// Follow the rendered responsive copy without duplicating the production breakpoint.
+// Keep this locator strict: zero or two visible paragraphs must fail the proof.
+export function activeHeroSupport(page: Page) {
+  return page.locator(
+    ["homepage-hero-body", "homepage-hero-mobile-body"]
+      .map(id => `${uiProofSelector(id)}:visible`)
+      .join(", "),
+  );
+}
+
 export async function checkHomepageHero(
   page: Page,
   severity: ScenarioSeverity,
@@ -12,13 +22,38 @@ export async function checkHomepageHero(
   const checks: CheckResult[] = [];
   checks.push(await selectorExists(page, "homepage-hero", severity));
   checks.push(await selectorExists(page, "homepage-hero-headline", severity));
-  checks.push(await selectorExists(page, "homepage-hero-body", severity));
+  const support = activeHeroSupport(page);
+  const supportCount = await support.count();
+  checks.push({
+    name: "one active hero support paragraph exists",
+    status: supportCount === 1 ? "pass" : "fail",
+    severity,
+    expected: "exactly 1 visible support paragraph",
+    actual: supportCount,
+  });
   checks.push(await selectorExists(page, "homepage-hero-primary-cta", severity));
   checks.push(await selectorExists(page, "homepage-sample-review-cta", severity));
   checks.push(
     await selectorVisible(page, "homepage-hero-headline", "headline visible", severity),
   );
-  checks.push(await selectorVisible(page, "homepage-hero-body", "body visible", severity));
+  const supportReadable = supportCount === 1 && await support.evaluate(element => {
+    const bounds = element.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const text = range.getBoundingClientRect();
+    return Boolean(element.textContent?.trim())
+      && Number.parseFloat(getComputedStyle(element).fontSize) >= 16
+      && text.left >= bounds.left - 1 && text.right <= bounds.right + 1
+      && text.top >= bounds.top - 1 && text.bottom <= bounds.bottom + 1
+      && text.left >= -1 && text.right <= document.documentElement.clientWidth + 1;
+  });
+  checks.push({
+    name: "active support copy visible, readable and bounded",
+    status: supportReadable ? "pass" : "fail",
+    severity,
+    expected: "nonempty, readable text contained in its paragraph and viewport width",
+    actual: supportReadable,
+  });
   checks.push(
     await selectorVisible(
       page,

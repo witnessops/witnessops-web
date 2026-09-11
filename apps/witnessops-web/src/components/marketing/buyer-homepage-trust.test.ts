@@ -43,7 +43,7 @@ test("the sample-review link reaches a fictional review with evidence limits, no
 
 test("homepage leads with security and evidence while keeping repair accessible", () => {
   assert.match(source, /Find security gaps in your AI and automation/);
-  assert.match(source, /ReviewFinding/);
+  assert.match(source, /HeroGap/);
   assert.match(source, /buyerRequestHref\(locale\)/);
   assert.match(source, /\/catalog\/automation-repair/);
   assert.match(source, /not customer evidence/);
