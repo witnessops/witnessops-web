@@ -16,6 +16,7 @@ on:
       - "apps/witnessops-web/public/fonts/**"
       - "apps/witnessops-web/package.json"
       - "apps/witnessops-web/next.config.js"
+      - "apps/witnessops-web/postcss.config.js"
       - "tests/external-exposure/**"
       - "tests/proofpack/**"
       - "package.json"
