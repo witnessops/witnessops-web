@@ -8,13 +8,13 @@ import { ApiError } from './errors';
 import { readExternalRequestBody } from '../../../witnessops-web/src/lib/external-exposure/request';
 import { findDuplicateJsonObjectKey } from '../../../witnessops-web/src/lib/json-ambiguity';
 const headers = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Robots-Tag': 'noindex, nofollow' };
-async function input(request: Request, keys: string[]) {
+async function input(request: Request, keys: string[], optional: string[] = []) {
   if (!/^application\/json(?:;\s*charset=utf-8)?$/i.test(request.headers.get('content-type') ?? '') || request.headers.has('content-encoding')) throw new CliError('invalid_request');
   try {
     const raw = await readExternalRequestBody(request);
     if (findDuplicateJsonObjectKey(raw) !== null) throw new Error();
     const value = JSON.parse(raw);
-    if (!value || Array.isArray(value) || typeof value !== 'object' || Object.keys(value).sort().join() !== keys.sort().join()) throw new Error();
+    if (!value || Array.isArray(value) || typeof value !== 'object' || keys.some(key => !(key in value)) || Object.keys(value).some(key => ![...keys, ...optional].includes(key))) throw new Error();
     return value;
   } catch { throw new CliError('invalid_request'); }
 }
@@ -43,7 +43,7 @@ export function createCliAuthService(options: { pool?: Pool; origin?: string; id
         const web = await (options.identity ? options.identity() : (await import('./auth')).authenticatedWebSession());
         if (!web) throw new CliError('sign_in', 401);
         if (request.method === 'GET') return response(await store.context(web));
-        return response(await store.bind(web, await input(request, ['code', 'workspaceId', 'displayedUserId', 'action'])));
+        return response(await store.bind(web, await input(request, ['code', 'workspaceId', 'displayedUserId', 'action'], ['scope'])));
       }
       throw new CliError('method_not_supported', 405);
     } catch (error) {

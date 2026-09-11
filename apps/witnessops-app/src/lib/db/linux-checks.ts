@@ -1,6 +1,6 @@
 import 'server-only';
 import { createHash, randomUUID } from 'node:crypto';
-import type { Pool } from 'pg';
+import type { Pool, PoolClient } from 'pg';
 import { verifyProofpack } from '../../../../witnessops-web/src/lib/proofpack/verify.mjs';
 import { LIMITS } from '../../../../witnessops-web/src/lib/proofpack/primitives.mjs';
 import { pinnedRegistryInput, LOCAL_AUDIT_TRUST } from '../../../../witnessops-web/src/lib/proofpack/pinned-registry';
@@ -47,9 +47,10 @@ export class LinuxCheckStore {
     });
   }
   async import(user: AppUser, workspaceId: string, assetId: string, zip: Uint8Array, signature: Uint8Array, zipName: string) {
-    // Own buffers prevent the request holder from changing admitted bytes during verification.
+    return transaction(this.pool, client => this.importWithin(client, user, workspaceId, assetId, zip, signature, zipName));
+  }
+  async importWithin(client: PoolClient, user: AppUser, workspaceId: string, assetId: string, zip: Uint8Array, signature: Uint8Array, zipName: string) {
     const source = { zipName, zip: Buffer.from(zip), signature: Buffer.from(signature), registry: Buffer.from(pinnedRegistryInput().bytes) };
-    return transaction(this.pool, async client => {
       await requireWorkspaceMembership(client, user, workspaceId, true);
       const asset = await client.query<{ normalized_value: string }>("SELECT normalized_value FROM assets WHERE workspace_id=$1 AND id=$2 AND type='linux_server' FOR SHARE", [workspaceId, requireId(assetId)]);
       if (!asset.rows[0]) throw new ApiError(404, 'Linux server asset not found.');
@@ -65,7 +66,6 @@ export class LinuxCheckStore {
       await client.query(`INSERT INTO linux_check_sources (run_id,workspace_id,zip_bytes,signature_bytes,registry_bytes,signature_digest,registry_digest,metadata,verification,zip_name,derived_snapshot) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11::jsonb)`, [id,workspaceId,source.zip,source.signature,source.registry,sha256(source.signature),sha256(source.registry),JSON.stringify(checked.metadata),JSON.stringify(checked.verification),zipName,JSON.stringify(checked.snapshot)]);
       await client.query("UPDATE runs SET status='completed',source_digest=$3,finished_at=$4 WHERE workspace_id=$1 AND id=$2", [workspaceId,id,digest,createdAt]);
       return { ...checked.metadata, id, assetId, createdAt, sourceDigest: digest } satisfies LinuxCheckRun;
-    });
   }
   async reopen(user: AppUser, workspaceId: string, runId: string) {
     return transaction(this.pool, async client => {

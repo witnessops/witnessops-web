@@ -2,6 +2,8 @@ import type { HttpMethod } from "../../../witnessops-web/src/lib/server/api-cont
 /** Cookie-authenticated product endpoints. WorkOS authenticates; the database
  * owns active workspace membership. These are separate from the public API. */
 export const DECLARED_APP_ENDPOINTS: ReadonlyArray<{ path: string; methods: readonly HttpMethod[]; summary: string }> = [
+  { path: "/api/cli/server-checks", methods: ["GET", "POST"], summary: "Scoped Owner execution authority and reconciliation; local capture only" },
+  { path: "/api/cli/server-check-capture", methods: ["POST"], summary: "Bounded immutable capture upload tied to an Owner execution" },
   { path: "/api/cli/login", methods: ["POST"], summary: "Create bounded app-mediated CLI login; no identity or product access granted" },
   { path: "/api/cli/poll", methods: ["POST"], summary: "One-time CLI credential redemption using a secret device credential" },
   { path: "/api/cli/authorize", methods: ["GET", "POST"], summary: "Web-authenticated explicit CLI session authorization for a current workspace" },

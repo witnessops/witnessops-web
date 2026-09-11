@@ -21,7 +21,7 @@ function code(value: unknown) {
   if (typeof value !== 'string' || !/^[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}$/.test(value)) throw new CliError('invalid_code');
   return value;
 }
-type Binding = { user_id: string; workspace_id: string; web_issuer: string; web_session_id: string };
+type Binding = { user_id: string; workspace_id: string; web_issuer: string; web_session_id: string; scope: string };
 async function parentActive(client: PoolClient, issuer: string, session: string) {
   if ((await client.query('SELECT 1 FROM revoked_sessions WHERE issuer=$1 AND session_id=$2', [issuer, session])).rowCount) throw new CliError('revoked', 401);
 }
@@ -29,7 +29,7 @@ async function current(client: PoolClient, binding: Binding) {
   await parentActive(client, binding.web_issuer, binding.web_session_id);
   const member = await requireWorkspaceMembership(client, { id: binding.user_id, displayName: null }, binding.workspace_id);
   const user = (await client.query('SELECT display_name FROM users WHERE id=$1', [binding.user_id])).rows[0];
-  return { displayName: user.display_name || 'WitnessOps account', workspace: member.name, role: member.role, scope: 'cli:session' as const };
+  return { displayName: user.display_name || 'WitnessOps account', workspace: member.name, role: member.role, scope: binding.scope };
 }
 export class CliAuthStore {
   constructor(readonly pool: Pool, readonly now = Date.now) {}
@@ -55,7 +55,7 @@ export class CliAuthStore {
     const user = await resolveIdentity(this.pool, web.identity);
     return { user, workspaces: await new WorkspaceStore(this.pool).list(user) };
   }
-  async bind(web: WebCliIdentity, input: { code: unknown; workspaceId: unknown; displayedUserId: unknown; action: unknown }) {
+  async bind(web: WebCliIdentity, input: { code: unknown; workspaceId: unknown; displayedUserId: unknown; action: unknown; scope?: unknown }) {
     const userCode = code(input.code), { user } = await this.context(web);
     if (input.displayedUserId !== user.id) throw new CliError('identity_changed', 409);
     if (input.action !== 'authorize' && input.action !== 'deny') throw new CliError('invalid_action');
@@ -68,8 +68,10 @@ export class CliAuthStore {
         return { state: 'denied' };
       }
       if (typeof input.workspaceId !== 'string') throw new CliError('select_workspace');
-      await requireWorkspaceMembership(client, user, input.workspaceId);
-      await client.query(`UPDATE cli_login_transactions SET state='authenticated',user_id=$2,workspace_id=$3,web_issuer=$4,web_session_id=$5 WHERE device_hash=$1`, [row.device_hash, user.id, input.workspaceId, web.session.issuer, web.session.sessionId]);
+      const scope = input.scope ?? 'cli:session';
+      if (scope !== 'cli:session' && scope !== 'cli:session server_check:create') throw new CliError('invalid_scope');
+      await requireWorkspaceMembership(client, user, input.workspaceId, scope !== 'cli:session');
+      await client.query(`UPDATE cli_login_transactions SET state='authenticated',user_id=$2,workspace_id=$3,web_issuer=$4,web_session_id=$5,scope=$6 WHERE device_hash=$1`, [row.device_hash, user.id, input.workspaceId, web.session.issuer, web.session.sessionId, scope]);
       return { state: 'authenticated' };
     });
   }
@@ -86,7 +88,7 @@ export class CliAuthStore {
       if (row.state === 'pending') return { state: 'pending' as const };
       const status = await current(client, row);
       const credential = randomBytes(32).toString('base64url'), expiresAt = new Date(time + SESSION_TTL).toISOString();
-      await client.query(`INSERT INTO cli_sessions(credential_hash,user_id,workspace_id,web_issuer,web_session_id,issued_at,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7)`, [hash(credential), row.user_id, row.workspace_id, row.web_issuer, row.web_session_id, new Date(time), expiresAt]);
+      await client.query(`INSERT INTO cli_sessions(credential_hash,user_id,workspace_id,web_issuer,web_session_id,issued_at,expires_at,scope) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, [hash(credential), row.user_id, row.workspace_id, row.web_issuer, row.web_session_id, new Date(time), expiresAt, row.scope]);
       await client.query("UPDATE cli_login_transactions SET state='redeemed' WHERE device_hash=$1", [deviceHash]);
       return { state: 'active' as const, credential, expiresAt, ...status };
     });
@@ -98,6 +100,17 @@ export class CliAuthStore {
       if (row.revoked_at) throw new CliError('revoked', 401);
       if (row.expires_at.getTime() <= this.now()) throw new CliError('expired', 401);
       return { state: 'active', expiresAt: row.expires_at.toISOString(), ...await current(client, row) };
+    });
+  }
+  async withServerOwner<T>(credential: unknown, action: (client: PoolClient, user: { id: string; displayName: null }, workspaceId: string) => Promise<T>): Promise<T> {
+    return transaction(this.pool, async client => {
+      const row = (await client.query('SELECT * FROM cli_sessions WHERE credential_hash=$1 FOR SHARE', [hash(secret(credential))])).rows[0];
+      if (!row || row.revoked_at || row.expires_at.getTime() <= this.now()) throw new CliError('revoked', 401);
+      if (row.scope !== 'cli:session server_check:create') throw new CliError('server_scope_required', 403);
+      await parentActive(client, row.web_issuer, row.web_session_id);
+      const user = { id: row.user_id, displayName: null };
+      await requireWorkspaceMembership(client, user, row.workspace_id, true);
+      return action(client, user, row.workspace_id);
     });
   }
   async logout(credential: unknown) {
