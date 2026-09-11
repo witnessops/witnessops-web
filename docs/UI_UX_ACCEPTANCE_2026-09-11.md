@@ -400,3 +400,42 @@ relative to `apps/witnessops-app/` unless explicitly web report paths.
 Run focused browser/component checks for each authorized patch, then app/report
 regressions and relevant security diff review before commit. Do not implement
 this plan until a separate patch slice is selected. NO PUSH / MERGE / DEPLOYMENT.
+
+## P0/P1 implementation status — 2026-09-11
+
+This addendum supersedes only the P0/P1 status above; the original audit remains
+an account of the reviewed baseline. Implementation started at `8fd5ee9b7ccfd20ee3a09ae7b92c1f94e5605d56`.
+
+| Item | Status | Correction |
+| --- | --- | --- |
+| P0 F1 | Resolved | Overview labels all four metrics External Exposure and counts only public assets; Linux remains separately accessible. No cross-product severity aggregation. |
+| P1 F2 | Resolved | Linux creation explains recorded hostname, no network scan and subsequent signed-package import; EE instructions and validation unchanged. |
+| P1 F3 | Resolved | Data note distinguishes unsigned EE snapshots from signed Local Audit packages and pinned trust; reports remain derived and signatures do not prove source truth. |
+| P1 A1 | Resolved | Before upload, three operator-assisted steps explain local collection, off-host finalization/signing and import. Existing contact email reused; no installer, credential flow or new support URL. |
+| P1 F4 | Resolved | EE report says “Checks with collected evidence”, separately counts determined outcomes and labels informational-only observations as context, not attention flags. Source counts, null severity and unknowns unchanged. |
+
+Focused validation: app unit tests 54/54; shared report tests 59/59; existing app
+browser cases 53/53 and four new desktop/mobile cases 4/4 across Chromium/WebKit.
+The first browser pass exposed test-harness assumptions about view-event POSTs
+and duplicate screen/print DOM; corrected without product behavior changes.
+The shared unassessed-report assertion now expects the informational label while
+still requiring null severity and original disposition. Three existing saved-EE
+PDF fixture cases pass (clean, attention, long evidence).
+
+Visual review: all six affected surfaces inspected at laptop and 390px widths,
+including the authenticated local workspace and existing records. No horizontal
+overflow or new competing primary CTA; acquisition guidance precedes upload.
+Screenshots retained privately outside Git. No real asset/run was created or
+imported, and no collection or signing occurred. Normal view telemetry may occur.
+
+P2 remains deferred and untouched: history sorting, report self-link, dated
+comparison, next-import CTA, feedback, empty states, diagnostics, result hierarchy
+and recovery behavior. No DB, authorization, verifier, trust or snapshot changes.
+
+Full Node 22 `pnpm health`: PASS, including both builds, lint/typecheck, app and
+web tests, buyer smoke, route parity and documentation checks. Four public EE
+report screen/print regressions also pass across Chromium/WebKit. Existing EE
+label assertions were updated to the new collected-evidence wording; numerical
+assertions remain unchanged. `git diff --check`: PASS. Security diff review found
+no new findings; original scan snapshot and later test/docs addenda were reviewed
+separately. This records local acceptance only, not deployment or customer validation.

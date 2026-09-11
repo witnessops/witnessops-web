@@ -139,7 +139,7 @@ test('Only unassessed findings remain readable without a ranked summary or an em
     model.findings.forEach((finding, index) => {
         assert.ok(sections[index].includes(finding.title));
         assert.ok(sections[index].includes(String(finding.observation)));
-        assert.match(sections[index], /<span>Severity not assessed<\/span>/);
+        assert.ok(sections[index].includes(finding.state === 'informational' ? '<span>Informational observation · severity not assessed</span>' : '<span>Severity not assessed</span>'));
     });
     assert.match(sections[1], /<span>informational<\/span>/, 'The recorded disposition is preserved');
 });

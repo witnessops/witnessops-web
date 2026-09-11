@@ -154,7 +154,7 @@ for (const [name, fixture, values] of [
   const before = await report.innerHTML();
   for (const media of ['screen', 'print'] as const) {
     await page.emulateMedia({ media });
-    await expect(outcomes.locator(':scope > div > span')).toHaveText(['Needs attention', 'Informational', 'Observations completed', 'Undetermined']);
+    await expect(outcomes.locator(':scope > div > span')).toHaveText(['Needs attention', 'Informational', 'Checks with collected evidence', 'Undetermined']);
     await expect(outcomes.locator(':scope > div > strong')).toHaveText([...values]);
     await expect(validation).toContainText('Snapshot data validation: Passed.');
     await expect(validation).toContainText('These are individual results, not an overall security grade.');
