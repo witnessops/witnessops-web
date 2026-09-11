@@ -2,7 +2,7 @@ import { expect, test, type Page, type Route } from "@playwright/test";
 import { BUYER_SERVICES, buyerServiceRequestHref } from "../../apps/witnessops-web/src/lib/buyer-services";
 import { access, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
-import { checkHomepageHero, screenshotEmittedCheck } from "./checks";
+import { activeHeroSupport, checkHomepageHero, screenshotEmittedCheck } from "./checks";
 import { homepageHeroScenarios, type HomepageHeroScenario } from "./scenarios";
 import {
   scenarioStatus,
@@ -535,9 +535,7 @@ async function applyContentVariant(
         "Review one consequential agent action before it receives production authority";
       element.setAttribute("data-copy-length", "long");
     });
-  await page
-    .locator('[data-ui-proof-id="homepage-hero-body"]')
-    .first()
+  await activeHeroSupport(page)
     .evaluate((element) => {
       element.textContent =
         "Stress-copy variant: identify who can authorize the action, which identity executes it, what systems and tools it can reach, what constrains its blast radius, and what can be demonstrated afterward.";
