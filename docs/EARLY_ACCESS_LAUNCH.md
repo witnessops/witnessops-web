@@ -1,5 +1,148 @@
 # External Exposure Early Access launch
 
+## Deterministic private app lifecycle — 2026-09-11
+
+The lifecycle helper and systemd unit in `deploy/app/host/` replace reliance on
+Podman's automatic removal of a named foreground container. The observed failure
+was an exited container retaining the fixed name and blocking the next `run`.
+The new helper retains exited logs until the next start, then removes only the
+exact stopped container matching name, service label and approved image ID.
+Removal is non-force and does not remove volumes. Running, ambiguous, wrong-image
+or additional similarly named/labeled containers fail closed.
+
+A root-only lifetime lock serializes helper starts. systemd stops the old process
+before starting its replacement; no rolling overlap is used. Runtime remains
+UID 1001, read-only filesystem, dropped capabilities, no-new-privileges, dedicated
+bridge and loopback-only publication. Image selection uses the immutable approved
+local image config ID with `--pull=never`; the accepted image is unchanged.
+Runtime configuration and a runtime-credential database query must pass before
+cleanup/start. Credentials travel through environment fields, never command
+arguments. Migration and backup credentials are not injected.
+
+Restart-on-failure waits 15 seconds and is bounded to ten starts per five minutes.
+This count includes manual starts: an exhausted limit requires operator diagnosis
+and `systemctl reset-failed witnessops-app.service` before retry. Failures retain
+journal/container diagnostics without dumping configuration values. Startup is
+not declared healthy solely because systemd reports active: verify container
+health, identity and the private HTTP response.
+
+Acceptance: clean start, stop/start with stale exited replacement, three rapid
+restarts and automatic recovery from an idle container SIGKILL passed. Wrong image,
+a competing helper while already running, an unexpected second stopped container,
+missing runtime environment and unavailable database all denied startup. The
+synthetic second container never ran an app. A host reboot preserved disabled
+boot startup and zero containers; explicit post-reboot start is checked separately.
+Boot enablement is still **not authorized or performed**. Explicit post-reboot
+start passed with the same three stored runs and source digests. The Podman event
+sequence across eleven starts showed a maximum of one running app container.
+The final instance has one app process, correct immutable image and runtime
+restrictions; health check, runtime preflight and unit validation returned zero.
+The disabled private proxy required an explicit restart after reboot; the
+operator-only Mac tunnel also needs its existing privileged enable command.
+No proxy/DNS configuration changed. Certificate-valid HTTPS through the host
+loopback proxy returned 200. Public ports remained unreachable. Lifecycle logs
+contained no runtime-secret matches or sensitive header lines. Ten local helper
+tests and five live failure cases passed. The final security diff scan covers these exact helper/unit/test changes
+and this documentation; its identifier and finalization are recorded in the
+completion report.
+
+Final state: **RUNNING PRIVATE / ONE INSTANCE, boot startup disabled**.
+Boot enablement can be considered in the next explicitly authorized slice;
+public-routing acceptance remains a separate gate.
+
+No application, auth, database semantics or collector changes were made. This
+slice performed zero observations. The three accepted operator runs and their
+stored digests/source representations remain the persistence baseline. The
+preceding product acceptance record below is retained as earlier evidence.
+
+For a future different-image release, an old-image container intentionally fails
+the identity check. Inspect and stop it, retain diagnostics, and remove only its
+verified exited ID before promoting the separately approved immutable reference.
+For helper rollback, stop the service, restore the previous reviewed unit/helper,
+reload systemd and verify no container remains running before a controlled start.
+No schema reversal or database deletion is involved.
+
+## Controlled private production product acceptance — 2026-09-11
+
+**PASS — private operator acceptance only.** Public routing and external cohort
+admission remain separately authorized gates. Source commit
+`9f909bf564f3413613b0a7e88166ffc92644e7de`; installed image manifest
+`sha256:7a7ff50627860ee1abff9c15760fe7d511ac7a280d3cdc6a3a2b638cae0b65ef`.
+Its runtime/build inputs match that commit; only this documentation differs from
+the image's pre-commit source archive. No runtime source/config changes occurred.
+
+One operator-owned `witnessops.com` asset was reused:
+`36379d4c-eb88-4e50-9380-ab2ba8f98015`. Reuse did not collect. Both observations
+required the ownership/authorization checkbox and explicit Run again action.
+Exactly **two** new observations were performed through the existing internal
+`runSnapshot()` path; the authenticated app does not call the public collection
+endpoint. Each returned ten collected checks: eight Clear, two Informational,
+zero Needs attention and zero Undetermined, with profile
+`bounded-hostname / external-demo-v0.1`.
+
+| Run | ID | Started / finished (UTC) | Canonical source SHA-256 |
+| --- | --- | --- | --- |
+| 1 | `30e5475d-3ed3-48bc-a03c-d3ce24f48692` | 15:31:10.883318 / 15:31:11.184 | `c473b0354de2177d998de4aaa5746fb8dc6386d6e0464182f29e3700999d7995` |
+| 2 | `6c29e0ad-dc80-4498-b3ef-9b27da345228` | 15:33:21.076799 / 15:33:21.276 | `9f412ac903e033c62530dcaa9270b0cdea6625a436894281f1e8c23849439a28` |
+
+All ten Run 1 evidence pages were inspected, including recorded status, method,
+version, timestamps, interpretation, limitations and evidence references.
+Container replacement between runs preserved identity, workspace, asset, Run 1
+source bytes as represented in JSONB, digest, timestamps and method version.
+Run 2 did not change Run 1. The pre-existing run also remains intact, leaving
+three total operator runs. Digests for all three were recomputed successfully
+using the existing canonical serializer and SHA-256 over UTF-8.
+
+Run 2 compared with Run 1: **Environment — no change in comparable target
+observations. Coverage — check set and method unchanged.** No cause was inferred.
+Reports render from persistence without recollection. The operator exported the
+actual production report and source files because automated printing/download
+retrieval was unavailable in the in-app browser. The 14-page A4 PDF was manually
+reviewed across every page, including findings, proof boundary, long source
+appendix and final page: no blank pages, site navigation or clipped essential
+content. Run/asset/baseline IDs, full digest, comparison and unsigned boundary
+are present. Downloaded JSON bytes exactly match the stored digest and canonical
+source representation. These exports did not create or mutate runs.
+
+Telemetry for the two runs: started/completed/opened/rerun/comparison each 2;
+evidence opened 10; report opened 2; `pdf_export_requested` 1;
+`source_json_downloaded` 1. PDF telemetry records a request, not a saved file;
+the exported file was verified separately. No new asset-added event was expected
+for reuse. Event dedupe duplicates: zero. The schema stores bounded IDs/names,
+not raw evidence. Optional event failure remains isolated from run persistence.
+First-baseline feedback was saved against the pre-existing earliest run (the
+correct first-run context); comparison feedback was saved against Run 2. Both
+controlled responses persisted after another container replacement.
+
+Final browser rechecks: Viewer execution 403, revoked membership execution 404,
+foreign workspace access to the new run/export source 404, normal logout 401 and
+old-cookie replay 401. Execution-denial probes used a nonexistent asset ID to
+prevent collection even if authorization failed. Replay-test cleanup completed
+provider logout before fresh Google sign-in; same user/workspace returned 200
+and the identity mapping remained unique. No secret/token/raw-source patterns
+were found in service logs. Runtime-secret value matching also returned zero.
+
+The approved manual logical-backup command completed after acceptance, using its
+existing pre-migration-purpose path (no migration occurred). Off-host upload,
+SHA-256 checksum, size and AES256 encryption were checked by readback. Backup
+SHA-256: `33366d48fcc91aa2dbc4a480655e4c9aece444afcca47e855fe90d17db57f37a`.
+Recovery/deletion credentials remain outside the app service. No extra restore
+rehearsal was needed; no database format changed.
+
+Fresh local checks: app 35/35, PostgreSQL 26/26, deterministic hostname/check/
+network tests 141/141. These include unknown/error and target-safety fixtures,
+without a third live observation. Operational review `74b07db1-7ead-42e9-b79d-d90bf1270ed0`: PASS, no new
+finding; this is not a new source scan. Prior source scan remains applicable to
+unchanged runtime bytes. Final service: **RUNNING PRIVATE, one healthy UID-1001
+process**, bridge network, loopback publication, boot enablement still disabled.
+Public-address probes could not reach ports 22/80/443/3020/5432. Public DNS,
+routing, WorkOS configuration and invitations were not changed.
+
+Operational caveat: an exited named container can block a subsequent start;
+acceptance used stop, verify exited identity, remove that container, then start
+without overlap. Address restart automation before unattended operation. No
+source, proxy, collector or service definition was changed in this slice.
+
 ## Logout replay repair — private acceptance passed
 
 Private browser acceptance reproduced a session replay: the workspace endpoint
