@@ -6,6 +6,7 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./witnessops-mark": "./src/witnessops-mark.tsx",
     "./brand": "./src/brand/index.ts",
     "./mdx": "./src/mdx/index.ts",
     "./tokens/witnessops.css": "./tokens/witnessops.css"

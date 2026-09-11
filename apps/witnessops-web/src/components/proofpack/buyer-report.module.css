@@ -5,6 +5,7 @@
     --report-line: #ccc8bd;
     --report-accent: #ae3e13;
     color: var(--report-ink);
+    font-family: var(--font-sans, system-ui, sans-serif);
     font-size: 15px;
     line-height: 1.6;
     overflow-wrap: anywhere;

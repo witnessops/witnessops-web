@@ -1,10 +1,10 @@
 import { Fragment, type ReactNode } from 'react';
-import { isBuyerReport, REPORT_TEMPLATE, type ProofpackReportV1 } from '@/lib/proofpack/report-model';
+import { isBuyerReport, REPORT_TEMPLATE, type ProofpackReportV1 } from '../../lib/proofpack/report-model';
 import styles from './buyer-report.module.css';
 import { reportPageIdentityStyle } from './report-print-style';
-import { WitnessOpsMark } from '@/components/shared/witnessops-mark';
+import { WitnessOpsMark } from '@witnessops/ui/witnessops-mark';
 
-export { REPORT_TEMPLATE } from '@/lib/proofpack/report-model';
+export { REPORT_TEMPLATE } from '../../lib/proofpack/report-model';
 const readable = (value: string) => value.replaceAll('_', ' ');
 const number = (value: number) => String(value).padStart(2, '0');
 function observation(value: unknown) {

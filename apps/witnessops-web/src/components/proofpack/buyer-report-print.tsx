@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { isBuyerReport, printBuyerReport, type ProofpackReportV1 } from '@/lib/proofpack/report-model';
+import { isBuyerReport, printBuyerReport, type ProofpackReportV1 } from '../../lib/proofpack/report-model';
 import { BuyerReportDocument } from './buyer-report';
 import styles from './buyer-report-print.module.css';
 

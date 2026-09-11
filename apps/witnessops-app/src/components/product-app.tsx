@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { WitnessOpsMark } from "@witnessops/ui/witnessops-mark";
+import { BuyerReportDocument } from "../../../witnessops-web/src/components/proofpack/buyer-report";
+import { useBuyerReportPrint } from "../../../witnessops-web/src/components/proofpack/buyer-report-print";
+import { savedRunReport } from "../lib/report-model";
 import { logout } from "../app/actions/logout";
 import { canonicalSource } from "../lib/source-digest";
 import { nextAction, observationFacts, observationSummary } from "../lib/observation-presentation";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
   CHECK_IDS,
   CHECK_LABELS,
@@ -177,7 +181,10 @@ function ObservationPage({ run, check }: { run: Run; check: ExternalCheckResultV
 }
 
 function ReportPage({ workspace, run }: { workspace: Workspace; run: Run }) {
-  return <><div className="actions report-actions"><Link className="button secondary" href={`/runs/${run.id}`}>← Open observation</Link><button className="button secondary" onClick={() => downloadSource(run)}>Download source JSON</button></div><article className="report-paper"><p className="eyebrow">WitnessOps · External Exposure</p><h1>{run.snapshot.target}</h1><p>Recorded {date(run.snapshot.finished_at)}</p><p className="quiet">A readable snapshot of one observation. It is not a security score.</p><Counts run={run} /><Changes current={run} previous={previousRun(workspace, run)} /><section className="section"><h2>All observations</h2><ul className="report-observations">{run.snapshot.checks.map((check) => <li key={check.check_id}><div className="row-title"><h3>{check.title}</h3><Status check={check} /></div><p>{check.interpretation}</p><Link href={`/runs/${run.id}/observations/${check.check_id}`}>Inspect evidence →</Link></li>)}</ul></section><section className="section"><h2>Limits</h2><p>{SNAPSHOT_BOUNDARY}</p></section><section className="section source-identity"><h2>Source</h2><p className="mono">ExternalSnapshotV1 · {run.snapshot.version}</p><p className="mono">{run.sourceDigest}</p><p className="quiet">This report projects the original source snapshot without changing its observations.</p></section></article></>;
+  const previous = previousRun(workspace, run);
+  const model = useMemo(() => savedRunReport(run, previous), [run, previous]);
+  const { print, printRoot } = useBuyerReportPrint(model);
+  return <>{printRoot}<div className="report-actions actions"><Link className="button secondary" href={`/runs/${run.id}`}>← Open observation</Link><button className="button" onClick={print}>Save report as PDF</button><button className="button secondary" onClick={() => downloadSource(run)}>Download source JSON</button></div><p className="quiet report-context">Saved workspace run · {date(run.snapshot.finished_at)}. This report uses the preserved source. Exporting does not run another observation.</p><BuyerReportDocument model={model} /><Link className="text-action" href={`/assets/${run.assetId}`}>Back to asset and run history →</Link></>;
 }
 
 function SignInLinks() {
@@ -271,5 +278,5 @@ export function ProductApp() {
   } else {
     content = <Missing />;
   }
-  return <div className="product-app"><a className="skip-link" href="#main-content">Skip to content</a><aside className="desktop-sidebar"><Link className="wordmark" href="/" aria-label="WitnessOps overview"><span aria-hidden="true">◉</span> WitnessOps</Link>{navigation}<p className="sidebar-footer">External Exposure<br /><span>Workspace</span></p></aside><div className="app-body"><header className="app-header"><button className="menu-toggle" aria-expanded={navOpen} aria-controls="mobile-navigation" onClick={() => setNavOpen(!navOpen)} aria-label={navOpen ? "Close navigation" : "Open navigation"}>☰</button><span className="workspace-name">{workspace?.name || "WitnessOps"}</span>{state && state.workspaces.length > 1 ? <select aria-label="Active workspace" value={workspace?.id || ""} onChange={event => void perform(async () => { setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, event.target.value)); router.push("/"); })}><option value="" disabled>Select workspace</option>{state.workspaces.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select> : null}<span className="account">{state?.user.displayName || "WitnessOps"}</span></header>{navOpen ? <div className="mobile-navigation" id="mobile-navigation">{navigation}</div> : null}<main id="main-content" className="main-content">{error ? <div className="error" role="alert">{error}<button onClick={() => setError("")} aria-label="Dismiss error">×</button></div> : null}{busy && workspace ? <p className="pending" role="status">Completing your request…</p> : null}{content}</main></div></div>;
+  return <div className="product-app"><a className="skip-link" href="#main-content">Skip to content</a><aside className="desktop-sidebar"><Link className="wordmark" href="/" aria-label="WitnessOps overview"><WitnessOpsMark size="sm" decorative /> WitnessOps</Link>{navigation}<p className="sidebar-footer">External Exposure<br /><span>Workspace</span></p></aside><div className="app-body"><header className="app-header"><button className="menu-toggle" aria-expanded={navOpen} aria-controls="mobile-navigation" onClick={() => setNavOpen(!navOpen)} aria-label={navOpen ? "Close navigation" : "Open navigation"}>☰</button><span className="workspace-name">{workspace?.name || "WitnessOps"}</span>{state && state.workspaces.length > 1 ? <select aria-label="Active workspace" value={workspace?.id || ""} onChange={event => void perform(async () => { setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, event.target.value)); router.push("/"); })}><option value="" disabled>Select workspace</option>{state.workspaces.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select> : null}<span className="account">{state?.user.displayName || "WitnessOps"}</span></header>{navOpen ? <div className="mobile-navigation" id="mobile-navigation">{navigation}</div> : null}<main id="main-content" className="main-content">{error ? <div className="error" role="alert">{error}<button onClick={() => setError("")} aria-label="Dismiss error">×</button></div> : null}{busy && workspace ? <p className="pending" role="status">Completing your request…</p> : null}{content}</main></div></div>;
 }
