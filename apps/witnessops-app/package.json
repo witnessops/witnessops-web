@@ -1,0 +1,28 @@
+{
+  "name": "@witnessops/app",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1 --port 3020",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1 --port 3020",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "NODE_ENV=test node --import ../witnessops-web/scripts/register-server-only-test-stub.mjs --import tsx --test 'src/**/*.test.ts'"
+  },
+  "dependencies": {
+    "@witnessops/config": "workspace:*",
+    "@witnessops/ui": "workspace:*",
+    "next": "15.5.21",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.7.0"
+  }
+}

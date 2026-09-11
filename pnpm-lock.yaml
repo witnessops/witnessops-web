@@ -64,6 +64,43 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
+  apps/witnessops-app:
+    dependencies:
+      '@witnessops/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@witnessops/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      next:
+        specifier: 15.5.21
+        version: 15.5.21(@playwright/test@1.59.1)(@types/node@22.19.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.4(react@19.2.4)
+      server-only:
+        specifier: 0.0.1
+        version: 0.0.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.15
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      tsx:
+        specifier: ^4.22.4
+        version: 4.22.4
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
   apps/witnessops-web:
     dependencies:
       '@modelcontextprotocol/sdk':

@@ -1,0 +1,40 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readdir, readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { DECLARED_APP_ENDPOINTS } from "./api-contract";
+
+const verbs = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] as const;
+function exportedMethods(source: string) {
+  const named = new RegExp(`export\\s+(?:async\\s+)?function\\s+(${verbs.join("|")})\\b`, "g");
+  const assigned = new RegExp(`export\\s+const\\s+(${verbs.join("|")})\\s*=`, "g");
+  return [...new Set([...source.matchAll(named), ...source.matchAll(assigned)].map(match => match[1]))].sort();
+}
+
+test("API parity scanner recognizes function and const HTTP exports without treating runtime config as handlers", () => {
+  assert.deepEqual(exportedMethods('export const runtime = "nodejs"; export const POST = handler; export async function DELETE() {} export function GET() {}'), ["DELETE", "GET", "POST"]);
+});
+
+test("all app API route files and methods exactly match the declared local contract", async () => {
+  const root = fileURLToPath(new URL("../app/api/", import.meta.url));
+  const actual: Array<{ path: string; methods: string[] }> = [];
+  async function walk(dir: string): Promise<void> {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      const file = path.join(dir, entry.name);
+      if (entry.isDirectory()) await walk(file);
+      else if (entry.isFile() && entry.name === "route.ts") {
+        const methods = exportedMethods(await readFile(file, "utf8"));
+        assert.ok(methods.length, `Route ${file} must declare at least one recognizable handler`);
+        actual.push({ path: `/api/${path.relative(root, file).replace(/\/route\.ts$/, "").split(path.sep).join("/")}`, methods });
+      }
+    }
+  }
+  await walk(root);
+  const declared = DECLARED_APP_ENDPOINTS.map(endpoint => ({ path: endpoint.path, methods: [...endpoint.methods].sort() }));
+  assert.equal(new Set(declared.map(endpoint => endpoint.path)).size, declared.length);
+  for (const endpoint of DECLARED_APP_ENDPOINTS) assert.ok(endpoint.summary.trim());
+  const byPath = (a: { path: string }, b: { path: string }) => a.path.localeCompare(b.path);
+  assert.deepEqual(actual.sort(byPath), declared.sort(byPath));
+  assert.deepEqual(actual.map(endpoint => endpoint.path).sort(), ["/api/assets", "/api/runs", "/api/session", "/api/workspace"]);
+});
