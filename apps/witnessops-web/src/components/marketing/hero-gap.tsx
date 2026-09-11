@@ -34,11 +34,11 @@ export function HeroGap({ locale = 'en' }: { locale?: BuyerLocale }) {
       <p className={styles.policy} data-hero-policy>{pl ? 'Wymagane zatwierdzenie' : 'Approval required'}</p>
       <svg className={`${styles.trace} ${styles.traceDesktop}`} data-hero-trace="horizontal" viewBox="0 0 600 224" aria-hidden="true">
         <path d="M300 27V46" className={styles.policyGuide} />
-        <path d="M16 108H577" className={styles.track} />
-        <path d="M16 108H300" pathLength="1" className={styles.traceLeft} />
-        <path d="M300 108H577" pathLength="1" className={styles.traceRight} />
-        <circle cx="16" cy="108" r="4" className={styles.start} />
-        <path d="m575 101 13 7-13 7Z" className={styles.arrow} />
+        <path d="M16 100H160L176 108H424L440 116H577" className={styles.track} data-hero-route />
+        <path d="M16 100H160L176 108H300" pathLength="1" className={styles.traceLeft} />
+        <path d="M300 108H424L440 116H577" pathLength="1" className={styles.traceRight} />
+        <circle cx="16" cy="100" r="4" className={styles.start} />
+        <path d="m575 109 13 7-13 7Z" className={styles.arrow} />
         <Checkpoint x={300} y={108} />
         <RefundToken />
         <path d="M300 162V224" pathLength="1" className={styles.inspectionMark} />

@@ -74,7 +74,7 @@
   opacity: .5;
   animation: reveal .4s 1.2s ease-out both;
 }
-.tokenDesktop { transform: translate(552px, 108px); animation: refundAcross 1.6s .4s ease-in-out both; }
+.tokenDesktop { transform: translate(552px, 116px); animation: refundAcross 1.6s .4s ease-in-out both; }
 .tokenMobile { transform: translate(160px, 184px); animation: refundDown 1.5s .4s ease-in-out both; }
 .tokenDisc { fill: #20150e; stroke: var(--gap-accent); stroke-width: 1.5; }
 .tokenCurrency { fill: var(--gap-accent); font: 19px var(--font-mono); }
@@ -141,9 +141,13 @@
 .facts dd { margin: 0; font-size: .9375rem; line-height: 1.5; color: var(--color-text-secondary); }
 .disclosure { margin: 1rem 0 0; color: var(--color-text-muted); text-align: center; font: .6875rem/1.6 var(--font-mono); }
 @keyframes refundAcross {
-  from { transform: translate(32px, 108px); }
+  from { transform: translate(32px, 100px); }
+  25% { transform: translate(160px, 100px); }
+  28.125% { transform: translate(176px, 108px); }
   50% { transform: translate(300px, 108px); }
-  to { transform: translate(552px, 108px); }
+  71.875% { transform: translate(424px, 108px); }
+  75% { transform: translate(440px, 116px); }
+  to { transform: translate(552px, 116px); }
 }
 @keyframes refundDown {
   from { transform: translate(160px, 18px); }
@@ -184,6 +188,6 @@
 @media (prefers-reduced-motion: reduce) {
   .gap *, .traceStage::before { animation: none !important; }
   /* Static SVG placement must survive the homepage's reduced-motion transform reset. */
-  .gap .trace .tokenDesktop { transform: translate(552px, 108px) !important; }
+  .gap .trace .tokenDesktop { transform: translate(552px, 116px) !important; }
   .gap .trace .tokenMobile { transform: translate(160px, 184px) !important; }
 }

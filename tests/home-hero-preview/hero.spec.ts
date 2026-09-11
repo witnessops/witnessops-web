@@ -312,6 +312,28 @@ test("refund marker passes through the checkpoint and settles on both trace axes
     expect(positions[0]).toBeLessThan(centre - 20);
     expect(Math.abs(positions[1] - centre)).toBeLessThan(2);
     expect(positions[2]).toBeGreaterThan(centre + 20);
+    if (viewport.width >= 700) {
+      // Sample both shallow routing transitions, not just the start/end positions.
+      for (const time of [800, 825, 850, 1550, 1580, 1600]) {
+        const distance = await trace.evaluate((element, currentTime) => {
+          const token = element.querySelector("[data-hero-token]")!;
+          for (const animation of token.getAnimations()) {
+            animation.pause();
+            animation.currentTime = currentTime;
+          }
+          const disc = token.querySelector("circle")!;
+          const centre = new DOMPoint(0, 0).matrixTransform(disc.getCTM()!);
+          const path = element.querySelector<SVGPathElement>("[data-hero-route]")!;
+          let closest = Infinity;
+          for (let offset = 0; offset <= path.getTotalLength(); offset += .5) {
+            const point = path.getPointAtLength(offset).matrixTransform(path.getCTM()!);
+            closest = Math.min(closest, Math.hypot(point.x - centre.x, point.y - centre.y));
+          }
+          return closest;
+        }, time);
+        expect(distance).toBeLessThan(1);
+      }
+    }
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(trace.locator("[data-hero-token]")).toHaveCSS("animation-name", "none");
     // A live media switch updates WebKit's animation list on the next render.
