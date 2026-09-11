@@ -153,6 +153,143 @@ production WorkOS configuration, app startup or external-user admission is
 included. Before startup, require the finalized candidate review and obtain
 the separate production authentication and launch authorizations. Before public routing/user #1, complete section 10 acceptance.
 
+### Private HTTPS acceptance path (2026-09-11)
+
+A separately authorized operator-only TLS path was established before app
+startup. Public app A/AAAA/CNAME routing is unchanged. A single temporary ACME
+DNS-01 TXT record was created through the existing Cloudflare connector and
+removed after successful issuance; no DNS credential was copied onto the host
+or into the application. This is operator-assisted DNS-01, not unattended DNS
+automation.
+
+The certificate is for `app.witnessops.com`, issued by Let's Encrypt YE1, valid
+2026-09-11 12:44:26 UTC through 2026-12-10 12:44:25 UTC. SHA-256 fingerprint:
+`03:91:F9:2F:51:E9:19:4E:7D:32:DC:6F:F9:36:B6:72:DA:B8:20:5E:45:BE:4A:48:40:2A:F2:DE:97:54:F7:AA`.
+Private key custody remains outside this repository: the ACME original is
+root-only; the proxy copy is readable only by root and its dedicated service
+group. The application receives neither certificate keys nor DNS credentials.
+
+Caddy binds to host loopback only and forwards only the intended hostname to the
+existing loopback app endpoint. Automatic HTTP redirects/listeners and HTTP/3
+are disabled. TLS SNI/Host consistency is enforced; a mismatched Host returns
+421. The proxy sets the upstream Host and forwarded host/protocol to the fixed
+production HTTPS identity. No public or broad tailnet proxy listener is added.
+
+The operator uses an SSH local-forward over the existing Tailscale administrative
+path, with strict host-key checking, plus one removable local hosts entry for
+`app.witnessops.com`. Both are confined to the operator machine. The exact URL
+remains `https://app.witnessops.com/callback`; no localhost callback, certificate
+warning bypass or public routing override is permitted. The private operator
+helper provides explicit enable/disable operations, removes only its tagged
+hosts entry, and closes only its own SSH control socket. Concrete commands and
+addresses remain in restricted operator custody.
+
+Curl validation through the private tunnel passed trusted-chain and hostname
+verification and returned the expected stopped-app 503 at `/callback`, with no
+Set-Cookie header. Public-IP TCP 80/443 probes timed out. The operator enabled the exact-port tunnel and local hosts mapping; curl to the
+exact HTTPS callback now resolves to loopback and passes TLS verification without
+connection overrides. The operator subsequently confirmed browser acceptance at
+the exact HTTPS hostname without a certificate warning. App startup and real
+Google/OTP acceptance remain separate gates.
+
+The current login/callback implementation uses a browser redirect followed by
+server-side code exchange. WorkOS does not need inbound server-to-server access
+to this callback for that flow; the operator browser must reach it, and the app
+will need outbound WorkOS HTTPS when separately started. See [WorkOS authorization
+URL documentation](https://workos.com/docs/reference/authkit/authentication/get-authorization-url).
+HTTPS and exact hostname preserve Secure/host-only/Lax cookie conditions; actual
+session metadata remains untested while the app is stopped.
+
+Renewal is explicitly operator-run: begin before the final 30 days of validity;
+run Certbot renewal for this certificate with the retained manual hook, publish
+only the newly requested challenge TXT through the connector, verify both
+authoritative nameservers, then release the waiting hook. Remove that exact TXT
+record after validation, install the renewed certificate through the restricted
+helper, validate Caddy and restart only the private proxy. The hook has a bounded
+10-minute operator wait. The Certbot timer is disabled to avoid claiming
+unattended renewal with an interactive dependency. Confirm SAN/chain/expiry and
+the private callback response after renewal. No unattended renewal rehearsal
+has been claimed. [Certbot manual DNS guidance](https://eff-certbot.readthedocs.io/en/stable/using.html).
+
+After later public-routing authorization, remove the operator mapping/tunnel and
+retest normal DNS and TLS as a separate operation. Do not turn this private proxy
+into public ingress implicitly. At this checkpoint the proxy alone is running;
+`witnessops-app` remains disabled/inactive with zero containers.
+
+### Controlled private startup attempt (2026-09-11)
+
+The operator confirmed exact-host browser TLS acceptance without warnings.
+The accepted replacement image was started privately: one non-root app process,
+loopback-only publication, dedicated bridge, dropped capabilities and
+no-new-privileges. The initial HTTPS page returned 200; startup logs showed
+readiness with no matches for configured runtime secrets.
+
+Acceptance stopped before authentication: `/api/workspace` returned HTTP 403,
+`Use the configured app origin.`, through the exact production HTTPS URL. The
+sign-in screen consequently displayed a workspace-loading error. This confirms
+an origin-admission incompatibility in the deployed path. The subsequent
+controlled capture identified the standalone request-URL construction described
+below; no origin check was disabled. The app was stopped and disabled immediately; zero Google/OTP
+logins and zero observations were performed. Database/evidence were preserved.
+Private TLS remains available with the controlled stopped-app response.
+
+### Fixed standalone origin contract (2026-09-11)
+
+A controlled, non-secret request capture established that Next 15.5.24 constructs
+`request.url` as `https://0.0.0.0:3020/api/workspace` from its standalone bind
+configuration, despite correct `Host: app.witnessops.com`,
+`X-Forwarded-Host: app.witnessops.com` and `X-Forwarded-Proto: https`.
+The previous `admitRequest` comparison therefore rejected the request. Backend
+HTTP transport is separate from the logical HTTPS origin.
+
+The bounded fix is `WITNESSOPS_APP_PROXY_MODE=caddy-loopback-v1`, an explicit
+runtime-only opt-in. It permits only that exact standalone URL origin with the
+exact configured `https://app.witnessops.com` origin and fixed Host/forwarding
+values. It never derives a trusted origin from arbitrary forwarded input. Unknown
+modes, other bind aliases, unexpected ports, forwarding chains and `Forwarded`
+headers are rejected. An Origin header, when supplied, must match; mutations
+still require it, and Fetch Metadata, authentication and membership checks remain.
+Leave this mode unset in ordinary local development.
+
+The private proxy rejects client-supplied `Forwarded`, `X-Forwarded-Host` and
+`X-Forwarded-Proto` before adding its own fixed upstream values. TLS SNI/Host
+consistency remains required. The app stays on its dedicated container bridge
+with host-loopback publication, reached through the loopback TLS proxy and the
+operator tunnel. Public and tailnet direct app/proxy-port probes failed. Host
+administrators are inside this trust boundary; forwarding metadata is not
+cryptographic authentication of a proxy. This mode is unsuitable for an exposed
+backend listener or an arbitrary proxy chain.
+
+The candidate was built from accepted HEAD plus the reviewed uncommitted origin
+repair, with source-dirty and archive identity labels. Its manifest digest is
+`sha256:0dd7efb79cf445c6ecd3105c235091cd1c92176bf79641f67252364459338a1e`.
+The fresh runtime image scan found zero vulnerabilities and zero secrets.
+No dependency, collector, identity-mapping or persistence changes were made.
+Docker-archive loading produced host manifest
+`sha256:f43c6fa2f8e0f5e4f4a92dc419e8357b9e34997debeb81083d1b545f4cd21100`;
+the scanned and loaded image configuration identity is the same
+`sha256:6469fda3f54009ec5f1ca633103104e4c52046f72a73fb7675c7af073b3f75af`.
+The transferred archive SHA-256 was checked before loading. These are distinct
+artifact identities, not a claim that archive conversion preserves a manifest.
+
+Controlled private acceptance passed: canonical `GET /api/workspace` returned
+401 `Sign in to WitnessOps.` rather than the origin 403. Arbitrary/localhost
+Host returned 421; mismatched, HTTP, localhost and staging Origin returned 403.
+Spoofed forwarded host/protocol, unexpected forwarded port, malformed Forwarded,
+and cross-site Fetch Metadata returned 403. POST without Origin returned 403;
+POST with the exact Origin reached unauthenticated 401. Direct public/tailnet
+backend and proxy connections remained unavailable while the app was running.
+One UID-1001 process used the bridge and loopback-only publication. No Google/OTP
+login or collection occurred. The service was stopped/disabled afterward, with
+zero app containers and no app listener. Temporary request instrumentation was
+removed. Startup logs contained no matches for configured runtime secrets.
+
+Regression evidence: app unit/API/parity 33/33, isolated PostgreSQL tests 25/25,
+Chromium/WebKit product acceptance 37/37, and full `pnpm health` under Node
+22.23.2 passed. Source/test hashes matched the image build archive after testing.
+The next gate remains controlled production Google/OTP authentication acceptance;
+this repair is not authentication, customer activation or public launch approval.
+
 ## 3. WorkOS production configuration
 
 Operator actions, **not executed**:

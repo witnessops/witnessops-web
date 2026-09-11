@@ -14,10 +14,23 @@ import { ActivityStore } from './db/activity';
 import { CLIENT_EVENTS, type ClientEvent, type ProductEvent } from './early-access';
 import type { AppUser } from './db/identity';
 
-export function admitRequest(request: Request, origin: string) {
+export function admitRequest(request: Request, origin: string, proxyMode?: string) {
   const url = new URL(request.url), configured = new URL(origin);
   const internalAlias = configured.hostname === "127.0.0.1" && url.hostname === "localhost" && url.protocol === configured.protocol && url.port === configured.port;
-  if (request.headers.get("host") !== configured.host || (url.origin !== origin && !internalAlias)) throw new ApiError(403, "Use the configured app origin.");
+  // One opt-in deployment contract: Caddy terminates TLS, overwrites forwarding
+  // metadata, and reaches the private standalone listener. Next 15 constructs
+  // request.url from that listener rather than the HTTP Host header. Never use
+  // forwarded values to choose an origin; compare all of them to fixed config.
+  const proxyEnabled = proxyMode === "caddy-loopback-v1";
+  if (proxyMode && !proxyEnabled) throw new ApiError(403, "Unknown app proxy mode.");
+  const proxyAlias = proxyEnabled && origin === "https://app.witnessops.com" && url.origin === "https://0.0.0.0:3020";
+  if (request.headers.has("forwarded")) throw new ApiError(403, "Unexpected forwarding metadata.");
+  for (const [name, expected] of [["x-forwarded-host", configured.host], ["x-forwarded-proto", configured.protocol.slice(0, -1)]]) {
+    const value = request.headers.get(name);
+    if ((value !== null && value !== expected) || (proxyAlias && value !== expected)) throw new ApiError(403, "Unexpected forwarding metadata.");
+  }
+  if (request.headers.get("host") !== configured.host || (url.origin !== origin && !internalAlias && !proxyAlias)) throw new ApiError(403, "Use the configured app origin.");
+  if (request.headers.has("origin") && request.headers.get("origin") !== origin) throw new ApiError(403, "Use the app origin.");
   if (![null, "same-origin", "none"].includes(request.headers.get("sec-fetch-site"))) throw new ApiError(403, "Use the app origin.");
   if (request.method !== "GET" && request.headers.get("origin") !== origin) throw new ApiError(403, "Use the app origin.");
   if (url.search && (request.method !== "GET" || !["/api/assets", "/api/runs"].includes(url.pathname) || [...url.searchParams.keys()].join() !== "id")) throw new ApiError(400, "Unexpected query parameters.");
@@ -37,7 +50,7 @@ async function body(request: Request, keys: string[]) {
 /** Dependency injection is a server test seam; no HTTP route or environment
  * switch accepts an identity, source snapshot, or alternate runner from clients. */
 export function createFoundationService(options: {
-  pool?: Pool; identity?: () => Promise<Identity | null>; origin?: string;
+  pool?: Pool; identity?: () => Promise<Identity | null>; origin?: string; proxyMode?: string;
   run?: (target: string) => Promise<ExternalSnapshotV1>; now?: () => number;
 } = {}) {
   const recentHosts = new Map<string, number>(), recentRuns: number[] = [];
@@ -45,7 +58,7 @@ export function createFoundationService(options: {
   let active = 0;
   async function handle(request: Request, endpoint: "workspace" | "assets" | "runs" | "early-access" | "events" | "feedback"): Promise<Response> {
     try {
-      admitRequest(request, options.origin ?? authConfiguration().origin);
+      admitRequest(request, options.origin ?? authConfiguration().origin, options.proxyMode ?? process.env.WITNESSOPS_APP_PROXY_MODE);
       const identity = await (options.identity ? options.identity() : (await import("./auth")).authenticatedIdentity());
       if (!identity) throw new ApiError(401, "Sign in to WitnessOps.");
       const pool = options.pool ?? database(), user = await resolveIdentity(pool, identity), store = new WorkspaceStore(pool);
