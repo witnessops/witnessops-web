@@ -94,8 +94,8 @@ jobs:
             --output "type=oci,dest=${RUNNER_TEMP}/witnessops-web-aws.tar" \
             .
           docker load --input "${RUNNER_TEMP}/witnessops-web-aws.tar"
-          config_digest="$(python3 deploy/aws/inspect-oci-image.py "${RUNNER_TEMP}/witnessops-web-aws.tar" | jq -r .config_digest)"
-          docker tag "${config_digest}" "witnessops-web-aws-pr:${GITHUB_SHA}"
+          image_digest="$(python3 deploy/aws/inspect-oci-image.py "${RUNNER_TEMP}/witnessops-web-aws.tar" | jq -r .image_digest)"
+          docker tag "${image_digest}" "witnessops-web-aws-pr:${GITHUB_SHA}"
 
       - name: Verify the patched runtime packages and tools
         run: |

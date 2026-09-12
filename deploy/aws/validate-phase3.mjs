@@ -71,8 +71,8 @@ const EXPECTED_BUILD_IMAGE_JOB = [
   "            --output \"type=oci,dest=${RUNNER_TEMP}/witnessops-web-aws.tar\" \\",
   "            .",
   "          docker load --input \"${RUNNER_TEMP}/witnessops-web-aws.tar\"",
-  "          config_digest=\"$(python3 deploy/aws/inspect-oci-image.py \"${RUNNER_TEMP}/witnessops-web-aws.tar\" | jq -r .config_digest)\"",
-  "          docker tag \"${config_digest}\" \"witnessops-web-aws-pr:${GITHUB_SHA}\"",
+  "          image_digest=\"$(python3 deploy/aws/inspect-oci-image.py \"${RUNNER_TEMP}/witnessops-web-aws.tar\" | jq -r .image_digest)\"",
+  "          docker tag \"${image_digest}\" \"witnessops-web-aws-pr:${GITHUB_SHA}\"",
   "",
   "      - name: Verify the patched runtime packages and tools",
   "        run: |",
@@ -604,6 +604,7 @@ export function validatePhase3Sources(sources) {
   assert(reusable.split("sudo systemctl restart docker").length - 1 === 2, "builder and publisher require OCI image loading");
   const publisher = exactNamedWorkflowJob(reusable, "publish_image");
   assert(!publisher.includes("docker build"), "publisher must not rebuild");
+  assert(!reusable.includes('docker image inspect "${config_digest}"'), "OCI config digest is not a Docker containerd image handle");
   assert(!publisher.includes("docker push"), "publisher must import the unchanged OCI manifest");
   return true;
 }

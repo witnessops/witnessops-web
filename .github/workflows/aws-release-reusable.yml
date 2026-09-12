@@ -163,8 +163,8 @@ jobs:
             --output "type=oci,dest=${RUNNER_TEMP}/witnessops-web-aws.tar" \
             .
           docker load --input "${RUNNER_TEMP}/witnessops-web-aws.tar"
-          config_digest="$(python3 deploy/aws/inspect-oci-image.py "${RUNNER_TEMP}/witnessops-web-aws.tar" | jq -r .config_digest)"
-          bash deploy/aws/test-runtime-image.sh "${config_digest}"
+          image_digest="$(python3 deploy/aws/inspect-oci-image.py "${RUNNER_TEMP}/witnessops-web-aws.tar" | jq -r .image_digest)"
+          bash deploy/aws/test-runtime-image.sh "${image_digest}"
           bash deploy/aws/scan-runtime-image.sh "${RUNNER_TEMP}/witnessops-web-aws.tar" "${RUNNER_TEMP}/aws-security"
 
       - name: Hash the exact image archive
@@ -315,8 +315,8 @@ jobs:
           config_digest="$(jq -r '.config.digest' "${RUNNER_TEMP}/ecr-manifest.json")"
           [[ "${config_digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
           [[ "${config_digest}" == "${EXPECTED_BUILD_CONFIG_DIGEST}" ]]
-          [[ "$(docker image inspect "${config_digest}" --format '{{.Id}}')" == "${config_digest}" ]]
-          [[ "$(docker image inspect "${config_digest}" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" == "${SOURCE_COMMIT}" ]]
+          [[ "$(docker image inspect "${image_digest}" --format '{{.Id}}')" == "${image_digest}" ]]
+          [[ "$(docker image inspect "${image_digest}" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" == "${SOURCE_COMMIT}" ]]
           {
             echo "image_digest=${image_digest}"
             echo "config_digest=${config_digest}"

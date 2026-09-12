@@ -451,3 +451,8 @@ test("both archive-loading jobs require the OCI image store", () => {
   const altered = changed("reusable", value => value.replace("sudo systemctl restart docker", "true"));
   assert.throws(() => validatePhase3Sources(altered), /OCI image loading/);
 });
+
+test("containerd image lookup must use the manifest identity", () => {
+  const altered = changed("reusable", value => value.replace('docker image inspect "${image_digest}"', 'docker image inspect "${config_digest}"'));
+  assert.throws(() => validatePhase3Sources(altered), /containerd image handle/);
+});
