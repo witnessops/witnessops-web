@@ -9,8 +9,8 @@ export function OwnSystemCase({ locale }: { locale: BuyerLocale }) {
 
   return <article className={styles.ownSystemCase} aria-labelledby="own-system-case-heading">
     <p className={styles.eyebrow}>{pl ? "Własny system · 27 kwietnia 2026" : "Our own system · 27 April 2026"}</p>
-    <h3 id="own-system-case-heading">{pl ? "Czy żądanie bez logowania dociera do funkcji administracyjnej?" : "Can a request without credentials reach an admin function?"}</h3>
-    <p>{pl ? "Zapisane wyniki z witnessops.com pokazują odpowiedź 401 na żądanie HEAD do jednego endpointu administracyjnego oraz 200 dla endpointu publicznego. To materiały z naszego systemu, nie realizacja dla klienta." : "The saved witnessops.com records show a 401 response to a HEAD request at one admin endpoint, alongside a 200 response at a public endpoint. This is work on our own system, not a client engagement."}</p>
+    <h3 id="own-system-case-heading">{pl ? "Czy nieuwierzytelnione żądanie dociera do funkcji administracyjnej?" : "Can an unauthenticated request reach an admin function?"}</h3>
+    <p>{pl ? "Materiały z witnessops.com zapisują odpowiedź 401 na żądanie HEAD do jednego endpointu administracyjnego oraz odpowiedź 200 z endpointu publicznego. Paczka zachowuje żądania, odpowiedzi i granice tego, co te obserwacje potwierdzają. To nasz własny system, nie realizacja dla klienta." : "The witnessops.com evidence records a 401 response to one HEAD request at an admin endpoint and a 200 response from a public endpoint. The package preserves the requests, responses and limits of what those observations establish. This is our own system, not customer work."}</p>
     <details>
       <summary>{pl ? "Zobacz obserwacje i ograniczenia" : "Inspect the observations and limits"}</summary>
       <ul>
