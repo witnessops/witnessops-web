@@ -74,3 +74,16 @@ test('fixed window preserved without extending end; inactive/malformed bounds cr
  for(const w of [{starts_at_utc:utc(now+60000),ends_at_utc:utc(now+120000)},{starts_at_utc:utc(now-120000),ends_at_utc:utc(now-60000)},{starts_at_utc:utc(now),ends_at_utc:utc(now+1801000)},{starts_at_utc:'2026-02-30T00:00:00Z',ends_at_utc:'2026-03-01T00:00:00Z'},null])await assert.rejects(store.authorize(token,{...request(),window:w}));
  assert.equal((await pool.query('SELECT count(*) FROM server_check_executions')).rows[0].count,count);
 });
+
+test('qualified listener policy round-trips unchanged and shares producer matching identities',async()=>{
+ const {listeners}=await import('../../../../../packages/wops-cli/src/server-check.mjs');
+ const input=listeners('tcp://127.0.0.53%lo:53, udp://172.26.9.158%ens5:68, tcp://[fe80::1%eth0]:443');
+ const token=await credential(),e=await store.authorize(token,{...request(),expectedListeners:JSON.parse(JSON.stringify(input))});
+ const stored=(await pool.query('SELECT authority FROM server_check_executions WHERE id=$1',[e.id])).rows[0].authority;
+ assert.deepEqual(stored.target.expected_listeners,input);
+ const output=await exec(python,['-I','-c','import json,sys; from witnessops_local_audit.authority import normalize_expected_listeners; print(json.dumps(normalize_expected_listeners(json.loads(sys.argv[1]))))',JSON.stringify(input)]);
+ assert.deepEqual(JSON.parse(output.stdout),[{transport:'tcp',address:'127.0.0.53',port:53},{transport:'tcp',address:'fe80::1%eth0',port:443},{transport:'udp',address:'172.26.9.158',port:68}]);
+ for(const addresses of [['127.0.0.53','127.0.0.53%lo'],['127.0.0.53%lo','127.0.0.53%ens5'],['fe80::1%eth0','FE80:0::1%eth0'],['127.0.0.1%'],['127.0.0.1%lo;id']])await assert.rejects(store.authorize(token,{...request(),expectedListeners:addresses.map(address=>({transport:'tcp',address,port:53}))}),/invalid_listeners/);
+ const distinct=listeners('tcp://[fe80::1%eth0]:53,tcp://[fe80::1%ETH0]:53');
+ await store.authorize(token,{...request(),expectedListeners:distinct});
+});

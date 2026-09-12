@@ -1,13 +1,13 @@
 import {hostname} from 'node:os';
 import {createHash,randomUUID} from 'node:crypto';
-import {isIP} from 'node:net';
+import {parseListenerEndpoints} from './listener-endpoints.mjs';
 import {createInterface} from 'node:readline/promises';
 import {unlink} from 'node:fs/promises';
 import path from 'node:path';
 import * as local from './server-local.mjs';
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const safe=value=>String(value??'').replace(/[\x00-\x1f\x7f-\x9f]/g,'').slice(0,256);
-export function listeners(input){if(input==='none')return [];const items=input.split(',').map(x=>{const m=/^(tcp|udp):\/\/(?:\[([^\]]+)\]|([^:]+)):(\d+)$/.exec(x.trim());if(!m||!isIP(m[2]??m[3])||Number(m[4])<1||Number(m[4])>65535)throw new Error('Use exact tcp://address:port or udp://[IPv6]:port endpoints, separated by commas; or none.');return {transport:m[1],address:m[2]??m[3],port:Number(m[4])};});if(items.length>200||new Set(items.map(x=>JSON.stringify(x))).size!==items.length)throw new Error('Listener policy is duplicated or too large.');return items;}
+export const listeners=parseListenerEndpoints;
 export function fixedWindow(args){
  if(args.length===2)return undefined;
  if(args.length!==6||args[2]!=='--starts-at'||args[4]!=='--ends-at')throw new Error('Use paired --starts-at and --ends-at UTC timestamps. No remote, runtime, profile or signer overrides are supported.');

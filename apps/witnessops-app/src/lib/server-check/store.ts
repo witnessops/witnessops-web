@@ -1,6 +1,6 @@
 import 'server-only';
 import { randomUUID, createHash } from 'node:crypto';
-import { isIP } from 'node:net';
+import { validateListenerEndpoints } from '../../../../../packages/wops-cli/src/listener-endpoints.mjs';
 import type { Pool } from 'pg';
 import { CliAuthStore, CliError } from '../db/cli-auth';
 import { LinuxCheckStore, sha256 } from '../db/linux-checks';
@@ -25,8 +25,7 @@ export function checkRequest(value: unknown) {
   const hostname=linuxHostname(v.hostname); if(hostname!==v.hostname)throw new CliError('wrong_hostname');
   requireId(v.requestId as string);if(v.assetId!==null)requireId(v.assetId as string);
   if(!clean(v.purpose)||!['public','private','none'].includes(v.sshExposure as string)||!Array.isArray(v.expectedListeners)||v.expectedListeners.length>200)throw new CliError('invalid_authority');
-  for(const item of v.expectedListeners){if(!item||Object.keys(item).sort().join(',')!=='address,port,transport'||!['tcp','udp'].includes(item.transport)||typeof item.address!=='string'||!isIP(item.address.split('%')[0])||!Number.isInteger(item.port)||item.port<1||item.port>65535)throw new CliError('invalid_listeners');}
-  if(new Set(v.expectedListeners.map(x=>JSON.stringify(x))).size!==v.expectedListeners.length)throw new CliError('invalid_listeners');
+  try{validateListenerEndpoints(v.expectedListeners);}catch{throw new CliError('invalid_listeners');}
   return v as {window?:{starts_at_utc:string;ends_at_utc:string};requestId:string;assetId:string|null;hostname:string;purpose:string;sshExposure:string;expectedListeners:{transport:string;address:string;port:number}[]};
 }
 export class ServerCheckStore {
