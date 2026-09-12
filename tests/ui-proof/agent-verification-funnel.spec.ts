@@ -123,9 +123,9 @@ test("production-built funnel visual acceptance at desktop and mobile", async ({
   ]) {
     {
       const { context, page, errors } = await openPage(browser, viewport, "/");
-      await expect(page.locator("main")).toContainText(/Find security gaps in your AI and automation/);
-      await expect(page.locator("main")).toContainText(/Permissions/);
-      await expect(page.locator("main")).toContainText(/Observed results/);
+      await expect(page.locator("main")).toContainText(/Find security gaps in your systems/);
+      await expect(page.locator("main")).toContainText(/Exposure/);
+      await expect(page.locator("main")).toContainText(/Evidence/);
       await expect(page.locator("main")).toContainText(/Scope a review/);
       await screenshot(page, `homepage-${viewport.label}.png`);
       await assertNoErrors(errors);
