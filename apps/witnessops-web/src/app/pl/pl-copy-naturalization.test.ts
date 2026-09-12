@@ -17,6 +17,8 @@ test("Polish homepage leads with security and verification", () => {
   assert.match(buyerHomepage, /Znajdź luki w bezpieczeństwie swoich systemów/);
   assert.match(buyerHomepage, /Zweryfikuj działanie AI/);
   assert.match(buyerHomepage, /Zweryfikuj lub napraw proces/);
+  assert.match(buyerHomepage, /Co wymaga sprawdzenia\?/);
+  assert.match(buyerHomepage, /Zobacz, jak weryfikujemy/);
   assert.match(buyerHomepage, /Bez haseł, kluczy API i danych klientów/);
   assert.equal(PRIMARY_OFFER.price.pl, "€2 500: cena stała · bez VAT");
 });
