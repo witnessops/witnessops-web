@@ -49,6 +49,13 @@ test("homepage leads with system-wide security verification while keeping repair
   assert.match(source, /See all review options/);
   assert.match(source, /See how WitnessOps verifies/);
   assert.match(source, /Describe the system and the security question/);
+  assert.match(source, /Proof bundle example/);
+  assert.match(source, /Przykład paczki dowodowej/);
+  assert.doesNotMatch(source, /Proofpack/);
+  const ownCase = readFileSync(resolve(__dirname, "own-system-case.tsx"), "utf8");
+  assert.match(ownCase, /recorded request details/);
+  assert.match(ownCase, /zapisane szczegóły żądań/);
+  assert.doesNotMatch(ownCase, /preserves the requests/);
   assert.match(source, /HeroGap/);
   assert.match(source, /buyerRequestHref\(locale\)/);
   assert.match(source, /\/catalog\/automation-repair/);
