@@ -241,7 +241,7 @@ test("PR validation must build without image publication authority", () => {
   );
 
   const withoutBuild = changed("validation", (value) =>
-    value.replace("docker build", "docker inspect"),
+    value.replace("docker buildx build", "docker inspect"),
   );
   assert.throws(() => validatePhase3Sources(withoutBuild), /docker build/);
 
@@ -438,4 +438,16 @@ test("activation contract cannot authorize dispatch or deployment", () => {
     () => validatePhase3Sources(mutated),
     /non-authorized boundary has the wrong inventory/,
   );
+});
+
+for (const command of ["bash deploy/aws/scan-runtime-image.sh", "bash deploy/aws/test-runtime-image.sh", '--trivy-findings "${RUNNER_TEMP}/scan-evidence/trivy.json"', '[[ "${image_digest}" == "${EXPECTED_IMAGE_DIGEST}" ]]']) {
+  test(`release parity rejects missing ${command}`, () => {
+    const altered = changed("reusable", (value) => value.replace(command, "disabled-gate"));
+    assert.throws(() => validatePhase3Sources(altered), /release parity gate/);
+  });
+}
+
+test("both archive-loading jobs require the OCI image store", () => {
+  const altered = changed("reusable", value => value.replace("sudo systemctl restart docker", "true"));
+  assert.throws(() => validatePhase3Sources(altered), /OCI image loading/);
 });
