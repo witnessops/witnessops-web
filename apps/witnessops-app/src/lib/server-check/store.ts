@@ -13,13 +13,21 @@ const clean=(x:unknown)=>typeof x==='string'&&x.length>0&&x.length<=256&&!/[\x00
 export function checkRequest(value: unknown) {
   if(!value||typeof value!=='object'||Array.isArray(value))throw new CliError('invalid_request');
   const v=value as Record<string,unknown>;
-  if(Object.keys(v).sort().join(',')!=='assetId,expectedListeners,hostname,purpose,requestId,sshExposure')throw new CliError('invalid_request');
+  if(!['assetId,expectedListeners,hostname,purpose,requestId,sshExposure','assetId,expectedListeners,hostname,purpose,requestId,sshExposure,window'].includes(Object.keys(v).sort().join(',')))throw new CliError('invalid_request');
+  if(v.window!==undefined){
+    const w=v.window as Record<string,unknown>;
+    if(!w||typeof w!=='object'||Array.isArray(w)||Object.keys(w).sort().join(',')!=='ends_at_utc,starts_at_utc')throw new CliError('invalid_window');
+    const timestamp=(x:unknown)=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(x)&&Number.isFinite(Date.parse(x))&&new Date(x).toISOString().replace('.000Z','Z')===x;
+    if(!timestamp(w.starts_at_utc)||!timestamp(w.ends_at_utc))throw new CliError('invalid_window');
+    const duration=Date.parse(w.ends_at_utc as string)-Date.parse(w.starts_at_utc as string);
+    if(duration<=0||duration>30*60_000)throw new CliError('invalid_window');
+  }
   const hostname=linuxHostname(v.hostname); if(hostname!==v.hostname)throw new CliError('wrong_hostname');
   requireId(v.requestId as string);if(v.assetId!==null)requireId(v.assetId as string);
   if(!clean(v.purpose)||!['public','private','none'].includes(v.sshExposure as string)||!Array.isArray(v.expectedListeners)||v.expectedListeners.length>200)throw new CliError('invalid_authority');
   for(const item of v.expectedListeners){if(!item||Object.keys(item).sort().join(',')!=='address,port,transport'||!['tcp','udp'].includes(item.transport)||typeof item.address!=='string'||!isIP(item.address.split('%')[0])||!Number.isInteger(item.port)||item.port<1||item.port>65535)throw new CliError('invalid_listeners');}
   if(new Set(v.expectedListeners.map(x=>JSON.stringify(x))).size!==v.expectedListeners.length)throw new CliError('invalid_listeners');
-  return v as {requestId:string;assetId:string|null;hostname:string;purpose:string;sshExposure:string;expectedListeners:{transport:string;address:string;port:number}[]};
+  return v as {window?:{starts_at_utc:string;ends_at_utc:string};requestId:string;assetId:string|null;hostname:string;purpose:string;sshExposure:string;expectedListeners:{transport:string;address:string;port:number}[]};
 }
 export class ServerCheckStore {
  constructor(private pool:Pool,private finalizer:Finalizer,private now=Date.now){}
@@ -33,17 +41,19 @@ export class ServerCheckStore {
   await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[workspace]);
   const previous=(await client.query('SELECT * FROM server_check_executions WHERE workspace_id=$1 AND user_id=$2 AND request_id=$3',[workspace,user.id,request.requestId])).rows[0];
   if(previous){if(!equal(previous.request,request))throw new CliError('request_conflict',409);return this.view(previous);}
+  if(request.window&&(this.now()<Date.parse(request.window.starts_at_utc)||this.now()>=Date.parse(request.window.ends_at_utc)))throw new CliError('window_inactive',409);
   const count=(await client.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[workspace])).rows[0].count;
   if(Number(count)>=32)throw new CliError('execution_capacity',409);
   const fingerprint=await this.finalizer.preflight();
   let asset=(await client.query("SELECT id,normalized_value,type FROM assets WHERE workspace_id=$1 AND "+(request.assetId?'id=$2':'normalized_value=$2')+' FOR SHARE',[workspace,request.assetId??request.hostname])).rows[0];
   if(asset&&(asset.type!=='linux_server'||asset.normalized_value!==request.hostname))throw new CliError('wrong_hostname',409);
   if(!asset){if(request.assetId)throw new CliError('asset_not_found',404);if(Number((await client.query('SELECT count(*) FROM assets WHERE workspace_id=$1',[workspace])).rows[0].count)>=20)throw new CliError('asset_capacity',409);asset={id:randomUUID()};await client.query("INSERT INTO assets(id,workspace_id,type,normalized_value) VALUES($1,$2,'linux_server',$3)",[asset.id,workspace,request.hostname]);}
-  const id=randomUUID(),time=Math.floor(this.now()/1000)*1000,start=new Date(time).toISOString().replace('.000Z','Z'),end=new Date(time+30*60_000).toISOString().replace('.000Z','Z');
+  const id=randomUUID(),time=Math.floor(this.now()/1000)*1000,start=request.window?.starts_at_utc??new Date(time).toISOString().replace('.000Z','Z'),end=request.window?.ends_at_utc??new Date(time+30*60_000).toISOString().replace('.000Z','Z');
+  if(request.window&&(time<Date.parse(start)||time>=Date.parse(end)))throw new CliError('window_inactive',409);
   const customer=(await client.query('SELECT name FROM workspaces WHERE id=$1',[workspace])).rows[0].name;
   const declaration={customer,purpose:request.purpose,expected_ssh_exposure:request.sshExposure};
   const operator='operator-'+createHash('sha256').update(workspace+':'+user.id).digest('hex').slice(0,32);
-  const authority={schema:'witnessops.local_server_audit.authority.v1',authorization_id:id,case_id:id,authority_source:{kind:'operator_declared_scope',authority_identity:operator,artifact_sha256:sha256(Buffer.from(canonicalSource(declaration))),approved_at_utc:start,operator_declaration:declaration},operator_id:operator,target:{asset_id:asset.id,allowed_hostnames:[request.hostname],expected_listeners:request.expectedListeners},profile_id:'linux_baseline_v1',authorization_window:{starts_at_utc:start,ends_at_utc:end},execution_mode:'operator_present_local',allowed_actions:['read_only_posture_collection'],prohibited_artifact_classes:['browser_cookies','clipboard','credentials','full_memory_dump','full_user_documents','oauth_tokens','password_manager_data','private_keys','process_command_lines','process_environment','screenshots']};
+  const authority={schema:'witnessops.local_server_audit.authority.v1',authorization_id:id,case_id:id,authority_source:{kind:'operator_declared_scope',authority_identity:operator,artifact_sha256:sha256(Buffer.from(canonicalSource(declaration))),approved_at_utc:new Date(time).toISOString().replace('.000Z','Z'),operator_declaration:declaration},operator_id:operator,target:{asset_id:asset.id,allowed_hostnames:[request.hostname],expected_listeners:request.expectedListeners},profile_id:'linux_baseline_v1',authorization_window:{starts_at_utc:start,ends_at_utc:end},execution_mode:'operator_present_local',allowed_actions:['read_only_posture_collection'],prohibited_artifact_classes:['browser_cookies','clipboard','credentials','full_memory_dump','full_user_documents','oauth_tokens','password_manager_data','private_keys','process_command_lines','process_environment','screenshots']};
   const row=(await client.query('INSERT INTO server_check_executions(id,workspace_id,asset_id,user_id,request_id,request,authority,collector_hash) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',[id,workspace,asset.id,user.id,request.requestId,request,authority,fingerprint])).rows[0];return this.view(row);
  });}
  private view(row:{id:string;state:string;authority:unknown;collector_hash:string;capture_digest:string|null;run_id:string|null;failure:string|null}){return {id:row.id,state:row.state,authority:row.authority,collectorHash:row.collector_hash,captureDigest:row.capture_digest,runId:row.run_id,failure:row.failure};}

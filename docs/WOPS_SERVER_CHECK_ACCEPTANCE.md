@@ -235,3 +235,133 @@ No product code or migration file changed. No full health rerun was needed for d
 ### Resume point
 
 The three preparation blockers are resolved. Resume at **fresh target preflight → explicit authority review and fresh window → `sudo wops server check`**. Target runtime/CLI availability, connectivity to this local test app, normal operator login with product scope and fresh target key absence still require the real-host lane. No target connection, collection, real upload, production signing, new development Linux run, push, merge or deployment occurred here.
+
+
+## Fresh Target Preflight
+
+2026-09-12 01:28 Europe/Warsaw — **BLOCKED; no execution or collection authorized.**
+
+Local checkout was clean on `feat/witnessops-app-foundation` at `b60615681ca2090c32760e0951cb5ccc290984fd`. The same restarted local app process is running and its CLI server-check route returns the expected unauthenticated 401. Local development migrations are through 0010. Both historical Linux run IDs and ZIP digests remain unchanged; latest is `5cbf424f-411a-4b21-8f32-62c012abe7b4`. Server-check execution count remains zero. All four private finalizer settings remain present; the existing non-signing adapter preflight again reports the accepted collector fingerprint. No production signing occurred.
+
+The committed CLI entrypoint was used for `wops auth status` (the unrelated PATH command was not substituted). It stopped with “Auth storage permissions are unsafe. Use a private owner-only directory/file.” The existing operator-owned auth directory is 0755; the CLI requires 0700. No credential contents were printed and no permissions were changed. Login would encounter the same storage gate. Current CLI identity, workspace, Owner role and product capability therefore remain unconfirmed.
+
+An SSH connection was attempted only to the selected target. Tailscale required an additional interactive operator authentication check before executing the requested hostname/user/sudo probes. The pending connection was terminated cleanly. No target command output was obtained. Actual hostname, user/sudo, machine continuity, OS/kernel/architecture, isolated runtime, key absence, listener inventory, process attribution and selected service invariants are **NOT VERIFIED**, not assumed unchanged. No other host was contacted.
+
+Tentative planning window only: **2026-09-12 01:30–02:00 Europe/Warsaw (2026-09-11 23:30Z–2026-09-12 00:00Z)**. This is not approved or frozen; replace it after both gates are resolved and fresh checks pass. No execution object was created.
+
+Draft human review context: One Server Security Check; intended existing asset `be2043fb-7467-4b97-8728-ee2babbeaec3` / `witnessops-n8n-01`; expected hostname `ip-172-26-9-158`; intended workspace Acme Ltd, subject to authenticated confirmation; operator identity pending. Local operator-present read-only collection, Local Audit 1.2.2 / `linux_baseline_v1`, live-approved capture only after explicit authority. The proposed fifteen expected endpoints and two needs-review endpoints remain exactly as recorded in Preflight Blocker Resolution. No listener change is approved or inferred. The future capture would be uploaded for off-host finalization/signing, with no permanent agent, remediation, package or configuration changes. This is a draft, not an observed CLI confirmation or ready-to-use authority object.
+
+Authority differences: fresh proposed timestamps only (EXPECTED, unapproved). Hostname, OS, machine identity, listeners, runtime, services and needs-review endpoint continuity are UNKNOWN pending access; lack of current evidence is a BLOCKER to approval. Operator identity/capability is also a BLOCKER. Do not interpret unavailable observations as environmental change.
+
+Resume only after the operator completes the Tailscale authentication gate and the local auth-storage permission issue is resolved in an authorized preparation step. Then use normal CLI login/status, repeat the target preflight, refresh the proposed window and request explicit collection authorization. No collection, upload, signing, new app run, product code change, push, merge or deployment occurred. Real-host acceptance remains unproven.
+
+
+### Fresh target preflight resumed after operator authentication
+
+2026-09-12 01:32 Europe/Warsaw — **BLOCKED for CLI readiness; target read-only checks succeeded.** The prior failed attempt remains above as history.
+
+SSH reached only the selected host. Observed hostname `ip-172-26-9-158`; user `ubuntu`, UID/GID 1000; `sudo -n true` succeeded and `sudo -n id -u` returned 0. Machine identity using the collector's exact stripped-byte SHA-256 representation is `f1bcbc1c6ff21ad0db72b951750e19f20c53cc5f0024d5c58a2f95d48bb81757`, matching both prior captures. The initial raw-file hash differs only because it includes the trailing newline; it is not the collector identity representation. Ubuntu 24.04.4 LTS, kernel `6.17.0-1019-aws`, x86_64 and hostname all match the previous captures: no observed identity drift.
+
+The existing Local Audit runtime, staging and output directories are root-owned 0700. Isolated imports succeed, cryptography is 50.0.1, accepted collector fingerprint matches, and `audit capture --help` works without invoking collection. System Python is 3.12.3 with cryptography 41.0.7. No installation or upgrade occurred.
+
+Bounded signing-key absence check: PASS for reviewed locations. Known production-key paths for root/ubuntu are absent; runtime-tree filename inspection found no signing-key/private-key/credential/auth-file candidates; bounded setup/config/output text inspection found no private-key PEM blocks. This does not claim absence of every possible secret anywhere on the host. No signing material was transferred.
+
+Fresh socket inventory exactly matches the retained 17 endpoints: 15 unchanged expected, 2 unchanged needs-review, zero new and zero missing. The exact endpoint list remains the Preflight Blocker Resolution list above, including UDP 127.0.0.54:53. TCP 22 is sshd; TCP 80/443 is docker-proxy for the existing Caddy published ports. UDP 41641 and the two needs-review TCP endpoints are tailscaled. DNS endpoints belong to systemd-resolved, DHCP to systemd-networkd and UDP 323 to chronyd. Process attribution does not approve the two TCP endpoints or establish public reachability.
+
+Selected service checks: ssh, Docker, tailscaled, resolved, networkd and chrony active; no failed units reported. UFW inactive and nftables tables present, consistent with the earlier multi-backend observation; effective firewall behavior was not reconstructed. Package database readable, APT lists directory and apt-get present; no package operation, metadata refresh or update simulation performed. Caddy container publishes the expected 80/443 endpoints. These are bounded preflight checks, not the collector or whole-host immutability proof.
+
+Local app migrations remain through 0010; both pilot runs/source digests unchanged and execution count zero. Non-signing finalizer preflight succeeds. Product HEAD remains `b60615681ca2090c32760e0951cb5ccc290984fd`; only this acceptance document is dirty.
+
+Remaining blockers:
+
+1. Normal Mac CLI `auth status` still rejects the existing operator-owned directory at 0755 (required 0700). No credential contents were read/printed or permissions changed. Current Owner identity/workspace/product capability remain unconfirmed.
+2. Neither `wops` nor Node resolves on the target's ordinary user or sudo PATH. The Local Audit runtime exists, but the committed CLI invocation and authenticated handoff are not prepared there. This is PATH availability evidence, not an exhaustive filesystem absence claim. No installer, package or PATH mutation was performed.
+
+Updated tentative window: **2026-09-12 01:40–02:10 Europe/Warsaw (2026-09-11 23:40Z–2026-09-12 00:10Z)**, unapproved and not frozen. Replace after readiness gates pass. Proposed authority retains the existing asset/expected hostname, fifteen expected endpoints and two needs-review endpoints, operator-present local read-only Local Audit 1.2.2 / linux_baseline_v1, and later upload/off-host signing. Workspace Acme Ltd and operator identity require actual CLI authentication confirmation. No execution-ready object or authority approval is asserted.
+
+Authority differences: fresh draft timestamps EXPECTED; observed hostname/OS/machine/kernel/architecture/listeners/runtime/mode assumptions unchanged; retained two Tailscale endpoints NEEDS REVIEW; CLI authentication and invocation availability BLOCKERS. No collection, upload, signing, new run, service/package/configuration modification, push, merge or deployment occurred. Stop before `sudo wops server check`.
+
+
+## CLI Readiness Resolution
+
+2026-09-12 — preparation only; no server-check execution, collection, upload, signing or new run.
+
+The existing Mac operator-owned auth directory was corrected from 0755 to 0700 without changing children or weakening code checks. It contained no credential. Normal CLI login against the local development app completed as Karol Stefanski / Acme Ltd / Owner; fresh server status returned active and `cli:session server_check:create`. The resulting credential file is owner-only 0600, and no credential was printed or copied to root/target storage. Its exact path remains outside public repository documentation.
+
+Packaging inspection: private `@witnessops/cli` 0.0.1, entrypoint `src/main.mjs`, Node >=22 <23, no external runtime package dependencies and no existing compiled executable. Five runtime modules are copied verbatim from accepted commit b60615681ca2090c32760e0951cb5ccc290984fd; tests and unrelated repository state are excluded. A fixed shell wrapper only execs the fixed Node binary and main module with unchanged arguments. No installer or public publication is introduced.
+
+Isolated Node v22.23.2 linux-x64 was obtained on the operator side from `https://nodejs.org/dist/v22.23.2/node-v22.23.2-linux-x64.tar.xz`; archive SHA-256 `d60acfe00a2932254bb0ad20e01b0d74397a0875595de719654b214f4b03f307` matches the official same-origin HTTPS SHASUMS256.txt. This is checksum correspondence from the official HTTPS source, not an independently signature-authenticated release claim. Only its binary and license accompany the CLI. No target package manager or system Node modification is used.
+
+Acceptance tree: `/opt/witnessops/cli-acceptance/`, root:ubuntu, directories 0750; binary/wrapper 0750, source/license/checksum files 0640, retained transfer archive 0600. Authorized operator group has read/execute only; root controls code. Fixed command wrapper `/usr/local/bin/wops` is root:root 0755. This placement permits normal-user login and root execution without modifying profiles or broad PATH configuration.
+
+Artifact inventory (relative targets under the acceptance tree; wrapper also copied to `/usr/local/bin/wops`):
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `bin/node` | `3517c2df0b2f8cd7f422b4b8450ef81c6889f08eb03e281d6de9079b15e6a327` |
+| `LICENSE` | `c738ae413cf561f174e34f6961f8ca458aae2369a73640dda6234c629b98bcc4` |
+| `src/main.mjs` | `a56614bbd586e3bfa9a18cd355da4165e8e4af891d95f17a70f2d5d7d5daf71d` |
+| `src/commands.mjs` | `9002297fdcaee505daaa8545bcc386a6726c590f27ad1437cd56ea79d7b67a9b` |
+| `src/storage.mjs` | `d78e1a3b8cf6610c04411c33f7037ad0c7ad0ffa5d9ed275dd7da4959f9501b4` |
+| `src/server-check.mjs` | `792c3b34ee9b179577d6d4c1c5d2397ef13f4e51f2506237e2bdcd1a19d9a585` |
+| `src/server-local.mjs` | `1bb21f8579de42c780a5525747efb6ce0e4924664573df61e222df61333faade` |
+| `wops` | `5214a168bc2b344eda21ca1871b3d46b5bd23b14b6d7e640bb7e7ed7739ef48c` |
+
+Transfer archive SHA-256: `a41491ddcbd96291782e04df4cd363e2083195886fbf50d2bda3b4f6afedf760`. Private operator-side integrity record retains source/target mapping.
+
+
+Target transfer and all eight payload member hashes passed before executing the binary. Node reports v22.23.2. Both user and sudo resolve the fixed accepted path; `/usr/local/bin/wops` matches the recorded wrapper hash. The current CLI has no --help implementation: `wops --help` and `wops server check --help` return bounded usage errors before auth/product execution. This is an existing UX limitation, not a successful help-page claim. No product code was patched.
+
+Normal target `wops auth status` returns Not signed in and creates only empty ubuntu-owned 0700 `.config` / `witnessops` directories. No target credential is present. The harmless imported `originatingUid()` / `readOriginAuth()` probe under sudo resolves UID 1000 via SUDO_UID/account lookup and safely rejects the absent credential. It does not use or create root auth storage. `trustedRuntime()` passes with the accepted collector fingerprint. A successful credential-bearing handoff is **not yet proven**. `sudo wops auth status` was deliberately not used: normal auth commands do not implement the server-check sudo handoff.
+
+The target cannot reach the Mac local development app at its own 127.0.0.1:3020; the bounded request fails. No tunnel, new listener, production endpoint substitution or credential transfer was introduced. Target login therefore remains blocked pending an explicitly prepared connection to the selected local test app, followed by normal ubuntu login and a safe credential-bearing handoff check. Mac login alone is not target authentication.
+
+Selected before/after invariant hashes match for listeners, SSH config, sudoers, package DB, boot identity, system Python/cryptography, Local Audit runtime contents and service/timer unit inventories. The raw nft ruleset hash differs: its output contains live packet/byte counters, so that baseline does not establish unchanged firewall rules independently of counters. No firewall mutation command was issued; the exact cause of the raw difference is not established because only the initial hash was retained. Do not claim an exact firewall before/after match. No service restart or package operation occurred. Known target production-key paths and root CLI credential path remain absent; the transferred allowlisted artifact set contains code/runtime/license only, not signing material.
+
+Target writes are limited to the acceptance tree (transfer.tar, bin/node, LICENSE, five src modules, wops, SHA256SUMS), `/usr/local/bin/wops`, and empty normal-user config directories/transient auth lock used by status. No credential was copied to root. This is reversible private acceptance setup, not deployment/distribution.
+
+Checks: CLI unit suite 20/20; source/target archive and payload checksums PASS; runtime identity PASS; safe usage rejection PASS; normal target status Not signed in; originating UID resolution PASS / credential-bearing handoff BLOCKED; git diff --check PASS. Local pilot run count remains two and execution count zero. No product code changes; documentation only remains dirty and uncommitted.
+
+Verdict: **BLOCKED**. The two original preparation repairs are complete (Mac permissions/auth and target CLI/runtime placement), but target login/connectivity is not ready. No refreshed collection window is proposed because readiness has not passed. The previous draft window must not be reused. Next: authorize/prepare the bounded target-to-local-app connection, perform normal target login, verify scope and safe sudo credential read without creating an execution, then propose a fresh unapproved window. No collection, capture upload, signing, app run, push, merge or deployment occurred.
+
+
+## Target CLI Connectivity and Authentication
+
+2026-09-12 01:44 Europe/Warsaw — **READY TO AUTHORIZE COLLECTION**, not real-host check acceptance PASS. Product HEAD remains `b60615681ca2090c32760e0951cb5ccc290984fd`; prior notes remain preserved.
+
+The local app process (PID 21387) listens only on Mac 127.0.0.1:3020. The configured DB was rechecked as the local development database, migrations through 0010, two unchanged historical Linux runs and zero server-check executions. Non-signing finalizer preflight passed with the accepted collector fingerprint.
+
+The existing supported CLI mechanism is `auth login --server URL`; it persists the chosen URL with the normally issued credential. Target login used `http://127.0.0.1:3020`, not production, an environment override or a new mechanism.
+
+A **temporary acceptance-only SSH loopback tunnel** was created with `ExitOnForwardFailure=yes` and `-R 127.0.0.1:3020:127.0.0.1:3020` through the authorized connection to the selected target. Port 3020 was initially free. The target listener bound exactly to 127.0.0.1:3020, owned by tailscaled as the Tailscale SSH server. No wildcard/private-interface/tailnet-interface listener was added. A target request reached the Mac app and returned its expected unauthenticated 401.
+
+The forward attached to the existing SSH control connection (Mac master PID 23049); no persistent service, autossh, client configuration, GatewayPorts or sshd configuration change was made. During the tunnel, the only added socket was TCP 127.0.0.1:3020. This remains temporary acceptance infrastructure, not a normal expected server endpoint and not silently added to listener authority. A future capture with the tunnel open may observe it and must retain that context honestly.
+
+Normal ubuntu `wops auth login --server http://127.0.0.1:3020` created its own login transaction. The browser authorized the target's displayed code; the CLI redeemed its own transaction. No Mac credential was copied. Target `wops auth status` and a fresh session endpoint request confirmed Karol Stefanski / Acme Ltd / Owner / active, scope `cli:session server_check:create`.
+
+Target storage: `/home/ubuntu/.config/witnessops` is ubuntu:ubuntu 0700; auth.json is a non-symlink regular file ubuntu:ubuntu 0600. No credential contents were printed. `/root/.config/witnessops/auth.json` remains absent.
+
+Sudo handoff PASS: the existing non-product `originatingUid()` and `readOriginAuth()` helpers were imported under sudo, resolving originating UID 1000 through SUDO_UID/account lookup. The safely read credential was used only for GET session status; server response confirmed the same identity/workspace/role/scope. No root fallback, credential copy, execution creation or invocation of `serverCheck()` occurred. `sudo wops auth status` was not substituted because auth commands do not implement that resolver.
+
+Post-authentication DB state: two CLI sessions; zero server-check executions; exactly the same two historical Linux runs and source ZIP digests. Authentication created no capture, Proofpack or accepted product run. No capture/finalizer issuance command was invoked.
+
+Cleanup: canceled only this remote forward using `ssh -O cancel -R 127.0.0.1:3020:127.0.0.1:3020 witnessops-n8n-01`. Target port 3020 listener disappeared. The existing unrelated SSH control session was not killed. Recreate the identical loopback-only forward immediately before a separately authorized command, and revalidate session activity; closing the tunnel removes connectivity without revoking the credential. No persistent tunnel remains.
+
+Network invariant comparison excludes nft packet/byte counter values. Counter-normalized firewall rules, sshd configuration and service/timer inventories match before/during/after; original socket set is restored after cleanup. The earlier raw nft hash was unsuitable as configuration-identity evidence because it included live counters; its historical difference was not retrospectively reconstructed. The Mac app remains loopback-only.
+
+Proposed collection window: **2026-09-12 01:50–02:20 Europe/Warsaw**, equivalent to **2026-09-11 23:50Z–2026-09-12 00:20Z**. Status: **UNAPPROVED / NOT FROZEN**. Operator: Karol Stefanski, normal target user ubuntu. Workspace Acme Ltd; existing asset `be2043fb-7467-4b97-8728-ee2babbeaec3` / witnessops-n8n-01; hostname ip-172-26-9-158. One Server Security Check, Local Audit 1.2.2 / linux_baseline_v1, operator-present read-only local collection, followed only if separately authorized by capture upload and off-host signing. Fifteen expected endpoints and two unresolved Tailscale TCP endpoints remain as previously reviewed; the acceptance tunnel is distinct temporary infrastructure. No execution or frozen authority was created in this slice. The CLI's actual window is minted on confirmation, so it must fit the approved bounds when execution is later authorized.
+
+Remaining blockers: none for requesting collection authorization. Recreating the reviewed tunnel and checking the short-lived credential are execution preconditions, not evidence that collection occurred. Focused checks passed: loopback-only forward, target login, server-side scope, private storage, sudo resolver, zero execution/run change and cleanup. No product-code changes. No collection, capture upload, signing, new app run, push, merge or deployment. Stop pending explicit authorization for exactly one `sudo wops server check`.
+
+
+### Authorized execution attempt — stopped at authority-window review
+
+2026-09-12 01:47 Europe/Warsaw. The operator explicitly authorized exactly one collection within **01:50–02:20 Europe/Warsaw**, with no authority expansion and a stop on authority mismatch. **BLOCKED before execution.** No command confirmation, execution, capture, upload, signing or run was created.
+
+Fresh checkout remains at b60615681ca2090c32760e0951cb5ccc290984fd with only preserved documentation changes. Read-only target hostname remains ip-172-26-9-158, sudo returns UID 0, and the temporary target port 3020 listener remains absent. Current time was before the authorized start. The tunnel was not recreated after the blocker was identified.
+
+The exact committed `ServerCheckStore.authorize()` implementation in `apps/witnessops-app/src/lib/server-check/store.ts` derives start from server receipt time rounded to seconds and end as start plus 30 minutes. The current CLI cannot supply the externally approved fixed window and does not compare the returned authority window to those fixed external bounds before collection. Confirmation after 01:50:00 would mint an end after 02:20:00. Trying to hit the exact server-clock second is not a reliable authority control. No clock manipulation, request override, lower-level capture or product patch was attempted.
+
+This corrects the previous READY statement: connectivity and auth passed, but exact fixed-window enforcement was not established. The operator's explicit no-expansion constraint prevents treating a later-ending generated authority as equivalent merely because collection might finish before 02:20. A separate bounded correction or an explicitly revised authorization model is required before retry; neither is inferred here.
+
+Read-only DB check confirms zero server-check executions and the same two historical Linux runs/source digests. There is no execution ID, new capture digest, proof run, signature, verification result, new report or comparison for this stopped attempt. Product code unchanged; no push, merge or deployment. Real-host end-to-end CLI acceptance remains unproven.

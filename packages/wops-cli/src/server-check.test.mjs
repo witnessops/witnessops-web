@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {originatingUid} from './server-local.mjs';
-import {serverCheck,listeners} from './server-check.mjs';
+import {serverCheck,listeners,fixedWindow} from './server-check.mjs';
 const uuid='11111111-1111-4111-8111-111111111111',run='22222222-2222-4222-8222-222222222222',hash='a'.repeat(64);
 test('sudo requires Linux UID0 and numeric originating UID; HOME is not authority',()=>{
  assert.equal(originatingUid({platform:'linux',uid:0,sudoUid:'1000'}),1000);
@@ -33,4 +33,22 @@ test('origin auth uses account database, private permissions and no symlink hand
  const home=await realpath(await mkdtemp(tmpdir()+'/wops-origin-')),uid=process.getuid();const directory=home+'/.config/witnessops';await mkdir(directory,{recursive:true,mode:0o700});const auth={server:'https://app.example.test',credential:'z'.repeat(43),expiresAt:new Date(Date.now()+1000).toISOString()};const file=directory+'/auth.json';await writeFile(file,JSON.stringify(auth),{mode:0o600});
  const lookup=async()=>`fixture:x:${uid}:20:Test:${home}:/bin/sh`;
  try{assert.deepEqual(await readOriginAuth(uid,lookup),auth);await chmod(file,0o644);await assert.rejects(readOriginAuth(uid,lookup));await chmod(file,0o600);await rm(file);await symlink(home+'/elsewhere',file);await assert.rejects(readOriginAuth(uid,lookup));}finally{await rm(home,{recursive:true,force:true});}
+});
+
+test('fixed window grammar rejects missing, malformed, reversed and oversized bounds',()=>{
+ const args=['server','check','--starts-at','2026-09-12T00:00:00Z','--ends-at','2026-09-12T00:30:00Z'];
+ assert.deepEqual(fixedWindow(args),{starts_at_utc:args[3],ends_at_utc:args[5]});
+ for(const bad of [args.slice(0,4),[...args.slice(0,5),'2026-09-12T00:31:00Z'],[...args.slice(0,5),args[3]],[...args.slice(0,3),'2026-02-30T00:00:00Z',...args.slice(4)]])assert.throws(()=>fixedWindow(bad));
+});
+test('server expansion of an explicitly approved window stops before capture or upload',async()=>{
+ const h=harness();const start=new Date(Date.now()-10000).toISOString().replace(/\.\d{3}Z$/,'Z'),end=new Date(Date.now()+600000).toISOString().replace(/\.\d{3}Z$/,'Z');
+ await assert.rejects(serverCheck(['server','check','--starts-at',start,'--ends-at',end],h.options),/authority window differs/);
+ assert.deepEqual(h.counts(),{captures:0,uploads:0,finalizes:0});
+});
+test('exact fixed authority window is preserved and a retry cannot replace it',async()=>{
+ const h=harness(),original=h.options.fetch;const start=new Date(Date.now()-10000).toISOString().replace(/\.\d{3}Z$/,'Z'),end=new Date(Date.now()+600000).toISOString().replace(/\.\d{3}Z$/,'Z');
+ h.options.fetch=async(url,request)=>{const response=await original(url,request);const d=await response.json();if(d.authority)d.authority.authorization_window={starts_at_utc:start,ends_at_utc:end};return Response.json(d);};
+ h.failUpload();await assert.rejects(serverCheck(['server','check','--starts-at',start,'--ends-at',end],h.options));
+ const later=new Date(Date.parse(end)+1000).toISOString().replace('.000Z','Z');await assert.rejects(serverCheck(['server','check','--starts-at',start,'--ends-at',later],h.options),/differs from retained/);
+ await serverCheck(['server','check','--starts-at',start,'--ends-at',end],h.options);assert.equal(h.counts().captures,1);assert.equal(h.counts().uploads,1);
 });

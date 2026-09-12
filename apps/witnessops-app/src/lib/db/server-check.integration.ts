@@ -60,3 +60,17 @@ test('CLI command uses normal Owner service, frozen fixture and real finalizer/i
  });
  assert.equal(code,0);assert.equal(captures,1);assert.equal(Number((await pool.query('SELECT count(*) FROM runs WHERE workspace_id=$1',[workspace])).rows[0].count),beforeCount+1);assert.match(lines.join('\n'),/Result: Partial/);assert.match(lines.join('\n'),/Verification valid/);assert.ok(!lines.join().includes(token));console.log(lines.join('\n'));
 });
+
+test('fixed window preserved without extending end; inactive/malformed bounds create no execution',async()=>{
+ const token=await credential(),now=Date.now(),utc=(t:number)=>new Date(Math.floor(t/1000)*1000).toISOString().replace('.000Z','Z');
+ const window={starts_at_utc:utc(now-60000),ends_at_utc:utc(now+60000)};
+ const input={...request(),window},one=await store.authorize(token,input);
+ const authority=one.authority as {authorization_window:typeof window;authority_source:{approved_at_utc:string}};
+ assert.deepEqual(authority.authorization_window,window);
+ assert.notEqual(authority.authority_source.approved_at_utc,window.starts_at_utc);
+ assert.equal((await store.authorize(token,input)).id,one.id);
+ await assert.rejects(store.authorize(token,{...input,window:{...window,ends_at_utc:utc(now+120000)}}),/request_conflict/);
+ const count=(await pool.query('SELECT count(*) FROM server_check_executions')).rows[0].count;
+ for(const w of [{starts_at_utc:utc(now+60000),ends_at_utc:utc(now+120000)},{starts_at_utc:utc(now-120000),ends_at_utc:utc(now-60000)},{starts_at_utc:utc(now),ends_at_utc:utc(now+1801000)},{starts_at_utc:'2026-02-30T00:00:00Z',ends_at_utc:'2026-03-01T00:00:00Z'},null])await assert.rejects(store.authorize(token,{...request(),window:w}));
+ assert.equal((await pool.query('SELECT count(*) FROM server_check_executions')).rows[0].count,count);
+});
