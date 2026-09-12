@@ -183,7 +183,7 @@ test("route navigation and Back restore scroll without a second-frame snap", asy
   await page.goto("/", { waitUntil: "networkidle" });
   const receiptLink = page
     .locator("main")
-    .getByRole("link", { name: "Explore the verification demo", exact: true });
+    .getByRole("link", { name: "See how a Proofpack works", exact: true });
   await receiptLink.scrollIntoViewIfNeeded();
   const expectedScrollY = await page.evaluate(() => window.scrollY);
   expect(expectedScrollY).toBeGreaterThan(0);
@@ -227,7 +227,7 @@ test("the homepage receipt promise lands on the named signed-rotation specimen",
   await page.goto("/", { waitUntil: "networkidle" });
   const receiptLink = page
     .locator("main")
-    .getByRole("link", { name: "Explore the verification demo", exact: true });
+    .getByRole("link", { name: "See how a Proofpack works", exact: true });
   await receiptLink.click();
 
   await expectPath(page, SAMPLE_PATH);
