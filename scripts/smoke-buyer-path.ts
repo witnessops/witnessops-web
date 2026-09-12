@@ -386,7 +386,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "External Attack Surface Review",
       "€1 900 · bez VAT",
       "W ciągu 3 dni roboczych po potwierdzeniu pełnej płatności",
-      "Cztery dni roboczych po zebraniu kandydata do wydania",
+      "Cztery dni robocze po zebraniu kandydata do wydania",
       "Key, Access and Custody Review",
       "Incident Readiness Review",
       "Audyt publicznego śladu zawodowego",
