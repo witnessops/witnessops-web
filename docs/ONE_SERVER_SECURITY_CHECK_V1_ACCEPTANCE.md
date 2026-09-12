@@ -1,215 +1,110 @@
 # One Server Security Check v1 acceptance
 
-Freeze date: 2026-09-11. **One Server Security Check v1 is technically accepted
-locally.** This record does not authorize merge, publication, deployment or
-external customer admission. The Linux candidate is not yet merged or deployed
-and has not been externally customer-validated.
+Freeze: 2026-09-12. **FROZEN; READY for merge review of the accumulated CLI/server-check changes.** Technically accepted against the local/test app on one real Ubuntu host. Not merged, deployed, publicly distributed or externally customer-validated by this milestone. No merge/deployment authority follows from this document.
 
-## Scope and accepted source
+## Accepted product flow and commits
 
-One operator-controlled Linux server; operator-present local UID 0 read-only
-collection; off-host signing; verified Proofpack import; immutable history;
-deterministic before/after comparison. No Watch, Update, remote execution,
-scheduler, Windows or cloud support is implied.
+`sudo wops server check`: authenticated Owner → explicit local collection authority → unsigned read-only Local Audit capture → authenticated upload → off-host reconstruction/signing → independent verification → exactly one immutable Linux run → report, fresh reopen and deterministic comparison. The controlled acceptance supplied explicit UTC window flags.
 
-| Component | Accepted identity |
+| Component | Commit |
 | --- | --- |
-| App branch | `feat/witnessops-app-foundation` |
-| App implementation | `809efdd6eb11fd687bb769c8b736023aec380a1a` |
-| Producer branch | `codex/local-audit-offhost-signing` |
-| Producer implementation | `fce41c194522e9d08d0683aa786bd4361c5ae0c2` |
-| Producer documentation | `76e698a5b33f3a21b652fd6702714403f750c4ca` |
-| Proof format | Local Audit 1.2.2 |
-| Pilot collector fingerprint | `2209c2b63de319b91452b4d7705c5f5178a1a13b6156f601b5ad588c11d280f8` |
+| Pre-CLI app review base | `a8530d3a4a42bbbd8fca89226c00e768d9238870` |
+| CLI auth | `5547af4017b9cfaa28644a34bc8807c8be630631` |
+| Server check | `d436e1d4a0b09915d528bee98123dac6f7a0ce60` |
+| Explicit-window correction | `eb7fbfce756f851e5cfb7865288cc2a22135b4cb` |
+| Listener alignment / reviewed product HEAD | `b7db9f1a65a0ef3a791f9b992dae8d725525c3a3` |
+| Accepted producer implementation | `fce41c194522e9d08d0683aa786bd4361c5ae0c2` |
 
-This freeze supersedes the synthetic-only and next-pilot status in historical
-[P1/P2 integration notes](repo-knowledge/39-CURRENT-REUSE-AND-INTEGRATION-PLAN.md).
-The External Exposure proofpack research describes a separate unsigned product;
-its historical app inventory is not the current Linux admission contract.
+Source review covers the accumulated 43 changed files from the pre-CLI base, including auth, browser consent, local storage, sudo, server-check services, finalizer adapter, shared listener grammar, migrations and their tests. Product/proof format remains Local Audit 1.2.2; no producer/verifier semantics changed. Earlier two-manual-import acceptance remains historical evidence; this milestone adds the authenticated CLI acquisition path.
 
-## Real pilot
+## Real-host evidence
 
-Asset label: `witnessops-n8n-01`. Observed hostname: `ip-172-26-9-158`.
-App asset UUID: `be2043fb-7467-4b97-8728-ee2babbeaec3`. The app UUID is identity;
-the observed hostname is evidence, not a cross-asset lookup key.
+[Accepted Real-Host Flow](WOPS_SERVER_CHECK_ACCEPTANCE.md#accepted-real-host-flow) is the detailed receipt of identifiers, digests, authority, custody, comparison and selected invariants. It records execution `85da2526-7705-44a3-a096-573fcbee379c`, app run `5479ee39-70ed-42e4-9347-01f1ccfc40a8`, and proof run `pr_lsa_20260912011221_2337407eb5`. Source ZIP SHA-256: `4da249ce18e8cba160bed8a2676a0081574d043a852d7aed5c43d2d09481b53f`.
 
-| | Run 1 | Run 2 |
-| --- | --- | --- |
-| App run UUID | `d406a822-26e8-44f8-b9a8-74409b46f13a` | `5cbf424f-411a-4b21-8f32-62c012abe7b4` |
-| Proof run | `pr_lsa_20260911200904_016b1ed5ff` | `pr_lsa_20260911204631_c4b86029cd` |
-| Observed time (host clock, UTC) | `2026-09-11T20:09:04Z` | `2026-09-11T20:46:31Z` |
-| ZIP SHA-256 | `af30d46334d7f679b491ee8afeb52c3f171e35672a8671e75099e57b20181e46` | `be25b3b120aae116a9bad45393cc97b28c3448a05c888bea9ca5a9144e36d601` |
-| Collection | Live, `synthetic=false`, partial | Live, `synthetic=false`, partial |
-| Findings | 0 critical, 1 high, 2 medium, 1 low, 1 informational | 0 critical, 1 high, 2 medium, 1 low, 1 informational |
+The fixed window was 01:10–01:40 UTC on 12 September 2026; capture was observed at 01:12:21 UTC. Exactly one new run was added to the existing asset. Read-only database/hash checks during this freeze confirm that run and both historical sources remain intact. Baseline is `5cbf424f-411a-4b21-8f32-62c012abe7b4`; no cross-asset hostname fallback. Machine identity metadata remains continuous.
 
-Run 2 selects Run 1 as the nearest earlier admitted run for the same workspace
-and asset. Hostname, available machine identity and OS identity remain continuous;
-method/profile context is unchanged. Qualification remains `COLLECTION_GAP`.
+Collection is partial, synthetic=false. Findings: 0 critical / 1 high / 2 medium / 1 low / 1 informational. Update security classification remains unavailable and count null. Environment comparison honestly includes the temporary loopback tunnel; coverage is unchanged and uncertainty retains update gaps. Report/reopen acceptance is retained evidence from the completed run, not a new collection in this freeze.
 
-- **Environment:** no supported recorded value changes in the compared projection.
-- **Coverage:** no changes.
-- **Uncertainty:** persistent updates evidence gaps. Security classification remains
-  unavailable; security update count remains **null**, not zero. Pending updates
-  are recorded, but cached metadata freshness is not established.
-- Both sources record 15 expected and 17 observed listeners. The two Tailscale TCP
-  listeners remain needs-review, not silently approved. Bind state does not prove
-  public reachability.
+## Merge review
 
-Comparison is field-aware and bounded to the current projection. It is not a diff
-of every source byte. Incomplete sections do not establish environment changes;
-critical-file comparison covers projected metadata, not an assurance that all
-file contents are unchanged.
-
-## Trust, custody and reopen
-
-The accepted pilot retained the production key off-host: unsigned capture →
-operator-side finalization/reconstruction/signing → independent verification →
-fresh app verification. Signer: `witnessops_local_audit_prod_2026_01`.
-Selected registry SHA-256:
-`4f3ef3b9468a9de3e0a4d3ec573db25bbff86c9c458901931d01e36f4493e939`.
-
-Receipt and detached ZIP signer continuity passed. Trust comes from independently
-selected/pinned registry context, never package `public_key.json`. App custody
-preserves exact ZIP, signature, signed filename and registry context. Source
-digests are ZIP hashes; snapshot/report hashes do not replace them. Retained ZIP,
-signature and registry hashes were rechecked during this freeze and matched.
-
-Both saved runs reopened with fresh verification at the accepted app head;
-source identities, findings and partial states remained stable. Slice 3N closed
-the transient 429 reopen blocker from Slice 3M: one initial request plus at most
-three bounded retries applies only to explicit verification-busy responses, with
-navigation cancellation. The verifier remains bounded; no permanent verification
-cache or shared authorization cache was added. Comparison survives reload.
-The existing single-run report and print path passed; this does not assert a
-new persisted PDF or a comparison PDF.
-
-## Claim boundary and limitations
-
-**Valid != secure. Signed != source-system truth.** Verification establishes the
-declared signature, integrity and reconstruction checks. Reports/PDFs are derived.
-Hostname continuity is not physical-host authentication; hostname/bind state is
-not public reachability. Unsigned capture digests establish correspondence, not
-host authenticity. Host timestamps are not a trusted timestamp service.
-
-Known limitations: APT security classification unavailable; cached update
-freshness unknown; two unresolved Tailscale TCP listeners; one Ubuntu host only.
-Partial update evidence stays partial/unknown. No claim of complete assessment,
-absence of compromise or compliance follows from this pilot.
-
-## Validation matrix
-
-Recorded exact-candidate results were inspected rather than rerunning expensive
-suites or creating further pilot data. Targeted review/diff checks were fresh.
-
-| Area | Command/evidence | Result |
-| --- | --- | --- |
-| App unit | `pnpm --filter @witnessops/app test` | 54/54 |
-| App PostgreSQL/authorization | `pnpm --filter @witnessops/app test:db` | 27/27 |
-| Live admission | `pnpm --filter @witnessops/app test:db:live` | 1/1 |
-| Linux browser/retry | `pnpm test:app-browser linux-check.spec.ts` | 16/16, Chromium/WebKit |
-| EE/auth/report/build/lint/types | `pnpm health`; app typecheck | Recorded PASS; report/print acceptance retained |
-| Producer full release gate | Existing release-check / Local Audit suites | 283/283: 64 shared + 155 Local Audit + 64 Launch Ready |
-| Producer output identity | Old implementation versus split, identical frozen inputs/key | All 20 outputs byte-identical, including receipt/manifest/ZIP/signature |
-| Producer verifier parity | Split synthetic output through web verifier and report adapter | Valid, buyer model available |
-| Producer fresh split tests | `PYTHONPATH=src python -m unittest discover -s tests -p test_capture.py -v` in Local Audit product with the accepted test environment | 19/19; disposable keys only |
-| Producer offline runtime | Frozen bundle, clean network-disabled bootstrap and target setup | Recorded PASS; system Python unchanged |
-| Additional emulated installed-wheel suite | Existing 50 ms child-output timeout test | 154 pass / 1 fail; scheduler/startup timing caveat, unchanged threshold |
-| Real pilot | Two imports, exact custody, baseline, reopen, comparison and authorization acceptance | PASS locally at accepted heads |
-| Repository whitespace | `git diff --check` | Fresh PASS in both worktrees |
-
-The emulated suite is **not** reported as 100% passing. Resolve or independently
-bound that timing assumption before making a broader runtime-support claim.
-
-## Review result
-
-**App: READY for merge review. Producer: READY for local merge review.** No
-confirmed code-security blockers were found. This is not release approval.
-
-App review covers all 22 branch commits / 112 changed files from
-`cbbc12d67fc352770e4836164f63a57a8e2e011d` through the accepted app head.
-Security diff scan `3c876668-a6c6-4c5a-adc2-07404f844e30` is sealed with zero
-findings. Its canonical coverage is **PARTIAL**: the tool retained an earlier
-in-progress deferred note despite the completed per-file review of all 112 paths.
-Do not describe that sealed artifact as a complete-coverage scan. A cleanly
-finalized release-gate scan remains required before deployment.
-
-Producer review covers all eight changed files from
-`947cf2dd56a3c4b0e2df8be7e0a09247b7bd1fc0` through its documentation head.
-Security diff scan `0604bc8c-f3b3-4a2b-8bba-c24497bb04c1` is completed/sealed,
-with full changed-file coverage and zero findings.
-
-| Merge risk | Classification / evidence |
+| Area | Verdict / source mechanism |
 | --- | --- |
-| Trust bypass, package-key self-trust, synthetic/live confusion | CLOSED in reviewed admission: one verified path, server-pinned registry, signed live/fixture consistency |
-| Cross-workspace access and source mutation | CLOSED in scoped queries, request authorization, immutable custody constraints and recorded tests |
-| Verifier concurrency and retry storm | CLOSED for reported defect: bounded slot, explicit busy classification, capped/cancelled retries; no permanent cache |
-| Key on target / capture authenticity | Pilot custody accepted; unsigned capture authenticity remains a KNOWN LIMITATION, not repaired by later signing |
-| Null-to-zero conversion / hostname conflation | CLOSED in reviewed projection/comparison; incomplete coverage remains explicit |
-| Stale dev singleton, presentation/documentation debt, emulated timing test | KNOWN LIMITATIONS; follow-ups and release gates below |
-| Production migration/runtime mismatch | Deployment gate, not tested or changed by this freeze |
+| Auth / identity | READY: WorkOS issuer+subject resolves the existing internal user; email is metadata. 256-bit opaque credential stored hashed; one-hour expiry, no refresh token. Current account/cohort/workspace/membership and Owner scope rechecked. Origin checks, explicit browser consent and single-use locked redemption remain. |
+| Revocation | READY within current model: CLI logout revokes its credential; originating web-session logout invalidates its CLI grants through the shared revocation table. Provider-only revocation events are not synchronized; this is a known one-hour residual boundary. |
+| Sudo / local storage | READY for trusted-root operator use: numeric SUDO_UID plus account database selects the home, not HOME/XDG/SUDO_USER; directory ownership/modes, no-symlink checks and O_NOFOLLOW file checks apply. No root credential fallback/copy. Root-controlled fixed runtime, isolated Python and sanitized subprocess environment; no caller collector path. |
+| Authority | READY: request UUID/body is replay-bound; operator/user, workspace, asset, hostname, profile, window and policy are frozen. Trigger prevents later substitutions. Explicit bounds persist through retries and are compared before capture. Producer validates capture timing/classification. |
+| Listener contract | READY: shared CLI/server grammar preserves qualifiers in authority. IPv4 matching strips qualifier; IPv6 numeric spelling normalizes and zone remains exact/case-sensitive. Equivalent duplicates rejected. Qualifier grammar `[A-Za-z0-9_.:-]{1,64}`; no percent decoding. `%25eth0` is literal zone `25eth0`, not decoded syntax. Producer unchanged. |
+| Capture / upload | READY: product-only 25 MiB bounded body, authenticated before body acceptance; canonical producer validation, exact digest/bytes, execution/user/workspace/asset/hostname/fingerprint binding. Identical retry is idempotent; altered bytes/authority rejected. |
+| Finalization / verification | READY for one trusted finalizer custody domain: fixed server configuration invokes existing producer; pinned registry and independent verification precede normal Linux admission. Durable started marker prevents automatic second signing after partial issuance. Invalid finalization/verification throws before accepted run commit. |
+| Persistence / recovery | READY within bounded workflow: row/advisory locks, unique request/run linkage and normal Linux import in the same DB transaction. Completed artifacts reverified/reused; accepted run/source immutable. Incomplete output, stale capture lock or missing custody needs operator reconciliation. |
 
-Cross-repo compatibility is confirmed for product 1.2.2,
-`host_triage_evidence_collection`, `linux_baseline_v1`, `operator_present_local`,
-live/fixture classification, existing proof-run identity and
-`witnessops.receipt.v0`. Both use existing receipt/Proofpack signer purposes,
-detached ZIP envelope and independent registry admission. Hostname and partial
-updates map through existing source contracts. The app checks fingerprint shape
-and signed consistency, not an old wheel/fingerprint allowlist. A fingerprint
-records provenance; it does not independently establish collector trust.
+Important qualifications: SUDO_UID is a convention supplied by trusted sudo, not an attestation. Privileged root can deliberately impersonate another local account or steal its files; the implementation does not and cannot claim isolation from root. No current-source review found a confirmed merge-blocking vulnerability, but this is not a replacement for the production release security gate.
 
-The retained runtime archive is `local-audit-pilot-runtime-fce41c194522.tar.gz`,
-SHA-256 `922f54c36809fd00c68d9dd19790298226bcd50bcd511b7af74fdd5fafd1038d`.
-Its pilot wheel SHA-256 is
-`8922d275e0a9553c9b829cb53f6cf3ff3cfed57d502b85789b132c5920ccef80`;
-it must not be substituted for the historical released wheel under that wheel's
-identity. Runtime installation acceptance is recorded prior evidence, not a
-new target inspection in this review.
+## Migrations and recovery
 
-## Merge and deployment boundaries
+0009 adds login transactions and CLI sessions referencing existing users/workspaces. 0010 adds transaction scopes, replaces the CLI-session scope CHECK, and adds execution custody/uniqueness/triggers. Existing credentials retain `cli:session`; product scope needs new explicit browser consent. No current EE/evidence row is rewritten or table dropped. The DROP is a constraint replacement, not evidence deletion. 0009 must precede 0010; retain the existing checksum-tracked migrator and locking procedure.
 
-Migrations `0007_linux_checks.sql` and `0008_linux_snapshots.sql` are additive:
-0007 replaces type/check constraints to admit Linux and adds immutable child
-custody; 0008 adds nullable derived snapshot storage. No current table is dropped
-or EE evidence rewritten. Existing completed-run and source immutability remain.
-Constraint replacement requires database locks; apply in order using the existing
-checksum-tracked transaction/advisory-lock migrator, not hand SQL.
+Before production: inspect actual migration predecessor (apply missing 0007/0008 first if necessary), verify committed checksums, take a recoverable DB backup, rehearse ordered migration and runtime grants/lock duration, then verify history/schema. No migration is applied by this review. There are no automatic down migrations. Keep additive schema on app rollback; never drop execution/source custody or restore an old backup over newly accepted evidence.
 
-Suggested dependency order, subject to separate approval:
+## Security matrix
 
-1. Merge producer implementation/documentation first against its confirmed target;
-   retain the exact private pilot build as distinct from the historical 1.2.2 wheel.
-   Producer currently has no configured remote, so remote PR/publication checks
-   remain outstanding. Public producer release is not an app code dependency;
-   controlled accepted runtime custody is required before additional collection.
-2. Merge app after the cross-repo review. Build and scan an immutable candidate
-   image. Neither merge authorizes deployment.
-3. Before deployment, verify production migration head/checksums, take and verify
-   a current backup/recovery point, arrange the migration lock window, apply only
-   missing approved migrations with the migration role, and verify runtime grants.
-4. Replace the old app with one exact-image instance through the accepted lifecycle;
-   test health, WorkOS/session revocation, Owner/Viewer/foreign/revoked boundaries,
-   Linux import/reopen/report, EE behavior and backup/recovery readiness.
+CLOSED means mitigated in the reviewed application boundary, not impossible under host/admin compromise.
 
-Rollback before new Linux admission can restore the previous app image while
-retaining additive schema. There are no automatic down migrations. After new
-evidence exists, preserve it: do not drop Linux custody or overwrite the database
-with an old backup. Rehearse recovery separately and reconcile later evidence.
+| Threat | Classification | Evidence / residual boundary |
+| --- | --- | --- |
+| CLI credential theft | KNOWN LIMITATION | Private files, bounded lifetime, no token logs; bearer theft by same user/root remains possible. |
+| Sudo user confusion | KNOWN LIMITATION | No accidental root fallback; trusted sudo and root are assumptions, not independently authenticated origin. |
+| Session replay | CLOSED | Expiry/revocation checked per use; login redeem one-time. Active bearer reuse is intended. |
+| Stale membership | CLOSED | Current centralized membership/account/cohort checks per request. |
+| Workspace substitution | CLOSED | Credential-bound workspace; scoped DB queries. |
+| Asset substitution | CLOSED | Frozen asset and immutable authority. |
+| Hostname substitution | CLOSED | Exact declared/observed binding; dishonest-host identity remains unproven. |
+| Listener ambiguity | CLOSED | Shared validated representation/matching contract and producer parity tests. |
+| Capture replay | CLOSED | Authority identity and one byte sequence per execution. Fabricated unsigned observations are not attested. |
+| Upload tampering | CLOSED | Digest, canonical capture and authority correspondence checks. HTTPS required outside loopback development. |
+| Duplicate issuance | CLOSED | Exclusive durable marker plus row locks; one finalizer/shared custody assumption. |
+| Signing-key exposure | KNOWN LIMITATION | Off-target, no API access; trusted finalizer process can access configured key and needs production containment. |
+| Signer selection | CLOSED | Server-only selection, no request override. |
+| Registry substitution | CLOSED | Pinned app registry, preserved bytes, independent trust checks. |
+| Invalid verification accepted | CLOSED | Both finalizer verifier and existing Linux admission reject before commit. |
+| Partial issuance ambiguity | KNOWN LIMITATION | Fails closed; no automatic re-sign, manual reconciliation required. |
+| Source custody mutation | CLOSED | Immutable execution/source triggers and fresh digest/reverification. DB administrator/storage compromise is outside this boundary. |
 
-Dev-only limitation: `Symbol.for("witnessops.app.persistent-service.v1")` preserved
-pre-Linux service state through hot reload. Restart the development process after
-service/schema changes. Production replacement starts a fresh process; this is a
-development follow-up, not evidence of a production stale-cache defect.
+No unresolved merge BLOCKER identified. Operational limits remain: 32 retained executions/workspace, 200 MiB accepted capture budget, serial cross-process finalization, bounded retries, no automatic stale-execution cleanup. Rejected capture files can consume custody disk and poison that execution's preserved input; resolve manually without silently replacing its source. Monitor/contain custody storage before production. Database and finalizer filesystem recovery must be coordinated.
 
-Before external Linux release, correct the generic settings/access note claiming
-all sources are unsigned; Linux original packages are signed, while reports are
-derived. Historical synthetic-only API summary/prose and the public-only security
-scope documentation also need alignment. These do not weaken current admission,
-but must not become customer or deployment instructions.
+## Test freshness
 
-## Product status
+No product source changed after the validated listener commit. Fresh `pnpm cli:test`: 28/28. Fresh read-only DB checks: one execution, three expected asset runs, exact capture/ZIP/signature/registry hashes, historical digests and machine continuity. Fresh `git diff --check` and docs validation apply to this documentation commit.
 
-One Server Security Check v1 is now technically accepted locally. External demand,
-willingness to pay, supported distro breadth, runtime distribution UX and buyer
-acceptance of an operator-present local flow remain **unknown**. No Watch/Update
-scope is added. This freeze performs no collection, import, signing or production
-mutation and does not claim the product is finished.
+| Retained gate | Recorded result |
+| --- | --- |
+| Server-check integration at listener HEAD | 13/13, including fixed windows and producer qualifier parity |
+| CLI DB / existing DB / live admission | 17/17; 27/27; 1/1 at server-check implementation |
+| Browser regressions / CLI browser | 77 cases; 14 focused CLI cases, Chromium/WebKit and mobile |
+| App lint/typecheck | PASS at listener HEAD |
+| Node 22 full health | 1,885 tests, zero failures at listener HEAD; not rerun for prose-only changes |
+| Server-check security diff scan | `c5daa8a1-0da9-478b-a617-192483d8153e`, zero reportable findings |
+| Window security diff scan | `2b8f784f-4183-4376-9e7c-26aa6eab08ee`, zero findings |
+| Listener security diff scan | `fc6a8d17-1403-4927-b6a1-f62f2edc0ea5`, completed, zero findings |
+| Real CLI flow | One capture/issuance/run; independent verification, report, reopen and comparison PASS locally |
+
+These are incremental scan records, not a new whole-branch standard security scan. The prior pre-CLI whole-app scan had a partial-coverage metadata caveat; a clean standard release-gate scan remains required before production. Historical producer emulated installed-wheel testing also had a 50 ms timing-test caveat; do not infer broader runtime/distro support from the accepted Ubuntu pilot.
+
+## UX and distribution
+
+Founder/operator Early Access: acceptable. First external technical user: assisted pilot only, after production gates; not general self-service. P0: none found. P1: no blocker to the assisted accepted flow; unassisted setup/distribution remains incomplete. P2: cumbersome manual listener policy and UTC window arguments, stale-lock/reconciliation guidance. Help commands currently produce bounded usage errors; do not advertise a finished help/installer experience.
+
+Minimum next distribution step: prepare one immutable, versioned, authenticated CLI/runtime artifact with checksums, fixed production HTTPS origin, manual installation/rollback instructions and a clean-host verification rehearsal. Do not build an installer, self-update, daemon or new product architecture in this milestone. No Watch, Update, scheduler, remote runner, fleet, Windows/cloud support or billing is implied. External demand, willingness to pay and buyer acceptance of operator assistance remain unknown.
+
+## Ordered merge / production gates and rollback
+
+1. Confirm producer accepted commit/runtime custody and intended merge target; merge producer first if still pending, then the app branch with its sequential auth/server-check/window/listener commits. Confirm current target-base compatibility and CI at review time. No merge performed or authorized here; public producer publication is not required merely to merge app source.
+2. Build the exact merged immutable app image, including the Python adapter and accepted producer runtime integration; standard code-security scan, image/dependency scan and recorded image digest. Rehearse clean start/restart/recovery. Development singletons require process restart after source/schema changes; hot reload is not a deployment method.
+3. Verify production DB backup/restore and migration predecessor/checksums; apply only missing approved migrations in order through 0010 in the separately authorized deployment lane. Verify privileges and old credential scopes. Rollback checkpoint A: keep additive schema and all evidence; restore only via coordinated recovery that preserves later records.
+4. Validate production WorkOS callback/app origin/CLI authorization URLs, HTTPS CLI base URL, login/consent/status/logout, originating-session revocation, Owner/Viewer/foreign/revoked access. No provider token becomes a CLI credential.
+5. Prepare the four server-only finalizer settings, correct process working directory/adapter, accepted isolated producer, pinned registry/key agreement, private durable custody capacity and coordinated backups. Rollback D/E: stop new issuance before reverting configuration; retain markers/artifacts, never delete them to retry signing. Reverting signer configuration must not remove historical public trust needed to verify accepted sources.
+6. Promote only the approved image after these gates. Rollback B: restore previous exact image and disable new CLI issuance if required, retaining schema/source custody. Rollback C: withdraw a CLI artifact and revert to the retained version; revoke affected credentials if necessary, retain evidence. No automatic CLI updates.
+7. Separately authorize one controlled production smoke: authenticate, explicit authority, no key on target, one capture/run, independent verification, report/reopen/comparison, EE and WorkOS regression checks. Neither this document nor a merge authorizes collection/signing/deployment.
+8. Admit the first external technical user with explicit operator assistance and support/recovery expectations. General distribution and wider platform claims wait for separate acceptance.
+
+Product flow accepted; production deployment preparation remains gated. This freeze changes documentation only and performs no target access, collection, upload, signing, run creation, push, merge or deployment.

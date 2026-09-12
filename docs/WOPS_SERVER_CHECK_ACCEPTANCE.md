@@ -1,6 +1,6 @@
 # WOPS server check — Slice 4B
 
-Status: **READY FOR REAL-HOST ACCEPTANCE**, based on local implementation tests; controlled real-host acceptance **not executed**. No installer, publication, push, merge or deployment. Base app commit: `5547af4017b9cfaa28644a34bc8807c8be630631`.
+Current status: **REAL-HOST FLOW ACCEPTED against the local/test app**, as recorded below. Earlier dated preparation/failure sections are retained history, not the current verdict. No installer, publication, push, merge or deployment. Base app commit: `5547af4017b9cfaa28644a34bc8807c8be630631`.
 
 ## Target UX
 
@@ -383,3 +383,36 @@ Submitted address spelling, including qualifiers, is preserved through request s
 Regression coverage checks ordinary/qualified IPv4 and IPv6, exact representation round-trip, duplicate aliases, zone case, malformed syntax and a non-collecting comparison against the accepted producer's normalization helper. The implementation does not change Local Audit, verifier, auth, source custody, persistence schema or listener classifications. Local validation and security review are required before commit; real-host acceptance remains paused. The target CLI acceptance artifact will require a separately authorized refresh including the new shared module before any future real-host run.
 
 Validation completed locally: 28 CLI tests and 13 isolated server-check integration tests passed, including producer parity and exact stored qualifier round-trip. App lint/typecheck and `git diff --check` passed. Node 22 `pnpm health` exited 0 with 1,885 tests passed and zero failures. Fresh security diff scan `fc6a8d17-1403-4927-b6a1-f62f2edc0ea5` completed with zero findings across the five changed source/test files. This resolves the local parser contract blocker only; it does not mark real-host acceptance PASS or refresh the target artifact. Previous collection windows must not be reused.
+
+## Accepted Real-Host Flow
+
+Frozen 2026-09-12; **PASS locally, not production acceptance**. Canonical milestone and merge/deployment gates: [One Server Security Check v1](ONE_SERVER_SECURITY_CHECK_V1_ACCEPTANCE.md). Earlier blocked attempts above remain historical evidence.
+
+Accepted command: `sudo wops server check`. This controlled invocation supplied `--starts-at 2026-09-12T01:10:00Z --ends-at 2026-09-12T01:40:00Z` to enforce the externally approved bounds; it was not an unbounded/default-window invocation.
+
+| Binding | Accepted value |
+| --- | --- |
+| Operator | Karol Stefanski, Owner in Acme Ltd; `cli:session server_check:create` |
+| Existing asset | `be2043fb-7467-4b97-8728-ee2babbeaec3` |
+| Pilot / observed hostname | `witnessops-n8n-01` / `ip-172-26-9-158` |
+| Execution | `85da2526-7705-44a3-a096-573fcbee379c` |
+| Frozen window | `2026-09-12T01:10:00Z` → `2026-09-12T01:40:00Z` (03:10–03:40 Europe/Warsaw) |
+| Observed timestamp | `2026-09-12T01:12:21Z` |
+| Capture SHA-256 | `14b4756b67a6f446df0c93a29648a0f258a9ece240db2b04f24593a5bacf53aa` |
+| Proof run | `pr_lsa_20260912011221_2337407eb5` |
+| ZIP SHA-256 | `4da249ce18e8cba160bed8a2676a0081574d043a852d7aed5c43d2d09481b53f` |
+| Signature SHA-256 | `b6ec440c11ef5f8e513fbc656140d5e4bdc7682e7f714fb34d8ed0b02acc6549` |
+| Signer | `witnessops_local_audit_prod_2026_01` |
+| Pinned registry SHA-256 | `4f3ef3b9468a9de3e0a4d3ec573db25bbff86c9c458901931d01e36f4493e939` |
+| App run | `5479ee39-70ed-42e4-9347-01f1ccfc40a8` |
+| Comparison baseline | `5cbf424f-411a-4b21-8f32-62c012abe7b4` |
+
+Exactly one local read-only capture, one execution and one new immutable Linux run completed. Signing stayed off-host. Producer and independent app verification passed signatures, external pinned trust, signer continuity, manifest/artifact hashes and reconstruction. Capture target/app digests matched; stored ZIP/signature/registry bytes were hashed again during this freeze. Read-only DB inspection confirms one `run_created` execution and three total runs on this asset. The two previous runs retain their original ZIP digests. Machine-id digest continuity is unchanged across all three sources.
+
+Reopen/reverify, the live classification, buyer report and deterministic comparison passed during acceptance. No persisted PDF is claimed. Collection remains partial, synthetic=false: 10/11 coverage items complete; findings 0 critical, 1 high, 2 medium, 1 low, 1 informational. Security classification is unavailable and `security_update_count = null`; 23 pending updates use cached metadata with freshness not assessed.
+
+Comparison selects the exact baseline above. Environment records `tcp/127.0.0.1:3020` added: the temporary loopback acceptance tunnel was a genuine observation, not silently filtered or approved. Coverage has no recorded change; uncertainty retains update gaps. Fifteen expected endpoints remain unchanged, with 18 observed during collection. Both prior Tailscale TCP endpoints remain needs-review. Cleanup removed the temporary tunnel listener. Counter-normalized firewall configuration, socket inventory after cleanup, SSH configuration and service/timer inventories match preflight.
+
+**Boundaries:** valid != server secure; signed != source-system truth; capture is unsigned correspondence. Partial stays partial and null stays unknown. Selected target invariants != whole-host immutability. Root/source honesty is not attested. Reports are derived. Hostname/bind state does not prove public reachability. This was local/test-app acceptance, not production deployment or general distro/self-service acceptance.
+
+Terminal UX was successful, with a clear result URL; manual listener entry and UTC window flags remain operator-assisted friction. No second capture, remediation, product-code change, push, merge or deployment occurred. This freeze only reviews source/evidence and updates documentation.
