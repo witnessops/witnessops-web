@@ -6,16 +6,16 @@ slug: "/"
 status:
   draft: false
   canonical: true
-  last_reviewed: "2026-09-05"
+  last_reviewed: "2026-09-12"
 
 seo:
-  title: "Security & Verification for AI and Automation | WitnessOps"
-  description: "Find security gaps in AI and automation. Review one important action, inspect the evidence and get practical recommendations within a clear scope."
+  title: "Security Verification & Evidence | WitnessOps"
+  description: "Find security gaps in your systems. Verify what is exposed, what changed, what acted, and what the evidence actually supports."
   canonical_url: "https://witnessops.com/"
   robots: "index,follow"
   og_image: "/og/home"
-  og_title: "Find security gaps in your AI and automation."
-  og_description: "Review one important action. Inspect the evidence. Understand what to fix."
+  og_title: "Find security gaps in your systems."
+  og_description: "Verify what is exposed, what changed, what acted, and what the evidence actually supports."
   twitter_card: "summary_large_image"
 
 theme:
@@ -45,9 +45,9 @@ navbar:
     variant: "primary"
 
 hero:
-  eyebrow: "AI · Automation · Security"
-  title: "Find security gaps in your AI and automation."
-  body: "For product and operations teams whose AI and automations change records, move money or control access. Understand the risks, inspect the evidence and decide what to fix."
+  eyebrow: "Security · Verification · Evidence"
+  title: "Find security gaps in your systems."
+  body: "Verify what is exposed, what changed, what acted, and what the evidence actually supports."
   supporting_points: []
   primary_cta:
     label: "Scope a review"
@@ -192,7 +192,7 @@ final_cta:
 
 footer:
   brand_line: "WitnessOps"
-  subline: "Security reviews and verification for AI, automation and operational systems. Clear findings, supporting evidence and practical next steps."
+  subline: "Security verification with clear findings, supporting evidence and practical next steps."
   links:
     - label: "Agent Action Security Review"
       href: "/catalog/workflows"
