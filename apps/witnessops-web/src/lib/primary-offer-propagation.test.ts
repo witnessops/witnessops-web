@@ -188,11 +188,11 @@ test("primary metadata, structured data, and offer ownership stay current", () =
   const home = loadHomeContent();
   assert.equal(
     home.seo.title,
-    "Security & Verification for AI and Automation | WitnessOps",
+    "Security Verification & Evidence | WitnessOps",
   );
   assert.equal(
     home.seo.og_title,
-    "Find security gaps in your AI and automation.",
+    "Find security gaps in your systems.",
   );
 
   const workflowPage = readFileSync(
@@ -210,7 +210,7 @@ test("primary metadata, structured data, and offer ownership stay current", () =
     resolve(__dirname, "../../../../content/witnessops/landing/home.yaml"),
     "utf8",
   );
-  assert.match(homepageSource, /Find security gaps in your AI and automation/);
+  assert.match(homepageSource, /Find security gaps in your systems/);
   assert.match(homepageSource, /Scope a review/);
   assert.doesNotMatch(homepageSource, /€250|€750|Meet Karol/);
   assert.equal(pricingMetadata.title, "Security Review and Automation Pricing");

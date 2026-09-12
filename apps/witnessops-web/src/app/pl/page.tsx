@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { BuyerHomepage } from "@/components/marketing/buyer-homepage";
 import { JsonLd } from "@/components/seo/json-ld";
 const homeTitle = "Bezpieczeństwo i weryfikacja";
-const homeDescription = "Znajdź luki w bezpieczeństwie AI i automatyzacji. Sprawdź jedno ważne działanie, poznaj źródła ustaleń i zalecane kolejne kroki.";
+const homeDescription = "Znajdź luki w bezpieczeństwie swoich systemów. Sprawdź, co jest wystawione, co się zmieniło, co zadziałało i co faktycznie potwierdzają dowody.";
 import { languageAlternates } from "@/lib/public-seo";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/public-seo";
 

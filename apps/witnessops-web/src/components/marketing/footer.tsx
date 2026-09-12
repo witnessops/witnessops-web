@@ -32,7 +32,7 @@ interface FooterProps {
 }
 
 const POLISH_FOOTER = {
-  subline: "Przeglądy bezpieczeństwa i weryfikacja AI, automatyzacji i systemów operacyjnych. Jasne ustalenia, materiały źródłowe i praktyczne kolejne kroki.",
+  subline: "Weryfikacja bezpieczeństwa z jasnymi ustaleniami, materiałami źródłowymi i praktycznymi kolejnymi krokami.",
   links: [
     { label: "Agent Action Security Review (EN)", href: "/catalog/workflows" },
     { label: "External Attack Surface Review", href: "/pl/catalog/offsec-external-exposure" },
