@@ -65,5 +65,5 @@ test("retained Public Exposure Review preview contract names only published pack
   assert.doesNotMatch(homepageSource, /HOMEPAGE_SYNTHETIC_PREVIEW/);
   assert.doesNotMatch(homepageSource, /data-home-synthetic-preview/);
   assert.doesNotMatch(homepageSource, /data-home-evidence/);
-  assert.match(homepageSource, /ReviewFinding/);
+  assert.match(homepageSource, /HeroGap/);
 });
