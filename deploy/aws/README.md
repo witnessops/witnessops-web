@@ -214,6 +214,25 @@ timestamp, and the `enhancedFindings` array. Missing, ambiguous, pending, or
 unsupported telemetry fails closed. The AWS CLI must auto-aggregate every
 findings page; a retained response with a non-null `nextToken` is treated as
 truncated and rejected.
+
+Independent image acceptance also gates publication. Both AWS PR validation and
+publication build `deploy/Dockerfile.aws` with the same pinned BuildKit,
+`linux/amd64` target and OCI exporter. Its Dockerfile-specific ignore file
+excludes prebuilt `.next` output. The runtime keeps Node, the standalone app,
+public/static files, required native libraries/certificates and the existing
+provider executable; npm, Corepack and Yarn remain build-only.
+
+The OCI archive is built once, validated by manifest/config/layer hashes,
+boot-tested as the non-root runtime user and scanned for both OS and npm
+vulnerabilities. Publication imports that unchanged archive with a pinned
+registry client and requires the registry manifest digest to equal the tested
+archive's manifest digest; it never rebuilds or recompresses an approved image.
+The raw independent Trivy report is retained alongside ECR evidence and bound
+by hash and config digest. Deployment evidence version 3 requires both reports,
+`linux/amd64`, and zero critical/high findings; medium/low findings are retained.
+Older ECR-only evidence is insufficient for a new deployment authorization.
+Existing production and rollback images are not deleted or modified. A retry
+with different archive bytes/digest must fail rather than reuse approval.
 Deploy dispatches must name that publication run and attempt. A low-authority
 job first confirms through the GitHub API that the exact run was a successful
 manual run from the reserved caller on `main` and referenced the reserved
