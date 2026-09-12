@@ -45,6 +45,10 @@ test("homepage leads with system-wide security verification while keeping repair
   assert.match(source, /Find security gaps in your systems/);
   assert.match(source, /Security · Verification · Evidence/);
   assert.match(source, /Verify what is exposed, what changed, what acted/);
+  assert.match(source, /What needs checking\?/);
+  assert.match(source, /See all review options/);
+  assert.match(source, /See how WitnessOps verifies/);
+  assert.match(source, /Describe the system and the security question/);
   assert.match(source, /HeroGap/);
   assert.match(source, /buyerRequestHref\(locale\)/);
   assert.match(source, /\/catalog\/automation-repair/);
