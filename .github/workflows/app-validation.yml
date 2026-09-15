@@ -68,17 +68,6 @@ jobs:
   image:
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: app_test
-          POSTGRES_PASSWORD: disposable-ci-password
-          POSTGRES_DB: witnessops_test
-        ports: ['55432:5432']
-        options: >-
-          --health-cmd "pg_isready -U app_test -d witnessops_test"
-          --health-interval 5s --health-timeout 5s --health-retries 12
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
@@ -90,6 +79,23 @@ jobs:
         with:
           node-version: '22'
           cache: pnpm
+      - name: Enable OCI image loading on the ephemeral runner
+        run: |
+          sudo mkdir -p /etc/docker
+          sudo python3 -c 'import json,pathlib; p=pathlib.Path("/etc/docker/daemon.json"); c=json.loads(p.read_text()) if p.exists() else {}; c.setdefault("features", {})["containerd-snapshotter"]=True; p.write_text(json.dumps(c))'
+          sudo systemctl restart docker
+          docker info --format '{{json .DriverStatus}}' | grep -q io.containerd.snapshotter.v1
+      - name: Start disposable database after Docker configuration
+        run: |
+          docker run -d --name app-image-test-db -p 127.0.0.1:55432:5432 \
+            -e POSTGRES_USER=app_test -e POSTGRES_PASSWORD=disposable-ci-password \
+            -e POSTGRES_DB=witnessops_test --health-cmd='pg_isready -U app_test -d witnessops_test' \
+            --health-interval=2s --health-timeout=5s --health-retries=30 postgres:17
+          for attempt in $(seq 1 60); do
+            if [ "$(docker inspect --format '{{.State.Health.Status}}' app-image-test-db)" = healthy ]; then break; fi
+            sleep 1
+          done
+          test "$(docker inspect --format '{{.State.Health.Status}}' app-image-test-db)" = healthy
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
       - name: Build one app candidate from exact tracked source
         run: |
@@ -112,8 +118,11 @@ jobs:
           printf '%s\n' 'TEST_DATABASE_URL=postgres://app_test:disposable-ci-password@127.0.0.1:55432/witnessops_test' > apps/witnessops-app/.env.test.local
           docker load -i artifacts/app-validation/image.tar
           config=$(node -p 'JSON.parse(require("fs").readFileSync("artifacts/app-validation/identity.json")).config_digest')
-          test "$(docker inspect --format '{{.Id}}' "$config")" = "$config"
-          TEST_IMAGE_CONFIG="$config" node --import ./apps/witnessops-web/scripts/register-server-only-test-stub.mjs --import tsx tests/publication/authenticated-image.mts | tee artifacts/app-validation/authenticated-runtime.json
+          manifest=$(node -p 'JSON.parse(require("fs").readFileSync("artifacts/app-validation/identity.json")).image_digest')
+          test "$(docker inspect --format '{{.Id}}' "$manifest")" = "$manifest"
+          database_host=$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' app-image-test-db)
+          test -n "$database_host"
+          TEST_DATABASE_HOST="$database_host" TEST_IMAGE_ARCHIVE=artifacts/app-validation/image.tar TEST_IMAGE_REF="$manifest" TEST_IMAGE_CONFIG="$config" node --import ./apps/witnessops-web/scripts/register-server-only-test-stub.mjs --import tsx tests/publication/authenticated-image.mts | tee artifacts/app-validation/authenticated-runtime.json
       - name: Preserve exact-image evidence (no publication/deployment)
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -122,3 +131,6 @@ jobs:
           if-no-files-found: error
           path: |
             artifacts/app-validation/*.json
+      - name: Remove disposable database
+        if: always()
+        run: docker rm -f app-image-test-db

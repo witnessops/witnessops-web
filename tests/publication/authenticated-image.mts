@@ -17,10 +17,14 @@ const require=createRequire(new URL('../../apps/witnessops-app/package.json',imp
 const {Pool}=require('pg');
 const docker=process.env.TEST_DOCKER??'docker';
 const config=process.env.TEST_IMAGE_CONFIG;
+const archive=process.env.TEST_IMAGE_ARCHIVE;assert(archive,'Exact scanned OCI archive required');
+const identity=JSON.parse(execFileSync('python3',['deploy/aws/inspect-oci-image.py',archive],{encoding:'utf8'}));
+assert.equal(identity.config_digest,config);
+const image=process.env.TEST_IMAGE_REF??config;assert([identity.image_digest,identity.config_digest].includes(image));
 assert.match(config??'',/^sha256:[0-9a-f]{64}$/);
 const dbUrl=parseEnv(readFileSync(new URL('../../apps/witnessops-app/.env.test.local',import.meta.url),'utf8')).TEST_DATABASE_URL;
-const inspected=JSON.parse(execFileSync(docker,['image','inspect',config!],{encoding:'utf8'}))[0];
-assert.equal(inspected.Id,config);assert.equal(inspected.Architecture,'amd64');assert.equal(inspected.Os,'linux');assert(['nextjs','1001','1001:1001'].includes(inspected.Config.User));
+const inspected=JSON.parse(execFileSync(docker,['image','inspect',image!],{encoding:'utf8'}))[0];
+assert.equal(inspected.Id,image);assert.equal(inspected.Architecture,'amd64');assert.equal(inspected.Os,'linux');assert(['nextjs','1001','1001:1001'].includes(inspected.Config.User));
 const parsed=new URL(dbUrl);assert(['127.0.0.1','localhost'].includes(parsed.hostname)&&parsed.pathname.endsWith('_test'));
 const schema='image_'+randomUUID().replaceAll('-',''),name='app-auth-'+randomUUID();
 const admin=new Pool({connectionString:dbUrl,max:1});
@@ -74,10 +78,10 @@ try {
  await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES($1,$2,'viewer')",[users[1].id,workspace]);
  const source=JSON.parse(readFileSync(new URL('../external-exposure/fixtures/public-witnessops-snapshot-20260910.json',import.meta.url),'utf8'));
  const asset=await store.addAsset(users[0],workspace,source.target,'hostname');const run=await store.beginRun(users[0],workspace,asset.id);await store.completeRun(users[0],workspace,run,source);
- parsed.hostname=providerHost;parsed.searchParams.set('options',`-c search_path=${schema},public`);
+ parsed.hostname=process.env.TEST_DATABASE_HOST??providerHost;if(process.env.TEST_DATABASE_HOST)parsed.port='5432';parsed.searchParams.set('options',`-c search_path=${schema},public`);
  const env=join(directory,'test.env');writeFileSync(env,`DATABASE_URL=${parsed}\nWORKOS_API_KEY=test-only\nWORKOS_CLIENT_ID=client_image\nWORKOS_COOKIE_PASSWORD=${randomUUID()+randomUUID()}\nWORKOS_API_HOSTNAME=${providerHost}\nWORKOS_API_PORT=${providerPort}\nWORKOS_API_HTTPS=false\nWITNESSOPS_APP_PROXY_MODE=caddy-loopback-v1\n`,{mode:0o600});
  await new Promise<void>(resolve=>provider.listen(providerPort,'0.0.0.0',resolve));
- execFileSync(docker,['run','-d','--name',name,'--platform','linux/amd64','--read-only','--cap-drop=ALL','--security-opt=no-new-privileges','--user','1001:1001','--tmpfs','/tmp:rw,noexec,nosuid,size=64m','--add-host',providerHost+':host-gateway','-p',`127.0.0.1:${imagePort}:3020`,'--env-file',env,config!],{stdio:'pipe'});started=true;
+ execFileSync(docker,['run','-d','--name',name,'--platform','linux/amd64','--read-only','--cap-drop=ALL','--security-opt=no-new-privileges','--user','1001:1001','--tmpfs','/tmp:rw,noexec,nosuid,size=64m','--add-host',providerHost+':host-gateway','-p',`127.0.0.1:${imagePort}:3020`,'--env-file',env,image!],{stdio:'pipe'});started=true;
  for(let i=0;i<60;i++){try{if((await request('/')).status===200)break;}catch{}await new Promise(r=>setTimeout(r,500));}
  assert.equal((await request('/api/workspace')).status,401);
  const owner=await login('user_owner'),viewer=await login('user_viewer'),outsider=await login('user_foreign');
@@ -100,7 +104,7 @@ try {
  await revokeSession(pool,{issuer,subject:'user_owner',sessionId:'session_userowner'});
  assert.equal((await request('/api/workspace',owner)).status,401);
  assert.equal((await pool.query('SELECT count(*) AS n FROM app_migrations')).rows[0].n,'10');
- console.log(JSON.stringify({config,owner:'PASS',viewerRead:'PASS',viewerWriteDenied:'PASS',viewerImportDenied:'PASS',viewerExecutionDenied:'PASS',foreignWorkspace:'PASS',revoked:'PASS',unauthenticated:'PASS',migrations:10,auth:'real AuthKit PKCE/callback/JWT with disposable provider; no production WorkOS'},null,2));
+ console.log(JSON.stringify({manifest:identity.image_digest,config,engineImage:image,owner:'PASS',viewerRead:'PASS',viewerWriteDenied:'PASS',viewerImportDenied:'PASS',viewerExecutionDenied:'PASS',foreignWorkspace:'PASS',revoked:'PASS',unauthenticated:'PASS',migrations:10,auth:'real AuthKit PKCE/callback/JWT with disposable provider; no production WorkOS'},null,2));
 } finally {
  if(started)execFileSync(docker,['rm','-f',name],{stdio:'pipe'});
  provider.close();await pool?.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.end();rmSync(directory,{recursive:true,force:true});
