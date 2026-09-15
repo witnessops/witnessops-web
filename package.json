@@ -11,8 +11,8 @@
     "build": "pnpm --filter witnessops-web build",
     "lint": "pnpm --filter witnessops-web lint",
     "typecheck": "pnpm --filter witnessops-web typecheck",
-    "test": "pnpm --filter witnessops-web test && pnpm --filter @witnessops/proof test && pnpm ticket-triage:test && pnpm route-parity && pnpm receipt-smoke && pnpm smoke:buyer-path:test && pnpm verify:public-seo:test && pnpm deploy:aws:test",
-    "health": "pnpm --filter witnessops-web build && pnpm --filter witnessops-web lint && pnpm --filter witnessops-web typecheck && pnpm ticket-triage:typecheck && pnpm test && pnpm docs:validate && pnpm signals:validate",
+    "test": "pnpm --filter witnessops-web test && pnpm --filter @witnessops/proof test && pnpm ticket-triage:test && pnpm route-parity && pnpm receipt-smoke && pnpm smoke:buyer-path:test && pnpm verify:public-seo:test && pnpm deploy:aws:test && pnpm app:test && pnpm cli:test",
+    "health": "pnpm --filter witnessops-web build && pnpm --filter witnessops-web lint && pnpm --filter witnessops-web typecheck && pnpm ticket-triage:typecheck && pnpm test && pnpm docs:validate && pnpm signals:validate && pnpm app:build && pnpm --filter @witnessops/app lint && pnpm --filter @witnessops/app typecheck",
     "health:node22": "bash scripts/health-on-node22.sh",
     "health:node22:goal0": "bash scripts/health-on-node22-goal0.sh",
     "release": "pnpm --filter witnessops-web build",
@@ -55,7 +55,12 @@
     "deploy:aws:test": "node --test deploy/aws/validate-github-deployment.test.mjs deploy/aws/validate-acceptance.test.mjs deploy/scripts/no-automatic-image-publication.test.mjs deploy/scripts/retired-production-deploy.test.mjs && bash -n deploy/aws/candidate-acceptance.sh",
     "deploy:aws:validate": "node deploy/aws/validate-acceptance.mjs",
     "deploy:aws:validate-github": "node deploy/aws/validate-github-deployment.mjs",
-    "deploy:aws:candidate": "bash deploy/aws/candidate-acceptance.sh"
+    "deploy:aws:candidate": "bash deploy/aws/candidate-acceptance.sh",
+    "app:dev": "pnpm --filter @witnessops/app dev",
+    "app:build": "pnpm --filter @witnessops/app build",
+    "app:test": "pnpm --filter @witnessops/app test",
+    "test:app-browser": "playwright test --config tests/app-foundation/playwright.config.ts",
+    "cli:test": "pnpm --filter @witnessops/cli test"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

@@ -853,6 +853,17 @@ snapshots: {}
         self.assertEqual(len(blocked), 1)
         self.assertIn("path-to-regexp@8.4.2 prepare", blocked[0])
 
+    def test_path_to_regexp_admission_does_not_admit_unknown_prepare(self) -> None:
+        reviews = GATE.load_lifecycle_reviews(REVIEWS_FILE)
+        def metadata(pair):
+            return ({"name": pair[0], "version": pair[1], "scripts": {"prepare": "ts-scripts install && npm run build"}}, "fixture://registry")
+        records, blocked, degraded = GATE.evaluate_lifecycle(
+            [("path-to-regexp", "6.3.0"), ("unknown-prepare", "6.3.0")], reviews, metadata)
+        self.assertEqual(degraded, [])
+        self.assertEqual(records[0]["review_outcome"], "APPROVED")
+        self.assertEqual(records[1]["review_outcome"], "REVIEW_REQUIRED")
+        self.assertEqual(len(blocked), 1)
+
     def test_blocked_lifecycle_review_applies_without_a_dependency_diff(self) -> None:
         repository = self.repository("risky-pnpm-lock.yaml", {"risky-package": "1.0.0"})
         script_sha256 = GATE.sha256_bytes(b"node setup.mjs")

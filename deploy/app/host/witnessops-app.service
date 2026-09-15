@@ -1,0 +1,20 @@
+[Unit]
+Description=WitnessOps Early Access app (one non-public instance)
+After=network-online.target postgresql.service
+Wants=network-online.target
+ConditionPathExists=/etc/witnessops-app/launch-enabled
+ConditionPathExists=/etc/witnessops-app/image-security-approved
+StartLimitIntervalSec=300
+StartLimitBurst=10
+[Service]
+Type=simple
+RuntimeDirectory=witnessops-app-lifecycle
+RuntimeDirectoryMode=0700
+ExecStart=/usr/local/sbin/witnessops-app-lifecycle start sha256:af642a8be104f3b1cb6831e0602a5c9333f507fbc7bdfef0f87037987f310905
+ExecStop=/usr/local/sbin/witnessops-app-lifecycle stop sha256:af642a8be104f3b1cb6831e0602a5c9333f507fbc7bdfef0f87037987f310905
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=60
+UMask=0077
+[Install]
+WantedBy=multi-user.target

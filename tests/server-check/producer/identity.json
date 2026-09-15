@@ -1,0 +1,25 @@
+{
+  "implementationCommit": "fce41c194522e9d08d0683aa786bd4361c5ae0c2",
+  "version": "1.2.2",
+  "collectorFingerprint": "2209c2b63de319b91452b4d7705c5f5178a1a13b6156f601b5ad588c11d280f8",
+  "artifactSha256": "f5797a09d9cbaa87b55dd8511aef7316d1a3a5317df245a3d66f30e2b1a8a884",
+  "files": {
+    "pyproject.toml": "a33bd3516faebe02d3a8aaecba3efde99c55c9b3cb3f60ec0f83fe4cb9e876d9",
+    "src/witnessops_local_audit/__init__.py": "90eb67ca67b2ded095dc5a5a0f4977a9ba7d260056a6aa24c321ed4617761bd9",
+    "src/witnessops_local_audit/__main__.py": "11cf323249f4ba4e79c9fb7660c0979fc91a3822bc5362286376b69808b41195",
+    "src/witnessops_local_audit/assessment.py": "d3a01042425a5f2dec6bf3563373ad9d4db52ad012d7fc792f345717bafdebf3",
+    "src/witnessops_local_audit/authority.py": "90ec623becf0ae2f2569b769a5cf82491ae21a6c2f35b1b695d35795eabe6536",
+    "src/witnessops_local_audit/canonical.py": "f06df932e488063b8997f439b0d3dec6d4a9fdf077600bdaef3dc05261d5b0e7",
+    "src/witnessops_local_audit/capture.py": "1d0c61280c5e84113bf4646e9b6c66860eea918621dd7ebdc7e30c184a3ced37",
+    "src/witnessops_local_audit/cli.py": "0696d32eb14d83174c45c82f88c137a46150f528145b35ecf06df7da58bb0a18",
+    "src/witnessops_local_audit/collector.py": "cedb8517568796bdaa4656c7e986537244fe2a44ce4cd5cbd169b8bb927c6b16",
+    "src/witnessops_local_audit/contracts.py": "48e1ef12db4646f93a27f973a8f946ea73979d35b65222cb1a232d1904da5992",
+    "src/witnessops_local_audit/crypto.py": "b594923729a1a67c88727f3c4aaf87eb6224a4f91d6542aa1cfec0260ee39709",
+    "src/witnessops_local_audit/findings.py": "9b6eb691566f68fb7d903fe1576425fe4210aa69b280e190452e82a8e0500386",
+    "src/witnessops_local_audit/operator.py": "416c4a6ce45c9f8d7ca8039b42fa6989962bfae57cb373703640c8fc96ac36b1",
+    "src/witnessops_local_audit/package.py": "69f3971d48ca21bc4dbcf47ff671931ab522c84340f311f884117b1aa91fc27e",
+    "src/witnessops_local_audit/report.py": "9ee50bc80a62cdfa80bebedecfd99d43680e0b8f60df763f695d0332a7cc289f",
+    "src/witnessops_local_audit/verifier.py": "35fb377fdb72dd427f9c3f65d4a8b499b886ca484d2ee31a19aea7ba8b4334f1",
+    "tests/fixtures/observations.pass.json": "dd91f7218e1b20c570e06a4db472aeea12edca998ad078f68d3cdde3210d8f6b"
+  }
+}

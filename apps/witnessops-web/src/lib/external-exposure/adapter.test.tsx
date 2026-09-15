@@ -68,12 +68,12 @@ for (const [name, source, expected] of [
   const end = html.indexOf('aria-label="Data validation and check summary"');
   assert.ok(start > 0 && end > start);
   const outcomes = html.slice(start, end);
-  for (const [index, label] of ['Needs attention', 'Informational', 'Observations completed', 'Undetermined'].entries())
+  for (const [index, label] of ['Needs attention', 'Informational', 'Checks with collected evidence', 'Undetermined'].entries())
     assert.ok(outcomes.includes(`<span>${label}</span><strong>${expected[index]}</strong>`));
   assert.ok(!outcomes.includes('Passed'));
   assert.ok(html.includes('Snapshot data validation: Passed. Structure, check ledger and collection consistency.'));
   assert.ok(html.includes('These are individual results, not an overall security grade.'));
-  assert.ok(html.includes('Collected observations, not a security grade'));
+  assert.ok(html.includes('Collection does not imply a determined outcome'));
   assert.ok(!html.includes('<strong>Passed</strong>'));
   assert.ok(model.findings.filter(finding => finding.state === 'informational').every(finding => html.includes(finding.title)));
   assert.equal(Object.hasOwn(model.summary, 'score'), false);

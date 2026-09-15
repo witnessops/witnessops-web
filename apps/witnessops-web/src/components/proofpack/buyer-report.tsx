@@ -1,10 +1,10 @@
 import { Fragment, type ReactNode } from 'react';
-import { isBuyerReport, REPORT_TEMPLATE, type ProofpackReportV1 } from '@/lib/proofpack/report-model';
+import { isBuyerReport, REPORT_TEMPLATE, type ProofpackReportV1 } from '../../lib/proofpack/report-model';
 import styles from './buyer-report.module.css';
 import { reportPageIdentityStyle } from './report-print-style';
-import { WitnessOpsMark } from '@/components/shared/witnessops-mark';
+import { WitnessOpsMark } from '@witnessops/ui/witnessops-mark';
 
-export { REPORT_TEMPLATE } from '@/lib/proofpack/report-model';
+export { REPORT_TEMPLATE } from '../../lib/proofpack/report-model';
 const readable = (value: string) => value.replaceAll('_', ' ');
 const number = (value: number) => String(value).padStart(2, '0');
 function observation(value: unknown) {
@@ -32,6 +32,7 @@ export function BuyerReportDocument({ model, className = '' }: { model: Proofpac
     const checks = model.summary.checks;
     const assessed = findings.filter((finding): finding is typeof finding & { severity: string } => finding.severity !== null);
     const unassessed = findings.filter(finding => finding.severity === null);
+    const informationalOnly = Boolean(checks && findings.length && findings.every(finding => finding.state === 'informational'));
     const displayedFindings = unassessed.length ? [...assessed, ...unassessed] : findings;
     const product = `${model.identity.productName} ${model.identity.productVersion}`;
     const severityOrder = ['critical', 'high', 'medium', 'low', 'informational'];
@@ -42,6 +43,7 @@ export function BuyerReportDocument({ model, className = '' }: { model: Proofpac
     }).slice(0, 3);
     const nextAction = priorities.length
         ? priorities[0].recommendation ?? 'Review the recorded finding with the responsible owner.'
+        : informationalOnly ? (gaps.length ? 'Arrange follow-up collection for the named gaps with the responsible operator.' : 'Retain these informational observations as context; they are not attention flags.')
         : unassessed.length ? 'Review the findings with the responsible owner. Their severity has not been assessed.'
             : gaps.length ? 'Arrange follow-up collection for the named gaps with the responsible operator.'
             : 'Review the scope and limitations with the responsible owner, then record their decision.';
@@ -58,7 +60,7 @@ export function BuyerReportDocument({ model, className = '' }: { model: Proofpac
             {checks ? <div className={styles.resultGrid} role="group" aria-label="Check outcomes">
                 <div><span>Needs attention</span><strong>{checks.needsAttention}</strong><small>Recorded check results</small></div>
                 <div><span>Informational</span><strong>{checks.informational}</strong><small>Recorded check results</small></div>
-                <div><span>Observations completed</span><strong>{complete} / {sections.length}</strong><small>Collected observations, not a security grade</small></div>
+                <div><span>Checks with collected evidence</span><strong>{complete} / {sections.length}</strong><small>Collection does not imply a determined outcome</small></div>
                 <div><span>Undetermined</span><strong>{checks.undetermined}</strong><small>Read the named limitations</small></div>
             </div> : <div className={styles.resultGrid}>
                 <div><span>{model.verification.label}</span><strong>Passed</strong><small>{model.verification.method}</small></div>
@@ -66,16 +68,16 @@ export function BuyerReportDocument({ model, className = '' }: { model: Proofpac
                 <div><span>Findings</span><strong>{findings.length}</strong><small>{[...counts.map(s => `${model.summary.findings.severities[s]} ${s}`), ...(unassessed.length ? [`${unassessed.length} severity not assessed`] : [])].join(' · ') || 'No findings recorded'}</small></div>
                 <div><span>Owner decision</span><strong>Not recorded</strong><small>Verification does not grant approval</small></div>
             </div>}
-            {checks && <p className={styles.fine} aria-label="Data validation and check summary">{model.verification.label}: Passed. {model.verification.method}. Recorded checks: {checks.total} total · {checks.passed} passed · {checks.needsAttention} need attention · {checks.informational} informational · {checks.undetermined} undetermined. These are individual results, not an overall security grade. Finding severities: {[...counts.map(s => `${model.summary.findings.severities[s]} ${s}`), ...(unassessed.length ? [`${unassessed.length} severity not assessed`] : [])].join(' · ') || 'No findings recorded'}.</p>}
+            {checks && <p className={styles.fine} aria-label="Data validation and check summary">{model.verification.label}: Passed. {model.verification.method}. Recorded checks: {checks.total} total · {checks.total - checks.undetermined} determined outcomes · {checks.passed} Clear · {checks.needsAttention} need attention · {checks.informational} informational · {checks.undetermined} undetermined. These are individual results, not an overall security grade. Finding severities: {[...counts.map(s => `${model.summary.findings.severities[s]} ${s}`), ...(unassessed.length ? [`${unassessed.length} severity not assessed`] : [])].join(' · ') || 'No findings recorded'}.</p>}
             {assessed.length > 0 || !unassessed.length ? <section className={styles.prioritySummary} aria-label="Priority findings">
                 <h3>Review first</h3>
                 <p className={styles.fine}>{unassessed.length ? 'Up to three severity-assessed findings by recorded severity. Unassessed findings are listed separately in chapter 03.' : 'Up to three findings by recorded severity. Full observations and limitations are in chapter 03.'}</p>
                 {priorities.length ? <ol>{priorities.map(finding => <li key={finding.id}><span>{readable(finding.severity)}</span><strong>{finding.title}</strong></li>)}</ol> : <p>No findings were recorded. This does not establish overall security.</p>}
             </section> : null}
-            {unassessed.length > 0 && <section className={styles.prioritySummary} aria-label="Unassessed findings"><h3>Severity not assessed</h3><p>{unassessed.length} {unassessed.length === 1 ? 'finding is' : 'findings are'} recorded without an assessed severity. {unassessed.length > 3 ? `Showing 3 of ${unassessed.length} in` : 'Shown in'} recorded order, not severity-ranked: {unassessed.slice(0, 3).map((finding, i) => <Fragment key={finding.id}>{i > 0 && '; '}<strong>{finding.title}</strong></Fragment>)}. Full observations and limitations are in chapter 03.</p></section>}
+            {unassessed.length > 0 && <section className={styles.prioritySummary} aria-label="Unassessed findings"><h3>{informationalOnly ? "Informational observations" : "Severity not assessed"}</h3>{informationalOnly && <p>These observations provide context, not attention flags. Severity has not been assessed.</p>}<p>{unassessed.length} {unassessed.length === 1 ? 'finding is' : 'findings are'} recorded without an assessed severity. {unassessed.length > 3 ? `Showing 3 of ${unassessed.length} in` : 'Shown in'} recorded order, not severity-ranked: {unassessed.slice(0, 3).map((finding, i) => <Fragment key={finding.id}>{i > 0 && '; '}<strong>{finding.title}</strong></Fragment>)}. Full observations and limitations are in chapter 03.</p></section>}
             <div className={styles.decisionSummary}>
                 <section aria-label="Summary collection gaps"><h3>Collection gaps</h3><p>{gaps.length ? gaps.map(g => readable(g.label)).join(', ') + '. Review these gaps before deciding whether to collect more evidence.' : 'No collection gaps were recorded.'}</p></section>
-                <section aria-label="Suggested next action"><h3>Suggested next action</h3><p>{nextAction}{(priorities.length > 0 || unassessed.length > 0) && gaps.length > 0 ? ' Also arrange follow-up collection for the named gaps.' : ''}</p><p className={styles.fine}>Agree any changes with the responsible owner. No remediation is established here.</p></section>
+                <section aria-label="Suggested next action"><h3>Suggested next action</h3><p>{nextAction}{!informationalOnly && (priorities.length > 0 || unassessed.length > 0) && gaps.length > 0 ? ' Also arrange follow-up collection for the named gaps.' : ''}</p><p className={styles.fine}>Agree any changes with the responsible owner. No remediation is established here.</p></section>
             </div>
             <p className={styles.callout}>{model.verification.boundary}</p>
             <p className={styles.fine}>This report is a derived presentation of the source evidence.</p>
@@ -90,13 +92,13 @@ export function BuyerReportDocument({ model, className = '' }: { model: Proofpac
             <p className={styles.callout}>{gaps.length ? `${gaps.length} collection ${gaps.length === 1 ? 'gap is' : 'gaps are'} recorded. See The proof boundary for the recorded limitations.` : 'All listed coverage items are complete. Completeness is a collection result, not a security grade.'}</p>
         </Chapter>
 
-        <Chapter product={product} number="03" label="THE FINDINGS" title={unassessed.length ? 'Recorded findings' : 'What needs attention?'}>
+        <Chapter product={product} number="03" label="THE FINDINGS" title={informationalOnly ? 'Informational observations' : unassessed.length ? 'Recorded findings' : 'What needs attention?'}>
             <p className={styles.lead}>{findings.length ? `${findings.length} recorded findings, with observations and proposed next steps.` : 'No findings were recorded.'}</p>
             <p className={styles.fine}>Recommendations are proposed follow-up work. No remediation is established by this report.</p>
             {displayedFindings.map((finding, i) => <Fragment key={finding.id}>
                 {unassessed.length > 0 && (i === 0 || i === assessed.length) && <h3>{finding.severity === null ? 'Severity not assessed' : 'Severity-assessed findings'}</h3>}
                 <section className={styles.finding}>
-                <div className={styles.findingMeta}><span>{number(i + 1)} / {number(findings.length)}</span>{finding.severity === null ? <span>Severity not assessed</span> : <span data-severity={finding.severity}>{readable(finding.severity)}</span>}<span>{readable(finding.state)}</span></div>
+                <div className={styles.findingMeta}><span>{number(i + 1)} / {number(findings.length)}</span>{finding.severity === null ? <span>{checks && finding.state === 'informational' ? 'Informational observation · severity not assessed' : 'Severity not assessed'}</span> : <span data-severity={finding.severity}>{readable(finding.severity)}</span>}<span>{readable(finding.state)}</span></div>
                 <h3>{finding.title}</h3>
                 <div className={styles.findingBody}><div><h4>Observed</h4><pre>{observation(finding.observation)}</pre></div><div><h4>Recommended next step</h4><p>{finding.recommendation ?? 'No recommended action recorded.'}</p></div></div>
                 {finding.interpretation && <div className={styles.findingLimit}><h4>Interpretation</h4><p>{finding.interpretation}</p></div>}

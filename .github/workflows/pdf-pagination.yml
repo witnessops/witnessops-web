@@ -13,6 +13,8 @@ on:
       - "apps/witnessops-web/src/app/globals.css"
       - "apps/witnessops-web/src/app/layout.tsx"
       - "packages/ui/tokens/witnessops.css"
+      - "packages/ui/src/witnessops-mark.tsx"
+      - "packages/ui/package.json"
       - "apps/witnessops-web/public/fonts/**"
       - "apps/witnessops-web/package.json"
       - "apps/witnessops-web/next.config.js"

@@ -1,0 +1,148 @@
+name: Authenticated app validation
+on:
+  pull_request:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: app-validation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  supply_chain_gate:
+    name: App Supply Chain Gate
+    uses: ./.github/workflows/supply-chain-gate.yml
+    with:
+      base_ref: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+    permissions:
+      contents: read
+  app:
+    needs: supply_chain_gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: app_test
+          POSTGRES_PASSWORD: disposable-ci-password
+          POSTGRES_DB: witnessops_test
+        ports: ['55432:5432']
+        options: >-
+          --health-cmd "pg_isready -U app_test -d witnessops_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: pnpm
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Frozen install
+        run: pnpm install --frozen-lockfile
+      - name: Verify and prepare accepted producer (no operator checkout)
+        run: |
+          python tests/publication/producer_identity_test.py
+          python tests/server-check/producer/prepare.py "$RUNNER_TEMP/accepted-producer"
+          echo "WOPS_TEST_PYTHON=$RUNNER_TEMP/accepted-producer/venv/bin/python" >> "$GITHUB_ENV"
+      - name: Prepare isolated database configuration
+        run: |
+          umask 077
+          printf '%s\n' 'TEST_DATABASE_URL=postgres://app_test:disposable-ci-password@127.0.0.1:55432/witnessops_test' > apps/witnessops-app/.env.test.local
+      - name: Full repository health (app, CLI, verifier, report, lint, types)
+        run: pnpm health
+      - name: Database, live admission, CLI auth and server-check tests
+        run: |
+          pnpm --filter @witnessops/app test:db
+          pnpm --filter @witnessops/app test:db:live
+          pnpm --filter @witnessops/app test:db:cli
+          pnpm --filter @witnessops/app test:db:server
+          node tests/publication/upgrade.mjs
+      - name: App browser, CLI authorization, Linux and PDF paths
+        run: |
+          pnpm exec playwright install --with-deps chromium webkit
+          pnpm test:app-browser
+      - name: Image parity and OCI regression
+        run: |
+          node --test deploy/aws/validate-phase3.test.mjs deploy/aws/verify-scan-evidence.test.mjs deploy/aws/validate-trivy-image.test.mjs
+          python3 deploy/aws/inspect-oci-image.test.py
+          python3 deploy/app/host/test_lifecycle.py
+          git diff --check
+  image:
+    needs: supply_chain_gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Enable OCI image loading on the ephemeral runner
+        run: |
+          sudo mkdir -p /etc/docker
+          sudo python3 -c 'import json,pathlib; p=pathlib.Path("/etc/docker/daemon.json"); c=json.loads(p.read_text()) if p.exists() else {}; c.setdefault("features", {})["containerd-snapshotter"]=True; p.write_text(json.dumps(c))'
+          sudo systemctl restart docker
+          docker info --format '{{json .DriverStatus}}' | grep -q io.containerd.snapshotter.v1
+      - name: Start disposable database after Docker configuration
+        run: |
+          docker run -d --name app-image-test-db -p 127.0.0.1:55432:5432 \
+            -e POSTGRES_USER=app_test -e POSTGRES_PASSWORD=disposable-ci-password \
+            -e POSTGRES_DB=witnessops_test --health-cmd='pg_isready -U app_test -d witnessops_test' \
+            --health-interval=2s --health-timeout=5s --health-retries=30 postgres:17
+          for attempt in $(seq 1 60); do
+            if [ "$(docker inspect --format '{{.State.Health.Status}}' app-image-test-db)" = healthy ]; then break; fi
+            sleep 1
+          done
+          test "$(docker inspect --format '{{.State.Health.Status}}' app-image-test-db)" = healthy
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - name: Build one app candidate from exact tracked source
+        run: |
+          mkdir -p "$RUNNER_TEMP/app-source" artifacts/app-validation
+          git archive HEAD > "$RUNNER_TEMP/app-source.tar"
+          source_hash=$(sha256sum "$RUNNER_TEMP/app-source.tar" | cut -d' ' -f1)
+          tar -xf "$RUNNER_TEMP/app-source.tar" -C "$RUNNER_TEMP/app-source"
+          docker buildx build --platform linux/amd64 --file "$RUNNER_TEMP/app-source/deploy/app/Dockerfile" \
+            --build-arg SOURCE_COMMIT="$(git rev-parse HEAD)" --build-arg SOURCE_DIRTY=false \
+            --build-arg BUILD_INPUT_SHA256="$source_hash" --provenance=false \
+            --output type=oci,dest=artifacts/app-validation/image.tar \
+            --metadata-file artifacts/app-validation/build.json "$RUNNER_TEMP/app-source"
+          python3 deploy/aws/inspect-oci-image.py artifacts/app-validation/image.tar > artifacts/app-validation/identity.json
+      - name: Independent exact-manifest Trivy (no suppression)
+        run: bash deploy/aws/scan-runtime-image.sh artifacts/app-validation/image.tar artifacts/app-validation
+      - name: Test exact scanned image with disposable authentication
+        run: |
+          pnpm install --frozen-lockfile
+          umask 077
+          printf '%s\n' 'TEST_DATABASE_URL=postgres://app_test:disposable-ci-password@127.0.0.1:55432/witnessops_test' > apps/witnessops-app/.env.test.local
+          docker load -i artifacts/app-validation/image.tar
+          config=$(node -p 'JSON.parse(require("fs").readFileSync("artifacts/app-validation/identity.json")).config_digest')
+          manifest=$(node -p 'JSON.parse(require("fs").readFileSync("artifacts/app-validation/identity.json")).image_digest')
+          test "$(docker inspect --format '{{.Id}}' "$manifest")" = "$manifest"
+          database_host=$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' app-image-test-db)
+          test -n "$database_host"
+          TEST_DATABASE_HOST="$database_host" TEST_IMAGE_ARCHIVE=artifacts/app-validation/image.tar TEST_IMAGE_REF="$manifest" TEST_IMAGE_CONFIG="$config" node --import ./apps/witnessops-web/scripts/register-server-only-test-stub.mjs --import tsx tests/publication/authenticated-image.mts | tee artifacts/app-validation/authenticated-runtime.json
+      - name: Preserve exact-image evidence (no publication/deployment)
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: app-image-validation
+          if-no-files-found: error
+          path: |
+            artifacts/app-validation/*.json
+      - name: Remove disposable database
+        if: always()
+        run: docker rm -f app-image-test-db
