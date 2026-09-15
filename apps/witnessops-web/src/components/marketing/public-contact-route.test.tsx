@@ -38,7 +38,7 @@ test("compact footer contact route exposes a clear primary action", () => {
   const html = renderToStaticMarkup(<PublicContactRoute compact />);
 
   assert.match(html, /data-public-contact-variant="footer"/);
-  assert.match(html, /What do you need help with\?/);
+  assert.match(html, /What needs checking\?/);
   assert.match(html, /We agree scope and price before work begins/);
   assert.match(html, /Scope a review/);
   assert.doesNotMatch(html, /Primary paid entry point|Fallback contact:/);
@@ -52,6 +52,16 @@ test("compact footer contact route exposes a clear primary action", () => {
   assert.match(html, /Or email:/);
   assert.match(html, /Do not send passwords/);
   assert.doesNotMatch(html, /No secrets/);
+});
+
+test("Polish compact footer preserves checking, scope and contact semantics", () => {
+  const html = renderToStaticMarkup(<PublicContactRoute locale="pl" compact />);
+
+  assert.match(html, /Co wymaga sprawdzenia\?/);
+  assert.match(html, /Zakres i cenę uzgodnimy przed rozpoczęciem pracy/);
+  assert.match(html, /href="\/pl\/review\/request"/);
+  assert.match(html, /Omów zakres przeglądu/);
+  assert.match(html, /Nie wysyłaj haseł/);
 });
 
 test("contact route preserves an explicitly selected offer request", () => {

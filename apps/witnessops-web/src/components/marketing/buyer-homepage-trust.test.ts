@@ -41,8 +41,21 @@ test("the sample-review link reaches a fictional review with evidence limits, no
   assert.doesNotMatch(html.slice(html.indexOf('id="sample-review"'), html.indexOf('aria-labelledby="buyer-preparation-heading"')), /VALID_SYNTHETIC_SPECIMEN|data-verdict="valid"/);
 });
 
-test("homepage leads with security and evidence while keeping repair accessible", () => {
-  assert.match(source, /Find security gaps in your AI and automation/);
+test("homepage leads with system-wide security verification while keeping repair accessible", () => {
+  assert.match(source, /Find security gaps in your systems/);
+  assert.match(source, /Security · Verification · Evidence/);
+  assert.match(source, /Verify what is exposed, what changed, what acted/);
+  assert.match(source, /What needs checking\?/);
+  assert.match(source, /See all review options/);
+  assert.match(source, /See how WitnessOps verifies/);
+  assert.match(source, /Describe the system and the security question/);
+  assert.match(source, /Proof bundle example/);
+  assert.match(source, /Przykład paczki dowodowej/);
+  assert.doesNotMatch(source, /Proofpack/);
+  const ownCase = readFileSync(resolve(__dirname, "own-system-case.tsx"), "utf8");
+  assert.match(ownCase, /recorded request details/);
+  assert.match(ownCase, /zapisane szczegóły żądań/);
+  assert.doesNotMatch(ownCase, /preserves the requests/);
   assert.match(source, /HeroGap/);
   assert.match(source, /buyerRequestHref\(locale\)/);
   assert.match(source, /\/catalog\/automation-repair/);

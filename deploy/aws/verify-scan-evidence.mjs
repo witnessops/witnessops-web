@@ -6,6 +6,8 @@ import { pathToFileURL } from "node:url";
 
 import { validateEcrScanFindings } from "./validate-ecr-scan-findings.mjs";
 
+import { validateTrivyImage } from "./validate-trivy-image.mjs";
+
 const REPOSITORY = "witnessops/witnessops-web";
 const REPOSITORY_ID = "1200448046";
 const REPOSITORY_OWNER_ID = "272034497";
@@ -44,6 +46,7 @@ const EVIDENCE_KEYS = [
   "source_commit",
   "source_tag",
   "total_findings",
+  "trivy_findings_sha256",
 ].sort();
 
 function assert(condition, message) {
@@ -116,7 +119,7 @@ export function validatePublicationRun(run, expected) {
 export function validateScanEvidence(evidence, expected) {
   validateExpected(expected);
   exactKeys(evidence, EVIDENCE_KEYS, "scan evidence");
-  assert(evidence.schema_version === 2, "scan evidence schema differs");
+  assert(evidence.schema_version === 3, "scan evidence schema differs");
   assert(evidence.repository === REPOSITORY, "scan evidence repository differs");
   assert(evidence.repository_id === REPOSITORY_ID, "scan evidence repository ID differs");
   assert(
@@ -160,6 +163,7 @@ export function validateScanEvidence(evidence, expected) {
     Number.isSafeInteger(evidence.total_findings) && evidence.total_findings >= 0,
     "scan evidence total findings is invalid",
   );
+  assert(/^sha256:[0-9a-f]{64}$/.test(evidence.trivy_findings_sha256), "Trivy hash is invalid");
   assert(evidence.critical_findings === 0, "scan evidence contains critical findings");
   assert(evidence.high_findings === 0, "scan evidence contains high findings");
   assert(evidence.scan_policy === SCAN_POLICY, "scan evidence policy differs");
@@ -171,7 +175,10 @@ export function validateEvidenceArtifacts(
   expected,
   scanFindingsBytes,
   manifestBytes,
+  trivyBytes,
 ) {
+  assert(trivyBytes && sha256(trivyBytes) === evidence.trivy_findings_sha256, "Trivy artifact hash differs");
+  validateTrivyImage(JSON.parse(trivyBytes.toString("utf8")), expected.configDigest);
   assert(
     sha256(scanFindingsBytes) === evidence.scan_findings_sha256,
     "scan findings artifact hash differs",
@@ -207,6 +214,7 @@ function parseArguments(values) {
     "--evidence",
     "--scan-findings",
     "--manifest",
+    "--trivy-findings",
     "--publication-run-id",
     "--publication-run-attempt",
     "--source-commit",
@@ -239,7 +247,7 @@ function main() {
   const manifestBytes = readFileSync(args["--manifest"]);
   validatePublicationRun(run, expected);
   validateScanEvidence(evidence, expected);
-  validateEvidenceArtifacts(evidence, expected, scanFindingsBytes, manifestBytes);
+  validateEvidenceArtifacts(evidence, expected, scanFindingsBytes, manifestBytes, readFileSync(args["--trivy-findings"]));
   process.stdout.write("AWS_PHASE3_SCAN_EVIDENCE_OK\n");
 }
 

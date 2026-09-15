@@ -27,7 +27,7 @@ export type BuyerPathSmokeResult = {
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "Security &amp; Verification for AI and Automation", "Find security gaps in your AI and automation.", "Fictional example · No system tested", "Approval not evidenced.", "Scope a review", "Restore a workflow"],
+    requiredMarkers: ["WitnessOps", "Security Verification &amp; Evidence", "Find security gaps in your systems.", "Fictional example · No system tested", "Approval not evidenced.", "Scope a review", "Verify or repair a workflow"],
     prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500"],
   },
   {
@@ -365,7 +365,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   },
   {
     path: "/pl",
-    requiredMarkers: ["Znajdź luki w bezpieczeństwie AI i automatyzacji.", "Sprawdź działanie AI", "Przywróć działanie procesu", "Fikcyjny przykład · Nie testowano systemu", "Omów zakres przeglądu"],
+    requiredMarkers: ["Znajdź luki w bezpieczeństwie swoich systemów.", "Zweryfikuj działanie AI", "Zweryfikuj lub napraw proces", "Fikcyjny przykład · Nie testowano systemu", "Omów zakres przeglądu"],
     prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "Agent Risk &amp; Control Review", "€1 500"],
   },
   {

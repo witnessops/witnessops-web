@@ -81,7 +81,7 @@ export function PublicContactRoute({
           className="text-sm font-semibold uppercase tracking-[0.14em] text-text-primary"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {polish ? "W czym możemy pomóc?" : "What do you need help with?"}
+          {polish ? "Co wymaga sprawdzenia?" : "What needs checking?"}
         </p>
         <p className="mt-2 text-sm leading-6 text-text-secondary">
           {polish

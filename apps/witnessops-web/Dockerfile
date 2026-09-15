@@ -6,7 +6,9 @@ FROM ${NODE22_RUNTIME_IMAGE} AS runtime
 ARG GWS_VERSION
 ARG GWS_TARGET
 ARG GWS_SHA256
-RUN apk add --no-cache libc6-compat ca-certificates curl \
+# The pinned Node base still carries OpenSSL 3.5.7. Exact package constraints
+# fail closed if these patched versions are unavailable; never use apk upgrade.
+RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0 libc6-compat ca-certificates curl \
   && curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
     "https://github.com/googleworkspace/cli/releases/download/v${GWS_VERSION}/google-workspace-cli-${GWS_TARGET}.tar.gz" \
     --output /tmp/gws.tar.gz \
@@ -14,7 +16,10 @@ RUN apk add --no-cache libc6-compat ca-certificates curl \
   && tar -xzf /tmp/gws.tar.gz -C /tmp \
   && install -m 0755 /tmp/gws /usr/local/bin/gws \
   && rm -f /tmp/gws.tar.gz /tmp/gws \
-  && apk del curl
+  && apk del curl \
+  && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
+  && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+    /usr/local/bin/pnpm /usr/local/bin/pnpx /usr/local/bin/yarn /usr/local/bin/yarnpkg
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0

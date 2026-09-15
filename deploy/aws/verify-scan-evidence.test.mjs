@@ -8,6 +8,9 @@ import {
   validateScanEvidence,
 } from "./verify-scan-evidence.mjs";
 
+function validTrivyBytes() {
+ return Buffer.from(JSON.stringify({SchemaVersion:2,ArtifactType:"container_image",Metadata:{ImageID:configDigest,ImageConfig:{architecture:"amd64",os:"linux"}},Results:[{Class:"os-pkgs",Type:"alpine"},{Class:"lang-pkgs",Type:"node-pkg"}]}));
+}
 const configDigest = `sha256:${"c".repeat(64)}`;
 const manifestBytes = Buffer.from(
   JSON.stringify({ schemaVersion: 2, config: { digest: configDigest }, layers: [] }),
@@ -65,7 +68,8 @@ function validScanFindingsBytes() {
 
 function validEvidence(scanFindingsBytes = validScanFindingsBytes()) {
   return {
-    schema_version: 2,
+    schema_version: 3,
+    trivy_findings_sha256: `sha256:${createHash("sha256").update(validTrivyBytes()).digest("hex")}`,
     repository: "witnessops/witnessops-web",
     repository_id: "1200448046",
     repository_owner_id: "272034497",
@@ -98,7 +102,7 @@ test("exact successful publication run and scan evidence are accepted", () => {
   assert.equal(validatePublicationRun(validRun(), expected), true);
   assert.equal(validateScanEvidence(evidence, expected), true);
   assert.equal(
-    validateEvidenceArtifacts(evidence, expected, scanFindingsBytes, manifestBytes),
+    validateEvidenceArtifacts(evidence, expected, scanFindingsBytes, manifestBytes, validTrivyBytes()),
     true,
   );
 });
@@ -132,7 +136,7 @@ test("exact enhanced scan evidence is accepted", () => {
   };
   assert.equal(validateScanEvidence(evidence, expected), true);
   assert.equal(
-    validateEvidenceArtifacts(evidence, expected, scanFindingsBytes, manifestBytes),
+    validateEvidenceArtifacts(evidence, expected, scanFindingsBytes, manifestBytes, validTrivyBytes()),
     true,
   );
 });
@@ -194,7 +198,7 @@ test("a tampered scan-findings artifact is rejected", () => {
   const evidence = validEvidence(scanFindingsBytes);
   const tampered = Buffer.from(scanFindingsBytes.toString("utf8").replace("COMPLETE", "FAILED"));
   assert.throws(
-    () => validateEvidenceArtifacts(evidence, expected, tampered, manifestBytes),
+    () => validateEvidenceArtifacts(evidence, expected, tampered, manifestBytes, validTrivyBytes()),
     /artifact hash differs/,
   );
 });
@@ -221,7 +225,16 @@ test("a manifest artifact with a different config digest is rejected", () => {
   );
   changedEvidence.scan_findings_sha256 = `sha256:${createHash("sha256").update(changedScan).digest("hex")}`;
   assert.throws(
-    () => validateEvidenceArtifacts(changedEvidence, changedExpected, changedScan, wrongManifest),
+    () => validateEvidenceArtifacts(changedEvidence, changedExpected, changedScan, wrongManifest, validTrivyBytes()),
     /config digest differs/,
   );
 });
+
+ test("deployment rejects missing or swapped independent scan", () => {
+   const evidence=validEvidence();
+   assert.throws(()=>validateEvidenceArtifacts(evidence,expected,validScanFindingsBytes(),manifestBytes),/Trivy/);
+   assert.throws(()=>validateEvidenceArtifacts(evidence,expected,validScanFindingsBytes(),manifestBytes,Buffer.from("{}")),/Trivy/);
+ });
+ test("legacy ECR-only evidence cannot authorize a new deployment",()=>{
+   const evidence=validEvidence();evidence.schema_version=2;assert.throws(()=>validateScanEvidence(evidence,expected),/schema/);
+ });

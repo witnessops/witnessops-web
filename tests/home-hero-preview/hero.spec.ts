@@ -26,10 +26,10 @@ test.beforeEach(async ({ page, baseURL }) => {
 
 async function expectSharedCopy(page: Page) {
   await expect(page.locator('[data-ui-proof-id="homepage-hero-headline"]')).toHaveText(
-    "Find security gaps in your AI and automation.",
+    "Find security gaps in your systems.",
   );
   await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toHaveText(
-    "For product and operations teams whose AI and automations change records, move money or control access. Understand the risks, inspect the evidence and decide what to fix.",
+    "Verify what is exposed, what changed, what acted, and what the evidence actually supports.",
   );
   const primary = page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]');
   await expect(primary).toHaveText("Scope a review");
@@ -179,7 +179,7 @@ for (const viewport of viewports) {
       expect(measurements.sample!.y).toBeGreaterThanOrEqual(measurements.figure!.y + measurements.figure!.height);
       await expect(page.locator('[data-ui-proof-id="homepage-hero-mobile-body"]')).toBeVisible();
       await expect(page.locator('[data-ui-proof-id="homepage-hero-body"]')).toBeHidden();
-      await expect(page.getByText("Permissions", { exact: true }).first()).toBeHidden();
+      await expect(page.getByText("Exposure", { exact: true }).first()).toBeHidden();
       for (const row of await figure.locator("dl > div").all()) {
         const term = await row.locator("dt").boundingBox();
         const description = await row.locator("dd").boundingBox();
@@ -246,7 +246,7 @@ test("Polish homepage keeps its localized copy and Gap labels readable", async (
   await expect(figure).toContainText(/4[\s,.]?800/);
   await expect(figure).toContainText(/zatwierdzen/i);
   await expect(page.locator('[data-ui-proof-id="homepage-hero-headline"]'))
-    .toHaveText("Znajdź luki w bezpieczeństwie AI i automatyzacji.");
+    .toHaveText("Znajdź luki w bezpieczeństwie swoich systemów.");
   await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]'))
     .toHaveAttribute("href", "/pl/review/request");
   await expectRefinedStructure(figure, 390);

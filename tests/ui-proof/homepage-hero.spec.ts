@@ -232,7 +232,7 @@ test("English and Polish homepages share the security identity and neutral enqui
       await expect(page.locator("[data-review-finding]")).toContainText(/No system tested|Nie testowano systemu/);
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
       await expect(page.locator(`main a[href="${path === "/pl" ? "/pl" : ""}/catalog/automation-repair"]`)).toHaveCount(1);
-      await expect(page.locator("#how-it-works")).toContainText(path === "/" ? "Agree the boundary" : "Uzgodnij zakres");
+      await expect(page.locator("#how-it-works")).toContainText(path === "/" ? "Agree the boundary" : "Uzgodnij granicę");
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(1);
       await context.close();

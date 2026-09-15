@@ -125,13 +125,13 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
   assert.equal(results[0]?.ok, true);
 });
 
-test("homepage contracts preserve security positioning and fictional-evidence labels", () => {
+test("homepage contracts preserve broad security positioning and fictional-evidence labels", () => {
   const english = routeContract("/");
-  assert.ok(english.requiredMarkers.includes("Find security gaps in your AI and automation."));
-  assert.ok(english.requiredMarkers.includes("Restore a workflow"));
+  assert.ok(english.requiredMarkers.includes("Find security gaps in your systems."));
+  assert.ok(english.requiredMarkers.includes("Verify or repair a workflow"));
   assert.ok(english.requiredMarkers.includes("Fictional example · No system tested"));
   const polish = routeContract("/pl");
-  assert.ok(polish.requiredMarkers.includes("Sprawdź działanie AI"));
+  assert.ok(polish.requiredMarkers.includes("Zweryfikuj działanie AI"));
   assert.ok(polish.requiredMarkers.includes("Fikcyjny przykład · Nie testowano systemu"));
 });
 
