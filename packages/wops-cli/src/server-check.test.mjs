@@ -52,3 +52,29 @@ test('exact fixed authority window is preserved and a retry cannot replace it',a
  const later=new Date(Date.parse(end)+1000).toISOString().replace('.000Z','Z');await assert.rejects(serverCheck(['server','check','--starts-at',start,'--ends-at',later],h.options),/differs from retained/);
  await serverCheck(['server','check','--starts-at',start,'--ends-at',end],h.options);assert.equal(h.counts().captures,1);assert.equal(h.counts().uploads,1);
 });
+
+
+test('real HTTP response timeout aborts the socket and retry preserves upload identity', async () => {
+ const {createServer}=await import('node:http');
+ const h=harness(),original=h.options.fetch;let uploadClosed=false,first=true;const ids=[];
+ const server=createServer(async(req,res)=>{
+  const chunks=[];for await(const chunk of req)chunks.push(chunk);
+  const init={method:req.method,headers:Object.fromEntries(Object.entries(req.headers).map(([k,v])=>[k==='x-witnessops-execution'?'X-WitnessOps-Execution':k,v]))};
+  if(req.url.endsWith('server-check-capture')){ids.push(req.headers['x-witnessops-execution']);}
+  const response=await original('http://fixture'+req.url,init);
+  if(req.url.endsWith('server-check-capture')&&first){first=false;res.on('close',()=>{uploadClosed=true;});return;}
+  res.writeHead(response.status,{'Content-Type':'application/json'});res.end(await response.text());
+ });
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const origin='http://127.0.0.1:'+server.address().port;
+ h.options.local.readOriginAuth=async()=>({server:origin,credential:'s'.repeat(43)});
+ // Replace only the clock signal in the test adapter; real fetch/body/socket cancellation is retained.
+ h.options.fetch=(url,init)=>fetch(url,{...init,signal:AbortSignal.timeout(5000)});
+ try {
+  const start=Date.now();await assert.rejects(serverCheck(['server','check'],h.options),/reconcile/);
+  assert(Date.now()-start>=4500&&Date.now()-start<10000);
+  await new Promise(resolve=>setTimeout(resolve,100));assert.equal(uploadClosed,true);
+  await serverCheck(['server','check'],h.options);
+  assert.deepEqual(ids,[uuid]);assert.equal(h.counts().captures,1);assert.equal(h.counts().uploads,1);assert.equal(h.counts().finalizes,1);
+ } finally {server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
+});

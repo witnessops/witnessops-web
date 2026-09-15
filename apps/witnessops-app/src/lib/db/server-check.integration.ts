@@ -87,3 +87,35 @@ test('qualified listener policy round-trips unchanged and shares producer matchi
  const distinct=listeners('tcp://[fe80::1%eth0]:53,tcp://[fe80::1%ETH0]:53');
  await store.authorize(token,{...request(),expectedListeners:distinct});
 });
+
+test('real HTTP lost upload acknowledgement reconciles the same execution and one run',async()=>{
+ const {createServer}=await import('node:http');
+ const {serverCheck}=await import('../../../../../packages/wops-cli/src/server-check.mjs');
+ const token=await credential(),files=new Map<string,Buffer>();let captures=0,drop=true,closed=false;
+ const count=async(table:string)=>Number((await pool.query(`SELECT count(*) FROM ${table}`)).rows[0].count);
+ const beforeExecutions=await count('server_check_executions'),beforeRuns=await count('runs');
+ let origin='';
+ const server=createServer(async(req,res)=>{
+  const request=new Request(origin+req.url,{method:req.method,headers:req.headers,
+   ...(req.method==='POST'?{body:req,duplex:'half'}:{})} as unknown as RequestInit);
+  const response=await service(request,req.url?.endsWith('/server-check-capture'));
+  if(req.url?.endsWith('/server-check-capture')&&drop&&response.ok){drop=false;res.on('close',()=>{closed=true;});return;}
+  res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));
+ });
+ await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const address=server.address();assert(address&&typeof address!=='string');origin='http://127.0.0.1:'+address.port;
+ const service=createServerCheckService(store,origin);
+ const options={hostname:'demo-host',output:()=>{},remove:async(f:string)=>{files.delete(f);},
+  ask:async(q:string)=>q.startsWith('Reason')?'Timeout test':q.startsWith('Intended SSH')?'private':q.startsWith('Intended listener')?'tcp://127.0.0.1:22':'y',
+  fetch:(url:string,init:RequestInit)=>fetch(url,{...init,signal:AbortSignal.timeout(5000)}),
+  local:{originatingUid:()=>1000,readOriginAuth:async()=>({server:origin,credential:token}),trustedRuntime:()=>finalizer.preflight(),privateDirectory:async()=>{},
+   privateRead:async(f:string)=>files.get(f)??null,privateWrite:async(f:string,b:string)=>{files.set(f,Buffer.from(b));},
+   lock:async(_d:string,action:()=>Promise<number>)=>action(),capture:async(a:unknown,d:string)=>{captures++;files.set(d+'/capture.json',await frozen(a,true));}}};
+ try{
+  await assert.rejects(serverCheck(['server','check'],options),/reconcile/);
+  await new Promise(resolve=>setTimeout(resolve,100));assert.equal(closed,true);
+  assert.equal(await count('server_check_executions'),beforeExecutions+1);assert.equal(await count('runs'),beforeRuns);
+  await serverCheck(['server','check'],options);
+  assert.equal(captures,1);assert.equal(await count('server_check_executions'),beforeExecutions+1);assert.equal(await count('runs'),beforeRuns+1);
+ }finally{server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));}
+});

@@ -19,8 +19,9 @@ export function createServerCheckService(store:ServerCheckStore,origin:string){l
   if(request.headers.get('content-type')!=='application/json'||request.headers.has('content-encoding'))throw new CliError('invalid_request');
   await store.authenticate(credential);
   const reader=request.body?.getReader();if(!reader)throw new CliError('invalid_request');const chunks:Uint8Array[]=[];let size=0;
-  let timedOut=false;const timer=setTimeout(()=>{timedOut=true;void reader.cancel();},10_000);
-  try{for(;;){const part=await reader.read();if(timedOut)throw new CliError('upload_timeout',408);if(part.done)break;size+=part.value.length;if(size>(upload?MAX_CAPTURE:32_768))throw new CliError('too_large',413);chunks.push(part.value);}}finally{clearTimeout(timer);await reader.cancel();}
+  let timer:ReturnType<typeof setTimeout>;
+  const deadline=new Promise<never>((_resolve,reject)=>{timer=setTimeout(()=>{reject(new CliError('upload_timeout',408));void reader.cancel().catch(()=>undefined);},10_000);});
+  try{for(;;){const part=await Promise.race([reader.read(),deadline]);if(part.done)break;size+=part.value.length;if(size>(upload?MAX_CAPTURE:32_768))throw new CliError('too_large',413);chunks.push(part.value);}}finally{clearTimeout(timer!);void reader.cancel().catch(()=>undefined);}
   const bytes=Buffer.concat(chunks);
   if(upload)return Response.json(await store.upload(credential,request.headers.get('X-WitnessOps-Execution')??'',bytes,request.headers.get('X-WitnessOps-Capture-SHA256')??''),{headers});
   const raw=bytes.toString('utf8');if(findDuplicateJsonObjectKey(raw)!==null)throw new CliError('invalid_request');return Response.json(await store.authorize(credential,JSON.parse(raw)),{headers,status:201});

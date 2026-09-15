@@ -82,4 +82,14 @@ class Lifecycle(unittest.TestCase):
                  patch.object(m,'call',side_effect=[None,RuntimeError('database down')]):
                 with self.assertRaises(RuntimeError):m.preflight(IMAGE)
 
+    def test_finalizer_mounts_are_durable_and_key_read_only(self):
+        args=m.run_args(IMAGE)
+        self.assertIn('--mount=type=bind,source=/var/lib/witnessops-finalizer,destination=/var/lib/witnessops-finalizer',args)
+        self.assertIn('--mount=type=bind,source=/etc/witnessops-app/finalizer-key,destination=/run/witnessops-finalizer/key,ro=true',args)
+        check=m.run_args(IMAGE,readiness=True)
+        self.assertIn('--network=none',check)
+        self.assertIn('--entrypoint=/opt/witnessops/finalizer/venv/bin/python',check)
+        self.assertEqual(check[-2:],['-I','/opt/witnessops/finalizer-readiness.py'])
+        self.assertNotIn('--rm',args)
+
 if __name__=='__main__':unittest.main()

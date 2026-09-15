@@ -73,6 +73,7 @@ jobs:
         run: |
           node --test deploy/aws/validate-phase3.test.mjs deploy/aws/verify-scan-evidence.test.mjs deploy/aws/validate-trivy-image.test.mjs
           python3 deploy/aws/inspect-oci-image.test.py
+          python3 deploy/app/host/test_lifecycle.py
           git diff --check
   image:
     needs: supply_chain_gate

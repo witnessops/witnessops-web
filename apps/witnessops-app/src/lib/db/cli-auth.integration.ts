@@ -34,7 +34,7 @@ beforeEach(async()=>{
 after(async()=>{await pool?.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.end();});
 async function authorize(w=web,id=user.id,ws=workspace){const login=await store.create();await store.bind(w,{code:login.userCode,workspaceId:ws,displayedUserId:id,action:'authorize'});return login;}
 async function issued(){const data=await store.poll((await authorize()).device);assert.equal(data.state,'active');return data.credential;}
-const rejectsCode=async(action:Promise<unknown>,code:string)=>assert.rejects(action,(error:unknown)=>error instanceof CliError&&error.code===code);
+const rejectsCode=async(action:Promise<unknown>,code:string)=>assert.rejects(action,(error:unknown)=>error instanceof CliError && error.code === code);
 test('creation: unique 256-bit device secrets, 48-bit codes, hashes only, bounded issuance',async()=>{
  const all=await Promise.all(Array.from({length:30},()=>store.create()));assert.equal(new Set(all.map(x=>x.device)).size,30);assert.equal(new Set(all.map(x=>x.userCode)).size,30);
  const rows=JSON.stringify((await pool.query('SELECT * FROM cli_login_transactions')).rows);for(const x of all){assert.equal(x.device.length,43);assert.ok(!rows.includes(x.device));assert.ok(!rows.includes(x.userCode));}

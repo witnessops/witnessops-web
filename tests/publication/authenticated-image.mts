@@ -71,6 +71,15 @@ async function login(subject:string){
  return session.split(';')[0];
 }
 try {
+ const custodyVolume='finalizer-custody-'+randomUUID(),keyVolume='finalizer-key-'+randomUUID();
+ try {
+  for(const volume of [custodyVolume,keyVolume])execFileSync(docker,['volume','create',volume],{stdio:'pipe'});
+  const mounts=['--mount',`type=volume,source=${custodyVolume},target=/var/lib/witnessops-finalizer`,'--mount',`type=volume,source=${keyVolume},target=/run/witnessops-finalizer`];
+  execFileSync(docker,['run','--rm','--network=none','--user=0',...mounts,'--entrypoint=/bin/sh',image!, '-c', 'printf disposable-readiness-reference > /run/witnessops-finalizer/key; chown -R 1001:1001 /var/lib/witnessops-finalizer /run/witnessops-finalizer; chmod 700 /var/lib/witnessops-finalizer /run/witnessops-finalizer; chmod 400 /run/witnessops-finalizer/key'],{stdio:'pipe'});
+  const check=['run','--rm','--network=none','--read-only','--user=1001:1001',...mounts,'-e','WITNESSOPS_FINALIZER_PYTHON=/opt/witnessops/finalizer/venv/bin/python','-e','WITNESSOPS_FINALIZER_DIRECTORY=/var/lib/witnessops-finalizer','-e','WITNESSOPS_FINALIZER_KEY=/run/witnessops-finalizer/key','-e','WITNESSOPS_FINALIZER_SIGNER=witnessops_local_audit_prod_2026_01','--entrypoint=/opt/witnessops/finalizer/venv/bin/python',image!,'-I','/opt/witnessops/finalizer-readiness.py'];
+  for(let restart=0;restart<2;restart++)assert.equal(JSON.parse(execFileSync(docker,check,{encoding:'utf8'})).runtime,'ready');
+  assert.throws(()=>execFileSync(docker,['run','--rm','--network=none','--entrypoint=/opt/witnessops/finalizer/venv/bin/python',image!,'-I','/opt/witnessops/finalizer-readiness.py'],{stdio:'pipe'}));
+ } finally {for(const volume of [custodyVolume,keyVolume])execFileSync(docker,['volume','rm',volume],{stdio:'pipe'});}
  await admin.query(`CREATE SCHEMA ${schema}`);pool=new Pool({connectionString:dbUrl,options:`-c search_path=${schema},public`,max:4});await migrate(pool);
  const issuer='https://api.workos.com/user_management/client_image';
  const users=[];for(const subject of ['user_owner','user_viewer','user_foreign']){const u=await resolveIdentity(pool,{provider:'workos',issuer,subject,email:subject+'@example.test',displayName:subject});await pool.query("UPDATE users SET early_access_state='active' WHERE id=$1",[u.id]);users.push(u);}
