@@ -103,28 +103,30 @@ class WorkflowContractTests(unittest.TestCase):
             self.assertRegex(verify, r"needs:\s+(?:build|\[[^\]]*\bbuild\b[^\]]*\])")
             self.assertIn("EXPECTED_IMAGE_ARCHIVE_SHA256", verify)
             self.assertIn("sha256sum -c -", verify)
-            self.assertIn("manifest.json", verify)
+            self.assertIn("node deploy/ghcr/evidence.mjs candidate", verify)
+            self.assertIn("node deploy/ghcr/scan.mjs", verify)
             self.assertIn("verified-image", verify)
 
             self.assertRegex(
                 publish,
                 r"needs:\s+\[[^\]]*\bverify_artifact\b[^\]]*\]",
             )
-            self.assertNotIn("actions/checkout@", publish)
+            self.assertIn("ref: ${{ github.workflow_sha }}", publish)
+            self.assertIn("sparse-checkout:", publish)
             self.assertNotRegex(publish, r"(?m)^\s+environment:\s*")
             self.assertNotIn("${{ secrets.", publish)
             self.assertNotRegex(publish, r"(?m)^\s+run:\s+(?:npm|pnpm|yarn|bun)\b")
             self.assertNotRegex(publish, r"(?m)^\s+run:\s+docker\s+run\b")
             self.assertNotIn("pnpm --filter witnessops-web", publish)
             self.assertNotIn("docker buildx build", publish)
-            self.assertIn("docker load --input", publish)
+            self.assertIn("node deploy/ghcr/publish.mjs stage", publish)
             self.assertIn("VERIFIED_IMAGE_ARCHIVE_SHA256", publish)
-            self.assertIn("sha256sum -c -", publish)
+            self.assertIn("node deploy/ghcr/evidence.mjs verify", publish)
             self.assertIn("verified-image", publish)
 
             build = job_section(workflow, "build")
             self.assertIn("docker buildx build", build)
-            self.assertIn("type=docker,dest=", build)
+            self.assertIn("type=oci,dest=", build)
 
     def test_pull_requests_and_main_pushes_validate_without_publish_authority(self) -> None:
         publish = job_section(self.build_image, "publish")

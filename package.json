@@ -11,7 +11,7 @@
     "build": "pnpm --filter witnessops-web build",
     "lint": "pnpm --filter witnessops-web lint",
     "typecheck": "pnpm --filter witnessops-web typecheck",
-    "test": "pnpm --filter witnessops-web test && pnpm --filter @witnessops/proof test && pnpm ticket-triage:test && pnpm route-parity && pnpm receipt-smoke && pnpm smoke:buyer-path:test && pnpm verify:public-seo:test && pnpm deploy:aws:test && pnpm app:test && pnpm cli:test",
+    "test": "pnpm --filter witnessops-web test && pnpm --filter @witnessops/proof test && pnpm ticket-triage:test && pnpm route-parity && pnpm receipt-smoke && pnpm smoke:buyer-path:test && pnpm verify:public-seo:test && pnpm deploy:aws:test && pnpm deploy:ghcr:test && pnpm app:test && pnpm cli:test",
     "health": "pnpm --filter witnessops-web build && pnpm --filter witnessops-web lint && pnpm --filter witnessops-web typecheck && pnpm ticket-triage:typecheck && pnpm test && pnpm docs:validate && pnpm signals:validate && pnpm app:build && pnpm --filter @witnessops/app lint && pnpm --filter @witnessops/app typecheck",
     "health:node22": "bash scripts/health-on-node22.sh",
     "health:node22:goal0": "bash scripts/health-on-node22-goal0.sh",
@@ -60,7 +60,8 @@
     "app:build": "pnpm --filter @witnessops/app build",
     "app:test": "pnpm --filter @witnessops/app test",
     "test:app-browser": "playwright test --config tests/app-foundation/playwright.config.ts",
-    "cli:test": "pnpm --filter @witnessops/cli test"
+    "cli:test": "pnpm --filter @witnessops/cli test",
+    "deploy:ghcr:test": "node --test deploy/ghcr/*.test.mjs && node --test deploy/aws/validate-trivy-image.test.mjs && python3 deploy/aws/inspect-oci-image.test.py"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
