@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Request } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
@@ -15,6 +15,18 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     const state = () => ({ user, workspaces: ws ? [{ id: ws.id, name: ws.name, slug: ws.slug, role: ws.role }] : [], workspace: ws });
     const errors: string[] = [];
     page.on("pageerror", e => errors.push(e.message));
+    // Hard navigation can cancel WebKit's intercepted activity responses. Wait
+    // for those fixture requests to finish rather than ignoring browser errors.
+    const activity = new Set<Request>();
+    page.on("request", request => {
+      if (["/api/feedback", "/api/events"].includes(new URL(request.url()).pathname)) activity.add(request);
+    });
+    page.on("requestfinished", request => activity.delete(request));
+    page.on("requestfailed", request => activity.delete(request));
+    const settleActivity = async () => {
+      await expect.poll(() => activity.size, { message: "Activity fixture requests must settle before navigation" }).toBe(0);
+    };
+    const open = async (path: string) => { await settleActivity(); await page.goto(path); };
     await page.route("**/api/**", async route => {
       const request = route.request(), path = new URL(request.url()).pathname;
       if (path === "/api/feedback" && request.method() === "GET") return route.fulfill({ json: [] });
@@ -38,7 +50,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       }
       throw new Error(`Unexpected API path: ${path}`);
     });
-    await page.goto("/");
+    await open("/");
     await page.evaluate(() => document.fonts.ready);
     expect(await page.locator("body").evaluate(node => getComputedStyle(node).fontFamily)).toContain("sans-serif");
     await page.screenshot({ path: info.outputPath("welcome-viewport.png") });
@@ -71,7 +83,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     expect(requests).toEqual([{ assetId: "hostname-asset", authorized: true }]);
     await expect(page.locator(".observations > li")).toHaveCount(10);
     await expect(page.getByRole("region", { name: "Observation summary" })).toBeVisible();
-    await page.goto("/assets/hostname-asset");
+    await open("/assets/hostname-asset");
     await expect(page.getByRole("heading", { name: "Recorded result", exact: true })).toBeInViewport();
     await page.screenshot({ path: info.outputPath("completed-asset.png"), fullPage: true });
     await page.screenshot({ path: info.outputPath("completed-asset-viewport.png") });
@@ -89,14 +101,14 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.getByText("Raw source observation", { exact: true }).click();
     await expect(page.locator("pre")).toHaveText(JSON.stringify(source.checks.find(check => check.check_id === "tls.certificate.v1")!.observation, null, 2));
     await page.screenshot({ path: info.outputPath("observation-provenance.png"), fullPage: true });
-    await page.goto("/runs/run-1");
+    await open("/runs/run-1");
     await page.getByText("Method and source evidence", { exact: true }).click();
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("button", { name: "Download source JSON", exact: true }).click();
     const download = await downloadPromise, file = await download.path();
     expect(readFileSync(file!, "utf8")).toBe(canonicalSource(source));
     const firstSource = canonicalSource(ws!.runs[0]);
-    await page.goto("/assets/hostname-asset");
+    await open("/assets/hostname-asset");
     await expect(page.getByRole("button", { name: "Run again", exact: true })).toBeDisabled();
     await page.getByRole("checkbox", { name: "I own this hostname or am authorized to check it.", exact: true }).check();
     await page.getByRole("button", { name: "Run again", exact: true }).click();
@@ -127,13 +139,14 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await expect(printRoot).not.toContainText("Acme Owner");
     await page.getByRole("link", { name: "← Open observation", exact: true }).click();
     await expect(printRoot).toHaveCount(0);
-    await page.goto("/reports"); await expect(page.locator("main .ledger > li")).toHaveCount(2);
-    await page.goto("/runs/run-1"); await expect(page.locator("main")).toContainText("First observation");
-    await page.goto("/members"); await expect(page.locator("main")).toContainText("Acme Owner");
-    await page.goto("/settings");
+    await open("/reports"); await expect(page.locator("main .ledger > li")).toHaveCount(2);
+    await open("/runs/run-1"); await expect(page.locator("main")).toContainText("First observation");
+    await open("/members"); await expect(page.locator("main")).toContainText("Acme Owner");
+    await open("/settings");
     await expect(page.getByRole("button", { name: "Sign out", exact: true })).toBeVisible();
     await expect(page.locator("main")).toContainText("Your workspace, assets and runs remain saved.");
-    await page.reload(); await expect(page.locator("main")).toContainText("Acme Ltd");
+    await settleActivity(); await page.reload(); await expect(page.locator("main")).toContainText("Acme Ltd");
+    await settleActivity();
     expect(requests).toHaveLength(2); expect(errors).toEqual([]);
   });
 }
