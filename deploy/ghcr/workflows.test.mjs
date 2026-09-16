@@ -54,6 +54,8 @@ for (const name of ['build-image', 'release']) test(`${name}: independent gate a
     assert.ok(publish.indexOf('Verify remote main and the release tag') < positions[1]);
     assert.match(publish, /CONSUMER_TAGS: .*stable/);
   } else {
+    assert.match(build, /ref: \$\{\{ github.sha \}\}/);
+    assert.doesNotMatch(build, /ref: \$\{\{ needs.supply_chain_gate.outputs.commit_sha/);
     assert.match(publish, /if: github.event_name == 'workflow_dispatch' && github.ref == 'refs\/heads\/main'/);
     for (const path of ['deploy/ghcr/**', 'deploy/aws/**', '.github/workflows/release.yml']) assert.ok(workflow.includes(path));
   }
