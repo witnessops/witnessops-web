@@ -45,12 +45,12 @@ jobs:
         run: |
           case "${EVENT_NAME}" in
             push)
-              [[ "${PUSH_BEFORE}" =~ ^[0-9a-f]{40}$ ]]
-              [[ "${PUSH_BEFORE}" != '0000000000000000000000000000000000000000' ]]
+              [[ "${PUSH_BEFORE}" =~ ^[0-9a-f]{40}$ ]] || exit 1
+              [[ "${PUSH_BEFORE}" != '0000000000000000000000000000000000000000' ]] || exit 1
               comparison_base="${PUSH_BEFORE}"
               ;;
             workflow_dispatch)
-              [[ "${EVENT_SHA}" =~ ^[0-9a-f]{40}$ ]]
+              [[ "${EVENT_SHA}" =~ ^[0-9a-f]{40}$ ]] || exit 1
               comparison_base="${EVENT_SHA}^"
               ;;
             *)
