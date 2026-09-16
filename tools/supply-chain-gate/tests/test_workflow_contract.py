@@ -337,7 +337,8 @@ class PublicTestAdmissionContracts(unittest.TestCase):
                 for section in (gate, job.split("    steps:")[0]):
                     self.assertNotRegex(section, r"(?m)^    (if|continue-on-error):")
                 self.assertIn(f"name: {name}", job)
-                self.assertIn("ref: ${{ needs.supply_chain_gate.outputs.commit_sha }}", job)
+                self.assertIn("ref: ${{ github.sha }}", job)
+                self.assertNotIn("ref: ${{ needs.supply_chain_gate.outputs.commit_sha }}", job)
                 self.assertIn("persist-credentials: false", job)
                 identity = job.index("Reject missing or unbound checkout identity")
                 checkout = job.index("uses: actions/checkout@")
