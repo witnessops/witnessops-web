@@ -25,6 +25,9 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - ".github/workflows/pdf-pagination.yml"
+      - ".github/workflows/supply-chain-gate.yml"
+      - "tools/supply-chain-gate/**"
+      - "security/supply-chain/**"
   workflow_dispatch:
 
 permissions:
@@ -35,15 +38,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  supply_chain_gate:
+    uses: ./.github/workflows/supply-chain-gate.yml
+    permissions:
+      contents: read
+    with:
+      checkout_ref: ${{ github.sha }}
+      base_ref: ${{ github.event_name == 'workflow_dispatch' && format('{0}^', github.sha) || github.event.pull_request.base.sha || 'MISSING_REQUIRED_COMPARISON_BASE' }}
+
   pdf-pagination:
+    needs: supply_chain_gate
     name: PDF Pagination Gate
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Reject missing or unbound checkout identity
+        env:
+          ADMITTED_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          EVENT_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          [[ "${ADMITTED_SHA}" =~ ^[0-9a-f]{40}$ ]]
+          [[ "${ADMITTED_SHA}" == "${EVENT_SHA}" ]]
+
       - name: Check out repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
+          ref: ${{ needs.supply_chain_gate.outputs.commit_sha }}
           persist-credentials: false
+
+      - name: Verify dependency admission before package tooling
+        env:
+          ADMISSION_RESULT: ${{ needs.supply_chain_gate.result }}
+          ADMISSION_STATUS: ${{ needs.supply_chain_gate.outputs.status }}
+          ADMITTED_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          EVENT_SHA: ${{ github.sha }}
+          ADMITTED_LOCK_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}
+        run: python3 -I tools/supply-chain-gate/verify_install_admission.py
 
       - name: Set up pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10

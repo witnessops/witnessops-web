@@ -311,5 +311,144 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertNotIn('GATE_ARGS+=(--base-ref HEAD)', health)
 
 
+
+
+class PublicTestAdmissionContracts(unittest.TestCase):
+    workflows = (
+        ("ui-proof-homepage-hero.yml", "homepage-hero-ui-proof", "Homepage hero UI proof",
+         ("pnpm ui-proof:hero:ci", "pnpm ui-proof:skill-conformance",
+          "pnpm --filter witnessops-web test", "pnpm smoke:buyer-path:test")),
+        ("pdf-pagination.yml", "pdf-pagination", "PDF Pagination Gate", ("pnpm test:pdf-pagination",)),
+    )
+
+    def test_public_jobs_use_direct_gate_and_exact_event_comparison(self):
+        for file, job_id, name, commands in self.workflows:
+            with self.subTest(file=file):
+                workflow = (WORKFLOW_ROOT / file).read_text()
+                gate = job_section(workflow, "supply_chain_gate")
+                job = job_section(workflow, job_id)
+                self.assertIn("uses: ./.github/workflows/supply-chain-gate.yml", gate)
+                self.assertIn("permissions:\n      contents: read", gate)
+                self.assertIn("checkout_ref: ${{ github.sha }}", gate)
+                self.assertIn("github.event_name == 'workflow_dispatch' && format('{0}^', github.sha)", gate)
+                self.assertIn("github.event.pull_request.base.sha || 'MISSING_REQUIRED_COMPARISON_BASE'", gate)
+                self.assertNotIn("HEAD", gate)
+                self.assertIn("needs: supply_chain_gate", job)
+                for section in (gate, job.split("    steps:")[0]):
+                    self.assertNotRegex(section, r"(?m)^    (if|continue-on-error):")
+                self.assertIn(f"name: {name}", job)
+                self.assertIn("ref: ${{ needs.supply_chain_gate.outputs.commit_sha }}", job)
+                self.assertIn("persist-credentials: false", job)
+                identity = job.index("Reject missing or unbound checkout identity")
+                checkout = job.index("uses: actions/checkout@")
+                guard = job.index("run: python3 -I tools/supply-chain-gate/verify_install_admission.py")
+                self.assertLess(identity, checkout)
+                self.assertLess(checkout, guard)
+                for tooling in ("uses: pnpm/action-setup@", "uses: actions/setup-node@",
+                                "cache: pnpm", "run: pnpm install --frozen-lockfile"):
+                    self.assertLess(guard, job.index(tooling))
+                for expression in ("needs.supply_chain_gate.result", "needs.supply_chain_gate.outputs.status",
+                                   "needs.supply_chain_gate.outputs.commit_sha", "github.sha",
+                                   "needs.supply_chain_gate.outputs.lockfile_sha256"):
+                    self.assertIn(expression, job)
+                for command in (*commands, "pnpm --filter witnessops-web build",
+                                "pnpm exec playwright install chromium --with-deps"):
+                    self.assertIn(command, job)
+                self.assertIn('".github/workflows/supply-chain-gate.yml"', workflow)
+                self.assertIn('"tools/supply-chain-gate/**"', workflow)
+                self.assertIn('"security/supply-chain/**"', workflow)
+
+    def test_ui_collect_then_enforce_is_preserved(self):
+        workflow = (WORKFLOW_ROOT / "ui-proof-homepage-hero.yml").read_text()
+        self.assertIn("id: ui_proof\n        continue-on-error: true", workflow)
+        self.assertIn("id: skill_ui_proof\n        continue-on-error: true", workflow)
+        enforcement = workflow.split("      - name: Enforce UI proof blocking policy\n")[1]
+        self.assertIn("if: always()", enforcement)
+        self.assertIn('test -f artifacts/ui-proof/homepage-hero/latest.json', enforcement)
+        self.assertIn('steps.ui_proof.outcome', enforcement)
+        self.assertIn('steps.skill_ui_proof.outcome', enforcement)
+        self.assertEqual(enforcement.count("exit 1"), 2)
+        self.assertIn("retention-days: 14", workflow)
+
+    def test_actual_guard_rejects_bad_evidence_before_stub_install(self):
+        import hashlib
+        import os
+        import subprocess
+        import sys
+        import tempfile
+
+        guard = REPO_ROOT / "tools/supply-chain-gate/verify_install_admission.py"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lock = b"lockfileVersion: '9.0'\n"
+            (root / "pnpm-lock.yaml").write_bytes(lock)
+            def git(*args):
+                return subprocess.check_output(["git", *args], cwd=root, text=True).strip()
+            git("init", "-q")
+            git("add", "pnpm-lock.yaml")
+            git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null",
+                "commit", "-qm", "fixture")
+            head = git("rev-parse", "HEAD")
+            baseline = dict(os.environ, ADMISSION_RESULT="success", ADMISSION_STATUS="PASS",
+                            ADMITTED_SHA=head, EVENT_SHA=head,
+                            ADMITTED_LOCK_SHA256=hashlib.sha256(lock).hexdigest(),
+                            GUARD=str(guard), PYTHON_TEST=sys.executable)
+            marker = root / "installation-reached"
+            cases = [("accepted", {}, True)]
+            for status in ("BLOCKED", "COVERAGE DEGRADED", "", "unexpected"):
+                cases.append(("status-" + status, {"ADMISSION_STATUS": status}, False))
+            for result in ("failure", "cancelled", "skipped", "", "unexpected"):
+                cases.append(("result-" + result, {"ADMISSION_RESULT": result}, False))
+            for value in ("", "abc", "a" * 39, "g" * 40, "main", "a" * 40):
+                cases.append(("sha-" + value, {"ADMITTED_SHA": value}, False))
+            cases += [
+                ("missing SHA", {"ADMITTED_SHA": None}, False),
+                ("missing status", {"ADMISSION_STATUS": None}, False),
+                ("missing result", {"ADMISSION_RESULT": None}, False),
+                ("event mismatch", {"EVENT_SHA": "b" * 40}, False),
+                ("checkout mismatch", {"EVENT_SHA": "b" * 40, "ADMITTED_SHA": "b" * 40}, False),
+                ("empty lock hash", {"ADMITTED_LOCK_SHA256": ""}, False),
+                ("malformed lock hash", {"ADMITTED_LOCK_SHA256": "g" * 64}, False),
+                ("wrong lock hash", {"ADMITTED_LOCK_SHA256": "c" * 64}, False),
+                ("missing lock hash", {"ADMITTED_LOCK_SHA256": None}, False),
+            ]
+            for name, overrides, accepted in cases:
+                with self.subTest(case=name):
+                    marker.unlink(missing_ok=True)
+                    env = baseline.copy()
+                    for key, value in overrides.items():
+                        if value is None:
+                            env.pop(key, None)
+                        else:
+                            env[key] = value
+                    result = subprocess.run(
+                        ["bash", "-c", '"$PYTHON_TEST" -I "$GUARD" && printf installed > installation-reached'],
+                        cwd=root, env=env, capture_output=True, text=True)
+                    self.assertEqual(result.returncode == 0, accepted, result.stderr)
+                    self.assertEqual(marker.exists(), accepted)
+            (root / "pnpm-lock.yaml").unlink()
+            result = subprocess.run([sys.executable, "-I", str(guard)], cwd=root, env=baseline,
+                                    capture_output=True)
+            self.assertNotEqual(result.returncode, 0)
+
+
+    def test_required_comparison_base_unavailable_fails_closed(self):
+        import importlib.util
+        import tempfile
+
+        spec = importlib.util.spec_from_file_location(
+            "gate_comparison_contract", REPO_ROOT / "tools/supply-chain-gate/supply_chain_gate.py")
+        gate = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gate)
+        with tempfile.TemporaryDirectory() as directory:
+            import subprocess
+            repo = Path(directory)
+            subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+            for base in ("MISSING_REQUIRED_COMPARISON_BASE", "a" * 40 + "^"):
+                with self.subTest(base=base), self.assertRaises(gate.GateError):
+                    gate.evaluate_git_change(repo, base)
+
+
 if __name__ == "__main__":
     unittest.main()
