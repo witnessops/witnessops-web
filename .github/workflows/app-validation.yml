@@ -16,6 +16,7 @@ jobs:
     permissions:
       contents: read
   app:
+    name: App tests, database and browser
     needs: supply_chain_gate
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -56,26 +57,53 @@ jobs:
         run: |
           umask 077
           printf '%s\n' 'TEST_DATABASE_URL=postgres://app_test:disposable-ci-password@127.0.0.1:55432/witnessops_test' > apps/witnessops-app/.env.test.local
+      - name: Acceptance gate and safe diagnostics regression
+        run: node --test tests/publication/app-acceptance.test.mjs
       - name: Full repository health (app, CLI, verifier, report, lint, types)
+        id: health
         run: pnpm health
-      - name: Database, live admission, CLI auth and server-check tests
-        run: |
-          pnpm --filter @witnessops/app test:db
-          pnpm --filter @witnessops/app test:db:live
-          pnpm --filter @witnessops/app test:db:cli
-          pnpm --filter @witnessops/app test:db:server
-          node tests/publication/upgrade.mjs
+      - name: Standard database tests
+        id: db
+        run: pnpm --filter @witnessops/app test:db
+      - name: Live admission database tests
+        id: db_live
+        run: pnpm --filter @witnessops/app test:db:live
+      - name: CLI authentication database tests
+        id: db_cli
+        run: pnpm --filter @witnessops/app test:db:cli
+      - name: Server-check database tests
+        id: db_server
+        run: pnpm --filter @witnessops/app test:db:server
+      - name: Populated migration upgrade
+        id: migration
+        run: node tests/publication/upgrade.mjs
       - name: App browser, CLI authorization, Linux and PDF paths
+        id: browser
         run: |
           pnpm exec playwright install --with-deps chromium webkit
           pnpm test:app-browser
       - name: Image parity and OCI regression
+        id: parity
         run: |
           node --test deploy/aws/validate-phase3.test.mjs deploy/aws/verify-scan-evidence.test.mjs deploy/aws/validate-trivy-image.test.mjs
           python3 deploy/aws/inspect-oci-image.test.py
           python3 deploy/app/host/test_lifecycle.py
           git diff --check
+      - name: Collect allowlisted failure diagnostics
+        if: always()
+        env:
+          APP_STEP_RESULTS: ${{ toJSON(steps) }}
+        run: node tests/publication/safe-ci-diagnostics.mjs
+      - name: Preserve safe app diagnostics
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: app-test-diagnostics
+          retention-days: 3
+          if-no-files-found: error
+          path: ${{ runner.temp }}/app-safe-diagnostics/summary.json
   image:
+    name: App image and authenticated runtime
     needs: supply_chain_gate
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -140,9 +168,40 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: app-image-validation
+          retention-days: 3
           if-no-files-found: error
           path: |
             artifacts/app-validation/*.json
       - name: Remove disposable database
         if: always()
         run: docker rm -f app-image-test-db
+
+  acceptance:
+    name: App acceptance
+    needs: [supply_chain_gate, app, image]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - name: Require every app prerequisite to succeed
+        shell: bash
+        env:
+          APP_ACCEPTANCE_NEEDS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os, sys
+          required = ("supply_chain_gate", "app", "image")
+          try:
+              needs = json.loads(os.environ.get("APP_ACCEPTANCE_NEEDS", ""))
+              accepted = isinstance(needs, dict) and set(needs) == set(required) and all(
+                  isinstance(needs.get(key), dict) and needs[key].get("result") == "success"
+                  for key in required
+              )
+          except (ValueError, TypeError):
+              accepted = False
+          if not accepted:
+              print("App acceptance failed: every required prerequisite must succeed.", file=sys.stderr)
+              sys.exit(1)
+          print("App acceptance passed: supply_chain_gate, app and image succeeded.")
+          PY
