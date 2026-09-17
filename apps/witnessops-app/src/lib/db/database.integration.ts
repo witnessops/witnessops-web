@@ -190,6 +190,8 @@ test('Usage: independent connections admit exactly 25 concurrent hostname/domain
     for (const result of denied) assert.ok(result.status === 'rejected' && quotaError(result.reason));
     assert.equal((await fresh.query('SELECT count(*) FROM hostname_check_usage WHERE workspace_id=$1', [f.workspace])).rows[0].count, '25');
     assert.equal((await fresh.query('SELECT count(*) FROM runs WHERE workspace_id=$1', [f.workspace])).rows[0].count, '25');
+    assert.equal((await fresh.query(`SELECT bool_and(r.created_at=u.admitted_at AND r.started_at=u.admitted_at) AS aligned
+      FROM hostname_check_usage u JOIN runs r ON r.id=u.run_id WHERE u.workspace_id=$1`, [f.workspace])).rows[0].aligned, true);
     await assert.rejects(other.beginRun(f.user, f.workspace, f.asset.id), quotaError);
     const independent = await usageFixture('usage_independent');
     assert.ok(await other.beginRun(independent.user, independent.workspace, independent.asset.id));
@@ -315,6 +317,36 @@ test('Usage: an unsupported accepted policy fails closed instead of falling back
   finally { client.release(); }
   await assert.rejects(store.beginRun(f.user, f.workspace, asset.id), (error: unknown) => error instanceof ApiError && error.status === 503);
   assert.equal((await pool.query('SELECT count(*) FROM runs WHERE workspace_id=$1', [f.workspace])).rows[0].count, '0');
+});
+
+test('Usage: rejected admission refunds throttle slots without refunding actual collection attempts', async () => {
+  const limited = await usageFixture('usage_throttle_limited'), available = await usageFixture('usage_throttle_available');
+  for (let i = 0; i < 25; i++) await store.beginRun(limited.user, limited.workspace, limited.asset.id);
+  const assets = [limited.asset];
+  for (let i = 0; i < 9; i++) assets.push(await store.addAsset(limited.user, limited.workspace, `limited-${i}.example.com`, 'hostname'));
+  let actor = 'usage_throttle_limited', executions = 0;
+  const api = createFoundationService({ pool, origin, now: () => 100_000, identity: async () => identity(actor), run: async target => {
+    executions++;
+    if (target !== source.target) throw new Error('fixture collector failure');
+    return structuredClone(source);
+  } });
+  for (const asset of [...assets, limited.asset]) {
+    const response = await api.handle(request('runs', limited.workspace, { assetId: asset.id, authorized: true }), 'runs');
+    assert.equal(response.status, 429); assert.match((await response.json()).error, /25 hostname checks/);
+  }
+  assert.equal(executions, 0);
+  actor = 'usage_throttle_available';
+  const observe = (assetId: string) => api.handle(request('runs', available.workspace, { assetId, authorized: true }), 'runs');
+  // Same worker and hostname, without advancing its clock: rejected attempts
+  // must consume neither the shared ten-start budget nor the hostname cooldown.
+  assert.equal((await observe(available.asset.id)).status, 201); assert.equal(executions, 1);
+  const completedRetry = await observe(available.asset.id);
+  assert.equal(completedRetry.status, 429); assert.match((await completedRetry.json()).error, /Collection is bounded/);
+  const failing = await store.addAsset(available.user, available.workspace, 'failing.example.com', 'hostname');
+  assert.equal((await observe(failing.id)).status, 422); assert.equal(executions, 2);
+  const failedRetry = await observe(failing.id);
+  assert.equal(failedRetry.status, 429); assert.match((await failedRetry.json()).error, /Collection is bounded/);
+  assert.equal(executions, 2);
 });
 
 test("session replay: 200 before logout, 401 after replay and fresh connection; other session stays valid", async () => {

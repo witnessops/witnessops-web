@@ -120,8 +120,9 @@ export class WorkspaceStore {
       // lifetime run count. Keep the independent storage/collector safeguards.
       if ((!allowance && Number(capacity.rows[0].count) >= 32) || Number(capacity.rows[0].bytes) >= 8 * 1024 * 1024) throw new ApiError(409, "Workspace run capacity reached.");
       const id = randomUUID();
-      await client.query(`INSERT INTO runs (id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version)
-        VALUES ($1,$2,$3,$4,'external-snapshot-v1','running',$5,$6)`, [id, workspaceId, assetId, user.id, RECOMMENDED_PROFILE.id, RECOMMENDED_PROFILE.version]);
+      await client.query(`INSERT INTO runs (id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version,started_at,created_at)
+        VALUES ($1,$2,$3,$4,'external-snapshot-v1','running',$5,$6,coalesce($7::timestamptz,now()),coalesce($7::timestamptz,now()))`,
+      [id, workspaceId, assetId, user.id, RECOMMENDED_PROFILE.id, RECOMMENDED_PROFILE.version, allowance?.admittedAt ?? null]);
       if (allowance) await client.query(`INSERT INTO hostname_check_usage(run_id,workspace_id,consent_revision,admitted_at)
         VALUES ($1,$2,$3,$4)`, [id, workspaceId, allowance.revision, allowance.admittedAt]);
       return id;

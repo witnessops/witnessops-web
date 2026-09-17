@@ -75,7 +75,8 @@ app instances and plan-consent writes. It resolves the accepted policy version,
 checks current usage, and atomically inserts the pending run and an immutable
 `hostname_check_usage` record. Unsupported or mismatched terms fail closed. The
 database supplies admission time after lock acquisition; neither client time nor
-snapshot time chooses the usage month. Each record binds one run to its workspace,
+snapshot time chooses the usage month. Enrolled runs use that same instant for
+their stored start/creation timestamps. Each record binds one run to its workspace,
 accepted consent revision and UTC month. Migration `0012_hostname_check_usage.sql`
 does not enroll workspaces or assign usage to historical runs.
 
@@ -89,7 +90,9 @@ does not enroll workspaces or assign usage to historical runs.
 Completion after a month boundary stays in the admission month. A new month gets
 its own allowance without rewriting old counters or evidence. At capacity the
 existing run API returns HTTP 429 with the next UTC reset date before invoking the
-collector. Cleanup is idempotent and can still mark an unfinished run failed after
+collector. Rejected admission refunds its temporary process throttle reservation;
+actual collection attempts keep their cooldown even when collection fails. Cleanup
+is idempotent and can still mark an unfinished run failed after
 membership revocation; it cannot refund or erase an already completed snapshot.
 An interrupted process can leave a running reservation until it is marked failed
 or its UTC month ends. This change does not infer failure from elapsed time or
