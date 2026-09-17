@@ -4,6 +4,8 @@ import { PublicNavigationLink as Link } from "./document-navigation";
 import { usePathname } from "next/navigation";
 import { usesPublicPresentation } from "@/lib/public-presentation";
 import { useLayoutEffect, useRef } from "react";
+import { DesktopNavbarMenu } from "./desktop-navbar-menu";
+import { PUBLIC_NAV_GROUPS } from "./public-nav-groups";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { WitnessOpsMark } from "./witnessops-mark";
 import {
@@ -111,7 +113,7 @@ export function Navbar({ announcement }: NavbarProps) {
         aria-label={polish ? "Nawigacja główna" : "Primary navigation"}
         className="mobile-brand-navbar public-shell simple-public-navbar sticky top-0 z-50 border-b border-surface-border bg-surface-bg pt-[env(safe-area-inset-top)] text-text-primary lg:pt-0"
       >
-        <div className="mx-auto flex max-w-content flex-wrap items-center justify-between px-4 py-2 sm:px-6 lg:flex-nowrap lg:py-4">
+        <div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between px-4 py-2 sm:px-6 lg:flex-nowrap lg:py-4">
           <Link
             href={logoHref}
             aria-label={polish ? "WitnessOps: strona główna" : "WitnessOps home"}
@@ -135,7 +137,7 @@ export function Navbar({ announcement }: NavbarProps) {
 
           <div className="contents lg:flex lg:items-center lg:gap-3">
             <div className="hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5">
-              {effectiveLinks.map((link) =>
+              {!polish ? <DesktopNavbarMenu /> : effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a
                     key={link.href}
@@ -187,6 +189,7 @@ export function Navbar({ announcement }: NavbarProps) {
             </div>
             <MobileNavbarMenu
               links={effectiveLinks}
+              groups={polish ? undefined : PUBLIC_NAV_GROUPS}
               cta={effectiveCta}
               currentPath={currentPath}
               openLabel={polish ? "Otwórz główną nawigację" : "Open primary navigation"}

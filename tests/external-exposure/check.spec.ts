@@ -34,8 +34,8 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   expect(response?.headers()['content-security-policy']).toContain("connect-src 'self'");
   await expect(page.locator('meta[name=robots]')).toHaveAttribute('content', 'index, follow');
   await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', 'https://witnessops.com/check');
-  await expect(page.getByRole('heading', { name: 'External Exposure Snapshot', exact: true })).toBeVisible();
-  await expect(page.getByText('See what ten public checks observe about your hostname.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Check your public exposure.', exact: true })).toBeVisible();
+  await expect(page.getByText('Ten checks of one public hostname. No account or email required.', { exact: true })).toBeVisible();
   await expect(page.getByText('See what your company exposes publicly.', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('navigation', { name: 'Primary navigation', exact: true })).toBeVisible();
   await expect(page.locator('#site-footer')).toBeVisible();
@@ -48,7 +48,7 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
     return inter.length > 0 && inter.every(font => font.family.replaceAll('"', '') === 'Inter' && font.status === 'loaded')
       && mono.length > 0 && mono.every(font => font.family.replaceAll('"', '') === 'IBM Plex Mono' && font.status === 'loaded')
       && getComputedStyle(document.querySelector('main h1')!).fontFamily.includes('Inter')
-      && getComputedStyle(document.querySelector('button[type=submit]')!).fontFamily.includes('IBM Plex Mono');
+      && getComputedStyle(document.querySelector('button[type=submit]')!).fontFamily.includes('Inter');
   })).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('empty-mobile.png'), fullPage: true });
   // macOS WebKit uses Option+Tab to traverse links and all controls.
@@ -83,8 +83,7 @@ test('indexable page reuses public navigation and keeps mocked mobile results us
   await expect(information.getByText('Mock observation 3', { exact: true })).toBeVisible();
   await expect(page.getByText('No score or severity ranking is assigned.', { exact: false })).toBeVisible();
   await expect(page.locator('input[type=email]')).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'Request a 30-minute review call', exact: true })).toHaveAttribute('href', '/review/request');
-  await expect(page.getByRole('link', { name: 'Request review', exact: true })).toHaveAttribute('href', buyerOfferRequestHref('en', EXTERNAL_ATTACK_SURFACE_OFFER.productId));
+  await expect(page.locator('main').getByRole('link', { name: 'Ask an expert', exact: true })).toHaveAttribute('href', buyerOfferRequestHref('en', EXTERNAL_ATTACK_SURFACE_OFFER.productId));
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('result-mobile.png'), fullPage: true });
 });
@@ -262,12 +261,13 @@ test('a new visitor can reach the free check from shared desktop and mobile navi
       await expect(page.locator('#witnessops-mobile-menu')).toBeVisible();
     }
     const navigation = mobile ? page.locator('#witnessops-mobile-menu') : page.getByRole('navigation', { name: 'Primary navigation', exact: true });
-    const link = navigation.getByRole('link', { name: 'Free check', exact: true });
+    await navigation.getByRole('button', { name: 'Product', exact: true }).click();
+    const link = navigation.getByRole('link', { name: /^Free check/ });
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('href', '/check');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await link.click();
-    await expect(page.getByRole('heading', { name: 'External Exposure Snapshot', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Check your public exposure.', exact: true })).toBeVisible();
     await expect(page.getByLabel('Public hostname', { exact: true })).toBeVisible();
   }
 });

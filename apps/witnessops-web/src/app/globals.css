@@ -1248,3 +1248,43 @@ body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar a[data-pub
   border-color: var(--color-text-primary);
   border-radius: 4px;
 }
+
+/* Shared interaction treatment for the quiet public website. */
+body:has(nav[data-public-presentation="quiet"]) {
+  --public-control-radius: 6px;
+  --public-control-hover: #e7e2d7;
+  --public-control-pressed: #d8d1c3;
+}
+body:has(nav[data-public-presentation="quiet"]) :is(a, button, input, select, textarea, summary) {
+  transition-property: color, background-color, border-color, opacity;
+  transition-duration: 160ms;
+  transition-timing-function: ease;
+}
+body:has(nav[data-public-presentation="quiet"]) :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-brand-accent) !important;
+  outline-offset: 3px !important;
+  box-shadow: none !important;
+}
+body:has(nav[data-public-presentation="quiet"]) :is(.public-cta-button, [data-public-primary-cta], [data-footer-review-cta], button[type="submit"], input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border-radius: var(--public-control-radius) !important;
+}
+body:has(nav[data-public-presentation="quiet"]) :is(.public-cta-button, [data-public-primary-cta], [data-footer-review-cta], button):is(:hover, :active) {
+  transform: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+body:has(nav[data-public-presentation="quiet"]) :is([data-public-primary-cta], .simple-enquiry-form button[type="submit"]):hover:not(:disabled) {
+  background: var(--public-control-hover) !important;
+  border-color: var(--public-control-hover) !important;
+}
+body:has(nav[data-public-presentation="quiet"]) :is([data-public-primary-cta], .simple-enquiry-form button[type="submit"]):active:not(:disabled) {
+  background: var(--public-control-pressed) !important;
+  border-color: var(--public-control-pressed) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  body:has(nav[data-public-presentation="quiet"]) :is(a, button, input, select, textarea, summary, [role="dialog"], #witnessops-mobile-menu),
+  body:has(nav[data-public-presentation="quiet"]) :is(a, button) svg {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1016,3 +1016,10 @@
 .triggerLabel { display: inline; font-family: var(--font-sans); font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; }
 .triggerDot { width: 6px; height: 6px; border-radius: 50%; background: var(--proof-accent); }
 @media(min-width: 40rem) { .dialog { height: min(672px, calc(100dvh - 48px)); border-radius: 24px; } .dialogBody { padding-top: 8px; } }
+
+/* Suggestions remain pills; action controls share the public button treatment. */
+.trigger, .askSubmit, .askInput { border-radius: 6px; }
+.trigger:hover, .askSubmit:hover:not(:disabled) { transform: none; box-shadow: none; }
+.trigger:active { background: var(--proof-raised); }
+.askSubmit:hover:not(:disabled) { background: #e7e2d7; border-color: #e7e2d7; }
+.askSubmit:active:not(:disabled) { background: #d8d1c3; border-color: #d8d1c3; }

@@ -61,7 +61,7 @@ const situationLanes = [
   {
     href: "#contact",
     title: "Product help or access",
-    body: "Questions about the product, access, mailbox verification, or how to use a public surface. Verified requests enter the operator action queue.",
+    body: "Questions about the product, access, mailbox verification, or how to use a public surface. Verify your email to send your request to the support team.",
     emphasize: false,
   },
   {

@@ -14,7 +14,11 @@ const statusLabels: Record<CheckStatus, string> = {
   OBSERVED_EXPECTED: 'Observed as expected', NEEDS_ATTENTION: 'Needs attention',
   INFORMATIONAL: 'Informational', UNDETERMINED: 'Undetermined', CHECK_ERROR: 'Collection error',
 };
-const CHECK_TOPICS = ['Public DNS target', 'TLS certificate', 'Legacy TLS', 'HTTPS redirect', 'HSTS', 'Response headers', 'security.txt', 'SPF', 'DMARC', 'CAA'];
+const CHECK_GROUPS = [
+  { title: 'Connection security', description: 'Where the hostname points and how it connects.', topics: 'Public DNS target · TLS certificate · Legacy TLS' },
+  { title: 'Web configuration', description: 'How the site handles HTTPS and public security information.', topics: 'HTTPS redirect · HSTS · Response headers · security.txt' },
+  { title: 'Email & certificate policy', description: 'Published policies for email senders and certificate issuers.', topics: 'SPF · DMARC · CAA' },
+];
 function saveSource(snapshot: ExternalSnapshotV1) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(snapshot)], { type: 'application/json' }));
   const link = document.createElement('a');
@@ -114,21 +118,21 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
   return <>{printRoot}<main id="main-content" className={styles.workspace}>
     <div className={styles.screen}>
       <section className={styles.intro}>
-        <p className={styles.eyebrow}>FREE · NO EMAIL REQUIRED</p>
-        <IntroHeading className={styles.title}>External Exposure Snapshot</IntroHeading>
-        <p className={styles.lead}>See what ten public checks observe about your hostname.</p>
+        <p className={styles.eyebrow}>FREE HOSTNAME CHECK</p>
+        <IntroHeading className={styles.title}>Check your public exposure.</IntroHeading>
+        <p className={styles.lead}>Ten checks of one public hostname. No account or email required.</p>
       </section>
       <form className={styles.form} onSubmit={submit} aria-label="Run an external exposure snapshot">
         <label htmlFor="external-hostname">Public hostname</label>
         <div className={styles.inputRow}><input ref={hostnameInput} id="external-hostname" name="hostname" type="text" autoComplete="off" spellCheck={false} autoCapitalize="none" maxLength={253} placeholder="example.com" aria-describedby="hostname-help" value={hostname} onChange={event => clearResult(event.target.value)} required /><button ref={runButton} type="submit" disabled={busy || !hostname.trim()}>{busy ? 'Collecting observations…' : 'Run free check'}</button></div>
-        <p id="hostname-help">Enter a hostname you own or are authorized to check. Use only the hostname, without https://, a path or a port.</p>
-        <p className={styles.promise}>10 bounded public checks. No exploitation. No credentials. Ports 80/443 only.</p>
-        <details className={styles.executionDetails}><summary>How this check works</summary><p>WitnessOps servers make bounded public DNS, TLS and HTTP observations. Results stay in this page until you clear or leave it. This feature does not store results.</p></details>
+        <p id="hostname-help">Use a hostname you own or are authorized to check, such as example.com.</p>
+        <p className={styles.promise}>Read the findings and download your result. No account needed.</p>
+        <details className={styles.executionDetails}><summary>How this check works</summary><p>Enter only the hostname, without https://, a path or a port. WitnessOps servers make ten bounded public DNS, TLS and HTTP observations. No exploitation or credentials; web connections use ports 80/443 only. Results stay in this page until you clear or leave it. This feature does not store results.</p></details>
         <div className={styles.actions}>{busy && <button type="button" onClick={() => { clearResult(); hostnameInput.current?.focus(); }}>Cancel</button>}{(result || error) && <button type="button" onClick={() => { clearResult(''); hostnameInput.current?.focus(); }}>Clear</button>}</div>
         {busy && <p role="status">Collection is limited to 30 seconds, followed by brief report processing. Cancel hides the result; the bounded server run may finish.</p>}
         {error && <p className={styles.error} role="alert">{error}</p>}
       </form>
-      {!result && <section className={styles.included}><h2>One hostname. Ten observations.</h2><ul>{CHECK_TOPICS.map(topic => <li key={topic}>{topic}</li>)}</ul><details><summary>Scope and limitations</summary><p>{SNAPSHOT_BOUNDARY}</p><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details></section>}
+      {!result && <section className={styles.included}><h2>What gets checked</h2><ul>{CHECK_GROUPS.map(group => <li key={group.title}><h3>{group.title}</h3><p>{group.description}</p><small>{group.topics}</small></li>)}</ul><details><summary>Scope and limitations</summary><p>{SNAPSHOT_BOUNDARY}</p><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details></section>}
       {result && <>
         <section className={styles.result} aria-label="Snapshot results">
           <p className={styles.eyebrow}>YOUR SNAPSHOT</p>
@@ -136,7 +140,7 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
           <p className={styles.muted}>{result.snapshot.checks.length} checks returned · {result.snapshot.finished_at} · {((Date.parse(result.snapshot.finished_at) - Date.parse(result.snapshot.started_at)) / 1000).toFixed(1)} seconds</p>
           <div className={styles.counts}><div><strong>{attention.length}</strong><span>Needs attention</span></div><div><strong>{expected.length}</strong><span>Observed as expected</span></div><div><strong>{information.length}</strong><span>Informational</span></div><div><strong>{unknowns.length}</strong><span>Could not determine</span></div></div>
           <p>No score or severity ranking is assigned. “Observed as expected” describes a named check, not overall security.</p>
-          <div className={styles.actions} aria-label="Report actions"><button type="button" aria-expanded={reportOpen} aria-controls="external-buyer-report" onClick={() => setReportOpen(value => !value)}>{reportOpen ? 'Hide full report' : 'View full report'}</button><button type="button" onClick={exportPdf}>Save report as PDF</button><button type="button" onClick={() => saveSource(result.snapshot)}>Download source JSON</button></div>
+          <div className={styles.actions} aria-label="Report actions"><button className={styles.reportPrimary} type="button" aria-expanded={reportOpen} aria-controls="external-buyer-report" onClick={() => setReportOpen(value => !value)}>{reportOpen ? 'Hide full report' : 'View full report'}</button><button type="button" onClick={exportPdf}>Save report as PDF</button><button type="button" onClick={() => saveSource(result.snapshot)}>Download source JSON</button></div>
           <p className={styles.muted}>Keep a copy before you leave. This free result is not stored in an account.</p>
           <div className={styles.resultColumns}>
             <section aria-labelledby="attention-heading"><h3 id="attention-heading">What needs attention?</h3>{attention.length ? <ul className={styles.observations}>{attention.map(check => <li key={check.check_id} data-status={check.status}><h4>{check.title}</h4><p>{check.interpretation}</p>{check.recommendation && <p className={styles.muted}>{check.recommendation}</p>}</li>)}</ul> : <p>No needs-attention items were observed under these ten checks. This does not establish the absence of vulnerabilities.</p>}</section>
@@ -150,10 +154,10 @@ export function ExternalExposureWorkspace({ workspaceUrl = null }: { workspaceUr
         {askContext?.email && <section aria-label="Optional follow-up" className={styles.nextStep}>
           {!discuss ? <button type="button" onClick={() => setDiscuss(true)}>Discuss this result</button> : <DocsAssistantContactHandoff expanded initialEmail={askContext.email} surface="page" onExpandedChange={setDiscuss} />}
         </section>}
-        <section className={styles.nextStep} aria-label="Discuss your next step"><div><p className={styles.eyebrow}>WHAT NEXT?</p><h2>Make sense of the next step.</h2><p>Talk through what needs attention and whether a deeper review would help. Request a 30-minute conversation; we’ll confirm a time with you.</p></div><a className={styles.primaryLink} href={EXTERNAL_ATTACK_SURFACE_OFFER.requestRoute}>Request a 30-minute review call</a></section>
+
         <details className={styles.boundary}><summary>Snapshot scope and limits</summary><p>{SNAPSHOT_BOUNDARY}</p><ul>{EXCLUSIONS.map(item => <li key={item}>{item}</li>)}</ul></details>
       </>}
-      <aside className={styles.offer}><div><p className={styles.eyebrow}>NEED US TO INVESTIGATE FURTHER?</p><h2>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en}</h2><p>A bounded, authorized, human-reviewed investigation with validated findings and an evidence-backed buyer report.</p><p><strong>{EXTERNAL_ATTACK_SURFACE_OFFER.price.en}</strong> for one authorized public-facing system.</p><a className={styles.textLink} href={EXTERNAL_ATTACK_SURFACE_OFFER.route.en}>See the review scope →</a></div><a className={styles.secondaryLink} href={buyerOfferRequestHref('en', EXTERNAL_ATTACK_SURFACE_OFFER.productId)}>Request review</a></aside>
+      <aside className={styles.offer}><div><p className={styles.eyebrow}>EXPERT HELP</p><h2>Need a closer look?</h2><p>{EXTERNAL_ATTACK_SURFACE_OFFER.name.en}: agree the scope of a human review before work begins.</p><p><strong>{EXTERNAL_ATTACK_SURFACE_OFFER.price.en}</strong> for one authorized public-facing system.</p><a className={styles.textLink} href={EXTERNAL_ATTACK_SURFACE_OFFER.route.en}>See the review scope →</a></div><a className={styles.secondaryLink} href={buyerOfferRequestHref('en', EXTERNAL_ATTACK_SURFACE_OFFER.productId)}>Ask an expert</a></aside>
     </div>
     {result && <div id="external-buyer-report"><BuyerReportDocument model={result.model} className={`${styles.report} ${reportOpen ? styles.preview : ''}`} /></div>}
   </main></>;

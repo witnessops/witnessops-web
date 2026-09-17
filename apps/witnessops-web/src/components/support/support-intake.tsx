@@ -78,6 +78,11 @@ function SelectChevron() {
 
 /** Simple doc search index — matches against docs titles */
 const KB_ENTRIES = [
+  { title: "Create an account and get started", href: "/docs/getting-started" },
+  { title: "Account, signup, invitations and CLI help", href: "/docs/getting-started/access-help" },
+  { title: "Install the CLI and authenticate", href: "/docs/getting-started/cli" },
+  { title: "Your first observation", href: "/docs/getting-started/first-observation" },
+  { title: "Understand results and reports", href: "/docs/getting-started/results" },
   { title: "Governed Execution", href: "/docs/security-systems/governed-execution" },
   { title: "Policy Gates", href: "/docs/security-systems/policy-gates" },
   { title: "Threat Model", href: "/docs/security-systems/threat-model" },
@@ -117,6 +122,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
   const [errorMsg, setErrorMsg] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const verificationHeadingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -138,6 +144,10 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
     if (status === "verification_sent" || status === "verification_error") {
       verificationHeadingRef.current?.focus();
     }
+  }, [status]);
+
+  useEffect(() => {
+    if (status === "form") descriptionRef.current?.focus();
   }, [status]);
 
   // Search KB as user types
@@ -280,7 +290,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
           Support
         </span>
         <span style={{
-          ...mono, fontSize: 8, letterSpacing: "0.12em", textTransform: "uppercase", padding: "2px 8px",
+          ...mono, fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", padding: "2px 8px",
           border: "1px solid",
           borderColor: status === "verified" ? "rgba(0,212,126,0.3)" : status.endsWith("_error") ? "rgba(239,68,68,0.3)" : "var(--color-surface-border)",
           color: status === "verified" ? "var(--color-signal-green)" : status.endsWith("_error") ? "var(--color-signal-red)" : "var(--color-brand-muted)",
@@ -336,7 +346,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={inputClass}
                 style={inputFont}
-                placeholder="receipt verification, scope, policy gate..."
+                placeholder="signup, invitations, CLI, results..."
                 autoComplete="off"
               />
 
@@ -347,7 +357,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                       key={r.href}
                       href={r.href}
                       className="flex items-center justify-between px-4 py-2 border-b border-surface-border/50 transition-colors hover:bg-surface-card last:border-b-0"
-                      style={{ ...mono, fontSize: 11, color: "var(--color-text-secondary)" }}
+                      style={{ ...mono, fontSize: 14, color: "var(--color-text-secondary)" }}
                     >
                       <span>{r.title}</span>
                       <span style={{ fontSize: 13, color: "var(--color-brand-muted)" }}>→ DOCS</span>
@@ -391,10 +401,14 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email locked */}
             <div className="flex items-center justify-between border-b border-surface-border pb-2">
-              <span style={{ ...mono, fontSize: 11, color: "var(--color-text-secondary)" }}>{email}</span>
+              <span style={{ ...mono, fontSize: 14, color: "var(--color-text-secondary)" }}>{email}</span>
               <button
                 type="button"
-                onClick={() => setStatus("idle")}
+                disabled={status === "sending"}
+                onClick={() => {
+                  setStatus("idle");
+                  window.requestAnimationFrame(() => emailRef.current?.focus());
+                }}
                 style={{ ...mono, fontSize: 13, color: "var(--color-brand-muted)", letterSpacing: "0.08em", textTransform: "uppercase", background: "none", border: "none", cursor: "pointer" }}
               >
                 Change
@@ -405,6 +419,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
             <div>
               <label htmlFor="si-desc" style={label}>Describe what&apos;s happening</label>
               <textarea
+                ref={descriptionRef}
                 id="si-desc"
                 name="description"
                 required
@@ -486,7 +501,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
             </button>
 
             {status === "submission_error" && (
-              <div role="alert" className="border-l-2 border-brand-accent px-3 py-2 text-left" style={{ ...mono, fontSize: 11, color: "var(--color-text-primary)", letterSpacing: "0.04em" }}>
+              <div role="alert" className="border-l-2 border-brand-accent px-3 py-2 text-left" style={{ ...mono, fontSize: 14, color: "var(--color-text-primary)", letterSpacing: "0.04em" }}>
                 {errorMsg}
               </div>
             )}
@@ -510,7 +525,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                 Verify your email
               </h2>
               <p className="mt-3 text-sm leading-6 text-text-secondary">
-                Your request is durably stored as <span style={mono}>{supportResponse.intakeId}</span>. We sent a verification code to {supportResponse.email}. It will enter the operator queue only after the code is verified.
+                Your request reference is <span style={mono}>{supportResponse.intakeId}</span>. We sent a verification code to {supportResponse.email}. Verify the code to send it to the support team.
               </p>
               <p className="mt-2 text-xs leading-5 text-text-muted">
                 The code expires at {new Date(supportResponse.expiresAt).toLocaleString()}.
@@ -555,7 +570,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
             </div>
 
             {status === "verification_error" && (
-              <div id="si-verification-error" role="alert" className="border-l-2 border-brand-accent px-3 py-2" style={{ ...mono, fontSize: 11, color: "var(--color-text-primary)", letterSpacing: "0.04em" }}>
+              <div id="si-verification-error" role="alert" className="border-l-2 border-brand-accent px-3 py-2" style={{ ...mono, fontSize: 14, color: "var(--color-text-primary)", letterSpacing: "0.04em" }}>
                 {errorMsg}
               </div>
             )}
@@ -578,7 +593,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                   setStatus("form");
                 }}
                 className="w-full py-2 text-text-muted transition-colors hover:text-text-primary"
-                style={{ ...mono, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase" }}
+                style={{ ...mono, fontSize: 14, letterSpacing: "0.1em", textTransform: "uppercase" }}
               >
                 Start a new support request
               </button>
@@ -593,8 +608,8 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
             <p style={{ ...mono, fontSize: 12, color: "var(--color-signal-green)", letterSpacing: "0.06em", marginBottom: 8 }}>
               Support request verified.
             </p>
-            <p style={{ ...mono, fontSize: 10, color: "var(--color-brand-muted)", letterSpacing: "0.04em" }}>
-              It is now admitted to the WitnessOps operator queue. We will continue by email.
+            <p style={{ ...mono, fontSize: 14, color: "var(--color-brand-muted)", letterSpacing: "0.04em" }}>
+              Your request is ready for the support team. We will continue by email.
             </p>
           </div>
         )}
@@ -602,13 +617,13 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
 
       {/* Footer */}
       <div
-        className="border-t border-surface-border px-5 py-3 flex items-center justify-between"
-        style={{ ...mono, fontSize: 13, color: "var(--color-surface-border)", letterSpacing: "0.06em" }}
+        className="border-t border-surface-border px-5 py-3 flex flex-wrap items-center justify-between gap-2 break-all"
+        style={{ ...mono, fontSize: 13, color: "var(--color-text-muted)", letterSpacing: "0.06em" }}
       >
         <span>Email follow-up</span>
         <span>{supportEmail}</span>
       </div>
-      <p className="px-5 pb-3 text-[10px] leading-4 text-text-muted">
+      <p className="px-5 pb-3 text-xs leading-5 text-text-muted">
         {PUBLIC_NO_SECRETS_NOTE}
       </p>
     </div>
