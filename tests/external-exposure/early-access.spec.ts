@@ -32,6 +32,11 @@ for (const width of [1440, 390]) {
     await expect(page).toHaveURL(/\/early-access$/);
     await expect(page.getByRole('heading', { name: /Keep the evidence\.\s*See what changed\./, level: 1 })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Request Early Access', exact: true })).toHaveAttribute('href', publicContactMailto('WitnessOps — Request Early Access'));
+    const choices=page.getByRole('region',{name:'Choose what to check'});
+    for(const name of ['External Exposure Check','One Server Security Check'])await expect(choices.getByRole('heading',{name,exact:true})).toBeVisible();
+    await expect(choices).toContainText('setup is operator-assisted');
+    await expect(choices.getByRole('link',{name:'Ask about Linux setup →',exact:true})).toHaveAttribute('href',publicContactMailto('WitnessOps — One Server Security Check setup'));
+    await expect(choices.getByRole('link',{name:'Try the free snapshot →',exact:true})).toHaveAttribute('href','/check');
     await expect(page.locator('main')).toContainText('not automatically imported');
     await expect(page.locator('main')).toContainText('ten bounded observations');
     await expect(page.locator('main')).toContainText('Not a penetration test');
