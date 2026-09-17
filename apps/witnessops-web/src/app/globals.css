@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@witnessops/ui/tokens/witnessops.css";
+@import "./public-presentation.css";
 
 @theme {
   --color-brand-primary: var(--color-brand-primary);
@@ -1198,20 +1199,52 @@ footer.public-shell.public-footer[data-brand-footer] .witnessops-mark:hover {
 .simple-public-navbar a { font-weight: 400; }
 .simple-public-navbar a[data-public-primary-cta] { min-height: 44px; border-radius: 8px; font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; box-shadow: none; }
 .simple-public-navbar a:not([data-public-primary-cta]):hover { transform: none; }
-.simple-public-footer { font-family: var(--font-sans); }
-.simple-public-footer > div { padding-block: 48px 24px; }
-.simple-public-footer nav > p { margin-bottom: 12px; font-family: var(--font-sans) !important; font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--color-text-muted); }
-.simple-public-footer nav a { font-weight: 400; color: var(--color-text-muted); }
+/* Footer palette is scoped here so shared shell styles cannot override it. */
+footer.public-shell.public-footer.simple-public-footer[data-brand-footer] {
+  background: var(--color-surface-bg);
+  font-family: var(--font-sans);
+}
+.simple-public-footer > div { padding-block: 40px max(32px, env(safe-area-inset-bottom)); }
+.simple-public-footer .footer-main { display: grid; gap: 32px; }
+.simple-public-footer .footer-heading,
+.simple-public-footer nav > p { margin: 0 0 12px; font-family: var(--font-sans); font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--color-text-muted); }
+.simple-public-footer nav a { font-weight: 400; color: var(--color-text-secondary); }
+.simple-public-footer nav a:hover { color: var(--color-text-primary); }
 .simple-public-footer [data-footer-brand-lockup] > a > span { font-family: var(--font-sans) !important; font-size: 12px; font-weight: 500; letter-spacing: .18em; }
-.simple-public-footer [data-footer-brand-lockup] p { max-width: 260px; color: var(--color-text-muted); }
+.simple-public-footer [data-footer-brand-lockup] p { max-width: 320px; font-size: 12px; letter-spacing: .04em; color: #b89b62; }
 .simple-public-footer [data-public-contact-route] { border: 0; padding: 0; }
-.simple-public-footer [data-public-contact-route] > p:first-child { font-family: var(--font-sans) !important; font-weight: 500; font-size: 12px; letter-spacing: .12em; color: var(--color-text-muted); }
-.simple-public-footer [data-footer-review-cta] { justify-content: flex-start; width: auto; padding-inline: 0; border: 0; background: transparent; box-shadow: none; color: var(--color-text-primary); font-family: var(--font-sans) !important; font-weight: 400; letter-spacing: 0; text-transform: none; }
-.simple-public-footer [data-footer-review-cta]:hover { text-decoration: underline; text-underline-offset: 4px; }
-@media(max-width: 700px) { .simple-public-navbar > div { min-height: 60px; gap: 12px; } .simple-public-footer > div { padding-block: 32px 24px; } }
+.simple-public-footer [data-footer-review-cta] { margin: 0 0 8px; justify-content: center; width: auto; padding: 0 20px; border: 1px solid #777267; border-radius: 4px; background: transparent; box-shadow: none; color: var(--color-text-primary); font-family: var(--font-sans) !important; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.simple-public-footer [data-footer-review-cta]:hover { background: #24221d; border-color: #b89b62; }
+.simple-public-footer [data-public-contact-route] p { max-width: 34ch; }
+.simple-public-footer [data-public-contact-route] a[href^="mailto:"] { overflow-wrap: anywhere; display: inline-flex; align-items: center; }
+.simple-public-footer .footer-resources { display: flex; flex-wrap: wrap; column-gap: 24px; margin-top: 28px; }
+.simple-public-footer .footer-legal { margin-top: 12px; }
+@media (min-width: 768px) {
+  .simple-public-footer .footer-main { grid-template-columns: 1fr 1fr; }
+  .simple-public-footer [data-footer-brand-lockup] { grid-column: 1 / -1; }
+}
+@media (min-width: 1200px) {
+  .simple-public-footer > div { padding-top: 48px; }
+  .simple-public-footer .footer-main { grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; }
+  .simple-public-footer [data-footer-brand-lockup] { grid-column: auto; }
+}
+@media (max-width: 767px) {
+  .simple-public-footer > div { padding-block: 32px calc(96px + env(safe-area-inset-bottom)); }
+  .simple-public-footer .footer-contact { border-top: 1px solid var(--color-surface-border); padding-top: 24px; }
+}
+
+@media (max-width: 700px) { .simple-public-navbar > div { min-height: 60px; gap: 12px; } }
 
 /* Compact public enquiry, shared by the landing and price pages. */
 .simple-enquiry-form label { font-family: var(--font-sans) !important; text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; font-weight: 400 !important; }
 .simple-enquiry-form input:not([type="hidden"]), .simple-enquiry-form select, .simple-enquiry-form textarea { border-radius: 8px; background: var(--color-surface-bg); border-color: var(--color-text-muted); }
 .simple-enquiry-form select option { background: var(--color-surface-bg); color: var(--color-text-primary); }
 .simple-enquiry-form button[type="submit"] { width: auto; padding: 16px 24px; border-radius: 8px; font-family: var(--font-sans) !important; font-size: 14px !important; letter-spacing: 0 !important; text-transform: none !important; }
+
+/* Shared public navigation follows the approved presentation palette. */
+body:has(nav[data-public-presentation="quiet"]) .simple-public-navbar a[data-public-primary-cta] {
+  background: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-text-primary);
+  border-radius: 4px;
+}

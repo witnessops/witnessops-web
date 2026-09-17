@@ -1,0 +1,206 @@
+/* Shared presentation layer for public routes. Theme selection is a visual
+   concern only; app, admin and customer-specific workflows are excluded. */
+body:has(nav[data-public-presentation="quiet"]) {
+  --public-reading-width: 1200px;
+}
+body:has(nav[data-public-presentation="quiet"]) :is(.buyer-page, .public-brand-page) {
+  background: var(--color-surface-bg);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) {
+  font-family: var(--font-sans);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) :is(h1, h2, h3) {
+  font-family: var(--font-sans) !important;
+  font-weight: 500;
+  text-transform: none;
+  text-wrap: pretty;
+  letter-spacing: -.025em;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h1 {
+  font-size: clamp(36px, 4.2vw, 60px);
+  line-height: 1.1;
+  letter-spacing: -.045em;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h2 {
+  line-height: 1.25;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h3 {
+  line-height: 1.4;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(p, li, dd) {
+  text-wrap: pretty;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content:is(.max-w-6xl, .max-w-7xl),
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(.max-w-6xl, .max-w-7xl) {
+  max-width: var(--public-reading-width);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(article.border, section.border, [data-app-plan]) {
+  border-radius: 6px;
+  background-color: var(--color-surface-card);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a, button, summary):focus-visible {
+  outline: 2px solid var(--color-brand-accent);
+  outline-offset: 4px;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"], .public-cta-button) {
+  min-height: 48px;
+  border-radius: 4px;
+  font-family: var(--font-sans) !important;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  box-shadow: none;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"]) {
+  background: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  color: var(--color-text-inverse);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(a.bg-brand-accent, button.bg-brand-accent, button[type="submit"]):hover {
+  background: var(--color-text-secondary);
+  border-color: var(--color-text-secondary);
+  box-shadow: none;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content .public-cta-button:hover {
+  box-shadow: none;
+  transform: none;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  border-radius: 4px;
+  border-color: var(--color-surface-border-strong);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content form label {
+  font-family: var(--font-sans) !important;
+  font-size: 13px;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content details {
+  border-color: var(--color-surface-border);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content summary {
+  min-height: 44px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose :is(h2, h3) {
+  display: block;
+  color: var(--color-text-primary);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose h2 {
+  margin: 40px 0 16px;
+  font-size: 26px;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose h2::after { display: none; }
+body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose h3 {
+  margin: 28px 0 12px;
+  font-size: 19px;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose :is(p, li) {
+  font-size: 15px;
+  line-height: 1.8;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(pre, code) {
+  font-family: var(--font-mono);
+  text-wrap: initial;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content code:not(pre code) {
+  overflow-wrap: anywhere;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content [data-app-plan="Compare"] {
+  border-color: var(--color-brand-accent);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content [aria-label="Billing period"] {
+  border-radius: 6px;
+  padding: 4px;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content [aria-label="Billing period"] button[aria-pressed="true"] {
+  background: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  border-radius: 3px;
+}
+@media (max-width: 640px) {
+  body:has(nav[data-public-presentation="quiet"]) #main-content:not([data-home-direction]) h1 {
+    font-size: clamp(32px, 8.5vw, 42px);
+    overflow-wrap: anywhere;
+  }
+  body:has(nav[data-public-presentation="quiet"]) #main-content :is(a, button).public-cta-button {
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+/* The docs utility bar and sidebar are part of the same public reading surface. */
+body:has(nav[data-public-presentation="quiet"]) [data-docs-nav-surface="utility-nav"] :is(a, button) {
+  min-height: 40px;
+  border-radius: 4px;
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
+}
+body:has(nav[data-public-presentation="quiet"]) :is(.sidebar-kb-item, .sidebar-kb-section-header, .sidebar-kb-search-input) {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}
+body:has(nav[data-public-presentation="quiet"]) .sidebar-kb-section-header {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .08em;
+}
+body:has(nav[data-public-presentation="quiet"]) .reviewFinding_finding {
+  --finding-paper: var(--color-surface-card);
+  --finding-ink: var(--color-text-primary);
+  --finding-muted: var(--color-text-secondary);
+  --finding-accent: var(--color-brand-accent);
+  --finding-rule: var(--color-surface-border);
+}
+body:has(nav[data-public-presentation="quiet"]) nav.public-shell .public-cta-button.bg-brand-accent {
+  background: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  border-radius: 4px;
+  font-family: var(--font-sans) !important;
+  font-weight: 500;
+  box-shadow: none;
+}
+body:has(nav[data-public-presentation="quiet"]) :is(.buyer-page, [data-docs-nav-surface="docs-index"]) h2 {
+  font-size: clamp(24px, 2.4vw, 32px);
+  line-height: 1.25;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content a.block.border {
+  border-radius: 6px;
+  background-color: var(--color-surface-card);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content .card-hover:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--color-surface-border-strong);
+}
+body:has(nav[data-public-presentation="quiet"]) :is(.kb-page-answer, .sidebar-kb-item.active, .kb-related-link:hover) {
+  background: var(--color-surface-card);
+  box-shadow: none;
+  border-color: var(--color-surface-border-strong);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content .docs-prose code:not(pre code) {
+  background: var(--color-surface-inset);
+  font-size: .85em;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content :is(.hero-gradient, .section-gradient-subtle, .cta-gradient) {
+  background: var(--color-surface-bg);
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content .glow-divider {
+  background: var(--color-surface-border);
+  opacity: 1;
+}
+body:has(nav[data-public-presentation="quiet"]) #main-content .glow-divider::after { display: none; }
+
+/* Important utilities take precedence over unlayered important rules. */
+@layer utilities {
+  body:has(nav[data-public-presentation="quiet"]) #witnessops-mobile-menu a[href$="/signup"] {
+    background: var(--color-text-primary) !important;
+    border-color: var(--color-text-primary) !important;
+    color: var(--color-text-inverse) !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+  }
+}

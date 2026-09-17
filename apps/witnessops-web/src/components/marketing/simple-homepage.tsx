@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { ContactForm } from "@/app/(marketing)/contact/contact-form";
 import { buyerServiceById, buyerServiceRequestHref } from "@/lib/buyer-services";
 import styles from "./simple-homepage.module.css";
@@ -17,7 +18,7 @@ const paths = [
   ["Get expert help", "Named reviews when a check is not enough: agent action, one server, or external surface.", "/catalog", "Explore expert help"],
 ];
 function TextLink({ href, children, uiProofId }: { href: string; children: React.ReactNode; uiProofId?: string }) {
-  return <Link className={styles.textLink} href={href} data-ui-proof-id={uiProofId}>{children}<span aria-hidden="true">↗</span></Link>;
+  return <Link className={styles.textLink} href={href} data-ui-proof-id={uiProofId}>{children}<ArrowUpRight size={15} strokeWidth={1.5} aria-hidden="true" /></Link>;
 }
 
 export function SimpleHomepage() {
@@ -26,18 +27,18 @@ export function SimpleHomepage() {
       <div className={styles.frame}>
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>REPEATABLE EVIDENCE. INDEPENDENT FINDINGS.</p>
-          <h1 data-ui-proof-id="homepage-hero-headline">Start with a question.</h1>
-          <p className={styles.lead} data-ui-proof-id="homepage-hero-body">Verify what is exposed, what changed, what acted, and what the evidence actually supports. Start with one question. Keep the snapshot. Compare it later.</p>
+          <h1 data-ui-proof-id="homepage-hero-headline">Start with <br />a question.</h1>
+          <p className={styles.lead} data-ui-proof-id="homepage-hero-body">See what is exposed, understand what changed, and keep findings tied to the evidence. Start with one question. Keep the snapshot. Compare it later.</p>
           <div className={styles.actions}>
             <Link className={styles.primary} href="/check" data-ui-proof-id="homepage-hero-primary-cta">Start a free check</Link>
             <TextLink href="https://app.witnessops.com/signup">Create an account</TextLink>
-            <TextLink href="#sample-finding" uiProofId="homepage-sample-review-cta">See a sample finding</TextLink>
           </div>
           <p className={styles.note}>The free check needs no account. Create an account to sign in; workspace access currently requires an invitation.</p>
         </div>
         <figure className={styles.finding} id="sample-finding" data-review-finding aria-label="Fictional example finding">
-          <div className={styles.findingImage}><Image src="/images/home/example-finding.jpg" alt="" width={480} height={220} priority /></div>
+          <div className={styles.findingImage}><Image src="/images/home/evidence-study.webp" alt="" width={1536} height={1024} sizes="(max-width: 800px) calc(100vw - 40px), (max-width: 1200px) 48vw, 560px" priority /></div>
           <div className={styles.findingBody}>
+            <p className={styles.sampleLabel}>An example, not a claim</p>
             <h2>What changed on example.com before the release?</h2>
             <div className={styles.observation}>
               <div className={styles.observationHeading}><div><h3>DNS A target</h3><p>DNS lookup · A</p></div><span className={styles.badge}>Environment</span></div>
@@ -51,33 +52,33 @@ export function SimpleHomepage() {
     </section>
     <div className={styles.questions}><ul className={styles.frame}>{["What is exposed?", "What changed?", "What acted?", "What is evidenced?"].map(q => <li key={q}>{q}</li>)}</ul></div>
     <section className={styles.section} aria-labelledby="home-services-heading"><div className={styles.frame}>
-      <p className={styles.eyebrow}>Start with one question.</p><h2 id="home-services-heading">Start with one system, action or result that matters.</h2>
-      <p>Start before launch, after a change or when a result needs evidence another party can inspect.</p>
-      <div className={styles.cards}>{paths.map(([title, body, href, label]) => <article key={title}><h3>{title}</h3><p>{body}</p><TextLink href={href}>{label}</TextLink></article>)}</div>
-      <p className={styles.scope}>Not sure what needs checking? <TextLink href="/docs/assistant">Ask about scope</TextLink></p>
-      <TextLink href="/early-access">How the app works</TextLink>
+      <div className={styles.sectionIntro}><p className={styles.eyebrow}>Choose a starting point</p><h2 id="home-services-heading">One question.<br />A clear way forward.</h2>
+      <p>Start with one system, action or result that matters. Keep evidence another party can inspect.</p></div>
+      <div className={styles.cards}>{paths.map(([title, body, href, label], index) => <article key={title}><span className={styles.cardIndex}>0{index + 1}</span><h3>{title}</h3><p>{body}</p><TextLink href={href}>{label}</TextLink></article>)}</div>
+      <div className={styles.sectionLinks}><TextLink href="/early-access">How the app works</TextLink><TextLink href="#sample-finding" uiProofId="homepage-sample-review-cta">See a sample finding</TextLink></div>
     </div></section>
-    <section className={styles.section} aria-labelledby="home-decision-heading"><div className={styles.frame}>
+    <section className={styles.section} aria-labelledby="home-decision-heading"><div className={`${styles.frame} ${styles.splitSection}`}>
+      <div>
       <p className={styles.eyebrow}>When to start</p><h2 id="home-decision-heading">Before the next consequential step.</h2>
-      <div className={`${styles.cards} ${styles.twoColumns}`}>{situations.map(([title, body]) => <article key={title}><h3>{title}</h3><p>{body}</p></article>)}</div>
-      <p>Tell us what needs to happen and by when. We will confirm whether the app, a named review, or neither is the right next step.</p>
-      <TextLink href="#enquiry">Ask about your case</TextLink>
+      <p>Before you grant access, ship a change or share a result, know what the evidence supports.</p>
+      <TextLink href="#enquiry">Ask about your case</TextLink></div>
+      <div className={styles.situations}>{situations.map(([title, body]) => <article key={title}><h3>{title}</h3><p>{body}</p></article>)}</div>
     </div></section>
-    <section className={styles.section} aria-labelledby="home-limits-heading"><div className={styles.frame}>
-      <p className={styles.eyebrow}>Limits</p><h2 id="home-limits-heading">What the app can and cannot do</h2>
+    <section className={`${styles.section} ${styles.boundaries}`} aria-labelledby="home-limits-heading"><div className={styles.frame}>
+      <div className={styles.sectionIntro}><p className={styles.eyebrow}>Clear boundaries</p><h2 id="home-limits-heading">Useful evidence.<br />Explicit limits.</h2><p>What the app can and cannot do.</p></div>
       <div className={styles.limits}>{[
         ["The app can", "Record one bounded check", "Keep the snapshot", "Compare saved checks", "Export a portable pack", "Keep findings tied to their evidence"],
         ["The app cannot", "Monitor continuously", "Certify a system", "Replace a penetration test", "Treat missing data as a finding", "Make a universal verification claim"],
       ].map(([title, ...items]) => <div key={title}><h3>{title}</h3><ul>{items.map(item => <li key={item}>{item}</li>)}</ul></div>)}</div>
     </div></section>
-    <section className={styles.section} aria-labelledby="home-reviews-heading"><div className={styles.frame}>
-      <p className={styles.eyebrow}>Expert help</p><h2 id="home-reviews-heading">Three named reviews</h2>
-      <p>Human support does not automatically authorize or execute a scan, review or fix. We agree scope, price and access before work begins.</p>
+    <section className={`${styles.section} ${styles.reviews}`} aria-labelledby="home-reviews-heading"><div className={styles.frame}>
+      <div className={styles.sectionIntro}><p className={styles.eyebrow}>Expert help</p><h2 id="home-reviews-heading">When a check needs<br />a closer look.</h2>
+      <p>Three named reviews. We agree scope, price and access before work begins. An enquiry does not authorize or start work.</p></div>
       <div className={styles.cards}>{reviews.map(id => { const service = buyerServiceById(id); return <article key={id}><h3>{service.name.en}</h3><p className={styles.price}>{service.price.en}</p><p>{service.cardSituation.en}</p><TextLink href={buyerServiceRequestHref("en", service)}>Ask about this review</TextLink></article>; })}</div>
       <TextLink href="/pricing">See all prices</TextLink>
     </div></section>
     <section id="enquiry" className={`${styles.section} ${styles.enquiry}`} aria-labelledby="home-enquiry-heading"><div className={styles.frame}>
-      <div><p className={styles.eyebrow}>Ask about your case</p><h2 id="home-enquiry-heading">One question.<br />Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether the app, a named review, or neither is the right next step.</p><p className={styles.note}>For product or access questions, <Link href="/support">get support help</Link>.</p></div>
+      <div><p className={styles.eyebrow}>Ask an expert</p><h2 id="home-enquiry-heading">One question.<br />Non-secret details only.</h2><p>Tell us what needs to happen and by when. We will confirm whether the app, a named review, or neither is the right next step.</p><p className={styles.note}>For product or access questions, <Link href="/support">visit support</Link>.</p></div>
       <div className={styles.enquiryForm}><ContactForm compact landing /></div>
     </div></section>
   </main>;

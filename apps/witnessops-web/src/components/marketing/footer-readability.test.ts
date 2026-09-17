@@ -32,10 +32,7 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.match(source, /public-footer/);
   assert.match(source, /grid-cols-2/);
   assert.match(source, /md:pr-32/);
-  assert.match(
-    source,
-    /lg:grid-cols-\[minmax\(0,1fr\)_minmax\(0,1\.15fr\)_minmax\(0,1fr\)\]/,
-  );
+  assert.match(source, /footer-main/);
   assert.match(globals, /footer\.public-shell\.public-footer\[data-brand-footer\]/);
   assert.match(globals, /background: var\(--color-surface-bg\)/);
   assert.match(globals, /color: var\(--color-text-primary\)/);

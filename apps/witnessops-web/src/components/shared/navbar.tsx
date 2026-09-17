@@ -2,6 +2,7 @@
 
 import { PublicNavigationLink as Link } from "./document-navigation";
 import { usePathname } from "next/navigation";
+import { usesPublicPresentation } from "@/lib/public-presentation";
 import { useLayoutEffect, useRef } from "react";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { WitnessOpsMark } from "./witnessops-mark";
@@ -105,6 +106,7 @@ export function Navbar({ announcement }: NavbarProps) {
         </div>
       )}
       <nav
+        data-public-presentation={usesPublicPresentation(currentPath) ? "quiet" : undefined}
         ref={navRef}
         aria-label={polish ? "Nawigacja główna" : "Primary navigation"}
         className="mobile-brand-navbar public-shell simple-public-navbar sticky top-0 z-50 border-b border-surface-border bg-surface-bg pt-[env(safe-area-inset-top)] text-text-primary lg:pt-0"

@@ -18,7 +18,7 @@ test("docs layout wires docs navbar search entries", async () => {
   assert.ok(
     source.includes('import { DocsNavbar } from "@/components/docs/docs-navbar";'),
   );
-  assert.ok(source.includes("<DocsNavbar docs={searchDocs} />"));
+  assert.match(source, /<DocsNavbar\b[^>]*\bdocs=\{searchDocs\}[^>]*\/>/);
   assert.ok(source.includes("listDocPages(\"witnessops\")"));
 });
 

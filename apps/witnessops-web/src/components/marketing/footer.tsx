@@ -88,7 +88,6 @@ export function isFooterRequestHref(href: string): boolean {
 
 export function Footer({
   brand_line,
-  subline,
   links,
   legal_links,
   build_label,
@@ -114,18 +113,18 @@ export function Footer({
     },
   ] : [
     { label: "Product", links: [
-      { label: "How the app works", href: "/early-access" },
-      { label: "Expert help", href: "/catalog" },
-      { label: "Price", href: "/pricing" },
-      { label: "Free check", href: "/check" },
-      { label: "Open app", href: "https://app.witnessops.com/" },
-    ] },
-    { label: "Resources", links: [
+      { label: "Services", href: "/catalog" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "How it works", href: "/early-access" },
       { label: "Docs", href: DOCS_PUBLIC_HREF },
-      { label: "Sample work", href: "/review/sample-cases" },
-      { label: "Research", href: "/research" },
-      { label: "Verify a receipt", href: "/verify" },
-      { label: "Support help", href: "/support" },
+      { label: "Support", href: "/support" },
+    ] },
+    { label: "App", links: [
+      { label: "Sign up", href: "https://app.witnessops.com/signup" },
+      { label: "Log in", href: "https://app.witnessops.com/login" },
+      { label: "Assets", href: "https://app.witnessops.com/assets" },
+      { label: "Reports", href: "https://app.witnessops.com/reports" },
+      { label: "Settings", href: "https://app.witnessops.com/settings" },
     ] },
   ];
 
@@ -151,7 +150,7 @@ export function Footer({
       data-footer-surface={isLibraryPath(path) ? "library" : isPolishSurface ? "pl-buyer" : "en-buyer"}
     >
       <div className="mx-auto max-w-[1200px] px-6 py-6 lg:py-9">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-8">
+        <div className="footer-main">
           <div data-footer-brand-lockup>
             <Link
               href={isPolishSurface ? "/pl" : "/"}
@@ -170,7 +169,7 @@ export function Footer({
             </p>
           </div>
 
-          <div className="order-3 grid grid-cols-2 gap-x-5 lg:order-2">
+          <div className="footer-navigation grid grid-cols-2 gap-x-6">
             {groups.map((group) => (
               <nav key={group.label} aria-label={group.label}>
                 <p className="mb-1 text-sm font-semibold text-text-primary"
@@ -184,13 +183,23 @@ export function Footer({
             ))}
           </div>
 
-          <div className="order-2 min-w-0 lg:order-3">
+          <div className="footer-contact min-w-0">
+            <p className="footer-heading">{isPolishSurface ? "Kontakt" : "Contact"}</p>
             <PublicContactRoute compact premium locale={isPolishSurface ? "pl" : "en"}
               primaryHref={reviewRequestHref} />
           </div>
         </div>
 
-        <div className="mt-5 flex flex-col items-start justify-between gap-2 border-t border-surface-border pt-3 md:flex-row md:items-center md:pr-32 lg:mt-7">
+        {!isPolishSurface && (
+          <nav aria-label="Resources" className="footer-resources">
+            {[
+              { label: "Sample work", href: "/review/sample-cases" },
+              { label: "Research", href: "/research" },
+              { label: "Verify a receipt", href: "/verify" },
+            ].map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}
+          </nav>
+        )}
+        <div className="footer-legal mt-5 flex flex-col items-start justify-between gap-2 border-t border-surface-border pt-3 md:flex-row md:items-center md:pr-32 lg:mt-7">
           <div className="flex flex-wrap gap-x-4">
             {content.legal_links.map((link) => renderLink(link, FOOTER_LEGAL_LINK_CLASS))}
             {!isPolishSurface ? (

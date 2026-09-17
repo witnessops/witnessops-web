@@ -12,7 +12,7 @@ function sha256(path: string): string {
 }
 
 test("media kit uses the homepage-native public shell and approved section structure", () => {
-  assert.match(pageSource, /className="public-brand-page"/);
+  assert.match(pageSource, /public-brand-page \$\{styles\.mediaPage\}/);
   assert.doesNotMatch(pageSource, /className="buyer-page"/);
   assert.match(pageSource, /SectionShell/);
   assert.match(pageSource, /spacing="spacious"/);
@@ -42,7 +42,7 @@ test("media kit preserves the approved description, palette and type wording", (
     pageSource,
     /WitnessOps delivers bounded security and operational reviews with[\s\S]*evidence references, clear limits and a practical handover\./,
   );
-  for (const marker of ["#050505", "#F27A3D", "#FAFAF7", "Inter", "IBM Plex Mono"]) {
+  for (const marker of ["#0B0C0B", "#B89B62", "#F5F1E8", "Inter", "IBM Plex Mono"]) {
     assert.ok(pageSource.includes(marker), `Missing Media kit marker: ${marker}`);
   }
   assert.doesNotMatch(pageSource, /Barlow Condensed/);

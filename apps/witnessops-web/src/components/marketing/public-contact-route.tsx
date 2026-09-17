@@ -88,7 +88,7 @@ export function PublicContactRoute({
           className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-md border px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg ${actionClass}`}
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {routeCta}
+          {premium ? (polish ? "Zapytaj eksperta" : "Ask an expert") : routeCta}
         </Link>
         <p className="mt-1 text-xs leading-5 text-text-secondary">
           {polish ? "Lub napisz:" : "Or email:"}{" "}

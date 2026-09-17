@@ -55,17 +55,17 @@ test("catalogue routes remain responsive and usable", async ({ browser }) => {
         primaryCtaColor: primaryCtaStyle?.color ?? null,
       };
     });
-    expect(firstCardVisuals.background).toBe("rgb(13, 13, 12)");
-    expect(firstCardVisuals.color).toBe("rgb(250, 250, 247)");
+    expect(firstCardVisuals.background).toBe("rgb(18, 19, 16)");
+    expect(firstCardVisuals.color).toBe("rgb(245, 241, 232)");
     expect(firstCardVisuals.tokens).toEqual({
-      background: "#050505",
-      card: "#0d0d0c",
-      primary: "#fafaf7",
-      accent: "#f27a3d",
-      inverse: "#160b05",
+      background: "#0b0c0b",
+      card: "#121310",
+      primary: "#f5f1e8",
+      accent: "#b89b62",
+      inverse: "#151510",
     });
-    expect(firstCardVisuals.primaryCtaBackground).toBe("rgb(242, 122, 61)");
-    expect(firstCardVisuals.primaryCtaColor).toBe("rgb(22, 11, 5)");
+    expect(firstCardVisuals.primaryCtaBackground).toBe("rgb(245, 241, 232)");
+    expect(firstCardVisuals.primaryCtaColor).toBe("rgb(21, 21, 16)");
     expect(
       await serviceCards.evaluateAll((cards) =>
         cards.map((card) => card.getAttribute("data-buyer-service")),

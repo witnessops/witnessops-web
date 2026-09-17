@@ -1,3 +1,4 @@
+import styles from "../footer-pages.module.css";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { SectionShell } from "@/components/shared/section-shell";
@@ -252,9 +253,9 @@ const identityColours = [
 ] as const;
 
 const interfaceColours = [
-  { name: "Surface black", value: "#050505", swatchClass: "bg-[#050505]" },
-  { name: "Action orange", value: "#F27A3D", swatchClass: "bg-[#F27A3D]" },
-  { name: "Warm white", value: "#FAFAF7", swatchClass: "bg-[#FAFAF7]" },
+  { name: "Charcoal", value: "#0B0C0B", swatchClass: "bg-[#0B0C0B]" },
+  { name: "Muted brass", value: "#B89B62", swatchClass: "bg-[#B89B62]" },
+  { name: "Warm ivory", value: "#F5F1E8", swatchClass: "bg-[#F5F1E8]" },
 ] as const;
 
 const screenshots = [
@@ -262,7 +263,7 @@ const screenshots = [
     title: "WitnessOps homepage — desktop",
     description: "The desktop homepage hero and primary public navigation.",
     src: "/media-kit/witnessops-homepage-desktop.png",
-    alt: "WitnessOps desktop homepage with the headline Agents act. WitnessOps proves.",
+    alt: "WitnessOps desktop homepage with the headline Start with a question.",
     width: 1506,
     height: 738,
     fileName: "witnessops-homepage-desktop.png",
@@ -271,24 +272,22 @@ const screenshots = [
     title: "WitnessOps homepage — mobile",
     description: "The homepage hero and compact navigation on a narrow screen.",
     src: "/media-kit/witnessops-homepage-mobile.png",
-    alt: "WitnessOps mobile homepage with compact header and the headline Agents act. WitnessOps proves.",
+    alt: "WitnessOps mobile homepage with compact header and the headline Start with a question.",
     width: 390,
     height: 598,
     fileName: "witnessops-homepage-mobile.png",
   },
 ] as const;
 
-const downloadClassName =
-  "inline-flex min-h-[50px] max-w-full items-center justify-center rounded-lg border border-brand-accent bg-brand-accent px-5 py-2 text-center font-mono text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-text-inverse shadow-[0_8px_24px_rgba(242,122,61,0.14)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#FF8A4C] hover:shadow-[0_14px_34px_rgba(242,122,61,0.26)] active:translate-y-0 active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg motion-reduce:transform-none";
-const secondaryDownloadClassName =
-  "inline-flex min-h-[50px] max-w-full items-center justify-center rounded-lg border border-surface-border-strong bg-surface-bg px-5 py-2 text-center font-mono text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-text-primary transition-colors hover:border-brand-accent hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
+const downloadClassName = styles.primaryDownload;
+const secondaryDownloadClassName = styles.secondaryDownload;
 
 const eyebrowClassName =
   "font-mono text-[0.68rem] font-semibold uppercase leading-6 tracking-[0.16em] text-brand-accent";
 const sectionTitleClassName =
   "mt-4 max-w-[18ch] text-3xl font-semibold leading-[1.04] tracking-[-0.04em] text-text-primary sm:text-4xl lg:text-5xl";
 const cardClassName =
-  "min-w-0 rounded-xl border border-surface-border bg-surface-card p-5 shadow-[0_24px_64px_rgba(0,0,0,0.22)]";
+  "min-w-0 rounded-md border border-surface-border bg-surface-card p-5 sm:p-6";
 
 function AssetDownloads({ title, downloads }: Pick<BrandAsset, "title" | "downloads">) {
   return (
@@ -299,7 +298,7 @@ function AssetDownloads({ title, downloads }: Pick<BrandAsset, "title" | "downlo
           href={asset.href}
           download={asset.fileName}
           aria-label={`Download ${title} as ${asset.format}, ${asset.dimensions}`}
-          className={downloadClassName}
+          className={secondaryDownloadClassName}
         >
           <span className="break-words">
             Download {asset.format} · {asset.dimensions}
@@ -312,7 +311,7 @@ function AssetDownloads({ title, downloads }: Pick<BrandAsset, "title" | "downlo
 
 export default function MediaKitPage() {
   return (
-    <main id="main-content" tabIndex={-1} className="public-brand-page" data-page="media-kit">
+    <main id="main-content" tabIndex={-1} className={`public-brand-page ${styles.mediaPage}`} data-page="media-kit">
       <SectionShell spacing="spacious" className="border-b border-surface-border">
         <div className="max-w-[760px]">
           <p className={eyebrowClassName}>WitnessOps resources</p>
@@ -364,7 +363,7 @@ export default function MediaKitPage() {
                 <a
                   key={href}
                   href={href}
-                  className="inline-flex min-h-11 items-center rounded-md border border-surface-border px-4 py-2 font-mono text-xs font-semibold uppercase tracking-[0.06em] text-text-secondary transition-colors hover:border-brand-accent hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                  className={secondaryDownloadClassName}
                 >
                   {label}
                 </a>
@@ -477,8 +476,9 @@ export default function MediaKitPage() {
             Identity first; interface second
           </h2>
           <p className="mt-6 text-base leading-8 text-text-secondary">
-            The logo identity is monochrome. Orange and warm white belong to the
-            WitnessOps website interface; they do not recolour the master identity.
+            The logo identity is monochrome. The website pairs charcoal surfaces
+            with warm ivory text and muted brass accents. These interface colours
+            do not recolour the master identity.
           </p>
         </div>
         <h3 className="mt-10 text-lg font-semibold text-text-primary">Logo identity</h3>
@@ -530,7 +530,7 @@ export default function MediaKitPage() {
           </article>
         </div>
         <p className="mt-5 max-w-[720px] text-sm leading-7 text-text-muted">
-          Orange is for functional interface emphasis, never the logo. Font files are
+          Brass is for restrained interface emphasis, never the logo. Font files are
           not offered for download here.
         </p>
       </SectionShell>
@@ -539,23 +539,25 @@ export default function MediaKitPage() {
         <div className="max-w-[720px]">
           <p className={eyebrowClassName}>Product screenshots</p>
           <h2 className={sectionTitleClassName}>
-            Current public surfaces
+            Website design previews
           </h2>
           <p className="mt-6 text-base leading-8 text-text-secondary">
-            These images show the public website without customer evidence, filled forms or private data.
+            These images preview the website design. They contain no customer evidence, completed forms or private data; they do not establish what is currently deployed.
           </p>
         </div>
-        <div className="mt-10 grid gap-6">
+        <div className={styles.screenshotGrid}>
           {screenshots.map((screenshot) => (
             <figure key={screenshot.fileName} className={cardClassName}>
               <div className="overflow-hidden rounded-md border border-surface-border bg-black">
                 <Image
                   src={screenshot.src}
+                  unoptimized
+                  loading="eager"
                   alt={screenshot.alt}
                   width={screenshot.width}
                   height={screenshot.height}
                   sizes="(max-width: 767px) 90vw, 1100px"
-                  className="h-auto w-full object-contain"
+                  className={styles.screenshotImage}
                 />
               </div>
               <figcaption className="mt-5">

@@ -47,20 +47,19 @@ const languagePairs = [
 const routesWithSecondaryNavigation = new Set<string>(["/docs", "/pl/docs"]);
 
 const canonicalChrome = {
-  background: "rgb(5, 5, 5)",
-  primary: "rgb(250, 250, 247)",
-  accent: "rgb(242, 122, 61)",
-  inverse: "rgb(22, 11, 5)",
+  background: "rgb(11, 12, 11)",
+  primary: "rgb(245, 241, 232)",
+  accent: "rgb(184, 155, 98)",
+  inverse: "rgb(21, 21, 16)",
   tokens: {
-    background: "#050505",
-    primary: "#fafaf7",
-    accent: "#f27a3d",
-    inverse: "#160b05",
+    background: "#0b0c0b",
+    primary: "#f5f1e8",
+    accent: "#b89b62",
+    inverse: "#151510",
   },
 } as const;
 
 const activeNavigationHref = new Map<string, string>([
-  ["/support", "/support"],
   ["/catalog", "/catalog"],
   ["/pl/catalog", "/pl/catalog"],
   ["/docs", "/docs"],
@@ -241,7 +240,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         canonicalChrome.primary,
       );
       expect(shell.footerBackground, `${route} footer background`).toBe(
-        canonicalChrome.background,
+        "rgb(17, 17, 16)",
       );
       expect(shell.footerColor, `${route} footer foreground`).toBe(
         canonicalChrome.primary,
@@ -252,7 +251,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
         ["main", shell.mainTokens],
       ] as const) {
         expect(tokens, `${route} ${viewport.name} ${surface} tokens`).toEqual(
-          canonicalChrome.tokens,
+          surface === "footer" ? { ...canonicalChrome.tokens, background: "#111110" } : canonicalChrome.tokens,
         );
       }
       expect(
@@ -265,7 +264,7 @@ test("accepted public routes retain one consistent, accessible shared shell", as
       ).toBeGreaterThanOrEqual(4.5);
       if (viewport.width >= 1024) {
         expect(shell.desktopCtaBackground, `${route} desktop CTA background`).toBe(
-          canonicalChrome.accent,
+          canonicalChrome.primary,
         );
         expect(shell.desktopCtaColor, `${route} desktop CTA foreground`).toBe(
           canonicalChrome.inverse,
@@ -361,7 +360,7 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
   expect(menuVisuals.currentBorderColor).toBe(canonicalChrome.accent);
   expect(menuVisuals.currentColor).toBe(canonicalChrome.primary);
   expect(menuVisuals.menuBackground).toBe(canonicalChrome.background);
-  expect(menuVisuals.ctaBackground).toBe(canonicalChrome.accent);
+  expect(menuVisuals.ctaBackground).toBe(canonicalChrome.primary);
   expect(menuVisuals.ctaColor).toBe(canonicalChrome.inverse);
   expect(contrastRatio(menuVisuals.ctaColor!, menuVisuals.ctaBackground!)).toBeGreaterThanOrEqual(4.5);
   const openGeometry = await page.locator("main").evaluate((main) => {

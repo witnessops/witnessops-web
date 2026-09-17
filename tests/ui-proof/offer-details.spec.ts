@@ -249,13 +249,13 @@ test("reachable offer details use the canonical buyer contract and visual system
         },
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       }));
-      expect(metrics.background).toBe("rgb(5, 5, 5)");
-      expect(metrics.color).toBe("rgb(250, 250, 247)");
+      expect(metrics.background).toBe("rgb(11, 12, 11)");
+      expect(metrics.color).toBe("rgb(245, 241, 232)");
       expect(metrics.tokens).toEqual({
-        background: "#050505",
-        primary: "#fafaf7",
-        accent: "#f27a3d",
-        inverse: "#160b05",
+        background: "#0b0c0b",
+        primary: "#f5f1e8",
+        accent: "#b89b62",
+        inverse: "#151510",
       });
       expect(metrics.overflow).toBeLessThanOrEqual(1);
 
@@ -263,9 +263,9 @@ test("reachable offer details use the canonical buyer contract and visual system
       expect(await requestLinks.count()).toBeGreaterThanOrEqual(2);
       await expect(requestLinks.first()).toHaveCSS(
         "background-color",
-        "rgb(242, 122, 61)",
+        "rgb(245, 241, 232)",
       );
-      await expect(requestLinks.first()).toHaveCSS("color", "rgb(22, 11, 5)");
+      await expect(requestLinks.first()).toHaveCSS("color", "rgb(21, 21, 16)");
       for (let index = 0; index < 2; index += 1) {
         const link = requestLinks.nth(index);
         const href = await link.getAttribute("href");
