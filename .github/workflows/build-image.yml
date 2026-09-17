@@ -52,7 +52,8 @@ jobs:
     name: Supply Chain Gate
     uses: ./.github/workflows/supply-chain-gate.yml
     with:
-      base_ref: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+      checkout_ref: ${{ github.sha }}
+      base_ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000' && github.event.before || github.event_name == 'workflow_dispatch' && format('{0}^', github.sha) || 'MISSING_REQUIRED_COMPARISON_BASE' }}
     permissions:
       contents: read
 
@@ -80,13 +81,34 @@ jobs:
           fetch-tags: true
           persist-credentials: false
 
-      - name: Confirm resolved source, dependency gate and checkout agree
+      - name: Verify dependency admission before package tooling
         env:
-          EXPECTED_SOURCE_COMMIT: ${{ github.sha }}
-          GATE_SOURCE_COMMIT: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          ADMISSION_RESULT: ${{ needs.supply_chain_gate.result }}
+          ADMISSION_STATUS: ${{ needs.supply_chain_gate.outputs.status }}
+          ADMITTED_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          EVENT_SHA: ${{ github.sha }}
+          ADMITTED_LOCK_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        shell: bash
         run: |
-          test "$(git rev-parse HEAD)" = "${EXPECTED_SOURCE_COMMIT}"
-          test "${GATE_SOURCE_COMMIT}" = "${EXPECTED_SOURCE_COMMIT}"
+          case "${EVENT_NAME}" in
+            pull_request) comparison_base="${PR_BASE}" ;;
+            push) comparison_base="${PUSH_BEFORE}" ;;
+            workflow_dispatch)
+              [[ "${EVENT_SHA}" =~ ^[0-9a-f]{40}$ ]] || exit 1
+              comparison_base="${EVENT_SHA}^"
+              ;;
+            *) echo "Unsupported GHCR build admission event." >&2; exit 1 ;;
+          esac
+          if [ "${EVENT_NAME}" != workflow_dispatch ]; then
+            [[ "${comparison_base}" =~ ^[0-9a-f]{40}$ ]] || exit 1
+            [[ "${comparison_base}" != '0000000000000000000000000000000000000000' ]] || exit 1
+            [[ "${comparison_base}" != "${EVENT_SHA}" ]] || exit 1
+          fi
+          git cat-file -e "${comparison_base}^{commit}" || exit 1
+          python3 -I tools/supply-chain-gate/verify_install_admission.py
 
       - name: Set up pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
