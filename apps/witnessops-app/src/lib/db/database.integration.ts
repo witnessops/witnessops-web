@@ -105,7 +105,6 @@ test('Plan: concurrent identical enrollment is idempotent; conflicting choices r
 
 test('Plan: foreign members, Viewers, revoked members and paused identities cannot read or write financial choices', async () => {
   const { user, workspace, plans } = await planFixture('plan_authorization');
-  await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, workspace]);
   const choice = planConsent();
   const first = await plans.recordConsent(user, workspace, choice);
   for (const actor of [b, viewer]) {
@@ -113,6 +112,11 @@ test('Plan: foreign members, Viewers, revoked members and paused identities cann
     await assert.rejects(plans.recordConsent(actor, workspace, planConsent(4900, 1)));
     await assert.rejects(plans.recordConsent(actor, workspace, choice));
   }
+  await pool.query("UPDATE memberships SET role='viewer' WHERE workspace_id=$1 AND user_id=$2", [workspace, user.id]);
+  await assert.rejects(plans.read(user, workspace), /Owner/);
+  await assert.rejects(plans.recordConsent(user, workspace, planConsent(4900, 1)), /Owner/);
+  await assert.rejects(plans.recordConsent(user, workspace, choice), /Owner/);
+  await pool.query("UPDATE memberships SET role='owner' WHERE workspace_id=$1 AND user_id=$2", [workspace, user.id]);
   await pool.query("UPDATE users SET early_access_state='paused' WHERE id=$1", [user.id]);
   await assert.rejects(plans.read(user, workspace), /paused/);
   await assert.rejects(plans.recordConsent(user, workspace, choice), /paused/);
@@ -158,6 +162,181 @@ test('Plan: database guards preserve trial identity, consent history and the exa
   await assert.rejects(pool.query("UPDATE early_access_plan_terms SET terms=jsonb_set(terms,'{suggestedContributionMinor}','9900')"), /immutable/);
   await assert.rejects(pool.query('DELETE FROM early_access_plan_terms'), /immutable/);
   assert.deepEqual(await plans.read(user, workspace), first);
+});
+
+const seatLimitError = (error: unknown) => error instanceof ApiError && error.status === 409 && /1 active workspace member/.test(error.message);
+const seatDatabaseError = (error: unknown) => {
+  const value = error as { code?: string; constraint?: string };
+  return value?.code === '23514' && value?.constraint === 'early_access_workspace_seat_limit';
+};
+const seatCount = async (workspace: string, database = pool) => Number((await database.query("SELECT count(*) FROM memberships WHERE workspace_id=$1 AND status='active' AND revoked_at IS NULL", [workspace])).rows[0].count);
+
+test('Seats: Owners and Viewers reserve membership seats across account states; rejected enrollment preserves legacy access and evidence', async () => {
+  for (const amount of [0, 4900]) {
+    const f = await planFixture(`seat_enrollment_${amount}`), extra = await resolveIdentity(pool, identity(`seat_extra_${amount}`));
+    await pool.query('INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,$3)', [extra.id, f.workspace, amount ? 'owner' : 'viewer']);
+    const asset = await store.addAsset(f.user, f.workspace, source.target, 'hostname');
+    const saved = await store.completeRun(f.user, f.workspace, await store.beginRun(f.user, f.workspace, asset.id), source);
+    const members = (await pool.query('SELECT * FROM memberships WHERE workspace_id=$1 ORDER BY user_id', [f.workspace])).rows;
+    const choice = planConsent(amount);
+    for (const [status, cohort] of [['active', 'active'], ['active', 'paused'], ['active', null], ['disabled', 'active']]) {
+      await pool.query('UPDATE users SET status=$2,early_access_state=$3 WHERE id=$1', [extra.id, status, cohort]);
+      await assert.rejects(f.plans.recordConsent(f.user, f.workspace.toUpperCase(), choice), seatLimitError);
+    }
+    await assert.rejects(pool.query('INSERT INTO early_access_plans(workspace_id,revision) VALUES ($1,1)', [f.workspace]), seatDatabaseError);
+    assert.equal(await f.plans.read(f.user, f.workspace), null);
+    assert.equal((await pool.query('SELECT count(*) FROM early_access_plan_consents WHERE workspace_id=$1', [f.workspace])).rows[0].count, '0');
+    assert.deepEqual((await pool.query('SELECT * FROM memberships WHERE workspace_id=$1 ORDER BY user_id', [f.workspace])).rows, members);
+    assert.deepEqual(await store.run(f.user, f.workspace, saved.id), saved);
+    await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE workspace_id=$1 AND user_id=$2", [f.workspace, extra.id]);
+    // The same identity may hold seats in other workspaces; the cap is per workspace.
+    await store.create(f.user, 'Independent seat fixture', randomUUID());
+    const first = await f.plans.recordConsent(f.user, f.workspace, choice);
+    const changed = await f.plans.recordConsent(f.user, f.workspace, planConsent(amount ? 0 : 4900, 1));
+    assert.equal(changed.trialStartedAt, first.trialStartedAt); assert.equal(changed.trialEndsAt, first.trialEndsAt);
+    assert.deepEqual(await f.plans.recordConsent(f.user, f.workspace, choice), changed);
+    await assert.rejects(pool.query("UPDATE memberships SET status='active',revoked_at=NULL WHERE workspace_id=$1 AND user_id=$2", [f.workspace, extra.id]), seatDatabaseError);
+    assert.equal(await seatCount(f.workspace), 1);
+  }
+});
+
+test('Seats: concurrent grants and reactivations from independent pools fill exactly one seat; multi-row failure rolls back', async () => {
+  const f = await planFixture('seat_concurrent');
+  const first = await f.plans.recordConsent(f.user, f.workspace, planConsent());
+  await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE workspace_id=$1 AND user_id=$2", [f.workspace, f.user.id]);
+  const users = await Promise.all(Array.from({ length: 6 }, (_, i) => resolveIdentity(pool, identity(`seat_candidate_${i}`))));
+  for (const user of users.slice(0, 3)) await pool.query("INSERT INTO memberships(user_id,workspace_id,role,status,revoked_at) VALUES ($1,$2,'viewer','revoked',now())", [user.id, f.workspace]);
+  await assert.rejects(pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$3,'owner'),($2,$3,'viewer')", [users[3].id, users[4].id, f.workspace]), seatDatabaseError);
+  await assert.rejects(pool.query("UPDATE memberships SET status='active',revoked_at=NULL WHERE workspace_id=$1 AND user_id=ANY($2::uuid[])", [f.workspace, users.slice(0, 3).map(u => u.id)]), seatDatabaseError);
+  assert.equal(await seatCount(f.workspace), 0);
+  const fresh = connect();
+  try {
+    const results = await Promise.allSettled(users.map((user, i) => {
+      const database = i % 2 ? fresh : pool, workspace = i % 2 ? f.workspace.toUpperCase() : f.workspace;
+      return i < 3
+        ? database.query("UPDATE memberships SET status='active',revoked_at=NULL WHERE workspace_id=$1 AND user_id=$2", [workspace, user.id])
+        : database.query('INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,$3)', [user.id, workspace, i % 2 ? 'owner' : 'viewer']);
+    }));
+    assert.equal(results.filter(r => r.status === 'fulfilled').length, 1);
+    for (const result of results) if (result.status === 'rejected') assert.ok(seatDatabaseError(result.reason));
+    assert.equal(await seatCount(f.workspace, fresh), 1);
+    const winner = users[results.findIndex(r => r.status === 'fulfilled')];
+    await fresh.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'owner') ON CONFLICT(user_id,workspace_id) DO UPDATE SET role=EXCLUDED.role", [winner.id, f.workspace]);
+    await assert.rejects(fresh.query("UPDATE memberships SET status='active',revoked_at=NULL WHERE workspace_id=$1 AND user_id=$2", [f.workspace, f.user.id]), seatDatabaseError);
+    const current = await new EarlyAccessPlanStore(fresh).read(winner, f.workspace);
+    assert.deepEqual(current, first);
+    assert.equal(await seatCount(f.workspace, fresh), 1);
+  } finally { await fresh.end(); }
+});
+
+test('Seats: enrollment and a legacy membership grant serialize on the same canonical workspace lock', async () => {
+  const f = await planFixture('seat_enrollment_race'), fresh = connect();
+  try {
+    const results = await Promise.allSettled([
+      fresh.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, f.workspace.toUpperCase()]),
+      f.plans.recordConsent(f.user, f.workspace, planConsent()),
+    ]);
+    assert.equal(results.filter(r => r.status === 'fulfilled').length, 1);
+    const denied = results.find(r => r.status === 'rejected');
+    assert.ok(denied?.status === 'rejected' && (seatLimitError(denied.reason) || seatDatabaseError(denied.reason)));
+    const plan = await f.plans.read(f.user, f.workspace);
+    assert.equal(await seatCount(f.workspace, fresh), plan ? 1 : 2);
+  } finally { await fresh.end(); }
+});
+
+test('Seats: paused accounts, workspace moves and unsupported accepted terms cannot bypass admission', async () => {
+  const f = await planFixture('seat_admission'), legacy = await planFixture('seat_move_origin');
+  await f.plans.recordConsent(f.user, f.workspace, planConsent(4900));
+  await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, legacy.workspace]);
+  await assert.rejects(pool.query('UPDATE memberships SET workspace_id=$1 WHERE workspace_id=$2 AND user_id=$3', [f.workspace, legacy.workspace, viewer.id]), seatDatabaseError);
+  assert.equal((await pool.query('SELECT workspace_id FROM memberships WHERE workspace_id=$1 AND user_id=$2', [legacy.workspace, viewer.id])).rows[0].workspace_id, legacy.workspace);
+  await pool.query("UPDATE users SET early_access_state='paused' WHERE id=$1", [f.user.id]);
+  await assert.rejects(pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'owner')", [b.id, f.workspace]), seatDatabaseError);
+  await pool.query("UPDATE users SET early_access_state='active' WHERE id=$1", [f.user.id]);
+  assert.equal(await seatCount(f.workspace), 1);
+
+  const unknown = await planFixture('seat_unknown_terms'), version = 'unsupported-seat-fixture';
+  await pool.query('INSERT INTO early_access_plan_terms(version,terms) VALUES ($1,$2)', [version, { version, limits: { seats: 10 } }]);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('INSERT INTO early_access_plans(workspace_id,revision) VALUES ($1,1)', [unknown.workspace]);
+    await client.query('INSERT INTO early_access_plan_consents(workspace_id,request_id,revision,accepted_by,terms_version,contribution_minor) VALUES ($1,$2,1,$3,$4,0)', [unknown.workspace, randomUUID(), unknown.user.id, version]);
+    await client.query('COMMIT');
+  } catch (error) { await client.query('ROLLBACK'); throw error; }
+  finally { client.release(); }
+  await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE workspace_id=$1", [unknown.workspace]);
+  await assert.rejects(pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'owner')", [b.id, unknown.workspace]), (error: unknown) => {
+    const value = error as { code?: string; constraint?: string };
+    return value?.code === '23514' && value?.constraint === 'early_access_workspace_seat_policy';
+  });
+  assert.equal(await seatCount(unknown.workspace), 0);
+});
+
+test('Seats: stale transaction snapshots cannot admit an over-cap enrollment or a second member', async () => {
+  const unsupportedIsolation = (error: unknown) => (error as { code?: string })?.code === '0A000';
+  for (const isolation of ['REPEATABLE READ', 'SERIALIZABLE']) {
+    const f = await planFixture(`seat_snapshot_enroll_${isolation}`), g = await planFixture(`seat_snapshot_grant_${isolation}`);
+    await g.plans.recordConsent(g.user, g.workspace, planConsent());
+    await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE workspace_id=$1", [g.workspace]);
+    const client = await pool.connect();
+    try {
+      await client.query(`BEGIN ISOLATION LEVEL ${isolation}`);
+      assert.equal((await client.query("SELECT count(*) FROM memberships WHERE workspace_id=$1 AND status='active'", [f.workspace])).rows[0].count, '1');
+      await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, f.workspace]);
+      await assert.rejects(client.query('INSERT INTO early_access_plans(workspace_id,revision) VALUES ($1,1)', [f.workspace]), unsupportedIsolation);
+      await client.query('ROLLBACK');
+      assert.equal(await f.plans.read(f.user, f.workspace), null);
+      assert.equal(await seatCount(f.workspace), 2);
+
+      await client.query(`BEGIN ISOLATION LEVEL ${isolation}`);
+      assert.equal((await client.query("SELECT count(*) FROM memberships WHERE workspace_id=$1 AND status='active'", [g.workspace])).rows[0].count, '0');
+      await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'owner')", [b.id, g.workspace]);
+      await assert.rejects(client.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, g.workspace]), unsupportedIsolation);
+      await client.query('ROLLBACK');
+      assert.equal(await seatCount(g.workspace), 1);
+    } finally { await client.query('ROLLBACK'); client.release(); }
+  }
+});
+
+test('Seats: populated 0012 upgrade preserves an enrolled multi-member workspace and its evidence; only new seats are blocked', async () => {
+  const upgradeSchema = `seat_upgrade_${randomUUID().replaceAll('-', '')}`;
+  await admin.query(`CREATE SCHEMA ${upgradeSchema}`);
+  const upgrade = new Pool({ connectionString: env.TEST_DATABASE_URL, options: `-c search_path=${upgradeSchema},public`, max: 2 });
+  try {
+    await upgrade.query('CREATE TABLE app_migrations (name text PRIMARY KEY, sha256 text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())');
+    const dir = new URL('../../../db/migrations/', import.meta.url);
+    for (const name of readdirSync(dir).filter(name => /^\d{4}_.*\.sql$/.test(name) && Number(name.slice(0, 4)) <= 12).sort()) {
+      const sql = readFileSync(new URL(name, dir), 'utf8');
+      await upgrade.query(sql);
+      await upgrade.query('INSERT INTO app_migrations(name,sha256) VALUES ($1,$2)', [name, createHash('sha256').update(sql, 'utf8').digest('hex')]);
+    }
+    const owner = await resolveIdentity(upgrade, identity('seat_upgrade_owner')), member = await resolveIdentity(upgrade, identity('seat_upgrade_viewer'));
+    const extra = await resolveIdentity(upgrade, identity('seat_upgrade_extra')), ws = new WorkspaceStore(upgrade), plans = new EarlyAccessPlanStore(upgrade);
+    const workspace = await ws.create(owner, 'Pre-seat-policy workspace', randomUUID());
+    const first = await plans.recordConsent(owner, workspace, planConsent(4900));
+    // This represents a real pre-0013 state; no guard is disabled in this test.
+    await upgrade.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [member.id, workspace]);
+    const asset = await ws.addAsset(owner, workspace, source.target, 'hostname');
+    const saved = await ws.completeRun(owner, workspace, await ws.beginRun(owner, workspace, asset.id), source);
+    const beforeWorkspace = await ws.read(owner, workspace);
+    const beforeMembers = (await upgrade.query('SELECT * FROM memberships WHERE workspace_id=$1 ORDER BY user_id', [workspace])).rows;
+    await migrate(upgrade);
+    await migrate(upgrade);
+    assert.equal((await upgrade.query('SELECT count(*) FROM app_migrations')).rows[0].count, '13');
+    assert.deepEqual(await ws.read(owner, workspace), beforeWorkspace);
+    assert.deepEqual((await upgrade.query('SELECT * FROM memberships WHERE workspace_id=$1 ORDER BY user_id', [workspace])).rows, beforeMembers);
+    assert.deepEqual(await plans.read(owner, workspace), first);
+    assert.deepEqual(await ws.run(member, workspace, saved.id), saved);
+    await assert.rejects(plans.read(member, workspace), /Owner/);
+    const changed = await plans.recordConsent(owner, workspace, planConsent(0, 1));
+    assert.equal(changed.trialStartedAt, first.trialStartedAt); assert.equal(changed.trialEndsAt, first.trialEndsAt);
+    await assert.rejects(upgrade.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'owner')", [extra.id, workspace]), seatDatabaseError);
+    await upgrade.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE workspace_id=$1 AND user_id=$2", [workspace, member.id]);
+    await assert.rejects(upgrade.query("UPDATE memberships SET status='active',revoked_at=NULL WHERE workspace_id=$1 AND user_id=$2", [workspace, member.id]), seatDatabaseError);
+    assert.equal(await seatCount(workspace, upgrade), 1);
+    assert.deepEqual(await ws.run(owner, workspace, saved.id), saved);
+  } finally { await upgrade.end(); await admin.query(`DROP SCHEMA ${upgradeSchema} CASCADE`); }
 });
 
 async function usageFixture(name: string, contributionMinor = 0) {
@@ -273,8 +452,10 @@ test('Usage: admission records and pending runs commit or roll back together; hi
 
 test('Usage: current Owner, workspace, asset and cohort authorization precede accounting', async () => {
   const f = await usageFixture('usage_authorization');
-  await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, f.workspace]);
   for (const actor of [b, viewer]) await assert.rejects(store.beginRun(actor, f.workspace, f.asset.id));
+  await pool.query("UPDATE memberships SET role='viewer' WHERE workspace_id=$1 AND user_id=$2", [f.workspace, f.user.id]);
+  await assert.rejects(store.beginRun(f.user, f.workspace, f.asset.id), /Owner/);
+  await pool.query("UPDATE memberships SET role='owner' WHERE workspace_id=$1 AND user_id=$2", [f.workspace, f.user.id]);
   await assert.rejects(store.beginRun(f.user, f.workspace, randomUUID()), /Asset not found/);
   await pool.query("UPDATE users SET early_access_state='paused' WHERE id=$1", [f.user.id]);
   await assert.rejects(store.beginRun(f.user, f.workspace, f.asset.id), /paused/);
@@ -419,11 +600,12 @@ test('Linux sources: enrollment and a fourth registration serialize on the same 
 
 test('Linux sources: authorization, failed registrations and the HTTP limit preserve available slots', async () => {
   const name = 'linux_sources_authorization', f = await linuxSourceFixture(name);
-  await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, f.workspace]);
   await store.addAsset(f.user, f.workspace, 'demo-host', 'linux_server');
   await assert.rejects(store.addAsset(f.user, f.workspace, 'DEMO-HOST', 'linux_server'), /already an asset/);
   await assert.rejects(store.addAsset(f.user, f.workspace, 'https://invalid.example', 'linux_server'));
-  await assert.rejects(store.addAsset(viewer, f.workspace, 'viewer-host', 'linux_server'), /Owner/);
+  await pool.query("UPDATE memberships SET role='viewer' WHERE workspace_id=$1 AND user_id=$2", [f.workspace, f.user.id]);
+  await assert.rejects(store.addAsset(f.user, f.workspace, 'viewer-host', 'linux_server'), /Owner/);
+  await pool.query("UPDATE memberships SET role='owner' WHERE workspace_id=$1 AND user_id=$2", [f.workspace, f.user.id]);
   await assert.rejects(store.addAsset(b, f.workspace, 'foreign-host', 'linux_server'), /not found/);
   await pool.query("UPDATE users SET early_access_state='paused' WHERE id=$1", [f.user.id]);
   await assert.rejects(store.addAsset(f.user, f.workspace, 'paused-host', 'linux_server'), /paused/);

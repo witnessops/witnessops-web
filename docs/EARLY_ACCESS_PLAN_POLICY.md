@@ -1,11 +1,11 @@
 # Early Access plan policy and consent
 
-This implements the durable policy, contribution-choice record, hostname usage
-and Linux source admission for the approved demo reuse plan's commercial phase.
+This implements the durable policy, contribution-choice record, hostname usage,
+Linux source admission and seat admission for the approved demo reuse plan's commercial phase.
 Workspaces with a recorded plan use the monthly hostname allowance and Linux
 source limit through the existing asset, run and import endpoints.
 There is no customer-facing enrollment/checkout endpoint yet. This does not collect
-payments, grant access, enforce seat limits, or expire evidence.
+payments, grant access, or expire evidence.
 
 ## Accepted policy
 
@@ -23,8 +23,8 @@ Version: `early-access-2026-09-17`. One plan: `early-access`.
 | Seats | 1 |
 | Future pricing | Requires new explicit acceptance |
 
-The hostname allowance and Linux source cap are enforced for explicitly enrolled
-workspaces. Retention and seat caps remain policy data awaiting implementation. Current cohort
+The hostname allowance, Linux source cap and admission of new seats are enforced
+for explicitly enrolled workspaces. Retention remains policy data awaiting implementation. Current cohort
 admission, execution throttles, storage limits and immutable source custody continue
 to apply. Public claims must describe implemented behavior.
 
@@ -153,18 +153,62 @@ hostname monthly slots.
 No new schema or usage ledger is needed: registered assets are already durable and
 workspace-scoped; accepted policy loading is shared with hostname admission.
 
+## Workspace seats
+
+One active, non-revoked workspace membership reserves one seat. Owners and Viewers
+both count, including the Owner created with the workspace. Account disablement,
+cohort pause, pending cohort activation and logout do not release a membership's
+seat. Revoked memberships do not count. Sessions and CLI credentials do not create
+additional seats. The limit is per workspace, during the trial and after day eight,
+at EUR 0 and positive contributions; contribution changes never reset membership.
+
+Initial enrollment requires no more than the accepted policy's one active member.
+`EarlyAccessPlanStore` checks this under the shared canonical workspace advisory
+lock and returns HTTP-compatible 409 admission errors. A multi-member legacy
+workspace remains unenrolled, preserving its members, roles, cohort admission and
+evidence. Reconciliation must explicitly choose which memberships to revoke before
+enrollment; this migration does not make that decision or revoke anyone.
+
+Migration `0013_workspace_seats.sql` also guards initial plan insertion and membership
+insertion, reactivation or movement into an enrolled workspace. These database
+writes serialize with enrollment using the same workspace lock, including when
+UUID casing differs. Concurrent grants cannot fill a seat twice. Multi-row writes
+that exceed capacity roll back, while an idempotent upsert of the same active
+membership consumes no additional seat. Role changes and revocation remain subject
+to their existing authorization and do not add seats. These guards constrain
+capacity; they do not authorize callers to manage memberships.
+
+Seat-changing admission uses READ COMMITTED transactions (PostgreSQL's equivalent
+READ UNCOMMITTED is also accepted). The volatile guards obtain a fresh snapshot
+after acquiring the lock. REPEATABLE READ and SERIALIZABLE admission are rejected
+explicitly, so a transaction snapshot from before the lock cannot bypass the cap.
+This follows PostgreSQL's [function snapshot rules](https://www.postgresql.org/docs/17/xfunc-volatility.html)
+and [transaction isolation behavior](https://www.postgresql.org/docs/17/transaction-iso.html).
+
+Previously enrolled multi-member workspaces retain their current memberships and
+access, subject to their existing roles, cohort state and other plan limits. They
+may update their contribution and explicitly reduce membership, but cannot add or
+reactivate a member while full or over the cap. No member is selected automatically,
+no trial is restarted, and no evidence or consent history is rewritten.
+
+The database guard recognizes the immutable `early-access-2026-09-17` one-seat
+policy. Unknown or incomplete accepted terms fail closed for additional seats;
+future seat policies require a corresponding explicit migration. There is still
+no customer invitation, member-management or ownership-transfer endpoint. The
+only current product membership creation remains the workspace's initial Owner;
+the database guard also protects future and operator SQL membership writes.
+
 ## Remaining commercial implementation
 
 The following work is required before publishing the complete one-plan flow:
 
-1. Define one-seat enrollment and migration of existing multi-member workspaces.
-2. Add the customer consent/checkout flow, including a complete EUR 0 path and an
+1. Add the customer consent/checkout flow, including a complete EUR 0 path and an
    authorized recurring-payment integration for positive choices. Contribution updates
    must preserve the trial and clearly state when the new amount applies.
-3. Define retention scope across hostname snapshots, Linux sources, reports, comparison
+2. Define retention scope across hostname snapshots, Linux sources, reports, comparison
    baselines and exports. Implement deliberate expiry while preserving immutability
    during the retained lifetime; production expiry requires its own operator activation.
-4. Reconcile technical storage capacity with the intended retained history and
+3. Reconcile technical storage capacity with the intended retained history and
    define any source replacement/migration flow. Then publish pricing, settings,
    Ask and docs from the same policy.
 
@@ -182,6 +226,11 @@ parity, enrollment races, legacy over-cap workspaces, failed/unauthorized writes
 the HTTP limit, mixed browser/CLI registrations, existing-source CLI finalization,
 repeated verified imports beyond 32 retained runs, independent
 hostname usage, original-byte reopen and unsupported policy rejection.
+Seat cases cover both roles and account states, revoked membership, contribution
+parity, concurrent grants/reactivations, enrollment races, multi-row rollback,
+idempotent upsert, workspace movement and unsupported policy rejection. A populated
+0012-to-0013 upgrade preserves a previously enrolled multi-member workspace, its
+roles, trial, saved evidence and authorized reads while preventing added seats.
 There is no new API route or collector contract.
 The populated migration upgrade verifies that existing evidence and admission survive
 and that no existing workspace is silently enrolled.

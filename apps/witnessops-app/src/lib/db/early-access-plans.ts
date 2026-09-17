@@ -6,7 +6,7 @@ import { EARLY_ACCESS_PLAN_POLICY, validatePlanConsent, type EarlyAccessPlanReco
 import type { AppUser } from './identity';
 import { transaction } from './pool';
 import { requireWorkspaceMembership } from './workspaces';
-import { requireLinuxSourceLimit } from './plan-admission';
+import { requireLinuxSourceLimit, requireWorkspaceSeatLimit } from './plan-admission';
 
 type PlanRow = {
   workspace_id: string; plan_id: 'early-access'; trial_started_at: Date; trial_ends_at: Date;
@@ -62,8 +62,11 @@ export class EarlyAccessPlanStore {
       if (!isDeepStrictEqual(policy.rows[0]?.terms, EARLY_ACCESS_PLAN_POLICY)) throw new ApiError(503, 'The current plan terms are unavailable.');
 
       // Do not enroll an over-cap legacy workspace or silently select/remove its
-      // sources. Existing contribution updates and idempotent retries stay valid.
-      if (!plan) await requireLinuxSourceLimit(client, member.id, EARLY_ACCESS_PLAN_POLICY.limits.linuxImportSources);
+      // members or sources. Existing contribution updates and retries stay valid.
+      if (!plan) {
+        await requireWorkspaceSeatLimit(client, member.id, EARLY_ACCESS_PLAN_POLICY.limits.seats);
+        await requireLinuxSourceLimit(client, member.id, EARLY_ACCESS_PLAN_POLICY.limits.linuxImportSources);
+      }
 
       const revision = consent.expectedRevision+1;
       if (!plan) await client.query('INSERT INTO early_access_plans(workspace_id,revision) VALUES ($1,$2)', [member.id, revision]);

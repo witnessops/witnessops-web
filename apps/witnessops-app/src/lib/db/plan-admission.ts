@@ -26,3 +26,12 @@ export async function requireLinuxSourceLimit(client: PoolClient, workspaceId: s
     throw new ApiError(409, `This plan allows ${limit} registered Linux import sources. Later packages for an existing source use the same slot.`);
   }
 }
+
+/** An active membership reserves a seat regardless of role, account status or
+ * cohort state. Pausing an account does not release its workspace membership. */
+export async function requireWorkspaceSeatLimit(client: PoolClient, workspaceId: string, limit: number) {
+  const result = await client.query<{ count: string }>("SELECT count(*) FROM memberships WHERE workspace_id=$1 AND status='active' AND revoked_at IS NULL", [workspaceId]);
+  if (Number(result.rows[0].count) > limit) {
+    throw new ApiError(409, `This plan allows ${limit} active workspace member${limit === 1 ? '' : 's'}. Reconcile existing memberships before enrolling.`);
+  }
+}
