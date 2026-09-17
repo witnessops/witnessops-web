@@ -11,6 +11,9 @@ import { createFoundationService } from "../server";
 import { canonicalSource } from "../source-digest";
 import { ActivityStore } from "./activity";
 import { activateEarlyAccess, earlyAccess } from "./access";
+import { EarlyAccessPlanStore } from './early-access-plans';
+import { EARLY_ACCESS_PLAN_POLICY, planTermsAt } from '../plan-policy';
+import { ApiError } from '../errors';
 import { requireUnrevokedSession, revokeSession, sessionKey } from "./sessions";
 import { compareRuns, CHECK_IDS, type Run, type ExternalSnapshotV1 } from "../model";
 
@@ -46,6 +49,116 @@ before(async () => {
   await pool.query("INSERT INTO memberships (user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, wa]);
 });
 after(async () => { await pool?.end(); await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`); await admin.end(); });
+
+const planConsent = (contributionMinor = 0, expectedRevision = 0, requestId = randomUUID()) => ({
+  requestId, expectedRevision, termsVersion: EARLY_ACCESS_PLAN_POLICY.version, contributionMinor, accepted: true,
+});
+async function planFixture(name: string) {
+  const user = await resolveIdentity(pool, identity(name));
+  const workspace = await store.create(user, name, randomUUID());
+  return { user, workspace, plans: new EarlyAccessPlanStore(pool) };
+}
+
+test('Plan: migration preserves cohort admission and creates no implicit plan or contribution', async () => {
+  assert.deepEqual((await pool.query('SELECT terms FROM early_access_plan_terms WHERE version=$1', [EARLY_ACCESS_PLAN_POLICY.version])).rows[0].terms, EARLY_ACCESS_PLAN_POLICY);
+  assert.equal((await pool.query('SELECT count(*) FROM early_access_plans')).rows[0].count, '0');
+  assert.equal((await pool.query('SELECT count(*) FROM early_access_plan_consents')).rows[0].count, '0');
+  assert.equal(await earlyAccess(pool, a), 'active');
+  assert.equal(await new EarlyAccessPlanStore(pool).read(a, wa), null);
+});
+
+test('Plan: explicit €0 consent survives reconnect; amount changes and delayed retries never restart the trial', async () => {
+  const { user, workspace, plans } = await planFixture('plan_lifecycle');
+  const choice = planConsent();
+  const first = await plans.recordConsent(user, workspace, choice);
+  assert.equal(first.contributionMinor, 0); assert.equal(first.revision, 1); assert.equal(first.acceptedBy, user.id);
+  assert.equal(Date.parse(first.trialEndsAt)-Date.parse(first.trialStartedAt), 168*60*60*1000);
+  assert.equal(planTermsAt(first, new Date(first.trialEndsAt)).phase, 'continuing');
+  const fresh = connect();
+  try { assert.deepEqual(await new EarlyAccessPlanStore(fresh).read(user, workspace), first); }
+  finally { await fresh.end(); }
+  const changed = await plans.recordConsent(user, workspace, planConsent(4900, 1));
+  assert.equal(changed.contributionMinor, 4900); assert.equal(changed.revision, 2);
+  assert.equal(changed.trialStartedAt, first.trialStartedAt); assert.equal(changed.trialEndsAt, first.trialEndsAt);
+  assert.deepEqual(await plans.recordConsent(user, workspace, choice), changed);
+  const zeroAgain = await plans.recordConsent(user, workspace, planConsent(0, 2));
+  assert.equal(zeroAgain.trialEndsAt, first.trialEndsAt); assert.equal(zeroAgain.contributionMinor, 0);
+  assert.deepEqual((await pool.query('SELECT contribution_minor,consent_scope FROM early_access_plan_consents WHERE workspace_id=$1 ORDER BY revision', [workspace])).rows,
+    [{ contribution_minor: 0, consent_scope: 'contribution_choice' }, { contribution_minor: 4900, consent_scope: 'contribution_choice' }, { contribution_minor: 0, consent_scope: 'contribution_choice' }]);
+});
+
+test('Plan: concurrent identical enrollment is idempotent; conflicting choices require a fresh revision', async () => {
+  const { user, workspace, plans } = await planFixture('plan_concurrent');
+  const choice = planConsent();
+  const replies = await Promise.all(Array.from({ length: 4 }, () => plans.recordConsent(user, workspace, choice)));
+  for (const reply of replies) assert.deepEqual(reply, replies[0]);
+  const outcomes = await Promise.allSettled([plans.recordConsent(user, workspace, planConsent(4900, 1)), plans.recordConsent(user, workspace, planConsent(1000, 1))]);
+  assert.equal(outcomes.filter(r => r.status === 'fulfilled').length, 1);
+  const rejected = outcomes.find(r => r.status === 'rejected');
+  assert.ok(rejected?.status === 'rejected' && rejected.reason instanceof ApiError && rejected.reason.status === 409);
+  const current = await plans.read(user, workspace); assert.equal(current?.revision, 2);
+  assert.equal(current?.trialEndsAt, replies[0].trialEndsAt);
+  assert.equal((await pool.query('SELECT count(*) FROM early_access_plan_consents WHERE workspace_id=$1', [workspace])).rows[0].count, '2');
+  await assert.rejects(plans.recordConsent(user, workspace, { ...choice, contributionMinor: 4900 }), /already used/);
+  await assert.rejects(plans.recordConsent(user, workspace, planConsent(0, 0)), /plan changed/);
+});
+
+test('Plan: foreign members, Viewers, revoked members and paused identities cannot read or write financial choices', async () => {
+  const { user, workspace, plans } = await planFixture('plan_authorization');
+  await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, workspace]);
+  const choice = planConsent();
+  const first = await plans.recordConsent(user, workspace, choice);
+  for (const actor of [b, viewer]) {
+    await assert.rejects(plans.read(actor, workspace));
+    await assert.rejects(plans.recordConsent(actor, workspace, planConsent(4900, 1)));
+    await assert.rejects(plans.recordConsent(actor, workspace, choice));
+  }
+  await pool.query("UPDATE users SET early_access_state='paused' WHERE id=$1", [user.id]);
+  await assert.rejects(plans.read(user, workspace), /paused/);
+  await assert.rejects(plans.recordConsent(user, workspace, choice), /paused/);
+  await pool.query("UPDATE users SET early_access_state='active' WHERE id=$1", [user.id]);
+  assert.deepEqual(await plans.read(user, workspace), first);
+  await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE user_id=$1 AND workspace_id=$2", [user.id, workspace]);
+  await assert.rejects(plans.read(user, workspace), /not found/);
+  await assert.rejects(plans.recordConsent(user, workspace, choice), /not found/);
+  assert.equal((await pool.query('SELECT count(*) FROM early_access_plan_consents WHERE workspace_id=$1', [workspace])).rows[0].count, '1');
+});
+
+test('Plan: new terms and missing consent cannot silently change a contribution', async () => {
+  const { user, workspace, plans } = await planFixture('plan_explicit');
+  const first = await plans.recordConsent(user, workspace, planConsent(4900));
+  for (const override of [{ accepted: false }, { accepted: undefined }, { termsVersion: 'future-price' }, { trialStartedAt: new Date().toISOString() }, { contributionMinor: undefined }]) {
+    await assert.rejects(plans.recordConsent(user, workspace, { ...planConsent(0, 1), ...override }));
+  }
+  assert.deepEqual(await plans.read(user, workspace), first);
+});
+
+test('Plan: failed consent insertion rolls back enrollment and its trial dates', async () => {
+  const { user, workspace, plans } = await planFixture('plan_rollback');
+  await pool.query(`CREATE FUNCTION deny_plan_fixture() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.workspace_id='${workspace}' THEN RAISE EXCEPTION 'fixture consent failure'; END IF; RETURN NEW; END $$`);
+  await pool.query('CREATE TRIGGER deny_plan_fixture BEFORE INSERT ON early_access_plan_consents FOR EACH ROW EXECUTE FUNCTION deny_plan_fixture()');
+  try {
+    await assert.rejects(plans.recordConsent(user, workspace, planConsent()), /fixture consent failure/);
+    assert.equal(await plans.read(user, workspace), null);
+    assert.equal((await pool.query('SELECT count(*) FROM early_access_plans WHERE workspace_id=$1', [workspace])).rows[0].count, '0');
+  } finally { await pool.query('DROP TRIGGER deny_plan_fixture ON early_access_plan_consents'); await pool.query('DROP FUNCTION deny_plan_fixture()'); }
+});
+
+test('Plan: database guards preserve trial identity, consent history and the exact accepted terms', async () => {
+  const { user, workspace, plans } = await planFixture('plan_immutable');
+  const first = await plans.recordConsent(user, workspace, planConsent());
+  for (const sql of [
+    "UPDATE early_access_plans SET trial_started_at=trial_started_at+interval '1 hour',trial_ends_at=trial_ends_at+interval '1 hour',revision=revision+1 WHERE workspace_id=$1",
+    'UPDATE early_access_plans SET revision=revision WHERE workspace_id=$1',
+    'DELETE FROM early_access_plans WHERE workspace_id=$1',
+    'UPDATE early_access_plan_consents SET contribution_minor=4900 WHERE workspace_id=$1',
+    'DELETE FROM early_access_plan_consents WHERE workspace_id=$1',
+  ]) await assert.rejects(pool.query(sql, [workspace]));
+  await assert.rejects(pool.query('UPDATE early_access_plans SET revision=revision+1 WHERE workspace_id=$1', [workspace]), /current_plan_consent/);
+  await assert.rejects(pool.query("UPDATE early_access_plan_terms SET terms=jsonb_set(terms,'{suggestedContributionMinor}','9900')"), /immutable/);
+  await assert.rejects(pool.query('DELETE FROM early_access_plan_terms'), /immutable/);
+  assert.deepEqual(await plans.read(user, workspace), first);
+});
 
 test("session replay: 200 before logout, 401 after replay and fresh connection; other session stays valid", async () => {
   const providerIdentity = identity("user_sessionUser");
