@@ -231,7 +231,7 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .start-points h3 { display: flex; justify-content: space-between; gap: 10px; }
 .start-points h3 span { color: var(--subtle); }
 .start-points p { margin-top: 10px; color: var(--muted); font-size: 12px; }
-.linux-workflow { display: grid; grid-template-columns: minmax(0, 1fr) 320px; align-items: start; gap: 28px; }
+.linux-workflow { display: grid; grid-template-columns: 320px minmax(0, 1fr); align-items: start; gap: 28px; }
 .linux-workflow > * { min-width: 0; }
 .linux-import-panel { display: grid; gap: 18px; padding: 26px; border: 1px solid var(--border); border-radius: 12px; background: var(--raised); }
 .linux-import-panel h2 { font-size: 20px; }

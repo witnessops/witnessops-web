@@ -59,6 +59,12 @@ export function LinuxAsset({ workspace, asset, imported }: { workspace: Workspac
       <div className="support"><p>Recommended check: {CHECK_DISCOVERY.linux_server.name}</p><p>Runs a bounded read-only check locally on one Linux server and preserves a verifiable Proofpack.</p></div>
     </div></header>
     <div className="linux-workflow">
+      <section className="linux-setup" aria-labelledby="linux-setup-heading">
+        <p className="eyebrow">Need a signed package?</p><h2 id="linux-setup-heading">How to get a server check</h2>
+        <ol><li>Run WitnessOps Local Audit 1.2.2 locally on the Linux server with an authorized operator present.</li><li>The operator finalizes and signs the captured check off-host, providing a Proofpack ZIP and matching signature file.</li><li>Import both files here. WitnessOps verifies the package and saves the result.</li></ol>
+        <p className="quiet">Early Access: setup is currently operator-assisted.</p>
+        <a href={publicContactMailto('WitnessOps — One Server Security Check setup')}>Contact WitnessOps for setup help →</a>
+      </section>
       {workspace.role === 'owner' ? <form className="asset-form linux-import-panel" aria-labelledby="linux-import-heading" aria-busy={busy} onSubmit={submit}>
         <div><p className="eyebrow">Import existing source</p><h2 id="linux-import-heading">Import Security Check</h2></div>
         <p>Import a signed Local Audit 1.2.2 Proofpack from a supported Linux server. It does not run a collector, connect by SSH or install software.</p>
@@ -70,12 +76,6 @@ export function LinuxAsset({ workspace, asset, imported }: { workspace: Workspac
         <button className="button" disabled={busy}>{busy ? 'Verifying import…' : 'Import Security Check'}</button>
         {busy ? <p role="status">Checking the signed package and saving its original source…</p> : null}
       </form> : <div className="linux-import-panel"><p className="eyebrow">Import existing source</p><h2>Saved evidence access</h2><p>Viewer access · Only an Owner can import a check.</p></div>}
-      <section className="linux-setup" aria-labelledby="linux-setup-heading">
-        <p className="eyebrow">Need a signed package?</p><h2 id="linux-setup-heading">How to get a server check</h2>
-        <ol><li>Run WitnessOps Local Audit 1.2.2 locally on the Linux server with an authorized operator present.</li><li>The operator finalizes and signs the captured check off-host, providing a Proofpack ZIP and matching signature file.</li><li>Import both files here. WitnessOps verifies the package and saves the result.</li></ol>
-        <p className="quiet">Early Access: setup is currently operator-assisted.</p>
-        <a href={publicContactMailto('WitnessOps — One Server Security Check setup')}>Contact WitnessOps for setup help →</a>
-      </section>
     </div>
     <p className="quiet boundary">Package verification does not establish that a server is secure, uncompromised or compliant.</p>
     <section className="section" aria-labelledby="linux-history-heading">
