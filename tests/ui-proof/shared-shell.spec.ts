@@ -61,7 +61,6 @@ const canonicalChrome = {
 
 const activeNavigationHref = new Map<string, string>([
   ["/support", "/support"],
-  ["/pl/review/request", "/pl/review/request"],
   ["/catalog", "/catalog"],
   ["/pl/catalog", "/pl/catalog"],
   ["/docs", "/docs"],
@@ -298,37 +297,16 @@ test("accepted public routes retain one consistent, accessible shared shell", as
   }
 });
 
-test("language switching preserves every accepted route pair and header geometry", async ({
+test("public header keeps language controls out of the primary navigation", async ({
   page,
 }) => {
   test.setTimeout(90_000);
   await page.setViewportSize({ width: 1440, height: 1100 });
 
-  for (const [englishPath, polishPath] of languagePairs) {
+  for (const englishPath of languagePairs.map(([path]) => path)) {
     await page.goto(englishPath, { waitUntil: "networkidle" });
-    const englishHeaderHeight = await page
-      .locator("nav.public-shell")
-      .evaluate((nav) => nav.getBoundingClientRect().height);
-    const polishLink = page.getByRole("link", { name: "PL", exact: true });
-    await expect(polishLink).toHaveCount(1);
-    await expect(polishLink).toHaveAttribute("href", polishPath);
-    await expect(polishLink).toHaveText("PL");
-    await polishLink.click();
-    await expect(page).toHaveURL(new RegExp(`${polishPath.replaceAll("/", "\\/")}$`));
-    await expect(page.locator("main h1").first()).toBeVisible();
-    expect(
-      await page
-        .locator("nav.public-shell")
-        .evaluate((nav) => nav.getBoundingClientRect().height),
-    ).toBe(englishHeaderHeight);
-
-    const englishLink = page.getByRole("link", { name: "EN", exact: true });
-    await expect(englishLink).toHaveCount(1);
-    await expect(englishLink).toHaveAttribute("href", englishPath);
-    await expect(englishLink).toHaveText("EN");
-    await englishLink.click();
-    await expect(page).toHaveURL(new RegExp(`${englishPath === "/" ? "\\/" : englishPath.replaceAll("/", "\\/")}$`));
-    await expect(page.locator("main h1").first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "PL", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "EN", exact: true })).toHaveCount(0);
   }
 });
 
@@ -366,7 +344,7 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
       '#witnessops-mobile-menu [aria-current="page"]',
     );
     const cta = document.querySelector<HTMLElement>(
-      '#witnessops-mobile-menu a[href^="/pl/review/request"]',
+      '#witnessops-mobile-menu a[href="https://app.witnessops.com/signup"]',
     );
     return {
       currentBackground: current ? getComputedStyle(current).backgroundColor : null,
@@ -411,9 +389,9 @@ test("mobile navigation excludes closed content, manages focus, and restores scr
   expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
 
   await openMobileMenu(page);
-  const englishSwitch = page.locator('#witnessops-mobile-menu a[href="/catalog"]');
-  await englishSwitch.click();
-  await expect(page).toHaveURL(/\/catalog$/);
+  const nextPolishPage = page.locator('#witnessops-mobile-menu a[href="/pl/why-witnessops"]');
+  await nextPolishPage.click();
+  await expect(page).toHaveURL(/\/pl\/why-witnessops$/);
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
 });
 
