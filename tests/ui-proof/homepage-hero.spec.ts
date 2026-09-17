@@ -483,10 +483,7 @@ test("public visual review gallery is emitted for mobile and desktop judgment", 
     await menuToggle.click();
     await expect(menuToggle).toHaveAttribute("aria-expanded", "true");
     const mobileMenu = page.locator("#witnessops-mobile-menu");
-    await expect(mobileMenu.getByRole("link", { name: "Ask WitnessOps" })).toHaveAttribute(
-      "href",
-      "/docs/assistant",
-    );
+    await expect(mobileMenu.getByRole("link", { name: "Ask WitnessOps" })).toHaveCount(0);
     await mobileMenu.evaluate(async (menu) => {
       await Promise.all(menu.getAnimations().map((animation) => animation.finished));
     });

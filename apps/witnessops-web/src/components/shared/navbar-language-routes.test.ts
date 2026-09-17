@@ -7,17 +7,16 @@ import { localizedHref, localizedPath, POLISH_PUBLIC_NAV } from "@/lib/public-i1
 
 const navbar = readFileSync(resolve(__dirname, "navbar.tsx"), "utf-8");
 test("primary navigation exposes the simplified website destinations", () => {
-  for (const href of ["/early-access", "/catalog", "/support", "/pricing", "/docs"]) {
+  for (const href of ["/early-access", "/catalog", "/pricing", "/check", "/docs"]) {
     assert.ok(navbar.includes(`href: "${href}"`), `Missing destination: ${href}`);
   }
   assert.equal(PRIMARY_OFFER.name.en, "Agent Action Security Review");
-  assert.match(navbar, /label: polish \? "Omów zakres przeglądu" : "Open app"/);
+  assert.match(navbar, /label: "Sign up"/);
 });
 
 test("shared navigation preserves Polish destinations and selected enquiry", () => {
   assert.match(navbar, /POLISH_PUBLIC_NAV.links/);
-  assert.match(navbar, /reviewRequestHrefForLocation\(/);
-  assert.match(navbar, /https:\/\/app\.witnessops\.com\//);
+  assert.match(navbar, /https:\/\/app\.witnessops\.com\/signup/);
   assert.deepEqual(POLISH_PUBLIC_NAV.links.map((link) => link.href), [
     "/pl/catalog", "/review/sample-cases", "/pl/why-witnessops", "/pl/docs",
   ]);
@@ -55,9 +54,6 @@ test("request language switch preserves the selected workflow offer query", () =
     localizedHref("/pl/review/request", offerQuery, "en"),
     `/review/request?${offerQuery}`,
   );
-  assert.match(navbar, /const searchParams = useSearchParams\(\)/);
-  assert.match(navbar, /localizedHref\(currentPath, currentSearch, "en"\)/);
-  assert.match(navbar, /localizedHref\(currentPath, currentSearch, "pl"\)/);
 });
 
 test("PL-only docs leaves switch to real English routes", () => {
@@ -129,7 +125,7 @@ test("mobile menu is a viewport-bounded scrolling sheet with one orange action",
   assert.match(mobileNavbar, /releaseBodyScrollLock\(\)/);
   assert.match(mobileNavbar, /inline-flex h-12 items-center border-l-2/);
   assert.match(mobileNavbar, /inline-flex h-12 items-center border-t/);
-  assert.match(navbar, /assistantLink=\{\{ label: "Ask WitnessOps", href: "\/docs\/assistant" \}\}/);
+  assert.doesNotMatch(navbar, /assistantLink=/);
   assert.equal(
     mobileNavbar.match(/!bg-brand-accent/g)?.length,
     1,

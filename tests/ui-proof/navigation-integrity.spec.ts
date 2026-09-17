@@ -384,8 +384,7 @@ test("mobile Ask offers a human reply and source navigation without a stale over
 
   await page.goto("/catalog", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Open primary navigation" }).click();
-  await page.locator("[data-mobile-assistant-link]").click();
-  await expectPath(page, "/docs/assistant");
+  await expect(page.locator("[data-mobile-assistant-link]")).toHaveCount(0);
 
   await page
     .getByRole("button", {

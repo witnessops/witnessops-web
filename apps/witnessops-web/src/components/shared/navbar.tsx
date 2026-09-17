@@ -1,16 +1,14 @@
 "use client";
 
 import { PublicNavigationLink as Link } from "./document-navigation";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 import { MobileNavbarMenu } from "./mobile-navbar-menu";
 import { WitnessOpsMark } from "./witnessops-mark";
 import {
   isPolishPath,
-  localizedHref,
   POLISH_PUBLIC_NAV,
 } from "@/lib/public-i18n";
-import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 
 
 interface NavbarProps {
@@ -21,33 +19,23 @@ interface NavbarProps {
 
 export function Navbar({ announcement }: NavbarProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const navRef = useRef<HTMLElement>(null);
   const currentPath = pathname || "/";
-  const currentSearch = searchParams.toString();
   const polish = isPolishPath(currentPath);
   const logoHref = polish ? "/pl" : "/";
   const effectiveLinks = polish ? [...POLISH_PUBLIC_NAV.links] : [
     { label: "How the app works", href: "/early-access" },
     { label: "Expert help", href: "/catalog" },
-    { label: "Support", href: "/support" },
     { label: "Price", href: "/pricing" },
     { label: "Free check", href: "/check" },
     { label: "Docs", href: "/docs" },
   ];
   const effectiveCta = {
-    label: polish ? "Omów zakres przeglądu" : "Open app",
-    href: !polish ? "https://app.witnessops.com/" : reviewRequestHrefForLocation(
-      polish ? "pl" : "en",
-      currentPath,
-      searchParams,
-    ),
+    label: "Sign up",
+    href: "https://app.witnessops.com/signup",
     variant: "primary",
   };
   const effectiveAnnouncement = announcement;
-  const languageLink = polish
-    ? { label: "EN", href: localizedHref(currentPath, currentSearch, "en") }
-    : { label: "PL", href: localizedHref(currentPath, currentSearch, "pl") };
   const brandLabel = "WitnessOps";
 
   useLayoutEffect(() => {
@@ -171,13 +159,6 @@ export function Navbar({ announcement }: NavbarProps) {
                   </Link>
                 ),
               )}
-              <Link
-                href={languageLink.href}
-                hrefLang={polish ? "en" : "pl"}
-                className="inline-flex min-h-11 items-center rounded-md border border-surface-border-strong px-2.5 text-sm font-semibold text-text-secondary transition-all duration-200 hover:-translate-y-px hover:border-brand-accent hover:bg-brand-accent/10 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent motion-reduce:transform-none"
-              >
-                {languageLink.label}
-              </Link>
               {isExternalHref(effectiveCta.href) ? (
                 <a
                   href={effectiveCta.href}
@@ -205,8 +186,6 @@ export function Navbar({ announcement }: NavbarProps) {
             <MobileNavbarMenu
               links={effectiveLinks}
               cta={effectiveCta}
-              assistantLink={{ label: "Ask WitnessOps", href: "/docs/assistant" }}
-              utilityLink={languageLink}
               currentPath={currentPath}
               openLabel={polish ? "Otwórz główną nawigację" : "Open primary navigation"}
               closeLabel={polish ? "Zamknij główną nawigację" : "Close primary navigation"}
