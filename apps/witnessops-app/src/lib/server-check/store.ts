@@ -53,8 +53,8 @@ export class ServerCheckStore {
    const plan=await acceptedWorkspacePlan(client,workspace);
    if(plan)await requireLinuxSourceLimit(client,workspace,plan.policy.limits.linuxImportSources,asset?0:1);
   } catch(error) {
-   if(error instanceof ApiError&&error.status===409)throw new CliError('linux_source_capacity',409);
-   if(error instanceof ApiError&&error.status===503)throw new CliError('plan_unavailable',503);
+   if(error instanceof ApiError && error.status === 409)throw new CliError('linux_source_capacity',409);
+   if(error instanceof ApiError && error.status === 503)throw new CliError('plan_unavailable',503);
    throw error;
   }
   const fingerprint=await this.finalizer.preflight();
