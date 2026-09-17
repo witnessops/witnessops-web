@@ -42,8 +42,6 @@ export class ServerCheckStore {
   const previous=(await client.query('SELECT * FROM server_check_executions WHERE workspace_id=$1 AND user_id=$2 AND request_id=$3',[workspace,user.id,request.requestId])).rows[0];
   if(previous){if(!equal(previous.request,request))throw new CliError('request_conflict',409);return this.view(previous);}
   if(request.window&&(this.now()<Date.parse(request.window.starts_at_utc)||this.now()>=Date.parse(request.window.ends_at_utc)))throw new CliError('window_inactive',409);
-  const count=(await client.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[workspace])).rows[0].count;
-  if(Number(count)>=32)throw new CliError('execution_capacity',409);
   let asset=(await client.query("SELECT id,normalized_value,type FROM assets WHERE workspace_id=$1 AND "+(request.assetId?'id=$2':'normalized_value=$2')+' FOR SHARE',[workspace,request.assetId??request.hostname])).rows[0];
   if(asset&&(asset.type!=='linux_server'||asset.normalized_value!==request.hostname))throw new CliError('wrong_hostname',409);
   if(!asset&&request.assetId)throw new CliError('asset_not_found',404);
@@ -52,7 +50,12 @@ export class ServerCheckStore {
   try {
    const plan=await acceptedWorkspacePlan(client,workspace);
    if(plan)await requireLinuxSourceLimit(client,workspace,plan.policy.limits.linuxImportSources,asset?0:1);
+   else {
+    const count=(await client.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[workspace])).rows[0].count;
+    if(Number(count)>=32)throw new CliError('execution_capacity',409);
+   }
   } catch(error) {
+   if(error instanceof CliError)throw error;
    if(error instanceof ApiError && error.status === 409)throw new CliError('linux_source_capacity',409);
    if(error instanceof ApiError && error.status === 503)throw new CliError('plan_unavailable',503);
    throw error;

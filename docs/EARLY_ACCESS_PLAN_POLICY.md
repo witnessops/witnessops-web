@@ -142,12 +142,14 @@ before enforcement, new source registrations, server-check authorizations and im
 exports and contribution updates remain available. No migration chooses sources,
 enrolls a workspace or removes its records.
 
-Enrolled Linux admission replaces the 32-run lifetime ceiling with this source
-limit. Repeated packages and retained hostname history therefore do not exhaust a
-Linux source allowance. The existing 200 MiB Linux custody cap, per-package limits,
-20-asset workspace cap, verification concurrency and server-check safeguards still
-apply and can bind before plan capacity. Unenrolled workspaces retain their existing
-32-run and storage admission. Linux imports do not consume hostname monthly slots.
+Enrolled Linux admission replaces the 32-run lifetime ceiling and the CLI's
+32-authorization ceiling with this source limit. Repeated packages, CLI checks and
+retained hostname history therefore do not exhaust a Linux source allowance. The
+existing 200 MiB Linux custody and CLI capture-storage caps, per-package limits,
+20-asset workspace cap, verification concurrency and other server-check safeguards
+still apply and can bind before plan capacity. Unenrolled workspaces retain their
+existing 32-run, 32-authorization and storage admission. Linux imports do not consume
+hostname monthly slots.
 No new schema or usage ledger is needed: registered assets are already durable and
 workspace-scoped; accepted policy loading is shared with hostname admission.
 

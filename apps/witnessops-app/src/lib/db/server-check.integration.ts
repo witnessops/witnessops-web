@@ -87,6 +87,32 @@ test('Linux source limit is shared by concurrent browser and CLI registration; e
  } finally {await fresh.end();}
 });
 
+test('legacy CLI execution ceiling remains until enrollment; an existing source finalizes after 32 authorizations at zero contribution',async()=>{
+ const ws=new WorkspaceStore(pool),selected=await ws.create(user,'Execution capacity fixture',randomUUID());
+ const token=await credential('cli:session server_check:create',selected);
+ for(let i=0;i<32;i++)await store.authorize(token,request());
+ const existing=(await ws.read(user,selected)).assets;
+ assert.equal(existing.length,1);
+ const input={...request(),assetId:existing[0].id};
+ await assert.rejects(store.authorize(token,input),(error:unknown)=>error instanceof CliError&&error.code==='execution_capacity'&&error.status===409);
+ assert.equal((await pool.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[selected])).rows[0].count,'32');
+ await new EarlyAccessPlanStore(pool).recordConsent(user,selected,{requestId:randomUUID(),expectedRevision:0,termsVersion:EARLY_ACCESS_PLAN_POLICY.version,contributionMinor:0,accepted:true});
+ const execution=await store.authorize(token,input);
+ assert.equal((await store.authorize(token,input)).id,execution.id);
+ const bytes=await frozen(execution.authority),digest=sha256(bytes);
+ await store.upload(token,execution.id,bytes,digest);
+ const saved=await store.status(token,execution.id);assert.equal(saved.state,'run_created');
+ assert.equal((await store.status(token,execution.id)).runId,saved.runId);
+ const reopened=await new LinuxCheckStore(pool).reopen(user,selected,saved.runId!);
+ assert.equal(reopened.run.assetId,existing[0].id);assert.ok(reopened.projectionMatches);
+ const row=(await pool.query('SELECT capture_bytes,capture_digest FROM server_check_executions WHERE id=$1',[execution.id])).rows[0];
+ assert.ok(row.capture_bytes.equals(bytes));assert.equal(row.capture_digest,digest);
+ assert.equal((await pool.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[selected])).rows[0].count,'33');
+ assert.equal((await pool.query("SELECT count(*) FROM server_check_executions WHERE workspace_id=$1 AND state='authorized'",[selected])).rows[0].count,'32');
+ assert.equal((await pool.query('SELECT count(*) FROM runs WHERE workspace_id=$1',[selected])).rows[0].count,'1');
+ assert.equal((await ws.read(user,selected)).assets.length,1);
+});
+
 test('partial updates survive finalization, independent verification, snapshot and report',async()=>{const token=await credential(),e=await store.authorize(token,request()),bytes=await frozen(e.authority,true);await store.upload(token,e.id,bytes,sha256(bytes));const saved=await store.status(token,e.id);assert.ok('outcome' in saved);assert.equal(saved.outcome,'partial');const reopened=await new LinuxCheckStore(pool).reopen(user,workspace,saved.runId!);assert.equal(reopened.snapshot.values.securityUpdates,null);assert.equal(reopened.snapshot.updates.securityClassification,'unavailable');assert.ok(reopened.model.collectionGaps.length);});
 test('CLI command uses normal Owner service, frozen fixture and real finalizer/import; concise partial result',async()=>{
  const {serverCheck}=await import('../../../../../packages/wops-cli/src/server-check.mjs');
