@@ -7,7 +7,7 @@ import { PublicContactRoute } from "./public-contact-route";
 test("Polish contact route localizes buyer guidance and preserves contact contracts", () => {
   const html = renderToStaticMarkup(<PublicContactRoute locale="pl" />);
 
-  assert.match(html, /Omów zakres przeglądu/);
+  assert.match(html, /Pomoc eksperta/);
   assert.match(html, /Ścieżka zgłoszenia:/);
   assert.match(
     html,
@@ -23,7 +23,7 @@ test("Polish contact route localizes buyer guidance and preserves contact contra
 test("English contact route leaves the service choice open", () => {
   const html = renderToStaticMarkup(<PublicContactRoute />);
 
-  assert.match(html, /Scope a review/);
+  assert.match(html, /Expert help/);
   assert.match(html, /Request path:/);
   assert.match(
     html,
@@ -38,9 +38,9 @@ test("compact footer contact route exposes a clear primary action", () => {
   const html = renderToStaticMarkup(<PublicContactRoute compact />);
 
   assert.match(html, /data-public-contact-variant="footer"/);
-  assert.match(html, /What needs checking\?/);
-  assert.match(html, /We agree scope and price before work begins/);
-  assert.match(html, /Scope a review/);
+  assert.doesNotMatch(html, /What needs checking\?/);
+  assert.doesNotMatch(html, /We agree scope and price before work begins/);
+  assert.match(html, /Expert help/);
   assert.doesNotMatch(html, /Primary paid entry point|Fallback contact:/);
   assert.match(
     html,
@@ -57,10 +57,10 @@ test("compact footer contact route exposes a clear primary action", () => {
 test("Polish compact footer preserves checking, scope and contact semantics", () => {
   const html = renderToStaticMarkup(<PublicContactRoute locale="pl" compact />);
 
-  assert.match(html, /Co wymaga sprawdzenia\?/);
-  assert.match(html, /Zakres i cenę uzgodnimy przed rozpoczęciem pracy/);
+  assert.doesNotMatch(html, /Co wymaga sprawdzenia\?/);
+  assert.doesNotMatch(html, /Zakres i cenę uzgodnimy przed rozpoczęciem pracy/);
   assert.match(html, /href="\/pl\/review\/request"/);
-  assert.match(html, /Omów zakres przeglądu/);
+  assert.match(html, /Pomoc eksperta/);
   assert.match(html, /Nie wysyłaj haseł/);
 });
 

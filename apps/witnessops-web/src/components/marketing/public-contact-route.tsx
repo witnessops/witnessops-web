@@ -48,8 +48,8 @@ export function PublicContactRoute({
   const routeHeading = repairSelected ? AUTOMATION_REPAIR_OFFER.name[locale] : primaryOfferSelected
     ? PRIMARY_OFFER.name[locale]
     : polish
-      ? "Omów zakres przeglądu"
-      : "Scope a review";
+      ? "Pomoc eksperta"
+      : "Expert help";
   const routeLabel = primaryOfferSelected
     ? polish
       ? "Główny płatny punkt wejścia"
@@ -58,7 +58,7 @@ export function PublicContactRoute({
       ? "Ścieżka zgłoszenia"
       : "Request path";
   const generalEnquiry = !new URL(primaryHref, "https://witnessops.com").search;
-  const routeCta = generalEnquiry ? (polish ? "Omów zakres przeglądu" : "Scope a review") : repairSelected ? (polish ? "Opisz problem" : "Describe the problem") : (polish ? "Omów zakres przeglądu" : "Scope this review");
+  const routeCta = generalEnquiry ? (polish ? "Pomoc eksperta" : "Expert help") : repairSelected ? (polish ? "Opisz problem" : "Describe the problem") : (polish ? "Pomoc eksperta" : "Expert help");
   const mailtoSubject = primaryOfferSelected
     ? PRIMARY_OFFER.mailSubject
     : productName
@@ -77,17 +77,6 @@ export function PublicContactRoute({
         data-public-contact-route
         data-public-contact-variant="footer"
       >
-        <p
-          className="text-sm font-semibold uppercase tracking-[0.14em] text-text-primary"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          {polish ? "Co wymaga sprawdzenia?" : "What needs checking?"}
-        </p>
-        <p className="mt-2 text-sm leading-6 text-text-secondary">
-          {polish
-            ? "Zakres i cenę uzgodnimy przed rozpoczęciem pracy."
-            : "We agree scope and price before work begins."}
-        </p>
         <Link
           href={primaryHref}
           data-footer-review-cta

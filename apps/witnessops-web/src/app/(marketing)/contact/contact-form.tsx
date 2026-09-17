@@ -903,8 +903,8 @@ export function ContactForm({
 
       {landing && <div>
         <label htmlFor="enquiryPath" className="mb-2 block" style={labelStyle}>Which path?</label>
-        <select id="enquiryPath" name="enquiryPath" defaultValue="The app" className={inputClass} style={inputStyle}>
-          {["The app", "Agent Action Security Review", "One Server Security Check", "External Attack Surface Review", "Not sure"].map(path => <option key={path} value={path}>{path}</option>)}
+        <select id="enquiryPath" name="enquiryPath" defaultValue="Free check" className={inputClass} style={inputStyle}>
+          {["Free check", "Agent Action Security Review", "One Server Security Check", "External Attack Surface Review", "Not sure"].map(path => <option key={path} value={path}>{path}</option>)}
         </select>
       </div>}
 
