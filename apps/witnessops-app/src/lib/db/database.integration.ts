@@ -160,6 +160,195 @@ test('Plan: database guards preserve trial identity, consent history and the exa
   assert.deepEqual(await plans.read(user, workspace), first);
 });
 
+async function usageFixture(name: string, contributionMinor = 0) {
+  const fixture = await planFixture(name);
+  await fixture.plans.recordConsent(fixture.user, fixture.workspace, planConsent(contributionMinor));
+  const asset = await store.addAsset(fixture.user, fixture.workspace, source.target, 'hostname');
+  return { ...fixture, asset };
+}
+const quotaError = (error: unknown) => error instanceof ApiError && error.status === 429 && /25 hostname checks.*UTC calendar month.*resets on/.test(error.message);
+// Historical accounting fixtures only; production never accepts admission dates
+// from a request and never backfills usage for pre-consent runs.
+async function historicalUsage(fixture: Awaited<ReturnType<typeof usageFixture>>, admittedAt: string, completed = true) {
+  const id = randomUUID();
+  await pool.query(`INSERT INTO runs(id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version,created_at,started_at)
+    VALUES ($1,$2,$3,$4,'external-snapshot-v1','running','bounded-hostname','external-demo-v0.1',$5,$5)`, [id, fixture.workspace, fixture.asset.id, fixture.user.id, admittedAt]);
+  await pool.query('INSERT INTO hostname_check_usage(run_id,workspace_id,consent_revision,admitted_at) VALUES ($1,$2,1,$3)', [id, fixture.workspace, admittedAt]);
+  if (completed) await store.completeRun(fixture.user, fixture.workspace, id, source);
+  return id;
+}
+
+test('Usage: independent connections admit exactly 25 concurrent hostname/domain checks per workspace', async () => {
+  const f = await usageFixture('usage_concurrent');
+  const domain = await store.addAsset(f.user, f.workspace, 'example.com', 'domain');
+  const fresh = connect(), other = new WorkspaceStore(fresh);
+  try {
+    const results = await Promise.allSettled(Array.from({ length: 28 }, (_, i) =>
+      (i % 2 ? other : store).beginRun(f.user, i % 2 ? f.workspace.toUpperCase() : f.workspace, i % 2 ? domain.id : f.asset.id)));
+    assert.equal(results.filter(r => r.status === 'fulfilled').length, 25);
+    const denied = results.filter(r => r.status === 'rejected'); assert.equal(denied.length, 3);
+    for (const result of denied) assert.ok(result.status === 'rejected' && quotaError(result.reason));
+    assert.equal((await fresh.query('SELECT count(*) FROM hostname_check_usage WHERE workspace_id=$1', [f.workspace])).rows[0].count, '25');
+    assert.equal((await fresh.query('SELECT count(*) FROM runs WHERE workspace_id=$1', [f.workspace])).rows[0].count, '25');
+    assert.equal((await fresh.query(`SELECT bool_and(r.created_at=u.admitted_at AND r.started_at=u.admitted_at) AS aligned
+      FROM hostname_check_usage u JOIN runs r ON r.id=u.run_id WHERE u.workspace_id=$1`, [f.workspace])).rows[0].aligned, true);
+    await assert.rejects(other.beginRun(f.user, f.workspace, f.asset.id), quotaError);
+    const independent = await usageFixture('usage_independent');
+    assert.ok(await other.beginRun(independent.user, independent.workspace, independent.asset.id));
+  } finally { await fresh.end(); }
+});
+
+test('Usage: failure releases one slot; saved snapshots and contribution changes do not reset usage', async () => {
+  for (const amount of [0, 4900]) {
+    const f = await usageFixture(`usage_lifecycle_${amount}`, amount);
+    const runs = await Promise.all(Array.from({ length: 25 }, () => store.beginRun(f.user, f.workspace, f.asset.id)));
+    await store.completeRun(f.user, f.workspace, runs[0], source);
+    // A failed cleanup cannot erase completed evidence or refund a saved check.
+    await store.failRun(f.workspace, runs[0], f.user);
+    await assert.rejects(store.beginRun(f.user, f.workspace, f.asset.id), quotaError);
+    await store.failRun(f.workspace, runs[1], f.user);
+    await store.failRun(f.workspace, runs[1], f.user);
+    const replacement = await store.beginRun(f.user, f.workspace, f.asset.id);
+    await store.completeRun(f.user, f.workspace, replacement, source);
+    await f.plans.recordConsent(f.user, f.workspace, planConsent(amount === 0 ? 4900 : 0, 1));
+    await assert.rejects(store.beginRun(f.user, f.workspace, f.asset.id), quotaError);
+    assert.equal((await pool.query('SELECT count(*) FROM hostname_check_usage WHERE workspace_id=$1', [f.workspace])).rows[0].count, '26');
+    assert.equal((await store.run(f.user, f.workspace, runs[0])).sourceDigest, createHash('sha256').update(canonicalSource(source)).digest('hex'));
+  }
+});
+
+test('Usage: UTC months remain independent across completion, session time zones and retained history over 32 runs', async () => {
+  const f = await usageFixture('usage_months');
+  const dates = (await pool.query(`SELECT
+    (date_trunc('month',statement_timestamp() AT TIME ZONE 'UTC')-interval '1 millisecond') AT TIME ZONE 'UTC' AS prior,
+    (date_trunc('month',statement_timestamp() AT TIME ZONE 'UTC')-interval '1 month 1 millisecond') AT TIME ZONE 'UTC' AS older`)).rows[0];
+  for (let i = 0; i < 24; i++) await historicalUsage(f, dates.prior.toISOString());
+  const crossing = await historicalUsage(f, dates.prior.toISOString(), false);
+  for (let i = 0; i < 8; i++) await historicalUsage(f, dates.older.toISOString());
+  await store.completeRun(f.user, f.workspace, crossing, source);
+  // The lifetime count is already 33. A new month still admits the full allowance.
+  const fresh = new Pool({ connectionString: env.TEST_DATABASE_URL, options: `-c search_path=${schema},public -c timezone=Pacific/Honolulu`, max: 1 });
+  try {
+    const restarted = new WorkspaceStore(fresh);
+    for (let i = 0; i < 25; i++) await restarted.beginRun(f.user, f.workspace, f.asset.id);
+    await assert.rejects(restarted.beginRun(f.user, f.workspace, f.asset.id), quotaError);
+    const counts = (await fresh.query('SELECT period_start::text AS month,count(*) FROM hostname_check_usage WHERE workspace_id=$1 GROUP BY period_start ORDER BY period_start', [f.workspace])).rows;
+    assert.deepEqual(counts.map(r => r.count), ['8', '25', '25']);
+    assert.equal(counts[2].month, (await fresh.query("SELECT to_char(statement_timestamp() AT TIME ZONE 'UTC','YYYY-MM-01') AS month")).rows[0].month);
+  } finally { await fresh.end(); }
+  assert.equal((await pool.query('SELECT admitted_at FROM hostname_check_usage WHERE run_id=$1', [crossing])).rows[0].admitted_at.toISOString(), dates.prior.toISOString());
+  await assert.rejects(pool.query('DELETE FROM runs WHERE id=$1', [crossing]), /immutable/);
+});
+
+test('Usage: no retrospective enrollment; the unenrolled cohort retains its existing 32-run capacity', async () => {
+  const f = await planFixture('usage_legacy'), asset = await store.addAsset(f.user, f.workspace, source.target, 'hostname');
+  for (let i = 0; i < 32; i++) await store.beginRun(f.user, f.workspace, asset.id);
+  await assert.rejects(store.beginRun(f.user, f.workspace, asset.id), /Workspace run capacity/);
+  assert.equal((await pool.query('SELECT count(*) FROM hostname_check_usage WHERE workspace_id=$1', [f.workspace])).rows[0].count, '0');
+  await f.plans.recordConsent(f.user, f.workspace, planConsent());
+  for (let i = 0; i < 25; i++) await store.beginRun(f.user, f.workspace, asset.id);
+  await assert.rejects(store.beginRun(f.user, f.workspace, asset.id), quotaError);
+  assert.equal((await pool.query('SELECT count(*) FROM hostname_check_usage WHERE workspace_id=$1', [f.workspace])).rows[0].count, '25');
+});
+
+test('Usage: admission records and pending runs commit or roll back together; history cannot be rewritten', async () => {
+  const f = await usageFixture('usage_atomic');
+  await pool.query(`CREATE FUNCTION deny_usage_fixture() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.workspace_id='${f.workspace}' THEN RAISE EXCEPTION 'fixture usage failure'; END IF; RETURN NEW; END $$`);
+  await pool.query('CREATE TRIGGER deny_usage_fixture BEFORE INSERT ON hostname_check_usage FOR EACH ROW EXECUTE FUNCTION deny_usage_fixture()');
+  try {
+    await assert.rejects(store.beginRun(f.user, f.workspace, f.asset.id), /fixture usage failure/);
+    assert.equal((await pool.query('SELECT count(*) FROM runs WHERE workspace_id=$1', [f.workspace])).rows[0].count, '0');
+  } finally { await pool.query('DROP TRIGGER deny_usage_fixture ON hostname_check_usage'); await pool.query('DROP FUNCTION deny_usage_fixture()'); }
+  const run = await store.beginRun(f.user, f.workspace, f.asset.id);
+  for (const sql of [
+    "UPDATE hostname_check_usage SET admitted_at=admitted_at+interval '1 month' WHERE run_id=$1",
+    'UPDATE hostname_check_usage SET consent_revision=2 WHERE run_id=$1',
+    'DELETE FROM hostname_check_usage WHERE run_id=$1',
+  ]) await assert.rejects(pool.query(sql, [run]), /immutable/);
+  await assert.rejects(pool.query('INSERT INTO hostname_check_usage(run_id,workspace_id,consent_revision,admitted_at) SELECT run_id,workspace_id,consent_revision,admitted_at FROM hostname_check_usage WHERE run_id=$1', [run]), /duplicate key/);
+  await store.failRun(f.workspace, run, f.user);
+  await assert.rejects(pool.query('DELETE FROM runs WHERE id=$1', [run]), /foreign key/);
+  await assert.rejects(pool.query('INSERT INTO hostname_check_usage(run_id,workspace_id,consent_revision,admitted_at) VALUES ($1,$2,1,now())', [run, f.workspace]), /pending hostname run/);
+});
+
+test('Usage: current Owner, workspace, asset and cohort authorization precede accounting', async () => {
+  const f = await usageFixture('usage_authorization');
+  await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, f.workspace]);
+  for (const actor of [b, viewer]) await assert.rejects(store.beginRun(actor, f.workspace, f.asset.id));
+  await assert.rejects(store.beginRun(f.user, f.workspace, randomUUID()), /Asset not found/);
+  await pool.query("UPDATE users SET early_access_state='paused' WHERE id=$1", [f.user.id]);
+  await assert.rejects(store.beginRun(f.user, f.workspace, f.asset.id), /paused/);
+  await pool.query("UPDATE users SET early_access_state='active' WHERE id=$1", [f.user.id]);
+  const run = await store.beginRun(f.user, f.workspace, f.asset.id);
+  await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE workspace_id=$1 AND user_id=$2", [f.workspace, f.user.id]);
+  await assert.rejects(store.completeRun(f.user, f.workspace, run, source), /Workspace not found/);
+  await assert.rejects(store.beginRun(f.user, f.workspace, f.asset.id), /Workspace not found/);
+  await store.failRun(f.workspace, run, f.user); // Cleanup still works after revocation.
+  const rows = (await pool.query('SELECT r.status FROM hostname_check_usage u JOIN runs r ON r.id=u.run_id WHERE u.workspace_id=$1', [f.workspace])).rows;
+  assert.deepEqual(rows, [{ status: 'failed' }]);
+});
+
+test('Usage: the real HTTP boundary rejects exhausted allowance before executing and releases failed collection', async () => {
+  const f = await usageFixture('usage_http');
+  for (let i = 0; i < 25; i++) await store.beginRun(f.user, f.workspace, f.asset.id);
+  let executions = 0;
+  const service = () => createFoundationService({ pool, origin, identity: async () => identity('usage_http'), run: async () => { executions++; throw new Error('fixture collector failure'); } });
+  const exhausted = await service().handle(request('runs', f.workspace, { assetId: f.asset.id, authorized: true }), 'runs');
+  assert.equal(exhausted.status, 429); assert.match((await exhausted.json()).error, /25 hostname checks/); assert.equal(executions, 0);
+  const held = (await pool.query('SELECT run_id FROM hostname_check_usage WHERE workspace_id=$1 LIMIT 1', [f.workspace])).rows[0].run_id;
+  await store.failRun(f.workspace, held, f.user);
+  assert.equal((await service().handle(request('runs', f.workspace, { assetId: f.asset.id, authorized: true }), 'runs')).status, 422);
+  assert.equal(executions, 1);
+  assert.ok(await store.beginRun(f.user, f.workspace, f.asset.id));
+  await assert.rejects(store.beginRun(f.user, f.workspace, f.asset.id), quotaError);
+});
+
+test('Usage: an unsupported accepted policy fails closed instead of falling back to legacy admission', async () => {
+  const f = await planFixture('usage_unsupported'), asset = await store.addAsset(f.user, f.workspace, source.target, 'hostname');
+  const version = 'unsupported-fixture-policy';
+  await pool.query('INSERT INTO early_access_plan_terms(version,terms) VALUES ($1,$2)', [version, { version }]);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('INSERT INTO early_access_plans(workspace_id,revision) VALUES ($1,1)', [f.workspace]);
+    await client.query('INSERT INTO early_access_plan_consents(workspace_id,request_id,revision,accepted_by,terms_version,contribution_minor) VALUES ($1,$2,1,$3,$4,0)', [f.workspace, randomUUID(), f.user.id, version]);
+    await client.query('COMMIT');
+  } catch (error) { await client.query('ROLLBACK'); throw error; }
+  finally { client.release(); }
+  await assert.rejects(store.beginRun(f.user, f.workspace, asset.id), (error: unknown) => error instanceof ApiError && error.status === 503);
+  assert.equal((await pool.query('SELECT count(*) FROM runs WHERE workspace_id=$1', [f.workspace])).rows[0].count, '0');
+});
+
+test('Usage: rejected admission refunds throttle slots without refunding actual collection attempts', async () => {
+  const limited = await usageFixture('usage_throttle_limited'), available = await usageFixture('usage_throttle_available');
+  for (let i = 0; i < 25; i++) await store.beginRun(limited.user, limited.workspace, limited.asset.id);
+  const assets = [limited.asset];
+  for (let i = 0; i < 9; i++) assets.push(await store.addAsset(limited.user, limited.workspace, `limited-${i}.example.com`, 'hostname'));
+  let actor = 'usage_throttle_limited', executions = 0;
+  const api = createFoundationService({ pool, origin, now: () => 100_000, identity: async () => identity(actor), run: async target => {
+    executions++;
+    if (target !== source.target) throw new Error('fixture collector failure');
+    return structuredClone(source);
+  } });
+  for (const asset of [...assets, limited.asset]) {
+    const response = await api.handle(request('runs', limited.workspace, { assetId: asset.id, authorized: true }), 'runs');
+    assert.equal(response.status, 429); assert.match((await response.json()).error, /25 hostname checks/);
+  }
+  assert.equal(executions, 0);
+  actor = 'usage_throttle_available';
+  const observe = (assetId: string) => api.handle(request('runs', available.workspace, { assetId, authorized: true }), 'runs');
+  // Same worker and hostname, without advancing its clock: rejected attempts
+  // must consume neither the shared ten-start budget nor the hostname cooldown.
+  assert.equal((await observe(available.asset.id)).status, 201); assert.equal(executions, 1);
+  const completedRetry = await observe(available.asset.id);
+  assert.equal(completedRetry.status, 429); assert.match((await completedRetry.json()).error, /Collection is bounded/);
+  const failing = await store.addAsset(available.user, available.workspace, 'failing.example.com', 'hostname');
+  assert.equal((await observe(failing.id)).status, 422); assert.equal(executions, 2);
+  const failedRetry = await observe(failing.id);
+  assert.equal(failedRetry.status, 429); assert.match((await failedRetry.json()).error, /Collection is bounded/);
+  assert.equal(executions, 2);
+});
+
 test("session replay: 200 before logout, 401 after replay and fresh connection; other session stays valid", async () => {
   const providerIdentity = identity("user_sessionUser");
   const user = await resolveIdentity(pool, providerIdentity);

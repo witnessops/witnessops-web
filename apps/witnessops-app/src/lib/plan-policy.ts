@@ -24,6 +24,10 @@ const acceptedPolicies = new Map<string, typeof EARLY_ACCESS_PLAN_POLICY>([
   [EARLY_ACCESS_POLICY_V1.version, EARLY_ACCESS_POLICY_V1],
 ]);
 
+export function acceptedPlanPolicy(version: string) {
+  return acceptedPolicies.get(version);
+}
+
 export type PlanConsentInput = {
   requestId: string;
   expectedRevision: number;
@@ -67,7 +71,7 @@ export function validatePlanConsent(input: unknown): PlanConsentInput {
 /** Describes the accepted commercial terms at a time; does not authorize access,
  * collect payment, count usage, or delete evidence. Trial duration is 168 hours. */
 export function planTermsAt(plan: EarlyAccessPlanRecord, at: Date) {
-  const policy = acceptedPolicies.get(plan.termsVersion);
+  const policy = acceptedPlanPolicy(plan.termsVersion);
   const started = Date.parse(plan.trialStartedAt), ends = Date.parse(plan.trialEndsAt), now = at.getTime();
   if (!Number.isFinite(started) || !Number.isFinite(ends) || !Number.isFinite(now) || ends - started !== 7 * 24 * 60 * 60 * 1000 || now < started) {
     throw new Error('Invalid plan timeline.');

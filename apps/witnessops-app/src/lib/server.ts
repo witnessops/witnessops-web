@@ -55,7 +55,7 @@ export function createFoundationService(options: {
   pool?: Pool; identity?: () => Promise<Identity | null>; origin?: string; proxyMode?: string;
   run?: (target: string) => Promise<ExternalSnapshotV1>; now?: () => number;
 } = {}) {
-  const recentHosts = new Map<string, number>(), recentRuns: number[] = [];
+  const recentHosts = new Map<string, { at: number }>(), recentRuns: { at: number }[] = [];
   const now = options.now ?? Date.now, execute = options.run ?? runSnapshot;
   let active = 0;
   let importing = false;
@@ -143,10 +143,13 @@ export function createFoundationService(options: {
         if (input.authorized !== true) throw new ApiError(400, "Confirm that you own this hostname or are authorized to observe it.");
         const asset = await store.asset(user, workspaceId, input.assetId, true);
         if (asset.type === "linux_server") throw new ApiError(400, "Import an existing Linux Proofpack; app collection is not available.");
-        for (const [h, t] of recentHosts) if (now() - t >= 60_000) recentHosts.delete(h);
-        while (recentRuns.length && now() - recentRuns[0] >= 60_000) recentRuns.shift();
+        for (const [h, reservation] of recentHosts) if (now() - reservation.at >= 60_000) recentHosts.delete(h);
+        while (recentRuns.length && now() - recentRuns[0].at >= 60_000) recentRuns.shift();
         if (active >= 2 || recentRuns.length >= 10 || recentHosts.has(asset.hostname)) throw new ApiError(429, "Collection is bounded. Wait one minute before rerunning this hostname.");
-        recentHosts.set(asset.hostname, now()); recentRuns.push(now()); active += 1;
+        // Reserve before the asynchronous admission check so concurrent requests
+        // cannot bypass the collector throttle. Refund only rejected admissions.
+        const reservation = { at: now() };
+        recentHosts.set(asset.hostname, reservation); recentRuns.push(reservation); active += 1;
         let runId: string | undefined;
         try {
           runId = await store.beginRun(user, workspaceId, asset.id);
@@ -162,6 +165,10 @@ export function createFoundationService(options: {
           if (runId) {
             await store.failRun(workspaceId, runId, user);
             await record(user, workspaceId, 'observation_failed', { runId });
+          } else {
+            if (recentHosts.get(asset.hostname) === reservation) recentHosts.delete(asset.hostname);
+            const index = recentRuns.indexOf(reservation);
+            if (index !== -1) recentRuns.splice(index, 1);
           }
           if (error instanceof ApiError) throw error;
           throw new ApiError(422, "The bounded observation could not complete. No successful source snapshot was recorded.");
