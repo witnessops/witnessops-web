@@ -1,9 +1,10 @@
 # Early Access plan policy and consent
 
-This is the first backend step of the approved demo reuse plan's commercial phase.
-It establishes a durable policy and contribution-choice record. It does not enable
-enrollment, collect payments, enforce allowances, grant access, or expire evidence.
-There is no new HTTP endpoint or customer-facing checkout in this change.
+This implements the durable policy, contribution-choice record and hostname usage
+admission for the approved demo reuse plan's commercial phase. Workspaces with a
+recorded plan use the monthly hostname allowance through the existing run endpoint.
+There is no customer-facing enrollment/checkout endpoint yet. This does not collect
+payments, grant access, enforce Linux/seat limits, or expire evidence.
 
 ## Accepted policy
 
@@ -21,9 +22,10 @@ Version: `early-access-2026-09-17`. One plan: `early-access`.
 | Seats | 1 |
 | Future pricing | Requires new explicit acceptance |
 
-The cap values are policy data in this foundation, not enforced behavior. Existing
-cohort admission, execution throttles, storage limits and immutable source custody
-continue to govern the current app. Public claims must describe implemented behavior.
+The hostname allowance is enforced for explicitly enrolled workspaces. Linux source,
+retention and seat caps remain policy data awaiting implementation. Current cohort
+admission, execution throttles, storage limits and immutable source custody continue
+to apply. Public claims must describe implemented behavior.
 
 ## Persistence contract
 
@@ -59,22 +61,62 @@ must obtain the applicable payment authorization and reconcile provider state be
 presenting a recurring payment as configured. The integer upper bound is a storage
 limit, not a payment-provider capability or recommended amount.
 
+## Hostname allowance
+
+`WorkspaceStore.beginRun` enforces 25 checks per workspace per UTC calendar month
+after current Owner, cohort and asset authorization. This applies to both hostname
+and domain assets, from the first recorded plan choice, throughout the trial and
+after day eight, at every contribution amount. The first partial month receives
+the same cap. A contribution revision does not reset usage. This follows the demo's
+UTC calendar-month convention; it is separate from contribution billing dates.
+
+Admission holds the existing workspace advisory transaction lock, shared by all
+app instances and plan-consent writes. It resolves the accepted policy version,
+checks current usage, and atomically inserts the pending run and an immutable
+`hostname_check_usage` record. Unsupported or mismatched terms fail closed. The
+database supplies admission time after lock acquisition; neither client time nor
+snapshot time chooses the usage month. Each record binds one run to its workspace,
+accepted consent revision and UTC month. Migration `0012_hostname_check_usage.sql`
+does not enroll workspaces or assign usage to historical runs.
+
+| Run state | Allowance effect |
+| --- | --- |
+| Running | Reserves one slot before collection starts |
+| Completed with saved snapshot | Consumes that slot, including unknown/error observations within a valid saved snapshot |
+| Failed without a saved snapshot | Releases the slot; the admission record remains |
+| Reopened, reported, exported, or completed again | No new slot; completed source remains immutable |
+
+Completion after a month boundary stays in the admission month. A new month gets
+its own allowance without rewriting old counters or evidence. At capacity the
+existing run API returns HTTP 429 with the next UTC reset date before invoking the
+collector. Cleanup is idempotent and can still mark an unfinished run failed after
+membership revocation; it cannot refund or erase an already completed snapshot.
+An interrupted process can leave a running reservation until it is marked failed
+or its UTC month ends. This change does not infer failure from elapsed time or
+introduce an automatic cleanup worker.
+
+Enrolled hostname admission replaces the legacy 32-run lifetime count with the
+monthly allowance. The 8 MiB workspace snapshot capacity, 1 MiB per-source limit,
+20-asset capacity and collection throttles remain independent technical safeguards.
+They can reject work before the monthly allowance is exhausted. Unenrolled cohort
+workspaces retain their existing admission, including the 32-run limit. Linux
+import admission is unchanged; its separate lifetime/storage guards still need
+reconciliation before the full commercial flow is enabled.
+
 ## Remaining commercial implementation
 
 The following work is required before publishing the complete one-plan flow:
 
-1. Define hostname monthly reset and failed-run accounting; reserve usage atomically
-   alongside run admission, preserving bounded collection controls.
-2. Define a Linux import source and its lifecycle. The reuse map recommends counting
+1. Define a Linux import source and its lifecycle. The reuse map recommends counting
    distinct registered sources, with later packages for that source using the same slot.
-3. Define one-seat enrollment and migration of existing multi-member workspaces.
-4. Add the customer consent/checkout flow, including a complete EUR 0 path and an
+2. Define one-seat enrollment and migration of existing multi-member workspaces.
+3. Add the customer consent/checkout flow, including a complete EUR 0 path and an
    authorized recurring-payment integration for positive choices. Contribution updates
    must preserve the trial and clearly state when the new amount applies.
-5. Define retention scope across hostname snapshots, Linux sources, reports, comparison
+4. Define retention scope across hostname snapshots, Linux sources, reports, comparison
    baselines and exports. Implement deliberate expiry while preserving immutability
    during the retained lifetime; production expiry requires its own operator activation.
-6. Reconcile existing total-run and storage limits with the monthly allowance and
+5. Reconcile Linux total-run and storage limits with the monthly allowance and
    retained history. Then publish pricing, settings, Ask and docs from the same policy.
 
 ## Validation
@@ -82,7 +124,11 @@ The following work is required before publishing the complete one-plan flow:
 Unit checks cover explicit consent, exact day-eight boundaries, EUR 0 feature/cap
 parity, elapsed time through daylight-saving/leap boundaries, and malformed input.
 The isolated PostgreSQL suite exercises reconnect, concurrent/idempotent choices,
-stale updates, actor/workspace authorization, rollback and immutable history.
+stale updates, actor/workspace authorization, rollback and immutable history. Usage
+tests cover concurrent admissions from independent pools, failure recovery, amount
+changes, month rollover, non-UTC sessions, retained history beyond 32 runs, legacy
+admission, atomic reservation rollback, unsupported policies and HTTP rejection
+before execution. There is no new API route or collector contract.
 The populated migration upgrade verifies that existing evidence and admission survive
 and that no existing workspace is silently enrolled.
 

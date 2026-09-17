@@ -10,6 +10,7 @@ import { linuxHostname } from "../linux-hostname";
 import { canonicalSource } from "../source-digest";
 import type { AppUser } from "./identity";
 import { requireEarlyAccess } from './access';
+import { admitHostnameCheck } from './hostname-usage';
 
 type MemberRow = { id: string; name: string; slug: string; role: "owner" | "viewer" };
 type AssetRow = { id: string; normalized_value: string; type: Asset["type"]; created_at: Date };
@@ -111,12 +112,18 @@ export class WorkspaceStore {
     return this.within(user, workspaceId, true, async client => {
       const asset = await client.query("SELECT id FROM assets WHERE workspace_id=$1 AND id=$2 AND type IN ('hostname','domain')", [workspaceId, assetId]);
       if (!asset.rowCount) throw new ApiError(404, "Asset not found in this workspace.");
-      await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [workspaceId]);
+      // UUID casing must not select a different lock for the same workspace.
+      await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1::uuid::text, 0))", [workspaceId]);
+      const allowance = await admitHostnameCheck(client, workspaceId);
       const capacity = await client.query<{ count: string; bytes: string }>("SELECT count(*),coalesce(sum(octet_length(source_snapshot::text)),0) AS bytes FROM runs WHERE workspace_id=$1 AND status IN ('completed','running')", [workspaceId]);
-      if (Number(capacity.rows[0].count) >= 32 || Number(capacity.rows[0].bytes) >= 8 * 1024 * 1024) throw new ApiError(409, "Workspace run capacity reached.");
+      // Enrolled hostname checks use monthly admission instead of the legacy
+      // lifetime run count. Keep the independent storage/collector safeguards.
+      if ((!allowance && Number(capacity.rows[0].count) >= 32) || Number(capacity.rows[0].bytes) >= 8 * 1024 * 1024) throw new ApiError(409, "Workspace run capacity reached.");
       const id = randomUUID();
       await client.query(`INSERT INTO runs (id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version)
         VALUES ($1,$2,$3,$4,'external-snapshot-v1','running',$5,$6)`, [id, workspaceId, assetId, user.id, RECOMMENDED_PROFILE.id, RECOMMENDED_PROFILE.version]);
+      if (allowance) await client.query(`INSERT INTO hostname_check_usage(run_id,workspace_id,consent_revision,admitted_at)
+        VALUES ($1,$2,$3,$4)`, [id, workspaceId, allowance.revision, allowance.admittedAt]);
       return id;
     });
   }

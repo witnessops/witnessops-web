@@ -31,10 +31,11 @@ try {
  await migrate(db,{preserveMember:user});
  const after=(await db.query('SELECT row_to_json(r) AS record FROM runs r WHERE id=$1',[run])).rows[0].record;
  for(const [key,value] of Object.entries(before))assert.deepEqual(after[key],value,key);
- assert.equal((await db.query('SELECT count(*) AS n FROM app_migrations')).rows[0].n,'11');
+ assert.equal((await db.query('SELECT count(*) AS n FROM app_migrations')).rows[0].n,'12');
  assert.equal((await db.query('SELECT count(*) AS n FROM early_access_plans')).rows[0].n,'0');
  assert.equal((await db.query('SELECT count(*) AS n FROM early_access_plan_consents')).rows[0].n,'0');
+ assert.equal((await db.query('SELECT count(*) AS n FROM hostname_check_usage')).rows[0].n,'0');
  await assert.rejects(db.query('DELETE FROM runs WHERE id=$1',[run]),/immutable/);
  await migrate(db);
- console.log('PASS: populated 0004 -> 0011, historical run/source/digest unchanged, no implicit plan/consent, immutable trigger retained, reapply idempotent');
+ console.log('PASS: populated 0004 -> 0012, historical run/source/digest unchanged, no implicit plan/consent/usage, immutable trigger retained, reapply idempotent');
 } finally {if(db)await db.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.end();}
