@@ -6,7 +6,9 @@ import base from './playwright.config';
 const baseURL = 'http://127.0.0.1:3019';
 export default {
   ...base,
-  testMatch: 'pdf-pagination.spec.ts',
+  // Keep the free-result and workspace handoff checks in the existing built-site
+  // gate as well as PDF export; they must not depend on a manual dev-server run.
+  testMatch: ['pdf-pagination.spec.ts', 'check.spec.ts', 'early-access.spec.ts'],
   outputDir: join(tmpdir(), 'wops-pdf-pagination'),
   forbidOnly: true,
   use: { ...base.use, baseURL },
