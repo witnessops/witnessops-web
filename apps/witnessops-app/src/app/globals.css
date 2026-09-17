@@ -235,7 +235,7 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .linux-workflow > * { min-width: 0; }
 .linux-import-panel { display: grid; gap: 18px; padding: 26px; border: 1px solid var(--border); border-radius: 12px; background: var(--raised); }
 .linux-import-panel h2 { font-size: 20px; }
-.linux-import-panel > p { color: var(--muted); font-size: 13px; }
+.linux-import-panel > p:not(.error) { color: var(--muted); font-size: 13px; }
 .linux-import-panel > .quiet { font-size: 12px; }
 .linux-import-panel > .button { justify-self: start; }
 .linux-file-field { display: grid; gap: 8px; min-width: 0; }

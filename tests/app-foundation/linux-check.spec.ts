@@ -103,6 +103,8 @@ for(const width of [1440,390]) test(`Linux comparison qualification and three la
   await expect(history).toHaveCount(2);
   await expect(history.nth(0)).toHaveAttribute('href','/runs/current');
   await expect(history.nth(1)).toHaveAttribute('href','/runs/baseline');
+  await expect(history.nth(0).locator('time').nth(0)).toHaveAttribute('datetime',current.snapshot.source.observedAt);
+  await expect(history.nth(0).locator('time').nth(0)).toContainText('UTC');
   await expect(history.nth(0).locator('time').nth(1)).toHaveAttribute('datetime',current.createdAt);
   await expect(history.nth(0).locator('time').nth(1)).toContainText('12:01 UTC');
   await page.screenshot({path:info.outputPath('linux-comparison.png'),fullPage:true});
