@@ -112,8 +112,8 @@ try {
  for(const path of ['/api/assets?id='+asset.id,'/api/runs?id='+run])assert.equal((await request(path,outsider,{'x-witnessops-workspace':foreign})).status,404);
  await revokeSession(pool,{issuer,subject:'user_owner',sessionId:'session_userowner'});
  assert.equal((await request('/api/workspace',owner)).status,401);
- assert.equal((await pool.query('SELECT count(*) AS n FROM app_migrations')).rows[0].n,'10');
- console.log(JSON.stringify({manifest:identity.image_digest,config,engineImage:image,owner:'PASS',viewerRead:'PASS',viewerWriteDenied:'PASS',viewerImportDenied:'PASS',viewerExecutionDenied:'PASS',foreignWorkspace:'PASS',revoked:'PASS',unauthenticated:'PASS',migrations:10,auth:'real AuthKit PKCE/callback/JWT with disposable provider; no production WorkOS'},null,2));
+ assert.equal((await pool.query('SELECT count(*) AS n FROM app_migrations')).rows[0].n,'11');
+ console.log(JSON.stringify({manifest:identity.image_digest,config,engineImage:image,owner:'PASS',viewerRead:'PASS',viewerWriteDenied:'PASS',viewerImportDenied:'PASS',viewerExecutionDenied:'PASS',foreignWorkspace:'PASS',revoked:'PASS',unauthenticated:'PASS',migrations:11,auth:'real AuthKit PKCE/callback/JWT with disposable provider; no production WorkOS'},null,2));
 } finally {
  if(started)execFileSync(docker,['rm','-f',name],{stdio:'pipe'});
  provider.close();await pool?.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.end();rmSync(directory,{recursive:true,force:true});
