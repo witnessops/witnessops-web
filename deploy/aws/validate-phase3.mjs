@@ -38,6 +38,107 @@ function requireSingleExactLine(source, expected, label) {
   assert(count === 1, `${label} must appear exactly once at the reviewed indentation`);
 }
 
+const EXPECTED_PUBLICATION_ADMISSION_JOB = [
+  "  supply_chain_gate:",
+  "    if: needs.validate.outputs.operation == 'publish-image'",
+  "    needs: validate",
+  "    uses: ./.github/workflows/supply-chain-gate.yml",
+  "    permissions:",
+  "      contents: read",
+  "    with:",
+  "      checkout_ref: ${{ github.sha }}",
+  "      base_ref: ${{ format('{0}^', github.sha) }}",
+].join("\n");
+
+const EXPECTED_PUBLICATION_BUILD_JOB = [
+  "  build_image:",
+  "    name: Build exact AWS image without AWS authority",
+  "    if: needs.validate.outputs.operation == 'publish-image'",
+  "    needs: [validate, supply_chain_gate]",
+  "    runs-on: ubuntu-latest",
+  "    timeout-minutes: 30",
+  "    permissions:",
+  "      contents: read",
+  "    outputs:",
+  "      archive_sha256: ${{ steps.archive.outputs.sha256 }}",
+  "      trivy_sha256: ${{ steps.archive.outputs.trivy_sha256 }}",
+  "      image_digest: ${{ steps.archive.outputs.image_digest }}",
+  "    steps:",
+  "      - name: Check out merged main without persisted credentials",
+  "        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5",
+  "        with:",
+  "          ref: ${{ github.sha }}",
+  "          fetch-depth: 0",
+  "          persist-credentials: false",
+  "",
+  "      - name: Verify dependency admission before publication build",
+  "        env:",
+  "          ADMISSION_RESULT: ${{ needs.supply_chain_gate.result }}",
+  "          ADMISSION_STATUS: ${{ needs.supply_chain_gate.outputs.status }}",
+  "          ADMITTED_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}",
+  "          ADMITTED_LOCK_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}",
+  "          EVENT_SHA: ${{ github.sha }}",
+  "          EVENT_NAME: ${{ github.event_name }}",
+  "          VALIDATED_SOURCE: ${{ needs.validate.outputs.source_commit }}",
+  "          OPERATION: ${{ needs.validate.outputs.operation }}",
+  "        run: |",
+  "          set -euo pipefail",
+  "          [[ \"${EVENT_NAME}\" == \"workflow_dispatch\" ]] || exit 1",
+  "          [[ \"${OPERATION}\" == \"publish-image\" ]] || exit 1",
+  "          [[ \"${EVENT_SHA}\" =~ ^[0-9a-f]{40}$ ]] || exit 1",
+  "          [[ \"${EVENT_SHA}\" != \"0000000000000000000000000000000000000000\" ]] || exit 1",
+  "          [[ \"${VALIDATED_SOURCE}\" == \"${EVENT_SHA}\" ]] || exit 1",
+  "          base_ref=\"$(git rev-parse --verify \"${EVENT_SHA}^\" 2>/dev/null)\" || exit 1",
+  "          git cat-file -e \"${base_ref}^{commit}\" || exit 1",
+  "          python3 -I tools/supply-chain-gate/verify_install_admission.py",
+  "",
+  "      - name: Enable OCI image loading on the ephemeral runner",
+  "        run: |",
+  "          sudo mkdir -p /etc/docker",
+  "          sudo python3 -c 'import json,pathlib; p=pathlib.Path(\"/etc/docker/daemon.json\"); c=json.loads(p.read_text()) if p.exists() else {}; c.setdefault(\"features\", {})[\"containerd-snapshotter\"]=True; p.write_text(json.dumps(c))'",
+  "          sudo systemctl restart docker",
+  "          docker info --format '{{json .DriverStatus}}' | grep -q io.containerd.snapshotter.v1",
+  "",
+  "      - name: Build one linux-amd64 Docker image archive",
+  "        run: |",
+  "          set -euo pipefail",
+  "          docker buildx create --name aws-oci-builder --driver docker-container --driver-opt image=moby/buildkit@sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8 --use",
+  "          docker buildx build \\",
+  "            --platform linux/amd64 \\",
+  "            --file deploy/Dockerfile.aws \\",
+  "            --build-arg \"SOURCE_COMMIT=${{ needs.validate.outputs.source_commit }}\" \\",
+  "            --provenance=false --sbom=false \\",
+  "            --output \"type=oci,dest=${RUNNER_TEMP}/witnessops-web-aws.tar\" \\",
+  "            .",
+  "          docker load --input \"${RUNNER_TEMP}/witnessops-web-aws.tar\"",
+  "          image_digest=\"$(python3 deploy/aws/inspect-oci-image.py \"${RUNNER_TEMP}/witnessops-web-aws.tar\" | jq -r .image_digest)\"",
+  "          bash deploy/aws/test-runtime-image.sh \"${image_digest}\"",
+  "          bash deploy/aws/scan-runtime-image.sh \"${RUNNER_TEMP}/witnessops-web-aws.tar\" \"${RUNNER_TEMP}/aws-security\"",
+  "",
+  "      - name: Hash the exact image archive",
+  "        id: archive",
+  "        run: |",
+  "          echo \"image_digest=$(python3 deploy/aws/inspect-oci-image.py \"${RUNNER_TEMP}/witnessops-web-aws.tar\" | jq -r .image_digest)\" >> \"${GITHUB_OUTPUT}\"",
+  "          digest=\"$(sha256sum \"${RUNNER_TEMP}/witnessops-web-aws.tar\" | awk '{print $1}')\"",
+  "          echo \"sha256=${digest}\" >> \"${GITHUB_OUTPUT}\"",
+  "          cp \"${RUNNER_TEMP}/aws-security/trivy.json\" \"${RUNNER_TEMP}/trivy.json\"",
+  "          echo \"trivy_sha256=$(sha256sum \"${RUNNER_TEMP}/aws-security/trivy.json\" | awk '{print $1}')\" >> \"${GITHUB_OUTPUT}\"",
+  "          printf '%s  %s\\n' \"${digest}\" witnessops-web-aws.tar \\",
+  "            > \"${RUNNER_TEMP}/witnessops-web-aws.tar.sha256\"",
+  "",
+  "      - name: Transfer only the hashed image archive",
+  "        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0",
+  "        with:",
+  "          name: witnessops-web-aws-${{ github.run_id }}-${{ github.run_attempt }}",
+  "          retention-days: 1",
+  "          compression-level: 0",
+  "          if-no-files-found: error",
+  "          path: |",
+  "            ${{ runner.temp }}/witnessops-web-aws.tar",
+  "            ${{ runner.temp }}/witnessops-web-aws.tar.sha256",
+  "            ${{ runner.temp }}/trivy.json",
+].join("\n");
+
 const EXPECTED_ADMISSION_JOB = "  supply_chain_gate:\n    uses: ./.github/workflows/supply-chain-gate.yml\n    permissions:\n      contents: read\n    with:\n      checkout_ref: ${{ github.sha }}\n      base_ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'workflow_dispatch' && format('{0}^', github.sha) || 'MISSING_REQUIRED_COMPARISON_BASE' }}";
 
 const EXPECTED_BUILD_IMAGE_JOB = [
@@ -425,6 +526,11 @@ export function validatePhase3Sources(sources) {
     assert(caller.includes(required), `caller is missing ${required}`);
   }
 
+  assert(
+    exactNamedWorkflowJob(reusable, "supply_chain_gate") === EXPECTED_PUBLICATION_ADMISSION_JOB,
+    "publication dependency admission must use the exact reusable gate and event-parent comparison",
+  );
+
   assert(reusable.includes("\n  workflow_call:"), "reusable workflow lacks workflow_call");
   forbiddenAutomaticTriggers(reusable, "reusable workflow");
   for (const environment of ["aws-image-publish", "aws-staging", "aws-production"]) {
@@ -644,6 +750,10 @@ export function validatePhase3Sources(sources) {
   assert(!publisher.includes("docker build"), "publisher must not rebuild");
   assert(!reusable.includes('docker image inspect "${config_digest}"'), "OCI config digest is not a Docker containerd image handle");
   assert(!publisher.includes("docker push"), "publisher must import the unchanged OCI manifest");
+  assert(
+    exactNamedWorkflowJob(reusable, "build_image") === EXPECTED_PUBLICATION_BUILD_JOB,
+    "publication build must retain exact source-bound admission before Docker execution",
+  );
   return true;
 }
 
