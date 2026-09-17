@@ -56,6 +56,7 @@ jobs:
       - name: Check out merged main without persisted credentials
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -117,10 +118,20 @@ jobs:
             echo "expected_current_digest=${expected_current_digest}"
           } >> "${GITHUB_OUTPUT}"
 
+  supply_chain_gate:
+    if: needs.validate.outputs.operation == 'publish-image'
+    needs: validate
+    uses: ./.github/workflows/supply-chain-gate.yml
+    permissions:
+      contents: read
+    with:
+      checkout_ref: ${{ github.sha }}
+      base_ref: ${{ format('{0}^', github.sha) }}
+
   build_image:
     name: Build exact AWS image without AWS authority
     if: needs.validate.outputs.operation == 'publish-image'
-    needs: validate
+    needs: [validate, supply_chain_gate]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -133,16 +144,30 @@ jobs:
       - name: Check out merged main without persisted credentials
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Run the repository supply-chain gate
+      - name: Verify dependency admission before publication build
+        env:
+          ADMISSION_RESULT: ${{ needs.supply_chain_gate.result }}
+          ADMISSION_STATUS: ${{ needs.supply_chain_gate.outputs.status }}
+          ADMITTED_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          ADMITTED_LOCK_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}
+          EVENT_SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          VALIDATED_SOURCE: ${{ needs.validate.outputs.source_commit }}
+          OPERATION: ${{ needs.validate.outputs.operation }}
         run: |
-          python3 tools/supply-chain-gate/supply_chain_gate.py \
-            --repo-root . \
-            --lockfile pnpm-lock.yaml \
-            --base-ref HEAD^ \
-            --output-dir "${RUNNER_TEMP}/supply-chain"
+          set -euo pipefail
+          [[ "${EVENT_NAME}" == "workflow_dispatch" ]] || exit 1
+          [[ "${OPERATION}" == "publish-image" ]] || exit 1
+          [[ "${EVENT_SHA}" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          [[ "${EVENT_SHA}" != "0000000000000000000000000000000000000000" ]] || exit 1
+          [[ "${VALIDATED_SOURCE}" == "${EVENT_SHA}" ]] || exit 1
+          base_ref="$(git rev-parse --verify "${EVENT_SHA}^" 2>/dev/null)" || exit 1
+          git cat-file -e "${base_ref}^{commit}" || exit 1
+          python3 -I tools/supply-chain-gate/verify_install_admission.py
 
       - name: Enable OCI image loading on the ephemeral runner
         run: |

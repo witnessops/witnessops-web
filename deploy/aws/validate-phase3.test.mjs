@@ -478,3 +478,30 @@ test('AWS validation rejects a no-op admission job retaining expected text in co
       block.split('\n').slice(1).map(line => '# '+line).join('\n')));
   assert.throws(() => validatePhase3Sources(mutated), /exact reusable gate contract/);
 });
+
+for (const [label, before, after] of [
+  ['dependency bypass', 'needs: [validate, supply_chain_gate]', 'needs: validate'],
+  ['failure bypass', '    needs: [validate, supply_chain_gate]', '    needs: [validate, supply_chain_gate]\n    continue-on-error: true'],
+  ['guard bypass', 'python3 -I tools/supply-chain-gate/verify_install_admission.py', 'true'],
+  ['wrong source', 'VALIDATED_SOURCE: ${{ needs.validate.outputs.source_commit }}', 'VALIDATED_SOURCE: ${{ github.sha }}'],
+  ['missing lock binding', 'ADMITTED_LOCK_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}', 'ADMITTED_LOCK_SHA256: ignored'],
+  ['wrong gate checkout', 'checkout_ref: ${{ github.sha }}', 'checkout_ref: main'],
+  ['self comparison', "format('{0}^', github.sha)", 'github.sha'],
+]) {
+  test(`publication admission rejects ${label}`, () => {
+    const mutated = changed('reusable', value => value.replace(before, after));
+    assert.notEqual(mutated.reusable, sources.reusable);
+    assert.throws(() => validatePhase3Sources(mutated), /publication/);
+  });
+}
+
+test('publication admission rejects a fake gate with expected wiring in comments', () => {
+  const mutated = changed('reusable', value => {
+    const start = value.indexOf('  supply_chain_gate:');
+    const end = value.indexOf('  build_image:', start);
+    const original = value.slice(start, end);
+    return value.slice(0, start) + '  supply_chain_gate:\n    runs-on: ubuntu-latest\n    steps:\n      - run: true\n' +
+      original.split('\n').map(line => '# ' + line).join('\n') + '\n' + value.slice(end);
+  });
+  assert.throws(() => validatePhase3Sources(mutated), /publication dependency admission|duplicate job supply_chain_gate/);
+});
