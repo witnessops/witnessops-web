@@ -12,7 +12,8 @@ jobs:
     name: App Supply Chain Gate
     uses: ./.github/workflows/supply-chain-gate.yml
     with:
-      base_ref: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+      checkout_ref: ${{ github.sha }}
+      base_ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000' && github.event.before || github.event_name == 'workflow_dispatch' && format('{0}^', github.sha) || 'MISSING_REQUIRED_COMPARISON_BASE' }}
     permissions:
       contents: read
   app:
@@ -34,8 +35,37 @@ jobs:
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
-          ref: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          ref: ${{ github.sha }}
+          fetch-depth: 0
           persist-credentials: false
+      - name: Verify dependency admission before package tooling
+        env:
+          ADMISSION_RESULT: ${{ needs.supply_chain_gate.result }}
+          ADMISSION_STATUS: ${{ needs.supply_chain_gate.outputs.status }}
+          ADMITTED_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          EVENT_SHA: ${{ github.sha }}
+          ADMITTED_LOCK_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        shell: bash
+        run: |
+          case "${EVENT_NAME}" in
+            pull_request) comparison_base="${PR_BASE}" ;;
+            push) comparison_base="${PUSH_BEFORE}" ;;
+            workflow_dispatch)
+              [[ "${EVENT_SHA}" =~ ^[0-9a-f]{40}$ ]] || exit 1
+              comparison_base="${EVENT_SHA}^"
+              ;;
+            *) echo "Unsupported app admission event." >&2; exit 1 ;;
+          esac
+          if [ "${EVENT_NAME}" != workflow_dispatch ]; then
+            [[ "${comparison_base}" =~ ^[0-9a-f]{40}$ ]] || exit 1
+            [[ "${comparison_base}" != '0000000000000000000000000000000000000000' ]] || exit 1
+            [[ "${comparison_base}" != "${EVENT_SHA}" ]] || exit 1
+          fi
+          git cat-file -e "${comparison_base}^{commit}" || exit 1
+          python3 -I tools/supply-chain-gate/verify_install_admission.py
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
         with:
           version: 9.15.4
@@ -110,8 +140,37 @@ jobs:
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
-          ref: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          ref: ${{ github.sha }}
+          fetch-depth: 0
           persist-credentials: false
+      - name: Verify dependency admission before package tooling
+        env:
+          ADMISSION_RESULT: ${{ needs.supply_chain_gate.result }}
+          ADMISSION_STATUS: ${{ needs.supply_chain_gate.outputs.status }}
+          ADMITTED_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          EVENT_SHA: ${{ github.sha }}
+          ADMITTED_LOCK_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        shell: bash
+        run: |
+          case "${EVENT_NAME}" in
+            pull_request) comparison_base="${PR_BASE}" ;;
+            push) comparison_base="${PUSH_BEFORE}" ;;
+            workflow_dispatch)
+              [[ "${EVENT_SHA}" =~ ^[0-9a-f]{40}$ ]] || exit 1
+              comparison_base="${EVENT_SHA}^"
+              ;;
+            *) echo "Unsupported app admission event." >&2; exit 1 ;;
+          esac
+          if [ "${EVENT_NAME}" != workflow_dispatch ]; then
+            [[ "${comparison_base}" =~ ^[0-9a-f]{40}$ ]] || exit 1
+            [[ "${comparison_base}" != '0000000000000000000000000000000000000000' ]] || exit 1
+            [[ "${comparison_base}" != "${EVENT_SHA}" ]] || exit 1
+          fi
+          git cat-file -e "${comparison_base}^{commit}" || exit 1
+          python3 -I tools/supply-chain-gate/verify_install_admission.py
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
         with:
           version: 9.15.4
