@@ -60,6 +60,20 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await expect(page.locator("main")).toContainText("Adding an asset does not start collection.");
     await expect(page.getByRole("link", { name: "Choose External Exposure Check", exact: true })).toHaveCount(1);
     await expect(page.locator(".overview-stats")).toHaveCount(0);
+    if (viewport.width < 1024) {
+      const menu = page.getByRole("button", { name: "Open navigation", exact: true });
+      await menu.click();
+      await expect(page.getByRole("navigation", { name: "Workspace navigation" })).toBeVisible();
+      await page.getByRole("navigation", { name: "Workspace navigation" }).getByRole("link", { name: "Reports", exact: true }).focus();
+      await page.keyboard.press("Escape");
+      await expect(menu).toBeFocused();
+      await expect(menu).toHaveAttribute("aria-expanded", "false");
+      await menu.click();
+      await page.getByRole("navigation", { name: "Workspace navigation" }).getByRole("link", { name: "Reports", exact: true }).click();
+      await expect(page).toHaveURL(/\/reports$/);
+      await expect(menu).toHaveAttribute("aria-expanded", "false");
+      await open("/");
+    }
     await page.screenshot({ path: info.outputPath("empty-workspace.png"), fullPage: true });
     await page.getByRole("link", { name: "Choose External Exposure Check", exact: true }).click();
     await expect(page.locator(".check-list li")).toHaveCount(10);
@@ -117,6 +131,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     expect(ws!.runs.map(run => run.id)).toEqual(["run-1", "run-2"]);
     await expect(page.locator("main")).toContainText("HTTP Strict Transport Security: observed state changed.");
     await expect(page.locator("main")).toContainText("The check set and method are unchanged.");
+    await expect(page.getByRole("link", { name: "Open previous observation →", exact: true })).toHaveAttribute("href", "/runs/run-1");
+    await expect(page.locator(".change-columns")).toContainText("Not comparable");
     await page.screenshot({ path: info.outputPath("run-comparison.png"), fullPage: true });
     await page.screenshot({ path: info.outputPath("run-viewport.png") });
     await page.getByRole("link", { name: "View report", exact: true }).click();
@@ -140,6 +156,10 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.getByRole("link", { name: "← Open observation", exact: true }).click();
     await expect(printRoot).toHaveCount(0);
     await open("/reports"); await expect(page.locator("main .ledger > li")).toHaveCount(2);
+    await page.locator('main a[href="/reports/run-1"]').click();
+    await expect(page).toHaveURL(/\/reports\/run-1$/);
+    await expect(page.locator("main article")).toContainText(ws!.runs[0].sourceDigest);
+    await expect(page.locator("main article")).not.toContainText(ws!.runs[1].sourceDigest);
     await open("/runs/run-1"); await expect(page.locator("main")).toContainText("First observation");
     await open("/members"); await expect(page.locator("main")).toContainText("Acme Owner");
     await open("/settings");

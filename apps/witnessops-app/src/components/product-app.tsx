@@ -30,11 +30,11 @@ import {
 } from "../lib/model";
 
 const nav = [
-  { href: "/", label: "Overview", glyph: "▦" },
-  { href: "/assets", label: "Assets", glyph: "◇" },
-  { href: "/reports", label: "Reports", glyph: "▤" },
-  { href: "/members", label: "Members", glyph: "◎" },
-  { href: "/settings", label: "Settings", glyph: "⚙" },
+  { href: "/", label: "Overview" },
+  { href: "/assets", label: "Assets" },
+  { href: "/reports", label: "Reports" },
+  { href: "/members", label: "Members" },
+  { href: "/settings", label: "Settings" },
 ];
 
 async function request<T>(path: string, method = "GET", body?: unknown, workspaceId?: string): Promise<T> {
@@ -54,7 +54,7 @@ async function request<T>(path: string, method = "GET", body?: unknown, workspac
 }
 
 function date(value: string) {
-  return new Date(value).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+  return `${new Date(value).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" })} UTC`;
 }
 
 function orderedRuns(workspace: Workspace, assetId?: string) {
@@ -98,8 +98,25 @@ function Counts({ run }: { run: Run }) {
 
 function Changes({ current, previous, workspace }: { current: Run; previous?: Run; workspace: Workspace }) {
   const change = compareRuns(current, previous);
-  if (change.baseline) return <><section className="change-panel"><h2>First observation</h2><p>This is your baseline. Run again later to see what changed. Previous evidence stays intact.</p></section><RunFeedback workspace={workspace} run={current} /></>;
-  return <ComparisonViewed run={current}><section className="change-panel"><h2>What changed</h2><p className="comparison-time">Compared with {date(previous!.snapshot.finished_at)}.</p><div className="change-columns"><div><h3>Environment</h3>{change.environment.length ? <ul>{change.environment.map(line => <li key={line}>{line}</li>)}</ul> : <p>No change in comparable target observations.</p>}</div><div><h3>Coverage</h3>{change.coverage.length ? <ul>{change.coverage.map(line => <li key={line}>{line}</li>)}</ul> : <p>The check set and method are unchanged.</p>}</div></div>{change.uncertainty.length ? <div className="uncertainty"><h3>Not comparable</h3><ul>{change.uncertainty.map(line => <li key={line}>{line}</li>)}</ul><p>Collection uncertainty is not a new security finding.</p></div> : null}<p className="comparison-note">Environment means the observed hostname state; Coverage means what or how we checked. A coverage update does not rewrite earlier evidence.</p></section><RunFeedback workspace={workspace} run={current} comparison /></ComparisonViewed>;
+  if (change.baseline) return <><section className="change-panel baseline-panel"><p className="eyebrow">Comparison</p><h2>First observation</h2><p>This is your baseline. Run again later to see what changed. Previous evidence stays intact.</p></section><RunFeedback workspace={workspace} run={current} /></>;
+  const groups = [
+    { title: "Environment", items: change.environment, empty: "No change in comparable target observations." },
+    { title: "Coverage", items: change.coverage, empty: "The check set and method are unchanged." },
+    { title: "Not comparable", items: change.uncertainty, empty: "No collection-comparability limits were recorded between these runs." },
+  ];
+  return <ComparisonViewed run={current}>
+    <section className="change-panel">
+      <div className="section-heading"><h2>What changed</h2><Link href={`/runs/${previous!.id}`}>Open previous observation →</Link></div>
+      <p className="comparison-time">Compared with {date(previous!.snapshot.finished_at)}.</p>
+      <div className="change-columns">{groups.map(group => <div key={group.title}>
+        <h3>{group.title} <span className="change-count">{group.items.length}</span></h3>
+        {group.items.length ? <ul>{group.items.map(line => <li key={line}>{line}</li>)}</ul> : <p>{group.empty}</p>}
+      </div>)}</div>
+      {change.uncertainty.length ? <p className="comparison-note">Collection uncertainty is not a new security finding.</p> : null}
+      <p className="comparison-note">Environment means the observed hostname state; Coverage means what or how we checked. A coverage update does not rewrite earlier evidence.</p>
+    </section>
+    <RunFeedback workspace={workspace} run={current} comparison />
+  </ComparisonViewed>;
 }
 
 function RecommendedChecks({ expanded = false }: { expanded?: boolean }) {
@@ -142,7 +159,18 @@ function AssetList({ workspace }: { workspace: Workspace }) {
     const priority = latest?.snapshot.checks.some(check => check.status === "NEEDS_ATTENTION") ? 0 : latest?.snapshot.checks.some(check => !check.collected || ["UNDETERMINED", "CHECK_ERROR"].includes(check.status)) ? 1 : !latest ? 2 : changes?.environment.length ? 3 : 4;
     return { asset, latest, changes, priority };
   }).sort((a, b) => a.priority - b.priority);
-  return <ul className="ledger">{rows.map(({ asset, latest, changes }) => <li key={asset.id}><Link className="ledger-row" href={`/assets/${asset.id}`}><div><strong className="mono">{asset.hostname}</strong><span>{asset.type === "linux_server" ? "One Server Security Check · import existing source" : latest ? `Last observed ${date(latest.snapshot.finished_at)}` : "Ready for its first observation"}</span>{changes && !changes.baseline ? <span>{changes.environment.length} Environment · {changes.coverage.length} Coverage changes{changes.uncertainty.length ? ` · ${changes.uncertainty.length} not comparable` : ""}</span> : null}</div><span className="attention-label">{asset.type === "linux_server" ? `${(workspace.linuxRuns ?? []).filter(run => run.assetId === asset.id).length} saved checks` : attention(latest)} <span aria-hidden="true">→</span></span></Link></li>)}</ul>;
+  return <div className="asset-table">
+    <div className="asset-table-head" aria-hidden="true"><span>Asset</span><span>Latest observation</span><span>Result</span><span>Comparison</span><span /></div>
+    <ul className="ledger asset-ledger">{rows.map(({ asset, latest, changes }) => <li key={asset.id}>
+      <Link className="ledger-row asset-table-row" href={`/assets/${asset.id}`}>
+        <div className="asset-identity"><strong>{asset.hostname}</strong><span>{asset.type === "linux_server" ? "One Server Security Check" : "External Exposure Check"}</span></div>
+        <div className="asset-observed"><span className="sr-only">Latest observation: </span>{asset.type === "linux_server" ? "Import existing source" : latest ? <time dateTime={latest.snapshot.finished_at}>{date(latest.snapshot.finished_at)}</time> : "Ready for its first observation"}</div>
+        <div className="asset-result">{asset.type === "linux_server" ? `${(workspace.linuxRuns ?? []).filter(run => run.assetId === asset.id).length} saved checks` : attention(latest)}</div>
+        <div className="asset-comparison">{asset.type === "linux_server" ? "Open saved server checks" : changes && !changes.baseline ? <>{changes.environment.length} Environment · {changes.coverage.length} Coverage changes{changes.uncertainty.length ? ` · ${changes.uncertainty.length} not comparable` : ""}</> : latest ? "First observation · baseline" : "No baseline yet"}</div>
+        <span className="row-chevron" aria-hidden="true">→</span>
+      </Link>
+    </li>)}</ul>
+  </div>;
 }
 
 function Overview({ workspace }: { workspace: Workspace }) {
@@ -151,7 +179,30 @@ function Overview({ workspace }: { workspace: Workspace }) {
   const needsAttention = latest.filter(run => run.snapshot.checks.some(check => check.status === "NEEDS_ATTENTION")).length;
   const unresolved = latest.filter(run => run.snapshot.checks.some(check => !check.collected || ["CHECK_ERROR", "UNDETERMINED"].includes(check.status))).length;
   const comparisons = latest.map(run => compareRuns(run, previousRun(workspace, run)));
-  return <><Header title={workspace.name} action={workspace.assets.length && workspace.role === "owner" ? <Link className="button" href="/assets/new">Add asset</Link> : undefined}><p>Choose a public hostname check or a local Linux server check. Keep evidence and reports, then compare later checks.</p></Header>{workspace.assets.length ? <><dl className="overview-stats"><div><dt>External Exposure assets</dt><dd>{exposureAssets.length}</dd></div><div><dt>External Exposure needing attention</dt><dd>{needsAttention || "None"}</dd></div><div><dt>External Exposure environment changes</dt><dd>{comparisons.filter(change => change.environment.length).length} assets</dd></div><div><dt>External Exposure coverage changes</dt><dd>{comparisons.filter(change => change.coverage.length).length} assets</dd></div></dl>{unresolved || latest.length < exposureAssets.length ? <p className="overview-note">{unresolved ? `${unresolved} ${unresolved === 1 ? "asset has" : "assets have"} undetermined checks. ` : ""}{latest.length < exposureAssets.length ? `${exposureAssets.length - latest.length} ${exposureAssets.length - latest.length === 1 ? "asset has" : "assets have"} not been observed yet.` : ""}</p> : null}<section className="section"><div className="section-heading"><h2>Your assets</h2><Link href="/assets">View all assets →</Link></div><AssetList workspace={workspace} /></section></> : <AssetList workspace={workspace} />}<p className="quiet boundary">Each run records one hostname at one point in time. A clear observation does not mean the asset is safe or free of vulnerabilities.</p></>;
+  return <>
+    <Header title={workspace.name} eyebrow="Your evidence workspace" action={workspace.assets.length && workspace.role === "owner" ? <Link className="button" href="/assets/new">Add asset</Link> : undefined}>
+      <p>Choose a public hostname check or a local Linux server check. Keep evidence and reports, then compare later checks.</p>
+    </Header>
+    {workspace.assets.length ? <>
+      <dl className="overview-stats">
+        <div><dt>External Exposure assets</dt><dd>{exposureAssets.length}<span className="stat-caption">{latest.length} with saved observations</span></dd></div>
+        <div><dt>External Exposure needing attention</dt><dd>{needsAttention || "None"}<span className="stat-caption">From each asset’s latest observation</span></dd></div>
+        <div><dt>External Exposure environment changes</dt><dd>{comparisons.filter(change => change.environment.length).length} assets<span className="stat-caption">Recorded hostname state</span></dd></div>
+        <div><dt>External Exposure coverage changes</dt><dd>{comparisons.filter(change => change.coverage.length).length} assets<span className="stat-caption">Check set or method</span></dd></div>
+      </dl>
+      {unresolved || latest.length < exposureAssets.length ? <p className="overview-note">{unresolved ? `${unresolved} ${unresolved === 1 ? "asset has" : "assets have"} undetermined checks. ` : ""}{latest.length < exposureAssets.length ? `${exposureAssets.length - latest.length} ${exposureAssets.length - latest.length === 1 ? "asset has" : "assets have"} not been observed yet.` : ""}</p> : null}
+      <section className="section"><div className="section-heading"><h2>Your assets</h2><Link href="/assets">View all assets →</Link></div><AssetList workspace={workspace} /></section>
+    </> : <AssetList workspace={workspace} />}
+    <p className="quiet boundary">Each run records one hostname at one point in time. A clear observation does not mean the asset is safe or free of vulnerabilities.</p>
+    {workspace.assets.length ? <section className="start-points" aria-labelledby="next-check-heading">
+      <h2 id="next-check-heading">When to check again</h2>
+      <div>{[
+        ["Before launch", "Keep a baseline of the public hostname before a release."],
+        ["After a change", "Compare the next observation with the evidence you already saved."],
+        ["Before a review", "Open the recorded evidence and export a report for the conversation."],
+      ].map(([title, copy]) => <Link href={title === "Before a review" ? "/reports" : "/assets"} key={title}><h3>{title} <span aria-hidden="true">↗</span></h3><p>{copy}</p></Link>)}</div>
+    </section> : null}
+  </>;
 }
 
 function AddAsset({ busy, onAdd }: { busy: boolean; onAdd: (hostname: string, type: Asset["type"]) => Promise<void> }) {
@@ -224,6 +275,17 @@ export function ProductApp() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [navOpen, setNavOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!navOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setNavOpen(false);
+      menuButton.current?.focus();
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [navOpen]);
   useEffect(() => {
     let active = true;
     fetch("/api/workspace", { credentials: "same-origin", cache: "no-store" }).then(async (response) => {
@@ -261,7 +323,12 @@ export function ProductApp() {
       router.push(`/runs/${run.id}`);
     });
   }
-  const navigation = <nav aria-label="Workspace navigation">{nav.map((item, index) => <Link key={item.href} href={item.href} onClick={() => setNavOpen(false)} aria-current={(item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)) ? "page" : undefined} className={index === 3 ? "nav-secondary" : undefined}><span aria-hidden="true">{item.glyph}</span>{item.label}</Link>)}</nav>;
+  const navigation = <nav aria-label="Workspace navigation">{nav.map(item => <Link
+    key={item.href}
+    href={item.href}
+    onClick={() => setNavOpen(false)}
+    aria-current={(item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)) ? "page" : undefined}
+  >{item.label}</Link>)}</nav>;
   let content: ReactNode;
   const parts = pathname.split("/").filter(Boolean);
   if (access !== undefined) {
@@ -298,5 +365,28 @@ export function ProductApp() {
   } else {
     content = <Missing />;
   }
-  return <div className="product-app"><a className="skip-link" href="#main-content">Skip to content</a><aside className="desktop-sidebar"><Link className="wordmark" href="/" aria-label="WitnessOps overview"><WitnessOpsMark size="sm" decorative /> WitnessOps</Link>{navigation}<p className="sidebar-footer">Public hostname · Linux server<br /><span>Early Access</span></p></aside><div className="app-body"><header className="app-header"><button className="menu-toggle" aria-expanded={navOpen} aria-controls="mobile-navigation" onClick={() => setNavOpen(!navOpen)} aria-label={navOpen ? "Close navigation" : "Open navigation"}>☰</button><span className="workspace-name">{workspace?.name || "WitnessOps"}</span>{state && state.workspaces.length > 1 ? <select aria-label="Active workspace" value={workspace?.id || ""} onChange={event => void perform(async () => { setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, event.target.value)); router.push("/"); })}><option value="" disabled>Select workspace</option>{state.workspaces.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select> : null}<span className="early-access-pill">Early Access</span><span className="account">{state?.user.displayName || "WitnessOps"}</span></header>{navOpen ? <div className="mobile-navigation" id="mobile-navigation">{navigation}</div> : null}<main id="main-content" className="main-content">{error ? <div className="error" role="alert">{error}<button onClick={() => setError("")} aria-label="Dismiss error">×</button></div> : null}{busy && workspace ? <p className="pending" role="status">Completing your request…</p> : null}<ProductActivity key={workspace?.id ?? "none"} workspace={workspace}>{content}</ProductActivity></main></div></div>;
+  return <div className="product-app">
+    <a className="skip-link" href="#main-content">Skip to content</a>
+    <header className="app-header">
+      <div className="header-inner">
+        <Link className="wordmark" href="/" aria-label="WitnessOps overview"><WitnessOpsMark size="sm" decorative /> WitnessOps</Link>
+        <div className="desktop-navigation">{navigation}</div>
+        <span className="early-access-pill">Early Access</span>
+        {state ? <form action={logout} className="header-signout"><button className="text-button" aria-label="Sign out of WitnessOps">Sign out</button></form> : null}
+        <button ref={menuButton} className="menu-toggle" aria-expanded={navOpen} aria-controls="mobile-navigation" onClick={() => setNavOpen(!navOpen)} aria-label={navOpen ? "Close navigation" : "Open navigation"}>{navOpen ? "×" : "☰"}</button>
+      </div>
+      {navOpen ? <div className="mobile-navigation" id="mobile-navigation">{navigation}</div> : null}
+    </header>
+    <div className="workspace-bar">
+      <div className="workspace-context"><span className="context-label">Workspace</span><span className="workspace-name">{workspace?.name || "WitnessOps"}</span></div>
+      {state && state.workspaces.length > 1 ? <select aria-label="Active workspace" disabled={busy} value={workspace?.id || ""} onChange={event => void perform(async () => { setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, event.target.value)); router.push("/"); })}><option value="" disabled>Select workspace</option>{state.workspaces.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select> : null}
+      <span className="account">{state?.user.displayName || "WitnessOps"}{workspace ? <span className="account-role"> · {workspace.role === "owner" ? "Owner" : "Viewer"}</span> : null}</span>
+    </div>
+    <main id="main-content" className="main-content">
+      {error ? <div className="error" role="alert">{error}<button onClick={() => setError("")} aria-label="Dismiss error">×</button></div> : null}
+      {busy && workspace ? <p className="pending" role="status">Completing your request…</p> : null}
+      <ProductActivity key={workspace?.id ?? "none"} workspace={workspace}>{content}</ProductActivity>
+    </main>
+    <footer className="workspace-footer"><span>WitnessOps · Early Access</span><span>Saved evidence. Manual checks.</span></footer>
+  </div>;
 }
