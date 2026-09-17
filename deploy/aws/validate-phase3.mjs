@@ -38,10 +38,12 @@ function requireSingleExactLine(source, expected, label) {
   assert(count === 1, `${label} must appear exactly once at the reviewed indentation`);
 }
 
+const EXPECTED_ADMISSION_JOB = "  supply_chain_gate:\n    uses: ./.github/workflows/supply-chain-gate.yml\n    permissions:\n      contents: read\n    with:\n      checkout_ref: ${{ github.sha }}\n      base_ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'workflow_dispatch' && format('{0}^', github.sha) || 'MISSING_REQUIRED_COMPARISON_BASE' }}";
+
 const EXPECTED_BUILD_IMAGE_JOB = [
   "  build_image:",
   "    name: Build exact AWS image without publication authority",
-  "    needs: validate",
+  "    needs: [validate, supply_chain_gate]",
   "    runs-on: ubuntu-latest",
   "    timeout-minutes: 30",
   "    permissions:",
@@ -50,7 +52,36 @@ const EXPECTED_BUILD_IMAGE_JOB = [
   "      - name: Check out without persisted credentials",
   "        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5",
   "        with:",
+  "          ref: ${{ github.sha }}",
+  "          fetch-depth: 0",
   "          persist-credentials: false",
+  "",
+  "      - name: Verify dependency admission before image build",
+  "        env:",
+  "          ADMISSION_RESULT: ${{ needs.supply_chain_gate.result }}",
+  "          ADMISSION_STATUS: ${{ needs.supply_chain_gate.outputs.status }}",
+  "          ADMITTED_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}",
+  "          EVENT_SHA: ${{ github.sha }}",
+  "          ADMITTED_LOCK_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}",
+  "          EVENT_NAME: ${{ github.event_name }}",
+  "          PR_BASE: ${{ github.event.pull_request.base.sha }}",
+  "        shell: bash",
+  "        run: |",
+  "          case \"${EVENT_NAME}\" in",
+  "            pull_request)",
+  "              [[ \"${PR_BASE}\" =~ ^[0-9a-f]{40}$ ]] || exit 1",
+  "              [[ \"${PR_BASE}\" != '0000000000000000000000000000000000000000' ]] || exit 1",
+  "              [[ \"${PR_BASE}\" != \"${EVENT_SHA}\" ]] || exit 1",
+  "              comparison_base=\"${PR_BASE}\"",
+  "              ;;",
+  "            workflow_dispatch)",
+  "              [[ \"${EVENT_SHA}\" =~ ^[0-9a-f]{40}$ ]] || exit 1",
+  "              comparison_base=\"${EVENT_SHA}^\"",
+  "              ;;",
+  "            *) echo \"Unsupported AWS validation admission event.\" >&2; exit 1 ;;",
+  "          esac",
+  "          git cat-file -e \"${comparison_base}^{commit}\" || exit 1",
+  "          python3 -I tools/supply-chain-gate/verify_install_admission.py",
   "",
   "      - name: Enable OCI image loading on the ephemeral runner",
   "        run: |",
@@ -118,6 +149,9 @@ const EXPECTED_PULL_REQUEST_PATHS = [
   "packages/**",
   ".dockerignore",
   ".github/workflows/aws-phase3-validate.yml",
+  ".github/workflows/supply-chain-gate.yml",
+  "tools/supply-chain-gate/**",
+  "security/supply-chain/**",
   ".github/workflows/aws-release.yml",
   ".github/workflows/aws-release-reusable.yml",
   "deploy/Dockerfile.aws",
@@ -575,6 +609,10 @@ export function validatePhase3Sources(sources) {
     "libssl3 runtime version assertion",
   );
   assert(!validation.includes("docker push"), "validation workflow can publish an image");
+  assert(
+    exactNamedWorkflowJob(validation, "supply_chain_gate") === EXPECTED_ADMISSION_JOB,
+    "dependency admission job must retain the exact reusable gate contract",
+  );
   const buildJob = exactNamedWorkflowJob(validation, "build_image");
   assert(
     !/^    if:/mu.test(buildJob),
@@ -585,8 +623,8 @@ export function validatePhase3Sources(sources) {
     "build_image job failures must remain gating",
   );
   assert(
-    buildJob.includes("\n    needs: validate\n"),
-    "build_image job must wait for source validation",
+    buildJob.includes("\n    needs: [validate, supply_chain_gate]\n"),
+    "build_image job must wait for source validation and dependency admission",
   );
   assert(
     buildJob === EXPECTED_BUILD_IMAGE_JOB,

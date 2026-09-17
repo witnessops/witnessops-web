@@ -338,7 +338,7 @@ test("PR validation must build without image publication authority", () => {
   );
 
   const parallelBuild = changed("validation", (value) =>
-    value.replace("    needs: validate\n", ""),
+    value.replace("    needs: [validate, supply_chain_gate]\n", ""),
   );
   assert.throws(
     () => validatePhase3Sources(parallelBuild),
@@ -455,4 +455,26 @@ test("both archive-loading jobs require the OCI image store", () => {
 test("containerd image lookup must use the manifest identity", () => {
   const altered = changed("reusable", value => value.replace('docker image inspect "${image_digest}"', 'docker image inspect "${config_digest}"'));
   assert.throws(() => validatePhase3Sources(altered), /containerd image handle/);
+});
+
+for (const needs of ['validate', 'supply_chain_gate']) {
+  test(`AWS validation rejects missing prerequisite when needs is only ${needs}`, () => {
+    const mutated = changed('validation', value =>
+      value.replace('needs: [validate, supply_chain_gate]', `needs: ${needs}`));
+    assert.throws(() => validatePhase3Sources(mutated), /must wait for source validation and dependency admission/);
+  });
+}
+
+test('AWS validation rejects bypassed pre-build admission guard', () => {
+  const mutated = changed('validation', value => value.replace(
+    'python3 -I tools/supply-chain-gate/verify_install_admission.py', 'true'));
+  assert.throws(() => validatePhase3Sources(mutated), /exact reviewed no-publication gating structure/);
+});
+
+test('AWS validation rejects a no-op admission job retaining expected text in comments', () => {
+  const mutated = changed('validation', value => value.replace(
+    /  supply_chain_gate:\n[\s\S]*?(?=\n  validate:)/u,
+    block => '  supply_chain_gate:\n    runs-on: ubuntu-latest\n    steps:\n      - run: true\n' +
+      block.split('\n').slice(1).map(line => '# '+line).join('\n')));
+  assert.throws(() => validatePhase3Sources(mutated), /exact reusable gate contract/);
 });
