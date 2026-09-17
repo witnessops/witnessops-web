@@ -16,6 +16,7 @@ import { compareLinuxRuns, type LinuxComparison } from '../linux-comparison';
 import { requireLinuxClassification } from '../linux-admission';
 import { canonicalSource } from '../source-digest';
 import { ApiError, requireId } from '../errors';
+import { acceptedWorkspacePlan, requireLinuxSourceLimit } from './plan-admission';
 
 export const sha256 = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 export type LinuxSource = { zipName: string; zip: Buffer; signature: Buffer; registry: Buffer };
@@ -55,10 +56,14 @@ export class LinuxCheckStore {
       const asset = await client.query<{ normalized_value: string }>("SELECT normalized_value FROM assets WHERE workspace_id=$1 AND id=$2 AND type='linux_server' FOR SHARE", [workspaceId, requireId(assetId)]);
       if (!asset.rows[0]) throw new ApiError(404, 'Linux server asset not found.');
       // Admission is serialized with EE and asset capacity checks. No background jobs.
-      await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [workspaceId]);
+      await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1::uuid::text, 0))', [workspaceId]);
+      const plan = await acceptedWorkspacePlan(client, workspaceId);
+      if (plan) await requireLinuxSourceLimit(client, workspaceId, plan.policy.limits.linuxImportSources);
       const count = await client.query<{ count: string }>("SELECT count(*) FROM runs WHERE workspace_id=$1 AND status IN ('running','completed')", [workspaceId]);
       const size = await client.query<{ bytes: string }>('SELECT coalesce(sum(octet_length(zip_bytes)+octet_length(signature_bytes)+octet_length(registry_bytes)),0) AS bytes FROM linux_check_sources WHERE workspace_id=$1', [workspaceId]);
-      if (Number(count.rows[0].count) >= 32 || Number(size.rows[0].bytes) + source.zip.length + source.signature.length + source.registry.length > 200 * 1024 * 1024) throw new ApiError(409, 'Workspace import capacity reached.');
+      // Enrolled workspaces count registered sources, not packages or lifetime
+      // hostname history. Retain the independent 200 MiB custody safeguard.
+      if ((!plan && Number(count.rows[0].count) >= 32) || Number(size.rows[0].bytes) + source.zip.length + source.signature.length + source.registry.length > 200 * 1024 * 1024) throw new ApiError(409, 'Workspace import capacity reached.');
       const createdAt = new Date().toISOString(), checked = await verify(source, createdAt);
       if (linuxHostname(checked.metadata.observedHostname) !== asset.rows[0].normalized_value) throw new ApiError(422, 'The package hostname does not match this Linux server asset.');
       const id = randomUUID(), digest = sha256(source.zip);
