@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarkdownContent } from "@witnessops/ui/mdx";
 import { loadSupportIndex, loadSupportPage } from "@/lib/content";
+import { SupportStart } from "@/components/support/support-start";
 import { SupportIntake } from "@/components/support/support-intake";
 import { CtaButton } from "@/components/shared/cta-button";
 import { buyerPublicOfferRequestHref } from "@/lib/buyer-services";
@@ -114,6 +115,15 @@ export default function SupportPage() {
           </div>
         </header>
 
+        <div className="mt-10 grid gap-6 lg:grid-cols-2 lg:items-start">
+          <SupportStart />
+          <section id="support-request" className="scroll-mt-24" aria-label="Contact support">
+            <h2 className="mb-3 text-xl font-medium">Contact support</h2>
+            <p className="mb-5 text-sm leading-6 text-text-secondary">For account issues or a human follow-up, send a non-secret request. Verify your email to place it in the support queue. AI chat is optional and does not submit a ticket.</p>
+            <SupportIntake supportEmail={PUBLIC_CONTACT_EMAIL} />
+          </section>
+        </div>
+
         <section className="mt-10" aria-labelledby="support-lanes-heading">
           <h2
             id="support-lanes-heading"
@@ -154,7 +164,7 @@ export default function SupportPage() {
           </div>
         </section>
 
-        <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_380px] lg:items-start">
+        <div className="mt-12 max-w-3xl">
           <div>
             <div className="mb-8 border border-surface-border bg-surface-bg p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-accent">
@@ -247,9 +257,7 @@ export default function SupportPage() {
             </div>
           </div>
 
-          <div className="lg:sticky lg:top-24">
-            <SupportIntake supportEmail={PUBLIC_CONTACT_EMAIL} />
-          </div>
+
         </div>
       </div>
     </main>

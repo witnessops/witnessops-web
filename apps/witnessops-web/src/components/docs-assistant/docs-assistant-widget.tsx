@@ -382,6 +382,24 @@ export function DocsAssistantWidget() {
     };
   }, [mobileModal, open, widgetVisible]);
 
+  // A support-page submission uses the same conversation and API as the widget.
+  // No email, support ticket, or workspace data is attached to this event.
+  useEffect(() => {
+    function startSupportQuestion(event: Event) {
+      if (!widgetVisible || loading || contactBusyRef.current) return;
+      const detail: unknown = (event as CustomEvent).detail;
+      if (typeof detail !== "string" || !detail.trim() || detail.length > 2_000) return;
+      event.preventDefault();
+      previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      setOpen(true);
+      setFreeCheckIntake(false);
+      trackAskEvent("opened", { surface: "widget" });
+      void handleAsk(detail);
+    }
+    window.addEventListener("witnessops:ask-support", startSupportQuestion);
+    return () => window.removeEventListener("witnessops:ask-support", startSupportQuestion);
+  });
+
   if (!widgetVisible) {
     return null;
   }
@@ -539,7 +557,7 @@ export function DocsAssistantWidget() {
                 Ask WitnessOps
               </span>
               <span className={styles.chromeSubtitle}>
-                Public product guide. Cannot read private evidence, run checks, or certify a system.
+                AI product guide. Cannot read private evidence, run checks, or certify a system.
               </span>
             </div>
             <button
@@ -718,7 +736,7 @@ export function DocsAssistantWidget() {
             {!contactMode && !freeCheckIntake && (
               <div className={styles.composer} data-ask-composer>
                 <nav className={styles.utilityLinks} aria-label="Ask help links">
-                  <Link href="/support" className={styles.utilityLink}>Support help</Link>
+                  <Link href="/support#support-request" className={styles.utilityLink}>Support help</Link>
                   <Link href="/catalog" className={styles.utilityLink}>Expert help</Link>
                   <Link href="/docs" className={styles.utilityLink}>Docs</Link>
                 </nav>

@@ -26,7 +26,7 @@ test("Ask WitnessOps surfaces describe AI questions within the public-input boun
   ]) {
     const content = source(filename);
     assert.match(content, /Ask WitnessOps|ASK WITNESSOPS/);
-    assert.match(content, filename === "docs-assistant-page.tsx" ? /AI guide to finding the right next step/ : filename === "docs-assistant-widget.tsx" ? /Public product guide/ : new RegExp(subtitle));
+    assert.match(content, filename === "docs-assistant-page.tsx" ? /AI guide to finding the right next step/ : filename === "docs-assistant-widget.tsx" ? /AI product guide/ : new RegExp(subtitle));
     assert.match(content, filename === "docs-assistant-widget.tsx" ? /Try a product question/ : filename === "docs-assistant-page.tsx" ? /Tell me what happened/ : questionIntro);
     assert.match(content, new RegExp(warning));
     assert.match(content, /AskAiDisclosure/);
@@ -272,10 +272,10 @@ test("Ask WitnessOps keeps answer, unavailable, and evidence-boundary states dis
   assert.match(content, /data-ask-state/);
   assert.match(content, /aria-label="Ask WitnessOps question"/);
   assert.match(styles, /--proof-bg:\s*var\(--color-surface-bg\)/);
-  assert.match(styles, /--proof-accent:\s*var\(--color-brand-accent\)/);
+  assert.match(styles, /--proof-accent:\s*#b89b62/);
   assert.match(styles, /--receipt-paper:\s*#151512/);
   assert.match(styles, /--receipt-sheet:\s*#1b1b17/);
-  assert.match(styles, /--receipt-accent-text:\s*#df874d/);
+  assert.match(styles, /--receipt-accent-text:\s*#c9b387/);
   assert.match(styles, /border:\s*1px solid var\(--proof-muted\)/);
   assert.match(
     styles,

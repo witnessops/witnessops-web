@@ -1,0 +1,62 @@
+---
+title: "Review workflow"
+description: "Start with Agent Action Security Review, then inspect the lower-level evidence and receipt verification boundaries."
+section: "docs"
+order: 2
+nav_label: "Review workflow"
+draft: false
+---
+
+# Review workflow
+
+The primary paid entry point is [Agent Action Security Review](/catalog/workflows): one consequential agent or automation action, €2,500 fixed · excluding VAT. It begins with a non-secret fit check and is delivered within 10 working days after evidence rules are agreed. The review maps authority, the executing identity, effective permissions, connected tools, the execution path, the evidence chain, and control gaps. Agent Workflow Reconstruction is the delivery method underneath that buyer-facing security review.
+
+The detailed sequence below documents the separate [External Attack Surface Review](/catalog/offsec-external-exposure) production workflow. That €1,900 · excluding VAT, three-working-day offer remains available as secondary catalogue work with its existing start conditions; it is not the primary paid entry point and it is not a penetration test.
+
+If you are evaluating the request path, read the [Buyer path](/docs/getting-started/proof-run-buyer-path) before submitting work.
+
+## 1. External Attack Surface Review sequence
+
+The current workflow contract is:
+
+1. **Request** — submit a non-secret fit check.
+2. **Scoped review** — agree authority, target, approved checks, exclusions, timing, stop conditions, price, and evidence handling before work starts.
+3. **Evidence collection** — perform only the bounded outside-in review and preserve source records, hashes, unknowns, and limitations.
+4. **Verification result** — produce the pre-signing bounded review/comparison result, preserving skipped, failed, partial, or inconclusive states. This is producer output, not an independent verifier verdict.
+5. **Signed receipt** — issue the profiled `witnessops.receipt.v0` record with real manifest artifact IDs.
+6. **Verification page** — submit receipt JSON to `/verify` and read the bounded result.
+
+No stage should silently stand in for another. Mailbox confirmation is not review start, producer comparison output is not independent verification, and receipt shape is not evidence truth.
+
+## 2. Start conditions
+
+Before target-facing work begins, the engagement needs:
+
+- a named approving authority
+- one authorized public-facing system and frozen target schedule
+- an approved low-impact check schedule
+- explicit exclusions and stop conditions
+- an observation window
+- agreed evidence handling
+
+The request form does not accept credentials, logs, private keys, screenshots, customer evidence, or other secrets. Those handling terms are agreed separately if the request fits.
+
+## 3. Expected proof package
+
+The package contract includes a receipt, evidence manifest, producer verification result, report, staged evidence, normalized records, and comparison result. A public key is present when signed.
+
+Claim evidence references use IDs precomputed by the OffSec adapter for staged source artifacts and then carried into the proof-engine manifest. They are not invented labels. See [Evidence Bundles](/docs/how-it-works/evidence-bundles).
+
+## 4. Public verification boundary
+
+Use [Verify a receipt](/verify) for supported receipt JSON. For the existing `public_exposure_review` receipt profile, which retains the former Public Exposure Review name for technical continuity, the page checks the exact workflow profile, required claims, limitations, timestamps, manifest-digest syntax, and signature syntax.
+
+The result remains `indeterminate` while the request, authority, workflow execution, manifest and artifact bytes, evidence support, signature, and production key authorization have not been independently checked. The page rejects caller-supplied evidence and trust material.
+
+## 5. What remains outside proof
+
+Neither the receipt nor a verified package proves that the system is secure, no vulnerability exists, source tools were correct, capture hosts were uncompromised, human judgment was right, or anything outside the approved scope was checked.
+
+## 6. Next-page handoff
+
+Read [How It Works](/docs/how-it-works) for the architecture boundary and [Receipt Specification](/docs/evidence/receipt-spec) for the exact profiled envelope.

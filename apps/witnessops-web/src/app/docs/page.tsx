@@ -13,7 +13,7 @@ import { DEFAULT_OPEN_GRAPH_IMAGES, DEFAULT_TWITTER_IMAGES } from "@/lib/social-
 import { languageAlternates } from "@/lib/public-seo";
 
 const docsDescription =
-  "Check a sample receipt first, then read the buyer path. These docs explain the model and its limits."
+  "Create an account, set up the CLI, authenticate and find your first report."
 
 export const metadata: Metadata = {
   title: "Docs — WitnessOps",
@@ -41,6 +41,8 @@ export const metadata: Metadata = {
 };
 
 const primaryPaths = [
+  { href: "/docs/getting-started", title: "Start with the app", description: "Free signup, workspace invitations, your first observation and reports.", cta: "Get started" },
+  { href: "/docs/getting-started/cli", title: "CLI setup and authentication", description: "Run the current CLI source, sign in through your browser and check your session.", cta: "Set up the CLI" },
   {
     href: "/verify",
     title: "Verify a receipt",
@@ -57,7 +59,7 @@ const primaryPaths = [
     cta: "Open buyer path",
   },
   {
-    href: "/docs/getting-started",
+    href: "/docs/how-it-works",
     title: "How the model works",
     description:
       "Governed execution, receipts, and what proof can and cannot show.",
@@ -115,8 +117,7 @@ export default async function DocsIndexPage() {
         </h1>
 
         <p className="mt-5 max-w-[36rem] text-base leading-7 text-text-secondary">
-          Check a receipt you can inspect, then evaluate a review. These docs
-          explain the model and its limits.
+          Create your account, understand workspace access, and find your first result. Use the CLI guide when you need command-line access.
         </p>
 
         <p className="mt-3 max-w-[36rem] text-sm leading-7 text-text-muted">
@@ -124,7 +125,7 @@ export default async function DocsIndexPage() {
         </p>
 
         <div className="mt-7 flex flex-wrap gap-3">
-          <CtaButton href="/verify" variant="primary" label="Verify a receipt" />
+          <CtaButton href={pub("/docs/getting-started")} variant="primary" label="Get started" />
           <CtaButton
             href={pub("/docs/getting-started/proof-run-buyer-path")}
             variant="secondary"
@@ -144,7 +145,7 @@ export default async function DocsIndexPage() {
           className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Check a receipt first
+          Choose your next step
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
         <ol className="max-w-[40rem] list-decimal space-y-2 pl-5 text-sm leading-relaxed text-text-secondary">

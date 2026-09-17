@@ -333,3 +333,16 @@ test('current explicit service, page hint, then historical referent; ambiguity n
     const answer = catalogueClarification(args)!; assert.equal(answer.recommendation,null); assert.match(answer.text,/Which service/);
   }
 });
+
+
+test("public onboarding answers use allowlisted docs and cannot grant workspace access", () => {
+  const request = buildPublicAskResponsesRequest({ question: "How do I sign up and authenticate the CLI?", config });
+  const context = JSON.stringify(request);
+  assert.match(context, /Workspace access requires a separate invitation/);
+  assert.match(context, /No published npm installer is established/);
+  assert.match(context, /AI cannot access accounts or workspaces, issue invitations or submit tickets/);
+  const answer = normalizePublicAskResponse(response("Signup is free. Workspace access requires an invitation.", null, ["public.app-onboarding"]));
+  assert.equal(answer?.recommendation, null);
+  assert.equal(answer?.presented_sources[0].canonical_href, "https://witnessops.com/docs/getting-started");
+  assert.equal(normalizePublicAskResponse(response("I have submitted your support request.", null, ["public.support"])), null);
+});

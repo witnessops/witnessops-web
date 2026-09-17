@@ -16,12 +16,12 @@ import {
 } from "@/lib/support-confirmation";
 
 const mono: React.CSSProperties = {
-  fontFamily: "var(--font-mono)",
+  fontFamily: "var(--font-sans)",
 };
 
 const label: React.CSSProperties = {
   ...mono,
-  fontSize: 9,
+  fontSize: 13,
   letterSpacing: "0.14em",
   textTransform: "uppercase",
   color: "var(--color-brand-muted)",
@@ -30,15 +30,15 @@ const label: React.CSSProperties = {
 };
 
 const inputClass =
-  "w-full bg-transparent border-0 border-b border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none py-2";
+  "w-full rounded-lg bg-transparent border border-surface-border text-text-primary placeholder:text-brand-muted focus:border-brand-accent focus:outline-none p-3";
 
 const selectClass =
-  "w-full bg-transparent border-0 border-b border-surface-border text-text-primary focus:border-brand-accent focus:outline-none py-2 pr-10 cursor-pointer";
+  "w-full rounded-lg bg-transparent border border-surface-border text-text-primary focus:border-brand-accent focus:outline-none p-3 pr-10 cursor-pointer";
 
 const inputFont: React.CSSProperties = {
   ...mono,
-  fontSize: 13,
-  letterSpacing: "0.03em",
+  fontSize: 16,
+  letterSpacing: "0",
 };
 
 function verificationErrorMessage(value: unknown): string {
@@ -270,7 +270,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
   }
 
   return (
-    <div className="border border-surface-border">
+    <div className="overflow-hidden rounded-2xl border border-surface-border">
       {/* Header */}
       <div
         className="flex items-center justify-between border-b border-surface-border px-5 py-3"
@@ -350,7 +350,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
                       style={{ ...mono, fontSize: 11, color: "var(--color-text-secondary)" }}
                     >
                       <span>{r.title}</span>
-                      <span style={{ fontSize: 9, color: "var(--color-brand-muted)" }}>→ DOCS</span>
+                      <span style={{ fontSize: 13, color: "var(--color-brand-muted)" }}>→ DOCS</span>
                     </Link>
                   ))}
                 </div>
@@ -395,7 +395,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
               <button
                 type="button"
                 onClick={() => setStatus("idle")}
-                style={{ ...mono, fontSize: 9, color: "var(--color-brand-muted)", letterSpacing: "0.08em", textTransform: "uppercase", background: "none", border: "none", cursor: "pointer" }}
+                style={{ ...mono, fontSize: 13, color: "var(--color-brand-muted)", letterSpacing: "0.08em", textTransform: "uppercase", background: "none", border: "none", cursor: "pointer" }}
               >
                 Change
               </button>
@@ -603,7 +603,7 @@ export function SupportIntake({ supportEmail }: { supportEmail: string }) {
       {/* Footer */}
       <div
         className="border-t border-surface-border px-5 py-3 flex items-center justify-between"
-        style={{ ...mono, fontSize: 9, color: "var(--color-surface-border)", letterSpacing: "0.06em" }}
+        style={{ ...mono, fontSize: 13, color: "var(--color-surface-border)", letterSpacing: "0.06em" }}
       >
         <span>Email follow-up</span>
         <span>{supportEmail}</span>

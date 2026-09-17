@@ -9,7 +9,10 @@ test("docs home stays small: start paths, browse hubs, limits — not a long mat
   assert.match(page, /Documentation/);
   assert.match(page, /break-words text-\[2rem\]/);
   assert.match(page, /min-\[360px\]:text-4xl/);
-  assert.match(page, /Check a receipt first/);
+  assert.match(page, /Choose your next step/);
+  assert.match(page, /CLI setup and authentication/);
+  assert.match(page, /workspace invitations/);
+  assert.match(page, /label="Get started"/);
   assert.match(page, /Try an example/);
   assert.match(page, /The default example is indeterminate/);
   assert.match(page, /were not independently checked/);

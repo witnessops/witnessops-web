@@ -1,62 +1,48 @@
 ---
-title: "Getting Started"
-description: "Start with Agent Action Security Review, then inspect the lower-level evidence and receipt verification boundaries."
+title: "Get started"
+description: "Create a free account, understand workspace invitations, set up the CLI and find your first report."
 section: "docs"
 order: 2
-nav_label: "Getting Started"
+nav_label: "Get started"
 draft: false
 ---
 
-# Getting Started
+# Get started
 
-The primary paid entry point is [Agent Action Security Review](/catalog/workflows): one consequential agent or automation action, €2,500 fixed · excluding VAT. It begins with a non-secret fit check and is delivered within 10 working days after evidence rules are agreed. The review maps authority, the executing identity, effective permissions, connected tools, the execution path, the evidence chain, and control gaps. Agent Workflow Reconstruction is the delivery method underneath that buyer-facing security review.
+WitnessOps has a browser app and a Linux command-line client. Start in the browser; the CLI is optional. Creating an account is free and requires no card. Workspace access currently requires an invitation.
 
-The detailed sequence below documents the separate [External Attack Surface Review](/catalog/offsec-external-exposure) production workflow. That €1,900 · excluding VAT, three-working-day offer remains available as secondary catalogue work with its existing start conditions; it is not the primary paid entry point and it is not a penetration test.
+## 1. Create your account
 
-If you are evaluating the request path, read the [Buyer path](/docs/getting-started/proof-run-buyer-path) before submitting work.
+Open [Sign up](https://app.witnessops.com/signup) and complete the identity provider's signup flow. If you already have an account, use [Sign in](https://app.witnessops.com/login).
 
-## 1. External Attack Surface Review sequence
+Signup creates an account, not a workspace, subscription or permission to run checks. If you see **Workspace access requires an invitation**, contact [Support](/support#support-request) with a non-secret access question. An invitation is separate from account creation. If invited, follow the app's activation prompt. If access is paused, contact support; do not create another account to bypass it.
 
-The current workflow contract is:
+You can use the [public free check](/check) without signing up. Only check a hostname you own or are authorized to check. Its public result and download do not require an account, and the snapshot is not automatically imported into a workspace.
 
-1. **Request** — submit a non-secret fit check.
-2. **Scoped review** — agree authority, target, approved checks, exclusions, timing, stop conditions, price, and evidence handling before work starts.
-3. **Evidence collection** — perform only the bounded outside-in review and preserve source records, hashes, unknowns, and limitations.
-4. **Verification result** — produce the pre-signing bounded review/comparison result, preserving skipped, failed, partial, or inconclusive states. This is producer output, not an independent verifier verdict.
-5. **Signed receipt** — issue the profiled `witnessops.receipt.v0` record with real manifest artifact IDs.
-6. **Verification page** — submit receipt JSON to `/verify` and read the bounded result.
+## 2. Open the app
 
-No stage should silently stand in for another. Mailbox confirmation is not review start, producer comparison output is not independent verification, and receipt shape is not evidence truth.
+The browser app needs no installation. Open [WitnessOps](https://app.witnessops.com) and sign in with the invited account. Check the workspace and role before continuing.
 
-## 2. Start conditions
+An Owner can add assets and authorize supported checks. A Viewer can inspect the data their workspace exposes; signing in does not make a Viewer an Owner.
 
-Before target-facing work begins, the engagement needs:
+## 3. Set up the optional CLI
 
-- a named approving authority
-- one authorized public-facing system and frozen target schedule
-- an approved low-impact check schedule
-- explicit exclusions and stop conditions
-- an observation window
-- agreed evidence handling
+Read [CLI setup and authentication](/docs/getting-started/cli). The current CLI is a private package in the public source repository, not a published npm installer. The guide documents running that source with Node.js 22. Do not use an unverified installer or assume that the CLI is needed for browser access.
 
-The request form does not accept credentials, logs, private keys, screenshots, customer evidence, or other secrets. Those handling terms are agreed separately if the request fits.
+## 4. Make your first permitted observation
 
-## 3. Expected proof package
+In an invited workspace, an Owner can open **Assets**, choose **Add asset**, and add a public hostname they are authorized to check. Open the asset and review the available check and authorization controls before starting. Account creation and CLI login do not start collection.
 
-The package contract includes a receipt, evidence manifest, producer verification result, report, staged evidence, normalized records, and comparison result. A public key is present when signed.
+A saved observation is a new check; it is separate from a snapshot previously run on the public website. Linux server checks and signed Local Audit imports have separate requirements. Do not run privileged collection commands just to test login.
 
-Claim evidence references use IDs precomputed by the OffSec adapter for staged source artifacts and then carried into the proof-engine manifest. They are not invented labels. See [Evidence Bundles](/docs/how-it-works/evidence-bundles).
+## 5. Find results and reports
 
-## 4. Public verification boundary
+Open **Assets** to inspect a system's observation history. Open **Reports** to find saved reports; a workspace with no saved observations has no reports yet. From an observation, use **View report** or inspect its supporting evidence and limitations. Undetermined results are unresolved, not a pass.
 
-Use [Verify a receipt](/verify) for supported receipt JSON. For the existing `public_exposure_review` receipt profile, which retains the former Public Exposure Review name for technical continuity, the page checks the exact workflow profile, required claims, limitations, timestamps, manifest-digest syntax, and signature syntax.
+Use **Settings** for available workspace settings. A report describes the recorded scope and time; it does not certify the whole system as secure.
 
-The result remains `indeterminate` while the request, authority, workflow execution, manifest and artifact bytes, evidence support, signature, and production key authorization have not been independently checked. The page rejects caller-supplied evidence and trust material.
+## Need help?
 
-## 5. What remains outside proof
+[Ask WitnessOps or contact support](/support) for signup, invitation, installation or authentication questions. AI chat is optional. To create a human support request, submit the form and verify your email. Never paste passwords, tokens or private evidence into chat or the form.
 
-Neither the receipt nor a verified package proves that the system is secure, no vulnerability exists, source tools were correct, capture hosts were uncompromised, human judgment was right, or anything outside the approved scope was checked.
-
-## 6. Next-page handoff
-
-Read [How It Works](/docs/how-it-works) for the architecture boundary and [Receipt Specification](/docs/evidence/receipt-spec) for the exact profiled envelope.
+For paid expert work, read the separate [review workflow](/docs/getting-started/review-workflow) or [buyer path](/docs/getting-started/proof-run-buyer-path). Prices, agreed scope and permission to work remain separate from signup.

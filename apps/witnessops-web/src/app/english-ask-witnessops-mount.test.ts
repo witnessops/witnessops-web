@@ -25,7 +25,7 @@ test("English public shell mounts the compact Ask WitnessOps launcher", () => {
   assert.match(widget, /aria-label="Ask WitnessOps"/);
   assert.match(widget, /Ask WitnessOps/);
   assert.match(widget, /Try a product question/);
-  assert.match(widget, /Public product guide/);
+  assert.match(widget, /AI product guide/);
   assert.match(widget, /Try a product question/);
   assert.match(widget, /askGuidedQuestions\(pageService\)/);
   assert.match(conversation, /An automation stopped working/);
