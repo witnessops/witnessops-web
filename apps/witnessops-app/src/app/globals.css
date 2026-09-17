@@ -231,6 +231,33 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .start-points h3 { display: flex; justify-content: space-between; gap: 10px; }
 .start-points h3 span { color: var(--subtle); }
 .start-points p { margin-top: 10px; color: var(--muted); font-size: 12px; }
+.linux-workflow { display: grid; grid-template-columns: minmax(0, 1fr) 320px; align-items: start; gap: 28px; }
+.linux-workflow > * { min-width: 0; }
+.linux-import-panel { display: grid; gap: 18px; padding: 26px; border: 1px solid var(--border); border-radius: 12px; background: var(--raised); }
+.linux-import-panel h2 { font-size: 20px; }
+.linux-import-panel > p { color: var(--muted); font-size: 13px; }
+.linux-import-panel > .quiet { font-size: 12px; }
+.linux-import-panel > .button { justify-self: start; }
+.linux-file-field { display: grid; gap: 8px; min-width: 0; }
+.linux-file-field label { font-size: 12px; }
+.linux-file-field input { min-width: 0; overflow: hidden; background: var(--bg); font-size: 13px; }
+.linux-file-field input::file-selector-button { margin-right: 12px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface); color: var(--fg); font: inherit; cursor: pointer; }
+.linux-setup { padding: 22px; border: 1px solid var(--border); border-radius: 12px; }
+.linux-setup ol { margin: 20px 0; padding-left: 20px; color: var(--muted); font-size: 13px; }
+.linux-setup li + li { margin-top: 16px; }
+.linux-setup li::marker { color: var(--fg); }
+.linux-setup a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 10px; font-size: 12px; }
+.linux-history { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.linux-history-head, .linux-history-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1.2fr) auto; gap: 20px; }
+.linux-history-head { padding: 12px 20px; background: var(--raised); color: var(--subtle); font-size: 11px; border-bottom: 1px solid var(--border); }
+.linux-history .ledger { border: 0; border-radius: 0; margin: 0; }
+.linux-history-row { align-items: start; }
+.linux-history-open { align-self: center; color: var(--muted); font-size: 12px; }
+.linux-run-identity { margin-top: 14px; }
+.linux-export-panel { display: grid; gap: 18px; padding: 22px; border: 1px solid var(--border); border-radius: 12px; background: var(--raised); margin-bottom: 30px; }
+.linux-export-panel .quiet { margin-top: 8px; }
+.linux-comparison { margin-bottom: 30px; }
+.linux-comparison .change-columns { margin-top: 20px; }
 @media (max-width: 1023px) {
   .desktop-navigation { display: none; }
   .header-inner { gap: 18px; }
@@ -246,6 +273,11 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
   .asset-table-row .asset-observed { grid-column: 1; }
   .asset-table-row .asset-result { grid-column: 2; }
   .asset-table-row .asset-comparison { grid-column: 1 / 3; }
+  .linux-history-head { display: none; }
+  .linux-history-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+@media (max-width: 800px) {
+  .linux-workflow { grid-template-columns: minmax(0, 1fr); gap: 20px; }
 }
 @media (max-width: 600px) {
   .main-content { padding: 24px 20px 48px; }
@@ -285,6 +317,11 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
   .mobile-navigation nav a { font-size: 12px; }
   .welcome { margin-top: 24px; }
   .workspace-footer { width: calc(100% - 40px); font-size: 10px; }
+  .linux-import-panel, .linux-setup, .linux-export-panel { padding: 18px; }
+  .linux-import-panel > .button { width: 100%; }
+  .linux-history-row { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .linux-export-panel .actions { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .linux-comparison .section-heading { display: block; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }

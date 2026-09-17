@@ -10,14 +10,34 @@ import { BuyerReportDocument } from '../../../witnessops-web/src/components/proo
 import { useBuyerReportPrint } from '../../../witnessops-web/src/components/proofpack/buyer-report-print';
 import { isBuyerReport, type ProofpackReportV1 } from '../../../witnessops-web/src/lib/proofpack/report-model';
 
+function date(value: string) {
+  return `${new Date(value).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' })} UTC`;
+}
+
+function savedChecks(workspace: Workspace, assetId?: string) {
+  return (workspace.linuxRuns ?? []).filter(run => !assetId || run.assetId === assetId)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id));
+}
+
 export function LinuxHistory({ workspace, assetId }: { workspace: Workspace; assetId?: string }) {
-  const runs = (workspace.linuxRuns ?? []).filter(run => !assetId || run.assetId === assetId);
+  const runs = savedChecks(workspace, assetId);
   if (!runs.length) return !assetId ? null : <p className="quiet">No saved server checks yet. Follow the operator-assisted steps above, then import your first One Server Security Check. Its result and report will appear here.</p>;
-  return <ul className="ledger history">{runs.map(run => <li key={run.id}><Link className="ledger-row" href={`/runs/${run.id}`}><div><strong>{run.observedHostname}</strong><span>One Server Security Check · {run.synthetic ? 'Synthetic' : 'Recorded'}</span><span>Observed {new Date(run.observedAt).toLocaleString()} · Imported {new Date(run.createdAt).toLocaleString()}</span><span>Local Audit 1.2.2 · {run.profileId} · Package checks passed at admission · Collection: {run.outcome}</span></div><span>Open saved check →</span></Link></li>)}</ul>;
+  return <div className="linux-history">
+    <div className="linux-history-head" aria-hidden="true"><span>Saved check</span><span>Observed / imported</span><span>Source at admission</span><span /></div>
+    <ul className="ledger history">{runs.map(run => <li key={run.id}>
+      <Link className="ledger-row linux-history-row" href={`/runs/${run.id}`}>
+        <div><strong>{run.observedHostname}</strong><span>One Server Security Check · {run.synthetic ? 'Synthetic' : 'Recorded'}</span></div>
+        <div><span>Observed <time dateTime={run.observedAt}>{date(run.observedAt)}</time></span><span>Imported <time dateTime={run.createdAt}>{date(run.createdAt)}</time></span></div>
+        <div><span>Local Audit 1.2.2 · {run.profileId}</span><span>Package checks passed at admission</span><span>Collection: {run.outcome}</span></div>
+        <span className="linux-history-open">Open saved check →</span>
+      </Link>
+    </li>)}</ul>
+  </div>;
 }
 
 export function LinuxAsset({ workspace, asset, imported }: { workspace: Workspace; asset: Asset; imported: (run: LinuxCheckRun) => Promise<void> }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
+  const runs = savedChecks(workspace, asset.id);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
@@ -31,7 +51,39 @@ export function LinuxAsset({ workspace, asset, imported }: { workspace: Workspac
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Import did not complete.'); }
     finally { setBusy(false); }
   }
-  return <div className="narrow"><Link href="/assets">← Assets</Link><p className="eyebrow">One Server Security Check</p><h1>{asset.hostname}</h1><p>Recommended check: {CHECK_DISCOVERY.linux_server.name}</p><p>Runs a bounded read-only check locally on one Linux server and preserves a verifiable Proofpack.</p><p>Import a signed Local Audit 1.2.2 Proofpack from a supported Linux server. It does not run a collector, connect by SSH or install software.</p><p>Package verification does not establish that a server is secure, uncompromised or compliant.</p><section className="section" aria-label="How to get a server check"><h2>How to get a server check</h2><ol><li>Run WitnessOps Local Audit 1.2.2 locally on the Linux server with an authorized operator present.</li><li>The operator finalizes and signs the captured check off-host, providing a Proofpack ZIP and matching signature file.</li><li>Import both files here. WitnessOps verifies the package and saves the result.</li></ol><p className="quiet">Early Access: setup is currently operator-assisted.</p><a href={publicContactMailto('WitnessOps — One Server Security Check setup')}>Contact WitnessOps for setup help →</a></section>{workspace.role === 'owner' ? <form className="asset-form" onSubmit={submit}><h2>Import Security Check</h2><p>{CHECK_DISCOVERY.linux_server.output}</p><label htmlFor="linux-zip">Original Proofpack ZIP</label><input id="linux-zip" name="zip" type="file" accept=".zip" required disabled={busy} /><label htmlFor="linux-signature">Detached signature (.zip.sig.json)</label><input id="linux-signature" name="signature" type="file" accept=".json" required disabled={busy} /><p className="quiet">The recorded hostname must match this asset. WitnessOps selects the accepted trust registry. Original source files stay intact.</p><button className="button" disabled={busy}>{busy ? 'Verifying import…' : 'Import Security Check'}</button></form> : <p>Viewer access · Only an Owner can import a check.</p>}{error ? <p role="alert">{error}</p> : null}<h2>Saved checks</h2><LinuxHistory workspace={workspace} assetId={asset.id} />{(workspace.linuxRuns ?? []).filter(r=>r.assetId===asset.id).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||b.id.localeCompare(a.id))[0] ? <LinuxChangesLoader workspaceId={workspace.id} runId={(workspace.linuxRuns ?? []).filter(r=>r.assetId===asset.id).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||b.id.localeCompare(a.id))[0].id} /> : null}</div>;
+  return <div className="linux-asset">
+    <Link className="back" href="/assets">← Assets</Link>
+    <header className="page-heading"><div>
+      <p className="eyebrow">One Server Security Check</p>
+      <h1>{asset.hostname}</h1>
+      <div className="support"><p>Recommended check: {CHECK_DISCOVERY.linux_server.name}</p><p>Runs a bounded read-only check locally on one Linux server and preserves a verifiable Proofpack.</p></div>
+    </div></header>
+    <div className="linux-workflow">
+      {workspace.role === 'owner' ? <form className="asset-form linux-import-panel" aria-labelledby="linux-import-heading" aria-busy={busy} onSubmit={submit}>
+        <div><p className="eyebrow">Import existing source</p><h2 id="linux-import-heading">Import Security Check</h2></div>
+        <p>Import a signed Local Audit 1.2.2 Proofpack from a supported Linux server. It does not run a collector, connect by SSH or install software.</p>
+        <p className="quiet">{CHECK_DISCOVERY.linux_server.output}</p>
+        <div className="linux-file-field"><label htmlFor="linux-zip">Original Proofpack ZIP</label><input id="linux-zip" name="zip" type="file" accept=".zip" required disabled={busy} /></div>
+        <div className="linux-file-field"><label htmlFor="linux-signature">Detached signature (.zip.sig.json)</label><input id="linux-signature" name="signature" type="file" accept=".json" required disabled={busy} /></div>
+        <p className="quiet">The recorded hostname must match this asset. WitnessOps selects the accepted trust registry. Original source files stay intact.</p>
+        {error ? <p className="error" role="alert">{error}</p> : null}
+        <button className="button" disabled={busy}>{busy ? 'Verifying import…' : 'Import Security Check'}</button>
+        {busy ? <p role="status">Checking the signed package and saving its original source…</p> : null}
+      </form> : <div className="linux-import-panel"><p className="eyebrow">Import existing source</p><h2>Saved evidence access</h2><p>Viewer access · Only an Owner can import a check.</p></div>}
+      <section className="linux-setup" aria-labelledby="linux-setup-heading">
+        <p className="eyebrow">Need a signed package?</p><h2 id="linux-setup-heading">How to get a server check</h2>
+        <ol><li>Run WitnessOps Local Audit 1.2.2 locally on the Linux server with an authorized operator present.</li><li>The operator finalizes and signs the captured check off-host, providing a Proofpack ZIP and matching signature file.</li><li>Import both files here. WitnessOps verifies the package and saves the result.</li></ol>
+        <p className="quiet">Early Access: setup is currently operator-assisted.</p>
+        <a href={publicContactMailto('WitnessOps — One Server Security Check setup')}>Contact WitnessOps for setup help →</a>
+      </section>
+    </div>
+    <p className="quiet boundary">Package verification does not establish that a server is secure, uncompromised or compliant.</p>
+    <section className="section" aria-labelledby="linux-history-heading">
+      <div className="section-heading"><h2 id="linux-history-heading">Saved checks</h2><p className="quiet">{runs.length} saved · Latest import first</p></div>
+      <LinuxHistory workspace={workspace} assetId={asset.id} />
+    </section>
+    {runs[0] ? <LinuxChangesLoader workspaceId={workspace.id} runId={runs[0].id} /> : null}
+  </div>;
 }
 
 function LinuxReport({ model, run, workspaceId, comparison }: { model: ProofpackReportV1; run: LinuxCheckRun; workspaceId: string; comparison?: LinuxComparison }) {
@@ -46,7 +98,21 @@ function LinuxReport({ model, run, workspaceId, comparison }: { model: Proofpack
       anchor.href = url; anchor.download = response.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1] ?? 'source'; anchor.click(); URL.revokeObjectURL(url);
     } catch { setError('Original source could not be reopened and verified.'); }
   }
-  return <>{printRoot}<Link href={`/assets/${run.assetId}`}>← Linux server</Link><p className="eyebrow">One Server Security Check</p><h1>Saved check</h1><p>Original Local Audit 1.2.2 source reverified on reopen. This report is derived; the signed ZIP remains the source.</p><p className="quiet">{run.synthetic ? 'Synthetic check' : 'Live server check'} · App run {run.id}</p><div className="actions"><button className="button" onClick={print}>Save report as PDF</button><button className="button secondary" onClick={() => void download('zip')}>Download original ZIP</button><button className="button secondary" onClick={() => void download('signature')}>Download detached signature</button><Link href={`/reports/${run.id}`}>Open report</Link></div>{error ? <p role="alert">{error}</p> : null}<LinuxChanges comparison={comparison} /><BuyerReportDocument model={model} /></>;
+  return <>{printRoot}
+    <Link className="back" href={`/assets/${run.assetId}`}>← Linux server</Link>
+    <header className="page-heading"><div>
+      <p className="eyebrow">One Server Security Check</p><h1>Saved check</h1>
+      <div className="support"><p>Original Local Audit 1.2.2 source reverified on reopen. This report is derived; the signed ZIP remains the source.</p></div>
+      <p className="quiet linux-run-identity">{run.synthetic ? 'Synthetic check' : 'Live server check'} · App run {run.id}</p>
+    </div></header>
+    <section className="linux-export-panel" aria-labelledby="linux-export-heading">
+      <div><h2 id="linux-export-heading">Report and original source</h2><p className="quiet">Save the readable report for a review. Keep the original ZIP and its signature together for verification.</p></div>
+      <div className="actions"><button className="button" onClick={print}>Save report as PDF</button><button className="button secondary" onClick={() => void download('zip')}>Download original ZIP</button><button className="button secondary" onClick={() => void download('signature')}>Download detached signature</button><Link className="button secondary" href={`/reports/${run.id}`}>Open report</Link></div>
+      {error ? <p className="error" role="alert">{error}</p> : null}
+    </section>
+    <LinuxChanges comparison={comparison} />
+    <BuyerReportDocument model={model} />
+  </>;
 }
 
 export function LinuxCheckPage({ runId, workspaceId }: { runId: string; workspaceId: string }) {
@@ -67,9 +133,18 @@ export function LinuxCheckPage({ runId, workspaceId }: { runId: string; workspac
   return loaded ? <LinuxReport model={loaded.model} run={loaded.run} workspaceId={workspaceId} comparison={loaded.comparison} /> : <p role="status">{busy ? 'Verification is busy. Retrying…' : 'Reopening and verifying original source…'}</p>;
 }
 
-function LinuxChanges({comparison}:{comparison?:LinuxComparison}) {
-  if(!comparison)return null;
-  return <section className="change-panel"><h2>What changed since the previous check?</h2><p>Comparison qualification: {comparison.qualification.replaceAll('_',' ').toLowerCase()}.</p><p className="quiet">Nearest earlier imported check on this asset. Hostname alone does not prove physical-machine identity. Change does not mean vulnerability; no cause is inferred.</p>{comparison.baselineId?<Link href={`/runs/${comparison.baselineId}`}>Open comparison baseline →</Link>:<p>No earlier admitted check for this asset.</p>}<div className="change-columns">{(['environment','coverage','uncertainty'] as const).map(kind=><div key={kind}><h3>{kind[0].toUpperCase()+kind.slice(1)}</h3>{comparison[kind].length?<ul>{comparison[kind].map((line,i)=><li key={i}>{line}</li>)}</ul>:<p>{kind==='environment'?(comparison.qualification==='COMPARABLE'||comparison.qualification==='COLLECTION_GAP'?'No change in comparable recorded host values.':'Host-value comparison not established.'):kind==='coverage'?'No recorded coverage change.':'No additional collection uncertainty reported.'}</p>}</div>)}</div></section>;
+function LinuxChanges({ comparison }: { comparison?: LinuxComparison }) {
+  if (!comparison) return null;
+  return <section className="change-panel linux-comparison">
+    <div className="section-heading"><h2>What changed since the previous check?</h2>{comparison.baselineId ? <Link href={`/runs/${comparison.baselineId}`}>Open comparison baseline →</Link> : null}</div>
+    <p>Comparison qualification: {comparison.qualification.replaceAll('_', ' ').toLowerCase()}.</p>
+    <p className="quiet comparison-note">Nearest earlier imported check on this asset. Hostname alone does not prove physical-machine identity. Change does not mean vulnerability; no cause is inferred.</p>
+    {!comparison.baselineId ? <p>No earlier admitted check for this asset.</p> : null}
+    <div className="change-columns">{(['environment', 'coverage', 'uncertainty'] as const).map(kind => <div key={kind}>
+      <h3>{kind[0].toUpperCase() + kind.slice(1)}</h3>
+      {comparison[kind].length ? <ul>{comparison[kind].map((line, i) => <li key={i}>{line}</li>)}</ul> : <p>{kind === 'environment' ? (comparison.qualification === 'COMPARABLE' || comparison.qualification === 'COLLECTION_GAP' ? 'No change in comparable recorded host values.' : 'Host-value comparison not established.') : kind === 'coverage' ? 'No recorded coverage change.' : 'No additional collection uncertainty reported.'}</p>}
+    </div>)}</div>
+  </section>;
 }
 function LinuxChangesLoader({workspaceId,runId}:{workspaceId:string;runId:string}) {
   const [comparison,setComparison]=useState<LinuxComparison>();
