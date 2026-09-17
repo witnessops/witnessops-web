@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { RECOMMENDED_PROFILE, type Workspace, type Run, type ExternalSnapshotV1 } from "../../apps/witnessops-app/src/lib/model";
 import { canonicalSource } from "../../apps/witnessops-app/src/lib/source-digest";
+import { EXTERNAL_ATTACK_SURFACE_OFFER } from "../../apps/witnessops-web/src/lib/commercial-truth";
 const source = JSON.parse(readFileSync(resolve("tests/external-exposure/fixtures/public-witnessops-snapshot-20260910.json"), "utf8")) as ExternalSnapshotV1;
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
@@ -135,6 +136,9 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     expect(requests).toEqual([{ assetId: "hostname-asset", authorized: true }]);
     await expect(page.locator(".observations > li")).toHaveCount(10);
     await expect(page.getByRole("region", { name: "Observation summary" })).toBeVisible();
+    const review = page.getByRole("complementary", { name: "Paid review" });
+    await expect(review).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.price.en);
+    await expect(review.getByRole("link")).toHaveAttribute("href", `https://witnessops.com${EXTERNAL_ATTACK_SURFACE_OFFER.route.en}`);
     await open("/assets/hostname-asset");
     await expect(page.getByRole("heading", { name: "Recorded result", exact: true })).toBeInViewport();
     await page.screenshot({ path: info.outputPath("completed-asset.png"), fullPage: true });
@@ -226,6 +230,9 @@ test("logged-out UI keeps sign-in separate from workspace creation", async ({ pa
   await expect(page.getByRole("link", { name: "Continue with Google" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Continue with email" })).toBeVisible();
   await expect(page.getByLabel("Workspace name")).toHaveCount(0);
+  await expect(page.locator("main")).toContainText("by invitation");
+  await expect(page.getByRole("link", { name: "Run a free check without an account →", exact: true })).toHaveAttribute("href", "https://witnessops.com/check");
+  await expect(page.getByRole("link", { name: "Request workspace access →", exact: true })).toHaveAttribute("href", "https://witnessops.com/early-access");
 });
 
 test("Viewer UI has read-only asset/history access", async ({ page }) => {

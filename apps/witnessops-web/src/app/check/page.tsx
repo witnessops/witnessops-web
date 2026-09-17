@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ExternalExposureWorkspace } from '@/components/external-exposure/external-exposure-workspace';
+import { getWorkspaceAppUrl } from '@/lib/workspace-access';
 
 export const metadata: Metadata = {
   title: 'External Exposure Snapshot',
@@ -8,4 +9,4 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function CheckPage() { return <ExternalExposureWorkspace />; }
+export default function CheckPage() { return <ExternalExposureWorkspace workspaceUrl={getWorkspaceAppUrl()} />; }

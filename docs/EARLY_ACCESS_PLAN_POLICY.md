@@ -1,5 +1,11 @@
 # Early Access plan policy and consent
 
+**Current direction (2026-09-17):** further commercial-plan work is paused in favor
+of the [free-check product journey](FREE_CHECK_PRODUCT_JOURNEY.md). PR #384 remains
+an unmerged draft. This document describes the preserved implementation and
+versioned terms, not the current launch offer. Existing accepted terms, consent
+records and enforcement are unchanged; do not enroll new workspaces implicitly.
+
 This implements the durable policy, contribution-choice record, hostname usage
 and Linux source admission for the approved demo reuse plan's commercial phase.
 Workspaces with a recorded plan use the monthly hostname allowance and Linux

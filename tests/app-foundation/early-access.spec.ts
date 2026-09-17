@@ -118,12 +118,13 @@ for (const access of ['invited', 'paused', null] as const) {
       other.push(path); return route.abort();
     });
     await page.goto('/runs/known-run');
-    await expect(page.getByRole('heading', { name: access === 'invited' ? 'Your Early Access is ready' : access === 'paused' ? 'Early Access is paused' : 'Request Early Access' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: access === 'invited' ? 'Your workspace access is ready' : access === 'paused' ? 'Workspace access is paused' : 'Request workspace access' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Run a free check', exact: true })).toHaveAttribute('href', 'https://witnessops.com/check');
     await expect(page.locator('.run-control, .observations')).toHaveCount(0);
     expect(activations).toBe(0);
     await page.screenshot({ path: info.outputPath(`access-${access ?? 'none'}-390.png`), fullPage: true });
-    if (access === 'invited') { await page.getByRole('button', { name: 'Activate Early Access' }).click(); await expect(page.getByRole('heading', { name: 'Create workspace' })).toBeVisible(); expect(activations).toBe(1); }
-    else await expect(page.getByRole('button', { name: 'Activate Early Access' })).toHaveCount(0);
+    if (access === 'invited') { await page.getByRole('button', { name: 'Activate workspace access' }).click(); await expect(page.getByRole('heading', { name: 'Create workspace' })).toBeVisible(); expect(activations).toBe(1); }
+    else await expect(page.getByRole('button', { name: 'Activate workspace access' })).toHaveCount(0);
     expect(other).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   });
