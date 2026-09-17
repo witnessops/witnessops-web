@@ -1,6 +1,6 @@
 """AWS validation admission contracts; fixture markers never build or publish."""
 import unittest
-from test_app_admission import AppAdmissionExecutionTests as Fixtures
+import test_app_admission as app_fixtures
 from test_canary_admission import ROOT, job, step, script
 
 WORKFLOW = ROOT / '.github/workflows/aws-phase3-validate.yml'
@@ -12,7 +12,7 @@ class AwsValidationAdmissionContracts(unittest.TestCase):
         text = WORKFLOW.read_text()
         gate = job(text, 'supply_chain_gate')
         build = job(text, 'build_image')
-        self.assertIn('uses: ./.github/workflows/supply-chain-gate.yml', gate)
+        self.assertEqual(gate.strip(), "uses: ./.github/workflows/supply-chain-gate.yml\n    permissions:\n      contents: read\n    with:\n      checkout_ref: ${{ github.sha }}\n      base_ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'workflow_dispatch' && format('{0}^', github.sha) || 'MISSING_REQUIRED_COMPARISON_BASE' }}")
         self.assertIn('checkout_ref: ${{ github.sha }}', gate)
         self.assertIn("github.event_name == 'pull_request' && github.event.pull_request.base.sha", gate)
         self.assertIn("github.event_name == 'workflow_dispatch' && format('{0}^', github.sha)", gate)
@@ -41,22 +41,43 @@ class AwsValidationAdmissionContracts(unittest.TestCase):
         for path in ('.github/workflows/supply-chain-gate.yml', 'tools/supply-chain-gate/**', 'security/supply-chain/**'):
             self.assertIn('      - "'+path+'"', text)
 
+    def test_noop_gate_with_expected_text_in_comments_is_rejected(self):
+        import tempfile
+        from unittest.mock import patch
+        text = WORKFLOW.read_text()
+        original = '  supply_chain_gate:\n' + job(text, 'supply_chain_gate')
+        replacement = '  supply_chain_gate:\n    runs-on: ubuntu-latest\n    steps:\n      - run: true\n'
+        replacement += '\n'.join('# ' + line for line in original.splitlines())
+        mutated = text.replace(original, replacement)
+        self.assertNotEqual(mutated, text)
+        with tempfile.TemporaryDirectory() as directory:
+            path = ROOT.__class__(directory) / 'workflow.yml'
+            path.write_text(mutated)
+            with patch(__name__ + '.WORKFLOW', path):
+                with self.assertRaises(AssertionError):
+                    self.test_direct_gates_and_guard_precede_docker()
 
-class AwsValidationAdmissionExecutionTests(Fixtures):
+
+class AwsValidationAdmissionExecutionTests(unittest.TestCase):
     def setUp(self):
-        super().setUp()
+        self.fixture = app_fixtures.AppAdmissionExecutionTests(methodName='runTest')
+        self.fixture.setUp()
+        self.addCleanup(self.fixture.doCleanups)
+        self.env = self.fixture.env
+        self.commits = self.fixture.commits
+        self.reject = self.fixture.reject
         self.env['EVENT_NAME'] = 'pull_request'
-        self.chain = script(step(job(WORKFLOW.read_text(), 'build_image'), STEP))
+        self.fixture.chain = script(step(job(WORKFLOW.read_text(), 'build_image'), STEP))
         # Existing fixture markers stand in for downstream install/build work.
-        self.chain += 'pnpm install --frozen-lockfile\ntest "${CONFORMANCE_STUB_RESULT}" = success\nsigning-stub\n'
+        self.fixture.chain += 'pnpm install --frozen-lockfile\ntest "${CONFORMANCE_STUB_RESULT}" = success\nsigning-stub\n'
 
-    def test_push_uses_before_commit_for_complete_pushed_range(self):
+    def test_push_event_is_unsupported(self):
         self.reject({'EVENT_NAME': 'push'})
 
-    def test_push_cannot_compare_source_to_itself(self):
+    def test_push_is_rejected_even_with_self_base(self):
         self.reject({'EVENT_NAME': 'push', 'PUSH_BEFORE': self.commits[-1]})
 
-    def test_missing_zero_invalid_or_unavailable_push_base_prevents_stubs(self):
+    def test_missing_zero_invalid_or_unavailable_pr_base_prevents_stubs(self):
         for value in (None, '', '0'*40, 'HEAD', 'bad-sha', 'f'*40):
             with self.subTest(base=value):
                 self.reject({'PR_BASE': value})
@@ -66,8 +87,30 @@ class AwsValidationAdmissionExecutionTests(Fixtures):
             with self.subTest(event=value):
                 self.reject({'EVENT_NAME': value})
 
+    def test_manual_run_uses_exact_event_first_parent(self):
+        self.fixture.test_manual_run_uses_exact_event_first_parent()
 
-del Fixtures
+    def test_pr_requires_valid_available_non_self_base(self):
+        self.fixture.test_pr_requires_valid_available_non_self_base()
+
+    def test_rejected_job_results_prevent_install_and_signing_stubs(self):
+        self.fixture.test_rejected_job_results_prevent_install_and_signing_stubs()
+
+    def test_rejected_admission_statuses_prevent_install_and_signing_stubs(self):
+        self.fixture.test_rejected_admission_statuses_prevent_install_and_signing_stubs()
+
+    def test_missing_invalid_or_mismatched_source_prevents_stubs(self):
+        self.fixture.test_missing_invalid_or_mismatched_source_prevents_stubs()
+
+    def test_missing_invalid_or_mismatched_lock_hash_prevents_stubs(self):
+        self.fixture.test_missing_invalid_or_mismatched_lock_hash_prevents_stubs()
+
+    def test_unavailable_manual_parent_prevents_stubs(self):
+        self.fixture.test_unavailable_manual_parent_prevents_stubs()
+
+    def test_failed_conformance_stub_prevents_signing_stub(self):
+        self.fixture.test_failed_conformance_stub_prevents_signing_stub()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -470,3 +470,11 @@ test('AWS validation rejects bypassed pre-build admission guard', () => {
     'python3 -I tools/supply-chain-gate/verify_install_admission.py', 'true'));
   assert.throws(() => validatePhase3Sources(mutated), /exact reviewed no-publication gating structure/);
 });
+
+test('AWS validation rejects a no-op admission job retaining expected text in comments', () => {
+  const mutated = changed('validation', value => value.replace(
+    /  supply_chain_gate:\n[\s\S]*?(?=\n  validate:)/u,
+    block => '  supply_chain_gate:\n    runs-on: ubuntu-latest\n    steps:\n      - run: true\n' +
+      block.split('\n').slice(1).map(line => '# '+line).join('\n')));
+  assert.throws(() => validatePhase3Sources(mutated), /exact reusable gate contract/);
+});

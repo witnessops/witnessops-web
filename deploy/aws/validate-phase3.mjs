@@ -38,6 +38,8 @@ function requireSingleExactLine(source, expected, label) {
   assert(count === 1, `${label} must appear exactly once at the reviewed indentation`);
 }
 
+const EXPECTED_ADMISSION_JOB = "  supply_chain_gate:\n    uses: ./.github/workflows/supply-chain-gate.yml\n    permissions:\n      contents: read\n    with:\n      checkout_ref: ${{ github.sha }}\n      base_ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'workflow_dispatch' && format('{0}^', github.sha) || 'MISSING_REQUIRED_COMPARISON_BASE' }}";
+
 const EXPECTED_BUILD_IMAGE_JOB = [
   "  build_image:",
   "    name: Build exact AWS image without publication authority",
@@ -607,6 +609,10 @@ export function validatePhase3Sources(sources) {
     "libssl3 runtime version assertion",
   );
   assert(!validation.includes("docker push"), "validation workflow can publish an image");
+  assert(
+    exactNamedWorkflowJob(validation, "supply_chain_gate") === EXPECTED_ADMISSION_JOB,
+    "dependency admission job must retain the exact reusable gate contract",
+  );
   const buildJob = exactNamedWorkflowJob(validation, "build_image");
   assert(
     !/^    if:/mu.test(buildJob),
