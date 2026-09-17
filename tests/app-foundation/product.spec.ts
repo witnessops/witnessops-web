@@ -15,18 +15,39 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     const state = () => ({ user, workspaces: ws ? [{ id: ws.id, name: ws.name, slug: ws.slug, role: ws.role }] : [], workspace: ws });
     const errors: string[] = [];
     page.on("pageerror", e => errors.push(e.message));
-    // Hard navigation can cancel WebKit's intercepted activity responses. Wait
-    // for those fixture requests to finish rather than ignoring browser errors.
+    // An empty in-flight set can precede React's effects. Before hard navigation,
+    // require this document's feedback load and current route event to FINISH,
+    // then drain other activity. Keep failed requests and page errors observable.
     const activity = new Set<Request>();
+    const completedActivity = new Set<string>();
+    const eventKey = (name: string, runId: string, checkId: string | null = null) => JSON.stringify([name, runId, checkId]);
     page.on("request", request => {
       if (["/api/feedback", "/api/events"].includes(new URL(request.url()).pathname)) activity.add(request);
     });
-    page.on("requestfinished", request => activity.delete(request));
+    page.on("requestfinished", request => {
+      if (!activity.delete(request)) return;
+      const path = new URL(request.url()).pathname;
+      if (path === "/api/feedback" && request.method() === "GET") completedActivity.add("feedback");
+      if (path === "/api/events" && request.method() === "POST") {
+        const { name, runId, checkId } = request.postDataJSON();
+        completedActivity.add(eventKey(name, runId, checkId));
+      }
+    });
     page.on("requestfailed", request => activity.delete(request));
     const settleActivity = async () => {
+      if (ws) {
+        await expect.poll(() => completedActivity.has("feedback"), { message: "This document's feedback load must finish before navigation" }).toBe(true);
+        const parts = new URL(page.url()).pathname.split("/").filter(Boolean);
+        const run = ws.runs.find(run => run.id === parts[1]);
+        const key = !run ? null
+          : parts[0] === "reports" && parts.length === 2 ? eventKey("report_opened", run.id)
+          : parts[0] === "runs" && parts.length === 2 ? eventKey("observation_opened", run.id)
+          : parts[0] === "runs" && parts.length === 4 && parts[2] === "observations" ? eventKey("evidence_opened", run.id, parts[3]) : null;
+        if (key) await expect.poll(() => completedActivity.has(key), { message: "The current route's activity event must finish before navigation" }).toBe(true);
+      }
       await expect.poll(() => activity.size, { message: "Activity fixture requests must settle before navigation" }).toBe(0);
     };
-    const open = async (path: string) => { await settleActivity(); await page.goto(path); };
+    const open = async (path: string) => { await settleActivity(); completedActivity.clear(); await page.goto(path); };
     await page.route("**/api/**", async route => {
       const request = route.request(), path = new URL(request.url()).pathname;
       if (path === "/api/feedback" && request.method() === "GET") return route.fulfill({ json: [] });
@@ -165,7 +186,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await open("/settings");
     await expect(page.getByRole("button", { name: "Sign out", exact: true })).toBeVisible();
     await expect(page.locator("main")).toContainText("Your workspace, assets and runs remain saved.");
-    await settleActivity(); await page.reload(); await expect(page.locator("main")).toContainText("Acme Ltd");
+    await settleActivity(); completedActivity.clear(); await page.reload(); await expect(page.locator("main")).toContainText("Acme Ltd");
     await settleActivity();
     expect(requests).toHaveLength(2); expect(errors).toEqual([]);
   });
