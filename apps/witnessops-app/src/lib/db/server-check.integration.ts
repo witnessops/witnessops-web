@@ -65,7 +65,7 @@ test('Linux source limit is shared by concurrent browser and CLI registration; e
    :browser.addAsset(user,selected.toUpperCase(),`source-${i}`,'linux_server')));
   assert.equal(results.filter(r=>r.status==='fulfilled').length,2);
   for(const [i,result] of results.entries())if(result.status==='rejected'){
-   assert.ok(result.reason instanceof ApiError&&result.reason.status===409);
+   assert.ok(result.reason instanceof ApiError && result.reason.status === 409);
    if(i%2)assert.equal((result.reason as CliError).code,'linux_source_capacity');
    else assert.match(result.reason.message,/3 registered Linux import sources/);
   }
@@ -94,7 +94,7 @@ test('legacy CLI execution ceiling remains until enrollment; an existing source 
  const existing=(await ws.read(user,selected)).assets;
  assert.equal(existing.length,1);
  const input={...request(),assetId:existing[0].id};
- await assert.rejects(store.authorize(token,input),(error:unknown)=>error instanceof CliError&&error.code==='execution_capacity'&&error.status===409);
+ await assert.rejects(store.authorize(token,input),(error:unknown)=>error instanceof CliError && error.code === 'execution_capacity' && error.status === 409);
  assert.equal((await pool.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[selected])).rows[0].count,'32');
  await new EarlyAccessPlanStore(pool).recordConsent(user,selected,{requestId:randomUUID(),expectedRevision:0,termsVersion:EARLY_ACCESS_PLAN_POLICY.version,contributionMinor:0,accepted:true});
  const execution=await store.authorize(token,input);
