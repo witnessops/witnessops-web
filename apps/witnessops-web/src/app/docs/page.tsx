@@ -42,6 +42,8 @@ export const metadata: Metadata = {
 
 const primaryPaths = [
   { href: "/docs/getting-started", title: "Start with the app", description: "Free signup, workspace invitations, your first observation and reports.", cta: "Get started" },
+  { href: "/docs/getting-started/first-observation", title: "Your first observation", description: "Add an authorized hostname, run a permitted check and find its report.", cta: "Follow the steps" },
+  { href: "/docs/getting-started/results", title: "Understand results", description: "Unsigned snapshots, reports and signed packages have different limits.", cta: "Read your result" },
   { href: "/docs/getting-started/cli", title: "CLI setup and authentication", description: "Run the current CLI source, sign in through your browser and check your session.", cta: "Set up the CLI" },
   {
     href: "/verify",
@@ -60,14 +62,15 @@ const primaryPaths = [
   },
   {
     href: "/docs/how-it-works",
-    title: "How the model works",
+    title: "How WitnessOps works",
     description:
-      "Governed execution, receipts, and what proof can and cannot show.",
-    cta: "Learn the model",
+      "Free checks, invited workspaces, optional CLI access and expert reviews.",
+    cta: "See how it works",
   },
 ] as const;
 
 const quickLinks = [
+  { href: "/docs/getting-started/access-help", title: "Account and CLI help", description: "Invitations, role restrictions, session recovery and missing reports." },
   {
     href: "/docs/how-it-works/verification",
     title: "Verification docs",
@@ -121,58 +124,23 @@ export default async function DocsIndexPage() {
         </p>
 
         <p className="mt-3 max-w-[36rem] text-sm leading-7 text-text-muted">
-          They do not claim complete runtime truth by default.
+          Signup is free. Workspace access requires an invitation. No card is required.
         </p>
 
         <div className="mt-7 flex flex-wrap gap-3">
           <CtaButton href={pub("/docs/getting-started")} variant="primary" label="Get started" />
           <CtaButton
-            href={pub("/docs/getting-started/proof-run-buyer-path")}
+            href={pub("/docs/getting-started/access-help")}
             variant="secondary"
-            label="Buyer path"
+            label="Access help"
           />
           <CtaButton
-            href="/review/request"
+            href={pub("/docs/getting-started/cli")}
             variant="secondary"
-            label="Start a review"
+            label="CLI setup"
           />
         </div>
       </header>
-
-      <section className="mb-12" aria-labelledby="docs-check-heading">
-        <h2
-          id="docs-check-heading"
-          className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Choose your next step
-          <span className="h-px flex-1 bg-surface-border" />
-        </h2>
-        <ol className="max-w-[40rem] list-decimal space-y-2 pl-5 text-sm leading-relaxed text-text-secondary">
-          <li>
-            Open{" "}
-            <Link href="/verify" className="text-brand-accent underline-offset-2 hover:underline">
-              Verify a receipt
-            </Link>
-            .
-          </li>
-          <li>Choose <strong>Try an example</strong>, or paste a sample receipt JSON.</li>
-          <li>
-            The default example is indeterminate: inspect the checks that ran and
-            the evidence and trust inputs that were not independently checked.
-          </li>
-        </ol>
-        <p className="mt-3 max-w-[40rem] text-sm leading-relaxed text-text-muted">
-          Optional package to inspect first:{" "}
-          <Link
-            href="/review/sample-cases/external-exposure-assessment"
-            className="text-brand-accent underline-offset-2 hover:underline"
-          >
-            {EXTERNAL_ATTACK_SURFACE_OFFER.name.en} synthetic sample
-          </Link>
-          . It is not customer evidence.
-        </p>
-      </section>
 
       <section className="mb-12" aria-labelledby="docs-start-heading">
         <h2
@@ -180,11 +148,11 @@ export default async function DocsIndexPage() {
           className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          Start here
+          Choose your next step
           <span className="h-px flex-1 bg-surface-border" />
         </h2>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           {primaryPaths.map((path, index) => (
             <Link
               key={path.href}
@@ -193,7 +161,7 @@ export default async function DocsIndexPage() {
                   ? path.href
                   : pub(path.href)
               }
-              className={`block border p-5 transition-colors hover:border-brand-accent ${
+              className={`block rounded-xl border p-5 transition-colors hover:border-brand-accent ${
                 index === 0
                   ? "border-brand-accent/50 bg-brand-accent/5"
                   : "border-surface-border bg-surface-bg"
@@ -214,6 +182,41 @@ export default async function DocsIndexPage() {
             </Link>
           ))}
         </div>
+      </section>
+
+      <section className="mb-12" aria-labelledby="docs-check-heading">
+        <h2
+          id="docs-check-heading"
+          className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          Inspect a sample receipt
+          <span className="h-px flex-1 bg-surface-border" />
+        </h2>
+        <ol className="max-w-[40rem] list-decimal space-y-2 pl-5 text-sm leading-relaxed text-text-secondary">
+          <li>
+            Open{" "}
+            <Link href="/verify" className="text-brand-accent underline-offset-2 hover:underline">
+              Verify a receipt
+            </Link>
+            .
+          </li>
+          <li>Choose <strong>Try an example</strong>, or paste a sample receipt JSON.</li>
+          <li>
+            The default example is indeterminate: inspect the checks that ran and
+            the evidence and trust inputs that were not independently checked.
+          </li>
+        </ol>
+        <p className="mt-3 max-w-[40rem] text-sm leading-relaxed text-text-muted">
+          Separate report example (contains no receipt):{" "}
+          <Link
+            href="/review/sample-cases/external-exposure-assessment"
+            className="text-brand-accent underline-offset-2 hover:underline"
+          >
+            {EXTERNAL_ATTACK_SURFACE_OFFER.name.en} synthetic sample
+          </Link>
+          . It is not customer evidence.
+        </p>
       </section>
 
       <section className="mb-12" aria-labelledby="docs-quick-heading">

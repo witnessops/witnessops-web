@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { unsupportedClaimRepair } from "@/lib/docs-assistant/conversation-guidance";
+import { unsupportedClaimRepair, appResultBoundaryExplanation } from "@/lib/docs-assistant/conversation-guidance";
 import { normalizeAskRequest } from "@/lib/server/ask-witnessops/ask-request-normalizer";
 import { classifyQuestion } from "@/lib/server/ask-witnessops/authority-classifier";
 import { executePolicy } from "@/lib/server/ask-witnessops/authority-policy-executor";
@@ -353,6 +353,7 @@ function withPublicBoundaryResponse(args: {
   question?: string;
 }) {
   const repair = args.question ? unsupportedClaimRepair(args.question) : null;
+  const resultExplanation = args.question ? appResultBoundaryExplanation(args.question) : null;
   return {
     schema: "witnessops.ask.public-boundary-response.v1" as const,
     answer_mode: "policy_refusal" satisfies AskWitnessOpsAnswerMode,
@@ -361,8 +362,8 @@ function withPublicBoundaryResponse(args: {
     // so no V1 template/hash/route provenance is rewritten in place.
     authority_answer: args.deterministicAnswer,
     template: {
-      template_id: repair ? "boundary.refund_claim_repair.v1" : args.templateId ?? "refuse.public_material_boundary.v1",
-      body: repair ?? (args.docsAnswer.unsupported_reason === "commercial_fit_boundary"
+      template_id: repair ? "boundary.refund_claim_repair.v1" : resultExplanation ? "boundary.app_result_limits.v1" : args.templateId ?? "refuse.public_material_boundary.v1",
+      body: repair ?? resultExplanation ?? (args.docsAnswer.unsupported_reason === "commercial_fit_boundary"
         ? "That request falls outside our review services. We can assess a defined action or system and explain findings and limitations, but cannot provide a security guarantee, certification or active incident response."
         : docsAssistantAnswerText(args.docsAnswer)),
       source_display: "Public WitnessOps material",

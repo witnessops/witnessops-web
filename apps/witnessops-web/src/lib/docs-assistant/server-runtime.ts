@@ -144,6 +144,8 @@ const DOCS_ASSISTANT_BOUNDARY_INSTRUCTION = [
   "The vector store contains CORPUS_PLAN.json and CORPUS_PACKAGE.json.",
   "Source bodies are present only inside CORPUS_PACKAGE.json.",
   "Do not claim source freshness.",
+  "Distinguish app onboarding from expert-review and operator reference material. A legacy receipt profile or governed-workflow model does not establish app capabilities, app permissions or deployed enforcement. Never generalize a profile-specific receipt claim to all reports or observations.",
+  "For account, CLI and app-result questions, require retrieved sources covering the current app journey. If only older operator or review references are available, return not_found_in_docs rather than improvising signup, installer, workspace or billing instructions.",
   "Do not claim proof bundles, artifacts, compliance, security posture, assistant safety, production readiness, or public release are verified.",
   "If file_search results do not support the answer, return cannot_claim.",
   "Return exactly one JSON object matching the supplied schema. Do not return Markdown or prose outside the JSON object.",

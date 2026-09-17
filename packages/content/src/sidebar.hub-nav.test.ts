@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getDocsSidebar } from "./sidebar";
+import { getDocsSidebar, getDocsLayerForHref } from "./sidebar";
 
 test("primary docs sidebar is hub-only and stays small", async () => {
   const sidebar = await getDocsSidebar("witnessops");
   const items = sidebar.flatMap((section) => section.items);
   const hrefs = items.map((item) => item.href);
 
-  assert.ok(sidebar.length <= 6, `expected ≤6 sections, got ${sidebar.length}`);
+  assert.ok(sidebar.length <= 7, `expected ≤7 sections, got ${sidebar.length}`);
   assert.ok(
     items.length <= 24,
     `expected ≤24 primary links (tier-1 hub), got ${items.length}`,
@@ -24,7 +24,7 @@ test("primary docs sidebar is hub-only and stays small", async () => {
   for (const hub of [
     "/docs/faq",
     "/docs/governance",
-    "/docs/evidence",
+    "/docs/getting-started/first-observation",
     "/docs/audiences",
   ]) {
     assert.ok(hrefs.includes(hub), `tier-1 hub missing: ${hub}`);
@@ -34,8 +34,8 @@ test("primary docs sidebar is hub-only and stays small", async () => {
   for (const hub of [
     "/docs/how-it-works/proof-model",
     "/docs/evidence/receipt-spec",
-    "/docs/decisions/scope-check",
-    "/docs/security-systems/threat-model",
+    "/docs/getting-started/results",
+    "/docs/getting-started/access-help",
   ]) {
     assert.ok(hrefs.includes(hub), `tier-2 hub missing: ${hub}`);
   }
@@ -52,4 +52,12 @@ test("primary docs sidebar is hub-only and stays small", async () => {
 
   // Hub for education remains
   assert.ok(hrefs.includes("/docs/security-education"));
+});
+
+
+test("task leaves take precedence over broad technical family prefixes", () => {
+  assert.equal(getDocsLayerForHref("witnessops", "/docs/getting-started/cli")?.id, "cli");
+  assert.equal(getDocsLayerForHref("witnessops", "/docs/getting-started/results")?.id, "app");
+  assert.equal(getDocsLayerForHref("witnessops", "/docs/getting-started/review-workflow")?.id, "reviews");
+  assert.equal(getDocsLayerForHref("witnessops", "/docs/governance/authorization-model")?.id, "operate");
 });

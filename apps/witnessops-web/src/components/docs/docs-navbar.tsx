@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import styles from "./docs-chrome.module.css";
 import { DocsSearch } from "./docs-search";
 
 interface DocEntry {
@@ -23,8 +24,8 @@ interface DocsNavbarProps {
 
 const CORE_UTILITY_LINKS = [
   { label: "Start Here", href: "/docs/getting-started" },
-  { label: "Reference", href: "/docs/reference" },
-  { label: "Glossary", href: "/docs/glossary" },
+  { label: "CLI setup", href: "/docs/getting-started/cli" },
+  { label: "Access help", href: "/docs/getting-started/access-help" },
 ];
 
 function isUtilityLinkActive(pathname: string | null, href: string) {
@@ -53,7 +54,7 @@ export function DocsNavbar({
 
     return [
       CORE_UTILITY_LINKS[0],
-      { label: "Verify First", href: verifyFirstHref },
+      { label: "Receipt reference", href: verifyFirstHref },
       ...CORE_UTILITY_LINKS.slice(1),
     ];
   }, [verifyFirstHref, utilityLinksProp]);
@@ -77,15 +78,16 @@ export function DocsNavbar({
     <>
       <nav
         aria-label="Documentation utility navigation"
-        className="border-b border-surface-border/80 bg-surface-bg-alt/75"
+        className={styles.toolbar}
         data-docs-nav-surface="utility-nav"
       >
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-2 px-4 py-3 lg:px-6">
+        <div className={styles.toolbarInner}>
+          <div id="docs-menu-slot" className={styles.menuSlot} />
           {searchAvailable ? (
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
-              className="inline-flex h-8 items-center gap-2 border border-surface-border bg-surface-card px-3 text-xs font-medium uppercase tracking-[0.14em] text-text-primary transition-colors hover:border-brand-accent/50 hover:text-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+              className={styles.searchButton}
               aria-label="Search docs"
               aria-haspopup="dialog"
               aria-expanded={searchOpen}
@@ -101,6 +103,7 @@ export function DocsNavbar({
             </button>
           ) : null}
 
+          <div className={styles.utilityLinks}>
           {utilityLinks.map((link) => {
             const active = isUtilityLinkActive(pathname, link.href);
 
@@ -119,6 +122,7 @@ export function DocsNavbar({
               </Link>
             );
           })}
+          </div>
         </div>
       </nav>
 

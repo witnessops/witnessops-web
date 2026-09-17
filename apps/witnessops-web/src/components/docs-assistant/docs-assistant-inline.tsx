@@ -62,7 +62,7 @@ export function DocsAssistantInline() {
         Questions about scope, evidence or pricing?
       </p>
       <p className="mt-2 text-xs leading-relaxed text-text-muted">
-        Ask about security reviews, verification or workflow repair. Start with a short description, without confidential data.
+        Ask about signup, invitations, CLI setup, reports or expert help. Use a short description without confidential data.
       </p>
       <p className="mb-3 mt-2 text-xs leading-relaxed text-text-muted">
         Do not paste secrets, logs, credentials, private keys, MFA codes,

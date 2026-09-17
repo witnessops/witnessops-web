@@ -23,12 +23,13 @@ test("mobile docs drawer has a bounded scroll region and modal focus lifecycle",
   assert.match(sidebar, /style=\{mobile \? \{ fontSize: "16px" \} : undefined\}/);
 });
 
-test("docs menu trigger clears device insets and the branded footer", () => {
-  assert.match(sidebar, /footer\[data-brand-footer\]/);
-  assert.match(sidebar, /footer\.getBoundingClientRect\(\)\.top/);
-  assert.match(sidebar, /safe-area-inset-bottom/);
-  assert.match(sidebar, /safe-area-inset-left/);
-  assert.match(sidebar, /\$\{footerClearance\}px/);
+test("docs menu trigger belongs to the toolbar instead of covering article text", () => {
+  assert.match(sidebar, /createPortal/);
+  assert.match(sidebar, /document.getElementById\("docs-menu-slot"\)/);
+  assert.match(sidebar, /Browse docs/);
+  assert.doesNotMatch(sidebar, /footerClearance/);
+  const navbar = readFileSync(resolve(__dirname, "docs-navbar.tsx"), "utf8");
+  assert.match(navbar, /id="docs-menu-slot"/);
 });
 
 test("docs search remains usable in short mobile viewports", () => {

@@ -11,12 +11,12 @@ function source(filename: string): string {
 
 
 const subtitle = "Questions about scope, evidence or pricing";
-const questionIntro = /Ask about security reviews, verification or workflow repair/;
+const questionIntro = /Ask about signup, invitations, CLI setup, reports or expert help/;
 const warning = "Do not paste secrets";
 const providerDisclosure =
   /Eligible questions and recent conversation are sent to OpenAI with.*store: false.*provider retention may still apply/s;
 const placeholder =
-  "Example: Leads stopped reaching our CRM.";
+  "Example: How do I create an account?";
 
 test("Ask WitnessOps surfaces describe AI questions within the public-input boundary", () => {
   for (const filename of [
@@ -27,12 +27,12 @@ test("Ask WitnessOps surfaces describe AI questions within the public-input boun
     const content = source(filename);
     assert.match(content, /Ask WitnessOps|ASK WITNESSOPS/);
     assert.match(content, filename === "docs-assistant-page.tsx" ? /AI guide to finding the right next step/ : filename === "docs-assistant-widget.tsx" ? /AI product guide/ : new RegExp(subtitle));
-    assert.match(content, filename === "docs-assistant-widget.tsx" ? /Try a product question/ : filename === "docs-assistant-page.tsx" ? /Tell me what happened/ : questionIntro);
+    assert.match(content, filename === "docs-assistant-widget.tsx" ? /Try a product question/ : filename === "docs-assistant-page.tsx" ? /Ask about the app, CLI, results or expert help/ : questionIntro);
     assert.match(content, new RegExp(warning));
     assert.match(content, /AskAiDisclosure/);
     assert.match(source("ask-ai-disclosure.tsx"), providerDisclosure);
     assert.doesNotMatch(content, /provider storage disabled/);
-    assert.match(content, filename === "docs-assistant-widget.tsx" ? /Ask a product question/ : new RegExp(placeholder.replaceAll(".", "\\.")));
+    assert.match(content, filename === "docs-assistant-widget.tsx" ? /Ask a product question/ : filename === "docs-assistant-page.tsx" ? new RegExp(placeholder.replaceAll(".", "\\.")) : /Example: Leads stopped reaching our CRM/);
     assert.match(content, filename === "docs-assistant-page.tsx" ? /"Send"/ : /Ask AI/);
     assert.match(content, /aria-label="Ask WitnessOps question"/);
     assert.match(content, /maxLength=\{2_000\}/);

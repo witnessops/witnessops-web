@@ -19,7 +19,8 @@ test("docs home stays small: start paths, browse hubs, limits — not a long mat
   assert.match(page, /Buyer path/);
   assert.match(page, /Verify a receipt/);
   assert.match(page, /href="\/verify"/);
-  assert.match(page, /Start a review/);
+  assert.match(page, /label="CLI setup"/);
+  assert.match(page, /label="Access help"/);
   assert.match(page, /Browse by area/);
   assert.match(page, /do not claim complete runtime truth/);
 

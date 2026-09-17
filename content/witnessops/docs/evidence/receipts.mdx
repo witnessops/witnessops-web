@@ -11,7 +11,9 @@ draft: false
 
 A receipt is a portable signed claim about one bounded workflow result. It carries declared context and evidence references; it is not the evidence package and it is not proof merely because its JSON has the expected shape.
 
-## 1. Current product receipt
+App outputs differ: External Exposure snapshots are unsigned, reports are derived presentations, and Local Audit Proofpacks have a separate signed-package checking path. Start with [Understand results and reports](/docs/getting-started/results). This page focuses on receipt profiles, not every app result.
+
+## 1. Legacy review receipt profile
 
 The canonical legacy-named `public_exposure_review` receipt uses:
 
@@ -19,7 +21,7 @@ The canonical legacy-named `public_exposure_review` receipt uses:
 - profile `witnessops.verification_context.v1`
 - workflow class `public_exposure_review`
 
-It supports the primary customer sequence:
+For this review profile, the documented sequence is:
 
 1. request
 2. scoped review

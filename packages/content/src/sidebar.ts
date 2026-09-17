@@ -61,136 +61,75 @@ type CuratedDocsLayer = {
  */
 const OFFSEC_DOCS_LAYERS: CuratedDocsLayer[] = [
   {
-    id: "start",
-    title: "Start",
-    description:
-      "Where to begin: model walkthrough, buyer path, verify-first, and roles.",
-    layerChildPrefixes: [
-      "/docs/getting-started",
-      "/docs/audiences",
-      "/docs/quickstart",
-      "/docs/faq",
-    ],
+    id: "start", title: "Start here",
+    description: "Free signup, invitations and your first app result.",
+    layerChildPrefixes: ["/docs/getting-started", "/docs/faq"],
     items: [
       { kind: "link", href: "/docs", title: "Docs Home" },
-      { kind: "doc", href: "/docs/getting-started" },
-      {
-        kind: "doc",
-        href: "/docs/getting-started/proof-run-buyer-path",
-        title: "Buyer path",
-      },
-      {
-        kind: "doc",
-        href: "/docs/quickstart/verify-first",
-        title: "Verify First",
-      },
-      { kind: "doc", href: "/docs/audiences", title: "Audiences" },
+      { kind: "doc", href: "/docs/getting-started", title: "Get started" },
+      { kind: "doc", href: "/docs/how-it-works", title: "How it works" },
       { kind: "doc", href: "/docs/faq", title: "FAQ" },
     ],
   },
   {
-    id: "model",
-    title: "Model",
-    description:
-      "How proof works: mechanism, verification, and what receipts show.",
-    layerChildPrefixes: ["/docs/how-it-works", "/docs/evidence"],
+    id: "app", title: "Use the app",
+    description: "Assets, observations, reports and access help.",
+    layerChildPrefixes: [],
     items: [
-      { kind: "doc", href: "/docs/how-it-works" },
-      {
-        kind: "doc",
-        href: "/docs/how-it-works/proof-model",
-        title: "Proof Model",
-      },
-      {
-        kind: "doc",
-        href: "/docs/how-it-works/verification",
-        title: "Verification",
-      },
-      { kind: "doc", href: "/docs/evidence", title: "Evidence" },
-      { kind: "doc", href: "/docs/evidence/receipts", title: "Receipts" },
-      {
-        kind: "doc",
-        href: "/docs/evidence/receipt-spec",
-        title: "Receipt Spec",
-      },
+      { kind: "doc", href: "/docs/getting-started/first-observation", title: "Your first observation" },
+      { kind: "doc", href: "/docs/getting-started/results", title: "Understand results" },
+      { kind: "doc", href: "/docs/getting-started/access-help", title: "Account and CLI help" },
     ],
   },
   {
-    id: "operate",
-    title: "Operate",
-    description:
-      "Running governed work: execution, governance, decisions, runbooks, scenarios.",
-    layerChildPrefixes: [
-      "/docs/security-systems/governed-execution",
-      "/docs/security-systems/policy-gates",
-      "/docs/governance",
-      "/docs/operations",
-      "/docs/decisions",
-      "/docs/scenarios",
-      "/docs/security-education",
-    ],
+    id: "cli", title: "CLI",
+    description: "Optional source setup and browser authentication.",
+    layerChildPrefixes: [],
     items: [
-      {
-        kind: "doc",
-        href: "/docs/security-systems/governed-execution",
-        title: "Governed Execution",
-      },
-      { kind: "doc", href: "/docs/governance", title: "Governance" },
-      { kind: "doc", href: "/docs/decisions", title: "Decisions" },
-      {
-        kind: "doc",
-        href: "/docs/decisions/scope-check",
-        title: "Scope Check",
-      },
-      { kind: "doc", href: "/docs/operations/runbooks", title: "Runbooks" },
-      { kind: "doc", href: "/docs/scenarios", title: "Scenarios" },
-      {
-        kind: "doc",
-        href: "/docs/security-education",
-        title: "Security Education",
-      },
+      { kind: "doc", href: "/docs/getting-started/cli", title: "CLI setup and authentication" },
+      { kind: "doc", href: "/docs/reference/commands", title: "Commands" },
     ],
   },
   {
-    id: "reference",
-    title: "Reference",
-    description:
-      "Commands, catalog, glossary, and external evidence mappings.",
-    layerChildPrefixes: [
-      "/docs/reference",
-      "/docs/integrations",
-      "/docs/evidence-mapping",
-      "/docs/glossary",
-      "/docs/man",
-      "/docs/evidence/receipt-spec",
-    ],
+    id: "reviews", title: "Expert help",
+    description: "Separately scoped expert work and review evidence.",
+    layerChildPrefixes: [],
     items: [
-      { kind: "doc", href: "/docs/reference" },
-      { kind: "doc", href: "/docs/glossary" },
-      {
-        kind: "doc",
-        href: "/docs/integrations/witnessops-catalog",
-        title: "WitnessOps Catalog",
-      },
+      { kind: "doc", href: "/docs/getting-started/proof-run-buyer-path", title: "Buyer path" },
+      { kind: "doc", href: "/docs/getting-started/review-workflow", title: "Review workflow" },
     ],
   },
   {
-    id: "architecture",
-    title: "Architecture",
-    description:
-      "System-level boundaries: stack, threat model, and practices.",
-    layerChildPrefixes: ["/docs/security-systems"],
+    id: "model", title: "Evidence reference",
+    description: "Receipt profiles, named checks and their limits.",
+    layerChildPrefixes: ["/docs/how-it-works", "/docs/evidence", "/docs/quickstart"],
     items: [
-      {
-        kind: "doc",
-        href: "/docs/security-systems",
-        title: "Security Systems",
-      },
-      {
-        kind: "doc",
-        href: "/docs/security-systems/threat-model",
-        title: "Threat Model",
-      },
+      { kind: "doc", href: "/docs/quickstart/verify-first", title: "Verify a receipt" },
+      { kind: "doc", href: "/docs/evidence/receipts", title: "Receipt profiles" },
+      { kind: "doc", href: "/docs/how-it-works/verification", title: "Verification" },
+      { kind: "doc", href: "/docs/how-it-works/proof-model", title: "Review proof model" },
+      { kind: "doc", href: "/docs/evidence/receipt-spec", title: "Receipt specification" },
+    ],
+  },
+  {
+    id: "operate", title: "Operator reference",
+    description: "Documented workflow models, not a list of app features.",
+    layerChildPrefixes: ["/docs/audiences", "/docs/governance", "/docs/operations", "/docs/decisions", "/docs/scenarios", "/docs/security-systems"],
+    items: [
+      { kind: "doc", href: "/docs/audiences", title: "Operator audiences" },
+      { kind: "doc", href: "/docs/governance", title: "Governance model" },
+      { kind: "doc", href: "/docs/operations/runbooks", title: "Runbook model" },
+      { kind: "doc", href: "/docs/security-systems", title: "Architecture and controls" },
+    ],
+  },
+  {
+    id: "reference", title: "More reference",
+    description: "App vocabulary, technical reference and education.",
+    layerChildPrefixes: ["/docs/reference", "/docs/integrations", "/docs/evidence-mapping", "/docs/glossary", "/docs/man", "/docs/security-education"],
+    items: [
+      { kind: "doc", href: "/docs/glossary", title: "Glossary" },
+      { kind: "doc", href: "/docs/reference", title: "Reference" },
+      { kind: "doc", href: "/docs/security-education", title: "Security education" },
     ],
   },
 ];
@@ -248,15 +187,13 @@ export function getDocsLayerForHref(
     return null;
   }
 
-  const layer = OFFSEC_DOCS_LAYERS.find((candidate) => {
-    if (candidate.items.some((item) => item.href === href)) {
-      return true;
-    }
-
-    return (candidate.layerChildPrefixes ?? []).some(
+  const layer = OFFSEC_DOCS_LAYERS.find((candidate) =>
+    candidate.items.some((item) => item.href === href),
+  ) ?? OFFSEC_DOCS_LAYERS.find((candidate) =>
+    (candidate.layerChildPrefixes ?? []).some(
       (prefix) => href === prefix || href.startsWith(`${prefix}/`),
-    );
-  });
+    ),
+  );
 
   if (!layer) {
     return null;

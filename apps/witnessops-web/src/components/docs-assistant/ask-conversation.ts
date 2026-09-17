@@ -74,7 +74,13 @@ export function askPageService(pathname: string): BuyerService | undefined {
 }
 
 export function askGuidedQuestions(service?: BuyerService) {
-  void service; // Starters describe situations; the page still supplies a service hint to the API.
+  if (!service) return [
+    { label: "Create an account", detail: "", question: "How do I create a free account, and do I need an invitation?" },
+    { label: "Set up the CLI", detail: "", question: "How do I install and authenticate the CLI?" },
+    { label: "Understand a report", detail: "", question: "What is the difference between a report, a snapshot and a signed package?" },
+    { label: "Get support", detail: "", question: "How do I contact support about workspace access?" },
+    { label: "Find expert help", detail: "", question: "What expert reviews does WitnessOps offer?" },
+  ];
   return [
     { label: "An automation stopped working", detail: "", question: "An automation stopped working." },
     { label: "We're launching an AI agent", detail: "", question: "We're launching an AI agent." },

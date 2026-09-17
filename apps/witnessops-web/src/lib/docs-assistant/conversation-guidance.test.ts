@@ -151,3 +151,13 @@ test("change state follows explicit visitor updates, not failure timing or assum
   assert.equal(visitorQualificationFacts(["We changed the mapping.","Nothing changed."]).change_status?.value,"no_known_change");
   assert.equal(visitorQualificationFacts(["Nothing changed.","I don't know whether anything changed."]).change_status?.value,"unknown");
 });
+
+
+test("app result explanation corrects an unsupported security inference without claiming verification", async () => {
+  const { appResultBoundaryExplanation } = await import("./conversation-guidance");
+  const text = appResultBoundaryExplanation("Are my External Exposure reports signed proof that my server is secure?");
+  assert.match(text!, /snapshots are unsigned/);
+  assert.match(text!, /does not authenticate an issuer or prove/);
+  assert.match(text!, /Local Audit packages have a separate/);
+  assert.equal(appResultBoundaryExplanation("Can you guarantee our agent is safe?"), null);
+});

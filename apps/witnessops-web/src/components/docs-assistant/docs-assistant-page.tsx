@@ -119,7 +119,7 @@ export function DocsAssistantPage() {
           Ask WitnessOps
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-text-muted">
-          Tell me what happened, or what you need to check. I’ll help you find the right next step.
+          Ask about the app, CLI, results or expert help. I can explain public guidance, but cannot access your account or grant an invitation.
         </p>
       </header>
 
@@ -250,7 +250,7 @@ export function DocsAssistantPage() {
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void ask(question); }
             }}
-            placeholder={isEmpty ? "Example: Leads stopped reaching our CRM." : "Ask a follow-up…"}
+            placeholder={isEmpty ? "Example: How do I create an account?" : "Ask a follow-up…"}
             className="min-w-0 flex-1 rounded border border-surface-border bg-surface-bg px-3 py-2.5 text-base text-text-primary placeholder:text-text-muted focus:border-brand-accent focus:outline-none"
           />
           <button

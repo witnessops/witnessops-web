@@ -42,7 +42,7 @@ An independent result requires a separate verifier invocation with the package a
 
 The public adapter checks receipt structure and the exact legacy-named `public_exposure_review` profile. It does not receive package bytes or an active production trust snapshot. A conforming receipt using that profile therefore returns `indeterminate`; a profile conflict returns `invalid`.
 
-The current production signing policy is draft and allowlists no keys. Signature syntax is not signature verification, and a key included in a package is not automatically trusted.
+For the legacy `public_exposure_review` profile described here, the documented production signing policy is draft and allowlists no keys. This is not a statement about the separate Local Audit trust policy. Signature syntax is not signature verification, and a key included in a package is not automatically trusted.
 
 ## 5. Optional compatibility layers
 
@@ -55,3 +55,5 @@ Even a fully verified package does not prove tool correctness, uncompromised sou
 ## 7. Next-page handoff
 
 Read [Evidence Bundles](/docs/how-it-works/evidence-bundles), [Verification](/docs/how-it-works/verification), and [Receipt Specification](/docs/evidence/receipt-spec) for the executable contracts.
+
+Related technical reference: [Anchored replay](/docs/how-it-works/anchored-replay) and [Standards](/docs/how-it-works/standards). These are profile-specific concepts, not additional app features.

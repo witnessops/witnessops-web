@@ -915,3 +915,22 @@ test('unsafe claim-shaped prompts do not receive the retainable repair marker', 
     assert.equal(result.status,'closed');assert.notEqual(result.template.template_id,'boundary.refund_claim_repair.v1');
   }
 });
+
+test("app report limits are explained without weakening the security claim boundary", async () => {
+  enableTestOpenAiRuntime();
+  const original = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = async () => { called = true; throw new Error("must not run"); };
+  try {
+    const result = await POST(askRequest("Are my External Exposure reports signed proof that my server is secure?", "203.0.113.93"));
+    const body = await result.json();
+    assert.equal(body.status, "closed");
+    assert.equal(body.answer_mode, "policy_refusal");
+    assert.equal(body.template.template_id, "boundary.app_result_limits.v1");
+    assert.match(body.template.body, /snapshots are unsigned/);
+    assert.match(body.template.body, /does not authenticate an issuer or prove/);
+    assert.equal(body.commercial_fit.offer, null);
+    assert.ok(body.authority_answer);
+    assert.equal(called, false);
+  } finally { globalThis.fetch = original; }
+});

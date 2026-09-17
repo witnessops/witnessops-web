@@ -1,0 +1,33 @@
+---
+title: "Understand results and reports"
+description: "Distinguish observations, unsigned snapshots, reports, signed Local Audit packages and receipt checks."
+section: "docs"
+order: 5
+nav_label: "Understand results and reports"
+draft: false
+---
+
+# Understand results and reports
+
+## Read the scope before the conclusion
+
+An **asset** identifies what you want to observe. An **observation** records one check at a particular time. A **report** presents that observation for reading; it is not a security score or source evidence by itself.
+
+Open **Assets** to inspect history, or **Reports** to find a saved report. Read the target, time, method, findings and unresolved checks together. An undetermined result needs more information; it is not a pass. Exporting a report does not expand what was checked.
+
+## Different outputs have different checks
+
+| Output | What it contains | What it does not establish |
+| --- | --- | --- |
+| External Exposure snapshot | Recorded public observations and digests identifying the source bytes | Snapshots are unsigned; a digest does not authenticate an issuer or prove the target is secure |
+| Report | A readable presentation derived from an observation | Independent source evidence, certification or a security guarantee |
+| Local Audit Proofpack | A signed receipt and detached ZIP signature, checked against pinned trust policy in the supported app flow | Host security, source-system truth or permission to collect merely because package checks pass |
+| Public receipt-only result | The checks named by [/verify](/verify) for supported receipt JSON | Full bundle verification, artifact-byte revalidation or universal acceptance of every package format |
+
+For the legacy `public_exposure_review` receipt profile, a conforming public receipt remains `indeterminate` when the required evidence and trust checks have not been independently completed. Read [receipt verification](/docs/how-it-works/verification) for that separate technical path. Do not upload a whole Proofpack ZIP to the receipt-only tool.
+
+## Keep access and retention separate
+
+The workspace retains saved assets and observations across sign-ins. Signing out does not delete them. Automatic retention/deletion is not implemented yet; contact [Support](/support#support-request) about removal. Illustrative paid-plan retention periods are not a guarantee of current enforcement.
+
+A later result can differ because the target, time or observation method changed. Compare the recorded scope and limitations before concluding that a risk appeared or was fixed. Expert interpretation is available through [Expert help](/catalog), under separately agreed scope.

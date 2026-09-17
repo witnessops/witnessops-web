@@ -346,3 +346,23 @@ test("public onboarding answers use allowlisted docs and cannot grant workspace 
   assert.equal(answer?.presented_sources[0].canonical_href, "https://witnessops.com/docs/getting-started");
   assert.equal(normalizePublicAskResponse(response("I have submitted your support request.", null, ["public.support"])), null);
 });
+
+
+test("product guidance includes current access and evidence boundaries without selling an upgrade", () => {
+  const request = buildPublicAskResponsesRequest({ question: "How do invitations and reports work?", config });
+  const context = request.input[0].content;
+  assert.match(context, /Members page does not currently send invitations/);
+  assert.match(context, /snapshots are unsigned/);
+  assert.match(context, /Automatic retention\/deletion is not implemented/);
+  assert.match(context, /not universal app capability or deployed-control claims/);
+  for (const [source, wording] of [
+    ["public.app-results", "Reports present saved observations."],
+    ["public.app-access-help", "Contact support for missing workspace access."],
+    ["public.app-first-observation", "An Owner can add an authorized hostname in Assets."],
+  ]) {
+    const answer = normalizePublicAskResponse(response(wording, null, [source]));
+    assert.ok(answer);
+    assert.equal(answer.recommendation, null);
+    assert.match(answer.presented_sources[0].canonical_href, /witnessops\.com\/docs\/getting-started\//);
+  }
+});

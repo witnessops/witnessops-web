@@ -22,12 +22,12 @@ test("docs layout wires docs navbar search entries", async () => {
   assert.ok(source.includes("listDocPages(\"witnessops\")"));
 });
 
-test("docs navbar utility strip emphasizes start/search/reference/glossary", async () => {
+test("docs navbar utility strip emphasizes start/search/CLI/access help", async () => {
   const source = await readSource(docsNavbarFileUrl);
 
   assert.ok(source.includes('label: "Start Here"'));
-  assert.ok(source.includes('label: "Reference"'));
-  assert.ok(source.includes('label: "Glossary"'));
+  assert.ok(source.includes('label: "CLI setup"'));
+  assert.ok(source.includes('label: "Access help"'));
   assert.ok(source.includes('aria-label="Search docs"'));
 });
 
@@ -35,5 +35,5 @@ test("docs navbar keeps a future verify-first slot", async () => {
   const source = await readSource(docsNavbarFileUrl);
 
   assert.ok(source.includes("verifyFirstHref?: string;"));
-  assert.ok(source.includes('label: "Verify First"'));
+  assert.ok(source.includes('label: "Receipt reference"'));
 });

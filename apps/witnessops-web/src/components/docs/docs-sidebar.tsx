@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
+import styles from "./docs-chrome.module.css";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -46,7 +48,7 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
     new Set(sections.map((s) => s.id))
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const [footerClearance, setFooterClearance] = useState(0);
+  const [menuSlot, setMenuSlot] = useState<HTMLElement | null>(null);
   const drawerRef = useRef<HTMLElement>(null);
   const desktopSearchRef = useRef<HTMLInputElement>(null);
   const drawerSearchRef = useRef<HTMLInputElement>(null);
@@ -103,43 +105,7 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
   }, [drawerOpen]);
 
   useEffect(() => {
-    const footer = document.querySelector<HTMLElement>(
-      "footer[data-brand-footer]",
-    );
-    if (!footer) return;
-
-    let frame = 0;
-    const visualViewport = window.visualViewport;
-    const updateFooterClearance = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        const viewportBottom = visualViewport
-          ? visualViewport.offsetTop + visualViewport.height
-          : window.innerHeight;
-        const overlap = Math.max(
-          0,
-          Math.ceil(viewportBottom - footer.getBoundingClientRect().top),
-        );
-        setFooterClearance(overlap);
-      });
-    };
-
-    const resizeObserver = new ResizeObserver(updateFooterClearance);
-    resizeObserver.observe(footer);
-    window.addEventListener("resize", updateFooterClearance);
-    window.addEventListener("scroll", updateFooterClearance, { passive: true });
-    visualViewport?.addEventListener("resize", updateFooterClearance);
-    visualViewport?.addEventListener("scroll", updateFooterClearance);
-    updateFooterClearance();
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", updateFooterClearance);
-      window.removeEventListener("scroll", updateFooterClearance);
-      visualViewport?.removeEventListener("resize", updateFooterClearance);
-      visualViewport?.removeEventListener("scroll", updateFooterClearance);
-    };
+    setMenuSlot(document.getElementById("docs-menu-slot"));
   }, []);
 
   // Keyboard: / to focus the search field for the currently visible sidebar.
@@ -322,14 +288,10 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
 
   return (
     <>
-      {/* Mobile trigger */}
-      <button
+      {/* Keep the mobile navigation control with the docs toolbar. */}
+      {menuSlot && createPortal(<button
         type="button"
-        className="fixed z-40 flex items-center gap-2 rounded border border-surface-border bg-surface-bg px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-text-primary shadow-lg transition-colors hover:border-brand-accent hover:text-brand-accent lg:hidden"
-        style={{
-          bottom: `calc(max(1rem, env(safe-area-inset-bottom)) + ${footerClearance}px)`,
-          left: "max(1rem, env(safe-area-inset-left))",
-        }}
+        className={styles.browseButton}
         onClick={() => setDrawerOpen(true)}
         aria-label="Open documentation menu"
         aria-controls={drawerId}
@@ -338,8 +300,8 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
           <path d="M2 4.5H16M2 9H12M2 13.5H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
-        <span>Menu</span>
-      </button>
+        <span>Browse docs</span>
+      </button>, menuSlot)}
 
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 lg:block">

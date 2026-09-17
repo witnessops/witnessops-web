@@ -13,7 +13,7 @@ export function EvidenceMappingGuardrails() {
       <h2 className="mt-8 text-2xl font-semibold text-text-primary">Shared trust boundary</h2>
       <ul className="mt-4 list-inside list-disc space-y-2 text-text-secondary">
         <li>
-          <strong>WitnessOps emits governed execution evidence</strong> such as receipts,
+          <strong>The operator model describes governed execution evidence</strong> such as receipts,
           manifests, approval-linked records, execution metadata, and preserved artifacts.
         </li>
         <li>
