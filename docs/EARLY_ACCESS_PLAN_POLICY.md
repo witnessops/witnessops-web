@@ -1,10 +1,11 @@
 # Early Access plan policy and consent
 
-This implements the durable policy, contribution-choice record and hostname usage
-admission for the approved demo reuse plan's commercial phase. Workspaces with a
-recorded plan use the monthly hostname allowance through the existing run endpoint.
+This implements the durable policy, contribution-choice record, hostname usage
+and Linux source admission for the approved demo reuse plan's commercial phase.
+Workspaces with a recorded plan use the monthly hostname allowance and Linux
+source limit through the existing asset, run and import endpoints.
 There is no customer-facing enrollment/checkout endpoint yet. This does not collect
-payments, grant access, enforce Linux/seat limits, or expire evidence.
+payments, grant access, enforce seat limits, or expire evidence.
 
 ## Accepted policy
 
@@ -22,8 +23,8 @@ Version: `early-access-2026-09-17`. One plan: `early-access`.
 | Seats | 1 |
 | Future pricing | Requires new explicit acceptance |
 
-The hostname allowance is enforced for explicitly enrolled workspaces. Linux source,
-retention and seat caps remain policy data awaiting implementation. Current cohort
+The hostname allowance and Linux source cap are enforced for explicitly enrolled
+workspaces. Retention and seat caps remain policy data awaiting implementation. Current cohort
 admission, execution throttles, storage limits and immutable source custody continue
 to apply. Public claims must describe implemented behavior.
 
@@ -103,24 +104,67 @@ monthly allowance. The 8 MiB workspace snapshot capacity, 1 MiB per-source limit
 20-asset capacity and collection throttles remain independent technical safeguards.
 They can reject work before the monthly allowance is exhausted. Unenrolled cohort
 workspaces retain their existing admission, including the 32-run limit. Linux
-import admission is unchanged; its separate lifetime/storage guards still need
-reconciliation before the full commercial flow is enabled.
+imports use the source admission described below, with their own custody limit.
+
+## Linux import sources
+
+One source is one registered `linux_server` asset in a workspace, identified by its
+existing asset UUID and normalized hostname. Registration consumes a slot even
+before the first package is imported. This is a workspace registration, not proof
+of unique hardware identity, ownership or continuity. Existing signed-source
+verification and comparison identity rules still determine what a package proves.
+
+The plan allows three registered sources during the trial and after day eight,
+at EUR 0 and positive contributions. Hostname/domain assets do not consume these
+slots. Adding a fourth source returns HTTP 409 through the existing asset endpoint.
+Later valid packages for an existing source use the same slot; invalid uploads,
+reopening, comparison and export do not change the source count. Contribution
+changes do not reset the count. There is no calendar reset, source deletion or
+archive/replacement operation in this slice; a future source lifecycle requires
+an explicit policy and implementation rather than deleting retained evidence.
+
+`WorkspaceStore.addAsset`, CLI server-check authorization, plan enrollment and `LinuxCheckStore.importWithin`
+serialize on the same canonical workspace UUID advisory lock. The server reads
+the registered assets and exact accepted terms inside that transaction. Concurrent
+registrations across app instances cannot add a fourth source, including when
+workspace UUID casing differs. The CLI's create-by-hostname path counts the same
+registered sources and rejects a fourth with `linux_source_capacity` before issuing
+new collection authority. Existing-source authorization and identical retries keep
+their existing behavior inside the cap. Normal upload and server-check finalization
+share the import boundary. Unsupported/mismatched accepted terms fail closed for new
+Linux writes; authorized access to saved evidence remains available.
+
+Existing registered sources count when a workspace explicitly enrolls. Enrollment
+with more than three sources is rejected atomically, preserving its legacy access,
+sources and absence of a plan. Source reconciliation for such a workspace requires
+a separate migration decision. If an already enrolled workspace was over the cap
+before enforcement, new source registrations, server-check authorizations and imports are rejected; saved reads,
+exports and contribution updates remain available. No migration chooses sources,
+enrolls a workspace or removes its records.
+
+Enrolled Linux admission replaces the 32-run lifetime ceiling with this source
+limit. Repeated packages and retained hostname history therefore do not exhaust a
+Linux source allowance. The existing 200 MiB Linux custody cap, per-package limits,
+20-asset workspace cap, verification concurrency and server-check safeguards still
+apply and can bind before plan capacity. Unenrolled workspaces retain their existing
+32-run and storage admission. Linux imports do not consume hostname monthly slots.
+No new schema or usage ledger is needed: registered assets are already durable and
+workspace-scoped; accepted policy loading is shared with hostname admission.
 
 ## Remaining commercial implementation
 
 The following work is required before publishing the complete one-plan flow:
 
-1. Define a Linux import source and its lifecycle. The reuse map recommends counting
-   distinct registered sources, with later packages for that source using the same slot.
-2. Define one-seat enrollment and migration of existing multi-member workspaces.
-3. Add the customer consent/checkout flow, including a complete EUR 0 path and an
+1. Define one-seat enrollment and migration of existing multi-member workspaces.
+2. Add the customer consent/checkout flow, including a complete EUR 0 path and an
    authorized recurring-payment integration for positive choices. Contribution updates
    must preserve the trial and clearly state when the new amount applies.
-4. Define retention scope across hostname snapshots, Linux sources, reports, comparison
+3. Define retention scope across hostname snapshots, Linux sources, reports, comparison
    baselines and exports. Implement deliberate expiry while preserving immutability
    during the retained lifetime; production expiry requires its own operator activation.
-5. Reconcile Linux total-run and storage limits with the monthly allowance and
-   retained history. Then publish pricing, settings, Ask and docs from the same policy.
+4. Reconcile technical storage capacity with the intended retained history and
+   define any source replacement/migration flow. Then publish pricing, settings,
+   Ask and docs from the same policy.
 
 ## Validation
 
@@ -131,7 +175,12 @@ stale updates, actor/workspace authorization, rollback and immutable history. Us
 tests cover concurrent admissions from independent pools, failure recovery, amount
 changes, month rollover, non-UTC sessions, retained history beyond 32 runs, legacy
 admission, atomic reservation rollback, unsupported policies and HTTP rejection
-before execution. There is no new API route or collector contract.
+before execution. Linux source cases cover concurrent registration, contribution
+parity, enrollment races, legacy over-cap workspaces, failed/unauthorized writes,
+the HTTP limit, mixed browser/CLI registrations, existing-source CLI finalization,
+repeated verified imports beyond 32 retained runs, independent
+hostname usage, original-byte reopen and unsupported policy rejection.
+There is no new API route or collector contract.
 The populated migration upgrade verifies that existing evidence and admission survive
 and that no existing workspace is silently enrolled.
 

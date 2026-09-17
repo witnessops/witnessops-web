@@ -1,20 +1,14 @@
 import 'server-only';
-import { isDeepStrictEqual } from 'node:util';
 import type { PoolClient } from 'pg';
 import { ApiError } from '../errors';
-import { acceptedPlanPolicy } from '../plan-policy';
+import { acceptedWorkspacePlan } from './plan-admission';
 
 /** Called only after current Owner authorization and the workspace advisory lock.
  * The reservation and run must be inserted in this same transaction. */
 export async function admitHostnameCheck(client: PoolClient, workspaceId: string) {
-  const result = await client.query<{ revision: number; terms_version: string | null; terms: unknown }>(`SELECT p.revision,c.terms_version,t.terms
-    FROM early_access_plans p
-    LEFT JOIN early_access_plan_consents c ON c.workspace_id=p.workspace_id AND c.revision=p.revision
-    LEFT JOIN early_access_plan_terms t ON t.version=c.terms_version WHERE p.workspace_id=$1`, [workspaceId]);
-  const plan = result.rows[0];
+  const plan = await acceptedWorkspacePlan(client, workspaceId);
   if (!plan) return null; // Preserve admission for the existing unenrolled cohort.
-  const policy = plan.terms_version ? acceptedPlanPolicy(plan.terms_version) : undefined;
-  if (!policy || !isDeepStrictEqual(plan.terms, policy)) throw new ApiError(503, 'The accepted plan terms are unavailable.');
+  const { policy } = plan;
 
   // A new statement AFTER acquiring the lock, not transaction-start now(). A
   // request waiting across midnight must reserve the month when it is admitted.

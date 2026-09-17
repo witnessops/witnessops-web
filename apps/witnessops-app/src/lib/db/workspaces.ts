@@ -11,6 +11,7 @@ import { canonicalSource } from "../source-digest";
 import type { AppUser } from "./identity";
 import { requireEarlyAccess } from './access';
 import { admitHostnameCheck } from './hostname-usage';
+import { acceptedWorkspacePlan, requireLinuxSourceLimit } from './plan-admission';
 
 type MemberRow = { id: string; name: string; slug: string; role: "owner" | "viewer" };
 type AssetRow = { id: string; normalized_value: string; type: Asset["type"]; created_at: Date };
@@ -99,7 +100,11 @@ export class WorkspaceStore {
     if (type !== "hostname" && type !== "domain" && type !== "linux_server") throw new ApiError(400, "Choose a hostname, domain or Linux server asset.");
     return this.within(user, workspaceId, true, async client => {
       // Serialize asset additions to enforce the bounded workspace capacity.
-      await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [workspaceId]);
+      await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1::uuid::text, 0))", [workspaceId]);
+      if (type === "linux_server") {
+        const plan = await acceptedWorkspacePlan(client, workspaceId);
+        if (plan) await requireLinuxSourceLimit(client, workspaceId, plan.policy.limits.linuxImportSources, 1);
+      }
       const count = await client.query<{ count: string }>("SELECT count(*) FROM assets WHERE workspace_id=$1", [workspaceId]);
       if (Number(count.rows[0].count) >= 20) throw new ApiError(409, "This workspace is limited to 20 assets.");
       const result = await client.query<AssetRow>(`INSERT INTO assets (id,workspace_id,type,normalized_value) VALUES ($1,$2,$3,$4)

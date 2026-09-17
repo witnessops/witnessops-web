@@ -349,6 +349,173 @@ test('Usage: rejected admission refunds throttle slots without refunding actual 
   assert.equal(executions, 2);
 });
 
+const linuxSourceLimitError = (error: unknown) => error instanceof ApiError && error.status === 409 && /3 registered Linux import sources/.test(error.message);
+const linuxSourceCount = async (workspace: string) => Number((await pool.query("SELECT count(*) FROM assets WHERE workspace_id=$1 AND type='linux_server'", [workspace])).rows[0].count);
+async function linuxSourceFixture(name: string, amount = 0) {
+  const f = await planFixture(name);
+  await f.plans.recordConsent(f.user, f.workspace, planConsent(amount));
+  return f;
+}
+function signedLinuxFixture() {
+  const zipName = 'proofpack-pr_lsa_20260710120000_198fd7aceb.zip';
+  const file = new URL(`../../../../../tests/proofpack/production-fixtures/complete/${zipName}`, import.meta.url);
+  return { zipName, zip: readFileSync(file), signature: readFileSync(new URL(file.href + '.sig.json')) };
+}
+
+test('Linux sources: independent pools admit exactly three registrations at every contribution amount', async () => {
+  const fresh = connect(), other = new WorkspaceStore(fresh);
+  try {
+    for (const amount of [0, 4900]) {
+      const f = await linuxSourceFixture(`linux_sources_concurrent_${amount}`, amount);
+      await store.addAsset(f.user, f.workspace, 'example.com', 'hostname');
+      await store.addAsset(f.user, f.workspace, 'example.org', 'domain');
+      const results = await Promise.allSettled(Array.from({ length: 8 }, (_, i) =>
+        (i % 2 ? other : store).addAsset(f.user, i % 2 ? f.workspace.toUpperCase() : f.workspace, `linux-${i}`, 'linux_server')));
+      assert.equal(results.filter(r => r.status === 'fulfilled').length, 3);
+      const denied = results.filter(r => r.status === 'rejected'); assert.equal(denied.length, 5);
+      for (const result of denied) assert.ok(result.status === 'rejected' && linuxSourceLimitError(result.reason));
+      assert.equal(await linuxSourceCount(f.workspace), 3);
+      assert.equal((await other.read(f.user, f.workspace)).assets.length, 5);
+      await f.plans.recordConsent(f.user, f.workspace, planConsent(amount ? 0 : 4900, 1));
+      await assert.rejects(other.addAsset(f.user, f.workspace, 'fourth', 'linux_server'), linuxSourceLimitError);
+      assert.equal((await pool.query('SELECT count(*) FROM hostname_check_usage WHERE workspace_id=$1', [f.workspace])).rows[0].count, '0');
+    }
+  } finally { await fresh.end(); }
+});
+
+test('Linux sources: existing registrations count at enrollment; over-cap legacy workspaces remain unchanged', async () => {
+  const f = await planFixture('linux_sources_legacy');
+  for (let i = 0; i < 3; i++) await store.addAsset(f.user, f.workspace, `legacy-${i}`, 'linux_server');
+  await f.plans.recordConsent(f.user, f.workspace, planConsent());
+  await assert.rejects(store.addAsset(f.user, f.workspace, 'fourth', 'linux_server'), linuxSourceLimitError);
+
+  const legacy = await planFixture('linux_sources_over_cap');
+  for (let i = 0; i < 4; i++) await store.addAsset(legacy.user, legacy.workspace, `legacy-${i}`, 'linux_server');
+  const before = (await store.read(legacy.user, legacy.workspace)).assets;
+  await assert.rejects(legacy.plans.recordConsent(legacy.user, legacy.workspace, planConsent()), linuxSourceLimitError);
+  assert.equal(await legacy.plans.read(legacy.user, legacy.workspace), null);
+  assert.equal((await pool.query('SELECT count(*) FROM early_access_plan_consents WHERE workspace_id=$1', [legacy.workspace])).rows[0].count, '0');
+  assert.deepEqual((await store.read(legacy.user, legacy.workspace)).assets, before);
+  await store.addAsset(legacy.user, legacy.workspace, 'still-legacy', 'linux_server');
+  assert.equal(await linuxSourceCount(legacy.workspace), 5);
+});
+
+test('Linux sources: enrollment and a fourth registration serialize on the same canonical workspace lock', async () => {
+  const f = await planFixture('linux_sources_enrollment_race');
+  for (let i = 0; i < 3; i++) await store.addAsset(f.user, f.workspace, `linux-${i}`, 'linux_server');
+  const fresh = connect();
+  try {
+    const results = await Promise.allSettled([
+      new WorkspaceStore(fresh).addAsset(f.user, f.workspace.toUpperCase(), 'fourth', 'linux_server'),
+      f.plans.recordConsent(f.user, f.workspace, planConsent()),
+    ]);
+    assert.equal(results.filter(r => r.status === 'fulfilled').length, 1);
+    const rejected = results.find(r => r.status === 'rejected');
+    assert.ok(rejected?.status === 'rejected' && linuxSourceLimitError(rejected.reason));
+    const plan = await f.plans.read(f.user, f.workspace);
+    assert.equal(await linuxSourceCount(f.workspace), plan ? 3 : 4);
+  } finally { await fresh.end(); }
+});
+
+test('Linux sources: authorization, failed registrations and the HTTP limit preserve available slots', async () => {
+  const name = 'linux_sources_authorization', f = await linuxSourceFixture(name);
+  await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'viewer')", [viewer.id, f.workspace]);
+  await store.addAsset(f.user, f.workspace, 'demo-host', 'linux_server');
+  await assert.rejects(store.addAsset(f.user, f.workspace, 'DEMO-HOST', 'linux_server'), /already an asset/);
+  await assert.rejects(store.addAsset(f.user, f.workspace, 'https://invalid.example', 'linux_server'));
+  await assert.rejects(store.addAsset(viewer, f.workspace, 'viewer-host', 'linux_server'), /Owner/);
+  await assert.rejects(store.addAsset(b, f.workspace, 'foreign-host', 'linux_server'), /not found/);
+  await pool.query("UPDATE users SET early_access_state='paused' WHERE id=$1", [f.user.id]);
+  await assert.rejects(store.addAsset(f.user, f.workspace, 'paused-host', 'linux_server'), /paused/);
+  await pool.query("UPDATE users SET early_access_state='active' WHERE id=$1", [f.user.id]);
+  assert.equal(await linuxSourceCount(f.workspace), 1);
+  const service = createFoundationService({ pool, origin, identity: async () => identity(name), run: async () => { throw new Error('No collection during registration'); } });
+  for (const hostname of ['second', 'third']) assert.equal((await service.handle(request('assets', f.workspace, { hostname, type: 'linux_server' }), 'assets')).status, 201);
+  const blocked = await service.handle(request('assets', f.workspace, { hostname: 'fourth', type: 'linux_server' }), 'assets');
+  assert.equal(blocked.status, 409); assert.match((await blocked.json()).error, /3 registered Linux import sources/);
+  assert.equal(await linuxSourceCount(f.workspace), 3);
+  await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE user_id=$1 AND workspace_id=$2", [f.user.id, f.workspace]);
+  await assert.rejects(store.addAsset(f.user, f.workspace, 'revoked-host', 'linux_server'), /not found/);
+});
+
+test('Linux sources: repeated verified imports reuse a slot beyond 32 runs and remain independent of monthly hostname usage', async () => {
+  const { LinuxCheckStore } = await import('./linux-checks');
+  const { zip, signature, zipName } = signedLinuxFixture(), linux = new LinuxCheckStore(pool);
+  const f = await usageFixture('linux_sources_import_history');
+  const asset = await store.addAsset(f.user, f.workspace, 'demo-host', 'linux_server');
+  for (const name of ['second', 'third']) await store.addAsset(f.user, f.workspace, name, 'linux_server');
+  const old = (await pool.query("SELECT (date_trunc('month',now() AT TIME ZONE 'UTC')-interval '1 month') AT TIME ZONE 'UTC' AS at")).rows[0].at.toISOString();
+  const history: string[] = [];
+  for (let i = 0; i < 33; i++) history.push(await historicalUsage(f, old));
+  for (let i = 0; i < 25; i++) await store.beginRun(f.user, f.workspace, f.asset.id);
+  await assert.rejects(store.beginRun(f.user, f.workspace, f.asset.id), quotaError);
+  const first = await linux.import(f.user, f.workspace.toUpperCase(), asset.id, zip, signature, zipName);
+  await f.plans.recordConsent(f.user, f.workspace, planConsent(4900, 1));
+  const second = await linux.import(f.user, f.workspace, asset.id, zip, signature, zipName);
+  assert.notEqual(first.id, second.id); assert.equal(first.sourceDigest, second.sourceDigest);
+  const corrupt = Buffer.from(zip); corrupt[100] ^= 1;
+  await assert.rejects(linux.import(f.user, f.workspace, asset.id, corrupt, signature, zipName), /verification/);
+  assert.equal(await linuxSourceCount(f.workspace), 3);
+  assert.equal((await linux.list(f.user, f.workspace)).length, 2);
+  assert.equal((await pool.query('SELECT count(*) FROM hostname_check_usage WHERE workspace_id=$1', [f.workspace])).rows[0].count, '58');
+  await assert.rejects(store.addAsset(f.user, f.workspace, 'fourth', 'linux_server'), linuxSourceLimitError);
+  const fresh = connect();
+  try {
+    const reopened = await new LinuxCheckStore(fresh).reopen(f.user, f.workspace, first.id);
+    assert.deepEqual(reopened.source.zip, zip); assert.deepEqual(reopened.source.signature, signature);
+    assert.equal(canonicalSource((await new WorkspaceStore(fresh).run(f.user, f.workspace, history[0])).snapshot), canonicalSource(source));
+  } finally { await fresh.end(); }
+});
+
+test('Linux sources: a previously enrolled over-cap workspace keeps saved evidence and contribution updates', async () => {
+  const { LinuxCheckStore } = await import('./linux-checks');
+  const { zip, signature, zipName } = signedLinuxFixture(), linux = new LinuxCheckStore(pool);
+  const f = await linuxSourceFixture('linux_sources_prior_enrollment', 4900);
+  const asset = await store.addAsset(f.user, f.workspace, 'demo-host', 'linux_server');
+  const saved = await linux.import(f.user, f.workspace, asset.id, zip, signature, zipName);
+  // Historical pre-enforcement fixture, not a production registration path.
+  for (let i = 0; i < 3; i++) await pool.query("INSERT INTO assets(id,workspace_id,type,normalized_value) VALUES ($1,$2,'linux_server',$3)", [randomUUID(), f.workspace, `pre-limit-${i}`]);
+  await assert.rejects(store.addAsset(f.user, f.workspace, 'fifth', 'linux_server'), linuxSourceLimitError);
+  await assert.rejects(linux.import(f.user, f.workspace, asset.id, zip, signature, zipName), linuxSourceLimitError);
+  const changed = await f.plans.recordConsent(f.user, f.workspace, planConsent(0, 1));
+  assert.equal(changed.contributionMinor, 0); assert.equal(changed.revision, 2);
+  assert.equal(await linuxSourceCount(f.workspace), 4);
+  assert.equal((await linux.list(f.user, f.workspace)).length, 1);
+  assert.deepEqual((await linux.reopen(f.user, f.workspace, saved.id)).source.zip, zip);
+});
+
+test('Linux sources: unenrolled imports keep their lifetime capacity; unsupported plans cannot fall back to it', async () => {
+  const { LinuxCheckStore } = await import('./linux-checks');
+  const { zip, signature, zipName } = signedLinuxFixture(), linux = new LinuxCheckStore(pool);
+  const legacy = await planFixture('linux_sources_legacy_import');
+  const asset = await store.addAsset(legacy.user, legacy.workspace, 'demo-host', 'linux_server');
+  const hostname = await store.addAsset(legacy.user, legacy.workspace, source.target, 'hostname');
+  for (let i = 0; i < 32; i++) await store.beginRun(legacy.user, legacy.workspace, hostname.id);
+  await assert.rejects(linux.import(legacy.user, legacy.workspace, asset.id, zip, signature, zipName), /import capacity/);
+  await legacy.plans.recordConsent(legacy.user, legacy.workspace, planConsent());
+  assert.ok(await linux.import(legacy.user, legacy.workspace, asset.id, zip, signature, zipName));
+
+  const f = await planFixture('linux_sources_unsupported');
+  const existing = await store.addAsset(f.user, f.workspace, 'demo-host', 'linux_server');
+  const saved = await linux.import(f.user, f.workspace, existing.id, zip, signature, zipName);
+  const version = 'unsupported-linux-sources-policy';
+  await pool.query('INSERT INTO early_access_plan_terms(version,terms) VALUES ($1,$2)', [version, { version }]);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('INSERT INTO early_access_plans(workspace_id,revision) VALUES ($1,1)', [f.workspace]);
+    await client.query('INSERT INTO early_access_plan_consents(workspace_id,request_id,revision,accepted_by,terms_version,contribution_minor) VALUES ($1,$2,1,$3,$4,0)', [f.workspace, randomUUID(), f.user.id, version]);
+    await client.query('COMMIT');
+  } catch (error) { await client.query('ROLLBACK'); throw error; }
+  finally { client.release(); }
+  const unavailable = (error: unknown) => error instanceof ApiError && error.status === 503;
+  await assert.rejects(store.addAsset(f.user, f.workspace, 'second', 'linux_server'), unavailable);
+  await assert.rejects(linux.import(f.user, f.workspace, existing.id, zip, signature, zipName), unavailable);
+  assert.equal(await linuxSourceCount(f.workspace), 1);
+  assert.equal((await linux.list(f.user, f.workspace)).length, 1);
+  assert.deepEqual((await linux.reopen(f.user, f.workspace, saved.id)).source.zip, zip);
+});
+
 test("session replay: 200 before logout, 401 after replay and fresh connection; other session stays valid", async () => {
   const providerIdentity = identity("user_sessionUser");
   const user = await resolveIdentity(pool, providerIdentity);

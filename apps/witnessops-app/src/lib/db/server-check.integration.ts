@@ -10,7 +10,10 @@ import {Pool} from 'pg';
 import {migrate} from '../../../scripts/migrate.mjs';
 import {resolveIdentity,type AppUser} from './identity';
 import {WorkspaceStore} from './workspaces';
-import {CliAuthStore,type WebCliIdentity} from './cli-auth';
+import {EarlyAccessPlanStore} from './early-access-plans';
+import {EARLY_ACCESS_PLAN_POLICY} from '../plan-policy';
+import {ApiError} from '../errors';
+import {CliAuthStore,CliError,type WebCliIdentity} from './cli-auth';
 import {LinuxCheckStore,sha256} from './linux-checks';
 import {ServerCheckStore} from '../server-check/store';
 import {LocalAuditFinalizer} from '../server-check/runtime';
@@ -48,6 +51,41 @@ test('malformed, synthetic, altered authority, digest mismatch and oversized cap
 test('cross-workspace upload and different capture replay denied; true concurrency remains bounded',async()=>{const token=await credential(),other=await credential('cli:session server_check:create',foreign),e=await store.authorize(token,request()),bytes=await frozen(e.authority);await assert.rejects(store.upload(other,e.id,bytes,sha256(bytes)));await store.upload(token,e.id,bytes,sha256(bytes));const different=Buffer.from('{}');await assert.rejects(store.upload(token,e.id,different,sha256(different)),/capture_conflict/);const client=await pool.connect();try{await client.query('BEGIN');await client.query('SELECT pg_advisory_xact_lock(941071,10)');await assert.rejects(store.status(token,e.id),/busy/);}finally{await client.query('ROLLBACK');client.release();}});
 test('unfinished issuance marker cannot sign again; no accepted run',async()=>{const token=await credential(),e=await store.authorize(token,request()),bytes=await frozen(e.authority);await store.upload(token,e.id,bytes,sha256(bytes));await writeFile(custody+'/'+e.id+'/started',sha256(bytes),{mode:0o600});await assert.rejects(store.status(token,e.id),/finalization_failed/);assert.equal((await pool.query('SELECT run_id FROM server_check_executions WHERE id=$1',[e.id])).rows[0].run_id,null);});
 test('normal API rejects missing credentials and wrong Origin before upload',async()=>{const service=createServerCheckService(store,'http://127.0.0.1:3020');assert.equal((await service(new Request('http://127.0.0.1:3020/api/cli/server-checks',{headers:{Host:'127.0.0.1:3020',Origin:'http://127.0.0.1:3020'}}))).status,401);assert.equal((await service(new Request('http://127.0.0.1:3020/api/cli/server-checks',{headers:{Host:'127.0.0.1:3020',Origin:'https://attacker.test'}}))).status,403);});
+
+test('Linux source limit is shared by concurrent browser and CLI registration; existing-source finalization and retries remain usable',async()=>{
+ const ws=new WorkspaceStore(pool),selected=await ws.create(user,'Source capacity fixture',randomUUID()),plans=new EarlyAccessPlanStore(pool);
+ await plans.recordConsent(user,selected,{requestId:randomUUID(),expectedRevision:0,termsVersion:EARLY_ACCESS_PLAN_POLICY.version,contributionMinor:0,accepted:true});
+ const existing=await ws.addAsset(user,selected,'demo-host','linux_server');
+ const token=await credential('cli:session server_check:create',selected);
+ const fresh=new Pool({connectionString:env.TEST_DATABASE_URL,options:`-c search_path=${schema},public`,max:4});
+ try {
+  const browser=new WorkspaceStore(fresh),cli=new ServerCheckStore(fresh,finalizer);
+  const results=await Promise.allSettled(Array.from({length:8},(_,i)=>i%2
+   ?cli.authorize(token,{...request(),hostname:`source-${i}`})
+   :browser.addAsset(user,selected.toUpperCase(),`source-${i}`,'linux_server')));
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,2);
+  for(const [i,result] of results.entries())if(result.status==='rejected'){
+   assert.ok(result.reason instanceof ApiError&&result.reason.status===409);
+   if(i%2)assert.equal((result.reason as CliError).code,'linux_source_capacity');
+   else assert.match(result.reason.message,/3 registered Linux import sources/);
+  }
+  assert.equal((await browser.read(user,selected)).assets.length,3);
+  const cliSuccesses=results.filter((r,i)=>i%2&&r.status==='fulfilled').length;
+  assert.equal(Number((await pool.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[selected])).rows[0].count),cliSuccesses);
+  const service=createServerCheckService(cli,'http://127.0.0.1:3020');
+  const denied=await service(new Request('http://127.0.0.1:3020/api/cli/server-checks',{method:'POST',headers:{Host:'127.0.0.1:3020',Origin:'http://127.0.0.1:3020',Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({...request(),hostname:'fourth'})}));
+  assert.equal(denied.status,409);assert.deepEqual(await denied.json(),{code:'linux_source_capacity'});
+  await plans.recordConsent(user,selected,{requestId:randomUUID(),expectedRevision:1,termsVersion:EARLY_ACCESS_PLAN_POLICY.version,contributionMinor:4900,accepted:true});
+  await assert.rejects(cli.authorize(token,{...request(),hostname:'fourth'}),/linux_source_capacity/);
+  const input={...request(),assetId:existing.id},execution=await cli.authorize(token,input);
+  assert.equal((await cli.authorize(token,input)).id,execution.id);
+  const bytes=await frozen(execution.authority);await cli.upload(token,execution.id,bytes,sha256(bytes));
+  const saved=await cli.status(token,execution.id);assert.equal(saved.state,'run_created');
+  assert.equal((await cli.status(token,execution.id)).runId,saved.runId);
+  assert.equal((await new LinuxCheckStore(fresh).reopen(user,selected,saved.runId!)).run.assetId,existing.id);
+  assert.equal((await browser.read(user,selected)).assets.length,3);
+ } finally {await fresh.end();}
+});
 
 test('partial updates survive finalization, independent verification, snapshot and report',async()=>{const token=await credential(),e=await store.authorize(token,request()),bytes=await frozen(e.authority,true);await store.upload(token,e.id,bytes,sha256(bytes));const saved=await store.status(token,e.id);assert.ok('outcome' in saved);assert.equal(saved.outcome,'partial');const reopened=await new LinuxCheckStore(pool).reopen(user,workspace,saved.runId!);assert.equal(reopened.snapshot.values.securityUpdates,null);assert.equal(reopened.snapshot.updates.securityClassification,'unavailable');assert.ok(reopened.model.collectionGaps.length);});
 test('CLI command uses normal Owner service, frozen fixture and real finalizer/import; concise partial result',async()=>{

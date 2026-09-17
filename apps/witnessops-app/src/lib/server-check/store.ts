@@ -5,7 +5,8 @@ import type { Pool } from 'pg';
 import { CliAuthStore, CliError } from '../db/cli-auth';
 import { LinuxCheckStore, sha256 } from '../db/linux-checks';
 import { linuxHostname } from '../linux-hostname';
-import { requireId } from '../errors';
+import { ApiError, requireId } from '../errors';
+import { acceptedWorkspacePlan, requireLinuxSourceLimit } from '../db/plan-admission';
 import { canonicalSource } from '../source-digest';
 import type { Finalizer } from './runtime';
 const equal=(a:unknown,b:unknown)=>canonicalSource(a)===canonicalSource(b);
@@ -37,15 +38,26 @@ export class ServerCheckStore {
   return {workspace:(await client.query('SELECT name FROM workspaces WHERE id=$1',[workspace])).rows[0].name,workspaceId:workspace,collectorHash:fingerprint,assets:(await client.query("SELECT id,normalized_value AS hostname FROM assets WHERE workspace_id=$1 AND type='linux_server' ORDER BY created_at,id",[workspace])).rows};
  });}
  async authorize(credential:unknown,input:unknown){const request=checkRequest(input);return this.auth().withServerOwner(credential,async(client,user,workspace)=>{
-  await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[workspace]);
+  await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1::uuid::text,0))',[workspace]);
   const previous=(await client.query('SELECT * FROM server_check_executions WHERE workspace_id=$1 AND user_id=$2 AND request_id=$3',[workspace,user.id,request.requestId])).rows[0];
   if(previous){if(!equal(previous.request,request))throw new CliError('request_conflict',409);return this.view(previous);}
   if(request.window&&(this.now()<Date.parse(request.window.starts_at_utc)||this.now()>=Date.parse(request.window.ends_at_utc)))throw new CliError('window_inactive',409);
   const count=(await client.query('SELECT count(*) FROM server_check_executions WHERE workspace_id=$1',[workspace])).rows[0].count;
   if(Number(count)>=32)throw new CliError('execution_capacity',409);
-  const fingerprint=await this.finalizer.preflight();
   let asset=(await client.query("SELECT id,normalized_value,type FROM assets WHERE workspace_id=$1 AND "+(request.assetId?'id=$2':'normalized_value=$2')+' FOR SHARE',[workspace,request.assetId??request.hostname])).rows[0];
   if(asset&&(asset.type!=='linux_server'||asset.normalized_value!==request.hostname))throw new CliError('wrong_hostname',409);
+  if(!asset&&request.assetId)throw new CliError('asset_not_found',404);
+  // CLI registration and the browser share one durable source allowance. Check
+  // it before issuing collection authority, including for over-cap old plans.
+  try {
+   const plan=await acceptedWorkspacePlan(client,workspace);
+   if(plan)await requireLinuxSourceLimit(client,workspace,plan.policy.limits.linuxImportSources,asset?0:1);
+  } catch(error) {
+   if(error instanceof ApiError&&error.status===409)throw new CliError('linux_source_capacity',409);
+   if(error instanceof ApiError&&error.status===503)throw new CliError('plan_unavailable',503);
+   throw error;
+  }
+  const fingerprint=await this.finalizer.preflight();
   if(!asset){if(request.assetId)throw new CliError('asset_not_found',404);if(Number((await client.query('SELECT count(*) FROM assets WHERE workspace_id=$1',[workspace])).rows[0].count)>=20)throw new CliError('asset_capacity',409);asset={id:randomUUID()};await client.query("INSERT INTO assets(id,workspace_id,type,normalized_value) VALUES($1,$2,'linux_server',$3)",[asset.id,workspace,request.hostname]);}
   const id=randomUUID(),time=Math.floor(this.now()/1000)*1000,start=request.window?.starts_at_utc??new Date(time).toISOString().replace('.000Z','Z'),end=request.window?.ends_at_utc??new Date(time+30*60_000).toISOString().replace('.000Z','Z');
   if(request.window&&(time<Date.parse(start)||time>=Date.parse(end)))throw new CliError('window_inactive',409);
