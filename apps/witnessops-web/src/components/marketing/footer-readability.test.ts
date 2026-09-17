@@ -23,8 +23,8 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.match(source, /text-text-secondary/);
   assert.match(source, /text-xs leading-5 text-text-secondary/);
   assert.doesNotMatch(source, /Bounded reconstruction|Ograniczona rekonstrukcja/);
-  assert.match(source, /max-w-\[320px\] text-sm leading-relaxed text-text-secondary/);
-  assert.doesNotMatch(source, /REPEATABLE EVIDENCE\. INDEPENDENT FINDINGS\./);
+  assert.match(source, /max-w-\[320px\] text-sm leading-relaxed text-\[#b89b62\]/);
+  assert.match(source, /REPEATABLE\. INDEPENDENT\./);
   assert.match(source, /FOOTER_NAV_STYLE/);
   assert.match(source, /FOOTER_DISPLAY_STYLE/);
   assert.match(source, /fontFamily: "var\(--font-sans\)"/);
@@ -68,7 +68,8 @@ test("footer contact route keeps a concise credential-handling boundary and disp
   assert.doesNotMatch(source, /No secrets|Bez sekretów/);
   assert.match(source, /style=\{\{ fontFamily: "var\(--font-display\)" \}\}/);
   assert.match(source, /min-h-11 w-full/);
-  assert.match(source, /border border-brand-accent bg-brand-accent/);
+  assert.match(source, /border-brand-accent bg-brand-accent/);
+  assert.match(source, /border-\[#b89b62\] bg-\[#b89b62\]/);
   assert.doesNotMatch(source, /border border-text-primary bg-text-primary/);
 });
 
@@ -78,7 +79,7 @@ test("footer brand lockup uses the approved geometric mark without decorative ef
   assert.match(source, /WitnessOpsMark/);
   assert.match(source, /variant="mark"/);
   assert.match(source, /tone="current"/);
-  assert.match(source, /className="shrink-0 text-text-primary"/);
+  assert.match(source, /className="shrink-0 text-\[#f5f1e8\]"/);
   assert.match(source, /className="public-shell public-footer border-t/);
   assert.match(source, /decorative/);
   assert.match(source, /data-footer-brand-lockup/);

@@ -21,6 +21,7 @@ interface PublicContactRouteProps {
   compact?: boolean;
   locale?: PublicLocale;
   primaryHref?: string;
+  premium?: boolean;
 }
 
 export function PublicContactRoute({
@@ -29,6 +30,7 @@ export function PublicContactRoute({
   compact = false,
   locale = "en",
   primaryHref: primaryHrefOverride,
+  premium = false,
 }: PublicContactRouteProps) {
   const polish = locale === "pl";
   const primaryHref =
@@ -69,6 +71,9 @@ export function PublicContactRoute({
   const compactSafetyNote = polish
     ? "Nie wysyłaj haseł, kluczy prywatnych, kluczy API, tokenów ani kodów odzyskiwania."
     : "Do not send passwords, private keys, API keys, tokens or recovery codes.";
+  const actionClass = premium
+    ? "border-[#b89b62] bg-[#b89b62] text-[#17130d]"
+    : "border-brand-accent bg-brand-accent text-text-inverse";
 
   if (compact) {
     return (
@@ -80,7 +85,7 @@ export function PublicContactRoute({
         <Link
           href={primaryHref}
           data-footer-review-cta
-          className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-md border border-brand-accent bg-brand-accent px-4 text-sm font-semibold uppercase tracking-[0.12em] text-text-inverse transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg"
+          className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-md border px-4 text-sm font-semibold uppercase tracking-[0.12em] transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg ${actionClass}`}
           style={{ fontFamily: "var(--font-display)" }}
         >
           {routeCta}

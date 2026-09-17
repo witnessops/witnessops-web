@@ -18,6 +18,7 @@ const FOOTER_LEGAL_LINK_CLASS =
   "inline-flex min-h-11 items-center rounded-sm text-xs leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
 const FOOTER_NAV_STYLE = { fontFamily: "var(--font-sans)", letterSpacing: "0" };
 const FOOTER_DISPLAY_STYLE = { fontFamily: "var(--font-display)" };
+const PREMIUM_FOOTER_SUBLINE = "REPEATABLE. INDEPENDENT.";
 
 type FooterLink = { label: string; href: string };
 
@@ -100,7 +101,7 @@ export function Footer({
   const reviewRequestHref = reviewRequestHrefForLocation(
     isPolishSurface ? "pl" : "en", path, searchParams,
   );
-  const content = isPolishSurface ? POLISH_FOOTER : { subline, links, legal_links };
+  const content = isPolishSurface ? POLISH_FOOTER : { subline: PREMIUM_FOOTER_SUBLINE, links, legal_links };
   const navigationLinks = content.links.filter((link) => !isFooterRequestHref(link.href));
   const groups = isPolishSurface ? [
     {
@@ -145,7 +146,7 @@ export function Footer({
   return (
     <footer
       id="site-footer"
-      className="public-shell public-footer border-t border-surface-border-strong bg-surface-bg simple-public-footer"
+      className="public-shell public-footer border-t border-[#2a261f] bg-[#0d0d0c] simple-public-footer"
       data-brand-footer="approved-2026-07-30"
       data-footer-surface={isLibraryPath(path) ? "library" : isPolishSurface ? "pl-buyer" : "en-buyer"}
     >
@@ -158,13 +159,13 @@ export function Footer({
               className="mb-2 inline-flex min-h-11 items-center gap-3 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
             >
               <WitnessOpsMark variant="mark" size="md" tone="current" decorative
-                className="shrink-0 text-text-primary" />
+                className="shrink-0 text-[#f5f1e8]" />
               <span className="text-sm font-semibold uppercase tracking-[0.12em] text-text-primary"
                 style={FOOTER_DISPLAY_STYLE}>
                 {brand_line}
               </span>
             </Link>
-            <p className="max-w-[320px] text-sm leading-relaxed text-text-secondary">
+            <p className="max-w-[320px] text-sm leading-relaxed text-[#b89b62]">
               {content.subline}
             </p>
           </div>
@@ -184,7 +185,7 @@ export function Footer({
           </div>
 
           <div className="order-2 min-w-0 lg:order-3">
-            <PublicContactRoute compact locale={isPolishSurface ? "pl" : "en"}
+            <PublicContactRoute compact premium locale={isPolishSurface ? "pl" : "en"}
               primaryHref={reviewRequestHref} />
           </div>
         </div>
