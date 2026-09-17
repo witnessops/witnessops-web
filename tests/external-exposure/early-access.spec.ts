@@ -25,7 +25,7 @@ for (const width of [1440, 390]) {
     await page.getByLabel('Public hostname', { exact: true }).fill(snapshot.target);
     await page.getByRole('button', { name: 'Run free check', exact: true }).click();
     await expect(save).toContainText('not automatically imported');
-    await expect(save).toContainText('by invitation');
+    await expect(save).toContainText('Workspace access requires an invitation');
     await expect(page.getByRole('button', { name: 'Download source JSON', exact: true })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Snapshot results' })).toContainText('Keep a copy before you leave.');
     const openWorkspace = save.getByRole('link', { name: 'Open workspace', exact: true });
@@ -38,10 +38,12 @@ for (const width of [1440, 390]) {
     expect(collections).toBe(1);
     await save.scrollIntoViewIfNeeded();
     await page.screenshot({ path: info.outputPath(`check-save-${width}.png`) });
-    await save.getByRole('link', { name: appDestination ? 'Need workspace access? →' : 'See workspace access', exact: true }).click();
+    await save.getByRole('link', { name: appDestination ? 'How workspace access works →' : 'See workspace access', exact: true }).click();
     await expect(page).toHaveURL(/\/early-access$/);
     await expect(page.getByRole('heading', { name: /Keep the evidence\.\s*See what changed\./, level: 1 })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Request workspace access →', exact: true })).toHaveAttribute('href', publicContactMailto('WitnessOps — Request workspace access'));
+    const createAccount = page.getByRole('link', { name: 'Create an account →', exact: true });
+    if (appDestination) await expect(createAccount).toHaveAttribute('href', new URL('/signup', appDestination).href);
+    else await expect(createAccount).toHaveCount(0);
     const journey = page.getByRole('region', { name: 'From a free check to a useful history' });
     await expect(journey.getByRole('listitem')).toHaveCount(3);
     await expect(journey).toContainText('Checks run only when you request them.');

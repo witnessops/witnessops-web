@@ -12,7 +12,6 @@ import {
 } from "@/lib/public-i18n";
 import { reviewRequestHrefForLocation } from "@/lib/review-request-context";
 
-const HOME_BRAND_LINE = "Proof beats memory.";
 
 interface NavbarProps {
   links: { label: string; href: string }[];
@@ -20,7 +19,7 @@ interface NavbarProps {
   announcement: { enabled: boolean; text: string; href: string };
 }
 
-export function Navbar({ links, announcement }: NavbarProps) {
+export function Navbar({ announcement }: NavbarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const navRef = useRef<HTMLElement>(null);
@@ -28,10 +27,17 @@ export function Navbar({ links, announcement }: NavbarProps) {
   const currentSearch = searchParams.toString();
   const polish = isPolishPath(currentPath);
   const logoHref = polish ? "/pl" : "/";
-  const effectiveLinks = polish ? [...POLISH_PUBLIC_NAV.links] : links;
+  const effectiveLinks = polish ? [...POLISH_PUBLIC_NAV.links] : [
+    { label: "How the app works", href: "/early-access" },
+    { label: "Expert help", href: "/catalog" },
+    { label: "Support", href: "/support" },
+    { label: "Price", href: "/pricing" },
+    { label: "Free check", href: "/check" },
+    { label: "Docs", href: "/docs" },
+  ];
   const effectiveCta = {
-    label: polish ? "Omów zakres przeglądu" : "Scope a review",
-    href: reviewRequestHrefForLocation(
+    label: polish ? "Omów zakres przeglądu" : "Open app",
+    href: !polish ? "https://app.witnessops.com/" : reviewRequestHrefForLocation(
       polish ? "pl" : "en",
       currentPath,
       searchParams,
@@ -113,7 +119,7 @@ export function Navbar({ links, announcement }: NavbarProps) {
       <nav
         ref={navRef}
         aria-label={polish ? "Nawigacja główna" : "Primary navigation"}
-        className="mobile-brand-navbar public-shell sticky top-0 z-50 border-b border-surface-border bg-surface-bg pt-[env(safe-area-inset-top)] text-text-primary lg:pt-0"
+        className="mobile-brand-navbar public-shell simple-public-navbar sticky top-0 z-50 border-b border-surface-border bg-surface-bg pt-[env(safe-area-inset-top)] text-text-primary lg:pt-0"
       >
         <div className="mx-auto flex max-w-content flex-wrap items-center justify-between px-4 py-2 sm:px-6 lg:flex-nowrap lg:py-4">
           <Link
@@ -129,25 +135,11 @@ export function Navbar({ links, announcement }: NavbarProps) {
               className="text-text-primary"
             />
             <span
-              className="hidden text-sm font-semibold uppercase leading-none tracking-[0.14em] text-text-primary lg:inline"
+              className="text-xs font-medium uppercase leading-none tracking-[0.18em] text-text-primary"
               style={{ fontFamily: "var(--font-display)" }}
               aria-hidden="true"
             >
               {brandLabel}
-            </span>
-            <span
-              aria-hidden="true"
-              className="inline-block -translate-y-px text-[0.7rem] font-semibold tracking-[0.035em] text-text-primary transition-colors group-hover:text-brand-accent lg:hidden"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              {HOME_BRAND_LINE}
-            </span>
-            <span
-              aria-hidden="true"
-              className="ml-2 hidden border-l border-surface-border pl-4 text-[0.68rem] font-medium tracking-[0.04em] text-text-muted transition-colors group-hover:text-text-secondary 2xl:inline"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              {HOME_BRAND_LINE}
             </span>
           </Link>
 

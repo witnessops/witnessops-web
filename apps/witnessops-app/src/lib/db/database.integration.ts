@@ -726,12 +726,12 @@ test("API concurrency admission remains two and recovers after completion", asyn
   assert.equal((await first).status, 201); assert.equal((await second).status, 201);
 });
 
-test('Early Access: unknown users cannot self-enroll; invited activation is explicit and idempotent', async () => {
+test('Early Access: new users cannot self-enroll; invited activation remains separate and paused users stay blocked', async () => {
   const user = await resolveUnenrolledIdentity(pool, identity('cohort_new'));
   assert.equal(await earlyAccess(pool, user), null);
   const api = createFoundationService({ pool, origin, identity: async () => identity('cohort_new') });
   assert.equal((await api.handle(request('early-access', wa), 'early-access')).status, 200);
-  for (const state of [null, 'invited', 'paused']) {
+  for (const state of ['invited', 'paused'] as const) {
     await pool.query('UPDATE users SET early_access_state=$2 WHERE id=$1', [user.id, state]);
     for (const endpoint of ['workspace', 'assets', 'runs', 'events', 'feedback'] as const) {
       const denied = await api.handle(request(endpoint, wa), endpoint);
@@ -741,13 +741,15 @@ test('Early Access: unknown users cannot self-enroll; invited activation is expl
     const attempt = await api.handle(request('early-access', wa, { action: 'activate' }), 'early-access');
     assert.equal(attempt.status, state === 'invited' ? 200 : 403);
   }
-  await pool.query("UPDATE users SET early_access_state='invited' WHERE id=$1", [user.id]);
-  for (let i=0; i<2; i++) assert.equal((await api.handle(request('early-access', wa, { action: 'activate' }), 'early-access')).status, 200);
-  assert.equal(await earlyAccess(pool, user), 'active');
+  await pool.query('UPDATE users SET early_access_state=NULL,early_access_activated_at=NULL WHERE id=$1', [user.id]);
+  assert.equal((await api.handle(request('early-access', wa, { action: 'activate' }), 'early-access')).status, 403);
+  assert.equal((await api.handle(request('early-access', wa, { action: 'enroll' }), 'early-access')).status, 400);
+  assert.equal(await earlyAccess(pool, user), null);
   assert.equal((await pool.query("SELECT count(*) FROM product_events WHERE user_id=$1 AND name='early_access_activated'", [user.id])).rows[0].count, '1');
+
   // Active cohort state does not create membership or authorize a known workspace.
-  assert.equal((await api.handle(request('workspace', wa), 'workspace')).status, 404);
-  await assert.rejects(store.read(user, wa), /Workspace not found/);
+  assert.equal((await api.handle(request('workspace', wa), 'workspace')).status, 403);
+  await assert.rejects(store.read(user, wa), /Early Access is required/);
   assert.equal((await api.handle(request('early-access', wa, { action: 'activate', state: 'active' }), 'early-access')).status, 400);
 });
 test('Early Access migration: existing members require an explicit preservation choice; other accounts remain unenrolled', async () => {

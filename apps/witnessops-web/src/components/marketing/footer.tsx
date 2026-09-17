@@ -12,7 +12,6 @@ const DOCS_PUBLIC_HREF = "/docs";
 const DOCS_PL_HREF = "/pl/docs";
 const MEDIA_KIT_HREF = "/media-kit";
 const GITHUB_PROFILE_HREF = "https://github.com/witnessops";
-const FOOTER_MOTTO = "Proof beats memory.";
 const FOOTER_LINK_CLASS =
   "inline-flex min-h-11 items-center rounded-sm text-sm font-medium leading-5 text-text-secondary underline-offset-4 transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-bg";
 const FOOTER_LEGAL_LINK_CLASS =
@@ -103,7 +102,7 @@ export function Footer({
   );
   const content = isPolishSurface ? POLISH_FOOTER : { subline, links, legal_links };
   const navigationLinks = content.links.filter((link) => !isFooterRequestHref(link.href));
-  const groups = [
+  const groups = isPolishSurface ? [
     {
       label: isPolishSurface ? "Usługi" : "Services",
       links: navigationLinks.filter((link) => SERVICE_NAV_HREFS.has(link.href)),
@@ -112,6 +111,21 @@ export function Footer({
       label: isPolishSurface ? "Zasoby" : "Resources",
       links: navigationLinks.filter((link) => !SERVICE_NAV_HREFS.has(link.href)),
     },
+  ] : [
+    { label: "Product", links: [
+      { label: "How the app works", href: "/early-access" },
+      { label: "Expert help", href: "/catalog" },
+      { label: "Price", href: "/pricing" },
+      { label: "Free check", href: "/check" },
+      { label: "Open app", href: "https://app.witnessops.com/" },
+    ] },
+    { label: "Resources", links: [
+      { label: "Docs", href: DOCS_PUBLIC_HREF },
+      { label: "Sample work", href: "/review/sample-cases" },
+      { label: "Research", href: "/research" },
+      { label: "Verify a receipt", href: "/verify" },
+      { label: "Support help", href: "/support" },
+    ] },
   ];
 
   function renderLink(link: FooterLink, className: string) {
@@ -131,7 +145,7 @@ export function Footer({
   return (
     <footer
       id="site-footer"
-      className="public-shell public-footer border-t border-surface-border-strong bg-surface-bg"
+      className="public-shell public-footer border-t border-surface-border-strong bg-surface-bg simple-public-footer"
       data-brand-footer="approved-2026-07-30"
       data-footer-surface={isLibraryPath(path) ? "library" : isPolishSurface ? "pl-buyer" : "en-buyer"}
     >
@@ -193,8 +207,6 @@ export function Footer({
           <div className="flex flex-wrap items-center gap-x-2 text-xs leading-5 text-text-secondary">
             {isPublicBuildLabel(build_label) ? <span>{build_label}</span> : null}
             <span>{copyright}</span>
-            <span aria-hidden="true">·</span>
-            <span data-footer-motto="proof-beats-memory">{FOOTER_MOTTO}</span>
           </div>
         </div>
       </div>

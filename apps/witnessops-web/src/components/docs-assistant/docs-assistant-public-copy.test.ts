@@ -26,13 +26,13 @@ test("Ask WitnessOps surfaces describe AI questions within the public-input boun
   ]) {
     const content = source(filename);
     assert.match(content, /Ask WitnessOps|ASK WITNESSOPS/);
-    assert.match(content, filename === "docs-assistant-page.tsx" ? /AI guide to finding the right next step/ : filename === "docs-assistant-widget.tsx" ? /Tell me what happened/ : new RegExp(subtitle));
-    assert.match(content, filename !== "docs-assistant-inline.tsx" ? /Tell me what happened/ : questionIntro);
+    assert.match(content, filename === "docs-assistant-page.tsx" ? /AI guide to finding the right next step/ : filename === "docs-assistant-widget.tsx" ? /Public product guide/ : new RegExp(subtitle));
+    assert.match(content, filename === "docs-assistant-widget.tsx" ? /Try a product question/ : filename === "docs-assistant-page.tsx" ? /Tell me what happened/ : questionIntro);
     assert.match(content, new RegExp(warning));
     assert.match(content, /AskAiDisclosure/);
     assert.match(source("ask-ai-disclosure.tsx"), providerDisclosure);
     assert.doesNotMatch(content, /provider storage disabled/);
-    assert.match(content, new RegExp(placeholder.replaceAll(".", "\\.")));
+    assert.match(content, filename === "docs-assistant-widget.tsx" ? /Ask a product question/ : new RegExp(placeholder.replaceAll(".", "\\.")));
     assert.match(content, filename === "docs-assistant-page.tsx" ? /"Send"/ : /Ask AI/);
     assert.match(content, /aria-label="Ask WitnessOps question"/);
     assert.match(content, /maxLength=\{2_000\}/);
@@ -64,7 +64,7 @@ test("Ask WitnessOps retains the answer text when a suggested review is shown", 
   assert.doesNotMatch(widget, /!hasPaidScopeCta\s*&&\s*\(\s*<p className=\{styles\.answerCopy\}/);
   assert.match(page, /\{msg\.content\}\s*<\/p>\s*\{msg\.answer && \(/);
   assert.match(inline, /\{askWitnessOpsAnswerText\(response\)\}\s*<\/p>\s*<AskWitnessOpsCommercialFitCard/);
-  assert.match(widget, /Tell me what happened/);
+  assert.match(widget, /Try a product question/);
   assert.match(widget, /Ask a follow-up/);
   assert.match(widget, /Start over/);
 });

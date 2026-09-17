@@ -252,11 +252,13 @@ function ReportPage({ workspace, run }: { workspace: Workspace; run: Run }) {
 }
 
 function SignInLinks() {
-  return <div className="actions">{["Continue with Google", "Continue with email"].map((label, index) => (
-    // AuthKit starts a full document navigation, not a prefetched client route.
-    // eslint-disable-next-line @next/next/no-html-link-for-pages
-    <a className={index ? "button secondary" : "button"} href="/login" key={label}>{label}</a>
-  ))}</div>;
+  // AuthKit starts full document navigations, not prefetched client routes.
+  return <div className="actions">
+    {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+    <a className="button" href="/signup">Create account</a>
+    {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+    <a className="button secondary" href="/login">Sign in</a>
+  </div>;
 }
 
 function Missing({ title = "Not found" }: { title?: string }) {
@@ -334,7 +336,7 @@ export function ProductApp() {
   if (access !== undefined) {
     content = <AccessGate state={access} busy={busy} activate={() => void perform(async () => { await request("/api/early-access", "POST", { action: "activate" }); setState(await request<WorkspaceState>("/api/workspace")); setAccess(undefined); router.push("/"); })} />;
   } else if (!state) {
-    content = <div className="welcome"><p className="eyebrow">WitnessOps · Checks</p><h1>Sign in to WitnessOps</h1><p>Open your saved results, check again after a change, and compare the evidence. Workspace access is currently by invitation.</p>{loading ? <p role="status">Loading workspace…</p> : <><SignInLinks /><p className="quiet">Choose your sign-in method on the secure WorkOS sign-in screen.</p><div className="actions"><a className="text-action" href="https://witnessops.com/check">Run a free check without an account →</a><a className="text-action" href="https://witnessops.com/early-access">Request workspace access →</a></div></>}</div>;
+    content = <div className="welcome"><p className="eyebrow">WitnessOps · Checks</p><h1>Open WitnessOps</h1><p>Create an account or sign in to return to saved evidence. Workspace access currently requires an invitation.</p>{loading ? <p role="status">Loading workspace…</p> : <><SignInLinks /><p className="quiet">Account authentication is handled on the secure WorkOS screen.</p><div className="actions"><a className="text-action" href="https://witnessops.com/check">Run a free check without an account →</a></div></>}</div>;
   } else if (!workspace) {
     content = state.workspaces.length ? <div className="welcome"><h1>Open workspace</h1><ul className="ledger">{state.workspaces.map(item => <li key={item.id}><button className="button secondary" onClick={() => void perform(async () => { setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, item.id)); router.push("/"); })}>{item.name}</button></li>)}</ul></div> : <div className="welcome"><h1>Create workspace</h1><p>Organize your External Exposure Check and One Server Security Check results here. A name helps you organize assets. It does not verify company identity.</p><form className="asset-form" onSubmit={event => { event.preventDefault(); const key = creationKey || crypto.randomUUID(); setCreationKey(key); void perform(async () => { setState(await request<WorkspaceState>("/api/workspace", "POST", { name: workspaceName, requestId: key })); router.push("/"); }); }}><label htmlFor="workspace-name">Workspace name</label><input id="workspace-name" value={workspaceName} maxLength={100} required onChange={event => { setWorkspaceName(event.target.value); setCreationKey(""); }} /><button className="button" disabled={busy || !workspaceName.trim()}>Create workspace</button></form></div>;
   } else if (!parts.length) {

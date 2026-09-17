@@ -24,9 +24,7 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.match(source, /text-xs leading-5 text-text-secondary/);
   assert.doesNotMatch(source, /Bounded reconstruction|Ograniczona rekonstrukcja/);
   assert.match(source, /max-w-\[320px\] text-sm leading-relaxed text-text-secondary/);
-  assert.match(source, /data-footer-motto="proof-beats-memory"/);
-  assert.match(source, /Proof beats memory\./);
-  assert.match(source, /FOOTER_MOTTO/);
+  assert.doesNotMatch(source, /REPEATABLE EVIDENCE\. INDEPENDENT FINDINGS\./);
   assert.match(source, /FOOTER_NAV_STYLE/);
   assert.match(source, /FOOTER_DISPLAY_STYLE/);
   assert.match(source, /fontFamily: "var\(--font-sans\)"/);
@@ -37,11 +35,6 @@ test("footer keeps readable text contrast and sizing", () => {
   assert.match(
     source,
     /lg:grid-cols-\[minmax\(0,1fr\)_minmax\(0,1\.15fr\)_minmax\(0,1fr\)\]/,
-  );
-  assert.doesNotMatch(
-    source,
-    /data-footer-motto="proof-beats-memory"[\s\S]{0,180}text-center/,
-    "Footer motto should stay with the copyright instead of becoming an orphaned centered row.",
   );
   assert.match(globals, /footer\.public-shell\.public-footer\[data-brand-footer\]/);
   assert.match(globals, /background: var\(--color-surface-bg\)/);
@@ -111,8 +104,6 @@ test("footer provides Polish homepage labels without changing route contracts", 
     'label: "Prywatność", href: "/privacy"',
     'label: "Warunki", href: "/terms"',
     'label: "Bezpieczeństwo", href: "/security"',
-    'FOOTER_MOTTO',
-    "Proof beats memory.",
   ]) {
     assert.ok(source.includes(marker), `Missing Polish footer marker: ${marker}`);
   }

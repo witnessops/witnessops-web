@@ -60,13 +60,12 @@ const canonicalChrome = {
 } as const;
 
 const activeNavigationHref = new Map<string, string>([
-  ["/review/request", "/review/request"],
+  ["/support", "/support"],
   ["/pl/review/request", "/pl/review/request"],
   ["/catalog", "/catalog"],
   ["/pl/catalog", "/pl/catalog"],
   ["/docs", "/docs"],
   ["/pl/docs", "/pl/docs"],
-  ["/why-witnessops", "/why-witnessops"],
   ["/pl/why-witnessops", "/pl/why-witnessops"],
 ]);
 
@@ -484,7 +483,7 @@ test("mobile review request keeps the conversion form clear and legible", async 
     const response = await page.goto("/review/request", { waitUntil: "networkidle" });
 
     expect(response?.status()).toBe(200);
-    await expect(page.getByRole("heading", { name: "Tell us what you need reviewed" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "One question. Non-secret details only." })).toBeVisible();
     await expect(page.getByRole("button", { name: "Ask WitnessOps" })).toHaveCount(0);
 
     const headerGeometry = await page.locator("nav.public-shell").evaluate((nav) => {

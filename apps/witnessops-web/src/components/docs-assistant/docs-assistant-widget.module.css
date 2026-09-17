@@ -989,3 +989,30 @@
     animation: none;
   }
 }
+
+/* Shared public guide: compact controls around a flexible, scrollable thread. */
+.dialog { --proof-bg: #121316; --proof-raised: #191a1e; --receipt-paper: #0c0d10; --receipt-sheet: #0c0d10; --receipt-rule: #2a2b30; }
+.chrome { align-items: start; border-bottom: 0; }
+.chromeTitle { font-family: var(--font-sans); font-size: 16px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.chromeSubtitle { font-family: var(--font-sans); font-size: 12px; line-height: 1.5; letter-spacing: 0; margin-top: 6px; }
+.promptTitle { font-size: 12px; line-height: 1.5; font-weight: 400; color: var(--proof-muted); letter-spacing: 0; }
+.guidedRows { display: flex; flex-wrap: wrap; gap: 8px; border: 0; }
+.guidedRow, .guidedRow:last-child { display: inline-flex; width: auto; min-height: 44px; padding: 10px 12px; border: 1px solid var(--proof-rule-strong); border-radius: 24px; }
+.guidedLabel { font-size: 12px; font-weight: 400; }
+.answerSheet { border: 0; border-radius: 12px; }
+.answerSheetChrome { background: transparent; border-bottom: 0; font-family: var(--font-sans); font-size: 11px; text-transform: none; }
+.answerCopy { font-size: 14px; line-height: 1.6; }
+.visitorQuestion { width: fit-content; max-width: 90%; margin-left: auto; padding: 10px 12px; border: 0; border-radius: 12px; background: var(--proof-raised); }
+.composer { padding-top: 0; }
+.utilityLinks { margin-top: 0; gap: 16px; }
+.utilityLink { min-height: 44px; font-family: var(--font-sans); font-size: 12px; font-weight: 400; text-decoration: none; }
+.utilityLink:hover { text-decoration: underline; }
+.safetyLine { border: 0; padding: 0; font-size: 11px; }
+.askForm { align-items: center; gap: 4px; padding: 4px; border: 1px solid var(--proof-rule-strong); border-radius: 12px; background: var(--proof-raised); }
+.askInput { min-height: 44px; border: 0; background: transparent; border-radius: 8px; }
+.askSubmit { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; width: 44px; padding: 0; border-radius: 8px; }
+.trigger { width: auto; min-width: 76px; height: 44px; padding: 0 16px; gap: 8px; border-radius: 8px; border-color: var(--proof-rule); background: #191a1e; color: var(--proof-ink); box-shadow: none; }
+.trigger:hover { background: var(--proof-raised); color: var(--proof-ink); }
+.triggerLabel { display: inline; font-family: var(--font-sans); font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+.triggerDot { width: 6px; height: 6px; border-radius: 50%; background: var(--proof-accent); }
+@media(min-width: 40rem) { .dialog { height: min(672px, calc(100dvh - 48px)); border-radius: 24px; } .dialogBody { padding-top: 8px; } }

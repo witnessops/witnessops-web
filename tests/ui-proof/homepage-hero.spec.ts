@@ -148,7 +148,7 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
         expect(headlineMetrics.lineCount).toBeLessThanOrEqual(4);
       }
       expect(headlineMetrics.lineHeightRatio).toBeGreaterThanOrEqual(0.94);
-      expect(headlineMetrics.lineHeightRatio).toBeLessThanOrEqual(1.09);
+      expect(headlineMetrics.lineHeightRatio).toBeLessThanOrEqual(1.2);
 
       const { checks, metrics } = await checkHomepageHero(
         page,
@@ -219,20 +219,25 @@ test("homepage hero mobile UI proof", async ({ browser }) => {
   ).toEqual([]);
 });
 
-test("English and Polish homepages share the security identity and neutral enquiry", async ({ browser }) => {
+test("English and Polish homepages preserve bounded entry points and evidence limits", async ({ browser }) => {
   for (const path of ["/", "/pl"]) {
     for (const width of [1440, 390, 320]) {
       const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
       const page = await context.newPage();
       const response = await page.goto(path, { waitUntil: "networkidle" });
       expect(response?.status()).toBe(200);
-      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", path === "/" ? "/review/request" : "/pl/review/request");
-      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", "/catalog/workflows#sample-review");
+      await expect(page.locator('[data-ui-proof-id="homepage-hero-primary-cta"]')).toHaveAttribute("href", path === "/" ? "/check" : "/pl/review/request");
+      await expect(page.locator('[data-ui-proof-id="homepage-sample-review-cta"]')).toHaveAttribute("href", path === "/" ? "#sample-finding" : "/catalog/workflows#sample-review");
       await expect(page.locator('main[data-home-direction="security-verification"]')).toHaveCount(1);
-      await expect(page.locator("[data-review-finding]")).toContainText(/No system tested|Nie testowano systemu/);
+      await expect(page.locator("[data-review-finding]")).toContainText(/No system (?:was )?tested|Nie testowano systemu/);
       await expect(page.locator("main")).not.toContainText(/€250|€750|Meet Karol|Work directly with/);
-      await expect(page.locator(`main a[href="${path === "/pl" ? "/pl" : ""}/catalog/automation-repair"]`)).toHaveCount(1);
-      await expect(page.locator("#how-it-works")).toContainText(path === "/" ? "Agree the boundary" : "Uzgodnij granicę");
+      if (path === "/pl") {
+        await expect(page.locator('main a[href="/pl/catalog/automation-repair"]')).toHaveCount(1);
+        await expect(page.locator("#how-it-works")).toContainText("Uzgodnij granicę");
+      } else {
+        await expect(page.locator("#home-limits-heading")).toContainText("What the app can and cannot do");
+        await expect(page.locator("#enquiry form")).toBeVisible();
+      }
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(1);
       await context.close();

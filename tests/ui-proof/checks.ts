@@ -105,9 +105,9 @@ export async function checkHomepageHero(
     .getAttribute("href")
     .catch(() => null);
   const expectedFitCheckHref =
-    "/review/request";
+    new URL(page.url()).pathname.startsWith("/pl") ? "/pl/review/request" : "/check";
   checks.push({
-    name: "primary CTA opens the non-secret action-security fit check",
+    name: "primary CTA opens the supported check or enquiry entry",
     status: primaryCtaHref === expectedFitCheckHref ? "pass" : "fail",
     severity,
     expected: expectedFitCheckHref,
@@ -119,7 +119,7 @@ export async function checkHomepageHero(
     .first()
     .getAttribute("href")
     .catch(() => null);
-  const expectedDemoHref = "/catalog/workflows#sample-review";
+  const expectedDemoHref = new URL(page.url()).pathname.startsWith("/pl") ? "/catalog/workflows#sample-review" : "#sample-finding";
   checks.push({
     name: "sample CTA opens the sample review finding",
     status: demoCtaHref === expectedDemoHref ? "pass" : "fail",

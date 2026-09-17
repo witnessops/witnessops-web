@@ -114,7 +114,7 @@ export default async function DocsLayout({
 
   return (
     <DocsLayoutFrame
-      navigation={<><DocsPathExitTracker /><DocsNavbar docs={searchDocs} /></>}
+      navigation={<div className="contents"><DocsPathExitTracker /><DocsNavbar docs={searchDocs} /></div>}
       sidebar={<DocsSidebar sections={publicSidebar} />}
     >{children}</DocsLayoutFrame>
   );
