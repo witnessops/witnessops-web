@@ -14,18 +14,31 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     const user = { id: "user-fixture", displayName: "Acme Owner" };
     const state = () => ({ user, workspaces: ws ? [{ id: ws.id, name: ws.name, slug: ws.slug, role: ws.role }] : [], workspace: ws });
     const errors: string[] = [];
-    page.on("pageerror", e => errors.push(e.message));
+    page.on("pageerror", e => errors.push(`${new URL(page.url()).pathname}: ${e.message}`));
     // An empty in-flight set can precede React's effects. Before hard navigation,
-    // require this document's feedback load and current route event to FINISH,
+    // require this mount's feedback load and current route event to FINISH,
     // then drain other activity. Keep failed requests and page errors observable.
     const activity = new Set<Request>();
     const completedActivity = new Set<string>();
+    const activityMount = new Map<Request, number>();
+    let mount = 0;
     const eventKey = (name: string, runId: string, checkId: string | null = null) => JSON.stringify([name, runId, checkId]);
     page.on("request", request => {
-      if (["/api/feedback", "/api/events"].includes(new URL(request.url()).pathname)) activity.add(request);
+      const path = new URL(request.url()).pathname;
+      // ProductApp's initial workspace fetch has no workspace header. A client
+      // navigation can remount it without replacing the document. Refreshes
+      // after asset/run mutations carry the header and keep ProductActivity.
+      if (path === "/api/workspace" && request.method() === "GET" && !request.headers()["x-witnessops-workspace"]) {
+        mount++; completedActivity.clear();
+      }
+      if (["/api/feedback", "/api/events"].includes(path)) {
+        activity.add(request); activityMount.set(request, mount);
+      }
     });
     page.on("requestfinished", request => {
       if (!activity.delete(request)) return;
+      const requestMount = activityMount.get(request); activityMount.delete(request);
+      if (requestMount !== mount) return;
       const path = new URL(request.url()).pathname;
       if (path === "/api/feedback" && request.method() === "GET") completedActivity.add("feedback");
       if (path === "/api/events" && request.method() === "POST") {
@@ -33,10 +46,13 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         completedActivity.add(eventKey(name, runId, checkId));
       }
     });
-    page.on("requestfailed", request => activity.delete(request));
+    page.on("requestfailed", request => { activity.delete(request); activityMount.delete(request); });
     const settleActivity = async () => {
       if (ws) {
-        await expect.poll(() => completedActivity.has("feedback"), { message: "This document's feedback load must finish before navigation" }).toBe(true);
+        // The initial workspace request must already have run before its passive
+        // effects can be awaited; a loading remount is not the previous mount.
+        await expect(page.locator(".workspace-name")).toHaveText(ws.name);
+        await expect.poll(() => completedActivity.has("feedback"), { message: "This mount's feedback load must finish before navigation" }).toBe(true);
         const parts = new URL(page.url()).pathname.split("/").filter(Boolean);
         const run = ws.runs.find(run => run.id === parts[1]);
         const key = !run ? null
@@ -46,6 +62,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         if (key) await expect.poll(() => completedActivity.has(key), { message: "The current route's activity event must finish before navigation" }).toBe(true);
       }
       await expect.poll(() => activity.size, { message: "Activity fixture requests must settle before navigation" }).toBe(0);
+      expect(errors).toEqual([]);
     };
     const open = async (path: string) => { await settleActivity(); completedActivity.clear(); await page.goto(path); };
     await page.route("**/api/**", async route => {
