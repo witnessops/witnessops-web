@@ -16,6 +16,7 @@ for(const synthetic of [true,false]) for(const width of [1440,390]) test(`Linux 
   const run:LinuxCheckRun={id:'linux-run',assetId:'linux-asset',createdAt:'2026-09-11T12:00:00Z',sourceDigest:model.identity.sourceDigest,proofRunId:checked.proof_run_id,verifierVersion:checked.verifier_version,profileId:'linux_baseline_v1',outcome:checked.outcome,synthetic,observedHostname:'demo-host',observedAt:model.subject.observedAt,sourceAssetId:'asset-demo-host-001',machineIdentity:null};
   const ws:Workspace={id:'workspace-a',name:'Synthetic workspace',slug:'workspace-a',role:'owner',assets:[],runs:[],linuxRuns:[],members:[]};
   let imports=0,reopens=0,collections=0;
+  const downloads:string[]=[];
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/api/**',async route=>{
     const req=route.request(),url=new URL(req.url());
@@ -23,10 +24,19 @@ for(const synthetic of [true,false]) for(const width of [1440,390]) test(`Linux 
     if(url.pathname==='/api/feedback') return route.fulfill({json:[]});
     if(url.pathname==='/api/assets') {const data=req.postDataJSON();expect(data.type).toBe('linux_server');ws.assets.push({id:'linux-asset',hostname:data.hostname,type:data.type,createdAt:run.createdAt});return route.fulfill({status:201,json:ws.assets[0]});}
     if(url.pathname==='/api/linux-checks') {
+      expect(req.headers()['x-witnessops-workspace']).toBe(ws.id);
       if(req.method()==='POST') {
         // Playwright's intercepted multipart postData omits file bytes. Exact
         // transport/storage custody is exercised by the PostgreSQL/API suite.
         imports++;ws.linuxRuns=[run];return route.fulfill({status:201,json:run});
+      }
+      expect(url.searchParams.get('id')).toBe(run.id);
+      const artifact=req.headers()['x-witnessops-artifact'];
+      if(artifact) {
+        expect(['zip','signature']).toContain(artifact);
+        downloads.push(artifact);
+        const suffix=artifact==='signature'?'.sig.json':'';
+        return route.fulfill({body:readFileSync(path+suffix),contentType:artifact==='zip'?'application/zip':'application/json',headers:{'content-disposition':`attachment; filename="${name+suffix}"`}});
       }
       reopens++; return route.fulfill({json:{run,model}});
     }
@@ -47,6 +57,17 @@ for(const synthetic of [true,false]) for(const width of [1440,390]) test(`Linux 
   await expect(page.locator('main')).not.toContainText(synthetic ? 'Live server check' : 'Synthetic check');
   await expect(page.locator('main')).toContainText('does not establish');
   await expect(page.locator('main')).toContainText(model.identity.sourceDigest);
+  for(const [label,suffix] of [['Download original ZIP',''],['Download detached signature','.sig.json']]) {
+    const ready=page.waitForEvent('download');
+    await page.getByRole('button',{name:label,exact:true}).click();
+    const download=await ready;
+    expect(download.suggestedFilename()).toBe(name+suffix);
+    const downloadedPath=await download.path();
+    expect(downloadedPath).toBeTruthy();
+    expect(readFileSync(downloadedPath!)).toEqual(readFileSync(path+suffix));
+  }
+  expect(downloads).toEqual(['zip','signature']);
+  await expect(page.getByRole('link',{name:'Open report',exact:true})).toHaveAttribute('href','/reports/linux-run');
   await page.screenshot({path:info.outputPath('linux-reopened-report.png'),fullPage:true});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.reload();await expect(page.getByRole('heading',{name:'Saved check',exact:true})).toBeVisible();
@@ -78,6 +99,14 @@ for(const width of [1440,390]) test(`Linux comparison qualification and three la
   for(const name of ['Environment','Coverage','Uncertainty'])await expect(page.getByRole('heading',{name,exact:true})).toBeVisible();
   await expect(page.locator('.change-panel')).toContainText('Update cache freshness is not established');
   await expect(page.getByRole('link',{name:'Open comparison baseline →'})).toHaveAttribute('href','/runs/baseline');
+  const history=page.locator('.linux-history .ledger-row');
+  await expect(history).toHaveCount(2);
+  await expect(history.nth(0)).toHaveAttribute('href','/runs/current');
+  await expect(history.nth(1)).toHaveAttribute('href','/runs/baseline');
+  await expect(history.nth(0).locator('time').nth(0)).toHaveAttribute('datetime',current.snapshot.source.observedAt);
+  await expect(history.nth(0).locator('time').nth(0)).toContainText('UTC');
+  await expect(history.nth(0).locator('time').nth(1)).toHaveAttribute('datetime',current.createdAt);
+  await expect(history.nth(0).locator('time').nth(1)).toContainText('12:01 UTC');
   await page.screenshot({path:info.outputPath('linux-comparison.png'),fullPage:true});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   // Next dev/React Strict Mode may replay the mount effect once. Both requests
