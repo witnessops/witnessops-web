@@ -12,8 +12,14 @@ for (const name of ['build-image', 'release']) test(`${name}: independent gate a
   assert.match(build, /type=oci,dest=/);
   assert.equal((build.match(/docker buildx build/g) ?? []).length, 1);
   assert.match(build, /pnpm --filter witnessops-web build/); // Standalone build retained.
-  assert.match(build, /git rev-parse HEAD/);
-  assert.match(build, /GATE_SOURCE_COMMIT/);
+  assert.match(build, /ADMITTED_SHA: \$\{\{ needs.supply_chain_gate.outputs.commit_sha \}\}/);
+  assert.match(build, /ADMISSION_RESULT: \$\{\{ needs.supply_chain_gate.result \}\}/);
+  assert.match(build, /ADMISSION_STATUS: \$\{\{ needs.supply_chain_gate.outputs.status \}\}/);
+  assert.match(build, /ADMITTED_LOCK_SHA256: \$\{\{ needs.supply_chain_gate.outputs.lockfile_sha256 \}\}/);
+  const helper = read('tools/supply-chain-gate/verify_install_admission.py');
+  assert.ok(helper.includes('["git", "rev-parse", "HEAD"]'));
+  assert.ok(helper.includes('require(head == admitted'));
+  assert.match(build, /verify_install_admission\.py/);
   assert.match(verify, /permissions:\n      contents: read\n/);
   assert.doesNotMatch(verify, /packages: write|id-token: write|secrets\.|environment:/);
   for (const section of [verify, publish]) {

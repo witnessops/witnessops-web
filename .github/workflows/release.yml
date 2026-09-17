@@ -90,9 +90,19 @@ jobs:
 
       - name: Confirm the gate and build use the same authorized commit
         env:
+          ADMISSION_RESULT: ${{ needs.supply_chain_gate.result }}
+          ADMISSION_STATUS: ${{ needs.supply_chain_gate.outputs.status }}
+          ADMITTED_SHA: ${{ needs.supply_chain_gate.outputs.commit_sha }}
+          ADMITTED_LOCK_SHA256: ${{ needs.supply_chain_gate.outputs.lockfile_sha256 }}
+          # The shared guard binds to the authorized release source, not dispatch main.
+          EVENT_SHA: ${{ needs.resolve_version.outputs.commit_sha }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+          EVENT_NAME: ${{ github.event_name }}
           EXPECTED_SOURCE_COMMIT: ${{ needs.resolve_version.outputs.commit_sha }}
           GATE_SOURCE_COMMIT: ${{ needs.supply_chain_gate.outputs.commit_sha }}
         run: |
+          set -euo pipefail
+          [[ "${EVENT_NAME}" == "repository_dispatch" ]] || exit 1
           actual_source_commit="$(git rev-parse HEAD)"
           if [[ ! "${EXPECTED_SOURCE_COMMIT}" =~ ^[0-9a-f]{40}$ ]] || \
              [[ "${actual_source_commit}" != "${EXPECTED_SOURCE_COMMIT}" ]] || \
@@ -100,6 +110,13 @@ jobs:
             echo "::error::release source identity changed between resolution, gate, and build"
             exit 1
           fi
+          [[ "${WORKFLOW_SHA}" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          [[ "${WORKFLOW_SHA}" != "0000000000000000000000000000000000000000" ]] || exit 1
+          # Load trusted workflow-revision code even when the release tag predates it.
+          guard_path="$(mktemp "${RUNNER_TEMP}/release-admission.XXXXXX.py")"
+          trap 'rm -f "${guard_path}"' EXIT
+          git show "${WORKFLOW_SHA}:tools/supply-chain-gate/verify_install_admission.py" > "${guard_path}"
+          python3 -I "${guard_path}"
 
       - name: Set up pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
