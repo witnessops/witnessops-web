@@ -1,5 +1,10 @@
 # Early Access cohort: learn before the next build
 
+The [2026-09-17 product direction](FREE_CHECK_PRODUCT_JOURNEY.md) prioritizes the
+free check, saved history and a separately scoped paid review. Early Access is a
+release status; the manual admission and learning procedures below remain useful.
+Recurring product pricing and any new paid-check offer remain undecided.
+
 Early Access infrastructure is ready. Product discovery and next-phase development continue.
 
 ## Purpose and boundaries
@@ -117,10 +122,10 @@ After use, select a few questions conversationally; do not front-load a survey:
 7. What do you currently use for this job?
 8. What would make this worth paying for?
 9. If this disappeared tomorrow, what would you miss?
-10. Would you pay €49 for a one-time deeper check of this asset?
+10. Would you request a deeper review of this asset with an agreed scope and price?
 
-Record stated intent separately from demonstrated behavior. The existing €49
-one-time offer is a research prompt, not payment integration or a sale. Do not
+Record stated intent separately from demonstrated behavior. This question is
+a research prompt, not payment integration or a sale. Do not
 wire Stripe, initiate checkout or infer willingness to pay from report views.
 
 ## Private per-user record and weekly summary
@@ -256,7 +261,7 @@ one narrow learning experiment rather than choose a large build.
 | Scheduling / notifications / Linux Server Watch | Users demonstrate repeat value but miss returns, or need repeated server-state evidence. Separate reminder need from continuous collection. |
 | Linux Server Check / Windows Server Check | Concrete before/after maintenance evidence jobs; choose OS from actual user environments (including MSP/Intune needs). |
 | Investigate This Change | Repeat comparisons lead to the same unanswered interpretation/investigation job. |
-| €49 paid check / deeper governed review | Users understand current value and request deeper analysis, a customer deliverable or payment; test stated intent before integrating checkout. |
+| Separately scoped paid review | Users understand current value and request deeper analysis, a customer deliverable or a quote; record stated intent separately from payment. |
 | Controlled update / patch verification later | Repeated consequential maintenance jobs with clear authority/evidence needs; execution requires its own future design and authorization. |
 
 Brief: strongest job, supporting users/actions, contradictory evidence, willingness

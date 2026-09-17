@@ -93,7 +93,7 @@ test('source download and the immutable report use the same identity and print d
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/check');
   await collect(page);
-  await page.getByText('Source data and report details', { exact: true }).click();
+  // The source can be kept directly from the result without opening details.
   const downloadEvent = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download source JSON' }).click();
   const download = await downloadEvent;

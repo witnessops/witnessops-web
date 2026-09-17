@@ -2,9 +2,10 @@ import { test, expect } from '@playwright/test';
 import { externalExposureAdapter, validateExternalSnapshot } from '../../apps/witnessops-web/src/lib/external-exposure/adapter';
 import { cleanSnapshotFixture } from './fixture';
 import { publicContactMailto } from '../../apps/witnessops-web/src/lib/public-contact';
+import { EXTERNAL_ATTACK_SURFACE_OFFER } from '../../apps/witnessops-web/src/lib/commercial-truth';
 
 for (const width of [1440, 390]) {
-  test(`public Early Access page and explicit saved-baseline handoff at ${width}`, async ({ page, baseURL }, info) => {
+  test(`free check, workspace access and paid review handoff at ${width}`, async ({ page, baseURL }, info) => {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
     const snapshot = validateExternalSnapshot(cleanSnapshotFixture());
     const model = externalExposureAdapter(snapshot);
@@ -19,19 +20,36 @@ for (const width of [1440, 390]) {
       unexpected.push(path); return route.abort();
     });
     await page.goto('/check');
-    const save = page.getByRole('link', { name: 'Start a saved check', exact: true });
+    const save = page.getByRole('region', { name: 'Save a persistent baseline' });
     await expect(save).toHaveCount(0); expect(collections).toBe(0);
     await page.getByLabel('Public hostname', { exact: true }).fill(snapshot.target);
     await page.getByRole('button', { name: 'Run free check', exact: true }).click();
-    await expect(save).toHaveAttribute('href', '/early-access');
-    await expect(page.getByRole('region', { name: 'Save a persistent baseline' })).toContainText('not automatically imported');
+    await expect(save).toContainText('not automatically imported');
+    await expect(save).toContainText('by invitation');
+    await expect(page.getByRole('button', { name: 'Download source JSON', exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Snapshot results' })).toContainText('Keep a copy before you leave.');
+    const openWorkspace = save.getByRole('link', { name: 'Open workspace', exact: true });
+    const appDestination = await openWorkspace.count() ? await openWorkspace.getAttribute('href') : null;
+    if (appDestination) {
+      const destination = new URL(appDestination);
+      expect(destination.pathname).toBe('/'); expect(destination.search).toBe(''); expect(destination.hash).toBe('');
+      expect(destination.href).not.toContain(snapshot.target);
+    }
     expect(collections).toBe(1);
     await save.scrollIntoViewIfNeeded();
     await page.screenshot({ path: info.outputPath(`check-save-${width}.png`) });
-    await save.click();
+    await save.getByRole('link', { name: appDestination ? 'Need workspace access? →' : 'See workspace access', exact: true }).click();
     await expect(page).toHaveURL(/\/early-access$/);
     await expect(page.getByRole('heading', { name: /Keep the evidence\.\s*See what changed\./, level: 1 })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Request Early Access', exact: true })).toHaveAttribute('href', publicContactMailto('WitnessOps — Request Early Access'));
+    await expect(page.getByRole('link', { name: 'Request workspace access →', exact: true })).toHaveAttribute('href', publicContactMailto('WitnessOps — Request workspace access'));
+    const journey = page.getByRole('region', { name: 'From a free check to a useful history' });
+    await expect(journey.getByRole('listitem')).toHaveCount(3);
+    await expect(journey).toContainText('Checks run only when you request them.');
+    if (appDestination) await expect(page.getByRole('link', { name: 'Open workspace →', exact: true })).toHaveAttribute('href', appDestination);
+    else await expect(page.getByRole('link', { name: 'Open workspace →', exact: true })).toHaveCount(0);
+    const review = page.getByRole('region', { name: 'Need help deciding what to fix?' });
+    await expect(review).toContainText(EXTERNAL_ATTACK_SURFACE_OFFER.price.en);
+    await expect(review.getByRole('link', { name: 'See the review scope →', exact: true })).toHaveAttribute('href', EXTERNAL_ATTACK_SURFACE_OFFER.route.en);
     const choices=page.getByRole('region',{name:'Choose what to check'});
     for(const name of ['External Exposure Check','One Server Security Check'])await expect(choices.getByRole('heading',{name,exact:true})).toBeVisible();
     await expect(choices).toContainText('setup is operator-assisted');
@@ -53,5 +71,5 @@ test('failed public collection does not offer a saved baseline', async ({ page }
   await page.getByLabel('Public hostname', { exact: true }).fill('example.com');
   await page.getByRole('button', { name: 'Run free check', exact: true }).click();
   await expect(page.locator('main').getByRole('alert')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Start a saved check', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Save a persistent baseline' })).toHaveCount(0);
 });
