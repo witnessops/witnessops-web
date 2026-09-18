@@ -125,11 +125,11 @@ test("runBuyerPathSmoke uses fetch headers and evaluates each route without shel
   assert.equal(results[0]?.ok, true);
 });
 
-test("homepage contracts preserve broad security positioning and fictional-evidence labels", () => {
+test("homepage contracts preserve the free-check journey, limits and Polish sample labels", () => {
   const english = routeContract("/");
-  assert.ok(english.requiredMarkers.includes("Find security gaps in your systems."));
-  assert.ok(english.requiredMarkers.includes("Verify or repair a workflow"));
-  assert.ok(english.requiredMarkers.includes("Fictional example · No system tested"));
+  assert.ok(english.requiredMarkers.includes("Start a free check"));
+  assert.ok(english.requiredMarkers.includes("The app cannot"));
+  assert.ok(english.requiredMarkers.includes("Free checks need no account. Workspace access requires an invitation."));
   const polish = routeContract("/pl");
   assert.ok(polish.requiredMarkers.includes("Zweryfikuj działanie AI"));
   assert.ok(polish.requiredMarkers.includes("Fikcyjny przykład · Nie testowano systemu"));
@@ -174,7 +174,8 @@ test("catalogue smoke preserves the primary and secondary offer hierarchy", () =
 
 test("request smoke markers use the current fit and start-work boundaries", () => {
   const generic = routeContract("/review/request");
-  assert.ok(generic.requiredMarkers.includes("What the fit check establishes"));
+  assert.ok(generic.requiredMarkers.includes("Submit non-secret enquiry"));
+  assert.ok(generic.requiredMarkers.includes("Next, confirm your email with a code."));
   assert.ok(
     generic.requiredMarkers.includes(
       "No work or target-facing check starts from this form.",
@@ -287,4 +288,20 @@ test("stateless confirmation smoke checks loading shells without claiming verifi
     ),
   );
   assert.ok(polish.prohibitedMarkers?.includes("Request verified"));
+});
+
+
+test("removing signup, billing or enquiry limits fails the buyer smoke gate", () => {
+  for (const [path, marker] of [
+    ["/", "Free checks need no account. Workspace access requires an invitation."],
+    ["/docs", "Signup is free. Workspace access requires an invitation. No card is required."],
+    ["/pricing", "No payment is taken here."],
+    ["/review/request", "No work or target-facing check starts from this form."],
+  ]) {
+    const route = routeContract(path);
+    const body = route.requiredMarkers.filter(value => value !== marker).join("\n");
+    const result = evaluateBuyerPathRoute(route, "https://witnessops.com", 200, body);
+    assert.equal(result.ok, false, path);
+    assert.ok(result.missingMarkers.includes(marker), path);
+  }
 });

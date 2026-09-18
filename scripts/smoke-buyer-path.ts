@@ -27,7 +27,7 @@ export type BuyerPathSmokeResult = {
 export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/",
-    requiredMarkers: ["WitnessOps", "Security Verification &amp; Evidence", "Find security gaps in your systems.", "Fictional example · No system tested", "Approval not evidenced.", "Scope a review", "Verify or repair a workflow"],
+    requiredMarkers: ["WitnessOps", "See what’s exposed.", "Understand what changed.", "Start a free check", "Free checks need no account. Workspace access requires an invitation.", "The app can", "The app cannot", "Useful evidence.", "Explicit limits.", "Submit non-secret enquiry"],
     prohibitedMarkers: ["VALID_SYNTHETIC_SPECIMEN", "guaranteed fix", "Agent Risk &amp; Control Review", "€1,500"],
   },
   {
@@ -128,12 +128,14 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
     path: "/docs",
     requiredMarkers: [
       "Documentation",
-      "Check a receipt first",
+      "Start with the app",
+      "Signup is free. Workspace access requires an invitation. No card is required.",
+      "CLI setup and authentication",
       "Try an example",
       "The default example is indeterminate",
       "were not independently checked",
       "Buyer path",
-      "Start a review",
+      "Get started",
       "Verify a receipt",
       "Browse by area",
       "do not claim complete runtime truth",
@@ -280,9 +282,13 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/pricing",
     requiredMarkers: [
-      "Automation Repair &amp; Handover", "€250 diagnosis",
-      "Know the scope. Know the price.",
-      "Services and prices",
+      "App access and named reviews.",
+      "Illustrative draft. App prices are not a live product claim.",
+      "No payment is taken here.",
+      "Observe", "Compare", "Workspace", "Preview a plan to explore the draft. Selection applies only to this page.",
+      "Creating an account is free; workspace access currently requires an invitation.",
+      "A plan does not authorise a scan or establish that a system is secure.",
+      "One Server Security Check", "€950 standard · excluding VAT",
       "Scope a review",
       "Agent Action Security Review",
       "€2,500 fixed · excluding VAT",
@@ -454,7 +460,7 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
       "It uses passive discovery where applicable, followed by explicitly approved, low-impact checks against the signed target schedule.",
       "No exploitation",
       "This is not a penetration test.",
-      "Scope this review",
+      "Request this review",
       "See a sample review",
     ],
     prohibitedMarkers: [
@@ -518,21 +524,11 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/request",
     requiredMarkers: [
-      "Tell us what you need reviewed",
-      "Review Request",
-      "Start with a short, non-secret fit check.",
-      "What do you need reviewed?",
-      "Situation and affected system",
-      "Boundary and approval",
-      "Evidence available",
-      "Do not submit secrets",
-      "Send fit check",
-      "What the fit check establishes",
+      "One question. Non-secret details only.", "Your name", "Work email", "Which path?", "What needs checking?",
+      "Do not send passwords, private keys, API keys, recovery codes, session tokens or customer evidence in an initial enquiry.",
+      "Next, confirm your email with a code.", "Submit non-secret enquiry",
+      'action="/api/review/request"',
       "No work or target-facing check starts from this form.",
-      "No customer evidence is accepted until scope is agreed.",
-      "Not a production deployment claim.",
-      "Not a legal compliance claim.",
-      "Not a complete AI governance program.",
     ],
     prohibitedMarkers: [
       "Four fields.",
@@ -602,10 +598,8 @@ export const buyerPathSmokeRoutes: BuyerPathSmokeRoute[] = [
   {
     path: "/review/request?productId=OFFSEC-PILOT",
     requiredMarkers: [
-      "Tell us what you need reviewed",
-      "Start with a short, non-secret fit check.",
+      "One question. Non-secret details only.", "Which path?", "Submit non-secret enquiry",
       "No work or target-facing check starts from this form.",
-      "What the fit check establishes",
     ],
     prohibitedMarkers: [
       "Selected offer:",
