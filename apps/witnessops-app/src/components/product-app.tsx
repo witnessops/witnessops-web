@@ -16,6 +16,8 @@ import { WitnessOpsMark } from "@witnessops/ui/witnessops-mark";
 import { BuyerReportDocument } from "../../../witnessops-web/src/components/proofpack/buyer-report";
 import { useBuyerReportPrint } from "../../../witnessops-web/src/components/proofpack/buyer-report-print";
 import { savedRunReport } from "../lib/report-model";
+import { AppHelp } from "./app-help";
+import { helpPage } from "../lib/help-context";
 import { logout } from "../app/actions/logout";
 import { canonicalSource } from "../lib/source-digest";
 import { nextAction, observationFacts, observationSummary } from "../lib/observation-presentation";
@@ -429,6 +431,7 @@ export function ProductApp() {
         <Link className="wordmark" href="/" aria-label="WitnessOps overview"><WitnessOpsMark size="sm" decorative /> WitnessOps</Link>
         <div className="desktop-navigation">{navigation}</div>
         <span className="early-access-pill">Early Access</span>
+        <AppHelp key={`${workspace?.id ?? "account"}:${helpPage(pathname)}`} page={helpPage(pathname)} />
         {state ? <form action={logout} className="header-signout"><button className="text-button" aria-label="Sign out of WitnessOps">Sign out</button></form> : null}
         <button ref={menuButton} className="menu-toggle" aria-expanded={navOpen} aria-controls="mobile-navigation" onClick={() => setNavOpen(!navOpen)} aria-label={navOpen ? "Close navigation" : "Open navigation"}>{navOpen ? "×" : "☰"}</button>
       </div>

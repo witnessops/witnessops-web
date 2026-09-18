@@ -124,6 +124,11 @@ Before customer activation: apply migration 0016 with appropriate runtime table 
 
 Share retention is bounded per workspace to 128 records and 16 MiB, in addition to the creation-rate limit. New previews opportunistically remove unpublished previews older than one hour and links expired/revoked for more than 30 days. Active links are not removed by cleanup; all retained published links remain in the revoke list.
 
+## App Help
+
+The top-right Help panel reuses the documentation-answer runtime and conversation scrolling. Only the explicit question and an allowlisted generic page category reach the provider; no workspace/report/member payload, browser route identifier, transcript history or public-widget analytics is attached. Questions are independent. Conversation state is memory-only and resets on workspace/page-category change. The panel offers documentation and an unfilled human-contact email draft even when AI guidance is unavailable. No operational action tools exist on this endpoint.
+
+Provider calls require the separate `WITNESSOPS_APP_HELP_ENABLED=1` gate as well as the existing approved documentation-assistant configuration. Nothing enables or copies provider credentials automatically. Before enabling hosted guidance, validate the documentation corpus against the current signup, membership, Share and sandbox-only billing behavior; earlier invitation-gated or commercial guidance must not be treated as current. Route-fixture tests do not establish actual provider/corpus acceptance. Rate limiting is per authenticated identity, instance-local and best effort, reusing the existing limiter.
 ## Sandbox workspace billing
 
 Billing is opt-in with `WITNESSOPS_BILLING_SANDBOX=1`; this implementation rejects live Stripe keys and live events. Signup remains cardless and does not create a Stripe customer. Checkout creates one customer for the selected workspace only when its current Owner explicitly chooses a configured plan. No illustrative public catalogue amount is hard-coded.
