@@ -17,7 +17,7 @@
   }
   if (document.querySelector("script[data-cf-beacon]")) return;
   const script = document.createElement("script");
-  script.type = "module";
+  script.defer = true;
   script.src = "https://static.cloudflareinsights.com/beacon.min.js";
   // Prevent the beacon from observing subsequent client-side private routes.
   script.dataset.cfBeacon = JSON.stringify({ token: "94fea6b3ed28494399eb8b38345e650c", spa: false });
@@ -26,9 +26,13 @@
   // intact while preventing the React/Next delegated SPA handler from running.
   document.addEventListener("click", (event) => {
     const anchor = event.target instanceof Element ? event.target.closest("a[href]") : null;
-    if (anchor && new URL(anchor.href, window.location.href).origin === url.origin) {
-      event.stopImmediatePropagation();
-    }
+    if (!anchor) return;
+    const destination = new URL(anchor.href, window.location.href);
+    const current = new URL(window.location.href);
+    // Let same-page citations keep their React focus/scroll behavior.
+    if (destination.origin === current.origin && destination.pathname === current.pathname &&
+        destination.search === current.search && destination.hash) return;
+    if (destination.origin === url.origin) event.stopImmediatePropagation();
   }, true);
   document.head.appendChild(script);
 })();

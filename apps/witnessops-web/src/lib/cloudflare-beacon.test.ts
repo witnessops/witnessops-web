@@ -5,7 +5,7 @@ import { runInNewContext } from "node:vm";
 
 const source = readFileSync(new URL("../../public/witnessops-analytics.js", import.meta.url), "utf8");
 function load(href: string, existing = false, referrer = "") {
-  const scripts: { type?: string; src?: string; dataset: Record<string, string> }[] = [];
+  const scripts: { type?: string; defer?: boolean; src?: string; dataset: Record<string, string> }[] = [];
   runInNewContext(source, { URL, window: { location: { href } }, document: {
     referrer, addEventListener: () => {},
     querySelector: () => existing ? {} : null,
@@ -18,6 +18,8 @@ test("public production documents load the existing site beacon once with SPA co
   for (const path of ["/", "/pricing", "/docs/install", "/support", "/privacy"]) {
     const scripts = load(`https://witnessops.com${path}`);
     assert.equal(scripts.length, 1);
+    assert.notEqual(scripts[0].type, "module");
+    assert.equal(scripts[0].defer, true);
     assert.equal(scripts[0].src, "https://static.cloudflareinsights.com/beacon.min.js");
     assert.equal(JSON.parse(scripts[0].dataset.cfBeacon).spa, false);
   }
@@ -38,4 +40,27 @@ test("private and query-bearing referrers do not leave via a public-page beacon"
     assert.equal(load("https://witnessops.com/", false, referrer).length, 0);
   }
   assert.equal(load("https://witnessops.com/", false, "https://witnessops.com/pricing").length, 1);
+});
+
+
+test("same-document citations retain handlers while other same-origin links unload the beacon", () => {
+  let listener: (event: unknown) => void = () => assert.fail("missing click handler");
+  class Anchor {
+    constructor(public href: string) {}
+    closest() { return this; }
+  }
+  runInNewContext(source, { URL, Element: Anchor, window: { location: { href: "https://witnessops.com/docs/install" } }, document: {
+    referrer: "", querySelector: () => null,
+    createElement: () => ({ dataset: {} }), head: { appendChild: () => {} },
+    addEventListener: (_name: string, handler: typeof listener) => { listener = handler; },
+  } });
+  for (const [href, expected] of [
+    ["#install", false], ["https://witnessops.com/docs/install#install", false],
+    ["/docs/install?token=private#install", true], ["/admin#private", true],
+    ["/pricing", true], ["https://example.com/", false],
+  ] as const) {
+    let stopped = false;
+    listener({ target: new Anchor(href), stopImmediatePropagation: () => { stopped = true; } });
+    assert.equal(stopped, expected, href);
+  }
 });
