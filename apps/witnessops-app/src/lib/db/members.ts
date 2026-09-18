@@ -5,6 +5,7 @@ import { transaction } from './pool';
 import { requireActiveAccount } from './access';
 import { requireWorkspaceMembership } from './workspaces';
 import { membershipLock } from './membership-lock';
+import { workspaceEntitlement } from './billing-entitlements';
 import { acceptedWorkspacePlan } from './plan-admission';
 import type { AppUser } from './identity';
 import { ApiError, requireId } from '../errors';
@@ -20,7 +21,8 @@ async function expire(client: PoolClient, workspace: string) { await client.quer
 async function capacity(client: PoolClient, workspace: string, extra: number) {
   await expire(client, workspace);
   const plan = await acceptedWorkspacePlan(client, workspace);
-  const limit = plan?.kind === 'historical' ? Math.min(10, plan.policy.limits.seats) : 10;
+  const entitlement = await workspaceEntitlement(client, workspace);
+  const limit = plan?.kind === 'historical' ? Math.min(10, plan.policy.limits.seats) : entitlement.seats;
   const row = (await client.query("SELECT (SELECT count(*) FROM memberships WHERE workspace_id=$1 AND status='active' AND revoked_at IS NULL)+(SELECT count(*) FROM workspace_invitations WHERE workspace_id=$1 AND state='pending' AND expires_at>now()) AS occupied", [workspace])).rows[0];
   if (Number(row.occupied) + extra > limit) throw new ApiError(409, `This workspace has reached its ${limit}-place invitation limit.`);
 }
