@@ -163,7 +163,11 @@ export function DocsSearch({ docs, onClose }: DocsSearchProps) {
           layerContext: target.layerTitle,
         });
         onClose();
-        router.push(target.href);
+        if (document.querySelector("script[data-cf-beacon]")) {
+          window.location.assign(target.href);
+        } else {
+          router.push(target.href);
+        }
       }
     },
     [flatResults, activeIndex, onClose, router]

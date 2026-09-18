@@ -44,7 +44,15 @@ test("routes-manifest matches the frozen baseline", () => {
       { key: "Cache-Control", value: "no-store" },
     ],
   }]);
-  assert.deepEqual({ ...manifest, headers: manifest.headers.filter(header => !["/proofpack", "/check"].includes(header.source)), staticRoutes: manifest.staticRoutes.filter(route => !addedOfferRoutes.some(path => path === route.page)) }, expected);
+  const analyticsSources = ["/", "/:section(pricing|privacy|terms|security|media-kit|why|support|review|docs|articles|research|services|catalog|library|why-witnessops)/:path*"];
+  const analyticsHeaders = manifest.headers.filter(header => analyticsSources.includes(header.source));
+  assert.equal(analyticsHeaders.length, 2);
+  const baseCsp = manifest.headers.find(header => header.source === "/:path*")!.headers.find(header => header.key === "Content-Security-Policy")!.value;
+  for (const header of analyticsHeaders) {
+    assert.deepEqual(header.headers, [{ key: "Content-Security-Policy", value: baseCsp.replace("script-src 'self'", "script-src 'self' https://static.cloudflareinsights.com/beacon.min.js").replace("connect-src 'self'", "connect-src 'self' https://cloudflareinsights.com/cdn-cgi/rum") }]);
+    for (const excluded of ["/admin", "/api/admin/workos/callback", "/check", "/proofpack", "/package/private", "/assessment/private", "/verify-token"]) assert.equal(new RegExp(header.regex).test(excluded), false);
+  }
+  assert.deepEqual({ ...manifest, headers: manifest.headers.filter(header => !["/proofpack", "/check", ...analyticsSources].includes(header.source)), staticRoutes: manifest.staticRoutes.filter(route => !addedOfferRoutes.some(path => path === route.page)) }, expected);
 });
 
 test("app-paths-manifest matches the frozen baseline", () => {
