@@ -81,6 +81,30 @@ for (const shape of ["clean", "attention", "long-evidence"] as const) {
     await expect(root).not.toContainText("PDF Workspace");
     await expect(root).not.toContainText("Sign out");
     const { textRuns } = await assertReportPdf(page, info);
+    // Guard the causal print rules as well as the generated artifact. A whole
+    // keep-together finding stranded its chapter heading on an almost empty page.
+    const finding = root.locator('.finding-follow-through').first().locator('..');
+    await expect(finding).toHaveCSS('break-inside', 'auto');
+    const nextSteps = root.locator('.report-next-steps');
+    await expect(nextSteps).toHaveCSS('font-size', '12px'); // 9pt, not screen spacing
+    await expect(nextSteps.locator('details')).toHaveAttribute('open', '');
+    const cover = root.locator('article > section').first();
+    await expect(cover).toHaveCSS('min-height', '0px');
+    if (shape === 'clean') {
+      // Measure at the actual A4 content width, not the browser viewport width.
+      const coverHeight = await root.locator('article').evaluate(article => {
+        const previous = article.getAttribute('style');
+        article.setAttribute('style', `${previous ?? ''};width:182mm;`);
+        const height = article.querySelector('section')!.getBoundingClientRect().height;
+        if (previous === null) article.removeAttribute('style');
+        else article.setAttribute('style', previous);
+        return height;
+      });
+      expect(coverHeight, 'Baseline summary and all its limits fit the A4 content area').toBeLessThanOrEqual(265 * 96 / 25.4);
+    }
+    // Source metadata must not split between the filename and final digest.
+    const metadata = root.locator('article section').filter({ has: page.getByRole('heading', { name: 'Unsigned source observations', exact: true }) }).last();
+    await expect(metadata.locator(':scope > p').first()).toHaveCSS('break-after', 'avoid');
     expect(textRuns.length).toBeGreaterThan(5);
     expect(canonicalSource(run)).toBe(before);
     expect(unexpected).toEqual([]);
