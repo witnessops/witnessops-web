@@ -128,9 +128,12 @@ test('source download and the immutable report use the same identity and print d
   await expect(chapterHeading).toHaveCSS('font-size', '36px');
   expect(await report.innerHTML()).toBe(before);
   expect(await report.locator('[class*="chapterFooter"]').evaluateAll(elements =>
-    elements.map(element => getComputedStyle(element).display !== 'none'))).toEqual([true, false, false, false, false]);
+    elements.map(element => getComputedStyle(element).display !== 'none'))).toEqual([false, false, false, false, false]);
   if (browserName === 'chromium') await page.pdf({ path: testInfo.outputPath('mock-external-snapshot.pdf'), format: 'A4', printBackground: true });
   await page.emulateMedia({ media: 'screen' });
+  // Print suppresses repeated decorative footers; screen content remains intact.
+  expect(await report.locator('[class*="chapterFooter"]').evaluateAll(elements =>
+    elements.map(element => getComputedStyle(element).display !== 'none'))).toEqual([true, true, true, true, true]);
   await page.setViewportSize({ width: 390, height: 844 });
   const mobileWidth = await page.evaluate(() => document.documentElement.clientWidth);
   expect(await report.boundingBox()).toMatchObject({ x: 8, width: mobileWidth - 16 });
