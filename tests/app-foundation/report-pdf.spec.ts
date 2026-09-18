@@ -68,7 +68,16 @@ for (const shape of ["clean", "attention", "long-evidence"] as const) {
     await page.getByRole("button", { name: "Save report as PDF", exact: true }).click();
     expect(await page.evaluate(() => (window as Window & { printCalls: number }).printCalls)).toBe(1);
     const root = page.locator("[data-buyer-print-root]");
-    expect(await root.locator("article").innerHTML()).toBe(await preview.innerHTML());
+    // The evidence and explanatory content must match; screen-only actions and drafts must not print.
+    const documentContent = (article: Element) => {
+      const copy = article.cloneNode(true) as Element;
+      copy.querySelectorAll('.finding-interactive').forEach(node => node.remove());
+      copy.querySelectorAll('[id], [tabindex], details[open]').forEach(node => { node.removeAttribute('id'); node.removeAttribute('tabindex'); node.removeAttribute('open'); });
+      return copy.innerHTML;
+    };
+    expect(await root.locator("article").evaluate(documentContent)).toBe(await preview.evaluate(documentContent));
+    await expect(root.locator('.finding-interactive')).toHaveCount(0);
+    await expect(root).toContainText('What to do next');
     await expect(root).not.toContainText("PDF Workspace");
     await expect(root).not.toContainText("Sign out");
     const { textRuns } = await assertReportPdf(page, info);

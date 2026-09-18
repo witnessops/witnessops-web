@@ -22,8 +22,10 @@ function Chapter({ number: index, label, title, children, product, dark = false 
     </section>;
 }
 
+export type ReportFollowThrough = { interactive?: boolean; summary: ReactNode; finding: (finding: ProofpackReportV1['findings'][number]) => ReactNode };
+
 /** Product-independent presentation. Browser preview and print use this same document. */
-export function BuyerReportDocument({ model, className = '' }: { model: ProofpackReportV1; className?: string }) {
+export function BuyerReportDocument({ model, className = '', followThrough }: { model: ProofpackReportV1; className?: string; followThrough?: ReportFollowThrough }) {
     if (!isBuyerReport(model)) return null;
     const sections = model.coverage;
     const complete = model.summary.coverage.complete;
@@ -69,16 +71,16 @@ export function BuyerReportDocument({ model, className = '' }: { model: Proofpac
                 <div><span>Owner decision</span><strong>Not recorded</strong><small>Verification does not grant approval</small></div>
             </div>}
             {checks && <p className={styles.fine} aria-label="Data validation and check summary">{model.verification.label}: Passed. {model.verification.method}. Recorded checks: {checks.total} total · {checks.total - checks.undetermined} determined outcomes · {checks.passed} Clear · {checks.needsAttention} need attention · {checks.informational} informational · {checks.undetermined} undetermined. These are individual results, not an overall security grade. Finding severities: {[...counts.map(s => `${model.summary.findings.severities[s]} ${s}`), ...(unassessed.length ? [`${unassessed.length} severity not assessed`] : [])].join(' · ') || 'No findings recorded'}.</p>}
-            {assessed.length > 0 || !unassessed.length ? <section className={styles.prioritySummary} aria-label="Priority findings">
+            {!followThrough && (assessed.length > 0 || !unassessed.length) ? <section className={styles.prioritySummary} aria-label="Priority findings">
                 <h3>Review first</h3>
                 <p className={styles.fine}>{unassessed.length ? 'Up to three severity-assessed findings by recorded severity. Unassessed findings are listed separately in chapter 03.' : 'Up to three findings by recorded severity. Full observations and limitations are in chapter 03.'}</p>
                 {priorities.length ? <ol>{priorities.map(finding => <li key={finding.id}><span>{readable(finding.severity)}</span><strong>{finding.title}</strong></li>)}</ol> : <p>No findings were recorded. This does not establish overall security.</p>}
             </section> : null}
-            {unassessed.length > 0 && <section className={styles.prioritySummary} aria-label="Unassessed findings"><h3>{informationalOnly ? "Informational observations" : "Severity not assessed"}</h3>{informationalOnly && <p>These observations provide context, not attention flags. Severity has not been assessed.</p>}<p>{unassessed.length} {unassessed.length === 1 ? 'finding is' : 'findings are'} recorded without an assessed severity. {unassessed.length > 3 ? `Showing 3 of ${unassessed.length} in` : 'Shown in'} recorded order, not severity-ranked: {unassessed.slice(0, 3).map((finding, i) => <Fragment key={finding.id}>{i > 0 && '; '}<strong>{finding.title}</strong></Fragment>)}. Full observations and limitations are in chapter 03.</p></section>}
-            <div className={styles.decisionSummary}>
+            {!followThrough && unassessed.length > 0 && <section className={styles.prioritySummary} aria-label="Unassessed findings"><h3>{informationalOnly ? "Informational observations" : "Severity not assessed"}</h3>{informationalOnly && <p>These observations provide context, not attention flags. Severity has not been assessed.</p>}<p>{unassessed.length} {unassessed.length === 1 ? 'finding is' : 'findings are'} recorded without an assessed severity. {unassessed.length > 3 ? `Showing 3 of ${unassessed.length} in` : 'Shown in'} recorded order, not severity-ranked: {unassessed.slice(0, 3).map((finding, i) => <Fragment key={finding.id}>{i > 0 && '; '}<strong>{finding.title}</strong></Fragment>)}. Full observations and limitations are in chapter 03.</p></section>}
+            {followThrough ? followThrough.summary : <div className={styles.decisionSummary}>
                 <section aria-label="Summary collection gaps"><h3>Collection gaps</h3><p>{gaps.length ? gaps.map(g => readable(g.label)).join(', ') + '. Review these gaps before deciding whether to collect more evidence.' : 'No collection gaps were recorded.'}</p></section>
                 <section aria-label="Suggested next action"><h3>Suggested next action</h3><p>{nextAction}{!informationalOnly && (priorities.length > 0 || unassessed.length > 0) && gaps.length > 0 ? ' Also arrange follow-up collection for the named gaps.' : ''}</p><p className={styles.fine}>Agree any changes with the responsible owner. No remediation is established here.</p></section>
-            </div>
+            </div>}
             <p className={styles.callout}>{model.verification.boundary}</p>
             <p className={styles.fine}>This report is a derived presentation of the source evidence.</p>
             <div className={styles.chapterFooter}><span>{REPORT_TEMPLATE}</span><span>READ THE RESULT. INSPECT THE EVIDENCE.</span></div>
@@ -93,17 +95,17 @@ export function BuyerReportDocument({ model, className = '' }: { model: Proofpac
         </Chapter>
 
         <Chapter product={product} number="03" label="THE FINDINGS" title={informationalOnly ? 'Informational observations' : unassessed.length ? 'Recorded findings' : 'What needs attention?'}>
-            <p className={styles.lead}>{findings.length ? `${findings.length} recorded findings, with observations and proposed next steps.` : 'No findings were recorded.'}</p>
+            <p id={followThrough && followThrough.interactive !== false ? "report-all-findings" : undefined} className={styles.lead}>{findings.length ? `${findings.length} recorded findings, with observations and proposed next steps.` : 'No findings were recorded.'}</p>
             <p className={styles.fine}>Recommendations are proposed follow-up work. No remediation is established by this report.</p>
             {displayedFindings.map((finding, i) => <Fragment key={finding.id}>
                 {unassessed.length > 0 && (i === 0 || i === assessed.length) && <h3>{finding.severity === null ? 'Severity not assessed' : 'Severity-assessed findings'}</h3>}
-                <section className={styles.finding}>
+                <section id={followThrough && followThrough.interactive !== false ? `report-finding-${findings.indexOf(finding) + 1}` : undefined} className={styles.finding}>
                 <div className={styles.findingMeta}><span>{number(i + 1)} / {number(findings.length)}</span>{finding.severity === null ? <span>{checks && finding.state === 'informational' ? 'Informational observation · severity not assessed' : 'Severity not assessed'}</span> : <span data-severity={finding.severity}>{readable(finding.severity)}</span>}<span>{readable(finding.state)}</span></div>
                 <h3>{finding.title}</h3>
-                <div className={styles.findingBody}><div><h4>Observed</h4><pre>{observation(finding.observation)}</pre></div><div><h4>Recommended next step</h4><p>{finding.recommendation ?? 'No recommended action recorded.'}</p></div></div>
+                {followThrough ? followThrough.finding(finding) : <><div className={styles.findingBody}><div><h4>Observed</h4><pre>{observation(finding.observation)}</pre></div><div><h4>Recommended next step</h4><p>{finding.recommendation ?? 'No recommended action recorded.'}</p></div></div>
                 {finding.interpretation && <div className={styles.findingLimit}><h4>Interpretation</h4><p>{finding.interpretation}</p></div>}
                 <div className={styles.findingLimit}><h4>What this establishes</h4><p>{finding.limitations.join(" ")}</p></div>
-                <p className={styles.evidenceRef}><strong>{finding.checkId ?? finding.id}</strong> · Evidence: {finding.evidence.join(', ')}</p>
+                </>}<p id={followThrough && followThrough.interactive !== false ? `report-evidence-${findings.indexOf(finding) + 1}` : undefined} tabIndex={followThrough ? -1 : undefined} className={styles.evidenceRef}><strong>{finding.checkId ?? finding.id}</strong> · Evidence: {finding.evidence.join(', ')}</p>
             </section></Fragment>)}
             {!findings.length && <p className={styles.callout}>An absence of findings does not establish overall security. Read the scope and proof boundary alongside this result.</p>}
         </Chapter>
