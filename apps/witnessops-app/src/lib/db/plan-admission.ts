@@ -3,19 +3,25 @@ import { isDeepStrictEqual } from 'node:util';
 import type { PoolClient } from 'pg';
 import { ApiError } from '../errors';
 import { acceptedPlanPolicy } from '../plan-policy';
+import { FREE_WORKSPACE_POLICY } from '../free-workspace';
 
 /** Admission callers hold current Owner authorization and the workspace lock.
  * No recorded plan preserves legacy admission; unrecognized terms do not. */
 export async function acceptedWorkspacePlan(client: PoolClient, workspaceId: string) {
+  const free = await client.query<{ policy_version: string }>('SELECT policy_version FROM free_workspace_plans WHERE workspace_id=$1', [workspaceId]);
   const result = await client.query<{ revision: number; terms_version: string | null; terms: unknown }>(`SELECT p.revision,c.terms_version,t.terms
     FROM early_access_plans p
     LEFT JOIN early_access_plan_consents c ON c.workspace_id=p.workspace_id AND c.revision=p.revision
     LEFT JOIN early_access_plan_terms t ON t.version=c.terms_version WHERE p.workspace_id=$1`, [workspaceId]);
   const plan = result.rows[0];
+  if (free.rows[0]) {
+    if (plan || free.rows[0].policy_version !== FREE_WORKSPACE_POLICY.version) throw new ApiError(503, 'The workspace access policy is unavailable.');
+    return { kind: 'free' as const, revision: null, policy: { limits: FREE_WORKSPACE_POLICY } };
+  }
   if (!plan) return null;
   const policy = plan.terms_version ? acceptedPlanPolicy(plan.terms_version) : undefined;
   if (!policy || !isDeepStrictEqual(plan.terms, policy)) throw new ApiError(503, 'The accepted plan terms are unavailable.');
-  return { revision: plan.revision, policy };
+  return { kind: 'historical' as const, revision: plan.revision, policy };
 }
 
 /** One registered Linux asset is one import source, including before its first

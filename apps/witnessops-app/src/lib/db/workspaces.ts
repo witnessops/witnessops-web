@@ -9,7 +9,8 @@ import { RECOMMENDED_PROFILE, type Workspace, type Run, type Asset, type Workspa
 import { linuxHostname } from "../linux-hostname";
 import { canonicalSource } from "../source-digest";
 import type { AppUser } from "./identity";
-import { requireEarlyAccess } from './access';
+import { requireWorkspaceAccess } from './access';
+import { FREE_WORKSPACE_POLICY, freeWorkspaceCeiling } from '../free-workspace';
 import { admitHostnameCheck } from './hostname-usage';
 import { acceptedWorkspacePlan, requireLinuxSourceLimit } from './plan-admission';
 
@@ -29,7 +30,7 @@ const digest = (source: string) => createHash("sha256").update(source, "utf8").d
  * Every resource query below has a workspace predicate after current membership.
  * Shared membership/user/workspace locks prevent revocation racing a transaction. */
 export async function requireWorkspaceMembership(client: PoolClient, user: AppUser, workspaceId: string, owner = false): Promise<MemberRow> {
-  await requireEarlyAccess(client, user, true);
+  await requireWorkspaceAccess(client, user, true);
   const result = await client.query<MemberRow>(`SELECT w.id, w.name, w.slug, m.role FROM memberships m
     JOIN workspaces w ON w.id=m.workspace_id JOIN users u ON u.id=m.user_id
     WHERE m.user_id=$1 AND m.workspace_id=$2 AND m.status='active' AND m.revoked_at IS NULL
@@ -41,10 +42,12 @@ export async function requireWorkspaceMembership(client: PoolClient, user: AppUs
 export class WorkspaceStore {
   constructor(readonly pool: Pool) {}
   async list(user: AppUser): Promise<WorkspaceSummary[]> {
-    await requireEarlyAccess(this.pool, user);
+    await requireWorkspaceAccess(this.pool, user);
     const result = await this.pool.query<MemberRow>(`SELECT w.id,w.name,w.slug,m.role FROM memberships m
       JOIN workspaces w ON w.id=m.workspace_id JOIN users u ON u.id=m.user_id
-      WHERE m.user_id=$1 AND m.status='active' AND m.revoked_at IS NULL AND w.status='active' AND u.status='active' AND u.early_access_state='active'
+      WHERE m.user_id=$1 AND m.status='active' AND m.revoked_at IS NULL AND w.status='active' AND u.status='active'
+      AND u.early_access_state IS DISTINCT FROM 'paused' AND (u.early_access_state='active' OR u.free_workspace_access)
+      AND NOT (u.early_access_state IS NULL AND u.early_access_activated_at IS NOT NULL)
       ORDER BY w.created_at,w.id`, [user.id]);
     return result.rows;
   }
@@ -52,19 +55,34 @@ export class WorkspaceStore {
     if (typeof name !== "string" || !name.trim() || name.trim().length > 100) throw new ApiError(400, "Enter a workspace name of 1–100 characters.");
     const key = requireId(requestId), displayName = name.trim();
     return transaction(this.pool, async client => {
-      await requireEarlyAccess(client, user);
-      const active = await client.query("SELECT id FROM users WHERE id=$1 AND status='active' AND early_access_state='active' FOR UPDATE", [user.id]);
+      const active = await client.query("SELECT id FROM users WHERE id=$1 AND status='active' FOR UPDATE", [user.id]);
       if (!active.rowCount) throw new ApiError(403, "This account is not active.");
+      await requireWorkspaceAccess(client, user);
       const retry = await client.query<{ id: string; name: string }>("SELECT id,name FROM workspaces WHERE created_by=$1 AND creation_key=$2", [user.id, key]);
       if (retry.rows[0]) {
         await requireWorkspaceMembership(client, user, retry.rows[0].id, true);
         if (retry.rows[0].name !== displayName) throw new ApiError(409, "This creation request was already used.");
         return retry.rows[0].id;
       }
+      const ceiling = freeWorkspaceCeiling();
+      if (ceiling !== null) {
+        if (!user.verifiedEmail) throw new ApiError(403, 'Verify your email before creating a workspace.');
+        const count = await client.query<{ count: string }>('SELECT count(*) FROM workspaces WHERE created_by=$1', [user.id]);
+        if (Number(count.rows[0].count) >= ceiling) throw new ApiError(409, `You can create up to ${ceiling} workspaces in this environment.`);
+      } else {
+        // Closing self-service must not permit existing free users to create
+        // unrecorded legacy workspaces through the old cohort path.
+        const free = await client.query('SELECT id FROM users WHERE id=$1 AND free_workspace_access', [user.id]);
+        if (free.rowCount) throw new ApiError(403, 'New workspace creation is currently unavailable.');
+      }
       const id = randomUUID();
       // Stable unique route identifier; the name/slug is not company verification.
       await client.query("INSERT INTO workspaces (id,name,slug,created_by,creation_key) VALUES ($1,$2,$3,$4,$5)", [id, displayName, `workspace-${id}`, user.id, key]);
       await client.query("INSERT INTO memberships (user_id,workspace_id,role) VALUES ($1,$2,'owner')", [user.id, id]);
+      if (ceiling !== null) {
+        await client.query('INSERT INTO free_workspace_plans(workspace_id,policy_version) VALUES ($1,$2)', [id, FREE_WORKSPACE_POLICY.version]);
+        await client.query('UPDATE users SET free_workspace_access=true WHERE id=$1', [user.id]);
+      }
       return id;
     });
   }
@@ -128,7 +146,7 @@ export class WorkspaceStore {
       await client.query(`INSERT INTO runs (id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version,started_at,created_at)
         VALUES ($1,$2,$3,$4,'external-snapshot-v1','running',$5,$6,coalesce($7::timestamptz,now()),coalesce($7::timestamptz,now()))`,
       [id, workspaceId, assetId, user.id, RECOMMENDED_PROFILE.id, RECOMMENDED_PROFILE.version, allowance?.admittedAt ?? null]);
-      if (allowance) await client.query(`INSERT INTO hostname_check_usage(run_id,workspace_id,consent_revision,admitted_at)
+      if (allowance?.revision != null) await client.query(`INSERT INTO hostname_check_usage(run_id,workspace_id,consent_revision,admitted_at)
         VALUES ($1,$2,$3,$4)`, [id, workspaceId, allowance.revision, allowance.admittedAt]);
       return id;
     });

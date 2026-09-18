@@ -11,7 +11,7 @@ import { authConfiguration } from "./auth-config";
 import { database } from "./db/pool";
 import { resolveIdentity, type Identity } from "./db/identity";
 import { WorkspaceStore } from "./db/workspaces";
-import { activateEarlyAccess, earlyAccess, requireEarlyAccess } from './db/access';
+import { activateEarlyAccess, earlyAccess, requireWorkspaceAccess } from './db/access';
 import { ActivityStore } from './db/activity';
 import { CLIENT_EVENTS, type ClientEvent, type ProductEvent } from './early-access';
 import type { AppUser } from './db/identity';
@@ -76,7 +76,7 @@ export function createFoundationService(options: {
         } else if (request.method !== 'GET') throw new ApiError(405, 'Method not supported.');
         return json({ state: await earlyAccess(pool, user) });
       }
-      await requireEarlyAccess(pool, user);
+      await requireWorkspaceAccess(pool, user);
       if (endpoint === "workspace" && request.method === "POST") {
         const input = await body(request, ["name", "requestId"]);
         const id = await store.create(user, input.name, input.requestId);

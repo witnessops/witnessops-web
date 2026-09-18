@@ -1,6 +1,6 @@
 # WitnessOps product foundation
 
-UX reference: `witnessops/witnessops-demo-ui` at `4887c0fc5f2ac6742de0f4c9e11cb11e8603ade4`. The app uses WorkOS AuthKit for identity/session and WitnessOps-owned PostgreSQL data for workspace access. This is a local development integration, not a deployed product.
+UX reference: `witnessops/witnessops-demo-ui` at `4887c0fc5f2ac6742de0f4c9e11cb11e8603ade4`. The app uses WorkOS AuthKit for identity/session and WitnessOps-owned PostgreSQL data for workspace access. Deployment state requires separate runtime evidence.
 
 ## Local setup
 
@@ -12,7 +12,21 @@ Use Node 22 and pnpm 9.15.4 from the monorepo root:
 4. Run `pnpm --filter @witnessops/app db:migrate`. This explicitly loads `.env.local` and uses **only DATABASE_MIGRATION_URL**. No migrations run on application startup. Ordered SQL files and their SHA-256 checksums are applied transactionally under a migration lock. Changed already-applied migrations fail. These additive migrations have no automatic destructive down command.
 5. Run `pnpm dev` for the public app and, separately, `pnpm app:dev` for the product. The default origins are `http://127.0.0.1:3001` and `http://127.0.0.1:3020`.
 6. Register the WorkOS staging callback `http://127.0.0.1:3020/callback`, initiate login `http://127.0.0.1:3020/login`, homepage and sign-out return `http://127.0.0.1:3020/`. Enable Google and Magic Auth (email one-time code) in the intended development identity environment. The two app entry links lead to the hosted method chooser; the app does not collect credentials or implement passwords. Do not change another application's shared provider settings inadvertently.
-7. Create an account or sign in. Workspace access currently requires an invitation; an invited account chooses Activate workspace access. Paused accounts remain blocked. Then create a workspace and add a hostname. Adding it does not collect anything. Confirm authorization and choose Observe. Rerun after one minute. Logout/login and application restart preserve assets and runs.
+7. Create an account or sign in. By default, an invited account chooses Activate workspace access. The optional free-workspace admission below enables verified-account self-service. Paused accounts remain blocked. Then create a workspace and add a hostname. Adding it does not collect anything. Confirm authorization and choose Observe. Rerun after one minute. Logout/login and application restart preserve assets and runs.
+
+## Free workspace lifecycle candidate
+
+`WITNESSOPS_FREE_WORKSPACE_LIMIT` explicitly enables self-service with a creator ceiling from 2 to 20; unset preserves invitation-only admission. The ceiling counts all workspaces created by the account, including archived ones. It is an environment safeguard, not a live commercial promise. Disabling it closes new creation for free accounts but preserves their current memberships.
+
+Eligibility comes from the authenticated WorkOS adapter's verified email, never a request-body flag. Account suspension, historical admission revocation and workspace membership revocation remain separate checks. Existing invited users still activate explicitly. A fresh eligible account can create its own workspace without a card; this does not admit it to anyone else's workspace or authorize a check.
+
+Migration `0014_free_workspaces.sql` adds a free-access marker and explicit `free-workspace-v1` workspace records. Number 0013 is reserved by the paused legacy admission proposal and is not a dependency. Workspace, Owner membership and free policy are written in one transaction under a user lock. Reusing a creation key returns the original workspace; changing its name with that key conflicts. New free workspaces cannot enroll in the historical contribution policy. Historical terms and consent rows are unchanged.
+
+The initial free policy enforces 32 saved/running hostname checks and three Linux import sources per workspace, with the existing 20-asset and storage/collector safeguards. There is no trial, subscription, automatic conversion, monthly reset or automatic retention deletion. These bounded staging defaults require a separate commercial decision before public self-service activation.
+
+The workspace picker remembers a per-account preference in browser storage and revalidates current membership on return. It is not an authorization token and does not synchronize across devices. Membership management, sharing and billing remain subsequent slices. Database tests exercise populated 0010/0012 upgrades, retries, rollback, concurrent ceilings, denial paths and unchanged historical data. Browser fixtures do not establish fresh hosted signup acceptance.
+
+The additive migration preserves existing records, but an older application image does not admit newly created free-only accounts. Rolling back the image is therefore not a complete recovery for those users. Production-role grants and backup/restore recovery must be checked separately before activation; no destructive down migration is supplied.
 
 ## Early Access cohort
 

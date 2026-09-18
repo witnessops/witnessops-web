@@ -230,7 +230,7 @@ test("logged-out UI offers hosted signup and sign-in without creating a workspac
   await expect(page.getByRole("link", { name: "Create account" })).toHaveAttribute("href", "/signup");
   await expect(page.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
   await expect(page.getByLabel("Workspace name")).toHaveCount(0);
-  await expect(page.locator("main")).toContainText("Workspace access currently requires an invitation");
+  await expect(page.locator("main")).toContainText("No check starts until you authorize it");
   await expect(page.getByRole("link", { name: "Run a free check without an account →", exact: true })).toHaveAttribute("href", "https://witnessops.com/check");
 });
 

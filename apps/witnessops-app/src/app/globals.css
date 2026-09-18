@@ -57,6 +57,9 @@ ul { padding-left: 20px; }
 .text-button:hover { color: var(--fg); }
 .workspace-bar { width: 100%; max-width: 1200px; margin: 0 auto; min-height: 58px; padding: 12px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 .workspace-context { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.workspace-bar > .button { order: 2; flex-shrink: 0; }
+.workspace-bar select { order: 1; }
+.workspace-bar .account { order: 3; }
 .context-label { color: var(--subtle); font-size: 11px; }
 .workspace-name { font-weight: 500; font-size: 12px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px; }
 .workspace-bar select { max-width: 100%; min-height: 36px; background: var(--raised); color: var(--fg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; }
@@ -286,6 +289,8 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
   .header-signout { display: none; }
   .workspace-bar { padding: 12px 20px; min-height: 46px; }
   .workspace-context { flex: 1; overflow: hidden; }
+  .workspace-bar.has-workspace-picker .workspace-context { display: none; }
+  .workspace-bar.has-workspace-picker select { flex: 1; min-width: 0; min-height: 44px; }
   .workspace-name { max-width: none; }
   .account { display: none; }
   .page-heading { display: block; margin-bottom: 26px; }

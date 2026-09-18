@@ -5,7 +5,7 @@ import { CheckChoices } from "./check-choice";
 import { CHECK_DISCOVERY } from "../lib/check-discovery";
 import { LinuxAsset, LinuxCheckPage, LinuxHistory } from "./linux-check";
 import { AccessGate, ComparisonViewed, DeeperReview, ProductActivity, RunFeedback, useProductActivity } from "./early-access";
-import { EARLY_ACCESS_DATA_NOTE, type EarlyAccessState } from "../lib/early-access";
+import { EARLY_ACCESS_DATA_NOTE, type WorkspaceAccessState } from "../lib/early-access";
 import { publicContactMailto } from "../../../witnessops-web/src/lib/public-contact";
 import { WitnessOpsMark } from "@witnessops/ui/witnessops-mark";
 import { BuyerReportDocument } from "../../../witnessops-web/src/components/proofpack/buyer-report";
@@ -48,7 +48,7 @@ async function request<T>(path: string, method = "GET", body?: unknown, workspac
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
     const message = typeof payload?.error === "string" ? payload.error : payload?.error?.message;
-    throw Object.assign(new Error(message || `Request could not complete (${response.status}).`), payload?.code === "EARLY_ACCESS_REQUIRED" ? { accessState: payload.accessState } : {});
+    throw Object.assign(new Error(message || `Request could not complete (${response.status}).`), { status: response.status }, payload?.code === "EARLY_ACCESS_REQUIRED" ? { accessState: payload.accessState } : {});
   }
   return payload as T;
 }
@@ -268,13 +268,15 @@ function Missing({ title = "Not found" }: { title?: string }) {
 export function ProductApp() {
   const pathname = usePathname();
   const router = useRouter();
-  const [access, setAccess] = useState<EarlyAccessState | undefined>(undefined);
+  const [access, setAccess] = useState<WorkspaceAccessState | undefined>(undefined);
   const [state, setState] = useState<WorkspaceState | null>(null);
   const workspace = state?.workspace ?? null;
   const [workspaceName, setWorkspaceName] = useState("");
   const [creationKey, setCreationKey] = useState("");
+  const [creatingWorkspace, setCreatingWorkspace] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const operationInFlight = useRef(false);
   const [error, setError] = useState("");
   const [navOpen, setNavOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
@@ -297,19 +299,48 @@ export function ProductApp() {
         if (payload?.code === "EARLY_ACCESS_REQUIRED") { if (active) setAccess(payload.accessState); return null; }
         throw new Error("The workspace could not be loaded.");
       }
-      return response.json() as Promise<WorkspaceState>;
-    }).then((value) => { if (active) setState(value); }).catch((cause: unknown) => { if (active) setError(cause instanceof Error ? cause.message : "The workspace could not be loaded."); }).finally(() => { if (active) setLoading(false); });
+      const value = await response.json() as WorkspaceState;
+      // This is only a preference, never authority. Do not send another user's
+      // selection or a removed membership back to the server.
+      let selected: string | null = null;
+      try { selected = localStorage.getItem(`witnessops.workspace.${value.user.id}`); } catch { /* Storage is optional. */ }
+      if (!selected || !value.workspaces.some(item => item.id === selected)) return value;
+      try { return await request<WorkspaceState>('/api/workspace', 'GET', undefined, selected); }
+      catch (cause) {
+        if (!(cause instanceof Error) || !('status' in cause) || cause.status !== 404) throw cause;
+        // Membership may have been revoked since the list response. Fetch fresh
+        // authorized state rather than retaining the stale list or selected data.
+        try { localStorage.removeItem(`witnessops.workspace.${value.user.id}`); } catch { /* Storage is optional. */ }
+        return request<WorkspaceState>('/api/workspace');
+      }
+    }).then((value) => { if (active) setState(value); }).catch((cause: unknown) => { if (active) { if (cause instanceof Error && "accessState" in cause) setAccess(cause.accessState as WorkspaceAccessState); else setError(cause instanceof Error ? cause.message : "The workspace could not be loaded."); } }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
+  useEffect(() => {
+    if (!state?.workspace) return;
+    try { localStorage.setItem(`witnessops.workspace.${state.user.id}`, state.workspace.id); } catch { /* Storage is optional. */ }
+  }, [state]);
 
   async function perform(action: () => Promise<void>) {
-    if (busy) return;
+    if (operationInFlight.current) return;
+    operationInFlight.current = true;
     setBusy(true);
     setError("");
-    try { await action(); } catch (cause) { if (cause instanceof Error && "accessState" in cause) { setAccess(cause.accessState as EarlyAccessState); setState(null); } else setError(cause instanceof Error ? cause.message : "This action could not complete. Try again."); } finally { setBusy(false); }
+    try { await action(); } catch (cause) { if (cause instanceof Error && "accessState" in cause) { setAccess(cause.accessState as WorkspaceAccessState); setState(null); } else setError(cause instanceof Error ? cause.message : "This action could not complete. Try again."); } finally { operationInFlight.current = false; setBusy(false); }
   }
   async function refresh() {
     setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, workspace?.id));
+  }
+  async function createWorkspace() {
+    await perform(async () => {
+      const key = creationKey || crypto.randomUUID();
+      setCreationKey(key);
+      setState(await request<WorkspaceState>('/api/workspace', 'POST', { name: workspaceName, requestId: key }));
+      setCreatingWorkspace(false);
+      setWorkspaceName('');
+      setCreationKey('');
+      router.push('/');
+    });
   }
   async function onAdd(hostname: string, type: Asset["type"]) {
     await perform(async () => {
@@ -336,9 +367,19 @@ export function ProductApp() {
   if (access !== undefined) {
     content = <AccessGate state={access} busy={busy} activate={() => void perform(async () => { await request("/api/early-access", "POST", { action: "activate" }); setState(await request<WorkspaceState>("/api/workspace")); setAccess(undefined); router.push("/"); })} />;
   } else if (!state) {
-    content = <div className="welcome"><p className="eyebrow">WitnessOps · Checks</p><h1>Open WitnessOps</h1><p>Create an account or sign in to return to saved evidence. Workspace access currently requires an invitation.</p>{loading ? <p role="status">Loading workspace…</p> : <><SignInLinks /><p className="quiet">Account authentication is handled on the secure WorkOS screen.</p><div className="actions"><a className="text-action" href="https://witnessops.com/check">Run a free check without an account →</a></div></>}</div>;
+    content = <div className="welcome"><p className="eyebrow">WitnessOps · Checks</p><h1>Open WitnessOps</h1><p>Create an account or sign in to open your workspaces. No check starts until you authorize it.</p>{loading ? <p role="status">Loading workspace…</p> : <><SignInLinks /><p className="quiet">Account authentication is handled on the secure WorkOS screen.</p><div className="actions"><a className="text-action" href="https://witnessops.com/check">Run a free check without an account →</a></div></>}</div>;
+  } else if (creatingWorkspace || state.workspaces.length === 0) {
+    content = <div className="welcome"><h1>Create workspace</h1>
+      <p>Create a separate space for your assets and saved evidence. No card or subscription is required.</p>
+      <form className="asset-form" onSubmit={event => { event.preventDefault(); void createWorkspace(); }}>
+        <label htmlFor="workspace-name">Workspace name</label>
+        <input id="workspace-name" value={workspaceName} maxLength={100} required disabled={busy} onChange={event => { setWorkspaceName(event.target.value); setCreationKey(''); }} />
+        <div className="actions"><button className="button" disabled={busy || !workspaceName.trim()}>Create workspace</button>
+          {state.workspaces.length > 0 ? <button type="button" className="button secondary" disabled={busy} onClick={() => setCreatingWorkspace(false)}>Cancel</button> : null}
+        </div>
+      </form></div>;
   } else if (!workspace) {
-    content = state.workspaces.length ? <div className="welcome"><h1>Open workspace</h1><ul className="ledger">{state.workspaces.map(item => <li key={item.id}><button className="button secondary" onClick={() => void perform(async () => { setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, item.id)); router.push("/"); })}>{item.name}</button></li>)}</ul></div> : <div className="welcome"><h1>Create workspace</h1><p>Organize your External Exposure Check and One Server Security Check results here. A name helps you organize assets. It does not verify company identity.</p><form className="asset-form" onSubmit={event => { event.preventDefault(); const key = creationKey || crypto.randomUUID(); setCreationKey(key); void perform(async () => { setState(await request<WorkspaceState>("/api/workspace", "POST", { name: workspaceName, requestId: key })); router.push("/"); }); }}><label htmlFor="workspace-name">Workspace name</label><input id="workspace-name" value={workspaceName} maxLength={100} required onChange={event => { setWorkspaceName(event.target.value); setCreationKey(""); }} /><button className="button" disabled={busy || !workspaceName.trim()}>Create workspace</button></form></div>;
+    content = <div className="welcome"><h1>Open workspace</h1><ul className="ledger">{state.workspaces.map(item => <li key={item.id}><button className="button secondary" onClick={() => void perform(async () => { setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, item.id)); router.push("/"); })}>{item.name}</button></li>)}</ul></div>;
   } else if (!parts.length) {
     content = <Overview workspace={workspace} />;
   } else if (parts[0] === "assets" && parts.length === 1) {
@@ -379,7 +420,8 @@ export function ProductApp() {
       </div>
       {navOpen ? <div className="mobile-navigation" id="mobile-navigation">{navigation}</div> : null}
     </header>
-    <div className="workspace-bar">
+    <div className={`workspace-bar${state && state.workspaces.length > 1 ? ' has-workspace-picker' : ''}`}>
+      {state ? <button className="button secondary" disabled={busy} onClick={() => { setWorkspaceName(""); setCreationKey(""); setCreatingWorkspace(true); }}>New workspace</button> : null}
       <div className="workspace-context"><span className="context-label">Workspace</span><span className="workspace-name">{workspace?.name || "WitnessOps"}</span></div>
       {state && state.workspaces.length > 1 ? <select aria-label="Active workspace" disabled={busy} value={workspace?.id || ""} onChange={event => void perform(async () => { setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, event.target.value)); router.push("/"); })}><option value="" disabled>Select workspace</option>{state.workspaces.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select> : null}
       <span className="account">{state?.user.displayName || "WitnessOps"}{workspace ? <span className="account-role"> · {workspace.role === "owner" ? "Owner" : "Viewer"}</span> : null}</span>

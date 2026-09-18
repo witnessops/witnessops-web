@@ -29,6 +29,138 @@ let pool: Pool, store: WorkspaceStore, a: AppUser, b: AppUser, viewer: AppUser, 
 const identity = (subject: string): Identity => ({ provider: "workos", issuer: "https://api.workos.com/user_management/client_fixture", subject, email: `${subject}@example.test`, displayName: subject });
 const source = JSON.parse(readFileSync(new URL("../../../../../tests/external-exposure/fixtures/public-witnessops-snapshot-20260910.json", import.meta.url), "utf8")) as ExternalSnapshotV1;
 const origin = "http://127.0.0.1:3020";
+
+test('Free workspaces: verified admission, atomic retries, ceiling, persistence and access fences', async () => {
+  const previous = process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
+  process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT = '2';
+  try {
+    const unverified = await resolveUnenrolledIdentity(pool, { ...identity('free_unverified'), email: null });
+    await assert.rejects(store.create(unverified, 'No', randomUUID()), (error: unknown) => error instanceof ApiError && error.status === 403 && error.accessState === 'verify_email');
+    const invited = await resolveUnenrolledIdentity(pool, identity('free_invited'));
+    await pool.query("UPDATE users SET early_access_state='invited' WHERE id=$1", [invited.id]);
+    await assert.rejects(store.create(invited, 'Activate first', randomUUID()), (error: unknown) => error instanceof ApiError && error.accessState === 'invited');
+    await activateEarlyAccess(pool, invited);
+    const invitedWorkspace = await store.create(invited, 'Activated invitation', randomUUID());
+    assert.equal((await store.read(invited, invitedWorkspace)).role, 'owner');
+    const who = identity('free_owner'), owner = await resolveUnenrolledIdentity(pool, who);
+    const key = randomUUID();
+    const created = await Promise.all(Array.from({ length: 4 }, () => store.create(owner, 'Free first', key)));
+    assert.equal(new Set(created).size, 1);
+    const first = created[0];
+    await assert.rejects(store.create(owner, 'Conflicting name', key), (error: unknown) => error instanceof ApiError && error.status === 409);
+    const secondAttempts = await Promise.allSettled(Array.from({ length: 4 }, (_, i) => store.create(owner, `Free second ${i}`, randomUUID())));
+    assert.equal(secondAttempts.filter(value => value.status === 'fulfilled').length, 1);
+    for (const result of secondAttempts) if (result.status === 'rejected') assert.equal(result.reason.status, 409);
+    assert.equal(await store.create(owner, 'Free first', key), first); // Retry still works at the ceiling.
+    const saved = await store.list(owner);
+    assert.equal(saved.length, 2);
+    assert.ok(saved.every(item => item.role === 'owner'));
+    assert.equal((await pool.query('SELECT count(*) FROM free_workspace_plans WHERE workspace_id=ANY($1::uuid[])', [saved.map(item => item.id)])).rows[0].count, '2');
+    assert.equal((await pool.query('SELECT count(*) FROM early_access_plans WHERE workspace_id=ANY($1::uuid[])', [saved.map(item => item.id)])).rows[0].count, '0');
+    assert.equal(await earlyAccess(pool, owner), null);
+    await assert.rejects(new EarlyAccessPlanStore(pool).recordConsent(owner, first, planConsent()), /historical contribution/);
+    await assert.rejects(pool.query('DELETE FROM free_workspace_plans WHERE workspace_id=$1', [first]), /immutable/);
+    const fresh = connect();
+    try { assert.deepEqual(await new WorkspaceStore(fresh).list(await resolveUnenrolledIdentity(fresh, who)), saved); }
+    finally { await fresh.end(); }
+    await assert.rejects(store.read(owner, wa), /not found/);
+    const api = createFoundationService({ pool, origin, identity: async () => who });
+    assert.equal((await api.handle(request('workspace', first, { name: 'Forged', requestId: randomUUID(), verifiedEmail: true }), 'workspace')).status, 400);
+    const asset = await store.addAsset(owner, first, 'example.com', 'hostname');
+    for (let i = 0; i < 32; i++) await store.beginRun(owner, first, asset.id);
+    await assert.rejects(store.beginRun(owner, first, asset.id), (error: unknown) => error instanceof ApiError && error.status === 429);
+    assert.equal((await pool.query('SELECT count(*) FROM hostname_check_usage WHERE workspace_id=$1', [first])).rows[0].count, '0');
+    for (let i = 0; i < 3; i++) await store.addAsset(owner, first, `linux${i}.example.com`, 'linux_server');
+    await assert.rejects(store.addAsset(owner, first, 'linux3.example.com', 'linux_server'), /3 registered Linux/);
+    await pool.query("UPDATE users SET early_access_state='paused' WHERE id=$1", [owner.id]);
+    await assert.rejects(store.read(owner, first), /paused/);
+    await assert.rejects(store.create(owner, 'Free first', key), /paused/);
+    await pool.query('UPDATE users SET early_access_state=NULL WHERE id=$1', [owner.id]);
+    await pool.query('UPDATE users SET early_access_activated_at=now() WHERE id=$1', [owner.id]);
+    await assert.rejects(store.read(owner, first), (error: unknown) => error instanceof ApiError && error.status === 403);
+    await pool.query('UPDATE users SET early_access_activated_at=NULL WHERE id=$1', [owner.id]);
+    await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE user_id=$1 AND workspace_id=$2", [owner.id, first]);
+    await assert.rejects(store.read(owner, first), /not found/);
+    await assert.rejects(store.create(owner, 'Free first', key), /not found/);
+    delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
+    assert.equal((await store.list(owner)).length, 1); // Closing admission doesn't revoke existing memberships.
+    await assert.rejects(store.create(owner, 'No legacy fallback', randomUUID()), /unavailable/);
+    await pool.query("UPDATE users SET status='disabled' WHERE id=$1", [owner.id]);
+    await assert.rejects(store.list(owner), /not active/);
+    await assert.rejects(resolveUnenrolledIdentity(pool, who), /not active/);
+  } finally {
+    if (previous === undefined) delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
+    else process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT = previous;
+  }
+});
+
+for (const baseline of [10, 12]) test(`Free migration preserves populated 00${baseline} accounts, source bytes, CLI bindings and accepted terms`, async () => {
+  const upgradeSchema = `wops_free_upgrade_${randomUUID().replaceAll('-', '')}`;
+  await admin.query(`CREATE SCHEMA ${upgradeSchema}`);
+  const upgrade = new Pool({ connectionString: env.TEST_DATABASE_URL, options: `-c search_path=${upgradeSchema},public`, max: 1 });
+  try {
+    await upgrade.query('CREATE TABLE app_migrations (name text PRIMARY KEY, sha256 text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())');
+    const dir = new URL('../../../db/migrations/', import.meta.url);
+    for (const name of readdirSync(dir).filter(name => /^\d{4}_.*\.sql$/.test(name) && Number(name.slice(0, 4)) <= baseline).sort()) {
+      const sql = readFileSync(new URL(name, dir), 'utf8');
+      await upgrade.query(sql);
+      await upgrade.query('INSERT INTO app_migrations(name,sha256) VALUES ($1,$2)', [name, createHash('sha256').update(sql).digest('hex')]);
+    }
+    const user = randomUUID(), workspace = randomUUID(), asset = randomUUID(), run = randomUUID();
+    await upgrade.query("INSERT INTO users(id,early_access_state,early_access_activated_at) VALUES ($1,'active',now())", [user]);
+    await upgrade.query("INSERT INTO identity_mappings(user_id,provider,issuer,subject) VALUES ($1,'workos','fixture','fixture')", [user]);
+    await upgrade.query("INSERT INTO workspaces(id,name,slug,created_by,creation_key) VALUES ($1,'Preserved','preserved',$2,$3)", [workspace,user,randomUUID()]);
+    await upgrade.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES ($1,$2,'owner')", [user,workspace]);
+    await upgrade.query("INSERT INTO assets(id,workspace_id,type,normalized_value) VALUES ($1,$2,'hostname',$3)", [asset,workspace,source.target]);
+    await upgrade.query("INSERT INTO runs(id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version,source_snapshot,source_digest,finished_at) VALUES ($1,$2,$3,$4,'external-snapshot-v1','completed','fixture','v1',$5,$6,now())", [run,workspace,asset,user,source,createHash('sha256').update(canonicalSource(source)).digest('hex')]);
+    await upgrade.query("INSERT INTO cli_sessions(credential_hash,user_id,workspace_id,web_issuer,web_session_id,issued_at,expires_at) VALUES ($1,$2,$3,'fixture','fixture',now(),now()+interval '1 hour')", ['a'.repeat(64),user,workspace]);
+    if (baseline === 12) {
+      await upgrade.query('BEGIN');
+      await upgrade.query('INSERT INTO early_access_plans(workspace_id,revision) VALUES ($1,1)', [workspace]);
+      await upgrade.query('INSERT INTO early_access_plan_consents(workspace_id,request_id,revision,accepted_by,terms_version,contribution_minor) VALUES ($1,$2,1,$3,$4,0)', [workspace,randomUUID(),user,EARLY_ACCESS_PLAN_POLICY.version]);
+      await upgrade.query('COMMIT');
+    }
+    const tables = (await upgrade.query<{ table_name: string }>("SELECT table_name FROM information_schema.tables WHERE table_schema=$1 AND table_type='BASE TABLE' AND table_name<>'app_migrations' ORDER BY table_name", [upgradeSchema])).rows.map(row => row.table_name);
+    async function snapshot() {
+      const values: Record<string, string[]> = {};
+      for (const table of tables) {
+        assert.match(table, /^[a-z_]+$/);
+        values[table] = (await upgrade.query(`SELECT to_jsonb(t) - 'free_workspace_access' AS record FROM ${table} t`)).rows.map(row => canonicalSource(row.record)).sort();
+      }
+      return values;
+    }
+    const original = await snapshot();
+    await migrate(upgrade);
+    assert.deepEqual(await snapshot(), original);
+    assert.equal((await upgrade.query('SELECT count(*) FROM free_workspace_plans')).rows[0].count, '0');
+    assert.equal((await upgrade.query('SELECT free_workspace_access FROM users WHERE id=$1', [user])).rows[0].free_workspace_access, false);
+    await migrate(upgrade);
+    assert.deepEqual(await snapshot(), original);
+  } finally { await upgrade.end(); await admin.query(`DROP SCHEMA ${upgradeSchema} CASCADE`); }
+});
+
+test('Free creation failure rolls back the workspace, owner and admission; old revoked admission stays denied', async () => {
+  const previous = process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
+  process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT = '2';
+  try {
+    const owner = await resolveUnenrolledIdentity(pool, identity('free_rollback'));
+    await pool.query(`CREATE FUNCTION fail_free_fixture() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'free plan fixture failure'; END $$`);
+    await pool.query('CREATE TRIGGER fail_free_fixture BEFORE INSERT ON free_workspace_plans FOR EACH ROW EXECUTE FUNCTION fail_free_fixture()');
+    const key = randomUUID();
+    try { await assert.rejects(store.create(owner, 'Retry after failure', key), /fixture failure/); }
+    finally { await pool.query('DROP TRIGGER fail_free_fixture ON free_workspace_plans'); }
+    assert.equal((await pool.query('SELECT count(*) FROM workspaces WHERE created_by=$1', [owner.id])).rows[0].count, '0');
+    assert.equal((await pool.query('SELECT count(*) FROM memberships WHERE user_id=$1', [owner.id])).rows[0].count, '0');
+    assert.equal((await pool.query('SELECT free_workspace_access FROM users WHERE id=$1', [owner.id])).rows[0].free_workspace_access, false);
+    await store.create(owner, 'Retry after failure', key);
+    const revoked = await resolveUnenrolledIdentity(pool, identity('old_revoked'));
+    await pool.query('UPDATE users SET early_access_activated_at=now() WHERE id=$1', [revoked.id]);
+    await assert.rejects(store.create(revoked, 'No readmission', randomUUID()), (error: unknown) => error instanceof ApiError && error.status === 403);
+  } finally {
+    if (previous === undefined) delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
+    else process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT = previous;
+  }
+});
 // Existing foundation fixtures explicitly belong to the test cohort. Real
 // identity resolution remains unenrolled until an operator invites that user.
 async function resolveIdentity(database: Pool, providerIdentity: Identity) {
@@ -749,7 +881,7 @@ test('Early Access: new users cannot self-enroll; invited activation remains sep
 
   // Active cohort state does not create membership or authorize a known workspace.
   assert.equal((await api.handle(request('workspace', wa), 'workspace')).status, 403);
-  await assert.rejects(store.read(user, wa), /Early Access is required/);
+  await assert.rejects(store.read(user, wa), (error: unknown) => error instanceof ApiError && error.status === 403 && error.accessState === null);
   assert.equal((await api.handle(request('early-access', wa, { action: 'activate', state: 'active' }), 'early-access')).status, 400);
 });
 test('Early Access migration: existing members require an explicit preservation choice; other accounts remain unenrolled', async () => {
