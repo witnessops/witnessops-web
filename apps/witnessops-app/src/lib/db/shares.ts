@@ -50,8 +50,13 @@ export class ShareStore {
             const m = await requireWorkspaceMembership(client, user, workspace);
             if (m.role === 'viewer' || m.generation !== start.generation)
                 throw new ApiError(403, 'Workspace access changed.');
-            const count = (await client.query("SELECT count(*) FROM report_shares WHERE workspace_id=$1 AND created_at>now()-interval '1 hour'", [workspace])).rows[0];
-            if (Number(count.count) >= 20)
+            // Bound storage under the same workspace lock as insertion. Expired
+            // previews cannot publish; expired/revoked links retain 30 days of history.
+            await client.query("DELETE FROM report_shares WHERE workspace_id=$1 AND ((state='preview' AND created_at<now()-interval '1 hour') OR expires_at<now()-interval '30 days' OR revoked_at<now()-interval '30 days')", [workspace]);
+            const count = (await client.query("SELECT count(*) AS retained,coalesce(sum(octet_length(snapshot::text)),0) AS bytes,count(*) FILTER (WHERE created_at>now()-interval '1 hour') AS recent FROM report_shares WHERE workspace_id=$1", [workspace])).rows[0];
+            if (Number(count.retained) >= 128 || Number(count.bytes) + Buffer.byteLength(bytes) * 2 > 16 * 1024 * 1024)
+                throw new ApiError(429, 'Workspace share storage limit reached. Existing links can still be revoked.');
+            if (Number(count.recent) >= 20)
                 throw new ApiError(429, 'Share preview limit reached. Try again later.');
             const token = randomBytes(32).toString('base64url'), shareId = randomUUID(), digest = hash(bytes);
             const row = (await client.query<Row>('INSERT INTO report_shares(id,workspace_id,run_id,created_by,membership_generation,token_hash,snapshot,digest) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *', [shareId, workspace, id, user.id, m.generation, hash(token), snapshot, digest])).rows[0];
@@ -86,7 +91,7 @@ export class ShareStore {
     async list(user: AppUser, workspace: string, run: unknown) {
         return transaction(this.pool, async (client) => {
             await requireWorkspaceMembership(client, user, workspace);
-            return (await client.query("SELECT id,digest,expires_at AS \"expiresAt\",CASE WHEN state='published' AND expires_at<=now() THEN 'expired' ELSE state END AS state FROM report_shares WHERE workspace_id=$1 AND run_id=$2 AND state<>'preview' ORDER BY created_at DESC LIMIT 100", [workspace, requireId(run)])).rows;
+            return (await client.query("SELECT id,digest,expires_at AS \"expiresAt\",CASE WHEN state='published' AND expires_at<=now() THEN 'expired' ELSE state END AS state FROM report_shares WHERE workspace_id=$1 AND run_id=$2 AND state<>'preview' ORDER BY created_at DESC LIMIT 128", [workspace, requireId(run)])).rows;
         });
     }
     async revoke(user: AppUser, workspace: string, id: unknown) {

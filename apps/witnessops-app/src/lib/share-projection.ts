@@ -18,6 +18,7 @@ export function recipientReport(source: ProofpackReportV1): ProofpackReportV1 {
         reportVersion: '1.0',
         identity: { reportId: 'shared-report', sourceDigest: source.identity.sourceDigest, productId: source.identity.productId,
             productVersion: source.identity.productVersion, productName: text(source.identity.productName), generatedAt: source.identity.generatedAt, synthetic: source.identity.synthetic },
+        // Original references may be internal asset IDs; the recipient sees the subject label only.
         subject: { label: text(source.subject.label), reference: text(source.subject.label), observedAt: source.subject.observedAt,
             scopeSummary: text(source.subject.scopeSummary), scopeTitle: text(source.subject.scopeTitle), scopeBoundary: text(source.subject.scopeBoundary), kicker: text(source.subject.kicker) },
         verification: { status: source.verification.status, label: text(source.verification.label), method: text(source.verification.method), verifierVersion: source.verification.verifierVersion,

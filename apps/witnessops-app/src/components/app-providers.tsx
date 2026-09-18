@@ -5,5 +5,5 @@ import { AuthKitProvider } from '@workos-inc/authkit-nextjs/components';
 export function AppProviders({ children }: {
     children: React.ReactNode;
 }) {
-    return usePathname() === '/s' ? children : <AuthKitProvider>{children}</AuthKitProvider>;
+    return ['/s', '/s/'].includes(usePathname()) ? children : <AuthKitProvider>{children}</AuthKitProvider>;
 }

@@ -73,6 +73,13 @@ for (const width of [1440, 390]) {
   await expect(recipient.locator('main')).toContainText('does not establish that the findings are true');
   expect(await recipient.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   await recipient.screenshot({ path: info.outputPath(`recipient-${width}.png`) });
+  let releasePoll: (()=>void)|undefined;
+  const delayed = async (route: import('@playwright/test').Route) => { await new Promise<void>(resolve => { releasePoll=resolve; }); await route.fulfill({json:{snapshot:safe,digest,expiresAt}}); };
+  await recipient.route('**/api/shared-report',delayed);
+  await recipient.evaluate(()=>window.dispatchEvent(new Event('pageshow')));
+  await expect.poll(()=>Boolean(releasePoll)).toBe(true);
+  await expect(recipient.locator('article')).toBeVisible();
+  releasePoll!();await recipient.unroute('**/api/shared-report',delayed);
   previewFails = true;
   await panel.getByRole('button', { name: 'Close preview' }).click();
   await page.getByRole('button', { name: 'Share report', exact: true }).click();

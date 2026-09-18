@@ -1385,3 +1385,14 @@ test('Share: Linux recipient projection retains synthetic labels and unknowns; p
  assert.equal((await api(new Request(origin+'/api/shared-report?token='+preview.token,{headers:{host:new URL(origin).host}}),true)).status,400);
  await shares.revoke(a,workspace,preview.id);assert.equal((await api(req('/api/shared-report',{token:preview.token}),true)).status,404);
 });
+
+test('Share: abandoned previews are cleaned and total retained rows bound storage independently of rate',async()=>{
+ const {ShareStore}=await import('./shares');const shares=new ShareStore(pool);
+ const workspace=await store.create(a,'Share retention fixture',randomUUID()),asset=await store.addAsset(a,workspace,'witnessops.com','hostname'),id=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,id,source);
+ const old=randomUUID();await pool.query("INSERT INTO report_shares(id,workspace_id,run_id,created_by,membership_generation,token_hash,snapshot,digest,created_at) VALUES($1,$2,$3,$4,1,$5,'{}',$5,now()-interval '2 hours')",[old,workspace,id,a.id,'a'.repeat(64)]);
+ await shares.preview(a,workspace,id);assert.equal((await pool.query('SELECT 1 FROM report_shares WHERE id=$1',[old])).rowCount,0);
+ await pool.query("INSERT INTO report_shares(id,workspace_id,run_id,created_by,membership_generation,token_hash,snapshot,digest,state,published_at,created_at) SELECT gen_random_uuid(),$1,$2,$3,1,lpad(i::text,64,'0'),'{}',repeat('b',64),'published',now()-interval '2 hours',now()-interval '2 hours' FROM generate_series(1,127) AS i",[workspace,id,a.id]);
+ await assert.rejects(shares.preview(a,workspace,id),/storage limit/);
+ assert.equal((await shares.list(a,workspace,id)).length,127);
+ await shares.revoke(a,workspace,(await shares.list(a,workspace,id))[0].id);
+});
