@@ -1658,3 +1658,11 @@
 .briefField textarea {
   min-height: 90px;
 }
+
+/* Overview: source status and external workspaces, without placeholder metrics. */
+.dashboardSummary { padding: 18px 20px; color: var(--admin-text-secondary); font-family: var(--font-sans); font-size: 13px; line-height: 1.65; }
+.dashboardSummary strong { color: var(--admin-text-primary); font-weight: 600; }
+.dashboardSummary p { margin: 8px 0 0; }
+.dashboardLinks { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 0 52px 24px; font-family: var(--font-sans); font-size: 12px; }
+.dashboardLinks a { color: var(--admin-text-secondary); text-underline-offset: 4px; }
+@media (max-width: 700px) { .dashboardLinks { padding: 0 16px 20px; } }
