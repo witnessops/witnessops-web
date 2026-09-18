@@ -31,11 +31,16 @@ try {
  await migrate(db,{preserveMember:user});
  const after=(await db.query('SELECT row_to_json(r) AS record FROM runs r WHERE id=$1',[run])).rows[0].record;
  for(const [key,value] of Object.entries(before))assert.deepEqual(after[key],value,key);
- assert.equal((await db.query('SELECT count(*) AS n FROM app_migrations')).rows[0].n,'12');
+ const expectedMigrations=readdirSync(root+'/db/migrations').filter(n=>/^\d{4}_[a-z_]+\.sql$/.test(n)).sort().map(name=>({name,sha256:createHash('sha256').update(readFileSync(root+'/db/migrations/'+name)).digest('hex')}));
+ assert.deepEqual((await db.query('SELECT name,sha256 FROM app_migrations ORDER BY name')).rows,expectedMigrations);
+ assert.equal((await db.query('SELECT free_workspace_access FROM users WHERE id=$1',[user])).rows[0].free_workspace_access,false);
+ assert.equal((await db.query('SELECT count(*) AS n FROM free_workspace_plans')).rows[0].n,'0');
  assert.equal((await db.query('SELECT count(*) AS n FROM early_access_plans')).rows[0].n,'0');
  assert.equal((await db.query('SELECT count(*) AS n FROM early_access_plan_consents')).rows[0].n,'0');
  assert.equal((await db.query('SELECT count(*) AS n FROM hostname_check_usage')).rows[0].n,'0');
  await assert.rejects(db.query('DELETE FROM runs WHERE id=$1',[run]),/immutable/);
+ const migrationRecords=(await db.query('SELECT * FROM app_migrations ORDER BY name')).rows;
  await migrate(db);
- console.log('PASS: populated 0004 -> 0012, historical run/source/digest unchanged, no implicit plan/consent/usage, immutable trigger retained, reapply idempotent');
+ assert.deepEqual((await db.query('SELECT * FROM app_migrations ORDER BY name')).rows,migrationRecords);
+ console.log('PASS: populated 0004 -> current migrations, exact names/hashes, historical run/source/digest unchanged, no implicit free access/plan/consent/usage, immutable trigger retained, reapply idempotent');
 } finally {if(db)await db.end();await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);await admin.end();}
