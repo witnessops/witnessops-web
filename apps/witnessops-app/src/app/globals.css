@@ -399,3 +399,5 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .finding-draft .authorization { display: flex; }
 .finding-draft .button { background: #181816; color: #fff; }
 @media print { .finding-interactive { display: none !important; } }
+.billing-panel > p, .billing-panel .actions { margin-top: 16px; }
+.billing-plans { margin-top: 20px; }
