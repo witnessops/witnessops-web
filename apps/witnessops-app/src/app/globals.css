@@ -384,3 +384,5 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .shared-report header { margin-bottom: 24px; }
 .shared-report header p { margin-top: 12px; overflow-wrap: anywhere; }
 @media print { .report-sharing { display: none; } }
+.billing-panel > p, .billing-panel .actions { margin-top: 16px; }
+.billing-plans { margin-top: 20px; }

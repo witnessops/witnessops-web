@@ -2,6 +2,8 @@ import type { HttpMethod } from "../../../witnessops-web/src/lib/server/api-cont
 /** Product endpoints plus one narrowly token-authorized recipient endpoint. WorkOS authenticates; the database
  * owns active workspace membership. These are separate from the public API. */
 export const DECLARED_APP_ENDPOINTS: ReadonlyArray<{ path: string; methods: readonly HttpMethod[]; summary: string }> = [
+  { path: "/api/billing", methods: ["GET", "POST"], summary: "Workspace billing status and Owner-only sandbox Checkout/Portal" },
+  { path: "/api/billing/webhook", methods: ["POST"], summary: "Raw-body Stripe-signed sandbox subscription reconciliation" },
   { path: "/api/shares", methods: ["POST"], summary: "Authenticated report preview and Owner publication/revocation" },
   { path: "/api/shared-report", methods: ["POST"], summary: "Public read-only fixed report, authorized by live bearer-link status" },
   { path: "/api/members", methods: ["GET", "POST"], summary: "Current member roster and Owner-only invitations and role management" },
