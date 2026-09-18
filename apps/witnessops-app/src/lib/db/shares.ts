@@ -6,6 +6,7 @@ import { requireWorkspaceMembership, WorkspaceStore } from './workspaces';
 import { LinuxCheckStore } from './linux-checks';
 import { membershipLock } from './membership-lock';
 import type { AppUser } from './identity';
+import { PasswordChallenge } from '../share-password';
 import { ApiError, requireId } from '../errors';
 import { recipientReport, validateReportName, type RecipientReport } from '../share-projection';
 import { savedRunReport } from '../report-model';
@@ -16,6 +17,8 @@ function tokenHash(value: unknown) { if (typeof value !== 'string' || !/^[A-Za-z
 type Row = {
     id: string;
     snapshot: RecipientReport;
+    password_hash: string | null;
+    unlocked: boolean;
     published_at: Date | null;
     digest: string;
     expires_at: Date;
@@ -62,7 +65,7 @@ export class ShareStore {
                 throw new ApiError(429, 'Share preview limit reached. Try again later.');
             const token = randomBytes(32).toString('base64url'), shareId = randomUUID(), digest = hash(bytes);
             const row = (await client.query<Row>('INSERT INTO report_shares(id,workspace_id,run_id,created_by,membership_generation,token_hash,snapshot,digest) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *', [shareId, workspace, id, user.id, m.generation, hash(token), snapshot, digest])).rows[0];
-            return { id: shareId, token, digest, snapshot, expiresAt: row.expires_at.toISOString(), canPublish: m.role === 'owner' };
+            return { id: shareId, token, digest, snapshot, expiresAt: row.expires_at.toISOString(), version: 1, passwordProtected: false, canPublish: m.role === 'owner' };
         });
     }
     async publish(user: AppUser, workspace: string, input: {
@@ -71,15 +74,16 @@ export class ShareStore {
         digest: unknown;
         audience: unknown;
     }) {
-        if (input.audience !== 'anyone_with_link')
+        if (!['anyone_with_link','link_and_password'].includes(String(input.audience)))
             throw new ApiError(400, 'Confirm that anyone with the link can read.');
         const hashed = tokenHash(input.token);
         return transaction(this.pool, async (client) => {
             await requireWorkspaceMembership(client, user, workspace, true);
-            const row = (await client.query<Row>('SELECT s.*,a.token_hash,a.expires_at FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1 AND s.workspace_id=$2 FOR UPDATE OF s,a', [requireId(input.id), workspace])).rows[0];
+            const row = (await client.query<Row>('SELECT s.*,a.token_hash,a.expires_at,a.password_hash FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1 AND s.workspace_id=$2 FOR UPDATE OF s,a', [requireId(input.id), workspace])).rows[0];
             const m = await requireWorkspaceMembership(client, user, workspace, true);
             if (!row || row.created_by !== user.id || row.membership_generation !== m.generation || row.token_hash !== hashed || row.digest !== input.digest)
                 throw new ApiError(404, 'Preview unavailable.');
+            if (input.audience !== (row.password_hash ? 'link_and_password' : 'anyone_with_link')) throw new ApiError(409,'Access requirements changed. Review the audience again.');
             if (row.state === 'revoked' || row.expires_at.getTime() <= Date.now())
                 throw new ApiError(410, 'Share expired or revoked.');
             if (row.state === 'preview') {
@@ -93,13 +97,13 @@ export class ShareStore {
     async list(user: AppUser, workspace: string, run: unknown) {
         return transaction(this.pool, async (client) => {
             await requireWorkspaceMembership(client, user, workspace);
-            return (await client.query("SELECT s.id,s.digest,a.version,a.expires_at AS \"expiresAt\",CASE WHEN s.state='published' AND a.expires_at<=now() THEN 'expired' ELSE s.state END AS state FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.workspace_id=$1 AND s.run_id=$2 AND s.state<>'preview' ORDER BY s.created_at DESC LIMIT 128", [workspace, requireId(run)])).rows;
+            return (await client.query("SELECT s.id,s.digest,a.version,(a.password_hash IS NOT NULL) AS \"passwordProtected\",a.expires_at AS \"expiresAt\",CASE WHEN s.state='published' AND a.expires_at<=now() THEN 'expired' ELSE s.state END AS state FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.workspace_id=$1 AND s.run_id=$2 AND s.state<>'preview' ORDER BY s.created_at DESC LIMIT 128", [workspace, requireId(run)])).rows;
         });
     }
     async revoke(user: AppUser, workspace: string, id: unknown) {
         return transaction(this.pool, async (client) => {
             await requireWorkspaceMembership(client, user, workspace, true);
-            const row = (await client.query<Row>('SELECT s.*,a.token_hash,a.expires_at FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1 AND s.workspace_id=$2 FOR UPDATE OF s,a', [requireId(id), workspace])).rows[0];
+            const row = (await client.query<Row>('SELECT s.*,a.token_hash,a.expires_at,a.password_hash FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1 AND s.workspace_id=$2 FOR UPDATE OF s,a', [requireId(id), workspace])).rows[0];
             if (!row || row.state === 'preview')
                 throw new ApiError(404, 'Published link not found.');
             if (row.state !== 'revoked')
@@ -107,11 +111,12 @@ export class ShareStore {
             return { revoked: true };
         });
     }
-    async read(token: unknown) {
-        const result = await this.pool.query<Row>("SELECT s.snapshot,s.digest,a.expires_at,s.published_at FROM report_shares s JOIN report_share_access a ON a.share_id=s.id JOIN workspaces w ON w.id=s.workspace_id WHERE a.token_hash=$1 AND s.state='published' AND a.expires_at>now() AND w.status='active'", [tokenHash(token)]);
+    async read(token: unknown, unlock?: unknown) {
+        const result = await this.pool.query<Row>("SELECT s.snapshot,s.digest,a.expires_at,s.published_at,a.password_hash,EXISTS(SELECT 1 FROM report_share_unlocks u WHERE u.share_id=s.id AND u.access_version=a.version AND u.token_hash=$2 AND u.expires_at>now()) AS unlocked FROM report_shares s JOIN report_share_access a ON a.share_id=s.id JOIN workspaces w ON w.id=s.workspace_id WHERE a.token_hash=$1 AND s.state='published' AND a.expires_at>now() AND w.status='active'", [tokenHash(token),typeof unlock==='string' && /^[A-Za-z0-9_-]{43}$/.test(unlock) ? hash(unlock) : '']);
         const row = result.rows[0];
         if (!row || hash(canonicalSource(row.snapshot)) !== row.digest)
             throw new ApiError(404, 'Shared report unavailable.');
-        return { snapshot: row.snapshot, digest: row.digest, expiresAt: row.expires_at.toISOString(), publishedAt: row.published_at?.toISOString() ?? null };
+        if(row.password_hash && !row.unlocked)throw new PasswordChallenge();
+        return { passwordProtected: Boolean(row.password_hash), snapshot: row.snapshot, digest: row.digest, expiresAt: row.expires_at.toISOString(), publishedAt: row.published_at?.toISOString() ?? null };
     }
 }

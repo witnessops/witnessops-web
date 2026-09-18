@@ -11,9 +11,9 @@ import { reportEmail, messageDigest } from '../share-email';
 import type { RecipientReport } from '../share-projection';
 import type { InvitationSender } from './members';
 const hash = (s: string) => createHash('sha256').update(s).digest('hex');
-type Access = {id:string; snapshot:RecipientReport; digest:string; token_hash:string; expires_at:Date; version:number; state:string};
+type Access = {password_hash:string|null;id:string; snapshot:RecipientReport; digest:string; token_hash:string; expires_at:Date; version:number; state:string};
 async function access(client: PoolClient, workspace:string, id:unknown) {
- const row = (await client.query<Access>(`SELECT s.id,s.snapshot,s.digest,s.state,a.token_hash,a.expires_at,a.version FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1 AND s.workspace_id=$2 FOR UPDATE OF s,a`,[requireId(id),workspace])).rows[0];
+ const row = (await client.query<Access>(`SELECT s.id,s.snapshot,s.digest,s.state,a.token_hash,a.expires_at,a.version,a.password_hash FROM report_shares s JOIN report_share_access a ON a.share_id=s.id WHERE s.id=$1 AND s.workspace_id=$2 FOR UPDATE OF s,a`,[requireId(id),workspace])).rows[0];
  if (!row || row.state !== 'published') throw new ApiError(404,'Published share unavailable.');
  return row;
 }
@@ -41,7 +41,7 @@ export class ShareAccessStore {
    await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1::uuid::text, 39819))',[user.id]);
    await membershipLock(client,workspace,true);const member=await requireWorkspaceMembership(client,user,workspace,true);
    const row=await access(client,workspace,input.id);requireToken(row,input.token);
-   const message=reportEmail(origin,input.token,recipient,row.snapshot,row.expires_at,key), digest=messageDigest(message);
+   const message=reportEmail(origin,input.token,recipient,row.snapshot,row.expires_at,key,Boolean(row.password_hash)), digest=messageDigest(message);
    const prior=(await client.query('SELECT * FROM report_share_deliveries WHERE id=$1',[key])).rows[0];
    if(prior) {
     if(prior.actor_id!==user.id || prior.workspace_id!==workspace || prior.share_id!==row.id || prior.membership_generation!==member.generation || prior.access_version!==row.version || prior.message_digest!==digest) throw new ApiError(409,'This email request was already used.');
@@ -63,7 +63,7 @@ export class ShareAccessStore {
    if(!draft || draft.actor_id!==user.id || draft.membership_generation!==member.generation) throw new ApiError(404,'Email draft unavailable.');
    const row=await access(client,workspace,draft.share_id);requireToken(row,input.token);
    if(row.version!==draft.access_version) throw new ApiError(409,'Access settings changed. Review a new email.');
-   const payload=reportEmail(origin,input.token,draft.recipient,row.snapshot,row.expires_at,id);
+   const payload=reportEmail(origin,input.token,draft.recipient,row.snapshot,row.expires_at,id,Boolean(row.password_hash));
    if(input.digest!==draft.message_digest || messageDigest(payload)!==draft.message_digest) throw new ApiError(409,'Email changed. Review a new draft.');
    if(draft.state!=='draft') return null; // Never retry an uncertain provider call automatically.
    if(Date.now()-draft.created_at.getTime()>3600000) throw new ApiError(409,'Email preview expired. Prepare a new draft.');

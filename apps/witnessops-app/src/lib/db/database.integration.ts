@@ -1600,3 +1600,62 @@ test('Share email bounds concurrent preview/send capacity per workspace and acto
  const index=outcomes.findIndex(r=>r.status==='fulfilled');assert.ok(await access.draft(owner,workspace,inputs[index],origin));
  assert.equal((await access.deliveries(owner,workspace,preview.id)).filter((r:{state:string})=>r.state==='draft').length,10);
 });
+
+test('Share passwords: owner-only protection, exact audience, fixed content and invalidated unlocks',async()=>{
+ const {ShareStore}=await import('./shares');const {SharePasswordStore}=await import('./share-passwords');const {ShareAccessStore}=await import('./share-access');
+ const shares=new ShareStore(pool),passwords=new SharePasswordStore(pool),access=new ShareAccessStore(pool);
+ const workspace=await store.create(a,'Password lifecycle',randomUUID()),other=await store.create(b,'Password other',randomUUID());
+ const asset=await store.addAsset(a,workspace,'witnessops.com','hostname'),run=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,run,source);
+ const preview=await shares.preview(a,workspace,run,'Protected specimen');const secret='synthetic password one',replacement='synthetic password two';
+ await pool.query("INSERT INTO memberships(user_id,workspace_id,role) VALUES($1,$2,'contributor')",[viewer.id,workspace]);
+ await assert.rejects(passwords.set(viewer,workspace,preview.id,1,secret));await assert.rejects(passwords.set(a,other,preview.id,1,secret));
+ const settings=await passwords.set(a,workspace,preview.id,1,secret);assert.equal(settings.version,2);
+ await assert.rejects(passwords.unlock(preview.token,secret));
+ await assert.rejects(shares.publish(a,workspace,{...preview,audience:'anyone_with_link'}));
+ await shares.publish(a,workspace,{...preview,audience:'link_and_password'});
+ await assert.rejects(shares.read(preview.token),{status:401});
+ await assert.rejects(passwords.unlock(preview.token,'wrong'),{status:401});
+ const session=await passwords.unlock(preview.token,secret),read=await shares.read(preview.token,session.unlock);
+ assert.deepEqual(read.snapshot,preview.snapshot);assert.equal(read.digest,preview.digest);
+ await assert.rejects(shares.read('x'.repeat(43),session.unlock));
+ const second=await shares.preview(a,workspace,run);await passwords.set(a,workspace,second.id,1,secret);await shares.publish(a,workspace,{...second,audience:'link_and_password'});
+ await assert.rejects(shares.read(second.token,session.unlock),{status:401});
+ const draft=await access.draft(a,workspace,{id:preview.id,token:preview.token,email:'recipient@example.com',requestId:randomUUID()},'https://app.example.com');
+ assert.ok(draft.message.text.includes('separate password'));assert.ok(!draft.message.text.includes(secret));
+ await passwords.set(a,workspace,preview.id,2,replacement);
+ await assert.rejects(shares.read(preview.token,session.unlock),{status:401});await assert.rejects(passwords.unlock(preview.token,secret),{status:401});
+ let sent=false;await assert.rejects(access.send(a,workspace,{id:draft.id,token:preview.token,digest:draft.digest,confirmed:true},'https://app.example.com',async()=>{sent=true;return {provider:'file',providerMessageId:null,providerAcceptedAt:new Date().toISOString()};}));assert.equal(sent,false);
+ const fresh=await passwords.unlock(preview.token,replacement);assert.equal((await shares.read(preview.token,fresh.unlock)).digest,preview.digest);
+ const changed=await access.change(a,workspace,preview.id,3,new Date(Date.now()+86400000).toISOString(),true);
+ await assert.rejects(shares.read(preview.token,fresh.unlock));await assert.rejects(shares.read(changed.token,fresh.unlock),{status:401});
+ const rotated=await passwords.unlock(changed.token,replacement);assert.equal((await shares.read(changed.token,rotated.unlock)).digest,preview.digest);
+ await pool.query('UPDATE report_share_unlocks SET expires_at=now()-interval \'1 second\' WHERE share_id=$1',[preview.id]);await assert.rejects(shares.read(changed.token,rotated.unlock),{status:401});
+ const final=await passwords.unlock(changed.token,replacement);await shares.revoke(a,workspace,preview.id);await assert.rejects(shares.read(changed.token,final.unlock));await assert.rejects(passwords.unlock(changed.token,replacement));
+ const stored=JSON.stringify((await pool.query('SELECT * FROM report_share_access WHERE share_id=$1',[preview.id])).rows);assert.ok(!stored.includes(secret));assert.ok(!stored.includes(replacement));assert.ok(!stored.includes(changed.token!));
+});
+
+test('Share passwords: failed guesses persist, bounded concurrent attempts and window recovery',async()=>{
+ const {ShareStore}=await import('./shares');const {SharePasswordStore}=await import('./share-passwords');const shares=new ShareStore(pool),passwords=new SharePasswordStore(pool);
+ const workspace=await store.create(a,'Password attempts',randomUUID()),asset=await store.addAsset(a,workspace,'witnessops.com','hostname'),run=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,run,source);
+ const preview=await shares.preview(a,workspace,run),secret='synthetic attempt password';await passwords.set(a,workspace,preview.id,1,secret);await shares.publish(a,workspace,{...preview,audience:'link_and_password'});
+ const attempts=await Promise.allSettled(Array.from({length:8},()=>passwords.unlock(preview.token,'wrong')));assert.equal(attempts.filter(x=>x.status==='fulfilled').length,0);
+ assert.equal((await pool.query('SELECT password_attempts FROM report_share_access WHERE share_id=$1',[preview.id])).rows[0].password_attempts,5);
+ await assert.rejects(passwords.unlock(preview.token,secret),{status:429});
+ await pool.query("UPDATE report_share_access SET password_window=now()-interval '16 minutes' WHERE share_id=$1",[preview.id]);
+ const session=await passwords.unlock(preview.token,secret);assert.ok(await shares.read(preview.token,session.unlock));
+ await pool.query("UPDATE report_share_access SET expires_at=now()-interval '1 second' WHERE share_id=$1",[preview.id]);await assert.rejects(shares.read(preview.token,session.unlock));
+});
+
+test('Share password HTTP denies unauthenticated content, extra fields and foreign origins without leaking secrets',async()=>{
+ const {ShareStore}=await import('./shares');const {SharePasswordStore}=await import('./share-passwords');const {createShareService}=await import('../share-server');
+ const shares=new ShareStore(pool),passwords=new SharePasswordStore(pool),workspace=await store.create(a,'Password HTTP',randomUUID());
+ const asset=await store.addAsset(a,workspace,'witnessops.com','hostname'),run=await store.beginRun(a,workspace,asset.id);await store.completeRun(a,workspace,run,source);
+ const preview=await shares.preview(a,workspace,run,'Private title before unlock'),secret='synthetic HTTP password';await passwords.set(a,workspace,preview.id,1,secret);await shares.publish(a,workspace,{...preview,audience:'link_and_password'});
+ const origin='http://127.0.0.1:3020',service=createShareService({pool,origin,identity:async()=>null});
+ const req=(body:unknown,from=origin)=>new Request(origin+'/api/shared-report',{method:'POST',headers:{host:new URL(origin).host,origin:from,'content-type':'application/json'},body:JSON.stringify(body)});
+ const denied=await service(req({token:preview.token}),true);assert.equal(denied.status,401);assert.match(denied.headers.get('cache-control')!,/no-store/);const challenge=await denied.text();assert.ok(!challenge.includes('Private title'));assert.ok(!challenge.includes(secret));
+ assert.equal((await service(req({action:'unlock',token:preview.token,password:secret,extra:true}),true)).status,400);
+ assert.equal((await service(req({action:'unlock',token:preview.token,password:secret},'https://foreign.example'),true)).status,403);
+ const unlocked=await service(req({action:'unlock',token:preview.token,password:secret}),true);assert.equal(unlocked.status,200);const session=await unlocked.json();assert.ok(!JSON.stringify(session).includes(secret));
+ const read=await service(req({token:preview.token,unlock:session.unlock}),true);assert.equal(read.status,200);assert.equal((await read.json()).digest,preview.digest);
+});

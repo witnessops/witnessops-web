@@ -4,6 +4,8 @@ import type { authenticatedWebSession } from './auth';
 import { authConfiguration } from './auth-config';
 import { database } from './db/pool';
 import { resolveIdentity } from './db/identity';
+import { SharePasswordStore } from './db/share-passwords';
+import { PasswordChallenge } from './share-password';
 import { ShareAccessStore } from './db/share-access';
 import { sendMail } from '../../../witnessops-web/src/lib/server/send-verification-email';
 import type { InvitationSender } from './db/members';
@@ -43,8 +45,12 @@ export function createShareService(options: {
                 throw new ApiError(400, 'Submit only the required fields.'); };
             const pool = options.pool ?? database(), store = new ShareStore(pool);
             if (recipient) {
-                fields(['token']);
-                return Response.json(await store.read(input.token), { headers: SHARE_HEADERS });
+                if(input.action==='unlock') {
+                    fields(['action','token','password']);
+                    return Response.json(await new SharePasswordStore(pool).unlock(input.token,input.password),{headers:SHARE_HEADERS});
+                }
+                fields(Object.hasOwn(input,'unlock')?['token','unlock']:['token']);
+                return Response.json(await store.read(input.token,input.unlock), { headers: SHARE_HEADERS });
             }
             const web = await (options.identity ?? (await import('./auth')).authenticatedWebSession)();
             if (!web)
@@ -64,6 +70,10 @@ export function createShareService(options: {
             else if (input.action === 'publish') {
                 fields(['action', 'id', 'token', 'digest', 'audience']);
                 result = await store.publish(user, workspace, { id: input.id, token: input.token, digest: input.digest, audience: input.audience });
+            }
+            else if (input.action === 'password') {
+                fields(['action','id','version','password']);
+                result=await new SharePasswordStore(pool).set(user,workspace,input.id,input.version,input.password);
             }
             else if (input.action === 'access') {
                 fields(['action','id','version','expiresAt','rotate']);
@@ -93,7 +103,7 @@ export function createShareService(options: {
             return Response.json(result, { headers: SHARE_HEADERS });
         }
         catch (error) {
-            return Response.json({ error: error instanceof ApiError ? error.message : 'Sharing request could not complete.' }, { status: error instanceof ApiError ? error.status : 500, headers: SHARE_HEADERS });
+            return Response.json({ error: error instanceof ApiError ? error.message : 'Sharing request could not complete.', ...(error instanceof PasswordChallenge ? {passwordRequired:true} : {}) }, { status: error instanceof ApiError ? error.status : 500, headers: SHARE_HEADERS });
         }
     };
 }
