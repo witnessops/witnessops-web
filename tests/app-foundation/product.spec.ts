@@ -189,7 +189,17 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.evaluate(() => { window.print = () => {}; });
     await page.getByRole("button", { name: "Save report as PDF", exact: true }).click();
     const printRoot = page.locator("[data-buyer-print-root]");
-    expect(await printRoot.locator("article").innerHTML()).toBe(await page.locator("main article").innerHTML());
+    // Keep exact evidence/explanation parity while excluding screen-only controls.
+    const documentContent = (article: Element) => {
+      const copy = article.cloneNode(true) as Element;
+      copy.querySelectorAll('.finding-interactive').forEach(node => node.remove());
+      copy.querySelectorAll('[id], [tabindex], details[open]').forEach(node => { node.removeAttribute('id'); node.removeAttribute('tabindex'); node.removeAttribute('open'); });
+      return copy.innerHTML;
+    };
+    expect(await printRoot.locator("article").evaluate(documentContent)).toBe(await page.locator("main article").evaluate(documentContent));
+    await expect(page.locator('main article .finding-interactive').first()).toBeVisible();
+    await expect(printRoot.locator('.finding-interactive')).toHaveCount(0);
+    await expect(printRoot).toContainText('What to do next');
     await expect(printRoot).toContainText(ws!.runs[1].sourceDigest);
     await expect(printRoot).toContainText("Environment changes");
     await expect(printRoot).toContainText("HTTP Strict Transport Security: observed state changed.");
