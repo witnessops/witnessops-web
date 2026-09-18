@@ -183,3 +183,16 @@ test('real HTTP lost upload acknowledgement reconciles the same execution and on
   assert.equal(captures,1);assert.equal(await count('server_check_executions'),beforeExecutions+1);assert.equal(await count('runs'),beforeRuns+1);
  }finally{server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));}
 });
+
+test('Contributor requires fresh CLI scope; rejoining cannot revive an unfinished server execution',async()=>{
+ await pool.query("UPDATE memberships SET role='contributor' WHERE workspace_id=$1 AND user_id=$2",[workspace,user.id]);
+ const token=await credential(),input=request(),execution=await store.authorize(token,input);
+ await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE workspace_id=$1 AND user_id=$2",[workspace,user.id]);
+ await assert.rejects(store.status(token,execution.id));
+ await pool.query("UPDATE memberships SET status='active',revoked_at=NULL WHERE workspace_id=$1 AND user_id=$2",[workspace,user.id]);
+ await assert.rejects(store.context(token));
+ const fresh=await credential();assert.equal((await store.context(fresh)).workspaceId,workspace);
+ await assert.rejects(store.status(fresh,execution.id),/revoked/);
+ await assert.rejects(store.authorize(fresh,input),/revoked/);
+ await pool.query("UPDATE memberships SET role='owner' WHERE workspace_id=$1 AND user_id=$2",[workspace,user.id]);
+});

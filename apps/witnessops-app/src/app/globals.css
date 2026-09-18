@@ -353,3 +353,25 @@ pre { font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: a
 .check-choice .button { margin-top: auto; white-space: normal; text-align: center; }
 .check-choice [aria-pressed="true"] { border-color: var(--attention); }
 @media (max-width: 700px) { .check-choice-grid { grid-template-columns: 1fr; } }
+
+/* Compact membership controls, using the existing app surface and focus tokens. */
+.members-list { border-block: 1px solid var(--border); }
+.members-page .member-row { padding: 14px 0; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: transparent; }
+.members-list .member-row:last-child { border-bottom: 0; }
+.members-page .member-row > strong { flex: 1; min-width: 120px; overflow-wrap: anywhere; }
+.members-page .member-row > .actions { margin-left: auto; }
+.member-role { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.members-page .member-row label { color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 10px; }
+.members-page .member-row select { width: auto; min-width: 120px; }
+.member-invite-form { max-width: 600px; padding: 24px 0; border-bottom: 1px solid var(--border); }
+.members-section-title { margin: 32px 0 8px; font-size: 16px; }
+.members-page .invitation-row strong { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .members-page .member-row > .actions { flex-basis: 100%; margin-left: 0; justify-content: flex-start; }
+  .members-page .member-row label { flex-wrap: wrap; }
+  .members-page .member-row select { flex: 1; }
+  .members-page .member-row > div { overflow-wrap: anywhere; }
+  .members-page .page-heading > .button { margin-top: 0; }
+}
+.members-page select { min-height: 44px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--fg); font: inherit; }
+.members-page .page-heading { gap: 16px; }

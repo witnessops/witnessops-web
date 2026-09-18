@@ -1,4 +1,5 @@
 'use client';
+import { hasWorkspaceCapability } from '../lib/workspace-role-policy';
 import Link from 'next/link';
 import { CHECK_DISCOVERY } from '../lib/check-discovery';
 import { publicContactMailto } from '../../../witnessops-web/src/lib/public-contact';
@@ -65,7 +66,7 @@ export function LinuxAsset({ workspace, asset, imported }: { workspace: Workspac
         <p className="quiet">Early Access: setup is currently operator-assisted.</p>
         <a href={publicContactMailto('WitnessOps — One Server Security Check setup')}>Contact WitnessOps for setup help →</a>
       </section>
-      {workspace.role === 'owner' ? <form className="asset-form linux-import-panel" aria-labelledby="linux-import-heading" aria-busy={busy} onSubmit={submit}>
+      {hasWorkspaceCapability(workspace.role, 'linux:import') ? <form className="asset-form linux-import-panel" aria-labelledby="linux-import-heading" aria-busy={busy} onSubmit={submit}>
         <div><p className="eyebrow">Import existing source</p><h2 id="linux-import-heading">Import Security Check</h2></div>
         <p>Import a signed Local Audit 1.2.2 Proofpack from a supported Linux server. It does not run a collector, connect by SSH or install software.</p>
         <p className="quiet">{CHECK_DISCOVERY.linux_server.output}</p>

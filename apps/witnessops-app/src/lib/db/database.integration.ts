@@ -1,3 +1,5 @@
+import { MembersStore } from './members';
+import { CliAuthStore } from './cli-auth';
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -105,7 +107,7 @@ test('Free workspaces: verified admission, atomic retries, ceiling, persistence 
   }
 });
 
-for (const baseline of [10, 12]) test(`Free migration preserves populated 00${baseline} accounts, source bytes, CLI bindings and accepted terms`, async () => {
+for (const baseline of [10, 12, 14]) test(`Free migration preserves populated 00${baseline} accounts, source bytes, CLI bindings and accepted terms`, async () => {
   const upgradeSchema = `wops_free_upgrade_${randomUUID().replaceAll('-', '')}`;
   await admin.query(`CREATE SCHEMA ${upgradeSchema}`);
   const upgrade = new Pool({ connectionString: env.TEST_DATABASE_URL, options: `-c search_path=${upgradeSchema},public`, max: 1 });
@@ -125,7 +127,7 @@ for (const baseline of [10, 12]) test(`Free migration preserves populated 00${ba
     await upgrade.query("INSERT INTO assets(id,workspace_id,type,normalized_value) VALUES ($1,$2,'hostname',$3)", [asset,workspace,source.target]);
     await upgrade.query("INSERT INTO runs(id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version,source_snapshot,source_digest,finished_at) VALUES ($1,$2,$3,$4,'external-snapshot-v1','completed','fixture','v1',$5,$6,now())", [run,workspace,asset,user,source,createHash('sha256').update(canonicalSource(source)).digest('hex')]);
     await upgrade.query("INSERT INTO cli_sessions(credential_hash,user_id,workspace_id,web_issuer,web_session_id,issued_at,expires_at) VALUES ($1,$2,$3,'fixture','fixture',now(),now()+interval '1 hour')", ['a'.repeat(64),user,workspace]);
-    if (baseline === 12) {
+    if (baseline >= 12) {
       await upgrade.query('BEGIN');
       await upgrade.query('INSERT INTO early_access_plans(workspace_id,revision) VALUES ($1,1)', [workspace]);
       await upgrade.query('INSERT INTO early_access_plan_consents(workspace_id,request_id,revision,accepted_by,terms_version,contribution_minor) VALUES ($1,$2,1,$3,$4,0)', [workspace,randomUUID(),user,EARLY_ACCESS_PLAN_POLICY.version]);
@@ -136,12 +138,14 @@ for (const baseline of [10, 12]) test(`Free migration preserves populated 00${ba
       const values: Record<string, string[]> = {};
       for (const table of tables) {
         assert.match(table, /^[a-z_]+$/);
-        values[table] = (await upgrade.query(`SELECT to_jsonb(t) - 'free_workspace_access' AS record FROM ${table} t`)).rows.map(row => canonicalSource(row.record)).sort();
+        values[table] = (await upgrade.query(`SELECT to_jsonb(t) - 'free_workspace_access' - 'generation' - 'membership_generation' AS record FROM ${table} t`)).rows.map(row => canonicalSource(row.record)).sort();
       }
       return values;
     }
     const original = await snapshot();
     await migrate(upgrade);
+    assert.equal((await upgrade.query('SELECT generation FROM memberships WHERE user_id=$1', [user])).rows[0].generation, 1);
+    assert.equal((await upgrade.query('SELECT membership_generation FROM cli_sessions WHERE user_id=$1', [user])).rows[0].membership_generation, 1);
     assert.deepEqual(await snapshot(), original);
     assert.equal((await upgrade.query('SELECT count(*) FROM free_workspace_plans')).rows[0].count, '0');
     assert.equal((await upgrade.query('SELECT free_workspace_access FROM users WHERE id=$1', [user])).rows[0].free_workspace_access, false);
@@ -1191,4 +1195,146 @@ test('Invited creation during free admission retains explicit historical consent
     if (previous === undefined) delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
     else process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT = previous;
   }
+});
+
+test('Membership: recipient binding, admission separation, role work, revocation and rejoin', async () => {
+ const prior=process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT='3';
+ try {
+  const owner=await resolveUnenrolledIdentity(pool,identity('team_owner'));
+  const team=await store.create(owner,'Team A',randomUUID()), other=await store.create(owner,'Team B',randomUUID());
+  const recipientIdentity=identity('team_recipient'), recipient=await resolveUnenrolledIdentity(pool,recipientIdentity);
+  const members=new MembersStore(pool), key=randomUUID();
+  const input={email:recipientIdentity.email,role:'viewer',requestId:key};
+  const ids=await Promise.all([members.invite(owner,team,input),members.invite(owner,team,input)]);assert.equal(ids[0],ids[1]);
+  const id=ids[0];
+  let sends=0;await Promise.all([members.deliver(owner,team,id,origin,async()=>{sends++;throw new Error('timeout');}),members.deliver(owner,team,id,origin,async()=>{sends++;throw new Error('timeout');})]);assert.equal(sends,1);
+  assert.equal((await members.list(owner,team)).invitations[0].deliveryState,'unknown');
+  await assert.rejects(members.preview(recipient,'wrong@example.test',id),/unavailable/);
+  await assert.rejects(members.preview(recipient,null,id),/verified/);
+  const preview=await members.preview(recipient,recipientIdentity.email,id);assert.equal(preview.role,'viewer');
+  assert.equal((await pool.query('SELECT count(*) FROM memberships WHERE user_id=$1',[recipient.id])).rows[0].count,'0');
+  delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
+  await assert.rejects(members.accept(recipient,recipientIdentity.email,id,2,'viewer'),/changed/);
+  await members.accept(recipient,recipientIdentity.email,id,1,'viewer');
+  await members.accept(recipient,recipientIdentity.email,id,1,'viewer');
+  assert.equal((await store.list(recipient)).length,1);
+  assert.equal((await store.read(recipient,team)).role,'viewer');
+  await assert.rejects(store.read(recipient,other),/not found/);
+  await assert.rejects(store.create(recipient,'Not a creator',randomUUID()),/unavailable/);
+  const flags=(await pool.query('SELECT early_access_state,free_workspace_access FROM users WHERE id=$1',[recipient.id])).rows[0];assert.deepEqual(flags,{early_access_state:null,free_workspace_access:false});
+  await assert.rejects(store.addAsset(recipient,team,'example.net','hostname'),/Owner/);
+  await assert.rejects(members.invite(recipient,team,{...input,requestId:randomUUID()}),/Owner/);
+  assert.deepEqual((await members.list(recipient,team)).invitations,[]);
+  await members.change(owner,team,recipient.id,'contributor',1);
+  const asset=await store.addAsset(recipient,team,source.target,'hostname');
+  const run=await store.beginRun(recipient,team,asset.id);
+  await assert.rejects(new EarlyAccessPlanStore(pool).recordConsent(recipient,team,planConsent()),/Owner/);
+  const cli=new CliAuthStore(pool);
+  const cliIdentity={...recipientIdentity,subject:'user_teamcli'};
+  await pool.query('INSERT INTO identity_mappings(user_id,provider,issuer,subject,verified_email_snapshot) VALUES($1,$2,$3,$4,$5)',[recipient.id,cliIdentity.provider,cliIdentity.issuer,cliIdentity.subject,cliIdentity.email]);
+  const bound={identity:cliIdentity,session:sessionKey(cliIdentity.issuer,'session_team',cliIdentity.subject)};
+  const device=await cli.create();await cli.bind(bound,{code:device.userCode,workspaceId:team,displayedUserId:recipient.id,action:'authorize',scope:'cli:session server_check:create'});
+  const token=await cli.poll(device.device);assert.equal(token.state,'active');if(token.state!=='active')throw new Error('Expected credential');
+  await cli.withServerWork(token.credential,async()=>undefined);
+  const waiting=await cli.create();await cli.bind(bound,{code:waiting.userCode,workspaceId:team,displayedUserId:recipient.id,action:'authorize'});
+  await members.change(owner,team,recipient.id,null,2);
+  await assert.rejects(store.read(recipient,team));await assert.rejects(cli.status(token.credential));await assert.rejects(cli.poll(waiting.device));
+  await assert.rejects(members.accept(recipient,recipientIdentity.email,id,1,'viewer'));
+  const again=await members.invite(owner,team,{email:recipientIdentity.email,role:'contributor',requestId:randomUUID()});await members.accept(recipient,recipientIdentity.email,again,1,'contributor');
+  await assert.rejects(cli.status(token.credential),/revoked/);await assert.rejects(cli.poll(waiting.device),/revoked/);
+  await assert.rejects(store.completeRun(recipient,team,run,source),/does not match/);
+  await store.failRun(team,run,recipient);
+  await assert.rejects(members.accept(recipient,recipientIdentity.email,id,1,'viewer'));
+  assert.equal((await store.read(owner,other)).role,'owner');
+ } finally {if(prior===undefined)delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;else process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT=prior;}
+});
+
+test('Membership: concurrent Owner changes, invitation lifecycle and historical seat fence', async () => {
+ const owner=await resolveIdentity(pool,identity('owner_concurrent')), second=await resolveIdentity(pool,identity('owner_second'));
+ const workspace=await store.create(owner,'Concurrent owners',randomUUID()), members=new MembersStore(pool);
+ const invite=await members.invite(owner,workspace,{email:identity('owner_second').email,role:'owner',requestId:randomUUID()});
+ await members.accept(second,identity('owner_second').email,invite,1,'owner');
+ const outcomes=await Promise.allSettled([members.change(owner,workspace,second.id,null,1),members.change(second,workspace,owner.id,'viewer',1)]);
+ assert.equal(outcomes.filter(x=>x.status==='fulfilled').length,1);
+ assert.equal((await pool.query("SELECT count(*) FROM memberships WHERE workspace_id=$1 AND role='owner' AND status='active'",[workspace])).rows[0].count,'1');
+ const remaining=(await pool.query("SELECT user_id,generation FROM memberships WHERE workspace_id=$1 AND role='owner' AND status='active'",[workspace])).rows[0];
+ const actor=remaining.user_id===owner.id?owner:second;
+ await assert.rejects(members.change(actor,workspace,actor.id,null,remaining.generation),/at least one/);
+ const target=await resolveUnenrolledIdentity(pool,identity('invite_lifecycle'));
+ const first=await members.invite(actor,workspace,{email:identity('invite_lifecycle').email,role:'viewer',requestId:randomUUID()});
+ const resent=await members.invite(actor,workspace,{email:identity('invite_lifecycle').email,role:'viewer',requestId:randomUUID(),replaces:first});
+ await assert.rejects(members.accept(target,identity('invite_lifecycle').email,first,1,'viewer'));
+ await members.cancel(actor,workspace,resent);await assert.rejects(members.accept(target,identity('invite_lifecycle').email,resent,2,'viewer'));
+ const expired=await members.invite(actor,workspace,{email:identity('invite_lifecycle').email,role:'viewer',requestId:randomUUID()});await pool.query("UPDATE workspace_invitations SET expires_at=now()-interval '1 second' WHERE id=$1",[expired]);await assert.rejects(members.preview(target,identity('invite_lifecycle').email,expired));
+ const historical=await store.create(owner,'Historical single seat',randomUUID());await new EarlyAccessPlanStore(pool).recordConsent(owner,historical,planConsent());
+ await assert.rejects(members.invite(owner,historical,{email:identity('invite_lifecycle').email,role:'viewer',requestId:randomUUID()}),/1-place/);
+});
+
+test('Membership HTTP: origin, verified recipient, explicit acceptance, file delivery and paused/session fences', async () => {
+  const { createMembershipService } = await import('../member-server');
+  const { mkdtemp, readdir, readFile, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { sendMail } = await import('../../../../witnessops-web/src/lib/server/send-verification-email');
+  const directory = await mkdtemp(join(tmpdir(), 'wops-membership-mail-'));
+  const previous = { provider: process.env.WITNESSOPS_MAIL_PROVIDER, output: process.env.WITNESSOPS_MAIL_OUTPUT_DIR, limit: process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT };
+  process.env.WITNESSOPS_MAIL_PROVIDER='file';process.env.WITNESSOPS_MAIL_OUTPUT_DIR=directory;process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT='2';
+  try {
+    const ownerIdentity=identity('user_memberowner'), recipientIdentity=identity('user_memberrecipient');
+    const owner=await resolveUnenrolledIdentity(pool,ownerIdentity), recipient=await resolveUnenrolledIdentity(pool,recipientIdentity);
+    const workspace=await store.create(owner,'HTTP membership',randomUUID());
+    let current: {identity:Identity;session:ReturnType<typeof sessionKey>} | null = { identity:ownerIdentity, session:sessionKey(ownerIdentity.issuer,'session_memberowner',ownerIdentity.subject) };
+    const handle=createMembershipService({pool,origin,identity:async()=>current,send:sendMail});
+    const request=(path:string,input?:unknown,extra:Record<string,string>={})=>new Request(origin+path,{method:input?'POST':'GET',headers:{host:new URL(origin).host,origin,'content-type':'application/json','x-witnessops-workspace':workspace,...extra},...(input?{body:JSON.stringify(input)}:{})});
+    const payload={action:'invite',email:recipientIdentity.email,role:'viewer',requestId:randomUUID(),replaces:null};
+    assert.equal((await handle(request('/api/members',payload,{origin:'https://evil.example'}))).status,403);
+    assert.equal((await handle(request('/api/members',{...payload,userId:owner.id}))).status,400);
+    const response=await handle(request('/api/members',payload));assert.equal(response.status,200);
+    const state=await response.json(), invite=state.invitations[0];assert.equal(invite.deliveryState,'accepted');assert.equal(invite.provider,'file');
+    assert.equal((await handle(request('/api/members',payload))).status,200);
+    const files=await readdir(directory);assert.equal(files.length,1);
+    const eml=await readFile(join(directory,files[0]),'utf8');assert.ok(eml.includes(`${origin}/invitations/${invite.id}`));assert.ok(eml.includes(`To: ${recipientIdentity.email}`));assert.ok(eml.includes('From: WitnessOps <invitations@send.witnessops.com>'));assert.ok(eml.includes('Reply-To: engage@mail.witnessops.com'));
+    delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
+    current={identity:recipientIdentity,session:sessionKey(recipientIdentity.issuer,'session_memberrecipient',recipientIdentity.subject)};
+    assert.equal((await handle(request(`/api/invitations?id=${invite.id}`),true)).status,200);
+    assert.equal((await pool.query('SELECT count(*) FROM memberships WHERE user_id=$1',[recipient.id])).rows[0].count,'0');
+    const accept={id:invite.id,role:'viewer',revision:invite.revision};
+    current={...current,identity:{...recipientIdentity,email:null}};assert.equal((await handle(request('/api/invitations',accept),true)).status,403);
+    current={...current,identity:recipientIdentity};
+    for(const update of ["status='disabled'", "status='active',early_access_state='paused'", "early_access_state=NULL,early_access_activated_at=now()"]) {
+      await pool.query(`UPDATE users SET ${update} WHERE id=$1`,[recipient.id]);
+      assert.equal((await handle(request('/api/invitations',accept),true)).status,403);
+    }
+    await pool.query("UPDATE users SET status='active',early_access_state=NULL,early_access_activated_at=NULL WHERE id=$1",[recipient.id]);
+    assert.equal((await handle(request('/api/invitations',{...accept,role:'owner'}),true)).status,409);
+    assert.equal((await handle(request('/api/invitations',accept),true)).status,200);
+    assert.equal((await handle(request('/api/members'))).status,200);
+    assert.equal((await handle(request('/api/members',payload))).status,403);
+    await revokeSession(pool,current.session);
+    assert.equal((await handle(request('/api/invitations',accept),true)).status,401);
+    current=null;assert.equal((await handle(request('/api/members'))).status,401);
+  } finally {
+    for(const [key,value] of Object.entries({WITNESSOPS_MAIL_PROVIDER:previous.provider,WITNESSOPS_MAIL_OUTPUT_DIR:previous.output,WITNESSOPS_FREE_WORKSPACE_LIMIT:previous.limit})) {if(value===undefined)delete process.env[key];else process.env[key]=value;}
+    await rm(directory,{recursive:true,force:true});
+  }
+});
+
+test('Membership: concurrent capacity admission and cancel/accept races serialize', async () => {
+ const previous=process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT='2';
+ try {
+  const owner=await resolveUnenrolledIdentity(pool,identity('cap_owner')),members=new MembersStore(pool);
+  const workspace=await store.create(owner,'Capacity race',randomUUID());
+  for(let i=0;i<7;i++)await members.invite(owner,workspace,{email:`pending${i}@example.test`,role:'viewer',requestId:randomUUID()});
+  const results=await Promise.allSettled([7,8,9].map(i=>members.invite(owner,workspace,{email:`pending${i}@example.test`,role:'viewer',requestId:randomUUID()})));
+  assert.equal(results.filter(result=>result.status==='fulfilled').length,2);
+  assert.equal((await pool.query("SELECT count(*) FROM workspace_invitations WHERE workspace_id=$1 AND state='pending'",[workspace])).rows[0].count,'9');
+  const recipient=await resolveUnenrolledIdentity(pool,identity('cancel_recipient'));
+  const other=await store.create(owner,'Cancellation race',randomUUID());
+  const id=await members.invite(owner,other,{email:identity('cancel_recipient').email,role:'viewer',requestId:randomUUID()});
+  const race=await Promise.allSettled([members.cancel(owner,other,id),members.accept(recipient,identity('cancel_recipient').email,id,1,'viewer')]);
+  assert.equal(race.filter(result=>result.status==='fulfilled').length,1);
+  const row=(await pool.query('SELECT state FROM workspace_invitations WHERE id=$1',[id])).rows[0];
+  const count=(await pool.query("SELECT count(*) FROM memberships WHERE user_id=$1 AND workspace_id=$2 AND status='active'",[recipient.id,other])).rows[0].count;
+  assert.equal(count,row.state==='accepted'?'1':'0');
+ } finally {if(previous===undefined)delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;else process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT=previous;}
 });

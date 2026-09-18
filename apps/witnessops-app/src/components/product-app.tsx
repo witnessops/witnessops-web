@@ -1,6 +1,8 @@
 "use client";
+import { hasWorkspaceCapability } from "../lib/workspace-role-policy";
 
 import Link from "next/link";
+import { Members } from "./members";
 import { CheckChoices } from "./check-choice";
 import { CHECK_DISCOVERY } from "../lib/check-discovery";
 import { LinuxAsset, LinuxCheckPage, LinuxHistory } from "./linux-check";
@@ -152,7 +154,7 @@ function History({ workspace, assetId, report = false }: { workspace: Workspace;
 }
 
 function AssetList({ workspace }: { workspace: Workspace }) {
-  if (!workspace.assets.length) return <CheckChoices owner={workspace.role === "owner"} />;
+  if (!workspace.assets.length) return <CheckChoices owner={hasWorkspaceCapability(workspace.role, "assets:create")} />;
   const rows = workspace.assets.map(asset => {
     const latest = orderedRuns(workspace, asset.id)[0];
     const changes = latest ? compareRuns(latest, previousRun(workspace, latest)) : undefined;
@@ -180,7 +182,7 @@ function Overview({ workspace }: { workspace: Workspace }) {
   const unresolved = latest.filter(run => run.snapshot.checks.some(check => !check.collected || ["CHECK_ERROR", "UNDETERMINED"].includes(check.status))).length;
   const comparisons = latest.map(run => compareRuns(run, previousRun(workspace, run)));
   return <>
-    <Header title={workspace.name} eyebrow="Your evidence workspace" action={workspace.assets.length && workspace.role === "owner" ? <Link className="button" href="/assets/new">Add asset</Link> : undefined}>
+    <Header title={workspace.name} eyebrow="Your evidence workspace" action={workspace.assets.length && hasWorkspaceCapability(workspace.role, "assets:create") ? <Link className="button" href="/assets/new">Add asset</Link> : undefined}>
       <p>Choose a public hostname check or a local Linux server check. Keep evidence and reports, then compare later checks.</p>
     </Header>
     {workspace.assets.length ? <>
@@ -216,7 +218,7 @@ function AddAsset({ busy, onAdd }: { busy: boolean; onAdd: (hostname: string, ty
 
 function AssetPage({ workspace, asset, busy, onRun }: { workspace: Workspace; asset: Asset; busy: boolean; onRun: (asset: Asset) => Promise<void> }) {
   const latest = orderedRuns(workspace, asset.id)[0];
-  return <><Link className="back" href="/assets">← Assets</Link><Header title={asset.hostname} eyebrow="Hostname" action={workspace.role === "owner" ? <a className="button secondary" href="#run-observation">{latest ? "Run again ↓" : "Run observation ↓"}</a> : undefined}><p>Recommended check: {CHECK_DISCOVERY.hostname.name}</p><p>{latest ? `Last observed ${date(latest.snapshot.finished_at)}` : "Create your first public baseline. We will make ten bounded public observations after you authorize the run. You get results, unknowns, evidence and a report; run again later to compare."}</p></Header>{latest ? <><ResultSummary run={latest} /><Changes workspace={workspace} current={latest} previous={previousRun(workspace, latest)} /></> : <RecommendedChecks expanded />}{workspace.role === "owner" ? <RunControl asset={asset} latest={latest} busy={busy} onRun={onRun} /> : <p className="quiet boundary">Viewer access · Only an Owner can start an observation.</p>}{latest ? <><RecommendedChecks /><section className="section" id="all-observations"><h2>All observations</h2><ObservationList run={latest} /></section></> : null}<section className="section"><h2>Run history</h2><p className="quiet">Previous evidence stays intact. Rerun later to compare; no monitoring happens automatically.</p><History workspace={workspace} assetId={asset.id} /></section></>;
+  return <><Link className="back" href="/assets">← Assets</Link><Header title={asset.hostname} eyebrow="Hostname" action={hasWorkspaceCapability(workspace.role, "assets:create") ? <a className="button secondary" href="#run-observation">{latest ? "Run again ↓" : "Run observation ↓"}</a> : undefined}><p>Recommended check: {CHECK_DISCOVERY.hostname.name}</p><p>{latest ? `Last observed ${date(latest.snapshot.finished_at)}` : "Create your first public baseline. We will make ten bounded public observations after you authorize the run. You get results, unknowns, evidence and a report; run again later to compare."}</p></Header>{latest ? <><ResultSummary run={latest} /><Changes workspace={workspace} current={latest} previous={previousRun(workspace, latest)} /></> : <RecommendedChecks expanded />}{hasWorkspaceCapability(workspace.role, "assets:create") ? <RunControl asset={asset} latest={latest} busy={busy} onRun={onRun} /> : <p className="quiet boundary">Viewer access · Only an Owner can start an observation.</p>}{latest ? <><RecommendedChecks /><section className="section" id="all-observations"><h2>All observations</h2><ObservationList run={latest} /></section></> : null}<section className="section"><h2>Run history</h2><p className="quiet">Previous evidence stays intact. Rerun later to compare; no monitoring happens automatically.</p><History workspace={workspace} assetId={asset.id} /></section></>;
 }
 
 function downloadSource(run: Run) {
@@ -231,7 +233,7 @@ function downloadSource(run: Run) {
 function RunPage({ workspace, run, busy, onRun }: { workspace: Workspace; run: Run; busy: boolean; onRun: (asset: Asset) => Promise<void> }) {
   const { event } = useProductActivity();
   const asset = workspace.assets.find((item) => item.id === run.assetId);
-  return <><Link className="back" href={`/assets/${run.assetId}`}>← Back to asset</Link><Header title="Observation" eyebrow={run.snapshot.target}><p>Observed {date(run.snapshot.finished_at)}</p><p>What these public checks observed at the recorded time. This is not a complete security assessment.</p></Header><ResultSummary run={run} /><Changes workspace={workspace} current={run} previous={previousRun(workspace, run)} /><section className="section" id="all-observations"><h2>All observations</h2><ObservationList run={run} /></section>{asset && workspace.role === "owner" ? <RunControl asset={asset} latest={run} busy={busy} onRun={onRun} /> : null}<details className="method-panel"><summary>Method and source evidence</summary><div className="actions"><button className="button secondary" onClick={() => { downloadSource(run); event("source_json_downloaded", run); }}>Download source JSON</button></div><dl className="facts"><div><dt>Source representation</dt><dd>ExternalSnapshotV1 · {run.snapshot.version}</dd></div><div><dt>Run ID</dt><dd>{run.id}</dd></div><div><dt>Source digest</dt><dd className="mono">{run.sourceDigest}</dd></div><div><dt>Started</dt><dd>{date(run.snapshot.started_at)}</dd></div><div><dt>Finished</dt><dd>{date(run.snapshot.finished_at)}</dd></div></dl><h3>Collection usage</h3><pre>{JSON.stringify(run.snapshot.usage, null, 2)}</pre><h3>Network attempt ledger</h3><p className="quiet">Operations and attempts, not independent proof of responses or source-system truth.</p><pre>{JSON.stringify(run.snapshot.network, null, 2)}</pre></details><p className="quiet boundary">{SNAPSHOT_BOUNDARY}</p><DeeperReview run={run} /></>;
+  return <><Link className="back" href={`/assets/${run.assetId}`}>← Back to asset</Link><Header title="Observation" eyebrow={run.snapshot.target}><p>Observed {date(run.snapshot.finished_at)}</p><p>What these public checks observed at the recorded time. This is not a complete security assessment.</p></Header><ResultSummary run={run} /><Changes workspace={workspace} current={run} previous={previousRun(workspace, run)} /><section className="section" id="all-observations"><h2>All observations</h2><ObservationList run={run} /></section>{asset && hasWorkspaceCapability(workspace.role, "assets:create") ? <RunControl asset={asset} latest={run} busy={busy} onRun={onRun} /> : null}<details className="method-panel"><summary>Method and source evidence</summary><div className="actions"><button className="button secondary" onClick={() => { downloadSource(run); event("source_json_downloaded", run); }}>Download source JSON</button></div><dl className="facts"><div><dt>Source representation</dt><dd>ExternalSnapshotV1 · {run.snapshot.version}</dd></div><div><dt>Run ID</dt><dd>{run.id}</dd></div><div><dt>Source digest</dt><dd className="mono">{run.sourceDigest}</dd></div><div><dt>Started</dt><dd>{date(run.snapshot.started_at)}</dd></div><div><dt>Finished</dt><dd>{date(run.snapshot.finished_at)}</dd></div></dl><h3>Collection usage</h3><pre>{JSON.stringify(run.snapshot.usage, null, 2)}</pre><h3>Network attempt ledger</h3><p className="quiet">Operations and attempts, not independent proof of responses or source-system truth.</p><pre>{JSON.stringify(run.snapshot.network, null, 2)}</pre></details><p className="quiet boundary">{SNAPSHOT_BOUNDARY}</p><DeeperReview run={run} /></>;
 }
 
 function DetailSection({ title, children }: { title: string; children: ReactNode }) {
@@ -329,7 +331,15 @@ export function ProductApp() {
     try { await action(); } catch (cause) { if (cause instanceof Error && "accessState" in cause) { setAccess(cause.accessState as WorkspaceAccessState); setState(null); } else setError(cause instanceof Error ? cause.message : "This action could not complete. Try again."); } finally { operationInFlight.current = false; setBusy(false); }
   }
   async function refresh() {
-    setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, workspace?.id));
+    try {
+      setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, workspace?.id));
+    } catch (cause) {
+      if (cause instanceof Error && 'status' in cause && [401, 403, 404].includes(Number(cause.status))) {
+        setState(null);
+        if ('accessState' in cause) setAccess(cause.accessState as WorkspaceAccessState);
+        else setState(await request<WorkspaceState>("/api/workspace"));
+      } else throw cause;
+    }
   }
   async function createWorkspace() {
     await perform(async () => {
@@ -383,9 +393,9 @@ export function ProductApp() {
   } else if (!parts.length) {
     content = <Overview workspace={workspace} />;
   } else if (parts[0] === "assets" && parts.length === 1) {
-    content = <><Header title="Assets" action={workspace.role === "owner" ? <Link className="button" href="/assets/new">Add asset</Link> : undefined}><p>Add what you want WitnessOps to observe. Adding an asset does not prove ownership.</p></Header><AssetList workspace={workspace} /></>;
+    content = <><Header title="Assets" action={hasWorkspaceCapability(workspace.role, "assets:create") ? <Link className="button" href="/assets/new">Add asset</Link> : undefined}><p>Add what you want WitnessOps to observe. Adding an asset does not prove ownership.</p></Header><AssetList workspace={workspace} /></>;
   } else if (pathname === "/assets/new") {
-    content = workspace.role === "owner" ? <AddAsset busy={busy} onAdd={onAdd} /> : <Missing title="Owner access required" />;
+    content = hasWorkspaceCapability(workspace.role, "assets:create") ? <AddAsset busy={busy} onAdd={onAdd} /> : <Missing title="Owner access required" />;
   } else if (parts[0] === "assets" && parts.length === 2) {
     const asset = workspace.assets.find((item) => item.id === parts[1]);
     content = asset?.type === "linux_server" ? <LinuxAsset key={asset.id} workspace={workspace} asset={asset} imported={async run => { await refresh(); router.push(`/runs/${run.id}`); }} /> : asset ? <AssetPage key={asset.id} workspace={workspace} asset={asset} busy={busy} onRun={onRun} /> : <Missing title="Asset not found" />;
@@ -402,9 +412,9 @@ export function ProductApp() {
     const run = workspace.runs.find((item) => item.id === parts[1]);
     content = (workspace.linuxRuns ?? []).some(run => run.id === parts[1]) ? <LinuxCheckPage key={parts[1]} runId={parts[1]} workspaceId={workspace.id} /> : run ? <ReportPage workspace={workspace} run={run} /> : <Missing title="Report not found" />;
   } else if (pathname === "/members") {
-    content = <><Header title="Members"><p>Access is explicit. An email domain or workspace name does not establish membership.</p></Header>{workspace.members.map(member => <div className="member-row" key={member.id}><div><strong>{member.displayName || "Workspace member"}</strong></div><span className="status">{member.role === "owner" ? "Owner" : "Viewer"}</span></div>)}<p className="boundary">Invitations are not available yet. No invitation will be sent.</p></>;
+    content = <Members key={workspace.id} workspaceId={workspace.id} onChanged={refresh} />;
   } else if (pathname === "/settings") {
-    content = <><Header title="Settings"><p>The workspace retains your assets and observations across sign-ins.</p></Header><dl className="facts settings-facts"><div><dt>Workspace</dt><dd>{workspace.name}</dd></div><div><dt>Your role</dt><dd>{workspace.role === "owner" ? "Owner" : "Viewer"}</dd></div><div><dt>Authentication</dt><dd>WorkOS AuthKit. Workspace access is managed by WitnessOps.</dd></div><div><dt>Persistence</dt><dd>PostgreSQL. Completed source snapshots remain unchanged when you run again.</dd></div><div><dt>Collection</dt><dd>Manual, explicitly authorized hostname observations. No schedules.</dd></div></dl><section className="section"><h2>Early Access</h2><p>External Exposure is currently in Early Access. Observation methods and product presentation may improve. Previous completed evidence is not silently rewritten.</p><p className="quiet">{EARLY_ACCESS_DATA_NOTE}</p><p className="quiet">PDF export events record the print action being requested, not confirmation that a file was saved.</p><a className="text-action" href={publicContactMailto("WitnessOps — Early Access data request")}>Contact us about your data →</a></section><RecommendedChecks /><div className="clear-session"><h2>Sign out</h2><p>Signing out ends your app session. Your workspace, assets and runs remain saved.</p><form action={logout}><button className="button secondary">Sign out</button></form></div></>;
+    content = <><Header title="Settings"><p>The workspace retains your assets and observations across sign-ins.</p></Header><dl className="facts settings-facts"><div><dt>Workspace</dt><dd>{workspace.name}</dd></div><div><dt>Your role</dt><dd>{workspace.role === "owner" ? "Owner" : workspace.role === "contributor" ? "Contributor" : "Viewer"}</dd></div><div><dt>Authentication</dt><dd>WorkOS AuthKit. Workspace access is managed by WitnessOps.</dd></div><div><dt>Persistence</dt><dd>PostgreSQL. Completed source snapshots remain unchanged when you run again.</dd></div><div><dt>Collection</dt><dd>Manual, explicitly authorized hostname observations. No schedules.</dd></div></dl><section className="section"><h2>Early Access</h2><p>External Exposure is currently in Early Access. Observation methods and product presentation may improve. Previous completed evidence is not silently rewritten.</p><p className="quiet">{EARLY_ACCESS_DATA_NOTE}</p><p className="quiet">PDF export events record the print action being requested, not confirmation that a file was saved.</p><a className="text-action" href={publicContactMailto("WitnessOps — Early Access data request")}>Contact us about your data →</a></section><RecommendedChecks /><div className="clear-session"><h2>Sign out</h2><p>Signing out ends your app session. Your workspace, assets and runs remain saved.</p><form action={logout}><button className="button secondary">Sign out</button></form></div></>;
   } else {
     content = <Missing />;
   }
@@ -424,7 +434,7 @@ export function ProductApp() {
       {state ? <button className="button secondary" disabled={busy} onClick={() => { setWorkspaceName(""); setCreationKey(""); setCreatingWorkspace(true); }}>New workspace</button> : null}
       <div className="workspace-context"><span className="context-label">Workspace</span><span className="workspace-name">{workspace?.name || "WitnessOps"}</span></div>
       {state && state.workspaces.length > 1 ? <select aria-label="Active workspace" disabled={busy} value={workspace?.id || ""} onChange={event => void perform(async () => { setState(await request<WorkspaceState>("/api/workspace", "GET", undefined, event.target.value)); router.push("/"); })}><option value="" disabled>Select workspace</option>{state.workspaces.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select> : null}
-      <span className="account">{state?.user.displayName || "WitnessOps"}{workspace ? <span className="account-role"> · {workspace.role === "owner" ? "Owner" : "Viewer"}</span> : null}</span>
+      <span className="account">{state?.user.displayName || "WitnessOps"}{workspace ? <span className="account-role"> · {workspace.role === "owner" ? "Owner" : workspace.role === "contributor" ? "Contributor" : "Viewer"}</span> : null}</span>
     </div>
     <main id="main-content" className="main-content">
       {error ? <div className="error" role="alert">{error}<button onClick={() => setError("")} aria-label="Dismiss error">×</button></div> : null}

@@ -62,13 +62,27 @@ Automatic retention/deletion is not implemented for product data, events or feed
 
 WorkOS provider/issuer/subject maps to an internal UUID; email is only a verified snapshot and never an identity key. WorkOS Organizations are not workspace authority. WitnessOps owns users, identity mappings, workspaces, memberships, assets and runs. The workspace creation transaction creates its Owner; a per-user creation key makes retries deterministic. A workspace name or slug is not proof of company identity.
 
-Every resource operation resolves a provider-authenticated internal user, then rechecks active user/workspace/membership in the database. `WorkspaceStore` centralizes mandatory workspace predicates and membership locks. Owner can add assets and run observations. Viewer can read. There is no membership-edit or owner-removal path in this slice. Membership revocation during collection prevents returning or preserving the source. Known resource identifiers do not establish access.
+Every resource operation resolves a provider-authenticated internal user, then rechecks active user/workspace/membership in the database. `WorkspaceStore` centralizes mandatory workspace predicates and membership locks. Owner and Contributor can add assets and run explicitly authorized observations. Viewer can read and export. Owners manage invitations and members; removing or demoting the last effective Owner is rejected. Membership revocation during collection prevents returning or preserving the source. Known resource identifiers do not establish access.
 
 **RLS is deferred.** Current isolation is application authorization plus scoped SQL and relational constraints, not a database RLS claim. Tenant tests exercise this actual query/API layer using a separate test database, not the production runtime role. Production multi-worker execution quotas, operational retention and abandoned-run recovery remain later hardening; this slice retains the existing process-local two-run concurrency, ten starts/minute and one start/hostname/minute limits. Workspace capacity is bounded to twenty assets and thirty-two retained/active runs. Capacity errors never delete old runs.
 
+## Workspace membership candidate
+
+Owners invite a verified email as Viewer (default), Contributor or Owner. Contributor can add assets, run authorized hostname work, import supported Linux results and explicitly request CLI server-check scope. Only Owners manage members and historical commercial consent. Existing plan and collection limits still apply.
+
+Invitation links locate a record; they do not authorize access. WorkOS sign-in returns only to a validated invitation path, preview makes no membership change, and Accept requires the matching current verified email. Local parts are exact; domains are normalized. Invites expire after seven days. Resend supersedes the old locator; delivery errors remain unknown until an explicit resend. Invitations reserve places, with ten occupied/reserved places as the staging ceiling and any lower historical seat limit retained. Issuance is bounded to ten per sender and workspace per hour across processes.
+
+Joining creates only a workspace membership. It does not change account admission markers, enable workspace creation, start billing or issue CLI authority. Paused, disabled and historically revoked accounts remain blocked. Removal and role changes increment membership generation; old CLI credentials, pending grants and unfinished executions cannot regain access after rejoining. New CLI authorization is required.
+
+Migration `0015_workspace_membership.sql` adds invitation records and authority-generation bindings without rewriting accepted terms or saved sources. The runtime role needs SELECT/INSERT/UPDATE on the new table in addition to existing grants; apply migration-owner default privileges before release. An older app image does not enforce these generation checks and is not a safe rollback after membership mutations. Stop membership writes and review compatibility before any rollback; do not drop the new schema to roll back.
+
+Invitations set `WitnessOps <invitations@send.witnessops.com>` and reply-to `engage@mail.witnessops.com` explicitly; report/verification sender defaults are unchanged. Domain verification and approved staging provider configuration require separate confirmation.
+
+Local invitation tests use the existing file adapter: set `WITNESSOPS_MAIL_PROVIDER=file` and an ignored, private `WITNESSOPS_MAIL_OUTPUT_DIR`. The UI distinguishes local file creation from provider acceptance. File output and mocked browser tests do not establish inbox delivery or hosted recipient acceptance. Configure a separately approved staging sender and complete the two-person WorkOS journey before treating this candidate as accepted.
+
 ## Execution and immutable source
 
-The path remains authenticated Owner → authorized workspace/asset → internal `runSnapshot()` → existing `validateExternalSnapshot()` → PostgreSQL. No app-to-app HTTP, public endpoint broadening, duplicate runner, OFFSEC executor, or arbitrary ports. The engine retains public-address safety, redirect/TLS bounds, deadlines and network budgets. Product mutations require a same-origin JSON body of at most 1 KiB and fixed keys; callers cannot inject transports or check options.
+The path remains authenticated Owner/Contributor → authorized workspace/asset → internal `runSnapshot()` → existing `validateExternalSnapshot()` → PostgreSQL. No app-to-app HTTP, public endpoint broadening, duplicate runner, OFFSEC executor, or arbitrary ports. The engine retains public-address safety, redirect/TLS bounds, deadlines and network budgets. Product mutations require a same-origin JSON body of at most 1 KiB and fixed keys; callers cannot inject transports or check options.
 
 A run starts as running and transitions to completed only with the complete validated `ExternalSnapshotV1`, completion time and SHA-256 digest. Failed execution records failed without a manufactured source. Both the query layer and a PostgreSQL trigger prevent updating/deleting completed sources. Reruns append new IDs. Observations and reports project the preserved snapshot; no separate observation table duplicates it.
 
@@ -94,6 +108,6 @@ pnpm health
 
 ## Deferred and production prerequisites
 
-No team invitations, billing, schedules, Public Services/IP/ports, OFFSEC, SSO/SCIM, advanced RBAC, notifications or public report sharing. Saved-run PDFs reuse the shared buyer-report pipeline. Members are read-only. Edit checks explains the fixed ten-check method.
+No billing, schedules, Public Services/IP/ports, OFFSEC, SSO/SCIM, advanced RBAC, notifications or public report sharing. Saved-run PDFs reuse the shared buyer-report pipeline. Edit checks explains the fixed ten-check method.
 
 Before `app.witnessops.com`: separately authorize DNS/TLS/app routing, runtime/image publication and deployment; configure the production WorkOS client and exact HTTPS callbacks/sign-out URLs; custody runtime secrets separately; provision PostgreSQL backups/recovery/retention and migration grants; establish production session/operational limits and multi-worker execution admission. RLS is a later hardening layer. Public release commands still target witnessops-web; this slice does not deploy either application.

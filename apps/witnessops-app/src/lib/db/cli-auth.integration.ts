@@ -74,8 +74,10 @@ test('originating web logout invalidates pending grant and issued CLI session',a
  const credential=await issued(),pending=await authorize();await revokeSession(pool,web.session);await rejectsCode(store.status(credential),'revoked');await rejectsCode(store.poll(pending.device),'revoked');
 });
 test('current role is rechecked and membership removal denies credential',async()=>{
- const credential=await issued();await pool.query("UPDATE memberships SET role='viewer' WHERE user_id=$1",[user.id]);assert.equal((await store.status(credential)).role,'viewer');
- await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE user_id=$1",[user.id]);await assert.rejects(store.status(credential));await store.logout(credential);
+ const credential=await issued();await pool.query("UPDATE memberships SET role='viewer' WHERE user_id=$1",[user.id]);await rejectsCode(store.status(credential),'revoked');
+ const fresh=await issued();assert.equal((await store.status(fresh)).role,'viewer');
+ await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE user_id=$1",[user.id]);await assert.rejects(store.status(fresh));await store.logout(credential);
+ await pool.query("UPDATE memberships SET status='active',revoked_at=NULL WHERE user_id=$1",[user.id]);await rejectsCode(store.status(fresh),'revoked');
 });
 for(const [name,sql] of [['account disabled',"UPDATE users SET status='disabled'"],['workspace archived',"UPDATE workspaces SET status='archived'"],['cohort paused',"UPDATE users SET early_access_state='paused'"]] as const)test(name+' denies session',async()=>{const credential=await issued();await pool.query(sql);await assert.rejects(store.status(credential));});
 test('HTTP boundary: unauthenticated bind, cross-origin, bad bodies and cookie-only session fail',async()=>{

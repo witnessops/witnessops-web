@@ -1,3 +1,5 @@
+import { membershipLock } from './membership-lock';
+import { hasWorkspaceCapability, type WorkspaceCapability, type WorkspaceRole } from '../workspace-role-policy';
 import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import type { Pool, PoolClient } from "pg";
@@ -14,7 +16,7 @@ import { FREE_WORKSPACE_POLICY, freeWorkspaceCeiling } from '../free-workspace';
 import { admitHostnameCheck } from './hostname-usage';
 import { acceptedWorkspacePlan, requireLinuxSourceLimit } from './plan-admission';
 
-type MemberRow = { id: string; name: string; slug: string; role: "owner" | "viewer" };
+type MemberRow = { id: string; name: string; slug: string; role: WorkspaceRole; generation: number };
 type AssetRow = { id: string; normalized_value: string; type: Asset["type"]; created_at: Date };
 type RunRow = { id: string; asset_id: string; created_at: Date; source_snapshot: unknown; source_digest: string; method_id: string; method_version: string };
 const assetProjection = (row: AssetRow): Asset => ({ id: row.id, hostname: row.normalized_value, type: row.type, createdAt: row.created_at.toISOString() });
@@ -29,14 +31,15 @@ const digest = (source: string) => createHash("sha256").update(source, "utf8").d
 /** App authorization is the tenancy fence in this slice. RLS is deferred.
  * Every resource query below has a workspace predicate after current membership.
  * Shared membership/user/workspace locks prevent revocation racing a transaction. */
-export async function requireWorkspaceMembership(client: PoolClient, user: AppUser, workspaceId: string, owner = false): Promise<MemberRow> {
+export async function requireWorkspaceMembership(client: PoolClient, user: AppUser, workspaceId: string, owner: boolean | WorkspaceCapability = false): Promise<MemberRow> {
+  await membershipLock(client, workspaceId);
   await requireWorkspaceAccess(client, user, true);
-  const result = await client.query<MemberRow>(`SELECT w.id, w.name, w.slug, m.role FROM memberships m
+  const result = await client.query<MemberRow>(`SELECT w.id, w.name, w.slug, m.role, m.generation FROM memberships m
     JOIN workspaces w ON w.id=m.workspace_id JOIN users u ON u.id=m.user_id
     WHERE m.user_id=$1 AND m.workspace_id=$2 AND m.status='active' AND m.revoked_at IS NULL
     AND u.status='active' AND w.status='active' FOR SHARE OF m,w,u`, [user.id, requireId(workspaceId)]);
   if (!result.rows[0]) throw new ApiError(404, "Workspace not found.");
-  if (owner && result.rows[0].role !== "owner") throw new ApiError(403, "An Owner is required for this action.");
+  if (owner && !hasWorkspaceCapability(result.rows[0].role, owner === true ? "workspace:manage" : owner)) throw new ApiError(403, "An Owner is required for this action.");
   return result.rows[0];
 }
 export class WorkspaceStore {
@@ -46,7 +49,7 @@ export class WorkspaceStore {
     const result = await this.pool.query<MemberRow>(`SELECT w.id,w.name,w.slug,m.role FROM memberships m
       JOIN workspaces w ON w.id=m.workspace_id JOIN users u ON u.id=m.user_id
       WHERE m.user_id=$1 AND m.status='active' AND m.revoked_at IS NULL AND w.status='active' AND u.status='active'
-      AND u.early_access_state IS DISTINCT FROM 'paused' AND (u.early_access_state='active' OR u.free_workspace_access)
+      AND u.early_access_state IS DISTINCT FROM 'paused'
       AND NOT (u.early_access_state IS NULL AND u.early_access_activated_at IS NOT NULL)
       ORDER BY w.created_at,w.id`, [user.id]);
     return result.rows;
@@ -55,6 +58,8 @@ export class WorkspaceStore {
     if (typeof name !== "string" || !name.trim() || name.trim().length > 100) throw new ApiError(400, "Enter a workspace name of 1–100 characters.");
     const key = requireId(requestId), displayName = name.trim();
     return transaction(this.pool, async client => {
+      const existing = await client.query<{ id: string }>('SELECT id FROM workspaces WHERE created_by=$1 AND creation_key=$2', [user.id, key]);
+      if (existing.rows[0]) await membershipLock(client, existing.rows[0].id);
       const active = await client.query<{ early_access_state: string | null }>("SELECT early_access_state FROM users WHERE id=$1 AND status='active' FOR UPDATE", [user.id]);
       if (!active.rowCount) throw new ApiError(403, "This account is not active.");
       await requireWorkspaceAccess(client, user);
@@ -88,19 +93,19 @@ export class WorkspaceStore {
       return id;
     });
   }
-  private async within<T>(user: AppUser, workspaceId: string, owner: boolean, action: (client: PoolClient, member: MemberRow) => Promise<T>) {
+  private async within<T>(user: AppUser, workspaceId: string, owner: boolean | WorkspaceCapability, action: (client: PoolClient, member: MemberRow) => Promise<T>) {
     return transaction(this.pool, async client => action(client, await requireWorkspaceMembership(client, user, workspaceId, owner)));
   }
   async read(user: AppUser, workspaceId: string): Promise<Workspace> {
     return this.within(user, workspaceId, false, async (client, member) => {
       const assets = await client.query<AssetRow>("SELECT * FROM assets WHERE workspace_id=$1 ORDER BY created_at,id", [member.id]);
       const runs = await client.query<RunRow>("SELECT * FROM runs WHERE workspace_id=$1 AND status='completed' AND source_type='external-snapshot-v1' ORDER BY created_at,id", [member.id]);
-      const members = await client.query<{ id: string; displayName: string | null; role: "owner" | "viewer" }>(`SELECT u.id,u.display_name AS "displayName",m.role FROM memberships m JOIN users u ON u.id=m.user_id
+      const members = await client.query<{ id: string; displayName: string | null; role: WorkspaceRole }>(`SELECT u.id,u.display_name AS "displayName",m.role FROM memberships m JOIN users u ON u.id=m.user_id
         WHERE m.workspace_id=$1 AND m.status='active' AND m.revoked_at IS NULL AND u.status='active' ORDER BY m.joined_at,u.id`, [member.id]);
       return { ...member, assets: assets.rows.map(assetProjection), runs: runs.rows.map(runProjection), members: members.rows };
     });
   }
-  async asset(user: AppUser, workspaceId: string, assetId: unknown, owner = false): Promise<Asset> {
+  async asset(user: AppUser, workspaceId: string, assetId: unknown, owner: boolean | WorkspaceCapability = false): Promise<Asset> {
     return this.within(user, workspaceId, owner, async client => {
       const result = await client.query<AssetRow>("SELECT * FROM assets WHERE workspace_id=$1 AND id=$2", [workspaceId, requireId(assetId)]);
       if (!result.rows[0]) throw new ApiError(404, "Asset not found in this workspace.");
@@ -118,7 +123,7 @@ export class WorkspaceStore {
     let hostname: string;
     try { hostname = type === "linux_server" ? linuxHostname(input) : normalizeExternalHostname(input); } catch { throw new ApiError(400, "Enter one public hostname, without a URL, IP address, path, credentials or port."); }
     if (type !== "hostname" && type !== "domain" && type !== "linux_server") throw new ApiError(400, "Choose a hostname, domain or Linux server asset.");
-    return this.within(user, workspaceId, true, async client => {
+    return this.within(user, workspaceId, "assets:create", async client => {
       // Serialize asset additions to enforce the bounded workspace capacity.
       await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1::uuid::text, 0))", [workspaceId]);
       if (type === "linux_server") {
@@ -134,7 +139,7 @@ export class WorkspaceStore {
     });
   }
   async beginRun(user: AppUser, workspaceId: string, assetId: string): Promise<string> {
-    return this.within(user, workspaceId, true, async client => {
+    return this.within(user, workspaceId, "hostname:run", async (client, member) => {
       const asset = await client.query("SELECT id FROM assets WHERE workspace_id=$1 AND id=$2 AND type IN ('hostname','domain')", [workspaceId, assetId]);
       if (!asset.rowCount) throw new ApiError(404, "Asset not found in this workspace.");
       // UUID casing must not select a different lock for the same workspace.
@@ -145,9 +150,9 @@ export class WorkspaceStore {
       // lifetime run count. Keep the independent storage/collector safeguards.
       if ((!allowance && Number(capacity.rows[0].count) >= 32) || Number(capacity.rows[0].bytes) >= 8 * 1024 * 1024) throw new ApiError(409, "Workspace run capacity reached.");
       const id = randomUUID();
-      await client.query(`INSERT INTO runs (id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version,started_at,created_at)
-        VALUES ($1,$2,$3,$4,'external-snapshot-v1','running',$5,$6,coalesce($7::timestamptz,now()),coalesce($7::timestamptz,now()))`,
-      [id, workspaceId, assetId, user.id, RECOMMENDED_PROFILE.id, RECOMMENDED_PROFILE.version, allowance?.admittedAt ?? null]);
+      await client.query(`INSERT INTO runs (id,workspace_id,asset_id,initiated_by,source_type,status,method_id,method_version,started_at,created_at,membership_generation)
+        VALUES ($1,$2,$3,$4,'external-snapshot-v1','running',$5,$6,coalesce($7::timestamptz,now()),coalesce($7::timestamptz,now()),$8)`,
+      [id, workspaceId, assetId, user.id, RECOMMENDED_PROFILE.id, RECOMMENDED_PROFILE.version, allowance?.admittedAt ?? null, member.generation]);
       if (allowance?.revision != null) await client.query(`INSERT INTO hostname_check_usage(run_id,workspace_id,consent_revision,admitted_at)
         VALUES ($1,$2,$3,$4)`, [id, workspaceId, allowance.revision, allowance.admittedAt]);
       return id;
@@ -156,9 +161,9 @@ export class WorkspaceStore {
   async completeRun(user: AppUser, workspaceId: string, runId: string, input: unknown): Promise<Run> {
     const snapshot = validateExternalSnapshot(input), source = canonicalSource(snapshot);
     if (Buffer.byteLength(source, "utf8") > 1024 * 1024) throw new ApiError(422, "The source exceeds the bounded run size.");
-    return this.within(user, workspaceId, true, async client => {
+    return this.within(user, workspaceId, "hostname:run", async (client, member) => {
       const record = await client.query<{ normalized_value: string }>(`SELECT a.normalized_value FROM runs r JOIN assets a ON a.id=r.asset_id AND a.workspace_id=r.workspace_id
-        WHERE r.workspace_id=$1 AND r.id=$2 AND r.initiated_by=$3 AND r.status='running' FOR UPDATE OF r`, [workspaceId, runId, user.id]);
+        WHERE r.workspace_id=$1 AND r.id=$2 AND r.initiated_by=$3 AND r.status='running' AND r.membership_generation=$4 FOR UPDATE OF r`, [workspaceId, runId, user.id, member.generation]);
       if (!record.rows[0] || snapshot.target !== record.rows[0].normalized_value || snapshot.checks.some(c => c.target !== snapshot.target)) throw new ApiError(422, "Run source does not match its asset.");
       const result = await client.query<RunRow>(`UPDATE runs SET status='completed',source_snapshot=$4::jsonb,source_digest=$5,finished_at=$6
         WHERE workspace_id=$1 AND id=$2 AND initiated_by=$3 AND status='running' RETURNING *`, [workspaceId, runId, user.id, source, digest(source), snapshot.finished_at]);
