@@ -115,6 +115,40 @@ test("historical ref-decorated workflow path spellings remain accepted", () => {
   assert.equal(validatePublicationRun(run, expected), true);
 });
 
+function supplyChainWorkflow() {
+  return {
+    path: `witnessops/witnessops-web/.github/workflows/supply-chain-gate.yml@${expected.sourceCommit}`,
+    ref: "refs/heads/main",
+    sha: expected.sourceCommit,
+  };
+}
+
+test("publication with the exact nested supply-chain gate is accepted in either order", () => {
+  const run = validRun();
+  run.referenced_workflows.push(supplyChainWorkflow());
+  assert.equal(validatePublicationRun(run, expected), true);
+  run.referenced_workflows.reverse();
+  assert.equal(validatePublicationRun(run, expected), true);
+});
+
+test("nested workflow inventory remains closed and bound to the publication commit", () => {
+  const good = [...validRun().referenced_workflows, supplyChainWorkflow()];
+  for (const inventory of [
+    [],
+    [good[1]],
+    [good[0], good[0]],
+    [...good, good[1]],
+    [good[0], { ...good[1], path: "other/repo/.github/workflows/supply-chain-gate.yml@main" }],
+    [good[0], { ...good[1], path: "witnessops/witnessops-web/.github/workflows/unknown.yml@main" }],
+    [good[0], { ...good[1], path: `witnessops/witnessops-web/.github/workflows/supply-chain-gate.yml@${"d".repeat(40)}` }],
+    [good[0], { ...good[1], sha: "d".repeat(40) }],
+    [good[0], { ...good[1], ref: "refs/heads/other" }],
+    [good[0], null],
+  ]) {
+    assert.throws(() => validatePublicationRun({ ...validRun(), referenced_workflows: inventory }, expected));
+  }
+});
+
 test("exact enhanced scan evidence is accepted", () => {
   const scanFindingsBytes = Buffer.from(
     JSON.stringify({
