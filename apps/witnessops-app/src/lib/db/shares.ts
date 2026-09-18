@@ -7,16 +7,16 @@ import { LinuxCheckStore } from './linux-checks';
 import { membershipLock } from './membership-lock';
 import type { AppUser } from './identity';
 import { ApiError, requireId } from '../errors';
-import { recipientReport } from '../share-projection';
+import { recipientReport, validateReportName, type RecipientReport } from '../share-projection';
 import { savedRunReport } from '../report-model';
 import { canonicalSource } from '../source-digest';
-import type { ProofpackReportV1 } from '../../../../witnessops-web/src/lib/proofpack/report-model';
 const hash = (s: string) => createHash('sha256').update(s).digest('hex');
 function tokenHash(value: unknown) { if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(value))
     throw new ApiError(404, 'Shared report unavailable.'); return hash(value); }
 type Row = {
     id: string;
-    snapshot: ProofpackReportV1;
+    snapshot: RecipientReport;
+    published_at: Date | null;
     digest: string;
     expires_at: Date;
     state: string;
@@ -27,7 +27,9 @@ type Row = {
 };
 export class ShareStore {
     constructor(readonly pool: Pool) { }
-    async preview(user: AppUser, workspace: string, runId: unknown) {
+    async preview(user: AppUser, workspace: string, runId: unknown, name?: unknown) {
+        let title: string | undefined;
+        try { title = validateReportName(name); } catch { throw new ApiError(400, 'Use a report name of 1–120 characters without control characters.'); }
         const id = requireId(runId);
         const start = await transaction(this.pool, async (client) => {
             const m = await requireWorkspaceMembership(client, user, workspace);
@@ -42,7 +44,7 @@ export class ShareStore {
             start.type === 'local-audit-1.2.2' ? (await new LinuxCheckStore(this.pool).reopen(user, workspace, id)).model : null;
         if (!source)
             throw new ApiError(400, 'This report type cannot be shared.');
-        const snapshot = recipientReport(source), bytes = canonicalSource(snapshot);
+        const snapshot = recipientReport(source, title), bytes = canonicalSource(snapshot);
         if (Buffer.byteLength(bytes) > 256 * 1024)
             throw new ApiError(413, 'This report is too large to share.');
         return transaction(this.pool, async (client) => {
@@ -106,10 +108,10 @@ export class ShareStore {
         });
     }
     async read(token: unknown) {
-        const result = await this.pool.query<Row>("SELECT s.snapshot,s.digest,s.expires_at FROM report_shares s JOIN workspaces w ON w.id=s.workspace_id WHERE s.token_hash=$1 AND s.state='published' AND s.expires_at>now() AND w.status='active'", [tokenHash(token)]);
+        const result = await this.pool.query<Row>("SELECT s.snapshot,s.digest,s.expires_at,s.published_at FROM report_shares s JOIN workspaces w ON w.id=s.workspace_id WHERE s.token_hash=$1 AND s.state='published' AND s.expires_at>now() AND w.status='active'", [tokenHash(token)]);
         const row = result.rows[0];
         if (!row || hash(canonicalSource(row.snapshot)) !== row.digest)
             throw new ApiError(404, 'Shared report unavailable.');
-        return { snapshot: row.snapshot, digest: row.digest, expiresAt: row.expires_at.toISOString() };
+        return { snapshot: row.snapshot, digest: row.digest, expiresAt: row.expires_at.toISOString(), publishedAt: row.published_at?.toISOString() ?? null };
     }
 }
