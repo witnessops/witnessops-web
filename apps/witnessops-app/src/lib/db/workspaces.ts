@@ -55,7 +55,7 @@ export class WorkspaceStore {
     if (typeof name !== "string" || !name.trim() || name.trim().length > 100) throw new ApiError(400, "Enter a workspace name of 1–100 characters.");
     const key = requireId(requestId), displayName = name.trim();
     return transaction(this.pool, async client => {
-      const active = await client.query("SELECT id FROM users WHERE id=$1 AND status='active' FOR UPDATE", [user.id]);
+      const active = await client.query<{ early_access_state: string | null }>("SELECT early_access_state FROM users WHERE id=$1 AND status='active' FOR UPDATE", [user.id]);
       if (!active.rowCount) throw new ApiError(403, "This account is not active.");
       await requireWorkspaceAccess(client, user);
       const retry = await client.query<{ id: string; name: string }>("SELECT id,name FROM workspaces WHERE created_by=$1 AND creation_key=$2", [user.id, key]);
@@ -64,16 +64,18 @@ export class WorkspaceStore {
         if (retry.rows[0].name !== displayName) throw new ApiError(409, "This creation request was already used.");
         return retry.rows[0].id;
       }
-      const ceiling = freeWorkspaceCeiling();
+      // Admission is determined from the locked account, not the environment.
+      // Existing active invitations keep their creation path when self-service
+      // opens or closes; only self-service creation receives the free policy.
+      const invitedAdmission = active.rows[0].early_access_state === 'active';
+      const ceiling = invitedAdmission ? null : freeWorkspaceCeiling();
       if (ceiling !== null) {
         if (!user.verifiedEmail) throw new ApiError(403, 'Verify your email before creating a workspace.');
         const count = await client.query<{ count: string }>('SELECT count(*) FROM workspaces WHERE created_by=$1', [user.id]);
         if (Number(count.rows[0].count) >= ceiling) throw new ApiError(409, `You can create up to ${ceiling} workspaces in this environment.`);
-      } else {
-        // Closing self-service must not permit existing free users to create
-        // unrecorded legacy workspaces through the old cohort path.
-        const free = await client.query('SELECT id FROM users WHERE id=$1 AND free_workspace_access', [user.id]);
-        if (free.rowCount) throw new ApiError(403, 'New workspace creation is currently unavailable.');
+      } else if (!invitedAdmission) {
+        // Free membership alone never grants the legacy creation path.
+        throw new ApiError(403, 'New workspace creation is currently unavailable.');
       }
       const id = randomUUID();
       // Stable unique route identifier; the name/slug is not company verification.

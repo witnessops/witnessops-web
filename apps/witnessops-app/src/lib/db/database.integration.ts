@@ -42,6 +42,17 @@ test('Free workspaces: verified admission, atomic retries, ceiling, persistence 
     await activateEarlyAccess(pool, invited);
     const invitedWorkspace = await store.create(invited, 'Activated invitation', randomUUID());
     assert.equal((await store.read(invited, invitedWorkspace)).role, 'owner');
+    assert.equal((await pool.query('SELECT free_workspace_access FROM users WHERE id=$1', [invited.id])).rows[0].free_workspace_access, false);
+    assert.equal((await pool.query('SELECT count(*) FROM free_workspace_plans WHERE workspace_id=$1', [invitedWorkspace])).rows[0].count, '0');
+    // Self-service configuration must not cap or convert existing invited admission.
+    await store.create(invited, 'Invited second', randomUUID());
+    await store.create(invited, 'Invited beyond free ceiling', randomUUID());
+    delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
+    const afterDisable = await store.create(invited, 'Invited after disable', randomUUID());
+    assert.equal((await store.read(invited, afterDisable)).role, 'owner');
+    assert.equal(await earlyAccess(pool, invited), 'active');
+    assert.equal((await pool.query('SELECT count(*) FROM free_workspace_plans WHERE workspace_id IN (SELECT id FROM workspaces WHERE created_by=$1)', [invited.id])).rows[0].count, '0');
+    process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT = '2';
     const who = identity('free_owner'), owner = await resolveUnenrolledIdentity(pool, who);
     const key = randomUUID();
     const created = await Promise.all(Array.from({ length: 4 }, () => store.create(owner, 'Free first', key)));
@@ -1165,4 +1176,19 @@ test('Linux: synthetic signed import, byte custody, reopen, report, restart and 
   assert.equal((await anonymous.handle(request(`linux-checks?id=${run.id}`,workspace),'linux-checks')).status,401);
   await pool.query("UPDATE memberships SET status='revoked',revoked_at=now() WHERE user_id=$1 AND workspace_id=$2",[viewer.id,workspace]);
   await assert.rejects(linux.reopen(viewer,workspace,run.id), /not found/);
+});
+
+
+test('Invited creation during free admission retains explicit historical consent eligibility', async () => {
+  const previous = process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
+  process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT = '2';
+  try {
+    const invited = await resolveIdentity(pool, identity('invited_consent_preserved'));
+    const workspace = await store.create(invited, 'Invited consent workspace', randomUUID());
+    await new EarlyAccessPlanStore(pool).recordConsent(invited, workspace, planConsent());
+    assert.equal((await pool.query('SELECT count(*) FROM early_access_plans WHERE workspace_id=$1', [workspace])).rows[0].count, '1');
+  } finally {
+    if (previous === undefined) delete process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT;
+    else process.env.WITNESSOPS_FREE_WORKSPACE_LIMIT = previous;
+  }
 });
