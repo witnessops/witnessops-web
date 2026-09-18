@@ -1,5 +1,5 @@
 import "server-only";
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import { ApiError } from "../errors";
 
 export type SessionKey = { issuer: string; sessionId: string; subject: string };
@@ -12,7 +12,7 @@ export function sessionKey(issuer: string, sessionId: unknown, subject: unknown)
   return { issuer, sessionId, subject };
 }
 
-export async function requireUnrevokedSession(pool: Pool, key: SessionKey): Promise<void> {
+export async function requireUnrevokedSession(pool: Pool | PoolClient, key: SessionKey): Promise<void> {
   sessionKey(key.issuer, key.sessionId, key.subject);
   // No cache: every product request sees committed logout revocation, including
   // after pool reconnect, process restart, or another process handling logout.

@@ -4,16 +4,25 @@ import { ApiError } from '../errors';
 import type { EarlyAccessState } from '../early-access';
 import type { AppUser } from './identity';
 import { transaction } from './pool';
+import { requireUnrevokedSession } from './sessions';
 import { freeWorkspaceCeiling } from '../free-workspace';
 
-export async function requireWorkspaceAccess(client: Pool | PoolClient, user: AppUser, lock = false) {
+export async function requireActiveAccount(client: Pool | PoolClient, user: AppUser, lock = false) {
   const result = await client.query<{ early_access_state: EarlyAccessState; early_access_activated_at: Date | null; free_workspace_access: boolean }>(`SELECT early_access_state,early_access_activated_at,free_workspace_access FROM users WHERE id=$1 AND status='active'${lock ? ' FOR SHARE' : ''}`, [user.id]);
+  if (user.session) await requireUnrevokedSession(client, user.session);
   const account = result.rows[0];
   if (!account) throw new ApiError(403, 'This account is not active.');
   // A pause always wins. A formerly activated account cannot regain access by
   // having its historical cohort state cleared. Membership revocation is separate.
   if (account.early_access_state === 'paused') throw new ApiError(403, 'Workspace access is paused. Your saved data has not been deleted.', 'paused');
   if (account.early_access_state === null && account.early_access_activated_at) throw new ApiError(403, 'Workspace access is not available for this account.', null);
+  return account;
+}
+
+export async function requireWorkspaceAccess(client: Pool | PoolClient, user: AppUser, lock = false) {
+  const account = await requireActiveAccount(client, user, lock);
+  const membership = await client.query("SELECT 1 FROM memberships m JOIN workspaces w ON w.id=m.workspace_id WHERE m.user_id=$1 AND m.status='active' AND m.revoked_at IS NULL AND w.status='active' LIMIT 1", [user.id]);
+  if (membership.rowCount) return;
   if (account.free_workspace_access || account.early_access_state === 'active') return;
   if (account.early_access_state === null && !account.early_access_activated_at && freeWorkspaceCeiling() !== null) {
     if (!user.verifiedEmail) throw new ApiError(403, 'Verify your email and sign in again to create a workspace.', 'verify_email');

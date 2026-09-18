@@ -52,7 +52,7 @@ export class LinuxCheckStore {
   }
   async importWithin(client: PoolClient, user: AppUser, workspaceId: string, assetId: string, zip: Uint8Array, signature: Uint8Array, zipName: string) {
     const source = { zipName, zip: Buffer.from(zip), signature: Buffer.from(signature), registry: Buffer.from(pinnedRegistryInput().bytes) };
-      await requireWorkspaceMembership(client, user, workspaceId, true);
+      await requireWorkspaceMembership(client, user, workspaceId, 'linux:import');
       const asset = await client.query<{ normalized_value: string }>("SELECT normalized_value FROM assets WHERE workspace_id=$1 AND id=$2 AND type='linux_server' FOR SHARE", [workspaceId, requireId(assetId)]);
       if (!asset.rows[0]) throw new ApiError(404, 'Linux server asset not found.');
       // Admission is serialized with EE and asset capacity checks. No background jobs.
@@ -106,6 +106,7 @@ export class LinuxCheckStore {
       }
     }
     if(current.projectionMatches===false)comparison.uncertainty.push('Stored derived projection differs; comparison uses the freshly verified package projection.');
+    await transaction(this.pool, client => requireWorkspaceMembership(client, user, workspaceId));
     return {...current,comparison};
   }
 

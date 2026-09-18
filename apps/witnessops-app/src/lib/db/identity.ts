@@ -5,7 +5,7 @@ import { transaction } from "./pool";
 import { ApiError } from "../errors";
 
 export type Identity = { provider: "workos"; issuer: string; subject: string; email: string | null; displayName: string | null };
-export type AppUser = { id: string; displayName: string | null; verifiedEmail?: boolean };
+export type AppUser = { id: string; displayName: string | null; verifiedEmail?: boolean; session?: import("./sessions").SessionKey };
 
 /** Only the server's authenticated provider adapter supplies this identity. */
 export async function resolveIdentity(pool: Pool, identity: Identity): Promise<AppUser> {

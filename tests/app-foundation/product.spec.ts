@@ -74,6 +74,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         ws = { id: "workspace-fixture", name: request.postDataJSON().name, slug: "workspace-fixture", role: "owner", assets: [], runs: [], members: [{ ...user, role: "owner" }] };
         return route.fulfill({ status: 201, json: state() });
       }
+      if (path === "/api/members") return route.fulfill({ json: { members: ws?.members || [], invitations: [], role: ws?.role } });
       if (path === "/api/workspace") return route.fulfill({ json: state() });
       if (!ws) throw new Error("Workspace must be created before product writes");
       if (path === "/api/assets") {

@@ -1,4 +1,4 @@
-import { getMailboxConfig } from "@/lib/mailboxes";
+import { getMailboxConfig } from "../mailboxes";
 
 import type { EmailSignatureProfile } from "./email-signatures";
 

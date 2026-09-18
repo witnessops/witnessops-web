@@ -1,3 +1,4 @@
+import { hasWorkspaceCapability } from './workspace-role-policy';
 import "server-only";
 import { LinuxCheckStore } from "./db/linux-checks";
 import { linuxUpload } from "./linux-upload";
@@ -107,7 +108,7 @@ export function createFoundationService(options: {
         if (request.method === 'POST') {
           // Authorize before buffering an upload. One verification/import at a time.
           const member = await store.read(user, workspaceId);
-          if (member.role !== 'owner') throw new ApiError(403, 'An Owner is required for this action.');
+          if (!hasWorkspaceCapability(member.role, 'linux:import')) throw new ApiError(403, 'An Owner or Contributor is required to import results.');
           if (importing) throw new ApiError(429, 'Another import is being checked. Try again shortly.');
           importing = true;
           try {
@@ -141,7 +142,7 @@ export function createFoundationService(options: {
       if (endpoint === "runs" && request.method === "POST") {
         const input = await body(request, ["assetId", "authorized"]);
         if (input.authorized !== true) throw new ApiError(400, "Confirm that you own this hostname or are authorized to observe it.");
-        const asset = await store.asset(user, workspaceId, input.assetId, true);
+        const asset = await store.asset(user, workspaceId, input.assetId, "hostname:run");
         if (asset.type === "linux_server") throw new ApiError(400, "Import an existing Linux Proofpack; app collection is not available.");
         for (const [h, reservation] of recentHosts) if (now() - reservation.at >= 60_000) recentHosts.delete(h);
         while (recentRuns.length && now() - recentRuns[0].at >= 60_000) recentRuns.shift();
@@ -160,6 +161,7 @@ export function createFoundationService(options: {
           // or persists the collected source to the now-unauthorized caller.
           const run = await store.completeRun(user, workspaceId, runId, snapshot);
           await record(user, workspaceId, 'observation_completed', { runId });
+          await store.run(user, workspaceId, runId);
           return json(run, 201);
         } catch (error) {
           if (runId) {

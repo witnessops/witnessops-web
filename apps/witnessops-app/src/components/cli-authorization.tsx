@@ -1,7 +1,8 @@
 'use client';
+import { hasWorkspaceCapability } from '../lib/workspace-role-policy';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-type Context = { user: { id: string; displayName: string | null }; workspaces: { id: string; name: string; role: 'owner' | 'viewer' }[] };
+type Context = { user: { id: string; displayName: string | null }; workspaces: { id: string; name: string; role: 'owner' | 'contributor' | 'viewer' }[] };
 export function CliAuthorization() {
   const [context, setContext] = useState<Context | null>(null), [workspace, setWorkspace] = useState('');
   const [serverChecks, setServerChecks] = useState(false);
@@ -33,11 +34,11 @@ export function CliAuthorization() {
   const selected = context?.workspaces.find(item => item.id === workspace);
   return <section className="narrow"><p className="eyebrow">WitnessOps CLI</p><h1>Authorize WitnessOps CLI</h1>
     <p>Authorize only a sign-in you started with <code>wops auth login</code> in your own terminal. Never enter a code sent by someone else.</p>
-    <p>By default this grants only your CLI session identity/status and sign-out. It does not grant server checks, uploads or signing authority. Owners may explicitly add server-check request rights below.</p>
+    <p>By default this grants only your CLI session identity/status and sign-out. It does not grant server checks, uploads or signing authority. Owners and Contributors may explicitly add server-check request rights below.</p>
     {done ? <p role="status">{done}</p> : signIn ? <Link className="button" href="/cli/login">Sign in to continue</Link> : context ? <form className="asset-form" onSubmit={event => { event.preventDefault(); if (confirmed && workspace) void submit('authorize'); }}>
       <p>Signed in as: {context.user.displayName || 'WitnessOps account'}</p>
-      {context.workspaces.length ? <><label htmlFor="cli-workspace">Workspace</label><select id="cli-workspace" value={workspace} disabled={busy} onChange={event => { setWorkspace(event.target.value); setConfirmed(false); setServerChecks(false); }}><option value="" disabled>Choose workspace</option>{context.workspaces.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}</select>{selected && <p>Role: {selected.role === 'owner' ? 'Owner' : 'Viewer'}</p>}</> : <p>No active workspace is available. <Link href="/">Open WitnessOps</Link> to create or select one, then return here.</p>}
-      {selected?.role === 'owner' && <label className="authorization"><input type="checkbox" checked={serverChecks} disabled={busy} onChange={event => { setServerChecks(event.target.checked); setConfirmed(false); }} />Also allow local One Server Security Check requests and capture uploads in this workspace. Each check requires separate collection confirmation. This does not grant signing authority.</label>}
+      {context.workspaces.length ? <><label htmlFor="cli-workspace">Workspace</label><select id="cli-workspace" value={workspace} disabled={busy} onChange={event => { setWorkspace(event.target.value); setConfirmed(false); setServerChecks(false); }}><option value="" disabled>Choose workspace</option>{context.workspaces.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}</select>{selected && <p>Role: {selected.role === 'owner' ? 'Owner' : selected.role === 'contributor' ? 'Contributor' : 'Viewer'}</p>}</> : <p>No active workspace is available. <Link href="/">Open WitnessOps</Link> to create or select one, then return here.</p>}
+      {hasWorkspaceCapability(selected?.role, 'cli:authorize-server-check') && <label className="authorization"><input type="checkbox" checked={serverChecks} disabled={busy} onChange={event => { setServerChecks(event.target.checked); setConfirmed(false); }} />Also allow local One Server Security Check requests and capture uploads in this workspace. Each check requires separate collection confirmation. This does not grant signing authority.</label>}
       <label htmlFor="cli-code">Code from your terminal</label><input id="cli-code" value={code} onChange={event => { setCode(event.target.value.toUpperCase()); setConfirmed(false); }} autoComplete="off" spellCheck={false} placeholder="ABCD-EF12-3456" maxLength={14} pattern="[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}" required disabled={busy} />
       <label className="authorization"><input type="checkbox" checked={confirmed} disabled={busy} onChange={event => setConfirmed(event.target.checked)} />I started this CLI sign-in and confirm the workspace and role shown above.</label>
       <div className="actions"><button className="button" disabled={busy || !confirmed || !workspace}>{busy ? 'Authorizing…' : 'Authorize CLI'}</button><button type="button" className="button secondary" disabled={busy || !/^[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}$/.test(code)} onClick={() => void submit('deny')}>Decline</button></div>
