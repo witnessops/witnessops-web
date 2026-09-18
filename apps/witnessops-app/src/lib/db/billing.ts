@@ -17,6 +17,26 @@ function hostedUrl(value: unknown, host: string) {
 export class BillingStore {
  constructor(readonly pool:Pool,readonly stripe:StripeGateway,readonly config:BillingConfig,readonly origin:string){}
  private async lock(client:PoolClient,workspace:string){await membershipLock(client,workspace,true);}
+ // A durable, fenced lease serializes billing across processes without retaining a
+ // pool client or membership lock during Stripe requests. Crashed leases expire.
+ private async operation<T>(workspace:string,user:AppUser|null,action:(step:<R>(work:(client:PoolClient)=>Promise<R>)=>Promise<R>)=>Promise<T>):Promise<T>{
+  const token=randomUUID();
+  await transaction(this.pool,async client=>{
+   await this.lock(client,workspace);if(user)await requireWorkspaceMembership(client,user,workspace,true);
+   await client.query('INSERT INTO workspace_billing(workspace_id) VALUES($1) ON CONFLICT DO NOTHING',[workspace]);
+   const claimed=await client.query("UPDATE workspace_billing SET operation_token=$2,operation_until=now()+interval '2 minutes' WHERE workspace_id=$1 AND (operation_token IS NULL OR operation_until<now())",[workspace,token]);
+   if(!claimed.rowCount)throw new ApiError(409,'A billing operation is in progress. Retry shortly.');
+  });
+  const step=async<R>(work:(client:PoolClient)=>Promise<R>)=>transaction(this.pool,async client=>{
+   await this.lock(client,workspace);
+   const lease=await client.query('SELECT 1 FROM workspace_billing WHERE workspace_id=$1 AND operation_token=$2 AND operation_until>now() FOR UPDATE',[workspace,token]);
+   if(!lease.rowCount)throw new ApiError(409,'Billing operation expired. Retry to reconcile.');
+   if(user)await requireWorkspaceMembership(client,user,workspace,true);
+   return work(client);
+  });
+  try{const result=await action(step);await step(async()=>{});return result;}
+  finally{await this.pool.query('UPDATE workspace_billing SET operation_token=NULL,operation_until=NULL WHERE workspace_id=$1 AND operation_token=$2',[workspace,token]);}
+ }
  async status(user:AppUser,workspace:string){return transaction(this.pool,async client=>{
   const member=await requireWorkspaceMembership(client,user,workspace);
   const entitlement=await workspaceEntitlement(client,workspace);
@@ -25,17 +45,13 @@ export class BillingStore {
  });}
  async checkout(user:AppUser,workspace:string,planKey:unknown){
   const plan=this.config.plans.find(p=>p.key===planKey);if(!plan)throw new ApiError(400,'Choose a configured sandbox plan.');
-  // Commit the provider idempotency key before network I/O. Unknown outcomes retain it.
-  await transaction(this.pool,async client=>{
-   await this.lock(client,workspace);await requireWorkspaceMembership(client,user,workspace,true);
-   if((await acceptedWorkspacePlan(client,workspace))?.kind==='historical')throw new ApiError(409,'Historical terms require reconciliation before subscription billing.');
-   if((await workspaceEntitlement(client,workspace)).source==='complimentary')throw new ApiError(409,'Complimentary access is already active.');
-   await client.query('INSERT INTO workspace_billing(workspace_id) VALUES($1) ON CONFLICT DO NOTHING',[workspace]);
-   await client.query('UPDATE workspace_billing SET checkout_key=$2,checkout_plan=$3,checkout_started_at=now() WHERE workspace_id=$1 AND checkout_key IS NULL',[workspace,randomUUID(),plan.key]);
-  });
-  return transaction(this.pool,async client=>{
-   await this.lock(client,workspace);await requireWorkspaceMembership(client,user,workspace,true);
-   const row=(await client.query('SELECT * FROM workspace_billing WHERE workspace_id=$1 FOR UPDATE',[workspace])).rows[0];
+  return this.operation(workspace,user,async step=>{
+   const row=await step(async client=>{
+    if((await acceptedWorkspacePlan(client,workspace))?.kind==='historical')throw new ApiError(409,'Historical terms require reconciliation before subscription billing.');
+    if((await workspaceEntitlement(client,workspace)).source==='complimentary')throw new ApiError(409,'Complimentary access is already active.');
+    await client.query('UPDATE workspace_billing SET checkout_key=$2,checkout_plan=$3,checkout_started_at=now() WHERE workspace_id=$1 AND checkout_key IS NULL',[workspace,randomUUID(),plan.key]);
+    return (await client.query('SELECT * FROM workspace_billing WHERE workspace_id=$1',[workspace])).rows[0];
+   });
    if(row.checkout_plan!==plan.key)throw new ApiError(409,'Finish or expire the existing checkout before selecting another plan.');
    if(Date.now()-row.checkout_started_at.getTime()>23*3600000&&!row.checkout_session)throw new ApiError(409,'An unresolved checkout needs provider reconciliation before retrying.');
    await assertPrice(await this.stripe.request('prices/'+plan.priceId),plan);
@@ -44,7 +60,7 @@ export class BillingStore {
     if(Date.now()-row.created_at.getTime()>23*3600000)throw new ApiError(409,'Customer creation needs provider reconciliation.');
     const created=await this.stripe.request('customers',{'metadata[workspace_id]':workspace},'workspace-customer-'+workspace);
     if(created.livemode!==false)throw new Error('Expected a sandbox customer.');customer=stripeId(created,'cus');
-    await client.query('UPDATE workspace_billing SET customer_id=$2 WHERE workspace_id=$1',[workspace,customer]);
+    await step(client=>client.query('UPDATE workspace_billing SET customer_id=$2 WHERE workspace_id=$1',[workspace,customer]));
    }
    const subscriptions=await this.subscriptions(customer);
    if(subscriptions.length)throw new ApiError(409,'This workspace already has a subscription. Use Manage billing.');
@@ -56,13 +72,13 @@ export class BillingStore {
      if(session.mode!=='subscription'||session.client_reference_id!==workspace||lines?.has_more!==false||lines.data?.length!==1||lines.data[0].quantity!==1||lines.data[0].price?.id!==plan.priceId)throw new ApiError(409,'Existing checkout no longer matches this workspace plan. Expire it before retrying.');
      return {url:hostedUrl(session.url,'checkout.stripe.com')};
     }
-    await client.query('UPDATE workspace_billing SET checkout_key=NULL,checkout_plan=NULL,checkout_started_at=NULL,checkout_session=NULL WHERE workspace_id=$1',[workspace]);
+    await step(client=>client.query('UPDATE workspace_billing SET checkout_key=NULL,checkout_plan=NULL,checkout_started_at=NULL,checkout_session=NULL WHERE workspace_id=$1',[workspace]));
     return {retry:true};
    }
    const session=await this.stripe.request('checkout/sessions',{mode:'subscription',customer,'line_items[0][price]':plan.priceId,'line_items[0][quantity]':'1','subscription_data[metadata][workspace_id]':workspace,client_reference_id:workspace,success_url:this.origin+'/settings',cancel_url:this.origin+'/settings',expires_at:String(Math.floor(row.checkout_started_at.getTime()/1000)+3600)},'workspace-checkout-'+row.checkout_key);
    if(session.livemode!==false||stripeId(session.customer,'cus')!==customer)throw new Error('Checkout binding mismatch.');
    const url=hostedUrl(session.url,'checkout.stripe.com');
-   await client.query('UPDATE workspace_billing SET checkout_session=$2 WHERE workspace_id=$1',[workspace,stripeId(session,'cs')]);return {url};
+   await step(client=>client.query('UPDATE workspace_billing SET checkout_session=$2 WHERE workspace_id=$1',[workspace,stripeId(session,'cs')]));return {url};
   });
  }
  private async subscriptions(customer:string):Promise<StripeObject[]>{
@@ -71,7 +87,7 @@ export class BillingStore {
   for(const sub of result.data)if(sub.livemode!==false||stripeId(sub.customer,'cus')!==customer)throw new Error('Subscription customer mismatch.');
   return result.data.filter((s:StripeObject)=>!['canceled','incomplete_expired'].includes(s.status));
  }
- private async reconcile(client:PoolClient,workspace:string,customer:string){
+ private async reconciliation(workspace:string,customer:string){
   const subscriptions=await this.subscriptions(customer);
   let status='free',subscription:string|null=null,planKey:string|null=null,seats=1,until:Date|null=null,cancel=false;
   if(subscriptions.length===1){
@@ -88,16 +104,17 @@ export class BillingStore {
    }
    if(!until&&status==='active')status='unpaid_or_unrecognized';
   }else if(subscriptions.length>1)status='multiple_subscriptions';
-  await client.query('UPDATE workspace_billing SET subscription_id=$2,subscription_status=$3,plan_key=$4,seats=$5,paid_until=$6,cancel_at_period_end=$7,reconciled_at=now() WHERE workspace_id=$1',[workspace,subscription,status,planKey,seats,until,cancel]);
+  return [workspace,subscription,status,planKey,seats,until,cancel];
  }
- async refresh(user:AppUser,workspace:string){return transaction(this.pool,async client=>{
-  await this.lock(client,workspace);await requireWorkspaceMembership(client,user,workspace,true);
-  const row=(await client.query('SELECT customer_id FROM workspace_billing WHERE workspace_id=$1',[workspace])).rows[0];
-  if(row?.customer_id)await this.reconcile(client,workspace,row.customer_id);return {reconciled:true};
+ private async saveReconciliation(client:PoolClient,values:unknown[]){
+  await client.query('UPDATE workspace_billing SET subscription_id=$2,subscription_status=$3,plan_key=$4,seats=$5,paid_until=$6,cancel_at_period_end=$7,reconciled_at=now() WHERE workspace_id=$1',values);
+ }
+ async refresh(user:AppUser,workspace:string){return this.operation(workspace,user,async step=>{
+  const row=await step(async client=>(await client.query('SELECT customer_id FROM workspace_billing WHERE workspace_id=$1',[workspace])).rows[0]);
+  if(row?.customer_id){const values=await this.reconciliation(workspace,row.customer_id);await step(client=>this.saveReconciliation(client,values));}return {reconciled:true};
  });}
- async portal(user:AppUser,workspace:string){return transaction(this.pool,async client=>{
-  await this.lock(client,workspace);await requireWorkspaceMembership(client,user,workspace,true);
-  const row=(await client.query('SELECT customer_id FROM workspace_billing WHERE workspace_id=$1',[workspace])).rows[0];if(!row?.customer_id)throw new ApiError(409,'No billing customer exists for this workspace.');
+ async portal(user:AppUser,workspace:string){return this.operation(workspace,user,async step=>{
+  const row=await step(async client=>(await client.query('SELECT customer_id FROM workspace_billing WHERE workspace_id=$1',[workspace])).rows[0]);if(!row?.customer_id)throw new ApiError(409,'No billing customer exists for this workspace.');
   const config=await this.stripe.request('billing_portal/configurations/'+this.config.portalConfiguration);
   if(config.livemode!==false||config.active!==true)throw new Error('Expected an active sandbox portal.');
   const update=config.features?.subscription_update;
@@ -113,11 +130,13 @@ export class BillingStore {
   if(!['checkout.session.completed','checkout.session.async_payment_succeeded','checkout.session.async_payment_failed','customer.subscription.created','customer.subscription.updated','customer.subscription.deleted','customer.subscription.paused','customer.subscription.resumed','invoice.paid','invoice.payment_failed','invoice.payment_action_required','invoice.updated'].includes(event.type))return {received:true};
   const customer=stripeId(event.data.object.customer,'cus');
   const binding=(await this.pool.query('SELECT workspace_id FROM workspace_billing WHERE customer_id=$1',[customer])).rows[0];if(!binding)return {received:true};
-  return transaction(this.pool,async client=>{
-   await this.lock(client,binding.workspace_id);
-   if((await client.query('SELECT 1 FROM billing_events WHERE event_id=$1',[event.id])).rowCount)return {received:true};
-   await this.reconcile(client,binding.workspace_id,customer);
-   await client.query('INSERT INTO billing_events(event_id,workspace_id) VALUES($1,$2)',[event.id,binding.workspace_id]);return {received:true};
+  return this.operation(binding.workspace_id,null,async step=>{
+   if(await step(async client=>(await client.query('SELECT 1 FROM billing_events WHERE event_id=$1',[event.id])).rowCount))return {received:true};
+   const values=await this.reconciliation(binding.workspace_id,customer);
+   await step(async client=>{
+    await this.saveReconciliation(client,values);
+    await client.query('INSERT INTO billing_events(event_id,workspace_id) VALUES($1,$2)',[event.id,binding.workspace_id]);
+   });return {received:true};
   });
  }
 }

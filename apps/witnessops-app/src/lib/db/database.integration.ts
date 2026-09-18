@@ -1425,7 +1425,7 @@ test('Billing: workspace seats, paid invoice reconciliation, retry/duplicate/out
  await assert.rejects(billing.checkout(b,workspace,'team_month'));await assert.rejects(billing.checkout(a,workspace,'price_fixture'));assert.equal(calls,0);
  await assert.rejects(billing.checkout(a,workspace,'team_month'),/lost provider response/);
  const durable=(await pool.query('SELECT checkout_key FROM workspace_billing WHERE workspace_id=$1',[workspace])).rows[0].checkout_key;assert.ok(durable);
- const checkouts=await Promise.all([billing.checkout(a,workspace,'team_month'),billing.checkout(a,workspace,'team_month')]);assert.equal(checkouts[0].url,checkouts[1].url);assert.equal(checkoutCalls,1);assert.equal(new Set(keys).size,2);assert.equal((await entitlement()).seats,1);
+ const checkouts=await Promise.allSettled([billing.checkout(a,workspace,'team_month'),billing.checkout(a,workspace,'team_month')]);assert.ok(checkouts.some(r=>r.status==='fulfilled'));for(const r of checkouts)if(r.status==='rejected')assert.match(r.reason.message,/in progress/);assert.ok((await billing.checkout(a,workspace,'team_month')).url);assert.equal(checkoutCalls,1);assert.equal(new Set(keys).size,2);assert.equal((await entitlement()).seats,1);
  checkoutPrice='price_other';await assert.rejects(billing.checkout(a,workspace,'team_month'),/no longer matches/);checkoutPrice='price_fixture';
  checkoutStatus='expired';assert.equal((await billing.checkout(a,workspace,'team_month')).retry,true);checkoutStatus='open';
  const until=Math.floor(Date.now()/1000)+86400;
@@ -1435,6 +1435,25 @@ test('Billing: workspace seats, paid invoice reconciliation, retry/duplicate/out
  subs[0].status='active';subs[0].items.data[0].quantity=3;await billing.event(event('evt_quantity'));assert.equal((await entitlement()).seats,1);subs[0].items.data[0].quantity=1;
  await billing.event(event('evt_first'));assert.equal((await entitlement()).seats,3);
  const before=calls;await billing.event(event('evt_first'));assert.equal(calls,before);
+ // A complimentary grant must never shrink a valid paid allowance.
+ await pool.query("INSERT INTO workspace_complimentary_access(workspace_id,seats,expires_at,reason,issued_by) VALUES($1,2,now()+interval '1 day','Test grant','fixture')",[workspace]);
+ assert.equal((await entitlement()).seats,3);assert.equal((await entitlement()).source,'subscription');
+ await pool.query('UPDATE workspace_complimentary_access SET seats=4 WHERE workspace_id=$1',[workspace]);assert.equal((await entitlement()).seats,4);
+ await pool.query('DELETE FROM workspace_complimentary_access WHERE workspace_id=$1',[workspace]);
+ // Hold Stripe pending. Reads and writes still obtain membership locks and pool clients.
+ let release!:()=>void,entered!:()=>void;
+ const held=new Promise<void>(r=>{release=r;}),started=new Promise<void>(r=>{entered=r;});
+ const delayed=new BillingStore(pool,{request:async(path,fields,key)=>{if(path.startsWith('subscriptions?')){entered();await held;}return stripe.request(path,fields,key);}},config,origin);
+ const refresh=delayed.refresh(a,workspace);await started;
+ try{
+  await Promise.race([Promise.all([store.read(a,workspace),store.read(b,other),store.addAsset(a,workspace,'example.com','hostname')]),new Promise((_,reject)=>{const timer=setTimeout(()=>reject(new Error('Stripe blocked workspace access')),2000);timer.unref();})]);
+  await assert.rejects(billing.refresh(a,workspace),/in progress/);
+  // Expire and replace the lease: an old response must not overwrite newer state.
+  await pool.query("UPDATE workspace_billing SET operation_until=now()-interval '1 second' WHERE workspace_id=$1",[workspace]);
+  await billing.refresh(a,workspace);
+ }finally{release();}
+ await assert.rejects(refresh,/expired/);
+
  assert.equal((await transaction(pool,client=>workspaceEntitlement(client,other))).seats,1);
  const invite=await members.invite(a,workspace,{email:'billing_recipient@example.test',role:'viewer',requestId:randomUUID()});await members.accept(recipient,'billing_recipient@example.test',invite,1,'viewer');
  const pending=await members.invite(a,workspace,{email:'later@example.test',role:'viewer',requestId:randomUUID()});
@@ -1455,7 +1474,7 @@ test('Billing: workspace seats, paid invoice reconciliation, retry/duplicate/out
  assert.equal((await api(request({action:'checkout',plan:'team_month'}))).status,401);
  const raw=JSON.stringify(event('evt_http'));const stamp=Math.floor(Date.now()/1000);const {createHmac}=await import('node:crypto');const signature=`t=${stamp},v1=${createHmac('sha256',config.webhookSecret).update(stamp+'.'+raw).digest('hex')}`;
  const webhook=(signatureValue:string)=>new Request(origin+'/api/billing/webhook',{method:'POST',headers:{'Content-Type':'application/json','Stripe-Signature':signatureValue},body:raw});
- assert.equal((await api(webhook('forged'),true)).status,400);assert.equal((await api(webhook(signature),true)).status,200);
+ assert.equal((await api(webhook('forged'),true)).status,400);const webhookOnly=createBillingService({pool,config,stripe,identity:async()=>{throw new Error('No browser identity for webhooks');}});assert.equal((await webhookOnly(webhook(signature),true)).status,200);
  assert.equal((await pool.query('SELECT count(*) FROM billing_events WHERE event_id=$1',['evt_http'])).rows[0].count,'1');
  }finally{if(old===undefined)delete process.env.WITNESSOPS_BILLING_SANDBOX;else process.env.WITNESSOPS_BILLING_SANDBOX=old;}
 });

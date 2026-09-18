@@ -29,7 +29,7 @@ export function createBillingService(options:{pool?:Pool;origin?:string;identity
     if(request.method!=='POST'||new URL(request.url).search)throw new ApiError(400,'Invalid webhook request.');
     const config=options.config??billingConfiguration(),raw=await body(request,256*1024);
     let event;try{event=verifyStripeEvent(raw,request.headers.get('stripe-signature'),config.webhookSecret);}catch{throw new ApiError(400,'Invalid Stripe signature or event.');}
-    const store=new BillingStore(options.pool??database(),options.stripe??new StripeHttp(config),config,options.origin??authConfiguration().origin);
+    const store=new BillingStore(options.pool??database(),options.stripe??new StripeHttp(config),config,options.origin??new URL(request.url).origin);
     return Response.json(await store.event(event),{headers});
    }
    const origin=options.origin??authConfiguration().origin;admitRequest(request,origin,process.env.WITNESSOPS_APP_PROXY_MODE);
