@@ -45,6 +45,8 @@ export class EarlyAccessPlanStore {
       // Same workspace serialization convention as asset/run admission. Current
       // role and access locks remain held through the entire write transaction.
       await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [member.id]);
+      const free = await client.query('SELECT workspace_id FROM free_workspace_plans WHERE workspace_id=$1', [member.id]);
+      if (free.rowCount) throw new ApiError(409, 'Free workspaces cannot enroll in the historical contribution policy.');
       const plan = await current(client, member.id);
       const retry = await client.query<PlanRow>('SELECT * FROM early_access_plan_consents WHERE workspace_id=$1 AND request_id=$2', [member.id, consent.requestId]);
       if (retry.rows[0]) {

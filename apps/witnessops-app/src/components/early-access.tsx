@@ -3,13 +3,14 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { logout } from '../app/actions/logout';
-import { EARLY_ACCESS_DATA_NOTE, type ClientEvent, type EarlyAccessState, type FeedbackDecision, type FeedbackResponse, type FeedbackSurface } from '../lib/early-access';
+import { EARLY_ACCESS_DATA_NOTE, type ClientEvent, type WorkspaceAccessState, type FeedbackDecision, type FeedbackResponse, type FeedbackSurface } from '../lib/early-access';
 import type { Run, Workspace } from '../lib/model';
 import { PUBLIC_NO_SECRETS_NOTE, publicContactMailto } from '../../../witnessops-web/src/lib/public-contact';
 import { EXTERNAL_ATTACK_SURFACE_OFFER } from '../../../witnessops-web/src/lib/commercial-truth';
 
 const requestAccess = publicContactMailto('WitnessOps — Request workspace access');
-export function AccessGate({ state, busy, activate }: { state: EarlyAccessState; busy: boolean; activate: () => void }) {
+export function AccessGate({ state, busy, activate }: { state: WorkspaceAccessState; busy: boolean; activate: () => void }) {
+  if (state === 'verify_email') return <div className="welcome"><h1>Verify your email</h1><p>Complete email verification on the secure sign-in screen, then sign in again to create your free workspace.</p><form action={logout}><button className="button">Sign out and verify</button></form></div>;
   const invited = state === 'invited', paused = state === 'paused';
   return <div className="welcome"><p className="eyebrow">WitnessOps checks · Early Access</p><h1>{invited ? 'Your workspace access is ready' : paused ? 'Workspace access is paused' : 'Workspace access requires an invitation'}</h1><p>{invited ? 'Open a workspace and choose a public hostname check or an operator-assisted Linux server check.' : paused ? 'Your access is paused. Saved workspace data has not been deleted. Contact us to discuss access.' : 'Create an account or sign in, then contact WitnessOps if you need workspace access. A new account does not automatically create a workspace.'}</p><p className="quiet">A public /check snapshot is not imported. You will explicitly authorize a fresh saved observation in your workspace.</p><div className="actions">{paused || state === null ? <a className="button" href={requestAccess}>{paused ? 'Contact WitnessOps' : 'Request workspace access'}</a> : <button className="button" disabled={busy} onClick={activate}>Activate workspace access</button>}<a className="button secondary" href="https://witnessops.com/check">Run a free check</a><form action={logout}><button className="button secondary">Sign out</button></form></div><p className="quiet">{EARLY_ACCESS_DATA_NOTE}</p></div>;
 }

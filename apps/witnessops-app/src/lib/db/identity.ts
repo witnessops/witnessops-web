@@ -5,7 +5,7 @@ import { transaction } from "./pool";
 import { ApiError } from "../errors";
 
 export type Identity = { provider: "workos"; issuer: string; subject: string; email: string | null; displayName: string | null };
-export type AppUser = { id: string; displayName: string | null };
+export type AppUser = { id: string; displayName: string | null; verifiedEmail?: boolean };
 
 /** Only the server's authenticated provider adapter supplies this identity. */
 export async function resolveIdentity(pool: Pool, identity: Identity): Promise<AppUser> {
@@ -23,6 +23,6 @@ export async function resolveIdentity(pool: Pool, identity: Identity): Promise<A
     await client.query(`INSERT INTO identity_mappings (user_id, provider, issuer, subject, verified_email_snapshot)
       VALUES ($1,$2,$3,$4,$5) ON CONFLICT (provider,issuer,subject) DO UPDATE
       SET verified_email_snapshot=EXCLUDED.verified_email_snapshot, updated_at=now()`, [id, identity.provider, identity.issuer, identity.subject, identity.email]);
-    return { id, displayName: identity.displayName };
+    return { id, displayName: identity.displayName, verifiedEmail: Boolean(identity.email) };
   });
 }

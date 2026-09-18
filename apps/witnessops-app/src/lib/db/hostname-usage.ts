@@ -8,6 +8,11 @@ import { acceptedWorkspacePlan } from './plan-admission';
 export async function admitHostnameCheck(client: PoolClient, workspaceId: string) {
   const plan = await acceptedWorkspacePlan(client, workspaceId);
   if (!plan) return null; // Preserve admission for the existing unenrolled cohort.
+  if (plan.kind === 'free') {
+    const usage = await client.query<{ count: string }>("SELECT count(*) FROM runs WHERE workspace_id=$1 AND source_type='external-snapshot-v1' AND status IN ('running','completed')", [workspaceId]);
+    if (Number(usage.rows[0].count) >= plan.policy.limits.hostnameRuns) throw new ApiError(429, `This free workspace has reached its ${plan.policy.limits.hostnameRuns} saved hostname checks.`);
+    return { revision: null, admittedAt: null };
+  }
   const { policy } = plan;
 
   // A new statement AFTER acquiring the lock, not transaction-start now(). A

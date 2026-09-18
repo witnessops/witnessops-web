@@ -1,4 +1,5 @@
 export type EarlyAccessState = 'invited' | 'active' | 'paused' | null;
+export type WorkspaceAccessState = EarlyAccessState | 'verify_email';
 export type FeedbackSurface = 'first_run' | 'comparison';
 export type FeedbackResponse = 'yes' | 'not_really' | 'dismissed';
 export type FeedbackDecision = { surface: FeedbackSurface; runId: string };
