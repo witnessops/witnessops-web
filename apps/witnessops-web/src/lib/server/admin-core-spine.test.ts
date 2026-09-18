@@ -60,7 +60,8 @@ async function createCompletedDelivery(
     receivedAt: "2026-08-13T08:00:00Z",
     excerpt: "Bounded request.",
   }, founder);
-  const converted = await convertInboxItemToReviewRequest(imported.item.id, owner);
+  // Seed ownership as Founder; subsequent actions exercise the delegated role.
+  const converted = await convertInboxItemToReviewRequest(imported.item.id, { ...owner, role: "Founder" });
   await transitionReviewRequest(converted.reviewRequest.id, "triage", owner);
   await transitionReviewRequest(converted.reviewRequest.id, "fit_review", owner);
   await transitionReviewRequest(converted.reviewRequest.id, "fit_confirmed", owner);
@@ -99,7 +100,8 @@ test("delegated operators may mutate only records assigned to them", async () =>
   }, founder);
   const owner = { actor: "owner@test", role: "Delegated Operator" as const };
   const otherOperator = { actor: "other@test", role: "Delegated Operator" as const };
-  const converted = await convertInboxItemToReviewRequest(imported.item.id, owner);
+  // Seed ownership as Founder; subsequent actions exercise the delegated role.
+  const converted = await convertInboxItemToReviewRequest(imported.item.id, { ...owner, role: "Founder" });
 
   await assert.rejects(
     () => transitionReviewRequest(converted.reviewRequest.id, "triage", otherOperator),
@@ -349,8 +351,8 @@ test("delegated reads expose only assigned record lineages", async () => {
     receivedAt: "2026-08-13T08:01:00Z",
     excerpt: "Bob bounded request",
   }, founder);
-  const aliceRequest = await convertInboxItemToReviewRequest(aliceInbox.item.id, alice);
-  const bobRequest = await convertInboxItemToReviewRequest(bobInbox.item.id, bob);
+  const aliceRequest = await convertInboxItemToReviewRequest(aliceInbox.item.id, { ...alice, role: "Founder" });
+  const bobRequest = await convertInboxItemToReviewRequest(bobInbox.item.id, { ...bob, role: "Founder" });
 
   assert.deepEqual((await listReviewRequests(alice)).map((item) => item.id), [aliceRequest.reviewRequest.id]);
   assert.deepEqual((await listCustomers(alice)).map((item) => item.id), [aliceRequest.customer.id]);

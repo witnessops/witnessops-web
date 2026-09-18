@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test, { afterEach } from "node:test";
@@ -8,6 +8,7 @@ import { NextRequest } from "next/server";
 import { createAdminSessionCookie } from "@/lib/server/admin-session";
 import {
   convertInboxItemToReviewRequest,
+  getAdminCoreStorePath,
   importGmailInboxItem,
   resetAdminCoreStoreForTests,
 } from "@/lib/server/admin-core-spine";
@@ -15,7 +16,7 @@ import { GET, POST } from "./[...path]/route";
 
 const founder = { actor: "founder@test", role: "Founder" as const };
 
-async function cookieFor(subject: string, role: "Founder" | "Delegated Operator") {
+async function cookieFor(subject: string, role: "Founder" | "Delegated Operator" | "Administrator") {
   process.env.WITNESSOPS_ADMIN_SECRET = "test-admin-secret";
   const now = Date.now();
   return createAdminSessionCookie({
@@ -58,7 +59,8 @@ test("admin core API hides foreign direct IDs and list records", async () => {
     receivedAt: "2026-08-13T08:00:00Z",
     excerpt: "Private bounded request",
   }, founder);
-  const converted = await convertInboxItemToReviewRequest(imported.item.id, bob);
+  // Seed ownership as Founder; subsequent actions exercise the delegated role.
+  const converted = await convertInboxItemToReviewRequest(imported.item.id, { ...bob, role: "Founder" });
   const aliceCookie = await cookieFor("alice", "Delegated Operator");
   const aliceRequest = (pathParts: string[]) =>
     new NextRequest(`https://witnessops.com/api/admin/core/${pathParts.join("/")}`, {
@@ -239,4 +241,44 @@ test("admin core API contains unexpected storage errors", async () => {
     error: "Admin core action failed.",
   });
   assert.doesNotMatch(JSON.stringify(logged), /private-admin-core|WITNESSOPS_/);
+});
+
+test("initial conversion is Founder-only; assigned replay remains available", async () => {
+  process.env.WITNESSOPS_ADMIN_CORE_STORE_DIR = await mkdtemp(path.join(os.tmpdir(), "admin-conversion-boundary-"));
+  const imported = await importGmailInboxItem({
+    gmailMessageId: "conversion-boundary", gmailThreadId: "conversion-thread",
+    sender: "Synthetic <buyer@example.test>", recipients: [], subject: "Synthetic request",
+    receivedAt: "2026-08-13T08:00:00Z", excerpt: "Private synthetic request",
+  }, founder);
+  async function convert(subject: string, role: "Founder" | "Delegated Operator" | "Administrator", inboxId = imported.item.id, key = "conversion-test") {
+    const cookie = await cookieFor(subject, role);
+    return POST(new NextRequest(`https://witnessops.com/api/admin/core/inbox/${inboxId}/convert`, {
+      method: "POST", headers: { "Content-Type": "application/json", cookie: `witnessops-admin-session=${cookie}` },
+      body: JSON.stringify({ idempotencyKey: key }),
+    }), context("inbox", inboxId, "convert"));
+  }
+  const before = await readFile(getAdminCoreStorePath(), "utf8");
+  for (const role of ["Delegated Operator", "Administrator"] as const) {
+    assert.equal((await convert("owner", role)).status, 403);
+    assert.equal(await readFile(getAdminCoreStorePath(), "utf8"), before);
+  }
+  const created = await convert("owner", "Founder");
+  assert.equal(created.status, 200);
+  assert.equal((await created.json()).created, true);
+  const committed = await readFile(getAdminCoreStorePath(), "utf8");
+  // Existing ownership survives a later change to the operator's role.
+  const replay = await convert("owner", "Delegated Operator");
+  assert.equal(replay.status, 200);
+  assert.equal((await replay.json()).created, false);
+  assert.equal((await convert("other", "Delegated Operator")).status, 403);
+  assert.equal((await convert("owner", "Administrator")).status, 403);
+  assert.equal(await readFile(getAdminCoreStorePath(), "utf8"), committed);
+  const second = await importGmailInboxItem({
+    gmailMessageId: "conversion-second", gmailThreadId: "conversion-second-thread",
+    sender: "Other <other@example.test>", recipients: [], subject: "Other request",
+    receivedAt: "2026-08-13T08:00:00Z", excerpt: "Other private request",
+  }, founder);
+  const beforeCollision = await readFile(getAdminCoreStorePath(), "utf8");
+  assert.equal((await convert("owner", "Delegated Operator", second.item.id, "conversion-test")).status, 403);
+  assert.equal(await readFile(getAdminCoreStorePath(), "utf8"), beforeCollision);
 });
