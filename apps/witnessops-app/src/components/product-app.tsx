@@ -2,8 +2,6 @@
 import { hasWorkspaceCapability } from "../lib/workspace-role-policy";
 
 import Link from "next/link";
-import { AppHelp } from "./app-help";
-import { helpPage } from "../lib/help-context";
 import { Billing } from "./billing";
 import { ReportShare } from "./report-share";
 import { Members } from "./members";
@@ -17,6 +15,8 @@ import { WitnessOpsMark } from "@witnessops/ui/witnessops-mark";
 import { BuyerReportDocument } from "../../../witnessops-web/src/components/proofpack/buyer-report";
 import { useBuyerReportPrint } from "../../../witnessops-web/src/components/proofpack/buyer-report-print";
 import { savedRunReport } from "../lib/report-model";
+import { AppHelp } from "./app-help";
+import { helpPage } from "../lib/help-context";
 import { logout } from "../app/actions/logout";
 import { canonicalSource } from "../lib/source-digest";
 import { nextAction, observationFacts, observationSummary } from "../lib/observation-presentation";
