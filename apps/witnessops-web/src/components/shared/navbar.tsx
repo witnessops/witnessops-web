@@ -15,12 +15,14 @@ import {
 
 
 interface NavbarProps {
+  signupUrl?: string | null;
+  appUrl?: string | null;
   links: { label: string; href: string }[];
   cta: { label: string; href: string; variant: string };
   announcement: { enabled: boolean; text: string; href: string };
 }
 
-export function Navbar({ announcement }: NavbarProps) {
+export function Navbar({ announcement, signupUrl = null, appUrl = null }: NavbarProps) {
   const pathname = usePathname();
   const navRef = useRef<HTMLElement>(null);
   const currentPath = pathname || "/";
@@ -34,8 +36,8 @@ export function Navbar({ announcement }: NavbarProps) {
     { label: "Docs", href: "/docs" },
   ];
   const effectiveCta = {
-    label: "Sign up",
-    href: "https://app.witnessops.com/signup",
+    label: signupUrl ? "Sign up" : "Free check",
+    href: signupUrl || "/check",
     variant: "primary",
   };
   const effectiveAnnouncement = announcement;
@@ -137,7 +139,7 @@ export function Navbar({ announcement }: NavbarProps) {
 
           <div className="contents lg:flex lg:items-center lg:gap-3">
             <div className="hidden items-center gap-4 lg:flex lg:gap-2 xl:gap-5">
-              {!polish ? <DesktopNavbarMenu /> : effectiveLinks.map((link) =>
+              {!polish ? <DesktopNavbarMenu loginUrl={appUrl ? new URL("/login", appUrl).href : null} /> : effectiveLinks.map((link) =>
                 isExternalHref(link.href) ? (
                   <a
                     key={link.href}
@@ -188,6 +190,7 @@ export function Navbar({ announcement }: NavbarProps) {
               )}
             </div>
             <MobileNavbarMenu
+              loginUrl={appUrl ? new URL("/login", appUrl).href : null}
               links={effectiveLinks}
               groups={polish ? undefined : PUBLIC_NAV_GROUPS}
               cta={effectiveCta}

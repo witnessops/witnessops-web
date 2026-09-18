@@ -7,7 +7,7 @@ import { PublicNavigationLink as Link } from "./document-navigation";
 import { PUBLIC_NAV_GROUPS } from "./public-nav-groups";
 import styles from "./desktop-navbar-menu.module.css";
 
-export function DesktopNavbarMenu() {
+export function DesktopNavbarMenu({ loginUrl = null }: { loginUrl?: string | null }) {
   const [open, setOpen] = useState<number | null>(null);
   const root = useRef<HTMLDivElement>(null);
   const triggers = useRef<(HTMLButtonElement | null)[]>([]);
@@ -54,7 +54,7 @@ export function DesktopNavbarMenu() {
         <div className={styles.links}>{group.links.map(link => <Link key={link.href} href={link.href} onClick={() => setOpen(null)} aria-current={pathname === link.href ? "page" : undefined}>
           <span>{link.label}<ArrowUpRight size={15} aria-hidden="true" /></span><p>{link.description}</p>
         </Link>)}</div>
-        <div className={styles.bottom}><span>REPEATABLE. INDEPENDENT.</span><Link href="/docs/getting-started/cli" onClick={() => setOpen(null)}>CLI setup</Link><Link href="https://app.witnessops.com/login" onClick={() => setOpen(null)}>Log in<ArrowUpRight size={13} aria-hidden="true" /></Link></div>
+        <div className={styles.bottom}><span>REPEATABLE. INDEPENDENT.</span><Link href="/docs/getting-started/cli" onClick={() => setOpen(null)}>CLI setup</Link>{loginUrl && <Link href={loginUrl} onClick={() => setOpen(null)}>Log in<ArrowUpRight size={13} aria-hidden="true" /></Link>}</div>
       </div>
     </div>)}
     <Link className={styles.trigger} href="/pricing">Pricing</Link>

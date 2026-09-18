@@ -1,3 +1,4 @@
+import { getWorkspaceAppUrl } from "@/lib/workspace-access";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
@@ -22,6 +23,7 @@ function TextLink({ href, children, uiProofId }: { href: string; children: React
 }
 
 export function SimpleHomepage() {
+  const signupUrl = getWorkspaceAppUrl("/signup");
   return <main id="main-content" tabIndex={-1} className={styles.page} data-page="home" data-home-direction="security-verification">
     <section className={styles.hero} data-ask-trigger-guard data-ui-proof-id="homepage-hero">
       <div className={styles.frame}>
@@ -31,7 +33,7 @@ export function SimpleHomepage() {
           <p className={styles.lead} data-ui-proof-id="homepage-hero-body">Check a public hostname. See the findings, the evidence and what remains unknown. Compare saved checks in an invited workspace.</p>
           <div className={styles.actions}>
             <Link className={styles.primary} href="/check" data-ui-proof-id="homepage-hero-primary-cta">Start a free check</Link>
-            <TextLink href="https://app.witnessops.com/signup">Create an account</TextLink>
+            {signupUrl && <TextLink href={signupUrl}>Create an account</TextLink>}
           </div>
           <p className={styles.note}>Free checks need no account. Workspace access requires an invitation.</p>
         </div>

@@ -21,7 +21,7 @@ const capabilities = [
 const eyebrow = "text-xs uppercase tracking-[0.16em] text-text-muted";
 const button = "min-h-11 rounded border border-surface-border-strong px-5 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent";
 
-export function AppPricing() {
+export function AppPricing({ signupUrl = null }: { signupUrl?: string | null }) {
   const [annual, setAnnual] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   return <>
@@ -45,7 +45,7 @@ export function AppPricing() {
         </article>)}
       </div>
       <div role="status" aria-live="polite" className="mt-5 text-sm leading-6 text-text-secondary">{selected ? `${selected} selected for preview. No payment taken, account changed or check started.` : "Preview a plan to explore the draft. Selection applies only to this page."}</div>
-      <a href="https://app.witnessops.com/signup" className="mt-2 inline-flex min-h-11 items-center text-sm underline underline-offset-4">Create an account</a>
+      {signupUrl && <a href={signupUrl} className="mt-2 inline-flex min-h-11 items-center text-sm underline underline-offset-4">Create an account</a>}
     </section>
     <section className="border-b border-surface-border py-12 lg:py-16" aria-labelledby="capabilities-heading">
       <p className={eyebrow}>Compare · Proposed capabilities</p><h2 id="capabilities-heading" className="mt-3 text-3xl font-medium">What each plan records</h2>
