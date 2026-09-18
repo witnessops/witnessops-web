@@ -175,3 +175,31 @@
     .document .sourceArtifact > pre { line-height: 1.5; margin-bottom: 2mm; widows: 8; orphans: 8; }
     .document .sourceArtifact > p { margin-bottom: 2mm; }
 }
+
+@media print {
+    /* Follow-through is longer than the legacy cover summary. Use compact
+       print spacing without hiding limitations or constraining content height. */
+    .document :global(.report-next-steps) { margin: 4mm 0; font-size: 9pt; line-height: 1.4; }
+    .document :global(.report-next-steps) h3 { margin: 0 0 2mm; font-size: 11pt; }
+    .document :global(.report-next-steps) p { margin: 0 0 1.5mm; }
+    .document :global(.report-next-item) { padding: 2mm 0; break-inside: avoid; }
+    .document :global(.report-next-steps) details { margin-top: 2mm; font-size: 8pt; }
+    .document :global(.report-next-steps) details > div { break-inside: avoid; }
+    .document :global(.report-next-steps) summary { break-after: avoid; }
+
+    .document .cover { min-height: 0; }
+    .document .cover > .fine { margin-bottom: 2mm; }
+
+    /* A whole finding is not an atomic page unit. Let long evidence flow,
+       while keeping the chapter introduction and finding headings attached. */
+    .document .finding { break-inside: auto; }
+    .document .running, .document .findingMeta,
+    .document .chapter > .lead, .document .chapter > .lead + .fine { break-after: avoid; }
+    .document p, .document pre { orphans: 3; widows: 3; }
+    .document .sourceArtifact > pre { orphans: 8; widows: 8; }
+
+    /* Do not strand a provenance value, source filename or digest. */
+    .document .receipt dt, .document .receipt dd { break-inside: avoid; }
+    .document .sourceArtifact > p { break-inside: avoid; }
+    .document .sourceArtifact > p:not(:last-child) { break-after: avoid; }
+}
